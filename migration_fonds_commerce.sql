@@ -1,6 +1,6 @@
 -- =====================================================================
 -- LOT 3.0 — CYCLE PATRIMONIAL DU FONDS DE COMMERCE ET ARCHIVE DES BAUX
--- Une table, un utilitaire, quatre RPC transactionnelles
+-- Une table, un utilitaire, cinq RPC transactionnelles
 -- 8 septembre 2026
 -- =====================================================================
 -- ⚠️  NON EXECUTEE. Fournie pour relecture.
@@ -9,9 +9,10 @@
 -- Le client est fail-closed partout : tant que ces objets n'existent pas, sbRpc renvoie null et
 -- l'action est refusee avec un message explicite. Aucun repli sur un chemin non transactionnel.
 --
--- POURQUOI DU TRANSACTIONNEL. Chacune des quatre operations traverse plusieurs tables :
+-- POURQUOI DU TRANSACTIONNEL. Chacune des cinq operations traverse plusieurs tables :
 --   creer_fonds_commerce      : entreprises + (personnages | organisations)
 --   alimenter_caisse_fonds    : entreprises + (personnages | organisations)
+--   retirer_caisse_fonds      : entreprises + (personnages | organisations)
 --   vendre_fonds_commerce     : entreprises + locations_actives + deux patrimoines
 --   terminer_bail             : locations_actives + locations_archives + entreprises
 -- En ecritures REST separees, une panne intermediaire produirait exactement les etats que le
@@ -289,6 +290,72 @@ END;
 $$;
 
 -- ---------------------------------------------------------------------
+-- 4 bis. RETRAIT DE CAISSE
+-- ---------------------------------------------------------------------
+-- Symetrique exact de l'alimentation. Ce n'est pas un revenu que le jeu fabrique : c'est le
+-- proprietaire qui reprend son propre argent, la ou il l'avait mis. La masse monetaire ne bouge
+-- pas d'un FR -- ce qui sort de la caisse entre dans le patrimoine, et rien d'autre.
+--
+-- TANT QUE LE FONDS EST A LUI, IL EN DISPOSE. Un impaye de loyer, une procedure de recuperation
+-- ouverte, une eviction demandee : rien de tout cela ne gele ses actifs. C'est seulement quand
+-- l'eviction est EXECUTEE -- le bail termine, le fonds passe a 'abandonne' -- que ce retrait
+-- devient impossible, parce que le fonds n'est alors plus exploitable par personne. Le controle
+-- de statut ci-dessous est donc la frontiere exacte entre "menace" et "fait accompli".
+CREATE OR REPLACE FUNCTION retirer_caisse_fonds(
+  p_acteur   text,
+  p_fonds_id text,
+  p_montant  integer
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_data   jsonb;
+  v_caisse integer;
+  v_m      integer := COALESCE(p_montant, 0);
+BEGIN
+  IF COALESCE(p_acteur, '') = '' OR COALESCE(p_fonds_id, '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  IF v_m <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+
+  -- Le fonds est verrouille AVANT le patrimoine : c'est lui qui porte le montant disponible, et
+  -- deux retraits simultanes doivent se serialiser sur cette ligne-la, jamais sur le compte.
+  SELECT data INTO v_data FROM entreprises WHERE id = p_fonds_id FOR UPDATE;
+  IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'fonds_absent'); END IF;
+  IF COALESCE((v_data ->> 'version')::integer, 0) < 2 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_un_fonds');
+  END IF;
+  IF COALESCE(v_data ->> 'statut', 'actif') <> 'actif' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_inactif');
+  END IF;
+  IF (v_data ->> 'proprietaire') IS DISTINCT FROM p_acteur THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+  END IF;
+
+  v_caisse := GREATEST(0, COALESCE((v_data ->> 'caisse')::numeric, 0))::integer;
+  IF v_m > v_caisse THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante', 'caisse', v_caisse);
+  END IF;
+
+  -- Debit de la caisse PUIS credit du patrimoine, dans la meme transaction. Si le titulaire est
+  -- introuvable, l'exception annule le debit : jamais d'argent detruit en route.
+  UPDATE entreprises
+    SET data = jsonb_set(v_data, '{caisse}', to_jsonb(v_caisse - v_m)),
+        updated_at = now()
+    WHERE id = p_fonds_id;
+
+  IF NOT mouvement_titulaire(p_acteur, v_m) THEN
+    RAISE EXCEPTION 'titulaire_introuvable';
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'montant', v_m, 'caisse', v_caisse - v_m);
+END;
+$$;
+
+-- ---------------------------------------------------------------------
 -- 5. VENTE D'UN FONDS DE COMMERCE
 -- ---------------------------------------------------------------------
 -- LA CAISSE N'EST PAS COMPRISE DANS LA VENTE. Elle est extraite au vendeur AVANT le transfert, et
@@ -536,18 +603,21 @@ GRANT EXECUTE ON FUNCTION creer_fonds_commerce(text, text, text, integer, text) 
 REVOKE ALL ON FUNCTION alimenter_caisse_fonds(text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION alimenter_caisse_fonds(text, text, integer) TO anon, authenticated, service_role;
 
+REVOKE ALL ON FUNCTION retirer_caisse_fonds(text, text, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION retirer_caisse_fonds(text, text, integer) TO anon, authenticated, service_role;
+
 REVOKE ALL ON FUNCTION vendre_fonds_commerce(text, text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION vendre_fonds_commerce(text, text, text, integer) TO anon, authenticated, service_role;
 
 REVOKE ALL ON FUNCTION terminer_bail(text, text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION terminer_bail(text, text, text, integer) TO anon, authenticated, service_role;
 
--- CONTROLE POSTERIEUR — attendu : la table, ses 4 index, ses 2 policies, et les 5 fonctions.
+-- CONTROLE POSTERIEUR — attendu : la table, ses 4 index, ses 2 policies, et les 6 fonctions.
 SELECT 'table' AS objet, tablename AS nom FROM pg_tables WHERE tablename = 'locations_archives'
 UNION ALL
 SELECT 'policy', policyname FROM pg_policies WHERE tablename = 'locations_archives'
 UNION ALL
 SELECT 'fonction', routine_name FROM information_schema.routines
  WHERE routine_name IN ('mouvement_titulaire','creer_fonds_commerce','alimenter_caisse_fonds',
-                        'vendre_fonds_commerce','terminer_bail')
+                        'retirer_caisse_fonds','vendre_fonds_commerce','terminer_bail')
 ORDER BY objet, nom;
