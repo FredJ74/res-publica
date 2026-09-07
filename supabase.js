@@ -1309,6 +1309,81 @@ async function sbDonnerObjetJoueur(objet, destinataire, expediteur) {
   return sbInsert('objets_recus', data);
 }
 
+// =====================================================================
+// FONDS DE COMMERCE ET FIN DE BAIL (Lot 3.0)
+// =====================================================================
+// Quatre operations patrimoniales, quatre RPC transactionnelles. Chacune traverse plusieurs
+// tables ; aucune ne peut etre approchee par des ecritures REST separees sans risquer un fonds
+// cree sans debit, une caisse extraite deux fois ou un bail reste a l'ancien titulaire.
+// FAIL-CLOSED : sbRpc renvoie null si la fonction n'existe pas encore -- l'action est alors
+// refusee, et rien n'a ete ecrit nulle part.
+function verdictRpc(rows) {
+  if (!rows) return null;
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+async function sbCreerFondsCommerce(proprietaireRef, bailId, fondsId, apport, enseigne) {
+  return verdictRpc(await sbRpc('creer_fonds_commerce', {
+    p_proprietaire: proprietaireRef, p_bail_id: bailId, p_fonds_id: fondsId,
+    p_apport: apport, p_enseigne: enseigne
+  }));
+}
+
+async function sbAlimenterCaisseFonds(acteurRef, fondsId, montant) {
+  return verdictRpc(await sbRpc('alimenter_caisse_fonds', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_montant: montant
+  }));
+}
+
+// Retrait : symetrique de l'alimentation. Ce n'est pas un revenu, c'est le proprietaire qui
+// reprend son argent -- la RPC rejette au-dela de la caisse reelle, relue sous verrou.
+async function sbRetirerCaisseFonds(acteurRef, fondsId, montant) {
+  return verdictRpc(await sbRpc('retirer_caisse_fonds', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_montant: montant
+  }));
+}
+
+// NON APPELABLE AUJOURD'HUI, et c'est voulu. vendre_fonds_commerce est reservee au service_role :
+// le vendeur y est bien verifie, mais l'ACHETEUR ne l'est pas, et la vente lui transfererait un
+// fonds ET son bail sans qu'il ait rien accepte. Tant que le canal d'offre/acceptation n'existe
+// pas, cet appel recoit un 403 et sbRpc renvoie null -- fail-closed, aucun transfert non consenti.
+// Le helper est conserve pret a l'emploi pour le jour ou cette preuve d'acceptation existera.
+async function sbVendreFondsCommerce(vendeurRef, acheteurRef, fondsId, prix) {
+  return verdictRpc(await sbRpc('vendre_fonds_commerce', {
+    p_vendeur: vendeurRef, p_acheteur: acheteurRef, p_fonds_id: fondsId, p_prix: prix
+  }));
+}
+
+// SEULE FIN DE BAIL ACCESSIBLE AU NAVIGATEUR. La primitive generique terminer_bail accepte quatre
+// causes, dont trois -- eviction judiciaire, accord amiable, succession -- ne sont legitimes que si
+// une decision exterieure les fonde. Aucune de ces preuves ne peut etre etablie a partir d'un
+// parametre envoye par le client : il suffirait d'ecrire la chaine voulue pour expulser un tiers.
+// Elle est donc reservee au service_role, et cette porte-ci est la seule ouverte : elle FIGE la
+// cause et l'indemnite, et la RPC exige que le demandeur soit le titulaire reel du bail.
+async function sbResilierBailVolontaire(bailId, acteurRef) {
+  return verdictRpc(await sbRpc('resilier_bail_volontaire', {
+    p_bail_id: bailId, p_acteur: acteurRef
+  }));
+}
+
+async function sbGetArchivesBaux(filtre) {
+  const rows = await sbGet('locations_archives', filtre || '');
+  return rows || [];
+}
+
+// Fonds d'un titulaire, lus sur la table entreprises. Les etablissements PNJ historiques n'ont pas
+// de champ version : ils ne remontent jamais ici.
+async function sbGetFondsDe(proprietaireRef) {
+  const rows = await sbGet('entreprises', '');
+  return (rows || []).map(r => r.data).filter(d => d && Number(d.version) >= 2
+    && d.proprietaire === proprietaireRef);
+}
+
+async function sbGetFonds(fondsId) {
+  const rows = await sbGet('entreprises', `id=eq.${encodeURIComponent(fondsId)}`);
+  return (rows && rows[0]) ? rows[0].data : null;
+}
+
 async function sbGetObjetsRecus(nom) {
   const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}`);
   if (!rows) return [];

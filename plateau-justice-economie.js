@@ -2406,25 +2406,41 @@ function resilierBail() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerResiliation(idx) {
+// Lot 3.0 : la resiliation passe desormais par la primitive UNIQUE de fin de bail
+// (terminer_bail). Elle archive le bail AVANT de le supprimer, dans la meme transaction, et fait
+// cesser l'exploitation du fonds sans jamais le donner au proprietaire des murs. Le chemin
+// precedent supprimait la ligne sans laisser la moindre trace de son histoire.
+//
+// FAIL-CLOSED : si la RPC n'a pas repondu, RIEN n'est retire localement. Un bail encore vivant en
+// base mais disparu de l'ecran serait pire que l'inverse -- le joueur croirait etre libere tout en
+// continuant a payer.
+async function confirmerResiliation(idx) {
   if (!state.locationsActives?.[idx]) return;
   const location = state.locationsActives[idx];
-  state.locationsActives.splice(idx, 1);
-  // Correctif (18 aout 2026) : la resiliation ne supprimait jusqu'ici que l'entree locale --
-  // la ligne correspondante de la table Supabase dediee "locations_actives" restait en base,
-  // et pouvait donc reapparaitre pour d'autres joueurs (ou apres reconnexion) via
-  // chargerLocations(). sbSupprimerLocation() existait deja (introduite pour la resiliation
-  // automatique des logements sociaux) mais n'etait jusque-la jamais appelee ici.
-  if (typeof sbSupprimerLocation === 'function') {
-    sbSupprimerLocation(location.country || state.country, location.buildingId, location.roomId, location.city).catch(() => {});
+  const bailId = (typeof idLocation === 'function') ? idLocation(location) : null;
+  if (!bailId || typeof sbResilierBailVolontaire !== 'function') {
+    showToast('Résiliation impossible', "Le service des baux n'a pas répondu. Rien n'a été modifié — réessayez.", false);
+    return;
   }
-  // Lot 1.3 : bail de lot -> nettoie aussi le miroir subdivision.locataire, sans quoi le cron
-  // continuerait de prelever un loyer pour un bail resilie et le lot resterait "occupe" pour le
-  // proprietaire des murs (locataire fantome). No-op pour un bail de piece statique.
+
+  // La cause et l'indemnite ne sont pas transmises : la RPC publique les fige. Le navigateur ne
+  // dispose d'aucun chemin vers une eviction, un accord amiable ou une succession.
+  const verdict = await sbResilierBailVolontaire(bailId, refDemandeurPourBail(location));
+  if (!verdict || verdict.ok !== true) {
+    showToast('Résiliation impossible',
+      (verdict && verdict.raison === 'pas_titulaire')
+        ? "Ce bail n'est pas le vôtre."
+        : "Le service des baux n'a pas pu enregistrer la résiliation. Rien n'a été modifié — réessayez.", false);
+    return;
+  }
+
+  // Le serveur fait foi : on n'aligne l'etat local qu'apres son accord.
+  state.locationsActives.splice(idx, 1);
   if (typeof libererMiroirLot === 'function') libererMiroirLot(location);
-  document.getElementById('modal-postes').classList.remove('open');
+  document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Bail résilié', location.localLabel + ' libéré.', false);
-  addJournalEntry('Bail résilié : ' + location.localLabel + '.', 'event-info');
+  addJournalEntry('Bail résilié : ' + location.localLabel + '.'
+    + (verdict.fondsId ? ' Le fonds exploité ici cesse son activité — il ne revient pas au propriétaire des murs.' : ''), 'event-info');
   if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
@@ -6511,6 +6527,171 @@ async function confirmerReconfiguration() {
   showToast('Travaux engagés', ch.surfaceConcernee + ' m² concernés · ' + ch.dureeJours + ' jour(s). Aucune annulation possible.', true, true);
   addJournalEntry('Reconfiguration engagée : ' + ch.surfaceConcernee + ' m² concernés, '
     + ch.coutTotal.toLocaleString('fr-FR') + ' ' + cur + ' versés, ' + ch.dureeJours + ' jour(s) de travaux.', 'event-good');
+}
+
+// =====================================================================
+// FONDS DE COMMERCE — GESTION PAR SON PROPRIETAIRE (Lot 3.0)
+// =====================================================================
+// Un ecran unique, atteint depuis le local loue : creer le fonds s'il n'existe pas, l'alimenter
+// ou en retirer de l'argent s'il existe. Toutes les ecritures passent par les RPC
+// transactionnelles -- le client ne calcule aucun solde et ne s'accorde aucun droit.
+//
+// QUI PARLE. Le titulaire d'un bail peut etre un PJ ou une organisation. La reference typee du
+// demandeur est donc deduite du bail lui-meme, jamais du joueur connecte : on ne convertit JAMAIS
+// implicitement 'orga:<id>' en son dirigeant, sans quoi l'argent d'une personne morale finirait
+// sur un compte personnel.
+function refDemandeurPourBail(bail) {
+  if (!bail) return null;
+  if (typeof bail.locataireRef === 'string' && bail.locataireRef) return bail.locataireRef;
+  return refPJ(bail.locataire);
+}
+
+// Le joueur connecte a-t-il la main sur ce titulaire ? Un PJ sur lui-meme ; une organisation via
+// son controle actuel -- le dirigeant par defaut, comme partout ailleurs aujourd'hui.
+function joueurControle(ref) {
+  const d = decomposerRef(ref);
+  if (d.type === 'pj') return estTitulaire(d.id);
+  if (d.type === 'orga') {
+    // Controle organisationnel ACTUEL du jeu : le dirigeant, avec le fondateur en repli. Aucune
+    // gouvernance avancee n'est introduite ici -- et surtout, 'orga:<id>' n'est JAMAIS converti en
+    // son dirigeant pour les mouvements d'argent : il decide, il n'encaisse pas.
+    const orga = (state.organisations || []).find(function (o) { return o && o.id === d.id; });
+    if (!orga) return false;
+    return estTitulaire(orga.chef) || estTitulaire(orga.fondateur);
+  }
+  return false;
+}
+
+// Bail du joueur sur le local courant, lu sur la source canonique (state.locationsActives).
+function bailDuLocalCourant() {
+  const b = (state.locationsActives || []).find(function (l) {
+    return l.buildingId === state.currentBuilding && l.roomId === state.currentRoom
+        && l.city === state.currentCity;
+  });
+  return b || null;
+}
+
+async function doGererFondsCommerce(pa, cost) {
+  const bail = bailDuLocalCourant();
+  if (!bail) { showToast('Aucun bail', "Vous n'êtes pas titulaire d'un bail sur ce local.", false); return; }
+
+  const ref = refDemandeurPourBail(bail);
+  if (!joueurControle(ref)) { showToast('Accès refusé', "Ce bail n'est pas sous votre contrôle.", false); return; }
+
+  const ts = getTerrainState(bail.buildingId);
+  const lot = ((ts && ts.subdivisions) || []).find(function (l) { return l && l.id === bail.lotId; })
+           || { id: bail.lotId, destination: 'commerce' };
+
+  let fonds = null;
+  if (bail.fondsId && typeof sbGetFonds === 'function') {
+    fonds = await sbGetFonds(bail.fondsId).catch(function () { return null; });
+  }
+  renderFondsCommerce(bail, lot, ref, fonds, pa, cost);
+}
+
+function renderFondsCommerce(bail, lot, ref, fonds, pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  window._fondsContexte = { bailId: (typeof idLocation === 'function') ? idLocation(bail) : null,
+                            ref: ref, fondsId: fonds ? fonds.id : null, pa: pa, cost: cost };
+  let html = '<div style="padding:1rem">';
+
+  if (!estFondsCommerce(fonds)) {
+    if (!localCompatibleFonds(lot)) {
+      html += '<div style="font-size:.82rem;color:#8a8060">Ce local n\'est pas à destination commerciale : on n\'y exploite pas de fonds de commerce.</div></div>';
+      document.getElementById('postes-modal-title').textContent = 'Fonds de commerce';
+      document.getElementById('postes-body').innerHTML = html;
+      document.getElementById('modal-postes').classList.add('open');
+      return;
+    }
+    // PRENDRE UN BAIL N'A PAS CREE DE FONDS : c'est ici, et seulement ici, qu'on decide d'exploiter.
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Votre bail vous donne le droit d\'occuper ce local. Y exploiter un commerce est une décision distincte : le fonds que vous créez ici vous appartient, il pourra être vendu ou transmis <b>avec son bail</b>, indépendamment des murs.</div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">L\'apport initial est <b>librement choisi</b> et réellement transféré depuis vos fonds vers la caisse du commerce — le jeu ne crée aucun capital. Un apport nul est possible : vous alimenterez plus tard.</div>';
+    html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
+    html += '<input id="fonds-enseigne" type="text" placeholder="Enseigne..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+    html += '<input id="fonds-apport" type="number" min="0" placeholder="Apport..." style="width:130px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+    html += '</div>';
+    html += '<button class="pnj-action-btn" onclick="confirmerCreationFonds()">Créer le fonds de commerce</button>';
+  } else {
+    const caisse = caisseFonds(fonds);
+    const actif = fondsEstActif(fonds);
+    html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.3rem">' + (fonds.enseigne || 'Fonds de commerce') + '</div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Caisse : <b>' + caisse.toLocaleString('fr-FR') + ' ' + cur + '</b>'
+         + (actif ? '' : ' · <span style="color:#cc6a44">fonds abandonné — plus exploitable</span>') + '</div>';
+    if (actif) {
+      html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
+      html += '<input id="fonds-montant" type="number" min="1" placeholder="Montant..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+      html += '</div>';
+      html += '<button class="pnj-action-btn" onclick="confirmerAlimentationFonds()">Verser dans la caisse</button>';
+      html += '<button class="pnj-action-btn" style="margin-top:.4rem" onclick="confirmerRetraitFonds()">Retirer de la caisse</button>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Fonds de commerce';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// FAIL-CLOSED partout : sans verdict favorable de la RPC, rien n'est affiche comme acquis et
+// aucun etat local n'est modifie.
+async function confirmerCreationFonds() {
+  const ctx = window._fondsContexte || {};
+  if (!ctx.bailId || typeof sbCreerFondsCommerce !== 'function') {
+    showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); return;
+  }
+  const enseigne = (document.getElementById('fonds-enseigne')?.value || '').trim();
+  const apport = Math.max(0, parseInt(document.getElementById('fonds-apport')?.value || 0));
+  const id = nouvelIdFonds(state.country, Date.now(), Math.floor(Math.random() * 1000000));
+
+  const v = await sbCreerFondsCommerce(ctx.ref, ctx.bailId, id, apport, enseigne);
+  if (!v || v.ok !== true) {
+    showToast('Création impossible', messageRefusFonds(v), false); return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const bail = bailDuLocalCourant();
+  if (bail) bail.fondsId = v.fondsId;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Fonds créé', (enseigne || 'Votre commerce') + ' — caisse de ' + apport.toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
+  addJournalEntry('Fonds de commerce créé' + (enseigne ? ' (' + enseigne + ')' : '') + ' avec un apport de '
+    + apport.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+}
+
+async function confirmerAlimentationFonds() { return mouvementCaisseFonds(true); }
+async function confirmerRetraitFonds()      { return mouvementCaisseFonds(false); }
+
+async function mouvementCaisseFonds(versement) {
+  const ctx = window._fondsContexte || {};
+  const montant = parseInt(document.getElementById('fonds-montant')?.value || 0);
+  if (!ctx.fondsId) { showToast('Indisponible', 'Aucun fonds sur ce local.', false); return; }
+  if (!(montant > 0)) { showToast('Montant requis', 'Indiquez un montant.', false); return; }
+  const appel = versement ? sbAlimenterCaisseFonds : sbRetirerCaisseFonds;
+  if (typeof appel !== 'function') { showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); return; }
+
+  const v = await appel(ctx.ref, ctx.fondsId, montant);
+  if (!v || v.ok !== true) {
+    showToast(versement ? 'Versement impossible' : 'Retrait impossible', messageRefusFonds(v), false); return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast(versement ? 'Versement effectué' : 'Retrait effectué',
+    montant.toLocaleString('fr-FR') + ' ' + cur + ' · caisse : ' + Number(v.caisse).toLocaleString('fr-FR') + ' ' + cur, true);
+  addJournalEntry((versement ? 'Versé ' : 'Retiré ') + montant.toLocaleString('fr-FR') + ' ' + cur
+    + (versement ? ' dans la caisse de votre fonds.' : ' de la caisse de votre fonds.'), 'event-info');
+}
+
+function messageRefusFonds(v) {
+  const r = v && v.raison;
+  if (!v) return "Le service n'a pas répondu. Rien n'a été modifié — réessayez.";
+  return r === 'fonds_insuffisants'   ? "Vous n'avez pas cette somme."
+       : r === 'caisse_insuffisante'  ? 'La caisse du fonds ne contient pas cette somme.'
+       : r === 'pas_proprietaire'     ? "Ce fonds ne vous appartient pas."
+       : r === 'pas_titulaire'        ? "Ce bail n'est pas le vôtre."
+       : r === 'fonds_inactif'        ? "Ce fonds n'est plus exploitable."
+       : r === 'fonds_deja_present'   ? 'Un fonds est déjà exploité dans ce local.'
+       : r === 'local_incompatible'   ? "Ce local n'est pas à destination commerciale."
+       : r === 'montant_invalide'     ? 'Montant invalide.'
+       : "L'opération n'a pas pu aboutir. Rien n'a été modifié.";
 }
 
 // =====================

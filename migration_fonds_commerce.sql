@@ -660,7 +660,14 @@ $$;
 -- Ces trois-la redeviendront accessibles -- plus probablement au travers de portes dediees comme
 -- resilier_bail_volontaire -- quand la preuve qui leur manque existera : un jugement pour
 -- l'eviction, une acceptation pour la vente et pour l'accord amiable.
-REVOKE ALL ON FUNCTION mouvement_titulaire(text, numeric) FROM PUBLIC;
+-- REVOKE ... FROM PUBLIC NE SUFFIT PAS, et c'est le piege que la verification post-migration du
+-- 8 septembre 2026 a mis au jour. PUBLIC est le pseudo-role par defaut ; il ne recouvre PAS les
+-- droits accordes NOMINATIVEMENT a anon et authenticated. Une version anterieure de ce fichier
+-- ayant fait un GRANT explicite a ces deux roles sur les trois fonctions sensibles, le REVOKE sur
+-- PUBLIC les laissait intacts : elles sont restees publiquement executables alors que le SQL
+-- semblait dire le contraire. Chaque revocation nomme donc desormais les trois cibles, ce qui rend
+-- le fichier idempotent et fidele a l'etat reellement constate en base.
+REVOKE EXECUTE ON FUNCTION mouvement_titulaire(text, numeric) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION mouvement_titulaire(text, numeric) TO service_role;
 
 REVOKE ALL ON FUNCTION creer_fonds_commerce(text, text, text, integer, text) FROM PUBLIC;
@@ -672,14 +679,31 @@ GRANT EXECUTE ON FUNCTION alimenter_caisse_fonds(text, text, integer) TO anon, a
 REVOKE ALL ON FUNCTION retirer_caisse_fonds(text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION retirer_caisse_fonds(text, text, integer) TO anon, authenticated, service_role;
 
-REVOKE ALL ON FUNCTION vendre_fonds_commerce(text, text, text, integer) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION vendre_fonds_commerce(text, text, text, integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION vendre_fonds_commerce(text, text, text, integer) TO service_role;
 
-REVOKE ALL ON FUNCTION terminer_bail(text, text, text, integer) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION terminer_bail(text, text, text, integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION terminer_bail(text, text, text, integer) TO service_role;
 
 REVOKE ALL ON FUNCTION resilier_bail_volontaire(text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION resilier_bail_volontaire(text, text) TO anon, authenticated, service_role;
+
+-- CONTROLE POSTERIEUR DES DROITS, role par role. C'est ce controle-la qui compte : lister les
+-- fonctions ne dit rien de qui peut les appeler, et c'est precisement la ou le piege du REVOKE sur
+-- PUBLIC se cachait. Attendu :
+--   anon / authenticated  ->  creer_fonds_commerce, alimenter_caisse_fonds, retirer_caisse_fonds,
+--                             resilier_bail_volontaire  (et RIEN d'autre)
+--   service_role          ->  les sept
+SELECT p.proname AS fonction,
+       has_function_privilege('anon',          p.oid, 'EXECUTE') AS anon,
+       has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated,
+       has_function_privilege('service_role',  p.oid, 'EXECUTE') AS service_role
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname IN ('mouvement_titulaire','creer_fonds_commerce','alimenter_caisse_fonds',
+                    'retirer_caisse_fonds','vendre_fonds_commerce','terminer_bail',
+                    'resilier_bail_volontaire')
+ORDER BY p.proname;
 
 -- CONTROLE POSTERIEUR — attendu : la table, ses 4 index, ses 2 policies, et les 7 fonctions.
 SELECT 'table' AS objet, tablename AS nom FROM pg_tables WHERE tablename = 'locations_archives'

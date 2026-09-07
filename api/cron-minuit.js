@@ -2913,8 +2913,32 @@ async function nettoyerAchatsDirectsManques() {
 // anti-rejeu). Le moteur historique faisait deux UPDATE separes et ne creditait personne si le
 // proprietaire avait disparu -- l'argent etait detruit. FAIL-CLOSED : si la RPC n'est pas
 // installee, sbRpc renvoie null et RIEN n'est preleve.
+function jourCourantISO() { return new Date().toISOString().slice(0, 10); }
+
+// Titulaire ACTUEL des murs d'un bail, lu sur le terrain porteur -- jamais sur une valeur figee
+// dans le bail. C'est la meme regle que celle appliquee par prelever_loyer_bail pour choisir le
+// beneficiaire : vendre les murs transfere les loyers a venir, sans toucher au bail.
+// Renvoie null pour un bailleur qui n'est pas un PJ (municipalite, organisation) : ce sont des
+// caisses, pas des boites aux lettres.
+async function titulaireMursDuBail(data) {
+  if (!data || !data.buildingId) return null;
+  const dest = data.destinationLoyer || {};
+  if (dest.type && dest.type !== 'titulaire_murs') return null;
+  let titulaire = dest.titulaire || null;
+  if (!titulaire) {
+    const rows = await sbGet('terrains_etat',
+      `country=eq.${encodeURIComponent(data.country || 'republic')}&building_id=eq.${encodeURIComponent(data.buildingId)}`).catch(() => null);
+    if (rows && rows[0]) {
+      try { titulaire = (JSON.parse(rows[0].data) || {}).proprietaire || null; } catch (e) { titulaire = null; }
+    }
+  }
+  if (!titulaire) return null;
+  if (titulaire.slice(0, 5) === 'orga:') return null;      // une organisation n'a pas de courrier
+  return titulaire.slice(0, 3) === 'pj:' ? titulaire.slice(3) : titulaire;
+}
+
 async function preleverLoyersBaux() {
-  const resultats = { examines: 0, payes: 0, collecte: 0, avertissements: 0, expulsions: 0,
+  const resultats = { examines: 0, payes: 0, collecte: 0, avertissements: 0, impayes: 0,
                       ignores: 0, erreurs: 0 };
   // FAIL-CLOSED sur l'identite serveur : la RPC n'est executable que par service_role (voir
   // migration_loyers_unifies_lot14.sql). Sans la variable d'environnement, on n'envoie meme pas
@@ -2959,22 +2983,54 @@ async function preleverLoyersBaux() {
           archived: false
         }).catch(() => {});
       } else if (verdict === 'expulsion_requise') {
-        // Fin du BAIL uniquement (Lot 1.4). La recuperation du fonds, du stock et de la caisse
-        // appartient au Lot 3.0 et n'est pas amorcee ici.
-        const supprime = await sbDelete('locations_actives', `id=eq.${encodeURIComponent(row.id)}`).catch(() => null);
-        if (supprime !== null) {
-          resultats.expulsions++;
-          // Miroir transitoire : un lot expulse ne doit pas rester "occupe" cote terrain.
-          if (data.lotId && data.buildingId) await libererMiroirSubdivision(data.country, data.buildingId, data.lotId);
+        // IMPAYE CONSTATE, JAMAIS D'EXPULSION AUTOMATIQUE (arbitrage du 8 septembre 2026).
+        //
+        // Ce cron SUPPRIMAIT le bail a minuit apres un seul avertissement : le locataire perdait
+        // son local pendant son sommeil, sans procedure, sans recours et sans que personne ne
+        // decide rien. Un impaye n'est plus une cause de resiliation automatique -- c'est un FAIT
+        // qu'on constate, qu'on chiffre et qu'on conserve. Il ouvre au bailleur la meme voie de
+        // recuperation que n'importe quel autre motif (accord amiable ou justice) ; il ne la
+        // remplace pas.
+        //
+        // L'ardoise est cumulee sur le bail lui-meme : c'est elle qui servira de piece au dossier.
+        // Aucun argent ne bouge ici -- le loyer n'a pas ete preleve, il reste du.
+        const impaye = (data.impaye && typeof data.impaye === 'object') ? { ...data.impaye } : null;
+        const prixDu = Number(data.prix) || 0;
+        const majImpaye = impaye
+          ? { depuis: impaye.depuis || jourCourantISO(), jours: (Number(impaye.jours) || 0) + 1,
+              montantDu: (Number(impaye.montantDu) || 0) + prixDu, avisEnvoye: impaye.avisEnvoye === true }
+          : { depuis: jourCourantISO(), jours: 1, montantDu: prixDu, avisEnvoye: false };
+
+        const premier = !majImpaye.avisEnvoye;
+        majImpaye.avisEnvoye = true;
+        const ecrit = await sbUpdate('locations_actives', `id=eq.${encodeURIComponent(row.id)}`,
+          { data: { ...data, impaye: majImpaye } }).catch(() => null);
+        if (ecrit === null) { resultats.erreurs++; continue; }
+        resultats.impayes++;
+
+        // Un seul courrier a l'ouverture de l'ardoise, puis silence : le bailleur consulte l'etat
+        // du bail quand il veut, on n'inonde pas deux boites tous les soirs.
+        if (premier) {
           await sbInsert('mails', {
             destinataire: data.locataire, expediteur: 'Gestionnaire immobilier',
-            sujet: 'Expulsion — ' + (data.localLabel || 'votre local'),
-            corps: 'Faute de régularisation, votre bail sur ' + (data.localLabel || 'votre local')
-                   + ' a été résilié et le local a été libéré.',
+            sujet: 'Loyer impaye — ' + (data.localLabel || 'votre local'),
+            corps: 'Votre loyer sur ' + (data.localLabel || 'votre local') + " n'est plus paye et la dette s'accumule."
+                   + " Votre bail reste en vigueur : vous n'etes pas expulse. Le proprietaire peut toutefois engager"
+                   + ' une procedure de recuperation du local. Regularisez pour l\'eviter.',
             archived: false
           }).catch(() => {});
-        } else {
-          resultats.erreurs++;
+          const bailleur = await titulaireMursDuBail(data).catch(() => null);
+          if (bailleur) {
+            await sbInsert('mails', {
+              destinataire: bailleur, expediteur: 'Gestionnaire immobilier',
+              sujet: 'Loyer impaye — ' + (data.localLabel || 'votre local'),
+              corps: (data.locataire || 'Votre locataire') + ' ne paie plus le loyer de '
+                     + (data.localLabel || 'votre local') + '. La dette est enregistree et continue de courir.'
+                     + ' Le bail n\'est pas resilie automatiquement : il vous appartient de trouver un accord'
+                     + ' ou d\'engager une procedure de recuperation.',
+              archived: false
+            }).catch(() => {});
+          }
         }
       } else {
         resultats.ignores++;
