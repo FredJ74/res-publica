@@ -1,6 +1,6 @@
 -- =====================================================================
 -- LOT 3.0 — CYCLE PATRIMONIAL DU FONDS DE COMMERCE ET ARCHIVE DES BAUX
--- Une table, un utilitaire, cinq RPC transactionnelles
+-- Une table, un utilitaire, six RPC transactionnelles
 -- 8 septembre 2026
 -- =====================================================================
 -- ⚠️  NON EXECUTEE. Fournie pour relecture.
@@ -9,7 +9,8 @@
 -- Le client est fail-closed partout : tant que ces objets n'existent pas, sbRpc renvoie null et
 -- l'action est refusee avec un message explicite. Aucun repli sur un chemin non transactionnel.
 --
--- POURQUOI DU TRANSACTIONNEL. Chacune des cinq operations traverse plusieurs tables :
+-- POURQUOI DU TRANSACTIONNEL. Chacune des cinq operations ci-dessous traverse plusieurs tables
+-- (la sixieme fonction, resilier_bail_volontaire, est une porte publique qui delegue a la derniere) :
 --   creer_fonds_commerce      : entreprises + (personnages | organisations)
 --   alimenter_caisse_fonds    : entreprises + (personnages | organisations)
 --   retirer_caisse_fonds      : entreprises + (personnages | organisations)
@@ -525,14 +526,22 @@ BEGIN
 
   v_locataire := v_bail ->> 'locataire';
 
-  -- Une resiliation volontaire n'appartient qu'au titulaire. Les autres causes sont declenchees
-  -- par le bailleur ou par la justice : l'acteur est trace, pas oppose.
-  IF p_cause = 'resiliation_volontaire'
-     AND COALESCE(p_acteur, '') <> ''
-     AND v_locataire IS DISTINCT FROM p_acteur
-     AND ('pj:' || COALESCE(v_locataire, '')) IS DISTINCT FROM p_acteur THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_titulaire');
+  -- Une resiliation volontaire n'appartient qu'au titulaire, et l'acteur est OBLIGATOIRE : sans
+  -- cette exigence, il aurait suffi de ne rien passer pour sauter le controle.
+  IF p_cause = 'resiliation_volontaire' THEN
+    IF COALESCE(p_acteur, '') = '' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'acteur_requis');
+    END IF;
+    IF v_locataire IS DISTINCT FROM p_acteur
+       AND ('pj:' || COALESCE(v_locataire, '')) IS DISTINCT FROM p_acteur THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_titulaire');
+    END IF;
   END IF;
+  -- Les trois autres causes n'ont deliberement AUCUN controle d'acteur ici : elles ne sont pas
+  -- declenchables depuis un navigateur. Cette fonction n'est pas exposee au public (voir la
+  -- section DROITS) ; seul le moteur serveur -- le futur Tribunal, le moteur successoral -- peut
+  -- l'appeler, et c'est a lui qu'il revient d'etablir la legitimite de la cause. Un controle
+  -- d'acteur ici donnerait l'illusion d'une garantie que seul le cloisonnement des droits fournit.
 
   -- Proprietaire ACTUEL des murs, lu sur le terrain porteur -- jamais une valeur figee au bail.
   v_terrain := (v_bail ->> 'country') || '_' || (v_bail ->> 'buildingId');
@@ -586,14 +595,71 @@ END;
 $$;
 
 -- ---------------------------------------------------------------------
+-- 6 bis. RESILIATION VOLONTAIRE — LA SEULE FIN DE BAIL OUVERTE AU NAVIGATEUR
+-- ---------------------------------------------------------------------
+-- terminer_bail ci-dessus accepte quatre causes, dont trois -- accord amiable, eviction
+-- judiciaire, succession sans heritier -- ne sont legitimes que si une decision exterieure les
+-- fonde : l'accord des deux parties, un jugement, un deces. Aucune de ces preuves n'existe encore
+-- dans le jeu, et surtout aucune ne peut etre etablie a partir d'un parametre fourni par le
+-- client : il suffirait d'ecrire 'eviction_judiciaire' dans une chaine pour expulser n'importe
+-- qui de n'importe quel local.
+--
+-- LE CLOISONNEMENT EST DONC DANS LES DROITS, PAS DANS UN CONTROLE. terminer_bail devient reservee
+-- au service_role, et cette porte-ci est la seule ouverte au navigateur : elle FIGE la cause,
+-- FIGE l'indemnite a zero, et exige que le demandeur soit le titulaire reel du bail. Il n'existe
+-- aucun parametre par lequel un appelant public puisse en faire autre chose qu'une resiliation
+-- volontaire de son propre bail.
+--
+-- La delegation fonctionne malgre le cloisonnement : dans une fonction SECURITY DEFINER, l'appel
+-- interne s'execute avec les droits du PROPRIETAIRE de la fonction, pas avec ceux de l'appelant.
+CREATE OR REPLACE FUNCTION resilier_bail_volontaire(
+  p_bail_id text,
+  p_acteur  text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF COALESCE(p_bail_id, '') = '' OR COALESCE(p_acteur, '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  -- Cause et indemnite ne sont PAS des parametres : elles sont ecrites en dur ici.
+  RETURN terminer_bail(p_bail_id, 'resiliation_volontaire', p_acteur, 0);
+END;
+$$;
+
+-- ---------------------------------------------------------------------
 -- 7. DROITS
 -- ---------------------------------------------------------------------
--- Ces quatre actions sont declenchees par le joueur depuis son navigateur, donc par la cle anon --
--- meme doctrine que vendre_materiaux_chantier et restituer_reliquats_chantier. L'invariant n'est
--- pas porte par l'appelant mais par la fonction, qui relit et recalcule tout sous verrou et
--- verifie a chaque fois la qualite du demandeur (titulaire du bail, proprietaire du fonds).
--- mouvement_titulaire, elle, n'est PAS exposee : c'est un rouage interne, et l'exposer donnerait
--- a n'importe qui le pouvoir de crediter n'importe quel patrimoine.
+-- LA LIGNE DE PARTAGE. Une fonction n'est ouverte au navigateur que si elle ne peut RIEN faire
+-- qu'un parametre malveillant transformerait en atteinte a un tiers. Le critere est celui-la, et
+-- pas la presence d'un controle interne : avec la cle anon, un controle qui porte sur une valeur
+-- fournie par l'appelant ne prouve rien.
+--
+-- OUVERTES AU PUBLIC -- elles ne deplacent l'argent d'un titulaire qu'entre SES propres poches
+-- (patrimoine <-> caisse de SON fonds), et refusent tout ce qui sortirait de ce perimetre :
+--   creer_fonds_commerce      apport debite du titulaire du bail, vers un fonds qui lui appartient
+--   alimenter_caisse_fonds    patrimoine du proprietaire -> caisse de son fonds
+--   retirer_caisse_fonds      caisse de son fonds -> patrimoine du proprietaire
+--   resilier_bail_volontaire  cause et indemnite figees, titulaire reel exige
+--
+-- RESERVEES AU SERVEUR -- elles engagent un TIERS, et rien dans les parametres ne peut prouver
+-- son consentement ni la decision qui les fonde :
+--   mouvement_titulaire       rouage interne : l'exposer donnerait a n'importe qui le pouvoir de
+--                             crediter ou debiter n'importe quel patrimoine
+--   terminer_bail             accepte eviction_judiciaire, accord_amiable et succession : il
+--                             suffirait d'ecrire la chaine voulue pour expulser un tiers sans
+--                             jugement, ou pour simuler un accord que personne n'a donne
+--   vendre_fonds_commerce     le vendeur est verifie, mais l'ACHETEUR ne l'est pas : la vente
+--                             transfererait un fonds ET son bail a quelqu'un qui n'a rien
+--                             accepte. Tant que le canal d'offre/acceptation n'existe pas, cette
+--                             fonction reste hors de portee du navigateur.
+--
+-- Ces trois-la redeviendront accessibles -- plus probablement au travers de portes dediees comme
+-- resilier_bail_volontaire -- quand la preuve qui leur manque existera : un jugement pour
+-- l'eviction, une acceptation pour la vente et pour l'accord amiable.
 REVOKE ALL ON FUNCTION mouvement_titulaire(text, numeric) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION mouvement_titulaire(text, numeric) TO service_role;
 
@@ -607,17 +673,21 @@ REVOKE ALL ON FUNCTION retirer_caisse_fonds(text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION retirer_caisse_fonds(text, text, integer) TO anon, authenticated, service_role;
 
 REVOKE ALL ON FUNCTION vendre_fonds_commerce(text, text, text, integer) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION vendre_fonds_commerce(text, text, text, integer) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION vendre_fonds_commerce(text, text, text, integer) TO service_role;
 
 REVOKE ALL ON FUNCTION terminer_bail(text, text, text, integer) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION terminer_bail(text, text, text, integer) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION terminer_bail(text, text, text, integer) TO service_role;
 
--- CONTROLE POSTERIEUR — attendu : la table, ses 4 index, ses 2 policies, et les 6 fonctions.
+REVOKE ALL ON FUNCTION resilier_bail_volontaire(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION resilier_bail_volontaire(text, text) TO anon, authenticated, service_role;
+
+-- CONTROLE POSTERIEUR — attendu : la table, ses 4 index, ses 2 policies, et les 7 fonctions.
 SELECT 'table' AS objet, tablename AS nom FROM pg_tables WHERE tablename = 'locations_archives'
 UNION ALL
 SELECT 'policy', policyname FROM pg_policies WHERE tablename = 'locations_archives'
 UNION ALL
 SELECT 'fonction', routine_name FROM information_schema.routines
  WHERE routine_name IN ('mouvement_titulaire','creer_fonds_commerce','alimenter_caisse_fonds',
-                        'retirer_caisse_fonds','vendre_fonds_commerce','terminer_bail')
+                        'retirer_caisse_fonds','vendre_fonds_commerce','terminer_bail',
+                        'resilier_bail_volontaire')
 ORDER BY objet, nom;
