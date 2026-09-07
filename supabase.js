@@ -1384,6 +1384,84 @@ async function sbGetFonds(fondsId) {
   return (rows && rows[0]) ? rows[0].data : null;
 }
 
+// =====================================================================
+// MOTEUR GENERIQUE DES COMMERCES (Lot 4.0)
+// =====================================================================
+// Trois RPC transactionnelles. FAIL-CLOSED : sbRpc renvoie null si la fonction n'existe pas
+// encore -- l'action est alors refusee, et rien n'a ete ecrit nulle part.
+//
+// ACHETER N'EST PAS UTILISER : cette transaction deplace un objet du commerce vers l'inventaire
+// et ne declenche aucun effet. Ni le prix ni la quantite envoyes ne sont crus -- la RPC les relit
+// dans le catalogue sous verrou et recalcule ce qui est reellement transferable.
+async function sbAcheterProduitCommerce(acheteurRef, fondsId, referenceId, quantite, objet) {
+  return verdictRpc(await sbRpc('acheter_produit_commerce', {
+    p_acheteur: acheteurRef, p_fonds_id: fondsId, p_reference_id: referenceId,
+    p_quantite: quantite, p_objet: objet || {}
+  }));
+}
+
+// Embauche, changement de contrat ou fin de contrat : une seule porte, reservee au proprietaire
+// du fonds. Aucun argent ne bouge -- l'embauche cree un contrat, la remuneration sortira de la
+// caisse au moment ou le travail sera reellement effectue.
+async function sbEmployerFonds(employeurRef, fondsId, salarieRef, role, tauxHoraire, actif) {
+  return verdictRpc(await sbRpc('employer_fonds', {
+    p_employeur: employeurRef, p_fonds_id: fondsId, p_salarie: salarieRef,
+    p_role: role || null, p_taux: Math.max(0, Math.floor(Number(tauxHoraire) || 0)),
+    p_actif: actif !== false
+  }));
+}
+
+// Creation d'une offre. SEULE VOIE : les tables offres et oeuvres sont en ecriture fermee pour
+// anon et authenticated -- aucun INSERT direct n'est possible, et il ne faut pas en ajouter.
+//
+// Ce qu'on n'envoie pas, et qu'il est inutile d'essayer d'envoyer : l'identifiant, le statut, la
+// date de creation et l'echeance. Ils ne sont pas des parametres de la RPC ; le serveur les pose.
+// Une offre nait donc toujours ouverte. La duree est seulement PROPOSEE, et ramenee par le serveur
+// entre 1 heure et 30 jours.
+//
+// Le serveur verifie en outre que les deux parties existent, qu'elles different, et -- pour une
+// vente de fonds ou une resiliation amiable -- que l'emetteur detient bien le fonds ou est partie
+// au bail. Inutile donc de pre-filtrer ici : verdictCreationOffre ne sert qu'a eviter un
+// aller-retour sur une saisie manifestement incomplete.
+async function sbCreerOffre(emetteurRef, destinataireRef, type, actif, montant, dureeMs, termes) {
+  return verdictRpc(await sbRpc('creer_offre', {
+    p_emetteur: emetteurRef, p_destinataire: destinataireRef, p_type: type,
+    p_actif: actif || null, p_montant: Math.max(0, Math.floor(Number(montant) || 0)),
+    p_duree_ms: Math.max(0, Math.floor(Number(dureeMs) || 0)), p_data: termes || {}
+  }));
+}
+
+// Publication d'une oeuvre. Meme doctrine : ecriture fermee, id et horodatages poses par le
+// serveur, et un auteur declare doit exister -- on ne signe pas du nom d'un fantome. Republier a
+// l'identique rend l'oeuvre existante plutot que d'en creer une seconde (doublon: true).
+async function sbCreerOeuvre(auteurRef, type, titre, country, jour, contenu, extra) {
+  return verdictRpc(await sbRpc('creer_oeuvre', {
+    p_auteur: auteurRef || null, p_type: type, p_titre: titre,
+    p_country: country || null, p_jour: (jour === null || jour === undefined) ? null : Math.floor(Number(jour) || 0),
+    p_contenu: contenu || null, p_data: extra || {}
+  }));
+}
+
+// Reponse a une offre. L'acceptation cote serveur est la PREUVE de consentement qui manquait au
+// jeu : c'est elle qui pourra ouvrir la vente de fonds et l'accord amiable, restes hors de portee
+// du navigateur faute de pouvoir etablir l'accord de l'autre partie.
+async function sbRepondreOffre(offreId, acteurRef, acceptee) {
+  return verdictRpc(await sbRpc('repondre_offre', {
+    p_offre_id: offreId, p_acteur: acteurRef, p_acceptee: acceptee === true
+  }));
+}
+
+async function sbGetOffresPour(refDestinataire) {
+  const rows = await sbGet('offres',
+    `destinataire=eq.${encodeURIComponent(refDestinataire)}&statut=eq.ouverte`);
+  return rows || [];
+}
+
+async function sbGetOeuvre(id) {
+  const rows = await sbGet('oeuvres', `id=eq.${encodeURIComponent(id)}`);
+  return (rows && rows[0]) || null;
+}
+
 async function sbGetObjetsRecus(nom) {
   const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}`);
   if (!rows) return [];
