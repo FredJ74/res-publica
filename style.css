@@ -218,38 +218,20 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
   color:#e6dcc0;
   text-wrap:balance;              /* repartit les lignes au lieu d'une veuve isolee */
   overflow-wrap:break-word;
-  /* CONTOUR SOMBRE RAPPROCHE, PAS UN HALO DIFFUS (correctif du 8 septembre 2026).
-     Mesure sur les pixels de l'illustration servie, a la hauteur exacte du bloc :
-       desktop  fond #e0c8a3  -> contraste 1,00:1 avec #d8caa4
-       phone    fond #fce9b7  -> contraste 1,35:1
-     Le descripteur a donc STRICTEMENT la meme luminance que le ciel (0,595 contre 0,595) : sans
-     ombre il serait invisible. Les couches precedentes etaient floues (10 px et 30 px) : etalees
-     sur une large surface, elles n'assombrissaient presque rien au contact des glyphes, et la plus
-     large diluait meme le contraste au lieu de l'augmenter.
-     On remplace par HUIT decalages d'UN pixel, quasi opaques : ils dessinent un liseré sombre
-     continu qui epouse la lettre. L'oeil lit alors le glyphe contre son propre contour -- contraste
-     local d'environ 13:1 -- et non contre le ciel. Deux couches courtes (2 px et 6 px) rattachent
-     ensuite le texte au fond sans le nimber.
-     Aucun rectangle, aucun bandeau, aucune plaque : la surface assombrie ne depasse pas un pixel
-     autour des lettres, l'illustration reste entierement visible entre elles. */
-  --hg-contour:
-     1px  0    0 rgba(0,0,0,.95), -1px  0    0 rgba(0,0,0,.95),
-     0    1px  0 rgba(0,0,0,.95),  0   -1px  0 rgba(0,0,0,.95),
-     1px  1px  0 rgba(0,0,0,.95), -1px  1px  0 rgba(0,0,0,.95),
-     1px -1px  0 rgba(0,0,0,.95), -1px -1px  0 rgba(0,0,0,.95);
-  text-shadow:var(--hg-contour), 0 1px 2px rgba(0,0,0,.85), 0 0 6px rgba(0,0,0,.55);
-}
-
-/* La signature est le cas le plus difficile : plus petite que le descripteur, en italique -- donc
-   des fûts plus fins -- et d'une couleur plus sourde (#bfae86) qui la rapproche encore du ciel
-   dore. Elle recoit le meme contour, double d'un second anneau cardinal a 2 px pour epaissir le
-   liseré la ou l'italique amincit le trait. Rien d'autre ne change : ni sa couleur, ni son
-   italique, ni sa taille, ni sa position. */
-.hg-signature{
-  text-shadow:var(--hg-contour),
-     2px 0 0 rgba(0,0,0,.75), -2px 0 0 rgba(0,0,0,.75),
-     0 2px 0 rgba(0,0,0,.75),  0 -2px 0 rgba(0,0,0,.75),
-     0 1px 3px rgba(0,0,0,.9), 0 0 7px rgba(0,0,0,.6);
+  /* LE CONTRASTE VIENT DE L'ENCRE, PLUS DES OMBRES (correctif du 8 septembre 2026, 2e passe).
+     La verification dans Chrome a montre que le contour sombre ne suffisait pas : le vrai defaut
+     etait la COULEUR. Les teintes cremes precedentes (#d8caa4, #bfae86) avaient pratiquement la
+     meme luminance que le ciel -- 1,00:1 pour le descripteur -- et aucune ombre ne rattrape une
+     couleur qui se confond avec son fond.
+     Le texte passe donc en encre sombre, et le ciel clair fournit naturellement le contraste.
+     Mesure sous l'EMPRISE REELLE des lettres (et non sur une bande arbitraire, ce qui etait
+     l'erreur de la passe precedente) : le fond y est uniformement clair, du #fce6b5 moyen au
+     #fbd3a9 le plus sombre rencontre. Aucune zone sombre ne passe sous le texte : une ombre de
+     secours serait inutile.
+     Il ne reste donc qu'un LISERE CLAIR d'un pixel, sous la lettre : c'est ce que fait la lumiere
+     rasante d'un coucher de soleil sur un caractere grave. Il pose le texte dans l'image au lieu
+     de le laisser flotter dessus. Rien d'autre -- ni contour, ni halo, ni plaque. */
+  text-shadow:0 1px 0 rgba(255,246,222,.55);
 }
 .hg-descripteur{
   margin-top:0;          /* premiere ligne VISIBLE du bloc : la marque au-dessus est masquee */
@@ -257,7 +239,9 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
   letter-spacing:.28em;
   text-indent:.28em;              /* compense le letter-spacing final, sinon le bloc parait decale */
   line-height:1.45;
-  color:#d8caa4;
+  /* Noir chaud, un cran plus clair que l'encre de la marque peinte (#0a0604, teinte 20 deg,
+     relevee au pixel sur l'illustration) : meme famille, mais la marque garde la primaute. */
+  color:#1a0f08;
 }
 .hg-signature{
   margin-top:.7rem;
@@ -265,7 +249,10 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
   letter-spacing:.16em;
   text-indent:.16em;
   line-height:1.5;
-  color:#bfae86;
+  /* Un degre plus clair que le descripteur : la hierarchie tient d'abord a la taille et a
+     l'italique, ce ton n'est qu'un appui. Il reste un brun tres sombre, jamais pale --
+     la signature doit se lire aussi immediatement que le descripteur. */
+  color:#241509;
   font-style:italic;
 }
 
