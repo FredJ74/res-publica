@@ -218,11 +218,38 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
   color:#e6dcc0;
   text-wrap:balance;              /* repartit les lignes au lieu d'une veuve isolee */
   overflow-wrap:break-word;
-  /* HALO, PAS RECTANGLE. Constate au rendu : a la hauteur de l'ancre, le centre de l'illustration
-     est un ciel de coucher de soleil TRES clair -- un texte creme y devenait illisible. Trois
-     ombres superposees creent un halo sombre progressif qui suit la forme des lettres, sans
-     jamais poser de plaque opaque sur l'image. */
-  text-shadow:0 1px 2px rgba(0,0,0,.92), 0 2px 10px rgba(0,0,0,.85), 0 0 30px rgba(0,0,0,.75);
+  /* CONTOUR SOMBRE RAPPROCHE, PAS UN HALO DIFFUS (correctif du 8 septembre 2026).
+     Mesure sur les pixels de l'illustration servie, a la hauteur exacte du bloc :
+       desktop  fond #e0c8a3  -> contraste 1,00:1 avec #d8caa4
+       phone    fond #fce9b7  -> contraste 1,35:1
+     Le descripteur a donc STRICTEMENT la meme luminance que le ciel (0,595 contre 0,595) : sans
+     ombre il serait invisible. Les couches precedentes etaient floues (10 px et 30 px) : etalees
+     sur une large surface, elles n'assombrissaient presque rien au contact des glyphes, et la plus
+     large diluait meme le contraste au lieu de l'augmenter.
+     On remplace par HUIT decalages d'UN pixel, quasi opaques : ils dessinent un liseré sombre
+     continu qui epouse la lettre. L'oeil lit alors le glyphe contre son propre contour -- contraste
+     local d'environ 13:1 -- et non contre le ciel. Deux couches courtes (2 px et 6 px) rattachent
+     ensuite le texte au fond sans le nimber.
+     Aucun rectangle, aucun bandeau, aucune plaque : la surface assombrie ne depasse pas un pixel
+     autour des lettres, l'illustration reste entierement visible entre elles. */
+  --hg-contour:
+     1px  0    0 rgba(0,0,0,.95), -1px  0    0 rgba(0,0,0,.95),
+     0    1px  0 rgba(0,0,0,.95),  0   -1px  0 rgba(0,0,0,.95),
+     1px  1px  0 rgba(0,0,0,.95), -1px  1px  0 rgba(0,0,0,.95),
+     1px -1px  0 rgba(0,0,0,.95), -1px -1px  0 rgba(0,0,0,.95);
+  text-shadow:var(--hg-contour), 0 1px 2px rgba(0,0,0,.85), 0 0 6px rgba(0,0,0,.55);
+}
+
+/* La signature est le cas le plus difficile : plus petite que le descripteur, en italique -- donc
+   des fûts plus fins -- et d'une couleur plus sourde (#bfae86) qui la rapproche encore du ciel
+   dore. Elle recoit le meme contour, double d'un second anneau cardinal a 2 px pour epaissir le
+   liseré la ou l'italique amincit le trait. Rien d'autre ne change : ni sa couleur, ni son
+   italique, ni sa taille, ni sa position. */
+.hg-signature{
+  text-shadow:var(--hg-contour),
+     2px 0 0 rgba(0,0,0,.75), -2px 0 0 rgba(0,0,0,.75),
+     0 2px 0 rgba(0,0,0,.75),  0 -2px 0 rgba(0,0,0,.75),
+     0 1px 3px rgba(0,0,0,.9), 0 0 7px rgba(0,0,0,.6);
 }
 .hg-descripteur{
   margin-top:0;          /* premiere ligne VISIBLE du bloc : la marque au-dessus est masquee */
