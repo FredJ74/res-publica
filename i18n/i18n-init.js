@@ -97,7 +97,12 @@ function appliquerTraductionsRP() {
     el.setAttribute('placeholder', i18next.t(el.getAttribute('data-i18n-placeholder')));
   });
   document.documentElement.lang = i18next.language;
-  document.title = 'Res Publica — ' + i18next.t('home.subtitle');
+  // Titre du document recompose depuis les cles d'accueil (marque + descripteur) : il etait
+  // reconstruit ici a chaque changement de langue depuis la chaine 'Res Publica —' codee en
+  // dur, ce qui ecrasait systematiquement le <title> de index.html au premier rendu i18n.
+  // Aucun mecanisme nouveau : seules les cles lues changent. PERIMETRE ACCUEIL -- le reste du
+  // jeu n'est pas renomme, l'audit des occurrences 'Res Publica' est un chantier separe.
+  document.title = i18next.t('home.brand') + ' — ' + i18next.t('home.descriptor');
 
   // Mise en evidence du bouton actif -- generique sur TOUTES les langues supportees, jamais deux
   // variables dediees fr/en : fonctionne a l'identique pour 2 langues ou pour 10.

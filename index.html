@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Res Publica — Le Grand Jeu du Pouvoir</title>
+<title>Human Gambit — A Social Strategy Game</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="preload" as="image" href="images/human-gambit-accueil.webp" fetchpriority="high">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,28 +19,57 @@
      touche pas ce fichier. -->
 <div id="lang-switcher"></div>
 
-<!-- SCREEN 0: INTRO -->
+<!-- SCREEN 0: INTRO — accueil Human Gambit (refonte du 8 septembre 2026)
+     L'illustration est une PLAQUE PUREMENT PICTURALE : marque, descripteur et signature sont du
+     texte HTML pilote par i18n, jamais des pixels. C'est la seule architecture qui permette les
+     six langues -- un texte peint ne se traduit pas, et il se deplace avec le recadrage responsive
+     alors qu'un texte HTML, lui, reste ancre.
+     LA MARQUE RESTE PEINTE dans l'illustration (arbitrage du 8 septembre 2026) : elle est
+     universelle, elle ne se traduit pas. Le <h1> ci-dessous la reprend donc en texte mais
+     VISUELLEMENT MASQUE -- une page sans titre accessible serait une regression pour un lecteur
+     d'ecran et pour le referencement, et document.title est compose a partir de cette meme cle.
+     Seuls le descripteur et la signature sont visibles : eux se traduisent.
+     PERIMETRE : cet ecran seulement. Les classes .seal/.ititle/.isub/.itagline ne servaient qu'ici
+     et disparaissent avec lui ; .ibtn n'est PAS touchee, elle sert encore au bouton « Entrer dans
+     le jeu » de l'ecran 9. -->
 <div id="intro" class="screen active">
-  <div class="seal"><i class="ti ti-building-bank"></i></div>
-  <div class="ititle bebas">Res Publica</div>
-  <div class="isub playfair" data-i18n="home.subtitle">Le Grand Jeu du Pouvoir</div>
-  <p class="itagline" data-i18n="home.tagline">Parodie politique multijoueur &middot; 4 empires &middot; Zero scrupule</p>
-  <button class="ibtn" onclick="goTo(1)"><span data-i18n="home.createCharacter">Creer mon personnage</span></button>
-  <div style="margin-top:1rem">
-    <button onclick="retrouverPersonnage()" style="font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1.2rem;border:1px solid #4a4030;background:transparent;color:#8a8060;cursor:pointer">
-      <i class="ti ti-search" style="font-size:.8rem;vertical-align:-1px"></i> <span data-i18n="home.findCharacter">Retrouver mon personnage</span>
-    </button>
+  <img class="hg-fond" src="images/human-gambit-accueil.webp" alt="" aria-hidden="true"
+       decoding="async" fetchpriority="high">
+  <div class="hg-voile" aria-hidden="true"></div>
+
+  <!-- BLOC DE TITRE LOCALISE. La marque est peinte dans l'illustration ; le <h1> la porte en
+       texte masque (accessibilite, referencement, document.title). Descripteur et signature sont
+       les seules lignes visibles, et les seules a se traduire.
+       Leur position verticale s'ancre sous la marque peinte via --hg-ancre-titre, calee le
+       8 septembre 2026 sur la plaque maitresse livree (mesure au pixel de la marque). -->
+  <div class="hg-titre">
+    <h1 class="hg-marque" data-i18n="home.brand">Human Gambit</h1>
+    <p class="hg-descripteur" data-i18n="home.descriptor">A social strategy game</p>
+    <p class="hg-signature" data-i18n="home.signature">Everyone needs someone.</p>
   </div>
-  <div id="retrouver-panel" style="display:none;margin-top:1rem;max-width:320px;margin-left:auto;margin-right:auto">
-    <input id="retrouver-nom" type="text" placeholder="Votre nom de personnage..." data-i18n-placeholder="home.findCharacterPlaceholder"
-      style="width:100%;padding:.5rem .8rem;background:#0a0a07;border:1px solid #4a4030;color:#f0ead6;font-family:'Crimson Pro',Georgia,serif;font-size:.9rem;box-sizing:border-box"/>
-    <button onclick="chargerPersonnageParNom()" data-i18n="home.loadCharacter"
-      style="width:100%;margin-top:.4rem;font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">
-      Charger ce personnage
+
+  <div class="hg-panneau">
+    <button class="hg-btn hg-btn-primaire" onclick="goTo(1)">
+      <span data-i18n="home.createCharacter">Creer mon personnage</span>
     </button>
-    <!-- retrouver-msg : messages dynamiques (JS, creation.js) -- hors perimetre Lot 1 (section 13,
-         textes dynamiques/variables), volontairement non marque data-i18n. -->
-    <div id="retrouver-msg" style="font-size:.75rem;color:#8a3a2a;margin-top:.4rem;text-align:center"></div>
+    <button class="hg-btn hg-btn-secondaire" onclick="retrouverPersonnage()">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <span data-i18n="home.findCharacter">Retrouver mon personnage</span>
+    </button>
+
+    <!-- Le style INLINE display:none est OBLIGATOIRE et ne doit jamais migrer vers le CSS :
+         retrouverPersonnage() (creation.js) bascule sur `panel.style.display === 'none'`, qui lit
+         le style inline. Sans lui, la propriete vaut '' au premier clic et le panneau se fermerait
+         au lieu de s'ouvrir. Le CSS ne pose donc AUCUN display sur #retrouver-panel. -->
+    <div id="retrouver-panel" style="display:none">
+      <input id="retrouver-nom" type="text" placeholder="Votre nom de personnage..."
+             data-i18n-placeholder="home.findCharacterPlaceholder" class="hg-champ"/>
+      <button onclick="chargerPersonnageParNom()" data-i18n="home.loadCharacter"
+              class="hg-btn hg-btn-charger">Charger ce personnage</button>
+      <!-- retrouver-msg : messages dynamiques (JS, creation.js) -- hors perimetre Lot 1 (section 13,
+           textes dynamiques/variables), volontairement non marque data-i18n. -->
+      <div id="retrouver-msg"></div>
+    </div>
   </div>
 </div>
 

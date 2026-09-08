@@ -87,12 +87,349 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
    =========================== */
 .screen{display:none;min-height:100vh;flex-direction:column;align-items:center;padding:2.5rem 1.5rem;animation:fi 0.5s ease}
 .screen.active{display:flex}
-#intro{justify-content:center;text-align:center}
-.seal{width:110px;height:110px;border:3px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.8rem;position:relative;color:var(--gold);font-size:2rem}
-.seal::before{content:'';position:absolute;inset:-8px;border:1px solid #6a5a20;border-radius:50%}
-.ititle{font-family:'Bebas Neue',sans-serif;font-size:3.8rem;letter-spacing:.15em;color:var(--gold);line-height:1;margin-bottom:.4rem}
-.isub{font-family:'Playfair Display',serif;font-style:italic;font-size:1.2rem;color:#8a7860;margin-bottom:2.5rem}
-.itagline{font-size:.82rem;color:#7a7050;letter-spacing:.2em;text-transform:uppercase;margin-bottom:3rem}
+/* ===========================
+   ACCUEIL HUMAN GAMBIT (refonte du 8 septembre 2026)
+   ===========================
+   PERIMETRE STRICT : #intro uniquement. .screen, .nav, .ibtn et tout ce qui sert aux ecrans 1 a 9
+   restent intacts -- .ibtn en particulier habille encore « Entrer dans le jeu » (ecran 9).
+   Les anciennes classes .seal / .ititle / .isub / .itagline ne servaient qu'a cet ecran et sont
+   retirees avec lui (verifie : aucune autre occurrence dans index.html, creation.js, plateau.html).
+   Aucune bibliotheque ajoutee, HTML + CSS seulement. */
+
+/* #intro cesse d'etre une colonne centree pour devenir une scene plein cadre : l'illustration
+   occupe tout l'ecran, les actions se posent en bas. Le padding de .screen est neutralise ICI
+   seulement. 100dvh d'abord (barres d'URL mobiles), 100vh en repli pour les navigateurs anciens. */
+#intro{
+  justify-content:flex-end;
+  text-align:center;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+  min-height:100vh;
+  min-height:100dvh;
+}
+
+/* L'illustration est une vraie couche visuelle, pas un decor contenant les controles.
+   Un <img> plutot qu'un background : object-position se pilote finement par media query, et le
+   navigateur peut prioriser son chargement. */
+.hg-fond{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  /* CADRAGE MESURE, PAS SUPPOSE. L'illustration est en 3:2 (1536x1024).
+     - Viewport PLUS LARGE que 3:2 (desktop 16:9, laptop 16:10) : la largeur commande, le rognage
+       est VERTICAL. Avec 'center center', un 1920x1080 perdait 80 px source EN HAUT -- soit
+       exactement la zone de ciel ou vit le bloc de titre. On ancre donc haut (12 %), ce qui ramene
+       cette perte a 19 px et sacrifie le premier plan bas, de toute facon couvert par le panneau.
+     - Viewport PLUS ETROIT que 3:2 (tablette et telephone en portrait) : c'est la HAUTEUR qui
+       commande, il n'y a AUCUN rognage vertical et object-position Y est alors sans effet. Le
+       rognage est lateral, symetrique, et emporte la ville a gauche et la jungle a droite en
+       conservant le centre -- personnages et echiquier. C'est le comportement voulu. */
+  object-position:center 12%;
+  z-index:0;
+  pointer-events:none;
+  user-select:none;
+}
+
+/* Voile de lisibilite : transparent sur les deux tiers hauts pour ne rien voler a la composition,
+   il ne s'assombrit que sous les actions. Sans lui, un bouton clair sur une zone claire de
+   l'illustration deviendrait illisible. */
+.hg-voile{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(to bottom,
+    rgba(6,5,3,.30) 0%,
+    rgba(6,5,3,0)   28%,
+    rgba(6,5,3,0)   52%,
+    rgba(6,5,3,.55) 78%,
+    rgba(6,5,3,.88) 100%);
+}
+
+/* ---- BLOC DE TITRE : marque + descripteur + signature ----
+   Les trois lignes sont du HTML, donc traduisibles, donc modifiables sans toucher ni au CSS ni a
+   l'image. Elles forment UN bloc : leur alignement mutuel ne depend jamais du recadrage.
+   Ancre en haut (et non centre verticalement) parce que la zone de ciel de l'illustration est en
+   haut : le bloc reste ainsi au-dessus des personnages a tous les rapports d'ecran. */
+/* --hg-ancre-titre : ordonnee du bloc localise, sous la marque PEINTE dans l'illustration.
+   Reglage unique, cale le 8 septembre 2026 sur la plaque maitresse livree -- voir la mesure
+   detaillee dans le bloc .hg-titre ci-dessous. Deux surcharges seulement, chacune justifiee par
+   une observation reelle : ultra-large et ecran bas. */
+.hg-titre{
+  /* ANCRE CALIBREE SUR LA PLAQUE MAITRESSE (8 septembre 2026).
+     Mesure sur les pixels : la marque peinte occupe y 28..203 sur 1024, soit 2,7 %..19,8 % de la
+     hauteur de l'illustration. En PORTRAIT il n'y a aucun rognage vertical, donc le bas de la
+     marque tombe exactement a 19,8 vh, quel que soit le telephone ou la tablette. En PAYSAGE avec
+     object-position 12 %, le calcul donne 21,3 vh en 16:9 et 20,3 vh en 16:10.
+     23,5 vh place donc le bloc juste sous la marque dans TOUS ces cas, avec 3 a 4 vh de respiration
+     -- une seule valeur au lieu des quatre paliers estimes precedemment. */
+  --hg-ancre-titre:23.5vh;
+  position:absolute;
+  top:var(--hg-ancre-titre);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:2;
+  width:min(92vw, 46rem);
+  text-align:center;
+  padding:0 1rem;
+  box-sizing:border-box;
+  pointer-events:none;   /* purement decoratif : ne vole jamais un clic aux boutons */
+}
+
+/* PILE MULTILINGUE. Playfair Display couvre latin, latin etendu et CYRILLIQUE, mais AUCUN
+   ideogramme : ni chinois traditionnel, ni coreen. Charger une police CJK complete couterait
+   plusieurs mega-octets pour trois lignes de texte -- on s'appuie donc sur les polices systeme,
+   presentes partout ou ces langues sont lues. Le navigateur choisit police par GLYPHE : le latin
+   et le cyrillique prennent Playfair, seuls les ideogrammes descendent dans la pile.
+   Bebas Neue est volontairement absente de cette pile : elle est LATIN UNIQUEMENT (pas meme le
+   cyrillique), elle ne peut donc pas porter un texte multilingue. */
+:root{
+  --police-titre-i18n:'Playfair Display',
+    'Noto Serif TC','Noto Serif CJK TC','Songti TC','PingFang TC','Hiragino Sans CJK TC','Microsoft JhengHei',
+    'Noto Serif KR','Apple SD Gothic Neo','Malgun Gothic','Nanum Myeongjo',
+    Georgia,'Times New Roman',serif;
+}
+
+/* MARQUE : peinte dans l'illustration, donc VISUELLEMENT MASQUEE ici -- jamais supprimee du DOM.
+   Elle reste le titre accessible de la page et la source de document.title. La masquer par
+   clip-path plutot que par display:none est indispensable : display:none la retirerait aussi des
+   lecteurs d'ecran, ce qui laisserait l'accueil sans titre du tout. */
+.hg-marque{
+  position:absolute;
+  width:1px;height:1px;
+  margin:-1px;padding:0;border:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
+/* Descripteur et signature : memes contraintes multilingues, hierarchie decroissante.
+   AUCUNE largeur fixe, AUCUNE taille calibree sur l'anglais -- le russe est environ 40 % plus
+   long que l'anglais, le chinois environ 60 % plus court. On borne en pourcentage de vue et on
+   laisse le texte revenir a la ligne proprement. */
+.hg-descripteur,
+.hg-signature{
+  margin:0;
+  font-family:var(--police-titre-i18n);
+  color:#e6dcc0;
+  text-wrap:balance;              /* repartit les lignes au lieu d'une veuve isolee */
+  overflow-wrap:break-word;
+  /* HALO, PAS RECTANGLE. Constate au rendu : a la hauteur de l'ancre, le centre de l'illustration
+     est un ciel de coucher de soleil TRES clair -- un texte creme y devenait illisible. Trois
+     ombres superposees creent un halo sombre progressif qui suit la forme des lettres, sans
+     jamais poser de plaque opaque sur l'image. */
+  text-shadow:0 1px 2px rgba(0,0,0,.92), 0 2px 10px rgba(0,0,0,.85), 0 0 30px rgba(0,0,0,.75);
+}
+.hg-descripteur{
+  margin-top:0;          /* premiere ligne VISIBLE du bloc : la marque au-dessus est masquee */
+  font-size:clamp(.74rem, 2.1vw, 1.12rem);
+  letter-spacing:.28em;
+  text-indent:.28em;              /* compense le letter-spacing final, sinon le bloc parait decale */
+  line-height:1.45;
+  color:#d8caa4;
+}
+.hg-signature{
+  margin-top:.7rem;
+  font-size:clamp(.68rem, 1.7vw, .95rem);
+  letter-spacing:.16em;
+  text-indent:.16em;
+  line-height:1.5;
+  color:#bfae86;
+  font-style:italic;
+}
+
+/* AJUSTEMENT CJK. L'interlettrage large est une convention TYPOGRAPHIQUE LATINE : applique a des
+   ideogrammes, il disloque la lecture. document.documentElement.lang etant deja tenu a jour par
+   i18n-init.js a chaque changement de langue, :lang() suffit -- aucune mecanique nouvelle.
+   Le coreen et le chinois n'ont pas d'italique typographique : on la retire aussi. */
+:lang(zh-TW) .hg-descripteur,
+:lang(ko) .hg-descripteur{letter-spacing:.14em;text-indent:.14em;font-size:clamp(.86rem, 2.4vw, 1.24rem)}
+:lang(zh-TW) .hg-signature,
+:lang(ko) .hg-signature{letter-spacing:.06em;text-indent:.06em;font-style:normal;font-size:clamp(.8rem, 2vw, 1.05rem)}
+
+/* Le cyrillique de Playfair est plus large que son latin : on desserre un peu moins pour que le
+   russe, la plus longue des six chaines, tienne sur une ligne le plus longtemps possible. */
+:lang(ru) .hg-descripteur{letter-spacing:.18em;text-indent:.18em}
+:lang(ru) .hg-signature{letter-spacing:.1em;text-indent:.1em}
+
+/* Panneau bas : anthracite tres sombre, bord or discret, flou d'arriere-plan quand le navigateur
+   le supporte (progressif, jamais requis pour la lisibilite -- le fond opaque suffit seul). */
+.hg-panneau{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:560px;
+  margin:0 auto;
+  padding:1.6rem 1.5rem 2rem;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:.7rem;
+  background:rgba(10,9,7,.72);
+  border-top:1px solid rgba(201,168,76,.28);
+  border-left:1px solid rgba(201,168,76,.16);
+  border-right:1px solid rgba(201,168,76,.16);
+  border-radius:4px 4px 0 0;
+  box-shadow:0 -18px 50px rgba(0,0,0,.55);
+}
+@supports (backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px)){
+  .hg-panneau{
+    background:rgba(10,9,7,.55);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+  }
+}
+
+.hg-btn{
+  /* Bebas Neue ne possede NI cyrillique NI ideogrammes : sans repli explicite, un bouton russe,
+     chinois ou coreen tomberait sur la police par defaut du navigateur, souvent incoherente.
+     La pile ci-dessous garde Bebas pour le latin et descend proprement pour le reste. */
+  font-family:'Bebas Neue',
+    'PingFang TC','Microsoft JhengHei','Noto Sans TC',
+    'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',
+    'Helvetica Neue',Arial,sans-serif;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background .2s,color .2s,border-color .2s,box-shadow .2s;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* Action dominante : or plein, la seule surface pleine de l'ecran. */
+.hg-btn-primaire{
+  font-size:1.18rem;
+  padding:.95rem 1.5rem;
+  border:1px solid var(--gold);
+  background:var(--gold);
+  color:#0d0b07;
+  box-shadow:0 2px 18px rgba(201,168,76,.22);
+}
+.hg-btn-primaire:hover{background:#e0c164;border-color:#e0c164;box-shadow:0 2px 26px rgba(201,168,76,.38)}
+
+/* Action secondaire : sombre, bordee or, volontairement plus petite et moins contrastee. */
+.hg-btn-secondaire{
+  font-size:.86rem;
+  padding:.62rem 1.2rem;
+  border:1px solid rgba(201,168,76,.42);
+  background:rgba(0,0,0,.28);
+  color:#c2b48c;
+}
+.hg-btn-secondaire:hover{border-color:var(--gold);color:var(--gold)}
+.hg-btn-secondaire .ti{font-size:.82rem;vertical-align:-1px;margin-right:.25rem}
+
+/* Panneau « retrouver » : AUCUNE regle display ici (voir le commentaire d'index.html) --
+   retrouverPersonnage() pilote display en inline, le CSS ne doit jamais le contredire. */
+#retrouver-panel{
+  margin-top:.2rem;
+  padding-top:.85rem;
+  border-top:1px solid rgba(201,168,76,.14);
+  text-align:left;
+}
+.hg-champ{
+  width:100%;
+  box-sizing:border-box;
+  padding:.6rem .8rem;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(201,168,76,.30);
+  color:#f0ead6;
+  font-family:'Crimson Pro',Georgia,serif;
+  font-size:.92rem;
+}
+.hg-champ::placeholder{color:#7a7358}
+.hg-champ:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.14)}
+.hg-btn-charger{
+  margin-top:.5rem;
+  font-size:.82rem;
+  padding:.55rem 1rem;
+  border:1px solid var(--gold);
+  background:transparent;
+  color:var(--gold);
+}
+.hg-btn-charger:hover{background:var(--gold);color:#0d0b07}
+#retrouver-msg{
+  font-size:.75rem;
+  color:#8a3a2a;
+  margin-top:.45rem;
+  text-align:center;
+  min-height:1em;
+}
+
+/* ---- RESPONSIVE : direction artistique, pas un cover aveugle ----
+   L'illustration est en 3:2 paysage. En viewport etroit, `cover` cale sur la HAUTEUR : toute la
+   composition verticale reste visible (marque en haut, personnages au centre) et le rognage se
+   fait a gauche (ville) et a droite (jungle). Le point focal central est donc naturellement
+   preserve -- on l'accompagne en remontant legerement le cadrage pour degager les personnages
+   au-dessus du panneau, plutot que de laisser l'echiquier de premier plan passer dessous. */
+
+/* Laptop et petits ecrans paysage : le panneau ne doit pas manger la scene. */
+@media (max-width:1100px){
+  .hg-panneau{max-width:520px;padding:1.4rem 1.3rem 1.7rem}
+}
+
+/* Tablette portrait -- pas de reglage d'object-position ici : en portrait, la hauteur commande le
+   cadrage, il n'y a aucun rognage vertical, et toute valeur Y serait purement decorative. */
+@media (max-width:900px) and (orientation:portrait){
+  .hg-panneau{max-width:480px;padding:1.3rem 1.2rem 1.6rem}
+  .hg-btn-primaire{font-size:1.08rem;padding:.85rem 1.2rem}
+  .hg-titre{width:min(94vw, 34rem)}   /* ancre inchangee : 23,5 vh vaut aussi en portrait */
+}
+
+/* Smartphone portrait — priorites : les deux actions lisibles, la marque conservee, une part
+   significative des personnages visible, aucun debordement horizontal. */
+@media (max-width:600px){
+  /* Idem : aucun object-position ici, le portrait ne rogne pas en hauteur. */
+  .hg-titre{width:96vw;padding:0 .8rem}   /* ancre inchangee : le portrait ne rogne pas */
+  .hg-descripteur{margin-top:.45rem;letter-spacing:.2em;text-indent:.2em}
+  .hg-signature{margin-top:.55rem;letter-spacing:.12em;text-indent:.12em}
+  .hg-panneau{
+    max-width:none;
+    padding:1.1rem .9rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    gap:.55rem;
+    border-left:none;border-right:none;border-radius:0;
+  }
+  .hg-btn-primaire{font-size:1.02rem;padding:.8rem 1rem;letter-spacing:.1em}
+  .hg-btn-secondaire{font-size:.8rem;padding:.55rem .9rem;letter-spacing:.1em}
+  .hg-voile{
+    background:linear-gradient(to bottom,
+      rgba(6,5,3,.34) 0%,
+      rgba(6,5,3,0)   26%,
+      rgba(6,5,3,0)   46%,
+      rgba(6,5,3,.62) 74%,
+      rgba(6,5,3,.92) 100%);
+  }
+}
+
+/* ULTRA-LARGE (21:9 et au-dela, y compris un telephone en paysage).
+   CONSTATE AU RENDU, pas suppose : en 2560x1080, object-position 12 % rognait 45 px source en haut
+   et COUPAIT le sommet de HUMAN, tandis que l'ancre a 23,5 vh retombait SUR le mot GAMBIT. Plus le
+   viewport est large, plus le debordement vertical grandit, donc plus le rognage haut doit etre
+   faible. 5 % laisse 9 px source de marge au-dessus de la marque ; l'ancre descend a 29 vh pour
+   suivre la marque, qui est mecaniquement plus basse a l'ecran.
+   Un seul palier suffit : le probleme n'apparait qu'a partir de 2:1. */
+@media (min-aspect-ratio:2/1){
+  .hg-fond{object-position:center 5%}
+  .hg-titre{--hg-ancre-titre:29vh}
+}
+
+/* Ecran bas (paysage telephone, petit laptop) : on comprime le panneau plutot que de rogner
+   davantage l'illustration. */
+@media (max-height:560px){
+  .hg-titre{--hg-ancre-titre:26vh}
+  .hg-descripteur{margin-top:.3rem;font-size:clamp(.66rem, 1.5vw, .8rem)}
+  .hg-signature{margin-top:.35rem;font-size:clamp(.62rem, 1.3vw, .74rem)}
+  .hg-panneau{padding:.8rem 1rem 1rem;gap:.45rem}
+  .hg-btn-primaire{font-size:.98rem;padding:.65rem 1rem}
+  .hg-btn-secondaire{font-size:.76rem;padding:.45rem .8rem}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .hg-btn{transition:none}
+}
 .ibtn{font-family:'Bebas Neue',sans-serif;letter-spacing:.15em;font-size:1.2rem;padding:.9rem 2.8rem;background:transparent;border:2px solid var(--gold);color:var(--gold);cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
 .ibtn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .3s;z-index:0}
 .ibtn:hover::before{transform:translateX(0)}

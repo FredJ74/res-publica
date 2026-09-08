@@ -73,6 +73,12 @@ window.RP_I18N_RESOURCES = {
   fr: {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "UN JEU DE STRATÉGIE HUMAINE",
+        signature: "PERSONNE NE RÉUSSIT SEUL.",
         subtitle: "Le Grand Jeu du Pouvoir",
         tagline: "Parodie politique multijoueur · 4 empires · Zero scrupule",
         createCharacter: "Creer mon personnage",
@@ -271,6 +277,12 @@ window.RP_I18N_RESOURCES = {
   en: {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "A SOCIAL STRATEGY GAME",
+        signature: "EVERYONE NEEDS SOMEONE.",
         subtitle: "The Great Game of Power",
         tagline: "A multiplayer political satire · 4 empires · No scruples",
         createCharacter: "Create My Character",
@@ -463,6 +475,12 @@ window.RP_I18N_RESOURCES = {
   es: {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "UN JUEGO DE ESTRATEGIA SOCIAL",
+        signature: "NADIE LLEGA LEJOS SOLO.",
         subtitle: "El Gran Juego del Poder",
         tagline: "Sátira política multijugador · 4 imperios · Cero escrúpulos",
         createCharacter: "Crear mi personaje",
@@ -663,6 +681,12 @@ window.RP_I18N_RESOURCES = {
   'zh-TW': {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "社交策略遊戲",
+        signature: "沒有人能獨自走得更遠。",
         subtitle: "權力的大遊戲",
         tagline: "多人政治諷刺遊戲・4 個帝國・毫無底線",
         createCharacter: "創建我的角色",
@@ -869,6 +893,12 @@ window.RP_I18N_RESOURCES = {
   ru: {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "ИГРА СОЦИАЛЬНОЙ СТРАТЕГИИ",
+        signature: "В ОДИНОЧКУ ДАЛЕКО НЕ УЙТИ.",
         subtitle: "Большая игра за власть",
         tagline: "Многопользовательская политическая пародия · 4 империи · Ноль совести",
         createCharacter: "Создать персонажа",
@@ -1083,6 +1113,12 @@ window.RP_I18N_RESOURCES = {
   ko: {
     translation: {
       home: {
+        // Accueil Human Gambit : la marque est un nom propre, identique partout ;
+        // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
+        // de #intro (l'illustration porte deja marque, descripteur et slogan).
+        brand: "Human Gambit",
+        descriptor: "소셜 전략 게임",
+        signature: "혼자서는 멀리 갈 수 없다.",
         subtitle: "위대한 권력 게임",
         tagline: "멀티플레이어 정치 패러디 · 4개 제국 · 양심 제로",
         createCharacter: "캐릭터 만들기",
