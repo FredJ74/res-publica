@@ -491,7 +491,18 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Chaque entree ouvre un PANNEAU de fonction (plateau-gouvernement.js) qui expose les
   // sous-actions historiques, inchangees. Les anciens fn restent routes ci-dessus et ci-dessous :
   // aucun moteur n'est supprime, seuls les BOUTONS disparaissent des bureaux.
+  if (fn === 'mobilisation_nationale')      { ouvrirMobilisationNationale(); return; }
+  if (fn === 'diplomatie_bilaterale')       { ouvrirDiplomatieBilaterale(); return; }
   if (fn === 'gerer_chef_douanes')          { ouvrirGestionChefDouanes(pa, cost); return; }
+  // Entrees de REGROUPEMENT (8 septembre 2026). Elles n'ouvrent qu'un panneau : aucun cout, aucun
+  // effet. Chaque action du panneau appelle son handler historique avec son cout d'origine.
+  // Les routes des ordres regroupes restent en place juste au-dessus/en dessous : elles ne sont
+  // plus atteintes par un bouton, mais rien ne justifie de les retirer dans un chantier UX.
+  if (fn === 'gestion_premier_ministre')    { ouvrirGestionPremierMinistre(); return; }
+  if (fn === 'postes_par_decret')           { ouvrirPostesParDecret(); return; }
+  if (fn === 'pouvoirs_exceptionnels')      { ouvrirPouvoirsExceptionnels(); return; }
+  if (fn === 'adresse_a_la_nation')         { ouvrirAdresseALaNation(); return; }
+  if (fn === 'gestion_manifestations')      { ouvrirGestionManifestations(); return; }
   if (fn === 'gerer_juges')                 { ouvrirGestionJuges(pa, cost); return; }
   if (fn === 'gerer_commandement')          { ouvrirGestionCommandement(); return; }
   if (fn === 'demobiliser')                 { doDemobiliser(); return; }

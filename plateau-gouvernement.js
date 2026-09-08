@@ -43,6 +43,19 @@
 // Chaque entree porte { label, desc, onclick, indisponible } ; une entree indisponible s'affiche
 // grisee AVEC SON MOTIF, plutot que de disparaitre -- une prerogative qu'on ne peut pas exercer
 // aujourd'hui reste une prerogative, et la masquer rendrait l'institution moins lisible.
+// COUT AFFICHE DANS LE PANNEAU (ajout du 8 septembre 2026, regroupement UX des bureaux).
+// Champ OPTIONNEL : les six facades ministerielles existantes ne le renseignent pas et rendent
+// donc exactement comme avant. Une entree qui expose un cout doit afficher le MEME que le bouton
+// qu'elle remplace, sans quoi le regroupement mentirait au joueur.
+function badgeCoutHtml(e) {
+  const morceaux = [];
+  if (e.pa) morceaux.push(e.pa + ' PA');
+  if (e.cout) morceaux.push(e.cout);
+  if (morceaux.length === 0) return '';
+  return '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;' +
+         'color:#8a7a50;margin-top:.25rem">' + morceaux.join(' · ') + '</div>';
+}
+
 function panneauFonctionHtml(entrees) {
   let html = '<div style="padding:.5rem 0">';
   (entrees || []).forEach(function (e) {
@@ -52,6 +65,7 @@ function panneauFonctionHtml(entrees) {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.8rem">';
     html += '<div style="flex:1">';
     html += '<div style="font-size:.85rem;color:' + (bloque ? '#5a5040' : '#c0b090') + '">' + e.label + '</div>';
+    html += badgeCoutHtml(e);
     if (e.desc) {
       html += '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">' + e.desc + '</div>';
     }
@@ -81,6 +95,14 @@ function ouvrirPanneauFonction(titre, entrees, entete) {
 
 // Entete commune : qui occupe le poste aujourd'hui. C'est la premiere question qu'on se pose en
 // ouvrant un ecran de gestion, et elle etait absente de tous les anciens boutons.
+// Lecture tolerante du titulaire d'un poste nomme. En echec on renvoie null, ce qui vaut « poste
+// vacant » : la facade s'ouvre quand meme, et chaque handler revalide sa propre condition avant de
+// prelever quoi que ce soit. Ne jamais laisser une lecture d'etat fermer un panneau.
+async function titulaireOuNull(posteId, city) {
+  if (typeof getTitulaireActuel !== 'function') return null;
+  try { return await getTitulaireActuel(posteId, city || null); } catch (e) { return null; }
+}
+
 async function enteteTitulaire(posteId, city) {
   if (typeof getTitulaireActuel !== 'function') return '';
   let titulaire = null;
@@ -120,14 +142,23 @@ async function enteteTitulaire(posteId, city) {
 async function ouvrirGestionChefDouanes(pa, cost) {
   if (state.poste?.id !== 'min_int') { showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return; }
   const entete = await enteteTitulaire('chef_douanes', null);
-  ouvrirPanneauFonction('Gérer le Chef des Douanes', [
-    { label: 'Candidatures reçues', desc: 'Examiner les candidatures déposées pour le poste.',
-      onclick: 'ouvrirGestionCandidatures([\'chef_douanes\'],' + (pa || 0) + ',' + (cost || 0) + ')' },
-    { label: 'Nommer', desc: 'Désigner directement un habitant ou un PNJ présent.',
-      onclick: 'ouvrirNominerPosteNomme(\'chef_douanes\',' + (pa || 0) + ',' + (cost || 0) + ')' },
-    { label: 'Révoquer', desc: 'Retirer le poste au titulaire en fonction.',
-      onclick: 'ouvrirRevoquerPosteNomme(\'chef_douanes\',' + (pa || 0) + ',' + (cost || 0) + ')' }
-  ], entete);
+  const t = await titulaireOuNull('chef_douanes');
+  const entrees = entreesPosteNomme(t, pa || 0, pa || 0,
+    'Le poste est déjà pourvu : révoquez le titulaire d\'abord.').map(function (e) {
+    const base = { pa: e.pa, indisponible: e.indisponible || null };
+    if (e.cle === 'candidatures') {
+      return Object.assign(base, { label: 'Candidatures reçues',
+               desc: 'Examiner les candidatures déposées pour le poste.',
+               onclick: 'ouvrirGestionCandidatures([\'chef_douanes\'],' + (pa || 0) + ',' + (cost || 0) + ')' });
+    }
+    if (e.cle === 'nommer') {
+      return Object.assign(base, { label: 'Nommer', desc: 'Désigner directement un habitant ou un PNJ présent.',
+               onclick: 'ouvrirNominerPosteNomme(\'chef_douanes\',' + (pa || 0) + ',' + (cost || 0) + ')' });
+    }
+    return Object.assign(base, { label: 'Révoquer', desc: 'Retirer le poste au titulaire en fonction.',
+             onclick: 'ouvrirRevoquerPosteNomme(\'chef_douanes\',' + (pa || 0) + ',' + (cost || 0) + ')' });
+  });
+  ouvrirPanneauFonction('Gérer le Chef des Douanes', entrees, entete);
 }
 
 // --- JUSTICE : Gerer les juges ----------------------------------------------
@@ -136,14 +167,23 @@ async function ouvrirGestionChefDouanes(pa, cost) {
 async function ouvrirGestionJuges(pa, cost) {
   if (state.poste?.id !== 'min_just') { showToast('Accès refusé', 'Réservé au Ministre de la Justice.', false); return; }
   const entete = await enteteTitulaire('juge', null);
-  ouvrirPanneauFonction('Gérer les juges', [
-    { label: 'Candidatures reçues', desc: 'Examiner les candidatures déposées pour la magistrature.',
-      onclick: 'ouvrirGestionCandidatures([\'juge\'],' + (pa || 0) + ',' + (cost || 0) + ')' },
-    { label: 'Nommer un juge', desc: 'Désigner un magistrat.',
-      onclick: 'ouvrirNominerPosteNomme(\'juge\',' + (pa || 0) + ',' + (cost || 0) + ')' },
-    { label: 'Révoquer le juge', desc: 'Retirer le poste au magistrat en fonction.',
-      onclick: 'ouvrirRevoquerPosteNomme(\'juge\',' + (pa || 0) + ',' + (cost || 0) + ')' }
-  ], entete);
+  const t = await titulaireOuNull('juge');
+  const entrees = entreesPosteNomme(t, pa || 0, pa || 0,
+    'Un magistrat est déjà en fonction : révoquez-le d\'abord.').map(function (e) {
+    const base = { pa: e.pa, indisponible: e.indisponible || null };
+    if (e.cle === 'candidatures') {
+      return Object.assign(base, { label: 'Candidatures reçues',
+               desc: 'Examiner les candidatures déposées pour la magistrature.',
+               onclick: 'ouvrirGestionCandidatures([\'juge\'],' + (pa || 0) + ',' + (cost || 0) + ')' });
+    }
+    if (e.cle === 'nommer') {
+      return Object.assign(base, { label: 'Nommer un juge', desc: 'Désigner un magistrat.',
+               onclick: 'ouvrirNominerPosteNomme(\'juge\',' + (pa || 0) + ',' + (cost || 0) + ')' });
+    }
+    return Object.assign(base, { label: 'Révoquer le juge', desc: 'Retirer le poste au magistrat en fonction.',
+             onclick: 'ouvrirRevoquerPosteNomme(\'juge\',' + (pa || 0) + ',' + (cost || 0) + ')' });
+  });
+  ouvrirPanneauFonction('Gérer les juges', entrees, entete);
 }
 
 // --- DEFENSE : Gerer le commandement -----------------------------------------
@@ -163,36 +203,54 @@ const COUT_PA_NOMINATION_COMMANDANT = 1;
 const COUT_PA_REVOCATION_COMMANDANT = 1;
 
 // Ce que le panneau doit proposer, calcule a part pour etre testable sans DOM.
-function entreesGestionCommandement(titulaire) {
+// REGLE UX DU 8 SEPTEMBRE 2026 : UNE FACADE SE CONSULTE TOUJOURS.
+// Cette fonction MASQUAIT les entrees inapplicables -- poste vacant, on ne voyait pas la
+// revocation ; poste pourvu, on ne voyait plus ni la nomination ni les candidatures. Le joueur ne
+// pouvait donc pas decouvrir ce que sa fonction contient : le panneau lui montrait un etat, pas
+// une competence.
+// Les trois entrees sont desormais TOUJOURS rendues ; seule leur disponibilite varie, avec son
+// motif. Les candidatures restent consultables meme poste pourvu -- savoir qui a postule est une
+// information legitime, et la consulter ne coute rien.
+// Forme generique, partagee par les QUATRE facades « candidatures / nommer / revoquer » du
+// gouvernement : Premier ministre, Commandant, juges, Chef des douanes. Elles posaient toutes la
+// meme question -- le poste est-il pourvu ? -- et aucune n'y repondait a l'ecran.
+// `occupe` est le motif a afficher sur « nommer » quand le siege est deja pris ; il varie parce
+// qu'un commandement, une magistrature et un ministere ne se disent pas de la meme facon.
+function entreesPosteNomme(titulaire, paNommer, paRevoquer, occupe) {
   const pourvu = !!(titulaire && (typeof titulaire === 'string' ? titulaire : titulaire.nom));
-  if (pourvu) {
-    return [{ cle: 'revoquer', pa: COUT_PA_REVOCATION_COMMANDANT }];
-  }
-  return [{ cle: 'candidatures', pa: 0 },
-          { cle: 'nommer', pa: COUT_PA_NOMINATION_COMMANDANT }];
+  return [
+    { cle: 'candidatures', pa: 0 },
+    { cle: 'nommer', pa: paNommer || 0,
+      indisponible: pourvu ? (occupe || 'Le poste est déjà pourvu : révoquez le titulaire d\'abord.') : null },
+    { cle: 'revoquer', pa: paRevoquer || 0,
+      indisponible: pourvu ? null : 'Aucun titulaire en fonction.' }
+  ];
+}
+
+function entreesGestionCommandement(titulaire) {
+  return entreesPosteNomme(titulaire, COUT_PA_NOMINATION_COMMANDANT, COUT_PA_REVOCATION_COMMANDANT,
+    'Le commandement est déjà pourvu : révoquez le titulaire d\'abord.');
 }
 
 async function ouvrirGestionCommandement() {
   if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
-  let titulaire = null;
-  if (typeof getTitulaireActuel === 'function') {
-    try { titulaire = await getTitulaireActuel('commandant', null); } catch (e) { titulaire = null; }
-  }
+  const titulaire = await titulaireOuNull('commandant');
   const entete = await enteteTitulaire('commandant', null);
   const entrees = entreesGestionCommandement(titulaire).map(function (e) {
+    const base = { pa: e.pa, indisponible: e.indisponible || null };
     if (e.cle === 'revoquer') {
-      return { label: 'Révoquer le Commandant',
-               desc: 'Retirer son commandement au titulaire en fonction. Coût : 1 PA.',
-               onclick: 'ouvrirRevoquerPosteNomme(\'commandant\',' + COUT_PA_REVOCATION_COMMANDANT + ',0)' };
+      return Object.assign(base, { label: 'Révoquer le Commandant',
+               desc: 'Retirer son commandement au titulaire en fonction.',
+               onclick: 'ouvrirRevoquerPosteNomme(\'commandant\',' + COUT_PA_REVOCATION_COMMANDANT + ',0)' });
     }
     if (e.cle === 'candidatures') {
-      return { label: 'Candidatures reçues',
+      return Object.assign(base, { label: 'Candidatures reçues',
                desc: 'Examiner les candidatures déposées pour le commandement.',
-               onclick: 'ouvrirGestionCandidatures([\'commandant\'],' + COUT_PA_NOMINATION_COMMANDANT + ',0)' };
+               onclick: 'ouvrirGestionCandidatures([\'commandant\'],' + COUT_PA_NOMINATION_COMMANDANT + ',0)' });
     }
-    return { label: 'Nommer le Commandant',
-             desc: 'Désigner un candidat éligible. Coût : 1 PA.',
-             onclick: 'ouvrirNominerPosteNomme(\'commandant\',' + COUT_PA_NOMINATION_COMMANDANT + ',0)' };
+    return Object.assign(base, { label: 'Nommer le Commandant',
+             desc: 'Désigner un candidat éligible.',
+             onclick: 'ouvrirNominerPosteNomme(\'commandant\',' + COUT_PA_NOMINATION_COMMANDANT + ',0)' });
   });
   ouvrirPanneauFonction('Gérer le commandement', entrees, entete);
 }
@@ -202,12 +260,17 @@ async function ouvrirGestionCommandement() {
 // la repartition. Aucune regle, aucun cout, aucun historique ne change -- seul le chemin change.
 function ouvrirPilotageFiscalBudgetaire(pa, cost) {
   if (state.poste?.id !== 'min_fin') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); return; }
+  // Le panneau s'ouvre TOUJOURS : le ministre doit pouvoir consulter sa fonction, meme quand aucune
+  // action n'est immediatement executable. Aucune de ces trois entrees n'a d'ailleurs de condition
+  // de disponibilite au-dela du poste -- verifie : leurs handlers ne controlent que min_fin. Les
+  // couts sont ceux transmis par l'ordre ; la repartition budgetaire preleve 1 PA a la validation,
+  // arbitrage du 7 septembre 2026 (validerRepartitionBudget), et non a l'ouverture.
   ouvrirPanneauFonction('Fiscalité et budget', [
-    { label: 'Taux d\'imposition national', desc: 'Fixer le taux prélevé sur l\'ensemble du pays.',
+    { label: 'Taux d\'imposition national', pa: pa || 0, desc: 'Fixer le taux prélevé sur l\'ensemble du pays.',
       onclick: 'ouvrirFixerImpotNational(' + (pa || 0) + ',' + (cost || 0) + ')' },
-    { label: 'Répartition budgétaire', desc: 'Répartir le budget national entre les institutions.',
+    { label: 'Répartition budgétaire', pa: 1, desc: 'Répartir le budget national entre les institutions. Le coût est prélevé à la validation de la répartition.',
       onclick: 'ouvrirGestionBudget()' },
-    { label: 'Ordonner un redressement', desc: 'Redressement fiscal contre un citoyen, un club, une entreprise ou une organisation.',
+    { label: 'Ordonner un redressement', pa: pa || 0, desc: 'Redressement fiscal contre un citoyen, un club, une entreprise ou une organisation.',
       onclick: 'ouvrirChoixTypeCibleFiscale(\'redressement_fiscal\',\'Redressement fiscal contre\')' }
   ]);
 }
@@ -393,6 +456,264 @@ function verdictVoteConseil(seance, posteId, choix) {
     return { ok: false, raison: 'deja_vote' };
   }
   return { ok: true, raison: null };
+}
+
+// ---------------------------------------------------------------------------
+// 3 bis. REGROUPEMENTS UX DES BUREAUX (8 septembre 2026)
+// ---------------------------------------------------------------------------
+// REMONTEE TERRAIN : le bureau presidentiel et celui de l'Interieur presentaient chaque ordre
+// comme un bouton independant -- douze d'un cote, six de l'autre -- alors que plusieurs
+// appartiennent manifestement a la meme famille.
+//
+// CE QUI CHANGE : l'organisation des entrees, rien d'autre. Chaque sous-entree appelle le handler
+// EXISTANT, avec le cout PA d'ORIGINE de l'ordre qu'elle remplace, code en dur ici. Aucune
+// mecanique, aucune condition, aucun effet n'est touche.
+//
+// POURQUOI CES COUTS SONT SURS. Verifie fonction par fonction avant d'ecrire une ligne : de tous
+// les ordres regroupes, un seul preleve ses PA a l'OUVERTURE (doDissoudreAssemblee, qui n'a pas
+// d'etape de confirmation separee) -- il recoit donc bien ses 4 PA ci-dessous. Tous les autres
+// prelevent a la CONFIRMATION, en propageant le pa qu'on leur passe. Une entree de regroupement
+// qui aurait oublie de transmettre le cout aurait rendu l'ordre gratuit : c'est le piege de ce
+// chantier, et il est ferme par ces valeurs explicites.
+//
+// Chaque facade REVALIDE le poste, comme les six facades ministerielles existantes : un panneau ne
+// doit jamais devenir un chemin d'acces plus permissif que le bouton qu'il remplace.
+
+// ---- BUREAU PRESIDENTIEL ----
+
+// nommer_ministre (2 PA) + revoquer_pm (1 PA). Meme poste, meme mecanique de poste nomme : c'est
+// la facade jumelle de ouvrirGestionChefDouanes, appliquee au Premier ministre. Elle expose en
+// prime l'ecran de candidatures, qui existait deja sans qu'aucun bouton presidentiel n'y mene.
+async function ouvrirGestionPremierMinistre() {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Seul le Président peut gérer le Premier ministre.', false); return;
+  }
+  const entete = await enteteTitulaire('pm', null);
+  const t = await titulaireOuNull('pm');
+  const entrees = entreesPosteNomme(t, 2, 1,
+    'Un Premier ministre est déjà en fonction : révoquez-le d\'abord.').map(function (e) {
+    const base = { pa: e.pa, indisponible: e.indisponible || null };
+    if (e.cle === 'candidatures') {
+      return Object.assign(base, { label: 'Candidatures reçues',
+               desc: 'Examiner les candidatures déposées pour le poste.',
+               onclick: "ouvrirGestionCandidatures(['pm'],2,0)" });
+    }
+    if (e.cle === 'nommer') {
+      return Object.assign(base, { label: 'Nommer', desc: 'Désigner un habitant ou un PNJ présent.',
+               onclick: "ouvrirNominerPosteNomme('pm',2,0)" });
+    }
+    return Object.assign(base, { label: 'Révoquer', desc: 'Retirer le poste au titulaire en fonction.',
+             onclick: "ouvrirRevoquerPosteNomme('pm',1,0)" });
+  });
+  ouvrirPanneauFonction('Le Premier ministre', entrees, entete);
+}
+
+// creer_poste_ministre (3 PA) + creer_comite (3 PA) + supprimer_poste_custom (0 PA).
+// Les trois pilotent le MEME objet state.postesCustom {ministre, comite} : c'est une seule famille.
+// La limite d'un poste et d'un comite s'apprenait jusqu'ici par un toast APRES le clic ; elle est
+// desormais lisible avant, l'etat etant deja disponible en memoire.
+function ouvrirPostesParDecret() {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Seul le Président peut créer un poste par décret.', false); return;
+  }
+  const custom = state.postesCustom || {};
+  const rien = !custom.ministre && !custom.comite;
+  ouvrirPanneauFonction('Postes et comités créés par décret', [
+    { label: 'Créer un poste ministériel', pa: 3, desc: 'Un ministère supplémentaire, salarié, occupable par un autre joueur.',
+      onclick: 'creerPosteMinistre(3,0)',
+      indisponible: custom.ministre ? 'Un poste ministériel a déjà été créé : supprimez-le d\'abord.' : null },
+    { label: 'Créer un comité', pa: 3, desc: 'Une instance consultative, sur le même principe.',
+      onclick: 'creerComite(3,0)',
+      indisponible: custom.comite ? 'Un comité a déjà été créé : supprimez-le d\'abord.' : null },
+    { label: 'Supprimer un poste créé', desc: 'Dissoudre le poste ou le comité créé par décret.',
+      onclick: 'supprimerPosteCustom()',
+      indisponible: rien ? 'Aucun poste ni comité créé par décret.' : null }
+  ]);
+}
+
+// etat_urgence (3 PA) + declarer_guerre (5 PA) + dissoudre_assemblee (4 PA).
+// Trois moteurs distincts et non fusionnables -- sbSetEtatUrgence, sbCreerGuerre, CYCLES_ELECTORAUX --
+// mais une meme nature : des actes qui engagent l'Etat au-dela de la gestion ordinaire, et dont on
+// ne revient pas d'un clic. Ils restent trois entrees ; ils cessent d'etre trois boutons.
+function ouvrirPouvoirsExceptionnels() {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Réservé au Président.', false); return;
+  }
+  ouvrirPanneauFonction('Pouvoirs exceptionnels', [
+    { label: 'État d\'urgence', pa: 3, desc: 'Déclarer ou lever l\'état d\'urgence.',
+      onclick: 'doEtatUrgence(3,0)' },
+    { label: 'Déclarer la guerre', pa: 5, desc: 'Ouvrir un conflit avec un empire étranger. Visible de tous, y compris de l\'empire visé.',
+      onclick: 'ouvrirModalGuerreEmpire(5,0)' },
+    { label: 'Dissoudre l\'Assemblée', pa: 4, desc: 'Mettre fin au mandat des députés et convoquer de nouvelles législatives.',
+      onclick: 'doDissoudreAssemblee(4,0)' }
+  ]);
+}
+
+// decret_referendum (3 PA) + jour_deuil (1 PA). Ce ne sont pas seulement deux actes voisins :
+// c'est LITTERALEMENT le meme appel, ouvrirForumNationalSousForumPresident(type, pa, cost), au
+// parametre `type` pres, et les deux publient dans le meme sous-forum presidentiel.
+// « Signer un décret » emprunte le meme canal mais reste volontairement un bouton distinct, dans
+// l'attente de l'arbitrage demande a son sujet.
+function ouvrirAdresseALaNation() {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Réservé au Président.', false); return;
+  }
+  ouvrirPanneauFonction('S\'adresser à la Nation', [
+    { label: 'Ordonner un référendum', pa: 3, desc: 'Soumettre une question au pays. Publié sur le forum présidentiel.',
+      onclick: "ouvrirForumNationalSousForumPresident('referendum',3,0)" },
+    { label: 'Décret de deuil national', pa: 1, desc: 'Décréter un deuil national.',
+      onclick: "ouvrirForumNationalSousForumPresident('deuil',1,0)" },
+    // Rejoint la facade apres arbitrage du 8 septembre 2026 : sa mecanique a ete tracee de bout en
+    // bout et elle est reelle -- decret redige par l'IA, effets POP/INF persistes sur le
+    // personnage, et surtout publication d'un vrai sujet dans le MEME sous-forum presidentiel que
+    // le referendum et le deuil. Meme canal, donc meme famille. Cout inchange : 1 PA.
+    { label: 'Signer un décret', pa: 1, desc: 'Un décret rédigé pour vous, publié sur le forum présidentiel. Effets sur la popularité et l\'influence.',
+      onclick: 'signerDecretInutile(1,0)' }
+  ]);
+}
+
+// ---- BUREAU DU MINISTRE DE L'INTERIEUR ----
+
+// traiter_manifestations (1 PA) + interdire_manif (2 PA) + reprimer_manif (3 PA).
+// Une seule famille : le traitement des manifestations, de l'autorisation prealable a la
+// dispersion. Les trois handlers restent strictement separes -- aucune logique metier fusionnee.
+// L'impossibilite de reprimer quand un syndicat de police est en greve etait un toast d'echec
+// APRES le clic ; elle devient une indisponibilite lisible, lue sur le meme etat que le handler.
+function ouvrirGestionManifestations() {
+  if (state.poste?.id !== 'min_int') {
+    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return;
+  }
+  const pays = state.country || 'republic';
+  const policeEnGreve = (typeof syndicatPoliceEnGreve === 'function') && syndicatPoliceEnGreve(pays);
+  ouvrirPanneauFonction('Gérer les manifestations', [
+    { label: 'Traiter les demandes', pa: 1, desc: 'Autoriser ou refuser les demandes de manifestation déposées.',
+      onclick: 'doTraiterManifestations(1,0)' },
+    { label: 'Interdire une manifestation', pa: 2, desc: 'Interdire un rassemblement déjà autorisé ou annoncé.',
+      onclick: 'ouvrirInterdireManif(2,0)' },
+    { label: 'Réprimer une manifestation', pa: 3, desc: 'Ordonner la dispersion par les forces de l\'ordre.',
+      onclick: 'ouvrirReprimerManif(3,0)',
+      indisponible: policeEnGreve
+        ? 'Un syndicat de policiers est en grève : la répression est impossible tant qu\'il n\'y met pas fin.'
+        : null }
+  ]);
+}
+
+// ---- BUREAU DU MINISTRE DE LA DEFENSE ----
+// AUDIT PREALABLE (8 septembre 2026). Le regroupement demande portait sur quatre ordres :
+// Mobiliser / Demobiliser / Cessez-le-feu / Requisition civile. Trois seulement forment une chaine.
+//
+// CE QUI LES RELIE REELLEMENT : un unique drapeau persiste, budgetNat.mobilisationNationaleActive.
+//   mobiliser_armee     l'ecrit a true   (plateau-politique.js:8698)
+//   demobiliser         l'ecrit a false  (plateau-politique.js:9615)
+//   requisition_civile  en depend        (plateau-politique.js:9841, refus si absent)
+// C'est un cycle de vie, pas une ressemblance de vocabulaire : ouvrir, exploiter, refermer.
+//
+// CE QUI N'EN FAIT PAS PARTIE : « Activer un cessez-le-feu » travaille sur guerres.data.ceasefire,
+// une autre table et un autre objet -- une treve bilaterale par guerre, pas l'etat mobilise du pays.
+// Il reste un ordre autonome. (Son etat reel est rapporte separement : la branche qui ecrirait
+// ceasefire.accepteePar n'a aucun appelant, l'ordre ne peut donc rien lister aujourd'hui. C'est un
+// constat de mecanique, hors du perimetre de cette passe UX -- rien n'est corrige ici.)
+//
+// COUTS : d'origine, codes en dur. Les trois prelevent a la CONFIRMATION -- confirmerMobilisation
+// et confirmerRequisitionCivile recoivent le pa qu'on leur propage ; doDemobiliser code ses 2 PA
+// en interne et ignore ce qu'on lui passe. Aucun ne preleve a l'ouverture : la facade est sure.
+const COUT_PA_MOBILISER = 4;
+const COUT_PA_DEMOBILISER = 2;
+const COUT_PA_REQUISITION = 3;
+
+// REGLE UX DU 8 SEPTEMBRE 2026 : UNE FACADE SE CONSULTE TOUJOURS.
+// Les trois entrees sont rendues quel que soit l'etat ; seule leur disponibilite varie.
+//
+// « Mobiliser » N'EST JAMAIS BLOQUEE, y compris mobilisation deja active : doMobiliserArmee ne
+// porte aucune garde de ce type, remobiliser est une nouvelle feuille de route pour le Commandant.
+// Inventer ici un « deja en cours » AJOUTERAIT une condition au jeu -- ce que cette passe s'interdit.
+function entreesMobilisationNationale(mobilisee) {
+  const active = !!mobilisee;
+  return [
+    { cle: 'mobiliser', pa: COUT_PA_MOBILISER },
+    { cle: 'requisition', pa: COUT_PA_REQUISITION,
+      indisponible: active ? null : 'Uniquement pendant une mobilisation nationale.' },
+    { cle: 'demobiliser', pa: COUT_PA_DEMOBILISER,
+      indisponible: active ? null : 'Aucune mobilisation nationale en cours.' }
+  ];
+}
+
+async function ouvrirMobilisationNationale() {
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  // LECTURE STRICTE, VOLONTAIREMENT PAS chargerBudgetNational : celle-ci CREE la ligne de budget
+  // national quand elle n'existe pas encore (plateau-justice-economie.js:10910, sbSaveBudgetNational).
+  // Ouvrir un panneau pour le consulter ne doit rien ecrire. Pas de ligne = pas de mobilisation.
+  // Si la lecture echoue, on ouvre quand meme : la facade se consulte toujours, et les handlers
+  // reverifient chacun leur propre condition avant de prelever quoi que ce soit.
+  let mobilisee = false;
+  if (typeof sbGetBudgetNational === 'function') {
+    const b = await sbGetBudgetNational(state.country || 'republic').catch(() => null);
+    mobilisee = !!(b && b.mobilisationNationaleActive);
+  }
+  const entete = '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+    + (mobilisee ? 'Mobilisation nationale EN COURS.' : 'Aucune mobilisation nationale en cours.')
+    + '</div>';
+  const entrees = entreesMobilisationNationale(mobilisee).map(function (e) {
+    const base = { pa: e.pa, indisponible: e.indisponible || null };
+    if (e.cle === 'mobiliser') {
+      return Object.assign(base, { label: 'Mobiliser l\'armée',
+               desc: 'Choisir une destination et donner une feuille de route secrète au Commandant.',
+               onclick: 'doMobiliserArmee(' + COUT_PA_MOBILISER + ',0)' });
+    }
+    if (e.cle === 'requisition') {
+      return Object.assign(base, { label: 'Réquisition civile',
+               desc: 'Tirage au sort de 24 citoyens pour doubler l\'effectif d\'une section.',
+               onclick: 'ouvrirRequisitionCivile(' + COUT_PA_REQUISITION + ',0)' });
+    }
+    return Object.assign(base, { label: 'Démobiliser',
+             desc: 'Lever la mobilisation. Les réquisitions cessent et l\'immunité militaire prend fin.',
+             onclick: 'doDemobiliser()' });
+  });
+  ouvrirPanneauFonction('Mobilisation nationale', entrees, entete);
+}
+
+// ---- BUREAU DU MINISTRE DES AFFAIRES ETRANGERES ----
+// AUDIT PREALABLE (8 septembre 2026). Question posee : « Signer un traite » partage-t-il une chaine
+// reelle avec « Ouvrir des negociations » et « Repondre aux propositions » ? OUI.
+//
+// LA CHAINE COMMUNE est la table propositions_diplomatiques, et le passage oblige proposerDiplomatie
+// (plateau-politique.js:5647), qui les parametre par un meme DIPLOMATIE_CONFIG :
+//   accord_diplomatique   -> proposerDiplomatie('negociation', ...)  INSERT statut 'en_attente'
+//   signer_traite         -> proposerTraite -> proposerDiplomatie('traite', ...)  meme INSERT
+//   reponses_diplomatiques-> repondreDiplomatie   SELECT en_attente, UPDATE acceptee|refusee
+//
+// MAIS LA FORME N'EST PAS CELLE QUE LES LIBELLES SUGGERENT, et cela ne se corrige pas ici :
+// ce ne sont pas trois etapes successives mais DEUX EMETTEURS ET UN REPONDEUR. Une negociation
+// aboutie ne conditionne aucun traite ulterieur -- on peut « signer » avec un empire avec qui on
+// n'a jamais rien negocie. Et « Signer un traite » ne signe pas : il PROPOSE ; la signature reelle
+// est faite en face, par « Repondre aux propositions ». Le regroupement rend cette parente visible ;
+// il ne prétend pas la corriger, et ne touche ni aux couts ni aux effets.
+//
+// N'EN FONT PAS PARTIE : « Proposer une treve » (table guerres, colonne ceasefire) et
+// « Ambassades et ambassadeurs » (table ambassades_ouvertes, deja une facade). Ils restent autonomes.
+//
+// COUTS d'origine. Les trois prelevent a la CONFIRMATION, en propageant le pa recu.
+const COUT_PA_NEGOCIATION = 2;
+const COUT_PA_TRAITE = 3;
+const COUT_PA_REPONSE_DIPLO = 1;
+
+// REGLE UX : les trois entrees sont toujours rendues et toujours ouvrables.
+// « Repondre aux propositions » n'est deliberement PAS marquee indisponible quand la corbeille est
+// vide : ouvrir la liste ne coute rien (le PA part a la reponse), et constater qu'on n'a rien recu
+// est precisement l'usage de cet ordre. La bloquer reviendrait a interdire de consulter.
+function ouvrirDiplomatieBilaterale() {
+  if (state.poste?.id !== 'min_ae') { showToast('Accès refusé', 'Réservé au Ministre des Affaires Étrangères.', false); return; }
+  ouvrirPanneauFonction('Diplomatie bilatérale', [
+    { label: 'Ouvrir des négociations diplomatiques', pa: COUT_PA_NEGOCIATION,
+      desc: 'Établir un canal diplomatique avec un empire étranger.',
+      onclick: 'ouvrirModalNegociationDiplomatique(' + COUT_PA_NEGOCIATION + ',0)' },
+    { label: 'Signer un traité', pa: COUT_PA_TRAITE,
+      desc: 'Proposer un accord bilatéral. Il n\'entre en vigueur qu\'une fois accepté en face.',
+      onclick: 'ouvrirModalTraite(' + COUT_PA_TRAITE + ',0)' },
+    { label: 'Répondre aux propositions', pa: COUT_PA_REPONSE_DIPLO,
+      desc: 'Consulter et répondre aux propositions reçues (traités, négociations).',
+      onclick: 'ouvrirReponsesDiplomatiques(' + COUT_PA_REPONSE_DIPLO + ',0)' }
+  ]);
 }
 
 // ---------------------------------------------------------------------------

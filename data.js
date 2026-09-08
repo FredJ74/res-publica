@@ -1908,18 +1908,17 @@ const BUILDINGS = {
           {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/huguette-papier.png', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',    pa:3, cost:0,    type:'legal',   icon:'ti-user-star',     successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
-          {fn:'creer_comite',           label:'Creer un comite',               pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'president', desc:'Creer un comite special. Limite : 1 comite.'},
-          {fn:'supprimer_poste_custom', label:'Supprimer un poste cree',       pa:0, cost:0,    type:'legal',   icon:'ti-trash',         successRate:100, requiresPost:'president', desc:'Supprimer un poste ou comite precedemment cree.'},
-          {fn:'nommer_ministre',        label:'Nommer un Premier Ministre',            pa:2, cost:0,    type:'legal',   icon:'ti-crown',         successRate:100, requiresPost:'president', desc:'Nommer un PJ a un poste ministeriel. Envoie un mail au candidat.'},
-          {fn:'revoquer_pm',             label:'Revoquer le Premier Ministre',          pa:1, cost:0,    type:'legal',   icon:'ti-crown-off',     successRate:100, requiresPost:'president', desc:'Retirer le poste au Premier Ministre actuel.'},
-          {fn:'etat_urgence',           label:'Declarer l\'etat d\'urgence',  pa:3, cost:0,    type:'legal',   icon:'ti-alert-triangle',successRate:100, requiresPost:'president', desc:'Suspend certaines libertes. Fort impact sur INF et POP.'},
-          {fn:'declarer_guerre',        label:'Declarer la guerre',            pa:5, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'president', desc:'Declarer la guerre a un empire. Consequences majeures.'},
-          {fn:'gracier',                label:'Traiter les demandes de grâce',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Examiner les recommandations de grace du Ministre de la Justice — accepter ou refuser.'},
-          {fn:'dissoudre_assemblee',    label:'Dissoudre l\'Assemblee',       pa:4, cost:0,    type:'legal',   icon:'ti-ban',           successRate:100, requiresPost:'president', desc:'Declenche de nouvelles elections legislatives. Risque politique majeur.'},
-          {fn:'decret_referendum',      label:'Ordonner un referendum',        pa:3, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, requiresPost:'president', desc:'Soumettre une question au vote populaire.'},
-          {fn:'jour_deuil',             label:'Decret de deuil national',      pa:1, cost:0,    type:'legal',   icon:'ti-flag',          successRate:100, requiresPost:'president', desc:'Symbolique fort. +POP si populaire, -POP si conteste.'},
-          {fn:'decret_inutile',         label:'Signer un decret',              pa:1, cost:0,    type:'legal',   icon:'ti-file-certificate', successRate:100, requiresPost:'president', desc:'Decret absurde généré par IA. Effets parodiques sur POP et INF. Publiable sur le forum.'}
+          // REGROUPEMENT UX DU 8 SEPTEMBRE 2026. Douze boutons independants formaient un mur.
+          // Les ordres eux-memes ne changent pas : handlers, couts, conditions et effets sont
+          // intacts. Seules leurs ENTREES sont regroupees par famille -- voir plateau-gouvernement.js,
+          // section 3 bis, ou chaque sous-entree rappelle explicitement le cout d'origine.
+          // Les entrees de regroupement valent 0 PA : ouvrir un panneau ne coute rien, et chaque
+          // action y porte et preleve son propre cout.
+          {fn:'gestion_premier_ministre', label:'Le Premier ministre',              pa:0, cost:0,    type:'legal',   icon:'ti-crown',            successRate:100, requiresPost:'president', desc:'Candidatures, nomination (2 PA) et revocation (1 PA) du Premier ministre.'},
+          {fn:'postes_par_decret',        label:'Postes et comites par decret',     pa:0, cost:0,    type:'legal',   icon:'ti-user-star',        successRate:100, requiresPost:'president', desc:'Creer un poste ministeriel ou un comite (3 PA chacun), ou supprimer celui deja cree.'},
+          {fn:'pouvoirs_exceptionnels',   label:'Pouvoirs exceptionnels',           pa:0, cost:0,    type:'legal',   icon:'ti-alert-triangle',   successRate:100, requiresPost:'president', desc:'Etat d urgence (3 PA), declaration de guerre (5 PA), dissolution de l Assemblee (4 PA).'},
+          {fn:'adresse_a_la_nation',      label:'S adresser a la Nation',           pa:0, cost:0,    type:'legal',   icon:'ti-speakerphone',     successRate:100, requiresPost:'president', desc:'Referendum (3 PA), deuil national (1 PA) ou decret presidentiel (1 PA).'},
+          {fn:'gracier',                label:'Traiter les demandes de grâce',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Examiner les recommandations de grace du Ministre de la Justice — accepter ou refuser.'}
         ]
       },
       salle_presse_elysee: {
@@ -2036,11 +2035,13 @@ const BUILDINGS = {
         requiresPostId: 'min_int',
         persons: [{name:"Le Ministre de l'Intérieur (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int'}],
         orders: [
-          {fn:'traiter_manifestations', label:'Traiter les demandes de manifestation', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'min_int', desc:'Autoriser ou interdire un rassemblement declare.'},
+          // REGROUPEMENT UX DU 8 SEPTEMBRE 2026. Traiter, interdire et reprimer une manifestation
+          // sont trois etapes d'une meme famille : elles cessent d'etre trois entrees principales.
+          // Aucune logique metier n'est fusionnee -- les trois handlers restent distincts et
+          // conservent leurs couts (1, 2 et 3 PA), leurs conditions et leurs effets.
+          {fn:'gestion_manifestations', label:'Gerer les manifestations',       pa:0, cost:0,    type:'legal',   icon:'ti-users-group',  successRate:100, requiresPost:'min_int', desc:'Traiter les demandes (1 PA), interdire (2 PA) ou reprimer une manifestation (3 PA).'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
-          {fn:'interdire_manif',     label:'Interdire une manifestation', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local, facilite une repression ulterieure au meme endroit.'},
-          {fn:'reprimer_manif',      label:'Reprimer une manifestation',  pa:3, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local (bonus si une manifestation y a ete interdite recemment) ; blesse les PJ presents sur place.'},
           {fn:'gerer_chef_douanes',   label:'Gérer le Chef des Douanes',  pa:1, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Titulaire en fonction, candidatures reçues, nomination et révocation.'}
         ]
       },
@@ -2081,11 +2082,9 @@ const BUILDINGS = {
         requiresPostId: 'min_def',
         persons: [{name:'Le Ministre de la Défense (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def'}],
         orders: [
-          {fn:'mobiliser_armee',      label:'Mobiliser l\'armee',          pa:4, cost:0,   type:'legal',   icon:'ti-military-rank',  successRate:100, requiresPost:'min_def', desc:'Choisir une destination et donner une feuille de route secrete au Commandant.'},
+          {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee, requisitionner des civils, demobiliser. Chaque action garde son cout.'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
           {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'},
-          {fn:'demobiliser',         label:'Démobiliser', pa:2, cost:0, type:'legal', icon:'ti-flag-off', successRate:100, requiresPost:'min_def', desc:'Lever la mobilisation nationale. Les réquisitions cessent et l\'immunité militaire prend fin.'},
-          {fn:'requisition_civile',  label:'Réquisition civile',        pa:3, cost:0, type:'legal', icon:'ti-users', successRate:100, requiresPost:'min_def', desc:'Tirage au sort de 24 citoyens pour doubler l\'effectif d\'une section. Uniquement pendant une mobilisation nationale.'},
           {fn:'gerer_commandement',  label:'Gérer le commandement',      pa:1, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'min_def', desc:'Commandant en fonction, candidatures reçues, nomination et révocation.'}
         ]
       },
@@ -2112,10 +2111,8 @@ const BUILDINGS = {
         persons: [{name:'Le Ministre des Affaires Étrangères (PNJ)', role:'PNJ - Ministre des Affaires Etrangeres', rel:'neutral', job:'min_ae'}],
         orders: [
           {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
-          {fn:'accord_diplomatique',  label:'Ouvrir des negociations diplomatiques', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:80, requiresPost:'min_ae', desc:'Etablir un canal diplomatique. +8 ID.'},
-          {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
+          {fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},
           {fn:'gerer_ambassades',     label:'Ambassades et ambassadeurs',   pa:2, cost:0,   type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Ouvrir une ambassade, nommer, démettre ou expulser un ambassadeur.'},
-          {fn:'reponses_diplomatiques', label:'Répondre aux propositions', pa:1, cost:0,   type:'legal',   icon:'ti-inbox',          successRate:100, requiresPost:'min_ae', desc:'Consulter et repondre aux propositions diplomatiques recues (traites, negociations).'},
         ]
       }
     }
