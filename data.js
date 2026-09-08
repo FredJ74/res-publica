@@ -2036,15 +2036,12 @@ const BUILDINGS = {
         requiresPostId: 'min_int',
         persons: [{name:"Le Ministre de l'Intérieur (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int'}],
         orders: [
-          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'min_int', desc:'Choisir un type d\'intervention concrete (blocus, manifestation, quartier sensible).'},
           {fn:'traiter_manifestations', label:'Traiter les demandes de manifestation', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'min_int', desc:'Autoriser ou interdire un rassemblement declare.'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
-          {fn:'subvention_min_int',  label:'Allouer une subvention',      pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Subventionner le commissariat de n\'importe quelle ville, ou le QHS, depuis la caisse du Ministere.'},
           {fn:'interdire_manif',     label:'Interdire une manifestation', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local, facilite une repression ulterieure au meme endroit.'},
           {fn:'reprimer_manif',      label:'Reprimer une manifestation',  pa:3, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local (bonus si une manifestation y a ete interdite recemment) ; blesse les PJ presents sur place.'},
-          {fn:'nommer_chef_douanes',  label:'Nommer un Chef des Douanes', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Nommer un PJ Chef des Douanes de Republia. Poste exclusif (sauf depute).'},
-          {fn:'revoquer_chef_douanes', label:'Revoquer le Chef des Douanes', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_int', desc:'Retirer le poste au Chef des Douanes actuellement en fonction.'}
+          {fn:'gerer_chef_douanes',   label:'Gérer le Chef des Douanes',  pa:1, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Titulaire en fonction, candidatures reçues, nomination et révocation.'}
         ]
       },
       bureau_min_fin: {
@@ -2055,16 +2052,10 @@ const BUILDINGS = {
         requiresPostId: 'min_fin',
         persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin'}],
         orders: [
-          {fn:'fixer_impots_nationaux', label:'Fixer le taux d\'imposition national', pa:2, cost:0,   type:'legal',   icon:'ti-percentage',    successRate:100, requiresPost:'min_fin', desc:'Voir et modifier le taux d\'imposition national en vigueur.'},
-          {fn:'redressement_fiscal',  label:'Ordonner un redressement',     pa:2, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:80,  requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Genere des recettes pour l\'Etat mais cree des ennemis.'},
+          {fn:'pilotage_fiscal_budgetaire', label:'Fiscalité et budget', pa:2, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Taux d\'imposition national, répartition budgétaire et redressement fiscal — une seule fonction de pilotage financier.'},
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
-          {fn:'fiscal',              label:'Repartition budgetaire',       pa:2, cost:0, type:'legal', icon:'ti-chart-pie',   successRate:100, requiresPost:'min_fin', desc:'Fixer la repartition des recettes fiscales entre les institutions. Prerogative exclusive du Ministre des Finances.'},
-          {fn:'gerer_candidatures_directeurs', label:'Gérer les candidatures de directeurs', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'min_fin', desc:'Candidatures reçues pour les 3 directeurs d\'usine (Pharmaceutique, Tabac & Alcools, Raffinerie) — sans se déplacer.'},
-          {fn:'virement_ministere_usine', label:'Virement vers une usine', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'min_fin', desc:"Verser un montant depuis la caisse du Ministere vers la caisse d'une usine nationale. Le ministre ne peut jamais prelever directement dans la caisse d'une usine."},
-          {fn:'allegement_fiscal',   label:'Allegement fiscal sectoriel', pa:0, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Pas encore disponible -- sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.'},
+          {fn:'gestion_industrielle_portuaire', label:'Gestion industrielle et portuaire', pa:1, cost:0, type:'legal', icon:'ti-building-factory', successRate:100, requiresPost:'min_fin', desc:'Directeurs d\'usine, virements aux usines nationales, Commandant du Port.'},
           {fn:'preempter_entreprise', label:'Droit de preemption sur une entreprise', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Nationaliser une entreprise encore tenue par un PNJ, financee par un pret automatique de la Banque Nationale. Une seule preemption a la fois.'},
-          {fn:'nommer_commandant_port',  label:'Nommer un Commandant du Port', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ Commandant du Port de Port-Sainte-Marie. Poste exclusif (sauf depute).'},
-          {fn:'revoquer_commandant_port', label:'Revoquer le Commandant du Port', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au Commandant du Port actuellement en fonction.'}
         ]
       },
       bureau_min_just: {
@@ -2078,8 +2069,7 @@ const BUILDINGS = {
           {fn:'annuler_poursuites',   label:'Classer une plainte',          pa:2, cost:0,   type:'grey',    icon:'ti-file-x',         successRate:70,  requiresPost:'min_just', desc:'Classer une plainte en cours avant jugement. Cree une dette politique. Coute a la caisse du gouvernement.'},
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
           {fn:'proposer_grace',      label:'Proposer une grace',           pa:2, cost:0,   type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'min_just', desc:'Recommander une grace au President — qui devra valider.'},
-          {fn:'nommer_juge',          label:'Nommer un juge',               pa:3, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:90,  requiresPost:'min_just', desc:'Nommer un magistrat favorable. Influence les verdicts futurs.'},
-          {fn:'revoquer_juge',         label:'Revoquer un juge',              pa:1, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:100, requiresPost:'min_just', desc:'Retirer le poste au juge actuellement en fonction.'},
+          {fn:'gerer_juges',          label:'Gérer les juges',              pa:1, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:100, requiresPost:'min_just', desc:'Magistrat en fonction, candidatures reçues, nomination et révocation.'},
           {fn:'gestion_qhs',          label:'Gestion du QHS',               pa:0, cost:0,   type:'legal',   icon:'ti-building-fortress', successRate:100, requiresPost:'min_just', desc:'Budget dedie et liste des detenus du QHS. Transferer, ameliorer les conditions, ou faire torturer.'}
         ]
       },
@@ -2093,11 +2083,10 @@ const BUILDINGS = {
         orders: [
           {fn:'mobiliser_armee',      label:'Mobiliser l\'armee',          pa:4, cost:0,   type:'legal',   icon:'ti-military-rank',  successRate:100, requiresPost:'min_def', desc:'Choisir une destination et donner une feuille de route secrete au Commandant.'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
-          {fn:'nommer_commandant',   label:'Nommer le Commandant',       pa:2, cost:0,   type:'legal',   icon:'ti-star',           successRate:100, requiresPost:'min_def', desc:'Designer le Commandant de la Caserne.'},
-          {fn:'recruter_compagnie',  label:'Recruter une compagnie',     pa:3, cost:0,   type:'legal',   icon:'ti-users-group',    successRate:100, requiresPost:'min_def', desc:'100 soldats (4 sections). Coute a la caisse de la caserne.'},
           {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'},
+          {fn:'demobiliser',         label:'Démobiliser', pa:2, cost:0, type:'legal', icon:'ti-flag-off', successRate:100, requiresPost:'min_def', desc:'Lever la mobilisation nationale. Les réquisitions cessent et l\'immunité militaire prend fin.'},
           {fn:'requisition_civile',  label:'Réquisition civile',        pa:3, cost:0, type:'legal', icon:'ti-users', successRate:100, requiresPost:'min_def', desc:'Tirage au sort de 24 citoyens pour doubler l\'effectif d\'une section. Uniquement pendant une mobilisation nationale.'},
-          {fn:'gerer_candidature_commandant', label:'Gérer les candidatures au Commandant', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'min_def', desc:'Candidatures reçues pour le poste de Commandant de la Caserne — sans se déplacer.'}
+          {fn:'gerer_commandement',  label:'Gérer le commandement',      pa:1, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'min_def', desc:'Commandant en fonction, candidatures reçues, nomination et révocation.'}
         ]
       },
       bureau_min_info: {
@@ -2125,12 +2114,8 @@ const BUILDINGS = {
           {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
           {fn:'accord_diplomatique',  label:'Ouvrir des negociations diplomatiques', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:80, requiresPost:'min_ae', desc:'Etablir un canal diplomatique. +8 ID.'},
           {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
-          {fn:'ouvrir_ambassade',     label:'Ouvrir une ambassade',         pa:2, cost:1000,type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Etablir une representation diplomatique.'},
-          {fn:'sanctions_diplo',      label:'Imposer des sanctions',        pa:3, cost:0,   type:'legal',   icon:'ti-ban',            successRate:85,  requiresPost:'min_ae', desc:'Sanctions economiques ou diplomatiques.'},
+          {fn:'gerer_ambassades',     label:'Ambassades et ambassadeurs',   pa:2, cost:0,   type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Ouvrir une ambassade, nommer, démettre ou expulser un ambassadeur.'},
           {fn:'reponses_diplomatiques', label:'Répondre aux propositions', pa:1, cost:0,   type:'legal',   icon:'ti-inbox',          successRate:100, requiresPost:'min_ae', desc:'Consulter et repondre aux propositions diplomatiques recues (traites, negociations).'},
-          {fn:'nommer_ambassadeur_cible', label:'Nommer un ambassadeur',   pa:1, cost:0,   type:'legal',   icon:'ti-user-plus',      successRate:100, requiresPost:'min_ae', desc:'Designer un contact comme ambassadeur aupres d\'un empire.'},
-          {fn:'demettre_ambassadeur_cible', label:'Démettre un ambassadeur de son poste', pa:1, cost:0, type:'legal', icon:'ti-user-minus', successRate:100, requiresPost:'min_ae', desc:'Mettre fin, avec effet immediat, a la mission de son propre ambassadeur.'},
-          {fn:'expulser_ambassadeur_cible', label:'Expulser un ambassadeur', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_ae', desc:'Declarer persona non grata un ambassadeur etranger present sur le territoire (24h pour quitter le pays, sous peine d\'arrestation).'}
         ]
       }
     }
@@ -2730,6 +2715,7 @@ const BUILDINGS = {
           {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
           {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
           {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       }
@@ -3016,7 +3002,8 @@ const BUILDINGS = {
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'}
+          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'},
+          {fn:'revoquer_maire_adjoint', label:'Révoquer le Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste au Maire Adjoint actuellement en fonction.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -3558,7 +3545,8 @@ const BUILDINGS = {
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'}
+          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'},
+          {fn:'revoquer_maire_adjoint', label:'Révoquer le Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste au Maire Adjoint actuellement en fonction.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -3701,7 +3689,6 @@ const BUILDINGS = {
         persons: [{name:'Delegue Morel (PNJ)', role:'Secretaire general du syndicat', rel:'neutral', job:'syndicaliste'}],
         orders: [
           {fn:'mobiliser',    label:'Mobiliser les membres', pa:2, cost:0,   type:'legal', icon:'ti-speakerphone',successRate:70},
-          {fn:'greve',        label:'Lancer une greve',      pa:3, cost:0,   type:'grey',  icon:'ti-ban',         successRate:55, desc:'Paralyse l\'economie locale.'}
         ]
       }
     }
@@ -3854,6 +3841,7 @@ const BUILDINGS = {
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
           {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
           {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       },
@@ -4459,6 +4447,7 @@ const BUILDINGS = {
           {fn:'traiter_engagements', label:'Traiter les engagements',   pa:1, cost:0,    type:'legal',   icon:'ti-clipboard-list', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Affecter les demandes d\'engagement a une compagnie.'},
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'repartir_armement', label:'Repartir l\'armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Transferer des armes entre le stock de l\'Armurerie Militaire et les sections de sa compagnie.'},
+          {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'100 soldats (4 sections). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
           {fn:'recruter_section',   label:'Recompléter une section',    pa:2, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, requiresPost:'commandant', desc:'Recompléter une section anéantie. Les nouvelles recrues n\'ont aucune experience.'},
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
           {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
@@ -5148,6 +5137,7 @@ const BUILDINGS = {
         persons: [{name:'Gustave Baril (PNJ)', role:'Directeur de la Raffinerie', rel:'neutral', job:'directeur_raffinerie'}],
         orders: [
           {fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'},
+          {fn:'revoquer_directeur_raffinerie', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur de la raffinerie actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de la raffinerie vers la caisse du Ministère des Finances.'}
@@ -5223,6 +5213,7 @@ const BUILDINGS = {
         persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
         orders: [
           {fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'},
+          {fn:'revoquer_directeur_tabac_alcools', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur du Pôle Tabac & Alcools actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Verser un montant depuis la caisse du pôle vers la caisse du Ministère des Finances.'}
@@ -5333,6 +5324,7 @@ const BUILDINGS = {
         persons: [{name:'Bernard Piluler (PNJ)', role:"Directeur de l'Usine Pharmaceutique", rel:'neutral', job:'directeur_pharma'}],
         orders: [
           {fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'},
+          {fn:'revoquer_directeur_pharma', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur de l\'Usine Pharmaceutique actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_pharma', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_pharma', desc:"Verser un montant depuis la caisse de l'usine vers la caisse du Ministère des Finances."}
@@ -7055,7 +7047,9 @@ const ORDER_EFFECTS = {
   permis_corrompu:    {dis:-5,           successRate:60},
   acheter_entreprise: {},
   mobiliser:          {inf:5,  pop:3,    successRate:70},
-  greve:              {inf:8,  pop:5,    successRate:55},
+  // Entree 'greve' RETIREE le 8 septembre 2026 avec l'ordre du meme nom (greve PNJ d'empire) :
+  // le handler doGrevePNJ avait disparu lors de l'eclatement de plateau.js du 28 juin 2026.
+  // Le moteur syndical reel (greve_lancer) n'a jamais utilise ORDER_EFFECTS.
   contrebande:        {dis:-3,           successRate:55},
   deplacer:           {successRate:100}
 };
@@ -7215,7 +7209,13 @@ const POSTES_NOMMES_EXCLUSIFS = {
 // POSTES_NOMMES_EXCLUSIFS ci-dessus, aucune exception par poste (voir plateau-politique.js/
 // api/cron-minuit.js). Duree en millisecondes reelles (Date.now()), jamais en jours de jeu.
 const DELAI_DECISION_CANDIDATURE_MS = 48 * 3600 * 1000; // 48h reelles
-const DUREE_PROTECTION_POSTE_NOMME_MS = 7 * 24 * 3600 * 1000; // 7 jours reels
+// Protection anti-revocation d'un poste nomme, ramenee de 7 a 3 JOURS le 7 septembre 2026.
+// Changement TRANSVERSAL et volontaire : il s'applique d'un coup a tous les postes couverts par le
+// moteur commun -- ministres, Premier ministre, juge, commissaire, Commandant, Commandant du Port,
+// chef des douanes, directeurs d'usine, maire adjoint. Aucune regle par poste n'est ajoutee : cette
+// constante est le seul point de verite, lue par estPosteProtege et revalidee a la confirmation de
+// revocation.
+const DUREE_PROTECTION_POSTE_NOMME_MS = 3 * 24 * 3600 * 1000; // 3 jours reels
 
 // Nouveaux ordres v6
 Object.assign(ORDER_EFFECTS, {

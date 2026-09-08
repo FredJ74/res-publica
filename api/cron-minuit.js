@@ -1685,11 +1685,22 @@ async function preleverPretsBancairesServeur() {
     const prets = await sbGet('prets', 'statut=eq.en_cours&type_banque=neq.helvetia');
     if (!prets) return resultats;
 
+    // MARQUEUR ANTI-REJEU. Ce traitement n'en avait aucun : jour_dernier_prelevement etait ecrit
+    // une seule fois, a la creation du pret, et relu nulle part. Toute seconde execution du cron
+    // dans la meme journee reelle (relance manuelle, reessai de la plateforme) reprelevait une
+    // mensualite entiere -- et, pour un debiteur a sec, faisait avancer le contentieux de deux
+    // crans d'un coup. Meme cle que la fiscalite, la solde et les loyers : jourCourantISO().
+    const jourPrets = jourCourantISO();
+
     for (const pret of prets) {
       if (pret.montant_restant <= 0) {
         await sbUpdatePret(pret.id, { statut: 'remboursé' }).catch(() => {});
         continue;
       }
+      if (pret.jour_dernier_prelevement === jourPrets) continue;
+      // Marqueur pose AVANT tout mouvement : une interruption apres le debit ne doit jamais
+      // laisser la porte ouverte a un second prelevement le meme jour.
+      await sbUpdatePret(pret.id, { jour_dernier_prelevement: jourPrets }).catch(() => {});
 
       const empRows = await sbGet('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`);
       const emprunteur = empRows && empRows[0];
@@ -1700,7 +1711,14 @@ async function preleverPretsBancairesServeur() {
 
       if ((emprunteur.arg || 0) >= aPayer) {
         const nouveauRestant = pret.montant_restant - aPayer;
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, { arg: emprunteur.arg - aPayer });
+        // arg ET liquide. arg est le capital affiche, liquide la part reellement depensable
+        // (debiterFondsOrdinaires, plateau-core.js, ne sait puiser que dans liquide + compte
+        // national). Debiter arg seul laissait liquide > arg : le joueur remboursait a l'ecran
+        // sans jamais perdre un centime de pouvoir d'achat.
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
+          arg: emprunteur.arg - aPayer,
+          liquide: Math.max(0, (emprunteur.liquide || 0) - aPayer)
+        });
         await sbUpdatePret(pret.id, {
           montant_restant: nouveauRestant,
           jours_impayes: 0,
@@ -1757,6 +1775,7 @@ async function preleverPretsBancairesServeur() {
             const fraisRappel = Math.round(pret.mensualite * 0.15);
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, {
               arg: Math.max(0, (emprunteur.arg || 0) - fraisRappel),
+              liquide: Math.max(0, (emprunteur.liquide || 0) - fraisRappel),
               moral: Math.max(0, (emprunteur.moral || 75) - 10)
             });
             await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + fraisRappel });
@@ -2915,6 +2934,310 @@ async function nettoyerAchatsDirectsManques() {
 // installee, sbRpc renvoie null et RIEN n'est preleve.
 function jourCourantISO() { return new Date().toISOString().slice(0, 10); }
 
+// ============================================================================
+// MIROIRS SERVEUR DES TRAITEMENTS QUOTIDIENS PARTAGES (Lot 4.3)
+// ============================================================================
+// POURQUOI DES MIROIRS. Le passage de jour cote client (runMidnightUpdate, plateau-core.js) portait
+// seul trois traitements NATIONAUX : la redistribution fiscale, le virement vers la caserne et la
+// solde des soldats. Sans joueur connecte a minuit, aucune institution du pays n'etait financee et
+// aucun soldat n'etait paye. Ces trois-la doivent evoluer meme si personne ne joue.
+//
+// Ce module serverless ne peut pas importer les fichiers client : on duplique donc de facon
+// CONTROLEE ET DOCUMENTEE, exactement comme le font deja RESSOURCES_ECONOMIE_SERVEUR et
+// POSTES_NOMMES_EXCLUSIFS_SERVEUR. Chaque constante ci-dessous porte le chemin de son original.
+//
+// PARITE. Les regles, montants, destinations et conditions sont ceux du client, a la ligne pres.
+// Toute divergence future doit etre detectable : les tests du lot comparent les deux
+// implementations sur les memes fixtures.
+//
+// IDEMPOTENCE. Les trois partagent le marqueur du client -- meme champ, meme cle de journee
+// (jourCourantISO() === jourPartageISO()). Le second passage, quel qu'il soit, est sans effet :
+// client puis cron, cron puis client, cron rejoue, deux clients puis cron.
+
+// Miroir de CAISSE_PAR_POSTE_BUDGET (plateau-justice-economie.js).
+const CAISSE_PAR_POSTE_BUDGET_SERVEUR = {
+  presidence: 'palais-presidentiel', pm: 'gouvernement-pm',
+  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
+  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
+  mairie: 'mairie-capitale', commissariat: 'commissariat_capitale', tribunal: 'tribunal_capitale',
+  assemblee: 'assemblee', reserve: 'reserve-nationale'
+};
+
+// Miroir de REPARTITION_DEFAULT (plateau-core.js). Repli seulement : la repartition reellement
+// appliquee est celle fixee par le Ministre des Finances, lue dans budgets_nationaux.
+const REPARTITION_DEFAULT_SERVEUR = {
+  presidence: 15, pm: 8, min_int: 8, min_fin: 6, min_just: 6,
+  min_def: 10, min_info: 5, min_ae: 6,
+  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 2
+};
+
+// Miroir des recettes fiscales quotidiennes de CITY_POPULATION (data.js). La version client est
+// mutee en RAM par mettreAJourPopulation() sans jamais etre persistee : les valeurs de base sont
+// donc la seule verite partagee, et c'est bien elles que le serveur doit employer.
+const RECETTES_FISCALES_JOUR_SERVEUR = { republic: { capitale: 18000, ville_a: 2400, ville_b: 4200 } };
+
+const COUT_SOLDE_PAR_SOLDAT_SERVEUR = 20;   // miroir de coutParSoldat (plateau-politique.js)
+
+async function chargerBudgetNationalServeur(pays) {
+  const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`).catch(() => null);
+  return (rows && rows[0]) ? (rows[0].data || {}) : null;
+}
+
+async function sauverBudgetNationalServeur(pays, data) {
+  return await sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`,
+    { data: data, updated_at: new Date().toISOString() }).catch(() => null);
+}
+
+// Credit d'une caisse de batiment. Meme forme que les credits deja pratiques par ce fichier
+// (successions, chantiers) : lecture, addition, UPDATE ou INSERT selon l'existence.
+async function crediterCaisseBatimentServeur(pays, buildingId, montant) {
+  const m = Math.floor(Number(montant) || 0);
+  if (m <= 0) return 0;
+  const cle = pays + '_' + buildingId;
+  const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`).catch(() => null);
+  const data = (rows && rows[0] && rows[0].data) ? rows[0].data : { solde: 0 };
+  data.solde = (data.solde || 0) + m;
+  const r = (rows && rows.length > 0)
+    ? await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`, { data: data, updated_at: new Date().toISOString() }).catch(() => null)
+    : await sbInsert('caisses_batiments', { id: cle, data: data, updated_at: new Date().toISOString() }).catch(() => null);
+  return r ? m : 0;
+}
+
+// Debit PLAFONNE : verse ce que la caisse peut, jamais plus -- comportement de
+// debiterCaisseBatimentPlafonne cote client, volontairement tolerant au partiel.
+async function debiterCaisseBatimentPlafonneServeur(pays, buildingId, montant) {
+  const m = Math.floor(Number(montant) || 0);
+  if (m <= 0) return 0;
+  const cle = pays + '_' + buildingId;
+  const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`).catch(() => null);
+  if (!rows || rows.length === 0) return 0;
+  const data = rows[0].data || { solde: 0 };
+  const verse = Math.max(0, Math.min(m, data.solde || 0));
+  if (verse <= 0) return 0;
+  data.solde = (data.solde || 0) - verse;
+  const r = await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`,
+    { data: data, updated_at: new Date().toISOString() }).catch(() => null);
+  return r ? verse : 0;
+}
+
+// --- 1. REDISTRIBUTION FISCALE NATIONALE -----------------------------------
+// Miroir de verifierEffetsEtDistributionFiscale (plateau-justice-economie.js).
+// N'inclut PAS les effets sur les indices de ville : ils dependent de la ville OU SE TROUVE le
+// joueur declencheur, une notion qui n'existe pas cote serveur. C'est une divergence ASSUMEE et
+// documentee, pas un oubli -- le commentaire du client la qualifie lui-meme d'« effet de jeu local
+// au declencheur, pas une destination de redistribution nationale ».
+async function distribuerFiscaliteServeur(pays) {
+  const budgetNat = await chargerBudgetNationalServeur(pays);
+  if (!budgetNat) return;
+  const jour = jourCourantISO();
+  if (budgetNat.derniereDistribJour === jour) return;
+
+  const villes = RECETTES_FISCALES_JOUR_SERVEUR[pays] || {};
+  const dailyBase = Object.keys(villes).reduce((s, v) => s + (villes[v] || 0), 0);
+  const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
+  const repartition = budgetNat.repartition || REPARTITION_DEFAULT_SERVEUR;
+
+  // Marqueur pose AVANT les credits : un cron rejoue ne peut pas verser deux fois.
+  budgetNat.reserveJour = 0;
+  budgetNat.derniereDistribJour = jour;
+  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
+
+  for (const posteId of Object.keys(CAISSE_PAR_POSTE_BUDGET_SERVEUR)) {
+    const part = (repartition[posteId] || 0) / 100;
+    await crediterCaisseBatimentServeur(pays, CAISSE_PAR_POSTE_BUDGET_SERVEUR[posteId],
+      Math.floor(totalDisponible * part));
+  }
+}
+
+// --- 2. VIREMENT QUOTIDIEN GOUVERNEMENT -> CASERNE --------------------------
+// Miroir de traiterVirementJournalierCaserne (plateau-politique.js). Montant fixe par le Ministre
+// de la Guerre, defaut 0 : un ministre qui n'y touche pas ne finance rien, et c'est voulu.
+async function virementCaserneServeur(pays) {
+  const budgetNat = await chargerBudgetNationalServeur(pays);
+  if (!budgetNat) return;
+  const montant = budgetNat.virementJournalierCaserne || 0;
+  if (montant <= 0) return;
+  const jour = jourCourantISO();
+  if (budgetNat.dernierVirementCaserneJour === jour) return;
+
+  budgetNat.dernierVirementCaserneJour = jour;
+  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
+
+  const verse = await debiterCaisseBatimentPlafonneServeur(pays, 'gouvernement-min_def', montant);
+  if (verse > 0) await crediterCaisseBatimentServeur(pays, 'caserne-militaire', verse);
+}
+
+// --- 3. SOLDE QUOTIDIENNE DES SOLDATS ---------------------------------------
+// Miroir de payerSoldeQuotidienne (plateau-politique.js). 20 FR par soldat et par jour, effectif lu
+// sur soldats.length -- la representation canonique d'une section.
+async function payerSoldeServeur(pays) {
+  const budgetNat = await chargerBudgetNationalServeur(pays);
+  if (!budgetNat) return;
+  const jour = jourCourantISO();
+  if (budgetNat.derniereSoldeJour === jour) return;
+
+  budgetNat.derniereSoldeJour = jour;
+  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
+
+  const rows = await sbGet('compagnies_militaires', 'select=*').catch(() => null);
+  const compagnies = (rows || []).map(r => r.data).filter(c => c && c.pays === pays);
+  let totalDu = 0;
+  compagnies.forEach(c => (c.sections || []).forEach(s => {
+    totalDu += ((s.soldats || []).length) * COUT_SOLDE_PAR_SOLDAT_SERVEUR;
+  }));
+  if (totalDu <= 0) return;
+  await debiterCaisseBatimentPlafonneServeur(pays, 'caserne-militaire', totalDu);
+}
+
+// --- 4. DESERTIONS : convoque -> deserteur a l'expiration du delai ------------
+// Miroir de verifierDesertionsQuotidien (plateau-politique.js). Transition PUREMENT temporelle et
+// deterministe : passe le deadline pose par la requisition civile, un convoque devient deserteur.
+// Sans miroir, un convoque qui ne se connecte plus n'etait jamais declare deserteur tant qu'aucun
+// joueur du meme pays ne passait minuit en ligne.
+//
+// LE DELAI DE 36 HEURES ET LE TIRAGE DE 24 CITOYENS SONT INCHANGES : ils appartiennent au design
+// historique, ce miroir ne fait qu'appliquer l'echeance qu'ils posent.
+//
+// IDEMPOTENCE PAR TRANSITION D'ETAT : un statut deja 'deserteur' n'est pas retraite. Aucun marqueur
+// de journee n'est necessaire, et en ajouter un serait une garde de trop.
+//
+// AUCUNE PEINE JUDICIAIRE N'EST CREEE. L'entree de recherche porte type:'militaire', qui n'existe
+// dans aucune table de peines : le deserteur devient reperable et arretable, rien de plus.
+async function traiterDesertionsServeur(pays) {
+  const rows = await sbGet('compagnies_militaires', 'select=*').catch(() => null);
+  if (!rows) return;
+  const maintenant = Date.now();
+  for (const r of rows) {
+    const c = r.data;
+    if (!c || c.pays !== pays) continue;
+    let modifie = false;
+    for (const s of (c.sections || [])) {
+      for (const entree of (s.civilsRequisitionnes || [])) {
+        if (entree.statut !== 'convoque') continue;
+        if (!(maintenant > Number(entree.deadline))) continue;
+        entree.statut = 'deserteur';
+        modifie = true;
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`, {
+          requisition: { compagnieId: c.id, sectionId: s.id, statut: 'deserteur' }
+        }).catch(() => {});
+        // Meme raccord que le client : recherche, jamais condamnation.
+        const fiche = await sbGet('personnages',
+          `name=eq.${encodeURIComponent(entree.nom)}&select=recherche`).catch(() => null);
+        const recherche = (fiche && fiche[0] && fiche[0].recherche) ? fiche[0].recherche : [];
+        recherche.push({ acte: 'desertion', type: 'militaire', country: pays,
+                         compagnieId: c.id, sectionId: s.id, origine: 'requisition_civile' });
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`,
+          { recherche: recherche }).catch(() => {});
+      }
+    }
+    if (modifie) {
+      await sbUpdate('compagnies_militaires', `id=eq.${encodeURIComponent(r.id)}`,
+        { data: c }).catch(() => {});
+    }
+  }
+}
+
+// --- 5. EXPULSIONS DIPLOMATIQUES ECHUES --------------------------------------
+// Miroir de verifierExpulsionsAmbassadeursQuotidien (plateau-politique.js). Le delai de 24 heures
+// pose par l'expulsion doit courir meme si personne ne joue -- sinon l'ambassadeur declare persona
+// non grata reste en poste indefiniment, et son ambassade demeure verrouillee hors des futures
+// expulsions.
+//
+// L'AMBASSADE N'EST PAS FERMEE : seul l'ambassadeur s'en va, et l'echeance est effacee, ce qui
+// deverrouille l'ambassade pour l'avenir. Sanctionner n'est pas rompre.
+//
+// IDEMPOTENCE PAR SUPPRESSION DU CHAMP : une echeance traitee disparait, le second passage ne
+// trouve plus rien.
+async function traiterExpulsionsAmbassadeursServeur(pays) {
+  const rows = await sbGet('ambassades_ouvertes',
+    `pays_hote=eq.${encodeURIComponent(pays)}`).catch(() => null);
+  if (!rows) return;
+  const maintenant = Date.now();
+  for (const r of rows) {
+    const data = r.data || {};
+    const echeance = Number(data.expulsionEcheance);
+    if (!isFinite(echeance) || echeance <= 0) continue;
+    if (maintenant < echeance) continue;
+    const nomExpulse = data.ambassadeur || null;
+    const suite = Object.assign({}, data);
+    delete suite.expulsionEcheance;
+    suite.ambassadeur = null;
+    suite.derniereExpulsion = { nom: nomExpulse, leTs: maintenant };
+    await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`,
+      { data: suite }).catch(() => {});
+  }
+}
+
+// --- 6. EXPIRATION DU REGIME D'EXCEPTION -------------------------------------
+// Miroir serveur du moteur de mesures d'exception (plateau-gouvernement.js, section 4).
+//
+// LE MOTEUR EST DEJA SUR DU TEMPS REEL, ET FAIL-SAFE : mesuresActives() renvoie une liste VIDE des
+// que l'echeance est passee, que quelqu'un se connecte ou non. Une mesure ne peut donc jamais
+// produire d'effet au-dela de son terme, meme sans ce cron. Ce que ce passage ajoute, c'est la
+// CLOTURE de l'etat stocke : sans lui, la ligne conserve actif:true pour toujours, et toute lecture
+// qui regarde le drapeau plutot que l'echeance (un panneau d'etat, un futur ecran de Conseil)
+// afficherait un regime d'exception perpetuel sur un pays qui n'en subit plus rien.
+//
+// DUPLICATION CONTROLEE : le cron est un module serverless, il ne peut pas importer les fichiers
+// client. Les deux constantes sont donc recopiees explicitement, comme RESSOURCES_ECONOMIE_SERVEUR
+// et COUT_SOLDE_PAR_SOLDAT_SERVEUR -- et verrouillees par un test d'egalite avec la source client.
+const DUREE_MESURES_EXCEPTION_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;   // 3 jours REELS
+const DUREE_MAX_EXCEPTION_MS_SERVEUR = 9 * 24 * 60 * 60 * 1000;       // 3 + 3 + 3, plafond absolu
+
+// Echeance effective = MINIMUM de l'echeance courante et du plafond absolu. Copie conforme de
+// echeanceEffective() : une prolongation ne peut jamais repousser le regime au-dela du 9e jour,
+// y compris pour un regime anterieur au plafond relu depuis la base.
+function echeanceEffectiveServeur(regime) {
+  const r = regime || {};
+  const e = Number(r.expireA);
+  const p = Number(r.plafondA);
+  if (!isFinite(e)) return null;
+  return isFinite(p) ? Math.min(e, p) : e;
+}
+
+// IDEMPOTENCE PAR LE DRAPEAU LUI-MEME : une fois actif passe a false, le second passage ressort au
+// premier test. Aucun marqueur de journee n'est necessaire -- et n'en serait pas un bon, puisque
+// l'echeance est horaire, pas quotidienne.
+//
+// LE COUVRE-FEU ORDINAIRE DU MINISTRE DE L'INTERIEUR N'EST PAS TOUCHE : ce sont deux porteurs
+// d'etat distincts (budgetNat.couvreFeu d'un cote, budgetNat.regimeException de l'autre), deux
+// horloges distinctes. Lever l'un ne leve pas l'autre.
+async function traiterExpirationRegimeExceptionServeur(pays) {
+  const budget = await chargerBudgetNationalServeur(pays);
+  if (!budget) return;
+  const regime = budget.regimeException;
+  if (!regime || regime.actif !== true) return;
+  const fin = echeanceEffectiveServeur(regime);
+  if (fin === null) return;
+  if (Date.now() < fin) return;
+
+  // On CLOT, on n'efface pas : mesures et compteur de prolongations sont conserves en trace, le
+  // regime devient simplement inactif. Aucune mesure ne reprend et aucune manifestation ni greve
+  // interrompue ne repart -- c'est la regle posee par sortManifestationSousRegime et
+  // sortGreveSousRegime (reprendAutomatiquement: false).
+  budget.regimeException = Object.assign({}, regime, {
+    actif: false,
+    mesures: [],
+    mesuresALaFin: (regime.mesures || []).slice(),
+    clotureA: fin,
+    motifFin: 'echeance'
+  });
+  await sauverBudgetNationalServeur(pays, budget);
+}
+
+// ORDRE IMPERATIF : fiscalite (qui alimente gouvernement-min_def), PUIS virement vers la caserne,
+// PUIS solde. Le meme ordre que runMidnightUpdate cote client.
+async function traiterQuotidienNationalServeur(pays) {
+  await distribuerFiscaliteServeur(pays);
+  await virementCaserneServeur(pays);
+  await payerSoldeServeur(pays);
+  await traiterExpirationRegimeExceptionServeur(pays);
+  // Ces deux-la ne dependent d'aucun flux d'argent : leur position apres la solde est sans effet,
+  // elles sont regroupees ici pour n'avoir qu'un seul point d'entree quotidien national.
+  await traiterDesertionsServeur(pays);
+  await traiterExpulsionsAmbassadeursServeur(pays);
+}
+
 // Titulaire ACTUEL des murs d'un bail, lu sur le terrain porteur -- jamais sur une valeur figee
 // dans le bail. C'est la meme regle que celle appliquee par prelever_loyer_bail pour choisir le
 // beneficiaire : vendre les murs transfere les loyers a venir, sans toucher au bail.
@@ -3164,6 +3487,12 @@ async function renouvellerCotisationsOrganisations() {
             if (club) await crediterBudgetClubServeur(club.id, COTISATION_MONTANT, 'Cotisation supporter (renouvellement)').catch(() => {});
           } else {
             membre.derniereCotisationDate = new Date().toISOString();
+            // CORRECTIF (Lot 4.3) : les 50 FR preleves au membre disparaissaient. La branche
+            // 'supporters' crediterBudgetClubServeur son club, mais le syndicat n'avait AUCUNE
+            // contrepartie -- l'argent quittait le personnage sans arriver nulle part. La
+            // cotisation alimente desormais la caisse de l'organisation, ce que sa logique
+            // supposait deja.
+            orga.caisse = (orga.caisse || 0) + COTISATION_MONTANT;
           }
           membresConserves.push(membre);
           resultats.renouvellements++;
@@ -3601,7 +3930,9 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       let poste = j.poste;
       if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
       if (poste?.id) {
-        const idNormalise = poste.id.startsWith('maire') ? 'maire' : poste.id;
+        // Correctif Lot 4.3 : 'maire_adjoint' est un poste DISTINCT, il ne doit pas etre
+        // normalise en 'maire'. Le prefixe reste utile pour les identifiants de maire par ville.
+        const idNormalise = (poste.id !== 'maire_adjoint' && poste.id.startsWith('maire')) ? 'maire' : poste.id;
         occupePJ.add(cle(idNormalise, poste.city));
       }
       // Depute est stocke a part (poste_depute), cumulable avec un autre poste — pas encore
@@ -4363,6 +4694,12 @@ export default async function handler(req, res) {
     // 5. Loyers de TOUS les baux (Lot 1.4) -- source unique locations_actives, destination
     //    portee par le bail, chaque prelevement atomique via la RPC prelever_loyer_bail.
     const loyersLots = await preleverLoyersBaux();
+
+    // 5 bis. TRAITEMENTS NATIONAUX QUOTIDIENS (Lot 4.3) : redistribution fiscale, virement vers la
+    //    caserne, solde des soldats. Ils ne tournaient que si un joueur passait minuit connecte --
+    //    sans quoi aucune institution n'etait financee et aucun soldat paye. Idempotence partagee
+    //    avec le chemin client : le second passage, quel qu'il soit, est sans effet.
+    await traiterQuotidienNationalServeur('republic');
 
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();

@@ -155,6 +155,62 @@ async function sauvegarderCandidaturesPostes(country, candidatures) {
 // fraichement nomme (§9-12 du lot) -- ne bloque QUE l'arbitraire du nominateur : demission,
 // arrestation, naturalisation, mort/suppression du personnage et censure du PM restent des
 // sorties legitimes, jamais concernees (comportement preexistant, non touche).
+// Cout par defaut d'une nomination de poste nomme. Voir le correctif central dans
+// envoyerNominationPosteNomme : il rattrape toutes les facades qui ne transmettent pas leur cout.
+const COUT_PA_NOMINATION_DEFAUT = 1;
+
+// ---- QUALITE DE MAIRE — HELPER CENTRAL (correctif Lot 4.3) ----
+// Les gardes d'autorite testaient posteId.startsWith('maire'), ce qui laissait passer
+// 'maire_adjoint' : un adjoint pouvait donc exercer les prerogatives du Maire, dont la nomination
+// et la revocation du commissaire. Le prefixe reste necessaire -- l'historique du projet a connu
+// des identifiants de maire par ville -- mais il doit EXCLURE l'adjoint, qui est un poste distinct
+// avec ses propres prerogatives.
+//
+// Un seul point de verite : toute garde « est-ce le Maire ? » passe par ici.
+function estPosteMaire(posteId) {
+  if (typeof posteId !== 'string' || posteId === '') return false;
+  if (posteId === 'maire_adjoint') return false;
+  return posteId === 'maire' || posteId.indexOf('maire_') === 0 || posteId.indexOf('maire') === 0;
+}
+
+// Une autorite couvre-t-elle le poste attendu par la regle de nomination ? Meme correctif : le
+// startsWith brut de confirmerRevocationPosteNomme laissait un adjoint passer pour un maire.
+function autoriteCouvre(posteAutorite, nommeParAttendu) {
+  if (typeof posteAutorite !== 'string' || typeof nommeParAttendu !== 'string') return false;
+  if (nommeParAttendu === 'maire') return estPosteMaire(posteAutorite);
+  return posteAutorite === nommeParAttendu || posteAutorite.indexOf(nommeParAttendu) === 0;
+}
+
+// ---- REVALIDATION D'AUTORITE DANS LA FONCTION SENSIBLE (correctif du 8 septembre 2026) ----
+//
+// LE PROBLEME. Les fonctions de confirmation de ce fichier sont exposees en global et appelees par
+// des onclick inline generes dans le HTML des modales. Le controle d'autorite vivait, lui, dans la
+// fonction d'OUVERTURE de la modale -- laquelle est purement et simplement sautee quand on appelle
+// la confirmation directement. Taper confirmerGuerreEmpire('narco','...',0,0) dans la console
+// suffisait donc a declarer une guerre sans etre President.
+//
+// CE QUE CETTE GARDE FAIT, ET CE QU'ELLE NE FAIT PAS. Elle ferme le contournement TRIVIAL par appel
+// direct dans le client normal. Elle ne rend rien « securise serveur » : l'identite du joueur reste
+// un nom dans le localStorage, sans authentification ni RLS, et un client falsifie contourne
+// evidemment tout controle ecrit en JavaScript. C'est de la defense en profondeur, pas une
+// fermeture -- la vraie fermeture appartient au chantier Auth/RLS.
+//
+// FAIL-CLOSED, ET AVANT TOUT EFFET : aucun PA, aucun argent, aucune ecriture, aucun effet de bord
+// quand l'autorite manque. Le patron est celui de confirmerEtatUrgence.
+function exigerPoste(posteAttendu, message) {
+  if (state.poste?.id === posteAttendu) return true;
+  showToast('Accès refusé', message, false);
+  return false;
+}
+
+// Variante pour les postes nommes, dont l'autorite depend du poste vise et non d'un titre fixe :
+// elle rejoue exactement le controle du chemin normal (autoriteCouvre contre regle.nommePar).
+function exigerAutoriteSurPosteNomme(regle, verbe) {
+  if (regle && autoriteCouvre(state.poste?.id || '', regle.nommePar)) return true;
+  showToast('Accès refusé', 'Seul(e) le/la ' + ((regle && regle.nommePar) || '?') + ' peut ' + verbe + ' ce poste.', false);
+  return false;
+}
+
 function estPosteProtege(poste) {
   if (!poste || !poste.nommeLe) return false;
   return (Date.now() - poste.nommeLe) < DUREE_PROTECTION_POSTE_NOMME_MS;
@@ -356,11 +412,34 @@ async function ouvrirCalendrierElectoral() {
     return j > 0 ? ('dans ' + j + 'j ' + h + 'h') : ('dans ' + h + 'h');
   };
 
+  // « CHEF SYNDICAL » RETIRE DU CALENDRIER INSTITUTIONNEL (correctif du 8 septembre 2026).
+  //
+  // Le poste chef_syndicat est declare dans POSTES_ELECTIFS.national (data.js) depuis le tout
+  // premier systeme electoral de juin 2026, et cette liste etait concatenee ici sans aucun filtre.
+  // Il apparaissait donc dans le calendrier de l'Hotel de Ville, entre la presidentielle et les
+  // municipales, sans qu'on puisse savoir de quel syndicat il s'agissait -- pour cause : il n'est
+  // rattache a AUCUNE organisation. Le vrai chef de syndicat du jeu est elu par un moteur
+  // entierement distinct (verifierElectionsOrganisations, plateau-organisations-quetes.js) et lu
+  // via getChefSyndicatDockersPSM ; les deux objets n'ont aucun rapport.
+  //
+  // CE N'EST PAS UN ARBITRAGE NOUVEAU, c'est l'application d'un arbitrage deja pris : le code
+  // classe lui-meme ce poste dans ELECTIONS_INTERNES_ORGANISATION (plateau-gouvernement.js), avec
+  // le commentaire « l'Etat ne reporte pas le scrutin d'un syndicat » -- et la Salle des Elections
+  // l'excluait deja de sa liste blanche ENTREES_SALLE_ELECTIONS, si bien qu'on ne pouvait ni voter
+  // ni candidater a ce poste depuis les ecrans reels. Seul le calendrier avait ete oublie.
+  //
+  // LE POSTE N'EST PAS SUPPRIME de POSTES_ELECTIFS : son cycle, son depouillement et son
+  // organigramme restent en place a l'identique. Seul l'affichage institutionnel cesse de
+  // l'annoncer comme un scrutin d'Etat.
+  const estElectionInterneOrganisation = (posteId) =>
+    typeof ELECTIONS_INTERNES_ORGANISATION !== 'undefined' &&
+    ELECTIONS_INTERNES_ORGANISATION.indexOf(posteId) !== -1;
+
   const postes = [
     ...POSTES_ELECTIFS.national,
     ...POSTES_ELECTIFS.departemental,
     ...POSTES_ELECTIFS.local
-  ];
+  ].filter(p => !estElectionInterneOrganisation(p.id));
 
   // Initialiser les cycles manquants (seulement s'ils n'existent vraiment nulle part, ni localement ni sur Supabase)
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
@@ -662,12 +741,31 @@ async function sbGetVotes(country, posteId, city) {
 // par syncCyclesDepuisSupabase() -- a effectivement accepte l'ecriture. sbSaveCycleElectoral (le
 // blob cycles_electoraux) reste un cache best-effort, mais ne peut plus laisser croire a une
 // candidature qui n'existe pas reellement cote source de verite.
-async function sbDeposerCandidature(country, posteId, candidat, city) {
+//
+// CLE DE SCRUTIN DANS L'ID (correctif du 8 septembre 2026).
+//
+// L'id valait « pays_cleCycle_nom », SANS aucune composante temporelle. Or cycles_electoraux.id
+// identifie un POSTE, pas un scrutin : la meme ligne est reecrite a chaque renouvellement. Un
+// joueur ayant ete candidat a la mairie lors d'un cycle precedent butait donc, au cycle suivant,
+// sur une collision de cle primaire : sbInsert renvoyait null et confirmerCandidature affichait
+// « Echec de l'inscription ». Se representer au meme poste etait purement et simplement impossible.
+//
+// LA CLE EMPLOYEE EST CELLE QUE LE PROJET A DEJA CHOISIE : cycle.dateDebutCandidatures, timestamp
+// epoch-ms, la meme que cycle_debut dans fraudes_electorales et que cleEcheanceElectorale dans
+// plateau-gouvernement.js -- et qui n'est JAMAIS decalee, pas meme par un report electoral.
+//
+// AUCUNE MIGRATION N'EST NECESSAIRE : la colonne id existe, sa PRIMARY KEY est inchangee, et son
+// unique lecteur (idSource, api/_journal-collecte.js) la traite comme un identifiant OPAQUE de
+// fait pour le Journal. Le format s'allonge, rien ne le parse. Les lignes anterieures gardent leur
+// ancien id sans risque de conflit : le nouveau format ajoute un suffixe.
+async function sbDeposerCandidature(country, posteId, candidat, city, cleScrutin) {
   if (typeof sbInsert !== 'function') return null;
   const cle = getCleCycle(posteId, city);
+  const suffixeScrutin = (cleScrutin !== undefined && cleScrutin !== null && isFinite(Number(cleScrutin)))
+    ? '_' + Number(cleScrutin) : '';
   try {
     return await sbInsert('candidatures', {
-      id: country + '_' + cle + '_' + candidat.nom,
+      id: country + '_' + cle + '_' + candidat.nom + suffixeScrutin,
       country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
       nom: candidat.nom, programme: candidat.programme,
       archetype: candidat.archetype,
@@ -704,12 +802,71 @@ async function syncCyclesDepuisSupabase() {
       votes.forEach(v => { CYCLES_ELECTORAUX[country][cle].votes[v.votant] = v.candidat; });
     }
     if (candidatures.length) {
-      CYCLES_ELECTORAUX[country][cle].candidats = candidatures.map(c => ({
+      // CANDIDAT FANTOME (correctif du 8 septembre 2026). La table candidatures n'est purgee par
+      // rien : ni le renouvellement de cycle, ni aucun cron. Son seul nettoyage vit dans
+      // sbDeletePersonnage (supabase.js), qui n'est appele que par la destruction VOLONTAIRE d'un
+      // personnage en jeu -- une suppression faite a la main dans Supabase le contourne
+      // integralement. Un personnage de test efface de la table personnages restait donc candidat
+      // actif indefiniment : reinjecte ici dans cycle.candidats a chaque ouverture d'ecran
+      // electoral, affiche au bureau de vote, et jusqu'a recevoir un score au depouillement.
+      //
+      // ON NE TOUCHE PAS AUX ARCHIVES. Les resultats passes vivent dans chronique_nationale,
+      // evenements_globaux et mandats_maires_archives -- trois tables append-only, alimentees par
+      // le cron, et qui ne referencent que les vainqueurs. La table candidatures, elle, ne porte
+      // que de l'etat ACTIF (aucune colonne de statut, aucune cle de scrutin) : en filtrer une
+      // ligne n'efface aucune histoire.
+      //
+      // Le filtre est applique ICI, dans le seul point qui reconstruit la liste des candidats
+      // depuis la base : le calendrier, le bureau de vote, l'organigramme et le pouls populaire en
+      // heritent tous, sans qu'aucun d'eux ait a se souvenir de le refaire.
+      // SCRUTIN COURANT UNIQUEMENT. La table n'est purgee par rien : les lignes des scrutins
+      // precedents y restent pour toujours et etaient toutes reinjectees ici, si bien qu'un
+      // ancien candidat reapparaissait comme candidat du cycle en cours -- et que le garde
+      // anti-doublon de deposerCandidature lui repondait « Deja candidat » sans qu'il le soit.
+      // created_at est deja ecrit et deja lu ailleurs (collecte du Journal) : on s'en sert tel
+      // quel, sans nouvelle colonne. Une candidature anterieure a l'ouverture du scrutin courant
+      // appartient, par construction, a un scrutin precedent.
+      // ON NE SUPPRIME RIEN : les lignes anciennes restent en base, lisibles par la collecte du
+      // Journal et par la biographie d'interview. Seule la liste ACTIVE est filtree.
+      const candidaturesDuScrutin = filtrerCandidaturesDuScrutinCourant(
+        candidatures, CYCLES_ELECTORAUX[country][cle]);
+      const candidatsRetenus = await filtrerCandidaturesDePersonnagesExistants(candidaturesDuScrutin);
+      CYCLES_ELECTORAUX[country][cle].candidats = candidatsRetenus.map(c => ({
         nom: c.nom, programme: c.programme, archetype: c.archetype,
         prospectusDistribues: 0
       }));
     }
   }
+}
+
+// Ne conserve que les candidatures deposees DEPUIS l'ouverture du scrutin courant.
+// FAIL-OPEN : si le cycle n'expose pas de dateDebutCandidatures exploitable, ou si une ligne n'a
+// pas de created_at, on garde la ligne. Masquer un candidat reel serait plus grave que d'en
+// afficher un ancien.
+function filtrerCandidaturesDuScrutinCourant(candidatures, cycle) {
+  const debut = Number((cycle || {}).dateDebutCandidatures);
+  if (!isFinite(debut) || debut <= 0) return candidatures || [];
+  return (candidatures || []).filter(c => {
+    if (!c || !c.created_at) return true;
+    const t = Date.parse(c.created_at);
+    return !isFinite(t) || t >= debut;
+  });
+}
+
+// Ne conserve que les candidatures dont le personnage existe encore dans la table personnages.
+// UNE SEULE REQUETE pour tout le lot (name=in.(...)), jamais une par candidat.
+// FAIL-OPEN ASSUME : si la lecture echoue (reseau, RLS), on rend la liste INTACTE plutot que de
+// faire disparaitre des candidats legitimes d'un scrutin en cours. Un fantome de trop est un
+// defaut d'affichage ; un candidat reel efface le jour du vote serait une faute.
+async function filtrerCandidaturesDePersonnagesExistants(candidatures) {
+  const noms = [...new Set((candidatures || []).map(c => c.nom).filter(Boolean))];
+  if (!noms.length || typeof sbGet !== 'function') return candidatures || [];
+  const liste = noms.map(n => '"' + String(n).replace(/"/g, '""') + '"').join(',');
+  const rows = await sbGet('personnages', 'select=name&name=in.(' + encodeURIComponent(liste) + ')')
+    .catch(() => null);
+  if (!rows) return candidatures || [];
+  const existants = new Set(rows.map(r => r.name));
+  return (candidatures || []).filter(c => existants.has(c.nom));
 }
 
 // =====================
@@ -1259,7 +1416,10 @@ async function confirmerCandidature(el) {
   // puis silencieusement absent au prochain syncCyclesDepuisSupabase() si cette ecriture echoue.
   // Le blob cycles_electoraux (sbSaveCycleElectoral) reste un cache best-effort, ecrit ensuite,
   // jamais la source de verite.
-  const ecritureReussie = await sbDeposerCandidature(country, posteId, nouveauCandidat, city);
+  // La cle de scrutin est prise sur le cycle en cours : c'est elle qui distingue deux
+  // candidatures du meme joueur au meme poste a deux scrutins differents.
+  const ecritureReussie = await sbDeposerCandidature(country, posteId, nouveauCandidat, city,
+    (typeof cleEcheanceElectorale === 'function') ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures);
   if (!ecritureReussie) {
     showToast('Échec de l\'inscription', 'La candidature n\'a pas pu être enregistrée. Réessayez.', false);
     return;
@@ -3130,7 +3290,7 @@ function renderRoomActions(room, buildingId, roomId) {
           const infoAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.empire === empireDuBureau);
           needsPost = !(infoAmbassade && infoAmbassade.ambassadeur === state.char?.name);
         }
-        else if (reqPost === 'maire') needsPost = !posteId.startsWith('maire'); // maire_capitale/maire_a/maire_b — jamais litteralement 'maire'. Bug remonte le 5 aout 2026.
+        else if (reqPost === 'maire') needsPost = !estPosteMaire(posteId); // exclut maire_adjoint (correctif Lot 4.3)
         else needsPost = posteId !== reqPost;
       }
     }
@@ -3483,6 +3643,7 @@ async function signerDecretInutile(pa, cost) {
 }
 
 async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
+  if (!exigerPoste('president', 'Seul le Président peut signer un décret.')) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
@@ -3837,6 +3998,7 @@ function ouvrirForumNationalSousForumPresident(type, pa, cost) {
 }
 
 async function publierMessagePresidentiel(type, pa, cost) {
+  if (!exigerPoste('president', 'Seul le Président peut publier depuis la tribune présidentielle.')) return;
   const effets = {
     conference: { pop:15, inf:10, is:5 },
     annonce:    { pop:5,  inf:5,  is:2 },
@@ -3913,49 +4075,22 @@ async function publierMessagePresidentiel(type, pa, cost) {
 // =====================
 // DECLARER LA GUERRE
 // =====================
-function ouvrirModalGuerreEmpire() {
-  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== (state.country || 'republic'));
-  const guerresActives = state.guerres || [];
-
-  document.getElementById('postes-modal-title').textContent = 'Déclarer la guerre';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">-20 POP +10 INF · Nation : -20 ID +15 ISN. Irréversible sans cessez-le-feu.</div>';
-
-  empires.forEach(([k, co]) => {
-    const enGuerre = guerresActives.some(g => g.empire === k);
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
-    html += '<div style="display:flex;align-items:center;gap:.6rem">';
-    html += '<i class="ti ' + (co.icon||'ti-flag') + '" style="font-size:1.1rem;color:' + (co.col||'#8a6a20') + '"></i>';
-    html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + co.n + '</div>';
-    html += '<div style="font-size:.68rem;color:' + (enGuerre ? '#cc4444' : '#5a4030') + '">' + (enGuerre ? 'En guerre' : 'En paix') + '</div></div></div>';
-    if (!enGuerre) {
-      html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.75rem"></i> Déclarer</button>';
-    } else {
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#6a2020">CONFLIT EN COURS</div>';
-    }
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function confirmerGuerreEmpire(empireId, empireName) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const pays = state.country || 'republic';
-  if (!state.guerres) state.guerres = [];
-  state.guerres.push({ empire: empireId, nom: empireName, depuis: 'Jour ' + state.day });
-  state.pop = Math.max(0, state.pop - 20);
-  state.inf = Math.min(100, state.inf + 10);
-  if (INDICES_NATIONAUX?.[pays]) {
-    INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID - 20);
-    INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
-  }
-  updateUI();
-  showToast('Guerre déclarée !', 'Conflit ouvert avec ' + empireName + '. -20 POP +10 INF -20 ID +15 ISN.', false);
-  addExternalEvent('GUERRE DÉCLARÉE : ' + (COUNTRIES[pays]?.n||'') + ' entre en guerre contre ' + empireName + ' !');
-  addMailNotification('État-Major', 'Declaration de guerre', 'La guerre a ete declaree contre ' + empireName + '. L\'armee est en alerte maximale. +15 ISN.');
-}
+// ouvrirModalGuerreEmpire() et confirmerGuerreEmpire() SUPPRIMEES ICI le 8 septembre 2026.
+//
+// Elles etaient declarees DEUX FOIS dans ce fichier. Les declarations de fonction etant hissees,
+// la seconde ecrasait la premiere : ce bloc-ci, place plus haut, etait donc INATTEIGNABLE depuis
+// toujours. Seules les versions async de la section « GUERRE ET DIPLOMATIE » (plus bas) tournaient,
+// et c'est bien vers elles que pointe l'unique appelant, plateau-router.js ('declarer_guerre').
+//
+// AUCUNE DIFFERENCE FONCTIONNELLE UTILE N'EST PERDUE -- la version vivante fait strictement plus :
+//   - elle lit les guerres via sbGetGuerresPays (table PARTAGEE) la ou celle-ci lisait
+//     state.guerres, jamais persiste ni serialise ;
+//   - elle ECRIT la guerre via sbCreerGuerre, la ou celle-ci ne faisait qu'un push en memoire que
+//     l'adversaire ne voyait jamais et que le moindre rechargement effacait ;
+//   - elle preleve le cout de l'ordre (deduireCoutOrdre), que celle-ci ne prelevait pas.
+// Les memes effets -20 POP / +10 INF / -20 ID / +15 ISN et la meme annonce publique y figurent a
+// l'identique. Seul le canal du compte rendu change (journal au lieu d'un mail), ce qui releve du
+// correctif de canal deja applique ailleurs.
 
 // =====================
 // DEPOSER UN PROJET DE LOI
@@ -4451,7 +4586,7 @@ async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
   // un maire pouvait nommer un commissaire (deja corrige le 8 aout, startsWith) mais jamais le
   // revoquer. startsWith couvre aussi bien 'maire' que 'president'/'pm'/etc (correspondance exacte
   // pour ces derniers, qui n'ont pas de variante).
-  if (!state.poste?.id?.startsWith(regle.nommePar)) {
+  if (!autoriteCouvre(state.poste?.id || '', regle.nommePar)) {
     showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut revoquer ce poste.', false);
     return;
   }
@@ -4485,6 +4620,9 @@ async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
 async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
+  // Meme regle exactement que ouvrirRevoquerPosteNomme (autoriteCouvre contre regle.nommePar),
+  // rejouee ici : l'ouverture est sautee des qu'on appelle la confirmation directement.
+  if (!exigerAutoriteSurPosteNomme(regle, 'révoquer')) return;
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
 
   // Garde handler independante (§12 du lot) : revalide la protection ici meme si l'appelant
@@ -4536,8 +4674,15 @@ function peutAccepterPosteNomme(posteId) {
 // Liste des habitants éligibles — ville pour commissaire, pays entier pour juge
 async function listerHabitantsEligibles(posteId) {
   if (typeof sbListPersonnages !== 'function') return [];
-  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
-  if (!regle) return [];
+  // CORRECTIF : capitaine et lieutenant ne figurent PAS dans POSTES_NOMMES_EXCLUSIFS -- ils vivent
+  // dans compagnies_militaires.data, pas dans personnages.poste, et n'ont ni protection ni regle de
+  // cumul. Le `return []` sur regle absente rendait donc leurs listes de nomination TOUJOURS VIDES :
+  // aucun capitaine ni lieutenant n'etait nommable en production.
+  //
+  // On ne les ajoute PAS au catalogue -- cela leur donnerait des regles qui ne sont pas les leurs.
+  // Un poste hors catalogue retombe simplement sur la portee nationale, qui est la bonne pour la
+  // chaine de commandement : on recrute dans tout le pays. Aucun second systeme de nomination.
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { scope: 'pays' };
   try {
     const joueurs = await sbListPersonnages() || [];
     return joueurs.filter(j => {
@@ -4591,7 +4736,54 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   const [destinataire, estPJRawNomme] = rawSelectNomme.split('|');
   const estPJNomme = estPJRawNomme === '1';
 
-  const r = await deduireCoutOrdre({ pa, cost });
+  // Le chemin normal controlait l'autorite dans ouvrirNominerPosteNomme uniquement -- et pour
+  // plusieurs facades, nulle part du tout. On rejoue ici la regle du modele : seul le poste
+  // designe par regle.nommePar peut nommer. Place AVANT toute deduction et toute ecriture.
+  if (!exigerAutoriteSurPosteNomme(regle, 'nommer a')) return;
+
+  // REVALIDATION AU MOMENT EXACT DE LA NOMINATION (Lot 4.3). L'eligibilite constatee au depot de la
+  // candidature ne vaut rien : le candidat a pu devenir President entre-temps. On la RECALCULE ici,
+  // et ici seulement, parce que c'est le point de passage des DEUX branches -- PJ et PNJ -- et qu'il
+  // est place AVANT toute deduction de PA : un refus ne coute rien au ministre.
+  //
+  // REFUS SEC, AUCUN EFFET DE BORD. Si le candidat occupe un poste exclusif, on refuse et on ne
+  // touche a rien : sa Presidence, son ministere ou sa magistrature restent intacts. Provoquer sa
+  // demission automatique serait le comportement exactement inverse de celui qui est voulu.
+  if (posteId === 'commandant' && estPJNomme && typeof verdictNominationCommandant === 'function') {
+    let fiche = null;
+    if (typeof sbGet === 'function') {
+      const rows = await sbGet('personnages',
+        'name=eq.' + encodeURIComponent(destinataire) + '&select=name,school,career,poste,qualifications').catch(() => null);
+      fiche = (rows && rows[0]) || null;
+    }
+    if (!fiche) {
+      showToast('Nomination impossible', 'Impossible de vérifier l\'éligibilité de ' + destinataire + '.', false);
+      return;
+    }
+    const v = verdictNominationCommandant(fiche);
+    if (!v.ok) {
+      const motifs = {
+        qualification_militaire_absente: 'ce candidat n\'a pas de qualification militaire.',
+        seuil_etudes_non_arbitre: 'le niveau d\'études requis n\'a pas encore été arrêté.',
+        etudes_insuffisantes: 'le niveau d\'études de ce candidat est insuffisant.',
+        poste_exclusif_occupe: 'ce candidat occupe déjà un poste incompatible. Il doit le quitter lui-même : rien ne lui a été retiré.'
+      };
+      showToast('Nomination refusée', (motifs[v.raison] || 'Candidat inéligible.'), false);
+      return;
+    }
+  }
+
+  // REGLE TRANSVERSALE DES NOMINATIONS (7 septembre 2026) : une nomination coute 1 PA a l'autorite,
+  // sauf regle particuliere qui transmet explicitement son propre cout.
+  //
+  // CORRECTIF CENTRAL. Huit facades appelaient ouvrirNominerPosteNomme(posteId) SANS pa ni cost :
+  // le HTML genere interpolait alors « undefined », et deduireCoutOrdre ne prelevait RIEN. Nommer un
+  // juge, un commissaire, un directeur d'usine, le Premier ministre ou un ministre etait donc
+  // gratuit, malgre les PA annonces sur les boutons. On corrige ICI plutot que dans les huit
+  // facades : un seul point de verite, et aucune facade ne peut plus oublier la regle.
+  const paNomination = (pa === undefined || pa === null || !isFinite(Number(pa)))
+    ? COUT_PA_NOMINATION_DEFAUT : Number(pa);
+  const r = await deduireCoutOrdre({ pa: paNomination, cost: cost || 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
@@ -4601,6 +4793,17 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   const sujet = 'Nomination au poste de ' + regle.label;
 
   if (!estPJNomme) {
+    // CORRECTION CIBLEE (Lot 4.3, §6) : la branche PNJ nomme instantanement, SANS aucun controle.
+    // On ne refond pas le moteur PNJ -- mais on ferme le seul cas ou cela contourne une regle
+    // ARBITREE : le Commandant exige des etudes et une qualification militaire, qu'un PNJ ne porte
+    // pas. Le laisser passer aurait offert au ministre une porte pour nommer un commandant
+    // inéligible. Les autres postes conservent strictement leur comportement actuel.
+    if (posteId === 'commandant') {
+      showToast('Nomination impossible',
+        'Le Commandant doit justifier d\'études supérieures et d\'une qualification militaire : un PNJ ne peut pas être nommé à ce poste.',
+        false);
+      return;
+    }
     if (typeof sbSetTitulairePnj === 'function') {
       await sbSetTitulairePnj(state.country, posteId, villeNom ? state.currentCity : null, destinataire).catch(() => {});
     }
@@ -5296,15 +5499,35 @@ async function doEtatUrgence(pa, cost) {
 }
 
 async function confirmerEtatUrgence(activer, pa, cost) {
+  // REVALIDATION DU POSTE. Cette fonction est exposee en global et appelee par un onclick inline :
+  // seul doEtatUrgence() controlait le poste, un appel direct depuis la console suffisait donc a
+  // declarer ou lever l'etat d'urgence de tout un pays. Meme correctif que doBlocusPortuaire
+  // (plateau-navigation.js, 25 aout 2026).
+  if (state.poste?.id !== 'president') {
+    showToast('Acces refuse', "Seul le President peut declarer ou lever l'etat d'urgence.", false);
+    return;
+  }
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country;
   const from = state.char?.name || 'Le President';
 
-  if (typeof sbSetEtatUrgence === 'function') {
-    await sbSetEtatUrgence(pays, activer, from, state.day || 1).catch(() => {});
+  // ECRITURE PARTAGEE D'ABORD, PA ENSUITE. sbSetEtatUrgence renvoie null quand PostgREST refuse
+  // l'ecriture (RLS, reseau) ; l'appel etait enveloppe dans un .catch(() => {}) muet, si bien que
+  // le President perdait 3 PA, encaissait le malus POP et voyait le toast de confirmation alors
+  // que RIEN n'avait ete ecrit -- l'etat d'urgence n'existait pour personne. On refuse desormais
+  // sans le moindre effet de bord, avant tout prelevement.
+  if (typeof sbSetEtatUrgence !== 'function') {
+    showToast('Indisponible', "La liaison avec le registre national est interrompue.", false);
+    return;
   }
+  const ecrit = await sbSetEtatUrgence(pays, activer, from, state.day || 1).catch(() => null);
+  if (!ecrit) {
+    showToast('Echec', "Le registre national n'a pas enregistre la decision. Aucun PA n'a ete preleve, reessayez.", false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   if (activer) {
     const popEffect = -(Math.floor(Math.random() * 15) + 5);
@@ -5690,14 +5913,52 @@ async function ouvrirModalGracier(pa, cost) {
 }
 
 async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
+  if (!exigerPoste('president', 'Seul le Président peut accorder ou refuser une grâce.')) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
 
   if (accepte) {
+    // CORRECTIF (Lot 4.3). La liberation n'agissait que sur state.prisonniers, l'etat LOCAL du
+    // navigateur du President : si sa liste etait desynchronisee, l'annonce publique partait sans
+    // que personne ne soit libere. On agit desormais sur la SOURCE PERSISTANTE canonique --
+    // personnages.est_emprisonne, et la ligne de detentions cloturee avec un mode_fin explicite,
+    // exactement comme le fait la liberation anticipee par avocat.
+    //
+    // ET L'ANNONCE NE PART QUE SI LA LIBERATION A EU LIEU. C'est l'inversion qui compte : une
+    // grace annoncee mais non appliquee est pire qu'une grace qui echoue silencieusement.
+    let libere = false;
+    if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
+      const rows = await sbGet('personnages',
+        `name=eq.${encodeURIComponent(nomCondamne)}&select=name,est_emprisonne`).catch(() => null);
+      const fiche = (rows && rows[0]) || null;
+      const detention = fiche ? fiche.est_emprisonne : null;
+      if (detention) {
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCondamne)}`,
+          { est_emprisonne: null }).catch(() => {});
+        const detentionId = detention.detentionId || null;
+        if (detentionId) {
+          await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, {
+            mode_fin: 'grace_presidentielle',
+            jour_fin_effective: state.day,
+            date_fin_effective: new Date().toISOString()
+          }).catch(() => {});
+        }
+        libere = true;
+      }
+    }
+    // L'etat local du President est aligne s'il se trouve l'avoir en memoire -- confort d'affichage,
+    // jamais la source de verite.
     const condamne = (state.prisonniers || []).find(p => p.nom === nomCondamne);
     if (condamne) condamne.jourFin = state.day;
+
+    if (!libere) {
+      showToast('Grâce sans effet', nomCondamne + ' n\'est plus détenu(e) : aucune libération n\'a été appliquée.', false);
+      addJournalEntry('Grâce accordée à ' + nomCondamne + ', sans effet : la personne n\'était plus détenue.', 'event-info');
+      return;
+    }
+
     const popBonus = state.pop > 50 ? 5 : -2;
     state.pop = Math.min(100, state.pop + popBonus);
     updateUI();
@@ -5961,6 +6222,28 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
   addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
   if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+
+  // TRACABILITE PUBLIQUE (Lot 4.3). Le moteur ne demande aucune justification et n'empeche ni le
+  // favoritisme ni la corruption -- c'est assume. Mais l'acte doit etre PUBLIC : beneficiaire,
+  // montant, auteur, date. Jusqu'ici il ne laissait qu'un toast, un mail prive et une entree de
+  // journal personnel, donc rien qu'un tiers puisse constater.
+  //
+  // Deux canaux, aucun nouveau systeme : l'evenement partage pour la visibilite immediate, et la
+  // chronique nationale pour que La Tribune puisse s'en saisir -- le collecteur ignore en silence
+  // tout type non declare, d'ou la declaration faite dans api/_journal-collecte.js.
+  const auteurNom = state.char?.name || 'Le Ministre des Finances';
+  const libelleSub = 'Subvention publique de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur +
+                     ' accordée à ' + nomCible + ' par ' + auteurNom + '.';
+  addExternalEvent('💰 ' + libelleSub);
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    await sbEnregistrerEvenementPublic(pays, 'subvention_publique', {
+      city: state.currentCity || null,
+      personnages: [auteurNom].concat(typeCible === 'citoyen' ? [idCible] : []),
+      libelle: libelleSub,
+      data: { beneficiaire: nomCible, typeBeneficiaire: typeCible, montant: montantVerse, auteur: auteurNom },
+      sourceRef: 'subvention-' + Date.now()
+    }).catch(() => {});
+  }
 }
 
 // =====================
@@ -6148,10 +6431,22 @@ function executerOrdreContact(action, nomCible) {
       if (typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', nomCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
     })();
   } else if (action === 'ouvrir_enquete') {
-    const budget = getBudgetInstitution('tribunal');
+    // getBudgetInstitution() etait appele pour rien : depenseBudget() fait deja son propre
+    // controle de solde juste apres, et la valeur lue n'etait jamais utilisee.
     if (!depenseBudget('tribunal', 600)) return;
     if (!state.enquetesEnCours) state.enquetesEnCours = [];
-    state.enquetesEnCours.push({ cible: nomCible, day: state.day + 1, status: 'pending', initiateur: 'Ministre Justice' });
+    // motif / country / city etaient absents. En aval, traiterEnquetes() les consomme tous les
+    // trois : verifierPreuveReelle(country, cible, motif) renvoyait toujours false faute de
+    // motif, enregistrerDetention() recevait une ville undefined, et transmettreAffaireAuTribunal()
+    // repliait sur state.currentCity du joueur qui declenchait le traitement -- c'est-a-dire
+    // exactement le bug que le correctif A3 du 16 aout 2026 avait supprime partout ailleurs.
+    state.enquetesEnCours.push({
+      cible: nomCible,
+      motif: 'Enquete judiciaire ouverte par le Ministre de la Justice',
+      country: state.country || 'republic',
+      city: state.currentCity,
+      day: state.day + 1, status: 'pending', initiateur: 'Ministre Justice'
+    });
     showToast('Enquete ouverte', 'Enquete judiciaire lancee contre ' + nomCible + '. Resultat dans 24h.', true);
     addJournalEntry('Enquete judiciaire ouverte contre ' + nomCible, 'event-info');
   } else {
@@ -6241,9 +6536,82 @@ async function ouvrirReprimerManif(pa, cost) {
   }
   html += '</select>';
   html += '<button onclick="confirmerReprimerManif(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Reprimer</button>';
+
+  // BLOCUS — action nationale, sans deplacement (Lot 4.3). Le ministre choisit un blocus REELLEMENT
+  // actif dans la liste reconstruite depuis batiments_etat : il n'a pas a se rendre sur place.
+  // La dispersion elle-meme delegue au moteur historique, dont rien n'est recopie ici.
+  const blocus = (typeof sbListerBlocusActifs === 'function' && typeof blocusActifsDepuisEtats === 'function')
+    ? blocusActifsDepuisEtats(await sbListerBlocusActifs(pays).catch(() => []))
+    : [];
+  html += '<div style="margin-top:1.2rem;padding-top:.9rem;border-top:1px solid #2a2010">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">BLOCUS SYNDICAL À LEVER</div>';
+  if (blocus.length === 0) {
+    html += '<div style="font-size:.78rem;color:#5a5040;font-style:italic">Aucun blocus syndical actif en Républia.</div>';
+  } else {
+    html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.5rem">La dispersion n\'est jamais acquise : plus le blocus est intense, plus il résiste.</div>';
+    html += '<select id="reprimer-blocus-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+    blocus.forEach(function (b) {
+      html += '<option value="' + b.cle + '">' + libelleBlocus(b).replace(/"/g, '') + '</option>';
+    });
+    html += '</select>';
+    html += '<button onclick="confirmerRepressionBlocus(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Tenter de lever le blocus</button>';
+  }
+  html += '</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// LEVEE D'UN BLOCUS PAR LE MINISTRE — DELEGATION, PAS DUPLICATION.
+//
+// Cette fonction ne contient AUCUNE regle de blocus : elle resout la cible choisie, puis reutilise
+// integralement le mecanisme historique (tauxDispersionBlocus pour la probabilite, sbSetBatimentEtat
+// pour la levee, les memes notifications, le meme mail au leader). Les consequences en cas de
+// reussite comme d'echec sont celles du moteur existant, y compris l'absence de consequence en cas
+// d'echec -- qui est le comportement constate, non une omission.
+//
+// La seule difference avec l'usage du commissaire est le CIBLAGE : le ministre agit a distance, sur
+// un blocus choisi dans la liste, sans etre present dans le batiment.
+async function confirmerRepressionBlocus(pa, cost) {
+  const pays = state.country || 'republic';
+  if (state.poste?.id !== 'min_int') { showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return; }
+  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève.', false); return;
+  }
+  const cle = document.getElementById('reprimer-blocus-cible')?.value;
+  if (!cle) return;
+
+  // Relecture FRAICHE : le blocus a pu etre leve entre l'ouverture du modal et le clic. Verifiee
+  // AVANT toute deduction de PA, comme le fait deja le chemin du commissaire.
+  const actifs = (typeof sbListerBlocusActifs === 'function' && typeof blocusActifsDepuisEtats === 'function')
+    ? blocusActifsDepuisEtats(await sbListerBlocusActifs(pays).catch(() => []))
+    : [];
+  const cible = actifs.filter(function (b) { return b.cle === cle; })[0];
+  if (!cible) { showToast('Blocus levé', 'Ce blocus n\'est plus actif.', false); return; }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const taux = tauxDispersionBlocus(cible.intensite);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const nomVilleB = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[cible.city]) || cible.city;
+
+  if (roll <= taux) {
+    if (typeof sbSetBatimentEtat === 'function') {
+      await sbSetBatimentEtat(pays, cible.city, cible.buildingId, { blocus: null }).catch(() => {});
+    }
+    showToast('Blocus dispersé !', 'Les forces de l\'ordre ont délogé les militants à ' + nomVilleB + '.', true, true);
+    addJournalEntry('Le blocus syndical de ' + nomVilleB + ' a été dispersé sur ordre du Ministère.', 'event-info');
+    addExternalEvent('🚔 Un blocus syndical a été dispersé par les forces de l\'ordre à ' + nomVilleB + '.');
+    if (typeof sendMail === 'function' && cible.leaderActuel) {
+      await sendMail(cible.leaderActuel, 'Ministère de l\'Intérieur', 'Blocus dispersé',
+        'Les forces de l\'ordre ont dispersé votre blocus. Vos militants restent employés, libre à vous de les renvoyer ou de retenter ailleurs.');
+    }
+  } else {
+    showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre.', false);
+    addJournalEntry('Tentative de dispersion du blocus de ' + nomVilleB + ' échouée.', 'event-bad');
+  }
 }
 
 async function confirmerReprimerManif(pa, cost) {
@@ -6263,8 +6631,22 @@ async function confirmerReprimerManif(pa, cost) {
 
   const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
   const interdictionRecente = budgetMuni.manifestationInterdite && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
+  // Bareme arrete le 7 septembre 2026 : la repression paie en cohesion sociale ce qu'elle rapporte
+  // en securite, symetriquement, et davantage quand la manifestation avait deja ete interdite --
+  // disperser un rassemblement interdit est un geste plus lourd des deux cotes.
+  //   manifestation autorisee            -5 Social / +5 Securite
+  //   manifestation prealablement interdite  -8 Social / +8 Securite
+  //
+  // LES DEUX INDICES SONT LOCAUX ET PERSISTES (table indices_villes, cles 'social' et 'isn') : on
+  // ne touche PAS a INDICES_NATIONAUX, qui n'est qu'une constante en memoire client, perdue au
+  // rechargement. C'est la ville reprimee qui en porte durablement la trace, pas le navigateur du
+  // ministre.
   const baisseSocial = interdictionRecente ? 8 : 5;
-  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -baisseSocial).catch(() => {});
+  const hausseSecurite = interdictionRecente ? 8 : 5;
+  if (typeof modifierIndiceVille === 'function') {
+    await modifierIndiceVille(pays, ville, 'social', -baisseSocial).catch(() => {});
+    await modifierIndiceVille(pays, ville, 'isn', hausseSecurite).catch(() => {});
+  }
 
   if (interdictionRecente) {
     delete budgetMuni.manifestationInterdite;
@@ -6290,7 +6672,9 @@ async function confirmerReprimerManif(pa, cost) {
   }
 
   updateUI();
-  showToast('Repression menee', sujet + ' — Social -' + baisseSocial + (interdictionRecente ? ' (bonus, deja interdite)' : '') + '. ' + nbTouches + ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
+  showToast('Repression menee', sujet + ' — Social -' + baisseSocial + ', Securite +' + hausseSecurite +
+    (interdictionRecente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
+    ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
   addExternalEvent('REPRESSION : Dispersion forcee de "' + sujet + '" a ' + nomVille + '.');
   addJournalEntry('Repression ordonnee : ' + sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }
@@ -6459,7 +6843,7 @@ function ouvrirModalNommerCommandantPort() {
 function ouvrirModalRevoquerCommandantPort(pa, cost) { ouvrirRevoquerPosteNomme('capitaine_port', pa, cost); }
 
 function ouvrirModalNommerCommissaire() {
-  if (!state.poste?.id?.startsWith('maire')) {
+  if (!estPosteMaire(state.poste?.id)) {
     showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);
     return;
   }
@@ -6479,12 +6863,27 @@ function ouvrirModalNommerDirecteurEntrepot(pa, cost) {
 function ouvrirModalRevoquerCommissaire(pa, cost) { ouvrirRevoquerPosteNomme('commissaire', pa, cost); }
 function ouvrirModalRevoquerDirecteurEntrepot(pa, cost) { ouvrirRevoquerPosteNomme('directeur_entrepot', pa, cost); }
 
-function ouvrirModalNommerPM() {
+// COUT TRANSMIS (correctif du 8 septembre 2026). L'ordre nommer_ministre declare pa:2 dans data.js
+// et le bouton affiche « 2 PA », mais cette facade appelait ouvrirNominerPosteNomme('pm') SANS
+// argument : envoyerNominationPosteNomme retombait alors sur COUT_PA_NOMINATION_DEFAUT = 1, et le
+// President ne payait qu'un PA sur les deux annonces.
+//
+// LA DECLARATION FAIT FOI, ET LA PREUVE EST DANS LA SYMETRIE : chaque nomination porte une valeur
+// DIFFERENCIEE (2 PA pour le PM, les ministres, le lieutenant et le capitaine ; 3 PA pour le
+// commissaire et les directeurs), et chaque revocation vaut 1 PA. Cette gradation est deliberee --
+// si 1 etait la regle, tout vaudrait 1. Surtout, la facade jumelle ouvrirModalRevoquerPM, juste
+// en dessous, transmet correctement (pa, cost) depuis le routeur : l'asymetrie est une omission de
+// plomberie du cote nomination, pas une regle de jeu.
+//
+// COUT_PA_NOMINATION_DEFAUT reste en place : son commentaire dit lui-meme qu'il « rattrape » les
+// facades muettes -- c'est un filet, jamais une source de verite. Il continue de couvrir les sept
+// autres facades de nomination, qui restent hors perimetre de ce passage.
+function ouvrirModalNommerPM(pa, cost) {
   if (state.poste?.id !== 'president') {
     showToast('Acces refuse', 'Seul le President peut nommer le Premier Ministre.', false);
     return;
   }
-  ouvrirNominerPosteNomme('pm');
+  ouvrirNominerPosteNomme('pm', pa, cost);
 }
 
 function ouvrirModalRevoquerPM(pa, cost) {
@@ -7122,7 +7521,12 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   if (id === 'blocus') {
     const etatActuel = etatActuelBlocus;
     const intensite = etatActuel.blocus.intensite || 40;
-    const taux = Math.max(10, Math.min(90, 55 - intensite / 3));
+    // Formule et bornes EXTRAITES dans tauxDispersionBlocus (plateau-gouvernement.js) pour qu'un
+    // second appelant -- la repression ministerielle -- les reutilise au lieu de les recopier.
+    // Repli local si le module n'est pas charge : le comportement reste strictement identique.
+    const taux = (typeof tauxDispersionBlocus === 'function')
+      ? tauxDispersionBlocus(intensite)
+      : Math.max(10, Math.min(90, 55 - intensite / 3));
     const roll = Math.floor(Math.random() * 100) + 1;
 
     if (roll <= taux) {
@@ -7426,6 +7830,7 @@ function creerComite(pa, cost) {
 }
 
 async function validerCreationPoste(type, pa, cost) {
+  if (!exigerPoste('president', 'Seul le Président peut créer un poste ou un comité par décret.')) return;
   const nom = document.getElementById('custom-poste-nom')?.value?.trim();
   if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
@@ -7463,6 +7868,7 @@ function supprimerPosteCustom() {
 }
 
 function confirmerSupprPoste(type) {
+  if (!exigerPoste('president', 'Seul le Président peut supprimer un poste créé par décret.')) return;
   const nom = state.postesCustom[type]?.nom || '';
   state.postesCustom[type] = null;
   document.getElementById('modal-postes').classList.remove('open');
@@ -7816,6 +8222,7 @@ async function ouvrirModalGuerreEmpire(pa, cost) {
 }
 
 async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
+  if (!exigerPoste('president', 'Seul le Président peut déclarer la guerre.')) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -7933,38 +8340,18 @@ function estEnGuerreAvec(pays1, pays2, guerresCache) {
 }
 
 // ---- CHAINE DE COMMANDEMENT ----
-async function ouvrirNommerCommandant(pa, cost) {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
-  const pays = state.country || 'republic';
-  const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('commandant') : [];
-  document.getElementById('postes-modal-title').textContent = 'Nommer le Commandant de la Caserne';
-  let html = '<div style="padding:1rem">';
-  if (habitants.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant éligible trouvé.</div>';
-  } else {
-    html += '<select id="nomme-commandant" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
-    html += '</select>';
-    html += '<button onclick="envoyerNominationCommandant(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function envoyerNominationCommandant(pa, cost) {
-  const destinataire = document.getElementById('nomme-commandant')?.value;
-  if (!destinataire) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
-  const corps = (state.char?.name||'Le Ministre') + ' vous propose le poste de <strong>Commandant de la Caserne</strong>.<br><br>' +
-    '<button onclick="accepterNominationPosteNomme(\'commandant\',\'\',\'' + state.country + '\',\'' + (state.char?.name||'').replace(/'/g,'') + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
-  if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Commandant', corps, time).catch(() => {});
-  showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true, true);
-}
+// ouvrirNommerCommandant / envoyerNominationCommandant SUPPRIMEES le 7 septembre 2026.
+//
+// C'etait une reimplementation ad-hoc de la nomination, anterieure au moteur generique. Elle etait
+// devenue du CODE MORT -- l'ordre 'nommer_commandant' n'existe plus dans data.js depuis le
+// regroupement des prerogatives, et sa seule route pointait donc dans le vide -- mais elle restait
+// appelable depuis la console, et elle CONTOURNAIT la revalidation d'eligibilite : elle envoyait le
+// mail d'acceptation sans verifier ni les etudes, ni la qualification militaire, ni le poste
+// exclusif deja occupe.
+//
+// La nomination du Commandant passe desormais par UNE SEULE voie : gerer_commandement ->
+// ouvrirNominerPosteNomme('commandant') -> envoyerNominationPosteNomme, qui porte la revalidation.
+// Aucune voie secondaire ne subsiste.
 
 async function ouvrirNommerCapitaine(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant de la Caserne', '', false); return; }
@@ -8111,8 +8498,12 @@ function creerSoldatsSection(numeroSection) {
   }));
 }
 
+// PREROGATIVE DU COMMANDANT, PAS DU MINISTRE (arbitrage du 7 septembre 2026). Le ministre nomme le
+// Commandant ; le Commandant conduit ensuite ses operations, dont le recrutement. Le moteur de
+// recrutement lui-meme est INCHANGE -- seule l'autorite qui peut le declencher change, et elle
+// s'aligne sur recruter_section, deja reservee au Commandant et debitant la meme caisse.
 async function doRecruterCompagnie() {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', 'Le recrutement d\'une compagnie relève du Commandant de la Caserne, pas du Ministre.', false); return; }
   const pays = state.country || 'republic';
   // Deduction PA+cout centralisee (Lot 2C) -- payeur institutionnel (caisse de la caserne)
   // delegue a la primitive via payeur:{type:'institution'}, qui garantit le debit atomique de
@@ -8451,8 +8842,23 @@ async function confirmerVirementPonctuel() {
 // Traite le virement journalier automatique fixe par le MG (a appeler a minuit)
 async function traiterVirementJournalierCaserne(pays) {
   const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  const montant = budgetNat?.virementJournalierCaserne || 0;
+  if (!budgetNat) return;
+  const montant = budgetNat.virementJournalierCaserne || 0;
   if (montant <= 0) return;
+
+  // IDEMPOTENCE PARTAGEE (correctif Lot 4.3). Cette fonction n'avait AUCUNE garde : chaque joueur
+  // qui passait minuit declenchait un virement, donc N joueurs connectes = N virements le meme
+  // soir. Le marqueur est desormais la DATE REELLE, identique cote serveur -- jamais state.day, qui
+  // est prive et ne peut pas identifier une journee partagee.
+  //
+  // Marqueur pose AVANT le mouvement : deux clients simultanes ne peuvent pas se croiser entre la
+  // lecture et l'ecriture. Un virement perdu vaut mieux qu'un virement double.
+  const jourV = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
+  if (jourV) {
+    if (budgetNat.dernierVirementCaserneJour === jourV) return;
+    budgetNat.dernierVirementCaserneJour = jourV;
+    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+  }
   const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', montant);
   if (montantVerse > 0) await crediterCaisseBatiment(pays, 'caserne-militaire', montantVerse);
 }
@@ -8461,10 +8867,23 @@ async function traiterVirementJournalierCaserne(pays) {
 
 // ---- SOLDE QUOTIDIENNE DES SOLDATS (versee chaque nuit, juste apres que le MG touche sa part) ----
 async function payerSoldeQuotidienne(pays) {
+  // MEME DEFAUT, MEME CORRECTIF que le virement ci-dessus : la solde n'avait aucune garde, donc
+  // N joueurs connectes payaient N fois les memes soldats. L'ordre virement -> solde reste assure
+  // par l'ordre des appels dans runMidnightUpdate, inchange.
+  const budgetNatSolde = await chargerBudgetNational(pays).catch(() => null);
+  const jourS = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
+  if (budgetNatSolde && jourS) {
+    if (budgetNatSolde.derniereSoldeJour === jourS) return;
+    budgetNatSolde.derniereSoldeJour = jourS;
+    await sbSaveBudgetNational(pays, budgetNatSolde).catch(() => {});
+  }
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
   const coutParSoldat = 20; // FR/jour/soldat
   let totalDu = 0;
-  compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += (s.effectifTotal||0) * coutParSoldat; }));
+  // CORRECTIF : s.effectifTotal n'existe pas sur une section -- l'effectif canonique est
+  // s.soldats.length, deja utilise partout ailleurs (inspection des troupes). Le total valait donc
+  // toujours 0 et la fonction sortait immediatement : la solde n'a jamais ete versee.
+  compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += ((s.soldats||[]).length) * coutParSoldat; }));
   if (totalDu <= 0) return;
   const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', totalDu) : 0;
   if (montantVerse < totalDu) {
@@ -9175,6 +9594,33 @@ async function ouvrirConsulterFaitsArmes() {
 // =====================
 // COUVRE-FEU — 20h-6h, 2 jours max, exemption militaires/requisitionnes
 // =====================
+// DEMOBILISATION (correctif Lot 4.3). budgetNat.mobilisationNationaleActive etait ecrit a true en un
+// seul endroit et JAMAIS remis a false : ni expiration, ni ordre, ni cron. Une mobilisation etait
+// donc definitive -- immunite militaire permanente et requisitions illimitees.
+//
+// On reutilise le patron du couvre-feu ministeriel : LEVEE MANUELLE EXPLICITE par l'autorite qui a
+// declenche, aucune expiration automatique inventee. C'est le Ministre de la Guerre qui demobilise,
+// distinctement de l'effort de guerre, qui appartient au President.
+async function doDemobiliser() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  if (!budgetNat.mobilisationNationaleActive) {
+    showToast('Aucune mobilisation', 'Aucune mobilisation nationale n\'est en cours.', false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  budgetNat.mobilisationNationaleActive = false;
+  await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+  state.mobilisationNationaleCache = false;
+  updateUI();
+  showToast('Démobilisation', 'La mobilisation nationale est levée. Les réquisitions cessent et l\'immunité militaire prend fin.', true, true);
+  addJournalEntry('Démobilisation nationale ordonnée.', 'event-info');
+  addExternalEvent('🎖️ DÉMOBILISATION : la mobilisation nationale est levée.');
+}
+
 async function ouvrirGererCouvreFeu(pa, cost) {
   if (state.poste?.id !== 'min_int') { showToast('Réservé au Ministre de l\'Intérieur', '', false); return; }
   const pays = state.country || 'republic';
@@ -9226,7 +9672,17 @@ async function verifierCouvreFeu() {
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays).catch(() => null);
   if (!budgetNat?.couvreFeu?.actif) return;
-  if (state.day > budgetNat.couvreFeu.jourFin) {
+  // ECHEANCE PARTAGEE : le couvre-feu est stocke dans le budget national, donc lu par TOUS les
+  // joueurs -- mais state.day est un compteur PRIVE, propre a chaque navigateur. Comparer une
+  // echeance partagee a un compteur prive faisait expirer le couvre-feu a une date differente
+  // pour chaque joueur : le premier joueur tres avance dans SES journees le levait pour tout le
+  // monde, un joueur nouvellement inscrit (state.day = 1) ne le voyait jamais expirer.
+  // On lit desormais dateFin, deja pose par confirmerCouvreFeu (Date.now() + 2 jours reels).
+  // jourFin reste lu en repli pour les couvre-feux poses avant l'ajout de dateFin.
+  const finCouvreFeu = budgetNat.couvreFeu.dateFin;
+  const couvreFeuEchu = finCouvreFeu ? (Date.now() > Number(finCouvreFeu))
+                                     : (state.day > budgetNat.couvreFeu.jourFin);
+  if (couvreFeuEchu) {
     budgetNat.couvreFeu.actif = false;
     await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
     return;
@@ -9249,6 +9705,16 @@ async function verifierCouvreFeu() {
 
 // Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif
 async function verifierEffetsCouvreFeuQuotidien(pays) {
+  // IDEMPOTENCE PARTAGEE (correctif Lot 4.3) : cette fonction retire 2 POP a CHACUN des huit
+  // titulaires gouvernementaux -- des personnages qui ne sont pas celui du joueur. Sans garde,
+  // chaque client qui passait minuit infligeait la penalite a tout le gouvernement.
+  const budgetNatCf = await chargerBudgetNational(pays).catch(() => null);
+  const jourCf = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
+  if (budgetNatCf && jourCf) {
+    if (budgetNatCf.dernierEffetCouvreFeuJour === jourCf) return;
+    budgetNatCf.dernierEffetCouvreFeuJour = jourCf;
+    await sbSaveBudgetNational(pays, budgetNatCf).catch(() => {});
+  }
   const budgetNat = await chargerBudgetNational(pays).catch(() => null);
   if (!budgetNat?.couvreFeu?.actif) return;
   if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 3);
@@ -9325,7 +9791,16 @@ async function getCoefArmeMilitaire(pays, arme) {
 async function verifierRechercheMilitaireQuotidien(pays) {
   const budgetNat = await chargerBudgetNational(pays).catch(() => null);
   const enCours = budgetNat?.rechercheMilitaire?.enCours;
-  if (!enCours || state.day < enCours.jourFin) return;
+  if (!enCours) return;
+  // Meme correctif que le couvre-feu : la recherche militaire vit dans le budget national, donc
+  // partagee, alors que jourFin etait compare a state.day, compteur PRIVE. Un joueur avance
+  // achevait le programme pour toute la nation des le premier jour ; un joueur recent ne le
+  // voyait jamais aboutir. dateFin (Date.now() + 3 jours reels) est deja pose au lancement par
+  // lancerRechercheMilitaire ; jourFin reste lu en repli pour les programmes anterieurs.
+  const finRecherche = enCours.dateFin;
+  const rechercheAchevee = finRecherche ? (Date.now() >= Number(finRecherche))
+                                        : (state.day >= enCours.jourFin);
+  if (!rechercheAchevee) return;
 
   if (!budgetNat.coefficientsArmesAcquis) budgetNat.coefficientsArmesAcquis = {};
   budgetNat.coefficientsArmesAcquis[enCours.arme] = (budgetNat.coefficientsArmesAcquis[enCours.arme] || 0) + GAIN_COEF_RECHERCHE;
@@ -9461,9 +9936,66 @@ async function verifierDesertionsQuotidien(pays) {
               requisition: JSON.stringify({ compagnieId: c.id, sectionId: s.id, statut: 'deserteur' })
             }).catch(() => {});
           }
+          // RACCORD (Lot 4.3) : le statut militaire devient REELLEMENT exploitable. Jusqu'ici il
+          // etait pose puis oublie -- le deserteur n'etait jamais recherche, jamais arretable, et le
+          // mot « recherche » de l'interface etait decoratif.
+          //
+          // ON NE CREE AUCUN BAREME JUDICIAIRE. L'entree porte volontairement type:'militaire', qui
+          // n'existe dans AUCUNE table de peines : elle rend le deserteur reperable et arretable par
+          // la machinerie existante, sans lui attacher de peine. Ce qui se passe APRES l'arrestation
+          // -- incorporation, detention pour refus, heures cumulees -- n'est pas deductible de
+          // l'ancien code et reste donc a arbitrer.
+          if (typeof ajouterCondamnationRecherche === 'function') {
+            await ajouterCondamnationRecherche(entree.nom, {
+              acte: 'desertion', type: 'militaire', jour: state.day,
+              country: pays, compagnieId: c.id, sectionId: s.id,
+              origine: 'requisition_civile'
+            }).catch(() => {});
+          }
           addExternalEvent('🚨 ' + entree.nom + ' a été déclaré(e) DÉSERTEUR(SE) pour ne pas s\'être présenté(e) à sa réquisition.');
         }
       }
+    }
+  }
+}
+
+// ---- EXPULSION D'AMBASSADEUR : L'ECHEANCE PRODUIT ENFIN SON EFFET ----
+//
+// DEFAUT CORRIGE (Lot 4.3). confirmerExpulsionAmbassadeur posait bien data.expulsionEcheance a
+// now+24h, mais ce champ n'etait RELU NULLE PART : l'ambassadeur declare persona non grata gardait
+// indefiniment son poste et l'acces a son bureau, et son ambassade restait VERROUILLEE hors de la
+// liste des expulsables -- le filtre d'affichage ecarte toute ambassade portant deja une echeance.
+//
+// Ce balayage relit l'echeance et applique la consequence annoncee au joueur : passe le delai, la
+// mission prend fin. On REUTILISE la structure diplomatique existante -- data.ambassadeur repasse a
+// null, exactement comme le fait deja « Demettre » -- et on efface l'echeance, ce qui deverrouille
+// l'ambassade pour l'avenir. L'AMBASSADE N'EST PAS FERMEE : le bureau reste ouvert, seul
+// l'ambassadeur s'en va. C'est la doctrine du lot : sanctionner n'est pas rompre.
+async function verifierExpulsionsAmbassadeursQuotidien(pays) {
+  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
+  const rows = await sbGet('ambassades_ouvertes', `pays_hote=eq.${encodeURIComponent(pays)}`).catch(() => null);
+  if (!rows) return;
+  const maintenant = Date.now();
+  for (const r of rows) {
+    const data = r.data || {};
+    const echeance = Number(data.expulsionEcheance);
+    if (!isFinite(echeance) || echeance <= 0) continue;
+    if (maintenant < echeance) continue;   // le delai court encore
+
+    const nomExpulse = data.ambassadeur || null;
+    const suite = Object.assign({}, data);
+    delete suite.expulsionEcheance;        // deverrouille : une nouvelle expulsion redevient possible
+    suite.ambassadeur = null;              // la mission prend fin
+    suite.derniereExpulsion = { nom: nomExpulse, leTs: maintenant };
+    await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`, { data: suite }).catch(() => {});
+
+    if (nomExpulse) {
+      if (typeof sbSendMail === 'function') {
+        await sbSendMail('Ministère des Affaires Étrangères', nomExpulse, 'Fin de mission — expulsion',
+          'Le délai de 24 heures est écoulé. Votre mission diplomatique prend fin : vous n\'êtes plus ambassadeur et vous perdez l\'accès à votre bureau.',
+          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+      }
+      addExternalEvent('🛂 ' + nomExpulse + ' a quitté ses fonctions d\'ambassadeur à l\'expiration du délai d\'expulsion.');
     }
   }
 }

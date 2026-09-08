@@ -470,7 +470,13 @@ function switchSelfTab(tab, el) {
     html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
 
-    html += '<button onclick="doOrder(\'organiser_blocus\',3,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    // 1 PA, PAS 3. Le bouton a toujours affiche « 1 PA » (ligne suivante) et le routeur commente
+    // « Blocus : 1 PA quoi qu'il arrive ». Le 3 passe ici etait preleve par executerOrdreGenerique,
+    // AVANT le jet, puis un second prelevement de 1 PA tombait dans les effets speciaux du routeur :
+    // le joueur payait donc 4 PA pour un ordre annonce a 1. Le doublon du routeur est supprime, et
+    // le montant unique passe ici correspond a l'affichage -- il gouverne aussi la garde de
+    // suffisance (doOrder l.74), qu'un 0 aurait desactivee.
+    html += '<button onclick="doOrder(\'organiser_blocus\',1,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> Organiser un blocus</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
 
     // Blocus syndical reel — reserve au Secretaire General / Adjoint (voir

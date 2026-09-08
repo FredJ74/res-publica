@@ -281,7 +281,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'creer_poste_ministre')    { creerPosteMinistre(pa, cost); return; }
   if (fn === 'creer_comite')            { creerComite(pa, cost); return; }
   if (fn === 'supprimer_poste_custom')  { supprimerPosteCustom(); return; }
-  if (fn === 'nommer_ministre')         { ouvrirModalNommerPM(); return; }
+  if (fn === 'nommer_ministre')         { ouvrirModalNommerPM(pa, cost); return; }
   if (fn === 'revoquer_pm')             { ouvrirModalRevoquerPM(pa, cost); return; }
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
   if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(pa, cost); return; }
@@ -400,7 +400,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(pa, cost); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
-  if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
+  // pa/cost etaient omis ici alors que la route jumelle 'plainte' (plus bas) les transmet :
+  // deduireCoutOrdre({pa: undefined, cost: undefined}) ne prelevait donc jamais rien.
+  if (fn === 'porter_plainte')          { ouvrirPorterPlainte(pa, cost); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(pa, cost); return; }
   if (fn === 'etat_civil') { ouvrirEtatCivil(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
@@ -440,7 +442,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
   if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
-  if (fn === 'reserver') { doReserver(); return; }
+  // Route 'reserver' SUPPRIMEE le 8 septembre 2026 : doReserver() n'existe dans aucun fichier du
+  // depot -- le clic aurait leve une ReferenceError. Aucun ordre ne la declarait plus (seul un
+  // ORDER_EFFECTS.reserver vide subsiste dans data.js). La reservation reelle passe par
+  // 'reserver_chambre_hotel' -> doReserverChambreHotel (plateau-personnage.js).
   if (fn === 'interview') { ouvrirInterviewJodie(pa, cost); return; }
   // Lobbying presse (chantier "lobbying presse", refonte Tribune, 4 septembre 2026) : doArticle()/
   // doEtouffer() n'existaient nulle part avant ce chantier (ReferenceError silencieuse au clic,
@@ -451,7 +456,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   if (fn === 'se_former') { doSeFormer(pa, cost); return; }
-  if (fn === 'recruter_info') { doRecruterInfo(); return; }
+  // Route 'recruter_info' SUPPRIMEE le 8 septembre 2026, meme cas exactement : doRecruterInfo()
+  // n'existe nulle part, aucun ordre ne declare ce fn. Le recrutement reel passe par
+  // 'recruter_informateur_pnj' -> doRecruterInformateurPNJ (plateau-multijoueur.js).
   if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }
@@ -479,13 +486,33 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(pa, cost); return; }
   if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie'], pa, cost); return; }
   if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant'], pa, cost); return; }
+
+  // --- LOT 4.3 : PREROGATIVES MINISTERIELLES REGROUPEES -----------------------
+  // Chaque entree ouvre un PANNEAU de fonction (plateau-gouvernement.js) qui expose les
+  // sous-actions historiques, inchangees. Les anciens fn restent routes ci-dessus et ci-dessous :
+  // aucun moteur n'est supprime, seuls les BOUTONS disparaissent des bureaux.
+  if (fn === 'gerer_chef_douanes')          { ouvrirGestionChefDouanes(pa, cost); return; }
+  if (fn === 'gerer_juges')                 { ouvrirGestionJuges(pa, cost); return; }
+  if (fn === 'gerer_commandement')          { ouvrirGestionCommandement(); return; }
+  if (fn === 'demobiliser')                 { doDemobiliser(); return; }
+  if (fn === 'pilotage_fiscal_budgetaire')  { ouvrirPilotageFiscalBudgetaire(pa, cost); return; }
+  if (fn === 'gestion_industrielle_portuaire') { ouvrirGestionIndustriellePortuaire(pa, cost); return; }
+  if (fn === 'gerer_ambassades')            { ouvrirGestionAmbassades(pa, cost); return; }
   if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot'], pa, cost); return; }
   if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint'], pa, cost); return; }
+
+  // REVOCATIONS MANQUANTES (correctif Lot 4.3). Ces quatre postes etaient nommables mais n'avaient
+  // AUCUN chemin de revocation : une fois en place, leur titulaire ne pouvait plus etre demis.
+  // On branche simplement le moteur commun -- protection 3 jours et cout 1 PA s'y appliquent
+  // automatiquement, aucune logique specifique n'est ecrite.
+  if (fn === 'revoquer_directeur_pharma')        { ouvrirRevoquerPosteNomme('directeur_pharma', pa, cost); return; }
+  if (fn === 'revoquer_directeur_tabac_alcools') { ouvrirRevoquerPosteNomme('directeur_tabac_alcools', pa, cost); return; }
+  if (fn === 'revoquer_directeur_raffinerie')    { ouvrirRevoquerPosteNomme('directeur_raffinerie', pa, cost); return; }
+  if (fn === 'revoquer_maire_adjoint')           { ouvrirRevoquerPosteNomme('maire_adjoint', pa, cost); return; }
   if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(pa, cost); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(pa, cost); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(pa, cost); return; }
-  if (fn === 'nommer_commandant') { ouvrirNommerCommandant(pa, cost); return; }
   if (fn === 'recruter_compagnie') { doRecruterCompagnie(); return; }
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
@@ -523,7 +550,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
   if (fn === 'defense') { doDefense(pa, cost); return; }
   if (fn === 'projet_loi') { ouvrirDeposerProjet(pa, cost); return; }
-  if (fn === 'greve') { doGrevePNJ(); return; }
+  // L'ordre 'greve' (greve PNJ d'empire, -5 IE decoratif) a ete retire le 8 septembre 2026 :
+  // son handler doGrevePNJ avait disparu lors de l'eclatement de plateau.js du 28 juin 2026 --
+  // clic = ReferenceError -- et le moteur syndical complet (greve_lancer/greve_terminer,
+  // persistance Supabase, effets quotidiens serveur) l'a rendu obsolete.
   if (fn === 'recruter_etud') { doRecruterMilitants(pa, cost); return; }
   if (fn === 'acte_officiel') { doActeOfficiel(pa, cost); return; }
   if (fn === 'acte_officiel_juge') { ouvrirActeOfficielJuge(pa, cost); return; }
@@ -684,10 +714,10 @@ function applyEffects(fn, resultType, cost) {
   }
 
   // Effets speciaux
-  // Blocus : 1 PA quoi qu'il arrive + bonus groupe
-  if (fn === 'organiser_blocus') {
-    if (!TEST_MODE) state.pa = Math.max(0, state.pa - 1);
-  }
+  // Blocus : le PA unique (1) est desormais preleve par executerOrdreGenerique comme pour tout
+  // autre ordre, AVANT le jet -- donc « quoi qu'il arrive » reste vrai. Ce second prelevement
+  // etait un doublon : cumule aux 3 PA que le bouton passait a doOrder, il portait le cout reel
+  // a 4 PA pour un ordre annonce a 1 (voir plateau-personnage.js, meme correctif).
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
   if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
     state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;

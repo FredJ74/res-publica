@@ -584,8 +584,10 @@ const TYPES_CHRONIQUE = {
   greve_ordinaire_debut:       { domaine: 'greve_ordinaire', poidsBase: 'secondaire', cransPJ: 2 },
   greve_ordinaire_fin:         { domaine: 'greve_ordinaire', poidsBase: 'mineur',     cransPJ: 1 },
   organisation_dissolution:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
+  organisation_rehabilitation: { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
   organisation_chef_change:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
   entreprise_rachat:           { domaine: 'economie',       poidsBase: 'mineur',      cransPJ: 1 },
+  subvention_publique:         { domaine: 'economie',       poidsBase: 'secondaire',  cransPJ: 2 },
   lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 },
   fraude_electorale_dejouee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
   fraude_electorale_revelee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 }
@@ -632,12 +634,37 @@ const EXTRAIT_FORUM_MAX = 1200; // porte de 400 a 1200 : le prompt reel est ~6k 
                                 // sous la limite de 200k est enorme, et une citation un peu
                                 // longue ne doit plus tomber au-dela de la troncature.
 
-// Decodage volontairement limite aux entites que produit reellement l'editeur du jeu, plus les
-// formes numeriques. Aucune table exhaustive : ce qui n'est pas reconnu est laisse tel quel,
-// jamais remplace par une approximation.
+// Decodage des entites nommees. La table etait volontairement limitee a celles que produit
+// l'editeur du jeu ; l'audit des editions du Journal en echec les 5 et 6 septembre 2026 a montre
+// que c'est insuffisant EN PRATIQUE. Le fallback laisse la chaine litterale pour tout ce qui n'est
+// pas reconnu : un post contenant « cr&egrave;me » arrivait donc tel quel dans le paquet envoye a
+// l'IA. Le modele restitue naturellement « creme »/« crème » dans sa citation, la validation
+// cherche la sous-chaine exacte dans l'extrait -- et ne la trouve pas. L'article, puis l'edition
+// ENTIERE, etaient rejetes a cause d'un accent non decode.
+//
+// CE N'EST PAS UN CHANGEMENT DE REGLE EDITORIALE : la regle de citation est inchangee, on repare
+// le DECODAGE du texte source. On ajoute les entites nommees des caracteres reellement frequents
+// en francais, plus les guillemets et apostrophes typographiques. Le principe est conserve : ce
+// qui reste inconnu est laisse tel quel, jamais approxime.
 const ENTITES_HTML = {
   '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'",
-  '&nbsp;': ' ', '&#39;': "'", '&#x27;': "'", '&hellip;': '…', '&mdash;': '—', '&ndash;': '–'
+  '&nbsp;': ' ', '&#39;': "'", '&#x27;': "'", '&hellip;': '…', '&mdash;': '—', '&ndash;': '–',
+  // Voyelles accentuees et cedille, minuscules puis majuscules.
+  '&eacute;': 'é', '&egrave;': 'è', '&ecirc;': 'ê', '&euml;': 'ë',
+  '&agrave;': 'à', '&acirc;': 'â', '&auml;': 'ä',
+  '&icirc;': 'î', '&iuml;': 'ï', '&iacute;': 'í',
+  '&ocirc;': 'ô', '&ouml;': 'ö', '&oacute;': 'ó', '&ograve;': 'ò',
+  '&ucirc;': 'û', '&uuml;': 'ü', '&ugrave;': 'ù', '&uacute;': 'ú',
+  '&ccedil;': 'ç', '&ntilde;': 'ñ', '&aelig;': 'æ', '&oelig;': 'œ',
+  '&Eacute;': 'É', '&Egrave;': 'È', '&Ecirc;': 'Ê', '&Agrave;': 'À', '&Acirc;': 'Â',
+  '&Icirc;': 'Î', '&Ocirc;': 'Ô', '&Ucirc;': 'Û', '&Ccedil;': 'Ç',
+  // Guillemets, apostrophes et tirets typographiques.
+  '&laquo;': '«', '&raquo;': '»', '&ldquo;': '“', '&rdquo;': '”',
+  '&lsquo;': '‘', '&rsquo;': '’', '&sbquo;': '‚', '&bdquo;': '„',
+  '&ndash ;': '–', '&minus;': '−',
+  // Symboles courants dans un texte de jeu.
+  '&euro;': '€', '&deg;': '°', '&times;': '×', '&middot;': '·',
+  '&laquo ;': '«', '&copy;': '©', '&reg;': '®', '&trade;': '™'
 };
 
 function texteBrutDepuisHtml(html) {
@@ -652,7 +679,13 @@ function texteBrutDepuisHtml(html) {
   s = s.replace(/<[^>]+>/g, '');                       // toutes les autres balises
   s = s.replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCodePoint(parseInt(h, 16)));
   s = s.replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(parseInt(d, 10)));
-  s = s.replace(/&[a-z]+;/gi, e => (ENTITES_HTML[e.toLowerCase()] !== undefined ? ENTITES_HTML[e.toLowerCase()] : e));
+  // Lookup sensible a la casse D'ABORD (&Eacute; n'est pas &eacute;), repli insensible ensuite
+  // pour les entites historiquement ecrites en minuscules dans la table.
+  s = s.replace(/&[a-z]+;/gi, e => {
+    if (ENTITES_HTML[e] !== undefined) return ENTITES_HTML[e];
+    const bas = e.toLowerCase();
+    return ENTITES_HTML[bas] !== undefined ? ENTITES_HTML[bas] : e;
+  });
   // Espaces insecables et variantes unicode ramenes a l'espace ordinaire, puis compactage.
   s = s.replace(/[   ]/g, ' ').replace(/\s+/g, ' ');
   return s.trim();

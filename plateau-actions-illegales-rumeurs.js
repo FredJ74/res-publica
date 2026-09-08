@@ -2241,6 +2241,39 @@ async function validerRepartitionBudget(pays) {
     showToast('Total incorrect', 'Le total doit etre exactement 100%. Actuel : ' + total + '%.', false);
     return;
   }
+
+  // BORNES REELLES (Lot 4.3). Jusqu'ici le seul garde-fou etait l'attribut HTML max="50" des champs,
+  // jamais revalide ici : un min_def a 98 % passait des lors que le total faisait 100. Le verdict est
+  // porte par plateau-gouvernement.js, partage avec les tests, et tient compte de l'effort de guerre.
+  //   hors guerre : plancher 5 % par MINISTERE, plafond 20 % pour la Defense
+  //   en guerre   : planchers ministeriels leves ET plafond Defense leve, total toujours 100 %
+  if (typeof verdictRepartitionBudget === 'function') {
+    let effortDeGuerre = false;
+    try {
+      const bn = await chargerBudgetNational(pays);
+      effortDeGuerre = !!(bn && bn.effortDeGuerre && bn.effortDeGuerre.actif);
+    } catch (e) { effortDeGuerre = false; }
+    const v = verdictRepartitionBudget(newRep, effortDeGuerre);
+    if (!v.ok) {
+      const p0 = v.violations[0] || {};
+      const messages = {
+        sous_le_plancher: 'Un ministère ne peut pas descendre sous ' + p0.plancher + ' %.',
+        au_dessus_du_plafond: 'La Défense ne peut pas dépasser ' + p0.plafond + ' % hors effort de guerre.',
+        valeur_invalide: 'Une valeur saisie n\'est pas un entier positif.',
+        total_incorrect: 'Le total doit être exactement 100 %.'
+      };
+      showToast('Répartition refusée', (messages[p0.motif] || 'Répartition invalide.') +
+        (p0.poste ? ' (' + p0.poste + ')' : ''), false);
+      return;
+    }
+  }
+
+  // UNE VALIDATION = UN ACTE POLITIQUE, donc 1 PA, quel que soit le nombre de lignes modifiees
+  // (arbitrage du 7 septembre 2026). Aucun PA n'etait deduit jusqu'ici, alors que l'ordre en
+  // declarait deux : le cout est desormais reellement preleve, et une seule fois.
+  const rPa = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!rPa.ok) { signalerRefusCout(rPa); return; }
+
   const budgetNat = await chargerBudgetNational(pays);
   budgetNat.repartition = newRep;
   await sbSaveBudgetNational(pays, budgetNat);

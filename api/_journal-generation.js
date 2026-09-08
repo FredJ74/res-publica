@@ -328,7 +328,27 @@ Toute violation de ces règles rendra l'édition entière rejetée et non publi�
 // APPEL ANTHROPIC — direct, jamais via api/chat.js. Préremplissage de la réponse par "{" pour
 // maximiser la fiabilité du JSON, avec repli défensif avant parsing.
 // =====================
+// PLAFOND TECHNIQUE DU PROMPT (correctif du 8 septembre 2026).
+//
+// L'edition republic du 4 septembre a echoue sur « prompt is too long: 964447 tokens > 200000 »,
+// soit pres de cinq fois la limite du modele. La cause immediate (les photo_url en base64
+// recopiees sur chaque fait) a ete traitee, mais RIEN ne mesurait la taille du prompt avant de
+// l'envoyer : le defaut n'a ete visible qu'apres coup, dans une erreur HTTP 400 opaque.
+//
+// Ce plafond ne DECIDE RIEN de ce que l'IA doit lire : il ne tronque pas, il ne trie pas, il ne
+// retire aucune rubrique. Il refuse d'envoyer une requete dont on sait qu'elle sera rejetee, et
+// nomme le probleme dans validation_erreurs au lieu de laisser un 400 illisible. La valeur est
+// posee au-dessus de tout paquet plausible : 600 000 caracteres, soit environ 150 000 tokens,
+// sous la limite de 200 000 du modele avec une marge pour le prompt systeme.
+const TAILLE_MAX_PAQUET_CARACTERES = 600000;
+
 async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
+  const corpsPaquet = JSON.stringify(paquetFactuel);
+  if (corpsPaquet.length > TAILLE_MAX_PAQUET_CARACTERES) {
+    return { ok: false, erreur: 'Paquet factuel trop volumineux : ' + corpsPaquet.length +
+      ' caracteres (plafond ' + TAILLE_MAX_PAQUET_CARACTERES + '). Requete NON envoyee -- ' +
+      'un champ non borne a probablement enfle (photo, extrait, faits differes accumules).' };
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -513,7 +533,11 @@ function validerArticle(art, index, erreurs, idsVus, articlesParId) {
   extraireCitations(art.texte).forEach(cit => {
     const citNorm = normaliserPourCitation(cit);
     const trouve = citNorm !== '' && extraitsAutorises.some(ex => ex.indexOf(citNorm) !== -1);
-    if (!trouve) erreurs.push(`article (${art.id}) : citation non retrouvée telle quelle dans un extrait autorisé -> "${cit.slice(0, 60)}"`);
+    // CITATION ENTIERE DANS LE MESSAGE (correctif du 8 septembre 2026). Le slice(0, 60) tronquait
+    // le libelle d'erreur EXACTEMENT sur la partie qui diverge : chaque tentative de correctif se
+    // faisait donc a l'aveugle, sur une citation dont on ne voyait jamais la fin. Purement
+    // diagnostique : la regle de validation, elle, est rigoureusement inchangee.
+    if (!trouve) erreurs.push(`article (${art.id}) : citation non retrouvée telle quelle dans un extrait autorisé -> "${cit}"`);
   });
 
   validerImage(art.image, `article (${art.id})`, art.source_ids, index, erreurs);
@@ -898,7 +922,40 @@ async function genererEditionPays(pays) {
   }, SB_HEADERS_SERVICE);
   if (!reservation.ok) {
     const dejaExistante = reservation.status === 409;
-    return { pays, dateEdition, statut: dejaExistante ? 'ignoree_deja_existante' : 'echec_reservation', detail: reservation.detail };
+    if (!dejaExistante) {
+      return { pays, dateEdition, statut: 'echec_reservation', detail: reservation.detail };
+    }
+    // REPRISE D'UNE EDITION EN ECHEC (correctif du 8 septembre 2026).
+    //
+    // Constate en production : les editions du 4 au 8 septembre portent toutes statut='echec'
+    // (prompt trop long le 4, citations non retrouvees les 5 et 6, credit Anthropic epuise les 7
+    // et 8). Or 'echec' etait traite exactement comme 'publiee' : la ligne existait, l'INSERT
+    // renvoyait 409, et la fonction ressortait sur 'ignoree_deja_existante'. Une edition ratee
+    // n'etait donc JAMAIS reprise -- pas meme apres correction de la cause. La journee restait
+    // definitivement sans numero, et le seul recours etait d'attendre le lendemain.
+    //
+    // 'en_cours' N'EST PAS REPRIS : c'est le verrou d'exclusion mutuelle, une generation peut etre
+    // reellement en vol. Seul 'echec', etat terminal et sans ambiguite, redevient reservable.
+    // 'publiee' non plus, evidemment : on ne remplace jamais un numero deja paru.
+    //
+    // nb_regenerations, colonne prevue des l'origine par migration_journal_editions.sql mais
+    // jusqu'ici ni lue ni ecrite, sert enfin : elle compte les reprises pour que l'echec repete
+    // soit visible en base. Aucun plafond n'est pose ici -- le cron ne s'execute qu'une fois par
+    // jour (vercel.json, "0 23 * * *"), il ne peut donc pas boucler.
+    const existantes = await sbGet('journal_editions',
+      `id=eq.${encodeURIComponent(id)}&select=statut,nb_regenerations`, SB_HEADERS_SERVICE);
+    const existante = existantes && existantes[0];
+    if (!existante || existante.statut !== 'echec') {
+      return { pays, dateEdition, statut: 'ignoree_deja_existante', detail: reservation.detail };
+    }
+    const reprise = await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
+      statut: 'en_cours',
+      validation_erreurs: null,
+      nb_regenerations: (Number(existante.nb_regenerations) || 0) + 1
+    }, SB_HEADERS_SERVICE);
+    if (!reprise || reprise.ok === false) {
+      return { pays, dateEdition, statut: 'echec_reprise', detail: reprise && reprise.detail };
+    }
   }
 
   try {

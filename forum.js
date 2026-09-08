@@ -1320,6 +1320,22 @@ async function resoudreIdentitePublication(fieldId) {
     return { refuse: true };
   }
 
+  // DISSOLUTION ADMINISTRATIVE (Lot 4.3) : une organisation dissoute ne s'exprime plus en son nom.
+  // Le controle est pose ICI parce que c'est le point de passage UNIQUE de l'identite
+  // organisationnelle -- il couvre d'un seul coup les quatre pipelines du forum ET les mails, sans
+  // qu'aucun appelant n'ait a s'en souvenir. La relecture etant deja fraiche depuis Supabase, une
+  // dissolution prononcee pendant la redaction est prise en compte au moment du clic.
+  //
+  // La dissolution retire aussi le chef, donc le test ci-dessus suffirait presque toujours ; ce
+  // controle explicite reste necessaire pour le cas d'une organisation dissoute puis dont le champ
+  // chef serait repose par un autre chemin.
+  if (orgaFraiche.dissoute === true) {
+    if (typeof showToast === 'function') {
+      showToast('Organisation dissoute', 'Cette organisation a été dissoute : elle ne peut plus s\'exprimer en son nom.', false);
+    }
+    return { refuse: true };
+  }
+
   const icon = orgaFraiche.avatar || (typeof TYPES_ORGANISATIONS !== 'undefined' && TYPES_ORGANISATIONS[orgaFraiche.type]?.icon) || null;
   return {
     authorName: orgaFraiche.nom,

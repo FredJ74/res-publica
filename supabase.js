@@ -147,6 +147,15 @@ async function sbSavePersonnage(charState) {
     invitation_sociale_en_attente: charState._invitationSocialeEnAttente || null,
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
+    // CORRECTIF (Lot 4.3) : la convocation militaire n'etait NI ecrite NI relue. doSePresenterAffectation
+    // et estExempteCouvreFeu lisaient state.char.requisition, toujours undefined -- un civil convoque
+    // ne pouvait donc jamais se presenter. Meme idiome que est_emprisonne : l'objet ou null.
+    // ⚠ Depend de la migration migration_requisition_militaire.sql, NON EXECUTEE.
+    requisition:      charState.requisition || null,
+    // Meme classe de defaut que requisition : l'inscription au BNE etait ecrite en memoire et
+    // jamais persistee. Colonne dediee, conformement a la doctrine du fichier -- jamais une cle
+    // ajoutee a un state.* implicitement suppose persiste.
+    demandeur_emploi: charState.demandeurEmploi === true,
     // Plafonds quotidiens Moral des cartes postales (Lot 4, 23 aout 2026) : meme motif que
     // salutations_du_jour ci-dessus (une colonne dediee, jamais une cle ajoutee a un state.*
     // implicitement suppose persiste). {lecteur, expediteur} : date reelle Europe/Paris
@@ -284,6 +293,9 @@ async function sbLoadPersonnage(name) {
     _invitationSocialeEnAttente: r.invitation_sociale_en_attente || null,
     convocations:  r.convocations || [],
     estEmprisonne: r.est_emprisonne || null,
+    // Pendant en lecture du correctif de convocation militaire (voir sbSavePersonnage).
+    requisition: r.requisition || null,
+    demandeurEmploi: r.demandeur_emploi === true,
     cartePostaleMoralJour: r.carte_postale_moral_jour || null
   };
 }
@@ -2527,6 +2539,21 @@ async function sbGetBatimentEtat(country, city, buildingId) {
     try { return JSON.parse(rows[0].data); } catch(e) { return {}; }
   }
   return {};
+}
+
+// Blocus syndicaux REELLEMENT actifs d'un pays (Lot 4.3). Aucune persistance nouvelle : la liste se
+// reconstruit depuis batiments_etat, qui porte deja country / city / building_id en colonnes et le
+// blocus dans son blob. Une seule requete par pays, filtrage cote client -- un blocus n'existe que
+// s'il a ete pose, donc la table ne contient jamais qu'une poignee de lignes concernees.
+async function sbListerBlocusActifs(country) {
+  const rows = await sbGet('batiments_etat', `country=eq.${encodeURIComponent(country)}`).catch(() => null);
+  if (!rows) return [];
+  return rows.map(r => {
+    let data = null;
+    try { data = JSON.parse(r.data); } catch (e) { return null; }
+    if (!data || !data.blocus) return null;
+    return { country: r.country, city: r.city, buildingId: r.building_id, blocus: data.blocus };
+  }).filter(Boolean);
 }
 
 async function sbSetBatimentEtat(country, city, buildingId, patch) {

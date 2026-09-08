@@ -1272,6 +1272,21 @@ function formatDateHeureJeu() {
 // comparer "le meme jour" entre deux joueurs differents (lecteur/expediteur) -- seule l'horloge
 // reelle, commune a tous, convient ici. Jamais l'horloge PA/le jour du jeu (meme regle que
 // DUREE_FRAICHEUR_ALIMENT_MS, plateau-personnage.js).
+// IDENTITE PARTAGEE D'UNE JOURNEE (correctif Lot 4.3).
+//
+// state.day est un compteur PRIVE : un joueur est au jour 3, un autre au jour 47. Tout marqueur
+// « deja traite aujourd'hui » ecrit dans une table PARTAGEE et compare a state.day est donc
+// structurellement inoperant en multijoueur -- c'est ce qui permet aujourd'hui a N joueurs de
+// declencher N fois la meme solde ou la meme distribution fiscale le meme soir.
+//
+// Cette fonction rend EXACTEMENT la meme chaine que jourCourantISO() du cron
+// (api/cron-minuit.js) : new Date().toISOString().slice(0, 10). Ce n'est pas un second concept de
+// date, c'est le MEME, rendu disponible au client -- condition pour que les deux chemins partagent
+// une garde persistante et que le second devienne sans effet apres le premier.
+function jourPartageISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function dateReelleParisStr() {
   const frNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
   return frNow.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -1427,6 +1442,20 @@ function checkMidnight() {
 }
 
 async function runMidnightUpdate() {
+  // GARDE DE REJOUE. state.midnightDone vit sur la racine de state, qui n'est jamais serialisee :
+  // ni localStorage (seul state.char l'est, plus bas dans ce fichier), ni sbSavePersonnage. Un
+  // simple F5 pendant la fenetre de deux minutes repartait donc avec midnightDone indefini et
+  // rejouait TOUT le passage de minuit : state.day incremente une seconde fois, plaintes et
+  // enquetes retraitees, scandale retire, budgets realimentes. La date reelle de Paris, elle,
+  // est posee sur state.char, qui survit au rechargement -- et c'est bien la journee de PARIS
+  // qui fait autorite ici, puisque la fenetre se declenche sur state.hour/minute, cale sur
+  // Europe/Paris par syncRealTime(). jourPartageISO() serait faux : en heure d'ete, minuit a
+  // Paris tombe l'avant-veille en UTC.
+  const jourParis = (typeof dateReelleParisStr === 'function') ? dateReelleParisStr() : null;
+  if (jourParis && state.char) {
+    if (state.char.dernierMinuitParis === jourParis) return;
+    state.char.dernierMinuitParis = jourParis;
+  }
   state.day++;
   state.salaireTouche = false;
   // Traiter les plaintes et enquetes en cours
@@ -1445,6 +1474,8 @@ async function runMidnightUpdate() {
   if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierDesertionsQuotidien === 'function') await verifierDesertionsQuotidien(state.country || 'republic').catch(() => {});
+  // Expulsions diplomatiques echues (Lot 4.3) : meme cadence que les desertions, meme fail-soft.
+  if (typeof verifierExpulsionsAmbassadeursQuotidien === 'function') await verifierExpulsionsAmbassadeursQuotidien(state.country || 'republic').catch(() => {});
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();
@@ -1458,7 +1489,8 @@ async function runMidnightUpdate() {
       addJournalEntry(`Mise a jour minuit : recettes fiscales de ${totalRevenue.toLocaleString('fr-FR')} versees au tresor national.`, 'event-info');
     }
   }
-  // Regeneration naturelle des PV si le joueur a ete agresse
+  // (La regeneration des PV vit dans doDormir depuis le 18 juillet 2026 -- voir
+  // plateau-communication.js pour la trace de la suppression.)
   // "Jour N" retire du texte (correctif du 21 aout 2026) : addJournalEntry() prefixe deja chaque
   // entree d'un horodatage reel (formaterHorodatageJournal) -- redondant et fictif ici, sans
   // utilite propre au-dela de celui deja affiche par le journal lui-meme.

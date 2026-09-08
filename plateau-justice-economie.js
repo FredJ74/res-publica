@@ -433,7 +433,16 @@ async function soumettrePlaynte(pa, cost) {
     city: state.currentCity,
     cible, motif,
     heure: `${String(resultH).padStart(2,'0')}h${m}`,
+    // AUTEUR : la table plaintes_en_cours est PARTAGEE, et ouvrirPorterPlainte() charge dans
+    // state.plaintesEnCours les plaintes de TOUS les joueurs du pays. Sans ce champ, le minuit
+    // prive de n'importe quel joueur ayant consulte le registre traitait les plaintes des autres
+    // -- N joueurs = N traitements de la MEME plainte, donc N mails a la cible et N affaires
+    // dupliquees au tribunal. traiterPlaintes() ne traite desormais que les siennes.
+    auteur: state.char?.name || null,
     day: state.day + 1,
+    // jour : meme valeur que day, sous le nom qu'attend l'affichage du registre
+    // (ouvrirPorterPlainte lisait a.jour, jamais pose ici -- il affichait « Jour undefined »).
+    jour: state.day + 1,
     status: 'pending'
   };
   state.plaintesEnCours.push(nouvellePlainte);
@@ -455,10 +464,22 @@ async function verifierPreuveReelle(country, accuse, motif) {
 }
 
 async function traiterPlaintes() {
+  // RECHARGEMENT AU TRAITEMENT. state.plaintesEnCours n'est ni sauvegarde en localStorage ni
+  // inclus dans sbSavePersonnage : apres un simple F5, il valait undefined et la fonction sortait
+  // immediatement. Le plaignant ne voyait donc JAMAIS aboutir sa propre plainte, sauf a rouvrir
+  // par hasard le registre du commissariat avant de dormir. On relit la table partagee ici.
+  if (typeof sbLoadPlaintes === 'function') {
+    const toutes = await sbLoadPlaintes(state.country).catch(() => null);
+    if (toutes) state.plaintesEnCours = toutes;
+  }
   if (!state.plaintesEnCours) return;
-  const traitees = state.plaintesEnCours.filter(p => p.day <= state.day && p.status === 'pending');
+  // Une plainte n'est traitee QUE par son auteur (voir soumettrePlaynte). Les plaintes anterieures
+  // a l'ajout du champ `auteur` n'ont pas de proprietaire identifiable : elles restent en attente
+  // plutot que d'etre traitees N fois par N joueurs, ce qui etait le comportement precedent.
+  const moi = state.char?.name || null;
+  const traitees = state.plaintesEnCours.filter(p =>
+    p.auteur && moi && p.auteur === moi && p.day <= state.day && p.status === 'pending');
   for (const p of traitees) {
-    p.status = 'done';
     let roll = Math.floor(Math.random() * 100) + 1;
     // Preuve reelle trouvee : le resultat est quasi automatiquement a charge, peu importe le
     // hasard du jet de base — une plainte gratuite sans preuve reste soumise a l'alea habituel.
@@ -466,11 +487,17 @@ async function traiterPlaintes() {
     if (preuveReelle) roll = Math.max(roll, 80);
     let result = '';
     let notifierJoueurs = true;
+    // STATUT REEL, PAS 'done' POUR LES TROIS ISSUES. p.status etait fixe a 'done' avant le jet, et
+    // LIBELLES_STATUT traduit 'done' par « Classee sans suite » : une plainte ayant abouti a une
+    // garde a vue ou a l'ouverture d'une enquete s'affichait donc, dans le registre du
+    // commissariat, comme classee sans suite. Chaque branche pose maintenant son propre statut.
     if (roll < 40) {
+      p.status = 'classee';
       result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_sans_suite', p.cible);
       notifierJoueurs = false;
     } else if (roll < 75) {
+      p.status = 'enquete';
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
       // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
@@ -479,6 +506,7 @@ async function traiterPlaintes() {
       state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, city: p.city, day: state.day + 1, status: 'pending' });
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_enquete', p.cible);
     } else {
+      p.status = 'transmise';
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
       addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_confirmee', p.cible);
@@ -488,7 +516,15 @@ async function traiterPlaintes() {
     if (notifierJoueurs) {
       // "Jour N" retire du sujet/corps (correctif du 21 aout 2026) : p.day reste utilise tel
       // quel plus haut dans cette fonction pour la logique de traitement, seul l'affichage change.
-      addMailNotification('Commissariat Central', `RE: Votre plainte`, result);
+      // MAIL REELLEMENT LISIBLE. addMailNotification() n'ecrit que dans state.mails, tableau qui
+      // n'est ni persiste, ni hydrate, ni jamais rendu : la boite aux lettres (forum.js) lit
+      // exclusivement la table Supabase via sbGetMailsFor(). Le plaignant voyait donc son badge
+      // s'incrementer sans jamais pouvoir ouvrir le resultat de sa propre plainte. On passe par
+      // le canal reel, celui-la meme qui notifie deja la cible trois lignes plus bas.
+      if (state.char?.name && typeof sbSendMail === 'function') {
+        await sbSendMail('Commissariat Central', state.char.name, 'RE: Votre plainte', result,
+          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+      }
       if (p.cible && p.cible !== 'X' && typeof envoyerNotificationVraiJoueur === 'function') {
         await envoyerNotificationVraiJoueur(p.cible, 'Convocation - Plainte a votre encontre', 'Une plainte a ete deposee contre vous, elle a evolue : ' + result);
       }
@@ -518,7 +554,12 @@ async function traiterEnquetes() {
       // Transmettre au tribunal pour jugement public
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
     }
-    addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
+    // Meme correctif que traiterPlaintes : state.mails n'est jamais rendu nulle part, les
+    // conclusions d'enquete n'etaient donc lisibles par personne.
+    if (state.char?.name && typeof sbSendMail === 'function') {
+      await sbSendMail('Brigade Criminelle', state.char.name, `Conclusions enquete : ${e.cible}`, result,
+        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    }
   }
 }
 
@@ -616,8 +657,15 @@ function mettreAJourPopulation() {
     // Regeneration lente : +0.1% par jour
     const regen = Math.floor(pop.total * 0.001);
     pop.total = Math.min(pop.totalMax || pop.total * 1.5, pop.total + regen);
-    // Recalculer les impots
-    pop.dailyTaxRevenue = Math.floor(pop.total * pop.taxRate / 365);
+    // RECALCUL RETIRE le 8 septembre 2026. Cette ligne ECRASAIT les recettes editoriales de
+    // data.js par une formule incompatible : Luthecia passait de 42 000 a 419 des le premier
+    // passage de minuit, soit une division par cent. Elle desynchronisait en outre le prorata
+    // fiscal du client de celui du serveur, et faisait diverger deux joueurs selon qu'ils avaient
+    // ou non passe minuit dans leur onglet.
+    //
+    // Aucune valeur n'est modifiee ici : on cesse simplement d'en detruire. Les recettes restent
+    // celles de data.js, qui sont aussi celles du miroir serveur. La croissance de population
+    // ci-dessus est conservee -- elle est locale, jetable, et n'ecrase rien.
   });
 }
 
@@ -1026,11 +1074,20 @@ async function ouvrirPorterPlainte(pa, cost) {
   // ouvert l'enquete, pas celles des autres joueurs. A corriger dans un futur passage.
   const enquetes = (state.enquetesEnCours || []).filter(e => e.status === 'pending');
 
+  // 'done' est conserve pour les plaintes anterieures au correctif : c'etait le statut unique
+  // pose par traiterPlaintes() pour les TROIS issues, sans qu'on puisse retrouver laquelle. Les
+  // plaintes traitees depuis portent classee / enquete / transmise. 'annulee' est pose par
+  // annulerAffaire() (plateau-politique.js) et n'etait pas traduit : le registre affichait le
+  // code brut.
   const LIBELLES_STATUT = {
-    pending: { texte: 'En attente de traitement', col: '#8a7040' },
-    done:    { texte: 'Classée sans suite',        col: '#5a5040' },
-    deposee: { texte: 'Transmise au tribunal — en attente de jugement', col: '#C9A84C' },
-    jugee:   { texte: 'Jugée',                     col: '#6a8a4a' }
+    pending:   { texte: 'En attente de traitement', col: '#8a7040' },
+    classee:   { texte: 'Classée sans suite',       col: '#5a5040' },
+    enquete:   { texte: 'Enquête ouverte',          col: '#8a5a2a' },
+    transmise: { texte: 'Garde à vue — transmise au tribunal', col: '#C9A84C' },
+    done:      { texte: 'Traitée (issue non enregistrée)', col: '#5a5040' },
+    deposee:   { texte: 'Transmise au tribunal — en attente de jugement', col: '#C9A84C' },
+    jugee:     { texte: 'Jugée',                    col: '#6a8a4a' },
+    annulee:   { texte: 'Poursuites abandonnées',   col: '#7a4a4a' }
   };
 
   let html = '<div style="padding:1rem">';
@@ -1046,7 +1103,10 @@ async function ouvrirPorterPlainte(pa, cost) {
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:' + statut.col + '">' + statut.texte + '</div>';
       html += '</div>';
       if (a.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + a.motif + '</div>';
-      html += '<div style="font-size:.85rem;color:#9a8a68;margin-top:.3rem">Jour ' + a.jour + '</div>';
+      // a.day pour les plaintes (soumettrePlaynte), a.jour pour les affaires transmises au
+      // tribunal (transmettreAffaireAuTribunal) : le registre n'affichait que a.jour, donc
+      // « Jour undefined » sur toute plainte non encore transmise.
+      html += '<div style="font-size:.85rem;color:#9a8a68;margin-top:.3rem">Jour ' + (a.jour ?? a.day ?? '?') + '</div>';
       html += '</div>';
     });
     enquetes.forEach(e => {
@@ -1266,7 +1326,13 @@ function verifierDecouverteCrimesPasses() {
     if (roll <= tauxDecouverte) {
       // Retirer l'entree decouverte de l'historique
       state.historiqueCrimes = state.historiqueCrimes.filter(x => x !== c);
-      addMailNotification('Brigade Criminelle', 'Affaire résolue', 'Une enquête a permis de vous identifier comme responsable de : ' + (getPeineParActe(c.acte, true).label) + '. Vous êtes arrêté(e).');
+      // Meme correctif de canal que traiterPlaintes/traiterEnquetes : state.mails n'est jamais
+      // rendu, le joueur etait arrete sans jamais pouvoir lire pourquoi.
+      const motifArrestation = 'Une enquête a permis de vous identifier comme responsable de : ' + (getPeineParActe(c.acte, true).label) + '. Vous êtes arrêté(e).';
+      if (state.char?.name && typeof sbSendMail === 'function') {
+        sbSendMail('Brigade Criminelle', state.char.name, 'Affaire résolue', motifArrestation,
+          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+      }
       procederArrestation(c.acte, false, true); // demasque = true -> peine doublee
       break; // Une seule arrestation a la fois, le reste sera reexamine au prochain cycle
     }
@@ -4351,11 +4417,18 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge entre-temps)
-  const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
+  // VILLE REELLE (meme correctif que confirmerImpression, plateau-communication.js) : le
+  // buildingId 'la-tribune' est partage par Luthecia et Montrouge. Avec 'capitale' en dur, un
+  // joueur vendant son bois a la Tribune de Montrouge livrait le stock de LUTHECIA et etait paye
+  // sur la caisse de LUTHECIA -- l'atelier de Montrouge ne pouvait ni s'approvisionner ni se vider.
+  const villeImprimerieVente = state.currentCity || 'capitale';
+  const entrepotVente = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[villeImprimerieVente])
+    || 'entrepot-logistique-luthecia';
+  const etatEntrepot = await sbGetBatimentEtat(state.country, villeImprimerieVente, entrepotVente);
   const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
   const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
 
-  const etatImprimerie = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+  const etatImprimerie = await sbGetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune');
   const caisse = etatImprimerie.imprimerie?.caisse || 0;
   const qteAchetable = Math.max(0, Math.min(qteVoulue, Math.floor(caisse / prixUnitaire)));
   if (qteAchetable <= 0) {
@@ -4375,7 +4448,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
     stockBois: (etatImprimerie.imprimerie?.stockBois || 0) + qteAchetable,
     caisse: caisse - montantPaye
   };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, 'capitale', 'la-tribune', etatImprimerie).catch(() => {});
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune', etatImprimerie).catch(() => {});
 
   state.arg = (state.arg || 0) + montantPaye;
   updateUI();
@@ -6802,7 +6875,10 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
     duree_jours: duree,
     mensualite,
     jours_impayes: 0,
-    jour_dernier_prelevement: state.day || 1,
+    // JOURNEE PARTAGEE : jour_dernier_prelevement vit dans la table prets, partagee, et sert de
+    // marqueur anti-rejeu au cron serveur. Un state.day (compteur PRIVE de l'emprunteur) n'y a
+    // aucun sens : le cron compare desormais cette colonne a jourCourantISO().
+    jour_dernier_prelevement: (typeof jourPartageISO === 'function') ? jourPartageISO() : null,
     statut: 'en_cours'
   };
 
@@ -6810,7 +6886,13 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
     await sbCreerPret(pret).catch(() => {});
   }
 
-  state.arg = (state.arg || 0) + montant;
+  // ARGENT REELLEMENT DEPENSABLE. Crediter state.arg seul gonflait l'affichage sans rien changer
+  // au pouvoir d'achat : debiterFondsOrdinaires() -- garde amont de la quasi-totalite des ordres
+  // du jeu -- ne sait depenser que state.liquide + le solde du compte national. L'emprunteur
+  // voyait donc son capital augmenter puis se faisait refuser tout achat pour fonds insuffisants.
+  // crediterFondsOrdinaires() incremente les deux, comme tout autre credit du jeu.
+  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+  else state.arg = (state.arg || 0) + montant;
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
   showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Mensualité : ' + mensualite.toLocaleString('fr-FR') + ' ' + cur + '/jour sur ' + duree + ' jours.', true, true);
@@ -7763,8 +7845,14 @@ async function getAffichagePoliceRue(pays, ville, rueNoeudId) {
 async function payerEffectifsPoliceQuotidien(pays, ville) {
   const effectifs = await chargerEffectifsPolice(pays, ville);
   if (!effectifs.policiers.length) return;
-  const jour = state.day || 1;
-  if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
+  // JOURNEE PARTAGEE, PAS state.day. dernierPaiementJour est ecrit dans l'etat PARTAGE des
+  // effectifs : le compare a state.day, compteur PRIVE a chaque navigateur, ruinait le garde-fou
+  // multi-connexion que le commentaire d'origine revendiquait. Deux joueurs aux compteurs
+  // differents (jour 3 et jour 47) payaient chacun la solde du meme jour reel, vidant la caisse
+  // du commissariat autant de fois qu'il y avait de joueurs connectes. jourPartageISO() est la
+  // meme date que celle du cron serveur (jourCourantISO), au caractere pres.
+  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
+  if (effectifs.dernierPaiementJour === jour) return;
 
   const buildingIdCaisse = getBuildingIdCommissariat(ville);
   const coutTotal = effectifs.policiers.reduce((s, p) => s + coutJournalierPolicier(p), 0);
@@ -7991,8 +8079,9 @@ async function ouvrirConsulterEffectifsDouane() {
 async function payerEffectifsDouaneQuotidien(pays) {
   const effectifs = await chargerEffectifsDouane(pays);
   if (!effectifs.douaniers.length) return;
-  const jour = state.day || 1;
-  if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
+  // Meme correctif que payerEffectifsPoliceQuotidien : marqueur partage compare a un compteur prive.
+  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
+  if (effectifs.dernierPaiementJour === jour) return;
 
   const coutTotal = effectifs.douaniers.reduce((s, d) => s + coutJournalierDouanier(d), 0);
   const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_int', coutTotal);
@@ -10248,6 +10337,18 @@ function augmenterReputationCriminelle(montant) {
 }
 
 // ---- CAMBRIOLAGE DE CAISSE (generique, reutilisable pour n'importe quel batiment) ----
+// Ouvreur du cambriolage au commissariat. RESTAURE le 8 septembre 2026 : ce wrapper avait ete
+// supprime COLLATERALEMENT par la refonte du vol de ressources (une accolade mal recollee a emporte
+// la fonction voisine), laissant l'ordre cambrioler_caisse_commissariat router vers une fonction
+// inexistante -- donc un ReferenceError au clic. Le moteur, lui, n'a jamais bouge :
+// doCambriolerCaisse et confirmerCambriolerCaisse sont intacts, et l'ordre jumeau
+// consulter_caisse_commissariat fonctionne. Trois lignes manquaient.
+function doCambriolerCaisseCommissariat() {
+  const buildingId = (typeof getBuildingIdCommissariat === 'function')
+    ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
+  doCambriolerCaisse(buildingId, 'Commissariat');
+}
+
 function doCambriolerCaisse(buildingId, buildingLabel) {
   document.getElementById('postes-modal-title').textContent = 'Cambrioler la caisse — ' + buildingLabel;
   document.getElementById('postes-body').innerHTML =
@@ -10840,7 +10941,15 @@ async function appliquerTaxeTransaction(montantBrut) {
 async function verifierEffetsEtDistributionFiscale() {
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
-  const jour = state.day || 1;
+  // IDENTITE PARTAGEE DE LA JOURNEE (correctif Lot 4.3). Le marqueur derniereDistribJour vit dans
+  // budgets_nationaux -- une table PARTAGEE -- mais etait compare a state.day, un compteur PRIVE :
+  // un joueur au jour 3 et un joueur au jour 47 ecrivaient donc chacun leur propre valeur, et la
+  // redistribution fiscale nationale pouvait etre versee PLUSIEURS FOIS le meme soir.
+  //
+  // La cle est desormais la date reelle, celle-la meme qu'emploie le cron. L'ancien format
+  // numerique reste accepte en lecture : une valeur heritee ne bloque pas la premiere distribution
+  // du nouveau format, elle est simplement remplacee.
+  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
   if (budgetNat.derniereDistribJour === jour) return;
 
   const budgetMuni = await chargerBudgetMunicipal();
@@ -11079,7 +11188,12 @@ async function rafraichirCacheEmploiBNE() {
 async function doInscrireDemandeurEmploi(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  state.demandeurEmploi = true;
+  // CORRECTIF (Lot 4.3) : l'inscription vivait sur state, jamais sur state.char, et n'etait donc
+  // ni sauvegardee ni relue -- les 1 PA depenses etaient perdus a chaque rechargement. Elle rejoint
+  // le personnage, seul objet reellement persiste.
+  state.char = state.char || {};
+  state.char.demandeurEmploi = true;
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state.char).catch(() => {});
   showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
   addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');
 }
@@ -11105,7 +11219,7 @@ async function offresChantiersBNE(pays, ville) {
 }
 
 async function ouvrirOffresEmploiBNE() {
-  if (!state.demandeurEmploi) {
+  if (!state.char?.demandeurEmploi) {
     showToast('Inscription requise', 'Inscrivez-vous comme demandeur d\'emploi avant de consulter les offres.', false);
     return;
   }

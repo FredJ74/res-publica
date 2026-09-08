@@ -1181,6 +1181,23 @@ async function executerOrdreOrga(orgaId, fn) {
   if (!ordre) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
+  // GARDE D'AUTORITE SUR LES ORDRES FINANCIERS — CENTRALISEE ICI (Lot 4.3).
+  //
+  // DEFAUT PREEXISTANT CORRIGE : cette fonction n'avait AUCUNE garde de role. N'importe quel joueur
+  // connaissant l'identifiant d'une organisation pouvait appeler orga_dividendes et transferer 30 %
+  // de sa caisse vers son propre portefeuille. Le rang minimum et chefOnly n'etaient verifies qu'a
+  // l'affichage des boutons, jamais ici.
+  //
+  // LA GARDE EST POSEE EN UN SEUL POINT, avant toute deduction et tout effet : ajouter un ordre
+  // financier a un type d'organisation ne peut plus faire oublier le controle.
+  if (ORDRES_ORGA_FINANCIERS.indexOf(fn) !== -1) {
+    const v = verdictAutoriteCaisseOrga(orga, state.char?.name);
+    if (!v.ok) {
+      showToast('Accès refusé', v.message || 'Vous ne gérez pas la caisse de cette organisation.', false);
+      return;
+    }
+  }
+
   // Vérif coût financier (garde metier/financiere conservee). La disponibilite des PA est
   // desormais tranchee uniquement par deduireCoutOrdre() ci-dessous (Lot 1, correctif suite a
   // revue) -- plus de garde manuelle state.pa<..., qui bloquait a tort meme sous
@@ -9161,6 +9178,13 @@ function confirmerTerminerGreve(orgaId) {
 
   const cibleLabel = orga.greve.cibleLabel;
   const revendicationsFin = orga.greve.revendications;
+  // orga.greve est ECRASE par null juste apres : la duree reelle de la mobilisation (parfois
+  // plusieurs dizaines de jours) etait detruite avec lui, et la chronique nationale ne gardait que
+  // « une greve a commence » / « une greve s'est terminee », sans moyen de reconstituer combien de
+  // temps elle avait dure. On capture les deux valeurs, comme le code capture deja cibleLabel et
+  // revendications pour exactement cette raison.
+  const dateDebutGreve = orga.greve.dateDebut || null;
+  const joursActifsGreve = orga.greve.joursActifs || 0;
   orga.greve = null;
   sauvegarderOrga(orga);
 
@@ -9172,7 +9196,7 @@ function confirmerTerminerGreve(orgaId) {
     sbEnregistrerEvenementPublic(orga.country, 'greve_ordinaire_fin', {
       personnages: [orga.chef].filter(Boolean),
       libelle: 'Fin de la grève de "' + orga.nom + '" contre ' + cibleLabel + '.',
-      data: { orga_id: orga.id, orga_nom: orga.nom, chef: orga.chef, cible: cibleLabel, revendications: revendicationsFin },
+      data: { orga_id: orga.id, orga_nom: orga.nom, chef: orga.chef, cible: cibleLabel, revendications: revendicationsFin, date_debut: dateDebutGreve, jours_actifs: joursActifsGreve },
       sourceRef: orga.id
     }).catch(() => {});
   }

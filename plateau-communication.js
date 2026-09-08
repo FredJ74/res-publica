@@ -152,7 +152,9 @@ async function ouvrirModalImprimerTracts(pa, cost) {
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">150 ' + cur + ' par lot de 10 tracts.</div>';
 
   if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
-    const etat = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+    // Meme correctif de ville que confirmerImpression : a Montrouge, ce panneau annoncait le stock
+    // de bois de l'atelier de LUTHECIA, donc un chiffre sans rapport avec l'atelier ou l'on est.
+    const etat = await sbGetBatimentEtat(state.country, state.currentCity || 'capitale', 'la-tribune');
     const stockBois = etat.imprimerie?.stockBois || 0;
     html += '<div style="font-size:.76rem;color:' + (stockBois > 0 ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Stock de bois de Gustave : ' + stockBois + '</div>';
   }
@@ -217,14 +219,23 @@ async function confirmerImpression(pa, cost) {
   // A La Tribune (Luthecia) : Gustave a besoin de bois pour imprimer. Recette dynamique -
   // ne consomme jamais plus de 50% du prix du lot (150 FR) en valeur de bois, quel que soit
   // le cours actuel du bois a l'entrepot. Rien n'est debite si le stock manque.
+  // VILLE REELLE, PAS 'capitale' EN DUR. Le buildingId 'la-tribune' est partage par Luthecia ET
+  // Montrouge (data.js : les deux villes le listent dans leurs buildings). Avec 'capitale' fige,
+  // un joueur imprimant a la Tribune de Montrouge consommait le bois de l'atelier de LUTHECIA et
+  // creditait la caisse de LUTHECIA : le stock d'une ville payait pour l'autre, et l'atelier de
+  // Montrouge n'encaissait jamais rien. Le prix du bois etait lui aussi lu sur l'entrepot de
+  // Luthecia au lieu de l'entrepot local.
+  const villeImprimerie = state.currentCity || 'capitale';
+  const entrepotLocal = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[villeImprimerie])
+    || 'entrepot-logistique-luthecia';
   let etatImprimerie = null, boisParLot = 0;
   if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
-    const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
+    const etatEntrepot = await sbGetBatimentEtat(state.country, villeImprimerie, entrepotLocal);
     const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
     const prixBoisPourGustave = (typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10;
     boisParLot = Math.max(1, Math.floor(75 / prixBoisPourGustave)); // 75 FR = 50% de 150 FR/lot
 
-    etatImprimerie = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+    etatImprimerie = await sbGetBatimentEtat(state.country, villeImprimerie, 'la-tribune');
     const stockBois = etatImprimerie.imprimerie?.stockBois || 0;
     const boisNecessaire = boisParLot * nbLots;
     if (stockBois < boisNecessaire) {
@@ -264,7 +275,7 @@ async function confirmerImpression(pa, cost) {
       stockBois: (etatImprimerie.imprimerie?.stockBois || 0) - boisConsomme,
       caisse: (etatImprimerie.imprimerie?.caisse || 0) + cout
     };
-    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, 'capitale', 'la-tribune', etatImprimerie).catch(() => {});
+    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerie, 'la-tribune', etatImprimerie).catch(() => {});
   }
 
   updateUI();
@@ -1317,13 +1328,11 @@ async function recupererImpactsEnAttente() {
 }
 
 // Regeneration naturelle des PV (+10/jour) apres une agression — appelee a minuit dans runMidnightUpdate
-function appliquerRegenerationNaturelle() {
-  if (!state.regenJour) return;
-  if ((state.hp || 0) >= 100) { state.regenJour = null; return; }
-  state.hp = Math.min(100, (state.hp || 0) + 10);
-  if (state.hp >= 100) state.regenJour = null;
-  addJournalEntry('Régénération naturelle : +10 PV. PV actuels : ' + state.hp + '.', 'event-info');
-}
+// appliquerRegenerationNaturelle SUPPRIMEE le 8 septembre 2026. Elle etait morte : aucun appelant
+// dans aucun .js, .html ni api/. Son unique appel avait ete retire du passage de minuit
+// INTENTIONNELLEMENT (« regeneration retiree du cron », 18 juillet 2026), et la mecanique vit
+// depuis dans doDormir (plateau-personnage.js) -- meme garde state.regenJour, meme +10 PV, meme
+// libelle de journal. On supprimait donc un doublon exact d'une logique vivante ailleurs.
 
 // Archives police — liste des prisonniers
 // Registre unique des archives de police : fusionne les vraies detentions de PJ (en direct,
@@ -1621,10 +1630,26 @@ function ouvrirDetailDetention(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-// Notification mail simple
+// Notification mail simple.
+//
+// CORRECTIF DU 8 SEPTEMBRE 2026 -- LE MAIL PART MAINTENANT POUR DE BON.
+// state.mails vit sur la racine de state : il n'est ni serialise en localStorage (seul state.char
+// l'est), ni inclus dans le payload de sbSavePersonnage, et surtout AUCUN ECRAN NE LE RESTITUE --
+// la boite aux lettres (forum.js) lit exclusivement la table Supabase via sbGetMailsFor(). Les
+// vingt et un avis systeme qui passent par ici (liberation de prison, convocation douaniere,
+// resultat d'election, expulsion d'un local, reduction de peine plaidee par l'avocat, caisse de
+// fret en route...) incrementaient donc le badge « nouveau mail » sans que le joueur puisse jamais
+// en ouvrir un seul : il voyait un compteur, jamais un texte.
+// On conserve integralement le comportement local (file + badge + evenement) et on ajoute l'envoi
+// reel sur le canal qui, lui, est lu. Le destinataire est toujours le joueur lui-meme : ces avis
+// s'adressent sans exception a celui qui les declenche.
 function addMailNotification(from, subject, body) {
   if (!state.mails) state.mails = [];
   state.mails.push({ from, subject, body, day: state.day, time: formatDateHeureJeu(), read: false });
+  if (state.char?.name && typeof sbSendMail === 'function') {
+    sbSendMail(from, state.char.name, subject, body,
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
   addExternalEvent(`Nouveau mail de ${from} : "${subject}"`);
   // Mettre a jour le badge immediatement
   const unread = state.mails.filter(m => !m.read).length;
