@@ -73,6 +73,26 @@ function filtrePeriode(periode) {
 // d'envoyer l'integralite de la base a l'IA). Pas de tri par pertinence ici -- juste une borne dure.
 const LIMITE_PAR_DOMAINE = 50;
 
+// TRI DECROISSANT ET QUOTA SUR LA MATIERE ELIGIBLE (arbitrage du 8 septembre 2026).
+//
+// Le quota de 50 par domaine etait applique avec `order=created_at.asc` : quand la fenetre
+// s'elargit -- ce qui arrive des qu'une edition echoue, la borne basse ne bougeant qu'a la
+// publication SUIVANTE -- ce sont les 50 lignes les PLUS ANCIENNES qui gagnaient, et l'actualite
+// recente etait ecartee DEFINITIVEMENT (la borne basse avance ensuite au-dela d'elle).
+// Constate en production : la derniere edition publiee de republic datait du 26 aout, soit une
+// fenetre de quatorze jours nourrie par les evenements du 26 aout.
+// L'ordre passe donc en `desc` partout ou un quota s'applique : en cas de trop-plein, on garde les
+// evenements les plus RECENTS. Sur une fenetre normale de 24 h, 50 par domaine n'est jamais
+// atteint et l'ordre n'a aucun effet.
+//
+// FORUM : le quota doit porter sur de la matiere reellement PUBLIABLE. Les sujets sont desormais
+// filtres cote serveur (pays + forum public + auteur), donc les 50 retenus sont 50 sujets
+// eligibles. Les reponses n'ont pas de colonne `country` (le pays vit sur le sujet parent) : on
+// sur-echantillonne d'un facteur technique, on resout les parents, on filtre, puis on garde les 50
+// plus recentes eligibles. Ce facteur ne decide d'aucune ligne editoriale -- au pire il retient
+// moins de 50 reponses eligibles, jamais les plus anciennes a la place des plus recentes.
+const SUR_ECHANTILLON_REPONSES = 4;
+
 // Duplique de COUNTRIES (data.js).
 const PAYS_JEU = ['republic', 'narco', 'soviet', 'khalija'];
 
@@ -250,12 +270,15 @@ async function calculerPeriode(pays) {
 // (si un PJ identifie en possede une) et poids (voir qualification ci-dessus).
 // =====================
 
-async function collecterEtatCivil(periode, personnagesConnus) {
-  const f = filtrePeriode(periode);
+async function collecterEtatCivil(periode, pays, personnagesConnus) {
+  // FILTRE PAYS : ces trois tables portent une colonne country. Sans elle, le quota de 50 etait
+  // partage entre les quatre pays du jeu, et une edition pouvait perdre ses propres evenements au
+  // profit de ceux d'un autre empire.
+  const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
   const [naissances, mariages, deces] = await Promise.all([
-    sbGet('etat_civil_naissances', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`),
-    sbGet('mariages', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`),
-    sbGet('etat_civil_deces', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`)
+    sbGet('etat_civil_naissances', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`),
+    sbGet('mariages', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`),
+    sbGet('etat_civil_deces', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`)
   ]);
   const facts = [];
   // "arrivee" (jamais "naissance", voir audit 31 aout 2026) : etat_civil_naissances enregistre la
@@ -303,11 +326,11 @@ async function collecterEtatCivil(periode, personnagesConnus) {
   return facts;
 }
 
-async function collecterJustice(periode, personnagesConnus) {
-  const f = filtrePeriode(periode);
+async function collecterJustice(periode, pays, personnagesConnus) {
+  const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
   const [detentions, jugements] = await Promise.all([
-    sbGet('detentions', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`),
-    sbGet('jugements', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`)
+    sbGet('detentions', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`),
+    sbGet('jugements', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`)
   ]);
   const facts = [];
   (detentions || []).forEach(r => {
@@ -335,9 +358,9 @@ async function collecterJustice(periode, personnagesConnus) {
   return facts;
 }
 
-async function collecterCandidatures(periode, personnagesConnus) {
-  const f = filtrePeriode(periode);
-  const rows = await sbGet('candidatures', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+async function collecterCandidatures(periode, pays, personnagesConnus) {
+  const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
+  const rows = await sbGet('candidatures', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => {
     const acteur = identifierActeur(r.nom, personnagesConnus);
     return {
@@ -454,9 +477,9 @@ function formaterNomTerrain(buildingId) {
 // Ventes de terrain — table PERMANENTE et deliberement publique (base des Archives Notariales,
 // voir sbEnregistrerVenteTerrain/consulter_archives_notariales), simplement jamais lue par ce
 // module jusqu'ici (audit refonte Tribune, 4 septembre 2026).
-async function collecterVentesTerrains(periode, personnagesConnus) {
-  const f = filtrePeriode(periode);
-  const rows = await sbGet('terrains_historique_ventes', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+async function collecterVentesTerrains(periode, pays, personnagesConnus) {
+  const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
+  const rows = await sbGet('terrains_historique_ventes', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => {
     const acteur = identifierActeur(r.proprietaire, personnagesConnus);
     return {
@@ -473,9 +496,9 @@ async function collecterVentesTerrains(periode, personnagesConnus) {
 // Successions REGLEES uniquement (statut='resolue') -- une succession encore en_attente reste
 // privee aux heritiers convoques, jamais publique (meme garde que enigme-portrait.js cote
 // client). Table deja utilisee comme archive notariale publique une fois resolue.
-async function collecterSuccessions(periode, personnagesConnus) {
-  const f = filtrePeriode(periode);
-  const rows = await sbGet('successions', `${f}&statut=eq.resolue&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+async function collecterSuccessions(periode, pays, personnagesConnus) {
+  const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
+  const rows = await sbGet('successions', `${f}&statut=eq.resolue&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => {
     const acteurDefunt = identifierActeur(r.defunt, personnagesConnus);
     const beneficiaires = (r.dispositions || [])
@@ -498,7 +521,7 @@ async function collecterSuccessions(periode, personnagesConnus) {
 // (visible:false) ne doit JAMAIS pouvoir remonter jusqu'a l'IA, quelle que soit la periode.
 async function collecterOrganisationsPubliques(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);
-  const rows = await sbGet('organisations', `country_origine=eq.${encodeURIComponent(pays)}&${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`).catch(() => null);
+  const rows = await sbGet('organisations', `country_origine=eq.${encodeURIComponent(pays)}&${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`).catch(() => null);
   const facts = [];
   (rows || []).forEach(r => {
     const orga = parseBlob(r.data);
@@ -508,7 +531,11 @@ async function collecterOrganisationsPubliques(periode, pays, personnagesConnus)
     facts.push({
       id: idSource('organisations', r), domaine: 'organisations', type: 'organisation_creation',
       ville: null, pays,
-      resume: `${orga.fondateur || 'Un fondateur'} fonde "${orga.nom}", une nouvelle ${def}`,
+      // Nom d'organisation SANS guillemets (correctif du 8 septembre 2026) : ils n'apportaient
+      // aucune information editoriale, mais le modele recopiait la ponctuation de sa propre source
+      // et se faisait rejeter par le validateur de citation -- c'est l'origine exacte de l'echec
+      // « Confederacion Anarchisto del Trabajo » du 5 septembre.
+      resume: `${orga.fondateur || 'Un fondateur'} fonde ${orga.nom}, une nouvelle ${def}`,
       acteur: orga.fondateur || null, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
       poids: bumpPoids('mineur', acteur.estPJ ? 1 : 0),
       created_at: r.created_at
@@ -594,7 +621,7 @@ const TYPES_CHRONIQUE = {
 };
 async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);
-  const rows = await sbGet('chronique_nationale', `country=eq.${encodeURIComponent(pays)}&${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+  const rows = await sbGet('chronique_nationale', `country=eq.${encodeURIComponent(pays)}&${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => {
     const def = TYPES_CHRONIQUE[r.type];
     if (!def) return null; // type non mappe (ex. futur point d'ecriture) : ignore plutot que devine
@@ -698,10 +725,18 @@ function estForumPublic(forumId) {
   return true;
 }
 
-async function collecterDeclarationsPubliques(periode, personnagesConnus) {
+async function collecterDeclarationsPubliques(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);
+  // QUOTA SUR LA MATIERE ELIGIBLE. Les sujets etaient recuperes sans filtre de pays ni de forum,
+  // puis filtres en memoire : des sujets d'un autre empire, du forum gouvernement, du forum presse
+  // ou d'un forum d'organisation consommaient donc le quota de 50 AVANT d'etre ecartes. On pousse
+  // les trois filtres cote serveur -- meme regle qu'estForumPublic, exprimee en PostgREST -- pour
+  // que les 50 retenus soient 50 sujets reellement publiables.
+  const filtresPublics = `&forum_id=not.in.(gouvernement,presse)&forum_id=not.like.org_*&author=neq.${encodeURIComponent('Ligue Officielle')}`;
   const topics = await sbGet('forum_topics',
-    `${f}&select=id,forum_id,title,author,author_is_org,country,created_at&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+    `country=eq.${encodeURIComponent(pays)}&${f}${filtresPublics}&select=id,forum_id,title,author,author_is_org,country,created_at&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
+  // Filtre memoire CONSERVE : estForumPublic reste l'autorite de la regle. Le filtre serveur n'est
+  // qu'une optimisation de quota ; si les deux divergeaient un jour, c'est celui-ci qui tranche.
   const topicsPublics = (topics || []).filter(t => estForumPublic(t.forum_id) && t.author !== 'Ligue Officielle');
   const statements = topicsPublics.map(t => {
     const acteur = t.author_is_org ? { estPJ: false, photo_url: null } : identifierActeur(t.author, personnagesConnus);
@@ -717,8 +752,12 @@ async function collecterDeclarationsPubliques(periode, personnagesConnus) {
     };
   });
 
+  // forum_posts n'a PAS de colonne country : le pays vit sur le sujet parent (verifie en
+  // production). Impossible donc de filtrer le pays cote serveur. On sur-echantillonne, on resout
+  // les parents, on filtre, et on ne garde que les LIMITE_PAR_DOMAINE plus recentes eligibles.
+  // Au pire on en retient moins de 50 ; jamais les plus anciennes a la place des plus recentes.
   const posts = await sbGet('forum_posts',
-    `${f}&select=id,topic_id,author,content,author_is_org,created_at&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+    `${f}&select=id,topic_id,author,content,author_is_org,created_at&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE * SUR_ECHANTILLON_REPONSES}`);
   if (posts && posts.length > 0) {
     const topicIds = [...new Set(posts.map(p => p.topic_id))];
     const topicsParents = topicIds.length > 0
@@ -726,10 +765,16 @@ async function collecterDeclarationsPubliques(periode, personnagesConnus) {
       : [];
     const parentById = {};
     (topicsParents || []).forEach(t => { parentById[t.id] = t; });
+    // Les posts arrivent deja tries du plus recent au plus ancien : ce compteur coupe donc sur les
+    // plus recentes eligibles, apres application de TOUTES les regles d'eligibilite.
+    let retenues = 0;
     posts.forEach(p => {
+      if (retenues >= LIMITE_PAR_DOMAINE) return;
       const parent = parentById[p.topic_id];
       if (!parent || !estForumPublic(parent.forum_id)) return;
+      if (parent.country !== pays) return;
       if (p.author === 'Ligue Officielle') return;
+      retenues++;
       const acteur = p.author_is_org ? { estPJ: false, photo_url: null } : identifierActeur(p.author, personnagesConnus);
       statements.push({
         id: idSource('forum_posts', p), domaine: 'forum', type: 'reponse',
@@ -937,7 +982,7 @@ async function collecterIndicateurClassement(pays) {
 async function collecterPetitesAnnoncesActives(pays) {
   const nowIso = new Date().toISOString();
   const rows = await sbGet('petites_annonces',
-    `country=eq.${encodeURIComponent(pays)}&statut=eq.active&expire_at=gt.${encodeURIComponent(nowIso)}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+    `country=eq.${encodeURIComponent(pays)}&statut=eq.active&expire_at=gt.${encodeURIComponent(nowIso)}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => ({
     texte: r.texte, categorie: r.categorie || null, ville: resoudreNomVille(pays, r.ville_depot) || r.ville_depot
   }));
@@ -959,14 +1004,14 @@ async function construirePaquetFactuel(pays, periode) {
 
   const [etatCivil, justice, candidatures, football, declarations, petitesAnnonces,
          ventesTerrains, successions, organisationsPubliques, grevesGenerales, chroniqueNationale] = await Promise.all([
-    collecterEtatCivil(periode, personnagesConnus),
-    collecterJustice(periode, personnagesConnus),
-    collecterCandidatures(periode, personnagesConnus),
+    collecterEtatCivil(periode, pays, personnagesConnus),
+    collecterJustice(periode, pays, personnagesConnus),
+    collecterCandidatures(periode, pays, personnagesConnus),
     collecterFootball(periode, personnagesConnus),
-    collecterDeclarationsPubliques(periode, personnagesConnus),
+    collecterDeclarationsPubliques(periode, pays, personnagesConnus),
     collecterPetitesAnnoncesActives(pays),
-    collecterVentesTerrains(periode, personnagesConnus),
-    collecterSuccessions(periode, personnagesConnus),
+    collecterVentesTerrains(periode, pays, personnagesConnus),
+    collecterSuccessions(periode, pays, personnagesConnus),
     collecterOrganisationsPubliques(periode, pays, personnagesConnus),
     collecterGrevesGenerales(periode, pays, personnagesConnus),
     collecterChroniqueNationale(periode, pays, personnagesConnus)

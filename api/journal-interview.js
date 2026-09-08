@@ -36,6 +36,11 @@
 // posteriori. Ce qu'il ne fournit JAMAIS : le pays, le dossier public, les questions de Jodie,
 // l'avatar, ni le texte final de l'article.
 
+// Primitives de citation IMPORTEES du moteur du Journal (jamais recopiees) : le controle des
+// citations directes d'une interview doit appliquer exactement la meme logique guillemets/parole,
+// sous peine d'avoir deux definitions divergentes de ce qu'est une parole rapportee.
+import { extraireCitations, normaliserPourCitation } from './_journal-generation.js';
+
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
@@ -407,6 +412,43 @@ async function handlePublier(body) {
   if (!appel.ok) return relacherEtEchouer(502, appel.erreur);
 
   const { titre, corps } = extraireTitreCorps(appel.texte, personnage);
+
+  // =====================
+  // CITATIONS DIRECTES : VERBATIM OBLIGATOIRE (arbitrage du 8 septembre 2026)
+  // =====================
+  // L'IA redige librement en prose journalistique et PEUT paraphraser les reponses du joueur --
+  // une paraphrase sans guillemets reste entierement autorisee. Mais toute parole placee entre
+  // guillemets et presentee comme prononcee doit correspondre reellement a ce que le joueur a
+  // ecrit.
+  //
+  // La source de verite est le TRANSCRIPT SERVEUR : il est construit et stocke question par
+  // question par ce endpoint lui-meme (action 'question'), jamais fourni par le client au moment
+  // de la publication. C'est donc une base authentique par construction -- garantie de nature
+  // differente de celle du Journal, qui trace vers des extraits de forum.
+  //
+  // validerEdition() n'est PAS reutilisee : sa structure attend une edition complete (Une,
+  // articles, sujets differes, source_ids) qui n'existe pas ici. Seules ses deux primitives de
+  // citation sont importees, pour que la definition de « parole rapportee » reste unique.
+  //
+  // Les transformations typographiques triviales ne doivent jamais provoquer de faux rejet :
+  // normaliserPourCitation unifie apostrophes, guillemets, tirets, espaces insecables, points de
+  // suspension et casse. Une reformulation SUBSTANTIELLE, elle, ne se retrouve pas dans le
+  // transcript et fait echouer la publication.
+  const reponsesNormalisees = reponses.map(r => normaliserPourCitation(r));
+  const citationsInventees = extraireCitations(corps).filter(cit => {
+    const c = normaliserPourCitation(cit);
+    if (!c) return false;
+    return !reponsesNormalisees.some(rep => rep.indexOf(c) !== -1);
+  });
+  if (citationsInventees.length > 0) {
+    // Echec SANS effet de bord : relacherEtEchouer repose publie:false, l'entretien reste
+    // disponible et le joueur peut relancer la publication. Aucune ligne n'est ecrite, aucun
+    // article tronque n'est publie.
+    return relacherEtEchouer(422,
+      'Une parole attribuee ne correspond pas au verbatim de l\'entretien : ' +
+      citationsInventees.map(c => '« ' + c + ' »').join(', '));
+  }
+
   const maintenant = new Date().toISOString();
 
   // Persistance sur la ligne interviews_jodie elle-meme (chantier refonte, 4 septembre 2026) :

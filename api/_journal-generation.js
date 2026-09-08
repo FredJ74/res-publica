@@ -266,8 +266,8 @@ S'il n'existe aucune actualité notable dans les catégories les plus hautes, de
 
 RÈGLE DE UNE — « Les personnages de Res Publica font l'actualité de Res Publica » (règle STRICTE, non négociable) :
 ${hasPJMaterial
-    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un fait ou une déclaration impliquant un personnage joueur (PJ) — QUEL QUE SOIT SON POIDS, même "mineur". AU MOINS UN des 1 ou 2 sujets de la Une (voir "MAXIMUM DEUX SUJETS EN UNE" ci-dessous) DOIT donc s'ancrer sur un fait ou une déclaration où estPJ vaut true : ce n'est pas une préférence, c'est une obligation dès qu'une seule matière PJ existe, aussi mince soit-elle. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) occuper TOUS les sujets de Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
-    : `Aucun fait ni déclaration impliquant un personnage joueur n'existe nulle part dans ce paquet pour cette période (aucun "estPJ":true, à aucun poids). La Une reste alors libre parmi les faits non-PJ disponibles.`}
+    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un FAIT (un événement de jeu : arrestation, élection, mariage, rachat, grève, nomination…) impliquant un personnage joueur (PJ). AU MOINS UN des 1 ou 2 sujets de la Une (voir "MAXIMUM DEUX SUJETS EN UNE" ci-dessous) doit donc être RÉELLEMENT CENTRÉ sur ce personnage : son article doit citer la source estPJ dans ses "source_ids" ET nommer ce personnage dans "personnages_concernes". Référencer une source PJ en appui d'un article qui parle d'autre chose ne satisfait PAS cette règle. Un fait PJ mineur peut faire la Une aux côtés d'un événement institutionnel majeur — il n'a pas à l'écraser, les deux sujets de Une existent pour cela. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) occuper TOUS les sujets de Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
+    : `Aucun FAIT de jeu impliquant un personnage joueur n'existe dans ce paquet pour cette période. La Une est donc LIBRE : choisis les meilleurs sujets disponibles, PJ ou non. Si une déclaration de forum d'un PJ te paraît réellement forte, elle reste parfaitement éligible à la Une — mais rien ne t'y oblige, et tu ne dois jamais fabriquer un article à partir d'un message de forum anodin pour remplir cette place.`}
 
 MAXIMUM DEUX SUJETS EN UNE : le tableau "une.sujets" contient AU PLUS 2 éléments. Un seul sujet suffit la plupart du temps ; deux sujets ne se justifient que si deux informations méritent réellement toutes les deux un traitement de Une le même jour (elles se "partagent" alors la Une). Ne remplis jamais un deuxième sujet artificiellement s'il n'y a qu'un seul vrai sujet de Une.
 
@@ -310,7 +310,7 @@ HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}").
 
 FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout article de type "declaration" doit attribuer explicitement le contenu à son auteur avec un verbe déclaratif ("X affirme...", "X accuse..."), jamais le présenter comme un fait acquis. Une rumeur reste une rumeur : "selon une rumeur...", "une rumeur met en cause...", jamais présentée comme un fait établi. Si un PJ a publiquement répondu à une rumeur ou une accusation le concernant (present aussi dans PUBLIC_STATEMENTS), cette réponse est elle-même une information légitime, à attribuer de la même façon.
 
-CITATIONS : n'utilise JAMAIS de guillemets sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT cité en source, CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée. Une citation doit reprendre EXACTEMENT les mots de la source, dans le même ordre et d'un seul tenant. Sont formellement interdits, même s'ils sont d'usage courant en presse : les crochets éditoriaux ([s]es, [le ministre], [sic]), les points de suspension internes pour abréger un passage, la correction d'une faute ou d'une maladresse, le changement de temps, d'accord, de pronom ou de ponctuation, et la modification volontaire de la casse pour insérer la citation dans ta phrase. Si un passage ne peut pas être cité tel quel, ne le cite pas : passe en paraphrase attribuée, sans guillemets. Une citation qui ne se retrouve pas mot pour mot dans un "extrait" autorisé fait rejeter l'édition entière.
+GUILLEMETS ET CITATIONS. Deux usages distincts, ne les confonds pas. (A) USAGE TYPOGRAPHIQUE : tu peux mettre entre guillemets un nom, un surnom, une dénomination, une expression ou un emploi ironique — par exemple le « Cercle de Boétie ». C'est autorisé et ce n'est pas une citation. (B) PAROLE ATTRIBUÉE : dès que tu présentes des mots comme réellement prononcés par quelqu'un (guillemets accompagnés d'un verbe d'attribution, ou passage d'au moins cinq mots), ces mots doivent provenir MOT POUR MOT du champ "extrait" d'un PUBLIC_STATEMENT que tu as listé dans les "source_ids" de CE MÊME article. C'est la règle à retenir : LISTER UNE SOURCE DANS "source_ids" EST CE QUI TE DONNE LE DROIT D'EN CITER LE TEXTE. Une déclaration présente dans le paquet mais absente des "source_ids" de l'article n'est PAS citable dans cet article — ajoute-la aux "source_ids" si tu veux la citer. Les FACTS ne sont jamais citables : un résumé d'événement, une décision, un jugement ou une donnée économique fournit un FAIT à paraphraser, jamais une phrase réellement prononcée. Reproduis CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée. Une citation doit reprendre EXACTEMENT les mots de la source, dans le même ordre et d'un seul tenant. Sont formellement interdits, même s'ils sont d'usage courant en presse : les crochets éditoriaux ([s]es, [le ministre], [sic]), les points de suspension internes pour abréger un passage, la correction d'une faute ou d'une maladresse, le changement de temps, d'accord, de pronom ou de ponctuation, et la modification volontaire de la casse pour insérer la citation dans ta phrase. Si un passage ne peut pas être cité tel quel, ne le cite pas : passe en paraphrase attribuée, sans guillemets. Une citation qui ne se retrouve pas mot pour mot dans un "extrait" autorisé fait rejeter l'édition entière.
 
 TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre). Le champ "personnages_concernes" doit lister tous les PJ/PNJ réellement nommés dans l'article, tels qu'ils apparaissent dans les faits sources — jamais un nom inventé.
 
@@ -410,13 +410,122 @@ function valeurRepresenteeDansTexte(valeur, texte) {
   return false;
 }
 
+// GUILLEMETS TYPOGRAPHIQUES vs PAROLE ATTRIBUEE (arbitrage du 8 septembre 2026, revise).
+//
+// Constat d'origine : toute paire de guillemets etait traitee comme une citation humaine. Sur huit
+// editions rejetees en production depuis le 27 aout, au moins six portaient sur un NOM PROPRE, un
+// surnom ou un mot isole -- « Arnie », « kamarades », « Cercle de Boetie » -- jamais sur une parole.
+//
+// Regle editoriale : les guillemets typographiques (nom, surnom, denomination, expression, ironie)
+// sont autorises et non traces ; une parole reellement ATTRIBUEE doit rester tracable vers une
+// source authentique.
+//
+// L'ATTRIBUTION EST LE CRITERE PRINCIPAL, pas la longueur. Une denomination peut depasser dix mots
+// (« Confederation generale des travailleurs anarchistes de Republia ») et une vraie citation tenir
+// en deux (« jamais », martele-t-il). Trois signaux, evalues dans cet ordre :
+//
+//   1. ATTRIBUTION EXPLICITE -- un verbe ou une tournure d'attribution dans le voisinage immediat
+//      (avant ou apres), ou un deux-points juste avant l'ouverture, qui est en francais la
+//      construction journalistique standard d'introduction de parole. C'est le critere principal :
+//      il attrape les citations courtes comme les longues.
+//   2. FORME D'ENONCE -- le passage se termine par une ponctuation de fin de phrase (. ! ? …).
+//      Une denomination n'en porte jamais ; un enonce rapporte, presque toujours. Ce signal rattrape
+//      la citation autonome posee sans verbe introducteur.
+//   3. FILET TECHNIQUE -- au-dela de SEUIL_FILET_MOTS mots, on verifie par prudence. Ce n'est PAS
+//      la frontiere entre typographie et parole : c'est une securite volontairement haute, placee
+//      bien au-dessus de la longueur d'une denomination usuelle, pour qu'un long passage verbatim
+//      ne puisse pas passer inapercu faute de ponctuation finale.
+//
+// Les TROIS familles de guillemets sont traitees a egalite : droits ("), francais (« ») et courbes
+// anglais (“ ”). Les courbes echappaient auparavant a toute extraction.
+const SEUIL_FILET_MOTS = 12;
+
+// Detail technique maintenable, pas un arbitrage editorial : cette liste peut s'enrichir librement
+// tant que la regle ci-dessus ne change pas. Formes sans accents (la comparaison normalise), et
+// tronquees a leur radical pour couvrir les conjugaisons usuelles (declare/declarait/declarera).
+const VERBES_ATTRIBUTION = [
+  'declar', 'affirm', 'dit', 'dire', 'disait', 'expliqu', 'ajout', 'precis', 'confi',
+  'lance', 'lancait', 'martel', 'accus', 'denonc', 'assur', 'estim', 'reagi', 'repond',
+  'retorqu', 'insist', 'poursui', 'conclu', 'annonc', 'promet', 'promis', 'reconnai',
+  'admet', 'protest', 'ironis', 'temoign', 'plaid', 'previen', 'rappell', 'juge',
+  'souligne', 'glisse', 'lache', 'raconte', 'resume', 'nuance', 'tempere', 'renchérit',
+  'renchéri', 'interrog', 'questionn', 'commente', 'objecte', 'concede', 'avoue',
+  // Tournures prepositionnelles d'attribution.
+  'selon', 'd apres', 'aux dires de', 'de l aveu de', 'propos recueillis',
+  // Substantifs qui annoncent une parole rapportee.
+  'propos', 'paroles', 'declaration', 'citation', 'formule', 'phrase'
+];
+
+// FENETRES ASYMETRIQUES, et ce n'est pas un detail.
+// AVANT le passage, l'attribution est libre et peut etre eloignee : « Le ministre, visiblement
+// agace, a fini par declarer : "..." ». On regarde donc large.
+// APRES, une attribution prend en francais la forme d'une INCISE, typographiquement marquee : soit
+// une virgule collee a la fermeture (« ... », lance-t-il), soit un verbe inverse (dit-il, a-t-elle
+// ajoute). Sans cette exigence, une phrase aussi banale que « La "Confederation des travailleurs"
+// se declare en greve » etait lue comme une attribution, le mot « declare » tombant simplement
+// dans la fenetre -- verifie, c'etait un faux positif reel.
+const FENETRE_AVANT = 70;
+const FENETRE_APRES = 40;
+const PONCTUATION_FIN = ['.', '!', '?', '\u2026'];
+
+function sansAccents(s) {
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[\u2019\u2018\u02bc']/g, ' ');
+}
+
+// Un deux-points colle a l'ouverture du passage introduit une parole : « Le ministre : "..." ».
+// On tolere un espace ou une espace insecable avant, comme le veut la typographie francaise.
+function deuxPointsAvant(texte, indexDebut) {
+  const avant = texte.slice(Math.max(0, indexDebut - 4), indexDebut);
+  return /:[\s\u00a0\u202f]*$/.test(avant);
+}
+
+// Une incise d'attribution suit immediatement la fermeture : virgule collee, ou verbe inverse.
+// C'est un marqueur TYPOGRAPHIQUE, pas semantique : il ne demande aucune analyse de la langue.
+function inciseApres(texte, indexFin) {
+  const suite = texte.slice(indexFin, indexFin + FENETRE_APRES);
+  if (/^[\s\u00a0\u202f]*,/.test(suite)) return true;          // « ... », lance-t-il
+  return /-(t-)?(il|elle|on|ils|elles|je|nous)\b/i.test(suite);  // dit-il, a-t-elle ajoute
+}
+
+function estParoleAttribuee(citation, texte, indexDebut, indexFin) {
+  // 1. ATTRIBUTION EXPLICITE — critere principal, independant de la longueur.
+  if (deuxPointsAvant(texte, indexDebut)) return true;
+  const avant = sansAccents(texte.slice(Math.max(0, indexDebut - FENETRE_AVANT), indexDebut));
+  if (VERBES_ATTRIBUTION.some(v => avant.indexOf(v) !== -1)) return true;
+  // Apres le passage, on n'accepte l'attribution QUE sous forme d'incise reconnaissable.
+  if (inciseApres(texte, indexFin)) {
+    const apres = sansAccents(texte.slice(indexFin, indexFin + FENETRE_APRES));
+    if (VERBES_ATTRIBUTION.some(v => apres.indexOf(v) !== -1)) return true;
+  }
+
+  // 2. FORME D'ENONCE — une denomination ne se termine pas par une ponctuation de fin de phrase.
+  const contenu = String(citation).trim();
+  if (PONCTUATION_FIN.indexOf(contenu.slice(-1)) !== -1) return true;
+
+  // 3. FILET TECHNIQUE — securite haute, jamais la frontiere semantique.
+  return contenu.split(/\s+/).filter(Boolean).length >= SEUIL_FILET_MOTS;
+}
+
+// Rend uniquement les passages qui se presentent comme des PAROLES. Les usages typographiques sont
+// ecartes ici, jamais plus loin : les appelants n'ont rien a savoir de cette distinction.
 function extraireCitations(texte) {
   const citations = [];
-  const reFr = /«([^»]+)»/g;
-  const reDroit = /"([^"]+)"/g;
-  let m;
-  while ((m = reFr.exec(texte))) citations.push(m[1].trim());
-  while ((m = reDroit.exec(texte))) citations.push(m[1].trim());
+  const t = String(texte || '');
+  const paires = [
+    /\u00ab([^\u00bb]*)\u00bb/g,
+    /"([^"]*)"/g,
+    /\u201c([^\u201d]*)\u201d/g
+  ];
+  paires.forEach(re => {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(t))) {
+      const contenu = m[1].trim();
+      if (!contenu) continue;
+      if (estParoleAttribuee(contenu, t, m.index, m.index + m[0].length)) citations.push(contenu);
+    }
+  });
   return citations;
 }
 
@@ -552,9 +661,24 @@ function validerArticle(art, index, erreurs, idsVus, articlesParId) {
 // disponibles (voir prompt) -- il ne sert JAMAIS à autoriser une actualité non-PJ à prendre la
 // Une. Une Une non-PJ / "journée calme" n'est légitime que si aucune matière PJ n'existe DU TOUT
 // dans le paquet, pas seulement si elle est jugée trop faible.
+// DECLENCHEUR DE L'OBLIGATION DE UNE PJ (arbitrage du 8 septembre 2026).
+//
+// La regle se declenchait sur N'IMPORTE QUELLE matiere estPJ, y compris une simple reponse de
+// forum. Or le meme prompt interdit par ailleurs de fabriquer un article pour chaque message de
+// forum : les deux consignes se contredisaient, et seule la seconde etait verifiee par du code.
+// Un « bonjour » poste par un PJ pouvait donc rendre la Une PJ obligatoire, puis faire echouer
+// l'edition entiere faute de pouvoir y satisfaire honnetement.
+//
+// L'obligation ne se declenche desormais que sur un FAIT de jeu impliquant un PJ : une arrestation,
+// une election, un mariage, un rachat, une greve, une nomination. C'est de l'actualite au sens
+// propre. Les declarations de forum restent integralement disponibles -- collectees, transmises,
+// citables, et parfaitement eligibles a la Une si le journal les juge fortes -- elles ne
+// l'IMPOSENT simplement plus.
+//
+// Aucun nouveau systeme de score : on s'appuie sur la separation FACTS / PUBLIC_STATEMENTS qui
+// existe deja dans le paquet.
 function hasPJMaterial(aiInput) {
-  const check = f => f.estPJ === true;
-  return (aiInput.FACTS || []).some(check) || (aiInput.PUBLIC_STATEMENTS || []).some(check);
+  return (aiInput.FACTS || []).some(f => f.estPJ === true);
 }
 
 // "Journée calme" élargie (chantier refonte, 4 septembre 2026, arbitrage validé) : une Une "calme"
@@ -633,13 +757,29 @@ function validerEdition(reponseTexte, aiInput) {
   // Adaptée aux sujets multiples (4 septembre 2026) : AU MOINS UN sujet doit s'ancrer sur du PJ
   // dès que de la matière PJ existe -- pas nécessairement tous, un deuxième sujet partagé peut
   // rester non-PJ.
+  // UNE REELLEMENT CENTREE SUR UN PJ, pas simplement tracable vers lui.
+  //
+  // La garde se contentait d'un source_id estPJ n'importe ou dans l'article de Une. Une source PJ
+  // ajoutee en appui d'un article portant sur tout autre chose satisfaisait donc formellement la
+  // regle sans mettre aucun PJ en lumiere : elle verifiait une TRACABILITE, pas un SUJET.
+  //
+  // Le critere retenu croise deux informations deja presentes dans le paquet, sans rien inventer :
+  // l'article doit citer une source PJ, ET nommer ce meme PJ dans "personnages_concernes" -- champ
+  // que le prompt definit deja comme « tous les PJ/PNJ reellement nommes dans l'article ». Un PJ
+  // qu'on nomme est un PJ dont on parle ; un PJ qu'on se contente de referencer ne l'est pas.
   if (hasPJMaterial(aiInput)) {
-    const ancreSurPJ = sujetsAvecArticle.some(s => {
+    const centreSurPJ = sujetsAvecArticle.some(s => {
       const art = articlesParId[s.article_ref];
-      return !!art && Array.isArray(art.source_ids) && art.source_ids.some(sid => index[sid] && index[sid].estPJ);
+      if (!art || !Array.isArray(art.source_ids)) return false;
+      const nommes = Array.isArray(art.personnages_concernes) ? art.personnages_concernes : [];
+      if (nommes.length === 0) return false;
+      return art.source_ids.some(sid => {
+        const src = index[sid];
+        return src && src.estPJ === true && src.acteur && nommes.indexOf(src.acteur) !== -1;
+      });
     });
-    if (!ancreSurPJ) {
-      erreurs.push('une.sujets : le paquet contient de la matière PJ exploitable mais aucun sujet de Une ne s\'ancre sur une source estPJ:true (règle de Une obligatoire)');
+    if (!centreSurPJ) {
+      erreurs.push('une.sujets : le paquet contient un FAIT impliquant un personnage joueur, mais aucun sujet de Une n\'est réellement centré sur lui (l\'article de Une doit citer une source estPJ:true ET nommer ce personnage dans "personnages_concernes")');
     }
   }
 
@@ -785,14 +925,31 @@ async function assemblerAvantDernierePage(pays) {
 // appel IA ici, meme doctrine que assemblerAvantDernierePage/assemblerDernierePage. Retourne les
 // articles au format attendu par double_page_centrale.articles ET les lignes source (pour les
 // marquer integrees apres publication reussie, jamais avant).
+// DEUX USAGES DISTINCTS DANS LA MEME TABLE (correctif du 8 septembre 2026).
+//
+// journal_articles_en_attente porte aujourd'hui deux files qui n'ont rien a voir :
+//   - de VRAIS articles prets a publier, cycle ferme par `integree_le` ;
+//   - des SUJETS DIFFERES par l'IA (origine='report_ia'), cycle ferme par `statut`
+//     (attente -> integre / expire), ecrits par mettreEnAttenteSujetsDifferes().
+// Cette fonction ne filtrait que sur `integree_le=is.null`. Or les lignes de report ne renseignent
+// jamais `integree_le` : elles etaient donc ramassees ici et publiees VERBATIM comme articles, avec
+// `titre = sd.raison` -- c'est-a-dire la justification interne du report ecrite par l'IA
+// (« sujet trop mince pour aujourd'hui ») -- et `texte = fait.resume`. Depuis que les interviews de
+// Jodie persistent sur interviews_jodie, cette fonction ne ramassait plus QUE des reports.
+//
+// On exclut donc explicitement l'origine 'report_ia'. `origine=is.null` reste accepte : les vraies
+// lignes d'article n'ont jamais renseigne cette colonne, et les exclure serait vider la file.
+// Aucune migration : `origine` existe deja en production, ecrite par mettreEnAttenteSujetsDifferes.
 async function recupererArticlesEnAttente(pays) {
   if (!SUPABASE_SERVICE_ROLE) return { articles: [], lignes: [] };
   const rows = await sbGet(
     'journal_articles_en_attente',
-    `country=eq.${encodeURIComponent(pays)}&integree_le=is.null&order=created_at.asc`,
+    `country=eq.${encodeURIComponent(pays)}&integree_le=is.null&or=(origine.is.null,origine.neq.report_ia)&order=created_at.asc`,
     SB_HEADERS_SERVICE
   );
-  const lignes = rows || [];
+  // Garde memoire redondante avec le filtre serveur, et volontairement : c'est la publication d'un
+  // texte interne dans un journal lu par les joueurs. Si la requete evoluait, cette ligne tient.
+  const lignes = (rows || []).filter(r => r.origine !== 'report_ia');
   const articles = lignes.map(r => {
     const art = { rubrique: r.rubrique || 'Portraits', titre: r.titre, texte: r.texte };
     if (r.ville) art.ville = r.ville;
@@ -1004,6 +1161,17 @@ async function genererEditionPays(pays) {
     // interview.js) : integrees ICI, deterministe, sans nouvel appel IA -- jamais une 2e base
     // d'articles ni un 2e systeme de journal, simplement ajoutees a la MEME liste que l'IA vient
     // de rediger.
+    // EXEMPTION DE validerEdition POUR CES ARTICLES — documentee, pas subie.
+    // Les articles d'interview ne sont pas rediges ici : ils viennent de api/journal-interview.js,
+    // dont la garantie d'authenticite est d'une NATURE DIFFERENTE de celle du Journal. Ici on
+    // TRACE une citation vers un extrait de forum ; la-bas, le transcript {question, reponse} est
+    // construit et stocke question par question PAR LE SERVEUR LUI-MEME (action 'question'), et la
+    // publication ne lit JAMAIS de Q/R fournies par le client -- uniquement ce transcript. Les
+    // propos publies sont donc, par construction, ceux que le joueur a reellement ecrits.
+    // Limite connue et non corrigee ici : l'article est redige par l'IA A PARTIR du transcript, et
+    // aucun controle verbatim ne verifie qu'une phrase entre guillemets figure telle quelle dans
+    // une reponse. Aucune faille factuelle n'a ete demontree a ce jour ; brancher validerEdition
+    // dessus serait un changement de comportement, pas une correction. Point laisse a arbitrage.
     const { articles: articlesEnAttente, lignes: lignesEnAttente } = await recupererArticlesEnAttente(pays);
     const tousLesArticles = [...contenu.articles, ...articlesEnAttente];
 
@@ -1075,5 +1243,10 @@ export {
   mettreEnAttenteSujetsDifferes,
   marquerReportsIntegres,
   solliciterInterviewsProactives,
-  appelAnthropic
+  appelAnthropic,
+  // Exportes pour api/journal-interview.js : le controle des citations directes d'une
+  // interview doit appliquer EXACTEMENT la meme logique guillemets/parole que le Journal.
+  // Une seule definition, jamais deux regles divergentes.
+  extraireCitations,
+  normaliserPourCitation
 };
