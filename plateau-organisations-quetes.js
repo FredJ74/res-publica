@@ -8756,6 +8756,9 @@ async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes').classList.remove('open');
   if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
+  // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: 'accessoire_sport' }]))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const debitAccessoire = await debiterFondsOrdinaires(prix);

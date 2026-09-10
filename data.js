@@ -1750,6 +1750,22 @@ const PNJ_STATS_NOMMES = {
   'Yvette Gratinée':        { FOR:2,  CHA:8,  DUP:5,  INT:6,  loyaute:50, recrutCout:100 },
   'Jean Dupont':            { FOR:2,  CHA:7,  DUP:6,  INT:8,  loyaute:45, recrutCout:300 },
   'Marie Leblanc':          { FOR:2,  CHA:8,  DUP:7,  INT:9,  loyaute:30, recrutCout:400 },
+  // --- Les neuf deputes PNJ de l'Assemblee nationale (chantier du 10 septembre 2026) ---
+  // §3 : VOLONTAIREMENT identiques. Aucune ideologie, aucune personnalite electorale, aucune
+  // loyaute parlementaire, aucune memoire des marchandages -- ce sont des girouettes, et c'est
+  // le coeur du design. Ne pas differencier ces valeurs sans arbitrage explicite.
+  // PER = 6 : seule stat reellement consommee, par la formule de Neutraliser (malus PER/2 = 3).
+  // Ils ne sont jamais recrutables (drapeau nonRecrutable pose a l'affichage), donc recrutCout
+  // est volontairement absent.
+  'Étienne Vauclerc':       { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Sophie Maréchal':        { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Benoît Delorme':         { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Nathalie Charron':       { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Gérard Pichon':          { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Élodie Vasseur':         { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Yann Legall':            { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Maëlle Leroux':          { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  'Loïc Kermeur':           { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
 };
 
 function getPnjStats(pnj) {
@@ -2146,18 +2162,25 @@ const BUILDINGS = {
         name: "Hemicycle",
         image: "🗳️",
         imageBg: "linear-gradient(135deg,#101820,#182030)",
-        desc: "L'hemicycle principal. Les votes se font ici. Acces deputés uniquement pour les sessions.",
+        desc: "L'hemicycle principal. Neuf sieges : trois par ville. Les votes se font ici.",
         imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
+        // Les neuf deputes PNJ ne sont PAS listes ici : ils sont injectes dynamiquement par
+        // appliquerDeputesAssemblee (plateau-assemblee.js), parce que leur role depend de
+        // l'occupation reelle des sieges. 'Depute Martin' et 'Depute Chen', deux figurants
+        // statiques sans aucun lien avec le systeme electoral, sont retires -- ils feraient
+        // desormais doublon avec de vrais deputes. Le President de l'Assemblee reste : il preside,
+        // il ne vote pas, et aucun des neuf sieges ne lui appartient.
         persons: [
-          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/president-assemblee-laroche.png'},
-          {name:'Depute Martin',     role:'Groupe majoritaire (PNJ)', rel:'neutral', job:'depute', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/depute-majorite-martin.png'},
-          {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/depute-opposition-chen.png'}
+          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/president-assemblee-laroche.png'}
         ],
         orders: [
-          {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
-          {fn:'voter_loi',         label:'Voter une loi',          pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:'depute', desc:'Mercredi jusqu\'a 20h seulement. Ouvre la liste des lois en attente de vote.'},
-          {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
-          {fn:'marchander_vote', label:'Marchander un vote', pa:0, cost:200, type:'grey', icon:'ti-arrows-exchange', successRate:40, desc:'Taux 40% + bonus INF. Ouvre la liste des votes en cours. 1 PA consomme en cas de succes uniquement.'}
+          {fn:'observer_debats',     label:'Observer les débats',      pa:1, cost:0,   type:'legal', icon:'ti-eye',             successRate:100, desc:'Instantané de tous les projets en session : intentions des députés PNJ, votes des députés joueurs. +1 INF pour les journalistes.'},
+          {fn:'voter_loi',           label:'Voter une loi',            pa:0, cost:0,   type:'legal', icon:'ti-check',           successRate:100, requiresPost:'depute', desc:'Gratuit. Modifiable autant de fois que voulu jusqu\'à la clôture du mercredi 22h.'},
+          {fn:'projet_loi',          label:'Déposer un projet de loi', pa:1, cost:0,   type:'legal', icon:'ti-file-text',       successRate:100, desc:'Députés, Premier ministre et ministres. Une semaine de débat avant la session.'},
+          {fn:'amender_projet',      label:'Amender mon projet',       pa:0, cost:0,   type:'legal', icon:'ti-edit',            successRate:100, desc:'Gratuit. L\'amendement s\'ajoute sous le texte original, sans jamais le remplacer.'},
+          {fn:'proposer_abrogation', label:'Proposer une abrogation',  pa:1, cost:0,   type:'legal', icon:'ti-file-off',        successRate:100, desc:'Abroger une loi en vigueur. Même circuit qu\'un projet ordinaire.'},
+          {fn:'marchander_vote',     label:'Marchander un vote',       pa:1, cost:100, type:'grey',  icon:'ti-arrows-exchange', successRate:50,  desc:'Convaincre un député PNJ. Chance 50% + (CHA+ENT)/2. 1 PA + 100 FR, même en cas d\'échec. Légal à Républia.'},
+          {fn:'reveiller_depute',    label:'Réveiller un député',      pa:1, cost:0,   type:'legal', icon:'ti-alarm',           successRate:100, desc:'Ranime un député endormi avec des sels d\'ammoniaque. 1 PA + 1 flacon.'}
         ]
       },
       couloirs: {
@@ -2171,20 +2194,23 @@ const BUILDINGS = {
           {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-blanc.png'}
         ],
         orders: [
-          {fn:'consulter_lobbyiste', label:'Consulter le Lobbyiste', pa:1, cost:300, type:'grey', icon:'ti-handshake', successRate:100, desc:'Contre paiement, le lobbyiste vous garantit un coup de pouce (+20% de reussite) sur votre prochaine tentative de marchandage de vote.'},
+          {fn:'consulter_lobbyiste', label:'Consulter le Lobbyiste', pa:1, cost:150, type:'grey', icon:'ti-handshake', successRate:100, desc:'+20 points de réussite sur votre prochaine tentative de marchandage de vote. Le bonus est conservé jusqu\'à ce que vous l\'utilisiez.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les rumeurs', pa:1, cost:0, type:'grey', icon:'ti-ear', successRate:70, desc:'Revele une information aléatoire sur un PJ ou PNJ de la ville. Generee par IA selon le contexte politique. Tres utile pour journalistes et espions.'}
         ]
       },
       salle_archives_assemblee: {
         name: "Salle des Archives",
         imageBg: "linear-gradient(135deg,#0a0808,#120f08)",
-        desc: "Les archives de l\'Assemblee Nationale. Toutes les lois votees y sont conservees pendant 3 mois.",
+        desc: "Les archives de l\'Assemblee Nationale. Le registre officiel des lois y est tenu, sans limite de duree.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
           {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archiviste-parlementaire.png'}
         ],
         orders: [
-          {fn:'consulter_archives_lois', label:'Consulter les archives', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Liste des lois votees : titre, date, resultat, votes nominatifs. Archivage 3 mois.'}
+          // §31 : le registre remplace l'ancien "Consulter les archives", qui lisait lois_assemblee
+          // -- table dont l'audit du 9 septembre a montre qu'elle ne contenait AUCUNE ligne et dont
+          // le champ resultat n'etait jamais renseigne (toute loi y restait "En cours" a jamais).
+          {fn:'registre_assemblee', label:'Consulter le registre', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Registre officiel : lois en vigueur, rejetées, abrogées, projets en cours. Votes nominatifs de chaque scrutin. Conservation permanente.'}
         ]
       }
     }
@@ -2681,7 +2707,7 @@ const BUILDINGS = {
           {fn:'cambrioler_caisse_commissariat', label:'Cambrioler la caisse', pa:3, cost:0, type:'illegal', icon:'ti-lock-open', successRate:20, desc:"Tentative risquee de voler dans la caisse. Echec critique = demasque immediatement."},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Registre des detentions passees et en cours, consultable par tous.'},
           {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'},
-          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:2, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation recue par mail. Leve l\'avis de recherche associe.'}
+          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention. Confiscation dans tous les cas.'}
         ]
       },
       prison: {
@@ -2828,7 +2854,9 @@ const BUILDINGS = {
         locked: true,
         persons: [],
         orders: [
-          {fn:'voter_loi', label:'Participer aux deliberations', pa:2, cost:0, type:'legal', icon:'ti-check', successRate:100, requiresPost:false}
+          // fn propre a la loge (11 septembre 2026) : partageait 'voter_loi' avec l'Assemblee et
+          // ouvrait son vote. Ordre generique, comme a sa creation : 2 PA, succes garanti, +3 INF.
+          {fn:'deliberer_loge', label:'Participer aux deliberations', pa:2, cost:0, type:'legal', icon:'ti-check', successRate:100, requiresPost:false}
         ]
       }
     }
@@ -3836,6 +3864,11 @@ const BUILDINGS = {
         // ville, isolation garantie par (pays, ville) a l'interieur des fonctions elles-memes.
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
+          // §43 : "Se justifier" n'existait qu'au commissariat de Luthecia (audit du 9 septembre).
+          // Un joueur convoque a Montrouge ou Port-Sainte-Marie devait donc traverser le pays pour
+          // honorer une convocation de 36 h. Le handler n'a jamais eu la moindre garde de lieu :
+          // seule l'entree d'ordre manquait ici. Ce template est partage par les deux villes.
+          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention.'},
           {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
@@ -5311,7 +5344,15 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-ventes-usine-pharma-luthecia.png",
         desc: "L'accueil et la salle de vente directe des médicaments produits sur place.",
         persons: [],
-        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
+        orders: [
+          {fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'},
+          // §23 : ordre dedie plutot qu'ajout au stock de vente directe. Ce dernier n'expose que
+          // les produits issus des CHAINES_PRODUCTION_USINE, dont le stock peut etre a zero -- or
+          // "Reveiller" est une mecanique centrale du scrutin, la rendre dependante de la
+          // production du jour la couperait sans raison lisible. Le prix alimente malgre tout la
+          // caisse de l'usine, comme la vente directe : aucun circuit economique n'est contourne.
+          {fn:'acheter_sels_ammoniaque', label:'Acheter des sels d\'ammoniaque', pa:0, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'30 FR le flacon. Ranime un député endormi à l\'Assemblée. Aucune limite de stock propre.'}
+        ]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -7005,6 +7046,7 @@ const ORDER_EFFECTS = {
   reunion_privee:     {dis:2,            successRate:100},
   assister_session:   {inf:1,            successRate:100},
   voter_loi:          {inf:3,            successRate:100},
+  deliberer_loge:     {inf:3,            successRate:100},
   projet_loi:         {inf:4,            successRate:70},
   marchander:         {inf:5,            successRate:60},
   postuler:           {inf:2,            successRate:80},

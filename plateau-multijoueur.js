@@ -155,6 +155,11 @@ function renderPersonsList(persons, targetId) {
   persons = appliquerRemplacantesEscort(persons);
   persons = appliquerRemplacantCodetenu(persons);
   persons = filtrerPnjPostesPourvus(persons);
+  // Assemblee nationale (chantier du 10 septembre 2026) : les neuf deputes PNJ sont injectes ici
+  // plutot que declares en dur dans data.js, parce que leur ROLE change selon l'occupation reelle
+  // des sieges (depute si le siege est libre, assistant parlementaire s'il est tenu par un PJ) --
+  // ce qu'une liste statique ne peut pas exprimer. No-op hors de l'hemicycle.
+  if (typeof appliquerDeputesAssemblee === 'function') persons = appliquerDeputesAssemblee(persons);
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 

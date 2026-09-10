@@ -5,65 +5,23 @@
 // =====================
 
 // =====================
-// MARCHANDER UN VOTE
+// MARCHANDER UN VOTE — DEPLACE (chantier Assemblee, 10 septembre 2026)
 // =====================
-async function doConsulterLobbyiste(pa, cost) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', 'Le lobbyiste demande ' + cost + ' ' + cur + '.', false); return; }
-  state.bonusLobbyisteMarchandage = (state.bonusLobbyisteMarchandage || 0) + 20;
-  updateUI();
-  showToast('Accord conclu', 'Le lobbyiste vous garantit un coup de pouce sur votre prochain marchandage de vote (+20%).', true);
-  addJournalEntry('Consultation du lobbyiste dans les couloirs de l\'Assemblée. Bonus de +20% sur le prochain marchandage.', 'event-info');
-}
-
-function openMarchanderVoteModal() {
-  const votes = state.votesEnCours || [];
-  if (votes.length === 0) {
-    showToast('Aucun vote en cours', "Aucun vote en cours a l'Assemblee.", false);
-    return;
-  }
-  const bonusInf = Math.floor((state.inf / 100) * 10);
-  const bonusLobbyiste = state.bonusLobbyisteMarchandage || 0;
-  const tauxFinal = Math.min(90, 40 + bonusInf + bonusLobbyiste);
-  document.getElementById('postes-modal-title').textContent = 'Marchander un vote';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% INF' + (bonusLobbyiste > 0 ? ' + ' + bonusLobbyiste + '% lobbyiste' : '') + '). Cout : 200 FR + 1 PA si succes.</div>';
-  votes.forEach(function(v, i) {
-    html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8C97A;margin-bottom:.2rem">' + (v.titre || 'Vote ' + i) + '</div>';
-    html += '<div style="font-size:.72rem;color:#6a5a30">Pour : ' + (v.pour||0) + ' | Contre : ' + (v.contre||0) + '</div>';
-    html += '<button onclick="state._voteIdx=' + i + ';soumettreVoteMarchande(' + tauxFinal + ')" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Marchander ce vote</button>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function soumettreVoteMarchande(taux) {
-  const voteId = state._voteIdx !== undefined ? (state.votesEnCours || [])[state._voteIdx]?.id : null;
-  document.getElementById('modal-postes').classList.remove('open');
-  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
-  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
-  state.bonusLobbyisteMarchandage = 0; // consomme, que la tentative reussisse ou non
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const vote = (state.votesEnCours || []).find(function(v) { return v.id === voteId; });
-  if (roll <= taux) {
-    // Cout (200 FR + 1 PA) du uniquement en cas de succes -- deja le comportement d'origine.
-    // Deduction PA centralisee (Lot 1, migration identifiee par l'audit : cette fonction
-    // deduisait state.pa sans jamais respecter TEST_MODE, contrairement au reste du jeu).
-    const r = await deduireCoutOrdre({ pa: 1, cost: 200 });
-    if (!r.ok) { showToast('PA insuffisants', '1 PA requis.', false); return; }
-    state.inf = Math.min(100, state.inf + 3);
-    if (vote) vote.pour = (vote.pour || 0) + 1;
-    updateUI();
-    showToast('Vote marchande !', 'Un depute a vote dans votre sens. -200 ' + cur + ' -1 PA +3 INF.', true, true);
-    addJournalEntry('Vote marchande avec succes : ' + (vote && vote.titre ? vote.titre : voteId), 'event-good');
-  } else {
-    showToast('Refuse !', "Le depute n' pas accepte.", false);
-    addJournalEntry('Tentative corruption depute echouee.', 'event-bad');
-  }
-}
+// doConsulterLobbyiste / openMarchanderVoteModal / soumettreVoteMarchande vivaient ici. Les trois
+// sont supprimees et REECRITES dans plateau-assemblee.js (ouvrirMarchanderVote /
+// confirmerMarchanderVote / doConsulterLobbyiste).
+//
+// Pourquoi une suppression et non une coexistence : l'audit du 9 septembre a etabli que la chaine
+// etait MORTE. openMarchanderVoteModal lisait state.votesEnCours, une variable avec 3 lectures et
+// ZERO ecriture dans tout le depot -- l'ordre repondait donc toujours "Aucun vote en cours" et
+// sortait avant tout debit. Trois autres defauts s'y ajoutaient : le cout (200 FR) n'etait preleve
+// qu'en cas de SUCCES, l'argent etait DETRUIT au lieu d'aller a une caisse, et le bonus lobbyiste
+// n'etait pas persiste (perdu au F5, apres 1 PA + 300 FR payes).
+//
+// Le projet a deja souffert de fonctions dupliquees dont seule la derniere chargee comptait
+// (checkArrestationAuDeplacement, deux definitions divergentes) : on ne recree pas ce piege ici.
+// La nouvelle implementation est la SEULE, et elle est branchee sur les vraies sessions
+// parlementaires, avec un transfert transactionnel vers la caisse 'republic_assemblee'.
 
 // =====================
 // ECRAN POSTES (refonte du 9 aout 2026 — remplace openPostesModal/postulerPoste/prendrePoste/
@@ -4095,98 +4053,23 @@ async function publierMessagePresidentiel(type, pa, cost) {
 // =====================
 // DEPOSER UN PROJET DE LOI
 // =====================
-function ouvrirDeposerProjet(pa, cost) {
-  // Verifier que le PJ est depute
-  const posteId = state.poste?.id;
-  const estDepute = posteId && (posteId.startsWith('depute') || posteId === 'depute_1' || posteId === 'depute_2');
+// ouvrirDeposerProjet / soumettreProjetLoi — SUPPRIMEES (chantier Assemblee, 10 septembre 2026).
+// Remplacees par ouvrirDeposerProposition / confirmerDeposerProposition (plateau-assemblee.js).
+//
+// Quatre raisons de les retirer plutot que de les laisser dormir :
+//   1. ouvrirDeposerProjet lisait state.poste?.id.startsWith('depute') -- or un mandat de depute
+//      vit dans state.posteDepute, JAMAIS dans state.poste. Aucun depute reel n'a donc jamais pu
+//      passer cette garde : la fonction etait inutilisable pour sa propre cible.
+//   2. soumettreProjetLoi ecrivait dans FORUM_TOPICS['parlement'], cle d'un forum qui n'existait
+//      dans AUCUNE declaration -- les sujets crees n'etaient affichables nulle part.
+//   3. Elle poussait dans state.loisEnCours, variable memoire videe au moindre F5.
+//   4. Elle archivait via sbArchiverLoi avec statut 'en_cours' et resultat null, et rien au monde
+//      ne repassait jamais dessus : aucune loi de Res Publica n'a jamais pu etre close.
+//
+// Le routeur portait de surcroit DEUX routes 'projet_loi' vers cette fonction (voir
+// plateau-router.js), dont une seule etait atteignable.
 
-  if (!estDepute) {
-    showToast('Accès refusé', 'Vous n\'êtes pas député(e). Seuls les députés peuvent déposer un projet de loi.', false);
-    return;
-  }
-
-  // Ouvrir le forum parlementaire en vue centrale
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  document.getElementById('vue-forum').classList.add('active');
-  document.getElementById('forum-view-subtitle').textContent = 'Forum Parlementaire — Déposer un projet';
-
-  const body = document.getElementById('forum-view-body');
-  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
-  html += '<div style="padding:.6rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
-  html += '<button onclick="closeForumView()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Annuler</button>';
-  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">Déposer un projet de loi</div>';
-  html += '</div>';
-  html += '<div style="flex:1;overflow-y:auto;padding:1rem;max-width:700px">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0a0a05;border:1px solid #1a1810">Le projet sera soumis au vote le mercredi suivant, à condition d\'avoir été déposé au moins 5 jours avant.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE DU PROJET</div>';
-  html += '<input id="projet-titre" type="text" placeholder="Ex: Loi sur la transparence des finances publiques" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem"/>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EXPOSÉ DES MOTIFS</div>';
-  html += '<textarea id="projet-contenu" rows="6" placeholder="Décrivez votre projet, ses objectifs et ses impacts attendus..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">IMPACT SOUHAITÉ</div>';
-  html += '<input id="projet-impact" type="text" placeholder="Ex: +10 IE, -5 IS, augmentation budget commissariat..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.8rem"/>';
-  html += '<button onclick="soumettreProjetLoi(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Soumettre le projet</button>';
-  html += '</div></div>';
-  body.innerHTML = html;
-}
-
-async function soumettreProjetLoi(pa, cost) {
-  const titre = document.getElementById('projet-titre')?.value?.trim();
-  const contenu = document.getElementById('projet-contenu')?.value?.trim();
-  const impact = document.getElementById('projet-impact')?.value?.trim();
-  if (!titre || !contenu) { showToast('Champs requis', 'Titre et exposé obligatoires.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const jourDepot = state.day;
-  const jourVoteMin = jourDepot + 5;
-  const dateDepotReel = Date.now();
-  const dateCloture = dateDepotReel + 5 * 24 * 60 * 60 * 1000; // 5 jours reels
-
-  if (!FORUM_TOPICS['parlement']) FORUM_TOPICS['parlement'] = [];
-  // Horodatage du sujet/post forum (date reelle, correctif du 21 aout 2026) -- distinct de
-  // jourDepot/jourVoteMin juste au-dessus, qui restent des compteurs de jours de JEU utilises
-  // pour le seuil d'eligibilite au vote (mecanique inchangee, non touchee ici).
-  const timeAffichage = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + jourDepot;
-  const topic = {
-    id: 'loi-' + Date.now(),
-    title: '[PROJET] ' + titre,
-    author: state.char?.name || 'Député',
-    time: timeAffichage,
-    views: 1, replies: 0, lastPostAuthor: state.char?.name || 'Député', lastPostTime: timeAffichage,
-    posts: [{
-      author: state.char?.name,
-      time: timeAffichage,
-      content: contenu + (impact ? '\n\nImpact attendu : ' + impact : '')
-    }]
-  };
-  FORUM_TOPICS['parlement'].unshift(topic);
-
-  if (!state.loisEnCours) state.loisEnCours = [];
-  state.loisEnCours.push({
-    id: topic.id, titre, auteur: state.char?.name,
-    jourDepot, jourVoteMin, dateCloture, pret: false, votes: []
-  });
-
-  // Archivage partage (Supabase) — statut 'en_cours' au depot. Le vote et la cloture se basent
-  // desormais sur le temps REEL (dateCloture), pas sur le jour de jeu (qui est propre a chaque
-  // joueur et ne peut donc pas servir de reference commune pour un scrutin collectif).
-  if (typeof sbArchiverLoi === 'function') {
-    sbArchiverLoi(state.country, {
-      id: topic.id, titre, auteur: state.char?.name,
-      dateDepotReel, dateCloture, statut: 'en_cours', resultat: null, votes: []
-    }).catch(() => {});
-  }
-
-  closeForumView();
-  // Libelle sans numero de jour (correctif du 21 aout 2026, doctrine "Confort de lecture") :
-  // jourVoteMin reste utilise tel quel pour le seuil interne (comparaison plus bas dans le
-  // fichier), seul l'affichage change.
-  showToast('Projet soumis !', titre + ' · Vote pas encore disponible', true, true);
-  addJournalEntry('Projet de loi soumis : ' + titre, 'event-good');
-  addExternalEvent('FORUM PARLEMENTAIRE : Nouveau projet de loi déposé par ' + (state.char?.name||'Anonyme') + ' : "' + titre + '"');
-  // Mail a tous les deputes (simulation)
-  addMailNotification('Secrétariat de l\'Assemblée', 'Nouveau projet de loi', 'Un projet de loi a été déposé : "' + titre + '". Consultez le Forum Parlementaire pour le détail. Vote pas encore disponible.');
-}
+// (voir le bloc explicatif ci-dessus — soumettreProjetLoi supprimee au meme titre)
 
 // =====================
 
@@ -4203,166 +4086,54 @@ async function soumettreProjetLoi(pa, cost) {
 // 'Contre'/'Abstention') -- ne touche jamais les lignes deja en base. Les couleurs de chaque
 // site d'affichage restent des ternaires locales (elles different deja legerement d'un site a
 // l'autre dans le code existant) : seul le libelle est centralise ici, pas la presentation.
-const LIBELLES_CHOIX_VOTE_LOI = { FOR: 'Pour', AGAINST: 'Contre', ABSTAIN: 'Abstention' };
-const ANCIENS_CHOIX_VOTE_LOI = { 'Pour': 'FOR', 'Contre': 'AGAINST', 'Abstention': 'ABSTAIN' };
-function normaliserChoixVoteLoi(choix) {
-  return ANCIENS_CHOIX_VOTE_LOI[choix] || choix;
-}
-function libelleChoixVoteLoi(choix) {
-  return LIBELLES_CHOIX_VOTE_LOI[normaliserChoixVoteLoi(choix)] || choix;
-}
+// SUPPRIMES avec leurs deux seuls consommateurs (ouvrirArchivesLois / ouvrirDetailLoi).
+//
+// Le nouveau moteur n'a plus besoin de cette couche de compatibilite : assemblee_votes.choix
+// porte directement POUR / CONTRE / ABSTENTION, contraints par un CHECK en base. Le libelle
+// affiche est identique au code metier, il n'y a donc plus rien a traduire au point de lecture.
+//
+// NB : ces trois helpers avaient ete introduits au "Lot 0 i18n" en prevision d'un t()/i18next sur
+// le plateau. Verification faite le 10 septembre 2026 : plateau.html ne charge PAS i18next et ne
+// porte AUCUN attribut data-i18n (41 dans index.html, 0 ici). Le plateau de jeu n'est pas
+// internationalise -- la couche prevue n'est jamais venue.
 
-async function observerDebats(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const deputes = ['Depute Marchand (PNJ)', 'Depute Fontaine (PNJ)', 'Depute Rousseau (PNJ)', 'Depute Girard (PNJ)'];
-  const positions = ['Pour', 'Contre', 'Abstention'];
-  const loisEnCours = state.loisEnCours || [];
+// observerDebats — DEPLACE ET REECRIT dans plateau-assemblee.js (chantier du 10 septembre 2026).
+//
+// L'ancienne implementation vivait ici. L'audit du 9 septembre en a etabli le fonctionnement
+// reel : elle facturait 1 PA pour afficher QUATRE deputes codes en dur ('Depute Marchand',
+// 'Depute Fontaine', 'Depute Rousseau', 'Depute Girard' -- aucun n'existait ailleurs dans le jeu)
+// avec des positions TIREES AU HASARD A CHAQUE OUVERTURE. Sa seule source de contenu etait
+// state.loisEnCours, variable memoire videe par un F5. Elle ne lisait ni les sieges reels, ni
+// lois_assemblee, ni CYCLES_ELECTORAUX[].elus. Le desc "Revele les positions des deputes" etait
+// donc inexact : rien n'etait revele.
+//
+// Defaut annexe corrige au passage : updateUI() n'etait appele que dans la branche journaliste,
+// laissant la jauge de PA fausse pour tous les autres joueurs apres le debit.
 
-  document.getElementById('postes-modal-title').textContent = 'Observer les debats';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Vous observez discretement les echanges dans la salle.</div>';
+// ouvrirVoteLoi / enregistrerVoteLoi — DEPLACES ET REECRITS dans plateau-assemblee.js
+// (ouvrirVoterLoi / confirmerVoteLoi), chantier du 10 septembre 2026.
+//
+// L'ancien systeme reposait sur state.loisEnCours (memoire, videe au F5) et state.votesLois
+// (jamais persiste). Trois defauts rendaient le scrutin inexploitable :
+//   - un vote une fois exprime NE POUVAIT PLUS ETRE CHANGE (la branche dejaVote n'affichait plus
+//     de boutons), alors que §14 exige de pouvoir en changer librement jusqu'a 22:00 ;
+//   - ABSTENTION et "n'a pas vote" etaient confondus ;
+//   - aucune cloture n'existait : sbArchiverLoi ecrivait toujours statut 'en_cours' et
+//     resultat null, si bien qu'aucune loi du jeu n'a jamais pu etre adoptee ni rejetee.
+//
+// Le nouveau moteur stocke un vote par ligne (assemblee_votes), modifiable a volonte, et la
+// cloture est faite par le serveur (assemblee_cloturer).
 
-  if (loisEnCours.length > 0) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTES EN COURS</div>';
-    loisEnCours.forEach(loi => {
-      html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-      html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + loi.titre + '</div>';
-      // Vrais votes deja exprimes par de vrais deputes (joueurs)
-      if (loi.votes && loi.votes.length > 0) {
-        html += '<div style="font-size:.68rem;color:#8a6a20;margin-bottom:.2rem">Votes exprimés (députés réels) :</div>';
-        loi.votes.forEach(v => {
-          const choixNorm = normaliserChoixVoteLoi(v.choix);
-          const col = choixNorm === 'FOR' ? '#4a8a4a' : choixNorm === 'AGAINST' ? '#8a3a2a' : '#6a6040';
-          html += '<div style="font-size:.72rem;color:#c0b090">' + v.depute + ' : <span style="color:' + col + '">' + libelleChoixVoteLoi(v.choix) + '</span></div>';
-        });
-      } else {
-        html += '<div style="font-size:.7rem;color:#5a5030;font-style:italic;margin-bottom:.2rem">Aucun vote reel exprime pour l\'instant.</div>';
-      }
-      // Ambiance : positions supposees des deputes PNJ (non persistantes, juste indicatif)
-      html += '<div style="font-size:.68rem;color:#5a5030;margin-top:.3rem">Rumeurs de couloir sur les députés PNJ :</div>';
-      deputes.forEach(d => {
-        const pos = positions[Math.floor(Math.random() * positions.length)];
-        const col = pos === 'Pour' ? '#4a8a4a' : pos === 'Contre' ? '#8a3a2a' : '#6a6040';
-        html += '<div style="font-size:.72rem;color:#6a6040">' + d + ' : <span style="color:' + col + '">' + pos + '</span></div>';
-      });
-      html += '</div>';
-    });
-  } else {
-    html += '<div style="font-size:.82rem;color:#5a5030;font-style:italic">Aucune loi en cours de deliberation. La prochaine session est mercredi.</div>';
-  }
-
-  // Bonus journaliste
-  if (state.char?.career === 'press') {
-    state.inf = Math.min(100, state.inf + 1);
-    updateUI();
-    html += '<div style="font-size:.72rem;color:#C9A84C;margin-top:.5rem">+1 INF (bonus journaliste)</div>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function ouvrirVoteLoi(pa, cost) {
-  const loisEnCours = (state.loisEnCours || []).filter(l => Date.now() < l.dateCloture);
-
-  document.getElementById('postes-modal-title').textContent = 'Voter une loi';
-  let html = '<div style="padding:1rem">';
-
-  if (loisEnCours.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi en attente de vote pour cette session.</div>';
-  } else {
-    loisEnCours.forEach((loi, i) => {
-      const dejaVote = state.votesLois?.[loi.id];
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + loi.titre + '</div>';
-      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Depose par ' + loi.auteur + '</div>';
-      if (dejaVote) {
-        html += '<div style="font-size:.78rem;color:#4a6a4a">Vote exprime : <strong>' + libelleChoixVoteLoi(dejaVote) + '</strong></div>';
-      } else {
-        html += '<div style="display:flex;gap:.5rem">';
-        ['FOR', 'AGAINST', 'ABSTAIN'].forEach(code => {
-          const col = code === 'FOR' ? '#4a8a4a' : code === 'AGAINST' ? '#8a2020' : '#6a6040';
-          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + code + '\',' + pa + ',' + cost + ')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + libelleChoixVoteLoi(code) + '</button>';
-        });
-        html += '</div>';
-      }
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function enregistrerVoteLoi(loiIdx, choix, pa, cost) {
-  const loi = (state.loisEnCours || []).filter(l => Date.now() < l.dateCloture)[loiIdx];
-  if (!loi) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  if (!state.votesLois) state.votesLois = {};
-  state.votesLois[loi.id] = choix;
-  if (!loi.votes) loi.votes = [];
-  loi.votes.push({ depute: state.char?.name || 'Anonyme', choix });
-  // Mise a jour de l'archive partagee avec le vote exprime
-  if (typeof sbArchiverLoi === 'function') {
-    sbArchiverLoi(state.country, {
-      id: loi.id, titre: loi.titre, auteur: loi.auteur,
-      dateDepotReel: loi.dateDepotReel, dateCloture: loi.dateCloture,
-      statut: 'en_cours', resultat: null, votes: loi.votes
-    }).catch(() => {});
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Vote enregistre', libelleChoixVoteLoi(choix) + ' pour : ' + loi.titre, true, true);
-  addJournalEntry('Vote : ' + libelleChoixVoteLoi(choix) + ' — ' + loi.titre, 'event-info');
-}
-
-async function ouvrirArchivesLois() {
-  document.getElementById('postes-modal-title').textContent = 'Archives de l\'Assemblee';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des archives...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  const archives = typeof sbGetArchivesLois === 'function' ? await sbGetArchivesLois(state.country).catch(() => []) : [];
-  let html = '<div style="padding:1rem">';
-  if (archives.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi votee pour le moment.</div>';
-  } else {
-    archives.forEach((loi, i) => {
-      html += '<div onclick="ouvrirDetailLoi(' + i + ')" style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + loi.titre + '</div>';
-      const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : loi.resultat === 'Rejetee' ? '#8a2020' : '#6a5a30';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + col + '">' + (loi.resultat || 'En cours') + '</div>';
-      html += '</div>';
-      html += '<div style="font-size:.68rem;color:#5a4030">' + (loi.votes?.length||0) + ' votants</div>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  window._archivesLoisCache = archives;
-  document.getElementById('postes-body').innerHTML = html;
-}
-
-function ouvrirDetailLoi(idx) {
-  const loi = (window._archivesLoisCache||[])[idx];
-  if (!loi) return;
-  document.getElementById('postes-modal-title').textContent = loi.titre;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote enregistré</div>';
-  const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:' + col + ';margin-bottom:.8rem">' + (loi.resultat||'En cours') + '</div>';
-  if (loi.votes?.length > 0) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTES NOMINATIFS</div>';
-    loi.votes.forEach(v => {
-      const choixNorm = normaliserChoixVoteLoi(v.choix);
-      const vc = choixNorm === 'FOR' ? '#4a8a4a' : choixNorm === 'AGAINST' ? '#8a2020' : '#5a5040';
-      html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.2rem 0;border-bottom:1px solid #1a1810">';
-      html += '<span style="color:#c0b090">' + v.depute + '</span><span style="color:' + vc + '">' + libelleChoixVoteLoi(v.choix) + '</span></div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-}
+// ouvrirArchivesLois / ouvrirDetailLoi — SUPPRIMEES (chantier Assemblee, 10 septembre 2026).
+// Remplacees par ouvrirRegistreAssemblee / ouvrirDetailProposition (plateau-assemblee.js).
+//
+// Elles lisaient lois_assemblee via sbGetArchivesLois. L'audit du 9 septembre a montre que cette
+// table etait VIDE en production et que son champ resultat n'etait jamais renseigne : toute loi
+// y serait restee affichee "En cours" indefiniment, faute de toute cloture dans le jeu.
+//
+// La table lois_assemblee et ses wrappers (sbArchiverLoi/sbGetArchivesLois, supabase.js) sont
+// laisses en place : ils ne sont plus appeles par personne, mais les supprimer releverait du
+// nettoyage global, hors perimetre de ce chantier. Signale au rapport.
 
 // =====================
 // CALENDRIER ELECTORAL

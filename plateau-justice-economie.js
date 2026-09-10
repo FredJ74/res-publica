@@ -723,22 +723,50 @@ function checkArrestationAuReveil() {
 // =====================
 // SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)
 // =====================
+// §42 — REECRITURE COMPLETE (chantier Assemblee, 10 septembre 2026).
+//
+// L'audit du 9 septembre avait etabli que confirmerSeJustifier n'avait AUCUN jet : ni
+// Math.random(), ni lecture de caracteristique. Elle coutait 2 PA et reussissait TOUJOURS. Il n'y
+// avait donc ni echec, ni detention, ni confiscation possibles -- rien a reussir ni a rater.
+//
+// Desormais : 1 PA, UNE SEULE tentative par convocation, chance 50 % + (CHA + DUP) / 2, plafond
+// naturel 66 % a 16/16. Reussite = affaire close. Echec = 1 jour de detention. Dans les deux cas,
+// la marchandise interdite encore portee est confisquee (§42).
+const MOTIFS_CONVOCATION = {
+  achat_arme_illegal:         "tentative d'achat d'arme non enregistrée",
+  possession_illegale_douane: "possession d'objets prohibés découverte au contrôle",
+  transaction_interdite:      "transaction portant sur une marchandise interdite"
+};
+
 function doSeJustifier(pa, cost) {
-  const convocation = (state.convocations || []).find(c => !c.traitee);
+  const convocation = (typeof assembleeConvocationEnAttente === 'function')
+    ? assembleeConvocationEnAttente()
+    : (state.convocations || []).find(c => !c.traitee);
+
   if (!convocation) {
     showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
     return;
   }
 
-  const motifLabel = {
-    achat_arme_illegal: "tentative d'achat d'arme non enregistrée",
-    possession_illegale_douane: "possession d'objets prohibés découverte au contrôle douanier"
-  }[convocation.motif] || convocation.motif;
+  const motifLabel = MOTIFS_CONVOCATION[convocation.motif] || convocation.motif;
+  const cha = getStatEffective('CHA');
+  const dup = getStatEffective('DUP');
+  const taux = Math.max(0, Math.min(100, Math.round(50 + (cha + dup) / 2)));
+  const restantes = (typeof assembleeHeuresRestantes === 'function') ? assembleeHeuresRestantes(convocation) : null;
 
   document.getElementById('postes-modal-title').textContent = 'Convocation — Se justifier';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Vous êtes entendu(e) au sujet de : ' + motifLabel + '. L\'entretien prend du temps.</div>';
-  html += '<button onclick="confirmerSeJustifier(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se présenter (2 PA)</button>';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:.7rem">Vous êtes entendu(e) au sujet de : ' + motifLabel
+       + (convocation.loiTitre ? ' (« ' + convocation.loiTitre + ' »)' : '') + '.</div>';
+  if (restantes !== null) {
+    html += '<div style="font-size:.78rem;color:' + (restantes <= 6 ? '#cc4444' : '#8a8060') + ';margin-bottom:.7rem">'
+         + (restantes > 0 ? 'Il vous reste environ ' + restantes + ' h pour vous présenter.' : 'Le délai est écoulé.') + '</div>';
+  }
+  html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.4rem">Chance de convaincre : <strong>' + taux + ' %</strong> (50 % + (CHA + DUP) / 2)</div>';
+  html += '<div style="font-size:.76rem;color:#cc8866;line-height:1.6;margin-bottom:.9rem;padding:.5rem;border:1px solid #3a2010;background:#0f0805">'
+       + 'Une seule tentative. En cas d\'échec : <strong>1 jour de détention</strong>. '
+       + 'Dans tous les cas, toute marchandise interdite encore en votre possession sera confisquée.</div>';
+  html += '<button onclick="confirmerSeJustifier(' + (pa || 1) + ',' + (cost || 0) + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.55rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se présenter (' + (pa || 1) + ' PA)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -746,36 +774,85 @@ function doSeJustifier(pa, cost) {
 
 async function confirmerSeJustifier(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const convocation = (state.convocations || []).find(c => !c.traitee);
+  const convocation = (typeof assembleeConvocationEnAttente === 'function')
+    ? assembleeConvocationEnAttente()
+    : (state.convocations || []).find(c => !c.traitee);
   if (!convocation) { showToast('Rien à signaler', '', false); return; }
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour vous présenter.', false); return; }
-
-  convocation.traitee = true;
-
-  // Lever l'avis de recherche lie a ce motif precis
-  if (state.recherche) {
-    state.recherche = state.recherche.filter(r => r.acte !== convocation.motif);
+  // §41 : se presenter APRES l'echeance, c'est ne pas s'etre presente dans les 36 heures.
+  // traiterConvocations ne tourne qu'au passage de journee et a l'ordre Dormir : sans cette garde,
+  // un joueur revenant apres le delai pouvait se justifier AVANT qu'elle ne s'execute et echapper
+  // aux deux jours. Le verdict serveur (echue) est ici determinant -- il ne depend pas de l'horloge
+  // du navigateur. On applique la non-presentation, sans rien facturer : ce n'est pas une
+  // tentative de justification, c'est une interpellation.
+  if (typeof assembleeConvocationEchue === 'function' && assembleeConvocationEchue(convocation)) {
+    showToast('Délai dépassé',
+      'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation.', false, true);
+    traiterConvocations();
+    return;
   }
 
+  const r = await deduireCoutOrdre({ pa: pa || 1, cost: cost || 0 });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  // §42 : UNE SEULE tentative, quoi qu'il arrive. On marque avant de tirer.
+  convocation.traitee = true;
+
+  const cha = getStatEffective('CHA');
+  const dup = getStatEffective('DUP');
+  const taux = Math.max(0, Math.min(100, Math.round(50 + (cha + dup) / 2)));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const reussi = roll <= taux;
+
+  // Confiscation dans les DEUX cas (§42) : se justifier evite la prison, jamais la saisie.
+  const noms = (typeof assembleeConfisquerInterdits === 'function')
+    ? await assembleeConfisquerInterdits() : '';
+
+  if (state.recherche) {
+    state.recherche = state.recherche.filter(x => x.acte !== convocation.motif);
+  }
+  if (typeof sauvegarderPersonnageImmediat === 'function') await sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Convocation traitée', 'Vous vous êtes justifié(e). Avis de recherche levé pour ce motif.', true, true);
-  addJournalEntry('Vous vous êtes présenté(e) au commissariat suite à convocation.', 'event-info');
+
+  if (reussi) {
+    showToast('Affaire classée',
+      'Vos explications ont convaincu.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''),
+      true, true);
+    addJournalEntry('Justification acceptée au commissariat. Affaire close.' + (noms ? ' Confiscation : ' + noms + '.' : ''), 'event-good');
+  } else {
+    showToast('Explications rejetées',
+      'Le commissaire n\'a pas cru un mot. 1 jour de détention.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''),
+      false, true);
+    addJournalEntry('Justification rejetée. 1 jour de détention.' + (noms ? ' Confiscation : ' + noms + '.' : ''), 'event-bad');
+    // 1 jour ferme (§42). transaction_interdite porte deja ce bareme (voir PEINES_ACTES).
+    if (typeof procederArrestation === 'function') procederArrestation('justification_rejetee', false, false);
+  }
 }
 
-// Verification periodique (a minuit) : convocations non honorees dans le delai -> arrestation
+// Verification periodique : convocations non honorees dans le delai.
+//
+// DEUX BUGS CORRIGES (audit du 9 septembre 2026) :
+//   1. Le delai reposait sur state.day/state.hour et n'etait evalue qu'au passage de minuit : le
+//      « sous 24h » annonce valait en realite entre 24 et 48 h. Les nouvelles convocations
+//      portent limiteTs, un instant ABSOLU (voir assembleeConvocationEchue).
+//   2. TOUTES les convocations echues etaient marquees traitees d'un coup, mais UNE SEULE
+//      produisait une peine -- les autres s'eteignaient sans consequence. Desormais on n'en
+//      traite qu'une par passage, et les suivantes restent en attente pour la passe d'apres :
+//      une sanction par convocation, jamais moins (§41).
 function traiterConvocations() {
   if (!state.convocations) return;
-  const enRetard = state.convocations.filter(c =>
-    !c.traitee && (state.day > c.jourLimite || (state.day === c.jourLimite && (state.hour || 0) >= c.heureLimite))
-  );
-  if (enRetard.length === 0) return;
+  const echue = (typeof assembleeConvocationEchue === 'function')
+    ? state.convocations.find(c => assembleeConvocationEchue(c))
+    : state.convocations.find(c => !c.traitee && state.day > c.jourLimite);
+  if (!echue) return;
 
-  enRetard.forEach(c => { c.traitee = true; });
+  echue.traitee = true;
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
 
-  procederArrestation(enRetard[0].motif, false, false);
-  addMailNotification('Commissariat', 'Non-présentation', "Vous ne vous êtes pas présenté(e) dans le délai imparti suite à votre convocation. Vous êtes arrêté(e).");
+  // §41 : non-presentation = 2 jours. Motif dedie, distinct de l'acte d'origine.
+  procederArrestation('non_presentation_convocation', false, false);
+  addMailNotification('Commissariat', 'Non-présentation',
+    "Vous ne vous êtes pas présenté(e) dans le délai imparti suite à votre convocation. Vous êtes arrêté(e) pour deux jours.");
 }
 
 function ouvrirModalArrestation(acte) {
@@ -1315,8 +1392,15 @@ const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal'
 
 function verifierDecouverteCrimesPasses() {
   if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
+  // Les traces d'origine SERVEUR sont exclues de la decouverte differee (chantier Assemblee,
+  // 10 septembre 2026). Elles ne sont d'ailleurs pas decouvrables aujourd'hui -- leur seul acte,
+  // 'transaction_interdite', ne figure pas dans ACTES_DECOUVRABLES, son circuit etant la
+  // convocation. Mais l'invariant doit rester vrai si la liste s'etend un jour : le trigger
+  // personnages_preserver_judiciaire REINJECTE toute trace serveur non expiree absente d'une
+  // sauvegarde. Si ce code en retirait une par decouverte, elle reviendrait a la sauvegarde
+  // suivante et serait redecouverte chaque nuit -- arrestation perpetuelle.
   const candidats = state.historiqueCrimes.filter(c =>
-    ACTES_DECOUVRABLES.includes(c.acte) && c.expireJour > state.day
+    c.origine !== 'serveur' && ACTES_DECOUVRABLES.includes(c.acte) && c.expireJour > state.day
   );
   if (candidats.length === 0) return;
 
@@ -4290,14 +4374,28 @@ async function doOuvrirAchatEntrepot(pa, cost) {
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
   html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix actuel</th><th>Quantité</th></tr>';
 
+  // §36 : le fournisseur institutionnel ne vend PLUS legalement une categorie interdite en
+  // Republia. Le stock n'est jamais supprime (§34) -- il redeviendra vendable de lui-meme des
+  // l'abrogation, sans reprise de donnees, puisque la legalite est calculee a la lecture.
+  if (typeof rafraichirAssembleeInterdictions === 'function') {
+    await rafraichirAssembleeInterdictions().catch(() => null);
+  }
+
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
+    const loiInterdit = (typeof assembleeInterdictionMatiere === 'function')
+      ? assembleeInterdictionMatiere(cle) : null;
     const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : (typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot(cle) : res.prixBase);
-    html += '<tr style="border-top:1px solid #2a2010">';
+    const bloque = !!loiInterdit || enStock === 0;
+    html += '<tr style="border-top:1px solid #2a2010"' + (loiInterdit ? ' style="opacity:.55"' : '') + '>';
     html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
     html += '<td style="color:' + (enStock === 0 ? '#cc5540' : '#8a8060') + '">' + enStock + '</td>';
-    html += '<td style="color:#C9A84C;font-weight:bold">' + prixActuel + ' ' + cur + '</td>';
-    html += '<td><input type="number" min="0" max="' + enStock + '" id="achat-entrepot-' + cle + '" style="width:90px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" ' + (enStock === 0 ? 'disabled' : '') + ' /></td>';
+    if (loiInterdit) {
+      html += '<td colspan="2" style="color:#cc4444;font-size:.86rem">Vente interdite — « ' + loiInterdit.titre + ' »</td>';
+    } else {
+      html += '<td style="color:#C9A84C;font-weight:bold">' + prixActuel + ' ' + cur + '</td>';
+      html += '<td><input type="number" min="0" max="' + enStock + '" id="achat-entrepot-' + cle + '" style="width:90px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" ' + (bloque ? 'disabled' : '') + ' /></td>';
+    }
     html += '</tr>';
   });
   html += '</table>';
@@ -4318,9 +4416,23 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   // Premiere passe : lire les quantites demandees, calculer le total, verifier stock+argent
   const achats = {};
   let total = 0;
+  // §52 : la legalite est revalidee ICI, pas seulement a l'affichage. Un champ desactive en HTML
+  // n'est pas une securite, et l'entrepot institutionnel ne doit jamais vendre une categorie
+  // interdite -- contrairement a un commerce joueur, qui lui reste libre de le faire (§35).
+  if (typeof rafraichirAssembleeInterdictions === 'function') {
+    await rafraichirAssembleeInterdictions().catch(() => null);
+  }
+
   for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
     const qte = parseInt(document.getElementById('achat-entrepot-' + cle)?.value || 0);
     if (!qte || qte <= 0) continue;
+    const loiInterdit = (typeof assembleeInterdictionMatiere === 'function')
+      ? assembleeInterdictionMatiere(cle) : null;
+    if (loiInterdit) {
+      showToast('Vente interdite',
+        RESSOURCES_ECONOMIE[cle].label + ' ne peut plus être vendu par l\'entrepôt : « ' + loiInterdit.titre +' ».', false);
+      return;
+    }
     const enStock = stock[cle] || 0;
     if (qte > enStock) {
       showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
@@ -4339,6 +4451,10 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
     return;
   }
+  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
+  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -4666,6 +4782,10 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
     showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
     return;
   }
+  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
+  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -5034,6 +5154,12 @@ async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte)
   const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
   if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
 
+  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un circuit
+  // legal. Regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout mouvement.
+  if (typeof assembleeControlerVenteLegale === 'function' && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
+    return { ok: false, raison: 'vente_interdite', dejaSignale: true };
+  }
+
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   if (!etat) return { ok: false, raison: 'introuvable' };
   const usine = etat.usine || defautUsine(buildingId, pays, ville);
@@ -5121,7 +5247,7 @@ async function confirmerVendreMatierePremiereUsineUI(buildingId, matiere) {
       stock_plein: 'Le stock maximum de cette matière est atteint pour cette usine.',
       caisse_insuffisante: "L'usine ne peut pas acheter cette quantité actuellement."
     };
-    showToast('Vente refusée', messages[res.raison] || '', false);
+    if (!res.dejaSignale) showToast('Vente refusée', messages[res.raison] || '', false);
     return;
   }
   updateUI();
@@ -5302,6 +5428,8 @@ async function confirmerAchatArmoireSouvenirs() {
     return;
   }
 
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: p.type }]))) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const r = await deduireCoutOrdre({ pa: 0, cost: p.prixVente, payeur: 'joueur' });
   if (!r.ok) { showToast('Fonds insuffisants', p.prixVente + ' ' + cur + ' requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
@@ -8383,6 +8511,10 @@ async function confirmerAcheterCriee(pa, cost) {
     showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
     return;
   }
+  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
+  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -8983,6 +9115,11 @@ async function confirmerControleCaisseFret(caisseId, pa) {
     }
     const noms = ses.map(l => l.objet?.name || l.objet?.type).join(', ');
     const nouvelleConvocation = {
+      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee). Ce site
+      // ecrit chez un TIERS (le deposant du fret) par lecture-modification-ecriture depuis le client :
+      // preexistant, non modifie ici. Le trigger le rend desormais sur -- si le deposant a sauvegarde
+      // entre la lecture et l'ecriture, ses propres convocations sont reinjectees au lieu d'etre perdues.
+      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       motif: 'possession_illegale_douane',
       jourEmission: state.day || 1,
       heureEmission: state.hour || 8,
@@ -9342,6 +9479,11 @@ async function acheterLotNonReclameeFret(caisseId) {
 
   // Reservation optimiste (meme tolerance de course que le reste du jeu) : on marque 'vendue'
   // avant de crediter/transferer, la relecture ci-dessus limite le risque de double-achat.
+  // Vente institutionnelle d'un lot : refusee si une marchandise du lot est interdite. Le trigger
+  // trg_assemblee_fret_vente_legale refuse de toute facon la transition 'a_vendre' -> 'vendue'
+  // cote base, quel que soit l'ecrivain ; ce controle ne sert qu'a informer avant tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale((lignes || []).filter(l => (l.quantite || 0) > 0).map(l => l.objet || {})))) return;
   const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&statut=eq.a_vendre', { statut: 'vendue' }).catch(() => null) : null;
   if (!maj || maj.length === 0) { showToast('Indisponible', 'Ce lot vient d\'être acheté par quelqu\'un d\'autre.', false); return; }
 
@@ -9369,14 +9511,31 @@ async function acheterLotNonReclameeFret(caisseId) {
 // tract, photo_compromettante, explosif, loukoum_contrebande).
 const OBJET_ILLEGAL_PEINE_CONNUE = { arme: true, poison: true, tract_calomnieux: true };
 
+// §39 (chantier Assemblee, 10 septembre 2026) : un objet parfaitement legal a l'achat peut etre
+// devenu interdit depuis, par une loi mecanique adoptee entre-temps. Il ne porte alors PAS
+// legal:false -- ce drapeau est fige a la creation de l'objet. La legalite d'une categorie
+// interdite est donc evaluee dynamiquement, a chaque controle, via la source commune
+// (assembleeInterdictionObjet, plateau-assemblee.js).
+//
+// La possession d'un tel objet entraine la confiscation, mais JAMAIS de trace retroactive sur
+// l'achat passe (§39) : c'est la detention au moment du controle qui est saisie, pas la
+// transaction d'origine, qui reste une transaction ancienne et legale.
 function identifierObjetsIllegaux(inventory) {
-  return (inventory || []).filter(i => i && i.legal === false);
+  return (inventory || []).filter(i => {
+    if (!i) return false;
+    if (i.legal === false) return true;
+    return (typeof assembleeInterdictionObjet === 'function') && !!assembleeInterdictionObjet(i);
+  });
 }
 
 function separerObjetsIllegauxConnus(objets) {
+  // Un objet vise par une loi d'interdiction en vigueur est TOUJOURS "connu" : la loi lui donne
+  // precisement le traitement penal qui manquait aux types hors whitelist.
+  const estConnu = o => !!OBJET_ILLEGAL_PEINE_CONNUE[o.type]
+    || ((typeof assembleeInterdictionObjet === 'function') && !!assembleeInterdictionObjet(o));
   return {
-    connus: objets.filter(o => OBJET_ILLEGAL_PEINE_CONNUE[o.type]),
-    nonReconnus: objets.filter(o => !OBJET_ILLEGAL_PEINE_CONNUE[o.type])
+    connus: objets.filter(estConnu),
+    nonReconnus: objets.filter(o => !estConnu(o))
   };
 }
 
@@ -9399,6 +9558,8 @@ function appliquerConsequencesSoumissionFouille(objetsConnus) {
 
   if (!state.convocations) state.convocations = [];
   state.convocations.push({
+    // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).
+    id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
     motif: 'possession_illegale_douane',
     jourEmission: state.day || 1,
     heureEmission: state.hour || 8,

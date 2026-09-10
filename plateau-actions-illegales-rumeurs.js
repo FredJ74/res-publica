@@ -276,56 +276,160 @@ async function confirmerVol(encodedCible, jetBase) {
 }
 
 
+// =====================
+// NEUTRALISER (ex-"Assassiner") — chantier du 10 septembre 2026
+// =====================
+// §17 : dans Res Publica les personnages ne meurent pas. Le terme VISIBLE devient "Neutraliser".
+// Les identifiants techniques persistes ou couples a la detection ne changent PAS :
+//   - fn 'assassiner' (data.js / routeur)
+//   - cles ACTES_ILLEGAUX 'assassiner_mains' / '_arme' / '_feu', consommees par concatenation
+//     dans checkDetection('assassiner_' + mode) -- renommer une seule extremite casserait la
+//     detection en silence
+//   - det.mission === 'assassiner' (detachements militaires), PERSISTE en base
+//   - les textes narratifs sur l'affaire Caillon, qui parlent d'un meurtre reel de l'univers
+//
+// §18 : formules entierement redefinies. Le bonus de carriere criminelle (+15, criminal_c
+// uniquement) et le PER de la cible entrent enfin dans le chemin VIVANT -- ils n'existaient
+// jusqu'ici que dans le chemin legacy mort. Aucun bonus pour intel/escort, aucun bonus de
+// reputation criminelle, aucun malus pour les autres carrieres. Pas de prerequis "Se cacher".
+
+const NEUTRALISER_MODES = {
+  mains: { label: 'À mains nues',  stat: 'FOR', base: 15, cap: 65, paPJ: 2, paDepute: 1, sousTypes: null },
+  arme:  { label: 'Arme blanche',  stat: 'DUP', base: 25, cap: 75, paPJ: 2, paDepute: 1, sousTypes: ['blanche'] },
+  feu:   { label: 'Arme à feu',    stat: 'PER', base: 35, cap: 85, paPJ: 3, paDepute: 2, sousTypes: ['poing', 'carabine'] }
+};
+
+// §18 : +15 pour criminal_c UNIQUEMENT. Volontairement pas BONUS_CARRIERE_VOL, qui accorde aussi
+// +15 a intel/escort et un malus a quatre autres carrieres -- le cahier des charges les exclut.
+function neutraliserBonusCarriere() {
+  return (state.char?.career === 'criminal_c') ? 15 : 0;
+}
+
+// PER de la cible.
+//
+// SOURCE UNIQUE : getPnjStats(), qui fusionne PNJ_STATS_PAR_JOB et PNJ_STATS_NOMMES (data.js).
+// Les neuf deputes PNJ y figurent nommement avec PER = 6 (§3), soit un malus de 3 points -- ils
+// n'ont donc PAS de cas particulier ici : les traiter a part reviendrait a tenir un second
+// exemplaire de leurs statistiques, qui divergerait au premier ajustement.
+//
+// Defaut 10 (arbitrage valide du 10 septembre 2026) pour toute cible dont le PER n'est pas
+// renseigne : les PJ, dont les statistiques reelles ne sont pas lisibles cote client, et les
+// jobs PNJ sans PER declare. C'est la valeur neutre deja retenue ailleurs dans le projet.
+function neutraliserPerCible(cible) {
+  if (!cible) return 10;
+  if (typeof getPnjStats === 'function' && !cible.isPJ) {
+    const s = getPnjStats(cible);
+    if (s && typeof s.PER === 'number') return s.PER;
+  }
+  return 10;
+}
+
+// §18 : base + (stat × 2) + bonusCarriere − (PER cible / 2), plafonne par mode.
+// Borne basse a 0 et haute au cap : bornes techniques, jamais un plancher de game design.
+function neutraliserTaux(mode, cible) {
+  const m = NEUTRALISER_MODES[mode];
+  if (!m) return 0;
+  const stat = (typeof getStatEffective === 'function') ? getStatEffective(m.stat) : 10;
+  const brut = m.base + (stat * 2) + neutraliserBonusCarriere() - (neutraliserPerCible(cible) / 2);
+  return Math.max(0, Math.min(m.cap, Math.round(brut)));
+}
+
+// Depute PNJ (option A, 11 septembre 2026) : AFFICHAGE du taux que assemblee_neutraliser_depute
+// appliquera -- statistiques DE BASE (defaut 8 : FOR n'existe pas chez les PJ), +15 criminal_c
+// uniquement, PER cible 6, memes plafonds. Aucun bonus de formation ni moyenne de groupe.
+function neutraliserTauxDepute(mode) {
+  const m = NEUTRALISER_MODES[mode];
+  if (!m) return 0;
+  const v = state.char?.stats?.[m.stat];
+  const stat = (typeof v === 'number') ? v : 8;
+  const brut = m.base + (stat * 2) + neutraliserBonusCarriere() - (6 / 2);
+  return Math.max(0, Math.min(m.cap, Math.round(brut)));
+}
+
+// §52 : la possession de l'arme est revalidee dans le HANDLER, pas seulement affichee. L'audit du
+// 9 septembre avait releve que confirmerAssassinatArme ne revérifiait rien : le bouton etait
+// grise en HTML, mais un appel direct passait.
+function neutraliserPossedeArme(mode) {
+  const m = NEUTRALISER_MODES[mode];
+  if (!m || !m.sousTypes) return true;
+  return (state.inventory || []).some(i => i.type === 'arme' && m.sousTypes.includes(i.sousType));
+}
+
+// Un des neuf deputes PNJ, effectivement en fonction ? Determine le bareme de PA (§20) et la
+// consequence (Endormi au lieu de l'hospitalisation).
+function neutraliserCibleEstDepute(cible) {
+  if (typeof assembleeEstDeputePnj !== 'function' || !assembleeEstDeputePnj(cible?.name)) return null;
+  const siege = assembleeSiegeParNomPnj(cible.name);
+  if (!siege) return null;
+  const occ = (typeof assembleeOccupationSiege === 'function') ? assembleeOccupationSiege(siege.id) : null;
+  // Un assistant parlementaire (siege tenu par un PJ) n'est plus un depute : il retombe dans le
+  // cas general PNJ (§2).
+  if (occ && !occ.estPnj) return null;
+  return siege;
+}
+
 function ouvrirModalAssassinat(encodedCible) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
 
-  const char = state.char;
-  const armes = (state.inventory||[]).filter(i => i.type === 'arme');
-  const hasBlade = armes.some(a => a.sousType === 'blanche');
-  const hasGun   = armes.some(a => a.sousType === 'poing' || a.sousType === 'carabine');
+  const siegeDepute = neutraliserCibleEstDepute(cible);
+  const estDepute = !!siegeDepute;
 
-  const vol = getStatEffective('VOL');
-  const per = getStatEffective('PER');
-  const dup = getStatEffective('DUP');
-
-  const tauxMains = Math.min(60, 20 + Math.floor(vol * 1.5));
-  const tauxArme  = Math.min(75, 40 + Math.floor(dup * 1.2));
-  const tauxFeu   = Math.min(85, 60 + Math.floor(per * 1.0));
-
-  document.getElementById('postes-modal-title').textContent = 'Assassiner — ' + cible.name;
+  document.getElementById('postes-modal-title').textContent = 'Neutraliser — ' + cible.name;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Peine : 7 jours QHS si echec. 15 jours si decouvert ulterieurement.</div>';
 
-  // Options
+  if (estDepute) {
+    html += '<div style="font-size:.82rem;color:#8a6a20;font-style:italic;margin-bottom:1rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">Un député assommé reste à son banc : il ne disparaît pas, mais il ne votera pas tant qu\'il dort. Il se réveillera de lui-même à minuit — ou plus tôt si quelqu\'un lui passe des sels sous le nez.</div>';
+  } else {
+    html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.55rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Pris sur le fait : arrestation immédiate, 2 jours de détention et 1 500 FR d\'amende.</div>';
+  }
+
   html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
-
-  html += '<button onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'mains\',' + tauxMains + ')" style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #3a2010;background:#0f0805;color:#c0a080;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">' +
-    '<span>A mains nues</span><span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a6040">' + tauxMains + '% · 2 PA</span></button>';
-
-  html += '<button onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'arme\',' + tauxArme + ')" ' +
-    (!hasBlade ? 'disabled style="opacity:.4;cursor:not-allowed;' : 'style="cursor:pointer;') +
-    'display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #4a1a08;background:#0f0805;color:' + (hasBlade ? '#c06040' : '#4a3020') + ';font-family:Crimson Pro,serif;font-size:.85rem">' +
-    '<span>Arme blanche ' + (!hasBlade ? '(aucune en inventaire)' : '') + '</span>' +
-    '<span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a5030">' + tauxArme + '% · 2 PA</span></button>';
-
-  html += '<button onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'feu\',' + tauxFeu + ')" ' +
-    (!hasGun ? 'disabled style="opacity:.4;cursor:not-allowed;' : 'style="cursor:pointer;') +
-    'display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #5a1a08;background:#0f0805;color:' + (hasGun ? '#cc4444' : '#4a2020') + ';font-family:Crimson Pro,serif;font-size:.85rem">' +
-    '<span>Arme a feu ' + (!hasGun ? '(aucune en inventaire)' : '') + ' — bruit !</span>' +
-    '<span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a3030">' + tauxFeu + '% · 3 PA · -20 DIS</span></button>';
-
+  Object.entries(NEUTRALISER_MODES).forEach(([cle, m]) => {
+    const dispo = neutraliserPossedeArme(cle);
+    const taux = estDepute ? neutraliserTauxDepute(cle) : neutraliserTaux(cle, cible);
+    const pa = estDepute ? m.paDepute : m.paPJ;
+    const style = dispo
+      ? 'cursor:pointer;color:#c0a080;'
+      : 'opacity:.4;cursor:not-allowed;color:#4a3020;';
+    html += '<button ' + (dispo ? '' : 'disabled ') +
+      'onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'' + cle + '\')" ' +
+      'style="' + style + 'display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #3a2010;background:#0f0805;font-family:Crimson Pro,serif;font-size:.85rem">' +
+      '<span>' + m.label + (dispo ? '' : ' (aucune en inventaire)') + (cle === 'feu' ? ' — bruit !' : '') + '</span>' +
+      '<span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a6040">' + taux + '% · ' + pa + ' PA' + (cle === 'feu' ? ' · -20 DIS' : '') + '</span></button>';
+  });
   html += '</div></div>';
+
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAssassinatArme(encodedCible, mode, taux) {
+// taux n'est plus passe par le bouton : il est RECALCULE ici. Un parametre venu du DOM est une
+// valeur que le joueur peut reecrire ; §52 impose de ne jamais s'y fier.
+async function confirmerAssassinatArme(encodedCible, mode) {
   document.getElementById('modal-postes').classList.remove('open');
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
 
-  const paCost = mode === 'feu' ? 3 : 2;
+  const m = NEUTRALISER_MODES[mode];
+  if (!m) return;
+
+  // §52 : revalidation de la possession de l'arme dans le handler. Le bouton grise ne suffit pas.
+  if (!neutraliserPossedeArme(mode)) {
+    showToast('Arme absente', 'Vous n\'avez pas l\'arme nécessaire dans votre inventaire.', false);
+    return;
+  }
+
+  const siegeDepute = neutraliserCibleEstDepute(cible);
+  const taux = neutraliserTaux(mode, cible);
+
+  // §20 : un depute PNJ en fonction suit un bareme de PA reduit et une consequence propre.
+  if (siegeDepute) {
+    await neutraliserDeputePnj(cible, mode, taux, siegeDepute);
+    return;
+  }
+
+  const paCost = m.paPJ;
   // Deduction PA centralisee (Lot 2A) -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
   // disponibilite des PA (poche historique jamais migree au Lot 1). Appelee ICI, avant toute
   // mutation (DIS, historique d'assassinats, ecriture Supabase d'impact) : fail-closed.
@@ -381,13 +485,26 @@ async function confirmerAssassinatArme(encodedCible, mode, taux) {
     }
 
     const messagePalier = palier === 'totale'
-      ? cible.name + ' s\'effondre, gravement blesse(e). Vous n\'etes pas identifie(e).'
-      : cible.name + ' est blesse(e) mais reste consciente. Vous n\'etes pas identifie(e).';
+      ? cible.name + ' s\'effondre, hors de combat. Vous n\'êtes pas identifié(e).'
+      : cible.name + ' est touché(e) mais reste conscient(e). Vous n\'êtes pas identifié(e).';
     showToast('Acte commis', messagePalier, false);
-    addJournalEntry('Vous avez attaque ' + cible.name + ' (' + mode + ', reussite ' + palier + '). Non identifie(e) pour l\'instant.', 'event-bad');
+    addJournalEntry('Vous avez neutralisé ' + cible.name + ' (' + mode + ', réussite ' + palier + '). Non identifié(e) pour l\'instant.', 'event-bad');
     tracerActionPourRumeur('assassinat', cible.name.replace(' (PNJ)',''));
 
-    // Detection potentielle (peut mener a une enquete et une detention preventive en cas de decouverte)
+    // §25 — BUG CORRIGE : le chemin vivant n'ecrivait JAMAIS historiqueCrimes. Consequence
+    // etablie a l'audit du 9 septembre : 'assassinat' figure bien dans ACTES_DECOUVRABLES, mais
+    // comme rien ne l'y inscrivait, verifierDecouverteCrimesPasses ne pouvait jamais decouvrir
+    // une neutralisation apres coup. La trace differee etait donc morte. Elle existe desormais.
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({
+      acte: 'assassinat',
+      cible: cible.name,
+      jour: state.day,
+      expireJour: (state.day || 1) + 8
+    });
+
+    // Detection immediate (peut mener a un statut Recherche). Taux par methode inchanges :
+    // mains 30 %, arme blanche 40 %, arme a feu 60 %, modules par la discretion (§25).
     checkDetection('assassiner_' + mode, 'success');
 
   } else {
@@ -403,11 +520,83 @@ async function confirmerAssassinatArme(encodedCible, mode, taux) {
       }).catch(() => {});
     }
     // Echec — identifie sur le coup, arrestation immediate (pas de detention preventive ici,
-    // c'est une prise sur le fait, pas une enquete ulterieure)
-    addExternalEvent('Tentative d\'homicide sur ' + cible.name + ' ! Vous avez ete identifie(e). Arrestation imminente.');
-    state.recherche = [{ acte: 'tentative_homicide', type: 'crime', jour: state.day }];
-    setTimeout(() => ouvrirModalArrestation('crime'), 800);
+    // c'est une prise sur le fait, pas une enquete ulterieure).
+    //
+    // §25 — DEUX BUGS CORRIGES ICI, etablis a l'audit du 9 septembre 2026 :
+    //
+    //   1. La cle 'tentative_homicide' etait un FANTOME : absente de PEINES_ACTES comme de
+    //      ACTES_ILLEGAUX, elle ne resolvait aucun bareme.
+    //   2. ouvrirModalArrestation('crime') recevait un TYPE au lieu d'un ACTE. getPeineParActe
+    //      ne trouvait donc rien dans PEINES_ACTES, retombait sur PEINES.crime, et appliquait
+    //      8 JOURS / 5 000 FR -- au lieu des 2 jours / 1 500 FR du bareme prevu pour cet acte.
+    //
+    // 'tentative_assassinat' existe deja dans PEINES_ACTES.republic ({jours:2, amende:1500}) et
+    // correspond exactement a la sanction voulue. La cle technique est CONSERVEE telle quelle :
+    // c'est un identifiant de bareme, jamais un libelle montre au joueur (§17).
+    addExternalEvent('Tentative de neutralisation sur ' + cible.name + ' ! Vous avez été identifié(e). Arrestation imminente.');
+    state.recherche = [{ acte: 'tentative_assassinat', type: 'crime', jour: state.day }];
+    setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
   }
+  updateUI();
+}
+
+
+// =====================
+// NEUTRALISER UN DEPUTE PNJ (§20)
+// =====================
+// Coûts reduits (1/1/2 PA), memes formules de chance. Une reussite place le depute en 'Endormi' :
+// il reste a son banc, ne vote plus, conserve son intention mais inactive.
+//
+// L'etat est PARTAGE et vit cote serveur (assemblee_sieges.endormi). L'ecriture passe par un
+// UPDATE CONDITIONNEL atomique (assemblee_endormir) : si deux joueurs frappent le meme depute a
+// la meme seconde, le second recoit false et sait que son coup n'a rien change -- mais paie
+// quand meme sa tentative, comme partout ailleurs dans le projet.
+//
+// Aucun cooldown (§20) : neutralise -> reveille -> neutralise, autant de fois que les PA et les
+// sels le permettent.
+// OPTION A (11 septembre 2026) : PA (1/1/2), possession de l'arme, -20 DIS de l'arme a feu, taux,
+// jet et mise en sommeil sont TOUS serveur (assemblee_neutraliser_depute), dans une seule
+// transaction. Le client ne transmet que le mode ; le parametre taux n'est plus utilise. Un depute
+// deja endormi est refuse sans cout. Les suites restent cote client, comme pour toute
+// neutralisation : arrestation sur echec, trace et detection sur reussite.
+async function neutraliserDeputePnj(cible, mode, taux, siege) {
+  if (typeof sbAssembleeNeutraliserDepute !== 'function' || typeof assembleeActionServeur !== 'function') {
+    if (typeof assembleeIndisponible === 'function') assembleeIndisponible();
+    else showToast('Assemblée indisponible', 'Action impossible pour le moment.', false);
+    return;
+  }
+
+  const r = await assembleeActionServeur(rq => sbAssembleeNeutraliserDepute(state.char?.name, siege.id, mode, rq));
+  if (!assembleeIssueAction(r, 'L\'action n\'a pas pu être enregistrée. Rien n\'a été débité.')) {
+    if (r.res && r.res.raison === 'deja_endormi' && typeof rafraichirAssemblee === 'function') await rafraichirAssemblee();
+    return;
+  }
+  const reussi = !!r.res.reussi;
+
+  if (!reussi) {
+    // Echec sur un depute : pris sur le fait, meme sanction que sur toute autre cible (§25).
+    addExternalEvent('Tentative de neutralisation sur le député ' + siege.nom + ' ! L\'auteur a été identifié.');
+    state.recherche = [{ acte: 'tentative_assassinat', type: 'crime', jour: state.day }];
+    showToast('Raté', siege.nom + ' esquive maladroitement et hurle. Les huissiers accourent.', false, true);
+    addJournalEntry('Tentative de neutralisation ratée sur le député ' + siege.nom + '.', 'event-bad');
+    updateUI();
+    setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
+    return;
+  }
+
+  // Reussite : le serveur a deja endormi le depute dans la meme transaction.
+  // Trace judiciaire : identique a toute autre neutralisation reussie (§25).
+  if (!state.historiqueCrimes) state.historiqueCrimes = [];
+  state.historiqueCrimes.push({
+    acte: 'assassinat', cible: siege.nom, jour: state.day, expireJour: (state.day || 1) + 8
+  });
+  tracerActionPourRumeur('assassinat', siege.nom);
+  checkDetection('assassiner_' + mode, 'success');
+
+  showToast('Député neutralisé', siege.nom + ' glisse lentement sous son pupitre. Il ne votera pas dans cet état.', true, true);
+  addJournalEntry('Le député ' + siege.nom + ' a été neutralisé. Il est endormi.', 'event-bad');
+
+  if (typeof rafraichirAssemblee === 'function') await rafraichirAssemblee();
   updateUI();
 }
 
@@ -966,6 +1155,13 @@ async function confirmerAchatArme(armeId) {
     return;
   }
 
+  // Achat LEGAL : l'armurerie, PNJ ou rachetee par un PJ, est un fournisseur legal. Une loi en
+  // vigueur sur la categorie de l'arme bloque la vente, avant tout debit (arbitrage du 11/09/2026).
+  // Il n'existe pas de mecanique permettant au proprietaire de choisir de vendre clandestinement :
+  // seul le marche noir (confirmerAchatArmeIllegal) reste ouvert, a l'initiative de l'acheteur.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: 'arme', sousType: arme.type }]))) return;
+
   // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation de stock/caisse.
   const r = await deduireCoutOrdre({ pa: 1, cost: prixApplique });
   if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
@@ -1096,6 +1292,10 @@ async function confirmerAchatArmeIllegal(armeId) {
     // Convocation au commissariat — delai fixe 24h (jour+1, meme heure)
     if (!state.convocations) state.convocations = [];
     state.convocations.push({
+      // id stable : cle d'identite lue par le trigger personnages_preserver_judiciaire (chantier
+      // Assemblee). Sans lui, deux convocations de meme motif emises a la meme heure de jeu
+      // partageraient la meme cle derivee du contenu, et la fusion ne pourrait pas les distinguer.
+      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       motif: 'achat_arme_illegal',
       jourEmission: state.day || 1,
       heureEmission: state.hour || 8,
@@ -1141,6 +1341,12 @@ async function confirmerAchatArmeIllegal(armeId) {
   updateUI();
   showToast('Arme acquise (marché noir)', arme.name + ' obtenue discrètement. Non enregistrée au registre.', true, true);
   addJournalEntry('Achat clandestin : ' + arme.name + ' (-' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
+
+  // Lois d'interdiction (arbitrage du 11 septembre 2026) : cet achat etait deja illegal avant toute
+  // loi et a SA procedure ci-dessus (denonciation sur echec, trace achat_arme_illegal decouvrable,
+  // rumeur). Une loi sur la categorie de l'arme n'ouvre PAS de seconde procedure pour le meme acte :
+  // pas de qualification assemblee_achat_illegal ici (sinon deux traces et deux voies d'arrestation).
+  // Le proprietaire, PJ ou PNJ, n'est jamais mis en cause : il ne percoit rien de cette vente.
 }
 
 
@@ -1264,6 +1470,9 @@ async function confirmerAchatGilet() {
   document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+  // Vente legale : regle generale des interdictions, avant tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: 'protection' }]))) return;
 
   // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation.
   const r = await deduireCoutOrdre({ pa: 1, cost: prix });
@@ -1290,6 +1499,9 @@ async function doObtenirExplosifsMilitaires(pa, cost) {
     showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false);
     return;
   }
+  // Fourniture legale d'equipement : regle generale des interdictions, avant tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: 'explosif' }]))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   if (!state.inventory) state.inventory = [];
@@ -1679,67 +1891,34 @@ async function confirmerAchatPoison(type, pa, cost) {
   updateUI();
   showToast('Objet acquis', obj.name + ' ajouté à votre inventaire. Usage unique.', true, true);
   addJournalEntry('Achat : ' + obj.name, 'event-bad');
+
+  // Circuit ILLEGAL (fournisseur PNJ) : la vente reste acquise ; si une loi « Poisons » est en
+  // vigueur, l'achat est en plus une transaction interdite, tranchee par le serveur.
+  if (typeof assembleeSignalerAchatIllegal === 'function') {
+    await assembleeSignalerAchatIllegal('poison', type).catch(() => null);
+  }
 }
 
 // =====================
 // ASSASSINER
 // =====================
-function ouvrirModalAssassiner() {
-  // Verifier prérequis : se cacher réussi
-  if (!state.estCache) {
-    showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false);
-    return;
-  }
-  const personnesPresentes = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-  if (personnesPresentes.length === 0) {
-    showToast('Personne à cibler', 'Aucun PJ dans cette pièce.', false);
-    return;
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Assassiner';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illégal. Prérequis : Se cacher réussi. Taux base : 35% − PER cible/10 + Bonus empire + Bonus carrière criminel +15%.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-  personnesPresentes.forEach(p => {
-    html += '<div onclick="confirmerAssassinat(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #3a1010;background:#0f0505;margin-bottom:.4rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between" onmouseover="this.style.background=\'#1a0808\'" onmouseout="this.style.background=\'#0f0505\'">';
-    html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#cc4444">ÉLIMINER</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function confirmerAssassinat(cibleNom) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const pays = state.country || 'republic';
-  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
-  const perCible = 50; // Simulation PER cible - en vrai multijoueur on lirait le localStorage cible
-  const taux = Math.max(5, 35 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    // Succes
-    state.estCache = false;
-    showToast('Assassinat réussi', cibleNom + ' est hors de combat. 0 PA 0 HP.', true, true);
-    addJournalEntry('Assassinat de ' + cibleNom + ' réussi.', 'event-bad');
-    addExternalEvent('ALERTE : ' + cibleNom + ' vient d\'être assassiné(e) ! Aucun témoin.');
-    addMailNotification('Événement', 'Vous avez été assassiné(e)', 'Quelqu\'un vous a attaqué. Vous êtes à 0 PA et 0 HP. Passez l\'ordre Dormir pour récupérer.');
-    // Enregistrer dans l'historique criminel (disparait apres 8 jours)
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte:'assassinat', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
-  } else {
-    // Echec
-    state.estCache = false;
-    state.recherche = [{ acte:'tentative_assassinat', type:'crime', jour:state.day, peine:2 }];
-    showToast('Échec ! Vous êtes repéré(e)', 'Tentative d\'assassinat ratée. Recherché(e). 2 jours de prison.', false);
-    addJournalEntry('Tentative d\'assassinat ratée. Statut : Recherché.', 'event-bad');
-    addExternalEvent('ALERTE : Tentative d\'assassinat sur ' + cibleNom + ' ! L\'auteur est en fuite.');
-    updateUI();
-  }
-}
+// ouvrirModalAssassiner / confirmerAssassinat — SUPPRIMEES (chantier Neutraliser, 10 septembre
+// 2026).
+//
+// Ces deux fonctions etaient MORTES : plateau-router.js testait fn === 'assassiner' DEUX FOIS
+// dans la meme fonction doOrder, et le premier test (un simple toast "cliquez sur la cible")
+// faisait return -- la seconde route, qui appelait ouvrirModalAssassiner(), etait donc
+// inatteignable. Verifie a l'audit du 9 septembre 2026.
+//
+// Elles portaient pourtant des mecaniques que le chemin vivant n'avait pas : prerequis
+// "Se cacher", modificateur d'empire, malus ISN, PER de la cible, et surtout le bonus de carriere
+// criminelle. Le cahier des charges du chantier tranche : le bonus criminal_c et le PER de la
+// cible sont repris dans le chemin vivant (voir NEUTRALISER_MODES ci-dessous), le prerequis
+// "Se cacher" est explicitement abandonne (§18), le modificateur d'empire et le malus ISN ne sont
+// pas repris.
+//
+// La suppression est preferee a la coexistence : le projet a deja ete mordu par des fonctions
+// dupliquees dont seule la derniere chargee comptait (checkArrestationAuDeplacement).
 
 // =====================
 // EMPOISONNER
@@ -1858,10 +2037,22 @@ async function confirmerEmpoisonnement(cibleNom) {
 
   } else {
     // Echec total — identifie sur le coup
+    //
+    // HORS PERIMETRE INITIAL, corrige ici parce que c'est EXACTEMENT le meme defaut que celui
+    // que le §25 demandait de corriger sur Neutraliser, decouvert par le controle automatique
+    // des formules (.scratch/verif_formules_assemblee.py) :
+    // ouvrirModalArrestation recevait 'crime', un TYPE, la ou getPeineParActe attend un ACTE. La
+    // recherche etait pourtant bien enregistree sous 'tentative_empoisonnement', acte qui existe
+    // dans PEINES_ACTES.republic avec {jours:2, amende:2000} -- mais ce bareme n'etait jamais
+    // atteint : le type ne figurant pas dans PEINES_ACTES, on retombait sur PEINES.crime, soit
+    // 8 JOURS et 5 000 FR.
+    //
+    // Ce n'est pas une regle nouvelle : c'est la valeur que le jeu declare deja pour cet acte
+    // precis, et qui n'etait simplement jamais lue. Signale au rapport pour arbitrage.
     state.recherche = [{ acte:'tentative_empoisonnement', type:'crime', jour:state.day }];
     showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false);
     addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
-    setTimeout(() => ouvrirModalArrestation('crime'), 800);
+    setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);
   }
 
   updateUI();
@@ -2120,7 +2311,15 @@ function getCurrentRoomPersons() {
 function checkEffacementCrimes() {
   if (!state.historiqueCrimes) return;
   const avant = state.historiqueCrimes.length;
-  state.historiqueCrimes = state.historiqueCrimes.filter(c => c.expireJour > state.day);
+  // Deux conventions d'expiration coexistent depuis le chantier Assemblee (10 septembre 2026) :
+  //   - expireJour (jour de JEU) sur les traces creees par le client, inchange ;
+  //   - expireTs (instant REEL) sur les traces creees par le serveur (trace du vendeur, RPC
+  //     assemblee_tracer_vente_interdite), qui ne connait pas le state.day propre a chaque joueur.
+  // BUG EVITE : sans cette branche, une trace serveur -- qui n'a pas d'expireJour -- donnait
+  // `undefined > state.day`, toujours faux, et etait purgee DES le premier passage, alors meme que
+  // le trigger personnages_preserver_judiciaire la reinjectait a chaque sauvegarde.
+  state.historiqueCrimes = state.historiqueCrimes.filter(c =>
+    c.expireTs ? Date.now() < new Date(c.expireTs).getTime() : c.expireJour > state.day);
   const apres = state.historiqueCrimes.length;
   if (avant > apres) {
     addJournalEntry('Les preuves matérielles de votre crime ont disparu. Vous ne pouvez plus être inquiété(e) pour ceci.', 'event-good');
@@ -2317,44 +2516,26 @@ const BONUS_CARRIERE_VOL = {
 };
 
 
-function checkDetection(fn, resultType) {
-  const acte = ACTES_ILLEGAUX[fn];
-  if (!acte) return;
-  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
-
-  // Immunite selon poste
-  const posteId = state.poste?.id;
-  if (posteId === 'president') return; // Immunite totale
-  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
-    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
-
-  if (roll <= tauxDetect) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: fn, type: acte.type, jour: state.day });
-    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
-    state.dis = Math.max(0, state.dis - 10);
-    updateUI();
-  }
-}
-
-function checkArrestationAuDeplacement() {
-  if (!state.recherche || state.recherche.length === 0) return;
-  const alerteMax = state.recherche.reduce((max, r) => {
-    const peine = PEINES[r.type];
-    return peine && peine.jours > (PEINES[max]?.jours||0) ? r.type : max;
-  }, 'delit_mineur');
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
-
-  if (roll <= tauxInter) {
-    ouvrirModalArrestation(alerteMax);
-  }
-}
+// checkDetection / checkArrestationAuDeplacement — DOUBLONS SUPPRIMES (chantier Assemblee,
+// 10 septembre 2026). Les deux originaux vivent dans plateau-justice-economie.js.
+//
+// L'audit du 9 septembre avait etabli que ce fichier redefinissait les deux fonctions, et qu'il
+// est charge APRES plateau-justice-economie.js (voir plateau.html) : ce sont donc CES copies-ci
+// qui gagnaient silencieusement.
+//
+// Pour checkDetection, sans consequence : les deux corps etaient identiques.
+//
+// Pour checkArrestationAuDeplacement, la copie ci-dessous DIVERGEAIT, et en pire :
+//   - l'original selectionne le pire acte via getPeineParActe(r.acte) et passe un ACTE a
+//     ouvrirModalArrestation ;
+//   - cette copie comparait PEINES[r.type] et passait un TYPE ('delit_mineur', 'crime'...).
+// Or ouvrirModalArrestation transmet son argument a getPeineParActe, qui cherche d'abord dans
+// PEINES_ACTES : un TYPE n'y figure jamais. Le bareme PAR ACTE etait donc integralement
+// court-circuite sur ce chemin, et toute interception en deplacement retombait sur le tarif
+// generique de la categorie. Un acte a 1 jour se retrouvait puni comme un delit mineur a 2 jours,
+// un acte a 2 jours comme un crime a 8.
+//
+// La suppression retablit l'original, qui applique bien PEINES_ACTES.
 
 function doSesoigner() {
   const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
@@ -3319,6 +3500,12 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
   const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
   if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
 
+  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un circuit
+  // legal. Regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout mouvement.
+  if (typeof assembleeControlerVenteLegale === 'function' && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
+    return { ok: false, raison: 'vente_interdite', dejaSignale: true };
+  }
+
   const stockMax = plafondEffectifCommerce(data, matiere);
   const stockActuel = data.stockMatieres[matiere] || 0;
   if (stockActuel + qte > stockMax) return { ok: false, raison: 'stock_plein', placeRestante: Math.max(0, stockMax - stockActuel) };
@@ -3413,7 +3600,7 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
       stock_plein: 'Le stock maximum de cette matière est atteint pour ce commerce.',
       caisse_insuffisante: 'Le commerce ne peut pas acheter cette quantité actuellement.'
     };
-    showToast('Vente refusée', messages[res.raison] || '', false);
+    if (!res.dejaSignale) showToast('Vente refusée', messages[res.raison] || '', false);
     return;
   }
   updateUI();
@@ -4014,6 +4201,15 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   if (prix == null) return { ok: false, raison: 'prix_non_defini' };
   if (getFondsDisponiblesOrdinaires() < prix) return { ok: false, raison: 'fonds_insuffisants', prix };
 
+  // Vente legale d'un commerce (PNJ ou joueur) : regle generale des interdictions, avant tout debit.
+  // On evalue l'OBJET REELLEMENT LIVRE : une recette n'a ni type ni sous-type et son stackKey est son
+  // identifiant -- une interdiction sur la matiere 'viande' ne vise donc JAMAIS le boeuf bourguignon
+  // (arbitrage du 10 septembre : aucune propagation aux derives).
+  const livre = { stackKey: recette.stackKey || recetteId, type: recette.type, sousType: recette.sousType };
+  if (typeof assembleeControlerVenteLegale === 'function' && !(await assembleeControlerVenteLegale([livre]))) {
+    return { ok: false, raison: 'vente_interdite', dejaSignale: true };
+  }
+
   const debitCommerce = await debiterFondsOrdinaires(prix);
   if (!debitCommerce.ok) return { ok: false, raison: 'fonds_insuffisants', prix };
   data.stockProduits[recetteId] = stock - 1;
@@ -4162,7 +4358,7 @@ async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, re
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
-    showToast('Commande impossible', messages[res.raison] || '', false);
+    if (!res.dejaSignale) showToast('Commande impossible', messages[res.raison] || '', false);
     return;
   }
   updateUI();
@@ -4256,12 +4452,17 @@ async function doCommanderAchatCommerceUI(commerceType, buildingId, roomId, rece
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
-    showToast('Achat impossible', messages[res.raison] || '', false);
+    if (!res.dejaSignale) showToast('Achat impossible', messages[res.raison] || '', false);
     return;
   }
   updateUI();
   showToast('Achat effectué', recette.label + '.', true, true);
   addJournalEntry(recette.label + ' acheté(e) — ' + res.prix + ' FR.', 'event-good');
+
+  // Lois d'interdiction (arbitrage du 11 septembre 2026) : un commerce, PNJ ou joueur, est un
+  // circuit de vente LEGALE. Une marchandise interdite n'y est donc jamais vendue -- le refus a lieu
+  // dans commanderProduitCommerce, avant tout debit -- et aucune transaction illegale n'a lieu ici.
+
   afficherCategorieAchatsMarche(commerceType, buildingId, roomId, famille);
 }
 
@@ -4371,7 +4572,7 @@ async function confirmerConsommerBoissonUI(commerceType, buildingId, roomId, rec
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = { rupture: 'Cette boisson est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour cette boisson.', introuvable: '' };
-    showToast('Achat impossible', messages[res.raison] || '', false);
+    if (!res.dejaSignale) showToast('Achat impossible', messages[res.raison] || '', false);
     return;
   }
   document.getElementById('modal-postes')?.classList.remove('open');

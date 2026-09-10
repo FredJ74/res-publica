@@ -6,6 +6,9 @@
     "api/cron-minuit.js": {
       "maxDuration": 120
     },
+    "api/cron-assemblee.js": {
+      "maxDuration": 60
+    },
     "api/upload-org-avatar.js": {
       "maxDuration": 15
     }
@@ -14,6 +17,10 @@
     {
       "path": "/api/cron-minuit",
       "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron-assemblee",
+      "schedule": "0 21 * * 3"
     }
   ]
 }

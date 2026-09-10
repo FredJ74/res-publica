@@ -287,7 +287,13 @@ const PEINES_ACTES = {
     utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
     incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' },
     hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)' },
-    corruption_fonctionnaire: { jours: 1, amende: 1000, label: 'Corruption de fonctionnaire' }
+    corruption_fonctionnaire: { jours: 1, amende: 1000, label: 'Corruption de fonctionnaire' },
+    // Chantier Assemblee (10 septembre 2026) — circuit des marchandises interdites.
+    // §42 : echec d'une justification = 1 jour. §41 : non-presentation sous 36 h = 2 jours.
+    // Amendes a 0 : le cahier des charges ne prevoit AUCUNE amende sur ce circuit, seulement de
+    // la detention et la confiscation. Ne pas en inventer une.
+    justification_rejetee:       { jours: 1, amende: 0, label: 'Justification rejetée (marchandise interdite)' },
+    non_presentation_convocation:{ jours: 2, amende: 0, label: 'Non-présentation à convocation' }
   }
 };
 
@@ -652,6 +658,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
     if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+    // Assemblee (chantier du 10 septembre 2026). Deux caches distincts, rafraichis a des rythmes
+    // differents parce qu'ils ne servent pas au meme moment :
+    //   - les sieges/sessions ne comptent que dans l'hemicycle : on ne les recharge que la-bas,
+    //     pour ne pas imposer trois requetes toutes les 30 s a chaque joueur du monde ;
+    //   - les interdictions en vigueur, elles, sont consultees a chaque achat n'importe ou :
+    //     elles sont donc rafraichies partout.
+    if (state.currentBuilding === 'assemblee' && typeof rafraichirAssemblee === 'function') {
+      rafraichirAssemblee().catch(() => {});
+    }
+    if (typeof rafraichirAssembleeInterdictions === 'function') {
+      rafraichirAssembleeInterdictions().catch(() => {});
+    }
     // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
     // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
     // Correctif du 25 aout 2026 (bug production confirme par instrumentation : un onglet
@@ -666,6 +684,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }, 30000);
   if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+  // Premier chargement : les interdictions en vigueur doivent etre connues AVANT le premier achat,
+  // sinon le tout premier passage en caisse ignorerait une loi pourtant en vigueur.
+  if (typeof rafraichirAssembleeInterdictions === 'function') rafraichirAssembleeInterdictions().catch(() => {});
+  if (typeof rafraichirAssemblee === 'function') rafraichirAssemblee().catch(() => {});
 
   // Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() debounce
   // 3s -- un refresh/fermeture pendant cette fenetre perdait toute mutation pas encore ecrite

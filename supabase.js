@@ -147,6 +147,18 @@ async function sbSavePersonnage(charState) {
     invitation_sociale_en_attente: charState._invitationSocialeEnAttente || null,
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
+    // bonus_lobbyiste delibrement ABSENT de cette sauvegarde (option A, 11 septembre 2026) : meme
+    // doctrine que blessure_sportive ci-dessous. Seules les RPC assemblee_consulter_lobbyiste (qui
+    // le pose) et assemblee_marchander (qui le consomme) l'ecrivent. Republie ici depuis la memoire,
+    // un etat client ancien ressusciterait un bonus deja consomme. Il reste LU au chargement.
+    // Suites d'une neutralisation (§19, meme chantier). BUG CORRIGE : ces trois etats n'etaient
+    // persistes NULLE PART -- un F5 annulait toute la convalescence, ses PA a zero et ses deux
+    // statistiques affaiblies. C'etait la seule sanction reelle d'une agression, et elle etait
+    // integralement contournable. Colonnes dediees, jamais des cles supposees persistees.
+    // ⚠ Depend de migration_assemblee_nationale.sql (partie 15 ter), NON EXECUTEE.
+    hospitalisation:  charState.hospitalisation || null,
+    stats_affaiblies: charState.statsAffaiblies || {},
+    regen_jour:       (typeof charState.regenJour === 'number') ? charState.regenJour : null,
     // CORRECTIF (Lot 4.3) : la convocation militaire n'etait NI ecrite NI relue. doSePresenterAffectation
     // et estExempteCouvreFeu lisaient state.char.requisition, toujours undefined -- un civil convoque
     // ne pouvait donc jamais se presenter. Meme idiome que est_emprisonne : l'objet ou null.
@@ -296,7 +308,15 @@ async function sbLoadPersonnage(name) {
     // Pendant en lecture du correctif de convocation militaire (voir sbSavePersonnage).
     requisition: r.requisition || null,
     demandeurEmploi: r.demandeur_emploi === true,
-    cartePostaleMoralJour: r.carte_postale_moral_jour || null
+    cartePostaleMoralJour: r.carte_postale_moral_jour || null,
+    // Pendant en lecture du bonus lobbyiste (voir sbSavePersonnage). || 0 : un personnage
+    // anterieur a la migration, ou la colonne absente, donnent simplement 0 -- aucun cas d'erreur.
+    bonusLobbyiste: r.bonus_lobbyiste || 0,
+    // Pendants en lecture des suites de neutralisation (voir sbSavePersonnage). Les valeurs par
+    // defaut couvrent aussi bien un personnage jamais agresse qu'une colonne encore absente.
+    hospitalisation: r.hospitalisation || null,
+    statsAffaiblies: r.stats_affaiblies || {},
+    regenJour:       (typeof r.regen_jour === 'number') ? r.regen_jour : null
   };
 }
 
@@ -2926,3 +2946,184 @@ async function sbEnregistrerEvenementEscort(client, escort, typeEvenement) {
 // publication) passe desormais par l'endpoint securise api/journal-interview.js -- voir
 // jodieAppelApi()/ouvrirInterviewJodie() dans plateau-communication.js.
 // =====================
+
+
+// =====================
+// ASSEMBLEE NATIONALE (chantier du 10 septembre 2026)
+// =====================
+// TOUTES les ecritures parlementaires passent par une RPC transactionnelle. AUCUNE ecriture REST
+// directe n'est possible : les six tables assemblee_* sont sous RLS avec une policy SELECT et
+// aucune policy INSERT/UPDATE/DELETE (voir migration_assemblee_nationale.sql, partie 16).
+//
+// FAIL-CLOSED CONTRACTUEL : chacune de ces fonctions renvoie null si la RPC est absente (schema
+// non deploye), injoignable, ou en erreur. Les appelants DOIVENT tester cette valeur -- aucune
+// d'entre elles ne doit jamais avoir de repli local non atomique. L'audit du 9 septembre a
+// etabli que les primitives de caisse historiques (crediterCaisseBatiment,
+// debiterCaisseBatimentPlafonne, debiterCaisseBatimentAtomique) sont des lire-modifier-ecrire :
+// aucune ne doit etre utilisee pour la caisse de l'Assemblee.
+
+// sbRpc renvoie la representation de la fonction. Une fonction scalaire renvoie la valeur brute,
+// une fonction jsonb renvoie l'objet. Ce helper normalise les deux formes.
+function _assembleeResultatRpc(rows) {
+  if (rows === null || rows === undefined) return null;
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+// ---- LECTURES (REST direct, la RLS autorise le SELECT) ----
+
+// Les 9 sieges avec leur etat 'endormi' courant. Ne dit PAS qui occupe quoi : l'occupation
+// reelle se derive de personnages.poste_depute (voir assembleeOccupationSieges).
+async function sbGetAssembleeSieges(country) {
+  return (await sbGet('assemblee_sieges',
+    `country=eq.${encodeURIComponent(country || 'republic')}&order=city.asc,rang.asc`)) || [];
+}
+
+// Propositions par statut. statuts = tableau ('debat','session','adoptee',...).
+async function sbGetAssembleePropositions(country, statuts) {
+  let filtre = `country=eq.${encodeURIComponent(country || 'republic')}`;
+  if (Array.isArray(statuts) && statuts.length) {
+    filtre += `&statut=in.(${statuts.map(encodeURIComponent).join(',')})`;
+  }
+  filtre += '&order=depose_ts.desc';
+  return (await sbGet('assemblee_propositions', filtre)) || [];
+}
+
+async function sbGetAssembleeProposition(id) {
+  const rows = await sbGet('assemblee_propositions', `id=eq.${encodeURIComponent(id)}`);
+  return rows && rows[0] ? rows[0] : null;
+}
+
+// Intentions PNJ d'une session precise. Jamais tirees au sort a l'affichage (§11) : cette
+// lecture est la SEULE source, le tirage ayant eu lieu une fois pour toutes a l'ouverture.
+async function sbGetAssembleeIntentions(propositionId, sessionNum) {
+  return (await sbGet('assemblee_intentions',
+    `proposition_id=eq.${encodeURIComponent(propositionId)}&session_num=eq.${sessionNum}`)) || [];
+}
+
+async function sbGetAssembleeVotes(propositionId, sessionNum) {
+  return (await sbGet('assemblee_votes',
+    `proposition_id=eq.${encodeURIComponent(propositionId)}&session_num=eq.${sessionNum}`)) || [];
+}
+
+async function sbGetAssembleeScrutins(propositionId) {
+  return (await sbGet('assemblee_scrutins',
+    `proposition_id=eq.${encodeURIComponent(propositionId)}&order=session_num.asc`)) || [];
+}
+
+// Registre officiel (§31) : toutes les propositions ayant atteint un statut terminal, plus les
+// projets encore en cours. Une seule requete, filtrage cote appelant.
+async function sbGetAssembleeRegistre(country) {
+  return (await sbGet('assemblee_propositions',
+    `country=eq.${encodeURIComponent(country || 'republic')}&order=depose_ts.desc`)) || [];
+}
+
+// Interdictions mecaniques EN VIGUEUR (§34/§36). Requete la plus chaude une fois les lois
+// branchees sur le commerce : index partiel dedie cote base.
+async function sbGetAssembleeInterdictions(country) {
+  return (await sbGet('assemblee_propositions',
+    `country=eq.${encodeURIComponent(country || 'republic')}&type=eq.mecanique&statut=eq.adoptee&select=id,titre,categorie,adoptee_ts`)) || [];
+}
+
+// ---- ECRITURES (RPC uniquement) ----
+//
+// OPTION A (11 septembre 2026, migration_assemblee_actions_joueur.sql) : chaque action est UNE
+// transaction serveur qui relit elle-meme lieu, PA, fonds, inventaire et statistiques, debite,
+// tire le jet et applique l'effet. Le client ne transmet plus AUCUN resultat, cout, montant,
+// caisse ni horaire : seulement son nom, sa cible et un identifiant de requete (idempotence --
+// un rejeu du meme identifiant renvoie le resultat deja acquis sans rien refaire). Les valeurs
+// renvoyees (pa, liquide, arg, solde_national, dis, sels_restants, bonus_lobbyiste) sont celles
+// de la base APRES l'operation : le client les recopie, il ne recalcule rien.
+
+// 1 PA. Identifiant genere par le serveur ; titre d'une abrogation construit par le serveur.
+async function sbAssembleeDeposer(nom, titre, type, texte, categorie, loiCibleId, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_deposer', {
+    p_nom: nom, p_titre: titre || null, p_type: type, p_texte: texte,
+    p_categorie: categorie || null, p_loi_cible_id: loiCibleId || null, p_requete: requete
+  }));
+}
+
+// Remplace l'ancienne ecriture REST de forum_topic_id, refusee silencieusement par la RLS.
+async function sbAssembleeLierTopic(nom, id, topicId) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_lier_topic', {
+    p_nom: nom, p_id: id, p_topic_id: topicId
+  }));
+}
+
+async function sbAssembleeAmender(nom, id, texte, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_amender', {
+    p_nom: nom, p_id: id, p_texte: texte, p_requete: requete
+  }));
+}
+
+async function sbAssembleeRetirer(id, auteur) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_retirer', {
+    p_id: id, p_auteur: auteur
+  }));
+}
+
+// Le vote est revalide integralement cote serveur (mandat, statut de session, heure de cloture) :
+// rien de ce que le client annonce n'est cru (§52).
+async function sbAssembleeVoter(id, votant, choix) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_voter', {
+    p_id: id, p_votant: votant, p_choix: choix
+  }));
+}
+
+// §15/§16 : 1 PA + 100 FR a chaque tentative, verses a la caisse de l'Assemblee. Taux et jet
+// SERVEUR (50 + (CHA+ENT)/2 sur les stats de base, max 66 ; +20 Lobbyiste, max 86). Le bonus
+// Lobbyiste est consomme par la tentative. L'identite du marchandeur n'est jamais exposee.
+async function sbAssembleeMarchander(nom, id, siegeId, intention, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_marchander', {
+    p_nom: nom, p_id: id, p_siege_id: siegeId, p_intention: intention, p_requete: requete
+  }));
+}
+
+// §16 : 1 PA + 150 FR, +20 points sur le prochain marchandage. Refuse sans cout si deja acquis.
+async function sbAssembleeConsulterLobbyiste(nom, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_consulter_lobbyiste', {
+    p_nom: nom, p_requete: requete
+  }));
+}
+
+// §18/§20 : mode 'mains' | 'arme' | 'feu'. PA, arme, taux et jet relus/tires par le serveur. Le
+// depute n'est endormi QUE sur reussite ; deja endormi = refus sans cout.
+async function sbAssembleeNeutraliserDepute(nom, siegeId, mode, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_neutraliser_depute', {
+    p_nom: nom, p_siege_id: siegeId, p_mode: mode, p_requete: requete
+  }));
+}
+
+// §22 : 1 PA + 1 flacon de sels, consommes avec le reveil ; deja eveille = refus sans cout.
+async function sbAssembleeReveillerDepute(nom, siegeId, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_reveiller_depute', {
+    p_nom: nom, p_siege_id: siegeId, p_requete: requete
+  }));
+}
+
+// §47/§48 : montant FIXE cote serveur (250 FR), garde quotidienne, plafonnement par la caisse ;
+// le versement est credite par le serveur. Renvoie {ok, montant, vise, liquide, arg} ou null.
+async function sbAssembleeVerserIndemnite(nom) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_verser_indemnite', { p_nom: nom }));
+}
+
+// §35/§38 — TRACE DU VENDEUR : plus aucun wrapper client (11 septembre 2026). Appelee depuis le
+// navigateur de l'acheteur, elle permettait de declarer une vente qui n'avait pas eu lieu.
+// assemblee_tracer_vente_interdite est desormais INTERNE (service_role) : elle ne pourra etre
+// rattachee a une vente reelle que depuis une transaction de vente serveur.
+
+// LOIS D'INTERDICTION ET VENTES (migration_assemblee_interdictions_ventes.sql).
+// Decision serveur, a l'instant serveur, pour une vente LEGALE : {ok, instant, interdits:[{index, loi}]}
+// ou null si injoignable (l'appelant refuse alors la vente : fail-closed).
+async function sbAssembleeVerifierVente(objets, country) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_verifier_vente', {
+    p_objets: objets || [], p_country: country || 'republic'
+  }));
+}
+
+// Qualification d'un achat conclu sur un circuit ILLEGAL existant (marche noir, poison). L'objet est
+// resolu par le serveur a partir de (circuit, ref) ; l'acheteur ne peut incriminer que lui-meme.
+async function sbAssembleeAchatIllegal(nom, circuit, ref, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_achat_illegal', {
+    p_nom: nom, p_circuit: circuit, p_ref: ref, p_requete: requete
+  }));
+}

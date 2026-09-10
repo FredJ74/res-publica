@@ -24,8 +24,9 @@ const HEADERS = {
 // la RPC lui-meme), inacceptable -- on l'execute donc sous une identite serveur.
 // MEME CONVENTION que api/_journal-generation.js (securisation de journal_editions, 3 septembre
 // 2026), api/journal-interview.js et api/upload-org-avatar.js : variable d'environnement Vercel
-// jamais exposee au client. Elle n'est utilisee ICI que pour prelever_loyer_bail ; tous les
-// autres appels du cron restent sur la cle anon, inchanges.
+// jamais exposee au client. Elle n'est utilisee ICI que pour prelever_loyer_bail et les deux RPC
+// systeme de l'Assemblee (assemblee_reveil_minuit, assemblee_marquer_convocations_echues) ; tous
+// les autres appels du cron restent sur la cle anon, inchanges.
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 const HEADERS_SERVICE = {
   'Content-Type': 'application/json',
@@ -2424,9 +2425,29 @@ async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDir
 // jour le meme fournisseur/produit, la premiere traitee consommerait le stock avant la seconde
 // (premier arrivee, premier servi) -- jamais une simultaneite artificielle sur une architecture
 // qui ne l'est pas.
+// LOIS D'INTERDICTION (arbitrage du 11 septembre 2026) : une categorie interdite en vigueur bloque
+// TOUTE vente legale ou institutionnelle, y compris celles que ce cron execute seul (livraisons
+// payees aux entrepots, achats usine -> usine, exportations sous contrat). Decision SERVEUR, a
+// l'instant du passage : assemblee_verifier_vente (correspondance categorie -> matiere, loi adoptee,
+// adoptee_ts <= now()). Aucun cache : une loi adoptee ou abrogee s'applique au passage suivant.
+// Renvoie l'ensemble des matieres interdites, ou null si la verification est impossible -- les
+// appelants s'abstiennent alors de vendre ce jour-la (fail-closed). La production, les arrivages
+// gratuits et la redistribution gratuite vers les entrepots ne sont pas des ventes : ils continuent,
+// le stock n'etant jamais supprime (§34).
+async function matieresInterditesRepublia() {
+  const cles = Object.keys(RESSOURCES_ECONOMIE_SERVEUR);
+  const rep = await sbRpc('assemblee_verifier_vente', { p_objets: cles.map(c => ({ stackKey: c })), p_country: 'republic' });
+  const v = Array.isArray(rep) ? rep[0] : rep;
+  if (!v || v.raison || !Array.isArray(v.interdits)) return null;
+  return new Set(v.interdits.map(i => cles[i.index]).filter(Boolean));
+}
+
 async function traiterAchatsInterUsinesQuotidien(productionReelleDuJour) {
   const resultats = [];
+  const interdites = await matieresInterditesRepublia();
   for (const achat of ACHATS_INTER_USINES) {
+    if (interdites === null) { resultats.push({ ...achat, qte: 0, raison: 'legalite_non_verifiable' }); continue; }
+    if (interdites.has(achat.produit)) { resultats.push({ ...achat, qte: 0, raison: 'interdit_par_la_loi' }); continue; }
     const production = productionReelleDuJour[achat.produit] || 0;
     if (production <= 0) { resultats.push({ ...achat, qte: 0, raison: 'production_nulle' }); continue; }
 
@@ -2572,7 +2593,13 @@ async function livrerEntrepotsQuotidien() {
     // BOIS_SOVARKA_JOUR plus bas dans cette meme fonction. RESSOURCES_ECONOMIE_SERVEUR.bois
     // garde source:'livraison' (plafond/prixAchatFournisseur toujours valides pour l'entrepot),
     // seule sa participation a CE tirage change.
-    const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([cle, r]) => r.source === 'livraison' && cle !== 'bois');
+    // Livraison = achat de l'entrepot a un fournisseur : une matiere interdite n'est plus livree (ni
+    // stockee, ni redirigee vers l'usine locale, ni reroutee vers le port). Verification impossible
+    // -> aucune livraison ce jour (fail-closed).
+    const interdites = await matieresInterditesRepublia();
+    if (interdites === null) { resultats.erreur = 'legalite_non_verifiable'; return resultats; }
+    resultats.matieresInterdites = [...interdites];
+    const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([cle, r]) => r.source === 'livraison' && cle !== 'bois' && !interdites.has(cle));
 
     for (const { buildingId, city } of ENTREPOTS_VILLES) {
       const etat = await sbGetBatimentEtat('republic', city, buildingId).catch(() => null);
@@ -2799,7 +2826,16 @@ async function traiterExportationsPortQuotidien() {
       stocksEntrepots[e.city] = { etat: etatE };
     }
 
+    // Exportation = vente institutionnelle : une matiere interdite n'est plus exportee (le stock reste
+    // en entrepot, §34). Verification impossible -> aucune exportation ce jour (fail-closed).
+    const interdites = await matieresInterditesRepublia();
     for (const [cle, cfg] of Object.entries(EXPORTATIONS_PORT)) {
+      if (interdites === null || interdites.has(cle)) {
+        exportations[cle] = { destination: cfg.destination, contrat: 0, envoye: 0, satisfactionPct: 0,
+          raison: interdites === null ? 'legalite_non_verifiable' : 'interdit_par_la_loi', jour: new Date().toISOString() };
+        resultats.exportations[cle] = { contrat: 0, envoye: 0, raison: exportations[cle].raison };
+        continue;
+      }
       // "1 ville" reutilise le plafond deja existant de la ressource (RESSOURCES_ECONOMIE_
       // SERVEUR[cle].plafond) -- aucun chiffre invente, voir EXPORTATIONS_PORT plus haut.
       const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
@@ -4455,6 +4491,70 @@ export default async function handler(req, res) {
   const results = [];
 
   try {
+    // 0. ASSEMBLEE NATIONALE — REVEIL AUTOMATIQUE DE MINUIT (§24, chantier du 10 septembre 2026)
+    //
+    // Tout depute PNJ endormi se reveille a minuit. Le traitement est SERVEUR par nature : l'etat
+    // 'endormi' est partage entre tous les joueurs, un reveil cote client se declencherait dans
+    // chaque navigateur independamment, avec des state.day desynchronises (le jour de jeu est
+    // propre a chaque joueur -- le projet l'a deja acte pour les lois et les baux).
+    //
+    // Un seul UPDATE ensembliste sous verrou, donc idempotent : rejouer ce cron ne fait rien de
+    // plus. Place en TETE du handler pour qu'un echec electoral plus bas ne prive jamais
+    // l'Assemblee de son reveil.
+    //
+    // IDENTITE SERVEUR (correctif de securite du 10 septembre 2026) : assemblee_reveil_minuit
+    // n'accorde EXECUTE qu'au service_role (migration_assemblee_securisation_droits.sql) -- avec la
+    // cle anon, n'importe quel joueur reveillait l'hemicycle a volonte. La base ne reveille que les
+    // deputes endormis AVANT le dernier minuit Paris, quelle que soit l'heure d'appel.
+    try {
+      if (!SUPABASE_SERVICE_ROLE) console.error('assemblee_reveil_minuit : SUPABASE_SERVICE_ROLE_KEY absente, aucun reveil');
+      const reveils = SUPABASE_SERVICE_ROLE
+        ? await sbRpc('assemblee_reveil_minuit', { p_country: 'republic' }, HEADERS_SERVICE)
+        : null;
+      const nbReveils = Array.isArray(reveils) ? reveils[0] : reveils;
+      if (typeof nbReveils === 'number' && nbReveils > 0) {
+        results.push({ tache: 'assemblee_reveil_minuit', deputes_reveilles: nbReveils });
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 Les députés assommés de l\'Assemblée nationale ont retrouvé leurs esprits pendant la nuit.',
+          jour: null
+        }).catch(() => {});
+      }
+    } catch (e) { console.error('assemblee_reveil_minuit', e); }
+
+    // 0 bis. CONVOCATIONS ECHUES — AUTORITE SERVEUR (§41, chantier du 10 septembre 2026)
+    //
+    // Le delai de 36 h est porte par un instant ABSOLU (convocations[].limiteTs). Le serveur TRANCHE
+    // l'echeance ; le client du joueur APPLIQUE la peine a sa prochaine connexion -- meme repartition
+    // que pour les agressions (impacts_indices_attente).
+    //
+    // BUG CORRIGE (defaut introduit a la passe precedente de ce chantier). Ce bloc faisait lui-meme
+    // une lecture-modification-ecriture de personnages, et y posait est_emprisonne = {jours:2, ...}
+    // SANS jourFin. Trois defauts cumules :
+    //   1. verifierLiberationPrisonniers teste state.day >= estEmprisonne.jourFin : avec jourFin
+    //      undefined, le joueur n'aurait JAMAIS ete libere ;
+    //   2. aucune ligne n'etait ecrite au registre 'detentions' ;
+    //   3. la sauvegarde suivante d'un client connecte aurait efface est_emprisonne, qu'il republie.
+    // Le serveur ne peut d'ailleurs pas calculer la peine : elle s'exprime en jours de jeu, et
+    // state.day est propre a chaque joueur.
+    //
+    // Desormais : une seule RPC ensembliste pose le verdict echue = true, rendu monotone par le
+    // trigger personnages_preserver_judiciaire -- aucune sauvegarde client ne peut l'effacer. C'est
+    // traiterConvocations (plateau-justice-economie.js) qui, voyant ce verdict, appelle
+    // procederArrestation('non_presentation_convocation') : jourFin correct, registre ecrit, cellule.
+    //
+    // Identite serveur obligatoire : cette RPC ecrit un verdict chez des joueurs potentiellement
+    // hors ligne, elle n'est executable que par le service_role. Sans cle, rien n'est ecrit.
+    try {
+      if (!SUPABASE_SERVICE_ROLE) console.error('convocations_echues : SUPABASE_SERVICE_ROLE_KEY absente, aucun verdict');
+      const verdict = SUPABASE_SERVICE_ROLE
+        ? await sbRpc('assemblee_marquer_convocations_echues', { p_country: 'republic' }, HEADERS_SERVICE)
+        : null;
+      const v = Array.isArray(verdict) ? verdict[0] : verdict;
+      const marques = (v && Array.isArray(v.marques)) ? v.marques : [];
+      if (marques.length > 0) results.push({ tache: 'convocations_echues', joueurs: marques.length });
+    } catch (e) { console.error('convocations_echues', e); }
+
     // 1. Récupérer tous les cycles électoraux
     const cycles = await sbGet('cycles_electoraux', 'select=*');
     if (!cycles) {

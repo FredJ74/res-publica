@@ -1294,6 +1294,10 @@ async function recupererImpactsEnAttente() {
         statsTouchees.forEach(s => { state.statsAffaiblies[s] = true; });
 
         if (typeof declencherHospitalisation === 'function') declencherHospitalisation(imp.palier);
+        // §19 : declencherHospitalisation sauvegarde deja, mais hp/statsAffaiblies/regenJour sont
+        // poses juste au-dessus, AVANT son appel -- ce filet garantit qu'ils partent en base meme
+        // si la fonction venait a manquer.
+        else if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
       }
       if (imp.indice === 'poison_start') {
         state.empoisonnement = { actif: true, palier: imp.palier, poisonType: imp.poisonType };

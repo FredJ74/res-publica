@@ -237,6 +237,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
+  if (fn === 'acheter_sels_ammoniaque') { doAcheterSelsAmmoniaque(pa, cost); return; }
   if (fn === 'vendre_matiere_usine') { doVendreMatierePremiereUsineGenerique(pa, cost); return; }
   if (fn === 'consulter_caisse_usine') { doConsulterCaisseUsine(); return; }
   if (fn === 'consulter_stock_usine') { doConsulterStockUsine(); return; }
@@ -275,8 +276,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'declencher_election_club') { doDeclencherElectionClub(pa, cost); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
-  if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
-  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
+  if (fn === 'marchander_vote') { ouvrirMarchanderVote(pa, cost); return; }
+  // §17 : le terme visible devient "Neutraliser". Le fn 'assassiner' reste inchange -- c'est un
+  // identifiant persiste dans data.js et compare par le routeur, jamais montre au joueur.
+  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour neutraliser quelqu\'un, cliquez sur la personne visée dans la liste des personnes présentes.', false); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
   if (fn === 'creer_poste_ministre')    { creerPosteMinistre(pa, cost); return; }
   if (fn === 'creer_comite')            { creerComite(pa, cost); return; }
@@ -371,7 +374,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
   if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere', pa, cost); return; }
-  if (fn === 'assassiner')             { ouvrirModalAssassiner(); return; }
+  // Doublon supprime (audit du 9 septembre 2026) : cette seconde route 'assassiner' etait
+  // INATTEIGNABLE -- le test identique plus haut dans cette meme fonction fait return avant. Elle
+  // pointait sur ouvrirModalAssassiner(), implementation legacy elle aussi morte, desormais
+  // retiree de plateau-actions-illegales-rumeurs.js.
+  if (fn === 'reveiller_depute')       { ouvrirReveillerDepute(pa, cost); return; }
   if (fn === 'se_cacher')              { doSeCacher(); return; }
   if (fn === 'empoisonner')            { ouvrirModalEmpoisonner(); return; }
   if (fn === 'repartition_budget_local'){ doRepartirBudgetMunicipal(pa, cost); return; }
@@ -390,15 +397,28 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'falsifier_listes_electorales') { ouvrirFalsifierListesElectorales(pa, cost); return; }
   if (fn === 'bourrer_urnes')           { ouvrirBourrerUrnes(pa, cost); return; }
   if (fn === 'truquer_depouillement')   { ouvrirTruquerDepouillement(pa, cost); return; }
-  if (fn === 'voter_loi')              { ouvrirVoteLoi(pa, cost); return; }
-  if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
+  // ASSEMBLEE NATIONALE (chantier du 10 septembre 2026) — tout le cycle parlementaire est
+  // desormais servi par plateau-assemblee.js, sur les tables assemblee_*. Les anciens handlers
+  // (ouvrirVoteLoi/ouvrirDeposerProjet, bases sur state.loisEnCours en memoire) sont supprimes.
+  if (fn === 'voter_loi')              { ouvrirVoterLoi(pa, cost); return; }
+  if (fn === 'projet_loi')             { ouvrirDeposerProposition(pa, cost); return; }
+  if (fn === 'amender_projet')         { ouvrirAmenderProposition(); return; }
+  if (fn === 'proposer_abrogation')    { ouvrirProposerAbrogation(pa, cost); return; }
+  if (fn === 'registre_assemblee')     { ouvrirRegistreAssemblee(); return; }
+  // 'deposer_projet' : ancien fn du bureau presidentiel, sans bouton depuis longtemps (0 appelant
+  // constate a l'audit du 9 septembre). Redirige vers le nouveau depot plutot que de laisser une
+  // route morte pointant sur une fonction supprimee.
+  if (fn === 'deposer_projet')         { ouvrirDeposerProposition(pa, cost); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate, pa, cost); return; }
   if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(pa, cost); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference', pa, cost); return; }
   if (fn === 'donner_conf') { doDonnerConference(pa, cost); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande', pa, cost); return; }
   if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(pa, cost); return; }
-  if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
+  // 'consulter_archives_lois' SUPPRIME : l'ordre correspondant de la Salle des Archives est
+  // remplace par 'registre_assemblee'. Son handler ouvrirArchivesLois lisait lois_assemblee,
+  // table dont l'audit du 9 septembre a montre qu'elle etait vide et dont le champ resultat
+  // n'etait jamais renseigne -- toute loi y restait "En cours" indefiniment.
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   // pa/cost etaient omis ici alors que la route jumelle 'plainte' (plus bas) les transmet :
   // deduireCoutOrdre({pa: undefined, cost: undefined}) ne prelevait donc jamais rien.
@@ -560,7 +580,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
   if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
   if (fn === 'defense') { doDefense(pa, cost); return; }
-  if (fn === 'projet_loi') { ouvrirDeposerProjet(pa, cost); return; }
+  // Doublon 'projet_loi' SUPPRIME (chantier Assemblee, 10 septembre 2026). Cette seconde route
+  // etait inatteignable -- le test identique plus haut dans cette meme fonction fait return avant.
+  // Elle pointait sur ouvrirDeposerProjet(), desormais retiree de plateau-politique.js. Meme
+  // famille de piege que le doublon 'assassiner' corrige plus haut : deux routes pour un meme fn,
+  // dont une seule compte, et rien ne le signale.
   // L'ordre 'greve' (greve PNJ d'empire, -5 IE decoratif) a ete retire le 8 septembre 2026 :
   // son handler doGrevePNJ avait disparu lors de l'eclatement de plateau.js du 28 juin 2026 --
   // clic = ReferenceError -- et le moteur syndical complet (greve_lancer/greve_terminer,
@@ -667,7 +691,7 @@ function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   // du restaurant au meme lot (remplace par "Consulter la carte") -- mais le fn reste une
   // infrastructure partagee (ORDER_EFFECTS, applyEffects, doRepasGastronomiqueGenerique) : garde
   // deterministe si jamais rebranche ailleurs.
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former','repas_gastronomique'];
+  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','deliberer_loge','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former','repas_gastronomique'];
   if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
 
   applyEffects(fn, resultType, cost);

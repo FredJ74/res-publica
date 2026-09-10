@@ -7,6 +7,12 @@ const FORUMS_BASE = {
   local:         { name: 'Forum Local',          icon: 'ti-home',          desc: 'Discussions de votre ville', private: false, cat: 'intra' },
   national:      { name: 'Forum National',        icon: 'ti-flag',          desc: 'Débats politiques nationaux', private: false, cat: 'intra' },
   presidence:    { name: 'La Présidence à la Nation', icon: 'ti-flag-3',    desc: 'Discours et annonces officielles depuis la Présidence', private: false, cat: 'intra', sousGroupe: 'institutions' },
+  // Assemblee nationale (chantier du 10 septembre 2026). Public : tout le monde peut lire et
+  // debattre d'un projet de loi ; seul son auteur peut l'amender, et cela ne passe pas par le
+  // forum mais par l'ordre dedie (§7). L'ancien FORUM_TOPICS['parlement'], ecrit en memoire par
+  // soumettreProjetLoi, ne correspondait a AUCUN forum declare ici : les sujets n'etaient donc
+  // affichables nulle part. Ce forum-ci existe reellement.
+  assemblee:     { name: "L'Assemblée nationale", icon: 'ti-building-bank', desc: 'Projets de loi, débats parlementaires et résultats des scrutins', private: false, cat: 'intra', sousGroupe: 'institutions' },
   gouvernement:  { name: 'Le Gouvernement à la Nation', icon: 'ti-building-bank', desc: 'Réservé au gouvernement', private: true, requiredPost: ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'], cat: 'intra', sousGroupe: 'institutions' },
   presse:        { name: 'Presse & Médias',        icon: 'ti-news',          desc: 'Réservé aux journalistes', private: true, cat: 'intra' },
   international: { name: 'Forum International',   icon: 'ti-world',         desc: 'Relations entre empires', private: false, cat: 'inter' },

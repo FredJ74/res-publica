@@ -905,6 +905,9 @@ async function doConsulterConfessions(pa, cost) {
 }
 
 async function doAcheterRelique(pa, cost) {
+  // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ type: 'relique' }]))) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
 

@@ -1596,6 +1596,12 @@ function declencherHospitalisation(palier) {
   const duree = dureeParPalier[palier] || (lieu === 'clinique' ? 1 : 2);
   state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree };
   state.pa = 0;
+  // §19 — BUG CORRIGE (chantier Neutraliser, 10 septembre 2026) : l'hospitalisation n'etait
+  // ecrite que dans state, jamais persistee. Un F5 rendait immediatement au joueur ses PA, ses
+  // deplacements et ses deux statistiques affaiblies -- toute la sanction d'une agression etait
+  // annulable gratuitement. Sauvegarde immediate, pas au prochain cycle : la victime peut
+  // rafraichir dans la seconde.
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
   const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
   if (typeof enterBuilding === 'function') enterBuilding(batimentCible, true);
@@ -1679,6 +1685,20 @@ async function doDormir() {
   // Banque nationale). state.banque (champ legacy) n'est plus touche du tout.
   state.arg += salaire;
   state.liquide += salaire;
+
+  // §47/§48 — INDEMNITE PARLEMENTAIRE. 250 FR/jour pour les deputes PJ uniquement, prelevés sur
+  // la caisse de l'Assemblee, CUMULABLES avec le salaire de poste calcule juste au-dessus : un
+  // ministre-depute touche bien les deux. Volontairement liee a Dormir et non a un cron -- un
+  // depute qui ne dort pas perd l'indemnite du jour, sans dette ni rattrapage.
+  //
+  // Ne lit JAMAIS state.poste : le mandat de depute vit dans state.posteDepute, champ separe
+  // precisement pour permettre le cumul. C'est meme le serveur qui verifie l'occupation reelle
+  // d'un siege, la garde quotidienne et le plafonnement par la caisse.
+  //
+  // Non bloquant : une Assemblee injoignable ne doit jamais empecher un joueur de dormir.
+  if (typeof verserIndemniteParlementaire === 'function') {
+    await verserIndemniteParlementaire().catch(() => {});
+  }
   // Moral de base (correctif du 23 aout 2026) : constante unique, plus aucun bonus lie a la
   // simple presence dans un hotel (voir commentaire plus haut) -- seul doDormirChambre() ajoute
   // desormais un bonus hotelier, apres cet appel, jamais ici.
@@ -2528,6 +2548,11 @@ function verifierProgressionHospitalisation() {
       libererChambreCliniquePatient(state.char?.name);
     }
     state.hospitalisation = null;
+    // §19 : la sortie de convalescence lève aussi les deux statistiques affaiblies posées à
+    // l'agression, et doit être persistée au même titre que l'entrée.
+    state.statsAffaiblies = {};
+    state.regenJour = null;
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
     showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true);
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
     return;

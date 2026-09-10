@@ -918,7 +918,10 @@ function openPnjModal(encodedPnj) {
   }
 
   // Recruter comme employé (tous PNJ sauf escort qui a son propre bouton)
-  if (!isPJ && pnj.job !== 'escort' && pnj.job !== 'codetenu') {
+  // §2 : les neuf députés PNJ ne doivent JAMAIS être recrutables. Ils portent nonRecrutable,
+  // posé par appliquerDeputesAssemblee (plateau-assemblee.js). Le drapeau est générique : tout
+  // PNJ institutionnel futur peut le réutiliser sans toucher à cette condition.
+  if (!isPJ && !pnj.nonRecrutable && pnj.job !== 'escort' && pnj.job !== 'codetenu') {
     const nomCourt = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const dejEmploye = (state.employes || []).some(e => e.nom === nomCourt);
     if (!dejEmploye) {
@@ -983,7 +986,24 @@ function openPnjModal(encodedPnj) {
 
   const encCible = encodePnjSafe(pnj);
   actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVoler(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
-  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
+  // §17 : libelle visible "Neutraliser". Le nom de la fonction (ouvrirModalAssassinat) et les
+  // identifiants techniques sous-jacents restent inchanges -- ils sont couples a la detection et
+  // aux barèmes persistes (voir plateau-actions-illegales-rumeurs.js).
+  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Neutraliser</button>';
+
+  // §22 — REVEILLER : ordre de rencontre conditionnel, visible uniquement sur l'un des neuf
+  // deputes PNJ, effectivement en fonction, actuellement endormi, et si le PJ porte des sels.
+  // Les quatre conditions sont revalidees dans le handler (§52).
+  if (typeof assembleeSiegeParNomPnj === 'function') {
+    const siegeRev = assembleeSiegeParNomPnj(pnj.name);
+    if (siegeRev) {
+      const occRev = (typeof assembleeOccupationSiege === 'function') ? assembleeOccupationSiege(siegeRev.id) : null;
+      const aDesSels = (state.inventory || []).some(i => i.stackKey === 'sels_ammoniaque' && (i.qty || 0) > 0);
+      if (occRev && occRev.estPnj && occRev.endormi && aDesSels) {
+        actionBtns += '<button class="pnj-action-btn" style="color:#6ab858;border-color:#2a3a10" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');confirmerReveillerDepute(\'' + siegeRev.id + '\')"><i class="ti ti-alarm" style="font-size:.85rem"></i> Réveiller (1 PA + 1 sels)</button>';
+      }
+    }
+  }
   // Quete carriere (Pat Hounette / Jean-Lou Zeure / Laurent Barre) — independante du systeme
   // de quete/enquete generique ci-dessous (state.char.queteCarriere, pas state.quetes).
   if (!isPJ && typeof genererZoneCarriereHtml === 'function') {

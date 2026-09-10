@@ -902,6 +902,8 @@ function doPasserDouanesAeroport() {
 
     if (!state.convocations) state.convocations = [];
     state.convocations.push({
+      // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).
+      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       motif: 'possession_illegale_douane',
       jourEmission: state.day || 1,
       heureEmission: state.hour || 8,
