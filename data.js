@@ -216,7 +216,7 @@ const WORLD = {
                 {fn:'imprimer_tracts_choix', label:'Imprimer des tracts', pa:0, cost:0, type:'grey', icon:'ti-file-description', successRate:100, desc:'Tracts ordinaires (pour/contre) ou tracts calomnieux (illégal) : le type se choisit ensuite, chacun avec ses propres coûts et risques.',
                   choix: [
                     {fn:'imprimer_tracts'},
-                    {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+                    {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
                   ]},
                 // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : gere en
                 // dehors du pipeline PA/argent generique (doOrder), voir ouvrirFormulairePetiteAnnonce
@@ -693,7 +693,7 @@ const WORLD = {
               imageUrl: "images/montrouge/montrouge-lci-imprimerie.jpg",
               persons: [],
               orders: [
-                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
               ]
             }
           }

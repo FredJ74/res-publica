@@ -206,12 +206,16 @@ function choisirTypeImprimerTracts(i) {
   doOrder(o.fn, o.pa, o.cost, o.label.replace(/'/g, ' '), (o.desc || '').replace(/'/g, ' '), o.successRate || 70);
 }
 
+// Prix d'un lot de 10 tracts, identique pour les tracts ordinaires et calomnieux (arbitrage du 11
+// septembre 2026). Seule source du tarif cote code ; data.js l'affiche (cost:150).
+const PRIX_LOT_TRACTS = 150;
+
 async function ouvrirModalImprimerTracts(pa, cost) {
   const contacts = state.contacts || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">150 ' + cur + ' par lot de 10 tracts.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + PRIX_LOT_TRACTS + ' ' + cur + ' par lot de 10 tracts.</div>';
 
   if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
     // Meme correctif de ville que confirmerImpression : a Montrouge, ce panneau annoncait le stock
@@ -239,7 +243,7 @@ async function ouvrirModalImprimerTracts(pa, cost) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITE</div>';
     html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     [10,20,50,100].forEach(q => {
-      const cout = q / 10 * 150;
+      const cout = q / 10 * PRIX_LOT_TRACTS;
       html += '<option value="' + q + '">' + q + ' tracts — ' + cout + ' ' + cur + '</option>';
     });
     html += '</select>';
@@ -271,7 +275,7 @@ async function confirmerImpression(pa, cost) {
   const cible = document.getElementById('tract-cible')?.value;
   const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = quantite / 10 * 150;
+  const cout = quantite / 10 * PRIX_LOT_TRACTS;
   const nbLots = quantite / 10;
 
   // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), jamais arg seul : meme
@@ -365,6 +369,9 @@ async function confirmerImpression(pa, cost) {
 // bas dans le fichier) -- pas de caisse/stock institutionnel comme Gustave, pas de
 // batiments_etat. Quantite de bois par lot volontairement simple/non optimisee (decision
 // explicite : "ce n'est pas le sujet").
+// Depuis le 11 septembre 2026, le tract calomnieux coute en plus PRIX_LOT_TRACTS par lot dans les
+// ateliers de La Tribune (Luthecia, Montrouge), encaisse par leur caisse d'imprimerie ; inchange a
+// Port-Sainte-Marie, sans caisse (voir prixLotTractsCalomnieux).
 const BOIS_PAR_LOT_TRACTS_PSM = 1;
 
 function stockBoisPersonnel() {
@@ -440,12 +447,22 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
 // ACTES_ILLEGAUX['imprimer_tracts_calomnieux'] (plateau-core.js, cle renommee a l'identique
 // depuis l'ancienne imprimer_clandestin) -- meme mecanisme de detection qu'ailleurs, aucun
 // systeme parallele.
+// Prix d'un lot de tracts calomnieux : PRIX_LOT_TRACTS dans un atelier de La Tribune (Luthecia,
+// Montrouge), qui a une caisse d'imprimerie pour l'encaisser. 0 a l'Imprimerie-Librairie de
+// Port-Sainte-Marie, sans caisse : le prix n'y est pas applique tant que ce n'est pas arbitre (le
+// payer y detruirait l'argent ; y creer une caisse serait une nouvelle mecanique).
+function prixLotTractsCalomnieux() {
+  return state.currentBuilding === 'la-tribune' ? PRIX_LOT_TRACTS : 0;
+}
+
 function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
   const contacts = state.contacts || [];
   const { qte: stockBois } = stockBoisPersonnel();
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts calomnieux';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts calomnieux (illégal).</div>';
+  const prixLot = prixLotTractsCalomnieux();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + (prixLot > 0 ? prixLot + ' ' + cur + ' + ' : '') + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts calomnieux (illégal).</div>';
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
@@ -471,8 +488,18 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
     return;
   }
 
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  // Paiement du lot (arbitrage du 11 septembre 2026 : meme prix que les tracts ordinaires) par le
+  // mecanisme standard : fonds reels (liquide puis Banque nationale) verifies avant toute
+  // production, puis PA + debit en un seul appel. Aucun paiement la ou l'atelier n'a pas de caisse.
+  const prixLot = prixLotTractsCalomnieux();
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (prixLot > 0 && fondsDisponibles < prixLot) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + prixLot + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost: prixLot });
   if (!r.ok) { signalerRefusCout(r); return; }
+  const montantDebite = r.montantPreleve || 0;
 
   lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
@@ -485,9 +512,17 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
     state.inventory.push({ type: 'tract_calomnieux', name: 'Tracts calomnieux contre ' + cible, icon: 'ti-alert-triangle', cible: cible, quantite: 10, legal: false });
   }
 
+  // La caisse de l'atelier ne recoit que ce que le joueur a reellement paye.
+  if (montantDebite > 0 && typeof sbGetBatimentEtat === 'function' && typeof sbSetBatimentEtat === 'function') {
+    const villeAtelier = state.currentCity || 'capitale';
+    const etatAtelier = await sbGetBatimentEtat(state.country, villeAtelier, 'la-tribune');
+    etatAtelier.imprimerie = { ...(etatAtelier.imprimerie || {}), caisse: (etatAtelier.imprimerie?.caisse || 0) + montantDebite };
+    await sbSetBatimentEtat(state.country, villeAtelier, 'la-tribune', etatAtelier).catch(() => {});
+  }
+
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal).', true, true);
+  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal).' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') : ''), true, true);
   addJournalEntry('Impression clandestine de 10 tracts calomnieux contre ' + cible + '.', 'event-info');
   if (typeof checkDetection === 'function') checkDetection('imprimer_tracts_calomnieux', 'success');
 }
