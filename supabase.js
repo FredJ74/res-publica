@@ -2397,6 +2397,23 @@ async function sbTractsDonnerJoueur(requete, expediteur, destinataire, objet) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// Tract electoral aupres d'un PNJ (11 septembre 2026, migration_tracts_electoraux_pnj.sql) : le
+// serveur verifie dimanche, phase de vote, candidat, geographie (position ENREGISTREE du joueur),
+// tract detenu et PNJ disponible, tire le jet et enregistre l'effet de facon atomique. Idempotent
+// sur l'id de requete. Ne renvoie jamais un etat electoral complet a reecrire.
+async function sbTractsElectorauxDistribuer(requete, joueur, cycleId, candidat, sens, pnjNom, volPnj) {
+  const rows = await sbRpc('tracts_electoraux_distribuer', {
+    p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId, p_candidat: candidat,
+    p_sens: sens, p_pnj_nom: pnjNom, p_vol_pnj: (typeof volPnj === 'number') ? volPnj : null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Effets des tracts electoraux d'un pays (lecture publique), agreges ensuite par cycle et par tour.
+async function sbChargerEffetsTractsPNJ(country) {
+  return await sbGet('elections_tracts_pnj', `cycle_id=like.${encodeURIComponent(country)}_*&select=cycle_id,tour,candidat,effet`);
+}
+
 // Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
 // deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
 async function sbTractsReclamerDon(id, destinataire) {

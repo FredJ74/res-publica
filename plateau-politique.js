@@ -795,6 +795,7 @@ async function syncCyclesDepuisSupabase() {
       }));
     }
   }
+  await chargerEffetsTractsPNJ(country);
 }
 
 // Ne conserve que les candidatures deposees DEPUIS l'ouverture du scrutin courant.
@@ -1092,6 +1093,7 @@ function calculerSondageElectoral(cycle) {
   cycle.candidats.forEach(c => { scores[c.nom] = 0; });
   Object.values(cycle.votes || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
   Object.values(cycle.votesPNJ || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
+  appliquerEffetsTracts(scores, cycle);
   const total = Object.values(scores).reduce((s, v) => s + v, 0);
   if (total === 0) return null;
   const brut = Object.entries(scores).map(([nom, voix]) => ({ nom, voix, exact: voix / total * 100 }));
@@ -1457,6 +1459,100 @@ function voterPour(candidatNom, posteId, country, city) {
 // (distribuerTractJeanLou, plateau-pnj.js) -- aucune logique electorale parallele.
 // Renvoie false sans rien faire si ce PNJ est deja enregistre pour ce cycle (garde-fou contre
 // une deuxieme voix pour le meme PNJ, meme si l'appel vient d'ailleurs que ce cycle).
+// =====================
+// TRACTS ELECTORAUX AUPRES DES PNJ (11 septembre 2026, migration_tracts_electoraux_pnj.sql)
+// =====================
+// Une participation PNJ reussie est une ligne de elections_tracts_pnj ecrite par le serveur
+// (RPC tracts_electoraux_distribuer), jamais le blob du cycle : effet +1 (POUR), -1 (CONTRE) ou 0
+// (CONTRE sur un score deja nul), par tour (tour = cycle.dateVote). Les effets du tour courant sont
+// attaches au cycle en memoire par une propriete NON enumerable : les decomptes (sondage,
+// depouillement) les lisent, mais JSON.stringify (sbSaveCycleElectoral) ne les ecrit jamais dans le
+// blob. Architecture prevue pour de futures participations synthetiques (ex. action groupee du
+// president des supporters : une ligne par electeur synthetique, meme table, meme decompte).
+const POSTES_TRACTS_ELECTORAUX = ['president', 'maire', 'depute'];
+const LIEUX_PRESIDENTIELLE = ['capitale', 'ville_a', 'ville_b', 'caserne', 'qhs'];
+
+function attacherEffetsTracts(cycle, effets) {
+  if (!cycle) return;
+  Object.defineProperty(cycle, '_effetsTracts', { value: effets, enumerable: false, writable: true, configurable: true });
+}
+
+function appliquerEffetsTracts(scores, cycle) {
+  const e = cycle && cycle._effetsTracts;
+  if (!e || e.tour !== cycle.dateVote) return;
+  Object.keys(e.parCandidat || {}).forEach(nom => {
+    if (scores[nom] !== undefined) scores[nom] = Math.max(0, scores[nom] + e.parCandidat[nom]);
+  });
+}
+
+function ajouterEffetTractLocal(cycle, candidat, effet, tour) {
+  if (!cycle || !effet || tour !== cycle.dateVote) return;
+  const e = (cycle._effetsTracts && cycle._effetsTracts.tour === tour) ? cycle._effetsTracts : { tour, parCandidat: {} };
+  e.parCandidat[candidat] = (e.parCandidat[candidat] || 0) + effet;
+  attacherEffetsTracts(cycle, e);
+}
+
+async function chargerEffetsTractsPNJ(country) {
+  if (typeof sbChargerEffetsTractsPNJ !== 'function') return;
+  const lignes = await sbChargerEffetsTractsPNJ(country).catch(() => null);
+  if (!Array.isArray(lignes)) return;
+  const cycles = CYCLES_ELECTORAUX[country] || {};
+  Object.keys(cycles).forEach(cle => {
+    const cycle = cycles[cle];
+    const parCandidat = {};
+    lignes.filter(l => l.cycle_id === country + '_' + cle && Number(l.tour) === cycle.dateVote)
+      .forEach(l => { parCandidat[l.candidat] = (parCandidat[l.candidat] || 0) + Number(l.effet || 0); });
+    attacherEffetsTracts(cycle, { tour: cycle.dateVote, parCandidat });
+  });
+}
+
+// Dimanche a l'heure de Paris (le serveur fait foi, avec la meme regle).
+function estDimancheParis(date) {
+  const d = date || new Date();
+  try { return new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', weekday: 'short' }).format(d) === 'Sun'; }
+  catch (e) { return d.getDay() === 0; }
+}
+
+function libelleScrutinTract(country, posteId, city) {
+  const ville = city ? (WORLD[country]?.[city]?.name || city) : null;
+  if (posteId === 'president') return 'Présidentielle';
+  if (posteId === 'maire') return 'Municipales — ' + ville;
+  return 'Législatives — ' + ville;
+}
+
+// Scrutins ou CE tract peut etre distribue maintenant, depuis le lieu ou se trouve le joueur :
+// dimanche, phase de vote ouverte, candidat inscrit a ce scrutin, geographie valide (ville du
+// scrutin local ; presidentielle : une ville du pays, la caserne ou le QHS). Un tract imprime pour
+// un scrutin precis (electionPosteId/electionCity, Port-Sainte-Marie) n'est propose que pour lui.
+function scrutinsDistribuablesPourTract(tract) {
+  if (!tract || tract.type !== 'tract' || !estDimancheParis()) return [];
+  const country = state.country;
+  const cycles = CYCLES_ELECTORAUX[country] || {};
+  const ville = state.currentCity;
+  const phasesVote = [PHASES_ELECTORALES.VOTE, PHASES_ELECTORALES.VOTE2, PHASES_ELECTORALES.VOTE3E_SIEGE];
+  const res = [];
+  Object.keys(cycles).forEach(cle => {
+    const cycle = cycles[cle];
+    const posteId = cycle && cycle.posteId;
+    if (POSTES_TRACTS_ELECTORAUX.indexOf(posteId) < 0 || cycle.resultatsTraites) return;
+    if (phasesVote.indexOf(getPhaseActuelle(country, posteId, cycle.city)) < 0) return;
+    if (!(cycle.candidats || []).some(c => c.nom === tract.cible)) return;
+    if (cycle.city ? ville !== cycle.city : LIEUX_PRESIDENTIELLE.indexOf(ville) < 0) return;
+    if (tract.electionPosteId && (tract.electionPosteId !== posteId || (tract.electionCity || null) !== (cycle.city || null))) return;
+    res.push({ cle, cycleId: country + '_' + cle, posteId, city: cycle.city || null, libelle: libelleScrutinTract(country, posteId, cycle.city) });
+  });
+  return res;
+}
+
+// Lots de tracts ordinaires (POUR/CONTRE, hors mission Jean-Lou) utilisables ici et maintenant.
+function tractsElectorauxDistribuablesIci() {
+  return (state.inventory || [])
+    .filter(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && (i.quantite || 0) > 0
+      && (i.tractType === 'pour' || i.tractType === 'contre' || !i.tractType))
+    .map(tract => ({ tract, scrutins: scrutinsDistribuablesPourTract(tract) }))
+    .filter(o => o.scrutins.length > 0);
+}
+
 async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom) {
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
@@ -1568,6 +1664,7 @@ function calculerResultats(posteId, country, city) {
   Object.values(cycle.votesPNJ).forEach(nom => {
     if (scores[nom] !== undefined) scores[nom]++;
   });
+  appliquerEffetsTracts(scores, cycle);
 
   const totalVoix = Object.values(scores).reduce((s, v) => s + v, 0);
   if (totalVoix === 0) return { scores, totalVoix: 0, elu: null, secondTour: [] };
@@ -1864,6 +1961,8 @@ function calculerScoresBaseCycle(cycle, fraudesActives) {
     if (nom === 'BLANC') { blancs++; return; }
     if (scores[nom] !== undefined) scores[nom]++;
   });
+  // Tracts electoraux aupres des PNJ (+1 / -1, plancher 0) du tour courant.
+  appliquerEffetsTracts(scores, cycle);
   // Fraudes ENCORE NON REVELEES uniquement : une fraude revelee est deja corrigee a la source
   // (voir resolution de contestation), elle ne doit plus jamais etre appliquee une seconde fois.
   (fraudesActives || []).forEach(f => {

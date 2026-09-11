@@ -128,7 +128,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
-  if (fn === 'distribuer_tract') { doDistribuerTract(pa, cost); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts_choix') { ouvrirChoixImprimerTracts(); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(pa, cost); return; }

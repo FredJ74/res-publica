@@ -174,6 +174,7 @@ function calculerScoresBaseCycle(cycle, fraudesActives) {
     if (nom === 'BLANC') { blancs++; return; }
     if (scores[nom] !== undefined) scores[nom]++;
   });
+  appliquerEffetsTracts(scores, cycle);
   (fraudesActives || []).forEach(f => {
     if (scores[f.candidat] !== undefined) scores[f.candidat] = Math.max(0, scores[f.candidat] + f.delta_voix);
   });
@@ -223,6 +224,28 @@ function resoudreScrutinDepute(cycle, fraudesActives) {
 // Charge les fraudes NON REVELEES d'un scrutin precis (cycle_debut = cycle.dateDebutCandidatures
 // AU MOMENT DE LA FRAUDE -- cle stable a travers les renouvellements, puisque cycles_electoraux
 // ecrase la meme ligne a chaque nouveau cycle). Une fraude revelee ne doit plus jamais compter.
+// Tracts electoraux aupres des PNJ (11 septembre 2026, migration_tracts_electoraux_pnj.sql) : une
+// ligne par participation reussie, effet +1/-1/0 deja borne a la source, pour le tour courant
+// (tour = cycle.dateVote). Attaches au cycle par une propriete NON enumerable : les decomptes les
+// lisent, JSON.stringify ne les ecrit jamais dans le blob. MEME logique que la copie client
+// (attacherEffetsTracts/appliquerEffetsTracts, plateau-politique.js).
+async function attacherEffetsTractsServer(cycleId, cycle) {
+  const rows = await sbGet('elections_tracts_pnj',
+    `cycle_id=eq.${encodeURIComponent(cycleId)}&tour=eq.${Number(cycle.dateVote) || 0}&select=candidat,effet`
+  ).catch(() => []);
+  const parCandidat = {};
+  (rows || []).forEach(r => { parCandidat[r.candidat] = (parCandidat[r.candidat] || 0) + Number(r.effet || 0); });
+  Object.defineProperty(cycle, '_effetsTracts', { value: { tour: cycle.dateVote, parCandidat }, enumerable: false, writable: true, configurable: true });
+}
+
+function appliquerEffetsTracts(scores, cycle) {
+  const e = cycle && cycle._effetsTracts;
+  if (!e || e.tour !== cycle.dateVote) return;
+  Object.keys(e.parCandidat || {}).forEach(nom => {
+    if (scores[nom] !== undefined) scores[nom] = Math.max(0, scores[nom] + e.parCandidat[nom]);
+  });
+}
+
 async function chargerFraudesActivesServer(country, posteId, city, cycleDebut) {
   const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
   const rows = await sbGet('fraudes_electorales',
@@ -4610,6 +4633,7 @@ export default async function handler(req, res) {
       // travers les renouvellements -- voir chargerFraudesActivesServer).
       const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
       const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
+      await attacherEffetsTractsServer(row.id, cycle);
 
       if (posteId === 'depute') {
         // ================= LEGISLATIVES : 3 sieges reels par ville =================
@@ -4620,6 +4644,7 @@ export default async function handler(req, res) {
           (cycle.candidats || []).forEach(c => { scoresRunoff[c.nom] = 0; });
           Object.values(cycle.votes || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
           Object.values(cycle.votesPNJ || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
+          appliquerEffetsTracts(scoresRunoff, cycle);
           fraudesActives.forEach(f => { if (scoresRunoff[f.candidat] !== undefined) scoresRunoff[f.candidat] = Math.max(0, scoresRunoff[f.candidat] + f.delta_voix); });
           const sortedRunoff = Object.entries(scoresRunoff).sort((a, b) => b[1] - a[1]);
           const gagnantsRunoff = sortedRunoff.slice(0, cycle.siegesRestantsRunoff || 1).map(([n]) => n);

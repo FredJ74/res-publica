@@ -2980,7 +2980,8 @@ const BUILDINGS = {
         orders: [
           {fn:'se_nourrir',          label:'Acheter a manger',          pa:0, cost:8,  type:'legal',   icon:'ti-shopping-cart', successRate:100, desc:'Repas economique. +5 Sante.'},
           {fn:'pouls_populaire',     label:'Prendre le pouls',          pa:0, cost:0,  type:'legal',   icon:'ti-ear',           successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
-          {fn:'distribuer_tract',    label:'Distribuer un tract',       pa:1, cost:0,  type:'legal',   icon:'ti-file-description',successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
+          // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
+          // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
         ]
       }
@@ -4028,7 +4029,8 @@ const BUILDINGS = {
           {fn:'produire_commerce', label:'Produire les articles du march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
-          {fn:'distribuer_tract', label:'Distribuer un tract', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
+          // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
+          // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
         ]
       }

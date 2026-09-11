@@ -284,8 +284,9 @@ function rappelMissionCarriere(branche) {
 
 // Hook historique (ordre general confirmerDistribuerTract, hors perimetre des 3 branches
 // d'onboarding desormais refaites) : plus aucune des 3 branches ne l'appelle pour sa propre
-// progression (chacune a son etat/dispatch dedie -- voir plus bas). Conserve tel quel, non
-// touche : ordre general non concerne par ce lot.
+// progression (chacune a son etat/dispatch dedie -- voir plus bas). Depuis le retrait de l'ordre
+// du marche (11 septembre 2026), appele par la distribution electorale aupres d'un PNJ
+// (confirmerDistribuerTractElectoral) pour les personnages encore a l'etape 'en_cours'.
 function verifierProgressionCarriere(branche, succes) {
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== branche || qc.etape !== 'en_cours') return;
@@ -884,8 +885,11 @@ function openPnjModal(encodedPnj) {
   const tractsDonnables = typeof lotsTractsDonnables === 'function' ? lotsTractsDonnables() : tractsGeneriques;
   if (isPJ && tractsDonnables.length > 0 && tractsJeanLou.length === 0) {
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
-  } else if (!isPJ && tractsGeneriques.length > 0 && tractsJeanLou.length === 0) {
-    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractElectoralPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract électoral</button>';
+  } else if (!isPJ && tractsJeanLou.length === 0 && typeof tractsElectorauxDistribuablesIci === 'function'
+             && tractsElectorauxDistribuablesIci().length > 0) {
+    // Tracts electoraux POUR/CONTRE (11 septembre 2026) : bouton present seulement le dimanche d'un
+    // scrutin ouvert, dans le bon lieu, si un tract concerne ce scrutin (le serveur revalide tout).
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractElectoralPNJ(\'' + pnjSafeName + '\',\'' + enc + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract électoral</button>';
   }
   // Tracts calomnieux (lot du 24 aout 2026) : distinct du circuit electoral ci-dessus (type
   // 'tract_calomnieux', pas 'tract'), aucun verrouillage electoral applicable. Uniquement pour
@@ -2328,75 +2332,13 @@ async function validerLobbyingPresse() {
 }
 
 // =====================
-// DISTRIBUER UN TRACT (9 aout 2026)
+// DISTRIBUER UN TRACT AU MARCHE -- RETIRE (11 septembre 2026)
 // =====================
-// N'existait pas du tout avant ce soir : le routeur appelait doDistribuerTract() sans que la
-// fonction soit definie nulle part (ReferenceError silencieuse au clic), et le flag
-// requiresTract:true de l'ordre (data.js) n'etait lu par aucun code. Premier ordre construit
-// des le depart avec le systeme de moyenne de groupe (getStatEffective) : le taux depend de
-// CHA et ENT, donc de qui compose le groupe au moment de l'action.
-function doDistribuerTract(pa, cost) {
-  const lots = (state.inventory || []).filter(i => i.type === 'tract' && (i.quantite || 0) > 0);
-  if (lots.length === 0) {
-    showToast('Aucun tract', 'Faites imprimer des tracts avant de pouvoir les distribuer.', false);
-    return;
-  }
-  if (lots.length === 1) {
-    confirmerDistribuerTract(lots[0].cible, lots[0].tractType, pa, cost);
-    return;
-  }
-  document.getElementById('postes-modal-title').textContent = 'Distribuer un tract';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez le lot à distribuer.</div>' +
-    lots.map(l =>
-      '<div onclick="confirmerDistribuerTract(\'' + l.cible.replace(/'/g,'') + '\',\'' + l.tractType + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
-        '<i class="ti ti-file-description" style="font-size:.9rem;color:' + (l.tractType === 'pour' ? '#6a9a6a' : '#9a4a4a') + '"></i>' +
-        '<div><div style="font-size:.82rem;color:#c0b090">' + l.name + '</div>' +
-        '<div style="font-size:.85rem;color:#9a8a68">' + l.quantite + ' restants</div></div>' +
-      '</div>'
-    ).join('') +
-    '</div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerDistribuerTract(cible, tractType, pa, cost) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-
-  const lot = (state.inventory || []).find(i => i.type === 'tract' && i.cible === cible && i.tractType === tractType);
-  if (!lot || (lot.quantite || 0) <= 0) {
-    showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  lot.quantite -= 1;
-  if (lot.quantite <= 0) {
-    state.inventory = state.inventory.filter(i => i !== lot);
-  }
-
-  const cha = getStatEffective('CHA');
-  const ent = getStatEffective('ENT');
-  const taux = Math.min(90, Math.max(10, 25 + Math.round(cha * 3) + Math.round(ent * 3)));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const succes = roll <= taux;
-
-  if (succes) {
-    const montant = Math.floor(Math.random() * 6) + 3; // 3 a 8
-    const delta = tractType === 'pour' ? montant : -montant;
-    // Effet POP serveur, atomique, ne touche que la POP (11 septembre 2026). Valeurs inchangees.
-    if (typeof sbTractAppliquerEffetPop === 'function') await sbTractAppliquerEffetPop(cible, delta).catch(() => null);
-    const verbe = tractType === 'pour' ? 'convaincus' : 'dissuadés';
-    showToast('Tract distribué !', 'Efficace — ' + Math.abs(delta) + ' POP ' + (tractType === 'pour' ? 'pour' : 'contre') + ' ' + cible + '. (' + taux + '% de chances)', true, true);
-    addJournalEntry('Tract distribué ' + tractType + ' ' + cible + ' avec succès : ' + (tractType === 'pour' ? '+' : '-') + montant + ' POP. (' + taux + '% de chances)', 'event-good');
-  } else {
-    showToast('Tract distribué', 'Sans effet cette fois — personne n\'a été convaincu. (' + taux + '% de chances)', false);
-    addJournalEntry('Distribution de tract ' + tractType + ' ' + cible + ' sans effet. (' + taux + '% de chances)', '');
-  }
-
-  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('politique', succes);
-  updateUI();
-}
+// doDistribuerTract/confirmerDistribuerTract appliquaient +/-3 a 8 POP a la cible du tract. Les
+// tracts ordinaires sont desormais exclusivement electoraux : ils ne votent qu'aupres d'un PNJ
+// electeur identifie, le dimanche d'un scrutin ouvert (distribuerTractElectoralPNJ,
+// plateau-communication.js ; RPC tracts_electoraux_distribuer). Un marche n'est pas un electeur :
+// l'ordre, sa route et ses fonctions sont supprimes.
 
 function doSaluerPersonne(nom) {
   const jourActuel = state.day || 1;

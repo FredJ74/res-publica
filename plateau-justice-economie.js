@@ -3067,11 +3067,10 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
     return;
   }
   if (obj.type === 'tract') {
-    obj.quantite = (obj.quantite||1) - 1;
-    if (obj.quantite <= 0) state.inventory.splice(objIdx, 1);
-    state.pop = Math.min(100,(state.pop||0)+2);
-    msg = nomCourt + ' prend le tract. +2 POP.';
-    addJournalEntry('Tract remis a '+nomCourt+'.','event-good');
+    // Tracts electoraux (11 septembre 2026) : plus aucune recompense POP. Un PNJ ne vote que par
+    // « Distribuer un tract » (dimanche d'un scrutin ouvert, bon lieu) : le don ne consomme rien.
+    showToast('Tract électoral', 'Pour faire voter ' + nomCourt + ', utilisez « Distribuer un tract » un dimanche de scrutin.', false);
+    return;
   } else if (obj.type === 'kompromat') {
     if (['journaliste','redacteur'].includes(job)) {
       state.inventory.splice(objIdx,1); state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);

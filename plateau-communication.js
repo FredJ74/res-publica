@@ -709,95 +709,126 @@ function recevoirLotTracts(objet) {
 // deliberement non touches. La quete Jean-Lou (distribuerTractJeanLou, plateau-pnj.js) continue
 // d'utiliser son propre circuit, deja branche sur le vrai systeme, non modifie.
 
-// --- Electoral : 1 tract -> 1 PNJ, vrai vote ---
-// N'accepte que tractType:'pour' (24 aout 2026, correctif) : un ancien tract tractType:'contre'
-// (imprime avant ce lot, quand un choix pour/contre existait encore) ne doit JAMAIS devenir
-// silencieusement un vote pour sa cible -- son sens hostile d'origine reste correctement porte
-// par l'ancien circuit du marche (distribuer_tract/confirmerDistribuerTract, plateau-pnj.js,
-// non touche : sbAjusterPopJoueur(cible, -delta) inchange). Ce circuit-ci ne fait que refuser
-// poliment de les traiter, avec message explicite, plutot que de les ignorer silencieusement.
-function distribuerTractElectoralPNJ(pnjName) {
-  const tracts = (state.inventory || []).filter(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'pour' && (i.quantite || 0) > 0);
-  if (tracts.length === 0) {
-    const tractsContreAnciens = (state.inventory || []).filter(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'contre' && (i.quantite || 0) > 0);
-    if (tractsContreAnciens.length > 0) {
-      showToast('Ancien format', 'Vos tracts "contre" (ancien format) ne se distribuent pas ici. Utilisez "Distribuer un tract" au marché, circuit inchangé pour ces tracts.', false);
-    } else {
-      showToast('Aucun tract', 'Vous n\'avez pas de tract électoral en inventaire.', false);
-    }
+// --- Electoral : 1 tract -> 1 tentative aupres d'un PNJ electeur (11 septembre 2026) ---
+// Regles fixees : POUR reussi = +1 voix au candidat ; CONTRE reussi = -1 voix, score jamais negatif ;
+// chaque tentative consomme 1 tract ; un echec n'engage pas le PNJ (nouvelle tentative possible) ;
+// une reussite l'engage pour le tour. Uniquement le dimanche d'un scrutin ouvert, dans la ville du
+// scrutin local (presidentielle : une ville du pays, la caserne ou le QHS). Jet :
+// 45 + CHA + floor(INF/4) - 2 x max(0, VOL_PNJ - 10), plafond 85 %.
+// TOUT est decide par le serveur (RPC tracts_electoraux_distribuer) : le client ne fait qu'afficher
+// les tracts utilisables et appliquer la consommation que le serveur confirme. Refus = rien consomme.
+// La quete Jean-Lou (distribuerTractJeanLou, plateau-pnj.js) garde son propre circuit.
+
+// Volonte du PNJ : utilisee des qu'elle existera dans ses donnees (chantier PNJ ulterieur), 10 sinon.
+function volontePnjElectorale(encodedPnj) {
+  try {
+    const pnj = JSON.parse(decodeURIComponent(encodedPnj || ''));
+    const vol = pnj?.stats?.VOL ?? pnj?.VOL;
+    return (typeof vol === 'number' && isFinite(vol)) ? vol : 10;
+  } catch (e) { return 10; }
+}
+
+const MOTIFS_REFUS_TRACT_ELECTORAL = {
+  pas_dimanche: 'Les tracts électoraux ne se distribuent que le dimanche.',
+  hors_phase_vote: 'Aucun vote n\'est ouvert pour ce scrutin.',
+  hors_ville: 'Ce tract ne peut être distribué que dans la ville du scrutin.',
+  hors_territoire: 'Ce tract ne peut être distribué qu\'à l\'intérieur du pays du scrutin.',
+  hors_pays: 'Ce scrutin n\'est pas celui du pays où vous êtes.',
+  candidat_hors_scrutin: 'Ce candidat ne participe pas à ce scrutin.',
+  deja_vote: 'Ce PNJ a déjà participé à ce tour du scrutin.',
+  tract_absent: 'Ce tract ne figure pas dans votre inventaire enregistré.',
+  scrutin_non_concerne: 'Les tracts ne concernent que la présidentielle, les municipales et les législatives.'
+};
+
+async function distribuerTractElectoralPNJ(pnjName, encodedPnj) {
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase().catch(() => {});
+  const options = typeof tractsElectorauxDistribuablesIci === 'function' ? tractsElectorauxDistribuablesIci() : [];
+  if (options.length === 0) {
+    const dimanche = typeof estDimancheParis === 'function' && estDimancheParis();
+    showToast('Aucun tract utilisable ici', dimanche
+      ? 'Aucun de vos tracts ne concerne un scrutin dont le vote est ouvert dans ce lieu.'
+      : 'Les tracts électoraux ne se distribuent que le dimanche, pendant un scrutin ouvert.', false);
     return;
   }
-  if (tracts.length === 1) {
-    confirmerDistribuerTractElectoral(tracts[0].cible, pnjName);
-    return;
-  }
+  const entrees = [];
+  options.forEach(o => o.scrutins.forEach(sc => entrees.push({ tract: o.tract, scrutin: sc })));
+  window._tractsElectorauxChoix = { pnjName, encodedPnj, entrees };
+  if (entrees.length === 1) { await confirmerDistribuerTractElectoral(0); return; }
+
   document.getElementById('postes-modal-title').textContent = 'Distribuer un tract électoral à ' + pnjName;
   let html = '<div style="padding:.8rem 1rem">';
-  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez le candidat à soutenir aupres de ' + pnjName + '.</div>';
-  html += tracts.map(t =>
-    '<div onclick="confirmerDistribuerTractElectoral(\'' + t.cible.replace(/'/g, '') + '\',\'' + pnjName + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
-      '<i class="ti ti-file-description" style="font-size:.9rem;color:#6a9a6a"></i>' +
-      '<div><div style="font-size:.82rem;color:#c0b090">Pour ' + t.cible + '</div>' +
-      '<div style="font-size:.85rem;color:#9a8a68">' + t.quantite + ' restants</div></div>' +
-    '</div>'
-  ).join('');
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez le tract et le scrutin.</div>';
+  html += entrees.map((e, i) => {
+    const contre = (e.tract.tractType || 'pour') === 'contre';
+    return '<div onclick="confirmerDistribuerTractElectoral(' + i + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<i class="ti ti-file-description" style="font-size:.9rem;color:' + (contre ? '#9a4a4a' : '#6a9a6a') + '"></i>' +
+      '<div><div style="font-size:.82rem;color:#c0b090">' + (contre ? 'Contre ' : 'Pour ') + e.tract.cible + ' — ' + e.scrutin.libelle + '</div>' +
+      '<div style="font-size:.85rem;color:#9a8a68">' + e.tract.quantite + ' restants</div></div>' +
+    '</div>';
+  }).join('');
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDistribuerTractElectoral(cible, pnjName) {
+async function confirmerDistribuerTractElectoral(indexEntree) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const tract = (state.inventory || []).find(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'pour' && i.cible === cible && (i.quantite || 0) > 0);
-  if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
-
-  // Resolution de l'election reelle AVANT toute consommation (tract.electionPosteId/City poses
-  // a l'impression ne sont qu'une trace -- toujours re-resolus ici pour couvrir aussi les tracts
-  // legacy imprimes avant ce lot).
-  const election = (typeof trouverElectionParCandidat === 'function') ? trouverElectionParCandidat(cible) : null;
-  if (!election) {
-    showToast('Élection introuvable', cible + ' n\'est candidat(e) à aucune élection en cours.', false);
+  const ctx = window._tractsElectorauxChoix;
+  const e = ctx?.entrees?.[indexEntree];
+  if (!e) return;
+  const tract = e.tract;
+  if ((state.inventory || []).indexOf(tract) < 0 || (tract.quantite || 0) < 1) {
+    showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false);
     return;
   }
-  const cle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : election.posteId;
-  const cycle = (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cle] : null;
-  if (!cycle) { showToast('Élection introuvable', '', false); return; }
-
-  // Garde-fou explicite AVANT consommation (regle du 24 aout 2026) : un PNJ deja vote ne peut
-  // plus recevoir de tract electoral -- refus avant tract consomme et avant tout effet.
-  if (cycle.votesPNJ && cycle.votesPNJ[pnjName]) {
-    showToast('Déjà convaincu', pnjName + ' a déjà voté pour cette élection.', false);
+  if (typeof sbTractsElectorauxDistribuer !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
+    return;
+  }
+  // Le serveur lit la position et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
+  const sauve = await sbSavePersonnage(state).catch(() => null);
+  if (!sauve) {
+    showToast('Action impossible', 'Votre position n\'a pas pu être enregistrée. Aucun tract n\'a été utilisé.', false);
+    return;
+  }
+  const sens = tract.tractType === 'contre' ? 'contre' : 'pour';
+  const requete = 'tract-el-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  const vol = volontePnjElectorale(ctx.encodedPnj);
+  let res = await sbTractsElectorauxDistribuer(requete, state.char.name, e.scrutin.cycleId, tract.cible, sens, ctx.pnjName, vol).catch(() => null);
+  if (!res) res = await sbTractsElectorauxDistribuer(requete, state.char.name, e.scrutin.cycleId, tract.cible, sens, ctx.pnjName, vol).catch(() => null);
+  if (!res) {
+    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', false);
+    return;
+  }
+  if (!res.ok) {
+    showToast('Distribution impossible', MOTIFS_REFUS_TRACT_ELECTORAL[res.raison] || 'La distribution a été refusée.', false);
     return;
   }
 
-  // Consommation (1 tract, succes ou echec) -- meme convention que confirmerDistribuerTract.
+  // Tentative reellement effectuee (reussite ou echec) : 1 tract consomme, jamais plus (un rejeu
+  // renvoie le meme resultat et n'est traite qu'une fois ici).
   tract.quantite -= 1;
   if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
 
-  // Meme formule que distribuerTractJeanLou (plateau-pnj.js) : 50% + INF/10, plafonne 80%.
-  const bonusInf = Math.floor((state.inf || 0) / 10);
-  const taux = Math.min(80, 50 + bonusInf);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const succes = roll <= taux;
-
-  if (succes) {
-    const ok = (typeof enregistrerVotePNJ === 'function') ? await enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, cible) : false;
-    if (ok) {
-      showToast('Tract distribué !', pnjName + ' est convaincu(e) et votera pour ' + cible + '.', true, true);
-      addJournalEntry('Tract électoral distribué à ' + pnjName + ' — vote enregistré pour ' + cible + '.', 'event-good');
-    } else {
-      // Deja vote entre-temps (course concurrente improbable) -- tract tout de meme consomme.
-      showToast('Déjà convaincu', pnjName + ' avait déjà voté.', false);
-      addJournalEntry('Tract électoral distribué à ' + pnjName + ' — déjà voté.', '');
-    }
+  const pnjName = ctx.pnjName;
+  if (res.reussi) {
+    const cycle = CYCLES_ELECTORAUX[state.country]?.[e.scrutin.cle];
+    if (typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, tract.cible, res.effet, res.tour);
+    let msg;
+    if (sens === 'pour') msg = pnjName + ' votera pour ' + tract.cible + '. +1 voix.';
+    else if (res.effet === -1) msg = pnjName + ' est convaincu(e) : ' + tract.cible + ' perd une voix.';
+    else msg = pnjName + ' est convaincu(e), mais ' + tract.cible + ' n\'avait plus de voix à perdre.';
+    showToast('Tract distribué !', msg + ' (' + e.scrutin.libelle + ')', true, true);
+    addJournalEntry('Tract ' + sens + ' ' + tract.cible + ' distribué à ' + pnjName + ' — ' + msg, 'event-good');
   } else {
-    showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé.', false);
-    addJournalEntry('Distribution de tract électoral à ' + pnjName + ' — sans effet.', '');
+    showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé. (' + res.jet + ' pour ' + res.taux + ' %)', false);
+    addJournalEntry('Distribution de tract ' + sens + ' ' + tract.cible + ' à ' + pnjName + ' — sans effet.', '');
   }
+  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('politique', !!res.reussi);
   updateUI();
 }
 
-// --- Calomnieux : 1 tract -> 1 PNJ, -5 POP sur la cible, risque penal a l'echec critique ---
 function distribuerTractCalomnieuxPNJ(pnjName) {
   const tracts = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
   if (tracts.length === 0) {
