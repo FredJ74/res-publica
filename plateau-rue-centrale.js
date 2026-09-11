@@ -136,8 +136,18 @@ const RUE_CENTRALE_NOEUDS = {
 
     'luthecia-entrepot-logistique': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-logistique-luthecia.png',
+      // Cette illustration montre DEUX batiments : la gare vitree "Centre Multimodal de Luthecia"
+      // occupe la gauche et l'arriere-plan, l'entrepot est le hangar industriel du premier plan a
+      // droite. Une zone unique [0,100] rendait toute l'image cliquable : cliquer visuellement sur
+      // le Centre Multimodal (qui n'est PAS accessible depuis cette illustration, seulement par la
+      // fleche gauche) faisait entrer dans l'entrepot. Correction du 12 septembre 2026 : la hitbox
+      // suit en escalier l'emprise reelle du hangar (le toit monte de gauche a droite), quais et
+      // portes compris. Le parvis des bus, la route et la facade du multimodal ne sont plus
+      // cliquables -- aucune entree vers le multimodal n'est creee pour autant.
       zones: [
-        { xPct: [0, 100], nom: 'Entrepôt Logistique de Luthécia', type: 'batiment', buildingId: 'entrepot-logistique-luthecia' }
+        { xPct: [40, 60], yPct: [49, 85], nom: 'Entrepôt Logistique de Luthécia', type: 'batiment', buildingId: 'entrepot-logistique-luthecia' },
+        { xPct: [60, 88], yPct: [39, 85], nom: 'Entrepôt Logistique de Luthécia', type: 'batiment', buildingId: 'entrepot-logistique-luthecia' },
+        { xPct: [88, 96], yPct: [43, 85], nom: 'Entrepôt Logistique de Luthécia', type: 'batiment', buildingId: 'entrepot-logistique-luthecia' }
       ],
       liens: { gauche: 'luthecia-centre-multimodal', droite: 'luthecia-loge', toutDroit: null, arriere: null }
     },

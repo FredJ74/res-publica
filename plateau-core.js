@@ -828,6 +828,8 @@ function loadCharacter() {
             // POP en delta (11 septembre 2026, voir ressourcesAvecBasePop, supabase.js) : point de
             // depart = la POP que la base detient reellement a ce chargement.
             state._popEnvoye = typeof sbState.pop === 'number' ? sbState.pop : undefined;
+            // INF en delta (12 septembre 2026, tract calomnieux : -2 INF serveur) : meme point de depart.
+            state._infEnvoye = typeof sbState.inf === 'number' ? sbState.inf : undefined;
 
             // applyCharToState() ci-dessous recalcule inf/pop/dis (et arg) a partir de char.resources/char.arg --
             // il faut donc synchroniser char.resources/char.arg avec les valeurs fraiches qu'on vient de

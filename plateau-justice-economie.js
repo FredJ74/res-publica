@@ -4498,6 +4498,22 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 // voir confirmerAchatEntrepot juste au-dessus) — different de la forme utilisee par la recolte/
 // l'armurerie (type:'matiere_premiere'). C'est la seule source de bois pour un joueur a
 // Luthecia : MATIERES_PREMIERES_VILLE ne definit aucune ressource recoltable pour 'capitale'.
+// BATIMENT REEL (12 septembre 2026) : le buildingId etait ecrit en dur ('la-tribune') et
+// l'entrepot de reference etait celui de Luthecia. Depuis que l'Imprimerie-Librairie Gutenberg
+// (Port-Sainte-Marie) propose elle aussi la vente de matieres premieres, la vente doit livrer
+// l'atelier ou le joueur se trouve et etre payee par SA caisse -- jamais par celle d'une autre
+// ville ni d'un autre batiment.
+function imprimerieCouranteVente() {
+  const ville = state.currentCity || 'capitale';
+  const building = state.currentBuilding || 'la-tribune';
+  const entrepot = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[ville]) || 'entrepot-logistique-luthecia';
+  return { ville, building, entrepot };
+}
+
+function prixAchatBoisImprimerie() {
+  return Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
+}
+
 async function ouvrirVendreBoisImprimerie(pa, cost) {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot) {
@@ -4505,16 +4521,22 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
-  const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
-  const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
+  const { ville, building } = imprimerieCouranteVente();
+  const prixUnitaire = prixAchatBoisImprimerie();
+  const etatImprimerie = (typeof sbGetBatimentEtat === 'function')
+    ? await sbGetBatimentEtat(state.country, ville, building).catch(() => null) : null;
+  const caisse = etatImprimerie?.imprimerie?.caisse || 0;
+  const maxCaisse = Math.max(0, Math.floor(caisse / prixUnitaire));
+  const maxVendable = Math.min(lot.qty, maxCaisse);
 
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. ' + ((typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || 'L\'imprimerie') + ' achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
-    '<input type="number" id="vendre-bois-qte" min="1" max="' + lot.qty + '" value="' + lot.qty + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
-    '<button onclick="confirmerVendreBoisImprimerie(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. ' + ((typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || 'L\'imprimerie') + ' achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse (' + caisse + ' ' + cur + ', soit ' + maxCaisse + ' unité(s)).</div>' +
+    (maxVendable <= 0
+      ? '<div style="font-size:.8rem;color:#cc5540">La caisse de l\'imprimerie ne permet aucun achat pour le moment.</div>'
+      : '<input type="number" id="vendre-bois-qte" min="1" max="' + maxVendable + '" value="' + maxVendable + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
+        '<button onclick="confirmerVendreBoisImprimerie(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>') +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -4531,55 +4553,66 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   }
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge entre-temps)
-  // VILLE REELLE (meme correctif que confirmerImpression, plateau-communication.js) : le
-  // buildingId 'la-tribune' est partage par Luthecia et Montrouge. Avec 'capitale' en dur, un
-  // joueur vendant son bois a la Tribune de Montrouge livrait le stock de LUTHECIA et etait paye
-  // sur la caisse de LUTHECIA -- l'atelier de Montrouge ne pouvait ni s'approvisionner ni se vider.
-  const villeImprimerieVente = state.currentCity || 'capitale';
-  const entrepotVente = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[villeImprimerieVente])
-    || 'entrepot-logistique-luthecia';
-  const etatEntrepot = await sbGetBatimentEtat(state.country, villeImprimerieVente, entrepotVente);
-  const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
-  const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
-
-  const etatImprimerie = await sbGetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune');
-  const caisse = etatImprimerie.imprimerie?.caisse || 0;
-  const qteAchetable = Math.max(0, Math.min(qteVoulue, Math.floor(caisse / prixUnitaire)));
-  // Responsable reellement present dans ce journal (gabarit partage par 15 villes) ; texte neutre sinon.
+  const { ville, building } = imprimerieCouranteVente();
+  // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge).
+  const prixUnitaire = prixAchatBoisImprimerie();
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
-  if (qteAchetable <= 0) {
+
+  // DOUBLE-CLIC : le bois est reserve SYNCHRONEMENT, avant le moindre aller-retour reseau. Deux
+  // clics ne peuvent donc pas vendre deux fois le meme lot ; la reservation est rendue en entier
+  // si la vente echoue ou n'est que partielle.
+  lot.qty -= qteVoulue;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+  const rendreBois = (n) => {
+    if (n <= 0) return;
+    const l = (state.inventory || []).find(i => i.stackKey === 'bois');
+    if (l) l.qty = (l.qty || 0) + n;
+    else { if (!state.inventory) state.inventory = []; state.inventory.push({ ...lot, qty: n }); }
+  };
+
+  // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026) -- le joueur est le
+  // vendeur, il ne paie rien, quels que soient les pa/cost transmis par le bouton.
+  //
+  // TRANSACTION UNIQUE (12 septembre 2026) : le debit de la caisse et l'entree en stock se font
+  // dans une seule instruction SQL sous verrou de ligne (batiment_caisse_mouvement). L'ancien
+  // couple lecture/ecriture laissait deux ventes simultanees ecraser le meme solde -- l'imprimerie
+  // payait deux fois et ne debitait qu'une. Si la caisse ne suffit plus, la RPC refuse en entier et
+  // renvoie le solde reel : on recalcule alors la quantite reellement achetable et on retente une
+  // fois (vente partielle), sans jamais rien creer.
+  let qte = qteVoulue;
+  let montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
+  let r = (typeof sbBatimentMouvementCaisse === 'function')
+    ? await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montantPaye, 'stockBois', qte).catch(() => null)
+    : null;
+  if (r && !r.ok && r.raison === 'caisse_insuffisante') {
+    const possible = Math.max(0, Math.floor((r.caisse || 0) / prixUnitaire));
+    qte = Math.min(qteVoulue, possible);
+    montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
+    r = qte > 0
+      ? await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montantPaye, 'stockBois', qte).catch(() => null)
+      : { ok: false, raison: 'caisse_insuffisante' };
+  }
+  if (!r || !r.ok) {
+    rendreBois(qteVoulue);
+    updateUI();
     showToast('Caisse vide', (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
-  // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026). Aucun debit ici,
-  // quels que soient les pa/cost transmis par le bouton -- le joueur est le vendeur, il ne paie rien.
+  rendreBois(qteVoulue - qte);
 
-  const montantPaye = Math.round(qteAchetable * prixUnitaire * 100) / 100;
-
-  lot.qty -= qteAchetable;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-
-  etatImprimerie.imprimerie = {
-    ...(etatImprimerie.imprimerie || {}),
-    stockBois: (etatImprimerie.imprimerie?.stockBois || 0) + qteAchetable,
-    caisse: caisse - montantPaye
-  };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune', etatImprimerie).catch(() => {});
-
-  // Encaissement joueur par le mecanisme standard (correctif du 11 septembre 2026) : le montant
-  // exact retire de la caisse arrive en liquide, fonds reellement depensables. Auparavant seul
-  // state.arg montait : la caisse payait, le vendeur ne recevait rien d'utilisable.
+  // Encaissement joueur par le mecanisme standard : le montant exact retire de la caisse arrive en
+  // liquide, fonds reellement depensables (jamais state.arg seul, qui n'est pas depensable).
   if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montantPaye);
   else state.arg = (state.arg || 0) + montantPaye;
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
 
-  if (qteAchetable < qteVoulue) {
-    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'avait de quoi acheter que ' + qteAchetable + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
+  if (qte < qteVoulue) {
+    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'avait de quoi acheter que ' + qte + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
   } else {
-    showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qteAchetable + ' bois.', true, true);
+    showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qte + ' bois.', true, true);
   }
-  addJournalEntry('Vente de ' + qteAchetable + ' bois à ' + (imprimeur || 'l\'imprimerie') + ' (+' + montantPaye + ' ' + cur + ').', 'event-good');
+  addJournalEntry('Vente de ' + qte + ' bois à ' + (imprimeur || 'l\'imprimerie') + ' (+' + montantPaye + ' ' + cur + ').', 'event-good');
 }
 
 // =====================
@@ -11051,7 +11084,18 @@ async function debiterCaisseBatimentAtomique(pays, buildingId, montant) {
 // port : etat.port.caisse). Parametrees par sousCle pour rester reutilisables sans duplication
 // le jour ou l'economie du port sera creee. Meme semantique tout-ou-rien (jamais de decouvert,
 // aucun effet de bord si le solde est insuffisant) que debiterCaisseBatimentAtomique.
+// ATOMICITE REELLE (12 septembre 2026, migration_caisses_batiments_etat.sql) : ces deux fonctions
+// lisaient puis reecrivaient l'etat en deux appels HTTP. Deux mouvements simultanes (ou un
+// double-clic) lisaient le meme solde et la derniere ecriture ecrasait l'autre -- la caisse payait
+// deux fois en ne baissant qu'une (creation de monnaie), ou encaissait deux credits en n'en gardant
+// qu'un (destruction). Le calcul se fait desormais dans une seule instruction SQL sous verrou de
+// ligne. L'ancien chemin reste le repli si la RPC n'est pas joignable, avec exactement la meme
+// semantique tout-ou-rien.
 async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCle, montant) {
+  if (typeof sbBatimentMouvementCaisse === 'function') {
+    const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, -Math.abs(montant)).catch(() => null);
+    if (r) return r.ok ? montant : 0;
+  }
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   const sousEtat = etat?.[sousCle] || {};
   const solde = sousEtat.caisse || 0;
@@ -11062,6 +11106,10 @@ async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCl
 }
 
 async function crediterCaisseEtatBatiment(pays, ville, buildingId, sousCle, montant) {
+  if (typeof sbBatimentMouvementCaisse === 'function') {
+    const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, Math.abs(montant)).catch(() => null);
+    if (r && r.ok) return r.caisse;
+  }
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   const sousEtat = etat?.[sousCle] || {};
   const solde = Math.max(0, (sousEtat.caisse || 0) + montant);

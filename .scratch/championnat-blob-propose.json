@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 2,
+  "numero": 1,
+  "dateDebut": "2026-08-22T04:48:15.430375",
+  "ancrageDimanche": {
+    "numero": 3,
+    "kickoffISO": "2026-09-06T18:00:00.000Z"
+  },
+  "derniereSemaineResolue": "2026-W35",
+  "derniereJourneeResolueLe": "2026-08-29T18:25:59.116Z",
+  "phase": "reguliere",
+  "calendrier": [
+    {
+      "numero": 1,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "sharq-al-nour",
+          "played": true,
+          "scoreHome": 4,
+          "scoreAway": 1,
+          "recit": "Olympique de Luthécia s'impose 4-1 face à Al-Petrol United FC devant son public.",
+          "evenements": []
+        },
+        {
+          "home": "brise-mariannaise",
+          "away": "al-baraka-fc",
+          "played": true,
+          "scoreHome": 3,
+          "scoreAway": 2,
+          "recit": "La Brise Mariannaise s'impose 3-2 face à Oasis City FC devant son public.",
+          "evenements": []
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "nadi-al-madina",
+          "played": true,
+          "scoreHome": 2,
+          "scoreAway": 3,
+          "recit": "Shabab Al Madina s'impose 3-2 sur la pelouse de Union Cheminote de Montrouge.",
+          "evenements": []
+        },
+        {
+          "home": "rojos-cartel",
+          "away": "kolkhoze-ouvrier",
+          "played": true,
+          "scoreHome": 2,
+          "scoreAway": 2,
+          "recit": "Match nul 2-2 entre Estudiantes de la Ciudad et Étoile Rouge de Krasnov.",
+          "evenements": []
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "spartak-sibirsk",
+          "played": true,
+          "scoreHome": 2,
+          "scoreAway": 3,
+          "recit": "Partizan de Starovka s'impose 3-2 sur la pelouse de Atlético Puerto Negro.",
+          "evenements": []
+        },
+        {
+          "home": "jaguares-selva",
+          "away": "dynamo-novomirsk",
+          "played": true,
+          "scoreHome": 2,
+          "scoreAway": 3,
+          "recit": "Dynamo Novomirsk s'impose 3-2 sur la pelouse de Independiente de Villa Sangre.",
+          "evenements": []
+        }
+      ],
+      "notifie24h": true,
+      "resolueLe": "2026-08-22T04:48:15.430375"
+    },
+    {
+      "numero": 2,
+      "matchs": [
+        {
+          "home": "brise-mariannaise",
+          "away": "olympique-luthecia",
+          "played": true,
+          "scoreHome": 1,
+          "scoreAway": 3,
+          "recit": "Olympique de Luthécia s'impose 3-1 sur la pelouse de La Brise Mariannaise.",
+          "evenements": []
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "cheminote-montrouge",
+          "played": true,
+          "scoreHome": 0,
+          "scoreAway": 1,
+          "recit": "Union Cheminote de Montrouge s'impose 1-0 sur la pelouse de Al-Petrol United FC.",
+          "evenements": []
+        },
+        {
+          "home": "al-baraka-fc",
+          "away": "rojos-cartel",
+          "played": true,
+          "scoreHome": 1,
+          "scoreAway": 1,
+          "recit": "Match nul 1-1 entre Oasis City FC et Estudiantes de la Ciudad.",
+          "evenements": []
+        },
+        {
+          "home": "nadi-al-madina",
+          "away": "fronterizos-unidos",
+          "played": true,
+          "scoreHome": 4,
+          "scoreAway": 1,
+          "recit": "Shabab Al Madina s'impose 4-1 face à Atlético Puerto Negro devant son public.",
+          "evenements": []
+        },
+        {
+          "home": "kolkhoze-ouvrier",
+          "away": "jaguares-selva",
+          "played": true,
+          "scoreHome": 3,
+          "scoreAway": 1,
+          "recit": "Étoile Rouge de Krasnov s'impose 3-1 face à Independiente de Villa Sangre devant son public.",
+          "evenements": []
+        },
+        {
+          "home": "spartak-sibirsk",
+          "away": "dynamo-novomirsk",
+          "played": true,
+          "scoreHome": 3,
+          "scoreAway": 3,
+          "recit": "Match nul 3-3 entre Partizan de Starovka et Dynamo Novomirsk.",
+          "evenements": []
+        }
+      ],
+      "notifie24h": true,
+      "resolueLe": "2026-08-29T18:25:59.116302"
+    },
+    {
+      "numero": 3,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "cheminote-montrouge",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "rojos-cartel",
+          "away": "brise-mariannaise",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "sharq-al-nour",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "jaguares-selva",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "dynamo-novomirsk",
+          "away": "nadi-al-madina",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "spartak-sibirsk",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 4,
+      "matchs": [
+        {
+          "home": "rojos-cartel",
+          "away": "olympique-luthecia",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "fronterizos-unidos",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "brise-mariannaise",
+          "away": "jaguares-selva",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "dynamo-novomirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "al-baraka-fc",
+          "away": "spartak-sibirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "nadi-al-madina",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 5,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "fronterizos-unidos",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "jaguares-selva",
+          "away": "rojos-cartel",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "dynamo-novomirsk",
+          "away": "cheminote-montrouge",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "spartak-sibirsk",
+          "away": "brise-mariannaise",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "kolkhoze-ouvrier",
+          "away": "sharq-al-nour",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "nadi-al-madina",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 6,
+      "matchs": [
+        {
+          "home": "jaguares-selva",
+          "away": "olympique-luthecia",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "dynamo-novomirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "rojos-cartel",
+          "away": "spartak-sibirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "brise-mariannaise",
+          "away": "nadi-al-madina",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 7,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "dynamo-novomirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "spartak-sibirsk",
+          "away": "jaguares-selva",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "kolkhoze-ouvrier",
+          "away": "fronterizos-unidos",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "nadi-al-madina",
+          "away": "rojos-cartel",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "al-baraka-fc",
+          "away": "cheminote-montrouge",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "brise-mariannaise",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 8,
+      "matchs": [
+        {
+          "home": "spartak-sibirsk",
+          "away": "olympique-luthecia",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "dynamo-novomirsk",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "jaguares-selva",
+          "away": "nadi-al-madina",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "rojos-cartel",
+          "away": "sharq-al-nour",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "brise-mariannaise",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 9,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "nadi-al-madina",
+          "away": "spartak-sibirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "al-baraka-fc",
+          "away": "dynamo-novomirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "jaguares-selva",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "brise-mariannaise",
+          "away": "fronterizos-unidos",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "rojos-cartel",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 10,
+      "matchs": [
+        {
+          "home": "nadi-al-madina",
+          "away": "olympique-luthecia",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "kolkhoze-ouvrier",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "spartak-sibirsk",
+          "away": "sharq-al-nour",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "dynamo-novomirsk",
+          "away": "brise-mariannaise",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "jaguares-selva",
+          "away": "cheminote-montrouge",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "rojos-cartel",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    },
+    {
+      "numero": 11,
+      "matchs": [
+        {
+          "home": "olympique-luthecia",
+          "away": "al-baraka-fc",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "sharq-al-nour",
+          "away": "nadi-al-madina",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "brise-mariannaise",
+          "away": "kolkhoze-ouvrier",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "cheminote-montrouge",
+          "away": "spartak-sibirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "rojos-cartel",
+          "away": "dynamo-novomirsk",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        },
+        {
+          "home": "fronterizos-unidos",
+          "away": "jaguares-selva",
+          "played": false,
+          "scoreHome": null,
+          "scoreAway": null,
+          "recit": null
+        }
+      ]
+    }
+  ],
+  "stadeFinaleClubId": "fronterizos-unidos",
+  "stadesUtilises": [],
+  "resultatsFinales": null,
+  "palmares": []
+}

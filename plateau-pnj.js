@@ -897,7 +897,7 @@ function openPnjModal(encodedPnj) {
   if (!isPJ) {
     const tractsCalomnieuxDispos = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
     if (tractsCalomnieuxDispos.length > 0) {
-      actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#8a2020" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractCalomnieuxPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-alert-triangle" style="font-size:.85rem"></i> Distribuer un tract calomnieux</button>';
+      actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#8a2020" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractCalomnieuxPNJ(\'' + pnjSafeName + '\',\'' + enc + '\')"><i class="ti ti-alert-triangle" style="font-size:.85rem"></i> Distribuer un tract calomnieux</button>';
     }
   }
   if (!isPJ && tractsJeanLou.length > 0 && state.char?.queteCarriere?.ambition === 'politique'

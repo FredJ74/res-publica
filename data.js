@@ -211,12 +211,12 @@ const WORLD = {
           // relance doOrder avec son ordre d'origine : couts, stocks et risques inchanges.
           roomOverrides: {
             accueil_tribune: {
-              excludeOrders: ['imprimer_tracts'],
+              excludeOrders: ['imprimer_tracts_electoraux'],
               orders: [
-                {fn:'imprimer_tracts_choix', label:'Imprimer des tracts', pa:0, cost:0, type:'grey', icon:'ti-file-description', successRate:100, desc:'Tracts ordinaires (pour/contre) ou tracts calomnieux (illégal) : le type se choisit ensuite, chacun avec ses propres coûts et risques.',
+                {fn:'imprimer_tracts_choix', label:'Imprimer des tracts', pa:0, cost:0, type:'grey', icon:'ti-file-description', successRate:100, desc:'Tracts électoraux (pour/contre) ou tracts calomnieux (illégal) : le type se choisit ensuite, chacun avec ses propres coûts et risques.',
                   choix: [
-                    {fn:'imprimer_tracts'},
-                    {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
+                    {fn:'imprimer_tracts_electoraux'},
+                    {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (n\'importe quel PJ). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + 1 bois en stock personnel.'}
                   ]},
                 // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : gere en
                 // dehors du pipeline PA/argent generique (doOrder), voir ouvrirFormulairePetiteAnnonce
@@ -693,7 +693,7 @@ const WORLD = {
               imageUrl: "images/montrouge/montrouge-lci-imprimerie.jpg",
               persons: [],
               orders: [
-                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
+                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (n\'importe quel PJ). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + 1 bois en stock personnel.'}
               ]
             }
           }
@@ -2779,7 +2779,11 @@ const BUILDINGS = {
         orders: [
           {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
           {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
-          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Necessite assez de bois en stock à l\'imprimerie.'},
+          // SOCLE COMMUN DES IMPRIMERIES (12 septembre 2026) : meme service, meme moteur et
+          // memes couts dans les trois imprimeries de Republia. imprimer_tracts (2 PA, cible
+          // libre dans le repertoire, bois du stock institutionnel) est remplace par la fn
+          // unique imprimer_tracts_electoraux -- voir plateau-communication.js.
+          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + un candidat en campagne + la quantité. Coût : 1 PA + 150 FR et 1 bois en stock personnel par lot de 10.'},
           {fn:'vendre_bois_imprimerie', label:'Vendre des matières premières', pa:0, cost:0, type:'legal', icon:'ti-trees', successRate:100, desc:'Prix = cours actuel du bois à l\'entrepôt +10%. Plafonné par la caisse de l\'imprimerie.'}
         ]
       },
@@ -3966,7 +3970,7 @@ const BUILDINGS = {
         // imprimer_tracts_sportifs retire (mecanique abandonnee, voir plateau-organisations-
         // quetes.js). imprimer_livre retire (abandonne, jamais eu d'effet reel utile).
         orders: [
-          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir un candidat en campagne. Produit un lot de 10 tracts en sa faveur. Coût : 1 PA + 150 FR + bois en stock personnel.'}
+          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + un candidat en campagne + la quantité. Coût : 1 PA + 150 FR et 1 bois en stock personnel par lot de 10.'}
         ]
       },
       atelier: {
@@ -3986,8 +3990,11 @@ const BUILDINGS = {
         // personnel, meme principe que le tract electoral.
         // Depuis le 11 septembre 2026 : + 150 FR par lot (meme prix que les tracts ordinaires),
         // encaisses par la caisse d'imprimerie de l'atelier (batiments_etat, imprimerie.caisse).
+        // Socle commun des imprimeries (12 septembre 2026) : la vente de matieres premieres
+        // manquait ici alors que l'atelier a bien une caisse (batiments_etat, imprimerie.caisse).
         orders: [
-          {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
+          {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (n\'importe quel PJ). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + 1 bois en stock personnel.'},
+          {fn:'vendre_bois_imprimerie', label:'Vendre des matières premières', pa:0, cost:0, type:'legal', icon:'ti-trees', successRate:100, desc:'Prix = cours actuel du bois à l\'entrepôt +10%. Plafonné par la caisse de l\'imprimerie.'}
         ]
       }
     }

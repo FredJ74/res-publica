@@ -88,10 +88,16 @@ let sbSaveQueue = Promise.resolve();
 // ancienne de la cible. Les deltas successifs sont disjoints : deux sauvegardes en file ne
 // comptent jamais deux fois le meme changement local. Sans _popEnvoye (personnage pas encore
 // charge depuis le serveur), la POP est ecrite telle quelle, comme avant.
+// INF EN DELTA (12 septembre 2026) : exactement la meme doctrine, etendue a l'influence parce que
+// le tract calomnieux la modifie desormais aussi cote serveur (-2). Un seul trigger traite les deux.
 function ressourcesAvecBasePop(charState, ressources) {
   if (typeof charState._popEnvoye === 'number' && typeof ressources.pop === 'number') {
     ressources.popBase = charState._popEnvoye;
     charState._popEnvoye = ressources.pop;
+  }
+  if (typeof charState._infEnvoye === 'number' && typeof ressources.inf === 'number') {
+    ressources.infBase = charState._infEnvoye;
+    charState._infEnvoye = ressources.inf;
   }
   return ressources;
 }
@@ -100,6 +106,9 @@ function ressourcesAvecBasePop(charState, ressources) {
 function reporterDeltaPopNonEcrit(charState, ressources) {
   if (ressources && typeof ressources.popBase === 'number' && typeof charState._popEnvoye === 'number') {
     charState._popEnvoye -= (ressources.pop - ressources.popBase);
+  }
+  if (ressources && typeof ressources.infBase === 'number' && typeof charState._infEnvoye === 'number') {
+    charState._infEnvoye -= (ressources.inf - ressources.infBase);
   }
 }
 
@@ -2405,6 +2414,33 @@ async function sbTractsElectorauxDistribuer(requete, joueur, cycleId, candidat, 
   const rows = await sbRpc('tracts_electoraux_distribuer', {
     p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId, p_candidat: candidat,
     p_sens: sens, p_pnj_nom: pnjNom, p_vol_pnj: (typeof volPnj === 'number') ? volPnj : null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Mouvement atomique d'une caisse de batiments_etat (12 septembre 2026,
+// migration_caisses_batiments_etat.sql) : lecture, calcul et ecriture en une seule instruction sous
+// verrou de ligne. Remplace le couple sbGetBatimentEtat/sbSetBatimentEtat pour les mouvements
+// d'argent, ou deux operations simultanees s'ecrasaient (caisse payant deux fois, ne baissant
+// qu'une). Tout-ou-rien : un debit qui mettrait la caisse en negatif n'est pas applique et renvoie
+// le solde reel. stockCle/stock deplacent en meme temps un compteur voisin (ex. stockBois).
+async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta, stockCle, stock) {
+  const rows = await sbRpc('batiment_caisse_mouvement', {
+    p_pays: pays, p_ville: ville, p_building: buildingId, p_souscle: sousCle,
+    p_delta: delta, p_stock_cle: stockCle || null, p_stock: stock || 0
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Tract calomnieux aupres d'un PNJ (12 septembre 2026, migration_tracts_calomnieux.sql) : aucun
+// lien avec un scrutin. Le serveur verifie le tract detenu, les PA, le verrou PNJ x cible x jour,
+// tire le jet (meme formule que les tracts electoraux), applique POP -5 / INF -2 en une seule
+// ecriture atomique, et decide de la suite judiciaire selon le pays de residence de la victime au
+// moment des faits. Idempotent sur l'id de requete.
+async function sbCalomnieDistribuer(requete, joueur, cible, pnjNom, volPnj) {
+  const rows = await sbRpc('calomnie_distribuer', {
+    p_requete: requete, p_joueur: joueur, p_cible: cible, p_pnj_nom: pnjNom,
+    p_vol_pnj: (typeof volPnj === 'number') ? volPnj : 10
   });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }

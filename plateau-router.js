@@ -130,7 +130,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts_choix') { ouvrirChoixImprimerTracts(); return; }
-  if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(pa, cost); return; }
+  // Alias de compatibilite (12 septembre 2026) : les trois imprimeries de Republia partagent
+  // desormais un seul moteur d'impression de tracts electoraux. L'ancienne fn imprimer_tracts
+  // (moteur propre a la-tribune) n'existe plus dans data.js ; toute definition residuelle ou
+  // sauvegarde ancienne aboutit ici, sur le moteur unique.
+  if (fn === 'imprimer_tracts') { ouvrirModalImprimerTractsElectoraux(pa, cost); return; }
   if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(pa, cost); return; }
   if (fn === 'imprimer_tracts_electoraux') { ouvrirModalImprimerTractsElectoraux(pa, cost); return; }
   if (fn === 'imprimer_tracts_calomnieux') { ouvrirModalImprimerTractsCalomnieux(pa, cost); return; }

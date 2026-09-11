@@ -210,57 +210,23 @@ function choisirTypeImprimerTracts(i) {
 // septembre 2026). Seule source du tarif cote code ; data.js l'affiche (cost:150).
 const PRIX_LOT_TRACTS = 150;
 
-async function ouvrirModalImprimerTracts(pa, cost) {
-  const contacts = state.contacts || [];
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + prixLotTractsAtelier() + ' ' + cur + ' par lot de 10 tracts.</div>';
-
-  if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
-    // Meme correctif de ville que confirmerImpression : a Montrouge, ce panneau annoncait le stock
-    // de bois de l'atelier de LUTHECIA, donc un chiffre sans rapport avec l'atelier ou l'on est.
-    const etat = await sbGetBatimentEtat(state.country, state.currentCity || 'capitale', 'la-tribune');
-    const stockBois = etat.imprimerie?.stockBois || 0;
-    const imprimeur = nomImprimeurLocal();
-    html += '<div style="font-size:.76rem;color:' + (stockBois > 0 ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Stock de bois ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
-  }
-
-  if (contacts.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
-  } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRACT</div>';
-    html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
-    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1008;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR un PJ</button>';
-    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE un PJ</button>';
-    html += '</div>';
-
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-    html += '<select id="tract-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-    html += '</select>';
-
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITE</div>';
-    html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    [10,20,50,100].forEach(q => {
-      const cout = q / 10 * prixLotTractsAtelier();
-      html += '<option value="' + q + '">' + q + ' tracts — ' + cout + ' ' + cur + '</option>';
-    });
-    html += '</select>';
-
-    html += '<button onclick="confirmerImpression(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-  // Selectionner "pour" par defaut
-  window._tractType = 'pour';
-}
-
+// MOTEUR UNIQUE D'IMPRESSION DE TRACTS ELECTORAUX (12 septembre 2026, harmonisation des trois
+// imprimeries de Republia). Il remplace l'ancien couple ouvrirModalImprimerTracts/confirmerImpression
+// propre a la-tribune (Luthecia, Montrouge) : les deux services etaient le MEME service, avec deux
+// moteurs, deux libelles, deux couts en PA et deux sources de matiere. Socle commun desormais
+// applique a L'Autruche Entravee (Luthecia), au Cheminot Informe (Montrouge) et a l'Imprimerie-
+// Librairie Gutenberg (Port-Sainte-Marie) :
+//   - POUR ou CONTRE un candidat reellement en campagne (garantit un tract distribuable) ;
+//   - lots de 10 ; 1 PA par commande ; prixLotTractsAtelier() par lot (tarif public : 150 FR) ;
+//   - BOIS_PAR_LOT_TRACTS par lot, pris dans le stock PERSONNEL du joueur ;
+//   - fonds ordinaires reels (liquide puis Banque nationale) verifies AVANT toute production ;
+//   - la caisse de l'imprimerie OU L'ON SE TROUVE recoit exactement la somme debitee.
+// selectTractType (ci-dessous) est conserve tel quel : c'est le meme selecteur POUR/CONTRE.
 function selectTractType(type) {
   window._tractType = type;
   const btnPour = document.getElementById('tract-type-pour');
   const btnContre = document.getElementById('tract-type-contre');
+  if (!btnPour || !btnContre) return;
   if (type === 'pour') {
     btnPour.style.cssText = 'flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
     btnContre.style.cssText = 'flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
@@ -270,187 +236,116 @@ function selectTractType(type) {
   }
 }
 
-async function confirmerImpression(pa, cost) {
-  const type = window._tractType || 'pour';
-  const cible = document.getElementById('tract-cible')?.value;
-  const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = quantite / 10 * prixLotTractsAtelier();
-  const nbLots = quantite / 10;
-
-  // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), jamais arg seul : meme
-  // regle que deduireCoutOrdre ci-dessous, verifiee ici avant toute lecture de l'atelier.
-  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fondsDisponibles < cout) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
-    return;
-  }
-
-  // A La Tribune (Luthecia) : Gustave a besoin de bois pour imprimer. Recette dynamique -
-  // ne consomme jamais plus de 50% du prix du lot (150 FR) en valeur de bois, quel que soit
-  // le cours actuel du bois a l'entrepot. Rien n'est debite si le stock manque.
-  // VILLE REELLE, PAS 'capitale' EN DUR. Le buildingId 'la-tribune' est partage par Luthecia ET
-  // Montrouge (data.js : les deux villes le listent dans leurs buildings). Avec 'capitale' fige,
-  // un joueur imprimant a la Tribune de Montrouge consommait le bois de l'atelier de LUTHECIA et
-  // creditait la caisse de LUTHECIA : le stock d'une ville payait pour l'autre, et l'atelier de
-  // Montrouge n'encaissait jamais rien. Le prix du bois etait lui aussi lu sur l'entrepot de
-  // Luthecia au lieu de l'entrepot local.
-  const villeImprimerie = state.currentCity || 'capitale';
-  const entrepotLocal = (typeof ENTREPOT_PAR_VILLE === 'object' && ENTREPOT_PAR_VILLE[villeImprimerie])
-    || 'entrepot-logistique-luthecia';
-  let etatImprimerie = null, boisParLot = 0;
-  if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
-    const etatEntrepot = await sbGetBatimentEtat(state.country, villeImprimerie, entrepotLocal);
-    const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
-    const prixBoisPourGustave = (typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10;
-    boisParLot = Math.max(1, Math.floor(75 / prixBoisPourGustave)); // 75 FR = 50% de 150 FR/lot
-
-    etatImprimerie = await sbGetBatimentEtat(state.country, villeImprimerie, 'la-tribune');
-    const stockBois = etatImprimerie.imprimerie?.stockBois || 0;
-    const boisNecessaire = boisParLot * nbLots;
-    if (stockBois < boisNecessaire) {
-      document.getElementById('modal-postes')?.classList.remove('open');
-      showToast((nomImprimeurLocal() || 'L\'imprimerie') + ' manque de bois', 'Il me faudrait ' + boisNecessaire + ' bois pour ce lot, il ne m\'en reste que ' + stockBois + '. Vous auriez du bois à me vendre ?', false);
-      return;
-    }
-  }
-
-  // PA + paiement du lot par le mecanisme standard des depenses ordinaires (correctif du 11
-  // septembre 2026) : deduireCoutOrdre verifie PA et fonds AVANT toute mutation, puis debite via
-  // debiterFondsOrdinaires (liquide d'abord, Banque nationale en complement). Auparavant seul
-  // state.arg baissait -- liquide et compte bancaire intacts -- tandis que la caisse de l'atelier
-  // etait creditee : de l'argent cree a chaque impression.
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const montantDebite = r.montantPreleve || 0;
-
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.inventory) state.inventory = [];
-
-  // Chercher si un lot similaire existe deja
-  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === cible && i.tractType === type);
-  if (existing) {
-    existing.quantite += quantite;
-  } else {
-    state.inventory.push({
-      type: 'tract',
-      name: 'Tracts ' + (type === 'pour' ? 'POUR' : 'CONTRE') + ' ' + cible,
-      icon: 'ti-file-description',
-      tractType: type,
-      cible: cible,
-      quantite: quantite,
-      legal: true
-    });
-  }
-
-  if (etatImprimerie) {
-    const boisConsomme = boisParLot * nbLots;
-    etatImprimerie.imprimerie = {
-      ...(etatImprimerie.imprimerie || {}),
-      stockBois: (etatImprimerie.imprimerie?.stockBois || 0) - boisConsomme,
-      caisse: (etatImprimerie.imprimerie?.caisse || 0) + montantDebite   // uniquement ce que le joueur a reellement paye
-    };
-    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerie, 'la-tribune', etatImprimerie).catch(() => {});
-  }
-
-  updateUI();
-  showToast('Tracts imprimes !', quantite + ' tracts ' + type + ' ' + cible + ' ajoutes a votre inventaire. -' + cout + ' ' + cur, true, true);
-  addJournalEntry('Production de ' + quantite + ' tracts ' + type + ' ' + cible, 'event-info');
-}
-
-// =====================
-// IMPRIMERIE PSM — TRACTS ELECTORAUX / TRACTS CALOMNIEUX (lot du 24 aout 2026)
-// =====================
-// Fn dediees et propres a PSM (imprimer_tracts_electoraux/imprimer_tracts_calomnieux),
-// distinctes de imprimer_tracts/imprimer_clandestin utilises par la-tribune (Luthecia/
-// Montrouge, ouvrirModalImprimerTracts/confirmerImpression ci-dessus, NON touches) : aucun
-// risque de regression sur ces deux villes. Cout reel des deux ordres : 1 PA + bois pris dans
-// le stock personnel du joueur (stackKey 'bois', meme lot que confirmerVendreBoisImprimerie plus
-// bas dans le fichier) -- pas de caisse/stock institutionnel comme Gustave, pas de
-// batiments_etat. Quantite de bois par lot volontairement simple/non optimisee (decision
-// explicite : "ce n'est pas le sujet").
-// Depuis le 11 septembre 2026, le tract calomnieux coute en plus PRIX_LOT_TRACTS par lot dans tous
-// ses ateliers (La Tribune de Luthecia et Montrouge, Gutenberg a Port-Sainte-Marie), encaisse par
-// la caisse d'imprimerie de l'atelier (voir ATELIERS_TRACTS_CALOMNIEUX).
-const BOIS_PAR_LOT_TRACTS_PSM = 1;
+// Matiere premiere consommee par lot de 10 tracts, identique pour les tracts electoraux et
+// calomnieux, dans les trois imprimeries : 1 bois pris dans le STOCK PERSONNEL du joueur
+// (stackKey 'bois', le meme lot que la vente de matieres premieres plus bas). C'est la regle
+// majoritaire preexistante (Gutenberg + tous les tracts calomnieux) ; l'ancien moteur de
+// la-tribune consommait a la place le stock institutionnel de l'atelier (imprimerie.stockBois),
+// avec une quantite indexee sur le cours du bois. Voir le rapport du 12 septembre 2026 :
+// l'articulation entre ce stock institutionnel et la production reste a arbitrer.
+const BOIS_PAR_LOT_TRACTS = 1;
+const BOIS_PAR_LOT_TRACTS_PSM = BOIS_PAR_LOT_TRACTS;   // ancien nom, conserve pour lisibilite
+const QUANTITES_LOTS_TRACTS = [10, 20, 50, 100];
 
 function stockBoisPersonnel() {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   return { lot, qte: lot?.qty || 0 };
 }
 
-// --- Tract electoral (accueil_imprimerie) ---
-// Arbitrage du 24 aout 2026 : le vrai moteur electoral (CYCLES_ELECTORAUX/votesPNJ) ne connait
-// qu'un vote POUR un candidat nomme, jamais de vote "contre" ni de score negatif. Le tract
-// electoral est donc EXCLUSIVEMENT en faveur de la cible choisie -- aucun choix pour/contre
-// propose ici. La fonction hostile (nuire a une cible) est desormais entierement portee par le
-// tract calomnieux (voir plus bas). La cible est restreinte aux candidats reellement en
-// campagne (listerCandidatsElectorauxActifs, plateau-politique.js) pour garantir qu'un tract
-// imprime soit toujours distribuable dans le vrai systeme.
+// --- Tracts electoraux : moteur unique des trois imprimeries ---
+// La cible est restreinte aux candidats REELLEMENT en campagne (listerCandidatsElectorauxActifs,
+// plateau-politique.js) : un tract imprime est ainsi toujours distribuable dans le vrai systeme
+// electoral. POUR (+1 voix) ou CONTRE (-1 voix, plancher 0) : les deux sens sont traites par le
+// moteur serveur des tracts (migration_tracts_electoraux_pnj.sql), qui les accepte tous deux.
 function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const candidats = (typeof listerCandidatsElectorauxActifs === 'function') ? listerCandidatsElectorauxActifs() : [];
   const { qte: stockBois } = stockBoisPersonnel();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const prixLot = prixLotTractsAtelier();
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + prixLotTractsAtelier() + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ' + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts, en faveur du candidat choisi.</div>';
-  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA pour la commande, puis ' + prixLot + ' ' + cur + ' + ' + BOIS_PAR_LOT_TRACTS + ' bois par lot de 10 tracts.</div>';
+  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
   if (candidats.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun candidat en campagne actuellement.</div>';
   } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT SOUTENU</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRACT</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
+    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR le candidat</button>';
+    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE le candidat</button>';
+    html += '</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT VISÉ</div>';
     html += '<select id="tract-electoral-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     candidats.forEach((c, idx) => { html += '<option value="' + idx + '">' + c.nom + '</option>'; });
     html += '</select>';
-    html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Imprimer 10 tracts</button>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITÉ</div>';
+    html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    QUANTITES_LOTS_TRACTS.forEach(q => {
+      html += '<option value="' + q + '">' + q + ' tracts — ' + (q / 10 * prixLot) + ' ' + cur + ' + ' + (q / 10 * BOIS_PAR_LOT_TRACTS) + ' bois</option>';
+    });
+    html += '</select>';
+    html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
   window._candidatsElectorauxActifs = candidats;
+  window._tractType = 'pour';
 }
 
 async function confirmerImprimerTractsElectoraux(pa, cost) {
   const idx = parseInt(document.getElementById('tract-electoral-cible')?.value ?? '-1');
   const candidat = (window._candidatsElectorauxActifs || [])[idx];
   if (!candidat) { showToast('Aucun candidat', '', false); return; }
+  const sens = window._tractType === 'contre' ? 'contre' : 'pour';
+  const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
+  const nbLots = Math.max(1, Math.round(quantite / 10));
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
 
+  const boisRequis = nbLots * BOIS_PAR_LOT_TRACTS;
   const { lot, qte } = stockBoisPersonnel();
-  if (qte < BOIS_PAR_LOT_TRACTS_PSM) {
-    showToast('Pas assez de bois', 'Il faut ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois en stock personnel pour ce lot.', false);
+  if (qte < boisRequis) {
+    showToast('Pas assez de bois', 'Il faut ' + boisRequis + ' bois en stock personnel pour ' + quantite + ' tracts.', false);
     return;
   }
 
-  // Tarif public de Republia (12 septembre 2026) : 150 FR par lot de 10, comme a Luthecia et
-  // Montrouge. Fonds reels (liquide puis Banque nationale) verifies avant toute production, puis PA +
-  // debit en un seul appel ; la caisse Gutenberg recoit exactement la somme debitee.
-  const prixLot = prixLotTractsAtelier();
+  // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), verifies AVANT toute
+  // production ; puis PA + debit en un seul appel. La caisse de l'imprimerie ou l'on se trouve
+  // recoit exactement la somme debitee : jamais de creation ni de destruction de monnaie.
+  const cout = nbLots * prixLotTractsAtelier();
   const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fondsDisponibles < prixLot) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + prixLot + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
+  if (fondsDisponibles < cout) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost: prixLot });
+  const r = await deduireCoutOrdre({ pa, cost: cout });
   if (!r.ok) { signalerRefusCout(r); return; }
   const montantDebite = r.montantPreleve || 0;
   if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
-    await crediterCaisseEtatBatiment(state.country, state.currentCity || 'ville_a', state.currentBuilding || 'imprimerie-librairie', 'imprimerie', montantDebite);
+    await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
+      state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
   }
 
-  lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
+  lot.qty -= boisRequis;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
 
   if (!state.inventory) state.inventory = [];
-  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && i.tractType === 'pour');
+  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && (i.tractType || 'pour') === sens);
   if (existing) {
-    existing.quantite = (existing.quantite || 0) + 10;
+    existing.quantite = (existing.quantite || 0) + quantite;
   } else {
-    state.inventory.push({ type: 'tract', name: 'Tracts POUR ' + candidat.nom, icon: 'ti-file-description', tractType: 'pour', cible: candidat.nom, quantite: 10, legal: true, electionPosteId: candidat.posteId, electionCity: candidat.city });
+    state.inventory.push({
+      type: 'tract', name: 'Tracts ' + (sens === 'contre' ? 'CONTRE ' : 'POUR ') + candidat.nom,
+      icon: 'ti-file-description', tractType: sens, cible: candidat.nom, quantite: quantite, legal: true,
+      electionPosteId: candidat.posteId, electionCity: candidat.city
+    });
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', '10 tracts en faveur de ' + candidat.nom + ' ajoutés à votre inventaire.' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') : ''), true, true);
-  addJournalEntry('Impression de 10 tracts électoraux en faveur de ' + candidat.nom + '.', 'event-info');
+  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' ajoutés à votre inventaire.' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + cur : ''), true, true);
+  addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + '.', 'event-info');
 }
 
 // --- Tract calomnieux (atelier) ---
@@ -478,21 +373,36 @@ function prixLotTractsAtelier() {
   return PRIX_LOT_TRACTS;
 }
 
-function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
-  const contacts = state.contacts || [];
+// CIBLE (regle fixee le 12 septembre 2026) : un tract calomnieux peut viser N'IMPORTE QUEL PJ --
+// pas besoin qu'il soit candidat, present, dans la meme ville ni dans le meme empire. La liste
+// n'est donc plus le repertoire personnel mais l'annuaire des joueurs (meme source que
+// ouvrirAnnuaireJoueurs), le repertoire servant seulement de repli si l'annuaire est injoignable.
+async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
+  const moi = state.char?.name || '';
+  let cibles = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { cibles = ((await sbListPersonnages()) || []).map(j => ({ name: j.name, country: j.country })); } catch (e) { cibles = []; }
+  }
+  if (cibles.length === 0) cibles = (state.contacts || []).map(c => ({ name: c.name, country: null }));
+  cibles = cibles.filter(c => c && c.name && c.name !== moi)
+                 .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const { qte: stockBois } = stockBoisPersonnel();
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts calomnieux';
   let html = '<div style="padding:1rem">';
   const prixLot = prixLotTractsCalomnieux();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + (prixLot > 0 ? prixLot + ' ' + cur + ' + ' : '') + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts calomnieux (illégal).</div>';
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
-  if (contacts.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
+  if (cibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
   } else {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
     html += '<select id="tract-calomnieux-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    cibles.forEach(c => {
+      const suffixe = c.country && empireNoms[c.country] ? ' — ' + empireNoms[c.country] : '';
+      html += '<option value="' + c.name + '">' + c.name + suffixe + '</option>';
+    });
     html += '</select>';
     html += '<button onclick="confirmerImprimerTractsCalomnieux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Imprimer 10 tracts</button>';
   }
@@ -857,14 +767,15 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   updateUI();
 }
 
-function distribuerTractCalomnieuxPNJ(pnjName) {
+function distribuerTractCalomnieuxPNJ(pnjName, encodedPnj) {
   const tracts = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
   if (tracts.length === 0) {
     showToast('Aucun tract', 'Vous n\'avez pas de tract calomnieux en inventaire.', false);
     return;
   }
+  window._calomnieEncodedPnj = encodedPnj || null;
   if (tracts.length === 1) {
-    confirmerDistribuerTractCalomnieux(tracts[0].cible, pnjName);
+    confirmerDistribuerTractCalomnieux(tracts[0].cible, pnjName, encodedPnj);
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Distribuer un tract calomnieux à ' + pnjName;
@@ -882,31 +793,93 @@ function distribuerTractCalomnieuxPNJ(pnjName) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Seuils utilises (24 aout 2026, corrige au meme jour : 10% exactement, pas 25%) : reussite =
-// meme formule que le tract electoral (50% + INF/10, plafonne 80%), taux de reussite general
-// inchange. En cas d'echec (100-taux), 10% exactement de ces echecs sont "critiques" (flagrant
-// delit), les 90% restants "simples" (sans consequence).
-async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
+const MOTIFS_REFUS_TRACT_CALOMNIEUX = {
+  tract_absent: 'Ce lot ne figure pas dans votre inventaire enregistré.',
+  deja_convaincu: 'Cette personne a déjà relayé une calomnie contre cette cible aujourd\'hui.',
+  pa_insuffisants: 'Il faut 1 PA pour distribuer un tract calomnieux.',
+  cible_introuvable: 'La cible de ce tract n\'existe plus.',
+  cible_invalide: 'Cette cible n\'est pas valable.',
+  juridiction_indeterminee: 'Impossible de déterminer le pays de résidence de la cible.',
+  pnj_invalide: 'Cet interlocuteur n\'est pas identifiable.'
+};
+
+// MECANIQUE SERVEUR (12 septembre 2026, migration_tracts_calomnieux.sql). Regles fixees :
+//   - 1 tract + 1 PA + 1 PNJ precis par tentative ; jet serveur ;
+//   - taux = 45 + CHA + floor(INF/4) - 2 x max(0, VOL_PNJ - 10), borne [0, 85], VOL 10 par defaut,
+//     soit exactement la formule des tracts electoraux (meme fonction SQL, aucune duplication) ;
+//   - reussite : POP -5 ET INF -2 sur le PJ cible, en une seule ecriture atomique, bornes [0,100] ;
+//     elle verrouille le triplet PNJ x cible x jour (Paris) -- pas le PNJ, pas la cible seuls ;
+//   - echec normal : aucun effet, meme PNJ retentable immediatement ;
+//   - echec critique = 10 % des ECHECS : le calomnieur est identifie.
+// Juridiction (regle fixee) : le pays competent est celui de RESIDENCE DE LA VICTIME AU MOMENT DES
+// FAITS, gele dans l'acte. Le serveur tranche et renvoie 'poursuite' :
+//   - 'flagrant_delit' (faits commis dans ce pays) : circuit preexistant, inchange -- destruction
+//     des lots detenus et 1 jour de detention, applique ici parce que la peine se compte en jours
+//     de jeu, propres a ce joueur ;
+//   - 'mandat' (faits commis ailleurs) : aucune arrestation sur place, le serveur a inscrit une
+//     entree de recherche portant country = pays competent. Les mecanismes ordinaires
+//     (verifierArrestationRecherchePolice, chasse a l'homme) filtrent deja sur ce champ : pas
+//     d'extradition, mais une arrestation possible si le calomnieur entre dans ce pays.
+async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (!encodedPnj) encodedPnj = window._calomnieEncodedPnj || null;
   const tract = (state.inventory || []).find(i => i.type === 'tract_calomnieux' && i.cible === cible && (i.quantite || 0) > 0);
   if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
+  if (typeof sbCalomnieDistribuer !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
+    return;
+  }
+  if (typeof TEST_MODE !== 'undefined' && !TEST_MODE && (state.pa || 0) < 1) {
+    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_CALOMNIEUX.pa_insuffisants, false);
+    return;
+  }
+  // Le serveur lit les PA et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
+  const sauve = await sbSavePersonnage(state).catch(() => null);
+  if (!sauve) {
+    showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Aucun tract n\'a été utilisé.', false);
+    return;
+  }
+  const requete = 'tract-cal-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  const vol = typeof volontePnjElectorale === 'function' ? volontePnjElectorale(encodedPnj) : 10;
+  let res = await sbCalomnieDistribuer(requete, state.char.name, cible, pnjName, vol).catch(() => null);
+  if (!res) res = await sbCalomnieDistribuer(requete, state.char.name, cible, pnjName, vol).catch(() => null);
+  if (!res) {
+    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', false);
+    return;
+  }
+  if (!res.ok) {
+    showToast('Distribution impossible', MOTIFS_REFUS_TRACT_CALOMNIEUX[res.raison] || 'La distribution a été refusée.', false);
+    return;
+  }
 
+  // Tentative reellement effectuee (reussite ou echec) : 1 PA et 1 tract, jamais plus.
+  if (typeof deduireCoutOrdre === 'function') await deduireCoutOrdre({ pa: 1, cost: 0 });
   tract.quantite -= 1;
   if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
 
-  const bonusInf = Math.floor((state.inf || 0) / 10);
-  const taux = Math.min(80, 50 + bonusInf);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    // Reussite : -5 POP reel et persistant sur la cible.
-    // Effet POP serveur, atomique, ne touche que la POP (11 septembre 2026). Valeur inchangee : -5.
-    if (typeof sbTractAppliquerEffetPop === 'function') await sbTractAppliquerEffetPop(cible, -5).catch(() => null);
-    showToast('Tract distribué !', pnjName + ' relaie la calomnie. -5 POP pour ' + cible + '.', true, true);
-    addJournalEntry('Tract calomnieux distribué à ' + pnjName + ' — succès. -5 POP pour ' + cible + '.', 'event-good');
-  } else {
-    const rollCritique = Math.floor(Math.random() * 100) + 1;
-    const critique = rollCritique <= 10;
+  if (res.reussi) {
+    showToast('Tract distribué !', pnjName + ' relaie la calomnie. -5 POP et -2 INF pour ' + cible + '.', true, true);
+    addJournalEntry('Tract calomnieux distribué à ' + pnjName + ' — succès. -5 POP et -2 INF pour ' + cible + '.', 'event-good');
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+    if (typeof updateUI === 'function') updateUI();
+    return;
+  }
+  {
+    const critique = !!res.critique;
+    if (critique && res.poursuite === 'mandat') {
+      // Faits commis hors du pays competent : aucune poursuite ici, aucun lot detruit. Le mandat a
+      // ete inscrit par le serveur ; on le reflete localement pour que la prochaine sauvegarde de
+      // CE client (qui reecrit recherche en entier) ne l'efface pas.
+      if (res.mandat && typeof res.mandat === 'object') {
+        if (!Array.isArray(state.recherche)) state.recherche = [];
+        if (!state.recherche.some(r => r && r.id === res.mandat.id)) state.recherche.push(res.mandat);
+      }
+      showToast('Vous êtes démasqué(e)', pnjName + ' vous dénonce. La plainte est instruite dans le pays de résidence de ' + cible + ' : vous y êtes désormais recherché(e).', false, true);
+      addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Mandat d\'arrêt dans le pays de résidence de ' + cible + '.', 'event-bad');
+      if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+      if (typeof updateUI === 'function') updateUI();
+      return;
+    }
     if (critique) {
       // Echec critique : destruction de TOUS les tracts calomnieux detenus + 1 jour de
       // detention. Reutilise directement l'architecture existante (state.estEmprisonne, meme
@@ -948,10 +921,11 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
         }
       }
     } else {
-      showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé.', false);
+      showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé. (' + res.jet + ' pour ' + res.taux + ' %)', false);
       addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — sans effet.', '');
     }
   }
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
 }
 
