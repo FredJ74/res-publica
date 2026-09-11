@@ -880,12 +880,12 @@ function openPnjModal(encodedPnj) {
   const tractsDispos = (state.inventory || []).filter(i => i.type === 'tract');
   const tractsJeanLou = tractsDispos.filter(i => i.origineQuete === 'jean_lou');
   const tractsGeneriques = tractsDispos.filter(i => i.origineQuete !== 'jean_lou');
-  if (tractsGeneriques.length > 0 && tractsJeanLou.length === 0) {
-    if (isPJ) {
-      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
-    } else {
-      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractElectoralPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract électoral</button>';
-    }
+  // Don a un vrai PJ : ordinaires ET calomnieux (lotsTractsDonnables, plateau-communication.js).
+  const tractsDonnables = typeof lotsTractsDonnables === 'function' ? lotsTractsDonnables() : tractsGeneriques;
+  if (isPJ && tractsDonnables.length > 0 && tractsJeanLou.length === 0) {
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
+  } else if (!isPJ && tractsGeneriques.length > 0 && tractsJeanLou.length === 0) {
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractElectoralPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract électoral</button>';
   }
   // Tracts calomnieux (lot du 24 aout 2026) : distinct du circuit electoral ci-dessus (type
   // 'tract_calomnieux', pas 'tract'), aucun verrouillage electoral applicable. Uniquement pour
@@ -2384,7 +2384,8 @@ async function confirmerDistribuerTract(cible, tractType, pa, cost) {
   if (succes) {
     const montant = Math.floor(Math.random() * 6) + 3; // 3 a 8
     const delta = tractType === 'pour' ? montant : -montant;
-    if (typeof sbAjusterPopJoueur === 'function') sbAjusterPopJoueur(cible, delta).catch(() => {});
+    // Effet POP serveur, atomique, ne touche que la POP (11 septembre 2026). Valeurs inchangees.
+    if (typeof sbTractAppliquerEffetPop === 'function') await sbTractAppliquerEffetPop(cible, delta).catch(() => null);
     const verbe = tractType === 'pour' ? 'convaincus' : 'dissuadés';
     showToast('Tract distribué !', 'Efficace — ' + Math.abs(delta) + ' POP ' + (tractType === 'pour' ? 'pour' : 'contre') + ' ' + cible + '. (' + taux + '% de chances)', true, true);
     addJournalEntry('Tract distribué ' + tractType + ' ' + cible + ' avec succès : ' + (tractType === 'pour' ? '+' : '-') + montant + ' POP. (' + taux + '% de chances)', 'event-good');

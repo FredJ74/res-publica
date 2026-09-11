@@ -825,6 +825,9 @@ function loadCharacter() {
             // memorise le updated_at serveur connu au moment de cette reconciliation -- voir
             // sbVerifierEtSauvegarderPersonnage (supabase.js).
             state._dernierUpdatedAtConnu = sbState.updatedAt || null;
+            // POP en delta (11 septembre 2026, voir ressourcesAvecBasePop, supabase.js) : point de
+            // depart = la POP que la base detient reellement a ce chargement.
+            state._popEnvoye = typeof sbState.pop === 'number' ? sbState.pop : undefined;
 
             // applyCharToState() ci-dessous recalcule inf/pop/dis (et arg) a partir de char.resources/char.arg --
             // il faut donc synchroniser char.resources/char.arg avec les valeurs fraiches qu'on vient de

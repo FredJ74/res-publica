@@ -81,6 +81,28 @@ async function sbDelete(table, filters) {
 // ecriture (jamais celui d'une autre, deja en file ou suivante).
 let sbSaveQueue = Promise.resolve();
 
+// POP EN DELTA (11 septembre 2026, trigger personnages_fusionner_pop) : chaque sauvegarde porte
+// popBase = la POP que CE client a envoyee la fois precedente ; la base n'applique que la
+// difference (pop - popBase) sur SA valeur courante. Un effet ecrit entre-temps par le serveur (un
+// tract d'un autre joueur, tracts_appliquer_effet_pop) n'est donc plus ecrase par une sauvegarde
+// ancienne de la cible. Les deltas successifs sont disjoints : deux sauvegardes en file ne
+// comptent jamais deux fois le meme changement local. Sans _popEnvoye (personnage pas encore
+// charge depuis le serveur), la POP est ecrite telle quelle, comme avant.
+function ressourcesAvecBasePop(charState, ressources) {
+  if (typeof charState._popEnvoye === 'number' && typeof ressources.pop === 'number') {
+    ressources.popBase = charState._popEnvoye;
+    charState._popEnvoye = ressources.pop;
+  }
+  return ressources;
+}
+
+// Une sauvegarde qui n'a pas abouti rend son delta : la suivante le renverra.
+function reporterDeltaPopNonEcrit(charState, ressources) {
+  if (ressources && typeof ressources.popBase === 'number' && typeof charState._popEnvoye === 'number') {
+    charState._popEnvoye -= (ressources.pop - ressources.popBase);
+  }
+}
+
 async function sbEcrirePersonnage(data) {
   const existing = await sbGet('personnages', `name=eq.${encodeURIComponent(data.name)}`);
   if (existing && existing.length > 0) {
@@ -118,7 +140,7 @@ async function sbSavePersonnage(charState) {
     school:           charState.char?.school || null,
     free_pts_restants: charState.char?.freePtsRestants || 0,
     stats:            charState.char?.stats,
-    resources:        { inf: charState.inf, pop: charState.pop, dis: charState.dis },
+    resources:        ressourcesAvecBasePop(charState, { inf: charState.inf, pop: charState.pop, dis: charState.dis }),
     arg:              charState.arg || 0,
     liquide:          charState.liquide || 0,
     banque:           charState.banque || 0,
@@ -212,13 +234,16 @@ async function sbSavePersonnage(charState) {
   // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
   // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
   const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data)).then((resultat) => {
+    // Ecriture refusee (sbUpdate/sbInsert renvoient null) : le delta de POP de cette sauvegarde
+    // n'a pas ete applique -- il est reporte sur la suivante (voir ressourcesAvecBasePop).
+    if (!resultat) { reporterDeltaPopNonEcrit(charState, data.resources); return resultat; }
     // Repere de fraicheur (lot du 25 aout 2026, correctif filet de securite 30s) : des qu'une
     // ecriture reussit, cette session SAIT que le updated_at serveur vaut desormais celui
     // qu'elle vient d'ecrire -- utilise par sbVerifierEtSauvegarderPersonnage ci-dessous pour
     // detecter qu'UNE AUTRE session/onglet a ecrit depuis, avant de republier aveuglement.
     charState._dernierUpdatedAtConnu = data.updated_at;
     return resultat;
-  });
+  }, (err) => { reporterDeltaPopNonEcrit(charState, data.resources); throw err; });
   sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
   return tache;
 }
@@ -1108,7 +1133,7 @@ function sbSauvegardeUrgenceDechargement() {
     pa: (typeof state.pa === 'number') ? state.pa : 10,
     hp: state.hp || 100,
     moral: state.moral || 75,
-    resources: { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 },
+    resources: ressourcesAvecBasePop(state, { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 }),
     country: state.country || 'republic',
     current_city: state.currentCity || 'capitale',
     current_building: state.currentBuilding || null,
@@ -2355,6 +2380,31 @@ async function sbAjusterPopJoueur(nomJoueur, delta) {
   const nouveauPop = Math.max(0, Math.min(100, (resources.pop ?? 50) + delta));
   await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { resources: { ...resources, pop: nouveauPop } });
   return nouveauPop;
+}
+
+// ---- TRACTS (11 septembre 2026, migration_autruche_tracts_securisation.sql) ----
+// Effet POP d'un tract : RPC atomique (un seul UPDATE sous verrou), ne touche que resources.pop.
+// Remplace, pour les tracts seulement, la relecture/reecriture de resources ci-dessus.
+async function sbTractAppliquerEffetPop(cible, delta) {
+  const rows = await sbRpc('tracts_appliquer_effet_pop', { p_cible: cible, p_delta: delta });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Don de tracts a un vrai PJ : destinataire verifie, idempotent sur l'id de requete (rejeu sans
+// doublon). Le destinataire le recoit par verifierObjetsRecus, via tracts_reclamer_don.
+async function sbTractsDonnerJoueur(requete, expediteur, destinataire, objet) {
+  const rows = await sbRpc('tracts_donner_joueur', { p_requete: requete, p_expediteur: expediteur, p_destinataire: destinataire, p_objet: objet });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
+// deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
+async function sbTractsReclamerDon(id, destinataire) {
+  const rows = await sbRpc('tracts_reclamer_don', { p_id: id, p_destinataire: destinataire });
+  const r = rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+  if (!r || !r.data) return null;
+  try { return { id: r.id, expediteur: r.expediteur, objet: typeof r.data === 'string' ? JSON.parse(r.data) : r.data }; }
+  catch (e) { return null; }
 }
 
 // =====================

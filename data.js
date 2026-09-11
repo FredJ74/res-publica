@@ -3983,8 +3983,10 @@ const BUILDINGS = {
         // mecanisme de detection existant a l'impression (checkDetection/ACTES_ILLEGAUX, cle
         // renommee a l'identique dans plateau-core.js). Cout reel : 1 PA + bois en stock
         // personnel, meme principe que le tract electoral.
+        // Depuis le 11 septembre 2026 : + 150 FR par lot (meme prix que les tracts ordinaires),
+        // encaisses par la caisse d'imprimerie de l'atelier (batiments_etat, imprimerie.caisse).
         orders: [
-          {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+          {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + bois en stock personnel.'}
         ]
       }
     }

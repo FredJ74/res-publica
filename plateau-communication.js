@@ -369,9 +369,9 @@ async function confirmerImpression(pa, cost) {
 // bas dans le fichier) -- pas de caisse/stock institutionnel comme Gustave, pas de
 // batiments_etat. Quantite de bois par lot volontairement simple/non optimisee (decision
 // explicite : "ce n'est pas le sujet").
-// Depuis le 11 septembre 2026, le tract calomnieux coute en plus PRIX_LOT_TRACTS par lot dans les
-// ateliers de La Tribune (Luthecia, Montrouge), encaisse par leur caisse d'imprimerie ; inchange a
-// Port-Sainte-Marie, sans caisse (voir prixLotTractsCalomnieux).
+// Depuis le 11 septembre 2026, le tract calomnieux coute en plus PRIX_LOT_TRACTS par lot dans tous
+// ses ateliers (La Tribune de Luthecia et Montrouge, Gutenberg a Port-Sainte-Marie), encaisse par
+// la caisse d'imprimerie de l'atelier (voir ATELIERS_TRACTS_CALOMNIEUX).
 const BOIS_PAR_LOT_TRACTS_PSM = 1;
 
 function stockBoisPersonnel() {
@@ -447,12 +447,14 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
 // ACTES_ILLEGAUX['imprimer_tracts_calomnieux'] (plateau-core.js, cle renommee a l'identique
 // depuis l'ancienne imprimer_clandestin) -- meme mecanisme de detection qu'ailleurs, aucun
 // systeme parallele.
-// Prix d'un lot de tracts calomnieux : PRIX_LOT_TRACTS dans un atelier de La Tribune (Luthecia,
-// Montrouge), qui a une caisse d'imprimerie pour l'encaisser. 0 a l'Imprimerie-Librairie de
-// Port-Sainte-Marie, sans caisse : le prix n'y est pas applique tant que ce n'est pas arbitre (le
-// payer y detruirait l'argent ; y creer une caisse serait une nouvelle mecanique).
+// Ateliers ou s'impriment les tracts calomnieux, chacun avec sa caisse d'imprimerie dans
+// batiments_etat (sous-objet 'imprimerie', systeme commun) : La Tribune (Luthecia, Montrouge) et
+// l'Imprimerie-Librairie Gutenberg (Port-Sainte-Marie, caisse creee et amorcee le 11 septembre 2026,
+// migration_autruche_tracts_securisation.sql). Meme prix partout : PRIX_LOT_TRACTS par lot de 10.
+const ATELIERS_TRACTS_CALOMNIEUX = ['la-tribune', 'imprimerie-librairie'];
+
 function prixLotTractsCalomnieux() {
-  return state.currentBuilding === 'la-tribune' ? PRIX_LOT_TRACTS : 0;
+  return PRIX_LOT_TRACTS;
 }
 
 function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
@@ -491,6 +493,11 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
   // Paiement du lot (arbitrage du 11 septembre 2026 : meme prix que les tracts ordinaires) par le
   // mecanisme standard : fonds reels (liquide puis Banque nationale) verifies avant toute
   // production, puis PA + debit en un seul appel. Aucun paiement la ou l'atelier n'a pas de caisse.
+  // Jamais d'impression gratuite hors d'un atelier connu : l'argent n'aurait aucune caisse ou aller.
+  if (ATELIERS_TRACTS_CALOMNIEUX.indexOf(state.currentBuilding) < 0) {
+    showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
+    return;
+  }
   const prixLot = prixLotTractsCalomnieux();
   const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
   if (prixLot > 0 && fondsDisponibles < prixLot) {
@@ -512,12 +519,10 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
     state.inventory.push({ type: 'tract_calomnieux', name: 'Tracts calomnieux contre ' + cible, icon: 'ti-alert-triangle', cible: cible, quantite: 10, legal: false });
   }
 
-  // La caisse de l'atelier ne recoit que ce que le joueur a reellement paye.
-  if (montantDebite > 0 && typeof sbGetBatimentEtat === 'function' && typeof sbSetBatimentEtat === 'function') {
-    const villeAtelier = state.currentCity || 'capitale';
-    const etatAtelier = await sbGetBatimentEtat(state.country, villeAtelier, 'la-tribune');
-    etatAtelier.imprimerie = { ...(etatAtelier.imprimerie || {}), caisse: (etatAtelier.imprimerie?.caisse || 0) + montantDebite };
-    await sbSetBatimentEtat(state.country, villeAtelier, 'la-tribune', etatAtelier).catch(() => {});
+  // La caisse de l'atelier ou l'on se trouve ne recoit que ce que le joueur a reellement paye
+  // (helper commun batiments_etat, meme sous-objet 'imprimerie' que La Tribune).
+  if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
+    await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale', state.currentBuilding, 'imprimerie', montantDebite);
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -536,6 +541,17 @@ async function verifierObjetsRecus() {
     if (!objets || objets.length === 0) return;
 
     for (const { id, expediteur, objet } of objets) {
+      // Don de tracts (11 septembre 2026) : reclamation exclusive (tracts_reclamer_don) AVANT
+      // l'ajout -- un second onglet ou un second passage ne peut pas le recevoir deux fois.
+      if (typeof id === 'string' && id.indexOf('don-tracts-') === 0) {
+        const recu = typeof sbTractsReclamerDon === 'function' ? await sbTractsReclamerDon(id, state.char.name).catch(() => null) : null;
+        if (!recu) continue;
+        recevoirLotTracts(recu.objet);
+        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+        if (typeof showToast === 'function') showToast('Tracts reçus !', recu.expediteur + ' vous a donné ' + recu.objet.quantite + ' × "' + recu.objet.name + '".', true, true);
+        if (typeof addJournalEntry === 'function') addJournalEntry(recu.expediteur + ' vous a donné ' + recu.objet.quantite + ' × "' + recu.objet.name + '".', 'event-good');
+        continue;
+      }
       // Lot 1.5.4 : RECEPTION AUTOMATIQUE. L'objet n'a pas ete choisi par le joueur -- document
       // administratif, don recu hors ligne, restitution -- il ne doit donc jamais etre perdu ni
       // rester indefiniment en attente parce que l'inventaire est plein. Il entre quitte a faire
@@ -564,8 +580,15 @@ async function verifierObjetsRecus() {
   } catch(e) {}
 }
 
+// Lots de tracts transmissibles a un PJ : ordinaires ET calomnieux (11 septembre 2026). Les tracts
+// de la mission Jean-Lou (origineQuete) restent exclus : objets de quete, circuit dedie.
+function lotsTractsDonnables() {
+  return (state.inventory || []).filter(i => (i.type === 'tract' || i.type === 'tract_calomnieux')
+    && i.origineQuete !== 'jean_lou' && (i.quantite || 0) > 0);
+}
+
 function donnerTracts(pjName) {
-  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+  const tracts = lotsTractsDonnables();
   if (tracts.length === 0) {
     showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
     return;
@@ -574,7 +597,7 @@ function donnerTracts(pjName) {
   let html = '<div style="padding:1rem">';
   tracts.forEach((t, idx) => {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
-    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">' + t.name + ' <span style="color:#C9A84C">(' + t.quantite + ' restants)</span></div>';
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">' + t.name + (t.legal === false ? ' <span style="color:#cc4444">(illégal)</span>' : '') + ' <span style="color:#C9A84C">(' + t.quantite + ' restants)</span></div>';
     html += '<div style="display:flex;align-items:center;gap:.5rem">';
     html += '<input id="don-tract-' + idx + '" type="number" min="1" max="' + t.quantite + '" value="1" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
     html += '<button onclick="confirmerDonTracts(' + idx + ',\'' + pjName + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Donner</button>';
@@ -585,34 +608,93 @@ function donnerTracts(pjName) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDonTracts(tractIdx, pjName) {
-  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+// Don de tracts (correctif du 11 septembre 2026). Un vrai PJ ne recevait RIEN : seuls les PJ
+// simules etaient credites, les tracts disparaissaient de l'inventaire du donneur. Transfert reel
+// desormais, par le meme canal que les autres dons entre joueurs (objets_recus), dans cet ordre :
+//   1. retrait local PUIS sauvegarde confirmee du donneur -- le destinataire ne peut rien recevoir
+//      tant que le retrait n'est pas ecrit : jamais de doublon ;
+//   2. envoi par tracts_donner_joueur (destinataire verifie en base, id de requete idempotent :
+//      une relance ne cree jamais un second don) ;
+//   3. en cas d'echec, restitution exacte et nouvelle sauvegarde : jamais de perte.
+// Toutes les donnees du lot voyagent telles quelles (type, cible, POUR/CONTRE, legal...).
+async function confirmerDonTracts(tractIdx, pjName) {
+  const tracts = lotsTractsDonnables();
   const tract = tracts[tractIdx];
   if (!tract) return;
   const quantite = parseInt(document.getElementById('don-tract-' + tractIdx)?.value || '1');
-  if (quantite < 1 || quantite > tract.quantite) {
+  if (!(quantite >= 1 && quantite <= tract.quantite)) {
     showToast('Quantite invalide', 'Entre 1 et ' + tract.quantite, false);
     return;
   }
   document.getElementById('modal-postes').classList.remove('open');
-  tract.quantite -= quantite;
-  if (tract.quantite <= 0) {
-    const i = state.inventory.indexOf(tract);
-    state.inventory.splice(i, 1);
-  }
 
-  // Ajouter au PJ simule si applicable
+  // PJ simules : comportement inchange (inventaire local de la simulation).
   const pjSim = state.pjSimules?.find(p => p.name === pjName);
   if (pjSim) {
+    tract.quantite -= quantite;
+    if (tract.quantite <= 0) state.inventory.splice(state.inventory.indexOf(tract), 1);
     if (!pjSim.inventory) pjSim.inventory = [];
-    const existing = pjSim.inventory.find(i => i.type === 'tract' && i.cible === tract.cible && i.tractType === tract.tractType);
+    const existing = pjSim.inventory.find(i => i.type === tract.type && i.cible === tract.cible && i.tractType === tract.tractType);
     if (existing) { existing.quantite += quantite; }
     else { pjSim.inventory.push({...tract, quantite}); }
+    updateUI();
+    showToast('Tracts donnes', quantite + ' tracts remis a ' + pjName + '.', true);
+    addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
+    return;
+  }
+
+  if (typeof sbTractsDonnerJoueur !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Don impossible', 'Le transfert ne peut pas être effectué pour le moment.', false);
+    return;
+  }
+  const objet = { ...tract, quantite };
+  const requete = 'don-tracts-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  const restituer = async () => {
+    if (state.inventory.indexOf(tract) < 0) state.inventory.push(tract);
+    tract.quantite += quantite;
+    await sbSavePersonnage(state).catch(() => null);
+    updateUI();
+  };
+
+  // 1. Retrait local, puis sauvegarde CONFIRMEE avant tout envoi.
+  tract.quantite -= quantite;
+  if (tract.quantite <= 0) state.inventory.splice(state.inventory.indexOf(tract), 1);
+  const sauve = await sbSavePersonnage(state).catch(() => null);
+  if (!sauve) {
+    await restituer();
+    showToast('Don impossible', 'Votre inventaire n\'a pas pu être enregistré. Aucun tract n\'a été donné.', false);
+    return;
+  }
+
+  // 2. Envoi (une relance avec le meme id, sans risque de doublon).
+  let res = await sbTractsDonnerJoueur(requete, state.char.name, pjName, objet).catch(() => null);
+  if (!res) res = await sbTractsDonnerJoueur(requete, state.char.name, pjName, objet).catch(() => null);
+  if (!res || !res.ok) {
+    // 3. Echec : restitution exacte.
+    await restituer();
+    const motifs = { destinataire_introuvable: pjName + ' n\'existe plus.', destinataire_invalide: 'Destinataire invalide.' };
+    showToast('Don impossible', (res && motifs[res.raison]) || 'Le transfert n\'a pas pu être effectué. Vos tracts vous sont rendus.', false);
+    return;
   }
 
   updateUI();
   showToast('Tracts donnes', quantite + ' tracts remis a ' + pjName + '.', true);
   addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
+}
+
+// Reception d'un lot de tracts : fusionne avec un lot identique (meme type, cible, sens, legalite)
+// plutot que d'empiler un second lot ; sinon entre comme tout objet recu automatiquement.
+function recevoirLotTracts(objet) {
+  const identique = (state.inventory || []).find(i => i.type === objet.type && i.cible === objet.cible
+    && (i.tractType || null) === (objet.tractType || null) && (i.legal !== false) === (objet.legal !== false)
+    && !i.origineQuete && !objet.origineQuete);
+  if (identique) {
+    identique.quantite = (identique.quantite || 0) + (objet.quantite || 0);
+    if (typeof renderInventory === 'function') renderInventory();
+    return objet.quantite || 0;
+  }
+  return typeof recevoirObjetAutomatique === 'function' ? recevoirObjetAutomatique(objet)
+       : (typeof addToInventory === 'function' ? addToInventory(objet) : 0);
 }
 
 // =====================
@@ -759,7 +841,8 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
 
   if (roll <= taux) {
     // Reussite : -5 POP reel et persistant sur la cible.
-    if (typeof sbAjusterPopJoueur === 'function') sbAjusterPopJoueur(cible, -5).catch(() => {});
+    // Effet POP serveur, atomique, ne touche que la POP (11 septembre 2026). Valeur inchangee : -5.
+    if (typeof sbTractAppliquerEffetPop === 'function') await sbTractAppliquerEffetPop(cible, -5).catch(() => null);
     showToast('Tract distribué !', pnjName + ' relaie la calomnie. -5 POP pour ' + cible + '.', true, true);
     addJournalEntry('Tract calomnieux distribué à ' + pnjName + ' — succès. -5 POP pour ' + cible + '.', 'event-good');
   } else {
