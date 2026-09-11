@@ -591,10 +591,12 @@ function distribuerTractJeanLou(pnjName) {
     // immediatement ci-dessous.
     const cleCycle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : null;
     const cycleCible = cleCycle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cleCycle] : null;
-    if (cycleCible && cycleCible.votesPNJ && cycleCible.votesPNJ[pnjName]) {
+    if (cycleCible && typeof pnjDejaEngage === 'function' && pnjDejaEngage(cycleCible, pnjName)) {
       convaincu = false;
     } else if (typeof enregistrerVotePNJ === 'function') {
-      enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, state.char.name).catch(() => {});
+      // Canal 'jean_lou' : meme registre atomique que les tracts et les prospectus (la voix ne
+      // passe plus par une reecriture du blob electoral, ou elle pouvait etre ecrasee).
+      enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, state.char.name, 'jean_lou').catch(() => {});
     }
   }
 

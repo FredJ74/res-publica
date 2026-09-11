@@ -2447,7 +2447,19 @@ async function sbCalomnieDistribuer(requete, joueur, cible, pnjNom, volPnj) {
 
 // Effets des tracts electoraux d'un pays (lecture publique), agreges ensuite par cycle et par tour.
 async function sbChargerEffetsTractsPNJ(country) {
-  return await sbGet('elections_tracts_pnj', `cycle_id=like.${encodeURIComponent(country)}_*&select=cycle_id,tour,candidat,effet`);
+  return await sbGet('elections_tracts_pnj', `cycle_id=like.${encodeURIComponent(country)}_*&select=cycle_id,tour,candidat,effet,pnj_cle`);
+}
+
+// Voix d'un PNJ obtenue par un canal historique (prospectus, conference, mission Jean-Lou) :
+// meme table atomique que les tracts, meme contrainte d'unicite par tour. Remplace la reecriture
+// du blob electoral depuis le client (migration_voix_pnj_canaux.sql). Aucune regle de jeu n'y est
+// portee : les couts, jets, phases et geographies restent decides par l'appelant.
+async function sbEnregistrerVoixPnj(requete, joueur, cycleId, candidat, pnjNom, canal, cleExplicite) {
+  const rows = await sbRpc('elections_voix_pnj_enregistrer', {
+    p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId, p_candidat: candidat,
+    p_pnj_nom: pnjNom, p_canal: canal, p_cle: cleExplicite || null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
 // Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si

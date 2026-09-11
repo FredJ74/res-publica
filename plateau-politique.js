@@ -1385,19 +1385,34 @@ async function confirmerConference(cle, candidatNom, pa, cost) {
   candidat.aideConference = true;
   state.char.derniereConferenceJour = state.day;
   sauvegarderPersonnageImmediat();
-  if (!cycle.votesPNJ) cycle.votesPNJ = {};
-  const NB_ELECTEURS_CONVERTIS = 3;
-  for (let i = 0; i < NB_ELECTEURS_CONVERTIS; i++) {
-    const pnjId = 'conference_' + cle + '_' + Date.now() + '_' + i;
-    cycle.votesPNJ[pnjId] = candidatNom;
-  }
-  candidat.prospectusDistribues = (candidat.prospectusDistribues || 0) + NB_ELECTEURS_CONVERTIS;
 
-  if (typeof sbSaveCycleElectoral === 'function') {
-    sbSaveCycleElectoral(state.country, cle.split('_')[0], cycle, cle.includes('_') ? cle.split('_').slice(1).join('_') : null).catch(() => {});
+  // ECRITURE ATOMIQUE (12 septembre 2026) : les 3 electeurs convaincus etaient ecrits dans
+  // cycle.votesPNJ sous des identifiants contenant Date.now(), puis TOUT le blob du cycle etait
+  // reecrit depuis le client -- deux conferences simultanees s'ecrasaient, et un double-clic
+  // creait 6 voix. Chaque electeur est desormais une ligne de elections_tracts_pnj sous une cle
+  // STABLE (joueur + candidat + rang) : rejouer la meme conference n'ajoute plus rien. Le verrou
+  // « une conference par candidat » (aideConference) et celui « une par jour »
+  // (derniereConferenceJour) restent exactement ou ils etaient, cote client.
+  // BUG CORRIGE au passage : la ligne de sauvegarde re-decoupait la cle du cycle
+  // (cle.split('_')), ce qui pour chef_syndicat produisait posteId='chef'/city='syndicat' et
+  // ecrivait dans une ligne fantome « republic_chef » -- les 3 voix n'etaient jamais persistees.
+  const NB_ELECTEURS_CONVERTIS = 3;
+  let convertis = 0;
+  for (let i = 0; i < NB_ELECTEURS_CONVERTIS; i++) {
+    const cleElecteur = 'conference:' + (state.char?.name || '') + ':' + candidatNom + ':' + i;
+    const ok = await enregistrerVotePNJ(state.country, cycle.posteId, cycle.city || null,
+      'Un auditeur de la conférence', candidatNom, 'conference', cleElecteur).catch(() => false);
+    if (ok) convertis++;
   }
+  candidat.prospectusDistribues = (candidat.prospectusDistribues || 0) + convertis;
+
   updateUI();
-  showToast('Conférence donnée !', candidatNom + ' gagne ' + NB_ELECTEURS_CONVERTIS + ' électeurs convaincus.', true);
+  if (convertis === 0) {
+    showToast('Conférence sans effet', 'Ces électeurs avaient déjà été convaincus.', false);
+    addJournalEntry('Conférence donnée à l\'université en soutien à ' + candidatNom + ' — aucun nouvel électeur.', '');
+    return;
+  }
+  showToast('Conférence donnée !', candidatNom + ' gagne ' + convertis + ' électeurs convaincus.', true);
   addJournalEntry('Conférence donnée à l\'université en soutien à ' + candidatNom + '.', 'event-good');
 }
 
@@ -1595,9 +1610,13 @@ async function chargerEffetsTractsPNJ(country) {
   Object.keys(cycles).forEach(cle => {
     const cycle = cycles[cle];
     const parCandidat = {};
+    const engages = {};
     lignes.filter(l => l.cycle_id === country + '_' + cle && Number(l.tour) === cycle.dateVote)
-      .forEach(l => { parCandidat[l.candidat] = (parCandidat[l.candidat] || 0) + Number(l.effet || 0); });
-    attacherEffetsTracts(cycle, { tour: cycle.dateVote, parCandidat });
+      .forEach(l => {
+        parCandidat[l.candidat] = (parCandidat[l.candidat] || 0) + Number(l.effet || 0);
+        if (l.pnj_cle) engages[l.pnj_cle] = l.candidat;
+      });
+    attacherEffetsTracts(cycle, { tour: cycle.dateVote, parCandidat, engages });
   });
 }
 
@@ -1648,16 +1667,42 @@ function tractsElectorauxDistribuablesIci() {
     .filter(o => o.scrutins.length > 0);
 }
 
-async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom) {
+// Cle d'identite d'un PNJ, miroir exact de tracts_electoraux_nom_pnj (SQL) : minuscules, sans le
+// suffixe « (PNJ) » ni apostrophes, prefixee du pays et de la ville ou l'on se trouve.
+function clePnjElectorale(nom, country, city) {
+  const n = String(nom || '').toLowerCase().replace(/\s*\(pnj\)\s*$/, '').replace(/['\u2019]/g, '').trim();
+  return (country || state.country || '') + ':' + (city || state.currentCity || '') + ':' + n;
+}
+
+// Un PNJ a-t-il deja donne sa voix pour ce tour ? Lu dans les deux registres : la table atomique
+// (nouveau) et l'ancien blob votesPNJ (lignes historiques, encore comptees au depouillement).
+function pnjDejaEngage(cycle, pnjNom) {
+  if (!cycle) return false;
+  if (cycle.votesPNJ && cycle.votesPNJ[pnjNom]) return true;
+  const engages = cycle._effetsTracts && cycle._effetsTracts.engages;
+  return !!(engages && engages[clePnjElectorale(pnjNom)]);
+}
+
+// ECRITURE ATOMIQUE (12 septembre 2026) : prospectus, conference et mission Jean-Lou ecrivaient
+// cycle.votesPNJ puis reecrivaient LE BLOB ENTIER du cycle depuis le client -- deux joueurs
+// simultanes s'ecrasaient et des voix disparaissaient. La voix est desormais une ligne de
+// elections_tracts_pnj (canal renseigne), exactement comme un tract : meme contrainte d'unicite,
+// meme decompte au depouillement. Aucune regle de jeu ne change : couts, jets, phases, geographie
+// et textes restent decides par les appelants, inchanges.
+async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, canal, cleExplicite) {
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
   if (!cycle) return false;
-  if (!cycle.votesPNJ) cycle.votesPNJ = {};
-  if (cycle.votesPNJ[pnjId]) return false;
-  cycle.votesPNJ[pnjId] = candidatNom;
-  if (typeof sbSaveCycleElectoral === 'function') {
-    await sbSaveCycleElectoral(country, posteId, cycle, city).catch(() => {});
-  }
+  if (!cleExplicite && pnjDejaEngage(cycle, pnjId)) return false;
+  if (typeof sbEnregistrerVoixPnj !== 'function') return false;
+  const requete = 'voix-pnj-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  const r = await sbEnregistrerVoixPnj(requete, state.char?.name, country + '_' + cle, candidatNom,
+                                       pnjId, canal || 'prospectus', cleExplicite || null).catch(() => null);
+  if (!r || !r.ok) return false;
+  // Echo local immediat : le decompte affiche tient compte de la voix sans attendre un rechargement.
+  if (typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, candidatNom, 1, r.tour);
+  const effets = cycle._effetsTracts;
+  if (effets) { if (!effets.engages) effets.engages = {}; effets.engages[r.cle] = candidatNom; }
   return true;
 }
 
@@ -1693,8 +1738,8 @@ async function distribuerProspectus(pnjId, candidatNom, posteId, country, city) 
   // state.pa<1, qui bloquait a tort meme sous TEST_MODE=true.
   if (state.arg < 50) { showToast('Fonds insuffisants', '50 FR requis par prospectus.', false); return; }
 
-  // Un PNJ ne peut recevoir qu'un seul prospectus
-  if (cycle.votesPNJ[pnjId]) {
+  // Un PNJ ne peut recevoir qu'un seul prospectus (registre atomique + ancien blob)
+  if (pnjDejaEngage(cycle, pnjId)) {
     showToast('Déjà converti', 'Ce PNJ a déjà reçu un prospectus.', false);
     return;
   }
@@ -1722,7 +1767,15 @@ async function distribuerProspectus(pnjId, candidatNom, posteId, country, city) 
       r.raison === 'fonds_insuffisants' ? '50 FR requis par prospectus.' : '1 PA requis.', false);
     return;
   }
-  enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom).catch(() => {});
+  const ecrit = await enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, 'prospectus').catch(() => false);
+  if (!ecrit) {
+    // Rien n'a ete enregistre : on rembourse exactement ce qui vient d'etre preleve (1 PA + 50 FR).
+    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(50);
+    state.pa = (state.pa || 0) + 1;
+    updateUI();
+    showToast('Prospectus non distribué', 'Cette personne a déjà donné sa voix pour ce scrutin.', false);
+    return;
+  }
 
   // Trouver le candidat et incrémenter son compteur
   const candidat = cycle.candidats.find(c => c.nom === candidatNom);
@@ -1860,7 +1913,7 @@ function distribuerProspectusModal(candidatNom, posteId, country, city) {
 
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
-  const disponibles = persons.filter(p => !cycle?.votesPNJ[p.name]);
+  const disponibles = persons.filter(p => !(typeof pnjDejaEngage === 'function' ? pnjDejaEngage(cycle, p.name) : cycle?.votesPNJ?.[p.name]));
 
   if (!disponibles.length) {
     showToast('Déjà convaincus', 'Tous les PNJ présents ont déjà reçu un prospectus.', false);
