@@ -4510,7 +4510,7 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
   const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
   const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
 
-  document.getElementById('postes-modal-title').textContent = 'Vendre du bois à Gustave';
+  document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
     '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. Gustave achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
@@ -4551,8 +4551,8 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
     showToast('Caisse vide', 'Gustave n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026). Aucun debit ici,
+  // quels que soient les pa/cost transmis par le bouton -- le joueur est le vendeur, il ne paie rien.
 
   const montantPaye = Math.round(qteAchetable * prixUnitaire * 100) / 100;
 
