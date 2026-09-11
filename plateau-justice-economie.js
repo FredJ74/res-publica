@@ -4513,7 +4513,7 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. Gustave achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. ' + ((typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || 'L\'imprimerie') + ' achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
     '<input type="number" id="vendre-bois-qte" min="1" max="' + lot.qty + '" value="' + lot.qty + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
     '<button onclick="confirmerVendreBoisImprimerie(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>' +
     '</div>';
@@ -4547,8 +4547,10 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   const etatImprimerie = await sbGetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune');
   const caisse = etatImprimerie.imprimerie?.caisse || 0;
   const qteAchetable = Math.max(0, Math.min(qteVoulue, Math.floor(caisse / prixUnitaire)));
+  // Responsable reellement present dans ce journal (gabarit partage par 15 villes) ; texte neutre sinon.
+  const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   if (qteAchetable <= 0) {
-    showToast('Caisse vide', 'Gustave n\'a pas les moyens d\'acheter du bois pour le moment.', false);
+    showToast('Caisse vide', (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
   // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026). Aucun debit ici,
@@ -4566,15 +4568,19 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerieVente, 'la-tribune', etatImprimerie).catch(() => {});
 
-  state.arg = (state.arg || 0) + montantPaye;
+  // Encaissement joueur par le mecanisme standard (correctif du 11 septembre 2026) : le montant
+  // exact retire de la caisse arrive en liquide, fonds reellement depensables. Auparavant seul
+  // state.arg montait : la caisse payait, le vendeur ne recevait rien d'utilisable.
+  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montantPaye);
+  else state.arg = (state.arg || 0) + montantPaye;
   updateUI();
 
   if (qteAchetable < qteVoulue) {
-    showToast('Vente partielle', 'Gustave n\'avait de quoi acheter que ' + qteAchetable + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
+    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'avait de quoi acheter que ' + qteAchetable + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
   } else {
     showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qteAchetable + ' bois.', true, true);
   }
-  addJournalEntry('Vente de ' + qteAchetable + ' bois à Gustave Rotative (+' + montantPaye + ' ' + cur + ').', 'event-good');
+  addJournalEntry('Vente de ' + qteAchetable + ' bois à ' + (imprimeur || 'l\'imprimerie') + ' (+' + montantPaye + ' ' + cur + ').', 'event-good');
 }
 
 // =====================

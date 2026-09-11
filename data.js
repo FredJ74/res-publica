@@ -202,10 +202,22 @@ const WORLD = {
           // partage avec Montrouge/PSM -- aucune logique dupliquee. Ne touche pas redaction, ni
           // les autres empires partageant le buildingId 'la-tribune' (chacun a son propre
           // buildingContext, non modifie ici).
+          //
+          // Fusion ergonomique (11 septembre 2026) : les deux ordres de tracts n'ont plus qu'une
+          // entree, « Imprimer des tracts », qui demande le type (ouvrirChoixImprimerTracts,
+          // plateau-communication.js). imprimer_tracts du gabarit est masque ICI SEULEMENT
+          // (excludeOrders) et reste la definition du choix « tracts ordinaires » ({fn} seul) ; la
+          // definition des tracts calomnieux est deplacee telle quelle dans les choix. Chaque choix
+          // relance doOrder avec son ordre d'origine : couts, stocks et risques inchanges.
           roomOverrides: {
             accueil_tribune: {
+              excludeOrders: ['imprimer_tracts'],
               orders: [
-                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'},
+                {fn:'imprimer_tracts_choix', label:'Imprimer des tracts', pa:0, cost:0, type:'grey', icon:'ti-file-description', successRate:100, desc:'Tracts ordinaires (pour/contre) ou tracts calomnieux (illégal) : le type se choisit ensuite, chacun avec ses propres coûts et risques.',
+                  choix: [
+                    {fn:'imprimer_tracts'},
+                    {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+                  ]},
                 // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : gere en
                 // dehors du pipeline PA/argent generique (doOrder), voir ouvrirFormulairePetiteAnnonce
                 // (plateau-communication.js) -- cost:0 ici, le debit reel (30 FR) et la verification
@@ -2767,7 +2779,7 @@ const BUILDINGS = {
         orders: [
           {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
           {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
-          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Necessite assez de bois en stock chez Gustave.'},
+          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Necessite assez de bois en stock à l\'imprimerie.'},
           {fn:'vendre_bois_imprimerie', label:'Vendre des matières premières', pa:0, cost:0, type:'legal', icon:'ti-trees', successRate:100, desc:'Prix = cours actuel du bois à l\'entrepôt +10%. Plafonné par la caisse de l\'imprimerie.'}
         ]
       },

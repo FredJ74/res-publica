@@ -144,6 +144,68 @@ async function envoyerComposeMail() {
 // des tracts y consomme du bois en plus de l'argent du joueur, avec une recette dynamique qui
 // preserve toujours 50% de marge sur le prix du lot (voir confirmerImpression). A PSM (Gutenberg,
 // imprimerie-librairie), l'ordre reste inchange : argent uniquement, pas de bois.
+
+// Responsable de l'atelier reellement present dans la piece courante (11 septembre 2026). Meme
+// resolution que l'affichage des personnages (plateau-navigation.js) : personnages du roomOverride,
+// sinon ceux du buildingContext pour la premiere piece, sinon ceux du gabarit. Le gabarit
+// 'la-tribune' est partage par 15 journaux des 4 pays : « Gustave » n'est cite que la ou un
+// imprimeur de ce nom figure vraiment. null si aucun imprimeur n'est present -- texte neutre alors,
+// jamais un PNJ invente.
+function nomImprimeurLocal() {
+  const b = typeof BUILDINGS !== 'undefined' ? BUILDINGS[state.currentBuilding] : null;
+  if (!b) return null;
+  const roomId = state.currentRoom;
+  const ctx = typeof getBuildingContext === 'function' ? getBuildingContext(state.currentBuilding) : null;
+  const premiere = Object.keys(b.rooms || {})[0] === roomId;
+  const surcharge = ctx?.roomOverrides?.[roomId]?.persons;
+  const persons = surcharge?.length > 0 ? surcharge
+    : ((premiere && ctx?.persons?.length > 0) ? ctx.persons : (b.rooms?.[roomId]?.persons || []));
+  const p = persons.find(x => x && (x.job === 'imprimeur' || /imprim/i.test(x.role || '')));
+  return p ? String(p.name).replace(/\s*\(PNJ\)\s*$/, '') : null;
+}
+
+// Entree unique « Imprimer des tracts » (fusion ergonomique du 11 septembre 2026, L'Autruche
+// Entravee). Aucune mecanique propre : chaque type relance doOrder avec l'ordre D'ORIGINE -- meme
+// fn, memes PA/cout/type/taux que son ancien bouton -- donc memes gardes (PA, fonds, blocus,
+// quetes) et meme handler. Tracts ordinaires (confirmerImpression) et calomnieux
+// (confirmerImprimerTractsCalomnieux) gardent chacun leurs couts, stocks et risques.
+// Les choix sont declares sur l'ordre dans data.js : {fn} seul = definition du gabarit du batiment.
+function ouvrirChoixImprimerTracts() {
+  const b = BUILDINGS[state.currentBuilding];
+  const ctx = typeof getBuildingContext === 'function' ? getBuildingContext(state.currentBuilding) : null;
+  const entree = (ctx?.roomOverrides?.[state.currentRoom]?.orders || []).find(o => o.fn === 'imprimer_tracts_choix');
+  const gabarit = b?.rooms?.[state.currentRoom]?.orders || [];
+  const choix = (entree?.choix || [])
+    .map(c => (c.label ? c : gabarit.find(o => o.fn === c.fn)))
+    .filter(Boolean);
+  window._choixImprimerTracts = choix;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Quel type de tracts voulez-vous produire ?</div>';
+  choix.forEach((o, i) => {
+    const illegal = o.type === 'illegal';
+    const cout = [o.pa ? o.pa + ' PA' : '', o.cost ? o.cost.toLocaleString('fr-FR') + ' ' + cur + ' par lot de 10' : ''].filter(Boolean).join(' + ');
+    html += '<div onclick="choisirTypeImprimerTracts(' + i + ')" style="padding:.6rem .8rem;border:1px solid ' + (illegal ? '#5a2020' : '#2a2010') + ';background:#0f0d05;margin-bottom:.5rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">'
+      + '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:' + (illegal ? '#cc4444' : '#C9A84C') + '"><i class="ti ' + o.icon + '"></i> ' + o.label + (illegal ? ' — illégal' : '') + '</div>'
+      + (cout ? '<div style="font-size:.74rem;color:#a89870;margin-top:.2rem">' + cout + '</div>' : '')
+      + (o.desc ? '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + o.desc + '</div>' : '')
+      + '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function choisirTypeImprimerTracts(i) {
+  const o = (window._choixImprimerTracts || [])[i];
+  if (!o) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  // Exactement l'appel que produisait le bouton d'origine (plateau-politique.js, rendu des ordres).
+  doOrder(o.fn, o.pa, o.cost, o.label.replace(/'/g, ' '), (o.desc || '').replace(/'/g, ' '), o.successRate || 70);
+}
+
 async function ouvrirModalImprimerTracts(pa, cost) {
   const contacts = state.contacts || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -156,7 +218,8 @@ async function ouvrirModalImprimerTracts(pa, cost) {
     // de bois de l'atelier de LUTHECIA, donc un chiffre sans rapport avec l'atelier ou l'on est.
     const etat = await sbGetBatimentEtat(state.country, state.currentCity || 'capitale', 'la-tribune');
     const stockBois = etat.imprimerie?.stockBois || 0;
-    html += '<div style="font-size:.76rem;color:' + (stockBois > 0 ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Stock de bois de Gustave : ' + stockBois + '</div>';
+    const imprimeur = nomImprimeurLocal();
+    html += '<div style="font-size:.76rem;color:' + (stockBois > 0 ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Stock de bois ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
   }
 
   if (contacts.length === 0) {
@@ -211,7 +274,10 @@ async function confirmerImpression(pa, cost) {
   const cout = quantite / 10 * 150;
   const nbLots = quantite / 10;
 
-  if (state.arg < cout) {
+  // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), jamais arg seul : meme
+  // regle que deduireCoutOrdre ci-dessous, verifiee ici avant toute lecture de l'atelier.
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fondsDisponibles < cout) {
     showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
     return;
   }
@@ -240,16 +306,21 @@ async function confirmerImpression(pa, cost) {
     const boisNecessaire = boisParLot * nbLots;
     if (stockBois < boisNecessaire) {
       document.getElementById('modal-postes')?.classList.remove('open');
-      showToast('Gustave manque de bois', 'Il me faudrait ' + boisNecessaire + ' bois pour ce lot, il ne m\'en reste que ' + stockBois + '. Vous auriez du bois à me vendre ?', false);
+      showToast((nomImprimeurLocal() || 'L\'imprimerie') + ' manque de bois', 'Il me faudrait ' + boisNecessaire + ' bois pour ce lot, il ne m\'en reste que ' + stockBois + '. Vous auriez du bois à me vendre ?', false);
       return;
     }
   }
 
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  // PA + paiement du lot par le mecanisme standard des depenses ordinaires (correctif du 11
+  // septembre 2026) : deduireCoutOrdre verifie PA et fonds AVANT toute mutation, puis debite via
+  // debiterFondsOrdinaires (liquide d'abord, Banque nationale en complement). Auparavant seul
+  // state.arg baissait -- liquide et compte bancaire intacts -- tandis que la caisse de l'atelier
+  // etait creditee : de l'argent cree a chaque impression.
+  const r = await deduireCoutOrdre({ pa, cost: cout });
   if (!r.ok) { signalerRefusCout(r); return; }
+  const montantDebite = r.montantPreleve || 0;
 
   document.getElementById('modal-postes').classList.remove('open');
-  state.arg -= cout;
   if (!state.inventory) state.inventory = [];
 
   // Chercher si un lot similaire existe deja
@@ -273,7 +344,7 @@ async function confirmerImpression(pa, cost) {
     etatImprimerie.imprimerie = {
       ...(etatImprimerie.imprimerie || {}),
       stockBois: (etatImprimerie.imprimerie?.stockBois || 0) - boisConsomme,
-      caisse: (etatImprimerie.imprimerie?.caisse || 0) + cout
+      caisse: (etatImprimerie.imprimerie?.caisse || 0) + montantDebite   // uniquement ce que le joueur a reellement paye
     };
     if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, villeImprimerie, 'la-tribune', etatImprimerie).catch(() => {});
   }
