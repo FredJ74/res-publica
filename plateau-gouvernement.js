@@ -853,9 +853,12 @@ function verdictReportElection(cycle, regime, maintenantMs, auteur) {
   if (!isFinite(dateVote) || dateVote <= 0) return { ok: false, raison: 'scrutin_sans_date' };
   if (dateVote <= t) return { ok: false, raison: 'scrutin_deja_tenu' };
 
+  // Calendrier du dimanche (12 septembre 2026) : le report decale d'une semaine CALENDAIRE a Paris
+  // (le vote reste un dimanche 00:01 meme a travers un changement d'heure), plus de 7 x 24 h brutes.
   const decale = function (v) {
     const n = Number(v);
-    return (isFinite(n) && n > 0) ? n + REPORT_ELECTORAL_MS : v;
+    if (!(isFinite(n) && n > 0)) return v;
+    return typeof decalerSemainesParis === 'function' ? decalerSemainesParis(n, 1) : n + REPORT_ELECTORAL_MS;
   };
   return { ok: true, raison: null,
            cycle: Object.assign({}, c, {
@@ -868,7 +871,7 @@ function verdictReportElection(cycle, regime, maintenantMs, auteur) {
              // nouvelle date. C'est le materiau qu'une future mecanique de putsch ou de crise
              // institutionnelle exploitera -- rien de tel n'est calcule ici.
              reportTrace: { par: auteur || null, leTs: t, echeance: cle, posteId: c.posteId || null,
-                            ancienneDateVote: dateVote, nouvelleDateVote: dateVote + REPORT_ELECTORAL_MS,
+                            ancienneDateVote: dateVote, nouvelleDateVote: decale(dateVote),
                             dureeMs: REPORT_ELECTORAL_MS }
            }) };
 }

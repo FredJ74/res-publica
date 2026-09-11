@@ -137,14 +137,78 @@ const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Construit un cycle electoral frais (memes valeurs que initCycleElectoral cote client,
 // plateau-politique.js) — utilise pour renouveler un mandat echu (PJ ou PNJ).
+// =====================
+// CALENDRIER ELECTORAL DU DIMANCHE (12 septembre 2026) -- heure de Paris. COPIE IDENTIQUE de
+// plateau-politique.js (partiesHeureParis ... lundiMinuitParisApresSemaines) : cloture des
+// candidatures le lundi 00:01, vote le dimanche 00:01 -> 23:59, resultat au passage au lundi ;
+// second tour le dimanche suivant ; dates calendaires de Paris, jamais +7 x 24 h.
+// =====================
+const FUSEAU_ELECTORAL = 'Europe/Paris';
+const CANDIDATURES_MIN_MS = 6 * 24 * 60 * 60 * 1000;
+
+function partiesHeureParis(ts) {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: FUSEAU_ELECTORAL, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(ts)).forEach(x => { p[x.type] = x.value; });
+  return { a: +p.year, m: +p.month, j: +p.day, h: (+p.hour) % 24, mi: +p.minute, s: +p.second };
+}
+
+function instantHeureParis(a, m, j, h, mi) {
+  const mur = Date.UTC(a, m - 1, j, h, mi);
+  let t = mur - 3600000;
+  for (let k = 0; k < 3; k++) {
+    const p = partiesHeureParis(t);
+    t = mur - (Date.UTC(p.a, p.m - 1, p.j, p.h, p.mi, p.s) - t);
+  }
+  return t;
+}
+
+function dateCalendairePlusJours(d, n) {
+  const x = new Date(Date.UTC(d.a, d.m - 1, d.j + n));
+  return { a: x.getUTCFullYear(), m: x.getUTCMonth() + 1, j: x.getUTCDate() };
+}
+
+function lundiSemaineParis(ts) {
+  const p = partiesHeureParis(ts);
+  const jour = new Date(Date.UTC(p.a, p.m - 1, p.j)).getUTCDay();
+  return dateCalendairePlusJours(p, -((jour + 6) % 7));
+}
+
+function datesScrutinSemaine(lundi) {
+  const dim = dateCalendairePlusJours(lundi, 6), suivant = dateCalendairePlusJours(lundi, 7);
+  return {
+    dateDebutCampagne: instantHeureParis(lundi.a, lundi.m, lundi.j, 0, 1),
+    dateVote: instantHeureParis(dim.a, dim.m, dim.j, 0, 1),
+    dateResultats: instantHeureParis(suivant.a, suivant.m, suivant.j, 0, 0)
+  };
+}
+
+function calendrierPremierTour(t) {
+  let lundi = dateCalendairePlusJours(lundiSemaineParis(t), 7);
+  let d = datesScrutinSemaine(lundi);
+  if (d.dateDebutCampagne - t < CANDIDATURES_MIN_MS) d = datesScrutinSemaine(dateCalendairePlusJours(lundi, 7));
+  return d;
+}
+
+function calendrierTourSuivant(dateVotePrecedent) {
+  return datesScrutinSemaine(dateCalendairePlusJours(lundiSemaineParis(dateVotePrecedent), 7));
+}
+
+function lundiMinuitParisApresSemaines(t, n) {
+  const l = dateCalendairePlusJours(lundiSemaineParis(t), 7 * n);
+  return instantHeureParis(l.a, l.m, l.j, 0, 0);
+}
+
 function construireNouveauCycleElectoral(posteId, city, now) {
+  const cal = calendrierPremierTour(now);
   return {
     posteId, city: city || null,
     phase: 'candidatures',
     dateDebutCandidatures: now,
-    dateDebutCampagne: now + SEMAINE_MS,
-    dateVote: now + 2 * SEMAINE_MS,
-    dateResultats: now + 2 * SEMAINE_MS + 24 * 60 * 60 * 1000,
+    dateDebutCampagne: cal.dateDebutCampagne,
+    dateVote: cal.dateVote,
+    dateResultats: cal.dateResultats,
     candidats: [],
     votes: {},
     votesPNJ: {},
@@ -205,20 +269,15 @@ function resoudreScrutinDepute(cycle, fraudesActives) {
   if (totalExprimes === 0) return { scores, blancs, totalExprimes: 0, elus: [], egalite3eSiege: null, blancMajoritaire: false };
   if (blancs > totalExprimes / 2) return { scores, blancs, totalExprimes, elus: [], egalite3eSiege: null, blancMajoritaire: true };
 
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  if (sorted.length <= 3) {
-    return { scores, blancs, totalExprimes, elus: sorted.map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
-  }
+  // Un seul tour (12 septembre 2026) : les 3 meilleurs scores sont elus ; egalite departagee par
+  // l'anciennete de la candidature, puis l'ordre alphabetique. Plus aucun second tour partiel.
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1] || departageCandidats(candidats, a[0], b[0]));
+  return { scores, blancs, totalExprimes, elus: sorted.slice(0, 3).map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
+}
 
-  const seuilSiege3 = sorted[2][1];
-  const elusSurs = sorted.filter(([, v]) => v > seuilSiege3).map(([n]) => n);
-  const exAequoSeuil = sorted.filter(([, v]) => v === seuilSiege3).map(([n]) => n);
-  const siegesRestants = 3 - elusSurs.length;
-
-  if (exAequoSeuil.length <= siegesRestants) {
-    return { scores, blancs, totalExprimes, elus: [...elusSurs, ...exAequoSeuil], egalite3eSiege: null, blancMajoritaire: false };
-  }
-  return { scores, blancs, totalExprimes, elus: elusSurs, egalite3eSiege: { candidats: exAequoSeuil, siegesRestants }, blancMajoritaire: false };
+function departageCandidats(candidats, nomA, nomB) {
+  const date = nom => { const c = (candidats || []).find(x => x.nom === nom); const d = Number(c && c.dateInscription); return isFinite(d) && d > 0 ? d : Infinity; };
+  return (date(nomA) - date(nomB)) || (nomA < nomB ? -1 : (nomA > nomB ? 1 : 0));
 }
 
 // Charge les fraudes NON REVELEES d'un scrutin precis (cycle_debut = cycle.dateDebutCandidatures
@@ -4044,7 +4103,7 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];
       cycle.phase = 'mandat';
       cycle.dateDebutMandatTs = now;
-      cycle.dateFinMandat = now + MANDAT_SEMAINES * SEMAINE_MS;
+      cycle.dateFinMandat = lundiMinuitParisApresSemaines(now, MANDAT_SEMAINES);   // passage au lundi
       // Archives des mandats (chantier "Hotel de Ville / elections", 4 septembre 2026) : un
       // mandat de maire PNJ de secours suit desormais la meme tracabilite dateDebutMandatTs/
       // indicateursDebutMandat qu'un mandat PJ, pour que le renouvellement futur (boucle
@@ -4659,7 +4718,7 @@ export default async function handler(req, res) {
           cycle.resultatsTraites = true;
           cycle.phase = 'mandat';
           cycle.dateDebutMandatTs = now.getTime();
-          cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+          cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
           const texte3 = `🗳️ RÉSULTATS (3e siège, égalité tranchée) : ${gagnantsRunoff.join(', ') || 'aucun candidat'} — Assemblée de ${ville}.`;
           await sbInsert('evenements_globaux', { country, city: ville, texte: texte3, jour: null }).catch(() => {});
           await sbInsert('chronique_nationale', {
@@ -4683,28 +4742,6 @@ export default async function handler(req, res) {
             await sbInsert('evenements_globaux', { country, city: ville, texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées, un nouveau cycle est lancé.`, jour: null }).catch(() => {});
             results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
             continue;
-          } else if (resultatDepute.egalite3eSiege) {
-            const candidatsExistants = cycle.candidats || [];
-            cycle.elusPartiels = resultatDepute.elus;
-            cycle.siegesRestantsRunoff = resultatDepute.egalite3eSiege.siegesRestants;
-            cycle.candidats = resultatDepute.egalite3eSiege.candidats.map(nom => ({
-              nom, programme: (candidatsExistants.find(c => c.nom === nom) || {}).programme || ''
-            }));
-            cycle.votes = {};
-            cycle.votesPNJ = {};
-            // Marqueur persiste "ceci est un second tour partiel 3e siege" -- la phase AFFICHEE
-            // (campagne vs vote) est recalculee dynamiquement par date dans getPhaseActuelle,
-            // exactement comme pour le second tour normal (cycle.phase='second_tour' -> SECOND_TOUR
-            // puis VOTE2). Correctif du 4 septembre 2026 : la premiere version posait dateVote=now,
-            // sautant directement au vote sans les 7 jours de campagne pourtant prevus par le
-            // cahier des charges -- memes durees que le second tour normal desormais (SEMAINE_MS
-            // de campagne puis 24h de vote), seuls les candidats ex aequo participent.
-            cycle.phase = 'vote_3e_siege';
-            cycle.dateDebutCampagne = now.getTime();
-            cycle.dateVote = now.getTime() + SEMAINE_MS;
-            cycle.dateResultats = now.getTime() + SEMAINE_MS + 24 * 60 * 60 * 1000;
-            await sbInsert('evenements_globaux', { country, city: ville, texte: `🗳️ ÉGALITÉ pour le dernier siège de député de ${ville} : second tour entre ${resultatDepute.egalite3eSiege.candidats.join(' et ')} (campagne d'une semaine, puis 24h de vote).`, jour: null }).catch(() => {});
-            results.push({ poste: 'depute', country, city: ville, statut: 'egalite_3e_siege', candidats: resultatDepute.egalite3eSiege.candidats });
           } else {
             let elusFinaux2 = resultatDepute.elus.slice();
             if (elusFinaux2.length < 3) {
@@ -4715,7 +4752,7 @@ export default async function handler(req, res) {
             cycle.resultatsTraites = true;
             cycle.phase = 'mandat';
             cycle.dateDebutMandatTs = now.getTime();
-            cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+            cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
             const texte2 = `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).`;
             await sbInsert('evenements_globaux', { country, city: ville, texte: texte2, jour: null }).catch(() => {});
             await sbInsert('chronique_nationale', {
@@ -4747,7 +4784,7 @@ export default async function handler(req, res) {
           cycle.resultatsTraites = true;
           cycle.phase = 'mandat';
           cycle.dateDebutMandatTs = now.getTime();
-          cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+          cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
           if (posteId === 'maire') {
             cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(country, ville).catch(() => null);
           }
@@ -4775,9 +4812,12 @@ export default async function handler(req, res) {
           cycle.candidats = resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
           cycle.votes = {};
           cycle.votesPNJ = {};
-          cycle.dateDebutCampagne = now.getTime();
-          cycle.dateVote = now.getTime() + SEMAINE_MS;
-          cycle.dateResultats = now.getTime() + SEMAINE_MS + 24 * 60 * 60 * 1000;
+          // Second tour le dimanche suivant (calendrier du dimanche, 12 septembre 2026) : cloture
+          // deja passee (aucune candidature entre les tours), vote dimanche 00:01 -> 23:59.
+          const calST = calendrierTourSuivant(cycle.dateVote);
+          cycle.dateDebutCampagne = calST.dateDebutCampagne;
+          cycle.dateVote = calST.dateVote;
+          cycle.dateResultats = calST.dateResultats;
           cycle.phase = 'second_tour';
           const villeLabel2 = ville ? ` (${ville})` : '';
           const texteST = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}.`;

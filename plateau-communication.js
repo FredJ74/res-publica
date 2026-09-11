@@ -215,7 +215,7 @@ async function ouvrirModalImprimerTracts(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + PRIX_LOT_TRACTS + ' ' + cur + ' par lot de 10 tracts.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + prixLotTractsAtelier() + ' ' + cur + ' par lot de 10 tracts.</div>';
 
   if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
     // Meme correctif de ville que confirmerImpression : a Montrouge, ce panneau annoncait le stock
@@ -243,7 +243,7 @@ async function ouvrirModalImprimerTracts(pa, cost) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITE</div>';
     html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     [10,20,50,100].forEach(q => {
-      const cout = q / 10 * PRIX_LOT_TRACTS;
+      const cout = q / 10 * prixLotTractsAtelier();
       html += '<option value="' + q + '">' + q + ' tracts — ' + cout + ' ' + cur + '</option>';
     });
     html += '</select>';
@@ -275,7 +275,7 @@ async function confirmerImpression(pa, cost) {
   const cible = document.getElementById('tract-cible')?.value;
   const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = quantite / 10 * PRIX_LOT_TRACTS;
+  const cout = quantite / 10 * prixLotTractsAtelier();
   const nbLots = quantite / 10;
 
   // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), jamais arg seul : meme
@@ -392,7 +392,7 @@ function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const { qte: stockBois } = stockBoisPersonnel();
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts, en faveur du candidat choisi.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + prixLotTractsAtelier() + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ' + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts, en faveur du candidat choisi.</div>';
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
   if (candidats.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun candidat en campagne actuellement.</div>';
@@ -420,8 +420,21 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
     return;
   }
 
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  // Tarif public de Republia (12 septembre 2026) : 150 FR par lot de 10, comme a Luthecia et
+  // Montrouge. Fonds reels (liquide puis Banque nationale) verifies avant toute production, puis PA +
+  // debit en un seul appel ; la caisse Gutenberg recoit exactement la somme debitee.
+  const prixLot = prixLotTractsAtelier();
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fondsDisponibles < prixLot) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + prixLot + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost: prixLot });
   if (!r.ok) { signalerRefusCout(r); return; }
+  const montantDebite = r.montantPreleve || 0;
+  if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
+    await crediterCaisseEtatBatiment(state.country, state.currentCity || 'ville_a', state.currentBuilding || 'imprimerie-librairie', 'imprimerie', montantDebite);
+  }
 
   lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
@@ -436,7 +449,7 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Tracts imprimés !', '10 tracts en faveur de ' + candidat.nom + ' ajoutés à votre inventaire.', true, true);
+  showToast('Tracts imprimés !', '10 tracts en faveur de ' + candidat.nom + ' ajoutés à votre inventaire.' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') : ''), true, true);
   addJournalEntry('Impression de 10 tracts électoraux en faveur de ' + candidat.nom + '.', 'event-info');
 }
 
@@ -454,6 +467,14 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
 const ATELIERS_TRACTS_CALOMNIEUX = ['la-tribune', 'imprimerie-librairie'];
 
 function prixLotTractsCalomnieux() {
+  return prixLotTractsAtelier();
+}
+
+// Tarif d'un lot de 10 tracts dans l'atelier ou se trouve le joueur -- POINT D'ACCROCHE UNIQUE du
+// prix (tracts ordinaires, electoraux et calomnieux). Tarif public/PNJ de Republia : 150 FR. Aucune
+// imprimerie n'est aujourd'hui possedable par un PJ : le jour ou elle le sera, c'est ici que le
+// prix fixe par son proprietaire sera lu (voir rapport du 12 septembre 2026).
+function prixLotTractsAtelier() {
   return PRIX_LOT_TRACTS;
 }
 
@@ -737,7 +758,8 @@ const MOTIFS_REFUS_TRACT_ELECTORAL = {
   candidat_hors_scrutin: 'Ce candidat ne participe pas à ce scrutin.',
   deja_vote: 'Ce PNJ a déjà participé à ce tour du scrutin.',
   tract_absent: 'Ce tract ne figure pas dans votre inventaire enregistré.',
-  scrutin_non_concerne: 'Les tracts ne concernent que la présidentielle, les municipales et les législatives.'
+  scrutin_non_concerne: 'Les tracts ne concernent que la présidentielle, les municipales et les législatives.',
+  pa_insuffisants: 'Il faut 1 PA pour distribuer un tract.'
 };
 
 async function distribuerTractElectoralPNJ(pnjName, encodedPnj) {
@@ -785,7 +807,12 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
     showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
     return;
   }
-  // Le serveur lit la position et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
+  // 1 PA par tentative individuelle (regle validee) : verifie avant tout envoi.
+  if (typeof TEST_MODE !== 'undefined' && !TEST_MODE && (state.pa || 0) < 1) {
+    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_ELECTORAL.pa_insuffisants, false);
+    return;
+  }
+  // Le serveur lit la position, les PA et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
   const sauve = await sbSavePersonnage(state).catch(() => null);
   if (!sauve) {
     showToast('Action impossible', 'Votre position n\'a pas pu être enregistrée. Aucun tract n\'a été utilisé.', false);
@@ -805,8 +832,9 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
     return;
   }
 
-  // Tentative reellement effectuee (reussite ou echec) : 1 tract consomme, jamais plus (un rejeu
-  // renvoie le meme resultat et n'est traite qu'une fois ici).
+  // Tentative reellement effectuee (reussite ou echec) : 1 PA et 1 tract consommes, jamais plus
+  // (un rejeu renvoie le meme resultat et n'est traite qu'une fois ici).
+  if (typeof deduireCoutOrdre === 'function') await deduireCoutOrdre({ pa: 1, cost: 0 });
   tract.quantite -= 1;
   if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();

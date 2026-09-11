@@ -759,7 +759,10 @@ async function syncCyclesDepuisSupabase() {
       CYCLES_ELECTORAUX[country][cle].votes = {};
       votes.forEach(v => { CYCLES_ELECTORAUX[country][cle].votes[v.votant] = v.candidat; });
     }
-    if (candidatures.length) {
+    // Liste FIGEE a la cloture des candidatures (12 septembre 2026) : apres le lundi 00:01, aucune
+    // ligne de la table candidatures (ajout tardif, suppression) ne modifie plus la liste du scrutin
+    // -- ni au premier tour, ni au second (reduit aux qualifies par le serveur).
+    if (candidatures.length && candidaturesOuvertes(CYCLES_ELECTORAUX[country][cle])) {
       // CANDIDAT FANTOME (correctif du 8 septembre 2026). La table candidatures n'est purgee par
       // rien : ni le renouvellement de cycle, ni aucun cron. Son seul nettoyage vit dans
       // sbDeletePersonnage (supabase.js), qui n'est appele que par la destruction VOLONTAIRE d'un
@@ -791,7 +794,8 @@ async function syncCyclesDepuisSupabase() {
       const candidatsRetenus = await filtrerCandidaturesDePersonnagesExistants(candidaturesDuScrutin);
       CYCLES_ELECTORAUX[country][cle].candidats = candidatsRetenus.map(c => ({
         nom: c.nom, programme: c.programme, archetype: c.archetype,
-        prospectusDistribues: 0
+        prospectusDistribues: 0,
+        dateInscription: c.created_at ? Date.parse(c.created_at) : undefined
       }));
     }
   }
@@ -963,26 +967,102 @@ function getCleCycle(posteId, city) {
   return posteId;
 }
 
+// =====================
+// CALENDRIER ELECTORAL DU DIMANCHE (12 septembre 2026) -- heure de Paris
+// =====================
+// Regle fixee : candidatures ouvertes des l'ouverture du cycle ; cloture le lundi 00:01 ;
+// campagne du lundi 00:01 au samedi 23:59 (liste figee) ; vote le dimanche 00:01 -> 23:59 ;
+// resultat au passage au lundi (dateResultats = lundi 00:00). Un cycle ouvert au passage au lundi
+// vote le 2e dimanche suivant. Second tour : le dimanche suivant. Calcule en DATES CALENDAIRES de
+// Paris (jamais +7 x 24 h) : le vote reste un dimanche a travers les changements d'heure. MEME
+// code que la copie serveur (api/cron-minuit.js), a garder identique.
+const FUSEAU_ELECTORAL = 'Europe/Paris';
+const CANDIDATURES_MIN_MS = 6 * 24 * 60 * 60 * 1000;   // un cycle ouvert trop pres d'un lundi vote la semaine suivante
+
+function partiesHeureParis(ts) {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: FUSEAU_ELECTORAL, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(ts)).forEach(x => { p[x.type] = x.value; });
+  return { a: +p.year, m: +p.month, j: +p.day, h: (+p.hour) % 24, mi: +p.minute, s: +p.second };
+}
+
+// Heure murale de Paris -> instant (ms), heure d'ete comprise.
+function instantHeureParis(a, m, j, h, mi) {
+  const mur = Date.UTC(a, m - 1, j, h, mi);
+  let t = mur - 3600000;
+  for (let k = 0; k < 3; k++) {
+    const p = partiesHeureParis(t);
+    t = mur - (Date.UTC(p.a, p.m - 1, p.j, p.h, p.mi, p.s) - t);
+  }
+  return t;
+}
+
+function dateCalendairePlusJours(d, n) {
+  const x = new Date(Date.UTC(d.a, d.m - 1, d.j + n));
+  return { a: x.getUTCFullYear(), m: x.getUTCMonth() + 1, j: x.getUTCDate() };
+}
+
+// Date (a, m, j) du lundi de la semaine de ts, a Paris.
+function lundiSemaineParis(ts) {
+  const p = partiesHeureParis(ts);
+  const jour = new Date(Date.UTC(p.a, p.m - 1, p.j)).getUTCDay();   // 0 = dimanche
+  return dateCalendairePlusJours(p, -((jour + 6) % 7));
+}
+
+// Scrutin de la semaine commencant par le lundi L : cloture L 00:01, vote dimanche 00:01,
+// resultat au lundi suivant 00:00.
+function datesScrutinSemaine(lundi) {
+  const dim = dateCalendairePlusJours(lundi, 6), suivant = dateCalendairePlusJours(lundi, 7);
+  return {
+    dateDebutCampagne: instantHeureParis(lundi.a, lundi.m, lundi.j, 0, 1),
+    dateVote: instantHeureParis(dim.a, dim.m, dim.j, 0, 1),
+    dateResultats: instantHeureParis(suivant.a, suivant.m, suivant.j, 0, 0)
+  };
+}
+
+// Premier tour d'un cycle ouvert a l'instant t : premiere cloture du lundi 00:01 laissant au moins
+// 6 jours de candidatures (ouverture au passage au lundi -> cloture 7 jours plus tard, vote le
+// dimanche qui suit : 2e dimanche apres l'election precedente).
+function calendrierPremierTour(t) {
+  let lundi = dateCalendairePlusJours(lundiSemaineParis(t), 7);
+  let d = datesScrutinSemaine(lundi);
+  if (d.dateDebutCampagne - t < CANDIDATURES_MIN_MS) d = datesScrutinSemaine(dateCalendairePlusJours(lundi, 7));
+  return d;
+}
+
+// Tour suivant : le dimanche qui suit le vote precedent (aucune candidature : cloture deja passee).
+function calendrierTourSuivant(dateVotePrecedent) {
+  return datesScrutinSemaine(dateCalendairePlusJours(lundiSemaineParis(dateVotePrecedent), 7));
+}
+
+// Fin de mandat alignee sur le passage au lundi, n semaines apres la semaine de t.
+function lundiMinuitParisApresSemaines(t, n) {
+  const l = dateCalendairePlusJours(lundiSemaineParis(t), 7 * n);
+  return instantHeureParis(l.a, l.m, l.j, 0, 0);
+}
+
+// Decalage d'un instant d'un nombre de semaines CALENDAIRES a Paris (meme heure murale).
+function decalerSemainesParis(ts, n) {
+  const p = partiesHeureParis(ts), d = dateCalendairePlusJours(p, 7 * n);
+  return instantHeureParis(d.a, d.m, d.j, p.h, p.mi) + p.s * 1000 + (ts % 1000);
+}
+
+// Candidatures reellement ouvertes pour ce cycle (meme regle que le trigger serveur
+// candidatures_cloture) : avant la cloture du lundi 00:01, cycle ni resolu ni en mandat/vacance.
+function candidaturesOuvertes(cycle, maintenant) {
+  const t = maintenant || Date.now();
+  if (!cycle || cycle.resultatsTraites) return false;
+  if (cycle.phase === PHASES_ELECTORALES.MANDAT || cycle.phase === PHASES_ELECTORALES.VACANT) return false;
+  return isFinite(Number(cycle.dateDebutCampagne)) && t < Number(cycle.dateDebutCampagne);
+}
+
 async function initCycleElectoral(country, posteId, city) {
   const cle = getCleCycle(posteId, city);
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
   if (CYCLES_ELECTORAUX[country][cle]) return;
 
-  const now = Date.now();
-  const semaine = 7 * 24 * 60 * 60 * 1000;
-  CYCLES_ELECTORAUX[country][cle] = {
-    posteId, city: posteEstLocal(posteId) ? (city || null) : null,
-    phase: PHASES_ELECTORALES.CANDIDATURES,
-    dateDebutCandidatures: now,
-    dateDebutCampagne: now + semaine,
-    dateVote: now + 2 * semaine,
-    dateResultats: now + 2 * semaine + 24 * 60 * 60 * 1000,
-    candidats: [],
-    votes: {},       // { nomPJ: nomCandidat }
-    votesPNJ: {},    // { pnjId: nomCandidat }
-    tour: 1,
-    eluId: null,
-  };
+  CYCLES_ELECTORAUX[country][cle] = construireNouveauCycleElectoral(posteId, city, Date.now());
   if (typeof sbSaveCycleElectoral === 'function') {
     await sbSaveCycleElectoral(country, posteId, CYCLES_ELECTORAUX[country][cle], city).catch(() => {});
   }
@@ -995,14 +1075,14 @@ async function initCycleElectoral(country, posteId, city) {
 // construireNouveauCycleElectoral) -- duplique ici car ce fichier n'a jamais acces au contexte
 // serveur, meme doctrine que le reste du projet (POSTES_NOMMES_EXCLUSIFS_SERVEUR, etc.).
 function construireNouveauCycleElectoral(posteId, city, now) {
-  const semaine = 7 * 24 * 60 * 60 * 1000;
+  const cal = calendrierPremierTour(now);   // calendrier du dimanche (12 septembre 2026)
   return {
     posteId, city: posteEstLocal(posteId) ? (city || null) : null,
     phase: PHASES_ELECTORALES.CANDIDATURES,
     dateDebutCandidatures: now,
-    dateDebutCampagne: now + semaine,
-    dateVote: now + 2 * semaine,
-    dateResultats: now + 2 * semaine + 24 * 60 * 60 * 1000,
+    dateDebutCampagne: cal.dateDebutCampagne,
+    dateVote: cal.dateVote,
+    dateResultats: cal.dateResultats,
     candidats: [],
     votes: {},
     votesPNJ: {},
@@ -1195,6 +1275,13 @@ async function deposerCandidature(posteId, country, city) {
     showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false);
     return;
   }
+  // Calendrier du dimanche (12 septembre 2026) : le verrou temporel retire le 17 aout revient --
+  // candidatures fermees le lundi 00:01 precedant le vote (le serveur refuse aussi, trigger
+  // candidatures_cloture). Aucun PA n'est debite pour une candidature refusee.
+  if (!candidaturesOuvertes(cycle)) {
+    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', false);
+    return;
+  }
 
   // Ouvrir modal pour programme
   ouvrirModalCandidature(posteId, c, poste, cycle, city);
@@ -1357,6 +1444,12 @@ async function confirmerCandidature(el) {
   if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, posteId, city);
   if (!CYCLES_ELECTORAUX[country][cle]) { showToast('Indisponible', 'Le cycle electoral n\'est pas exploitable pour ce poste.', false); return; }
 
+  // Cloture du lundi 00:01 (12 septembre 2026), verifiee AVANT le debit des PA.
+  if (!candidaturesOuvertes(CYCLES_ELECTORAUX[country][cle])) {
+    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes.', false);
+    return;
+  }
+
   // Deduction PA centralisee (Lot 2C) -- au moment de la confirmation effective, pas a
   // l'ouverture du modal (ouvrirModalCandidature). Avant toute mutation irreversible.
   const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
@@ -1381,7 +1474,9 @@ async function confirmerCandidature(el) {
   const ecritureReussie = await sbDeposerCandidature(country, posteId, nouveauCandidat, city,
     (typeof cleEcheanceElectorale === 'function') ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures);
   if (!ecritureReussie) {
-    showToast('Échec de l\'inscription', 'La candidature n\'a pas pu être enregistrée. Réessayez.', false);
+    // Refus serveur (cloture atteinte entre-temps) ou erreur : les 2 PA sont rendus.
+    if (r.paPreleves) state.pa = (state.pa || 0) + r.paPreleves;
+    showToast('Échec de l\'inscription', candidaturesOuvertes(cycle) ? 'La candidature n\'a pas pu être enregistrée. Réessayez.' : 'Les candidatures à ce scrutin sont closes.', false);
     return;
   }
   cycle.candidats.push(nouveauCandidat);
@@ -2003,20 +2098,16 @@ function resoudreScrutinDepute(cycle, fraudesActives) {
   if (totalExprimes === 0) return { scores, blancs, totalExprimes: 0, elus: [], egalite3eSiege: null, blancMajoritaire: false };
   if (blancs > totalExprimes / 2) return { scores, blancs, totalExprimes, elus: [], egalite3eSiege: null, blancMajoritaire: true };
 
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  if (sorted.length <= 3) {
-    return { scores, blancs, totalExprimes, elus: sorted.map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
-  }
+  // Un seul tour (12 septembre 2026) : les 3 meilleurs scores sont elus. Egalite departagee par
+  // l'anciennete de la candidature (dateInscription), puis par ordre alphabetique -- jamais de
+  // second tour partiel. MEME code que la copie serveur (api/cron-minuit.js).
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1] || departageCandidats(candidats, a[0], b[0]));
+  return { scores, blancs, totalExprimes, elus: sorted.slice(0, 3).map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
+}
 
-  const seuilSiege3 = sorted[2][1];
-  const elusSurs = sorted.filter(([, v]) => v > seuilSiege3).map(([n]) => n);
-  const exAequoSeuil = sorted.filter(([, v]) => v === seuilSiege3).map(([n]) => n);
-  const siegesRestants = 3 - elusSurs.length;
-
-  if (exAequoSeuil.length <= siegesRestants) {
-    return { scores, blancs, totalExprimes, elus: [...elusSurs, ...exAequoSeuil], egalite3eSiege: null, blancMajoritaire: false };
-  }
-  return { scores, blancs, totalExprimes, elus: elusSurs, egalite3eSiege: { candidats: exAequoSeuil, siegesRestants }, blancMajoritaire: false };
+function departageCandidats(candidats, nomA, nomB) {
+  const date = nom => { const c = (candidats || []).find(x => x.nom === nom); const d = Number(c && c.dateInscription); return isFinite(d) && d > 0 ? d : Infinity; };
+  return (date(nomA) - date(nomB)) || (nomA < nomB ? -1 : (nomA > nomB ? 1 : 0));
 }
 
 // =====================

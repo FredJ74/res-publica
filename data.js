@@ -3966,7 +3966,7 @@ const BUILDINGS = {
         // imprimer_tracts_sportifs retire (mecanique abandonnee, voir plateau-organisations-
         // quetes.js). imprimer_livre retire (abandonne, jamais eu d'effet reel utile).
         orders: [
-          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir un candidat en campagne. Produit un lot de 10 tracts en sa faveur. Coût : 1 PA + bois en stock personnel.'}
+          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir un candidat en campagne. Produit un lot de 10 tracts en sa faveur. Coût : 1 PA + 150 FR + bois en stock personnel.'}
         ]
       },
       atelier: {
