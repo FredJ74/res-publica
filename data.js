@@ -222,11 +222,17 @@ const WORLD = {
                   choix: [
                     {fn:'imprimer_tracts_electoraux'},
                     {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:150, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (n\'importe quel PJ). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + 150 FR + 1 bois en stock personnel.'}
-                  ]},
-                // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : gere en
-                // dehors du pipeline PA/argent generique (doOrder), voir ouvrirFormulairePetiteAnnonce
-                // (plateau-communication.js) -- cost:0 ici, le debit reel (30 FR) et la verification
-                // "une annonce active a la fois" ont lieu dans ce flux dedie, jamais dans un jet.
+                  ]}
+              ]
+            },
+            // SEPARATION JOURNAL / IMPRIMERIE (arbitrage du 12 septembre 2026) : la petite annonce
+            // parait dans le JOURNAL, ce n'est pas un service de l'atelier d'impression. Elle quitte
+            // donc l'accueil pour la redaction, avec les autres fonctions editoriales. Gere en dehors
+            // du pipeline PA/argent generique (voir ouvrirFormulairePetiteAnnonce) : cost:0 ici, le
+            // debit reel de 30 FR et la verification « une annonce active a la fois » ont lieu dans
+            // ce flux dedie, jamais dans un jet.
+            redaction: {
+              orders: [
                 {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
               ]
             }
@@ -2815,10 +2821,15 @@ const BUILDINGS = {
           // Mecanique refondue le 12 septembre 2026 : plus de rumeur inventee, plus d'effet INF/POP
           // fictif, plus de detection judiciaire du commanditaire (secret des sources). 2 PA.
           {fn:'produire_fuite',   label:'Produire une fuite',           pa:2, cost:0,   type:'legal', icon:'ti-leak',           successRate:100,  desc:"Choisir une personne à viser. La cellule enquête publie UNE trace d'action illégale réellement enregistrée la concernant, découverte ou non par la justice. Aucune affaire inventée, aucune trace ne fuite deux fois. Votre nom n'est jamais publié."},
-          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',          pa:3, cost:800, type:'illegal', icon:'ti-alert-triangle',  successRate:35,  desc:'Choisir une cible. Rediger le contenu. Bonus journaliste +15%. Si decouvert : Recherche pour diffamation.'},
+          // Kompromat (12 septembre 2026) : accusation fournie par le joueur, AUTEUR PUBLIC. Plus
+          // aucune detection ni mandat automatique -- l'illegalite viendra d'une plainte de la
+          // victime. Une seule tentative par jour reel et par auteur, consommee meme en cas de refus.
+          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',          pa:3, cost:800, type:'grey', icon:'ti-alert-triangle',  successRate:35,  desc:"Accuser publiquement un PJ, sous votre nom. La rédaction accepte ou refuse (35 % + 15 si carrière presse, ou + 10 si ministre de l'Information, moins le malus de sécurité intérieure). Acceptation : 3 PA et 800 FR pour La Tribune, la cible perd 15 POP et 15 INF. Refus : rien n'est prélevé. Une tentative par jour."},
           {fn:'interview',             label:'Donner une interview',          pa:1, cost:0,   type:'legal',   icon:'ti-microphone', successRate:100, desc:'Impact sur la popularite.'},
           {fn:'article',               label:'Placer un article favorable',   pa:1, cost:500,  type:'grey',    icon:'ti-pencil',     successRate:75, desc:'Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l\'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n\'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais.'},
-          {fn:'corrompre_journaliste', label:'Corrompre un journaliste',      pa:2, cost:500, type:'illegal', icon:'ti-cash',       successRate:55},
+          // Corruption de la COUVERTURE d'une affaire judiciaire du jour (12 septembre 2026), avec sa
+          // formule propre : 30 + CHA + INF/4 - malus ISN. Ne passe plus par doCorruption.
+          {fn:'corrompre_journaliste', label:'Corrompre un journaliste',      pa:2, cost:500, type:'illegal', icon:'ti-cash',       successRate:55, desc:"Choisir une affaire judiciaire du jour puis demander à la rédaction de l'étouffer ou d'en publier un angle favorable. Accord : 2 PA et 500 FR pour La Tribune. Refus : rien n'est prélevé, mais la démarche laisse une trace. Le dossier judiciaire n'est jamais modifié."},
           {fn:'etouffer',              label:'Etouffer un article',           pa:1, cost:1000, type:'illegal', icon:'ti-eye-off',    successRate:70, desc:'Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur "Placer un article favorable" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N\'affecte jamais l\'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.'}
         ]
       }
@@ -7111,7 +7122,10 @@ const ORDER_EFFECTS = {
   corrompre_fonct:    {inf:5,  dis:-3,   successRate:65},
   corrompre_juge:     {dis:-5,           successRate:45},
   corrompre_police:   {dis:-3,           successRate:55},
-  corrompre_journaliste:{dis:-4,         successRate:55},
+  // Entrees videes le 12 septembre 2026 : ces deux ordres sont special-cases dans le routeur, donc
+  // applyEffects n'est jamais atteint. Le badge « +15 POP » du scandale et le « -4 DIS » de la
+  // corruption n'etaient jamais appliques : ils ne sont plus annonces au joueur.
+  corrompre_journaliste:{},
   corrompre_fonct_v:  {inf:3,  dis:-4,   successRate:65},
   recruter_info:      {},
   arreter:            {inf:3,  dis:-8,   successRate:50},
@@ -7313,7 +7327,7 @@ Object.assign(ORDER_EFFECTS, {
   dementi:            {pop:8,            successRate:80},
   consulter_dossiers: {inf:5,            successRate:80},
   fuite_info:         {pop:10, inf:5,    successRate:60},
-  fabriquer_scandale: {pop:15, dis:-10,  successRate:45},
+  fabriquer_scandale: {},
   plainte_police:     {successRate:100},
   archives_police:    {successRate:95}
 });

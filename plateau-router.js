@@ -459,7 +459,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // dans data.js mais jamais routee -- meme mecanique generique que ses homologues (desc
   // "Obtenir des privileges ou informations" = meme resultat generique que doCorruption,
   // aucun effet specifique distinct trouve pour aucun des fn de ce groupe).
-  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }
+  // « Corrompre un journaliste » a desormais sa propre mecanique (12 septembre 2026) : elle porte sur
+  // la COUVERTURE d'une affaire judiciaire precise, avec sa formule propre (30 + CHA + INF/4 - ISN).
+  // Elle ne passe plus par doCorruption, dont le corps est partage par les cinq autres ordres de
+  // corruption (mairie, QHS, gardien, proces-verbal) et ne doit pas bouger.
+  if (fn === 'corrompre_journaliste') { ouvrirCorrompreJournaliste(pa, cost); return; }
+  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
   if (fn === 'requete_avocat') { doRequeteAvocat(pa, cost); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }

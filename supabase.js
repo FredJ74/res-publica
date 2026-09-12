@@ -2432,6 +2432,41 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// FABRIQUER UN SCANDALE (12 septembre 2026, migration_scandales_presse.sql). Le serveur consomme la
+// tentative quotidienne (Europe/Paris) AVANT le jet -- refus de la redaction compris --, verifie PA
+// et fonds enregistres, puis tire l'acceptation. Idempotent sur l'id de requete.
+async function sbScandaleTenter(requete, joueur, cible, accusation, malusIsn) {
+  const rows = await sbRpc('scandale_tenter', {
+    p_requete: requete, p_joueur: joueur, p_cible: cible, p_accusation: accusation,
+    p_malus_isn: (typeof malusIsn === 'number') ? malusIsn : 0
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Publie l'article, depose le fait dans chronique_nationale avec l'AUTEUR PUBLIC, et applique
+// POP -15 / INF -15 a la cible une seule fois. Renvoie le total de scandales publies par l'auteur.
+async function sbScandalePublier(scandaleId, article) {
+  const rows = await sbRpc('scandale_publier', { p_scandale_id: scandaleId, p_article: article });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// CORROMPRE UN JOURNALISTE (12 septembre 2026, migration_corruption_presse.sql).
+// Affaires judiciaires du jour encore susceptibles d'alimenter la prochaine edition.
+async function sbCorruptionPresseAffaires(pays) {
+  const rows = await sbRpc('corruption_presse_affaires', { p_pays: pays });
+  return Array.isArray(rows) ? rows : [];
+}
+
+// Une seule tentative par affaire et par corrupteur (contrainte d'unicite, donc sure en concurrence).
+// La trace est enregistree que le journaliste accepte ou refuse.
+async function sbCorruptionPresseTenter(requete, joueur, affaireRef, option, malusIsn) {
+  const rows = await sbRpc('corruption_presse_tenter', {
+    p_requete: requete, p_joueur: joueur, p_affaire_ref: affaireRef, p_option: option,
+    p_malus_isn: (typeof malusIsn === 'number') ? malusIsn : 0
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // PRODUIRE UNE FUITE (12 septembre 2026, migration_fuites_journalistiques.sql).
 // Reserve une trace d'action illegale reellement enregistree pour la cible et la marque comme ayant
 // deja fuite : une trace ne peut fuiter qu'une fois, la contrainte d'unicite protegeant meme deux

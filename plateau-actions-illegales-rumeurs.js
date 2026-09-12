@@ -892,88 +892,307 @@ async function confirmerFuite(pa, cost) {
 // =====================
 // FABRIQUER UN SCANDALE
 // =====================
-function ouvrirFabrquerScandale(pa, cost) {
-  const contacts = state.contacts || [];
-  if (contacts.length === 0) {
-    showToast('Repertoire vide', 'Ajoutez des contacts pour cibler un scandale.', false);
+// CORROMPRE UN JOURNALISTE (mecanique refondue le 12 septembre 2026)
+// =====================
+// L'ordre ne concerne ni les scandales ni les fuites : il porte sur LA COUVERTURE d'une affaire
+// judiciaire REELLE du jour, avant la cloture editoriale de minuit (Europe/Paris). Le corrupteur
+// peut intervenir pour lui-meme ou pour n'importe quel autre PJ concerne par une affaire eligible.
+//
+// Deux options : ETOUFFER (l'affaire n'est pas publiee) ou ARTICLE FAVORABLE (elle l'est, mais sous
+// un angle favorable). Dans les deux cas le DOSSIER JUDICIAIRE est strictement inchange -- jugement,
+// condamnation, detention, traces et archives restent ce qu'ils sont : seule la couverture change.
+//
+// Formule PROPRE a cet ordre (elle ne passe plus par doCorruption, partage avec cinq autres ordres) :
+//   chance = 30 + CHA + floor(INF / 4) - malus ISN, bornee [5, 85].
+// Reussite : 2 PA + 500 FR encaisses par la caisse de La Tribune. Refus : 0 PA, 0 FR.
+// Dans LES DEUX CAS une trace est enregistree -- exploitable plus tard par les enquetes et les
+// rumeurs. Aucune rumeur n'est creee automatiquement, aucun mandat non plus.
+const COUT_PA_CORRUPTION_PRESSE = 2;
+const COUT_FR_CORRUPTION_PRESSE = 500;
+
+async function ouvrirCorrompreJournaliste(pa, cost) {
+  if (typeof sbCorruptionPresseAffaires !== 'function') {
+    showToast('Action impossible', 'La rédaction ne peut pas être sollicitée pour le moment.', false);
     return;
   }
+  const affaires = (await sbCorruptionPresseAffaires(state.country).catch(() => null)) || [];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
+  const cha = typeof getStatEffective === 'function' ? (getStatEffective('CHA') || 0) : (state.char?.stats?.CHA || 0);
+  const taux = Math.max(5, Math.min(85, 30 + cha + Math.floor((state.inf || 0) / 4) - malusISN));
+
+  document.getElementById('postes-modal-title').textContent = 'Corrompre un journaliste';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+    + 'Les affaires judiciaires du jour peuvent être reprises dans l\'édition de demain. Vous pouvez tenter '
+    + 'd\'intervenir sur l\'une d\'elles avant minuit. Chance d\'acceptation : ' + taux + ' %. '
+    + 'Si le journaliste accepte : ' + COUT_PA_CORRUPTION_PRESSE + ' PA et ' + COUT_FR_CORRUPTION_PRESSE + ' ' + cur
+    + '. S\'il refuse : rien n\'est prélevé — mais la tentative laisse une trace.</div>';
+  if (affaires.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucune affaire judiciaire du jour n\'est encore susceptible d\'être publiée.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">AFFAIRE</div>';
+    html += '<select id="corrpresse-affaire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+    affaires.forEach(a => { html += '<option value="' + a.affaire_ref + '">' + a.resume + '</option>'; });
+    html += '</select>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CE QUE VOUS DEMANDEZ</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.8rem">';
+    html += '<button id="corrpresse-etouffer" onclick="choisirOptionCorruptionPresse(\'etouffer\')" style="flex:1;padding:.4rem;border:1px solid #8a6a20;background:#1a1005;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">ÉTOUFFER L\'AFFAIRE</button>';
+    html += '<button id="corrpresse-favorable" onclick="choisirOptionCorruptionPresse(\'favorable\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">ARTICLE FAVORABLE</button>';
+    html += '</div>';
+    html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">L\'affaire elle-même n\'est jamais modifiée : jugement, condamnation, détention et archives restent intacts. Seule la couverture du journal change.</div>';
+    html += '<button id="corrpresse-lancer" onclick="confirmerCorrompreJournaliste(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Approcher le journaliste</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  window._optionCorruptionPresse = 'etouffer';
+}
+
+function choisirOptionCorruptionPresse(option) {
+  window._optionCorruptionPresse = option;
+  const a = document.getElementById('corrpresse-etouffer');
+  const b = document.getElementById('corrpresse-favorable');
+  if (!a || !b) return;
+  const actif = 'flex:1;padding:.4rem;border:1px solid #8a6a20;background:#1a1005;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+  const inactif = 'flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+  a.style.cssText = option === 'etouffer' ? actif : inactif;
+  b.style.cssText = option === 'favorable' ? actif : inactif;
+}
+
+async function confirmerCorrompreJournaliste(pa, cost) {
+  if (window._corrPresseEnCours) return;                  // anti double-clic
+  const affaire = document.getElementById('corrpresse-affaire')?.value;
+  const option = window._optionCorruptionPresse === 'favorable' ? 'favorable' : 'etouffer';
+  if (!affaire) { showToast('Aucune affaire', 'Choisissez une affaire judiciaire.', false); return; }
+  if (typeof sbCorruptionPresseTenter !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Action impossible', 'Le journaliste ne peut pas être approché pour le moment.', false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const fonds = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (!(typeof TEST_MODE !== 'undefined' && TEST_MODE) && (state.pa || 0) < COUT_PA_CORRUPTION_PRESSE) {
+    showToast('PA insuffisants', COUT_PA_CORRUPTION_PRESSE + ' PA sont nécessaires en cas d\'accord.', false); return;
+  }
+  if (fonds < COUT_FR_CORRUPTION_PRESSE) {
+    showToast('Fonds insuffisants', COUT_FR_CORRUPTION_PRESSE + ' ' + cur + ' sont nécessaires en cas d\'accord.', false); return;
+  }
+
+  window._corrPresseEnCours = true;
+  const bouton = document.getElementById('corrpresse-lancer');
+  if (bouton) bouton.disabled = true;
+  try {
+    const sauve = await sbSavePersonnage(state).catch(() => null);
+    if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); return; }
+
+    const requete = 'corrpresse-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
+    let res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
+    if (!res) res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
+    if (!res) { showToast('Réseau indisponible', 'Le journaliste n\'a pas pu être approché. Rien n\'a été prélevé.', false); return; }
+    if (!res.ok) {
+      const motifs = {
+        deja_tente: 'Vous avez déjà approché la rédaction sur cette affaire.',
+        affaire_non_eligible: 'Cette affaire n\'est plus en jeu pour la prochaine édition.',
+        pa_insuffisants: COUT_PA_CORRUPTION_PRESSE + ' PA sont nécessaires.',
+        fonds_insuffisants: COUT_FR_CORRUPTION_PRESSE + ' ' + cur + ' sont nécessaires.'
+      };
+      showToast('Approche impossible', motifs[res.raison] || 'La démarche a été refusée.', false);
+      return;
+    }
+    document.getElementById('modal-postes')?.classList.remove('open');
+
+    if (!res.reussi) {
+      // Refus : aucun PA, aucun FR. La trace de la TENTATIVE existe malgre tout, cote serveur.
+      showToast('Le journaliste refuse', 'Votre proposition est repoussée. Rien ne vous est prélevé, mais votre démarche laisse des traces.', false);
+      addJournalEntry('Tentative de corruption de la rédaction au sujet de ' + res.affaire_pj + ' — refusée.', 'event-bad');
+    } else {
+      const r = await deduireCoutOrdre({ pa: COUT_PA_CORRUPTION_PRESSE, cost: COUT_FR_CORRUPTION_PRESSE });
+      if (!r.ok) { signalerRefusCout(r); return; }
+      const montantDebite = r.montantPreleve || 0;
+      // Les 500 FR entrent dans la caisse de La Tribune : ils ne sont plus detruits.
+      if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
+        await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
+          state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
+      }
+      showToast('Accord conclu', option === 'etouffer'
+        ? 'L\'affaire concernant ' + res.affaire_pj + ' ne sera pas publiée. Le dossier judiciaire, lui, reste intact.'
+        : 'L\'affaire concernant ' + res.affaire_pj + ' sera publiée sous un angle favorable. Les faits restent les faits.',
+        true, true);
+      addJournalEntry('Rédaction corrompue au sujet de ' + res.affaire_pj + ' — ' + (option === 'etouffer' ? 'affaire étouffée' : 'article favorable') + '.', 'event-bad');
+    }
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+    if (typeof updateUI === 'function') updateUI();
+  } finally {
+    window._corrPresseEnCours = false;
+    if (bouton) bouton.disabled = false;
+  }
+}
+
+// FABRIQUER UN SCANDALE -- KOMPROMAT (mecanique refondue le 12 septembre 2026)
+// =====================
+// Difference de fond avec « Produire une fuite » : la fuite s'appuie sur un fait illegal REEL et son
+// commanditaire reste secret ; le scandale s'appuie sur une accusation FOURNIE PAR LE JOUEUR, et son
+// AUTEUR EST PUBLIC. Il n'y a donc plus rien a detecter : l'ancienne detection automatique, le
+// « retour de baton » a 30 % et les mandats automatiques ont ete supprimes. L'illegalite viendra
+// d'une plainte en diffamation de la victime, traitee dans le chantier justice.
+//
+// La redaction peut refuser (sa credibilite est en jeu) : refus = 0 PA, 0 FR, aucun article, aucun
+// effet -- mais la tentative quotidienne est consommee malgre tout.
+// Acceptation = 3 PA + 800 FR encaisses par LA CAISSE DE LA TRIBUNE, POP -15 et INF -15 sur la cible.
+const COUT_PA_SCANDALE = 3;
+const COUT_FR_SCANDALE = 800;
+
+// Article a partir de la SEULE accusation fournie. L'IA met en forme, elle n'ajoute aucun fait ni
+// aucune accusation nouvelle presentee comme certaine.
+async function redigerScandale(auteur, cible, accusation) {
+  const repli = 'Selon ' + auteur + ', ' + cible + ' serait mis(e) en cause : « ' + accusation
+    + ' » La Tribune publie cette accusation sans avoir pu la verifier.';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 220,
+        messages: [{
+          role: 'user',
+          content: 'Tu es la redaction d\'un journal satirique dans un jeu politique fictif. Mets en forme, '
+            + 'en 3 phrases maximum, l\'accusation ci-dessous portee publiquement par une personne nommee. '
+            + 'INTERDICTION d\'ajouter une accusation, un fait, un chiffre, un temoin ou une preuve qui ne '
+            + 'figure pas dans le texte fourni. Presente-la comme une accusation NON VERIFIEE, en citant '
+            + 'nommement son auteur. Commence directement par l\'article.\n\n'
+            + 'AUTEUR PUBLIC DE L\'ACCUSATION : ' + auteur + '\n'
+            + 'PERSONNE MISE EN CAUSE : ' + cible + '\n'
+            + 'ACCUSATION, MOT POUR MOT : ' + accusation + '\n'
+        }]
+      })
+    });
+    const data = await resp.json();
+    const texte = (data?.content?.[0]?.text || '').trim();
+    return texte || repli;
+  } catch (e) {
+    return repli;
+  }
+}
+
+async function ouvrirFabrquerScandale(pa, cost) {
+  const moi = state.char?.name || '';
+  let cibles = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { cibles = ((await sbListPersonnages()) || []).map(j => ({ name: j.name, country: j.country })); } catch (e) { cibles = []; }
+  }
+  cibles = cibles.filter(c => c && c.name && c.name !== moi).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const isJournaliste = state.char?.career === 'press';
   const isMinInfo = state.poste?.id === 'min_info';
   const bonusCarriere = isJournaliste ? 15 : isMinInfo ? 10 : 0;
-  const taux = 35 + bonusCarriere;
+  const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
+  const taux = Math.max(5, 35 + bonusCarriere - malusISN);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
 
   document.getElementById('postes-modal-title').textContent = 'Fabriquer un scandale';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux ' + taux + '%' + (bonusCarriere > 0 ? ' (bonus ' + (isJournaliste ? 'journaliste' : 'MInfo') + ' +' + bonusCarriere + '%)' : '') + '. Si decouvert : Recherche pour diffamation.</div>';
-
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-  html += '<select id="scandale-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-  html += '</select>';
-
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTENU DU SCANDALE</div>';
-  html += '<textarea id="scandale-contenu" rows="4" placeholder="Decrivez le scandale fabrique..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
-  html += '<button onclick="confirmerScandale(' + taux + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le scandale</button>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+    + 'La rédaction accepte de publier dans ' + taux + ' % des cas'
+    + (bonusCarriere > 0 ? ' (bonus ' + (isJournaliste ? 'journaliste' : 'ministre de l\'Information') + ' +' + bonusCarriere + ')' : '')
+    + (malusISN > 0 ? ', malus de sécurité intérieure −' + malusISN : '')
+    + '. Si elle accepte : ' + COUT_PA_SCANDALE + ' PA et ' + COUT_FR_SCANDALE + ' ' + cur
+    + '. Si elle refuse : rien n\'est prélevé, mais votre tentative du jour est utilisée. '
+    + '<b>Votre nom est publié avec l\'article</b> — la personne mise en cause pourra porter plainte.</div>';
+  if (cibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PERSONNE MISE EN CAUSE</div>';
+    html += '<select id="scandale-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+    cibles.forEach(c => {
+      const suffixe = c.country && empireNoms[c.country] ? ' — ' + empireNoms[c.country] : '';
+      html += '<option value="' + c.name + '">' + c.name + suffixe + '</option>';
+    });
+    html += '</select>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTRE ACCUSATION</div>';
+    html += '<textarea id="scandale-contenu" rows="4" maxlength="600" placeholder="Ce dont vous accusez publiquement cette personne..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
+    html += '<button id="scandale-publier" onclick="confirmerScandale(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer à la rédaction</button>';
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerScandale(taux, pa, cost) {
+async function confirmerScandale(pa, cost) {
+  if (window._scandaleEnCours) return;                    // anti double-clic
   const cible = document.getElementById('scandale-cible')?.value;
-  const contenu = document.getElementById('scandale-contenu')?.value?.trim();
-  if (!cible || !contenu) { showToast('Champs requis', '', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  document.getElementById('modal-postes').classList.remove('open');
+  const accusation = document.getElementById('scandale-contenu')?.value?.trim();
+  if (!cible || !accusation) { showToast('Champs requis', 'Choisissez une personne et rédigez votre accusation.', false); return; }
+  if (typeof sbScandaleTenter !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Action impossible', 'La rédaction ne peut pas être sollicitée pour le moment.', false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const fonds = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (!(typeof TEST_MODE !== 'undefined' && TEST_MODE) && (state.pa || 0) < COUT_PA_SCANDALE) {
+    showToast('PA insuffisants', COUT_PA_SCANDALE + ' PA sont nécessaires si la rédaction accepte.', false); return;
+  }
+  if (fonds < COUT_FR_SCANDALE) {
+    showToast('Fonds insuffisants', COUT_FR_SCANDALE + ' ' + cur + ' sont nécessaires si la rédaction accepte.', false); return;
+  }
 
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const tauxFinal = Math.max(5, taux - getMalusISN());
+  window._scandaleEnCours = true;
+  const bouton = document.getElementById('scandale-publier');
+  if (bouton) bouton.disabled = true;
+  try {
+    // Le serveur verifie PA et fonds sur les valeurs ENREGISTREES avant de tirer : on les ecrit d'abord.
+    const sauve = await sbSavePersonnage(state).catch(() => null);
+    if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); return; }
 
-  if (roll <= tauxFinal) {
-    // Publier dans le forum national
-    if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
-    const timeScandale = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
-    FORUM_TOPICS['national'].unshift({
-      id: 'scandale-' + Date.now(),
-      title: '[SCANDALE] Revelations sur ' + cible,
-      author: 'Source anonyme',
-      time: timeScandale,
-      posts: [{ author: 'Source anonyme', time: timeScandale, content: contenu }]
-    });
-
-    // Mail a la cible
-    addMailNotification('Redaction anonyme', 'Scandale vous concernant', 'Un article compromettant vous concernant vient d\'etre publie dans le forum national. -15 INF -15 POP -10 Moral.');
-    addExternalEvent('SCANDALE : Revelations compromettantes sur ' + cible + ' publiees dans le forum national !');
-    showToast('Scandale publie !', 'Article dans le forum national. -15 INF -15 POP -10 Moral sur ' + cible, true, true);
-    addJournalEntry('Scandale fabrique contre ' + cible, 'event-bad');
-
-    // Enregistrement partage : rend la rumeur dementable par la cible (ou son entourage) plus tard
-    if (typeof sbCreerRumeurPolitique === 'function') {
-      sbCreerRumeurPolitique({ cible, contenu, auteur: state.char?.name || 'Anonyme', jour: state.day || 1, popPerdu: 15 }).catch(() => {});
+    const requete = 'scandale-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
+    let res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
+    if (!res) res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
+    if (!res) { showToast('Réseau indisponible', 'La rédaction n\'a pas pu être jointe. Rien n\'a été prélevé.', false); return; }
+    if (!res.ok) {
+      const motifs = {
+        deja_tente_aujourdhui: 'Vous avez déjà sollicité la rédaction aujourd\'hui. Revenez demain.',
+        pa_insuffisants: COUT_PA_SCANDALE + ' PA sont nécessaires.',
+        fonds_insuffisants: COUT_FR_SCANDALE + ' ' + cur + ' sont nécessaires.',
+        cible_introuvable: 'Cette personne n\'existe plus.',
+        parametres_invalides: 'Choisissez une autre personne et rédigez votre accusation.'
+      };
+      showToast('Refusé', motifs[res.raison] || 'La rédaction a refusé.', false);
+      return;
     }
+    document.getElementById('modal-postes')?.classList.remove('open');
 
-    // Risque de decouverte (30%)
-    const rollDecouv = Math.floor(Math.random() * 100) + 1;
-    if (rollDecouv <= 30) {
-      setTimeout(() => {
-        // BUG CORRIGE (12 septembre 2026) : cette ligne REMPLACAIT state.recherche par un tableau
-        // d'un seul element, effacant tous les autres mandats en cours (condamnations comprises).
-        // On ajoute desormais l'entree, comme partout ailleurs (checkDetection, etc.).
-        if (!Array.isArray(state.recherche)) state.recherche = [];
-        state.recherche.push({ acte: 'diffamation', type: 'delit_grave', jour: state.day });
-        addExternalEvent('RETOUR DE BATON : Vous avez ete identifie(e) comme l\'auteur du scandale ! Recherche pour diffamation.');
-        showToast('Decouvert !', 'Vous etes recherche(e) pour diffamation. -20 POP -15 INF.', false);
-        state.pop = Math.max(0, state.pop - 20);
-        state.inf = Math.max(0, state.inf - 15);
-        updateUI();
-      }, 1500);
+    if (!res.accepte) {
+      // Refus : aucun PA, aucun FR, aucun article, aucun effet. Seule la tentative du jour est prise.
+      showToast('La rédaction refuse', 'Le rédacteur en chef juge l\'accusation trop risquée pour la crédibilité du journal. Rien ne vous est prélevé, mais votre tentative du jour est utilisée.', false);
+      addJournalEntry('Scandale proposé contre ' + cible + ' — refusé par la rédaction.', '');
+    } else {
+      const r = await deduireCoutOrdre({ pa: COUT_PA_SCANDALE, cost: COUT_FR_SCANDALE });
+      if (!r.ok) { signalerRefusCout(r); return; }
+      const montantDebite = r.montantPreleve || 0;
+      // Les 800 FR entrent dans la caisse de La Tribune : ils ne sont plus detruits.
+      if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
+        await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
+          state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
+      }
+      const article = await redigerScandale(state.char.name, cible, accusation);
+      const pub = await sbScandalePublier(res.scandale_id, article).catch(() => null);
+      if (pub && pub.ok) {
+        if (typeof pub.total_auteur === 'number') state.scandales_publies = pub.total_auteur;
+        showToast('Scandale publié !', 'La Tribune publie votre accusation contre ' + cible
+          + '. Votre nom figure sur l\'article. −' + montantDebite + ' ' + cur + ', −' + COUT_PA_SCANDALE + ' PA.', true, true);
+        addJournalEntry('Scandale publié contre ' + cible + ' — signé de votre nom.', 'event-bad');
+      } else {
+        showToast('Publication différée', 'L\'accusation est enregistrée mais n\'a pas pu être transmise à la rédaction.', false);
+        addJournalEntry('Scandale contre ' + cible + ' accepté, transmission à la rédaction en attente.', '');
+      }
     }
-    checkDetection('fabriquer_scandale', 'success');
-  } else {
-    showToast('Echec', 'Le scandale n\'a pas pris. Personne ne l\'a cru.', false);
-    checkDetection('fabriquer_scandale', 'fail');
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+    if (typeof updateUI === 'function') updateUI();
+  } finally {
+    window._scandaleEnCours = false;
+    if (bouton) bouton.disabled = false;
   }
 }
 
