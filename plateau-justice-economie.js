@@ -1267,13 +1267,24 @@ async function doDefense(pa, cost) {
 // anomalie, non touche).
 async function doCorruption(fn, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+  // FONDS REELS (corrige le 12 septembre 2026) : ce flux testait puis debitait state.arg, qui n'est
+  // qu'un TOTAL AFFICHE (liquide + comptes + placements) et non un moyen de paiement. Ni le liquide
+  // ni le compte national ne bougeaient : la corruption etait gratuite en pouvoir d'achat reel tout
+  // en cassant l'invariant de fortune verifie au chargement (verifierCoherenceFortune).
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fondsDisponibles < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 65 - getMalusISN());
   if (roll <= taux) {
-    state.arg -= cost;
+    // Cout en argent toujours preleve a la seule reussite (comportement d'origine inchange).
+    const paiement = typeof debiterFondsOrdinaires === 'function' ? await debiterFondsOrdinaires(cost) : null;
+    if (paiement && paiement.ok === false) {
+      showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false);
+      return;
+    }
+    if (!paiement) state.arg = (state.arg || 0) - cost;
     state.dis = Math.max(0, state.dis - 5);
     updateUI();
     showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true);

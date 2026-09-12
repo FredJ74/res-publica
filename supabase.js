@@ -811,11 +811,11 @@ async function sbAppliquerSalaire(nomJoueur, montant) {
 // ci-dessus (aucune RPC dediee necessaire, resources est deja une colonne jsonb existante,
 // meme forme que celle geree par sbSavePersonnage : {inf,pop,dis}). Borne 0-100, meme convention
 // que partout ailleurs dans le jeu (Math.max(0,Math.min(100,...))).
+// ATOMIQUE DEPUIS LE 12 septembre 2026 (migration_ajustement_pop_inf.sql) : la version precedente
+// relisait resources puis reecrivait le blob ENTIER ({inf, pop, dis}) -- la cible perdait les gains
+// d'INF ou de DIS obtenus entre la lecture et l'ecriture. Un seul UPDATE sous verrou desormais.
 async function sbAjusterPopularite(nomJoueur, delta) {
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=resources`);
-  const res = rows?.[0]?.resources || { inf: 0, pop: 30, dis: 50 };
-  const nouveauPop = Math.max(0, Math.min(100, (res.pop || 0) + delta));
-  return sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { resources: { ...res, pop: nouveauPop } });
+  return await sbRpc('personnage_ajuster_pop_inf', { p_cible: nomJoueur, p_pop: delta, p_inf: null });
 }
 
 async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
@@ -2383,12 +2383,11 @@ async function sbResoudreRumeur(id) {
 // resources.pop (colonne JSON, voir sbSavePersonnage/sbLoadPersonnage). Consequence : cette
 // fonction echouait toujours silencieusement (erreur avalee par le .catch() des appelants),
 // la POP d'une cible n'a donc jamais ete reellement modifiee par lancer_rumeur_cible.
+// Meme correctif d'atomicite que sbAjusterPopularite ci-dessus (12 septembre 2026).
 async function sbAjusterPopJoueur(nomJoueur, delta) {
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=resources`);
-  const resources = rows?.[0]?.resources || { inf: 0, pop: 50, dis: 50 };
-  const nouveauPop = Math.max(0, Math.min(100, (resources.pop ?? 50) + delta));
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { resources: { ...resources, pop: nouveauPop } });
-  return nouveauPop;
+  const rows = await sbRpc('personnage_ajuster_pop_inf', { p_cible: nomJoueur, p_pop: delta, p_inf: null });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return (r && r.ok) ? Number(r.pop) : null;
 }
 
 // ---- TRACTS (11 septembre 2026, migration_autruche_tracts_securisation.sql) ----

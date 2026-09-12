@@ -59,6 +59,7 @@ CRON_SCORES = en_expression(extraire(CRON, 'appliquerEffetsTracts').replace('fun
                             + extraire(CRON, 'calculerScoresBaseCycle').replace('function calculerScoresBaseCycle(', 'function calculerScoresBaseCycleCron(').replace('appliquerEffetsTracts(scores', 'appliquerEffetsTractsCron(scores')
                             + extraire(CRON, 'resoudreScrutinDepute').replace('function resoudreScrutinDepute(', 'function resoudreScrutinDeputeCron(').replace('calculerScoresBaseCycle(cycle', 'calculerScoresBaseCycleCron(cycle').replace('departageCandidats(', 'departageCandidatsCron(')
                             + extraire(CRON, 'departageCandidats').replace('function departageCandidats(', 'function departageCandidatsCron(')
+                            + extraire(CRON, 'POSTES_ELECTIFS_LOCAUX', 'const')
                             + extraire(CRON, 'construireNouveauCycleElectoral').replace('function construireNouveauCycleElectoral(', 'function construireNouveauCycleElectoralCron(').replace('calendrierPremierTour(', 'calendrierPremierTourCron(')
                             + extraire(CRON, 'calendrierPremierTour').replace('function calendrierPremierTour(', 'function calendrierPremierTourCron('))
 

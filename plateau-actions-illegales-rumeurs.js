@@ -781,6 +781,10 @@ async function confirmerFuite(pa, cost) {
     showToast('Echec', 'La fuite n\'a pas pu etre organisee.', false);
     checkDetection('produire_fuite', 'fail');
   }
+  // Les 3 PA ont ete debites en tete de fonction : sans ceci, la jauge restait affichee a l'ancienne
+  // valeur et la perte n'etait persistee qu'a la faveur d'une action ulterieure.
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
 }
 
 // =====================
@@ -852,7 +856,11 @@ async function confirmerScandale(taux, pa, cost) {
     const rollDecouv = Math.floor(Math.random() * 100) + 1;
     if (rollDecouv <= 30) {
       setTimeout(() => {
-        state.recherche = [{ acte: 'diffamation', type: 'delit_grave', jour: state.day }];
+        // BUG CORRIGE (12 septembre 2026) : cette ligne REMPLACAIT state.recherche par un tableau
+        // d'un seul element, effacant tous les autres mandats en cours (condamnations comprises).
+        // On ajoute desormais l'entree, comme partout ailleurs (checkDetection, etc.).
+        if (!Array.isArray(state.recherche)) state.recherche = [];
+        state.recherche.push({ acte: 'diffamation', type: 'delit_grave', jour: state.day });
         addExternalEvent('RETOUR DE BATON : Vous avez ete identifie(e) comme l\'auteur du scandale ! Recherche pour diffamation.');
         showToast('Decouvert !', 'Vous etes recherche(e) pour diffamation. -20 POP -15 INF.', false);
         state.pop = Math.max(0, state.pop - 20);
@@ -1764,8 +1772,12 @@ async function confirmerUtiliserExplosifs() {
           traite: false
         }).catch(() => {});
       }
+      // BUG CORRIGE (12 septembre 2026) : l'horodatage appelait formatJourHeure(), fonction qui
+      // n'existe nulle part (la vraie s'appelle formatDateHeureJeu). L'argument etant evalue avant
+      // l'appel, une ReferenceError interrompait la fonction des qu'un AUTRE PJ etait present :
+      // PA et explosifs deja consommes, batiment ferme, mais aucun toast ni entree de journal.
       if (typeof sbSendMail === 'function') {
-        sbSendMail('Événement', p.name, 'Explosion !', 'Une explosion s\'est produite dans la pièce où vous vous trouviez. Vous êtes gravement blessé(e).', formatJourHeure()).catch(() => {});
+        sbSendMail('Événement', p.name, 'Explosion !', 'Une explosion s\'est produite dans la pièce où vous vous trouviez. Vous êtes gravement blessé(e).', (typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '')).catch(() => {});
       }
     }
 

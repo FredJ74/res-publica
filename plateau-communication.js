@@ -321,13 +321,19 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost: cout });
   if (!r.ok) { signalerRefusCout(r); return; }
   const montantDebite = r.montantPreleve || 0;
+
+  // DOUBLE CLIC (corrige le 12 septembre 2026) : la matiere est consommee ICI, avant tout
+  // aller-retour reseau. Quand le credit de la caisse s'intercalait entre le controle du bois et sa
+  // consommation, deux clics rapides passaient tous deux le controle : deux lots etaient produits
+  // pour un seul bois, et le second decrementait un lot deja retire de l'inventaire (quantite
+  // negative sur un objet orphelin).
+  lot.qty -= boisRequis;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
   if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
     await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
       state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
   }
-
-  lot.qty -= boisRequis;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
 
   if (!state.inventory) state.inventory = [];
   const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && (i.tractType || 'pour') === sens);

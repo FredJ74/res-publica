@@ -1445,9 +1445,12 @@ const WORLD = {
           name: "Hôtel Al-Nour Palace",
           desc: "Cinq étoiles. Marbre, or et silence. Hassan Marchandage règle les problèmes des clients fortunés.",
           persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Concierge Royal", "rel": "neutral", "job": "serveur"}, {"name": "Yasmine Épices (PNJ)", "role": "Hôtesse", "rel": "neutral", "job": "serveur"}],
+          // Cles de salles corrigees le 12 septembre 2026 : 'hall_hotel' et 'chambre' n'existent
+          // pas dans BUILDINGS['hotel-republica'] (ce sont 'accueil' et 'chambres'), ces deux
+          // habillages khalija n'ont donc jamais ete appliques.
           roomOverrides: {
-            'hall_hotel':   { name: "Grand Hall Al-Nour",    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png' },
-            'chambre':      { name: "Suite Royale",          imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/chambre-hotel-khalija.png' },
+            'accueil':      { name: "Grand Hall Al-Nour",    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png' },
+            'chambres':     { name: "Suite Royale",          imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/chambre-hotel-khalija.png' },
             'restaurant':   { name: "Restaurant Al-Nour",   imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png' },
             'bar':          { name: "Salon des Hôtes",       imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png' }
           }
@@ -1461,10 +1464,11 @@ const WORLD = {
           name: 'Tribunal de la Charia',
           desc: "Cheikh Al-Verdict rend ses décisions après consultation des textes sacrés et du Palais.",
           persons: [{"name": "Cheikh Al-Verdict (PNJ)", "role": "Grand Juge", "rel": "neutral", "job": "juge"}, {"name": "Conseiller Juridique (PNJ)", "role": "Conseiller", "rel": "neutral", "job": "avocat"}],
+          // Meme correctif : BUILDINGS['tribunal'] n'a que 'salle_audience' et 'greffe' ; les cles
+          // 'audience', 'deliberation' et 'archives' ne correspondaient a aucune salle reelle.
           roomOverrides: {
-            'audience':     { name: "Salle d'Audience de la Charia", imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png' },
-            'deliberation': { name: "Chambre de Délibération",       imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png' },
-            'archives':     { name: "Archives Juridiques Royales",   imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png' }
+            'salle_audience': { name: "Salle d'Audience de la Charia", imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png' },
+            'greffe':       { name: "Greffe de la Charia",       imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png' }
           }
         },
         'banque-nationale': {

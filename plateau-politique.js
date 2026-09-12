@@ -1088,6 +1088,8 @@ function construireNouveauCycleElectoral(posteId, city, now) {
     votesPNJ: {},
     tour: 1,
     eluId: null,
+    // Explicite des la creation, comme cote cron : les deux copies doivent rester verbatim.
+    resultatsTraites: false
   };
 }
 
@@ -3732,8 +3734,13 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (o.fn === 'postuler') {
       onclickFn = 'ouvrirEcranPostes()';
     } else {
-      const safeLabel = o.label.replace(/'/g, ' ');
-      const safeDesc = (o.desc||'').replace(/'/g, ' ');
+      // BUG CORRIGE (12 septembre 2026) : seule l'apostrophe etait neutralisee. Une desc contenant
+      // un GUILLEMET DOUBLE (data.js:2806, « un futur "Placer un article favorable" ») fermait
+      // prematurement l'attribut onclick="..." : le handler devenait du JS invalide et le bouton
+      // etait totalement inerte -- cas reel de l'ordre « Etouffer un article » (1 PA + 1000 FR),
+      // inaccessible depuis toujours a la redaction de L'Autruche Entravee.
+      const safeLabel = o.label.replace(/'/g, ' ').replace(/"/g, '&quot;');
+      const safeDesc = (o.desc||'').replace(/'/g, ' ').replace(/"/g, '&quot;');
       onclickFn = "doOrder('" + o.fn + "'," + o.pa + "," + o.cost + ",'" + safeLabel + "','" + safeDesc + "'," + rate + ")";
     }
 

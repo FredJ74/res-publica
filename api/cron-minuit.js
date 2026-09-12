@@ -200,10 +200,15 @@ function lundiMinuitParisApresSemaines(t, n) {
   return instantHeureParis(l.a, l.m, l.j, 0, 0);
 }
 
+// Postes a scrutin local, miroir de POSTES_ELECTIFS/posteEstLocal cote client : un cycle NATIONAL
+// ne doit jamais porter de ville (divergence relevee le 12 septembre 2026 -- le cron estampillait
+// la ville du cycle precedent sur une presidentielle ou une election syndicale).
+const POSTES_ELECTIFS_LOCAUX = ['maire', 'depute'];
+
 function construireNouveauCycleElectoral(posteId, city, now) {
   const cal = calendrierPremierTour(now);
   return {
-    posteId, city: city || null,
+    posteId, city: POSTES_ELECTIFS_LOCAUX.indexOf(posteId) >= 0 ? (city || null) : null,
     phase: 'candidatures',
     dateDebutCandidatures: now,
     dateDebutCampagne: cal.dateDebutCampagne,
