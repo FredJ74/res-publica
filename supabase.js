@@ -2433,6 +2433,30 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// Mouvement atomique d'une caisse institutionnelle de caisses_batiments (12 septembre 2026,
+// migration_caisse_institution.sql) : meme semantique tout-ou-rien que sbBatimentMouvementCaisse
+// ci-dessus, mais pour les caisses du systeme "classique" (ministeres, mairies, commissariats...).
+// exigerExistant refuse de creer une caisse fantome quand l'appelant sait qu'elle doit deja exister.
+// FAIL-CLOSED : renvoie null si la RPC est absente ou injoignable -- aucun repli non atomique.
+async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant) {
+  const rows = await sbRpc('caisse_institution_mouvement', {
+    p_id: caisseId, p_delta: delta, p_exiger_existant: exigerExistant === true
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// CESSION D'UNE IMPRIMERIE DE REPUBLIA (12 septembre 2026, migration_cession_imprimerie.sql).
+// Credite le prix dans la caisse du Ministere des Finances ET inscrit la propriete dans UNE SEULE
+// transaction : jamais de propriete sans paiement, jamais de paiement sans propriete. Idempotent sur
+// l'id de requete -- un double-clic ou un rejeu apres timeout ne credite jamais deux fois.
+async function sbImprimerieCessionFinaliser(requete, acheteur, imprimerieId, prix, jour) {
+  const rows = await sbRpc('imprimerie_cession_finaliser', {
+    p_requete: requete, p_acheteur: acheteur, p_imprimerie_id: imprimerieId,
+    p_prix: prix, p_jour: (typeof jour === 'number') ? jour : null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // FABRIQUER UN SCANDALE (12 septembre 2026, migration_scandales_presse.sql). Le serveur consomme la
 // tentative quotidienne (Europe/Paris) AVANT le jet -- refus de la redaction compris --, verifie PA
 // et fonds enregistres, puis tire l'acceptation. Idempotent sur l'id de requete.

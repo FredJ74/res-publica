@@ -5676,14 +5676,14 @@ const IMPRIMERIES_RACHETABLES_REPUBLIA = [
   { pays: 'republic', ville: 'ville_a',  buildingId: 'imprimerie-librairie' }
 ];
 
-// VENTE FERMEE TANT QUE LE BENEFICIAIRE DES 180 000 FR N'EST PAS ARBITRE.
-// Le pipeline notarial detruit aujourd'hui le prix (state.arg -= solde, sans aucune contrepartie),
-// et le depot contient trois precedents contradictoires : Helvetia credite une caisse nommee, la
-// succession credite budgets_nationaux.reserveJour, l'achat de terrain ne credite rien. Mettre
-// 180 000 FR par transaction sur l'un de ces chemins serait une decision economique nouvelle : elle
-// n'est pas prise ici. Toute l'architecture de propriete est en place et testee ; il suffira de
-// passer cette constante a true une fois le beneficiaire tranche.
-const IMPRIMERIES_RACHETABLES = false;
+// BENEFICIAIRE DU PRIX DE CESSION (arbitrage du 12 septembre 2026) : les 180 000 FR sont verses
+// dans la CAISSE DU MINISTERE DES FINANCES de Republia -- ni argent detruit, ni recette de
+// l'imprimerie, ni recette du journal, ni recette du notaire. Source de verite reutilisee telle
+// quelle, aucune caisse nouvelle : la ligne caisses_batiments '<pays>_gouvernement-min_fin', deja
+// alimentee par la preemption d'Etat et lue par le Bureau du Ministre des Finances. Le versement
+// et le transfert de propriete ont lieu dans une seule transaction serveur
+// (finaliserCessionImprimerie ci-dessous), ce qui a permis d'ouvrir la vente.
+const IMPRIMERIES_RACHETABLES = true;
 
 function getImprimerieId(pays, ville, buildingId) {
   return 'imprimerie-' + pays + '-' + ville + '-' + buildingId;
@@ -5984,7 +5984,17 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
     showToast('Clause en attente', 'Le prêt demandé n\'est pas encore tranché par la banque. Revenez après sa décision.', false);
     return;
   }
+  // L'acompte deja verse est deduit du prix : le joueur paie le prix total, jamais le prix + acompte.
   const solde = def.prix - (data.acompte || 0);
+
+  // Les imprimeries de Republia suivent un chemin transactionnel dedie (le prix est encaisse par le
+  // Ministere des Finances en meme temps que la propriete est inscrite). Le rachat des armureries et
+  // des commerces alimentaires reste strictement inchange ci-dessous.
+  if (def.typeBien === 'imprimerie') {
+    await finaliserCessionImprimerie(def, data, solde, pa, cost);
+    return;
+  }
+
   if (state.arg < solde) {
     showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
     return;
@@ -6012,6 +6022,143 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
       data: { entreprise_id: def.id, entreprise_label: def.label, prix: def.prix, acheteur: state.char?.name },
       sourceRef: def.id
     }).catch(() => {});
+  }
+}
+
+// =====================================================================
+// FINALISATION D'UNE CESSION D'IMPRIMERIE (12 septembre 2026)
+// =====================================================================
+// Appelee UNIQUEMENT par traiterActeRachatEntreprise pour def.typeBien === 'imprimerie', apres ses
+// controles d'eligibilite (gel de succession, compromis valide, clause de pret tranchee).
+//
+// CE QUE LE JOUEUR PAIE : 180 000 FR au total, acompte de 1 000 FR compris. L'acompte a ete verse a
+// la signature du compromis (mecanique commune aux terrains et aux entreprises, inchangee), il est
+// deduit ici : le solde reclame est de 179 000 FR. Les frais de l'acte notarie (cost de l'ordre)
+// sont un poste distinct, comme pour tous les autres actes du Bureau des Contrats.
+//
+// CE QUE LA CAISSE DE L'ETAT RECOIT : exactement le prix de cession, une seule fois, sur l'acte
+// finalise. Aucun versement a la signature du compromis : si celui-ci expire, l'acompte est perdu
+// selon la regle commune existante et le Ministere ne recoit rien pour une vente qui n'a pas eu lieu.
+//
+// SECURITE TRANSACTIONNELLE. Le debit du joueur et le couple (credit de la caisse + inscription de
+// la propriete) ne peuvent pas etre dans la meme transaction : ils vivent dans deux systemes
+// distincts (personnage/comptes bancaires d'un cote, RPC serveur de l'autre), et l'API REST n'offre
+// aucune transaction croisee. L'ordre retenu est donc : DEBIT D'ABORD, puis RPC.
+//   - un echec avant le debit ne produit aucun effet ;
+//   - un refus du serveur apres le debit est rembourse intégralement (solde + frais d'acte + PA) ;
+//   - une coupure reseau apres le debit ne declenche JAMAIS un remboursement a l'aveugle (ce serait
+//     offrir l'imprimerie) : la requete est rejouee sous le MEME id (idempotente, donc sans second
+//     credit), puis la source de verite est relue. La propriete tranche.
+// L'inverse (RPC d'abord) serait pire : la propriete et le credit seraient acquis, et un echec du
+// debit offrirait l'imprimerie tout en creant 180 000 FR.
+//
+// DOUBLE-CLIC ET CONCURRENCE : trois remparts. Un verrou local le temps de l'aller-retour ;
+// l'idempotence serveur sur l'id de requete, derive du compromis (donc stable entre deux clics et
+// entre deux onglets) ; et le verrou de ligne + la reverification du compromis dans la RPC, qui
+// empechent deux acheteurs simultanes de finaliser tous les deux.
+async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const nom = state.char?.name;
+  if (!nom) return;
+  if (typeof sbImprimerieCessionFinaliser !== 'function') {
+    showToast('Indisponible', 'La cession ne peut pas être enregistrée pour le moment. Réessayez plus tard.', false);
+    return;
+  }
+  if (window._cessionImprimerieEnCours) return;
+
+  // Le solde ET les frais d'acte sortent des memes fonds ordinaires (liquide + Banque nationale,
+  // jamais Helvetia) : la suffisance est verifiee sur leur total, avant tout prelevement, pour ne
+  // jamais debiter l'un sans pouvoir payer l'autre.
+  const fondsDispo = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fondsDispo < solde + (cost || 0)) {
+    showToast('Fonds insuffisants', (solde + (cost || 0)).toLocaleString('fr-FR') + ' ' + cur
+      + ' nécessaires (solde de ' + solde.toLocaleString('fr-FR') + ' ' + cur + ' + frais d\'acte).', false);
+    return;
+  }
+
+  window._cessionImprimerieEnCours = true;
+  try {
+    const rRachat = await deduireCoutOrdre({ pa, cost });
+    if (!rRachat.ok) { signalerRefusCout(rRachat); return; }
+
+    const debit = typeof debiterFondsOrdinaires === 'function'
+      ? await debiterFondsOrdinaires(solde)
+      : { ok: false, raison: 'primitive_absente' };
+    if (!debit.ok) {
+      // Defensif : la suffisance vient d'etre verifiee sur le total. On rend les frais d'acte et les
+      // PA pour ne rien laisser preleve sans contrepartie.
+      if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+      state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+      if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+      updateUI();
+      showToast('Paiement impossible', 'Le paiement n\'a pas pu être prélevé. Aucune somme n\'a été retenue.', false);
+      return;
+    }
+
+    // Id de requete stable pour CE compromis : identique a chaque clic et a chaque rejeu, donc un
+    // seul credit possible ; different pour un futur compromis (compromisAt change).
+    const requete = ('cession-' + def.id + '-' + (data.compromisAt || 0)).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80);
+
+    let r = await sbImprimerieCessionFinaliser(requete, nom, def.id, def.prix, state.day);
+    if (r === null) r = await sbImprimerieCessionFinaliser(requete, nom, def.id, def.prix, state.day);
+    if (r === null) {
+      // Issue indeterminee (reseau coupe). La transaction a peut-etre commite : on relit la
+      // propriete plutot que de rembourser a l'aveugle.
+      const frais = await def.charger().catch(() => null);
+      if (frais && frais.proprietaire === nom) {
+        r = { ok: true, prix: def.prix, solde: solde };
+      } else {
+        if (typeof crediterFondsOrdinaires === 'function') {
+          crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
+        }
+        state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+        updateUI();
+        showToast('Acte non enregistré', 'L\'acte n\'a pas pu être enregistré. Vous avez été intégralement remboursé ; revenez chez le notaire.', false);
+        return;
+      }
+    }
+    if (!r.ok) {
+      // Refus serveur : rien n'a ete credite ni transfere. Remboursement integral.
+      if (typeof crediterFondsOrdinaires === 'function') {
+        crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
+      }
+      state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+      if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+      updateUI();
+      const motifs = {
+        deja_vendue: 'Cette imprimerie a déjà été vendue.',
+        compromis_invalide: 'Votre compromis n\'est plus valide.',
+        compromis_expire: 'Votre compromis a expiré.',
+        imprimerie_introuvable: 'Cette imprimerie est introuvable.',
+        caisse_etat_indisponible: 'La caisse du Ministère des Finances est indisponible : l\'acte ne peut pas être enregistré.',
+        prix_invalide: 'Le prix de cession ne correspond pas à celui du registre.'
+      };
+      showToast('Acte refusé', (motifs[r.raison] || 'L\'acte n\'a pas pu être enregistré.') + ' Vous avez été intégralement remboursé.', false);
+      return;
+    }
+
+    updateUI();
+    document.getElementById('modal-postes')?.classList.remove('open');
+    if (r.rejeu) {
+      // Rejeu d'une cession deja finalisee : ne rien re-annoncer comme si elle venait d'avoir lieu.
+      showToast('Cession déjà enregistrée', 'Vous êtes déjà propriétaire de ' + def.label + '.', true);
+      return;
+    }
+    showToast('Acte signé !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
+    addJournalEntry('Rachat de ' + def.label + ' officialisé — ' + def.prix.toLocaleString('fr-FR') + ' ' + cur
+      + ' versés au Ministère des Finances (dont ' + (r.acompte || 0).toLocaleString('fr-FR') + ' ' + cur
+      + ' d\'acompte déjà réglés).', 'event-good');
+    if (typeof sbEnregistrerEvenementPublic === 'function') {
+      sbEnregistrerEvenementPublic(state.country, 'entreprise_rachat', {
+        personnages: [nom],
+        libelle: nom + ' est devenu(e) propriétaire de ' + def.label + ' pour ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '.',
+        data: { entreprise_id: def.id, entreprise_label: def.label, prix: def.prix, acheteur: nom, beneficiaire: r.caisse_id },
+        sourceRef: def.id
+      }).catch(() => {});
+    }
+  } finally {
+    window._cessionImprimerieEnCours = false;
   }
 }
 
