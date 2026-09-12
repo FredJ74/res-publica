@@ -260,6 +260,15 @@ function resoudreScrutinSimple(cycle, fraudesActives) {
 
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const premier = sorted[0];
+  // CANDIDAT UNIQUE (regle validee le 12 septembre 2026) : il est elu des qu'il fait au moins autant
+  // que les bulletins blancs ; le vote blanc ne l'emporte que s'il est STRICTEMENT superieur. Sans
+  // cela, l'egalite exacte candidat unique / blancs ne produisait ni elu, ni vote blanc, ni second
+  // tour possible (un seul candidat) : le cycle restait bloque indefiniment.
+  if (candidats.length === 1) {
+    return premier[1] >= blancs
+      ? { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false }
+      : { scores, blancs, totalExprimes, elu: null, secondTour: [], blancMajoritaire: true };
+  }
   if (premier[1] > totalExprimes / 2) {
     return { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false };
   }

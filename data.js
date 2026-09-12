@@ -2785,9 +2785,13 @@ const BUILDINGS = {
           {name:'Camille Édito (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'20% 40%'},
           {name:'Gustave Rotative (PNJ)', role:'PNJ - Chef d\'atelier', rel:'neutral', job:'imprimeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'80% 40%'}
         ],
+        // SEPARATION JOURNAL / IMPRIMERIE (12 septembre 2026) : l'accueil porte l'activite
+        // d'IMPRIMERIE et de commerce (impression, vente de matieres premieres, annonces), la
+        // redaction porte l'activite JOURNALISTIQUE. « Consulter les archives de presse » a
+        // rejoint la redaction : ce sont les archives du JOURNAL, pas un service de l'atelier --
+        // un futur proprietaire de l'imprimerie ne doit en tirer aucun droit.
         orders: [
           {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
-          {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
           // SOCLE COMMUN DES IMPRIMERIES (12 septembre 2026) : meme service, meme moteur et
           // memes couts dans les trois imprimeries de Republia. imprimer_tracts (2 PA, cible
           // libre dans le repertoire, bois du stock institutionnel) est remplace par la fn
@@ -2807,7 +2811,10 @@ const BUILDINGS = {
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
         ],
         orders: [
-          {fn:'produire_fuite',   label:'Produire une fuite',           pa:3, cost:0,   type:'illegal', icon:'ti-leak',           successRate:55,  desc:'Choisir une cible dans le repertoire. Rumeur IA dans journal. Mail a la cible. -10 INF -10 POP.'},
+          {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
+          // Mecanique refondue le 12 septembre 2026 : plus de rumeur inventee, plus d'effet INF/POP
+          // fictif, plus de detection judiciaire du commanditaire (secret des sources). 2 PA.
+          {fn:'produire_fuite',   label:'Produire une fuite',           pa:2, cost:0,   type:'legal', icon:'ti-leak',           successRate:100,  desc:"Choisir une personne à viser. La cellule enquête publie UNE trace d'action illégale réellement enregistrée la concernant, découverte ou non par la justice. Aucune affaire inventée, aucune trace ne fuite deux fois. Votre nom n'est jamais publié."},
           {fn:'fabriquer_scandale', label:'Fabriquer un scandale',          pa:3, cost:800, type:'illegal', icon:'ti-alert-triangle',  successRate:35,  desc:'Choisir une cible. Rediger le contenu. Bonus journaliste +15%. Si decouvert : Recherche pour diffamation.'},
           {fn:'interview',             label:'Donner une interview',          pa:1, cost:0,   type:'legal',   icon:'ti-microphone', successRate:100, desc:'Impact sur la popularite.'},
           {fn:'article',               label:'Placer un article favorable',   pa:1, cost:500,  type:'grey',    icon:'ti-pencil',     successRate:75, desc:'Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l\'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n\'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais.'},
@@ -3441,7 +3448,7 @@ const BUILDINGS = {
           {name:'Correspondant Local (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste'}
         ],
         orders: [
-          {fn:'produire_fuite', label:'Produire une fuite', pa:3, cost:0, type:'illegal', icon:'ti-leak', successRate:55, desc:"Choisir une cible dans le répertoire. Rumeur IA dans le journal. Mail à la cible. -10 INF -10 POP."},
+          {fn:'produire_fuite', label:'Produire une fuite', pa:2, cost:0, type:'legal', icon:'ti-leak', successRate:100, desc:"Choisir une personne à viser. La cellule enquête publie UNE trace d'action illégale réellement enregistrée la concernant, découverte ou non par la justice. Aucune affaire inventée, aucune trace ne fuite deux fois. Votre nom n'est jamais publié."},
           {fn:'interview', label:'Donner une interview', pa:1, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Impact sur la popularité.'}
         ]
         // 'article'/'etouffer' retires du template partage (chantier "lobbying presse", 4 septembre
@@ -6503,8 +6510,11 @@ const SYNERGIES_ORGA = [
   {
     combo: ['religieuse', 'syndicale'],
     label: 'Front Populaire',
-    desc: 'Religion + Syndicat : +15 POP supplémentaire, prospectus comptent double aux élections',
-    bonus: { pop: 15, prospectus_mult: 2 }
+    // « prospectus comptent double » retire le 12 septembre 2026 : le prospectus n'existe plus
+    // (seuls le tract electoral et le tract calomnieux subsistent), et prospectus_mult n'etait lu
+    // par aucun code. Le bonus n'est PAS reporte sur les tracts : ce serait une regle nouvelle.
+    desc: 'Religion + Syndicat : +15 POP supplémentaire',
+    bonus: { pop: 15 }
   },
   {
     combo: ['religieuse', 'loge'],

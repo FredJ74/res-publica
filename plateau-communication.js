@@ -250,6 +250,11 @@ const QUANTITES_LOTS_TRACTS = [10, 20, 50, 100];
 // interface commune de gestion des commerces.
 const STOCK_BOIS_MAX_IMPRIMERIE_PNJ = 10;
 
+// MAIN-D'OEUVRE (regle validee le 12 septembre 2026) : chaque tranche de 10 tracts coute 1 PA au
+// personnage qui produit, et l'imprimerie le remunere 50 FR pour ce PA de travail. La caisse
+// encaisse donc 150 FR de recette et verse 50 FR de salaire par lot, soit +100 FR net.
+const SALAIRE_LOT_TRACTS = 50;
+
 // L'atelier ou l'on se trouve. Le meme buildingId ('la-tribune') existe dans plusieurs villes : la
 // cle est donc toujours pays + ville + batiment, jamais le seul batiment.
 function atelierImprimerieCourant() {
@@ -277,6 +282,70 @@ async function mouvementBoisAtelier(deltaBois) {
     .catch(() => null);
 }
 
+// Nombre de lots de 10 tracts realisables ici : borne par le stock de bois de l'imprimerie ET par
+// les PA du producteur (1 PA par lot). Sert a la fois a l'affichage et aux controles de commande.
+function lotsImprimablesIci(stockBois) {
+  const parBois = Math.floor((stockBois || 0) / BOIS_PAR_LOT_TRACTS);
+  const parPa = (typeof TEST_MODE !== 'undefined' && TEST_MODE) ? parBois : Math.floor(state.pa || 0);
+  return Math.max(0, Math.min(parBois, parPa));
+}
+
+// Production d'un ou plusieurs lots, commune aux tracts electoraux et calomnieux. Chaque lot de 10 :
+// 150 FR payes par le client, 1 bois pris au stock de l'imprimerie, 1 PA de travail du producteur,
+// 50 FR de salaire verses a ce producteur. La caisse de l'imprimerie encaisse la recette et verse le
+// salaire dans UN SEUL mouvement atomique (+100 FR net par lot), qui porte aussi la sortie de bois.
+// Ordre strict : controles -> reservation du bois -> debit client -> mouvement de caisse -> salaire.
+// Renvoie null (et n'a rien consomme) si la commande est refusee ; le message a deja ete affiche.
+async function produireLotsTracts(nbLots, pa, stockBoisConnu) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const prixLot = prixLotTractsAtelier();
+  const cout = nbLots * prixLot;
+  const salaire = nbLots * SALAIRE_LOT_TRACTS;
+  const paRequis = (typeof pa === 'number' && pa > 0) ? nbLots * pa : nbLots;
+
+  // 1. PA du producteur : 1 par lot, verifies avant toute operation.
+  if (!(typeof TEST_MODE !== 'undefined' && TEST_MODE) && (state.pa || 0) < paRequis) {
+    showToast('PA insuffisants', 'Il faut ' + paRequis + ' PA pour produire ' + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
+    return null;
+  }
+  // 2. Capacite de paiement du client : fonds ORDINAIRES reels (liquide + Banque nationale).
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fondsDisponibles < cout) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
+    return null;
+  }
+  // 3. Matiere : reservee de facon atomique, donc jamais deux commandes sur le meme bois.
+  const resBois = await mouvementBoisAtelier(-nbLots * BOIS_PAR_LOT_TRACTS);
+  if (!resBois || !resBois.ok) {
+    const dispo = resBois && typeof resBois.stock === 'number' ? resBois.stock
+      : (typeof stockBoisConnu === 'number' ? stockBoisConnu : await stockBoisAtelier());
+    showToast('Stock de bois insuffisant', resBois ? messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, dispo)
+      : 'Le stock de l\'imprimerie n\'a pas pu être vérifié. Rien n\'a été commandé.', false);
+    return null;
+  }
+  // 4. Debit du client (PA + argent). En cas de refus, la matiere reservee est rendue.
+  const r = await deduireCoutOrdre({ pa: paRequis, cost: cout });
+  if (!r.ok) {
+    await mouvementBoisAtelier(nbLots * BOIS_PAR_LOT_TRACTS);
+    signalerRefusCout(r);
+    return null;
+  }
+  const montantDebite = r.montantPreleve || 0;
+  // 5. Caisse : recette encaissee moins salaire verse, en une seule ecriture.
+  const a = atelierImprimerieCourant();
+  if (typeof sbBatimentMouvementCaisse === 'function') {
+    await sbBatimentMouvementCaisse(a.pays, a.ville, a.building, 'imprimerie', montantDebite - salaire).catch(() => null);
+  } else if (typeof crediterCaisseEtatBatiment === 'function') {
+    await crediterCaisseEtatBatiment(a.pays, a.ville, a.building, 'imprimerie', montantDebite - salaire);
+  }
+  // 6. Salaire du producteur : fonds reellement depensables, jamais state.arg seul.
+  if (salaire > 0) {
+    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(salaire);
+    else state.arg = (state.arg || 0) + salaire;
+  }
+  return { cout: cout, montantDebite: montantDebite, salaire: salaire, paConsommes: paRequis, bois: nbLots * BOIS_PAR_LOT_TRACTS };
+}
+
 function messageStockBoisInsuffisant(nbLots, dispo) {
   return 'L\'imprimerie n\'a que ' + dispo + ' bois en stock, il en faut ' + nbLots
     + ' pour ' + (nbLots * 10) + ' tracts. Vendez-lui des matières premières.';
@@ -295,12 +364,15 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA pour la commande, puis ' + prixLot + ' ' + cur + ' et ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie par lot de 10 tracts.</div>';
-  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + ' (soit ' + (stockBois * 10) + ' tracts imprimables)</div>';
+  const lotsPossibles = lotsImprimablesIci(stockBois);
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Par lot de 10 tracts : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
+  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + ' (soit ' + (stockBois * 10) + ' tracts imprimables) — vos PA : ' + (state.pa || 0) + '</div>';
   if (candidats.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun candidat en campagne actuellement.</div>';
   } else if (stockBois < BOIS_PAR_LOT_TRACTS) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
+  } else if (lotsPossibles < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Il faut au moins 1 PA pour produire un lot de 10 tracts.</div>';
   } else {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRACT</div>';
     html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
@@ -313,8 +385,9 @@ async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
     html += '</select>';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITÉ</div>';
     html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    QUANTITES_LOTS_TRACTS.filter(q => (q / 10) * BOIS_PAR_LOT_TRACTS <= stockBois).forEach(q => {
-      html += '<option value="' + q + '">' + q + ' tracts — ' + (q / 10 * prixLot) + ' ' + cur + ' + ' + (q / 10 * BOIS_PAR_LOT_TRACTS) + ' bois de l\'imprimerie</option>';
+    QUANTITES_LOTS_TRACTS.filter(q => (q / 10) <= lotsPossibles).forEach(q => {
+      const n = q / 10;
+      html += '<option value="' + q + '">' + q + ' tracts — ' + (n * prixLot) + ' ' + cur + ', ' + (n * BOIS_PAR_LOT_TRACTS) + ' bois, ' + n + ' PA (salaire ' + (n * SALAIRE_LOT_TRACTS) + ' ' + cur + ')</option>';
     });
     html += '</select>';
     html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
@@ -335,37 +408,10 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   const nbLots = Math.max(1, Math.round(quantite / 10));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  // Fonds ORDINAIRES reellement disponibles (liquide + Banque nationale), verifies AVANT toute
-  // reservation de matiere ; le debit lui-meme n'a lieu qu'une fois le bois reserve.
-  const cout = nbLots * prixLotTractsAtelier();
-  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fondsDisponibles < cout) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
-    return;
-  }
-
-  // MATIERE D'ABORD, ET DE FACON ATOMIQUE : le bois de l'imprimerie est reserve avant tout debit.
-  // Stock insuffisant = refus propre, sans le moindre PA, FR ni tract. Deux commandes simultanees
-  // ne peuvent pas reserver le meme bois (verrou de ligne cote serveur).
-  const resBois = await mouvementBoisAtelier(-nbLots * BOIS_PAR_LOT_TRACTS);
-  if (!resBois || !resBois.ok) {
-    const dispo = resBois && typeof resBois.stock === 'number' ? resBois.stock : await stockBoisAtelier();
-    showToast('Stock de bois insuffisant', resBois ? messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, dispo)
-      : 'Le stock de l\'imprimerie n\'a pas pu être vérifié. Rien n\'a été commandé.', false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) {
-    await mouvementBoisAtelier(nbLots * BOIS_PAR_LOT_TRACTS);   // la matiere reservee est rendue
-    signalerRefusCout(r);
-    return;
-  }
-  const montantDebite = r.montantPreleve || 0;
-  if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
-    const a = atelierImprimerieCourant();
-    await crediterCaisseEtatBatiment(a.pays, a.ville, a.building, 'imprimerie', montantDebite);
-  }
+  // Production : 1 PA, 150 FR, 1 bois de l'imprimerie et 50 FR de salaire PAR LOT de 10.
+  const prod = await produireLotsTracts(nbLots, pa);
+  if (!prod) return;
+  const montantDebite = prod.montantDebite;
 
   if (!state.inventory) state.inventory = [];
   const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && (i.tractType || 'pour') === sens);
@@ -382,8 +428,8 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' ajoutés à votre inventaire.' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + cur : ''), true, true);
-  addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + '.', 'event-info');
+  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' ajoutés à votre inventaire. -' + montantDebite + ' ' + cur + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + cur + ' de main-d\'œuvre.', true, true);
+  addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' (' + prod.paConsommes + ' PA, salaire ' + prod.salaire + ' ' + cur + ').', 'event-info');
 }
 
 // --- Tract calomnieux (atelier) ---
@@ -431,7 +477,7 @@ async function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + (prixLot > 0 ? prixLot + ' ' + cur + ' + ' : '') + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie pour un lot de 10 tracts calomnieux (illégal).</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Un lot de 10 tracts calomnieux (illégal) : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
   html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + '</div>';
   if (cibles.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
@@ -464,31 +510,12 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
     showToast('Atelier introuvable', 'Ces tracts ne s\'impriment que dans un atelier d\'imprimerie.', false);
     return;
   }
-  const prixLot = prixLotTractsCalomnieux();
-  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (prixLot > 0 && fondsDisponibles < prixLot) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + prixLot + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
-    return;
-  }
-
-  // MATIERE D'ABORD (regle validee le 12 septembre 2026) : le bois vient du stock INSTITUTIONNEL de
-  // l'imprimerie, exactement comme pour les tracts electoraux, et il est reserve de facon atomique
-  // avant tout debit. Stock insuffisant = refus propre, sans PA, sans FR, sans tract.
-  const resBois = await mouvementBoisAtelier(-BOIS_PAR_LOT_TRACTS);
-  if (!resBois || !resBois.ok) {
-    const dispo = resBois && typeof resBois.stock === 'number' ? resBois.stock : await stockBoisAtelier();
-    showToast('Stock de bois insuffisant', resBois ? messageStockBoisInsuffisant(BOIS_PAR_LOT_TRACTS, dispo)
-      : 'Le stock de l\'imprimerie n\'a pas pu être vérifié. Rien n\'a été commandé.', false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost: prixLot });
-  if (!r.ok) {
-    await mouvementBoisAtelier(BOIS_PAR_LOT_TRACTS);   // la matiere reservee est rendue
-    signalerRefusCout(r);
-    return;
-  }
-  const montantDebite = r.montantPreleve || 0;
+  // Meme production que les tracts electoraux : 1 lot de 10 = 1 PA, 150 FR, 1 bois de l'imprimerie
+  // et 50 FR de salaire verses au producteur. Controles, reservation atomique de la matiere et
+  // mouvements de caisse sont mutualises dans produireLotsTracts.
+  const prod = await produireLotsTracts(1, pa);
+  if (!prod) return;
+  const montantDebite = prod.montantDebite;
 
   if (!state.inventory) state.inventory = [];
   const existing = state.inventory.find(i => i.type === 'tract_calomnieux' && i.cible === cible);
@@ -498,16 +525,10 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
     state.inventory.push({ type: 'tract_calomnieux', name: 'Tracts calomnieux contre ' + cible, icon: 'ti-alert-triangle', cible: cible, quantite: 10, legal: false });
   }
 
-  // La caisse de l'atelier ou l'on se trouve ne recoit que ce que le joueur a reellement paye
-  // (helper commun batiments_etat, meme sous-objet 'imprimerie' que La Tribune).
-  if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
-    await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale', state.currentBuilding, 'imprimerie', montantDebite);
-  }
-
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal).' + (montantDebite > 0 ? ' -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') : ''), true, true);
+  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal). -' + montantDebite + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + ' de main-d\'œuvre.', true, true);
   addJournalEntry('Impression clandestine de 10 tracts calomnieux contre ' + cible + '.', 'event-info');
   if (typeof checkDetection === 'function') checkDetection('imprimer_tracts_calomnieux', 'success');
 }

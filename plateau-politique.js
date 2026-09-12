@@ -1698,8 +1698,11 @@ async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, ca
   if (!cleExplicite && pnjDejaEngage(cycle, pnjId)) return false;
   if (typeof sbEnregistrerVoixPnj !== 'function') return false;
   const requete = 'voix-pnj-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  // Le canal est toujours fourni par l'appelant ('conference' ou 'jean_lou') : le repli sur
+  // 'prospectus' a disparu avec la mecanique du meme nom (12 septembre 2026).
+  if (!canal) return false;
   const r = await sbEnregistrerVoixPnj(requete, state.char?.name, country + '_' + cle, candidatNom,
-                                       pnjId, canal || 'prospectus', cleExplicite || null).catch(() => null);
+                                       pnjId, canal, cleExplicite || null).catch(() => null);
   if (!r || !r.ok) return false;
   // Echo local immediat : le decompte affiche tient compte de la voix sans attendre un rechargement.
   if (typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, candidatNom, 1, r.tour);
@@ -2052,6 +2055,15 @@ function resoudreScrutinSimple(cycle, fraudesActives) {
 
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const premier = sorted[0];
+  // CANDIDAT UNIQUE (regle validee le 12 septembre 2026) : il est elu des qu'il fait au moins autant
+  // que les bulletins blancs ; le vote blanc ne l'emporte que s'il est STRICTEMENT superieur. Sans
+  // cela, l'egalite exacte candidat unique / blancs ne produisait ni elu, ni vote blanc, ni second
+  // tour possible (un seul candidat) : le cycle restait bloque indefiniment.
+  if (candidats.length === 1) {
+    return premier[1] >= blancs
+      ? { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false }
+      : { scores, blancs, totalExprimes, elu: null, secondTour: [], blancMajoritaire: true };
+  }
   if (premier[1] > totalExprimes / 2) {
     return { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false };
   }

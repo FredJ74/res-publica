@@ -2432,6 +2432,24 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// PRODUIRE UNE FUITE (12 septembre 2026, migration_fuites_journalistiques.sql).
+// Reserve une trace d'action illegale reellement enregistree pour la cible et la marque comme ayant
+// deja fuite : une trace ne peut fuiter qu'une fois, la contrainte d'unicite protegeant meme deux
+// clics simultanes. La trace judiciaire elle-meme n'est ni modifiee ni supprimee. Idempotent sur
+// l'id de requete. Renvoie {ok, trouve, fuite_id, faits} -- les faits sont la SEULE source du texte.
+async function sbFuiteReserver(requete, joueur, cible) {
+  const rows = await sbRpc('fuite_reserver', { p_requete: requete, p_joueur: joueur, p_cible: cible });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Enregistre la redaction et depose le fait dans chronique_nationale (point d'entree editorial deja
+// lu par la collecte du Journal). La publication est signee « Cellule enquete de la redaction » :
+// le commanditaire n'apparait nulle part.
+async function sbFuitePublier(fuiteId, contenu) {
+  const rows = await sbRpc('fuite_publier', { p_fuite_id: fuiteId, p_contenu: contenu });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Tract calomnieux aupres d'un PNJ (12 septembre 2026, migration_tracts_calomnieux.sql) : aucun
 // lien avec un scrutin. Le serveur verifie le tract detenu, les PA, le verrou PNJ x cible x jour,
 // tire le jet (meme formule que les tracts electoraux), applique POP -5 / INF -2 en une seule

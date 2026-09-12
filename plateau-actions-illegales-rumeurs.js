@@ -718,73 +718,175 @@ async function solliciterAudiencePresident() {
 
 // =====================
 
-// PRODUIRE UNE FUITE
+// PRODUIRE UNE FUITE (mecanique refondue le 12 septembre 2026)
 // =====================
-async function ouvrirProduireFuite(pa, cost) {
-  const contacts = state.contacts || [];
-  if (contacts.length === 0) {
-    showToast('Repertoire vide', 'Ajoutez des contacts pour cibler une fuite.', false);
-    return;
+// L'ancienne mecanique inventait une rumeur par IA, annoncait -10 INF / -10 POP qu'elle
+// n'appliquait a personne, envoyait un « mail a la cible » qui partait en realite au lanceur, et
+// appelait une detection judiciaire inoperante. Tout cela est supprime.
+//
+// La fuite repose desormais UNIQUEMENT sur les traces d'actions illegales reellement enregistrees
+// pour le PJ vise (personnages.historique_crimes et actions_tracables), decouvertes par la justice
+// ou non. Le serveur choisit une trace eligible au hasard, la reserve de facon atomique et la marque
+// comme ayant deja fuite : une trace ne peut fuiter qu'une seule fois, mais elle reste INTACTE pour
+// le systeme judiciaire (elle n'est ni modifiee ni supprimee).
+//
+// SECRET DES SOURCES : la publication est signee « Cellule enquete de la redaction ». L'identite du
+// commanditaire n'est jamais publiee, et il n'encourt aucune detection ni poursuite.
+//
+// LES DONNEES DU JEU FOURNISSENT LES FAITS, L'IA FOURNIT LA PLUME : le texte est redige a partir de
+// la seule trace, sans aucun fait ajoute. Si l'IA est indisponible, un libelle strictement factuel
+// est construit localement -- jamais une accusation inventee.
+const COUT_PA_FUITE = 2;
+
+function libelleActeFuite(acte) {
+  return String(acte || '').replace(/_/g, ' ').trim() || 'fait non qualifié';
+}
+
+// Phrase factuelle de repli : uniquement ce que porte la trace, rien d'autre.
+function texteFactuelFuite(cible, faits) {
+  const parties = ['Notre cellule enquête a pu consulter une trace mettant en cause ' + cible
+    + ' pour ' + libelleActeFuite(faits.acte) + '.'];
+  if (faits.victime) parties.push('La personne visée est ' + faits.victime + '.');
+  if (faits.jour !== undefined && faits.jour !== null) parties.push('Les faits remontent au jour ' + faits.jour + '.');
+  if (faits.loi) parties.push('Loi concernée : ' + faits.loi + '.');
+  if (faits.quantite) parties.push('Quantité relevée : ' + faits.quantite + '.');
+  parties.push(faits.decouverte_justice === true
+    ? 'La justice avait déjà connaissance de ce dossier.'
+    : 'À ce jour, la justice n\'a jamais eu connaissance de ce dossier.');
+  return parties.join(' ');
+}
+
+// Redaction journalistique a partir des SEULS faits transmis. Le prompt interdit explicitement
+// d'ajouter quoi que ce soit ; en cas d'echec ou de reponse vide, on retombe sur le texte factuel.
+async function redigerFuite(cible, faits) {
+  const repli = texteFactuelFuite(cible, faits);
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 220,
+        messages: [{
+          role: 'user',
+          content: 'Tu es la cellule enquête d\'un journal satirique dans un jeu politique fictif. '
+            + 'Rédige une brève de presse de 3 phrases maximum, à partir des SEULS faits ci-dessous. '
+            + 'INTERDICTION ABSOLUE d\'ajouter un fait, un chiffre, une citation, un nom, un mobile ou '
+            + 'une accusation qui ne figure pas dans ces données. N\'invente aucune conséquence. '
+            + 'Ne nomme jamais de source ni d\'informateur. Commence directement par la brève.\n\n'
+            + 'FAITS :\n'
+            + '- personne mise en cause : ' + cible + '\n'
+            + '- acte enregistré : ' + libelleActeFuite(faits.acte) + '\n'
+            + (faits.victime ? '- personne visée par cet acte : ' + faits.victime + '\n' : '')
+            + (faits.jour !== undefined && faits.jour !== null ? '- jour des faits : ' + faits.jour + '\n' : '')
+            + (faits.ville ? '- lieu : ' + faits.ville + '\n' : '')
+            + (faits.loi ? '- loi concernée : ' + faits.loi + '\n' : '')
+            + (faits.quantite ? '- quantité : ' + faits.quantite + '\n' : '')
+            + '- la justice a-t-elle déjà connaissance du dossier : ' + (faits.decouverte_justice === true ? 'oui' : 'non') + '\n'
+        }]
+      })
+    });
+    const data = await resp.json();
+    const texte = (data?.content?.[0]?.text || '').trim();
+    return texte || repli;
+  } catch (e) {
+    return repli;
   }
+}
+
+async function ouvrirProduireFuite(pa, cost) {
+  const moi = state.char?.name || '';
+  let cibles = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { cibles = ((await sbListPersonnages()) || []).map(j => ({ name: j.name, country: j.country })); } catch (e) { cibles = []; }
+  }
+  cibles = cibles.filter(c => c && c.name && c.name !== moi).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
+
   document.getElementById('postes-modal-title').textContent = 'Produire une fuite';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 55%. Si succes : rumeur dans le journal + mail a la cible (-10 INF -10 POP).</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-  html += '<select id="fuite-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-  html += '</select>';
-  html += '<button onclick="confirmerFuite(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la fuite</button>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+    + COUT_PA_FUITE + ' PA. La cellule enquête cherche une trace d\'action illégale concernant la personne visée et la publie. '
+    + 'Aucune affaire n\'est inventée : s\'il n\'y a rien à sortir, il n\'y a pas d\'article. Le secret des sources vous protège.</div>';
+  if (cibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun autre joueur enregistré à viser pour l\'instant.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PERSONNE VISÉE</div>';
+    html += '<select id="fuite-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    cibles.forEach(c => {
+      const suffixe = c.country && empireNoms[c.country] ? ' — ' + empireNoms[c.country] : '';
+      html += '<option value="' + c.name + '">' + c.name + suffixe + '</option>';
+    });
+    html += '</select>';
+    html += '<button id="fuite-lancer" onclick="confirmerFuite(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer l\'enquête</button>';
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
 async function confirmerFuite(pa, cost) {
+  if (window._fuiteEnCours) return;                       // anti double-clic
   const cible = document.getElementById('fuite-cible')?.value;
   if (!cible) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  document.getElementById('modal-postes').classList.remove('open');
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 55 - getMalusISN());
-
-  if (roll <= taux) {
-    // Generer la rumeur via IA
-    try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 150,
-          messages: [{
-            role: 'user',
-            content: 'Tu es le narrateur d\'un jeu politique parodique. Génère une courte rumeur compromettante (2 phrases max) concernant ' + cible + ', un personnage politique fictif. Ton satirique. Commence directement par la rumeur sans introduction.'
-          }]
-        })
-      });
-      const data = await resp.json();
-      const rumeur = data.content?.[0]?.text || 'Des informations compromettantes circulent sur ' + cible + '.';
-
-      addExternalEvent('FUITE : ' + rumeur);
-      addMailNotification('Source anonyme', 'Information vous concernant', 'Des informations vous concernant ont ete divulguees : "' + rumeur + '". Votre reputation en patit. -10 INF -10 POP.');
-      showToast('Fuite reussie !', 'Rumeur publiee dans le journal des evenements.', true, true);
-      addJournalEntry('Fuite produite contre ' + cible + '.', 'event-bad');
-      checkDetection('produire_fuite', 'success');
-
-    } catch(e) {
-      addExternalEvent('FUITE : Des informations compromettantes sur ' + cible + ' circulent dans les couloirs du pouvoir.');
-      showToast('Fuite reussie !', 'Rumeur publiee.', true);
-    }
-  } else {
-    showToast('Echec', 'La fuite n\'a pas pu etre organisee.', false);
-    checkDetection('produire_fuite', 'fail');
+  if (typeof sbFuiteReserver !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+    showToast('Action impossible', 'L\'enquête ne peut pas être lancée pour le moment.', false);
+    return;
   }
-  // Les 3 PA ont ete debites en tete de fonction : sans ceci, la jauge restait affichee a l'ancienne
-  // valeur et la perte n'etait persistee qu'a la faveur d'une action ulterieure.
-  if (typeof updateUI === 'function') updateUI();
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (!(typeof TEST_MODE !== 'undefined' && TEST_MODE) && (state.pa || 0) < COUT_PA_FUITE) {
+    showToast('PA insuffisants', COUT_PA_FUITE + ' PA sont nécessaires.', false);
+    return;
+  }
+  window._fuiteEnCours = true;
+  const bouton = document.getElementById('fuite-lancer');
+  if (bouton) bouton.disabled = true;
+  try {
+    // Le serveur lit les PA ENREGISTRES : on les ecrit avant de reserver, et on les debite juste
+    // apres, que l'enquete aboutisse ou non (les 2 PA sont consommes des que l'action est lancee).
+    const sauve = await sbSavePersonnage(state).catch(() => null);
+    if (!sauve) {
+      showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Aucun PA n\'a été consommé.', false);
+      return;
+    }
+    const requete = 'fuite-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    let res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
+    if (!res) res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
+    if (!res) {
+      showToast('Réseau indisponible', 'L\'enquête n\'a pas pu être lancée. Aucun PA n\'a été consommé.', false);
+      return;
+    }
+    if (!res.ok) {
+      showToast('Enquête impossible', res.raison === 'pa_insuffisants'
+        ? COUT_PA_FUITE + ' PA sont nécessaires.'
+        : (res.raison === 'cible_introuvable' ? 'Cette personne n\'existe plus.' : 'L\'enquête a été refusée.'), false);
+      return;
+    }
+
+    // Action reellement lancee : les 2 PA sont consommes, qu'il y ait matiere ou non.
+    if (typeof deduireCoutOrdre === 'function') await deduireCoutOrdre({ pa: COUT_PA_FUITE, cost: 0 });
+    document.getElementById('modal-postes')?.classList.remove('open');
+
+    if (!res.trouve) {
+      showToast('Rien à sortir', 'La cellule enquête n\'a trouvé aucune trace exploitable sur ' + cible
+        + '. Les ' + COUT_PA_FUITE + ' PA sont consommés, aucune affaire n\'est inventée.', false);
+      addJournalEntry('Enquête sur ' + cible + ' — aucune trace exploitable.', '');
+    } else {
+      const contenu = await redigerFuite(cible, res.faits || {});
+      const pub = await sbFuitePublier(res.fuite_id, contenu).catch(() => null);
+      if (pub && pub.ok) {
+        showToast('Fuite publiée !', 'La rédaction sort une affaire concernant ' + cible + '. Votre nom n\'apparaît nulle part.', true, true);
+        addJournalEntry('Fuite transmise à la rédaction : affaire « ' + libelleActeFuite((res.faits || {}).acte) + ' » concernant ' + cible + '.', 'event-info');
+      } else {
+        showToast('Publication différée', 'L\'affaire est enregistrée mais n\'a pas pu être transmise à la rédaction.', false);
+        addJournalEntry('Fuite sur ' + cible + ' enregistrée, transmission à la rédaction en attente.', '');
+      }
+    }
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+    if (typeof updateUI === 'function') updateUI();
+  } finally {
+    window._fuiteEnCours = false;
+    if (bouton) bouton.disabled = false;
+  }
 }
 
 // =====================
