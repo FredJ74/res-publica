@@ -56,9 +56,14 @@ BEGIN
 END;
 $$;
 
+-- SECURITY DEFINER OBLIGATOIRE (correctif du 12 septembre 2026) : une fonction de trigger
+-- s'execute avec les droits de CELUI QUI ECRIT. Sans cela, le client (role anon) n'ayant pas
+-- l'EXECUTE sur cycle_electoral_aligne_dimanche, toute creation ou sauvegarde de cycle depuis le
+-- navigateur echouait en « 42501 : permission denied for function cycle_electoral_aligne_dimanche ».
 CREATE OR REPLACE FUNCTION public.cycles_electoraux_dimanche()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -77,9 +82,11 @@ CREATE TRIGGER trg_cycles_electoraux_dimanche
   FOR EACH ROW EXECUTE FUNCTION public.cycles_electoraux_dimanche();
 
 -- ------------------------------------------------------------------ 2. CLOTURE DES CANDIDATURES
+-- Meme regle que ci-dessus : la fonction lit cycles_electoraux pour le compte de l'ecrivain.
 CREATE OR REPLACE FUNCTION public.candidatures_cloture()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
