@@ -41,10 +41,12 @@ SOURCES = ''.join(en_expression(x) for x in [
     extraire(P, 'lundiSemaineParis'), extraire(P, 'datesScrutinSemaine'), extraire(P, 'calendrierPremierTour'),
     extraire(P, 'calendrierTourSuivant'), extraire(P, 'lundiMinuitParisApresSemaines'), extraire(P, 'decalerSemainesParis'),
     extraire(P, 'candidaturesOuvertes'), extraire(P, 'construireNouveauCycleElectoral'), extraire(P, 'resoudreScrutinDepute'),
+    extraire(P, 'resoudreScrutinSimple'),
     extraire(P, 'departageCandidats'),
-    extraire(C, 'BOIS_PAR_LOT_TRACTS', 'const'), extraire(C, 'BOIS_PAR_LOT_TRACTS_PSM', 'const'),
+    extraire(C, 'BOIS_PAR_LOT_TRACTS', 'const'), extraire(C, 'STOCK_BOIS_MAX_IMPRIMERIE_PNJ', 'const'),
     extraire(C, 'QUANTITES_LOTS_TRACTS', 'const'), extraire(C, 'selectTractType'),
-    extraire(C, 'stockBoisPersonnel'), extraire(C, 'PRIX_LOT_TRACTS', 'const'),
+    extraire(C, 'atelierImprimerieCourant'), extraire(C, 'stockBoisAtelier'), extraire(C, 'mouvementBoisAtelier'),
+    extraire(C, 'messageStockBoisInsuffisant'), extraire(C, 'PRIX_LOT_TRACTS', 'const'),
     extraire(C, 'prixLotTractsAtelier'), extraire(C, 'confirmerImprimerTractsElectoraux'),
     extraire(P, 'POSTES_TRACTS_ELECTORAUX', 'const'), extraire(P, 'LIEUX_PRESIDENTIELLE', 'const'),
     extraire(P, 'attacherEffetsTracts'), extraire(P, 'appliquerEffetsTracts'), extraire(P, 'ajouterEffetTractLocal'),
@@ -58,6 +60,7 @@ SOURCES = ''.join(en_expression(x) for x in [
 CRON_SCORES = en_expression(extraire(CRON, 'appliquerEffetsTracts').replace('function appliquerEffetsTracts(', 'function appliquerEffetsTractsCron(')
                             + extraire(CRON, 'calculerScoresBaseCycle').replace('function calculerScoresBaseCycle(', 'function calculerScoresBaseCycleCron(').replace('appliquerEffetsTracts(scores', 'appliquerEffetsTractsCron(scores')
                             + extraire(CRON, 'resoudreScrutinDepute').replace('function resoudreScrutinDepute(', 'function resoudreScrutinDeputeCron(').replace('calculerScoresBaseCycle(cycle', 'calculerScoresBaseCycleCron(cycle').replace('departageCandidats(', 'departageCandidatsCron(')
+                            + extraire(CRON, 'resoudreScrutinSimple').replace('function resoudreScrutinSimple(', 'function resoudreScrutinSimpleCron(').replace('calculerScoresBaseCycle(cycle', 'calculerScoresBaseCycleCron(cycle')
                             + extraire(CRON, 'departageCandidats').replace('function departageCandidats(', 'function departageCandidatsCron(')
                             + extraire(CRON, 'POSTES_ELECTIFS_LOCAUX', 'const')
                             + extraire(CRON, 'construireNouveauCycleElectoral').replace('function construireNouveauCycleElectoral(', 'function construireNouveauCycleElectoralCron(').replace('calendrierPremierTour(', 'calendrierPremierTourCron(')
@@ -110,6 +113,24 @@ var bouchons = {
   sbChargerEffetsTractsPNJ: function () { return Promise.resolve(bouchons._lignesEffets || []); },
   sbGetBatimentEtat: function (p, v, b) { return Promise.resolve(JSON.parse(JSON.stringify(ETATS[p + '/' + v + '/' + b] || {}))); },
   sbSetBatimentEtat: function (p, v, b, e) { ETATS[p + '/' + v + '/' + b] = JSON.parse(JSON.stringify(e)); return Promise.resolve(); },
+  // Meme semantique que la RPC batiment_caisse_mouvement (tout-ou-rien, plancher 0, plafond).
+  sbBatimentMouvementCaisse: function (p, v, b, sc, delta, stockCle, stock, stockMax) {
+    var cle = p + '/' + v + '/' + b;
+    if (!ETATS[cle]) ETATS[cle] = {};
+    var o = ETATS[cle][sc] || (ETATS[cle][sc] = {});
+    var caisse = o.caisse || 0;
+    if (caisse + delta < 0) return Promise.resolve({ ok: false, raison: 'caisse_insuffisante', caisse: caisse });
+    if (stockCle && stock) {
+      var st = o[stockCle] || 0;
+      if (st + stock < 0) return Promise.resolve({ ok: false, raison: 'stock_insuffisant', stock: st, caisse: caisse });
+      if (typeof stockMax === 'number' && stockMax !== null && st + stock > stockMax) {
+        return Promise.resolve({ ok: false, raison: 'stock_plafond', stock: st, stock_max: stockMax, caisse: caisse });
+      }
+      o[stockCle] = st + stock;
+    }
+    o.caisse = caisse + delta;
+    return Promise.resolve({ ok: true, caisse: o.caisse, stock: stockCle ? o[stockCle] : null });
+  },
   renderInventory: function () {},
   document: { getElementById: function (id) { return { value: (journal.saisies || {})[id] || '', classList: { add: function () {}, remove: function () {} },
     set textContent(v) { if (id === 'postes-modal-title') journal.titre = v; }, get textContent() { return ''; },
@@ -351,6 +372,38 @@ with (bac) {
     var cyDep = { posteId: 'depute', city: 'ville_a', dateVote: cal1.dateVote, candidats: [
       { nom: 'Ana', dateInscription: 300 }, { nom: 'Bob', dateInscription: 100 }, { nom: 'Cid', dateInscription: 200 }, { nom: 'Dan', dateInscription: 50 }],
       votes: { p1: 'Ana', p2: 'Ana', p3: 'Bob', p4: 'Cid', p5: 'Dan' }, votesPNJ: {} };
+    // ----- Cas limite valide le 12 septembre 2026 : moins de DEUX candidats a 15 %
+    var cycleSimple = function (voix) {
+      var votes = {}, n = 0;
+      Object.keys(voix).forEach(function (nom) {
+        for (var i = 0; i < voix[nom]; i++) { votes['e' + (n++)] = nom; }
+      });
+      return { posteId: 'maire', city: 'ville_a', candidats: Object.keys(voix).map(function (nom) { return { nom: nom }; }),
+               votes: votes, votesPNJ: {}, dateVote: instant(2026, 9, 27, 0, 1) };
+    };
+    // 49 / 14 / 14 / 14 / 9 : seul le premier depasse 15 %, personne n'a la majorite absolue.
+    var cyLim = cycleSimple({ Ana: 49, Bob: 14, Cid: 14, Dan: 14, Eve: 9 });
+    var rLim = resoudreScrutinSimple(cyLim, []), rLimCron = resoudreScrutinSimpleCron(cyLim, []);
+    verifier('K14. moins de deux candidats a 15 % : les DEUX premiers sont qualifies malgre tout (client et cron)',
+      rLim.elu === null && rLim.secondTour.length === 2 && rLim.secondTour[0] === 'Ana'
+      && rLimCron.secondTour.length === 2 && rLimCron.secondTour[0] === 'Ana'
+      && rLim.secondTour.join() === rLimCron.secondTour.join(),
+      'client=' + JSON.stringify(rLim.secondTour) + ' cron=' + JSON.stringify(rLimCron.secondTour));
+    verifier('K15. le scrutin n\'est donc jamais bloque : un second tour est toujours formable',
+      rLim.secondTour.length >= 2 && !rLim.blancMajoritaire, JSON.stringify(rLim.secondTour));
+
+    // Regle des 15 % inchangee quand elle suffit : 40 / 30 / 20 / 10 -> trois qualifies.
+    var cyNorm = cycleSimple({ Ana: 40, Bob: 30, Cid: 20, Dan: 10 });
+    var rNorm = resoudreScrutinSimple(cyNorm, []);
+    verifier('K16. seuil de 15 % inchange quand au moins deux l\'atteignent (40/30/20/10 -> 3 qualifies)',
+      rNorm.secondTour.join() === 'Ana,Bob,Cid', JSON.stringify(rNorm.secondTour));
+
+    // Majorite absolue : toujours prioritaire, aucun second tour.
+    var cyMaj = cycleSimple({ Ana: 60, Bob: 30, Cid: 10 });
+    var rMaj = resoudreScrutinSimple(cyMaj, []);
+    verifier('K17. majorite absolue au premier tour : elu directement, aucun second tour',
+      rMaj.elu === 'Ana' && rMaj.secondTour.length === 0, JSON.stringify(rMaj));
+
     var rDep = resoudreScrutinDepute(cyDep, []), rDepCron = resoudreScrutinDeputeCron(cyDep, []);
     verifier('K13. legislatives : un seul tour, 3 elus, egalite departagee par anciennete (jamais de second tour partiel)',
       rDep.egalite3eSiege === null && rDep.elus.join(',') === 'Ana,Dan,Bob' && rDepCron.elus.join(',') === rDep.elus.join(','),
@@ -363,7 +416,7 @@ with (bac) {
       bouchons.state = { country: 'republic', currentCity: 'ville_a', currentBuilding: 'imprimerie-librairie', currentRoom: 'accueil_imprimerie',
         char: { name: '__TEST_JSC__' }, pa: 10, liquide: liquide, comptesBancaires: { nationale: { solde: banque } }, arg: liquide + banque,
         inventory: [{ stackable: true, stackKey: 'bois', qty: 5, name: 'Bois' }] };
-      ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200 } } };
+      ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200, stockBois: 5 } } };
       bouchons.window._candidatsElectorauxActifs = [{ nom: 'A', posteId: 'maire', city: 'ville_a' }];
       journal.saisies = { 'tract-electoral-cible': '0', 'tract-quantite': '10' };
       bouchons.window._tractType = 'pour';
@@ -371,9 +424,9 @@ with (bac) {
     raz(); joueurPsm(700, 300); var avantPsm = 1000 + psm().caisse;
     await confirmerImprimerTractsElectoraux(ordrePsm.pa, ordrePsm.cost);
     var lotPsm = bouchons.state.inventory.filter(function (i) { return i.type === 'tract'; })[0];
-    verifier('P1. Port-Sainte-Marie : 10 tracts = 150 FR (liquide), 1 PA, 1 bois, caisse Gutenberg +150, acquisition immediate, aucune creation',
+    verifier('P1. Port-Sainte-Marie : 10 tracts = 150 FR (liquide), 1 PA, 1 bois DE GUTENBERG, caisse +150, bois personnel intact',
       ordrePsm.cost === 150 && bouchons.state.liquide === 550 && bouchons.state.comptesBancaires.nationale.solde === 300 && bouchons.state.pa === 9
-      && bouchons.state.inventory[0].qty === 4 && psm().caisse === 350 && lotPsm && lotPsm.quantite === 10 && lotPsm.tractType === 'pour'
+      && bouchons.state.inventory[0].qty === 5 && psm().stockBois === 4 && psm().caisse === 350 && lotPsm && lotPsm.quantite === 10 && lotPsm.tractType === 'pour'
       && bouchons.state.liquide + bouchons.state.comptesBancaires.nationale.solde + psm().caisse === avantPsm,
       'liquide=' + bouchons.state.liquide + ' caisse=' + psm().caisse + ' tracts=' + (lotPsm && lotPsm.quantite)
       + ' pa=' + bouchons.state.pa + ' bois=' + JSON.stringify(bouchons.state.inventory[0]) + ' sens=' + (lotPsm && lotPsm.tractType) + ' cost=' + ordrePsm.cost);

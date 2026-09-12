@@ -41,8 +41,13 @@ LOT = [{'type': 'tract_calomnieux', 'cible': 'zzconcVictime', 'quantite': 500}]
 
 
 def nettoyer():
-    # calomnies_actes n'accorde que le SELECT a anon (aucune ecriture cliente possible : c'est la
-    # protection voulue). Les actes de test sont donc purges par migration/MCP, pas ici.
+    """Supprime ce que la cle anon a le droit de supprimer.
+
+    calomnies_actes et assemblee_requetes n'accordent que le SELECT a anon (aucune ecriture cliente
+    possible : c'est la protection voulue). APRES CHAQUE EXECUTION, purger ces deux tables par MCP :
+        DELETE FROM public.calomnies_actes  WHERE auteur LIKE 'zz%' OR cible LIKE 'zz%';
+        DELETE FROM public.assemblee_requetes WHERE id LIKE 'zz%';
+    """
     for n in NOMS:
         delete('personnages', 'name=eq.' + n)
 
@@ -114,4 +119,5 @@ restes = len(get('personnages', 'name=like.zzconc*&select=name'))
 verifier(restes == 0, 'D5. personnages de test supprimes : %d residu(s) (les actes sont purges par MCP)' % restes)
 
 print('\n5 test(s), %d echec(s)' % echecs)
+print("RAPPEL : purger calomnies_actes et assemblee_requetes (prefixe zz) par MCP.")
 raise SystemExit(1 if echecs else 0)

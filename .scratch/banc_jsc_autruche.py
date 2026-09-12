@@ -45,8 +45,10 @@ SOURCES = ''.join(en_expression(x) for x in [
     extraire(J, 'imprimerieCouranteVente'), extraire(J, 'prixAchatBoisImprimerie'),
     extraire(C, 'nomImprimeurLocal'), extraire(C, 'ouvrirChoixImprimerTracts'), extraire(C, 'choisirTypeImprimerTracts'),
     extraire(C, 'selectTractType'), extraire(C, 'ouvrirModalImprimerTractsElectoraux'), extraire(C, 'confirmerImprimerTractsElectoraux'),
-    extraire(C, 'BOIS_PAR_LOT_TRACTS', 'const'), extraire(C, 'BOIS_PAR_LOT_TRACTS_PSM', 'const'),
-    extraire(C, 'QUANTITES_LOTS_TRACTS', 'const'), extraire(C, 'stockBoisPersonnel'),
+    extraire(C, 'BOIS_PAR_LOT_TRACTS', 'const'), extraire(C, 'STOCK_BOIS_MAX_IMPRIMERIE_PNJ', 'const'),
+    extraire(C, 'QUANTITES_LOTS_TRACTS', 'const'), extraire(C, 'atelierImprimerieCourant'),
+    extraire(C, 'stockBoisAtelier'), extraire(C, 'mouvementBoisAtelier'), extraire(C, 'messageStockBoisInsuffisant'),
+    extraire(J, 'plafondBoisImprimerie'),
     extraire(C, 'ouvrirModalImprimerTractsCalomnieux'), extraire(C, 'confirmerImprimerTractsCalomnieux'),
     extraire(Q, 'doSeRenseigner'),
     extraire(C, 'PRIX_LOT_TRACTS', 'const'), extraire(C, 'prixLotTractsAtelier'), extraire(C, 'prixLotTractsCalomnieux'),
@@ -80,7 +82,7 @@ var bouchons = {
   sbGetBatimentEtat: function (p, v, b) { return Promise.resolve(JSON.parse(JSON.stringify(ETATS[p + '/' + v + '/' + b] || {}))); },
   sbSetBatimentEtat: function (p, v, b, e) { ETATS[p + '/' + v + '/' + b] = JSON.parse(JSON.stringify(e)); journal.sauvegardes.push(b); return Promise.resolve(); },
   // Meme semantique que la RPC batiment_caisse_mouvement (tout-ou-rien, jamais de solde negatif).
-  sbBatimentMouvementCaisse: function (p, v, b, sc, delta, stockCle, stock) {
+  sbBatimentMouvementCaisse: function (p, v, b, sc, delta, stockCle, stock, stockMax) {
     var cle = p + '/' + v + '/' + b;
     if (!ETATS[cle]) ETATS[cle] = {};
     var o = ETATS[cle][sc] || (ETATS[cle][sc] = {});
@@ -89,6 +91,9 @@ var bouchons = {
     if (stockCle && stock) {
       var st = o[stockCle] || 0;
       if (st + stock < 0) return Promise.resolve({ ok: false, raison: 'stock_insuffisant', stock: st, caisse: caisse });
+      if (typeof stockMax === 'number' && stockMax !== null && st + stock > stockMax) {
+        return Promise.resolve({ ok: false, raison: 'stock_plafond', stock: st, stock_max: stockMax, caisse: caisse });
+      }
       o[stockCle] = st + stock;
     }
     o.caisse = caisse + delta;
@@ -146,81 +151,129 @@ with (bac) {
   var vente = BUILDINGS['la-tribune'].rooms.accueil_tribune.orders.filter(function (o) { return o.fn === 'vendre_bois_imprimerie'; })[0];
 
   var scenarios = async function () {
-    // ===== 1. Paiement des tracts electoraux (moteur unique des trois imprimeries) =====
-    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 50);
+    // ===== 1. Paiement des tracts electoraux et matiere premiere institutionnelle =====
+    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 5);
     var avant = fonds() + imp().caisse;
+    var boisPerso = function () { var l = bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0]; return l ? l.qty : 0; };
     await imprimer('contre', 10);
     var t = bouchons.state.inventory.filter(function (i) { return i.type === 'tract'; })[0];
-    verifier('P1. liquide suffisant : -150 liquide, banque intacte, 1 PA, caisse +150, 1 bois perso, 10 tracts CONTRE',
+    verifier('P1. stock suffisant : -150 liquide, banque intacte, 1 PA, caisse +150, 1 bois DE L\'IMPRIMERIE, 10 tracts CONTRE',
       bouchons.state.liquide === 550 && bouchons.state.comptesBancaires.nationale.solde === 300 && bouchons.state.pa === 9
-      && imp().caisse === 150 && t && t.quantite === 10 && t.tractType === 'contre' && t.legal === true
-      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 29,
-      'liquide=' + bouchons.state.liquide + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse + ' sens=' + (t && t.tractType));
+      && imp().caisse === 150 && imp().stockBois === 4 && t && t.quantite === 10 && t.tractType === 'contre',
+      'liquide=' + bouchons.state.liquide + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse + ' stockAtelier=' + imp().stockBois);
+    verifier('P1 bis. le bois PERSONNEL du joueur n\'est jamais consomme', boisPerso() === 30, 'bois perso=' + boisPerso());
     verifier('P4. aucune creation monetaire (fonds joueur + caisse constants)', fonds() + imp().caisse === avant, 'avant=' + avant + ' apres=' + (fonds() + imp().caisse));
 
-    raz(); joueur({ liquide: 100, banque: 300 }); atelier(0, 50); avant = fonds() + imp().caisse;
+    raz(); joueur({ liquide: 100, banque: 300 }); atelier(0, 5); avant = fonds() + imp().caisse;
     await imprimer('pour', 10);
     verifier('P2. liquide 100 + banque 300 : liquide -> 0, banque -50, caisse +150, sans creation',
       bouchons.state.liquide === 0 && bouchons.state.comptesBancaires.nationale.solde === 250 && imp().caisse === 150 && fonds() + imp().caisse === avant,
       'liquide=' + bouchons.state.liquide + ' banque=' + bouchons.state.comptesBancaires.nationale.solde + ' caisse=' + imp().caisse);
 
-    raz(); joueur({ liquide: 60, banque: 50 }); bouchons.state.arg = 5000;   // arg desynchronise : ne doit plus rien payer
-    atelier(0, 50);
+    raz(); joueur({ liquide: 60, banque: 50 }); bouchons.state.arg = 5000;   // arg desynchronise : ne doit rien payer
+    atelier(0, 5);
     await imprimer('pour', 10);
-    verifier('P3. fonds reels insuffisants (110 < 150, meme avec arg=5000) : refus avant production, rien ne bouge',
-      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 60 && bouchons.state.comptesBancaires.nationale.solde === 50
-      && imp().caisse === 0 && !bouchons.state.inventory.some(function (i) { return i.type === 'tract'; })
-      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 30,
-      journal.toasts.join(' / '));
+    verifier('P3. fonds reels insuffisants (110 < 150, meme avec arg=5000) : refus, et le bois reserve est rendu',
+      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 60
+      && imp().caisse === 0 && imp().stockBois === 5 && !bouchons.state.inventory.some(function (i) { return i.type === 'tract'; }),
+      journal.toasts.join(' / ') + ' stockAtelier=' + imp().stockBois);
 
-    raz(); joueur({ liquide: 400, banque: 0 }); atelier(0, 200); avant = fonds() + imp().caisse;
+    raz(); joueur({ liquide: 400, banque: 0 }); atelier(0, 5); avant = fonds() + imp().caisse;
     await imprimer('pour', 20);
-    verifier('P5. 20 tracts = 2 lots : 300 FR et 2 bois, caisse +300 = montant reellement debite, 1 seul PA',
+    verifier('P5. 20 tracts = 2 lots : 300 FR et 2 bois de l\'imprimerie, 1 seul PA, caisse = montant debite',
       imp().caisse === 300 && bouchons.state.liquide === 100 && fonds() + imp().caisse === avant && bouchons.state.pa === 9
-      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 28
-      && bouchons.state.inventory.filter(function (i) { return i.type === 'tract'; })[0].quantite === 20,
-      'caisse=' + imp().caisse + ' liquide=' + bouchons.state.liquide + ' pa=' + bouchons.state.pa);
+      && imp().stockBois === 3 && bouchons.state.inventory.filter(function (i) { return i.type === 'tract'; })[0].quantite === 20,
+      'caisse=' + imp().caisse + ' stockAtelier=' + imp().stockBois + ' pa=' + bouchons.state.pa);
 
-    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 0);
-    bouchons.state.inventory = bouchons.state.inventory.filter(function (i) { return i.stackKey !== 'bois'; });
+    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 0); avant = fonds() + imp().caisse;
     await imprimer('pour', 10);
-    verifier('P6. sans bois personnel : refus avant tout paiement (aucun PA, aucun debit, aucune caisse creditee)',
-      /Pas assez de bois/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 700 && imp().caisse === 0,
+    verifier('P6. imprimerie sans bois : refus propre AVANT tout debit (aucun PA, aucun FR, aucun tract)',
+      /Stock de bois insuffisant/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 700
+      && imp().caisse === 0 && !bouchons.state.inventory.some(function (i) { return i.type === 'tract'; }) && fonds() + imp().caisse === avant,
       journal.toasts.join(' / '));
 
-    // ===== 2. Credit de la vente de matieres premieres =====
+    raz(); joueur({ liquide: 5000, banque: 0 }); atelier(0, 1);
+    await imprimer('pour', 20);
+    verifier('P7. stock insuffisant pour la quantite demandee (2 lots pour 1 bois) : refus total',
+      /Stock de bois insuffisant/.test(journal.toasts.join()) && bouchons.state.pa === 10 && imp().stockBois === 1
+      && !bouchons.state.inventory.some(function (i) { return i.type === 'tract'; }), journal.toasts.join(' / '));
+
+    raz(); joueur({ liquide: 5000, banque: 0 }); atelier(0, 1);
+    await Promise.all([imprimer('pour', 10), imprimer('pour', 10)]);
+    var lotsDouble = bouchons.state.inventory.filter(function (i) { return i.type === 'tract'; }).reduce(function (s, i) { return s + i.quantite; }, 0);
+    verifier('P8. double clic sur 1 seul bois : un seul lot produit, stock a 0, jamais negatif',
+      lotsDouble === 10 && imp().stockBois === 0 && imp().caisse === 150,
+      'tracts=' + lotsDouble + ' stock=' + imp().stockBois + ' caisse=' + imp().caisse);
+
+    // ===== 2. Vente de matieres premieres : prix, caisse et PLAFOND DE STOCK =====
     raz(); joueur({ liquide: 700, banque: 300 }); atelier(200, 0); avant = fonds() + imp().caisse;
     await (async function () { doOrder(vente.fn, vente.pa, vente.cost, vente.label, vente.desc, vente.successRate); await tick(); })();
     journal.saisies['vendre-bois-qte'] = '10';
     await confirmerVendreBoisImprimerie(vente.pa, vente.cost);
-    verifier('V1. vente de 10 bois : caisse -55, liquide +55 (fonds depensables), montant conserve, 0 PA',
-      imp().caisse === 145 && bouchons.state.liquide === 755 && bouchons.state.arg === 1055 && bouchons.state.comptesBancaires.nationale.solde === 300
+    verifier('V1. vente de 10 bois : caisse -55 (5,50/unite), liquide +55 (fonds depensables), stock a 10, 0 PA',
+      imp().caisse === 145 && bouchons.state.liquide === 755 && bouchons.state.comptesBancaires.nationale.solde === 300
       && fonds() + imp().caisse === avant && bouchons.state.pa === 10 && imp().stockBois === 10,
-      'caisse=' + imp().caisse + ' liquide=' + bouchons.state.liquide + ' arg=' + bouchons.state.arg + ' pa=' + bouchons.state.pa + ' conserve=' + (fonds() + imp().caisse === avant));
+      'caisse=' + imp().caisse + ' liquide=' + bouchons.state.liquide + ' stock=' + imp().stockBois);
 
     raz(); joueur(); atelier(5, 0); journal.saisies['vendre-bois-qte'] = '10';
     await confirmerVendreBoisImprimerie(vente.pa, vente.cost);
-    verifier('V2. caisse insuffisante (5 < 5,5 le bois) : refus, aucun mouvement',
-      /Caisse vide/.test(journal.toasts.join()) && imp().caisse === 5 && bouchons.state.liquide === 700 && bouchons.state.inventory[0].qty === 30 && journal.sauvegardes.length === 0,
-      journal.toasts.join(' / '));
+    verifier('V2. caisse insuffisante (5 < 5,5) : refus, aucun mouvement',
+      /Caisse vide/.test(journal.toasts.join()) && imp().caisse === 5 && bouchons.state.liquide === 700 && imp().stockBois === 0
+      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 30, journal.toasts.join(' / '));
 
     raz(); joueur(); atelier(20, 0); avant = fonds() + imp().caisse; journal.saisies['vendre-bois-qte'] = '10';
     await confirmerVendreBoisImprimerie(vente.pa, vente.cost);
     verifier('V3. caisse limitee (20) : vente partielle de 3 bois, caisse -16,5 = liquide +16,5',
-      bouchons.state.inventory[0].qty === 27 && Math.abs(imp().caisse - 3.5) < 1e-9 && Math.abs(bouchons.state.liquide - 716.5) < 1e-9 && Math.abs(fonds() + imp().caisse - avant) < 1e-9,
-      'bois=' + bouchons.state.inventory[0].qty + ' caisse=' + imp().caisse + ' liquide=' + bouchons.state.liquide);
+      bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 27
+      && Math.abs(imp().caisse - 3.5) < 1e-9 && Math.abs(bouchons.state.liquide - 716.5) < 1e-9
+      && Math.abs(fonds() + imp().caisse - avant) < 1e-9 && imp().stockBois === 3,
+      'bois=' + bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty + ' caisse=' + imp().caisse);
 
     raz(); joueur(); atelier(200, 0); journal.saisies['vendre-bois-qte'] = '5';
     await confirmerVendreBoisImprimerie(1, 0);
     verifier('V4. 0 PA meme si pa=1 transmis ; intitule « Vendre des matieres premieres », 0 PA, 0 FR',
       bouchons.state.pa === 10 && vente.label === 'Vendre des matières premières' && vente.pa === 0 && vente.cost === 0, 'pa=' + bouchons.state.pa);
 
+    // Plafond de stock (regle validee : 10 unites sous gestion PNJ)
+    raz(); joueur(); atelier(500, 7); avant = fonds() + imp().caisse; journal.saisies['vendre-bois-qte'] = '10';
+    await confirmerVendreBoisImprimerie(0, 0);
+    verifier('V5. stock 7 : seules 3 unites sont acceptees (plafond 10), paiement exactement de 3 x 5,50',
+      imp().stockBois === 10 && Math.abs(imp().caisse - 483.5) < 1e-9 && Math.abs(bouchons.state.liquide - 716.5) < 1e-9
+      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 27
+      && Math.abs(fonds() + imp().caisse - avant) < 1e-9 && /Vente partielle/.test(journal.toasts.join()),
+      'stock=' + imp().stockBois + ' caisse=' + imp().caisse + ' liquide=' + bouchons.state.liquide);
+
+    raz(); joueur(); atelier(500, 10); journal.saisies['vendre-bois-qte'] = '5';
+    await confirmerVendreBoisImprimerie(0, 0);
+    verifier('V6. stock deja a 10 : aucune unite acceptee, rien ne bouge',
+      imp().stockBois === 10 && imp().caisse === 500 && bouchons.state.liquide === 700
+      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 30
+      && /plein/.test(journal.toasts.join()), journal.toasts.join(' / '));
+
+    raz(); joueur(); atelier(500, 8); journal.saisies['vendre-bois-qte'] = '2';
+    await Promise.all([confirmerVendreBoisImprimerie(0, 0), confirmerVendreBoisImprimerie(0, 0)]);
+    verifier('V7. deux ventes simultanees pres du plafond : stockBois n\'atteint jamais 11',
+      imp().stockBois === 10 && Math.abs(imp().caisse - (500 - 5.5 * 2)) < 1e-9,
+      'stock=' + imp().stockBois + ' caisse=' + imp().caisse);
+
+    raz(); joueur(); atelier(500, 0); journal.saisies['vendre-bois-qte'] = '4';
+    await confirmerVendreBoisImprimerie(0, 0);
+    verifier('V8. coherence caisse <-> bois achete : 4 bois entres, 22 FR sortis de la caisse',
+      imp().stockBois === 4 && Math.abs(imp().caisse - 478) < 1e-9 && Math.abs(bouchons.state.liquide - 722) < 1e-9,
+      'stock=' + imp().stockBois + ' caisse=' + imp().caisse);
+
     // ===== 3. Entree unique des tracts et socle commun des trois imprimeries =====
     var lut = ordresPiece('republic', 'capitale').map(function (o) { return o.fn; });
     verifier('F1. Luthecia : une seule entree « Imprimer des tracts », plus de bouton electoral ni calomnieux separe',
       lut.indexOf('imprimer_tracts_choix') >= 0 && lut.indexOf('imprimer_tracts_electoraux') < 0 && lut.indexOf('imprimer_tracts_calomnieux') < 0
-      && ['se_renseigner', 'consulter_archives_presse', 'vendre_bois_imprimerie', 'deposer_petite_annonce'].every(function (f) { return lut.indexOf(f) >= 0; }),
+      && ['consulter_archives_presse', 'vendre_bois_imprimerie', 'deposer_petite_annonce'].every(function (f) { return lut.indexOf(f) >= 0; }),
       JSON.stringify(lut));
+    verifier('F1 bis. « Se renseigner » retire de L\'Autruche SEULEMENT (gabarit et Montrouge conserves)',
+      lut.indexOf('se_renseigner') < 0
+      && BUILDINGS['la-tribune'].rooms.accueil_tribune.orders.some(function (o) { return o.fn === 'se_renseigner'; })
+      && ordresPiece('republic', 'ville_b').map(function (o) { return o.fn; }).indexOf('se_renseigner') >= 0
+      && ordresPiece('narco', 'capitale').map(function (o) { return o.fn; }).indexOf('se_renseigner') >= 0,
+      'luthecia=' + JSON.stringify(lut) + ' montrouge=' + JSON.stringify(ordresPiece('republic', 'ville_b').map(function (o) { return o.fn; })));
 
     raz(); joueur(); atelier(0, 50);
     doOrder('imprimer_tracts_choix', 0, 0, 'Imprimer des tracts', '', 100); await tick();
@@ -230,29 +283,30 @@ with (bac) {
       && ch[1].fn === 'imprimer_tracts_calomnieux' && ch[1].pa === 1 && ch[1].cost === 150 && ch[1].type === 'illegal' && journal.titre === 'Imprimer des tracts' && bouchons.state.pa === 10,
       JSON.stringify(ch.map(function (o) { return [o.fn, o.pa, o.cost, o.type]; })));
 
-    raz(); joueur(); atelier(0, 50); avant = fonds() + imp().caisse;
+    raz(); joueur(); atelier(0, 5); avant = fonds() + imp().caisse;
     doOrder('imprimer_tracts_choix', 0, 0, 'Imprimer des tracts', '', 100); await tick();
-    choisirTypeImprimerTracts(0); await tick(); await tick();
+    choisirTypeImprimerTracts(0); await tick(); await tick(); await tick();
     var titreElectoral = journal.titre, corpsElectoral = journal.corps || '';
     await imprimer('pour', 10, 1, 150);
-    verifier('F3. choix « electoraux » -> modal du moteur unique (POUR/CONTRE, quantite), 1 PA, 150 FR, bois personnel',
+    verifier('F3. choix « electoraux » -> modal du moteur unique (POUR/CONTRE, quantite), 1 PA, 150 FR, bois de l\'imprimerie',
       titreElectoral === 'Imprimer des tracts électoraux' && /CONTRE le candidat/.test(corpsElectoral) && /QUANTIT/.test(corpsElectoral)
-      && bouchons.state.pa === 9 && bouchons.state.liquide === 550 && imp().caisse === 150 && imp().stockBois === 50
-      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 29 && fonds() + imp().caisse === avant,
-      'modal=' + titreElectoral + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse);
+      && bouchons.state.pa === 9 && bouchons.state.liquide === 550 && imp().caisse === 150 && imp().stockBois === 4
+      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 30 && fonds() + imp().caisse === avant,
+      'modal=' + titreElectoral + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse + ' stockAtelier=' + imp().stockBois);
 
-    raz(); joueur(); atelier(0, 50);
+    raz(); joueur(); atelier(0, 5);
     doOrder('imprimer_tracts_choix', 0, 0, 'Imprimer des tracts', '', 100); await tick();
-    choisirTypeImprimerTracts(1); await tick(); await tick();
+    choisirTypeImprimerTracts(1); await tick(); await tick(); await tick();
     var titreCalom = journal.titre;
     journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(1, 150);
     var tc = bouchons.state.inventory.filter(function (i) { return i.type === 'tract_calomnieux'; })[0];
-    verifier('F4. choix « calomnieux » -> sa mecanique (1 PA, 150, 1 bois PERSONNEL, detection, stock de l\'atelier intact)',
-      titreCalom === 'Imprimer des tracts calomnieux' && bouchons.state.pa === 9 && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 29
-      && bouchons.state.liquide === 550 && tc && tc.quantite === 10 && tc.legal === false && imp().caisse === 150 && imp().stockBois === 50
+    verifier('F4. choix « calomnieux » -> meme matiere que l\'electoral : 1 bois DE L\'IMPRIMERIE, 1 PA, 150 FR, detection',
+      titreCalom === 'Imprimer des tracts calomnieux' && bouchons.state.pa === 9
+      && bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty === 30
+      && bouchons.state.liquide === 550 && tc && tc.quantite === 10 && tc.legal === false && imp().caisse === 150 && imp().stockBois === 4
       && journal.appels.indexOf('checkDetection:imprimer_tracts_calomnieux') >= 0,
-      'modal=' + titreCalom + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse);
+      'modal=' + titreCalom + ' pa=' + bouchons.state.pa + ' caisse=' + imp().caisse + ' stockAtelier=' + imp().stockBois);
 
     // Blocus syndical : le choix « electoraux » reste bloque exactement comme un bouton direct
     raz(); joueur(); bouchons.state.blocusActifIci = { intensite: 40 };
@@ -340,32 +394,40 @@ with (bac) {
       doOrder(entree.fn, entree.pa, entree.cost, entree.label.replace(/'/g, ' '), (entree.desc || '').replace(/'/g, ' '), entree.successRate || 70); await tick();
       choisirTypeImprimerTracts(indexChoix); await tick(); await tick();
     };
-    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 50); avant = fonds() + imp().caisse;
+    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 5); avant = fonds() + imp().caisse;
     await cliqueBoutonLuthecia(1);
     var titreCal = journal.titre, corpsCal = journal.corps || '';
     journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(window._choixImprimerTracts[1].pa, window._choixImprimerTracts[1].cost);
     var lc = bouchons.state.inventory.filter(function (i) { return i.type === 'tract_calomnieux'; })[0];
-    verifier('K1. calomnieux (vrai bouton Luthecia) : 1 PA + 150 (liquide) + 1 bois perso, caisse +150, 10 tracts immediatement, detection',
+    verifier('K1. calomnieux (vrai bouton Luthecia) : 1 PA + 150 + 1 bois DE L\'IMPRIMERIE, caisse +150, 10 tracts immediats, detection',
       titreCal === 'Imprimer des tracts calomnieux' && /150 FR/.test(corpsCal) && bouchons.state.pa === 9 && bouchons.state.liquide === 550 && bouchons.state.comptesBancaires.nationale.solde === 300
-      && bouchons.state.inventory[0].qty === 29 && imp().caisse === 150 && imp().stockBois === 50 && lc && lc.quantite === 10 && lc.legal === false && lc.cible === 'Cible'
+      && bouchons.state.inventory[0].qty === 30 && imp().caisse === 150 && imp().stockBois === 4 && lc && lc.quantite === 10 && lc.legal === false && lc.cible === 'Cible'
       && journal.appels.indexOf('checkDetection:imprimer_tracts_calomnieux') >= 0 && fonds() + imp().caisse === avant,
-      'pa=' + bouchons.state.pa + ' liquide=' + bouchons.state.liquide + ' bois=' + bouchons.state.inventory[0].qty + ' caisse=' + imp().caisse + ' tracts=' + (lc && lc.quantite) + ' conserve=' + (fonds() + imp().caisse === avant));
+      'pa=' + bouchons.state.pa + ' liquide=' + bouchons.state.liquide + ' boisPerso=' + bouchons.state.inventory[0].qty + ' caisse=' + imp().caisse + ' stockAtelier=' + imp().stockBois);
 
-    raz(); joueur({ liquide: 100, banque: 300 }); atelier(0, 0); avant = fonds() + imp().caisse; journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    raz(); joueur({ liquide: 100, banque: 300 }); atelier(0, 5); avant = fonds() + imp().caisse; journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(1, 150);
     verifier('K2. calomnieux liquide 100 + banque 300 : liquide 0, banque 250, caisse +150, sans creation',
       bouchons.state.liquide === 0 && bouchons.state.comptesBancaires.nationale.solde === 250 && imp().caisse === 150 && fonds() + imp().caisse === avant,
       'liquide=' + bouchons.state.liquide + ' banque=' + bouchons.state.comptesBancaires.nationale.solde + ' caisse=' + imp().caisse);
 
-    raz(); joueur({ liquide: 80, banque: 20 }); bouchons.state.arg = 5000; atelier(0, 0); journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    raz(); joueur({ liquide: 80, banque: 20 }); bouchons.state.arg = 5000; atelier(0, 5); journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(1, 150);
-    verifier('K3. calomnieux fonds reels insuffisants (100 < 150) : refus avant production (0 PA, bois, tracts, detection, caisse)',
-      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.inventory[0].qty === 30 && bouchons.state.liquide === 80
-      && !bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux'; }) && journal.appels.indexOf('checkDetection:imprimer_tracts_calomnieux') < 0 && imp().caisse === 0,
+    verifier('K3. calomnieux fonds reels insuffisants (100 < 150) : refus, et le bois reserve est rendu a l\'imprimerie',
+      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 80
+      && !bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux'; })
+      && journal.appels.indexOf('checkDetection:imprimer_tracts_calomnieux') < 0 && imp().caisse === 0 && imp().stockBois === 5,
+      journal.toasts.join(' / ') + ' stockAtelier=' + imp().stockBois);
+
+    raz(); joueur({ liquide: 700, banque: 300 }); atelier(0, 0); journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    await confirmerImprimerTractsCalomnieux(1, 150);
+    verifier('K3 bis. calomnieux sans bois a l\'imprimerie : refus propre, aucun PA, aucun FR, aucun tract',
+      /Stock de bois insuffisant/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.liquide === 700
+      && imp().caisse === 0 && !bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux'; }),
       journal.toasts.join(' / '));
 
-    raz(); joueur({ ville: 'ville_b' }); bouchons.state.currentRoom = 'imprimerie'; atelier(200, 0, 'republic', 'ville_b'); journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    raz(); joueur({ ville: 'ville_b' }); bouchons.state.currentRoom = 'imprimerie'; atelier(200, 5, 'republic', 'ville_b'); journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(1, 150);
     verifier('K4. Montrouge (LCI, salle Imprimerie) : meme prix, credite la caisse de l\'atelier de Montrouge', imp('republic', 'ville_b').caisse === 350 && bouchons.state.liquide === 550,
       'caisse=' + imp('republic', 'ville_b').caisse);
@@ -373,21 +435,22 @@ with (bac) {
     // Port-Sainte-Marie : etat REEL apres migration (republic_ville_a_imprimerie-librairie = {imprimerie:{caisse:200}})
     var psm = function () { return ETATS['republic/ville_a/imprimerie-librairie'].imprimerie; };
     raz(); joueur({ ville: 'ville_a' }); bouchons.state.currentBuilding = 'imprimerie-librairie'; bouchons.state.currentRoom = 'atelier';
-    ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200 } } }; avant = fonds() + psm().caisse; journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200, stockBois: 5 } } }; avant = fonds() + psm().caisse; journal.saisies['tract-calomnieux-cible'] = 'Cible';
     var ordrePsm = BUILDINGS['imprimerie-librairie'].rooms.atelier.orders.filter(function (o) { return o.fn === 'imprimer_tracts_calomnieux'; })[0];
     doOrder(ordrePsm.fn, ordrePsm.pa, ordrePsm.cost, ordrePsm.label, ordrePsm.desc, ordrePsm.successRate); await tick();
     var corpsPsm = journal.corps || '';
     await confirmerImprimerTractsCalomnieux(ordrePsm.pa, ordrePsm.cost);
-    verifier('K5. Port-Sainte-Marie (vrai bouton de l\'atelier Gutenberg) : 1 PA + 150 + 1 bois, caisse Gutenberg +150, 10 tracts immediats, monnaie conservee',
-      ordrePsm.cost === 150 && /150 FR/.test(corpsPsm) && bouchons.state.pa === 9 && bouchons.state.liquide === 550 && bouchons.state.inventory[0].qty === 29 && psm().caisse === 350
+    verifier('K5. Port-Sainte-Marie (vrai bouton de l\'atelier Gutenberg) : 1 PA + 150 + 1 bois de Gutenberg, caisse +150, 10 tracts immediats',
+      ordrePsm.cost === 150 && /150 FR/.test(corpsPsm) && bouchons.state.pa === 9 && bouchons.state.liquide === 550
+      && bouchons.state.inventory[0].qty === 30 && psm().caisse === 350 && psm().stockBois === 4
       && bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux' && i.quantite === 10; }) && fonds() + psm().caisse === avant,
-      'liquide=' + bouchons.state.liquide + ' caisse=' + psm().caisse);
+      'liquide=' + bouchons.state.liquide + ' caisse=' + psm().caisse + ' stock=' + psm().stockBois);
 
     raz(); joueur({ ville: 'ville_a', liquide: 100, banque: 20 }); bouchons.state.currentBuilding = 'imprimerie-librairie'; bouchons.state.currentRoom = 'atelier';
-    ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200 } } }; journal.saisies['tract-calomnieux-cible'] = 'Cible';
+    ETATS = { 'republic/ville_a/imprimerie-librairie': { imprimerie: { caisse: 200, stockBois: 5 } } }; journal.saisies['tract-calomnieux-cible'] = 'Cible';
     await confirmerImprimerTractsCalomnieux(1, 150);
-    verifier('K5 bis. Port-Sainte-Marie, fonds insuffisants (120 < 150) : refus avant production, rien ne bouge',
-      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && bouchons.state.inventory[0].qty === 30 && psm().caisse === 200
+    verifier('K5 bis. Port-Sainte-Marie, fonds insuffisants (120 < 150) : refus, bois rendu, rien ne bouge',
+      /Fonds insuffisants/.test(journal.toasts.join()) && bouchons.state.pa === 10 && psm().caisse === 200 && psm().stockBois === 5
       && !bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux'; }), journal.toasts.join());
 
     raz(); joueur(); bouchons.state.currentBuilding = 'marche'; ETATS = {}; journal.saisies['tract-calomnieux-cible'] = 'Cible';
@@ -395,7 +458,7 @@ with (bac) {
     verifier('K7. hors d\'un atelier d\'imprimerie : refus, aucun paiement ni tract (jamais d\'impression gratuite)',
       /Atelier introuvable/.test(journal.toasts.join()) && bouchons.state.liquide === 700 && bouchons.state.pa === 10 && journal.sauvegardes.length === 0, journal.toasts.join());
 
-    raz(); joueur(); atelier(0, 50);
+    raz(); joueur(); atelier(0, 5);
     await cliqueBoutonLuthecia(0);
     await imprimer('pour', 10, window._choixImprimerTracts[0].pa, window._choixImprimerTracts[0].cost);
     verifier('K6. electoraux (vrai bouton Luthecia) : 10 tracts immediatement en inventaire, aucune autre etape',
@@ -585,14 +648,14 @@ with (bac) {
 
     // ===== 5. Boucle amorcee et « Se renseigner » (inchange) =====
     raz(); joueur({ liquide: 1000, banque: 0 }); atelier(200, 0); avant = fonds() + imp().caisse;
-    bouchons.state.inventory.filter(function (i) { return i.stackKey === 'bois'; })[0].qty = 32;
-    journal.saisies['vendre-bois-qte'] = '30';
+    journal.saisies['vendre-bois-qte'] = '10';
     await confirmerVendreBoisImprimerie(0, 0);
     var e1 = JSON.parse(JSON.stringify(imp()));
     await imprimer('pour', 20, 1, 150);
-    verifier('D. boucle amorcee : caisse 200 -> achat de 30 bois (-165) -> 20 tracts (+300) -> 335, monnaie conservee',
-      e1.caisse === 35 && e1.stockBois === 30 && imp().caisse === 335 && fonds() + imp().caisse === avant,
-      'caisse=' + e1.caisse + ' -> ' + imp().caisse + ' conserve=' + (fonds() + imp().caisse === avant));
+    verifier('D. boucle fermee : caisse 200 -> achat de 10 bois (-55) -> 20 tracts (+300, -2 bois) -> 445, monnaie conservee',
+      e1.caisse === 145 && e1.stockBois === 10 && imp().caisse === 445 && imp().stockBois === 8
+      && fonds() + imp().caisse === avant,
+      'caisse=' + e1.caisse + ' -> ' + imp().caisse + ' stock=' + imp().stockBois + ' conserve=' + (fonds() + imp().caisse === avant));
 
     raz(); joueur();
     doOrder('se_renseigner', 0, 0, 'Se renseigner', '', 100); await tick();

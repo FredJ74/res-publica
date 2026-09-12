@@ -211,7 +211,12 @@ const WORLD = {
           // relance doOrder avec son ordre d'origine : couts, stocks et risques inchanges.
           roomOverrides: {
             accueil_tribune: {
-              excludeOrders: ['imprimer_tracts_electoraux'],
+              // « Se renseigner » supprime ICI SEULEMENT (12 septembre 2026) : il liste les locaux
+              // louables du batiment, et L'Autruche Entravee n'en possede aucun -- il repondait
+              // donc toujours « Rien de particulier a signaler ici. ». L'ordre reste en place
+              // partout ou il a une utilite reelle (gabarit du batiment, autres villes, autres
+              // empires) ; aucune fonction de remplacement n'est creee.
+              excludeOrders: ['imprimer_tracts_electoraux', 'se_renseigner'],
               orders: [
                 {fn:'imprimer_tracts_choix', label:'Imprimer des tracts', pa:0, cost:0, type:'grey', icon:'ti-file-description', successRate:100, desc:'Tracts électoraux (pour/contre) ou tracts calomnieux (illégal) : le type se choisit ensuite, chacun avec ses propres coûts et risques.',
                   choix: [

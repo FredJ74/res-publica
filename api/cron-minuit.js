@@ -263,7 +263,12 @@ function resoudreScrutinSimple(cycle, fraudesActives) {
   if (premier[1] > totalExprimes / 2) {
     return { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false };
   }
-  const qualifies = sorted.filter(([, v]) => v / totalExprimes >= 0.15).map(([n]) => n);
+  // SEUIL DE QUALIFICATION (regle validee le 12 septembre 2026) : 15 % des exprimes. Mais si moins
+  // de DEUX candidats l'atteignent, les deux arrives en tete sont qualifies malgre tout -- sans
+  // cela le scrutin restait bloque : aucune branche du depouillement ne s'appliquait, le cycle
+  // n'etait jamais marque resultatsTraites et le cron le reexaminait chaque nuit indefiniment.
+  let qualifies = sorted.filter(([, v]) => v / totalExprimes >= 0.15).map(([n]) => n);
+  if (qualifies.length < 2) qualifies = sorted.slice(0, 2).map(([n]) => n);
   return { scores, blancs, totalExprimes, elu: null, secondTour: qualifies, blancMajoritaire: false };
 }
 

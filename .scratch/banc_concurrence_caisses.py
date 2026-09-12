@@ -55,8 +55,38 @@ ok = etat['imprimerie']['caisse']>=0 and reussis==0 and etat['imprimerie']['cais
 print(('OK    ' if ok else 'ECHEC ')+'C3. caisse a 100, 20 debits de 150 en parallele : %d accepte(s), caisse=%s (jamais negative)'%(reussis,etat['imprimerie']['caisse']))
 echecs += 0 if ok else 1
 
+# --- Plafond de stock : 20 ventes simultanees de 2 bois sur une imprimerie a 6/10.
+delete('batiments_etat','id=eq.'+CLE)
+post('batiments_etat', {'id':CLE,'country':'zzconc','city':'capitale','building_id':'la-tribune',
+                        'data': json.dumps({'imprimerie':{'caisse':100000,'stockBois':6}})})
+def vendre(i):
+    return rpc('batiment_caisse_mouvement', {'p_pays':'zzconc','p_ville':'capitale','p_building':'la-tribune',
+                                             'p_souscle':'imprimerie','p_delta':-11,'p_stock_cle':'stockBois',
+                                             'p_stock':2,'p_stock_max':10})
+with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
+    res=list(ex.map(vendre, range(20)))
+etat=json.loads(get('batiments_etat','id=eq.'+CLE+'&select=data')[0]['data'])
+acceptes=sum(1 for r in res if r and r.get('ok'))
+ok = etat['imprimerie']['stockBois'] == 10 and acceptes == 2 and etat['imprimerie']['caisse'] == 100000 - 11*acceptes
+print(('OK    ' if ok else 'ECHEC ')+'C4. plafond 10 sous 20 ventes simultanees : %d acceptee(s), stock=%s, caisse=%s (jamais 11)'
+      %(acceptes, etat['imprimerie']['stockBois'], etat['imprimerie']['caisse']))
+echecs += 0 if ok else 1
+
+# --- Reservation de bois pour l'impression : jamais de stock negatif.
+def imprimer(i):
+    return rpc('batiment_caisse_mouvement', {'p_pays':'zzconc','p_ville':'capitale','p_building':'la-tribune',
+                                             'p_souscle':'imprimerie','p_delta':0,'p_stock_cle':'stockBois','p_stock':-1})
+with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
+    res=list(ex.map(imprimer, range(20)))
+etat=json.loads(get('batiments_etat','id=eq.'+CLE+'&select=data')[0]['data'])
+acceptes=sum(1 for r in res if r and r.get('ok'))
+ok = acceptes == 10 and etat['imprimerie']['stockBois'] == 0
+print(('OK    ' if ok else 'ECHEC ')+'C5. 20 impressions simultanees sur 10 bois : %d servie(s), stock=%s (jamais negatif)'
+      %(acceptes, etat['imprimerie']['stockBois']))
+echecs += 0 if ok else 1
+
 delete('batiments_etat','id=eq.'+CLE)
 reste=get('batiments_etat','id=eq.'+CLE+'&select=id')
-print(('OK    ' if not reste else 'ECHEC ')+'C4. donnee de test supprimee : %d ligne(s) restante(s)'%len(reste))
+print(('OK    ' if not reste else 'ECHEC ')+'C6. donnee de test supprimee : %d ligne(s) restante(s)'%len(reste))
 echecs += 0 if not reste else 1
-print('\n4 test(s), %d echec(s)'%echecs)
+print('\n6 test(s), %d echec(s)'%echecs)

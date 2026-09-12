@@ -22,7 +22,11 @@ CREATE OR REPLACE FUNCTION public.batiment_caisse_mouvement(
   p_souscle   text,
   p_delta     numeric,
   p_stock_cle text    DEFAULT NULL,
-  p_stock     numeric DEFAULT 0
+  p_stock     numeric DEFAULT 0,
+  -- Plafond de stock (12 septembre 2026) : verifie dans la MEME instruction que l'ecriture, sous le
+  -- verrou de ligne, pour que deux ventes simultanees ne puissent jamais le depasser.
+  -- NULL = aucun plafond (comportement inchange pour tous les autres appelants).
+  p_stock_max numeric DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -69,6 +73,10 @@ BEGIN
     IF v_st + p_stock < 0 THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'stock_insuffisant', 'stock', v_st, 'caisse', v_caisse);
     END IF;
+    IF p_stock_max IS NOT NULL AND v_st + p_stock > p_stock_max THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'stock_plafond', 'stock', v_st,
+                                'stock_max', p_stock_max, 'caisse', v_caisse);
+    END IF;
     v_obj := v_obj || jsonb_build_object(p_stock_cle, v_st + p_stock);
   END IF;
 
@@ -86,5 +94,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.batiment_caisse_mouvement(text, text, text, text, numeric, text, numeric) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.batiment_caisse_mouvement(text, text, text, text, numeric, text, numeric) TO anon, authenticated, service_role;
+-- L'ancienne signature a 7 arguments est supprimee : deux surcharges rendraient l'appel ambigu.
+DROP FUNCTION IF EXISTS public.batiment_caisse_mouvement(text, text, text, text, numeric, text, numeric);
+REVOKE ALL ON FUNCTION public.batiment_caisse_mouvement(text, text, text, text, numeric, text, numeric, numeric) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.batiment_caisse_mouvement(text, text, text, text, numeric, text, numeric, numeric) TO anon, authenticated, service_role;

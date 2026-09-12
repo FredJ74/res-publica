@@ -1712,7 +1712,7 @@ async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, ca
 // utilise pour restreindre le choix de cible a l'impression d'un tract electoral a de vrais
 // candidats resolvables (evite d'imprimer un tract pour quelqu'un qui ne se presente a rien,
 // dont la distribution ne pourrait jamais s'ecrire dans le vrai systeme electoral). Memes phases
-// que distribuerProspectus (campagne active).
+// (phases de campagne actives).
 function listerCandidatsElectorauxActifs() {
   const country = state.country;
   const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
@@ -1728,65 +1728,17 @@ function listerCandidatsElectorauxActifs() {
   return out;
 }
 
-// Distribuer un prospectus à un PNJ
-async function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
-  const cle = getCleCycle(posteId, city);
-  const cycle = CYCLES_ELECTORAUX[country]?.[cle];
-  if (!cycle) return;
+// PROSPECTUS SUPPRIME (12 septembre 2026, game design confirme). Il n'existe que DEUX objets de
+// campagne : le tract electoral et le tract calomnieux. Le « prospectus » etait l'ancienne
+// generation du tract electoral -- meme finalite (convaincre un PNJ present de voter pour un
+// candidat), 1 PA + 50 FR, reussite garantie, ecriture directe dans cycle.votesPNJ. Sont retires :
+// distribuerProspectus(), distribuerProspectusModal(), le bouton du bureau de vote et les deux
+// relais de plateau-navigation.js. Ce qui N'EST PAS touche, faute d'etre le meme mecanisme :
+//   - candidat.prospectusDistribues : compteur d'affichage encore alimente par la conference ;
+//   - le bonus de synergie « prospectus comptent double » (data.js, prospectus_mult) : declare mais
+//     lu par aucun code, il attend un arbitrage ;
+//   - la conference et la mission Jean-Lou, a examiner separement.
 
-  // Garde financiere conservee (controle metier/financier, jamais ignore par TEST_MODE de
-  // toute facon). La disponibilite des PA est desormais tranchee uniquement par
-  // deduireCoutOrdre() plus bas (Lot 1, correctif suite a revue) -- plus de garde manuelle
-  // state.pa<1, qui bloquait a tort meme sous TEST_MODE=true.
-  if (state.arg < 50) { showToast('Fonds insuffisants', '50 FR requis par prospectus.', false); return; }
-
-  // Un PNJ ne peut recevoir qu'un seul prospectus (registre atomique + ancien blob)
-  if (pnjDejaEngage(cycle, pnjId)) {
-    showToast('Déjà converti', 'Ce PNJ a déjà reçu un prospectus.', false);
-    return;
-  }
-
-  // Correctif du 4 septembre 2026 (chantier electoral, audit dedie) : la condition comparait
-  // CAMPAGNE a lui-meme deux fois par erreur, bloquant en realite la distribution pendant
-  // SECOND_TOUR et CAMPAGNE_3E_SIEGE alors que le bouton s'affichait pour ces phases (voir
-  // ouvrirBureauDeVote) -- les 3 phases de campagne sont maintenant reellement acceptees ici.
-  // Toujours hors vote (VOTE/VOTE2/VOTE3E_SIEGE) : comportement inchange et deja intentionnel
-  // (voir message "Hors campagne" ci-dessous), les prospectus restent un mecanisme de campagne
-  // uniquement -- la distribution de TRACTS deja imprimes, elle, n'a jamais ete gatee par phase
-  // (distribuerTractElectoralPNJ/enregistrerVotePNJ) et continue donc normalement pendant le vote.
-  const phase = getPhaseActuelle(country, posteId, city);
-  if (phase !== PHASES_ELECTORALES.CAMPAGNE && phase !== PHASES_ELECTORALES.SECOND_TOUR && phase !== PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE) {
-    showToast('Hors campagne', 'Les prospectus ne se distribuent que pendant la campagne.', false);
-    return;
-  }
-
-  // Deduction PA+cout centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
-  // disponibilite des PA. Appelee avant tout effet de bord (enregistrerVotePNJ, compteur du
-  // candidat) : fail-closed.
-  const r = await deduireCoutOrdre({ pa: 1, cost: 50 });
-  if (!r.ok) {
-    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants',
-      r.raison === 'fonds_insuffisants' ? '50 FR requis par prospectus.' : '1 PA requis.', false);
-    return;
-  }
-  const ecrit = await enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, 'prospectus').catch(() => false);
-  if (!ecrit) {
-    // Rien n'a ete enregistre : on rembourse exactement ce qui vient d'etre preleve (1 PA + 50 FR).
-    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(50);
-    state.pa = (state.pa || 0) + 1;
-    updateUI();
-    showToast('Prospectus non distribué', 'Cette personne a déjà donné sa voix pour ce scrutin.', false);
-    return;
-  }
-
-  // Trouver le candidat et incrémenter son compteur
-  const candidat = cycle.candidats.find(c => c.nom === candidatNom);
-  if (candidat) candidat.prospectusDistribues++;
-
-  updateUI();
-  showToast('Prospectus distribué !', pnjId + ' votera pour ' + candidatNom + '. -1 PA · -50 FR', true);
-  addJournalEntry('📄 Prospectus distribué à ' + pnjId + ' pour ' + candidatNom + '.', 'event-info');
-}
 
 // Calculer les résultats
 // Correctif "cle locale erronee" (audit du 4 septembre 2026) : cette fonction lisait
@@ -1864,9 +1816,6 @@ function ouvrirBureauDeVote(posteId, country, city) {
             : '') : '') +
       '</div>' +
       '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-bottom:.2rem">' + ca.programme + '</div>' +
-      (phase === PHASES_ELECTORALES.CAMPAGNE || phase === PHASES_ELECTORALES.SECOND_TOUR || phase === PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE
-        ? '<button onclick="distribuerProspectusModalBtn(this)" data-nom="' + ca.nom + '" data-poste="' + posteId + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.85rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">📄 Distribuer prospectus (1 PA · 50 ' + (co?.cur||'FR') + ')</button>'
-        : '') +
     '</div>';
   }).join('');
 
@@ -1904,36 +1853,6 @@ function ouvrirBureauDeVote(posteId, country, city) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function distribuerProspectusModal(candidatNom, posteId, country, city) {
-  // Récupérer les PNJ présents dans la pièce courante
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const persons = room?.persons || [];
-  if (!persons.length) {
-    showToast('Personne ici', 'Aucun PNJ à qui distribuer un prospectus.', false);
-    return;
-  }
-
-  const cle = getCleCycle(posteId, city);
-  const cycle = CYCLES_ELECTORAUX[country]?.[cle];
-  const disponibles = persons.filter(p => !(typeof pnjDejaEngage === 'function' ? pnjDejaEngage(cycle, p.name) : cycle?.votesPNJ?.[p.name]));
-
-  if (!disponibles.length) {
-    showToast('Déjà convaincus', 'Tous les PNJ présents ont déjà reçu un prospectus.', false);
-    return;
-  }
-
-  const html = disponibles.map(p =>
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .2rem;border-bottom:1px solid #1a1810">' +
-    '<span style="font-size:.78rem;color:#c0b090">' + p.name.replace(' (PNJ)','') + '</span>' +
-    '<button onclick="distribuerProspectusBtn(this)" data-pnj="' + p.name + '" data-nom="' + candidatNom + '" data-poste="' + posteId + '" data-country="' + country + '" data-city="' + (city||'') + '" ' +
-    'style="font-size:.85rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">Distribuer</button>' +
-    '</div>'
-  ).join('');
-
-  document.getElementById('postes-modal-title').textContent = '📄 Distribuer pour ' + candidatNom;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:.6rem 1rem">' + html + '</div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
 
 // Consulter les résultats via informateur
 function consulterResultatsInformateur(posteId, country, city) {
@@ -2136,7 +2055,12 @@ function resoudreScrutinSimple(cycle, fraudesActives) {
   if (premier[1] > totalExprimes / 2) {
     return { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false };
   }
-  const qualifies = sorted.filter(([, v]) => v / totalExprimes >= 0.15).map(([n]) => n);
+  // SEUIL DE QUALIFICATION (regle validee le 12 septembre 2026) : 15 % des exprimes. Mais si moins
+  // de DEUX candidats l'atteignent, les deux arrives en tete sont qualifies malgre tout -- sans
+  // cela le scrutin restait bloque : aucune branche du depouillement ne s'appliquait, le cycle
+  // n'etait jamais marque resultatsTraites et le cron le reexaminait chaque nuit indefiniment.
+  let qualifies = sorted.filter(([, v]) => v / totalExprimes >= 0.15).map(([n]) => n);
+  if (qualifies.length < 2) qualifies = sorted.slice(0, 2).map(([n]) => n);
   return { scores, blancs, totalExprimes, elu: null, secondTour: qualifies, blancMajoritaire: false };
 }
 

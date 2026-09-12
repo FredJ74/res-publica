@@ -4525,6 +4525,16 @@ function prixAchatBoisImprimerie() {
   return Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
 }
 
+// CAPACITE DE STOCKAGE (regle validee le 12 septembre 2026) : une imprimerie tenue par un PNJ
+// n'entrepose que STOCK_BOIS_MAX_IMPRIMERIE_PNJ unites de bois. Elle n'achete donc que de quoi
+// atteindre ce plafond, et jamais plus que ce que sa caisse peut payer. Le plafond est garanti
+// COTE SERVEUR, dans la meme instruction que l'ecriture : deux ventes simultanees ne peuvent pas
+// le franchir. Ce n'est pas une constante definitive de game design -- un futur proprietaire PJ
+// reglera cette capacite via la future interface commune de gestion des commerces.
+function plafondBoisImprimerie() {
+  return (typeof STOCK_BOIS_MAX_IMPRIMERIE_PNJ === 'number') ? STOCK_BOIS_MAX_IMPRIMERIE_PNJ : 10;
+}
+
 async function ouvrirVendreBoisImprimerie(pa, cost) {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot) {
@@ -4537,15 +4547,21 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
   const etatImprimerie = (typeof sbGetBatimentEtat === 'function')
     ? await sbGetBatimentEtat(state.country, ville, building).catch(() => null) : null;
   const caisse = etatImprimerie?.imprimerie?.caisse || 0;
+  const stock = etatImprimerie?.imprimerie?.stockBois || 0;
+  const place = Math.max(0, plafondBoisImprimerie() - stock);
   const maxCaisse = Math.max(0, Math.floor(caisse / prixUnitaire));
-  const maxVendable = Math.min(lot.qty, maxCaisse);
+  const maxVendable = Math.min(lot.qty, place, maxCaisse);
+  const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
 
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. ' + ((typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || 'L\'imprimerie') + ' achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse (' + caisse + ' ' + cur + ', soit ' + maxCaisse + ' unité(s)).</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. ' + (imprimeur || 'L\'imprimerie') + ' achète à ' + prixUnitaire + ' ' + cur + '/unité.</div>' +
+    '<div style="font-size:.76rem;color:#a89870;margin-bottom:.7rem">Stock de l\'imprimerie : ' + stock + ' / ' + plafondBoisImprimerie() + ' — elle peut encore en prendre ' + place + '. Caisse : ' + caisse + ' ' + cur + ' (soit ' + maxCaisse + ' unité(s) payable(s)).</div>' +
     (maxVendable <= 0
-      ? '<div style="font-size:.8rem;color:#cc5540">La caisse de l\'imprimerie ne permet aucun achat pour le moment.</div>'
+      ? '<div style="font-size:.8rem;color:#cc5540">' + (place <= 0
+          ? 'L\'entrepôt de l\'imprimerie est plein : elle ne peut plus acheter de bois pour le moment.'
+          : 'La caisse de l\'imprimerie ne permet aucun achat pour le moment.') + '</div>'
       : '<input type="number" id="vendre-bois-qte" min="1" max="' + maxVendable + '" value="' + maxVendable + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
         '<button onclick="confirmerVendreBoisImprimerie(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>') +
     '</div>';
@@ -4568,6 +4584,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge).
   const prixUnitaire = prixAchatBoisImprimerie();
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
+  const plafond = plafondBoisImprimerie();
 
   // DOUBLE-CLIC : le bois est reserve SYNCHRONEMENT, avant le moindre aller-retour reseau. Deux
   // clics ne peuvent donc pas vendre deux fois le meme lot ; la reservation est rendue en entier
@@ -4584,29 +4601,32 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026) -- le joueur est le
   // vendeur, il ne paie rien, quels que soient les pa/cost transmis par le bouton.
   //
-  // TRANSACTION UNIQUE (12 septembre 2026) : le debit de la caisse et l'entree en stock se font
-  // dans une seule instruction SQL sous verrou de ligne (batiment_caisse_mouvement). L'ancien
-  // couple lecture/ecriture laissait deux ventes simultanees ecraser le meme solde -- l'imprimerie
-  // payait deux fois et ne debitait qu'une. Si la caisse ne suffit plus, la RPC refuse en entier et
-  // renvoie le solde reel : on recalcule alors la quantite reellement achetable et on retente une
-  // fois (vente partielle), sans jamais rien creer.
+  // TRANSACTION UNIQUE : le debit de la caisse, l'entree en stock ET le controle du plafond se font
+  // dans une seule instruction SQL sous verrou de ligne (batiment_caisse_mouvement). Deux ventes
+  // simultanees ne peuvent donc ni ecraser le meme solde, ni depasser ensemble la capacite. Si la
+  // caisse ou la place manquent, la RPC refuse EN ENTIER et renvoie l'etat reel : on recalcule
+  // alors la quantite reellement achetable et on retente une fois (vente partielle).
   let qte = qteVoulue;
-  let montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
-  let r = (typeof sbBatimentMouvementCaisse === 'function')
-    ? await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montantPaye, 'stockBois', qte).catch(() => null)
-    : null;
-  if (r && !r.ok && r.raison === 'caisse_insuffisante') {
-    const possible = Math.max(0, Math.floor((r.caisse || 0) / prixUnitaire));
-    qte = Math.min(qteVoulue, possible);
-    montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
-    r = qte > 0
-      ? await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montantPaye, 'stockBois', qte).catch(() => null)
-      : { ok: false, raison: 'caisse_insuffisante' };
+  const tenter = async (n) => {
+    const montant = Math.round(n * prixUnitaire * 100) / 100;
+    return await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montant, 'stockBois', n, plafond)
+      .catch(() => null);
+  };
+  let r = (typeof sbBatimentMouvementCaisse === 'function') ? await tenter(qte) : null;
+  if (r && !r.ok && (r.raison === 'caisse_insuffisante' || r.raison === 'stock_plafond')) {
+    const parCaisse = Math.max(0, Math.floor((r.caisse || 0) / prixUnitaire));
+    const parPlace = (typeof r.stock === 'number') ? Math.max(0, plafond - r.stock) : qteVoulue;
+    qte = Math.min(qteVoulue, parCaisse, parPlace);
+    r = qte > 0 ? await tenter(qte) : { ok: false, raison: r.raison };
   }
+  const montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
   if (!r || !r.ok) {
     rendreBois(qteVoulue);
     updateUI();
-    showToast('Caisse vide', (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
+    showToast(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : 'Caisse vide',
+      r && r.raison === 'stock_plafond'
+        ? (imprimeur || 'L\'imprimerie') + ' a déjà ' + plafond + ' bois en stock : elle ne peut plus en prendre.'
+        : (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
   rendreBois(qteVoulue - qte);
@@ -4619,7 +4639,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   updateUI();
 
   if (qte < qteVoulue) {
-    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'avait de quoi acheter que ' + qte + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
+    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'a pu acheter que ' + qte + ' bois (capacité ou caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
   } else {
     showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qte + ' bois.', true, true);
   }
