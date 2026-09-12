@@ -1,0 +1,38 @@
+-- =====================================================================
+-- DEUX CAISSES DISTINCTES : IMPRIMERIE ET REDACTION (12 septembre 2026)
+-- =====================================================================
+-- Arbitrage : l'atelier d'impression et le journal sont deux activites economiquement distinctes.
+-- Le proprietaire de l'imprimerie ne doit jamais disposer de la caisse du journal.
+--
+-- EXTENSION MINIMALE : batiments_etat porte deja un sous-objet PAR ACTIVITE ('imprimerie',
+-- 'entrepot', 'usine', 'port'...) et la RPC batiment_caisse_mouvement est parametree par ce
+-- sous-objet. La caisse editoriale est donc simplement un second sous-objet, 'redaction', dans la
+-- meme ligne : deux soldes reellement distincts cote serveur, sans seconde architecture de caisse.
+--
+-- FAIL-CLOSED : le nouveau parametre p_exiger_existant refuse le mouvement si la ligne OU le
+-- sous-objet n'existe pas. Une operation editoriale dans un journal sans caisse initialisee est donc
+-- refusee -- jamais creee a la volee, jamais redirigee vers la caisse d'un autre journal.
+-- ATTENTION : le controle du sous-objet doit s'ecrire IS DISTINCT FROM. Une premiere version
+-- utilisait « jsonb_typeof(...) <> 'object' », qui vaut NULL quand la cle est absente : le garde-fou
+-- ne se declenchait jamais (defaut attrape par le test Y3).
+--
+-- SOLDE INITIAL : 0. La dotation de 200 unites accordee aux imprimeries servait a AMORCER un achat
+-- (acheter du bois avant d'avoir vendu quoi que ce soit) ; une redaction n'a aucune depense a
+-- amorcer, tous ses flux sont entrants. Meme doctrine que le stock de bois initial, fixe a 0.
+--
+-- Migrations MCP correspondantes : « caisse_redaction_separee » puis
+-- « caisse_redaction_fail_closed_correctif ». Idempotent : les caisses d'imprimerie existantes et
+-- toute caisse editoriale deja creee ne sont jamais touchees.
+-- =====================================================================
+
+-- 1. batiment_caisse_mouvement gagne p_exiger_existant (9e argument). L'ancienne signature a 8
+--    arguments est supprimee : deux surcharges rendraient l'appel PostgREST ambigu.
+--    Voir la base pour le corps exact (identique a migration_caisses_batiments_etat.sql, plus le
+--    garde-fou fail-closed en tete).
+
+-- 2. Creation idempotente d'une caisse editoriale a 0 pour chaque lieu portant des ordres de
+--    redaction : les cinq journaux « la-tribune » (republic/capitale, republic/ville_b,
+--    narco/capitale, soviet/capitale, khalija/capitale) et les douze antennes « centre-affaires ».
+--    Le sous-objet n'est cree que s'il est absent ; aucune autre cle de la ligne n'est modifiee.
+--    L'Imprimerie-Librairie Gutenberg (republic/ville_a/imprimerie-librairie) n'en recoit PAS :
+--    ce batiment n'heberge aucune redaction.

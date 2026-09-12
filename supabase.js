@@ -2423,11 +2423,12 @@ async function sbTractsElectorauxDistribuer(requete, joueur, cycleId, candidat, 
 // d'argent, ou deux operations simultanees s'ecrasaient (caisse payant deux fois, ne baissant
 // qu'une). Tout-ou-rien : un debit qui mettrait la caisse en negatif n'est pas applique et renvoie
 // le solde reel. stockCle/stock deplacent en meme temps un compteur voisin (ex. stockBois).
-async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta, stockCle, stock, stockMax) {
+async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta, stockCle, stock, stockMax, exigerExistant) {
   const rows = await sbRpc('batiment_caisse_mouvement', {
     p_pays: pays, p_ville: ville, p_building: buildingId, p_souscle: sousCle,
     p_delta: delta, p_stock_cle: stockCle || null, p_stock: stock || 0,
-    p_stock_max: (typeof stockMax === 'number') ? stockMax : null
+    p_stock_max: (typeof stockMax === 'number') ? stockMax : null,
+    p_exiger_existant: exigerExistant === true
   });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }

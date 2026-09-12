@@ -11136,6 +11136,39 @@ async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCl
   return montant;
 }
 
+// DEUX CAISSES DISTINCTES (12 septembre 2026) : l'atelier d'impression et le journal sont deux
+// activites economiquement separees, portees par deux sous-objets distincts de la meme ligne
+// batiments_etat. Le proprietaire de l'imprimerie ne doit jamais disposer de la caisse du journal.
+const CAISSE_IMPRIMERIE = 'imprimerie';
+const CAISSE_REDACTION = 'redaction';
+
+// Recette editoriale, TOUJOURS contextualisee par le journal ou l'on se trouve : une operation faite
+// dans une redaction etrangere credite SA caisse, jamais celle de La Tribune de Republia. FAIL-CLOSED :
+// si ce lieu n'a pas de caisse editoriale initialisee, la RPC refuse (elle n'en cree pas a la volee)
+// et l'appelant doit rembourser le joueur plutot que de crediter la mauvaise caisse.
+async function crediterCaisseRedaction(pays, ville, buildingId, montant) {
+  if (!(montant > 0)) return { ok: true, caisse: null };
+  if (typeof sbBatimentMouvementCaisse !== 'function') return { ok: false, raison: 'indisponible' };
+  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, CAISSE_REDACTION, Math.abs(montant),
+                                            null, 0, null, true).catch(() => null);
+  return r || { ok: false, raison: 'reseau' };
+}
+
+// Encaisse une recette editoriale pour le lieu courant et, en cas d'echec, REND l'argent au joueur :
+// jamais de monnaie detruite, jamais de credit sur la caisse d'un autre journal.
+async function encaisserRecetteRedaction(montant, libelle) {
+  const r = await crediterCaisseRedaction(state.country, state.currentCity || 'capitale',
+                                          state.currentBuilding, montant);
+  if (r && r.ok) return true;
+  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+  else state.arg = (state.arg || 0) + montant;
+  if (typeof showToast === 'function') {
+    showToast('Rédaction indisponible', 'Ce journal n\'a pas de caisse éditoriale : ' + (libelle || 'l\'opération')
+      + ' n\'a pas pu être encaissée, votre argent vous est rendu.', false);
+  }
+  return false;
+}
+
 async function crediterCaisseEtatBatiment(pays, ville, buildingId, sousCle, montant) {
   if (typeof sbBatimentMouvementCaisse === 'function') {
     const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, Math.abs(montant)).catch(() => null);

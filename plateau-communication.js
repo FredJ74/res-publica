@@ -2613,8 +2613,14 @@ async function confirmerDepotPetiteAnnonce() {
   if (!ok) { showToast('Erreur', "L'annonce n'a pas pu être enregistrée. Réessayez plus tard.", false); return; }
 
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - PETITE_ANNONCE_PA);
-  if (typeof debiterFondsOrdinaires === 'function') debiterFondsOrdinaires(PETITE_ANNONCE_COUT_FR);
+  if (typeof debiterFondsOrdinaires === 'function') await debiterFondsOrdinaires(PETITE_ANNONCE_COUT_FR);
   else state.arg = Math.max(0, state.arg - PETITE_ANNONCE_COUT_FR);
+  // Recette EDITORIALE (12 septembre 2026) : la parution est vendue par le JOURNAL, son prix va donc
+  // dans la caisse de la redaction du lieu -- jamais dans celle de l'atelier d'impression, et jamais
+  // dans celle d'un autre journal. Prix et game design inchanges.
+  if (typeof encaisserRecetteRedaction === 'function') {
+    await encaisserRecetteRedaction(PETITE_ANNONCE_COUT_FR, 'la petite annonce');
+  }
 
   showToast('Annonce publiée', `Votre petite annonce paraîtra dans La Tribune de Républia pendant ${PETITE_ANNONCE_DUREE_JOURS} jours.`, true);
   addJournalEntry('📰 Petite annonce déposée à La Tribune de Républia.', 'event-good');

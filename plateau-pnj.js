@@ -2278,8 +2278,22 @@ async function validerLobbyingPresse() {
   const succes = roll <= taux;
 
   if (succes) {
-    if (typeof debiterFondsOrdinaires === 'function') await debiterFondsOrdinaires(cost).catch(() => {});
-    else state.arg = Math.max(0, (state.arg || 0) - cost);
+    // BUG CORRIGE (12 septembre 2026) : le resultat du debit n'etait pas teste -- si les fonds
+    // avaient fondu depuis la garde d'entree, la primitive refusait sans rien prelever et l'effet
+    // etait accorde gratuitement.
+    const paiement = (typeof debiterFondsOrdinaires === 'function')
+      ? await debiterFondsOrdinaires(cost).catch(() => null) : null;
+    if (paiement && paiement.ok === false) {
+      _lobbyingPresse.soumission = false;
+      showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + '.', false);
+      return;
+    }
+    if (!paiement) state.arg = Math.max(0, (state.arg || 0) - cost);
+    // Recette EDITORIALE : « Placer un article » et « Etouffer un article » sont vendus par le
+    // JOURNAL, leur prix va donc dans la caisse de la redaction du lieu -- plus de monnaie detruite.
+    if (cost > 0 && typeof encaisserRecetteRedaction === 'function') {
+      await encaisserRecetteRedaction(cost, mode === 'article' ? 'l\'article' : 'l\'étouffement');
+    }
 
     if (mode === 'article') {
       const angleTexte = (angle || '').trim();

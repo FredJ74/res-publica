@@ -1010,10 +1010,9 @@ async function confirmerCorrompreJournaliste(pa, cost) {
       const r = await deduireCoutOrdre({ pa: COUT_PA_CORRUPTION_PRESSE, cost: COUT_FR_CORRUPTION_PRESSE });
       if (!r.ok) { signalerRefusCout(r); return; }
       const montantDebite = r.montantPreleve || 0;
-      // Les 500 FR entrent dans la caisse de La Tribune : ils ne sont plus detruits.
-      if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
-        await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
-          state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
+      // Recette EDITORIALE : caisse du JOURNAL du lieu, jamais celle de l'atelier.
+      if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
+        await encaisserRecetteRedaction(montantDebite, 'la corruption de la rédaction');
       }
       showToast('Accord conclu', option === 'etouffer'
         ? 'L\'affaire concernant ' + res.affaire_pj + ' ne sera pas publiée. Le dossier judiciaire, lui, reste intact.'
@@ -1171,10 +1170,10 @@ async function confirmerScandale(pa, cost) {
       const r = await deduireCoutOrdre({ pa: COUT_PA_SCANDALE, cost: COUT_FR_SCANDALE });
       if (!r.ok) { signalerRefusCout(r); return; }
       const montantDebite = r.montantPreleve || 0;
-      // Les 800 FR entrent dans la caisse de La Tribune : ils ne sont plus detruits.
-      if (montantDebite > 0 && typeof crediterCaisseEtatBatiment === 'function') {
-        await crediterCaisseEtatBatiment(state.country, state.currentCity || 'capitale',
-          state.currentBuilding || 'la-tribune', 'imprimerie', montantDebite);
+      // Recette EDITORIALE : elle va dans la caisse du JOURNAL du lieu, jamais dans celle de
+      // l'atelier d'impression. Si ce journal n'a pas de caisse editoriale, l'argent est rendu.
+      if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
+        await encaisserRecetteRedaction(montantDebite, 'la publication du scandale');
       }
       const article = await redigerScandale(state.char.name, cible, accusation);
       const pub = await sbScandalePublier(res.scandale_id, article).catch(() => null);
@@ -5652,6 +5651,98 @@ function getCommercesAlimentairesRachetables() {
     .filter(Boolean);
 }
 
+// =====================================================================
+// PROPRIETE DES IMPRIMERIES (12 septembre 2026)
+// =====================================================================
+// La cession porte EXCLUSIVEMENT sur l'activite d'imprimerie : ni le journal, ni sa redaction, ni sa
+// caisse editoriale, ni ses archives, ni ses ordres journalistiques.
+//
+// ARCHITECTURE : la ligne `entreprises` ne porte QUE l'identite de propriete (proprietaire,
+// compromis, transmission, preemption, gel de succession). La caisse et le stock de bois restent la
+// SEULE source de verite operationnelle dans batiments_etat -- rien n'est duplique. C'est pourquoi
+// defautImprimerie() ne contient ni `caisse` ni `stockMatieres`, contrairement a defautCommerce().
+//
+// IDENTITE LOCATION-SCOPED : 'imprimerie-<pays>-<ville>-<buildingId>'. Indispensable, car le
+// buildingId 'la-tribune' existe a Luthecia ET a Montrouge : une cle par buildingId ferait
+// disparaitre l'une des deux (le registre PRIX_RACHAT_COMMERCE resout la ville par la PREMIERE
+// trouvee) et rendrait les journaux etrangers achetables par effet de bord.
+const PRIX_RACHAT_IMPRIMERIE = 180000;
+
+// Les trois imprimeries de Republia, enumerees explicitement : aucune resolution implicite de ville,
+// donc aucune collision possible et aucun debordement vers les autres empires.
+const IMPRIMERIES_RACHETABLES_REPUBLIA = [
+  { pays: 'republic', ville: 'capitale', buildingId: 'la-tribune' },
+  { pays: 'republic', ville: 'ville_b',  buildingId: 'la-tribune' },
+  { pays: 'republic', ville: 'ville_a',  buildingId: 'imprimerie-librairie' }
+];
+
+// VENTE FERMEE TANT QUE LE BENEFICIAIRE DES 180 000 FR N'EST PAS ARBITRE.
+// Le pipeline notarial detruit aujourd'hui le prix (state.arg -= solde, sans aucune contrepartie),
+// et le depot contient trois precedents contradictoires : Helvetia credite une caisse nommee, la
+// succession credite budgets_nationaux.reserveJour, l'achat de terrain ne credite rien. Mettre
+// 180 000 FR par transaction sur l'un de ces chemins serait une decision economique nouvelle : elle
+// n'est pas prise ici. Toute l'architecture de propriete est en place et testee ; il suffira de
+// passer cette constante a true une fois le beneficiaire tranche.
+const IMPRIMERIES_RACHETABLES = false;
+
+function getImprimerieId(pays, ville, buildingId) {
+  return 'imprimerie-' + pays + '-' + ville + '-' + buildingId;
+}
+
+// Identite de propriete SEULE : ni caisse ni stock, qui restent dans batiments_etat.
+function defautImprimerie(pays, ville, buildingId) {
+  return {
+    id: null,
+    type: 'imprimerie',
+    country: pays,
+    city: ville,
+    buildingId: buildingId,
+    roomId: null,
+    proprietaire: 'PNJ',
+    // La caisse et le stock de bois de cet atelier vivent dans batiments_etat
+    // (sous-objet 'imprimerie'), jamais ici : une seule source de verite.
+    caisseExterne: { table: 'batiments_etat', sousCle: 'imprimerie' },
+    historique: []
+  };
+}
+
+async function chargerImprimerie(pays, ville, buildingId) {
+  const id = getImprimerieId(pays, ville, buildingId);
+  const data = await chargerEntreprise(id, () => defautImprimerie(pays, ville, buildingId));
+  if (data) data.id = id;
+  return data;
+}
+
+// Avertissement notarial obligatoire : le joueur doit le voir AVANT de confirmer.
+function avertissementCessionImprimerie(ville) {
+  return ville === 'capitale'
+    ? 'La vente concerne exclusivement l\'activité d\'imprimerie. La salle de rédaction de La Tribune '
+      + 'de Républia ne fait pas partie de la cession et reste indépendante de l\'acquéreur.'
+    : 'La vente concerne exclusivement l\'activité d\'imprimerie : atelier, caisse et stock de matières '
+      + 'premières. Aucune activité de presse, aucune rédaction et aucune caisse éditoriale ne sont '
+      + 'comprises dans la cession.';
+}
+
+function getImprimeriesRachetables() {
+  if (!IMPRIMERIES_RACHETABLES) return [];
+  const pays = state.country || 'republic';
+  return IMPRIMERIES_RACHETABLES_REPUBLIA
+    .filter(i => i.pays === pays && WORLD[pays]?.[i.ville]?.buildings?.includes(i.buildingId))
+    .map(i => {
+      const id = getImprimerieId(i.pays, i.ville, i.buildingId);
+      const nomLieu = WORLD[i.pays]?.[i.ville]?.buildingContext?.[i.buildingId]?.name
+        || BUILDINGS[i.buildingId]?.name || i.buildingId;
+      return {
+        id,
+        label: 'l\'imprimerie de ' + nomLieu,
+        prix: PRIX_RACHAT_IMPRIMERIE,
+        typeBien: 'imprimerie',
+        avertissement: avertissementCessionImprimerie(i.ville),
+        charger: () => chargerImprimerie(i.pays, i.ville, i.buildingId)
+      };
+    });
+}
+
 function getEntreprisesRachetables() {
   const pays = state.country || 'republic';
   const armureries = getVillesAvecArmurerie(pays).map(city => {
@@ -5670,7 +5761,7 @@ function getEntreprisesRachetables() {
       charger: () => chargerEntrepriseParId(id, pays, city)
     };
   });
-  return armureries.concat(getCommercesAlimentairesRachetables());
+  return armureries.concat(getCommercesAlimentairesRachetables()).concat(getImprimeriesRachetables());
 }
 
 function getEntrepriseRachetable(id) {
@@ -5729,6 +5820,9 @@ async function doSignerCompromisEntreprise(type) {
   document.getElementById('postes-modal-title').textContent = 'Compromis de rachat';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.6rem">' + def.label + ' — ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (def.avertissement) {
+    html += '<div style="font-size:.8rem;color:#C9A84C;border:1px solid #8a6a20;background:#1a1005;padding:.6rem;margin-bottom:.8rem">⚠ ' + def.avertissement + '</div>';
+  }
   html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Le compromis réserve cette entreprise 7 jours. À l\'échéance, si le rachat n\'est pas finalisé chez le notaire, l\'acompte est perdu et l\'entreprise redevient disponible.</div>';
   html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.6rem">';
   html += '<div style="font-size:.85rem;color:#c0b090">✓ Versement de l\'acompte</div>';
@@ -5864,6 +5958,9 @@ async function afficherRecapActeRachatEntreprise(candidat, pa, cost) {
   html += '<div style="font-size:.85rem;color:#C9A84C"><strong>Solde restant à payer :</strong> ' + solde.toLocaleString('fr-FR') + ' ' + cur + '</div>';
   if (financementTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + financementTxt + '</div>';
   html += '</div>';
+  if (def.avertissement) {
+    html += '<div style="font-size:.8rem;color:#C9A84C;border:1px solid #8a6a20;background:#1a1005;padding:.6rem;margin-bottom:.8rem">⚠ ' + def.avertissement + '</div>';
+  }
   html += '<button onclick="traiterActeRachatEntreprise(window._candidatActeRachatEntrepriseAConfirmer,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">Confirmer la transaction</button>';
   html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>';
   html += '</div>';
