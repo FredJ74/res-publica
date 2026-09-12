@@ -35,7 +35,8 @@
 import {
   determinerPaysEligibles,
   calculerPeriode,
-  construirePaquetFactuel
+  construirePaquetFactuel,
+  POIDS_ORDRE
 } from './_journal-collecte.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
@@ -264,16 +265,20 @@ HIÉRARCHIE ÉDITORIALE (guide de priorité pour la Une, pas une grille mécaniq
 ${HIERARCHIE_EDITORIALE.map((h, i) => `${i + 1}. ${h}`).join('\n')}
 S'il n'existe aucune actualité notable dans les catégories les plus hautes, descends dans cette liste jusqu'à trouver la meilleure information réellement disponible — une information sportive, économique ou de société peut parfaitement devenir la Une du jour si rien de plus fort n'existe au-dessus. Le champ "domaine" de chaque fait t'indique sa catégorie.
 
-RÈGLE DE UNE — « Les personnages de Res Publica font l'actualité de Res Publica » (règle STRICTE, non négociable) :
+RÈGLE DE UNE — « Les personnages de Res Publica font l'actualité de Res Publica » (PRIORITÉ ÉDITORIALE FORTE, et non une obligation absolue — arbitrage du 12 septembre 2026) : à intérêt comparable, un sujet impliquant un personnage joueur passe devant. Mais si une institution, une élection, un événement politique, sportif ou économique constitue objectivement le meilleur sujet disponible du jour, il fait la Une sans réserve. Ne sacrifie jamais la qualité éditoriale du numéro pour caser un personnage joueur en Une.
 ${hasPJMaterial
-    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un FAIT (un événement de jeu : arrestation, élection, mariage, rachat, grève, nomination…) impliquant un personnage joueur (PJ). AU MOINS UN des 1 ou 2 sujets de la Une (voir "MAXIMUM DEUX SUJETS EN UNE" ci-dessous) doit donc être RÉELLEMENT CENTRÉ sur ce personnage : son article doit citer la source estPJ dans ses "source_ids" ET nommer ce personnage dans "personnages_concernes". Référencer une source PJ en appui d'un article qui parle d'autre chose ne satisfait PAS cette règle. Un fait PJ mineur peut faire la Une aux côtés d'un événement institutionnel majeur — il n'a pas à l'écraser, les deux sujets de Une existent pour cela. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) occuper TOUS les sujets de Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
+    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un FAIT (un événement de jeu : arrestation, élection, mariage, rachat, grève, nomination…) impliquant un personnage joueur (PJ). Sauf si un autre sujet est manifestement plus fort, AU MOINS UN des 1 ou 2 sujets de la Une (voir "MAXIMUM DEUX SUJETS EN UNE" ci-dessous) devrait donc être RÉELLEMENT CENTRÉ sur ce personnage : son article doit citer la source estPJ dans ses "source_ids" ET nommer ce personnage dans "personnages_concernes". Référencer une source PJ en appui d'un article qui parle d'autre chose ne satisfait PAS cette règle. Un fait PJ mineur peut faire la Une aux côtés d'un événement institutionnel majeur — il n'a pas à l'écraser, les deux sujets de Une existent pour cela. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) occuper TOUS les sujets de Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
     : `Aucun FAIT de jeu impliquant un personnage joueur n'existe dans ce paquet pour cette période. La Une est donc LIBRE : choisis les meilleurs sujets disponibles, PJ ou non. Si une déclaration de forum d'un PJ te paraît réellement forte, elle reste parfaitement éligible à la Une — mais rien ne t'y oblige, et tu ne dois jamais fabriquer un article à partir d'un message de forum anodin pour remplir cette place.`}
 
 MAXIMUM DEUX SUJETS EN UNE : le tableau "une.sujets" contient AU PLUS 2 éléments. Un seul sujet suffit la plupart du temps ; deux sujets ne se justifient que si deux informations méritent réellement toutes les deux un traitement de Une le même jour (elles se "partagent" alors la Une). Ne remplis jamais un deuxième sujet artificiellement s'il n'y a qu'un seul vrai sujet de Une.
 
 MAXIMUM TROIS APPELS DE UNE : le tableau "une.appels" contient AU PLUS 3 éléments (0 est parfaitement valide s'il n'y a rien d'autre à signaler). Ce sont de petits titres renvoyant vers un article de deuxième page qui ne fait pas partie des sujets principaux (ex. "Luthécia champion ! — p. 2"). N'en crée que pour des informations réellement notables.
 
-"JOURNÉE CALME" — CONDITION STRICTE : une Une où tous les sujets ont "article_ref":null n'est autorisée QUE si le tableau FACTS transmis est ENTIÈREMENT VIDE. Dès qu'un seul FACT existe, quelle que soit sa catégorie ou son poids, tu DOIS choisir le meilleur d'entre eux pour au moins un sujet de Une — descends dans la hiérarchie éditoriale si besoin, mais ne déclare jamais une "journée calme" tant qu'un fait réel est disponible.
+"JOURNÉE CALME" : une Une où tous les sujets ont "article_ref":null ne se justifie que si le tableau FACTS transmis est ENTIÈREMENT VIDE. Dès qu'un seul FACT existe, quelle que soit sa catégorie ou son poids, choisis le meilleur d'entre eux pour au moins un sujet de Une — descends dans la hiérarchie éditoriale si besoin. Une édition COURTE est parfaitement légitime : une faible actualité donne un numéro bref, jamais un numéro vide ni un numéro rempli artificiellement.
+
+SUJETS TOUJOURS D'ACTUALITÉ : certains faits portent "permanent":true. Ce ne sont pas des événements de la journée mais des situations en cours, recalculées à chaque numéro depuis l'état réel du jeu : échéance électorale ouverte (avec sa date de scrutin et le nombre réel de candidatures déposées), classement du championnat, prochaine journée de championnat. Ils sont parfaitement publiables, y compris en Une un jour creux, et ne doivent JAMAIS être présentés comme un événement qui vient de se produire : écris-les au présent d'état ("à trois jours du scrutin", "aucune candidature n'a encore été déposée"), jamais comme une nouvelle du jour. Ne les mets jamais dans "sujets_differes" : ils reviendront d'eux-mêmes demain, à jour.
+
+SUJETS REPORTÉS : un fait portant "report_differe":true vient d'une édition précédente et "jours_depuis_fait" dit son ancienneté. Sa date réelle doit rester visible pour le lecteur : ne le présente JAMAIS comme un événement du jour. Écris par exemple "survenu la veille", "il y a trois jours", ou rappelle la date.
 
 RÈGLES PAR TYPE D'ÉVÉNEMENT (destination éditoriale par défaut — un fait non cité dans un article part automatiquement en dernière page selon son type ; ces règles t'indiquent quand un fait mérite mieux) :
 - Arrivée d'un nouveau PJ ("type":"arrivee") : jamais un article, part en "Journal des arrivées" en dernière page. Ne parle JAMAIS de "naissance" pour la création d'un personnage.
@@ -296,6 +301,13 @@ RÈGLES PAR TYPE D'ÉVÉNEMENT (destination éditoriale par défaut — un fait 
 - Déclaration publique sur le forum : ne devient un article QUE si elle présente un véritable intérêt journalistique (annonce politique, accusation, prise de position importante, réaction à une affaire...). Ne génère JAMAIS automatiquement un article pour chaque message du forum.
 - Article favorable obtenu par lobbying ("type":"lobbying_article_favorable") : ce fait indique qu'une sollicitation éditoriale discrète a réussi — c'est un fait réel (la sollicitation a eu lieu), mais son contenu est une CONSIGNE D'ANGLE, jamais un fait supplémentaire établi. Rédige un article réellement favorable à la cible désignée, inspiré de l'angle indiqué dans le "resume", SANS jamais inventer de nouveau fait vérifiable (récompense, chiffre, exploit) au-delà de ce que tu sais déjà d'elle par ailleurs dans le paquet — un ton favorable, une mise en valeur de sa personnalité ou de son rôle restent permis. Article de deuxième page par défaut, jamais garanti en Une (une couverture obtenue par lobbying reste plus faible qu'un vrai événement). Ne mentionne JAMAIS, sous aucune forme, que cet article a été sollicité, commandé ou obtenu par lobbying : il doit se lire comme un choix éditorial ordinaire de la rédaction, et le champ "personnages_concernes" ne doit jamais inclure de commanditaire (aucun n'est de toute façon fourni dans ce fait).
 
+- Échéance électorale ("type":"echeance_electorale") : sujet permanent portant la date réelle du scrutin et le nombre RÉEL de candidatures déposées ("nb_candidatures"). Quand ce nombre est ZÉRO et que le scrutin approche, c'est une vraie actualité politique — un scrutin risque de se tenir sans personne à élire : traite-le comme tel, article de deuxième page au minimum, Une possible s'il n'existe rien de plus fort. Tu PEUX exploiter cette absence avec ironie ou humour (jouer sur le vide, le fauteuil qui attend, un « M. Vacant » que personne n'a présenté...), car l'absence est un FAIT vérifié. Mais tu ne dois JAMAIS inventer une candidature, un nom de candidat, une intention de se présenter, un renoncement, ni prêter à quiconque le projet de concourir : aucun candidat n'existe, et ton article ne doit jamais laisser croire le contraire. Quand des candidatures existent, couvre la campagne normalement, sans jamais en inventer d'autres.
+- Résultat de scrutin à l'Assemblée nationale ("type":"scrutin_assemblee") : actualité politique nationale — article de deuxième page par défaut, Une possible selon l'importance du texte et l'écart du vote. Le "resume" porte le verdict réel et "data" le détail (résultat, voix pour, voix contre, auteur, catégorie) : reste dans ces limites. N'invente aucun vote individuel, aucune consigne de groupe, aucune conséquence juridique ou politique qui ne soit pas dans le paquet.
+- Projet de loi en attente de vote ("type":"proposition_en_debat") : sujet permanent, présent seulement dans les jours qui précèdent la journée de vote ("jours_avant_vote", "date_vote_fr"). Tu peux lui donner un vrai traitement journalistique et créer du BUZZ autour de l'enjeu : rappeler le contenu réel du texte (champ "texte_propose", extrait littéral — tu peux le citer ou le paraphraser), nommer son auteur réel, dire quand le scrutin aura lieu, et relier les prises de position publiques qui existent réellement dans PUBLIC_STATEMENTS (le champ "forum_topic_id" désigne le sujet de forum du texte). Les jours où l'actualité est pauvre, faire monter un texte à venir est un choix éditorial légitime, y compris en Une. INTERDICTIONS ABSOLUES : n'invente aucune controverse, aucune déclaration, aucun soutien, aucune opposition, aucun ralliement, aucune conséquence chiffrée ou certaine, aucune réaction de l'opinion, aucun sondage. Si personne ne s'est publiquement exprimé sur ce texte, dis-le ou n'en parle pas — ne fabrique jamais un camp. Quand "jour_du_vote" vaut true, le scrutin du jour est lui-même l'actualité ; le résultat, lui, ne sera connu qu'après la clôture et fera l'objet d'un autre numéro.
+- Fuite journalistique ("type":"fuite_journalistique") : la rédaction a obtenu la révélation d'une affaire RÉELLE — le "resume" décrit des faits établis, jamais une rumeur. Traite-le comme une vraie révélation de presse, article de deuxième page par défaut, Une possible si l'affaire est forte. NE CHERCHE JAMAIS à dire d'où vient l'information, qui l'a transmise ou qui aurait intérêt à la voir publiée : la protection des sources est absolue, et aucun commanditaire ne t'est d'ailleurs fourni. N'ajoute aucun fait au-delà du "resume".
+- Mise en cause publique ("type":"scandale_presse", "nature":"accusation") : ce qui est ÉTABLI, c'est qu'une accusation a été publiée — JAMAIS son contenu. Le champ "contenu_attribue" porte le texte de l'accusation et "attribue_a" son auteur, qui est public. Tu dois systématiquement attribuer ("X accuse…", "selon X…") et ne jamais présenter l'accusation comme démontrée ; tu peux citer "contenu_attribue" entre guillemets sous attribution explicite. Article de deuxième page par défaut. N'invente aucune preuve, aucune réaction, aucune enquête.
+- Affaire judiciaire au cadrage favorable ("cadrage":"favorable" sur un fait de condamnation ou d'arrestation) : les FAITS RESTENT VRAIS et doivent être publiés tels quels, sans rien retirer ni adoucir de la réalité — le dossier judiciaire n'est pas modifiable. Ce qui change est le TRAITEMENT : adopte un angle bienveillant envers la personne désignée par "cadrage_beneficiaire" (contexte, mise en perspective, sobriété du titre, présomption d'innocence quand elle s'applique réellement, place discrète dans le numéro plutôt que la Une). N'invente JAMAIS un élément à décharge, un témoignage, une explication ou une circonstance atténuante qui ne figure pas dans le paquet, et ne mentionne jamais qu'un traitement particulier a été demandé.
+
 PERSONNALITÉ « IMPORTANTE » : cette appréciation t'est laissée entièrement — fonction, importance politique, actualité récente, notoriété, rôle dans l'événement. Ne crée et n'invente jamais une notoriété ou des faits pour justifier ce choix ; base-toi uniquement sur ce que le paquet te montre réellement (poste occupé, présence répétée dans l'actualité récente via DEJA_COUVERT, etc.).
 
 SUIVI DE L'ACTUALITÉ — NE PAS RÉPÉTER MÉCANIQUEMENT : le bloc "DEJA_COUVERT" liste les sujets déjà publiés lors des éditions récentes (avec leur "dedup_key" et leur ancienneté). Si un FACT ou une PUBLIC_STATEMENT correspond à un sujet déjà couvert, NE RÉÉCRIS PAS la même annonce comme une nouvelle ("X nommé ministre" ne doit pas être republié tel quel le lendemain). Tu peux en revanche chercher un PROLONGEMENT réel et présent dans le paquet (première action, déclaration, réaction, décision, conséquence, interview) et en faire un article de suivi — jamais un prolongement inventé. Exception validée : une grève générale déjà couverte reste normalement en Une chaque jour (voir règle dédiée ci-dessus), ce n'est pas une répétition interdite.
@@ -310,7 +322,7 @@ HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}").
 
 FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout article de type "declaration" doit attribuer explicitement le contenu à son auteur avec un verbe déclaratif ("X affirme...", "X accuse..."), jamais le présenter comme un fait acquis. Une rumeur reste une rumeur : "selon une rumeur...", "une rumeur met en cause...", jamais présentée comme un fait établi. Si un PJ a publiquement répondu à une rumeur ou une accusation le concernant (present aussi dans PUBLIC_STATEMENTS), cette réponse est elle-même une information légitime, à attribuer de la même façon.
 
-GUILLEMETS ET CITATIONS. Deux usages distincts, ne les confonds pas. (A) USAGE TYPOGRAPHIQUE : tu peux mettre entre guillemets un nom, un surnom, une dénomination, une expression ou un emploi ironique — par exemple le « Cercle de Boétie ». C'est autorisé et ce n'est pas une citation. (B) PAROLE ATTRIBUÉE : dès que tu présentes des mots comme réellement prononcés par quelqu'un (guillemets accompagnés d'un verbe d'attribution, ou passage d'au moins cinq mots), ces mots doivent provenir MOT POUR MOT du champ "extrait" d'un PUBLIC_STATEMENT que tu as listé dans les "source_ids" de CE MÊME article. C'est la règle à retenir : LISTER UNE SOURCE DANS "source_ids" EST CE QUI TE DONNE LE DROIT D'EN CITER LE TEXTE. Une déclaration présente dans le paquet mais absente des "source_ids" de l'article n'est PAS citable dans cet article — ajoute-la aux "source_ids" si tu veux la citer. Les FACTS ne sont jamais citables : un résumé d'événement, une décision, un jugement ou une donnée économique fournit un FAIT à paraphraser, jamais une phrase réellement prononcée. Reproduis CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée. Une citation doit reprendre EXACTEMENT les mots de la source, dans le même ordre et d'un seul tenant. Sont formellement interdits, même s'ils sont d'usage courant en presse : les crochets éditoriaux ([s]es, [le ministre], [sic]), les points de suspension internes pour abréger un passage, la correction d'une faute ou d'une maladresse, le changement de temps, d'accord, de pronom ou de ponctuation, et la modification volontaire de la casse pour insérer la citation dans ta phrase. Si un passage ne peut pas être cité tel quel, ne le cite pas : passe en paraphrase attribuée, sans guillemets. Une citation qui ne se retrouve pas mot pour mot dans un "extrait" autorisé fait rejeter l'édition entière.
+GUILLEMETS ET CITATIONS. Deux usages distincts, ne les confonds pas. (A) USAGE TYPOGRAPHIQUE : tu peux mettre entre guillemets un nom, un surnom, une dénomination, une expression ou un emploi ironique — par exemple le « Cercle de Boétie ». C'est autorisé et ce n'est pas une citation. (B) PAROLE ATTRIBUÉE : dès que tu présentes des mots comme réellement prononcés par quelqu'un (guillemets accompagnés d'un verbe d'attribution, ou passage d'au moins cinq mots), ces mots doivent provenir MOT POUR MOT du champ "extrait" d'un PUBLIC_STATEMENT que tu as listé dans les "source_ids" de CE MÊME article. C'est la règle à retenir : LISTER UNE SOURCE DANS "source_ids" EST CE QUI TE DONNE LE DROIT D'EN CITER LE TEXTE. Une déclaration présente dans le paquet mais absente des "source_ids" de l'article n'est PAS citable dans cet article — ajoute-la aux "source_ids" si tu veux la citer. Les FACTS ne sont jamais citables : un résumé d'événement, une décision, un jugement ou une donnée économique fournit un FAIT à paraphraser, jamais une phrase réellement prononcée. Reproduis CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée. Une citation doit reprendre EXACTEMENT les mots de la source, dans le même ordre et d'un seul tenant. Sont formellement interdits, même s'ils sont d'usage courant en presse : les crochets éditoriaux ([s]es, [le ministre], [sic]), les points de suspension internes pour abréger un passage, la correction d'une faute ou d'une maladresse, le changement de temps, d'accord, de pronom ou de ponctuation, et la modification volontaire de la casse pour insérer la citation dans ta phrase. Si un passage ne peut pas être cité tel quel, ne le cite pas : passe en paraphrase attribuée, sans guillemets. Une citation qui ne se retrouve pas mot pour mot dans un "extrait" autorisé fait écarter l'article concerné du numéro.
 
 TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre). Le champ "personnages_concernes" doit lister tous les PJ/PNJ réellement nommés dans l'article, tels qu'ils apparaissent dans les faits sources — jamais un nom inventé.
 
@@ -321,7 +333,7 @@ IMAGES : choisis "type":"personnage" UNIQUEMENT si "ref_id" est l'identifiant (d
 FORMAT DE SORTIE STRICT — réponds UNIQUEMENT avec un objet JSON valide respectant EXACTEMENT ce schéma, sans aucun texte avant/après, sans balises markdown, sans commentaire :
 ${SCHEMA_JSON_TEXTE}
 
-Toute violation de ces règles rendra l'édition entière rejetée et non publiée.`;
+Chaque article est vérifié séparément : un article qui viole une de ces règles est ÉCARTÉ du numéro, et le numéro paraît sans lui. Un numéro paraîtra de toute façon — si ta réponse est inexploitable, la rédaction publiera une édition de secours plus sobre à ta place. Soigne donc chaque article pour qu'il survive à la vérification, plutôt que de prendre des risques sur l'ensemble.`;
 }
 
 // =====================
@@ -747,11 +759,22 @@ function validerEdition(reponseTexte, aiInput) {
   const sujetsValides = Array.isArray(une.sujets) ? une.sujets : [];
   const sujetsAvecArticle = sujetsValides.filter(s => s && s.article_ref);
 
-  // "Journée calme" élargie : tous les sujets à article_ref:null n'est légitime QUE si FACTS est
-  // entièrement vide (voir hasAnyExploitableFact) -- plus seulement en l'absence de matière PJ.
-  if (sujetsAvecArticle.length === 0 && hasAnyExploitableFact(aiInput)) {
-    erreurs.push('une.sujets : aucun sujet ne s\'ancre sur un article alors que le paquet FACTS contient au moins un fait exploitable ("journée calme" non autorisée ici)');
-  }
+  // RÈGLES DE UNE DÉCLASSÉES EN PRÉFÉRENCES (12 septembre 2026, arbitrage validé).
+  //
+  // Deux gardes bloquantes ont été retirées d'ici :
+  //   - « journée calme » interdite dès qu'un fait existe ;
+  //   - Une obligatoirement centrée sur un personnage joueur dès qu'un fait PJ existe.
+  // Elles ont provoqué à elles seules deux des quatre pannes constatées en production (5 et
+  // 6 septembre), en supprimant l'édition ENTIÈRE pour un choix éditorial discutable — alors que
+  // ni l'une ni l'autre ne met en cause l'intégrité factuelle du document.
+  //
+  // La priorité éditoriale aux PJ reste énoncée au modèle dans le prompt, et le chemin déterministe
+  // l'applique dans son tri (comparerInteretEditorial). Ce sont désormais des PRIORITÉS, jamais des
+  // conditions de publication : voir signalerPreferencesUne, qui les consigne comme remarques
+  // non bloquantes.
+
+  /* RETIRÉ LE 12 SEPTEMBRE 2026 — conservé en commentaire car le critère lui-même reste juste et
+     sert désormais de REMARQUE non bloquante (signalerPreferencesUne). Texte d'origine :
 
   // Règle de Une PJ — vérification déterministe du principe "les personnages font l'actualité".
   // Adaptée aux sujets multiples (4 septembre 2026) : AU MOINS UN sujet doit s'ancrer sur du PJ
@@ -782,6 +805,7 @@ function validerEdition(reponseTexte, aiInput) {
       erreurs.push('une.sujets : le paquet contient un FAIT impliquant un personnage joueur, mais aucun sujet de Une n\'est réellement centré sur lui (l\'article de Une doit citer une source estPJ:true ET nommer ce personnage dans "personnages_concernes")');
     }
   }
+  */
 
   // une.appels (renomme de "accroches", plafonne a 3).
   if (!Array.isArray(une.appels)) {
@@ -827,6 +851,160 @@ function validerEdition(reponseTexte, aiInput) {
   }
 
   return { valide: erreurs.length === 0, erreurs };
+}
+
+// =====================================================================
+// VALIDATION À DÉGRADATION ÉLÉGANTE (12 septembre 2026)
+// =====================================================================
+// POURQUOI. validerEdition ci-dessus est une validation TOUT-OU-RIEN : une seule anomalie, sur un
+// seul article facultatif, supprimait l'édition entière. Trois des quatre pannes constatées en
+// production viennent de là (une valeur d'indicateur absente du texte, une citation non retrouvée
+// mot pour mot, une règle de Une). Un lecteur perdait tout le journal pour une brève mal citée.
+//
+// PRINCIPE RETENU : « dégradation élégante plutôt qu'absence totale du journal. »
+//   - un article défectueux est ÉCARTÉ individuellement, l'édition continue sans lui ;
+//   - une image invalide est retirée, l'article reste ;
+//   - un sujet ou un appel de Une qui pointe vers un article écarté est nettoyé ;
+//   - restent FATALES les seules anomalies qui empêchent de lire le document : JSON illisible,
+//     racine non-objet, `une` absente, `articles` non-tableau. Dans ce cas l'appelant bascule sur
+//     l'édition déterministe.
+//
+// CE QUI N'EST PAS ASSOUPLI : les contrôles d'INTÉGRITÉ FACTUELLE restent entiers et éliminatoires
+// pour l'article concerné — source inconnue, citation non retrouvée mot pour mot dans un extrait
+// autorisé, valeur d'indicateur absente du texte, déclaration sans source de forum. Un article
+// douteux n'est jamais publié « en mode dégradé » : il est supprimé.
+// =====================================================================
+
+// Remarques non bloquantes sur la Une : la priorité aux PJ et la « journée calme » ne conditionnent
+// plus la publication, mais restent consignées dans validation_erreurs pour l'audit éditorial.
+function signalerPreferencesUne(une, articles, aiInput, notes) {
+  const index = indexerAiInput(aiInput);
+  const parId = {};
+  articles.forEach(a => { parId[a.id] = a; });
+  const sujetsAvecArticle = (une.sujets || []).filter(s => s && s.article_ref);
+
+  if (sujetsAvecArticle.length === 0 && hasAnyExploitableFact(aiInput)) {
+    notes.push('préférence : « journée calme » alors que le paquet contient au moins un fait exploitable');
+  }
+  if (hasPJMaterial(aiInput)) {
+    const centreSurPJ = sujetsAvecArticle.some(s => {
+      const art = parId[s.article_ref];
+      if (!art || !Array.isArray(art.source_ids)) return false;
+      const nommes = Array.isArray(art.personnages_concernes) ? art.personnages_concernes : [];
+      if (nommes.length === 0) return false;
+      return art.source_ids.some(sid => {
+        const src = index[sid];
+        return src && src.estPJ === true && src.acteur && nommes.indexOf(src.acteur) !== -1;
+      });
+    });
+    if (!centreSurPJ) notes.push('préférence : aucun sujet de Une réellement centré sur un personnage joueur');
+  }
+}
+
+function validerEtNettoyerEdition(reponseTexte, aiInput) {
+  const ecarts = [];   // ce qui a été retiré (diagnostic, non bloquant)
+  const notes = [];    // préférences éditoriales non respectées
+  let json;
+  try {
+    json = JSON.parse(reponseTexte);
+  } catch (e) {
+    return { fatal: true, raison: 'JSON invalide : ' + e.message, ecarts, notes };
+  }
+  if (!json || typeof json !== 'object') return { fatal: true, raison: 'Réponse JSON racine invalide', ecarts, notes };
+  const une = json.une;
+  if (!une || typeof une !== 'object') return { fatal: true, raison: 'une manquante', ecarts, notes };
+  if (!Array.isArray(json.articles)) return { fatal: true, raison: 'articles doit être un tableau', ecarts, notes };
+
+  const index = indexerAiInput(aiInput);
+  const paysCible = aiInput.country;
+  const idsVus = new Set();
+  const articlesParId = {};
+  const articles = [];
+
+  json.articles.forEach((art, i) => {
+    const err = [];
+    validerArticle(art, index, err, idsVus, articlesParId);
+    if (err.length === 0 && articleEstEtranger(art, paysCible, index) && !/international/i.test(art.rubrique || '')) {
+      err.push(`entièrement fondé sur des sources étrangères mais rubrique "${art.rubrique}" non internationale`);
+    }
+    if (err.length > 0) {
+      // validerArticle a pu enregistrer l'id avant d'échouer plus loin : on le retire pour qu'un
+      // sujet de Une ne puisse pas s'ancrer sur un article écarté.
+      const ref = art && art.id;
+      if (ref) { idsVus.delete(ref); delete articlesParId[ref]; }
+      ecarts.push(`article écarté [${(art && art.id) || 'index ' + i}] : ${err.join(' ; ')}`);
+      return;
+    }
+    // Image invalide : on retire l'image, jamais l'article.
+    const errImage = [];
+    validerImage(art.image, `article ${art.id}`, art.source_ids, index, errImage);
+    if (errImage.length > 0) {
+      ecarts.push(`image retirée [${art.id}] : ${errImage.join(' ; ')}`);
+      art.image = { type: 'generique', ref_id: null };
+    }
+    articles.push(art);
+  });
+
+  // --- Une : on nettoie au lieu de rejeter.
+  let sujets = Array.isArray(une.sujets) ? une.sujets.slice(0, 2) : [];
+  sujets = sujets.filter((suj, i) => {
+    if (!suj || typeof suj !== 'object' || typeof suj.titre !== 'string' || !suj.titre) {
+      ecarts.push(`sujet de Une écarté [${i}] : titre manquant ou sujet invalide`); return false;
+    }
+    if (typeof suj.chapeau !== 'string') suj.chapeau = '';
+    if (suj.article_ref != null) {
+      const ref = suj.article_ref;
+      const perdu = typeof ref !== 'string' || !idsVus.has(ref);
+      const etranger = !perdu && articleEstEtranger(articlesParId[ref], paysCible, index);
+      if (perdu || etranger) {
+        ecarts.push(`sujet de Une [${i}] : référence "${ref}" ${perdu ? 'écartée ou inconnue' : 'étrangère'}, sujet retiré`);
+        return false;
+      }
+    }
+    return true;
+  });
+
+  let appels = Array.isArray(une.appels) ? une.appels.slice(0, 3) : [];
+  appels = appels.filter((acc, i) => {
+    if (!acc || typeof acc.texte !== 'string' || typeof acc.article_ref !== 'string') {
+      ecarts.push(`appel de Une écarté [${i}] : structure invalide`); return false;
+    }
+    if (!idsVus.has(acc.article_ref) || articleEstEtranger(articlesParId[acc.article_ref], paysCible, index)) {
+      ecarts.push(`appel de Une écarté [${i}] : référence "${acc.article_ref}" écartée, inconnue ou étrangère`); return false;
+    }
+    return true;
+  });
+
+  const uneNettoyee = { sujets, appels, image: une.image };
+  const sourceIdsUne = [
+    ...sujets.filter(s => s.article_ref).reduce((acc, s) => acc.concat(articlesParId[s.article_ref].source_ids), []),
+    ...appels.reduce((acc, a) => acc.concat(articlesParId[a.article_ref].source_ids), [])
+  ];
+  const errImageUne = [];
+  validerImage(uneNettoyee.image, 'une', sourceIdsUne, index, errImageUne);
+  if (errImageUne.length > 0) {
+    ecarts.push(`image de Une retirée : ${errImageUne.join(' ; ')}`);
+    uneNettoyee.image = { type: 'generique', ref_id: null };
+  }
+
+  // Reports : une entrée invalide est ignorée, jamais bloquante.
+  const sujets_differes = (Array.isArray(json.sujets_differes) ? json.sujets_differes : []).filter(sd => {
+    if (!sd || typeof sd.source_id !== 'string' || !index[sd.source_id]) return false;
+    if (!PRIORITES_REPORT_VALIDES.includes(sd.priorite)) sd.priorite = 'differable';
+    return true;
+  });
+
+  if (sujets.length > 0) signalerPreferencesUne(uneNettoyee, articles, aiInput, notes);
+
+  return {
+    fatal: false,
+    uneUtilisable: sujets.length > 0,
+    une: uneNettoyee,
+    articles,
+    sujets_differes,
+    ecarts,
+    notes
+  };
 }
 
 // =====================
@@ -915,6 +1093,303 @@ async function assemblerAvantDernierePage(pays) {
     photo_url: photoParNom[r.personnage] || null, publie_le: r.publie_le || null
   }));
   return { interviews };
+}
+
+// =====================================================================
+// ÉDITION DÉTERMINISTE — LE JOURNAL EXISTE SANS IA (12 septembre 2026)
+// =====================================================================
+// PRINCIPE POSÉ : l'IA est un RÉDACTEUR, jamais une condition d'existence du journal, et jamais une
+// source de vérité. Trois niveaux, dans cet ordre :
+//   1. IA disponible          -> édition rédigée, enrichie (chemin inchangé) ;
+//   2. IA indisponible/refusée -> CETTE édition, plus sobre mais complète et valide ;
+//   3. incapacité technique totale -> habillage RP côté client (« la rédaction est en grève »),
+//      jamais un message d'erreur, jamais une fausse information.
+//
+// CE QUE CETTE FONCTION N'INVENTE JAMAIS. Chaque titre et chaque phrase ne contient que des
+// éléments réellement présents sur le fait collecté : son `resume` (écrit par le Lot A à partir des
+// données de jeu), son acteur, sa ville, sa date réelle. Aucun adjectif d'appréciation, aucune
+// causalité, aucune citation fabriquée, aucun chiffre ajouté. Quand un complément n'existe pas, la
+// phrase correspondante n'est pas écrite — jamais remplacée par du remplissage.
+//
+// Produit exactement la forme v2 attendue par le rendu client (plateau-politique.js,
+// construireHtmlJournalDuJour) : une.sujets / une.appels / une.image et articles[].
+// =====================================================================
+
+const RUBRIQUES_PAR_DOMAINE = {
+  politique: 'Politique',
+  justice: 'Justice',
+  presse: 'Médias',
+  economie: 'Économie',
+  immobilier: 'Économie',
+  sport: 'Sport',
+  organisations: 'Organisations',
+  greve_generale: 'Social',
+  greve_ordinaire: 'Social',
+  etat_civil: 'Société',
+  succession: 'Société',
+  forum: 'Débats'
+};
+const RUBRIQUE_INTERNATIONALE = 'International';
+const MAX_ARTICLES_DETERMINISTES = 10;
+const MAX_APPELS_DETERMINISTES = 3;
+const LONGUEUR_TITRE_MAX = 110;
+const LONGUEUR_CITATION_ATTRIBUEE_MAX = 400;
+
+function faitEstDuPays(fait, pays) {
+  return Array.isArray(fait.pays) ? fait.pays.includes(pays) : fait.pays === pays;
+}
+
+// Ordre éditorial déterministe : poids d'abord (la qualification du Lot A), puis priorité aux
+// personnages joueurs à poids égal (« les personnages font l'actualité » — une PRIORITÉ, jamais une
+// obligation), puis les événements datés avant les sujets permanents, puis le plus récent.
+function comparerInteretEditorial(a, b) {
+  const pa = POIDS_ORDRE.indexOf(a.poids);
+  const pb = POIDS_ORDRE.indexOf(b.poids);
+  if (pa !== pb) return pb - pa;
+  if (!!a.estPJ !== !!b.estPJ) return a.estPJ ? -1 : 1;
+  if (!!a.permanent !== !!b.permanent) return a.permanent ? 1 : -1;
+  const ecart = new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  if (ecart !== 0) return ecart;
+  // Dernier départage sur l'identifiant : deux sujets permanents sont horodatés à la même
+  // milliseconde (ils sont calculés dans la même boucle), et l'ordre du numéro ne doit pas dépendre
+  // d'un hasard de microseconde. Une même journée produit ainsi toujours le même numéro.
+  return String(a.id || '').localeCompare(String(b.id || ''));
+}
+
+function couperPropre(texte, max) {
+  const t = String(texte || '').trim();
+  if (t.length <= max) return t;
+  const coupe = t.slice(0, max);
+  const espace = coupe.lastIndexOf(' ');
+  return (espace > max * 0.6 ? coupe.slice(0, espace) : coupe).replace(/[\s,;:]+$/, '');
+}
+
+function phrase(texte) {
+  const t = String(texte || '').trim();
+  if (!t) return '';
+  return /[.!?…»]$/.test(t) ? t : t + '.';
+}
+
+// Titre court : on préfère la partie qui précède " : " quand le résumé est déjà construit en deux
+// temps (« Élection du maire de Montrouge : scrutin le … »), sinon le résumé lui-même, borné.
+function titreDeterministe(fait) {
+  const resume = String(fait.resume || '').trim();
+  if (fait.type === 'candidature' && fait.acteur) {
+    return `Candidature de ${fait.acteur}` + (fait.ville ? ` à ${fait.ville}` : '');
+  }
+  const sep = resume.indexOf(' : ');
+  if (sep > 12 && sep < LONGUEUR_TITRE_MAX) return resume.slice(0, sep);
+  return couperPropre(resume, LONGUEUR_TITRE_MAX) || 'Information';
+}
+
+function dateFrSelonParis(iso) {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return null;
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }).format(d);
+}
+
+// Corps de l'article : le fait, puis uniquement les compléments qui existent réellement.
+function texteDeterministe(fait, dateEdition) {
+  const parts = [phrase(fait.resume)];
+
+  // Un sujet reporté (ou simplement plus ancien que le numéro) garde SA date réelle : il n'est
+  // jamais présenté comme un événement du jour.
+  const jourFait = fait.created_at ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(fait.created_at)) : null;
+  if (!fait.permanent && jourFait && jourFait !== dateEdition) {
+    const dateFr = dateFrSelonParis(fait.created_at);
+    if (dateFr) parts.push(`Fait constaté le ${dateFr}.`);
+  }
+
+  if (fait.ville && String(fait.resume || '').indexOf(fait.ville) === -1) {
+    parts.push(`L'information concerne ${fait.ville}.`);
+  }
+
+  // Accusation publique : le contenu est cité sous attribution explicite, jamais repris à son
+  // compte. C'est la PUBLICATION qui est établie, pas ce qu'elle affirme.
+  if (fait.nature === 'accusation' && fait.contenu_attribue) {
+    const attribue = fait.attribue_a ? `Selon ${fait.attribue_a}` : 'Selon son auteur';
+    parts.push(`${attribue} : « ${couperPropre(fait.contenu_attribue, LONGUEUR_CITATION_ATTRIBUEE_MAX)} »`);
+    parts.push('Ces propos n\'engagent que leur auteur.');
+  }
+
+  if (fait.type === 'condamnation' || fait.type === 'arrestation') {
+    parts.push('Cette information provient du registre judiciaire.');
+  }
+
+  // Projet de loi : le contenu RÉEL du texte soumis au vote, cité littéralement (jamais reformulé,
+  // jamais commenté). C'est ce qui permet au lecteur de savoir de quoi il s'agit sans qu'une seule
+  // phrase d'analyse soit fabriquée.
+  if (fait.type === 'proposition_en_debat' && fait.texte_propose) {
+    parts.push(`Le texte soumis au vote énonce : « ${couperPropre(fait.texte_propose, 500)} »`);
+    if (fait.nb_amendements > 0) {
+      parts.push(fait.nb_amendements === 1 ? 'Un amendement a été déposé.'
+        : `${fait.nb_amendements} amendements ont été déposés.`);
+    }
+  }
+
+  return parts.filter(Boolean).join(' ');
+}
+
+// Chapeau de Une : quand le titre d'une brève EST déjà la phrase du fait, l'imprimer une seconde
+// fois juste en dessous ne donne aucune envie de lire. On garde alors la SUITE du texte (date
+// réelle, localité, attribution) et on ne retombe sur le texte entier que s'il n'y a rien d'autre.
+function chapeauDepuisTexte(titre, texte) {
+  const t = String(texte || '');
+  if (titre && t.indexOf(titre) === 0) {
+    // Le séparateur du résumé (« Élection du député de Luthécia : scrutin le… ») doit partir avec
+    // le titre, sinon le chapeau s'ouvre sur un deux-points orphelin. La suite est recapitalisée --
+    // une majuscule, jamais un mot ajouté.
+    const suite = t.slice(titre.length).replace(/^[\s:;,.–—-]+/, '');
+    if (suite.length > 40) {
+      return couperPropre(suite.charAt(0).toUpperCase() + suite.slice(1), 320);
+    }
+  }
+  return couperPropre(t, 320);
+}
+
+function imageDeterministe(fait) {
+  if (!fait) return { type: 'generique', ref_id: null };
+  if (fait.estPJ && fait.photo_url) return { type: 'personnage', ref_id: fait.id };
+  if (fait.club_image) return { type: 'lieu', ref_id: fait.id };
+  return { type: 'generique', ref_id: null };
+}
+
+// CADRAGE FAVORABLE OBTENU PAR CORRUPTION — ce que fait le chemin déterministe, et pourquoi.
+// Les faits restent vrais, publiés, et le dossier judiciaire est intact. La faveur est réelle mais
+// strictement éditoriale : l'affaire n'occupe jamais la Une, et son titre ne nomme pas la personne
+// (le corps de l'article, lui, reste factuel et complet). Le chemin déterministe ne SAIT pas écrire
+// un angle favorable sans inventer : il fait donc uniquement ce qu'il peut faire honnêtement, un
+// traitement discret. La rédaction d'un angle réellement favorable reste le travail de l'IA
+// (consigne dédiée dans le prompt).
+function appliquerCadrageFavorableDeterministe(article, fait) {
+  if (fait.cadrage !== 'favorable') return article;
+  const beneficiaire = fait.cadrage_beneficiaire || fait.acteur;
+  if (beneficiaire && article.titre.indexOf(beneficiaire) !== -1) {
+    article.titre = fait.type === 'condamnation' ? 'Une décision de justice rendue'
+      : (fait.type === 'arrestation' ? 'Une interpellation signalée' : article.titre);
+  }
+  article.cadrage = 'favorable';
+  article.eligible_une = false;
+  return article;
+}
+
+// REGROUPEMENT ÉDITORIAL DES FAITS ÉCONOMIQUES (12 septembre 2026, après lecture de la première
+// édition réelle). Constat : les tensions de stock produisent plusieurs faits par ville (rupture de
+// viande, rupture de céréales, forte variation d'alcool...), tous qualifiés 'important'. Sans
+// regroupement, ils remplissaient à eux seuls les dix articles du numéro et reléguaient en brèves
+// des sujets comme « deux scrutins sans aucun candidat ». Une rédaction n'écrit pas dix articles
+// pour dire dix fois la même chose : elle écrit UN article « Tensions sur les stocks à Luthécia ».
+//
+// Rien n'est perdu ni inventé : le corps de l'article reprend TOUS les résumés réels du groupe,
+// phrase par phrase, et les identifiants de tous les faits restent dans source_ids (ils comptent
+// donc comme cités et ne repartent pas en dernière page).
+const MIN_FAITS_POUR_REGROUPER = 2;
+
+function regrouperFaitsEconomiques(facts) {
+  const groupes = new Map();
+  const autres = [];
+  facts.forEach(f => {
+    if (f.domaine !== 'economie' || !f.ville || f.permanent) { autres.push(f); return; }
+    const cle = String(f.ville);
+    if (!groupes.has(cle)) groupes.set(cle, []);
+    groupes.get(cle).push(f);
+  });
+
+  const composes = [];
+  groupes.forEach((membres, ville) => {
+    if (membres.length < MIN_FAITS_POUR_REGROUPER) { autres.push(...membres); return; }
+    const fort = membres.slice().sort(comparerInteretEditorial)[0];
+    composes.push({
+      id: 'groupe-economie-' + ville,
+      domaine: 'economie', type: 'tensions_economiques',
+      ville, pays: fort.pays, acteur: null, estPJ: false, photo_url: null,
+      club_image: null,
+      poids: fort.poids,
+      titre_impose: `Tensions sur les stocks à ${ville}`,
+      resume: membres.map(m => m.resume).join(' '),
+      membres_ids: membres.map(m => m.id),
+      created_at: fort.created_at
+    });
+  });
+  return [...autres, ...composes];
+}
+
+function construireEditionDeterministe(paquet, pays, dateEdition) {
+  const facts = regrouperFaitsEconomiques((paquet.FACTS || []).slice()).sort(comparerInteretEditorial);
+  const seuil = POIDS_ORDRE.indexOf('secondaire');
+
+  const retenus = [];
+  const reportables = [];
+  facts.forEach(f => {
+    if (POIDS_ORDRE.indexOf(f.poids) < seuil) return;         // mineur : part en dernière page
+    if (retenus.length < MAX_ARTICLES_DETERMINISTES) { retenus.push(f); return; }
+    // Trop d'actualité pour ce numéro : les sujets forts non traités passent en file de reports,
+    // jamais en réélargissant la fenêtre de collecte. Les sujets permanents ne sont pas reportés
+    // (ils sont recalculés à chaque édition).
+    if (!f.permanent && POIDS_ORDRE.indexOf(f.poids) >= POIDS_ORDRE.indexOf('important')) {
+      reportables.push({ source_id: f.id, priorite: 'differable', raison: 'Reporté : actualité trop dense.' });
+    }
+  });
+
+  const articles = retenus.map((f, i) => {
+    const etranger = !faitEstDuPays(f, pays);
+    const art = {
+      id: `det-${i + 1}`,
+      rubrique: etranger ? RUBRIQUE_INTERNATIONALE : (RUBRIQUES_PAR_DOMAINE[f.domaine] || 'Actualité'),
+      type: 'actualite',
+      titre: f.titre_impose || titreDeterministe(f),
+      texte: texteDeterministe(f, dateEdition),
+      personnages_concernes: f.acteur ? [f.acteur] : [],
+      interview_suggeree: false,
+      // Un article de regroupement cite TOUS les faits qu'il couvre : ils sont donc comptés comme
+      // traités et ne ressortent pas en dernière page.
+      source_ids: f.membres_ids || [f.id],
+      image: imageDeterministe(f),
+      eligible_une: !etranger
+    };
+    if (f.ville) art.ville = f.ville;
+    if (etranger) art.pays_source = Array.isArray(f.pays) ? f.pays[0] : f.pays;
+    return appliquerCadrageFavorableDeterministe(art, f);
+  });
+
+  // La Une ne prend jamais un sujet étranger ni une affaire au cadrage favorable (même règle que
+  // la validation du chemin IA pour l'étranger).
+  const candidatsUne = articles.filter(a => a.eligible_une !== false);
+  const tete = candidatsUne[0] || null;
+  const faitTete = tete ? retenus[articles.indexOf(tete)] : null;
+
+  const sujets = [];
+  if (tete) {
+    sujets.push({
+      titre: tete.titre,
+      chapeau: chapeauDepuisTexte(tete.titre, tete.texte),
+      article_ref: tete.id
+    });
+  } else {
+    // Aucun sujet publiable : c'est une journée calme, et c'est une information vraie. Ce n'est
+    // jamais un échec de génération, et jamais la « grève » RP.
+    sujets.push({
+      titre: `Journée calme à ${NOMS_PAYS[pays] || pays}`,
+      chapeau: 'Aucun événement notable n\'a été enregistré sur les dernières vingt-quatre heures.',
+      article_ref: null
+    });
+  }
+
+  const appels = candidatsUne.slice(1, 1 + MAX_APPELS_DETERMINISTES)
+    .map(a => ({ texte: a.titre, article_ref: a.id }));
+
+  const une = {
+    sujets,
+    appels,
+    image: imageDeterministe(faitTete)
+  };
+
+  // Nettoyage des marqueurs internes : ils ne doivent pas partir en base ni au rendu.
+  articles.forEach(a => { delete a.eligible_une; });
+
+  return { une, articles, sujets_differes: reportables };
 }
 
 // =====================
@@ -1138,22 +1613,51 @@ async function genererEditionPays(pays) {
     const systemPrompt = construirePromptSysteme(pays, dateEdition, hasPJMaterial(aiInput));
     const appel = await appelAnthropic(systemPrompt, retirerPhotosPourAppelIA(aiInput), ANTHROPIC_TIMEOUT_MS);
 
+    // ----------------------------------------------------------------- IA -> FALLBACK
+    // L'édition déterministe est TOUJOURS construite, avant même de savoir si l'IA a répondu :
+    // elle est le plancher garanti du numéro. Le pire cas n'est plus « pas de journal », c'est
+    // « un journal plus sobre ». Voir construireEditionDeterministe.
+    const deterministe = construireEditionDeterministe(paquet, pays, dateEdition);
+
+    let contenu;
+    let redaction;                       // 'ia' | 'mixte' | 'deterministe'
+    const diagnostic = [];               // consigné dans validation_erreurs, même si publiée
+
     if (!appel.ok) {
-      await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
-        statut: 'echec', validation_erreurs: [appel.erreur], generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION, faits_sources: faitsSourcesArchive
-      }, SB_HEADERS_SERVICE);
-      return { pays, dateEdition, statut: 'echec', raison: appel.erreur };
+      diagnostic.push('IA indisponible : ' + appel.erreur);
+      contenu = deterministe;
+      redaction = 'deterministe';
+    } else {
+      const v = validerEtNettoyerEdition(appel.texte, aiInput);
+      if (v.fatal) {
+        diagnostic.push('réponse IA inexploitable : ' + v.raison);
+        contenu = deterministe;
+        redaction = 'deterministe';
+      } else {
+        diagnostic.push(...v.ecarts, ...v.notes);
+        if (v.uneUtilisable) {
+          contenu = { une: v.une, articles: v.articles, sujets_differes: v.sujets_differes };
+          redaction = 'ia';
+        } else {
+          // La Une IA n'a rien de publiable, mais ses articles valides, eux, sont bons : on garde la
+          // Une déterministe (dont les références pointent vers les articles déterministes) et on
+          // ajoute les articles IA survivants à leur suite. Les identifiants ne peuvent pas entrer
+          // en collision : les articles déterministes sont préfixés 'det-'.
+          diagnostic.push('Une IA inexploitable : Une déterministe retenue, articles IA conservés');
+          contenu = {
+            une: deterministe.une,
+            articles: [...deterministe.articles, ...v.articles],
+            sujets_differes: [...deterministe.sujets_differes, ...v.sujets_differes]
+          };
+          redaction = 'mixte';
+        }
+      }
     }
 
-    const validation = validerEdition(appel.texte, aiInput);
-    if (!validation.valide) {
-      await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
-        statut: 'echec', validation_erreurs: validation.erreurs, generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION, faits_sources: faitsSourcesArchive
-      }, SB_HEADERS_SERVICE);
-      return { pays, dateEdition, statut: 'echec', raison: validation.erreurs };
-    }
+    // Marqueur de provenance rédactionnelle : lu par personne au rendu (le client n'utilise que
+    // sujets/appels/image), conservé pour l'audit et pour les bancs de test.
+    contenu.une = { ...contenu.une, redaction };
 
-    const contenu = JSON.parse(appel.texte);
     const derniere_page = assemblerDernierePage(paquet, contenu.une, contenu.articles);
     const avant_derniere_page = await assemblerAvantDernierePage(pays);
 
@@ -1188,7 +1692,10 @@ async function genererEditionPays(pays) {
       page_economie_societe: { avant_derniere_page, derniere_page },
       faits_sources: faitsSourcesArchive,
       prompt_version: PROMPT_VERSION,
-      generated_at: maintenant.toISOString()
+      generated_at: maintenant.toISOString(),
+      // L'édition est publiée même quand l'IA a échoué : validation_erreurs devient un journal de
+      // diagnostic (ce qui a été écarté, quel chemin a servi), plus un motif de non-publication.
+      validation_erreurs: diagnostic.length > 0 ? diagnostic : null
     }, SB_HEADERS_SERVICE);
     // Marquage APRES la publication reussie seulement (jamais avant) : si l'ecriture ci-dessus
     // echouait, ces lignes resteraient en_attente pour la prochaine tentative -- aucune perte.
@@ -1206,8 +1713,17 @@ async function genererEditionPays(pays) {
     // ne doit jamais faire echouer une edition par ailleurs valide et deja publiee.
     await solliciterInterviewsProactives(pays, contenu, index, maintenant).catch(() => {});
 
-    return { pays, dateEdition, statut: 'publiee' };
+    return {
+      pays, dateEdition, statut: 'publiee', redaction,
+      articles: contenu.articles.length, sujets: (contenu.une.sujets || []).length,
+      diagnostic: diagnostic.length
+    };
   } catch (e) {
+    // NIVEAU 3 — INCAPACITÉ TECHNIQUE RÉELLE. On arrive ici uniquement si même la construction
+    // déterministe est impossible (collecte injoignable, base indisponible...). Aucune édition ne
+    // peut exister : la ligne reste en 'echec', et c'est le CLIENT qui présente alors au joueur
+    // l'habillage diégétique « la rédaction est en grève » (plateau-politique.js). Aucun message
+    // technique, aucun nom d'API, aucune fausse information n'est jamais montré au joueur.
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'echec', validation_erreurs: ['Exception inattendue : ' + e.message], generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION
     }, SB_HEADERS_SERVICE).catch(() => {});
@@ -1232,6 +1748,11 @@ export {
   construireAiInput,
   indexerAiInput,
   validerEdition,
+  validerEtNettoyerEdition,
+  construireEditionDeterministe,
+  comparerInteretEditorial,
+  titreDeterministe,
+  texteDeterministe,
   hasPJMaterial,
   hasAnyExploitableFact,
   articleEstEtranger,

@@ -249,18 +249,34 @@ async function determinerPaysEligibles() {
 }
 
 // =====================
-// 2. PÉRIODE — jamais state.day (personnel, dépendant de la consommation de PA de chaque
-// personnage, non fiable comme horloge partagée). Fenêtre réelle ancrée sur [dernière édition
-// PUBLIÉE de ce pays, maintenant], repli 24h si aucune n'existe encore.
+// 2. PÉRIODE — FENÊTRE FIXE DE 24 HEURES (correctif du 12 septembre 2026)
 // =====================
+// Jamais state.day (personnel, dépendant de la consommation de PA de chaque personnage, non fiable
+// comme horloge partagée).
+//
+// CERCLE VICIEUX SUPPRIMÉ. La borne basse était le `generated_at` de la dernière édition PUBLIÉE
+// de ce pays. Une édition ratée ne publiait rien, la borne ne bougeait donc pas, et la fenêtre du
+// lendemain couvrait 48 h, puis 72 h, puis davantage. Effet mesuré en production : republic n'ayant
+// plus rien publié depuis le 26 août, la fenêtre atteignait 17 jours, le paquet enflait jusqu'à
+// 1 127 129 tokens (plafond du modèle : 200 000) et l'édition échouait à son tour — chaque échec
+// aggravait la cause du suivant. Le quota de 50 par domaine écrêtait par ailleurs la matière
+// réellement récente.
+//
+// L'édition traite désormais TOUJOURS les dernières 24 heures, quelle que soit l'issue des éditions
+// précédentes. Un sujet de la veille qui mérite encore une place n'est PAS récupéré en réélargissant
+// cette fenêtre : il passe par la file de reports éditoriaux (journal_articles_en_attente,
+// origine='report_ia'), qui conserve le fait ET sa vraie date — voir chargerFaitsDifferesEnAttente
+// et mettreEnAttenteSujetsDifferes dans api/_journal-generation.js. Les sujets structurellement
+// toujours d'actualité (échéance électorale en cours, classement du championnat) ne sont pas
+// reportés non plus : ils sont RECALCULÉS depuis leur état courant à chaque édition, voir
+// collecterSujetsPermanents.
+//
+// `pays` n'est plus utilisé : la signature est conservée pour ne casser aucun appelant.
+const FENETRE_EDITORIALE_MS = 24 * 60 * 60 * 1000;
+
 async function calculerPeriode(pays) {
   const fin = new Date();
-  let debut = new Date(fin.getTime() - 24 * 60 * 60 * 1000);
-  const dernieres = await sbGet('journal_editions',
-    `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&order=generated_at.desc&limit=1`).catch(() => null);
-  if (dernieres && dernieres[0] && dernieres[0].generated_at) {
-    debut = new Date(dernieres[0].generated_at);
-  }
+  const debut = new Date(fin.getTime() - FENETRE_EDITORIALE_MS);
   return { debut: debut.toISOString(), fin: fin.toISOString() };
 }
 
@@ -617,8 +633,53 @@ const TYPES_CHRONIQUE = {
   subvention_publique:         { domaine: 'economie',       poidsBase: 'secondaire',  cransPJ: 2 },
   lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 },
   fraude_electorale_dejouee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
-  fraude_electorale_revelee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 }
+  fraude_electorale_revelee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
+
+  // RACCORD DES DEUX MECANIQUES DE PRESSE DEPLOYEES (12 septembre 2026). Les deux deposaient deja
+  // leur ligne dans chronique_nationale (fuite_publier / scandale_publier), mais leur type etant
+  // absent de cette table, collecterChroniqueNationale les JETAIT silencieusement ("type non
+  // mappe"). Elles n'ont donc jamais pu entrer dans le Journal.
+  //
+  // FUITE : les faits sous-jacents sont REELS -- la fuite ne peut porter que sur une trace
+  // d'action illegale reellement enregistree (migration_fuites_journalistiques.sql), et le libelle
+  // est la redaction de ces faits. Elle est donc traitee comme un fait etabli. SECRET DES SOURCES :
+  // la ligne de chronique ne contient AUCUN commanditaire (seul `auteur_public` = « Cellule enquete
+  // de la redaction » y figure), il n'y a donc rien a exposer ici, et `personnages` ne porte que la
+  // cible. Poids eleve : une revelation d'affaire est une information forte.
+  //
+  // SCANDALE : le libelle est une ACCUSATION publique, pas un fait etabli. Ce qui est vrai, c'est
+  // que l'accusation a ete publiee -- jamais son contenu. Le resume est donc reecrit ici en phrase
+  // ATTRIBUEE, et le fait porte `nature:'accusation'` pour que ni l'IA ni le rendu deterministe ne
+  // puissent le presenter comme prouve. Poids volontairement sous la fuite, pour la meme raison.
+  fuite_journalistique:        { domaine: 'presse',         poidsBase: 'important',   cransPJ: 1 },
+  // Poids releve le 12 septembre 2026 (arbitrage) : un scandale PUBLIE n'est pas une information
+  // secondaire. Important par defaut, majeur des qu'il vise un personnage joueur. Ce qui monte,
+  // c'est le POIDS EDITORIAL de la mise en cause -- jamais sa credibilite : `nature:'accusation'`
+  // continue d'interdire de la presenter comme etablie.
+  scandale_presse:             { domaine: 'presse',         poidsBase: 'important',   cransPJ: 1,
+                                 nature: 'accusation', resume: resumeScandalePresse },
+
+  // ASSEMBLEE NATIONALE — RESULTAT DE SCRUTIN (raccord du 12 septembre 2026). La ligne est deja
+  // ecrite par api/cron-assemblee.js apres chaque cloture du mercredi ; son type n'etait pas mappe
+  // ici, elle etait donc jetee. `libelle` porte le verdict reel (« L'Assemblee nationale a adopte
+  // "..." par N voix contre M »), `data` le detail (proposition_id, resultat, scores, auteur).
+  // `personnages` liste les deputes ayant vote pour ou contre : estPJ est donc vrai des qu'un PJ a
+  // pris part au vote. Actualite politique nationale importante par defaut, majeure selon le
+  // contexte -- aucune nouvelle mecanique cote journal, lecture pure de l'existant.
+  scrutin_assemblee:           { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 }
 };
+
+// Phrase attribuee d'un scandale : ce qui est etabli est la PUBLICATION de la mise en cause, jamais
+// son contenu. Le contenu reste transmis a part (champ `contenu_attribue`), citable uniquement sous
+// attribution explicite. Repli sur le libelle brut si la ligne ne porte pas les noms attendus --
+// jamais une phrase inventee.
+function resumeScandalePresse(row) {
+  const d = row.data || {};
+  const cible = d.cible || null;
+  const auteur = d.auteur_public || d.auteur || null;
+  if (!cible || !auteur) return row.libelle;
+  return `${auteur} met publiquement en cause ${cible}`;
+}
 async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);
   const rows = await sbGet('chronique_nationale', `country=eq.${encodeURIComponent(pays)}&${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
@@ -629,13 +690,25 @@ async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
     const acteurs = noms.map(n => identifierActeur(n, personnagesConnus));
     const estPJ = acteurs.some(a => a.estPJ);
     const photo_url = (acteurs.find(a => a.estPJ) || {}).photo_url || null;
-    return {
+    const fait = {
       id: r.id, domaine: def.domaine, type: r.type,
-      ville: r.city || null, pays,
-      resume: r.libelle, acteur: noms[0] || null, estPJ, photo_url,
+      // Nom AFFICHABLE de la ville (correctif du 12 septembre 2026) : cette source posait la clé
+      // technique brute ('capitale', 'ville_b'), là où tous les autres collecteurs passent par
+      // resoudreNomVille. Le Journal aurait donc pu imprimer « capitale » au lieu de « Luthécia ».
+      ville: r.city ? resoudreNomVille(pays, r.city) : null, pays,
+      resume: def.resume ? def.resume(r) : r.libelle,
+      acteur: noms[0] || null, estPJ, photo_url,
       poids: bumpPoids(def.poidsBase, estPJ ? def.cransPJ : 0),
       created_at: r.created_at
     };
+    // Un fait de nature « accusation » n'est jamais publiable comme etabli : le contenu mis en cause
+    // voyage a part, sous attribution obligatoire (voir le prompt et construireEditionDeterministe).
+    if (def.nature) {
+      fait.nature = def.nature;
+      fait.contenu_attribue = r.libelle;
+      fait.attribue_a = (r.data && (r.data.auteur_public || r.data.auteur)) || null;
+    }
+    return fait;
   }).filter(Boolean);
 }
 
@@ -851,6 +924,13 @@ async function collecterIndicateursEconomiques(pays) {
   return indicateurs;
 }
 
+// Instant de collecte figé (12 septembre 2026) : les faits dérivés de l'ÉTAT courant (tensions de
+// stocks, caisses, sujets permanents) n'ont pas d'instant propre — ils sont constatés au moment de
+// la collecte. Les horodater un par un avec new Date() leur donnait des millisecondes différentes :
+// à poids égal, l'ordre du numéro variait alors d'une exécution à l'autre. Un seul instant par lot
+// rend le tri — et donc le numéro — reproductible.
+function instantLot() { return new Date().toISOString(); }
+
 // Événements économiques REMARQUABLES (refonte §7) — seuils déterministes raisonnables, jamais une
 // extrapolation demandée à l'IA. Rupture/quasi-pénurie détectées sur le snapshot courant ; variation
 // forte détectée par comparaison avec la dernière édition PUBLIÉE (une seule édition en arrière,
@@ -859,8 +939,25 @@ async function collecterIndicateursEconomiques(pays) {
 const SEUIL_QUASI_PENURIE = 0.1; // 10% du plafond
 const SEUIL_VARIATION_FORTE = 0.5; // 50% de variation stock, à la hausse ou à la baisse
 
+// Libellés imprimables des ressources (12 septembre 2026). Les clés techniques partaient telles
+// quelles dans le journal : « Le stock de alcool », « de cereales », « de fruits_legumes ». Pure
+// typographie — aucune donnée n'est modifiée, seul le mot affiché est écrit correctement.
+const LIBELLES_RESSOURCES = {
+  cereales: 'céréales', fruits_legumes: 'fruits et légumes', produits_exotiques: 'produits exotiques',
+  petrole: 'pétrole', medicaments: 'médicaments'
+};
+function libelleRessource(cle) {
+  return LIBELLES_RESSOURCES[cle] || String(cle || '').replace(/_/g, ' ');
+}
+// Élision devant voyelle ou h muet : « d'alcool », « de viande ».
+function deRessource(cle) {
+  const nom = libelleRessource(cle);
+  return (/^[aeiouyéèêàâîïôöûüh]/i.test(nom) ? "d'" : 'de ') + nom;
+}
+
 async function calculerEvenementsEconomiquesRemarquables(pays, indicateursEcoActuels) {
   const facts = [];
+  const instant = instantLot();
   const precedentes = await sbGet('journal_editions',
     `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&order=date_edition.desc&limit=1&select=faits_sources`)
     .catch(() => null);
@@ -872,21 +969,32 @@ async function calculerEvenementsEconomiquesRemarquables(pays, indicateursEcoAct
     const ressource = ind.cle.replace('stock_', '');
     const tauxRemplissage = ind.valeur / ind.plafond;
 
+    const precedentIndic = indicateursPrecedents.find(i => i.id === ind.id);
+    const valeurPrecedente = (precedentIndic && precedentIndic.disponible
+      && typeof precedentIndic.valeur === 'number') ? precedentIndic.valeur : null;
+
     if (ind.valeur === 0) {
+      // UN SEUL FAIT POUR UNE SEULE NOUVELLE (12 septembre 2026) : une rupture émettait aussi un
+      // fait de variation « a chuté de 100% (83 → 0) », c'est-à-dire la même information écrite
+      // deux fois. Le Journal publiait donc deux articles jumeaux par ressource et par ville (10
+      // articles pour 5 nouvelles, constaté sur la première édition réelle). La chute est désormais
+      // rappelée DANS le fait de rupture, et le fait de variation n'est plus émis (voir plus bas).
+      const chute = (valeurPrecedente && valeurPrecedente > 0)
+        ? ` Le stock est passé de ${valeurPrecedente} à 0 depuis la dernière édition.` : '';
       facts.push({
         id: idComparaison(`rupture_${ressource}_${pays}_${ind.ville}`), domaine: 'economie', type: 'economie_remarquable',
-        ville: ind.ville, pays, resume: `Rupture de stock de ${ressource} à ${ind.ville}.`,
-        acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: new Date().toISOString()
+        ville: ind.ville, pays, resume: `Rupture de stock ${deRessource(ressource)} à ${ind.ville}.` + chute,
+        acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: instant
       });
     } else if (tauxRemplissage < SEUIL_QUASI_PENURIE) {
       facts.push({
         id: idComparaison(`quasi_penurie_${ressource}_${pays}_${ind.ville}`), domaine: 'economie', type: 'economie_remarquable',
-        ville: ind.ville, pays, resume: `Stock de ${ressource} au plus bas à ${ind.ville} (${ind.valeur} unités, sur un plafond de ${ind.plafond}).`,
-        acteur: null, estPJ: false, photo_url: null, poids: 'secondaire', created_at: new Date().toISOString()
+        ville: ind.ville, pays, resume: `Stock ${deRessource(ressource)} au plus bas à ${ind.ville} (${ind.valeur} unités, sur un plafond de ${ind.plafond}).`,
+        acteur: null, estPJ: false, photo_url: null, poids: 'secondaire', created_at: instant
       });
     }
 
-    const ancien = indicateursPrecedents.find(i => i.id === ind.id);
+    const ancien = ind.valeur === 0 ? null : precedentIndic;
     if (ancien && ancien.disponible && typeof ancien.valeur === 'number' && ancien.valeur > 0) {
       const variation = (ind.valeur - ancien.valeur) / ancien.valeur;
       if (Math.abs(variation) >= SEUIL_VARIATION_FORTE) {
@@ -894,8 +1002,8 @@ async function calculerEvenementsEconomiquesRemarquables(pays, indicateursEcoAct
         facts.push({
           id: idComparaison(`variation_${ressource}_${pays}_${ind.ville}`), domaine: 'economie', type: 'economie_remarquable',
           ville: ind.ville, pays,
-          resume: `Le stock de ${ressource} à ${ind.ville} a ${sens} de ${Math.round(Math.abs(variation) * 100)}% par rapport à la dernière édition (${ancien.valeur} → ${ind.valeur}).`,
-          acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: new Date().toISOString()
+          resume: `Le stock ${deRessource(ressource)} à ${ind.ville} a ${sens} de ${Math.round(Math.abs(variation) * 100)}% par rapport à la dernière édition (${ancien.valeur} → ${ind.valeur}).`,
+          acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: instant
         });
       }
     }
@@ -932,13 +1040,14 @@ async function collecterIndicateursCaisses(pays) {
 // une caisse dans le rouge est objectivement remarquable, quel que soit le contexte.
 function calculerCaissesRemarquables(pays, indicateursCaisses) {
   const facts = [];
+  const instant = instantLot();
   indicateursCaisses.forEach(ind => {
     if (!ind.disponible || typeof ind.valeur !== 'number' || ind.valeur >= 0) return;
     const lieu = ind.cle === 'caisse_nationale' ? 'la caisse nationale' : `la caisse municipale de ${ind.ville}`;
     facts.push({
       id: idComparaison(`${ind.cle}_deficit_${pays}${ind.ville ? '_' + ind.ville : ''}`), domaine: 'economie', type: 'economie_remarquable',
       ville: ind.ville || null, pays, resume: `${lieu[0].toUpperCase()}${lieu.slice(1)} est dans le rouge (${ind.valeur} FR).`,
-      acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: new Date().toISOString()
+      acteur: null, estPJ: false, photo_url: null, poids: 'important', created_at: instant
     });
   });
   return facts;
@@ -952,21 +1061,9 @@ async function collecterIndicateurClassement(pays) {
   if (!Array.isArray(data.calendrier)) return [];
   const clubsPays = CLUBS_SPORTIFS.filter(c => c.country === pays).map(c => c.id);
   if (clubsPays.length === 0) return [];
-  const table = {};
-  CLUBS_SPORTIFS.forEach(c => { table[c.id] = { id: c.id, nom: c.nom, pts: 0, bp: 0, bc: 0 }; });
-  data.calendrier.forEach(journee => {
-    (journee.matchs || []).forEach(m => {
-      if (!m.played) return;
-      const home = table[m.home], away = table[m.away];
-      if (!home || !away) return;
-      home.bp += m.scoreHome; home.bc += m.scoreAway;
-      away.bp += m.scoreAway; away.bc += m.scoreHome;
-      if (m.scoreHome > m.scoreAway) home.pts += 3;
-      else if (m.scoreHome < m.scoreAway) away.pts += 3;
-      else { home.pts++; away.pts++; }
-    });
-  });
-  const classement = Object.values(table).sort((a, b) => b.pts - a.pts || (b.bp - b.bc) - (a.bp - a.bc));
+  // Calcul partagé avec le sujet permanent « classement » (calculerTableChampionnat) : une seule
+  // règle de points dans tout le module, jamais deux classements divergents.
+  const { table, classement } = calculerTableChampionnat(data);
   const rangClubsPays = clubsPays.map(id => ({
     club: table[id].nom, rang: classement.findIndex(c => c.id === id) + 1, points: table[id].pts
   }));
@@ -993,6 +1090,321 @@ async function collecterPetitesAnnoncesActives(pays) {
 // =====================
 function collecterReferencePedagogique() {
   return { fiche_id: null, contenu_valide: null };
+}
+
+// =====================
+// 6 bis. SUJETS D'ACTUALITÉ PERMANENTS (12 septembre 2026)
+// =====================
+// Une journée pauvre en ÉVÉNEMENTS n'est pas une journée sans ACTUALITÉ : une campagne électorale
+// en cours, un classement sportif ou une échéance qui approche sont de vrais sujets, en permanence.
+// Jusqu'ici le paquet ne contenait que des événements datés, tombant dans la fenêtre : une fenêtre
+// de 24 h sans événement donnait donc un paquet vide.
+//
+// Ces sujets ne sont PAS des événements et ne passent jamais par la file de reports : ils sont
+// RECALCULÉS depuis l'état courant à chaque édition (champ `permanent:true`). Aucun n'ajoute de
+// source nouvelle : cycles_electoraux et championnat sont déjà lus ailleurs dans le jeu, et
+// candidatures est déjà lue par ce module.
+//
+// AUCUNE INVENTION : chaque phrase n'énonce que des valeurs lues en base (phase du cycle, date de
+// scrutin, nombre de candidatures réellement déposées, points et rangs réellement calculés). Une
+// donnée absente ou illisible fait disparaître le sujet, jamais une phrase de remplissage.
+
+const LIBELLES_POSTES = {
+  president: 'président', premier_ministre: 'Premier ministre', maire: 'maire',
+  depute: 'député', chef_syndicat: 'chef du syndicat'
+};
+
+// Fenêtre pendant laquelle un scrutin est « proche » : une absence de candidature y devient une
+// actualité politique de plein droit (voir collecterEcheancesElectorales).
+const JOURS_APPROCHE_SCRUTIN = 15;
+
+// Fenêtre pendant laquelle un projet de loi déjà en session devient un sujet journalistique à part
+// entière, avant sa journée de vote (arbitrage du 12 septembre 2026).
+const JOURS_AVANT_VOTE_PUBLIABLE = 6;
+
+// Le texte réel d'une proposition peut être long : on en transmet un extrait borné, jamais un
+// résumé réécrit (aucune reformulation, donc aucune dérive possible).
+const EXTRAIT_PROPOSITION_MAX = 600;
+
+function libellePoste(posteId) {
+  return LIBELLES_POSTES[posteId] || String(posteId || 'poste').replace(/_/g, ' ');
+}
+
+function formaterDateFr(ms) {
+  const d = new Date(ms);
+  if (!Number.isFinite(d.getTime())) return null;
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }).format(d);
+}
+
+// Échéances électorales en cours — un sujet par scrutin réellement ouvert.
+async function collecterEcheancesElectorales(pays, personnagesConnus) {
+  const [cycles, candidatures] = await Promise.all([
+    sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(pays)}&select=id,poste_id,city,data`),
+    sbGet('candidatures', `country=eq.${encodeURIComponent(pays)}&select=nom,poste_id,city`)
+  ]);
+  if (!cycles || cycles.length === 0) return [];
+  const maintenant = Date.now();
+  const instant = instantLot();
+  const facts = [];
+  cycles.forEach(c => {
+    const d = parseBlob(c.data);
+    if (!d || d.resultatsTraites === true) return;
+    if (d.phase !== 'candidatures' && d.phase !== 'campagne') return;
+    const dateVote = Number(d.dateVote);
+    if (!Number.isFinite(dateVote) || dateVote <= maintenant) return;
+    const dateFr = formaterDateFr(dateVote);
+    if (!dateFr) return;
+
+    // Nombre de candidatures RÉELLEMENT déposées pour ce poste (table candidatures, la même source
+    // que collecterCandidatures) -- jamais data.candidats, qui n'est renseigné qu'au dépouillement.
+    const miennes = (candidatures || []).filter(x =>
+      x.poste_id === c.poste_id && (x.city || null) === (c.city || null));
+    const nb = miennes.length;
+    const estPJ = miennes.some(x => identifierActeur(x.nom, personnagesConnus).estPJ);
+    const nomVille = c.city ? resoudreNomVille(pays, c.city) : null;
+    const intitule = `Élection du ${libellePoste(c.poste_id)}` + (nomVille ? ` de ${nomVille}` : '');
+    const etatCandidatures = nb === 0
+      ? 'aucune candidature enregistrée à ce jour'
+      : (nb === 1 ? 'une candidature enregistrée' : `${nb} candidatures enregistrées`);
+
+    // POIDS D'UNE ECHEANCE ELECTORALE (arbitrage du 12 septembre 2026).
+    //
+    // Une echeance proche SANS AUCUNE CANDIDATURE est une vraie actualite politique : un scrutin
+    // risque de se tenir sans candidat. Elle doit donc peser PLUS qu'une tension de stocks
+    // (qualifiee 'important' par ce meme module) et pouvoir faire la Une. D'ou +2 crans, qui la
+    // portent de 'secondaire' a 'majeur' : au-dessus de l'economie remarquable, et non a egalite --
+    // a poids egal, un evenement date passe devant un sujet permanent (comparerInteretEditorial).
+    //
+    // Une campagne normale (au moins une candidature deposee) reste a 'secondaire', relevee d'un
+    // cran si un PJ est candidat ou si le vote est imminent : un sujet suivi, pas un evenement.
+    const joursRestants = Math.floor((dateVote - maintenant) / 86400000);
+    let crans = 0;
+    if (estPJ) crans += 1;
+    if (joursRestants <= 3) crans += 1;
+    if (nb === 0 && joursRestants <= JOURS_APPROCHE_SCRUTIN) crans += 2;
+
+    facts.push({
+      id: idSource('cycles_electoraux', c),
+      domaine: 'politique', type: 'echeance_electorale',
+      ville: nomVille, pays,
+      resume: `${intitule} : scrutin le ${dateFr}, ${etatCandidatures}`,
+      acteur: null, estPJ, photo_url: null,
+      poids: bumpPoids('secondaire', crans),
+      permanent: true,
+      phase: d.phase, nb_candidatures: nb, jours_avant_scrutin: joursRestants,
+      created_at: instant
+    });
+  });
+  return facts;
+}
+
+// Table du championnat recalculée — une seule définition, partagée par l'indicateur de classement
+// et par le sujet permanent ci-dessous (aucune seconde règle de calcul possible).
+function calculerTableChampionnat(data) {
+  const table = {};
+  CLUBS_SPORTIFS.forEach(c => { table[c.id] = { id: c.id, nom: c.nom, pts: 0, bp: 0, bc: 0, joues: 0 }; });
+  let joues = 0;
+  (Array.isArray(data.calendrier) ? data.calendrier : []).forEach(journee => {
+    (journee.matchs || []).forEach(m => {
+      if (!m.played) return;
+      const home = table[m.home], away = table[m.away];
+      if (!home || !away) return;
+      joues++;
+      home.joues++; away.joues++;
+      home.bp += m.scoreHome; home.bc += m.scoreAway;
+      away.bp += m.scoreAway; away.bc += m.scoreHome;
+      if (m.scoreHome > m.scoreAway) home.pts += 3;
+      else if (m.scoreHome < m.scoreAway) away.pts += 3;
+      else { home.pts++; away.pts++; }
+    });
+  });
+  const classement = Object.values(table).sort((a, b) => b.pts - a.pts || (b.bp - b.bc) - (a.bp - a.bc));
+  return { table, classement, joues };
+}
+
+// Classement et prochaine journée — sujets sportifs toujours d'actualité.
+async function collecterSujetsChampionnat(pays) {
+  const rows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID + '&select=data');
+  if (!rows || !rows[0]) return [];
+  const data = parseBlob(rows[0].data);
+  const clubsPays = CLUBS_SPORTIFS.filter(c => c.country === pays);
+  if (clubsPays.length === 0) return [];
+  const { table, classement, joues } = calculerTableChampionnat(data);
+  if (joues === 0) return []; // aucun match joué : un classement n'existe pas encore
+  const facts = [];
+  const instant = instantLot();
+
+  const rangs = clubsPays
+    .map(c => ({ nom: c.nom, rang: classement.findIndex(x => x.id === c.id) + 1, pts: table[c.id].pts, image: c.imageStade || null }))
+    .filter(r => r.rang > 0)
+    .sort((a, b) => a.rang - b.rang);
+  if (rangs.length > 0) {
+    facts.push({
+      id: idSource('championnat', { id: `classement-${pays}` }),
+      domaine: 'sport', type: 'classement_championnat',
+      ville: null, pays,
+      // Titre court imposé : le résumé est une énumération de rangs, illisible comme titre.
+      titre_impose: 'Le classement du championnat',
+      resume: 'Championnat : ' + rangs.map(r =>
+        `${r.nom} ${r.rang}${r.rang === 1 ? 'er' : 'e'} avec ${r.pts} point${r.pts === 1 ? '' : 's'}`).join(', '),
+      acteur: null, estPJ: false, photo_url: null,
+      club_image: rangs[0].image,
+      poids: 'secondaire', permanent: true,
+      created_at: instant
+    });
+  }
+
+  // Prochaine journée : première journée non jouée comportant au moins un club du pays. Aucune date
+  // n'est annoncée -- le calendrier réel est recalé par l'ancrage du dimanche et une date théorique
+  // serait une invention.
+  const idsPays = clubsPays.map(c => c.id);
+  const journees = Array.isArray(data.calendrier) ? data.calendrier : [];
+  const prochaine = journees.find(j => (j.matchs || []).some(m => !m.played && (idsPays.includes(m.home) || idsPays.includes(m.away))));
+  if (prochaine) {
+    const affiches = (prochaine.matchs || [])
+      .filter(m => !m.played && (idsPays.includes(m.home) || idsPays.includes(m.away)))
+      .map(m => {
+        const h = CLUBS_SPORTIFS.find(c => c.id === m.home);
+        const a = CLUBS_SPORTIFS.find(c => c.id === m.away);
+        return `${(h && h.nom) || m.home} reçoit ${(a && a.nom) || m.away}`;
+      });
+    if (affiches.length > 0) {
+      facts.push({
+        id: idSource('championnat', { id: `prochaine-journee-${pays}-${prochaine.numero}` }),
+        domaine: 'sport', type: 'prochaine_journee_championnat',
+        ville: null, pays,
+        titre_impose: 'La prochaine journée du championnat',
+        resume: `Prochaine journée du championnat : ${affiches.join(', ')}`,
+        acteur: null, estPJ: false, photo_url: null,
+        poids: 'mineur', permanent: true,
+        created_at: instant
+      });
+    }
+  }
+  return facts;
+}
+
+// ASSEMBLÉE NATIONALE — UN PROJET DE LOI EXISTE POLITIQUEMENT AVANT SON VOTE (12 septembre 2026).
+//
+// Le Journal ne voyait l'Assemblée qu'au moment du résultat (ligne de chronique 'scrutin_assemblee',
+// écrite après la clôture du mercredi). Or un texte déposé, débattu puis mis en session est un sujet
+// dès avant le scrutin.
+//
+// AUCUNE MÉCANIQUE NOUVELLE : tout est lu dans assemblee_propositions, tel que le chantier
+// parlementaire l'a déjà posé. La temporalité vient de la base elle-même :
+//   - statut 'session' + cloture_ts DANS LE FUTUR -> la journée de vote est connue et datée
+//     (cloture_ts = mercredi 22:00 Europe/Paris visé, voir migration_assemblee_nationale.sql) ;
+//   - dans les 6 jours qui la précèdent, le texte devient un sujet à part entière ;
+//   - le jour du vote, le scrutin lui-même est l'actualité (le poids monte d'un cran) ;
+//   - après la clôture, ce sujet disparaît de lui-même et c'est la ligne 'scrutin_assemblee' qui
+//     porte le résultat. Aucun chevauchement, aucune double couverture.
+//
+// Un texte encore en 'debat' (semaine de débat non écoulée) n'a PAS de date de vote : il n'est donc
+// pas annoncé ici, car annoncer un scrutin sans date serait inventer un calendrier.
+//
+// Ce qui est transmis est strictement réel : titre, auteur, type, catégorie, extrait borné du texte
+// original, date de vote, et l'identifiant du sujet de forum où les prises de position publiques
+// existent déjà (elles remontent par PUBLIC_STATEMENTS, jamais fabriquées ici).
+async function collecterPropositionsEnDebat(pays, personnagesConnus) {
+  const rows = await sbGet('assemblee_propositions',
+    `country=eq.${encodeURIComponent(pays)}&statut=eq.session&cloture_ts=not.is.null`
+    + `&select=id,titre,auteur,type,categorie,texte_original,cloture_ts,session_num,forum_topic_id,amendements`);
+  if (!rows || rows.length === 0) return [];
+  const maintenant = Date.now();
+  const jourParis = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' });
+  const facts = [];
+  const instant = instantLot();
+  rows.forEach(p => {
+    const vote = new Date(p.cloture_ts).getTime();
+    if (!Number.isFinite(vote) || vote <= maintenant) return;         // scrutin déjà clos
+    const jours = Math.floor((vote - maintenant) / 86400000);
+    if (jours > JOURS_AVANT_VOTE_PUBLIABLE) return;                   // trop loin pour être annoncé
+    const voteAujourdhui = jourParis.format(new Date(vote)) === jourParis.format(new Date(maintenant));
+    const dateFr = formaterDateFr(vote);
+    if (!dateFr) return;
+    const acteur = identifierActeur(p.auteur, personnagesConnus);
+    const nbAmendements = Array.isArray(p.amendements) ? p.amendements.length : 0;
+
+    facts.push({
+      id: idSource('assemblee_propositions', p),
+      domaine: 'politique', type: 'proposition_en_debat',
+      ville: null, pays,
+      titre_impose: `Assemblée : « ${p.titre} »`,
+      resume: `L'Assemblée nationale se prononcera le ${dateFr} sur « ${p.titre} »`
+        + (p.auteur ? `, texte déposé par ${p.auteur}` : '')
+        + (voteAujourdhui ? '. Le scrutin a lieu aujourd\'hui' : ''),
+      acteur: p.auteur || null, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
+      poids: bumpPoids('secondaire', (acteur.estPJ ? 1 : 0) + (voteAujourdhui ? 1 : 0)),
+      permanent: true,
+      jour_du_vote: voteAujourdhui, jours_avant_vote: jours, date_vote_fr: dateFr,
+      proposition_type: p.type || null, categorie: p.categorie || null,
+      nb_amendements: nbAmendements,
+      // Contenu RÉEL du texte, borné et non reformulé : c'est la seule matière autorisée pour
+      // « rappeler son contenu » sans rien inventer.
+      texte_propose: p.texte_original ? String(p.texte_original).slice(0, EXTRAIT_PROPOSITION_MAX) : null,
+      forum_topic_id: p.forum_topic_id || null,
+      created_at: instant
+    });
+  });
+  return facts;
+}
+
+async function collecterSujetsPermanents(pays, personnagesConnus) {
+  const [electorales, sportifs, propositions] = await Promise.all([
+    collecterEcheancesElectorales(pays, personnagesConnus).catch(() => []),
+    collecterSujetsChampionnat(pays).catch(() => []),
+    collecterPropositionsEnDebat(pays, personnagesConnus).catch(() => [])
+  ]);
+  return [...electorales, ...sportifs, ...propositions];
+}
+
+// =====================
+// 6 ter. CADRAGE ÉDITORIAL OBTENU PAR CORRUPTION DE LA PRESSE (12 septembre 2026)
+// =====================
+// « Corrompre un journaliste » (migration_corruption_presse.sql) porte sur LA COUVERTURE d'une
+// affaire judiciaire réelle, jamais sur le dossier lui-même. Le dossier n'est donc PAS touché ici :
+// ni jugement, ni détention, ni trace, ni archive. Seule la couverture change, et uniquement pour
+// l'édition qui n'a pas encore été publiée.
+//
+// L'identité de l'affaire est déjà la clé '<table>:<id>' du Journal ('jugements:...' /
+// 'detentions:...'), stable de la création à la publication : c'est exactement l'`id` du fait
+// collecté. Aucune correspondance à deviner.
+//
+// Deux issues, strictement celles définies par la mécanique déployée (voir corruption_presse_etat,
+// dont la précédence 'etouffer' > 'favorable' est reproduite ici à l'identique) :
+//   - 'etouffer' réussi  -> l'affaire N'EST PAS PUBLIÉE : le fait est retiré du paquet. Il n'est pas
+//     non plus mis en file de report (il ne doit pas ressortir le lendemain).
+//   - 'favorable' réussi -> les faits restent VRAIS et publiés ; seul le traitement éditorial doit
+//     être favorable au PJ concerné. Le fait porte alors `cadrage:'favorable'`.
+async function appliquerCadrageCorruptionPresse(FACTS, pays) {
+  const affaires = FACTS.filter(f => f.type === 'condamnation' || f.type === 'arrestation');
+  if (affaires.length === 0) return { facts: FACTS, etouffees: [], favorables: [] };
+  const rows = await sbGet('corruptions_presse',
+    `pays=eq.${encodeURIComponent(pays)}&reussite=is.true&select=affaire_ref,option,affaire_pj`).catch(() => null);
+  if (!rows || rows.length === 0) return { facts: FACTS, etouffees: [], favorables: [] };
+
+  const etat = new Map();
+  rows.forEach(r => {
+    if (etat.get(r.affaire_ref) === 'etouffer') return;       // 'etouffer' l'emporte toujours
+    if (r.option === 'etouffer' || !etat.has(r.affaire_ref)) etat.set(r.affaire_ref, r.option);
+  });
+  const beneficiaire = new Map(rows.map(r => [r.affaire_ref, r.affaire_pj]));
+
+  const etouffees = [];
+  const favorables = [];
+  const facts = FACTS.filter(f => {
+    const o = etat.get(f.id);
+    if (o === 'etouffer') { etouffees.push(f.id); return false; }
+    if (o === 'favorable') {
+      f.cadrage = 'favorable';
+      f.cadrage_beneficiaire = beneficiaire.get(f.id) || f.acteur || null;
+      favorables.push(f.id);
+    }
+    return true;
+  });
+  return { facts, etouffees, favorables };
 }
 
 // =====================
@@ -1029,9 +1441,19 @@ async function construirePaquetFactuel(pays, periode) {
     Promise.resolve(calculerCaissesRemarquables(pays, indicCaisses))
   ]);
 
-  const FACTS = [...etatCivil, ...justice, ...candidatures, ...football, ...economieRemarquable, ...caissesRemarquables,
-                 ...ventesTerrains, ...successions, ...organisationsPubliques, ...grevesGenerales, ...chroniqueNationale]
+  // Sujets toujours d'actualité, recalculés (hors fenêtre : ce ne sont pas des événements datés).
+  const sujetsPermanents = await collecterSujetsPermanents(pays, personnagesConnus).catch(() => []);
+
+  const FACTS_BRUTS = [...etatCivil, ...justice, ...candidatures, ...football, ...economieRemarquable, ...caissesRemarquables,
+                       ...ventesTerrains, ...successions, ...organisationsPubliques, ...grevesGenerales, ...chroniqueNationale,
+                       ...sujetsPermanents]
     .map(f => ({ ...f, expositionRecente: !!(f.estPJ && f.acteur && expositionRecente.has(f.acteur)) }));
+
+  // Couverture achetée : une affaire étouffée disparaît du paquet, une affaire au cadrage favorable
+  // y reste avec sa marque. Le dossier judiciaire lui-même n'est jamais modifié.
+  const cadrage = await appliquerCadrageCorruptionPresse(FACTS_BRUTS, pays)
+    .catch(() => ({ facts: FACTS_BRUTS, etouffees: [], favorables: [] }));
+  const FACTS = cadrage.facts;
 
   const factsDuPays = f => (Array.isArray(f.pays) ? f.pays.includes(pays) : f.pays === pays);
   const compterType = type => FACTS.filter(f => f.type === type && factsDuPays(f)).length;
@@ -1060,7 +1482,10 @@ async function construirePaquetFactuel(pays, periode) {
     PUBLIC_STATEMENTS: declarations,
     INDICATORS,
     PETITES_ANNONCES: petitesAnnonces,
-    EDUCATIONAL_REFERENCE: collecterReferencePedagogique()
+    EDUCATIONAL_REFERENCE: collecterReferencePedagogique(),
+    // Diagnostic d'audit uniquement (jamais montré au joueur, jamais transmis à l'IA) : permet de
+    // constater en base qu'une affaire a bien été étouffée ou cadrée, sans relire les traces.
+    CADRAGE_PRESSE: { etouffees: cadrage.etouffees, favorables: cadrage.favorables }
   };
 }
 
@@ -1070,6 +1495,15 @@ export {
   determinerPaysEligibles,
   calculerPeriode,
   construirePaquetFactuel,
+  collecterSujetsPermanents,
+  collecterEcheancesElectorales,
+  collecterPropositionsEnDebat,
+  calculerCaissesRemarquables,
+  calculerEvenementsEconomiquesRemarquables,
+  collecterSujetsChampionnat,
+  calculerTableChampionnat,
+  appliquerCadrageCorruptionPresse,
+  TYPES_CHRONIQUE,
   estForumPublic,
   getPrixRessource,
   idSource,

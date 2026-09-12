@@ -3321,7 +3321,7 @@ async function afficherJournalDuJour(force) {
 
   document.getElementById('postes-body').innerHTML = edition
     ? construireHtmlJournalDuJour(edition)
-    : '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Aucun numéro n\'est encore disponible pour aujourd\'hui.</div>';
+    : htmlRedactionEnGreve();
 
   // Hierarchie visuelle unique (correctif UX du 4 septembre 2026, diagnostic production "fenetre
   // dans une fenetre") : uniquement quand une vraie edition s'affiche, .tribune-fronton devient LE
@@ -3342,10 +3342,41 @@ async function afficherJournalDuJour(force) {
   // avant cet ajout. Avec !force, cette ligne n'est atteinte qu'une seule fois par edition
   // (premiere decouverte automatique, jamais lors d'une reouverture manuelle) ; aucune entree si
   // edition est null (aucune edition disponible).
-  if (!force && edition) addJournalEntry(
-    '📰 La nouvelle édition de La Tribune de Républia est disponible. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Lire le Journal du jour</span>',
+  // LIEN POSÉ DANS TOUS LES CAS (correctif du 12 septembre 2026). Il ne l'était que lorsqu'une
+  // édition avait été trouvée ("&& edition"). Combiné au verrou "une ouverture automatique par
+  // session", un joueur dont le pays n'avait pas de numéro disposait donc d'UNE seule apparition du
+  // journal par session, sur le message de repli, sans aucun moyen de le rouvrir : il n'existe ni
+  // ordre, ni bouton, ni kiosque menant au Journal. Le lien est désormais toujours écrit, et il
+  // reste cliquable dans l'historique du journal d'événements (restaurerJournal) : le joueur peut
+  // rouvrir La Tribune quand il veut, sans jamais toucher à une console ni à une API.
+  if (!force) addJournalEntry(
+    edition
+      ? '📰 La nouvelle édition de La Tribune de Républia est disponible. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Lire le Journal du jour</span>'
+      : '📰 La Tribune de Républia n\'a pas pu paraître. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Passer au kiosque</span>',
     'event-info'
   );
+}
+
+// HABILLAGE DIÉGÉTIQUE D'UNE PANNE (12 septembre 2026) — niveau 3 de la hiérarchie éditoriale.
+//
+// Le joueur ne doit JAMAIS lire un message technique : ni erreur, ni nom d'API, ni crédit épuisé,
+// ni code HTTP. Quand aucune édition n'est publiable, le jeu explique donc l'absence de journal
+// dans sa propre fiction : la rédaction est en grève.
+//
+// CE N'EST PAS UNE MÉCANIQUE DE JEU. Aucune grève réelle n'est créée, aucun syndicat n'est
+// impliqué, aucun indicateur ne bouge, rien n'est écrit en base : c'est un habillage d'affichage,
+// et rien d'autre. Il n'est atteint que si même l'édition déterministe n'a pu être produite
+// (api/_journal-generation.js, niveau 3) — jamais parce que l'actualité du jour était pauvre : une
+// journée calme produit un vrai numéro, court.
+function htmlRedactionEnGreve() {
+  return '<div class="tribune-greve">'
+    + '<div class="tribune-greve-bandeau">La Tribune de Républia</div>'
+    + '<div class="tribune-greve-titre">Pas de numéro aujourd\'hui</div>'
+    + '<p class="tribune-greve-texte">La rédaction est en grève. Les rotatives sont à l\'arrêt et '
+    + 'aucune édition n\'a pu être tirée ce matin.</p>'
+    + '<p class="tribune-greve-texte">Le quotidien reparaîtra dès la reprise du travail.</p>'
+    + '<div class="tribune-greve-signature">La direction</div>'
+    + '</div>';
 }
 
 // =====================
