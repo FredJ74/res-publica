@@ -3645,6 +3645,16 @@ async function rafraichirLicenceSportiveDepuisServeur() {
     if (rows && rows[0] && state.char) {
       state.char.licenceSportive = rows[0].licence_sportive || null;
       state.char.blessureSportive = rows[0].blessure_sportive || null;
+    } else if (Array.isArray(rows) && rows.length === 0) {
+      // CORRECTIF DU 14 septembre 2026. Une reponse VIDE (et non une panne : sbGet rend null sur
+      // erreur HTTP, un tableau sur succes) signifie qu'aucune ligne ne porte ce nom -- le
+      // personnage n'existe pas cote serveur. Jusqu'ici on gardait alors silencieusement la
+      // valeur du cache local, et la prise de licence repondait "deja licencie" pour une licence
+      // que le serveur n'a jamais eue. On ne detruit pas la donnee locale (elle n'est plus
+      // qu'un affichage), mais on previent franchement.
+      if (typeof signalerPersonnageFantome === 'function') {
+        signalerPersonnageFantome(state.char.name, { etat: 'orphelin' });
+      }
     }
   } catch (e) {}
   return state.char?.licenceSportive || null;

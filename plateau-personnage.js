@@ -596,7 +596,21 @@ function switchSelfTab(tab, el) {
     }
 
     if (char?.licenceSportive) {
-      html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+      // CORRECTIF DU 14 septembre 2026. Le profil n'affichait NULLE PART le club ni le statut de
+      // la licence : seulement deux boutons. Un joueur licencie voyait donc "rien" dans sa fiche
+      // alors que la prise de licence lui repondait "deja licencie" -- incoherence apparente sans
+      // rapport avec la reinitialisation. On rend la donnee visible, telle qu'elle est stockee.
+      const licClub = (typeof getClub === 'function' ? getClub(char.licenceSportive.clubId) : null);
+      const licStatut = (typeof statutLicenceSportive === 'function') ? statutLicenceSportive()
+                                                                     : (char.licenceSportive.statut || 'active');
+      const libelleStatut = { active: 'active', impaye: 'impayée', anneeBlanche: 'année blanche' }[licStatut] || licStatut;
+      html += '<div style="margin-top:1rem;padding:.6rem .8rem;background:#0f0d05;border:1px solid #2a2010">';
+      html += '<div style="font-size:.68rem;letter-spacing:.1em;color:#6a5a30;font-family:Bebas Neue,sans-serif">LICENCE SPORTIVE</div>';
+      html += '<div style="font-size:.82rem;color:#c0b090;margin-top:.25rem">'
+        + (licClub?.nom || char.licenceSportive.clubId || 'Club inconnu')
+        + ' <span style="color:#8a8060">— ' + libelleStatut + '</span></div>';
+      html += '</div>';
+      html += '<div style="margin-top:.6rem;display:flex;gap:.5rem;flex-wrap:wrap">';
       html += '<button onclick="doVoirMonClassement()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-chart-bar"></i> Mon niveau sportif</button>';
       html += '<button onclick="doConsulterMesOffresTransfert()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrows-exchange"></i> Mes offres de transfert</button>';
       html += '</div>';

@@ -919,6 +919,17 @@ function loadCharacter() {
           // normales des cet instant, y compris pour la navigation qui vient de se produire
           // pendant l'attente ci-dessus (enterRoom l'a deja affichee sans la sauvegarder).
           state.personnageChargeDepuisServeur = true;
+          // CORRECTIF DU 14 septembre 2026. Jusqu'ici, un sbState vide ne declenchait RIEN : le
+          // jeu continuait sur le cache local, sans personnage cote serveur. Toutes les actions
+          // echouaient alors en silence, et leurs refus etaient presentes comme un manque
+          // d'argent. On verifie desormais explicitement -- et on ne conclut a une absence que
+          // lorsqu'on en a la preuve, jamais sur une panne reseau.
+          if (!sbState && typeof sbEtatIdentitePersonnage === 'function') {
+            sbEtatIdentitePersonnage(char.name)
+              .then(r => { if (r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine') {
+                signalerPersonnageFantome(char.name, r); } })
+              .catch(() => {});
+          }
         }).catch(() => { state.personnageChargeDepuisServeur = true; }); // echec reseau : ne jamais bloquer les sauvegardes indefiniment
       } else {
         // Pas de nom ou sbLoadPersonnage indisponible : aucune reconciliation ne viendra jamais,
@@ -1724,6 +1735,58 @@ function showPostRequired(posteRequisNom) {
 // manquait de l'ARGENT lisait « PA insuffisants », et le sous-texte etait toujours vide (aucun
 // chiffre, aucun solde). La raison exacte etait pourtant deja renvoyee par deduireCoutOrdre.
 // Ne modifie aucun debit ni aucune regle : purement un message.
+// CORRECTIF DU 14 septembre 2026 — PERSONNAGE FANTOME.
+//
+// Le navigateur affiche un personnage que le serveur ne connait pas (ou qui appartient a un
+// autre compte). Continuer a jouer n'a aucun sens : rien ne sera sauvegarde et chaque action
+// sera refusee. On l'annonce franchement plutot que de laisser le joueur se heurter a des
+// messages incoherents, et on lui propose la seule sortie possible.
+//
+// AUCUNE resurrection : on ne recree jamais la ligne a partir du cache -- ce serait rendre au
+// joueur une fortune et des affiliations que la reinitialisation avait supprimees. Le cache
+// n'est efface que sur action explicite du joueur.
+function signalerPersonnageFantome(nom, resultat) {
+  if (document.getElementById('bandeau-personnage-fantome')) return;
+  const etat = (resultat && resultat.etat) || 'orphelin';
+  const messages = {
+    orphelin: 'Votre personnage <strong>' + nom + '</strong> n\'existe plus sur le serveur — il a été '
+      + 'supprimé lors de la réinitialisation de la bêta. Ce que vous voyez à l\'écran provient '
+      + 'du cache de votre navigateur : rien n\'est enregistré, et toutes vos actions sont refusées.',
+    autre: 'Ce navigateur affiche <strong>' + nom + '</strong>, mais votre compte possède un autre '
+      + 'personnage (<strong>' + (resultat && resultat.nomServeur) + '</strong>). Le cache local est périmé.',
+    appartient_a_autrui: 'Le personnage <strong>' + nom + '</strong> existe, mais il n\'appartient pas '
+      + 'à ce navigateur. Reconnectez-vous depuis l\'appareil où vous l\'avez créé.'
+  };
+  const div = document.createElement('div');
+  div.id = 'bandeau-personnage-fantome';
+  div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(8,6,3,.94);'
+    + 'display:flex;align-items:center;justify-content:center;padding:1.5rem';
+  div.innerHTML = '<div style="max-width:34rem;border:1px solid #6a5a20;background:#12100a;padding:1.6rem">'
+    + '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;font-size:1.1rem;color:#C9A84C;'
+    + 'margin-bottom:.9rem">PERSONNAGE INTROUVABLE</div>'
+    + '<div style="font-size:.86rem;color:#c0b090;line-height:1.75;font-family:Crimson Pro,serif">'
+    + (messages[etat] || messages.orphelin) + '</div>'
+    + '<div style="margin-top:1.3rem;display:flex;gap:.6rem;flex-wrap:wrap">'
+    + '<button id="btn-fantome-recreer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+    + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
+    + 'color:#C9A84C;cursor:pointer">Créer un personnage</button>'
+    + '<button id="btn-fantome-ignorer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+    + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #3a2a10;background:transparent;'
+    + 'color:#9a8a68;cursor:pointer">Rester sur cet écran</button>'
+    + '</div></div>';
+  document.body.appendChild(div);
+  document.getElementById('btn-fantome-recreer').addEventListener('click', () => {
+    // Le cache de CE navigateur uniquement, et seulement sur demande explicite.
+    try {
+      localStorage.removeItem('respublica_char');
+      localStorage.removeItem('respublica_last_char');
+      if (nom) localStorage.removeItem('respublica_char_' + nom);
+    } catch (e) {}
+    window.location.href = 'index.html';
+  });
+  document.getElementById('btn-fantome-ignorer').addEventListener('click', () => div.remove());
+}
+
 function signalerRefusCout(resultat) {
   const r = resultat || {};
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
@@ -1747,6 +1810,22 @@ function signalerRefusCout(resultat) {
   }
   if (r.raison === 'pa_insuffisants') {
     signalerRefusPa(r.pa);
+    return;
+  }
+  // CORRECTIF DU 14 septembre 2026. Ces trois refus etaient annonces au joueur comme un manque
+  // d'argent -- c'est ce qui a fait croire a un "budget insuffisant" alors que les fonds
+  // etaient la. Ils n'ont rien a voir avec les fonds et meritent chacun leur message.
+  if (r.raison === 'personnage_introuvable' || r.raison === 'acteur_non_authentifie') {
+    showToast('Personnage non reconnu',
+      'Votre personnage n\'est plus enregistré sur le serveur. Rechargez la page pour en recréer un.',
+      false, true);
+    return;
+  }
+  if (r.raison === 'ordre_inconnu' || r.raison === 'cout_non_declare') {
+    showToast('Action indisponible',
+      'Le coût de cette action n\'est pas reconnu par le serveur. Rien ne vous a été prélevé.',
+      false, true);
+    console.error('Refus de cout serveur :', r.raison, r);
     return;
   }
   // Raison absente/inconnue : on ne fabrique aucun chiffre.

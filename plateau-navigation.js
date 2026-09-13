@@ -1515,11 +1515,11 @@ async function executerVoyage(mode, empireId, villeId) {
   // negatif (deduireCoutOrdre refuse et ne touche a rien si l'un des deux manque).
   const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost });
   if (!rVoyage.ok) {
-    showToast(
-      rVoyage.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants',
-      rVoyage.raison === 'pa_insuffisants' ? ('Il vous faut ' + config.pa + ' PA.') : ('Il vous faut ' + config.cost + ' ' + cur + '.'),
-      false
-    );
+    // CORRECTIF DU 14 septembre 2026 : ce site annoncait "Fonds insuffisants" pour TOUTE raison
+    // autre qu'un manque de PA -- y compris 'personnage_introuvable', qui n'a rien a voir avec
+    // l'argent. Un joueur disposant de ses fonds se voyait donc refuser son billet pour un
+    // "budget insuffisant". signalerRefusCout dit desormais la vraie raison.
+    signalerRefusCout({ ...rVoyage, cost: config.cost, pa: config.pa });
     return;
   }
   const ancienEmpire = state.country;
@@ -1623,11 +1623,20 @@ async function confirmerTransport(mode, empireId, villeId) {
     return; // On attend la confirmation
   }
 
-  // Voyage a 100% si ressources OK
-  const rPaDirect = await deduireCoutOrdre({ pa: config.pa, cost: 0 });
-  if (!rPaDirect.ok) { showToast('PA insuffisants', 'Il vous faut ' + config.pa + ' PA.', false); return; }
-  const debitTransport = await debiterFondsOrdinaires(config.cost);
-  if (!debitTransport.ok) { showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false); return; }
+  // CORRECTIF DU 14 septembre 2026 — TRANSPORTS INTRA-EMPIRE (train, bus).
+  //
+  // Ce chemin avait deux defauts, tous deux visibles en production :
+  //   1. il annoncait au serveur un cout de 0 FR (`cost: 0`) alors que l'ordre prendre_train /
+  //      prendre_bus declare son prix dans data.js. Depuis que payer_ordre valide le couple
+  //      (pa, cost) contre le miroir, ce couple n'existe pas : l'ordre etait refuse en
+  //      'cout_non_declare' -- et le message affiche disait "PA insuffisants", ce qui n'avait
+  //      aucun rapport ;
+  //   2. le prix etait ensuite preleve par le NAVIGATEUR (debiterFondsOrdinaires), hors de
+  //      toute validation serveur.
+  // Un seul appel couvre desormais les deux composantes, exactement comme le fait deja
+  // executerVoyage pour l'avion et le bateau. Memes PA, meme prix : aucune regle ne change.
+  const rTransport = await deduireCoutOrdre({ pa: config.pa, cost: config.cost });
+  if (!rTransport.ok) { signalerRefusCout({ ...rTransport, cost: config.cost, pa: config.pa }); return; }
 
   // Changer d'empire et de ville
   const ancienEmpire = state.country;

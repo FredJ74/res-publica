@@ -425,6 +425,49 @@ function normaliserJsonPersonnage(valeur) {
   return null;
 }
 
+// CORRECTIF DU 14 septembre 2026 — DETECTION D'UN PERSONNAGE FANTOME.
+//
+// Apres la reinitialisation de la beta, un navigateur qui avait encore son cache localStorage a
+// continue d'afficher l'ancien personnage : argent, poste, licence sportive, tout venait du
+// cache. Cote serveur la ligne n'existait plus, et sbEcrirePersonnage est UPDATE-seulement depuis
+// le chantier B (volontairement : un cache perime ne doit JAMAIS ressusciter un personnage
+// supprime, avec son ancienne fortune). Resultat : le jeu tournait, mais chaque appel serveur
+// echouait -- 'personnage_introuvable' pour payer_ordre, 42501 pour toute RPC -- et ces refus
+// etaient presentes au joueur comme un manque d'argent.
+//
+// Cette fonction distingue les trois situations, et surtout ne confond JAMAIS une absence reelle
+// avec une panne reseau :
+//   'ok'            le personnage du cache est bien celui de ce compte ;
+//   'autre'         ce compte possede un AUTRE personnage (cache perime) ;
+//   'orphelin'      ce compte n'a aucun personnage, et aucune ligne ne porte ce nom ;
+//   'appartient_a_autrui'  la ligne existe mais appartient a un autre compte ;
+//   'indetermine'   on n'a pas pu savoir (reseau, RPC indisponible) -- ne rien conclure.
+async function sbEtatIdentitePersonnage(nomLocal) {
+  if (!nomLocal || typeof sbRpc !== 'function') return { etat: 'indetermine' };
+
+  let nomServeur;
+  try {
+    const r = await sbRpc('mon_personnage', {});
+    nomServeur = (r === null || r === undefined) ? null : (Array.isArray(r) ? r[0] : r);
+    if (nomServeur && typeof nomServeur === 'object') nomServeur = nomServeur.mon_personnage ?? null;
+  } catch (e) {
+    return { etat: 'indetermine' };
+  }
+
+  if (nomServeur) {
+    return (nomServeur === nomLocal)
+      ? { etat: 'ok', nomServeur }
+      : { etat: 'autre', nomServeur };
+  }
+
+  // Ce compte n'a aucun personnage. Reste a savoir si la ligne du cache existe ailleurs.
+  // sbGet rend null sur erreur HTTP et un tableau sur succes : c'est ce qui permet de ne pas
+  // confondre "absente" et "pas pu verifier".
+  const rows = await sbGet('personnages', 'select=name&name=eq.' + encodeURIComponent(nomLocal));
+  if (rows === null) return { etat: 'indetermine' };
+  return rows.length > 0 ? { etat: 'appartient_a_autrui' } : { etat: 'orphelin' };
+}
+
 async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
