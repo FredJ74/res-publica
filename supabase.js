@@ -1092,12 +1092,16 @@ async function sbGetCaisseBatiment(key) {
   return rows[0].data;
 }
 
-async function sbSaveCaisseBatiment(key, data) {
-  const existing = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(key)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('caisses_batiments', { id: key, data, updated_at: new Date().toISOString() });
+// NEUTRALISEE (14 septembre 2026). Cette fonction ecrivait un SOLDE ABSOLU decide par le
+// navigateur sur une caisse institutionnelle. Ses trois seules appelantes -- les primitives
+// crediter/debiterPlafonne/debiterAtomique -- passent desormais par la RPC atomique
+// caisse_institution_mouvement, qui prend un DELTA et verrouille la ligne. La table est fermee
+// en ecriture pour anon et authenticated ; le cron, lui, ecrit en service_role.
+// Conservee pour qu'un appelant oublie echoue franchement et de facon diagnosticable.
+async function sbSaveCaisseBatiment(key) {
+  console.error('sbSaveCaisseBatiment est neutralisee (chantier C) : utiliser '
+    + 'sbCaisseInstitutionMouvement. Ecriture ignoree pour ' + key);
+  return null;
 }
 
 async function sbGetNiveauPrison(key) {
@@ -2680,6 +2684,17 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
 async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant) {
   const rows = await sbRpc('caisse_institution_mouvement', {
     p_id: caisseId, p_delta: delta, p_exiger_existant: exigerExistant === true
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Variante PLAFONNEE (14 septembre 2026) : verse au maximum p_montant, borne par le solde reel,
+// et rend ce qui a ete REELLEMENT verse. Necessaire parce qu'une partie du jeu tolere
+// deliberement un versement partiel (salaires politiques et religieux, virements, subventions,
+// reparations) -- c'est une regle existante, pas une tolerance a corriger. Meme fail-closed.
+async function sbCaisseInstitutionMouvementPlafonne(caisseId, montant) {
+  const rows = await sbRpc('caisse_institution_mouvement_plafonne', {
+    p_id: caisseId, p_montant: montant
   });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }

@@ -11236,31 +11236,47 @@ async function distribuerMontantParVilleAuProrataFiscal(pays, montantTotal, reso
   }
 }
 
+// LECTURE SEULE (14 septembre 2026). Cette fonction creait la caisse au passage quand elle
+// n'existait pas encore -- une ecriture cliente pour un simple affichage. C'est inutile : la
+// primitive de mouvement cree la ligne elle-meme au premier credit, sous verrou. Une caisse
+// absente vaut zero, ce qui est exactement ce que rendait la creation.
 async function chargerCaisseBatiment(pays, buildingId) {
   const key = pays + '_' + buildingId;
   if (typeof sbGetCaisseBatiment !== 'function') return { key, solde: 0 };
-  let data = await sbGetCaisseBatiment(key).catch(() => null);
-  if (!data) {
-    data = { solde: 0 };
-    await sbSaveCaisseBatiment(key, data).catch(() => {});
-  }
-  return { key, ...data };
+  const data = await sbGetCaisseBatiment(key).catch(() => null);
+  return data ? { key, ...data } : { key, solde: 0 };
 }
 
+// CHANTIER C (14 septembre 2026) — LES TROIS PRIMITIVES DE CAISSE PASSENT AU SERVEUR.
+//
+// Elles faisaient toutes la meme chose : une LECTURE HTTP, un calcul dans le navigateur, puis une
+// ECRITURE HTTP du solde final. Entre les deux, n'importe quel autre mouvement sur la meme caisse
+// etait perdu -- et le solde ecrit etait une valeur ABSOLUE decidee par le client. 42 sites
+// d'appel en dependaient.
+//
+// La primitive serveur existait deja, deployee et verrouillee (caisse_institution_mouvement,
+// migration du 12 septembre), mais aucun appelant du navigateur ne l'utilisait : son commentaire
+// d'origine disait explicitement que les primitives historiques n'y etaient « PAS reroutees ».
+// C'est fait ici. Les 42 appelants ne changent pas d'une ligne : seules ces trois fonctions
+// changent de moteur. Elles transmettent desormais un DELTA, jamais un solde.
+//
+// FAIL-CLOSED : plus aucun repli local. Si la RPC n'aboutit pas, rien n'est credite ni debite et
+// l'appelant le voit -- un credit rend null, un debit rend 0.
 async function crediterCaisseBatiment(pays, buildingId, montant) {
-  const c = await chargerCaisseBatiment(pays, buildingId);
-  c.solde = Math.max(0, (c.solde || 0) + montant);
-  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
-  return c.solde;
+  if (typeof sbCaisseInstitutionMouvement !== 'function') return null;
+  const r = await sbCaisseInstitutionMouvement(pays + '_' + buildingId, Math.abs(montant), false)
+    .catch(() => null);
+  return (r && r.ok) ? r.solde : null;
 }
 
-// Verse au maximum montantVise, plafonne par ce qui est reellement disponible (jamais de negatif)
+// Verse au maximum montantVise, plafonne par ce qui est reellement disponible (jamais de negatif).
+// Le plafonnement est desormais applique SOUS VERROU par le serveur : deux versements simultanes
+// ne peuvent plus verser chacun la totalite d'un solde qu'ils ont lu au meme instant.
 async function debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) {
-  const c = await chargerCaisseBatiment(pays, buildingId);
-  const montantVerse = Math.min(c.solde || 0, montantVise);
-  c.solde = (c.solde || 0) - montantVerse;
-  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
-  return montantVerse;
+  if (typeof sbCaisseInstitutionMouvementPlafonne !== 'function') return 0;
+  const r = await sbCaisseInstitutionMouvementPlafonne(pays + '_' + buildingId, Math.abs(montantVise))
+    .catch(() => null);
+  return (r && r.ok) ? Number(r.verse || 0) : 0;
 }
 
 // Debit TOUT-OU-RIEN pour les couts institutionnels fixes (deduireCoutOrdre, plateau-core.js).
@@ -11273,11 +11289,12 @@ async function debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) {
 // ne sont pas corriges ici (dette technique consignee pour la Phase K-bis), mais tout nouvel
 // appelant a cout fixe doit utiliser debiterCaisseBatimentAtomique, jamais Plafonne.
 async function debiterCaisseBatimentAtomique(pays, buildingId, montant) {
-  const c = await chargerCaisseBatiment(pays, buildingId);
-  if ((c.solde || 0) < montant) return 0;
-  c.solde = (c.solde || 0) - montant;
-  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
-  return montant;
+  // Desormais reellement atomique, au sens transactionnel : le verrou et le test de solde sont
+  // dans la meme instruction serveur. Auparavant « tout-ou-rien » ne decrivait que l'intention.
+  if (typeof sbCaisseInstitutionMouvement !== 'function') return 0;
+  const r = await sbCaisseInstitutionMouvement(pays + '_' + buildingId, -Math.abs(montant), false)
+    .catch(() => null);
+  return (r && r.ok) ? Math.abs(montant) : 0;
 }
 
 // =====================
