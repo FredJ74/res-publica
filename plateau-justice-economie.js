@@ -4898,15 +4898,21 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
 
 // Salaire quotidien du directeur d'entrepot, plafonne par la caisse de son propre entrepot —
 // meme montant et meme mecanique que le directeur d'usine (SALAIRE_DIRECTEUR, voir plus haut).
-async function debiterCaisseEntrepotPlafonne(pays, city, buildingId, montantVise) {
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, city, buildingId).catch(() => null) : null;
-  const entrepot = etat?.entrepot || {};
-  const solde = entrepot.caisse || 0;
-  const montantVerse = Math.min(solde, montantVise);
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat(pays, city, buildingId, { ...(etat || {}), entrepot: { ...entrepot, caisse: solde - montantVerse } }).catch(() => {});
-  }
-  return montantVerse;
+async function debiterCaisseEntrepotPlafonne(pays, city, buildingId, montantVise, posteAttendu) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Cette fonction lisait la caisse, calculait le
+  // versement et REECRIVAIT la caisse depuis le navigateur. percevoir_salaire_directeur verifie
+  // au serveur que l'appelant occupe reellement le poste, plafonne au solde reel (le versement
+  // partiel reste la regle) et pose le marqueur du jour -- lequel vivait jusqu'ici sur
+  // state.char, qui n'est pas persiste : un simple rechargement permettait de se payer deux fois.
+  const v = await sbRpc('percevoir_salaire_directeur', {
+    p_acteur: state.char?.name, p_pays: pays, p_ville: city, p_batiment: buildingId,
+    p_souscle: 'entrepot', p_poste_attendu: posteAttendu || state.poste?.id || null,
+    p_montant: montantVise
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) return 0;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
+  return v.verse;
 }
 
 async function verifierSalaireDirecteurEntrepot() {
@@ -4918,9 +4924,8 @@ async function verifierSalaireDirecteurEntrepot() {
   if (state.char.dernierSalaireDirecteurEntrepotJour === jour) return;
 
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseEntrepotPlafonne(pays, state.poste.city, buildingId, SALAIRE_DIRECTEUR);
-
-  state.arg = (state.arg || 0) + montantVerse;
+  const montantVerse = await debiterCaisseEntrepotPlafonne(pays, state.poste.city, buildingId, SALAIRE_DIRECTEUR, 'directeur_entrepot');
+  // Le credit est deja applique par la RPC : ne pas le refaire ici.
   state.char.dernierSalaireDirecteurEntrepotJour = jour;
   updateUI();
   if (montantVerse > 0) {
@@ -5870,15 +5875,21 @@ async function confirmerFixerRepartitionProduction(buildingId, pa, cost) {
 // plutot que dans le systeme sbGetCaisseBatiment des institutions politiques.
 const SALAIRE_DIRECTEUR = 500;
 
-async function debiterCaisseUsinePlafonne(pays, city, buildingId, montantVise) {
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, city, buildingId).catch(() => null) : null;
-  const usine = etat?.usine || {};
-  const solde = usine.caisse || 0;
-  const montantVerse = Math.min(solde, montantVise);
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat(pays, city, buildingId, { ...(etat || {}), usine: { ...usine, caisse: solde - montantVerse } }).catch(() => {});
-  }
-  return montantVerse;
+async function debiterCaisseUsinePlafonne(pays, city, buildingId, montantVise, posteAttendu) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Cette fonction lisait la caisse, calculait le
+  // versement et REECRIVAIT la caisse depuis le navigateur. percevoir_salaire_directeur verifie
+  // au serveur que l'appelant occupe reellement le poste, plafonne au solde reel (le versement
+  // partiel reste la regle) et pose le marqueur du jour -- lequel vivait jusqu'ici sur
+  // state.char, qui n'est pas persiste : un simple rechargement permettait de se payer deux fois.
+  const v = await sbRpc('percevoir_salaire_directeur', {
+    p_acteur: state.char?.name, p_pays: pays, p_ville: city, p_batiment: buildingId,
+    p_souscle: 'usine', p_poste_attendu: posteAttendu || state.poste?.id || null,
+    p_montant: montantVise
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) return 0;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
+  return v.verse;
 }
 
 async function verifierSalaireDirecteur() {
@@ -5890,9 +5901,8 @@ async function verifierSalaireDirecteur() {
   if (state.char.dernierSalaireDirecteurJour === jour) return;
 
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseUsinePlafonne(pays, cfg.city, cfg.buildingId, SALAIRE_DIRECTEUR);
-
-  state.arg = (state.arg || 0) + montantVerse;
+  const montantVerse = await debiterCaisseUsinePlafonne(pays, cfg.city, cfg.buildingId, SALAIRE_DIRECTEUR, posteId);
+  // Le credit est deja applique par la RPC : ne pas le refaire ici.
   state.char.dernierSalaireDirecteurJour = jour;
   updateUI();
   if (montantVerse > 0) {
@@ -6433,21 +6443,24 @@ async function confirmerConstruction(niveauKey) {
     });
     // La reserve militaire de l'Effort de guerre bloque aussi les chantiers : le sixieme
     // argument retire du disponible ce qui est reserve, sans faire disparaitre la marchandise.
-    const plan = planifierApprovisionnement(besoinJ1, chantier.stockMateriaux,
-      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, chantier.tresorerie, prix,
-      (typeof reserveMilitaireEntrepot === 'function') ? reserveMilitaireEntrepot(etatEnt) : {});
+    // CHANTIER C / PHASE 2 : le plan est recalcule PAR LE SERVEUR a partir du stock reel de
+    // l'entrepot, de ses prix reels et de sa reserve militaire ; c'est lui qui applique le
+    // prelevement. Le stock du chantier et sa tresorerie restent fournis ici : ils vivent dans
+    // terrains_etat, que ce lot ne migre pas, et ne sont meme pas encore ecrits en base a cet
+    // instant. Le cote ENTREPOT, lui, n'est plus dictable par le navigateur.
+    const plan = await sbRpc('approvisionner_chantier', {
+      p_acteur: state.char?.name, p_pays: state.country, p_ville: villeTerrain,
+      p_entrepot: idEntrepot, p_besoin: besoinJ1,
+      p_stock_chantier: chantier.stockMateriaux || {}, p_tresorerie: chantier.tresorerie || 0
+    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+      .catch(function () { return null; }) || { depense: 0, achats: {}, stockChantier: chantier.stockMateriaux || {} };
     if (plan.depense > 0) {
       chantier = Object.assign({}, chantier, {
         stockMateriaux: plan.stockChantier,
         tresorerie: Math.max(0, chantier.tresorerie - plan.depense),
         evenements: (chantier.evenements || []).concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
       });
-      if (typeof sbSetBatimentEtat === 'function') {
-        await sbSetBatimentEtat(state.country, villeTerrain, idEntrepot, {
-          entrepot: Object.assign({}, etatEnt.entrepot || {}, { stock: plan.stockEntrepot,
-            caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + plan.depense })
-        }).catch(() => {});
-      }
+      // L'entrepot a deja ete debite par la RPC, dans la meme transaction.
     }
   }
 
@@ -6908,21 +6921,24 @@ async function confirmerReconfiguration() {
     });
     // Idem reconfiguration : la reserve militaire est opposable a ce chantier-ci comme a tout
     // autre usage non militaire.
-    const plan = planifierApprovisionnement(besoinJ1, ch.stockMateriaux,
-      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, ch.tresorerie, prix,
-      (typeof reserveMilitaireEntrepot === 'function') ? reserveMilitaireEntrepot(etatEnt) : {});
+    // CHANTIER C / PHASE 2 : le plan est recalcule PAR LE SERVEUR a partir du stock reel de
+    // l'entrepot, de ses prix reels et de sa reserve militaire ; c'est lui qui applique le
+    // prelevement. Le stock du chantier et sa tresorerie restent fournis ici : ils vivent dans
+    // terrains_etat, que ce lot ne migre pas, et ne sont meme pas encore ecrits en base a cet
+    // instant. Le cote ENTREPOT, lui, n'est plus dictable par le navigateur.
+    const plan = await sbRpc('approvisionner_chantier', {
+      p_acteur: state.char?.name, p_pays: state.country, p_ville: villeTerrain,
+      p_entrepot: idEntrepot, p_besoin: besoinJ1,
+      p_stock_chantier: ch.stockMateriaux || {}, p_tresorerie: ch.tresorerie || 0
+    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+      .catch(function () { return null; }) || { depense: 0, achats: {}, stockChantier: ch.stockMateriaux || {} };
     if (plan.depense > 0) {
       ch = Object.assign({}, ch, {
         stockMateriaux: plan.stockChantier,
         tresorerie: Math.max(0, ch.tresorerie - plan.depense),
         evenements: ch.evenements.concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
       });
-      if (typeof sbSetBatimentEtat === 'function') {
-        await sbSetBatimentEtat(state.country, villeTerrain, idEntrepot, {
-          entrepot: Object.assign({}, etatEnt.entrepot || {}, { stock: plan.stockEntrepot,
-            caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + plan.depense })
-        }).catch(() => {});
-      }
+      // L'entrepot a deja ete debite par la RPC, dans la meme transaction.
     }
   }
 
