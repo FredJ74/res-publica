@@ -12,16 +12,23 @@ Sources parcourues, dans l'ordre ou le jeu les fusionne :
   * BUILDINGS[b].rooms[r].orders
   * WORLD[pays][ville].buildingContext[b].orders et .roomOverrides[r].orders
   * TYPES_ORGANISATIONS[t].ordres  (le menu dynamique des organisations)
+  * les litteraux d'ordre declares DANS LES AUTRES FICHIERS .js de la racine --
+    quatre ordres de l'etat civil vivent dans plateau-politique.js et nulle part
+    ailleurs. Les oublier, avec un miroir fail-closed, reviendrait a les casser.
 
-Sortie : les triples (fn, pa, cost) DISTINCTS. On garde tous les couples declares
-pour un meme ordre, parce que dix ordres coutent legitimement des prix differents
-selon le lieu (acheter_terrain va de 3 500 a 36 000 FR).
+Sortie : les triples (fn, pa, cost) DISTINCTS, GRATUITS COMPRIS. Miroiter aussi
+les ordres gratuits est ce qui permet au serveur de distinguer « connu et
+gratuit » de « inconnu » -- et donc de refuser le second sans refuser le premier.
+On garde tous les couples declares pour un meme ordre, parce que dix ordres
+coutent legitimement des prix differents selon le lieu (acheter_terrain va de
+3 500 a 36 000 FR).
 
-Usage :  python3 .scratch/generer_ordres_couts.py          -> resume
-         python3 .scratch/generer_ordres_couts.py --sql    -> VALUES SQL
-         python3 .scratch/generer_ordres_couts.py --json   -> JSON
+Usage :  python3 .scratch/generer_ordres_couts.py            -> resume
+         python3 .scratch/generer_ordres_couts.py --sql      -> VALUES SQL
+         python3 .scratch/generer_ordres_couts.py --json     -> JSON
+         python3 .scratch/generer_ordres_couts.py --empreinte-> empreinte stable
 """
-import json, os, subprocess, sys, tempfile
+import hashlib, json, os, re, subprocess, sys, tempfile
 
 JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,8 +74,43 @@ def extraire():
     return json.loads(r.stdout.strip().splitlines()[-1])
 
 
+def ordres_hors_data():
+    """Ordres declares en dur dans un module, hors data.js. Ils portent toujours un
+    `label` : c'est ce qui les distingue d'une comparaison `fn === '...'` ou d'une
+    simple mention. Expression reguliere assumee ici -- ces fichiers ne sont pas
+    chargeables isolement, et la forme est stable."""
+    trouves = set()
+    for f in sorted(os.listdir(RACINE)):
+        if not f.endswith(".js") or f == "data.js":
+            continue
+        chemin = os.path.join(RACINE, f)
+        if not os.path.isfile(chemin):
+            continue
+        src = open(chemin, encoding="utf-8", errors="replace").read()
+        for m in re.finditer(r"\{\s*fn\s*:\s*'([a-z0-9_]+)'\s*,([^{}]{0,400}?)\}", src):
+            fn, corps = m.group(1), m.group(2)
+            if "label" not in corps:
+                continue
+            pa = re.search(r"\bpa\s*:\s*(-?\d+)", corps)
+            co = re.search(r"\bcost\s*:\s*(-?\d+)", corps)
+            trouves.add((fn, int(pa.group(1)) if pa else 0, int(co.group(1)) if co else 0))
+    return trouves
+
+
 def triples(brut):
-    return sorted({(o["fn"], int(o["pa"]), int(o["cost"])) for o in brut})
+    t = {(o["fn"], int(o["pa"]), int(o["cost"])) for o in brut}
+    t |= ordres_hors_data()
+    return sorted(t)
+
+
+def empreinte(t):
+    """Empreinte stable du miroir attendu. Le banc la compare a celle calculee sur
+    le contenu REEL de la table : toute declaration ajoutee dans data.js sans
+    regeneration du miroir fait diverger les deux et sort en echec."""
+    # md5 et non sha256 : Postgres l'a en natif, sans extension a installer,
+    # ce qui permet a la base de recalculer la MEME empreinte sans dependance.
+    brut = "\n".join("%s|%d|%d" % x for x in t)
+    return hashlib.md5(brut.encode("utf-8")).hexdigest()[:16]
 
 
 def main():
@@ -80,11 +122,17 @@ def main():
     if "--json" in sys.argv:
         print(json.dumps([{"fn": fn, "pa": pa, "cost": c} for fn, pa, c in t]))
         return 0
+    if "--empreinte" in sys.argv:
+        print(empreinte(t))
+        return 0
     fns = {x[0] for x in t}
     variables = {fn for fn in fns if len([1 for x in t if x[0] == fn]) > 1}
     print("declarations lues : %d" % len(brut))
     print("ordres distincts  : %d" % len(fns))
-    print("triples distincts : %d" % len(t))
+    print("triples distincts : %d  (gratuits compris)" % len(t))
+    print("dont declares hors data.js : %d" % len(ordres_hors_data() - {
+        (o["fn"], int(o["pa"]), int(o["cost"])) for o in brut}))
+    print("empreinte du miroir : %s" % empreinte(t))
     print("ordres a cout variable selon le lieu : %d  (%s)"
           % (len(variables), ', '.join(sorted(variables))))
     return 0

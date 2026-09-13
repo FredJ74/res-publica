@@ -157,6 +157,32 @@ def main():
     verifier("double soumission : un seul prelevement de 3 PA",
              ok == 1 and e["pa"] == 0, "acceptes=%d pa=%s" % (ok, e.get("pa")))
 
+    # --- Miroir des couts : coherence avec le vrai data.js --------------------
+    # C'est le garde-fou contre l'oubli : si un ordre est ajoute ou son cout
+    # modifie dans data.js sans regenerer le miroir, les deux empreintes divergent
+    # et ce controle sort en echec AVANT le deploiement.
+    import subprocess
+    attendue = subprocess.run(
+        [sys.executable, ".scratch/generer_ordres_couts.py", "--empreinte"],
+        capture_output=True, text=True).stdout.strip()
+    c, r = http("GET", "/rest/v1/rpc/ordres_couts_empreinte_reelle", jeton=ta)
+    if c != 200:
+        c, r = http("POST", "/rest/v1/rpc/ordres_couts_empreinte_reelle", {}, jeton=ta)
+    reelle = (r if isinstance(r, str) else (r or {}).get("empreinte") if isinstance(r, dict) else r)
+    verifier("le miroir serveur correspond au vrai data.js",
+             bool(attendue) and reelle == attendue,
+             "attendue=%s reelle=%s" % (attendue, reelle))
+
+    # --- Ordre inconnu : refuse (fail closed), et journalise ------------------
+    avant = etat(tb, B)
+    r = payer(tb, B, "zz_ordre_invente", 0, 0)
+    verifier("un ordre inconnu du miroir est refuse", r.get("raison") == "ordre_inconnu", r)
+    verifier("ordre inconnu : aucune mutation", etat(tb, B) == avant, etat(tb, B))
+
+    # --- Ordre connu ET gratuit : accepte -------------------------------------
+    r = payer(tb, B, "se_renseigner", 0, 0)
+    verifier("un ordre connu et gratuit reste accepte", r.get("ok") is True, r)
+
     # --- Nettoyage ------------------------------------------------------------
     reste = []
     for nom, jeton in ((A, ta), (B, tb), ("zztest-eco-c", tc)):
