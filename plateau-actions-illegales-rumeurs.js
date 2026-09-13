@@ -6110,7 +6110,11 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
   // sous verrou, dans une seule transaction.
   const rRachat = await sbRpc('entreprise_acte_rachat', {
     p_acteur: state.char?.name, p_entreprise: data.id,
-    p_ordre: state._ordreEnCours || 'acte_rachat_entreprise', p_pa: pa, p_cost: cost
+    // Pas de nom d'ordre invente en repli : si aucun ordre n'est en cours, il n'y a pas de
+    // part fixe a prelever. Un ordre reellement en cours mais non declare est refuse --
+    // c'est le cas de 'acte_rachat_entreprise', route par plateau-router.js mais declare par
+    // AUCUN ordre de data.js : ce chemin est aujourd'hui inatteignable en jeu.
+    p_ordre: state._ordreEnCours || null, p_pa: pa, p_cost: cost
   }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
   if (!rRachat || rRachat.ok !== true) {
     const messages = {
@@ -6449,7 +6453,7 @@ async function traiterActeRachatEntreprisePreemption(candidat, pa, cost) {
   const rPreemption = await sbRpc('entreprise_acte_preemption', {
     p_acteur: state.char?.name, p_entreprise: data.id,
     p_libelle_etat: 'État (' + (COUNTRIES[pays]?.n || pays) + ')',
-    p_ordre: state._ordreEnCours || 'acte_rachat_entreprise_preemption', p_pa: pa, p_cost: cost
+    p_ordre: state._ordreEnCours || null, p_pa: pa, p_cost: cost
   }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
   if (!rPreemption || rPreemption.ok !== true) {
     showToast('Acte refusé',
