@@ -4858,43 +4858,39 @@ async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
 }
 
 async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
-  if (state.poste?.id !== 'directeur_entrepot' || buildingId !== getBuildingIdDirecteurEntrepot()) return;
-  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const prixManuel = { ...(etat.entrepot?.prixManuel || {}) };
-
-  // Liberte de prix du directeur PJ (arbitrage du 24 aout 2026) : plus aucune fourchette
-  // economique (ni plancher ni plafond lie a prixBase) -- il peut brader son stock sous son
-  // prix d'achat pour degager de la tresorerie, ou au contraire augmenter fortement sa marge.
-  // Seules des protections techniques subsistent : nombre valide, fini, strictement positif.
-  const nouvellesValeurs = {};
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le poste n'etait verifie que dans le navigateur :
+  // n'importe quel joueur pouvait donc fixer les prix d'un entrepot national. fixer_prix_entrepot
+  // relit le poste SUR LA LIGNE du personnage connecte et n'agit que sur l'entrepot de SA ville.
+  // La liberte de prix du directeur (arbitrage du 24 aout 2026) est inchangee : seules subsistent
+  // les protections techniques -- nombre fini et strictement positif.
+  const prix = {};
   for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
-    const res = RESSOURCES_ECONOMIE[cle];
     const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
-    if (valeur === '' || valeur == null) continue;
-    const prix = parseFloat(valeur);
-    if (!isFinite(prix) || prix <= 0) {
-      showToast('Prix invalide', res.label + ' doit être fixé à un montant positif.', false);
+    if (valeur === '' || valeur == null) continue;   // champ vide = prix retire
+    const n = parseFloat(valeur);
+    if (!isFinite(n) || n <= 0) {
+      showToast('Prix invalide', RESSOURCES_ECONOMIE[cle].label + ' doit être fixé à un montant positif.', false);
       return;
     }
-    nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
+    prix[cle] = Math.round(n * 100) / 100;
   }
-
-  const r = await deduireCoutOrdre({ pa, cost });
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_prix_achat_entrepot' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
-    const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
-    if (valeur === '' || valeur == null) delete prixManuel[cle];
-    else prixManuel[cle] = nouvellesValeurs[cle];
+  const v = await sbRpc('fixer_prix_entrepot', {
+    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    showToast('Modification refusée', (v && v.raison === 'poste_non_detenu')
+      ? 'Seul le directeur en poste peut fixer ces prix.'
+      : 'Refusé (' + ((v && v.raison) || 'indisponible') + ').', false);
+    return;
   }
-
-  const nouvelEtat = { ...etat, entrepot: { ...(etat.entrepot || {}), prixManuel } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
-
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Prix mis à jour', 'Les nouveaux prix de vente sont actifs.', true, true);
   addJournalEntry("Prix d'achat de l'entrepôt ajustés en tant que directeur.", 'event-good');
 }
+
 
 // Salaire quotidien du directeur d'entrepot, plafonne par la caisse de son propre entrepot —
 // meme montant et meme mecanique que le directeur d'usine (SALAIRE_DIRECTEUR, voir plus haut).
@@ -5561,36 +5557,33 @@ async function doFabriquerArmoireSouvenirs() {
 }
 
 async function confirmerFabriquerArmoireSouvenirs() {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur verifiait la recette, decrementait
+  // les matieres et incrementait le stock de produits finis. fabriquer_produit_manufacture relit
+  // l'atelier sous verrou, verifie la recette COMPLETE avant toute mutation -- refus sans
+  // mutation partielle, exigence d'origine du lot -- et applique.
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
-  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-  const usine = etat.usine || defautUsine(p.buildingId, p.pays, p.ville);
-  if (!usine.stockMatieres) usine.stockMatieres = {};
+  const r = await deduireCoutOrdre({ pa: p.recette.pa, cost: 0, fn: 'fabriquer_armoire_souvenirs' });
+  if (!r.ok) { showToast('PA insuffisants', p.recette.pa + ' PA requis.', false);
+    document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  // Verification COMPLETE du stock AVANT toute deduction de PA -- refus sans mutation partielle
-  // (exigence explicite du lot).
-  const manque = Object.entries(p.recette.materiaux).find(([m, q]) => (usine.stockMatieres[m] || 0) < q);
-  if (manque) {
-    showToast('Stock insuffisant', 'Il manque du ' + (RESSOURCES_ECONOMIE[manque[0]]?.label || manque[0]) + ' dans le stock de la Scierie.', false);
+  const v = await sbRpc('fabriquer_produit_manufacture', {
+    p_acteur: state.char?.name, p_pays: p.pays, p_produit: p.type
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    showToast(raison === 'stock_insuffisant' ? 'Stock insuffisant' : 'Fabrication impossible',
+      raison === 'stock_insuffisant'
+        ? 'Il manque du ' + (RESSOURCES_ECONOMIE[v.matiere]?.label || v.matiere) + ' dans le stock de la Scierie.'
+        : 'Refusé (' + raison + ').', false);
     document.getElementById('modal-postes')?.classList.remove('open');
     return;
   }
-
-  const r = await deduireCoutOrdre({ pa: p.recette.pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', p.recette.pa + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  Object.entries(p.recette.materiaux).forEach(([m, q]) => { usine.stockMatieres[m] -= q; });
-  if (!usine.stockProduits) usine.stockProduits = {};
-  usine.stockProduits[p.type] = (usine.stockProduits[p.type] || 0) + 1;
-
-  const nouvelEtat = { ...etat, usine };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, nouvelEtat).catch(() => {});
-
   updateUI();
   showToast('Fabrication réussie', '+1 ' + p.label + ' disponible à la vente.', true, true);
   addJournalEntry('Fabrication d\'une ' + p.label + ' à la Scierie Guy Tarembois.', 'event-good');
-  doFabriquerArmoireSouvenirs(); // rafraichit, meme pattern que confirmerProductionUsine
+  doFabriquerArmoireSouvenirs();
 }
+
 
 async function doAcheterArmoireSouvenirs() {
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
@@ -5614,62 +5607,46 @@ async function doAcheterArmoireSouvenirs() {
 }
 
 async function confirmerAchatArmoireSouvenirs() {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur decrementait le stock de l'atelier
+  // et creditait sa caisse, avec un remboursement maison si l'inventaire debordait.
+  // acheter_produit_manufacture verifie la place AVANT de prelever quoi que ce soit : il n'y a
+  // donc plus rien a rembourser, et plus de fenetre ou l'argent et le stock sont deja mutes.
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
-
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
-  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-  const usine = etat.usine || defautUsine(p.buildingId, p.pays, p.ville);
-  const stockDispo = usine.stockProduits?.[p.type] || 0;
-  if (stockDispo <= 0) { showToast('Rupture de stock', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  // Capacite d'inventaire verifiee AVANT tout paiement (refus propre si le personnage n'a pas la
-  // capacite necessaire) -- reutilise getTotalInventaire()/PLAFOND_INVENTAIRE_EMPILABLE
-  // (plateau-divers.js, etendu ce meme lot pour comprendre item.encombrement > 1).
-  const placeRestante = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' && typeof getTotalInventaire === 'function')
-    ? PLAFOND_INVENTAIRE_EMPILABLE - getTotalInventaire() : Infinity;
-  if (placeRestante < p.encombrement) {
-    showToast('Inventaire insuffisant', 'Il faut ' + p.encombrement + ' emplacements libres pour transporter une ' + p.label + '.', false);
-    document.getElementById('modal-postes')?.classList.remove('open');
-    return;
-  }
-
   if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale([{ type: p.type }]))) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
-  const r = await deduireCoutOrdre({ pa: 0, cost: p.prixVente, payeur: 'joueur' });
-  if (!r.ok) { showToast('Fonds insuffisants', p.prixVente + ' ' + cur + ' requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+      && !(await assembleeControlerVenteLegale([{ type: p.type }]))) {
+    document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  usine.stockProduits[p.type] = stockDispo - 1;
-  usine.caisse = (usine.caisse || 0) + p.prixVente;
-  const nouvelEtat = { ...etat, usine };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, nouvelEtat).catch(() => {});
-
-  const armoire = creerExemplaireArmoireSouvenirs();
-  const qteAjoutee = (typeof addToInventory === 'function') ? addToInventory(armoire) : 0;
-  if (qteAjoutee <= 0) {
-    // Filet de securite (la capacite a deja ete verifiee ci-dessus, ne devrait jamais se
-    // declencher) : rembourse integralement plutot que de faire disparaitre l'argent et le
-    // stock deja mutes. Lot 4B : remboursement via la primitive canonique -- le debit initial
-    // (deduireCoutOrdre, deja migre au Lot 3) avait preleve sur liquide/Banque nationale ; un
-    // simple state.arg+=prixVente cassait l'invariant arg=liquide+comptes en ne restituant
-    // qu'a arg sans jamais toucher liquide.
-    crediterFondsOrdinaires(p.prixVente);
-    usine.stockProduits[p.type] = (usine.stockProduits[p.type] || 0) + 1;
-    usine.caisse = (usine.caisse || 0) - p.prixVente;
-    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, { ...etat, usine }).catch(() => {});
-    showToast('Achat annulé', 'Pas assez de place pour transporter l\'Armoire.', false);
+  const v = await sbRpc('acheter_produit_manufacture', {
+    p_acteur: state.char?.name, p_pays: p.pays, p_produit: p.type
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    const libelles = {
+      rupture_stock: '',
+      inventaire_insuffisant: 'Il faut ' + p.encombrement + ' emplacements libres pour transporter une ' + p.label + '.',
+      fonds_insuffisants: p.prixVente + ' ' + cur + ' requis.'
+    };
+    showToast(raison === 'rupture_stock' ? 'Rupture de stock'
+      : raison === 'fonds_insuffisants' ? 'Fonds insuffisants'
+      : raison === 'inventaire_insuffisant' ? 'Inventaire insuffisant' : 'Achat impossible',
+      libelles[raison] !== undefined ? libelles[raison] : ('Refusé (' + raison + ').'), false);
     document.getElementById('modal-postes')?.classList.remove('open');
-    updateUI();
     return;
   }
-
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
+  state.inventory = v.inventory || state.inventory;
+  state.liquide = v.liquide; state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
+  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = v.solde_national;
+  }
+  if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Achat effectué !', '-' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
   addJournalEntry('Achat d\'une ' + p.label + ' à la Scierie Guy Tarembois (-' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-good');
 }
+
 
 // =====================
 // TABLEAU DE BORD DU DIRECTEUR PJ — le directeur choisit le prix de vente directe (dans la
@@ -5785,45 +5762,41 @@ async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
 }
 
 async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
-  const posteId = state.poste?.id;
-  const cfg = DIRECTEUR_USINE_INFO[posteId];
-  if (!cfg || buildingId !== cfg.buildingId) return;
-  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const prixManuel = { ...(etat.usine?.prixManuel || {}) };
-
-  // Meme fourchette que la vente directe des entrepots (±40% du prix de base) — le
-  // directeur choisit ou se placer dans cette fourchette, pas une liberte totale.
-  const nouvellesValeurs = {};
+  // CHANTIER C / PHASE 2 : meme bascule d'autorite. La fourchette +/-40 % du prix de base est
+  // conservee a l'identique, et revalidee au serveur.
+  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  if (!cfg) return;
+  const prix = {};
   for (const cle of cfg.produits) {
-    const res = RESSOURCES_ECONOMIE[cle];
     const valeur = document.getElementById('prix-fixe-' + cle)?.value;
     if (valeur === '' || valeur == null) continue;
-    const prix = parseFloat(valeur);
+    const n = parseFloat(valeur);
+    const res = RESSOURCES_ECONOMIE[cle];
     const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
     const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
-    if (isNaN(prix) || prix < prixMin || prix > prixMax) {
+    if (isNaN(n) || n < prixMin || n > prixMax) {
       showToast('Prix hors fourchette', res.label + ' doit être fixé entre ' + prixMin + ' et ' + prixMax + '.', false);
       return;
     }
-    nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
+    prix[cle] = Math.round(n * 100) / 100;
   }
-
-  const r = await deduireCoutOrdre({ pa, cost });
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_prix_vente_directe' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  for (const cle of cfg.produits) {
-    const valeur = document.getElementById('prix-fixe-' + cle)?.value;
-    if (valeur === '' || valeur == null) delete prixManuel[cle];
-    else prixManuel[cle] = nouvellesValeurs[cle];
+  const v = await sbRpc('fixer_prix_vente_directe', {
+    p_acteur: state.char?.name, p_pays: state.country, p_prix: prix
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    showToast('Modification refusée', (v && v.raison === 'poste_non_detenu')
+      ? 'Seul le directeur en poste peut fixer ces prix.'
+      : 'Refusé (' + ((v && v.raison) || 'indisponible') + ').', false);
+    return;
   }
-
-  const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), prixManuel } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
-
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Prix mis à jour', 'Les nouveaux prix de vente directe sont actifs.', true, true);
   addJournalEntry('Prix de vente directe ajustés en tant que directeur.', 'event-good');
 }
+
 
 async function doOuvrirFixerRepartitionProduction(pa, cost) {
   const posteId = state.poste?.id;
@@ -5851,24 +5824,28 @@ async function doOuvrirFixerRepartitionProduction(pa, cost) {
 }
 
 async function confirmerFixerRepartitionProduction(buildingId, pa, cost) {
-  const posteId = state.poste?.id;
-  const cfg = DIRECTEUR_USINE_INFO[posteId];
-  if (!cfg || buildingId !== cfg.buildingId) return;
+  // CHANTIER C / PHASE 2 : meme bascule d'autorite. Bornes 0-100 inchangees.
   const valeur = parseFloat(document.getElementById('repartition-entrepots')?.value);
   if (isNaN(valeur) || valeur < 0 || valeur > 100) {
-    showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false);
+    showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false); return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_repartition_production' });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const v = await sbRpc('fixer_repartition_production', {
+    p_acteur: state.char?.name, p_pays: state.country, p_pourcentage: valeur
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    showToast('Modification refusée', (v && v.raison === 'poste_non_detenu')
+      ? 'Seul le directeur en poste peut fixer cette répartition.'
+      : 'Refusé (' + ((v && v.raison) || 'indisponible') + ').', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), repartitionEntrepots: valeur / 100 } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
-
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Répartition mise à jour', valeur + '% de la production ira désormais aux entrepôts.', true, true);
   addJournalEntry('Répartition de la production ajustée en tant que directeur.', 'event-good');
 }
+
 
 // Salaire quotidien du directeur, plafonne par la caisse de sa propre usine — meme principe
 // que verifierSalairePolitique, mais la caisse de l'usine vit dans sbGetBatimentEtat (etat.usine.caisse)
@@ -8651,10 +8628,17 @@ async function confirmerModifierRepartitionPort(cle) {
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
-  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
-  const repartition = { ...(port.repartition || {}), [cle]: { capitale, ville_a, ville_b } };
-  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, repartition } }).catch(() => {});
+  // CHANTIER C / PHASE 2 : ce site renvoyait l'etat COMPLET du port (stock, arrivages,
+  // exportations, caisse) relu dans le navigateur. fixer_repartition_port relit le poste reel de
+  // l'appelant, controle la ressource et la somme des pourcentages, et n'ecrit QUE
+  // port.repartition[cle] sous verrou -- le reste du blob portuaire lui est inaccessible.
+  const rep = await sbRpc('fixer_repartition_port', {
+    p_cle: cle, p_capitale: capitale, p_ville_a: ville_a, p_ville_b: ville_b
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rep || rep.ok !== true) {
+    showToast('Répartition refusée', (rep && rep.raison) || 'Action indisponible.', false);
+    return;
+  }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   const res = RESSOURCES_ECONOMIE[cle];
@@ -11312,17 +11296,14 @@ async function debiterCaisseBatimentAtomique(pays, buildingId, montant) {
 // ligne. L'ancien chemin reste le repli si la RPC n'est pas joignable, avec exactement la meme
 // semantique tout-ou-rien.
 async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCle, montant) {
-  if (typeof sbBatimentMouvementCaisse === 'function') {
-    const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, -Math.abs(montant)).catch(() => null);
-    if (r) return r.ok ? montant : 0;
-  }
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  const sousEtat = etat?.[sousCle] || {};
-  const solde = sousEtat.caisse || 0;
-  if (solde < montant) return 0;
-  const nouvelEtat = { ...(etat || {}), [sousCle]: { ...sousEtat, caisse: solde - montant } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
-  return montant;
+  // FAIL CLOSED (chantier C, phase 2, 13 septembre 2026). Cette fonction retombait, si la RPC
+  // ne repondait pas, sur une lecture-modification-ecriture du blob depuis le navigateur --
+  // c'est-a-dire exactement ce que la RPC existe pour empecher. Une panne reseau rouvrait donc
+  // la caisse a l'ecriture cliente. Il n'y a plus de repli : si le mouvement atomique n'aboutit
+  // pas, rien n'est preleve et l'appelant le sait.
+  if (typeof sbBatimentMouvementCaisse !== 'function') return 0;
+  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, -Math.abs(montant)).catch(() => null);
+  return (r && r.ok) ? montant : 0;
 }
 
 // DEUX CAISSES DISTINCTES (12 septembre 2026) : l'atelier d'impression et le journal sont deux
@@ -11359,16 +11340,12 @@ async function encaisserRecetteRedaction(montant, libelle) {
 }
 
 async function crediterCaisseEtatBatiment(pays, ville, buildingId, sousCle, montant) {
-  if (typeof sbBatimentMouvementCaisse === 'function') {
-    const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, Math.abs(montant)).catch(() => null);
-    if (r && r.ok) return r.caisse;
-  }
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  const sousEtat = etat?.[sousCle] || {};
-  const solde = Math.max(0, (sousEtat.caisse || 0) + montant);
-  const nouvelEtat = { ...(etat || {}), [sousCle]: { ...sousEtat, caisse: solde } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
-  return solde;
+  // FAIL CLOSED (chantier C, phase 2) : meme raison que le debit ci-dessus. Un credit qui
+  // n'aboutit pas rend null ; l'appelant doit en tenir compte plutot que de laisser le
+  // navigateur reecrire la caisse lui-meme.
+  if (typeof sbBatimentMouvementCaisse !== 'function') return null;
+  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, Math.abs(montant)).catch(() => null);
+  return (r && r.ok) ? r.caisse : null;
 }
 
 async function chargerBudgetNational(pays) {

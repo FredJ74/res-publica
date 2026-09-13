@@ -2260,46 +2260,30 @@ async function doSoinCliniquePrivee(pa, cost) {
 // payer depuis sa propre caisse en batiments_etat.sante.caisse. Aucune duplication de moteur :
 // stock (stockMatieres) toujours dans batiments_etat.sante quel que soit le financement.
 async function vendreRessourceMedicaleStructure(buildingId, pays, ville, ressource, qte) {
-  const cfg = STRUCTURES_MEDICALES[buildingId];
-  if (!cfg || !cfg.ressources.includes(ressource)) return { ok: false, raison: 'ressource_non_acceptee' };
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur choisissait la quantite acceptee, le
+  // prix, le montant recu et le stock final de la structure. vendre_ressource_medicale relit tout
+  // sous verrou : ressource reellement acceptee par cette structure, quantite reellement detenue,
+  // plafond, tarif fournisseur, et la caisse selon le financement -- celle de la clinique pour une
+  // structure privee, la caisse communale pour un dispensaire public. Aucune mutation partielle.
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
-
-  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === ressource && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
-
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  if (!etat) return { ok: false, raison: 'introuvable' };
-  const sante = etat.sante || (cfg.financement === 'propre' ? { caisse: 0, stockMatieres: {} } : { stockMatieres: {} });
-  if (!sante.stockMatieres) sante.stockMatieres = {};
-
-  const res = RESSOURCES_ECONOMIE[ressource];
-  const stockActuel = sante.stockMatieres[ressource] || 0;
-  const placeRestante = Math.max(0, res.plafond - stockActuel);
-  if (placeRestante < qte) return { ok: false, raison: 'stock_plein', placeRestante };
-
-  const prixUnitaire = res.prixAchatFournisseur;
-  const total = prixUnitaire * qte;
-
-  let paiementOk;
-  if (cfg.financement === 'institution' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    paiementOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId(cfg.categorieCaisse, ville), total)) === total;
-  } else {
-    paiementOk = (sante.caisse || 0) >= total;
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ stackKey: ressource }]))) {
+    return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
-  if (!paiementOk) return { ok: false, raison: 'caisse_insuffisante' };
-
-  lot.qty -= qte;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-
-  crediterStockMatiereCommerce(sante, ressource, qte, prixUnitaire);
-  if (cfg.financement !== 'institution') sante.caisse = (sante.caisse || 0) - total;
-  state.arg = (state.arg || 0) + total;
-
-  const nouvelEtat = { ...etat, sante };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
-
-  return { ok: true, total, prixUnitaire, qte };
+  const v = await sbRpc('vendre_ressource_medicale', {
+    p_acteur: state.char?.name, p_pays: pays, p_ville: ville,
+    p_batiment: buildingId, p_ressource: ressource, p_qte: qte
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    return { ok: false, raison: (v && v.raison) || 'indisponible', placeRestante: v && v.placeRestante };
+  }
+  state.inventory = v.inventory || state.inventory;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
+  if (typeof renderInventory === 'function') renderInventory();
+  return { ok: true, total: v.total, prixUnitaire: v.prixUnitaire, qte: v.qte };
 }
+
 
 function doVendreRessourceMedicaleGenerique(pa, cost) {
   const buildingId = state.currentBuilding;

@@ -160,12 +160,15 @@ def main():
     # --- FAMILLE ENTREPOT : l'achat est arbitre par le serveur -----------------
     # Entrepot zztest dedie : on ne touche jamais a un entrepot reel du monde bati.
     ENT = "zztest_zzville_entrepot-test"
-    http("DELETE", "/rest/v1/batiments_etat?id=eq." + ENT, jeton=ta)
-    http("POST", "/rest/v1/batiments_etat", {
-        "id": ENT, "country": "zztest", "city": "zzville", "building_id": "entrepot-test",
-        "data": json.dumps({"entrepot": {"caisse": 0,
-                                         "stock": {"bois": 100, "metal": 50},
-                                         "reserveMilitaire": {"metal": 40}}})}, jeton=ta)
+    # DEPUIS LA FERMETURE DE batiments_etat (chantier C, passe finale), ce banc ne peut plus
+    # armer sa propre fixture par un INSERT direct : anon n'a plus INSERT/UPDATE/DELETE sur la
+    # table, et 'entrepot' est une sous-cle ECONOMIQUE, donc refusee par la seule RPC d'ecriture
+    # restante. C'est exactement la propriete que ce chantier verrouille -- l'echec du banc
+    # serait ici une bonne nouvelle. La fixture est donc rearmee par le workflow de migration
+    # (SQL) avant chaque execution ; le banc se contente de verifier qu'elle est au point de
+    # depart attendu et s'arrete franchement sinon, plutot que de mesurer un etat derive.
+    ETAT_DEPART = {"entrepot": {"caisse": 0, "stock": {"bois": 100, "metal": 50},
+                                "reserveMilitaire": {"metal": 40}}}
 
     def acheter(jeton, acteur, achats):
         c, r = http("POST", "/rest/v1/rpc/acheter_a_entrepot",
@@ -177,6 +180,14 @@ def main():
         c, r = http("GET", "/rest/v1/batiments_etat?select=data&id=eq." + ENT, jeton=ta)
         d = r[0]["data"] if r else "{}"
         return json.loads(d) if isinstance(d, str) else d
+
+    if entrepot() != ETAT_DEPART:
+        print("FIXTURE ABSENTE OU DERIVEE (%s).\nRearmer par migration SQL :\n"
+              "  INSERT INTO batiments_etat (id, country, city, building_id, data)\n"
+              "  VALUES ('%s','zztest','zzville','entrepot-test', to_jsonb($j$%s$j$))\n"
+              "  ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data;"
+              % (json.dumps(entrepot())[:120], ENT, json.dumps(ETAT_DEPART)))
+        return 2
 
     # Session DEDIEE : un compte ne possede qu'un personnage (regle du chantier B),
     # et ta possede deja zztest-eco-a.
@@ -213,7 +224,8 @@ def main():
 
     http("DELETE", "/rest/v1/comptes_bancaires?personnage=eq.zztest-eco-d", jeton=td)
     http("DELETE", "/rest/v1/personnages?name=eq.zztest-eco-d", jeton=td)
-    http("DELETE", "/rest/v1/batiments_etat?id=eq." + ENT, jeton=ta)
+    # La ligne zztest de l'entrepot n'est plus supprimable depuis le client (c'est le but) :
+    # elle reste en pays 'zztest', invisible du monde joue, et se rearme par SQL.
 
     # --- Miroir des couts : coherence avec le vrai data.js --------------------
     # C'est le garde-fou contre l'oubli : si un ordre est ajoute ou son cout

@@ -2998,17 +2998,27 @@ async function sbListerBlocusActifs(country) {
   }).filter(Boolean);
 }
 
+// CHANTIER C / PHASE 2 (13 septembre 2026). Cette fonction envoyait le blob COMPLET du batiment :
+// n'importe quel navigateur pouvait donc se reecrire une caisse, un stock ou un prix. Elle ne fait
+// plus d'UPDATE direct -- la table est fermee en ecriture pour anon. Chaque sous-cle part
+// separement vers batiment_etat_sous_cle_ecrire, qui n'accepte que les 7 sous-cles NON economiques
+// (blocus, effectifsPolice, effectifsDouane, candidatures, parCaisse, controles, offres), verifie
+// l'autorite reelle de l'appelant et refuse toute cle economique dissimulee dans la valeur.
+// Il n'existe plus aucun chemin generique : une sous-cle economique est refusee ici meme.
+// Rend null si une seule des sous-cles a ete refusee (fail closed, l'appelant peut le constater).
 async function sbSetBatimentEtat(country, city, buildingId, patch) {
-  const id = country + '_' + city + '_' + buildingId;
-  const actuel = await sbGetBatimentEtat(country, city, buildingId);
-  const fusion = { ...actuel, ...patch };
-  const rows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(id)}`);
-  if (rows && rows[0]) {
-    await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(id)}`, { data: JSON.stringify(fusion), updated_at: new Date().toISOString() });
-  } else {
-    await sbInsert('batiments_etat', { id, country, city, building_id: buildingId, data: JSON.stringify(fusion) });
+  if (!patch || typeof patch !== 'object') return null;
+  let tout = true;
+  for (const sousCle of Object.keys(patch)) {
+    const r = await sbRpc('batiment_etat_sous_cle_ecrire', {
+      p_pays: country, p_ville: city, p_batiment: buildingId,
+      p_sous_cle: sousCle, p_valeur: patch[sousCle] === undefined ? null : patch[sousCle]
+    }).catch(() => null);
+    const v = Array.isArray(r) ? r[0] : r;
+    if (!v || v.ok !== true) tout = false;
   }
-  return fusion;
+  if (!tout) return null;
+  return await sbGetBatimentEtat(country, city, buildingId);
 }
 
 // Bureau National de l'Emploi (9 aout 2026) — reutilise batiments_etat plutot qu'une nouvelle
