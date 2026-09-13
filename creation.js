@@ -563,12 +563,27 @@ async function validateChar(){
       });
 
       if (!creation.ok) {
+        // CORRECTIF DU 14 septembre 2026. Un seul message couvrait trois causes differentes :
+        // un joueur dont le COMPTE avait disparu se voyait repondre « ce nom est deja porte »
+        // pour n'importe quel nom, et etait renvoye vers « Retrouver mon personnage », qui ne
+        // pouvait rien pour lui. Chaque cause a desormais son message et sa vraie sortie.
         if (creation.raison === 'nom_deja_pris') {
           afficherErreurCreation('Ce nom est deja porte',
             'Un personnage nomme « ' + char.name + ' » existe deja dans Republia. ' +
             'Choisissez un autre nom : revenez a l\'etape precedente pour le modifier.<br><br>' +
             '<em>Si ce personnage est le votre et que vous avez perdu l\'acces, utilisez ' +
             '« Retrouver mon personnage » depuis l\'accueil plutot que d\'en recreer un.</em>');
+        } else if (creation.raison === 'compte_a_deja_un_personnage') {
+          afficherErreurCreation('Vous avez deja un personnage',
+            'Ce navigateur est deja lie a un personnage : Republia n\'en autorise qu\'un seul par ' +
+            'compte. Changer de nom n\'y changera rien.<br><br>' +
+            '<em>Retournez a l\'accueil pour le reprendre. Pour en creer un autre, il faut ' +
+            'd\'abord detruire celui que vous possedez, depuis sa fiche.</em>');
+        } else if (creation.raison === 'session_perimee') {
+          afficherErreurCreation('Session expiree',
+            'La session de ce navigateur n\'est plus reconnue par le serveur. Rechargez la page : ' +
+            'une nouvelle session sera ouverte et la creation fonctionnera.<br><br>' +
+            '<em>Aucun nom n\'est en cause — inutile d\'en changer.</em>');
         } else {
           afficherErreurCreation('Creation impossible',
             'Votre personnage n\'a pas pu etre enregistre (' + (creation.raison || 'erreur inconnue') + '). ' +

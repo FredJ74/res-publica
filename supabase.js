@@ -184,7 +184,23 @@ async function sbEcrirePersonnage(data) {
 // Ici, INSERT SEC. C'est la base qui tranche : si le nom est pris, Postgres rejette (23505) et
 // la creation echoue proprement. On ne consulte pas la table d'abord -- un controle prealable
 // laisserait une fenetre de concurrence entre la lecture et l'ecriture, la contrainte non.
-async function sbCreerPersonnageUnique(data) {
+// CORRECTIF DU 14 septembre 2026 — TROIS CONFLITS DIFFERENTS, TROIS CAUSES DIFFERENTES.
+//
+// Cette fonction traitait TOUT code HTTP 409 comme « le nom est deja pris ». Or PostgREST rend
+// 409 pour au moins trois violations distinctes sur cette insertion, reproduites en production :
+//   * 23505 sur personnages_name_key       -> le nom est reellement porte par quelqu'un ;
+//   * 23505 sur personnages_user_id_unique -> ce COMPTE possede deja un personnage (un compte,
+//     un personnage) ; le nom n'y est pour rien, en changer ne change rien ;
+//   * 23503 sur personnages_user_id_fkey   -> le compte reference n'existe plus. Le jeton du
+//     navigateur est encore valide dans le temps, mais son compte a disparu (purge de comptes
+//     anonymes cote base). La creation echoue quel que soit le nom -- c'est exactement le
+//     blocage constate : « Ce nom est deja porte » pour n'importe quel nom.
+// Le message affiche etait donc faux dans deux cas sur trois, et le conseil « Retrouver mon
+// personnage » trompeur. On lit desormais le NOM DE LA CONTRAINTE, seule information fiable.
+//
+// Le troisieme cas est rattrapable sans intervention : on rouvre une session et on rejoue UNE
+// fois. Une seule reprise, jamais de boucle.
+async function sbCreerPersonnageUnique(data, dejaRejoue) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/personnages`, {
     method: 'POST',
     headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
@@ -196,12 +212,30 @@ async function sbCreerPersonnageUnique(data) {
   }
   const texte = await res.text();
   let erreur = null; try { erreur = JSON.parse(texte); } catch (e) {}
-  // 23505 = violation de contrainte d'unicite : le nom est deja porte par un personnage.
-  if (res.status === 409 || (erreur && erreur.code === '23505')) {
+  const code = erreur && erreur.code;
+  const detail = ((erreur && (erreur.message || erreur.details)) || texte || '');
+
+  if (code === '23503' && detail.indexOf('personnages_user_id_fkey') !== -1) {
+    if (dejaRejoue || typeof rpAuthRepartirDeZero !== 'function') {
+      return { ok: false, raison: 'session_perimee' };
+    }
+    const session = await rpAuthRepartirDeZero().catch(() => null);
+    if (!session) return { ok: false, raison: 'session_perimee' };
+    return await sbCreerPersonnageUnique(data, true);
+  }
+  if (code === '23505' && detail.indexOf('personnages_user_id_unique') !== -1) {
+    return { ok: false, raison: 'compte_a_deja_un_personnage' };
+  }
+  if (code === '23505' && detail.indexOf('personnages_name_key') !== -1) {
     return { ok: false, raison: 'nom_deja_pris' };
   }
+  // 23505 sans nom de contrainte identifiable : on ne devine pas laquelle, on reste prudent.
+  if (code === '23505') {
+    console.error('sbCreerPersonnageUnique : conflit d\'unicite non identifie', texte);
+    return { ok: false, raison: 'conflit_inconnu', detail: detail };
+  }
   console.error('sbCreerPersonnageUnique', res.status, texte);
-  return { ok: false, raison: 'erreur_serveur', detail: (erreur && erreur.message) || texte };
+  return { ok: false, raison: 'erreur_serveur', detail: detail };
 }
 
 // Le nom est-il deja porte ? Confort d'IHM UNIQUEMENT (message immediat pendant la saisie) :

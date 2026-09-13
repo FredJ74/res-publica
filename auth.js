@@ -140,6 +140,21 @@ async function rpAuthAssurerSession() {
   return RP_AUTH_PROMESSE;
 }
 
+/* --- Repartir de zero (14 septembre 2026) --------------------------------
+   Un jeton peut rester valide DANS LE TEMPS alors que son compte n'existe plus : c'est le cas
+   apres une purge de comptes anonymes cote base. rpAuthAssurerSession ne le voit pas -- elle ne
+   renouvelle que sur expiration. Le serveur, lui, le prouve : toute ecriture referencant ce uid
+   echoue en violation de cle etrangere sur personnages_user_id_fkey.
+   Cette fonction abandonne la session locale et en ouvre une neuve. A n'appeler QUE sur cette
+   preuve : jamais sur un simple echec reseau, sinon on abandonnerait le compte d'un joueur --
+   et donc son personnage -- pour une coupure passagere. */
+async function rpAuthRepartirDeZero() {
+  RP_AUTH_SESSION = null;
+  rpAuthEcrireStockage(null);
+  RP_AUTH_PROMESSE = null;
+  return await rpAuthAssurerSession();
+}
+
 /* --- Lecture synchrone, utilisee par supabase.js a chaque requete -------- */
 function rpAuthJeton() {
   if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
