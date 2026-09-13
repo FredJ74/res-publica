@@ -53,6 +53,9 @@ const CASERNE_CITY = 'caserne';
 // de son palier d'UT -- toute production d'armurerie coute forfaitairement PA_PRODUCTION_ARMURERIE
 // (2 PA, plateau-actions-illegales-rumeurs.js). C'est cette quantite reelle qui est reprise ici,
 // pas le champ `ut` qui ne sert plus qu'aux paliers de prix et de stock maximum.
+// VISUELS : imageUrl est declare ICI et nulle part ailleurs. Le meme fichier sert l'objet
+// d'inventaire (poserObjetMilitaire) et l'apercu du tableau de commande du ministre -- une seule
+// serie d'images, jamais deux. Les trois cartes proviennent de la planche fournie le 13/09/2026.
 const PA_TRAVAIL_MILITAIRE_DEFAUT = 2;
 
 const RECETTES_MILITAIRES = {
@@ -62,6 +65,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-militaire.png',
     desc: 'Arme de poing réglementaire de l\'armée de Républia.'
   },
   mitraillette: {
@@ -70,6 +74,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-mitraillette-militaire.png',
     desc: 'Arme automatique réglementaire de l\'armée de Républia.'
   },
   explosif_militaire: {
@@ -79,6 +84,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 3,
     icon: 'ti-bomb',
     typeObjet: 'explosif', sousType: 'militaire',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-militaires.png',
     desc: 'Explosifs réglementaires de l\'armée de Républia.'
   }
 };
@@ -487,7 +493,15 @@ async function rendreTableauEffortMinistre() {
   // --- Commande ------------------------------------------------------------
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;letter-spacing:.08em;margin-bottom:.4rem">PASSER UNE COMMANDE</div>';
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.8rem">';
-  html += '<select id="cmd-mil-produit" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.82rem;margin-bottom:.4rem;box-sizing:border-box">';
+  // Apercu du materiel choisi. La structure du tableau ne change pas : le <select> reste la
+  // commande, on lui adjoint simplement l'illustration de la reference selectionnee, qui suit le
+  // choix en direct. Le visuel vient de RECETTES_MILITAIRES, la meme source que l'inventaire.
+  const premier = PRODUITS_MILITAIRES[0];
+  html += '<div style="width:100%;height:190px;overflow:hidden;background:#0a0805;border:1px solid #2a2010;margin-bottom:.4rem">';
+  html += '<img id="cmd-mil-visuel" src="' + (recetteMilitaire(premier).imageUrl || '') + '" alt="" '
+       + 'style="width:100%;height:100%;object-fit:contain;display:block"/>';
+  html += '</div>';
+  html += '<select id="cmd-mil-produit" onchange="majVisuelCommandeMilitaire(this.value)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.82rem;margin-bottom:.4rem;box-sizing:border-box">';
   PRODUITS_MILITAIRES.forEach(function (id) {
     const d = detailCoutRevientMilitaire(id);
     html += '<option value="' + id + '">' + d.label + ' — coût de revient ' + d.coutRevientUnitaire + ' ' + cur + '/unité</option>';
@@ -557,6 +571,14 @@ async function confirmerCurseursEffort() {
   }
   addJournalEntry('Effort de guerre : ravitaillement ' + rav + ' %, production militaire ' + pro + ' %.', 'event-info');
   rendreTableauEffortMinistre();
+}
+
+// Bascule l'apercu du tableau de commande sur la reference choisie. Presentation pure :
+// aucune lecture d'etat, aucune ecriture, aucun effet sur la commande elle-meme.
+function majVisuelCommandeMilitaire(produit) {
+  const img = document.getElementById('cmd-mil-visuel');
+  const r = recetteMilitaire(produit);
+  if (img && r) { img.src = r.imageUrl || ''; img.alt = r.label; }
 }
 
 async function confirmerCommandeMilitaire() {
@@ -732,6 +754,7 @@ function poserObjetMilitaire(produit, lot) {
     type: r.typeObjet, sousType: r.sousType,
     origineMilitaire: true, lot: lot || 'legacy', produitMilitaire: produit,
     name: r.label, icon: r.icon, legal: true,
+    imageUrl: r.imageUrl || null,
     desc: r.desc + ' Lot ' + (lot || 'legacy') + '.'
   };
   if (typeof addToInventory === 'function') return addToInventory(objet, { automatique: true }) > 0;
