@@ -11,27 +11,34 @@ import { genererToutesLesEditions } from './_journal-generation.js';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_ANON,
-  'Authorization': `Bearer ${SUPABASE_ANON}`
-};
-
-// IDENTITE SERVEUR (Lot 1.4, 6 septembre 2026). La cle anon ci-dessus est publique : elle est
-// committee dans supabase.js et lisible par n'importe quel navigateur. Tout ce qu'elle autorise
-// est donc declenchable par n'importe qui. Pour la RPC de prelevement des loyers, ce serait une
-// nouvelle capacite offerte au joueur (precipiter un avertissement ou une expulsion en appelant
-// la RPC lui-meme), inacceptable -- on l'execute donc sous une identite serveur.
-// MEME CONVENTION que api/_journal-generation.js (securisation de journal_editions, 3 septembre
-// 2026), api/journal-interview.js et api/upload-org-avatar.js : variable d'environnement Vercel
-// jamais exposee au client. Elle n'est utilisee ICI que pour prelever_loyer_bail et les deux RPC
-// systeme de l'Assemblee (assemblee_reveil_minuit, assemblee_marquer_convocations_echues) ; tous
-// les autres appels du cron restent sur la cle anon, inchanges.
+// IDENTITE SERVEUR (Lot 1.4, 6 septembre 2026 ; GENERALISEE le 14 septembre 2026, chantier B).
+// La cle anon est publique : elle est committee dans supabase.js et lisible par n'importe quel
+// navigateur. Tout ce qu'elle autorise est donc declenchable par n'importe qui. Elle n'etait
+// employee sous identite serveur que pour prelever_loyer_bail et les deux RPC systeme de
+// l'Assemblee ; TOUT LE RESTE du cron ecrivait avec la cle anon.
+//
+// POURQUOI CA CHANGE MAINTENANT. Le chantier B ferme les tables a l'ecriture anonyme. Un cron qui
+// ecrit avec la cle anon serait ferme en meme temps que les joueurs : la nuit entiere tomberait.
+// L'identite serveur est donc le PREALABLE a toute fermeture, pas une option. service_role
+// traverse RLS par construction : une fois le cron passe dessous, plus aucune policy ne peut le
+// gener, et les tables peuvent etre refermees une a une sans jamais le casser.
+//
+// MEME CONVENTION que api/_journal-generation.js, api/journal-interview.js, api/renseignements.js
+// et api/upload-org-avatar.js : variable d'environnement Vercel jamais exposee au client.
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 const HEADERS_SERVICE = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_SERVICE_ROLE,
   'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+};
+
+// Les cinq primitives du cron passent desormais par ici. Repli sur la cle anon UNIQUEMENT si la
+// variable d'environnement manque -- le handler refuse alors de demarrer (voir son en-tete), de
+// sorte que ce repli ne sert qu'a garder le module chargeable, jamais a executer une passe.
+const HEADERS = SUPABASE_SERVICE_ROLE ? HEADERS_SERVICE : {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_ANON,
+  'Authorization': `Bearer ${SUPABASE_ANON}`
 };
 
 // ============================================================================
@@ -5064,6 +5071,15 @@ export default async function handler(req, res) {
   const authHeader = req.headers['authorization'];
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // FAIL CLOSED SUR L'IDENTITE SERVEUR (chantier B, 14 septembre 2026). Le cron ecrit desormais
+  // sous service_role : sans la cle, il tournerait sous la cle anon et se ferait refuser, table
+  // apres table, a mesure que le chantier B les referme -- en laissant derriere lui une nuit a
+  // moitie faite. Mieux vaut ne pas commencer et le dire franchement.
+  if (!SUPABASE_SERVICE_ROLE) {
+    console.error('[cron-minuit] ARRET : SUPABASE_SERVICE_ROLE_KEY absente, aucune tache executee');
+    return res.status(500).json({ ok: false, error: 'SUPABASE_SERVICE_ROLE_KEY absente : passe annulee.' });
   }
 
   const now = new Date();
