@@ -2426,23 +2426,16 @@ async function verifierStockDinerAffaires() {
   return { data, prelevement };
 }
 
-async function consommerStockDinerAffaires(data, prelevement, cost, nomInvite) {
-  prelevement.forEach(p => { data.stockProduits[p.id] -= p.qte; });
-  data.stockProduits.vin -= 1;
-  let net = cost;
-  if (typeof appliquerTaxeTransaction === 'function') {
-    const t = await appliquerTaxeTransaction(cost);
-    net = t.net;
-  }
-  data.caisse = (data.caisse || 0) + net;
-  const labels = prelevement.map(p => {
-    const r = typeof RECETTES_ALIMENTAIRES !== 'undefined' ? RECETTES_ALIMENTAIRES[p.id] : null;
-    return (r ? r.label : p.id) + ' x' + p.qte;
-  }).join(', ');
-  if (typeof ajouterHistoriqueEntreprise === 'function') {
-    ajouterHistoriqueEntreprise(data, net, 'Vente — Dîner d\'affaires (' + labels + ' + vin, ' + nomInvite + ') — ' + (state.char?.name || 'Anonyme'));
-  }
-  if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(data.id, data).catch(() => {});
+// CHANTIER C / PHASE 3, mode 'service' : le diner d'affaires est FACTURE PAR L'ORDRE
+// (diner_affaires, cout declare dans data.js), pas par un prix de carte. C'est donc la RPC qui
+// preleve -- via payer_ordre, qui valide le couple (pa, cost) contre le miroir -- puis taxe ce
+// montant et credite la caisse, apres avoir verifie le stock des DEUX plats et du vin.
+// L'appelant ne doit plus appeler deduireCoutOrdre pour ce cas, sous peine de double debit.
+async function consommerStockDinerAffaires(data, prelevement, pa, cost, nomInvite) {
+  const articles = prelevement.map(p => ({ produit: p.id, qte: p.qte }));
+  articles.push({ produit: 'vin', qte: 1 });
+  if (typeof commerceVendreProduit !== 'function') return { ok: false, raison: 'indisponible' };
+  return await commerceVendreProduit(data.id, articles, 'service', 'diner_affaires', pa, cost);
 }
 
 function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
@@ -2530,14 +2523,17 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
       // meme sous TEST_MODE=false, ni via deduireCoutOrdre() ni par mutation directe). Cout du
       // uniquement en cas d'acceptation (roll reussi), comme deja pour l'argent -- meme moment
       // exact que l'ancien `state.arg -= cost` qu'elle remplace.
-      const r = await deduireCoutOrdre({ pa, cost });
+      // Meme regle que sur le chemin differe (chantier C, phase 3) : quand un restaurant sert
+      // reellement, prelevement et consommation de stock se font dans la MEME transaction.
+      const r = dinerStock
+        ? await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement, pa, cost, nomInvite)
+        : await deduireCoutOrdre({ pa, cost });
       if (!r.ok) {
         const raisonTxt = r.raison === 'pa_insuffisants' ? 'plus assez de PA' : 'plus les fonds';
         showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', nomInvite + ' a accepté, mais vous n\'avez ' + raisonTxt + ' pour ' + cfgPnj.verbe + '.', false);
         addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' acceptée, mais ' + (r.raison === 'pa_insuffisants' ? 'PA' : 'fonds') + ' insuffisants.', 'event-bad');
         return;
       }
-      if (dinerStock) await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement, cost, nomInvite);
       if (cfgPnj.hp) state.hp = Math.min(100, (state.hp || 0) + cfgPnj.hp);
       if (cfgPnj.moral) state.moral = Math.min(100, (state.moral || 0) + cfgPnj.moral);
       if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
@@ -2603,9 +2599,15 @@ async function verifierReponseInvitationSociale() {
       // deduireCoutOrdre() pour couvrir aussi les PA. Nettoyage (suppression de la ligne
       // Supabase + _invitationSocialeEnAttente=null) deja inconditionnel plus bas, donc aucun
       // risque de retraitement/double debit meme en cas d'echec ici.
-      const r = await deduireCoutOrdre({ pa: infos.pa, cost: infos.cost });
+      // Quand un restaurant est reellement servi, le prelevement ET la consommation de stock se
+      // font dans la MEME transaction serveur (chantier C, phase 3) -- jamais deux appels qui
+      // pourraient diverger. Les autres types d'invitation n'ont pas de commerce : ils gardent
+      // le chemin ordinaire.
+      const r = dinerStock
+        ? await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement,
+                                            infos.pa, infos.cost, infos.invite)
+        : await deduireCoutOrdre({ pa: infos.pa, cost: infos.cost });
       if (r.ok) {
-        if (dinerStock) await consommerStockDinerAffaires(dinerStock.data, dinerStock.prelevement, infos.cost, infos.invite);
         if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
         if (cfg.moral) state.moral = Math.min(100, (state.moral || 0) + cfg.moral);
         if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);

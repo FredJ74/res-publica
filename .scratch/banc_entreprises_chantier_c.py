@@ -299,6 +299,142 @@ def deroulement(tp, tq):
                  len(e.get("historique") or []) == len(avant_e.get("historique") or []) + 1,
                  "%d lignes" % len(e.get("historique") or []))
 
+    # === FAMILLES 4 ET 5 : LES QUATRE REGRESSIONS DE PRODUCTION ==============
+    # Ces quatre ordres etaient REFUSES en production depuis la phase 1 : ils annoncaient a
+    # payer_ordre un montant ou un PA qui n'est pas celui declare dans data.js. Le miroir,
+    # fail-closed, refusait. Ils doivent redevenir fonctionnels -- sans que payer_ordre soit
+    # devenue permissive pour autant.
+    ARM = "armurerie-republic-" + VILLE_NEUVE
+    c, v = rpc("entreprise_assurer_existence",
+               {"p_id": ARM, "p_type": "armurerie", "p_pays": "republic",
+                "p_ville": VILLE_NEUVE, "p_batiment": "armurerie", "p_room": None}, jeton=tq)
+    arm_ok = v.get("ok") is True
+    verifier("R0 armurerie de test disponible", arm_ok, str(v)[:80])
+
+    # --- Regression 2 : production d'arme ---------------------------------
+    c, v = rpc("commerce_produire",
+               {"p_acteur": QUIDAM, "p_entreprise": ARM, "p_recette": "couteau",
+                "p_ordre": "produire_arme"}, jeton=tq)
+    verifier("R2 production d'arme : de nouveau fonctionnelle",
+             v.get("ok") is True, str(v)[:120])
+    if v.get("ok") is True:
+        verifier("R2 le salaire vient du miroir (100 FR) et les PA du miroir (2)",
+                 float(v.get("salaire")) == 100.0 and v.get("paPreleves") == 2, str(v)[:110])
+
+    # --- Regression 1 : achat legal d'arme --------------------------------
+    e_av = http("GET", "/rest/v1/entreprises?select=data&id=eq." + ARM)[1]
+    e_av = e_av[0]["data"] if e_av else {}
+    pj_av = perso(QUIDAM, tq)
+    prix_couteau = (e_av.get("parametres") or {}).get("prixVente", {}).get("couteau")
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ARM,
+                "p_produits": [{"produit": "couteau", "qte": 1}],
+                "p_mode": "comptoir", "p_ordre": "choisir_arme", "p_pa": 1, "p_cost": 0}, jeton=tq)
+    verifier("R1 achat legal d'arme : de nouveau fonctionnel", v.get("ok") is True, str(v)[:120])
+    if v.get("ok") is True:
+        pj_ap = perso(QUIDAM, tq)
+        verifier("R1 le prix preleve est celui du commerce, pas celui annonce (cost=0)",
+                 float(v.get("total")) == float(prix_couteau)
+                 and float(pj_av.get("arg")) - float(pj_ap.get("arg")) == float(prix_couteau),
+                 "prix=%s total=%s debit=%s" % (prix_couteau, v.get("total"),
+                     float(pj_av.get("arg")) - float(pj_ap.get("arg"))))
+
+    # --- Coût fixe falsifie : refuse par le miroir ------------------------
+    # La RPC verifie TOUS les articles avant tout paiement : sans stock, c'est la rupture qui
+    # serait signalee et le test ne prouverait rien. On reconstitue donc un couteau.
+    rpc("commerce_produire", {"p_acteur": QUIDAM, "p_entreprise": ARM, "p_recette": "couteau",
+                              "p_ordre": "produire_arme"}, jeton=tq)
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ARM,
+                "p_produits": [{"produit": "couteau", "qte": 1}],
+                "p_mode": "comptoir", "p_ordre": "choisir_arme", "p_pa": 0, "p_cost": 0}, jeton=tq)
+    verifier("R1b part fixe falsifiee (0 PA au lieu de 1) : refusee",
+             v.get("ok") is False and v.get("raison") == "cout_non_declare", str(v)[:110])
+
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ARM,
+                "p_produits": [{"produit": "couteau", "qte": 1}],
+                "p_mode": "comptoir", "p_ordre": "zz_ordre_invente", "p_pa": 1, "p_cost": 0}, jeton=tq)
+    verifier("R1c ordre invente : refuse",
+             v.get("ok") is False and v.get("raison") == "ordre_inconnu", str(v)[:110])
+
+    # --- Regression 3 : production en commerce ----------------------------
+    c, v = rpc("commerce_produire",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_recette": "cafe_boisson",
+                "p_ordre": "produire_commerce"}, jeton=tq)
+    verifier("R3 production en commerce : de nouveau fonctionnelle",
+             v.get("ok") is True, str(v)[:120])
+    if v.get("ok") is True:
+        verifier("R3 portions et salaire viennent du miroir",
+                 v.get("portions") == 15 and float(v.get("salaire")) == 50.0, str(v)[:110])
+
+    c, v = rpc("commerce_produire",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_recette": "vin",
+                "p_ordre": "produire_commerce"}, jeton=tq)
+    vin_ok = v.get("ok") is True
+    verifier("R3b production de vin (pour la tournee)", vin_ok, str(v)[:110])
+
+    # --- Regression 4 : tournee -------------------------------------------
+    if vin_ok:
+        e_av = entreprise(); pj_av = perso(QUIDAM, tq)
+        prix_vin = (e_av.get("parametres") or {}).get("prixVente", {}).get("vin")
+        c, v = rpc("commerce_vendre_produit",
+                   {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                    "p_produits": [{"produit": "vin", "qte": 3}], "p_mode": "comptoir"}, jeton=tq)
+        verifier("R4 tournee (3 exemplaires) : de nouveau fonctionnelle",
+                 v.get("ok") is True, str(v)[:120])
+        if v.get("ok") is True:
+            verifier("R4 le total est prix x quantite, calcule serveur",
+                     float(v.get("total")) == float(prix_vin) * 3, "%s x3 = %s" % (prix_vin, v.get("total")))
+
+    # --- Regression temoin : diner d'affaires (mode service) ---------------
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                "p_produits": [{"produit": "cafe_boisson", "qte": 2}, {"produit": "vin", "qte": 1}],
+                "p_mode": "service", "p_ordre": "diner_affaires", "p_pa": 2, "p_cost": 300},
+               jeton=tq)
+    verifier("R5 temoin : prestation facturee par l'ordre, toujours fonctionnelle",
+             v.get("ok") is True and float(v.get("assiette")) == 300.0, str(v)[:120])
+
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                "p_produits": [{"produit": "vin", "qte": 1}],
+                "p_mode": "service", "p_ordre": "diner_affaires", "p_pa": 2, "p_cost": 99999},
+               jeton=tq)
+    verifier("R5b prestation a montant falsifie : refusee par le miroir",
+             v.get("ok") is False and v.get("raison") == "cout_non_declare", str(v)[:110])
+
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                "p_produits": [{"produit": "vin", "qte": 1}], "p_mode": "service"}, jeton=tq)
+    verifier("R5c mode service SANS ordre (stock gratuit) : refuse",
+             v.get("ok") is False and v.get("raison") == "ordre_requis", str(v)[:110])
+
+    # --- Fonds insuffisants : aucune mutation partielle --------------------
+    e_av = entreprise(); pj_av = perso(QUIDAM, tq)
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                "p_produits": [{"produit": "vin", "qte": 99999}], "p_mode": "comptoir"}, jeton=tq)
+    verifier("R6 quantite au-dela du stock : refusee",
+             v.get("ok") is False and v.get("raison") == "stock_insuffisant", str(v)[:110])
+    verifier("R6b aucune mutation partielle apres refus",
+             entreprise() == e_av and perso(QUIDAM, tq).get("arg") == pj_av.get("arg"), "ok")
+
+    # --- Usurpation d'acteur -----------------------------------------------
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": PROPRIO, "p_entreprise": ENT,
+                "p_produits": [{"produit": "vin", "qte": 1}], "p_mode": "comptoir"}, jeton=tq)
+    verifier("R7 vendre au nom d'un autre joueur : refuse",
+             v.get("code") == "42501" or v.get("ok") is False, str(v)[:100])
+
+    # --- Produit hors carte -------------------------------------------------
+    c, v = rpc("commerce_vendre_produit",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT,
+                "p_produits": [{"produit": "menu_gastronomique_1", "qte": 1}],
+                "p_mode": "comptoir"}, jeton=tq)
+    verifier("R8 produit absent de la carte : refuse",
+             v.get("ok") is False and v.get("raison") == "produit_non_propose", str(v)[:100])
+
     for x in resultats:
         if not x["ok"]:
             print("  KO   %-62s %s" % (x["nom"], x["detail"]))

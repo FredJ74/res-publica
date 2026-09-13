@@ -1528,13 +1528,20 @@ async function confirmerAchatArme(armeId) {
       && !(await assembleeControlerVenteLegale([{ type: 'arme', sousType: arme.type }]))) return;
 
   // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation de stock/caisse.
-  const r = await deduireCoutOrdre({ pa: 1, cost: prixApplique });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  data.stockProduits[armeId] -= 1;
-  const { net } = typeof appliquerTaxeTransaction === 'function' ? await appliquerTaxeTransaction(prixApplique) : { net: prixApplique };
-  data.caisse = (data.caisse || 0) + net;
-  ajouterHistoriqueEntreprise(data, net, 'Vente au comptoir — ' + arme.name);
-  await sbSaveEntreprise(data.id, data);
+  // CHANTIER C / PHASE 3. Cet achat etait CASSE en production depuis la phase 1 : le prix d'une
+  // arme est fixe par le proprietaire de l'armurerie, il n'existe dans aucun catalogue statique,
+  // et payer_ordre le refusait donc ('cout_non_declare'). Les deux composantes sont desormais
+  // separees : 1 PA declare pour l'ordre choisir_arme, et le prix relu dans le blob par la RPC.
+  const r = await commerceVendreProduit(data.id, [{ produit: armeId, qte: 1 }],
+                                        'comptoir', 'choisir_arme', 1, 0);
+  if (!r.ok) {
+    const messages = { pa_insuffisants: '1 PA requis.',
+      fonds_insuffisants: prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
+      stock_insuffisant: 'Rupture de stock.', prix_non_defini: 'Cette arme n\'a pas de prix fixe.' };
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
+              messages[r.raison] || '', false);
+    return;
+  }
 
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
@@ -1681,10 +1688,17 @@ async function confirmerAchatArmeIllegal(armeId) {
   // REUSSITE — arme livree, non enregistree au registre, mais bien consommee du stock reel
   // Deduction PA+cout centralisee (Lot 2C) -- cout du uniquement en cas de reussite (comme deja
   // pour l'argent), AVANT toute mutation de stock/Supabase : fail-closed.
-  const r = await deduireCoutOrdre({ pa: 1, cost: prixIllegal });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).', false); return; }
-  data.stockProduits[armeId] -= 1;
-  await sbSaveEntreprise(data.id, data);
+  // CHANTIER C / PHASE 3. Meme cause, meme correctif que l'achat legal : le prix du marche noir
+  // (le triple du prix affiche) n'est pas un cout d'ordre declare. Le mode 'marche_noir' de la
+  // RPC applique la regle existante -- triple preleve, caisse de l'armurier NON creditee.
+  const r = await commerceVendreProduit(data.id, [{ produit: armeId, qte: 1 }],
+                                        'marche_noir', 'choisir_arme', 1, 0);
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
+              r.raison === 'fonds_insuffisants'
+                ? prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).' : '', false);
+    return;
+  }
 
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
@@ -3097,6 +3111,37 @@ function getEntrepriseIdArmurerie(country, city) {
 // de son propre inventaire ET se creditait lui-meme. commerce_acheter_matiere relit tout sous
 // verrou : matiere reellement acceptee par cette carte, quantite reellement detenue, plafond,
 // tarif, caisse (autonome ou institutionnelle). Une seule migration pour les deux sites.
+// CHANTIER C / PHASE 3 — vente d'un produit fini par un commerce. Passage oblige des sept sites
+// qui decrementaient stockProduits et creditaient la caisse en croyant le prix du navigateur.
+// La RPC separe la PART FIXE de l'ordre (PA/FR declares, valides par payer_ordre contre le
+// miroir) de la PART DYNAMIQUE (prix reellement inscrit dans le blob, recalcule par le serveur).
+async function commerceVendreProduit(entrepriseId, articles, mode, ordre, pa, cost, reglePa) {
+  const v = await sbRpc('commerce_vendre_produit', {
+    p_acteur: state.char?.name, p_entreprise: entrepriseId, p_produits: articles || [],
+    p_mode: mode || 'comptoir', p_ordre: ordre || null,
+    p_pa: pa || 0, p_cost: cost || 0, p_regle_pa: reglePa || null
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) return { ok: false, raison: (v && v.raison) || 'indisponible', detail: v };
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (typeof v.pa === 'number') state.pa = v.pa;
+  if (state.char) state.char.arg = state.arg;
+  return v;
+}
+
+// Production : le serveur relit matieres, portions, plafond, salaire et PA. Le PA de production
+// est une regle de CODE (PA_PRODUCTION_ARMURERIE, recette.pa), pas un cout d'ordre declare :
+// c'est la raison pour laquelle payer_ordre le refusait depuis la phase 1.
+async function commerceProduire(entrepriseId, recetteId, ordre) {
+  const v = await sbRpc('commerce_produire', {
+    p_acteur: state.char?.name, p_entreprise: entrepriseId,
+    p_recette: recetteId, p_ordre: ordre || null
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) return { ok: false, raison: (v && v.raison) || 'indisponible', detail: v };
+  state.arg = v.arg; state.liquide = v.liquide; state.pa = v.pa;
+  if (state.char) state.char.arg = state.arg;
+  return v;
+}
+
 async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
   const v = await sbRpc('commerce_acheter_matiere', {
     p_acteur: state.char?.name, p_entreprise: entrepriseId, p_matiere: matiere, p_qte: qte
@@ -4582,89 +4627,17 @@ async function confirmerGererPrixCommerceUI(commerceType, buildingId, roomId, re
 // Production generique : matieres -> PA -> lot -> portions, sur le modele exact de
 // confirmerProduction (armurerie) mais parametre par recette au lieu d'un id d'arme fixe.
 async function produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
-  const recette = resoudreProduitCommerce(recetteId);
+  // CHANTIER C / PHASE 3. Production CASSEE depuis la phase 1, meme cause qu'a l'armurerie :
+  // recette.pa n'est pas le PA declare de l'ordre produire_commerce (0 dans data.js).
+  // commerce_produire relit la recette et ses autorisations de lieu, les matieres, le plafond,
+  // la caisse (autonome ou institutionnelle), preleve le PA, verse le salaire et recalcule le
+  // prix auto d'un commerce PNJ. Le navigateur n'arrete plus aucun de ces chiffres.
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  if (!recette || !data) return { ok: false, raison: 'introuvable' };
-  if (!recetteAutoriseePourCommerce(recette, data)) return { ok: false, raison: 'recette_non_autorisee' };
-
-  const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
-  if (manque) return { ok: false, raison: 'stock_matiere_insuffisant', matiere: manque[0] };
-
-  // Plafond effectif (lot plafonds, 21 aout 2026) -- corrige au passage un defaut preexistant :
-  // l'ancien controle ("stockActuel >= stockMax") ne bloquait qu'une fois le plafond DEJA atteint,
-  // jamais une production qui l'aurait depasse (stock 18 + 5 portions = 23 passait avant ce
-  // correctif). Compare desormais stock APRES production au plafond, avant toute mutation.
-  const stockMax = plafondEffectifCommerce(data, recetteId);
-  const stockActuel = data.stockProduits[recetteId] || 0;
-  if (stockActuel + recette.portions > stockMax) return { ok: false, raison: 'stock_plein' };
-
-  const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
-  // Buvette : aucune caisse autonome (doctrine deja validee/codee pour doConsommerBuvette), y
-  // compris cote depense -- le net des ventes va deja a la caisse du stade, la main-d'oeuvre de
-  // production en est donc symetriquement tiree, jamais de data.caisse (qui reste a 0 en
-  // permanence pour ce type). debiterCaisseBatimentAtomique est tout-ou-rien (contrairement a
-  // debiterCaisseBatimentPlafonne qui tolere un versement partiel, inadapte ici : un salaire de
-  // production doit etre paye en entier ou pas du tout, comme pour tout autre commerce).
-  //
-  // Atomicite PA/caisse (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est l'AUTORITE
-  // UNIQUE sur la disponibilite des PA (aucune garde manuelle state.pa<...). Les deux branches
-  // garantissent : soit PA et ressources sont debites ensemble et la production a lieu, soit
-  // rien n'est mute (ni PA, ni caisse, ni stock) :
-  //   - buvette : PA et cout main-d'oeuvre geres en UN SEUL appel a deduireCoutOrdre() via
-  //     payeur:{type:'institution'}, qui delegue a debiterCaisseBatimentAtomique() en interne
-  //     et ne deduit les PA (etape D) qu'apres le succes du debit institutionnel (etape B) --
-  //     aucune fenetre entre les deux, contrairement a une lecture prealable separee. Le
-  //     raison renvoye par la primitive ('caisse_institution_insuffisante') est remappe vers
-  //     'caisse_insuffisante' pour preserver le contrat existant avec l'appelant UI
-  //     (doProduireRecetteCommerceUI, qui ne connait que cette valeur).
-  //   - commerce standard/restaurant : data.caisse n'est pas geree par
-  //     debiterCaisseBatimentAtomique (caisse d'une entreprise, pas d'un batiment) ; verifiee en
-  //     lecture seule AVANT deduireCoutOrdre(), puis debitee seulement APRES son succes -- rien
-  //     n'est encore persiste a ce stade (sbSaveEntreprise plus bas).
-  const categorieCaisseInstitProd = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
-  if (categorieCaisseInstitProd && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    const r = await deduireCoutOrdre({ pa: recette.pa, cost: coutMainOeuvre, payeur: { type: 'institution', pays, buildingId: getCaisseLocaleId(categorieCaisseInstitProd, ville) } });
-    if (!r.ok) return { ok: false, raison: r.raison === 'caisse_institution_insuffisante' ? 'caisse_insuffisante' : r.raison };
-  } else {
-    if (data.caisse < coutMainOeuvre) return { ok: false, raison: 'caisse_insuffisante' };
-    const rPa = await deduireCoutOrdre({ pa: recette.pa, cost: 0 });
-    if (!rPa.ok) return { ok: false, raison: 'pa_insuffisants' };
-    data.caisse -= coutMainOeuvre;
-  }
-
-  Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
-  data.stockProduits[recetteId] = stockActuel + recette.portions;
-
-  // Prix auto recalcule a chaque production pour un commerce PNJ (le cout moyen des matieres
-  // peut avoir bouge depuis le dernier lot) -- un commerce PJ garde le prix fixe par son
-  // proprietaire (confirmerFixerPrixCommerce), jamais ecrase automatiquement ici. Exception
-  // ajoutee (lot plafonds/menus fixes, 21 aout 2026) : une recette explicitement declaree
-  // recette.prixFixe:true (menus gastronomiques du Republica) ignore ce recalcul, PNJ ou pas --
-  // attribut propre a la recette, aucun ID hardcode ici.
-  if (data.proprietaire === 'PNJ' && !recette.prixFixe) {
-    data.parametres.prixVente[recetteId] = prixVenteAutoPNJ(coutRevientPortionRecette(data, recette));
-  }
-
-  ajouterHistoriqueEntreprise(data, -coutMainOeuvre, 'Production de ' + recette.label + ' (' + recette.portions + ' portions) — ' + (state.char?.name || 'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
-
-  crediterFondsOrdinaires(coutMainOeuvre);
-
-  // Sauvegarde personnage immediate (correctif audit PA, 22 aout 2026) : jusqu'ici, seul le
-  // debounce de 3s de sbAutoSave() (declenche par updateUI() dans le wrapper UI) ou le filet de
-  // secours au dechargement persistaient la deduction de PA ci-dessus (via deduireCoutOrdre()) --
-  // un rafraichissement rapide (<3s apres le dernier clic) pouvait la perdre. Placee ICI, dans la
-  // fonction metier commune (pas le wrapper UI doProduireRecetteCommerceUI), pour couvrir tout
-  // futur appelant direct sans avoir a s'en souvenir a chaque nouveau point d'entree -- meme
-  // patron deja utilise ailleurs pour d'autres actions qui coutent des PA (ex.
-  // plateau-justice-economie.js:3257/3572). N'intervient qu'ICI, apres le SEUL point de sortie en
-  // succes de la fonction (tous les echecs -- recette non autorisee, stock insuffisant, PA/caisse
-  // insuffisants -- retournent plus haut, avant toute mutation) : jamais de sauvegarde en cas
-  // d'echec, jamais de double sauvegarde (sbSaveEntreprise ci-dessus ne concerne que le commerce,
-  // pas le personnage).
+  if (!data) return { ok: false, raison: 'introuvable' };
+  const r = await commerceProduire(data.id, recetteId, 'produire_commerce');
+  if (!r.ok) return { ok: false, raison: r.raison };
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
-  return { ok: true, portions: recette.portions, salaire: coutMainOeuvre };
+  return { ok: true, portions: r.portions, coutMainOeuvre: r.salaire, salaire: r.salaire };
 }
 
 // Vente/consommation generique : carte -> Commander -> stock-1 -> taxe -> caisse -> effets.
@@ -4706,22 +4679,11 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
 
-  const debitCommerce = await debiterFondsOrdinaires(prix);
-  if (!debitCommerce.ok) return { ok: false, raison: 'fonds_insuffisants', prix };
-  data.stockProduits[recetteId] = stock - 1;
-
-  let net = prix;
-  if (typeof appliquerTaxeTransaction === 'function') {
-    const t = await appliquerTaxeTransaction(prix);
-    net = t.net;
-  }
-
-  const categorieCaisseInstitVente = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
-  if (categorieCaisseInstitVente && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment(pays, getCaisseLocaleId(categorieCaisseInstitVente, ville), net).catch(() => {});
-  } else {
-    data.caisse = (data.caisse || 0) + net;
-  }
+  // CHANTIER C / PHASE 3 : prix relu dans le blob, debit, taxe, caisse (autonome ou
+  // institutionnelle) et stock arretes par le serveur dans une seule transaction.
+  const vente = await commerceVendreProduit(data.id, [{ produit: recetteId, qte: 1 }], 'comptoir');
+  if (!vente.ok) return { ok: false, raison: vente.raison, prix };
+  const net = vente.net;
 
   // Produit de marche non-alimentaire (Lot 2, familleProduitMarche present) : objet individualise
   // en inventaire, JAMAIS d'effet immediat -- chemin distinct de celui des recettes alimentaires
@@ -4780,8 +4742,6 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     if (effets.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + effets.paDiffere;
   }
 
-  ajouterHistoriqueEntreprise(data, net, 'Vente — ' + recette.label + ' — ' + (state.char?.name || 'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
 
   // Sauvegarde personnage immediate (meme correctif et meme raisonnement que
   // produireRecetteCommerce ci-dessus, audit boucle nourriture du 22 aout 2026) : cote client
@@ -5011,18 +4971,19 @@ async function doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate)
   const recetteId = (data.carte || []).find(id => (data.stockProduits[id] || 0) > 0);
   if (!recetteId) { showToast('Rupture de stock', 'Le restaurant n\'a rien à servir pour l\'instant.', false); return; }
 
-  data.stockProduits[recetteId] -= 1;
-  let net = cost;
-  if (typeof appliquerTaxeTransaction === 'function') {
-    const t = await appliquerTaxeTransaction(cost);
-    net = t.net;
+  // CHANTIER C / PHASE 3, mode 'service' : ici le repas n'a pas de prix de carte, il est
+  // FACTURE PAR L'ORDRE. payer_ordre valide donc le couple (pa, cost) contre le miroir et
+  // preleve ; la RPC taxe ce meme montant et credite la caisse. executerOrdreGenerique est
+  // ensuite appelee avec 0/0 : elle garde le jet et les effets, mais ne preleve plus une
+  // seconde fois -- c'etait le risque de double debit.
+  const vente = await commerceVendreProduit(data.id, [{ produit: recetteId, qte: 1 }],
+                                            'service', 'repas_gastronomique', pa, cost);
+  if (!vente.ok) {
+    showToast(vente.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Service indisponible',
+              vente.raison === 'fonds_insuffisants' ? cost + ' FR requis.' : '', false);
+    return;
   }
-  data.caisse = (data.caisse || 0) + net;
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
-  ajouterHistoriqueEntreprise(data, net, 'Vente — ' + (recette ? recette.label : recetteId) + ' — ' + (state.char?.name || 'Anonyme'));
-  await sbSaveEntreprise(data.id, data).catch(() => {});
-
-  executerOrdreGenerique('repas_gastronomique', pa, cost, label, desc, successRate);
+  executerOrdreGenerique('repas_gastronomique', 0, 0, label, desc, successRate);
 }
 
 async function doConsommerBoisson(commerceType, buildingId, roomId) {
@@ -5363,53 +5324,41 @@ async function resoudreTournee(tournee) {
 
   const montantTotal = prixReel * quantite;
 
-  // PA (section 11) : 1 PA unique, quel que soit N. pa_debite ne sert jamais de verrou prealable
-  // -- il ne passe a true qu'apres le succes reel de deduireCoutOrdre(), et permet ici de sauter
-  // ce debit lors d'une reprise (le PA a deja ete preleve lors d'une tentative anterieure).
-  if (!tournee.pa_debite) {
-    const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-    if (!r.ok) {
-      await nettoyerInvitations();
-      await sbMarquerTourneeResolue(tournee.id, false);
-      if (estMoi) {
-        showToast('Tournée annulée', 'Plus assez de PA pour offrir la tournée.', false);
-        addJournalEntry('Tournée annulée à la résolution : PA insuffisants.', 'event-bad');
-        updateUI();
-      }
-      return;
-    }
-    await sbMarquerTourneePaDebite(tournee.id).catch(() => {});
-  }
 
   // Flux financier/stock (section 12) : memes primitives que commanderProduitCommerce, appliquees
   // UNE FOIS pour la quantite agregee (jamais une boucle N+1 fois, qui multiplierait a tort les
   // effets de la recette). La caisse du commerce est toujours CREDITEE (jamais debitee) : c'est
   // l'argent personnel de l'offreur qui paie, exactement comme une vente normale.
-  const debitTournee = await debiterFondsOrdinaires(montantTotal);
-  if (!debitTournee.ok) {
+  // CHANTIER C / PHASE 3 — PA, argent, stock et caisse en UNE SEULE transaction serveur.
+  // Trois defauts corriges d'un coup :
+  //   1. le 1 PA de la tournee etait REFUSE depuis la phase 1 : l'ordre offrir_tournee est
+  //      declare a 0 PA dans data.js, la regle "1 PA quel que soit N" ne vit que dans ce code,
+  //      et payer_ordre ne peut valider qu'un triple reellement declare ;
+  //   2. resoudreTournee tourne dans une boucle de polling, ou state._ordreEnCours vaut
+  //      n'importe quel ordre precedent : le nom d'ordre transmis n'avait aucun sens ;
+  //   3. le montant (prix x quantite) etait calcule et preleve par le navigateur, puis la caisse
+  //      creditee par une seconde ecriture -- les deux pouvaient diverger.
+  // Le serveur relit le prix de carte, multiplie par la quantite, applique la regle de PA NOMMEE
+  // 'pa_tournee' (valeur lue dans le miroir, jamais transmise), preleve, taxe et credite.
+  const vente = await commerceVendreProduit(data.id,
+                  [{ produit: tournee.recette_id, qte: quantite }], 'comptoir', null, 0, 0,
+                  tournee.pa_debite ? null : 'pa_tournee');
+  if (!vente.ok) {
     await nettoyerInvitations();
     await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
     if (estMoi) {
-      showToast('Tournée annulée', 'Fonds insuffisants au moment de servir la tournée.', false);
-      addJournalEntry('Tournée annulée à la résolution : fonds insuffisants.', 'event-bad');
+      showToast('Tournée annulée',
+        vente.raison === 'pa_insuffisants' ? 'Plus assez de PA pour offrir la tournée.'
+                                           : 'Fonds insuffisants au moment de servir la tournée.', false);
+      addJournalEntry('Tournée annulée à la résolution : '
+        + (vente.raison === 'pa_insuffisants' ? 'PA insuffisants.' : 'fonds insuffisants.'),
+        'event-bad');
       updateUI();
     }
     return;
   }
-  data.stockProduits[tournee.recette_id] = stockActuel - quantite;
-  let net = montantTotal;
-  if (typeof appliquerTaxeTransaction === 'function') {
-    const t = await appliquerTaxeTransaction(montantTotal);
-    net = t.net;
-  }
-  const categorieCaisseInstitTournee = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
-  if (categorieCaisseInstitTournee && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment(tournee.country, getCaisseLocaleId(categorieCaisseInstitTournee, tournee.ville), net).catch(() => {});
-  } else {
-    data.caisse = (data.caisse || 0) + net;
-  }
-  ajouterHistoriqueEntreprise(data, net, 'Tournée offerte — ' + recette.label + ' x' + quantite + ' — ' + (tournee.offreur || 'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
+  if (!tournee.pa_debite) await sbMarquerTourneePaDebite(tournee.id).catch(() => {});
+  const net = vente.net;
 
   // Effets (section 13) : offreur une seule fois, chaque invite PJ ayant reellement accepte de
   // meme -- jamais les PNJ (aucun personnage persiste a crediter). Traitement PUIS suppression de
@@ -5591,6 +5540,11 @@ function ajouterHistoriqueEntreprise(data, montant, motif) {
 const PA_PRODUCTION_ARMURERIE = 2;
 const SALAIRE_PRODUCTION_ARMURERIE = 100; // 2 PA x 50 FR/PA
 
+// Tournee offerte : 1 PA unique quel que soit le nombre d'invites. Regle de CODE (elle
+// n'est pas declaree sur l'ordre offrir_tournee, qui vaut 0 PA dans data.js) -- nommee ici
+// pour que le generateur de miroirs l'extraie et que le serveur puisse l'appliquer.
+const PA_TOURNEE = 1;
+
 async function doProduireArme() {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
@@ -5613,43 +5567,33 @@ async function doProduireArme() {
 }
 
 async function confirmerProduction(produitId) {
-  const recette = RECETTES_PRODUCTION[produitId];
+  // CHANTIER C / PHASE 3. Production CASSEE en production depuis la phase 1 : le PA de
+  // fabrication (PA_PRODUCTION_ARMURERIE = 2) est une regle de CODE, pas le PA declare de
+  // l'ordre produire_arme dans data.js (qui vaut 0) -- payer_ordre refusait donc en
+  // 'cout_non_declare'. commerce_produire connait cette regle par le miroir des constantes,
+  // relit les matieres, le plafond et la caisse, preleve le PA et verse le salaire.
   const data = await chargerArmurerieLocale();
-  if (!recette || !data) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  if (!data) { showToast('Indisponible', '', false); return; }
+  const recette = getRecettesPays(state.country || 'republic')[produitId];
 
-  const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
-  if (manque) { showToast('Stock de matière insuffisant', 'Il manque du ' + manque[0] + ' en stock.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const r = await commerceProduire(data.id, produitId, 'produire_arme');
+  if (!r.ok) {
+    const messages = {
+      matieres_insuffisantes: 'Matières premières insuffisantes.',
+      caisse_insuffisante: 'La caisse ne peut pas payer le salaire de production.',
+      stock_plein: 'Stock maximum atteint pour ce produit.',
+      pa_insuffisants: 'PA insuffisants.'
+    };
+    showToast('Production impossible', messages[r.raison] || '', false);
+    return;
+  }
 
-  if (data.caisse < SALAIRE_PRODUCTION_ARMURERIE) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas payer ce travail actuellement.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  const stockActuel = data.stockProduits[produitId] || 0;
-  const stockMax = data.parametres.stockMax[produitId] || 0;
-  if (stockActuel >= stockMax) { showToast('Stock plein', 'Le stock maximum de ce produit est atteint.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  // Deduction PA centralisee (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est
-  // desormais l'AUTORITE UNIQUE sur la disponibilite des PA (plus de garde manuelle
-  // state.pa<... redondante, qui bloquait a tort meme sous TEST_MODE=true). Appelee ICI, AVANT
-  // toute mutation de stock/caisse et avant l'ecriture Supabase : fail-closed. cost:0 car le
-  // salaire est un GAIN (state.arg += plus bas), pas un cout modelise par deduireCoutOrdre.
-  const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_ARMURERIE, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_ARMURERIE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  // Consommer
-  Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
-  data.stockProduits[produitId] = stockActuel + 1;
-  data.caisse -= SALAIRE_PRODUCTION_ARMURERIE;
-  ajouterHistoriqueEntreprise(data, -SALAIRE_PRODUCTION_ARMURERIE, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
-
-  crediterFondsOrdinaires(SALAIRE_PRODUCTION_ARMURERIE);
+  document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Production réussie !', recette.label + ' fabriqué(e). +' + SALAIRE_PRODUCTION_ARMURERIE + ' FR de salaire.', true, true);
-  addJournalEntry('Production d\'un(e) ' + recette.label + ' à l\'armurerie (+' + SALAIRE_PRODUCTION_ARMURERIE + ' FR).', 'event-good');
-
-  // Ne ferme pas le modal : rafraichit la liste pour permettre d'enchainer sans le rouvrir a
-  // chaque fois (production continue, cf regle 3 - seules les 3 ressources limitent, pas une
-  // fermeture systematique de fenetre).
-  doProduireArme();
+  showToast('Production terminée', (recette ? recette.label : produitId)
+    + ' — salaire de ' + r.salaire + ' FR perçu.', true, true);
+  addJournalEntry('Production à l\'armurerie : ' + (recette ? recette.label : produitId)
+    + ' (+' + r.salaire + ' FR).', 'event-good');
 }
 
 // doAcheterProduitStock/confirmerAchatStock (ordre "Acheter en stock") retires le 2026-08-16 :

@@ -2364,8 +2364,30 @@ async function doReserverChambreHotel(pa) {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
   const cout = ordre?.cost || 60;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
+  // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
+  // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
+  // chemin ordinaire. Dans les deux cas le montant reste le cout DECLARE de l'ordre, valide
+  // par payer_ordre contre le miroir -- une seule fois, jamais deux.
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const viaEntreprise = (state.currentBuilding === 'hotel-republica'
+                         && typeof chargerCommerce === 'function'
+                         && typeof commerceVendreProduit === 'function');
+  let r;
+  if (viaEntreprise) {
+    const dataHotel = await chargerCommerce('brasserie', pays, ville, 'hotel-republica', null);
+    r = dataHotel
+      ? await commerceVendreProduit(dataHotel.id, [], 'service', 'reserver_chambre_hotel', pa, cout)
+      : { ok: false, raison: 'introuvable' };
+  } else {
+    r = await deduireCoutOrdre({ pa, cost: cout });
+  }
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants',
+              cout + ' FR requis.', false);
+    return;
+  }
 
   // Caisse propre a l'hotel (correctif du 23 aout 2026, audit dedie) : le paiement disparaissait
   // integralement jusqu'ici (aucune caisse creditee nulle part). Reutilise exactement le meme
@@ -2381,24 +2403,15 @@ async function doReserverChambreHotel(pa) {
   // privee (l'entreprise du commerce), pas la caisse institutionnelle 'hotel' partagee par Hotel
   // du Port/Hotel de la Victoire (non touches, toujours sur crediterCaisseBatiment ci-dessous).
   // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
-  if (cout > 0) {
-    const pays = state.country || 'republic';
-    const ville = state.currentCity || 'capitale';
+  if (cout > 0 && !viaEntreprise) {
     let net = cout;
     if (typeof appliquerTaxeTransaction === 'function') {
       const t = await appliquerTaxeTransaction(cout);
       net = t.net;
     }
-    if (state.currentBuilding === 'hotel-republica' && typeof chargerCommerce === 'function') {
-      const data = await chargerCommerce('brasserie', pays, ville, 'hotel-republica', null);
-      if (data) {
-        data.caisse = (data.caisse || 0) + net;
-        if (typeof ajouterHistoriqueEntreprise === 'function') {
-          ajouterHistoriqueEntreprise(data, net, 'Reservation de chambre — ' + (state.char?.name || 'Anonyme'));
-        }
-        if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(data.id, data).catch(() => {});
-      }
-    } else if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
+    // Le Republica a deja ete credite par la RPC ci-dessus (prelevement et recette dans la
+    // meme transaction) : il n'y a plus rien a faire ici pour lui.
+    if (!viaEntreprise && typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
       await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
     }
   }

@@ -44,7 +44,8 @@ var g = (new Function(src + "\n; return {"
   + " SPA: typeof SALAIRE_PRODUCTION_ARMURERIE!=='undefined'?SALAIRE_PRODUCTION_ARMURERIE:null,"
   + " PPA: typeof PA_PRODUCTION_ARMURERIE!=='undefined'?PA_PRODUCTION_ARMURERIE:null,"
   + " CMO: typeof COUT_MAIN_OEUVRE_PA_ALIMENTAIRE!=='undefined'?COUT_MAIN_OEUVRE_PA_ALIMENTAIRE:null,"
-  + " SMC: typeof STOCK_MAX_COMMERCE!=='undefined'?STOCK_MAX_COMMERCE:null"
+  + " SMC: typeof STOCK_MAX_COMMERCE!=='undefined'?STOCK_MAX_COMMERCE:null,"
+  + " PT: typeof PA_TOURNEE!=='undefined'?PA_TOURNEE:null"
   + "};"))();
 
 var out = { recettes_production: [], recettes_commerce: [], types_commerce: [],
@@ -68,6 +69,17 @@ function pousserRecette(id, r, source) {
     materiaux: r.materiaux || {},
     prix_fixe: (typeof r.prixFixe === 'number') ? r.prixFixe : null,
     categorie: r.categorie || null,
+    // Metadonnees de LIVRAISON : le serveur doit pouvoir decrire lui-meme ce qu'il vend,
+    // sinon le navigateur reste libre de se livrer autre chose que ce qu'il a paye.
+    effets: r.effets || null,
+    stack_key: r.stackKey || null,
+    type_objet: r.type || null,
+    sous_type: r.sousType || null,
+    icone: r.icon || null,
+    image: r.image || null,
+    description: r.desc || null,
+    famille_produit_marche: r.familleProduitMarche || null,
+    bonus_integration_ville: r.bonusIntegrationVille || null,
     types_autorises: r.typesAutorises || null,
     pays_autorises: r.paysAutorises || null,
     villes_autorisees: r.villesAutorisees || null,
@@ -108,7 +120,8 @@ Object.keys(g.DOT || {}).sort().forEach(function (cle) {
 });
 
 out.constantes = { salaire_production_armurerie: g.SPA, pa_production_armurerie: g.PPA,
-                   cout_main_oeuvre_pa_alimentaire: g.CMO, stock_max_commerce: g.SMC };
+                   cout_main_oeuvre_pa_alimentaire: g.CMO, stock_max_commerce: g.SMC,
+                   pa_tournee: g.PT };
 print(JSON.stringify(out));
 """
 
@@ -153,14 +166,12 @@ def sql(d):
              for r in d["recettes_production"]) + ";")
 
     L.append("\nDELETE FROM public.recettes_commerce;")
-    L.append("INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux,"
-             " prix_fixe, categorie, types_autorises, pays_autorises, villes_autorisees,"
-             " buildings_autorises) VALUES")
-    L.append(",\n".join("  (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (
-             litteral(r["id"]), litteral(r["source"]), litteral(r["label"]), litteral(r["pa"]),
-             litteral(r["portions"]), litteral(r["materiaux"]), litteral(r["prix_fixe"]),
-             litteral(r["categorie"]), litteral(r["types_autorises"]), litteral(r["pays_autorises"]),
-             litteral(r["villes_autorisees"]), litteral(r["buildings_autorises"]))
+    COLS = ["id", "source", "label", "pa", "portions", "materiaux", "prix_fixe", "categorie",
+            "effets", "stack_key", "type_objet", "sous_type", "icone", "image", "description",
+            "famille_produit_marche", "bonus_integration_ville",
+            "types_autorises", "pays_autorises", "villes_autorisees", "buildings_autorises"]
+    L.append("INSERT INTO public.recettes_commerce (%s) VALUES" % ", ".join(COLS))
+    L.append(",\n".join("  (%s)" % ", ".join(litteral(r[c]) for c in COLS)
              for r in d["recettes_commerce"]) + ";")
 
     L.append("\nDELETE FROM public.commerces_types;")
