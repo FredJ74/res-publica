@@ -297,53 +297,43 @@ function lotsImprimablesIci(stockBois) {
 // Ordre strict : controles -> reservation du bois -> debit client -> mouvement de caisse -> salaire.
 // Renvoie null (et n'a rien consomme) si la commande est refusee ; le message a deja ete affiche.
 async function produireLotsTracts(nbLots, pa, stockBoisConnu) {
+  // CHANTIER C (14 septembre 2026). Cet ordre etait REFUSE en production des qu'on commandait
+  // plus d'UN lot : l'ordre imprimer_tracts_* declare (1 PA, 150 FR) et le client envoyait
+  // (N PA, 150N FR) -- 'cout_non_declare'. Un seul lot passait.
+  //
+  // Le bois et la caisse etaient deja atomiques, mais le debit du commanditaire passait par
+  // payer_ordre avec un montant multiplie, et le salaire du producteur etait credite par le
+  // navigateur : trois ecritures separables. imprimerie_produire_tracts les reunit et relit le
+  // tarif, le bois, les PA et les fonds. Memes regles : 1 lot = 10 tracts, 150 FR, 1 bois,
+  // 1 PA, 50 FR de salaire, la caisse encaisse la recette nette.
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const prixLot = prixLotTractsAtelier();
-  const cout = nbLots * prixLot;
-  const salaire = nbLots * SALAIRE_LOT_TRACTS;
-  const paRequis = (typeof pa === 'number' && pa > 0) ? nbLots * pa : nbLots;
-
-  // 1. PA du producteur : 1 par lot, verifies avant toute operation.
-  if (!(typeof TEST_MODE !== 'undefined' && TEST_MODE) && (state.pa || 0) < paRequis) {
-    showToast('PA insuffisants', 'Il faut ' + paRequis + ' PA pour produire ' + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
-    return null;
-  }
-  // 2. Capacite de paiement du client : fonds ORDINAIRES reels (liquide + Banque nationale).
-  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fondsDisponibles < cout) {
-    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
-    return null;
-  }
-  // 3. Matiere : reservee de facon atomique, donc jamais deux commandes sur le meme bois.
-  const resBois = await mouvementBoisAtelier(-nbLots * BOIS_PAR_LOT_TRACTS);
-  if (!resBois || !resBois.ok) {
-    const dispo = resBois && typeof resBois.stock === 'number' ? resBois.stock
-      : (typeof stockBoisConnu === 'number' ? stockBoisConnu : await stockBoisAtelier());
-    showToast('Stock de bois insuffisant', resBois ? messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, dispo)
-      : 'Le stock de l\'imprimerie n\'a pas pu être vérifié. Rien n\'a été commandé.', false);
-    return null;
-  }
-  // 4. Debit du client (PA + argent). En cas de refus, la matiere reservee est rendue.
-  const r = await deduireCoutOrdre({ pa: paRequis, cost: cout });
-  if (!r.ok) {
-    await mouvementBoisAtelier(nbLots * BOIS_PAR_LOT_TRACTS);
-    signalerRefusCout(r);
-    return null;
-  }
-  const montantDebite = r.montantPreleve || 0;
-  // 5. Caisse : recette encaissee moins salaire verse, en une seule ecriture.
   const a = atelierImprimerieCourant();
-  if (typeof sbBatimentMouvementCaisse === 'function') {
-    await sbBatimentMouvementCaisse(a.pays, a.ville, a.building, 'imprimerie', montantDebite - salaire).catch(() => null);
-  } else if (typeof crediterCaisseEtatBatiment === 'function') {
-    await crediterCaisseEtatBatiment(a.pays, a.ville, a.building, 'imprimerie', montantDebite - salaire);
+  const r = await sbRpc('imprimerie_produire_tracts', {
+    p_acteur: state.char?.name, p_pays: a.pays, p_ville: a.ville,
+    p_batiment: a.building, p_lots: nbLots
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+
+  if (!r || r.ok !== true) {
+    const raison = (r && r.raison) || 'indisponible';
+    if (raison === 'bois_insuffisant') {
+      showToast('Stock de bois insuffisant',
+        messageStockBoisInsuffisant(nbLots * BOIS_PAR_LOT_TRACTS, Number(r.stock || 0)), false);
+    } else if (raison === 'pa_insuffisants') {
+      showToast('PA insuffisants', 'Il faut ' + (r.requis || nbLots) + ' PA pour produire '
+        + (nbLots * 10) + ' tracts (1 PA par lot de 10).', false);
+    } else if (raison === 'fonds_insuffisants') {
+      showToast('Fonds insuffisants', 'Il vous faut ' + (r.cout || '') + ' ' + cur, false);
+    } else {
+      showToast('Commande impossible', '', false);
+    }
+    return null;
   }
-  // 6. Salaire du producteur : fonds reellement depensables, jamais state.arg seul.
-  if (salaire > 0) {
-    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(salaire);
-    else state.arg = (state.arg || 0) + salaire;
-  }
-  return { cout: cout, montantDebite: montantDebite, salaire: salaire, paConsommes: paRequis, bois: nbLots * BOIS_PAR_LOT_TRACTS };
+
+  state.pa = r.pa; state.arg = r.arg; state.liquide = r.liquide;
+  if (state.char) state.char.arg = state.arg;
+  if (typeof updateUI === 'function') updateUI();
+  return { cout: Number(r.cout), montantDebite: Number(r.cout), salaire: Number(r.salaire),
+           paConsommes: r.paConsommes, bois: Number(r.bois) };
 }
 
 function messageStockBoisInsuffisant(nbLots, dispo) {

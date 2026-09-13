@@ -5561,23 +5561,27 @@ async function confirmerFabriquerArmoireSouvenirs() {
   // les matieres et incrementait le stock de produits finis. fabriquer_produit_manufacture relit
   // l'atelier sous verrou, verifie la recette COMPLETE avant toute mutation -- refus sans
   // mutation partielle, exigence d'origine du lot -- et applique.
+  // CHANTIER C (14 septembre 2026). Le PA etait preleve a part, via payer_ordre -- qui le
+  // REFUSAIT des que la recette ne coutait pas exactement les 3 PA declares par l'ordre
+  // fabriquer_armoire_souvenirs ('cout_non_declare'). Le PA de fabrication est une donnee de la
+  // RECETTE, deja dans le miroir : la RPC le preleve elle-meme, dans la meme transaction que la
+  // consommation des matieres. Plus de double chemin, plus de refus injustifie.
   const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
-  const r = await deduireCoutOrdre({ pa: p.recette.pa, cost: 0, fn: 'fabriquer_armoire_souvenirs' });
-  if (!r.ok) { showToast('PA insuffisants', p.recette.pa + ' PA requis.', false);
-    document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
   const v = await sbRpc('fabriquer_produit_manufacture', {
     p_acteur: state.char?.name, p_pays: p.pays, p_produit: p.type
   }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
-    showToast(raison === 'stock_insuffisant' ? 'Stock insuffisant' : 'Fabrication impossible',
+    showToast(raison === 'stock_insuffisant' ? 'Stock insuffisant'
+              : raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fabrication impossible',
       raison === 'stock_insuffisant'
         ? 'Il manque du ' + (RESSOURCES_ECONOMIE[v.matiere]?.label || v.matiere) + ' dans le stock de la Scierie.'
+        : raison === 'pa_insuffisants' ? ((v.requis || p.recette.pa) + ' PA requis.')
         : 'Refusé (' + raison + ').', false);
     document.getElementById('modal-postes')?.classList.remove('open');
     return;
   }
+  if (typeof v.pa === 'number') state.pa = v.pa;
   updateUI();
   showToast('Fabrication réussie', '+1 ' + p.label + ' disponible à la vente.', true, true);
   addJournalEntry('Fabrication d\'une ' + p.label + ' à la Scierie Guy Tarembois.', 'event-good');

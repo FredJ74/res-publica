@@ -224,6 +224,47 @@ def deroulement(tj):
     verifier("E8 s'entrainer sans personnage serveur : refuse, et pas pour les fonds",
              v.get("ok") is not True and v.get("raison") != "fonds_insuffisants", str(v)[:110])
 
+    # === F. FAMILLES REPAREES LE 14 SEPTEMBRE =============================
+    # Les ordres a montant ou PA dynamique ne passent plus par payer_ordre : leur RPC metier
+    # les arbitre. On verifie que payer_ordre les refuse toujours -- c'est la preuve qu'elle
+    # n'a pas ete rendue permissive -- et que la voie metier existe.
+    # La section E a supprime le personnage : on le recree pour cette section.
+    creer_ok = http("POST", "/rest/v1/personnages", {
+        "name": JOUEUR, "country": "republic", "arg": 200000, "liquide": 200000, "pa": 20,
+        "hp": 100, "moral": 75, "day": 10, "current_city": "capitale",
+        "stats": {}, "resources": {}, "inventory": []}, jeton=tj)[0]
+    verifier("F0 personnage recree pour cette section", creer_ok in (200, 201), creer_ok)
+
+    for fn, pa, cost, quoi in (
+            ("construire_sur_terrain", 0, 12000, "apport de construction"),
+            ("payer_versement_chantier", 0, 5000, "versement de chantier"),
+            ("travailler_chantier", 4, 0, "heures de chantier"),
+            ("imprimer_tracts_electoraux", 3, 450, "3 lots de tracts"),
+            ("fabriquer_armoire_souvenirs", 1, 0, "armoire a recette variable")):
+        c, v = rpc("payer_ordre", {"p_acteur": JOUEUR, "p_fn": fn, "p_pa": pa, "p_cost": cost},
+                   jeton=tj)
+        verifier("F payer_ordre refuse toujours %s (non permissive)" % quoi,
+                 v.get("ok") is False and v.get("raison") == "cout_non_declare", str(v)[:100])
+
+    # Existence des voies metier : on les appelle avec leur VRAIE signature et une cible
+    # inexistante -- une reponse metier prouve qu'elles sont la et accessibles ; un PGRST202
+    # prouverait le contraire.
+    voies = [
+      ("chantier_lancer", {"p_acteur": JOUEUR, "p_pays": "zztest", "p_batiment": "neant",
+                           "p_palier": "hangar", "p_apport": 10500}),
+      ("chantier_verser", {"p_acteur": JOUEUR, "p_pays": "zztest", "p_batiment": "neant",
+                           "p_montant": 10}),
+      ("chantier_travailler", {"p_acteur": JOUEUR, "p_pays": "zztest", "p_batiment": "neant",
+                               "p_heures": 1}),
+      ("imprimerie_produire_tracts", {"p_acteur": JOUEUR, "p_pays": "zztest", "p_ville": "neant",
+                                      "p_batiment": "neant", "p_lots": 1}),
+    ]
+    for nom, corps in voies:
+        c, v = rpc(nom, corps, jeton=tj)
+        verifier("F la voie metier %s repond (et refuse la cible inexistante)" % nom,
+                 v.get("ok") is False and v.get("code") not in ("PGRST202", "42883"),
+                 "HTTP %s %s" % (c, str(v)[:80]))
+
     for x in resultats:
         if not x["ok"]:
             print("  KO   %-62s %s" % (x["nom"], x["detail"]))
