@@ -6084,7 +6084,10 @@ async function getSoldeCibleFiscale(typeCible, idCible) {
     return rows?.[0]?.arg ?? 0;
   }
   if (typeCible === 'club_sportif') { const b = await chargerBudgetClub(idCible); return b?.caisse || 0; }
-  if (typeCible === 'entreprise') { const e = await chargerEntreprise(idCible, () => defautArmurerie(pays)); return e?.caisse || 0; }
+  // Lecture PURE (chantier C, phase 3) : consulter le solde d'une cible fiscale ne doit pas
+  // creer l'entreprise au passage -- c'est desormais le role de entreprise_assurer_existence,
+  // appele depuis le commerce lui-meme.
+  if (typeCible === 'entreprise') { const e = await sbGetEntreprise(idCible).catch(() => null); return e?.caisse || 0; }
   if (typeCible === 'organisation') { const o = (state.organisations || []).find(x => x.id === idCible); return o?.caisse || 0; }
   return 0;
 }
@@ -6101,7 +6104,7 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
   } else if (typeCible === 'club_sportif') {
     await crediterBudgetClub(idCible, montantReel, montantReel >= 0 ? 'Subvention ministérielle' : 'Redressement fiscal');
   } else if (typeCible === 'entreprise') {
-    const e = await chargerEntreprise(idCible, () => defautArmurerie(pays));
+    const e = await sbGetEntreprise(idCible).catch(() => null);
     e.caisse = (e.caisse||0) + montantReel;
     await sbSaveEntreprise(idCible, e).catch(() => {});
   } else if (typeCible === 'organisation') {

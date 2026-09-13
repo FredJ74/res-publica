@@ -3080,14 +3080,60 @@ function getEntrepriseIdArmurerie(country, city) {
   return 'armurerie-' + country + '-' + city;
 }
 
-async function chargerEntreprise(id, defautFabrique) {
-  if (typeof sbGetEntreprise !== 'function') return null;
-  let data = await sbGetEntreprise(id).catch(() => null);
-  if (!data) {
-    data = defautFabrique();
-    if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(id, data).catch(() => {});
+// CHANTIER C / PHASE 3 (13 septembre 2026). Cette fonction laissait le NAVIGATEUR fabriquer la
+// ligne 'entreprises' quand elle n'existait pas encore -- caisse comprise (20 000 FR pour une
+// armurerie), stocks, prix et plafonds. Il suffisait d'inventer un identifiant pour se creer un
+// commerce dote. C'est desormais entreprise_assurer_existence qui construit le defaut, a partir
+// des miroirs generes depuis le vrai code du jeu ; le client ne transmet que la localisation, et
+// le serveur reverifie le type et la convention d'identifiant.
+// 'defautFabrique' n'est plus appelee : elle ne sert qu'a decrire la localisation demandee.
+// CHANTIER C / PHASE 3 — passage oblige des trois ordres qui fixent un parametre de commerce
+// (prix de vente, prix d'achat de matiere, plafond de stock). Le navigateur garde ses controles
+// pour l'affichage, mais c'est commerce_fixer_parametres qui tranche : il relit le proprietaire
+// reel, recalcule le cout de revient depuis le coutMoyenMatieres reellement paye par CE commerce,
+// et n'ecrit QUE la sous-cle 'parametres' -- ni caisse, ni stock, ni proprietaire.
+// CHANTIER C / PHASE 3 — le commerce (ou l'armurerie) achete une matiere a un joueur. Le
+// navigateur calculait le prix, le total, le nouveau cout moyen, le stock final, retirait le lot
+// de son propre inventaire ET se creditait lui-meme. commerce_acheter_matiere relit tout sous
+// verrou : matiere reellement acceptee par cette carte, quantite reellement detenue, plafond,
+// tarif, caisse (autonome ou institutionnelle). Une seule migration pour les deux sites.
+async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
+  const v = await sbRpc('commerce_acheter_matiere', {
+    p_acteur: state.char?.name, p_entreprise: entrepriseId, p_matiere: matiere, p_qte: qte
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!v || v.ok !== true) {
+    return { ok: false, raison: (v && v.raison) || 'indisponible',
+             placeRestante: v && v.placeRestante, detenu: v && v.detenu };
   }
-  return data;
+  state.inventory = v.inventory || state.inventory;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
+  if (typeof renderInventory === 'function') renderInventory();
+  return { ok: true, total: v.total, prixUnitaire: v.prixUnitaire, qte: v.qte };
+}
+
+async function commerceFixerParametres(entrepriseId, prixVente, prixAchatMatiere, stockMax) {
+  const r = await sbRpc('commerce_fixer_parametres', {
+    p_acteur: state.char?.name, p_entreprise: entrepriseId,
+    p_prix_vente: prixVente || {}, p_prix_achat_matiere: prixAchatMatiere || {},
+    p_stock_max: stockMax || {}
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  return r || { ok: false, raison: 'indisponible' };
+}
+
+async function chargerEntreprise(id, localisation) {
+  if (typeof sbGetEntreprise !== 'function') return null;
+  const loc = localisation || {};
+  const r = await sbRpc('entreprise_assurer_existence', {
+    p_id: id, p_type: loc.type || null, p_pays: loc.pays || null, p_ville: loc.ville || null,
+    p_batiment: loc.batiment || null, p_room: loc.room || null
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (r && r.ok === true && r.data) {
+    return (typeof r.data === 'string') ? (function () { try { return JSON.parse(r.data); } catch (e) { return null; } })() : r.data;
+  }
+  // Repli de LECTURE SEULE : si la RPC est indisponible on rend ce qui existe deja en base,
+  // jamais une ligne fabriquee ici.
+  return await sbGetEntreprise(id).catch(() => null);
 }
 
 function defautArmurerie(pays, ville) {
@@ -3134,7 +3180,8 @@ function defautArmurerie(pays, ville) {
 }
 
 async function chargerEntrepriseParId(id, pays, ville) {
-  const data = await chargerEntreprise(id, () => defautArmurerie(pays, ville));
+  const data = await chargerEntreprise(id, { type: 'armurerie', pays: pays, ville: ville,
+                                             batiment: 'armurerie', room: null });
   if (data) data.id = id;
   return data;
 }
@@ -3219,19 +3266,13 @@ async function chargerCommerce(type, pays, ville, buildingId, roomId) {
   // Cle 'buildingId|roomId' prioritaire (batiment a plusieurs commerces distincts, ex. le stade
   // n'a qu'un commerce -- sa buvette -- pas tout le batiment), repli sur 'buildingId' seul pour
   // les commerces mono-piece (lots 3-4).
-  const cleDotation = roomId ? buildingId + '|' + roomId : buildingId;
-  const dotation = typeof DOTATIONS_COMMERCE_PILOTE !== 'undefined' ? (DOTATIONS_COMMERCE_PILOTE[cleDotation] || DOTATIONS_COMMERCE_PILOTE[buildingId]) : null;
-  const data = await chargerEntreprise(id, () => {
-    const d = defautCommerce(type, pays, ville, buildingId, roomId);
-    if (dotation) dotation(d);
-    return d;
-  });
-  if (data) {
-    data.id = id;
-    if (dotation && rattraperDotationCommerce(data, dotation, type, pays, ville, buildingId, roomId)) {
-      if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(id, data).catch(() => {});
-    }
-  }
+  // CHANTIER C / PHASE 3 : la dotation de depart ET son rattrapage sont appliques par
+  // entreprise_assurer_existence, depuis le miroir 'commerces_dotations' genere a partir de
+  // DOTATIONS_COMMERCE_PILOTE. Le rattrapage garde exactement la meme regle qu'ici : il n'ajoute
+  // que les clefs absentes, il n'ecrase jamais un stock ou un prix reellement accumule.
+  const data = await chargerEntreprise(id, { type: type, pays: pays, ville: ville,
+                                             batiment: buildingId, room: roomId });
+  if (data) data.id = id;
   return data;
 }
 
@@ -3963,10 +4004,10 @@ async function confirmerFixerPrixAchatMatiereCommerce(commerceType, pays, ville,
   const prix = parseFloat(prixSaisi);
   if (isNaN(prix) || prix < min || prix > max) return { ok: false, raison: 'hors_fourchette', min, max };
 
-  if (!data.parametres.prixAchatMatiere) data.parametres.prixAchatMatiere = {};
-  data.parametres.prixAchatMatiere[matiere] = Math.round(prix * 100) / 100;
-  await sbSaveEntreprise(data.id, data);
-  return { ok: true, prix: data.parametres.prixAchatMatiere[matiere] };
+  const arrondi = Math.round(prix * 100) / 100;
+  const r = await commerceFixerParametres(data.id, null, { [matiere]: arrondi }, null);
+  if (!r.ok) return { ok: false, raison: r.raison || 'refus_serveur', min: r.min, max: r.max };
+  return { ok: true, prix: arrondi };
 }
 
 // Transaction pure (testable isolement) : matieres -> verification -> caisse -> stock -> cout
@@ -3981,48 +4022,15 @@ async function confirmerFixerPrixAchatMatiereCommerce(commerceType, pays, ville,
 async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomId, matiere, qte) {
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) return { ok: false, raison: 'introuvable' };
-  if (!matieresAccepteesParCommerce(data).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
 
-  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
-
-  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un circuit
-  // legal. Regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout mouvement.
-  if (typeof assembleeControlerVenteLegale === 'function' && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
+  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un
+  // circuit legal. Regle generale des interdictions (arbitrage du 11 septembre 2026).
+  if (typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
     return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
-
-  const stockMax = plafondEffectifCommerce(data, matiere);
-  const stockActuel = data.stockMatieres[matiere] || 0;
-  if (stockActuel + qte > stockMax) return { ok: false, raison: 'stock_plein', placeRestante: Math.max(0, stockMax - stockActuel) };
-
-  const prixUnitaire = prixAchatMatiereCommerce(data, matiere);
-  const total = prixUnitaire * qte;
-
-  let coutOk;
-  const categorieCaisseInstit = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
-  if (categorieCaisseInstit && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    // Aucune caisse autonome (doctrine deja validee/codee, generalisee de la buvette au marche) :
-    // le commerce paie le vendeur depuis sa caisse institutionnelle, comme il y verse deja ses
-    // ventes et son salaire de production.
-    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId(categorieCaisseInstit, ville), total)) === total;
-  } else {
-    coutOk = (data.caisse || 0) >= total;
-  }
-  if (!coutOk) return { ok: false, raison: 'caisse_insuffisante' };
-
-  lot.qty -= qte;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-
-  crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
-  if (!categorieCaisseInstit) data.caisse -= total;
-  crediterFondsOrdinaires(total);
-
-  ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name || 'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
-
-  return { ok: true, total, prixUnitaire, qte };
+  return await commerceAcheterMatiere(data.id, matiere, qte);
 }
 
 function doVendreMatiereCommerceGenerique(pa, cost) {
@@ -4439,9 +4447,10 @@ async function confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId,
   const prix = parseFloat(prixSaisi);
   if (isNaN(prix) || prix < min || prix > max) return { ok: false, raison: 'hors_fourchette', min, max };
 
-  data.parametres.prixVente[recetteId] = Math.round(prix * 100) / 100;
-  await sbSaveEntreprise(data.id, data);
-  return { ok: true, prix: data.parametres.prixVente[recetteId] };
+  const arrondi = Math.round(prix * 100) / 100;
+  const r = await commerceFixerParametres(data.id, { [recetteId]: arrondi }, null, null);
+  if (!r.ok) return { ok: false, raison: r.raison || 'refus_serveur', min: r.min, max: r.max };
+  return { ok: true, prix: arrondi };
 }
 
 // Interface "Gerer mon commerce" (mini-lot de finition, 17 aout 2026) -- reservee au
@@ -5686,22 +5695,20 @@ async function confirmerVenteMatiere(matiere) {
   if (!lot || lot.qty < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.', false); return; }
 
   const data = await chargerArmurerieLocale();
-  const prixUnitaire = data.parametres.prixAchatMatiere[matiere] || 0;
-  const total = prixUnitaire * qte;
-  if (data.caisse < total) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas acheter cette quantité actuellement.', false); return; }
+  if (!data) { showToast('Indisponible', '', false); return; }
 
-  lot.qty -= qte;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-
-  // Met a jour stockMatieres ET coutMoyenMatieres en un seul appel (17 aout 2026, generalisation
-  // commerces) -- meme effet qu'avant sur stockMatieres, coutMoyenMatieres alimente en plus sans
-  // affecter le pricing de l'armurerie (prixVente reste fixe, non derive de ce cout).
-  crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
-  data.caisse -= total;
-  ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name||'Anonyme'));
-  await sbSaveEntreprise(data.id, data);
-
-  crediterFondsOrdinaires(total);
+  // Meme operation metier que vendreMatiereCommerce : une seule RPC pour les deux.
+  const r = await commerceAcheterMatiere(data.id, matiere, qte);
+  if (!r.ok) {
+    const messages = {
+      caisse_insuffisante: 'L\'entreprise ne peut pas acheter cette quantité actuellement.',
+      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.',
+      matiere_non_acceptee: 'Cette armurerie n\'achète pas ' + matiere + '.'
+    };
+    showToast('Vente refusée', messages[r.raison] || '', false);
+    return;
+  }
+  const total = r.total;
   updateUI();
   showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + matiere + '.', true, true);
   addJournalEntry('Vente de ' + qte + ' ' + matiere + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
@@ -6525,15 +6532,23 @@ async function confirmerGestionArmurerie(entrepriseId) {
   const data = await sbGetEntreprise(entrepriseId);
   if (!data) return;
 
-  Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
-    data.parametres.prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
+  const prixAchatMatiere = {}, prixVente = {}, stockMax = {};
+  Object.keys(data.parametres.prixAchatMatiere || {}).forEach(m => {
+    prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
   });
   Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
-    data.parametres.prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
-    data.parametres.stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
+    prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
+    stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
   });
 
-  await sbSaveEntreprise(entrepriseId, data);
+  // L'armurerie n'a jamais eu de fourchette dans le jeu : le serveur applique la meme regle
+  // (valeurs positives), il verifie en revanche que l'appelant est bien le proprietaire reel.
+  const r = await commerceFixerParametres(entrepriseId, prixVente, prixAchatMatiere, stockMax);
+  if (!r.ok) {
+    showToast('Paramètres refusés',
+      r.raison === 'reserve_proprietaire' ? 'Cette armurerie ne vous appartient pas.' : '', false);
+    return;
+  }
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Paramètres mis à jour', '', true, true);
 }
