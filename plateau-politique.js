@@ -5920,25 +5920,20 @@ async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
     //
     // ET L'ANNONCE NE PART QUE SI LA LIBERATION A EU LIEU. C'est l'inversion qui compte : une
     // grace annoncee mais non appliquee est pire qu'une grace qui echoue silencieusement.
+    // GRACIER EST UN POUVOIR, PAS UNE ECRITURE (chantier B, 13 septembre 2026). Ces deux
+    // sbUpdate ecrivaient directement sur la ligne du condamne et sur son registre : la
+    // fermeture RLS les a rendus inoperants -- et c'etait de toute facon une porte ouverte,
+    // exigerPoste('president') ne vivant que dans le navigateur du joueur. La RPC relit le
+    // poste de l'appelant sur sa propre ligne et fait les deux ecritures dans UNE transaction.
+    // Meme regle qu'avant, meme mode_fin : seule l'autorite change de camp.
     let libere = false;
-    if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-      const rows = await sbGet('personnages',
-        `name=eq.${encodeURIComponent(nomCondamne)}&select=name,est_emprisonne`).catch(() => null);
-      const fiche = (rows && rows[0]) || null;
-      const detention = fiche ? fiche.est_emprisonne : null;
-      if (detention) {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCondamne)}`,
-          { est_emprisonne: null }).catch(() => {});
-        const detentionId = detention.detentionId || null;
-        if (detentionId) {
-          await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, {
-            mode_fin: 'grace_presidentielle',
-            jour_fin_effective: state.day,
-            date_fin_effective: new Date().toISOString()
-          }).catch(() => {});
-        }
-        libere = true;
-      }
+    if (typeof sbRpc === 'function') {
+      const rows = await sbRpc('presidence_gracier', {
+        p_condamne: nomCondamne,
+        p_jour: state.day
+      });
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      libere = !!(r && r.ok === true && r.libere === true);
     }
     // L'etat local du President est aligne s'il se trouve l'avoir en memoire -- confort d'affichage,
     // jamais la source de verite.

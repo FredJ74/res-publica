@@ -10279,6 +10279,32 @@ async function estActuellementDetenu(nom) {
 // detentions anterieures a ce lot ou d'un etat local incoherent ; aucune reconstruction
 // retroactive n'est tentee.
 async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
+  // PROLONGER LA PEINE D'UN AUTRE EST UN POUVOIR, PAS UNE ECRITURE (chantier B, 13 septembre
+  // 2026). Cette fonction ecrivait directement sur la ligne du condamne : la fermeture RLS l'a
+  // donc rendue inoperante pour les sentences prononcees par un juge -- et c'est tant mieux,
+  // puisque n'importe qui pouvait s'en servir. On ne rouvre pas cette ecriture : on la fait
+  // passer par une RPC qui relit le poste de l'appelant SUR SA PROPRE LIGNE, la ou le client ne
+  // peut rien lui dicter. La regle appliquee est celle qui existait deja : rendre_sentence porte
+  // requiresPost:'juge' (data.js).
+  //
+  // Le cas « je prolonge MA PROPRE detention » (rebellion en cellule, placement au QHS apres un
+  // flagrant delit) reste sur le chemin direct : le joueur ecrit sur sa ligne, ce que les policies
+  // autorisent, et aucun pouvoir n'est en jeu.
+  if (nom && nom !== state.char?.name) {
+    if (typeof sbRpc !== 'function') return false;
+    const rows = await sbRpc('justice_prolonger_peine', {
+      p_cible: nom,
+      p_motifs: motifsSupplementaires || [],
+      p_forcer_qhs: !!forcerQhs
+    });
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) {
+      // Refus d'autorite (42501) ou cible non detenue : sbRpc a deja journalise le detail.
+      return false;
+    }
+    return true;
+  }
+
   const estCourant = (nom === state.char?.name) ? state.estEmprisonne : null;
   let estEmprisonne = estCourant;
   if (!estEmprisonne && typeof sbGet === 'function') {

@@ -965,7 +965,11 @@ async function sbAppliquerSalaire(nomJoueur, montant) {
 // relisait resources puis reecrivait le blob ENTIER ({inf, pop, dis}) -- la cible perdait les gains
 // d'INF ou de DIS obtenus entre la lecture et l'ecriture. Un seul UPDATE sous verrou desormais.
 async function sbAjusterPopularite(nomJoueur, delta) {
-  return await sbRpc('personnage_ajuster_pop_inf', { p_cible: nomJoueur, p_pop: delta, p_inf: null });
+  // ACTEUR OBLIGATOIRE (chantier B, 13 septembre 2026). Cette RPC modifie la POPULARITE D'AUTRUI :
+  // sans acteur, n'importe quel navigateur pouvait l'appeler sur n'importe qui. Le serveur exige
+  // desormais que l'acteur declare soit bien le personnage du compte connecte.
+  return await sbRpc('personnage_ajuster_pop_inf',
+    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta, p_inf: null });
 }
 
 async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
@@ -2535,7 +2539,11 @@ async function sbResoudreRumeur(id) {
 // la POP d'une cible n'a donc jamais ete reellement modifiee par lancer_rumeur_cible.
 // Meme correctif d'atomicite que sbAjusterPopularite ci-dessus (12 septembre 2026).
 async function sbAjusterPopJoueur(nomJoueur, delta) {
-  const rows = await sbRpc('personnage_ajuster_pop_inf', { p_cible: nomJoueur, p_pop: delta, p_inf: null });
+  // ACTEUR OBLIGATOIRE (chantier B, 13 septembre 2026). Cette RPC modifie la POPULARITE D'AUTRUI :
+  // sans acteur, n'importe quel navigateur pouvait l'appeler sur n'importe qui. Le serveur exige
+  // desormais que l'acteur declare soit bien le personnage du compte connecte.
+  const rows = await sbRpc('personnage_ajuster_pop_inf',
+    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta, p_inf: null });
   const r = Array.isArray(rows) ? rows[0] : rows;
   return (r && r.ok) ? Number(r.pop) : null;
 }
