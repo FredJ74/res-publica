@@ -435,6 +435,81 @@ def deroulement(tp, tq):
     verifier("R8 produit absent de la carte : refuse",
              v.get("ok") is False and v.get("raison") == "produit_non_propose", str(v)[:100])
 
+    # === FERMETURE DE LA TABLE ==============================================
+    c, r = http("PATCH", "/rest/v1/entreprises?id=eq." + ENT,
+                {"data": {"caisse": 999999999, "proprietaire": QUIDAM}}, jeton=tq,
+                prefer="return=representation")
+    verifier("Z1 PATCH direct du blob d'entreprise : refuse",
+             c in (401, 403, 404) or (isinstance(r, dict) and r.get("code") == "42501"),
+             "HTTP %s %s" % (c, str(r)[:70]))
+
+    c, r = http("POST", "/rest/v1/entreprises",
+                {"id": "zztest-entreprise-pirate", "data": {"caisse": 10 ** 9}}, jeton=tq)
+    verifier("Z2 INSERT direct d'une entreprise : refuse",
+             c in (401, 403, 404) or (isinstance(r, dict) and r.get("code") == "42501"),
+             "HTTP %s %s" % (c, str(r)[:70]))
+
+    c, r = http("DELETE", "/rest/v1/entreprises?id=eq." + ENT, jeton=tq)
+    verifier("Z3 DELETE direct d'une entreprise : refuse",
+             c in (401, 403, 404) or (isinstance(r, dict) and r.get("code") == "42501"),
+             "HTTP %s %s" % (c, str(r)[:70]))
+
+    verifier("Z4 la lecture reste ouverte", entreprise() is not None, "ok")
+    e_apres_attaques = entreprise()
+    verifier("Z5 le blob est intact apres les ecritures directes",
+             e_apres_attaques.get("proprietaire") == PROPRIO
+             and float(e_apres_attaques.get("caisse", -1)) < 10 ** 9,
+             "proprietaire=%s caisse=%s" % (e_apres_attaques.get("proprietaire"),
+                                            e_apres_attaques.get("caisse")))
+
+    # === PROPRIETE, FISCAL, SUCCESSION : AUTORITE ===========================
+    c, v = rpc("entreprise_signer_compromis",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT}, jeton=tq)
+    verifier("Z6 compromis sur une entreprise deja detenue par un PJ : refuse",
+             v.get("ok") is False and v.get("raison") == "pas_rachetable", str(v)[:100])
+
+    c, v = rpc("entreprise_acte_rachat",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_ordre": None}, jeton=tq)
+    verifier("Z7 acte de rachat sans compromis : refuse",
+             v.get("ok") is False and v.get("raison") == "pas_votre_compromis", str(v)[:100])
+
+    c, v = rpc("entreprise_preempter",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_montant": 1, "p_duree": 10}, jeton=tq)
+    verifier("Z8 preemption sans le poste min_fin : refusee",
+             v.get("code") == "42501" or v.get("ok") is False, str(v)[:100])
+
+    c, v = rpc("entreprise_acte_preemption",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_libelle_etat": "État"}, jeton=tq)
+    verifier("Z9 acte de preemption sans le poste min_fin : refuse",
+             v.get("code") == "42501" or v.get("ok") is False, str(v)[:100])
+
+    c, v = rpc("entreprise_mouvement_fiscal",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_delta": 10 ** 9}, jeton=tq)
+    verifier("Z10 subvention sans le poste min_fin : refusee",
+             v.get("code") == "42501" or v.get("ok") is False, str(v)[:100])
+
+    c, v = rpc("entreprise_succession_geler",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_succession": "succession-inventee"},
+               jeton=tq)
+    verifier("Z11 gel de succession avec un identifiant invente : refuse",
+             v.get("ok") is False and v.get("raison") == "succession_inconnue", str(v)[:100])
+
+    c, v = rpc("entreprise_succession_annuler_compromis",
+               {"p_acteur": QUIDAM, "p_entreprise": ENT, "p_succession": "succession-inventee"},
+               jeton=tq)
+    verifier("Z12 annulation de compromis avec une succession inventee : refusee",
+             v.get("ok") is False and v.get("raison") == "succession_inconnue", str(v)[:100])
+
+    c, v = rpc("entreprise_assurer_existence",
+               {"p_id": "imprimerie-republic-" + VILLE_NEUVE + "-atelier-invente",
+                "p_type": "imprimerie", "p_pays": "republic", "p_ville": VILLE_NEUVE,
+                "p_batiment": "atelier-invente", "p_room": None}, jeton=tq)
+    verifier("Z13 imprimerie non declaree : refusee",
+             v.get("ok") is False and v.get("raison") == "imprimerie_non_declaree", str(v)[:100])
+
+    verifier("Z14 apres toutes les attaques : blob toujours intact",
+             entreprise() == e_apres_attaques, "ok")
+
     for x in resultats:
         if not x["ok"]:
             print("  KO   %-62s %s" % (x["nom"], x["detail"]))

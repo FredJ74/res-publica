@@ -5814,7 +5814,8 @@ function defautImprimerie(pays, ville, buildingId) {
 
 async function chargerImprimerie(pays, ville, buildingId) {
   const id = getImprimerieId(pays, ville, buildingId);
-  const data = await chargerEntreprise(id, () => defautImprimerie(pays, ville, buildingId));
+  const data = await chargerEntreprise(id, { type: 'imprimerie', pays: pays, ville: ville,
+                                             batiment: buildingId, room: null });
   if (data) data.id = id;
   return data;
 }
@@ -5974,27 +5975,28 @@ async function confirmerSignerCompromisEntreprise(type) {
   if (compromisEntrepriseActif(data)) { showToast('Déjà réservée', 'Un compromis est déjà en cours sur cette entreprise (' + data.compromisPar + ').', false); return; }
   if (state.arg < ACOMPTE_COMPROMIS) { showToast('Fonds insuffisants', ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  state.arg -= ACOMPTE_COMPROMIS;
-  data.compromis = true;
-  data.compromisPar = state.char?.name;
-  data.acompte = ACOMPTE_COMPROMIS;
-  data.compromisAt = Date.now();
-  data.compromisExpireAt = Date.now() + 7 * 86400000;
-
-  if (demandePret) {
-    const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
-    const montantTotal = Math.round(montantPret * (1 + taux / 100));
-    data.pretDemande = {
-      demandeur: state.char?.name,
-      montant: montantPret,
-      montantTotal: montantTotal,
-      duree: dureePret,
-      mensualite: Math.ceil(montantTotal / dureePret),
-      statut: 'attente_validation'
+  // CHANTIER C / PHASE 3. Le navigateur mutait state.arg directement (sans meme passer par
+  // deduireCoutOrdre), posait lui-meme les dates du compromis et calculait les termes du pret
+  // avec un taux local. entreprise_signer_compromis relit la disponibilite de l'entreprise sous
+  // verrou, preleve l'acompte du miroir, horodate au serveur et recalcule le taux depuis
+  // l'indice economique reel. Aucun montant transmis n'est cru.
+  const r = await sbRpc('entreprise_signer_compromis', {
+    p_acteur: state.char?.name, p_entreprise: data.id,
+    p_pret_montant: demandePret ? montantPret : null,
+    p_pret_duree: demandePret ? dureePret : null
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!r || r.ok !== true) {
+    const messages = {
+      deja_reservee: 'Un compromis est déjà en cours sur cette entreprise.',
+      pas_rachetable: 'Cette entreprise n\'est plus disponible.',
+      fonds_insuffisants: ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
+      pret_hors_bornes: 'Montant ou durée de prêt hors limites.'
     };
+    showToast('Compromis refusé', messages[(r && r.raison) || ''] || '', false);
+    return;
   }
-
-  await sbSaveEntreprise(data.id, data);
+  state.arg = r.arg; state.liquide = r.liquide;
+  if (state.char) state.char.arg = state.arg;
   updateUI();
   showToast('Compromis signé !', def.label + ' réservée 7 jours. -' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur, true);
   addJournalEntry('Compromis de rachat signé pour ' + def.label + ' (' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' d\'acompte). Valable 7 jours.' + (demandePret ? ' Prêt demandé.' : ''), 'event-good');
@@ -6101,22 +6103,26 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
     return;
   }
 
-  if (state.arg < solde) {
-    showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
+  // CHANTIER C / PHASE 3. Le solde (prix du catalogue client moins l'acompte) et le transfert
+  // de propriete etaient tous deux arretes par le navigateur, avec une mutation directe de
+  // state.arg. entreprise_acte_rachat relit le compromis, verifie qu'il est bien celui de
+  // l'appelant, recalcule le solde depuis le miroir des prix, preleve et transfere -- le tout
+  // sous verrou, dans une seule transaction.
+  const rRachat = await sbRpc('entreprise_acte_rachat', {
+    p_acteur: state.char?.name, p_entreprise: data.id,
+    p_ordre: state._ordreEnCours || 'acte_rachat_entreprise', p_pa: pa, p_cost: cost
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rRachat || rRachat.ok !== true) {
+    const messages = {
+      pas_votre_compromis: 'Ce compromis n\'est pas le vôtre.',
+      pret_en_attente: 'Votre demande de prêt est encore en attente de validation.',
+      fonds_insuffisants: solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.'
+    };
+    showToast('Acte refusé', messages[(rRachat && rRachat.raison) || ''] || '', false);
     return;
   }
-  const rRachat = await deduireCoutOrdre({ pa, cost });
-  if (!rRachat.ok) { signalerRefusCout(rRachat); return; }
-
-  state.arg -= solde;
-  data.proprietaire = state.char?.name;
-  delete data.compromis;
-  delete data.compromisPar;
-  delete data.acompte;
-  delete data.compromisAt;
-  delete data.compromisExpireAt;
-  ajouterHistoriqueEntreprise(data, 0, 'Rachat de l\'entreprise par ' + state.char?.name + ' (acte notarié)');
-  await sbSaveEntreprise(data.id, data);
+  state.arg = rRachat.arg; state.liquide = rRachat.liquide; state.pa = rRachat.pa;
+  if (state.char) state.char.arg = state.arg;
   updateUI();
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Acte signé !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
@@ -6358,18 +6364,27 @@ async function confirmerPreemption(type) {
   // (crediterCaisseBatiment ci-dessous) : fail-closed. Aucun cout personnel (cost:0, voir
   // data.js : pa:2, cost:0 pour preempter_entreprise), seul le pret automatique de la Banque
   // Nationale finance l'operation.
+  // CHANTIER C / PHASE 3. Le poste n'etait verifie qu'a l'ouverture du modal, le prix venait du
+  // catalogue client, le taux etait calcule localement, et les deux mouvements de caisse
+  // institutionnelle etaient des lectures-modifications-ecritures separees. entreprise_preempter
+  // relit le poste reel, le prix du miroir et l'indice economique, et fait les deux mouvements
+  // par la primitive atomique.
   const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
   if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
 
-  const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
-  const montantTotal = Math.round(montant * (1 + taux / 100));
-
-  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, 'gouvernement-min_fin', montant).catch(() => {});
-  if (typeof debiterCaisseBatimentPlafonne === 'function') await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', def.prix).catch(() => {});
-
-  data.preemptionEtat = 'attente_acte';
-  data.preemptionPar = state.char?.name || 'Le Ministre des Finances';
-  await sbSaveEntreprise(data.id, data);
+  const rPre = await sbRpc('entreprise_preempter', {
+    p_acteur: state.char?.name, p_entreprise: data.id, p_montant: montant, p_duree: duree
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rPre || rPre.ok !== true) {
+    const messages = {
+      pas_preemptable: 'Cette entreprise n\'est plus préemptable.',
+      montant_insuffisant: 'Le montant doit couvrir le prix de l\'entreprise.',
+      caisse_insuffisante: 'La caisse du Ministère ne peut pas couvrir ce rachat.'
+    };
+    showToast('Préemption refusée', messages[(rPre && rPre.raison) || ''] || '', false);
+    return;
+  }
+  const montantTotal = rPre.montantTotal;
 
   budgetNat.preemption = {
     entrepriseType: type,
@@ -6427,14 +6442,22 @@ async function traiterActeRachatEntreprisePreemption(candidat, pa, cost) {
     showToast('Préemption introuvable', 'Cette préemption n\'est plus valide (peut-être déjà officialisée).', false);
     return;
   }
-  const rPreemption = await deduireCoutOrdre({ pa, cost });
-  if (!rPreemption.ok) { signalerRefusCout(rPreemption); return; }
+  // CHANTIER C / PHASE 3 : le poste, l'etat de la preemption et le transfert de propriete sont
+  // relus et appliques au serveur. Le libelle de l'Etat reste construit ici (pur affichage),
+  // mais il ne decide plus de rien : la RPC refuse si aucune preemption n'est en attente.
   const pays = state.country || 'republic';
-  data.proprietaire = 'État (' + (COUNTRIES[pays]?.n || pays) + ')';
-  delete data.preemptionEtat;
-  delete data.preemptionPar;
-  ajouterHistoriqueEntreprise(data, 0, 'Préemption par l\'État, officialisée par le Ministre des Finances');
-  await sbSaveEntreprise(data.id, data);
+  const rPreemption = await sbRpc('entreprise_acte_preemption', {
+    p_acteur: state.char?.name, p_entreprise: data.id,
+    p_libelle_etat: 'État (' + (COUNTRIES[pays]?.n || pays) + ')',
+    p_ordre: state._ordreEnCours || 'acte_rachat_entreprise_preemption', p_pa: pa, p_cost: cost
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rPreemption || rPreemption.ok !== true) {
+    showToast('Acte refusé',
+      (rPreemption && rPreemption.raison) === 'preemption_introuvable'
+        ? 'Cette préemption n\'est plus valide.' : '', false);
+    return;
+  }
+  if (typeof rPreemption.pa === 'number') state.pa = rPreemption.pa;
   updateUI();
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Acte signé !', def.label + ' appartient désormais à l\'État.', true, true);

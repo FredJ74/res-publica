@@ -32,7 +32,10 @@ RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXTRACTEUR = r"""
 // Le fichier des commerces reference des symboles de data.js : on charge les deux dans le
 // MEME contexte, exactement comme le navigateur le fait avec ses balises <script>.
-var src = readFile('data.js') + "\n" + readFile('plateau-actions-illegales-rumeurs.js');
+// ACOMPTE_COMPROMIS / PLAFOND_PRET_COMPROMIS vivent dans plateau-pnj.js : les oublier
+// donnerait un miroir silencieusement incomplet (null), pas une erreur.
+var src = readFile('data.js') + "\n" + readFile('plateau-actions-illegales-rumeurs.js')
+        + "\n" + readFile('plateau-pnj.js');
 var g = (new Function(src + "\n; return {"
   + " RP: typeof RECETTES_PRODUCTION!=='undefined'?RECETTES_PRODUCTION:null,"
   + " RA: typeof RECETTES_ALIMENTAIRES!=='undefined'?RECETTES_ALIMENTAIRES:null,"
@@ -45,7 +48,12 @@ var g = (new Function(src + "\n; return {"
   + " PPA: typeof PA_PRODUCTION_ARMURERIE!=='undefined'?PA_PRODUCTION_ARMURERIE:null,"
   + " CMO: typeof COUT_MAIN_OEUVRE_PA_ALIMENTAIRE!=='undefined'?COUT_MAIN_OEUVRE_PA_ALIMENTAIRE:null,"
   + " SMC: typeof STOCK_MAX_COMMERCE!=='undefined'?STOCK_MAX_COMMERCE:null,"
-  + " PT: typeof PA_TOURNEE!=='undefined'?PA_TOURNEE:null"
+  + " PT: typeof PA_TOURNEE!=='undefined'?PA_TOURNEE:null,"
+  + " PRA: typeof PRIX_RACHAT_ARMURERIE!=='undefined'?PRIX_RACHAT_ARMURERIE:null,"
+  + " PRI: typeof PRIX_RACHAT_IMPRIMERIE!=='undefined'?PRIX_RACHAT_IMPRIMERIE:null,"
+  + " PRC: typeof PRIX_RACHAT_COMMERCE!=='undefined'?PRIX_RACHAT_COMMERCE:null,"
+  + " AC: typeof ACOMPTE_COMPROMIS!=='undefined'?ACOMPTE_COMPROMIS:null,"
+  + " PPC: typeof PLAFOND_PRET_COMPROMIS!=='undefined'?PLAFOND_PRET_COMPROMIS:null"
   + "};"))();
 
 var out = { recettes_production: [], recettes_commerce: [], types_commerce: [],
@@ -121,7 +129,13 @@ Object.keys(g.DOT || {}).sort().forEach(function (cle) {
 
 out.constantes = { salaire_production_armurerie: g.SPA, pa_production_armurerie: g.PPA,
                    cout_main_oeuvre_pa_alimentaire: g.CMO, stock_max_commerce: g.SMC,
-                   pa_tournee: g.PT };
+                   pa_tournee: g.PT, prix_rachat_armurerie: g.PRA,
+                   prix_rachat_imprimerie: g.PRI, acompte_compromis: g.AC,
+                   plafond_pret_compromis: g.PPC };
+out.prix_rachat_commerce = [];
+Object.keys(g.PRC || {}).sort().forEach(function (b) {
+  out.prix_rachat_commerce.push({ batiment: b, prix: g.PRC[b] });
+});
 print(JSON.stringify(out));
 """
 
@@ -191,6 +205,11 @@ def sql(d):
     L.append(",\n".join("  (%s, %s, %s, %s)" % (litteral(r["pays"]), litteral(r["caisse"]),
              litteral(r["stock_matieres"]), litteral(r["parametres"]))
              for r in d["armureries"]) + ";")
+
+    L.append("\nDELETE FROM public.entreprises_prix_rachat;")
+    L.append("INSERT INTO public.entreprises_prix_rachat (batiment, prix) VALUES")
+    L.append(",\n".join("  (%s, %s)" % (litteral(r["batiment"]), litteral(r["prix"]))
+             for r in d["prix_rachat_commerce"]) + ";")
 
     c = d["constantes"]
     L.append("\nDELETE FROM public.entreprises_constantes;")

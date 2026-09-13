@@ -958,11 +958,14 @@ async function ouvrirSuccession(defunt, country) {
       const r = await sbSetTerrainState(country, d.id, { ...ts, succession_gel: successionId });
       if (!r) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
     } else if (d.type === 'entreprise') {
-      const def = getEntrepriseRachetable(d.id);
-      const data = def ? await def.charger().catch(() => null) : null;
-      if (!data) return { ok: false, raison: 'echec_gel_entreprise', detail: d.id };
-      const r = await sbSaveEntreprise(d.id, { ...data, succession_gel: successionId });
-      if (!r) return { ok: false, raison: 'echec_gel_entreprise', detail: d.id };
+      // CHANTIER C / PHASE 3 : le gel etait pose en reecrivant le blob entier, sans aucun
+      // controle -- un succession_gel invente suffisait a geler l'entreprise d'autrui. La RPC
+      // exige une ligne 'successions' en attente et verifie que l'entreprise appartient bien au
+      // defunt. Rejouable a l'identique, comme la reprise apres echec partiel l'exige.
+      const r = await sbRpc('entreprise_succession_geler', {
+        p_acteur: state.char?.name, p_entreprise: d.id, p_succession: successionId
+      }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+      if (!r || r.ok !== true) return { ok: false, raison: 'echec_gel_entreprise', detail: d.id };
     }
   }
 
@@ -1011,12 +1014,12 @@ async function ouvrirSuccession(defunt, country) {
     if (!r) return { ok: false, raison: 'echec_nettoyage_compromis_terrain', detail: id };
   }
   for (const id of compromisEntreprisesAAnnuler) {
-    const def = getEntrepriseRachetable(id);
-    const data = def ? await def.charger().catch(() => null) : null;
-    if (!data) return { ok: false, raison: 'echec_nettoyage_compromis_entreprise', detail: id };
-    const nettoye = { ...data, compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null, pretDemande: null };
-    const r = await sbSaveEntreprise(id, nettoye);
-    if (!r) return { ok: false, raison: 'echec_nettoyage_compromis_entreprise', detail: id };
+    // CHANTIER C / PHASE 3 : meme raison. Seul un compromis dont le DEFUNT est l'acheteur peut
+    // etre annule ici, et la succession doit reellement etre en attente.
+    const r = await sbRpc('entreprise_succession_annuler_compromis', {
+      p_acteur: state.char?.name, p_entreprise: id, p_succession: successionId
+    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+    if (!r || r.ok !== true) return { ok: false, raison: 'echec_nettoyage_compromis_entreprise', detail: id };
   }
 
   // 12. Dettes eteintes (section 6) -- nouveau statut 'succession' (ni 'rembourse' ni 'saisi',

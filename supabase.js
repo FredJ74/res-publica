@@ -942,12 +942,16 @@ async function sbGetEntreprise(id) {
   return rows[0].data;
 }
 
-async function sbSaveEntreprise(id, data) {
-  const existing = await sbGet('entreprises', `id=eq.${encodeURIComponent(id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('entreprises', `id=eq.${encodeURIComponent(id)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('entreprises', { id, data, updated_at: new Date().toISOString() });
+// CHANTIER C / PHASE 3 (13 septembre 2026) — NEUTRALISEE.
+// Cette fonction ecrivait le blob COMPLET d'une entreprise depuis le navigateur : caisse, stocks,
+// prix, proprietaire, compromis. Ses 23 appelants sont tous migres vers des RPC metier, et la
+// table est fermee en ecriture pour anon/authenticated. Elle ne subsiste que pour qu'un appelant
+// oublie echoue FRANCHEMENT et de facon diagnosticable, au lieu de repartir en silence vers un
+// PATCH que la base refuserait de toute facon.
+async function sbSaveEntreprise(id) {
+  console.error('sbSaveEntreprise est neutralisee (chantier C, phase 3) : utiliser la RPC metier '
+    + 'correspondante. Ecriture ignoree pour ' + id);
+  return null;
 }
 
 async function sbAppliquerSalaire(nomJoueur, montant) {

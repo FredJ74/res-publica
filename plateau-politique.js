@@ -6104,9 +6104,16 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
   } else if (typeCible === 'club_sportif') {
     await crediterBudgetClub(idCible, montantReel, montantReel >= 0 ? 'Subvention ministérielle' : 'Redressement fiscal');
   } else if (typeCible === 'entreprise') {
-    const e = await sbGetEntreprise(idCible).catch(() => null);
-    e.caisse = (e.caisse||0) + montantReel;
-    await sbSaveEntreprise(idCible, e).catch(() => {});
+    // CHANTIER C / PHASE 3. Cette branche relisait la caisse, la recalculait et reecrivait le
+    // blob entier -- sans controle de poste dans la fonction elle-meme (il n'existait qu'a
+    // l'ouverture du formulaire). entreprise_mouvement_fiscal exige le poste min_fin reel,
+    // replafonne le prelevement sur le solde reel et n'ecrit que la caisse. Elle rend le montant
+    // REELLEMENT applique, que l'appelant reverse au Tresor -- comportement inchange.
+    const rFisc = await sbRpc('entreprise_mouvement_fiscal', {
+      p_acteur: state.char?.name, p_entreprise: idCible, p_delta: montantReel
+    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+    if (!rFisc || rFisc.ok !== true) return 0;
+    return rFisc.montantReel;
   } else if (typeCible === 'organisation') {
     const o = (state.organisations || []).find(x => x.id === idCible);
     if (o) { o.caisse = Math.max(0, (o.caisse||0) + montantReel); sauvegarderOrga(o); }
