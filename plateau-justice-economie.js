@@ -351,9 +351,29 @@ async function confirmerArrestation(pa, cost) {
 
   if (roll >= 50) {
     const jours = 2;
-    const infoArrestation = { jours, jourFin: null, raison: 'Arrestation sur ordre de ' + from + ' (' + motif + ')' };
+    // DEUX CORRECTIFS DE FOND (chantier A / P0-3, 14 septembre 2026), sur la seule ecriture de
+    // est_emprisonne du depot qui divergeait des six autres :
+    //  1. JSON.stringify() : la colonne est jsonb et sbUpdate serialise deja tout le corps -- ce
+    //     stringify deposait un SCALAIRE jsonb de type string. Relu, il restait truthy (le joueur
+    //     etait bien bloque) mais '.jourFin' valait undefined, donc 'state.day >= undefined' etait
+    //     toujours faux : LA PEINE NE POUVAIT JAMAIS EXPIRER. Detention perpetuelle sur un ordre
+    //     de garde a vue de deux jours. On ecrit l'objet, comme partout ailleurs.
+    //  2. jourFin: null -- une echeance nulle n'est pas une echeance. jourFin s'exprime dans le
+    //     state.day de LA CIBLE, que l'auteur de l'arrestation ne connait pas : on le lit sur sa
+    //     ligne, exactement comme le fait deja le seul autre site distant (plateau-politique.js,
+    //     fraude electorale revelee par contestation).
+    const cibleRows = await sbGet('personnages', `name=eq.${encodeURIComponent(cible)}&select=name,day`).catch(() => []);
+    const jourCible = (cibleRows && cibleRows[0] && cibleRows[0].day) || 1;
+    const infoArrestation = {
+      jours,
+      jourFin: jourCible + jours,
+      raison: 'Arrestation sur ordre de ' + from + ' (' + motif + ')',
+      // Ancre temps reel : sans elle, le filet de securite nocturne ne peut pas liberer la cible
+      // si elle ne se reconnecte jamais. Voir enregistrerDetention, meme champ, meme role.
+      debutTs: Date.now()
+    };
     if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { est_emprisonne: JSON.stringify(infoArrestation) }).catch(() => {});
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { est_emprisonne: infoArrestation }).catch(() => {});
     }
     addExternalEvent('ARRESTATION : ' + cible + ' a ete place(e) en garde a vue sur ordre de ' + from + ', dans le cadre de l\'etat d\'urgence.', 'local');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence', cible);
@@ -10187,7 +10207,16 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
     detentionId,
     qhs: !!qhs,
     city: villeReelle,
-    country
+    country,
+    // ANCRE TEMPS REEL (chantier A / P0-3, 14 septembre 2026). jourFin s'exprime en state.day,
+    // compteur PRIVE de chaque personnage : le serveur ne peut donc rien en deduire, et une peine
+    // n'expirait que si son detenu revenait se connecter. Un joueur absent restait incarcere sans
+    // limite. debutTs est le seul repere partage : le filet de securite nocturne
+    // (libererDetentionsEchuesServeur, api/cron-minuit.js) libere a debutTs + jours x 24 h.
+    // INVARIANT REUTILISE, PAS INVENTE : 'jours' est deja maintenu a jour par TOUS les chemins qui
+    // modifient une peine -- prolongerDetentionActive (+jours), reduction avocat (-jours), evasion
+    // ratee et rebellion (+1) -- l'echeance reelle suit donc automatiquement chaque mutation.
+    debutTs: Date.now()
   };
   if (typeof sbUpdate === 'function') {
     await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneValue }).catch(() => {});

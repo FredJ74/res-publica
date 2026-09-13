@@ -34,9 +34,35 @@ const HEADERS_SERVICE = {
   'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
 };
 
+// ============================================================================
+// REGISTRE D'ECHECS DE LA PASSE (CHANTIER A / P0-2, 14 septembre 2026)
+// ============================================================================
+// POURQUOI. Les cinq primitives ci-dessous ne LEVENT jamais : sur une reponse non-2xx elles
+// se contentaient d'un console.error et rendaient null. Le cron pouvait donc perdre une nuit
+// entiere -- lecture de table en echec, colonne inexistante, RPC refusee -- et repondre
+// HTTP 200 {ok:true}. Un audit du 13 septembre 2026 a mesure les degats : 15 insertions de
+// mails ecrivaient des colonnes qui n'existent pas (voir plus bas), et personne ne l'a su
+// pendant des semaines parce que la passe se declarait reussie.
+//
+// PRINCIPE. Un seul entonnoir : tout non-2xx passe par signalerEchec(). La passe accumule ses
+// echecs, les renvoie NOMMES dans la reponse, et le handler conclut sur un statut HTTP non-2xx
+// des qu'il y en a au moins un -- ce que la plateforme sait voir, contrairement a un log.
+//
+// PAS DE FAIL-FAST. On n'interrompt pas la passe au premier echec : les taches suivantes sont
+// independantes et doivent tourner. C'est le STATUT FINAL qui est fail-closed, pas le
+// deroulement. Le rejeu qui suivra est sur : chaque tache financiere porte desormais son
+// marqueur de journee (voir jourCourantISO() et les marqueurs poses tache par tache).
+let ECHECS_PASSE = [];
+
+function signalerEchec(etape, detail) {
+  const message = (detail && detail.message) ? String(detail.message) : String(detail);
+  console.error('[cron-minuit] ECHEC ' + etape + ' :: ' + message);
+  ECHECS_PASSE.push({ etape, erreur: message.slice(0, 500) });
+}
+
 async function sbGet(table, filters = '') {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, { headers: HEADERS });
-  if (!res.ok) { console.error('sbGet error', table, await res.text()); return null; }
+  if (!res.ok) { signalerEchec('sbGet:' + table, await res.text()); return null; }
   return res.json();
 }
 
@@ -46,7 +72,7 @@ async function sbInsert(table, data) {
     headers: { ...HEADERS, 'Prefer': 'return=representation' },
     body: JSON.stringify(data)
   });
-  if (!res.ok) { console.error('sbInsert error', table, await res.text()); return null; }
+  if (!res.ok) { signalerEchec('sbInsert:' + table, await res.text()); return null; }
   return res.json();
 }
 
@@ -56,8 +82,44 @@ async function sbUpdate(table, filters, data) {
     headers: { ...HEADERS, 'Prefer': 'return=representation' },
     body: JSON.stringify(data)
   });
-  if (!res.ok) { console.error('sbUpdate error', table, await res.text()); return null; }
+  if (!res.ok) { signalerEchec('sbUpdate:' + table, await res.text()); return null; }
   return res.json();
+}
+
+// Mise a jour d'une ligne de prets. MANQUAIT ENTIEREMENT ICI (chantier A / P0-1, 14 septembre
+// 2026) : preleverPretsBancairesServeur l'appelait a huit endroits alors qu'elle n'existait que
+// dans supabase.js, fichier navigateur que ce module serverless n'importe pas. Le premier appel
+// levait donc une ReferenceError SYNCHRONE -- que le .catch() accole ne peut pas intercepter,
+// puisqu'aucune promesse n'est jamais creee -- remontee jusqu'au try/catch englobant de la
+// fonction. Resultat : aucune mensualite prelevee depuis la mise en service, sur de l'argent
+// credite a l'emprunteur au moment de l'octroi. Duplique de supabase.js:2879, meme doctrine que
+// sbDelete/sbRpc/sbGetBatimentEtat ci-dessous.
+async function sbUpdatePret(id, patch) {
+  return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);
+}
+
+// Envoi d'un mail systeme. BRIQUE UNIQUE DU CRON (chantier A / P0-2, 14 septembre 2026).
+// POURQUOI ELLE EXISTE. Ce fichier portait DEUX conventions de colonnes pour la meme table :
+// six insertions correctes (from_player/to_player/subject/body/read) et QUINZE heritees d'un
+// schema francais qui n'a jamais existe cote base (destinataire/expediteur/sujet/corps). Ces
+// quinze-la echouaient toutes en 400 -- colonnes inconnues, et 'id' est NOT NULL sans DEFAUT --
+// sans que rien ne le signale : sbInsert rendait null, l'appelant avalait le null.
+// Aucun mail du cron n'est donc jamais parti par ce chemin : ni avertissement d'impaye, ni mise
+// en demeure, ni ultimatum, ni avis de saisie. Le correctif P0-1 rend le contentieux des prets
+// reellement executant ; l'expedier muet aurait saisi des biens sans le moindre avis prealable.
+// Toute nouvelle notification du cron passe par ici, jamais par un sbInsert('mails') direct.
+async function envoyerMailSysteme(destinataire, expediteur, sujet, corps) {
+  if (!destinataire || !expediteur) return null;
+  return await sbInsert('mails', {
+    id: 'mail-cron-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+    to_player: destinataire,
+    from_player: expediteur,
+    subject: sujet,
+    body: corps,
+    time: new Date().toLocaleDateString('fr-FR'),
+    read: false,
+    archived: false
+  });
 }
 
 // Manquait cote cron (seuls sbGet/sbInsert/sbUpdate existaient) -- necessaire pour nettoyer
@@ -68,7 +130,7 @@ async function sbDelete(table, filters) {
     method: 'DELETE',
     headers: HEADERS
   });
-  if (!res.ok) { console.error('sbDelete error', table, await res.text()); return null; }
+  if (!res.ok) { signalerEchec('sbDelete:' + table, await res.text()); return null; }
   return true;
 }
 
@@ -85,7 +147,7 @@ async function sbRpc(fn, params, headers) {
     headers: { ...(headers || HEADERS), 'Prefer': 'return=representation' },
     body: JSON.stringify(params || {})
   });
-  if (!res.ok) { console.error('sbRpc error', fn, await res.text()); return null; }
+  if (!res.ok) { signalerEchec('sbRpc:' + fn, await res.text()); return null; }
   return res.json();
 }
 
@@ -389,6 +451,103 @@ async function purgerVieuxMails() {
 // valeur du bien = avertissement, 15% = mise en demeure + penalite 10%, 25% = saisie par la
 // mairie et mise en vente. NOTE : suppose un seul terrain par (pays, buildingId) — verifie
 // le 3 aout 2026 que ce n'etait pas garanti (collision Luthecia/PSM corrigee cote data.js).
+// ============================================================================
+// FILET DE SECURITE — LIBERATION DES PEINES ECHUES (chantier A / P0-3, 14 septembre 2026)
+// ============================================================================
+// LE DEFAUT. verifierLiberationPrisonniers (plateau-justice-economie.js) est le SEUL endroit du
+// jeu qui libere un detenu, et ses deux appelants sont client : runMidnightUpdate et doDormir.
+// Un joueur qui ne se reconnecte pas ne voit donc jamais sa peine s'ecouler -- state.day, sur
+// lequel elle est comptee, est son propre compteur et n'avance que quand il joue. La peine
+// n'expire pas : elle attend. Combine au double-encodage corrige par ailleurs, cela produisait
+// une detention perpetuelle sur une garde a vue de deux jours.
+//
+// POURQUOI PAS jour_fin. La table detentions compte en jours de jeu (jour_debut/jour_fin), une
+// echelle PRIVEE a chaque personnage que le serveur ne peut pas interpreter -- le depot le
+// documente deja noir sur blanc (migration_assemblee_nationale.sql, api/cron-minuit.js). Le seul
+// repere partage est le temps reel : est_emprisonne.debutTs, pose au debut de chaque detention,
+// + 'jours' x 24 h. 'jours' est un invariant DEJA maintenu par tous les chemins qui modifient une
+// peine (prolongation, reduction avocat, evasion ratee, rebellion) : l'echeance suit toute seule.
+//
+// CE QU'IL NE FAIT PAS, VOLONTAIREMENT :
+//  - il ne libere JAMAIS du QHS (detention_qhs.enQHS) : chantier separe, hors perimetre ;
+//  - il ne libere pas un detenu qui porte une AUTRE ligne de detention encore ouverte ;
+//  - il ne touche jamais detentions.motifs, ne supprime aucune ligne, n'ecrase aucun mode_fin
+//    deja pose : l'historique est complete, jamais reecrit ;
+//  - il ignore et SIGNALE toute detention sans ancre temps reel (donnee anterieure au correctif)
+//    plutot que d'inventer une echeance.
+// Il n'arrive jamais AVANT le client : il libere a la duree reelle, que le client, lui, peut
+// atteindre plus tot en jouant. C'est un filet, pas une autorite concurrente.
+const MS_PAR_JOUR_DETENTION = 24 * 60 * 60 * 1000;
+
+function lireJsonPersonnageServeur(valeur) {
+  if (!valeur) return null;
+  if (typeof valeur === 'object') return valeur;
+  if (typeof valeur === 'string') {
+    try { const p = JSON.parse(valeur); return (p && typeof p === 'object') ? p : null; } catch (e) { return null; }
+  }
+  return null;
+}
+
+async function libererDetentionsEchuesServeur() {
+  const resultats = { liberes: 0, qhsIgnores: 0, sansAncre: 0, autreDetentionActive: 0, details: [] };
+  const maintenant = Date.now();
+  const detenus = await sbGet('personnages', 'est_emprisonne=not.is.null&select=name,est_emprisonne,detention_qhs');
+  if (!detenus) return resultats;
+
+  for (const perso of detenus) {
+    const peine = lireJsonPersonnageServeur(perso.est_emprisonne);
+    if (!peine) continue;
+
+    const qhs = lireJsonPersonnageServeur(perso.detention_qhs);
+    if ((qhs && qhs.enQHS === true) || peine.qhs === true) {
+      resultats.qhsIgnores++;
+      resultats.details.push({ nom: perso.name, verdict: 'qhs_hors_perimetre' });
+      continue;
+    }
+
+    const jours = Number(peine.jours);
+    const debutTs = Number(peine.debutTs);
+    if (!Number.isFinite(jours) || jours <= 0 || !Number.isFinite(debutTs) || debutTs <= 0) {
+      resultats.sansAncre++;
+      resultats.details.push({ nom: perso.name, verdict: 'sans_ancre_temps_reel', raison: peine.raison || null });
+      continue;
+    }
+
+    const echeance = debutTs + jours * MS_PAR_JOUR_DETENTION;
+    if (maintenant < echeance) continue;
+
+    // Une AUTRE ligne de detention encore ouverte veut dire que ce detenu doit rester detenu pour
+    // un motif que cette peine-ci ne couvre pas. On ne libere pas : on signale.
+    const lignes = await sbGet('detentions', `nom=eq.${encodeURIComponent(perso.name)}&mode_fin=is.null&select=id,jour_fin`);
+    const autres = (lignes || []).filter(l => l.id !== peine.detentionId);
+    if (autres.length > 0) {
+      resultats.autreDetentionActive++;
+      resultats.details.push({ nom: perso.name, verdict: 'autre_detention_ouverte', lignes: autres.map(l => l.id) });
+      continue;
+    }
+
+    // Cloture du registre AVANT la liberation : si la passe s'interrompt entre les deux, le
+    // detenu reste detenu (etat conservateur) et le rejeu reprendra proprement -- l'inverse
+    // laisserait une ligne ouverte sur un homme libre.
+    if (peine.detentionId) {
+      const ligne = (lignes || []).find(l => l.id === peine.detentionId);
+      await sbUpdate('detentions', `id=eq.${encodeURIComponent(peine.detentionId)}&mode_fin=is.null`, {
+        mode_fin: 'purgee',
+        jour_fin_effective: ligne ? ligne.jour_fin : null,
+        date_fin_effective: new Date(maintenant).toISOString()
+      });
+    }
+    const maj = await sbUpdate('personnages', `name=eq.${encodeURIComponent(perso.name)}`, { est_emprisonne: null });
+    if (maj === null) continue; // echec deja signale par sbUpdate : on ne compte pas une liberation qui n'a pas eu lieu
+
+    await envoyerMailSysteme(perso.name, 'Commissariat', 'Libération',
+      'Votre peine est purgée. Vous êtes libre de circuler.');
+    resultats.liberes++;
+    resultats.details.push({ nom: perso.name, verdict: 'libere', raison: peine.raison || null });
+  }
+  return resultats;
+}
+
 async function preleverTaxeFonciere() {
   const resultats = { collecte: 0, avertissements: 0, saisies: 0 };
   try {
@@ -979,11 +1138,7 @@ async function resoudreSuccessionsExpirees() {
       }
 
       for (const dest of nouveauxConvoques) {
-        await sbInsert('mails', {
-          destinataire: dest, expediteur: 'Office Notarial', sujet: 'Succession — ' + s.defunt,
-          corps: 'Vous êtes convoqué(e) au sujet de la succession de ' + s.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».',
-          archived: false
-        }).catch(() => {});
+        await envoyerMailSysteme(dest, 'Office Notarial', 'Succession — ' + s.defunt, 'Vous êtes convoqué(e) au sujet de la succession de ' + s.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».').catch(() => {});
       }
     }
   } catch(e) { console.error('resoudreSuccessionsExpirees error', e); }
@@ -1337,12 +1492,7 @@ async function traiterInstructionsPermis() {
               documentUrbanisme: doc
             })
           }).catch(() => {});
-          await sbInsert('mails', {
-            destinataire: p.demandeur, expediteur: "Services d'urbanisme",
-            sujet: 'Permis accorde tacitement',
-            corps: "Le delai d'instruction de votre demande s'est ecoule sans decision. Votre permis de construire est donc ACCORDE TACITEMENT : vous pouvez construire. L'attestation vous sera remise a votre prochaine connexion.",
-            archived: false
-          }).catch(() => {});
+          await envoyerMailSysteme(p.demandeur, "Services d'urbanisme", 'Permis accorde tacitement', "Le delai d'instruction de votre demande s'est ecoule sans decision. Votre permis de construire est donc ACCORDE TACITEMENT : vous pouvez construire. L'attestation vous sera remise a votre prochaine connexion.").catch(() => {});
         }
         resultats.accords_tacites++;
       }
@@ -1695,12 +1845,7 @@ async function avancerChantiersQuotidien() {
         if (ch.dernierePenurieSignalee !== jour) {
           ch.dernierePenurieSignalee = jour;
           ch.evenements = (ch.evenements || []).concat([{ cle: 'penurie_materiaux', jour: jour, besoin: besoin }]);
-          await sbInsert('mails', {
-            destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-            sujet: 'Chantier a l\'arret — materiaux',
-            corps: 'Les travaux sont a l\'arret faute de materiaux. Approvisionnez le chantier ou creditez sa tresorerie pour qu\'il puisse acheter a l\'entrepot.',
-            archived: false
-          }).catch(() => {});
+          await envoyerMailSysteme(etat.proprietaire, 'Chef de Chantier', 'Chantier a l\'arret — materiaux', 'Les travaux sont a l\'arret faute de materiaux. Approvisionnez le chantier ou creditez sa tresorerie pour qu\'il puisse acheter a l\'entrepot.').catch(() => {});
         }
       } else if (gain > 0 && ch.dernierePenurieSignalee) {
         // REPRISE NATURELLE : rien a declencher, l'approvisionnement redevenu suffisant a suffi.
@@ -1713,12 +1858,7 @@ async function avancerChantiersQuotidien() {
       else if (avant < duree && ch.arrete === 'financement') {
         resultats.bloques_financement++;
         const manque = Math.max(0, Math.ceil(ch.coutTotal * (avant < duree / 3 ? 35 : avant < duree * 2 / 3 ? 70 : 100) / 100) - (Number(ch.totalVerse) || 0));
-        await sbInsert('mails', {
-          destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Chantier a l\'arret — financement',
-          corps: 'Les travaux sont a l\'arret faute de financement. Il manque ' + manque + ' FR pour reprendre.',
-          archived: false
-        }).catch(() => {});
+        await envoyerMailSysteme(etat.proprietaire, 'Chef de Chantier', 'Chantier a l\'arret — financement', 'Les travaux sont a l\'arret faute de financement. Il manque ' + manque + ' FR pour reprendre.').catch(() => {});
       }
 
       // LIVRAISON REELLE (Lots 1.5.12 / 1.5.14). Le chantier quitte son emplacement vivant -- ce
@@ -1739,10 +1879,7 @@ async function avancerChantiersQuotidien() {
             + (rel.tresorerie > 0 && rel.unites > 0 ? ' et ' : '')
             + (rel.unites > 0 ? Object.keys(rel.materiaux).map(function (m) { return rel.materiaux[m] + ' ' + m; }).join(', ') : '')
             + '. Les materiaux vous seront remis a votre prochaine connexion.';
-        await sbInsert('mails', {
-          destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: emplacement === 'chantierReamenagement' ? 'Travaux de reconfiguration acheves' : 'Remise des cles',
-          corps: (emplacement === 'chantierReamenagement'
+        await envoyerMailSysteme(etat.proprietaire, 'Chef de Chantier', emplacement === 'chantierReamenagement' ? 'Travaux de reconfiguration acheves' : 'Remise des cles', (emplacement === 'chantierReamenagement'
             ? 'Les travaux sont acheves. Le nouveau decoupage est en vigueur : '
               + (livraison.lots > 0 ? livraison.lots + ' lot' + (livraison.lots > 1 ? 's' : '') + '.'
                  : 'le batiment est desormais indivis.')
@@ -1750,9 +1887,7 @@ async function avancerChantiersQuotidien() {
             : livraison.indivis
             ? 'Les travaux sont acheves et le batiment vous est remis. Aucun decoupage n\'ayant ete depose, il vous est livre indivis : vous pourrez le diviser plus tard si vous le souhaitez.'
             : 'Les travaux sont acheves et le batiment vous est remis, divise en ' + livraison.lots
-              + ' lot' + (livraison.lots > 1 ? 's' : '') + ' conformement au plan depose.') + detailReliquats,
-          archived: false
-        }).catch(() => {});
+              + ' lot' + (livraison.lots > 1 ? 's' : '') + ' conformement au plan depose.') + detailReliquats).catch(() => {});
       }
 
       await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
@@ -1777,8 +1912,12 @@ async function avancerChantiersQuotidien() {
 // Portee fidelement depuis l'ancienne version client (jamais appelee), avec la meme
 // differenciation narrative Banque Nationale (procedure legale) / Banque Privee
 // (intimidation puis expropriation violente).
+// Date de mise en service du correctif P0-1. Tout pret ouvert AVANT est gele en attente
+// d'arbitrage (voir le commentaire detaille dans la boucle ci-dessous).
+const PRETS_GELES_AVANT = '2026-09-14';
+
 async function preleverPretsBancairesServeur() {
-  const resultats = { preleves: 0, impayes: 0, saisies: 0 };
+  const resultats = { preleves: 0, impayes: 0, saisies: 0, gelesPourArbitrage: [] };
   try {
     // type_banque=neq.helvetia (chantier H2A, 28 aout 2026) : les prets Helvetia ont leur propre
     // contentieux dedie (traiter_prets_helvetia_quotidien, echeancier J+1 a J+9, saisie en
@@ -1795,6 +1934,23 @@ async function preleverPretsBancairesServeur() {
     const jourPrets = jourCourantISO();
 
     for (const pret of prets) {
+      // GEL DES PRETS ANTERIEURS A LA REPARATION (chantier A / P0-1, 14 septembre 2026).
+      // sbUpdatePret n'existait pas dans ce fichier : AUCUNE mensualite n'a jamais ete prelevee
+      // depuis la mise en service. Les prets deja ouverts a cette date ont donc accumule des
+      // semaines d'echeances jamais appelees, sur un echeancier que leur emprunteur n'a pas pu
+      // honorer puisqu'on ne le lui a jamais demande. Les reveiller tels quels ferait tomber le
+      // contentieux -- avertissement, penalite de 10 %, ultimatum, puis SAISIE du bien a J+4 --
+      // sur des joueurs qui n'ont commis aucune faute. C'est une decision qui appartient a
+      // l'arbitrage, pas au correctif technique : ces lignes sont donc SIGNALEES et laissees
+      // strictement intactes, ni prelevees, ni penalisees, ni marquees. Aucune donnee joueur
+      // n'est modifiee. A retirer des que l'arbitrage aura tranche leur sort.
+      if (pret.created_at && pret.created_at < PRETS_GELES_AVANT) {
+        resultats.gelesPourArbitrage.push({
+          id: pret.id, emprunteur: pret.emprunteur, montant_restant: pret.montant_restant,
+          mensualite: pret.mensualite, created_at: pret.created_at
+        });
+        continue;
+      }
       if (pret.montant_restant <= 0) {
         await sbUpdatePret(pret.id, { statut: 'remboursé' }).catch(() => {});
         continue;
@@ -1834,13 +1990,13 @@ async function preleverPretsBancairesServeur() {
 
         if (!estPrivee) {
           if (nouveauxJoursImpayes === 1) {
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Nationale', sujet: 'Impayé', corps: 'Avertissement : votre mensualité de prêt n\'a pas pu être prélevée.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Nationale', 'Impayé', 'Avertissement : votre mensualité de prêt n\'a pas pu être prélevée.').catch(() => {});
           } else if (nouveauxJoursImpayes === 2) {
             const penalite = Math.round(pret.montant_restant * 0.10);
             await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + penalite });
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Nationale', sujet: 'Mise en demeure', corps: 'Pénalité de 10% appliquée : +' + penalite + ' ' + cur + '.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Nationale', 'Mise en demeure', 'Pénalité de 10% appliquée : +' + penalite + ' ' + cur + '.').catch(() => {});
           } else if (nouveauxJoursImpayes === 3) {
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Nationale', sujet: 'ULTIMATUM', corps: 'Remboursez l\'intégralité de la dette sous 24h ou le bien sera saisi.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Nationale', 'ULTIMATUM', 'Remboursez l\'intégralité de la dette sous 24h ou le bien sera saisi.').catch(() => {});
           } else if (nouveauxJoursImpayes >= 4) {
             await sbUpdatePret(pret.id, { statut: 'saisi' });
             if (pret.building_id) {
@@ -1868,7 +2024,7 @@ async function preleverPretsBancairesServeur() {
                 }
               }
             }
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Nationale', sujet: 'SAISIE', corps: 'Votre bien a été saisi pour non-remboursement et sera remis en vente.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Nationale', 'SAISIE', 'Votre bien a été saisi pour non-remboursement et sera remis en vente.').catch(() => {});
             resultats.saisies++;
             continue;
           }
@@ -1881,7 +2037,7 @@ async function preleverPretsBancairesServeur() {
               moral: Math.max(0, (emprunteur.moral || 75) - 10)
             });
             await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + fraisRappel });
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Privée Helvetia', sujet: 'Visite désagréable', corps: 'Des hommes sont passés. -' + fraisRappel + ' ' + cur + ', -10 Moral.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Privée Helvetia', 'Visite désagréable', 'Des hommes sont passés. -' + fraisRappel + ' ' + cur + ', -10 Moral.').catch(() => {});
           } else if (nouveauxJoursImpayes >= 4) {
             await sbUpdatePret(pret.id, { statut: 'saisi' });
             if (pret.building_id) {
@@ -1906,7 +2062,7 @@ async function preleverPretsBancairesServeur() {
               }
             }
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, { moral: Math.max(0, (emprunteur.moral || 75) - 20) });
-            await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Privée Helvetia', sujet: 'EXPROPRIATION', corps: 'Des hommes se sont présentés et ont pris les clés. Le bien a disparu. -20 Moral.', archived: false }).catch(() => {});
+            await envoyerMailSysteme(pret.emprunteur, 'Banque Privée Helvetia', 'EXPROPRIATION', 'Des hommes se sont présentés et ont pris les clés. Le bien a disparu. -20 Moral.').catch(() => {});
             resultats.saisies++;
             continue;
           }
@@ -3005,10 +3161,7 @@ async function nettoyerBlocusExpires() {
       const dernierRenouvellement = etat.blocus.dernierRenouvellementTimestamp || etat.blocus.lanceLe;
       if (Date.now() - dernierRenouvellement < 25 * 3600000) continue; // encore dans les temps
 
-      await sbInsert('mails', {
-        destinataire: etat.blocus.leaderActuel, expediteur: etat.blocus.syndicatNom || 'Syndicat',
-        sujet: 'Blocus levé', corps: 'Faute de renouvellement, le blocus a été levé.', archived: false
-      }).catch(() => {});
+      await envoyerMailSysteme(etat.blocus.leaderActuel, etat.blocus.syndicatNom || 'Syndicat', 'Blocus levé', 'Faute de renouvellement, le blocus a été levé.').catch(() => {});
 
       delete etat.blocus;
       await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
@@ -3070,6 +3223,65 @@ async function nettoyerAchatsDirectsManques() {
 // proprietaire avait disparu -- l'argent etait detruit. FAIL-CLOSED : si la RPC n'est pas
 // installee, sbRpc renvoie null et RIEN n'est preleve.
 function jourCourantISO() { return new Date().toISOString().slice(0, 10); }
+
+// ============================================================================
+// REGISTRE D'EXECUTION QUOTIDIENNE (chantier A / P0-4, 14 septembre 2026)
+// ============================================================================
+// LE DEFAUT. Huit taches nocturnes deplacent de l'argent ou de la matiere sans le moindre
+// marqueur : taxe fonciere, preemptions d'Etat, livraisons d'entrepots, exportations du port,
+// arrivage de la criee, production des transformateurs, effets de blocus, effort de guerre. Tout
+// rejeu de la passe -- relance manuelle, reessai de la plateforme apres un echec tardif,
+// redeploiement -- rejouait l'integralite de leurs mouvements. Le cas le plus lourd est la taxe
+// fonciere : la dette se cumulait deux fois et la progression avertissement -> penalite -> SAISIE
+// avancait de deux crans en une nuit.
+//
+// POURQUOI UN REGISTRE PARTAGE, ET PAS HUIT MARQUEURS. Chacune de ces taches ecrit dans un
+// support different (terrains_etat, budgets_nationaux, trois batiments_etat, la caisse du port...)
+// : y loger huit marqueurs differents, c'est huit occasions de se tromper et huit conventions a
+// maintenir. On reutilise donc la brique generique deja en place -- sbGetBatimentEtat /
+// sbSetBatimentEtat, meme convention que le seau 'global' du fret -- pour tenir UN registre
+// { nomDeTache: 'YYYY-MM-DD' } sur une seule ligne batiments_etat.
+//
+// SERVEUR ET PERSISTANT. Ni state.day (compteur prive d'un joueur) ni un drapeau en memoire du
+// processus (une fonction serverless est recreee a chaque invocation) ne protegent quoi que ce
+// soit : le marqueur vit en base.
+//
+// AU PLUS UNE FOIS. Le marqueur est pose AVANT l'effet et son echec d'ecriture empeche la tache
+// de tourner (fail-closed). Une interruption au milieu d'une tache coute donc au pire la fin de
+// cette tache-la pour la journee -- jamais un second debit. Les taches qui n'ont pas tourne,
+// elles, reprennent normalement au rejeu : le registre est nominatif, tache par tache.
+const REGISTRE_CRON_ID = { country: 'republic', city: 'global', building: 'cron-minuit' };
+let REGISTRE_JOURS_PASSE = null;
+
+async function chargerRegistreJours() {
+  if (REGISTRE_JOURS_PASSE) return REGISTRE_JOURS_PASSE;
+  const etat = await sbGetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building).catch(() => ({}));
+  REGISTRE_JOURS_PASSE = (etat && etat.joursCron) ? { ...etat.joursCron } : {};
+  return REGISTRE_JOURS_PASSE;
+}
+
+// Enveloppe une tache quotidienne : au plus une execution par journee partagee.
+async function tacheQuotidienne(nom, fn) {
+  const jour = jourCourantISO();
+  const registre = await chargerRegistreJours();
+  if (registre[nom] === jour) return { ignoree: 'deja_executee_ce_jour', jour };
+
+  registre[nom] = jour;
+  await sbSetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building, { joursCron: { ...registre } });
+  // RELECTURE OBLIGATOIRE. sbSetBatimentEtat rend l'objet fusionne qu'elle a CALCULE, sans jamais
+  // verifier que l'ecriture a abouti : son retour est donc truthy meme quand la base a refuse.
+  // Se fier a lui ferait tourner la tache sans marqueur, c'est-a-dire exactement le scenario de
+  // double debit qu'on cherche a interdire. On relit ce que la base a reellement conserve.
+  const verif = await sbGetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building).catch(() => null);
+  if (!verif || !verif.joursCron || verif.joursCron[nom] !== jour) {
+    // Marqueur non persiste : refuser de tourner. Executer sans filet exposerait a un double
+    // mouvement au prochain rejeu, ce qui est pire que de perdre la tache pour cette nuit.
+    delete registre[nom];
+    signalerEchec('registre_jours:' + nom, 'marqueur non persiste, tache non executee');
+    return { ignoree: 'marqueur_non_persiste', jour };
+  }
+  return await fn();
+}
 
 // ============================================================================
 // MIROIRS SERVEUR DES TRAITEMENTS QUOTIDIENS PARTAGES (Lot 4.3)
@@ -3716,13 +3928,8 @@ async function preleverLoyersBaux() {
         resultats.collecte += Number(data.prix) || 0;
       } else if (verdict === 'avertissement') {
         resultats.avertissements++;
-        await sbInsert('mails', {
-          destinataire: data.locataire, expediteur: 'Gestionnaire immobilier',
-          sujet: 'Loyer impayé — ' + (data.localLabel || 'votre local'),
-          corps: 'Votre loyer de ' + (data.prix || 0) + ' FR pour ' + (data.localLabel || 'votre local')
-                 + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).",
-          archived: false
-        }).catch(() => {});
+        await envoyerMailSysteme(data.locataire, 'Gestionnaire immobilier', 'Loyer impayé — ' + (data.localLabel || 'votre local'), 'Votre loyer de ' + (data.prix || 0) + ' FR pour ' + (data.localLabel || 'votre local')
+                 + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).").catch(() => {});
       } else if (verdict === 'expulsion_requise') {
         // IMPAYE CONSTATE, JAMAIS D'EXPULSION AUTOMATIQUE (arbitrage du 8 septembre 2026).
         //
@@ -3752,25 +3959,15 @@ async function preleverLoyersBaux() {
         // Un seul courrier a l'ouverture de l'ardoise, puis silence : le bailleur consulte l'etat
         // du bail quand il veut, on n'inonde pas deux boites tous les soirs.
         if (premier) {
-          await sbInsert('mails', {
-            destinataire: data.locataire, expediteur: 'Gestionnaire immobilier',
-            sujet: 'Loyer impaye — ' + (data.localLabel || 'votre local'),
-            corps: 'Votre loyer sur ' + (data.localLabel || 'votre local') + " n'est plus paye et la dette s'accumule."
+          await envoyerMailSysteme(data.locataire, 'Gestionnaire immobilier', 'Loyer impaye — ' + (data.localLabel || 'votre local'), 'Votre loyer sur ' + (data.localLabel || 'votre local') + " n'est plus paye et la dette s'accumule."
                    + " Votre bail reste en vigueur : vous n'etes pas expulse. Le proprietaire peut toutefois engager"
-                   + ' une procedure de recuperation du local. Regularisez pour l\'eviter.',
-            archived: false
-          }).catch(() => {});
+                   + ' une procedure de recuperation du local. Regularisez pour l\'eviter.').catch(() => {});
           const bailleur = await titulaireMursDuBail(data).catch(() => null);
           if (bailleur) {
-            await sbInsert('mails', {
-              destinataire: bailleur, expediteur: 'Gestionnaire immobilier',
-              sujet: 'Loyer impaye — ' + (data.localLabel || 'votre local'),
-              corps: (data.locataire || 'Votre locataire') + ' ne paie plus le loyer de '
+            await envoyerMailSysteme(bailleur, 'Gestionnaire immobilier', 'Loyer impaye — ' + (data.localLabel || 'votre local'), (data.locataire || 'Votre locataire') + ' ne paie plus le loyer de '
                      + (data.localLabel || 'votre local') + '. La dette est enregistree et continue de courir.'
                      + ' Le bail n\'est pas resilie automatiquement : il vous appartient de trouver un accord'
-                     + ' ou d\'engager une procedure de recuperation.',
-              archived: false
-            }).catch(() => {});
+                     + ' ou d\'engager une procedure de recuperation.').catch(() => {});
           }
         }
       } else {
@@ -4872,6 +5069,12 @@ export default async function handler(req, res) {
   const now = new Date();
   const results = [];
 
+  // Une fonction serverless peut etre REUTILISEE d'une invocation a l'autre : les deux etats de
+  // passe doivent repartir de zero, sinon une nuit heriterait des echecs de la precedente et le
+  // registre de journees servirait un cache perime (chantier A / P0-2 et P0-4, 14 septembre 2026).
+  ECHECS_PASSE = [];
+  REGISTRE_JOURS_PASSE = null;
+
   try {
     // 0. ASSEMBLEE NATIONALE — REVEIL AUTOMATIQUE DE MINUIT (§24, chantier du 10 septembre 2026)
     //
@@ -4938,12 +5141,18 @@ export default async function handler(req, res) {
     } catch (e) { console.error('convocations_echues', e); }
 
     // 1. Récupérer tous les cycles électoraux
+    //
+    // NE JAMAIS SORTIR ICI (chantier A / P0-2, 14 septembre 2026). Cette lecture etait suivie de
+    // `if (!cycles) return res.status(200).json({ ok: true })` -- avec DEUX consequences graves.
+    // D'abord sbGet rend null sur TOUTE reponse non-2xx, pas sur une table vide (une table vide
+    // rend [] et traverse la boucle sans rien faire) : le seul cas atteignable etait donc une
+    // ERREUR. Ensuite ce return emportait les TRENTE tachess suivantes -- loyers, fiscalite,
+    // chantiers, prets, livraisons, Journal -- et la passe se declarait reussie. Un unique 500 ou
+    // un timeout transitoire de Supabase sur cette requete sautait la nuit entiere en silence.
+    // Le bloc electoral est desormais ce que l'architecture prevoit : une etape ISOLABLE. Son
+    // echec est nomme, remonte dans le statut final, et n'empeche plus aucune autre tache.
     const cycles = await sbGet('cycles_electoraux', 'select=*');
-    if (!cycles) {
-      return res.status(200).json({ ok: true, message: 'Aucun cycle électoral trouvé.' });
-    }
-
-    for (const row of cycles) {
+    for (const row of (cycles || [])) {
       let cycle;
       try { cycle = JSON.parse(row.data); } catch(e) { continue; }
 
@@ -5150,11 +5359,18 @@ export default async function handler(req, res) {
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 
+    // 2b. FILET DE SECURITE CARCERAL (chantier A / P0-3, 14 septembre 2026) : libere les peines
+    // dont la duree reelle est ecoulee. Jusqu'ici, seul le client liberait (runMidnightUpdate /
+    // doDormir) : un joueur qui ne revenait pas restait detenu indefiniment. Naturellement
+    // idempotent -- une fois est_emprisonne remis a null, la ligne n'est plus selectionnee -- donc
+    // volontairement hors du registre de journees. Ne touche jamais au QHS (chantier separe).
+    const detentionsLiberees = await libererDetentionsEchuesServeur();
+
     // 3. Fuites spontanees des souvenirs de l'accueil (5-10% par jour) + nettoyage des souvenirs expires
     const fuites = await traiterSouvenirsAccueil();
 
     // 4. Taxe fonciere quotidienne sur tous les terrains possedes
-    const taxeFonciere = await preleverTaxeFonciere();
+    const taxeFonciere = await tacheQuotidienne('taxe_fonciere', preleverTaxeFonciere);
 
     // 5. Loyers de TOUS les baux (Lot 1.4) -- source unique locations_actives, destination
     //    portee par le bail, chaque prelevement atomique via la RPC prelever_loyer_bail.
@@ -5195,7 +5411,7 @@ export default async function handler(req, res) {
     const blocusExpires = await nettoyerBlocusExpires();
 
     // 11. Effets quotidiens des blocus actifs (malus popularite du maire)
-    const effetsBlocus = await appliquerEffetsBlocusActifs();
+    const effetsBlocus = await tacheQuotidienne('effets_blocus', appliquerEffetsBlocusActifs);
 
     // 11b. Effets quotidiens des greves (ordinaires + generale) -- chantier "Greves, greve
     // generale et contre-pouvoirs", 3 septembre 2026. DOIT s'executer AVANT l'etape 13
@@ -5206,19 +5422,19 @@ export default async function handler(req, res) {
 
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)
-    const livraisons = await livrerEntrepotsQuotidien();
+    const livraisons = await tacheQuotidienne('livraisons_entrepots', livrerEntrepotsQuotidien);
 
     // 12b. Exportations institutionnelles du Port de PSM (lot logistique portuaire, 25 aout
     // 2026) : prelevement reel sur le stock des 3 entrepots, apres que les imports du jour ont
     // ete distribues ci-dessus.
-    const exportationsPort = await traiterExportationsPortQuotidien();
+    const exportationsPort = await tacheQuotidienne('exportations_port', traiterExportationsPortQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
-    const arrivagePoissonCriee = await genererArrivagePoissonCriee();
+    const arrivagePoissonCriee = await tacheQuotidienne('arrivage_criee', genererArrivagePoissonCriee);
 
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
-    const production = await produireTransformateursQuotidien();
+    const production = await tacheQuotidienne('production_transformateurs', produireTransformateursQuotidien);
 
     // 13b. EFFORT DE GUERRE (13 septembre 2026) — expiration, reserve, ravitaillement, production.
     // POSITION IMPERATIVE : APRES les livraisons (12) et la production des transformateurs (13),
@@ -5230,7 +5446,7 @@ export default async function handler(req, res) {
     // sur le modele des taches 0, 0 bis et 17.
     let effortDeGuerre = null;
     try {
-      effortDeGuerre = await traiterEffortDeGuerreServeur('republic');
+      effortDeGuerre = await tacheQuotidienne('effort_de_guerre', () => traiterEffortDeGuerreServeur('republic'));
     } catch (e) {
       console.error('traiterEffortDeGuerreServeur', e);
     }
@@ -5254,7 +5470,7 @@ export default async function handler(req, res) {
     const creancesHelvetia = await reglerCreancesHelvetiaServeur();
 
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
-    const preemptions = await preleverPreemptionsServeur();
+    const preemptions = await tacheQuotidienne('preemptions_etat', preleverPreemptionsServeur);
 
     // 16b. Successions differees : avancement des convocations, cascade remplacant/conjoint,
     // reglement + degel des dossiers integralement resolus
@@ -5288,9 +5504,20 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour });
+    // STATUT COHERENT AVEC CE QUI S'EST REELLEMENT PASSE (chantier A / P0-2, 14 septembre 2026).
+    // Une passe qui a perdu une lecture, une ecriture ou une RPC n'est pas une passe reussie : on
+    // rend 500 avec la LISTE NOMMEE des etapes fautives, ce que la plateforme sait voir et
+    // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
+    // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
+    // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour };
+    if (ECHECS_PASSE.length > 0) {
+      console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
+      return res.status(500).json(corps);
+    }
+    return res.status(200).json(corps);
   } catch (e) {
     console.error('Erreur cron-minuit', e);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length });
   }
 }

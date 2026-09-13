@@ -283,6 +283,23 @@ async function sbVerifierEtSauvegarderPersonnage(charState) {
   return sbSavePersonnage(charState);
 }
 
+// Normalise une valeur jsonb qui devrait etre un objet mais peut avoir ete double-encodee par un
+// JSON.stringify() de trop a l'ecriture (chantier A / P0-3, 14 septembre 2026). Rend null plutot
+// qu'une chaine indechiffrable : mieux vaut un etat absent qu'un etat truthy dont aucun champ
+// n'est lisible -- c'est exactement ce qui transformait une peine de deux jours en detention
+// perpetuelle. Meme precaution que le lecteur de detention_qhs (plateau-personnage.js:1717).
+function normaliserJsonPersonnage(valeur) {
+  if (!valeur) return null;
+  if (typeof valeur === 'object') return valeur;
+  if (typeof valeur === 'string') {
+    try {
+      const parsed = JSON.parse(valeur);
+      return (parsed && typeof parsed === 'object') ? parsed : null;
+    } catch (e) { return null; }
+  }
+  return null;
+}
+
 async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
@@ -338,7 +355,15 @@ async function sbLoadPersonnage(name) {
     salutationsDuJour: r.salutations_du_jour || null,
     _invitationSocialeEnAttente: r.invitation_sociale_en_attente || null,
     convocations:  r.convocations || [],
-    estEmprisonne: r.est_emprisonne || null,
+    // PARSE DEFENSIF (chantier A / P0-3, 14 septembre 2026). est_emprisonne est une colonne jsonb
+    // et sbUpdate serialise deja le corps entier : un JSON.stringify() a l'ecriture y depose donc
+    // un SCALAIRE jsonb de type string, pas un objet. Relu tel quel, il restait truthy -- tous les
+    // verrous de navigation s'activaient -- mais '.jourFin' devenait undefined, et le test de
+    // liberation 'state.day >= undefined' n'a jamais pu etre vrai : detention perpetuelle.
+    // Le cas s'est deja REALISE en production sur detention_qhs, stocke en chaine pour deux
+    // joueurs. On normalise donc a la lecture plutot que de faire confiance aux ecrivains : la
+    // prochaine sauvegarde reecrit alors un objet propre, sans migration de donnees.
+    estEmprisonne: normaliserJsonPersonnage(r.est_emprisonne),
     // Pendant en lecture du correctif de convocation militaire (voir sbSavePersonnage).
     requisition: r.requisition || null,
     demandeurEmploi: r.demandeur_emploi === true,

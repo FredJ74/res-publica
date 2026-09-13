@@ -2560,7 +2560,11 @@ async function confirmerContesterResultats(posteId, city) {
       est_emprisonne: {
         jours: joursPeine, jourFin: jourActuelFraudeur + joursPeine,
         raison: 'Fraude électorale (' + fraudeChoisie.type.replace(/_/g, ' ') + ') révélée par contestation',
-        country, city: city || null
+        country, city: city || null,
+        // Ancre temps reel (chantier A / P0-3, 14 septembre 2026) : jourFin est exprime dans le
+        // state.day du fraudeur, que le serveur ne sait pas interpreter. Sans debutTs, un fraudeur
+        // qui ne se reconnecte jamais reste incarcere indefiniment. Voir enregistrerDetention.
+        debutTs: Date.now()
       }
     }).catch(() => {});
   }
