@@ -6399,11 +6399,31 @@ async function confirmerConstruction(niveauKey) {
     return;
   }
 
-  // Lancement a 0 PA (l'ordre le declare deja), le cout est l'apport lui-meme.
-  const r = await deduireCoutOrdre({ pa: 0, cost: apport });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  chantier = verserAuChantier(chantier, apport);
+  // CHANTIER C (14 septembre 2026). L'apport est un MONTANT DE TRANSACTION choisi par le joueur :
+  // il ne peut pas figurer dans le miroir des couts d'ordre, et payer_ordre le refusait donc
+  // ('cout_non_declare') -- le lancement d'un chantier etait impossible en production. chantier_lancer
+  // relit le terrain sous verrou, revalide propriete, permis, palier et gel, construit le chantier
+  // a partir du gabarit MIROIR du palier, verifie l'apport minimal de 35 % et preleve.
+  const rLancement = await sbRpc('chantier_lancer', {
+    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id,
+    p_palier: niveauKey, p_apport: apport
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rLancement || rLancement.ok !== true) {
+    const messages = {
+      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
+      chantier_en_cours: 'Un chantier est déjà en cours sur ce terrain.',
+      permis_requis: "La construction n'est pas autorisée sur ce terrain.",
+      permis_non_conforme: 'Votre permis ne porte pas sur ce projet.',
+      apport_insuffisant: 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %).',
+      fonds_insuffisants: apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
+      terrain_gele: 'Ce terrain est gelé par une succession.'
+    };
+    showToast('Chantier impossible', messages[(rLancement && rLancement.raison) || ''] || '', false);
+    return;
+  }
+  state.arg = rLancement.arg; state.liquide = rLancement.liquide;
+  if (state.char) state.char.arg = state.arg;
+  chantier = rLancement.chantier;
 
   // APPROVISIONNEMENT IMMEDIAT (Lot 1.5.9). Un chantier ne doit pas attendre minuit pour pouvoir
   // employer quelqu'un. Memes regles exactement que l'approvisionnement quotidien du cron --
@@ -6472,15 +6492,29 @@ async function doPayerVersementChantier() {
   const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
   if (fonds < montant) { showToast('Fonds insuffisants', montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  const r = await deduireCoutOrdre({ pa: 0, cost: montant });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const maj = verserAuChantier(ch, montant);
-  const nouvelEtat = setTerrainState(id, { chantier: maj });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // CHANTIER C : meme cause, meme correctif que le lancement. Le serveur relit le reste a
+  // financer, borne le versement, preleve et ecrit -- en une seule transaction.
+  const rVersement = await sbRpc('chantier_verser', {
+    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_montant: montant
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rVersement || rVersement.ok !== true) {
+    const messages = {
+      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
+      chantier_absent: "Aucun chantier en cours sur ce terrain.",
+      deja_finance: 'Ce chantier est intégralement financé.',
+      fonds_insuffisants: montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
+      terrain_gele: 'Ce terrain est gelé par une succession.'
+    };
+    showToast('Versement refusé', messages[(rVersement && rVersement.raison) || ''] || '', false);
+    return;
+  }
+  state.arg = rVersement.arg; state.liquide = rVersement.liquide;
+  if (state.char) state.char.arg = state.arg;
+  const maj = rVersement.chantier;
+  setTerrainState(id, { chantier: maj });
 
   updateUI();
-  const pct = Math.floor(maj.totalVerse * 100 / maj.coutTotal);
+  const pct = Number(rVersement.pourcentage || 0);
   addJournalEntry('Chantier financé : +' + montant.toLocaleString('fr-FR') + ' ' + cur
     + ' (total versé : ' + pct + ' %).', 'event-good');
   showToast('Versement effectué', 'Financement cumulé : ' + pct + ' %.', true);
@@ -10890,21 +10924,33 @@ async function confirmerTravailChantier() {
   if (!ch) { showToast('Aucun chantier', '', false); return; }
 
   const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
-  const paDispo = TEST_MODE ? voulues : Math.max(0, state.pa || 0);
-  const heures = heuresTravaillablesPar(ch, voulues, paDispo);
-  if (heures <= 0) { showToast('Impossible', "Aucune heure ne peut être travaillée maintenant.", false); return; }
+  if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); return; }
 
-  // 1 heure = 1 PA. Le cout financier est nul pour le joueur : c'est lui qui est PAYE.
-  const r = await deduireCoutOrdre({ pa: heures, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const res = enregistrerTravailPJ(ch, state.char?.name, heures, state.day || 1);
-  const nouvelEtat = setTerrainState(id, { chantier: res.chantier });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
-
-  // Remuneration reelle du joueur.
-  if (typeof crediterFondsOrdinaires === 'function') await crediterFondsOrdinaires(res.montant).catch(() => {});
-  else state.arg = (state.arg || 0) + res.montant;
+  // CHANTIER C (14 septembre 2026). Les PA demandes sont un NOMBRE D'HEURES choisi par le joueur :
+  // l'ordre travailler_chantier declare 0 PA, payer_ordre refusait donc ('cout_non_declare') et
+  // travailler sur un chantier etait impossible en production. Le navigateur bornait en outre
+  // lui-meme les heures, puis se creditait le salaire.
+  // chantier_travailler recalcule les QUATRE bornes du jeu : heures demandees, heures encore
+  // utiles (capacite du jour ramenee a la fraction de materiaux reellement en stock, moins ce qui
+  // est deja fait), PA reels, et ce que la tresorerie peut payer. Puis il preleve les PA et verse
+  // le salaire dans la meme transaction.
+  const rTravail = await sbRpc('chantier_travailler', {
+    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_heures: voulues
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  if (!rTravail || rTravail.ok !== true) {
+    const messages = {
+      chantier_absent: "Aucun chantier en cours ici.",
+      aucune_heure_travaillable: "Aucune heure ne peut être travaillée maintenant.",
+      type_non_couvert: "Ce type de chantier n'accepte pas encore le travail à l'heure.",
+      terrain_gele: 'Ce terrain est gelé par une succession.'
+    };
+    showToast('Impossible', messages[(rTravail && rTravail.raison) || ''] || '', false);
+    return;
+  }
+  state.pa = rTravail.pa; state.arg = rTravail.arg; state.liquide = rTravail.liquide;
+  if (state.char) state.char.arg = state.arg;
+  setTerrainState(id, { chantier: rTravail.chantier });
+  const res = { heures: rTravail.heures, montant: Number(rTravail.montant) };
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
