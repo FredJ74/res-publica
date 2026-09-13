@@ -4584,98 +4584,81 @@ async function doOuvrirAchatEntrepot(pa, cost) {
 }
 
 async function confirmerAchatEntrepot(buildingId, pa, cost) {
+  // ===========================================================================
+  // CHANTIER C / PHASE 2 — L'ACHAT EST ARBITRE PAR LE SERVEUR (13 septembre 2026)
+  // ===========================================================================
+  // Cette fonction choisissait le prix, calculait le total, decidait de la
+  // quantite reellement ajoutee a l'inventaire, puis REECRIVAIT elle-meme le
+  // stock et la caisse de l'entrepot national. Le navigateur fournissait donc
+  // l'etat final a enregistrer : rien n'empechait d'acheter 750 unites de bois
+  // pour zero franc, ni de fixer la caisse de l'entrepot a sa convenance.
+  //
+  // Il n'envoie plus que des QUANTITES VOULUES. La RPC acheter_a_entrepot relit
+  // le stock reel, retranche la reserve militaire, applique le prix manuel du
+  // directeur ou le prix de base, verifie les fonds, applique le plafond
+  // d'inventaire de 100 -- lot empilable partiel compris, exactement comme
+  // addToInventory -- et n'encaisse que ce qui est reellement entre. Le tout
+  // sous verrou, dans une seule transaction.
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const stockPhysique = etat.entrepot?.stock || {};
-  // Le controle de disponibilite porte sur stock - reserve militaire ; le DEBIT, lui, porte sur
-  // le stock physique (plus bas) : la marchandise reservee ne doit jamais disparaitre.
-  const dispoCivil = (typeof stockCivilDisponible === 'function') ? stockCivilDisponible(etat) : null;
-  const stock = (dispoCivil && typeof dispoCivil === 'object') ? dispoCivil : stockPhysique;
-  const prixManuel = etat.entrepot?.prixManuel || {};
 
-  // Premiere passe : lire les quantites demandees, calculer le total, verifier stock+argent
-  const achats = {};
-  let total = 0;
-  // §52 : la legalite est revalidee ICI, pas seulement a l'affichage. Un champ desactive en HTML
-  // n'est pas une securite, et l'entrepot institutionnel ne doit jamais vendre une categorie
-  // interdite -- contrairement a un commerce joueur, qui lui reste libre de le faire (§35).
-  if (typeof rafraichirAssembleeInterdictions === 'function') {
-    await rafraichirAssembleeInterdictions().catch(() => null);
-  }
-
-  for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
-    const qte = parseInt(document.getElementById('achat-entrepot-' + cle)?.value || 0);
-    if (!qte || qte <= 0) continue;
-    const loiInterdit = (typeof assembleeInterdictionMatiere === 'function')
-      ? assembleeInterdictionMatiere(cle) : null;
-    if (loiInterdit) {
-      showToast('Vente interdite',
-        RESSOURCES_ECONOMIE[cle].label + ' ne peut plus être vendu par l\'entrepôt : « ' + loiInterdit.titre +' ».', false);
-      return;
-    }
-    const enStock = stock[cle] || 0;
-    if (qte > enStock) {
-      showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label
-        + ' disponible(s) à la vente.' + (enStock === 0 ? ' Une réserve militaire est en vigueur.' : ''), false);
-      return;
-    }
-    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessourceEntrepot(cle);
-    achats[cle] = { qte, prix };
-    total += qte * prix;
-  }
-
-  if (Object.keys(achats).length === 0) {
+  // Les quantites saisies, et rien d'autre.
+  const quantites = {};
+  Object.keys(RESSOURCES_ECONOMIE).forEach(function (cle) {
+    const q = parseInt(document.getElementById('achat-entrepot-' + cle)?.value || 0);
+    if (q > 0) quantites[cle] = q;
+  });
+  if (Object.keys(quantites).length === 0) {
     showToast('Rien à acheter', 'Indiquez au moins une quantité.', false);
     return;
   }
-  if (getFondsDisponiblesOrdinaires() < total) {
-    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
-    return;
-  }
-  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
-  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
+
+  // Legalite : regle generale des interdictions (arbitrage du 11 septembre 2026),
+  // tranchee par le serveur AVANT tout debit. Inchangee.
   if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
+      && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
+
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'acheter_ressources_entrepot' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  // Deuxieme passe : appliquer (deduire argent+stock, crediter l'inventaire du joueur —
-  // plafonne globalement a 100 objets, voir addToInventory/plateau-divers.js). Si la place
-  // manque en cours de route, le reste de l'achat est annule et rembourse au prorata.
-  let totalReellementPaye = 0;
-  for (const [cle, { qte, prix }] of Object.entries(achats)) {
-    const res = RESSOURCES_ECONOMIE[cle];
-    const qteAjoutee = addToInventory({
-      name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: qte,
-      desc: 'Ressource achetée à l\'entrepôt logistique.'
-    });
-    if (qteAjoutee > 0) {
-      // On debite le stock PHYSIQUE, jamais la vue « disponible a la vente » : celle-ci est une
-      // projection (stock - reserve militaire), et la reecrire en base ferait disparaitre pour de
-      // bon la marchandise reservee a l'armement.
-      stockPhysique[cle] = (stockPhysique[cle] || 0) - qteAjoutee;
-      stock[cle] = (stock[cle] || 0) - qteAjoutee;
-      totalReellementPaye += qteAjoutee * prix;
-    }
+  const rows = await sbRpc('acheter_a_entrepot', {
+    p_acteur: state.char?.name, p_pays: state.country, p_ville: state.currentCity,
+    p_batiment: buildingId, p_achats: quantites
+  });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    const libelles = {
+      stock_insuffisant: 'Il ne reste pas assez de ' + (v && v.cle ? (RESSOURCES_ECONOMIE[v.cle]?.label || v.cle) : 'cette ressource')
+        + ' (' + (v && v.disponible != null ? v.disponible : 0) + ' disponible(s)).',
+      fonds_insuffisants: Math.round((v && v.requis) || 0) + ' ' + cur + ' requis, vous avez '
+        + Math.round((v && v.disponible) || 0) + ' ' + cur + '.',
+      inventaire_plein: 'Votre inventaire est plein (plafond de 100 objets).',
+      ressource_inconnue: 'Ressource inconnue.',
+      entrepot_introuvable: 'Cet entrepôt n\'existe pas.',
+      rien_a_acheter: 'Indiquez au moins une quantité.'
+    };
+    showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
+    return;
   }
-  // Lot 4B : debit personnage via la primitive canonique (liquide puis Banque nationale),
-  // persistance deja geree par debiterFondsOrdinaires -- l'ancien sbSavePersonnage(state)
-  // explicite juste apres devient un double PATCH inutile, retire. Ne devrait jamais refuser ici
-  // (totalReellementPaye <= total, deja verifie ci-dessus) : filet de securite uniquement.
-  const debitEntrepot = await debiterFondsOrdinaires(totalReellementPaye);
-  if (!debitEntrepot.ok) { showToast('Erreur', 'Paiement impossible.', false); return; }
-  total = totalReellementPaye;
 
-  // Revenu credite a la caisse de l'entrepot — corrige le 8 aout 2026 : jusque-la, l'argent
-  // paye par le joueur disparaissait sans contrepartie, la caisse ne pouvant que baisser.
-  etat.entrepot = { ...(etat.entrepot || {}), stock: stockPhysique, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
+  // On recopie l'etat arrete par le serveur, jamais un calcul local.
+  state.inventory = v.inventory || state.inventory;
+  state.liquide = v.liquide;
+  state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
+  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = v.solde_national;
+  }
+  if (typeof renderInventory === 'function') renderInventory();
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Achat effectué !', '-' + Math.round(total) + ' ' + cur + '.', true, true);
-  addJournalEntry('Achat à l\'entrepôt logistique : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+  showToast('Achat effectué !', '-' + Math.round(v.paye) + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat à l\'entrepôt logistique : ' + (v.lignes || []).map(function (l) {
+    return l.qte + ' ' + (RESSOURCES_ECONOMIE[l.cle]?.label || l.cle);
+  }).join(', ') + '.', 'event-good');
 }
+
 
 // =====================
 // VENDRE DU BOIS A L'IMPRIMERIE (La Tribune, Gustave Rotative) — 9 aout 2026

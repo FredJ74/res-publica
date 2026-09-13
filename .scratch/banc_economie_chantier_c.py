@@ -157,6 +157,64 @@ def main():
     verifier("double soumission : un seul prelevement de 3 PA",
              ok == 1 and e["pa"] == 0, "acceptes=%d pa=%s" % (ok, e.get("pa")))
 
+    # --- FAMILLE ENTREPOT : l'achat est arbitre par le serveur -----------------
+    # Entrepot zztest dedie : on ne touche jamais a un entrepot reel du monde bati.
+    ENT = "zztest_zzville_entrepot-test"
+    http("DELETE", "/rest/v1/batiments_etat?id=eq." + ENT, jeton=ta)
+    http("POST", "/rest/v1/batiments_etat", {
+        "id": ENT, "country": "zztest", "city": "zzville", "building_id": "entrepot-test",
+        "data": json.dumps({"entrepot": {"caisse": 0,
+                                         "stock": {"bois": 100, "metal": 50},
+                                         "reserveMilitaire": {"metal": 40}}})}, jeton=ta)
+
+    def acheter(jeton, acteur, achats):
+        c, r = http("POST", "/rest/v1/rpc/acheter_a_entrepot",
+                    {"p_acteur": acteur, "p_pays": "zztest", "p_ville": "zzville",
+                     "p_batiment": "entrepot-test", "p_achats": achats}, jeton=jeton)
+        return (r[0] if isinstance(r, list) else r) or {}
+
+    def entrepot():
+        c, r = http("GET", "/rest/v1/batiments_etat?select=data&id=eq." + ENT, jeton=ta)
+        d = r[0]["data"] if r else "{}"
+        return json.loads(d) if isinstance(d, str) else d
+
+    # Session DEDIEE : un compte ne possede qu'un personnage (regle du chantier B),
+    # et ta possede deja zztest-eco-a.
+    td = session()
+    creer(td, "zztest-eco-d", 1000, 0)
+    r = acheter(td, "zztest-eco-d", {"bois": 10})
+    verifier("achat a l'entrepot : accepte et facture au prix de base",
+             r.get("ok") is True and r.get("paye") == 50, r)
+    e = entrepot()
+    verifier("le stock physique et la caisse suivent",
+             e["entrepot"]["stock"]["bois"] == 90 and e["entrepot"]["caisse"] == 50,
+             e.get("entrepot"))
+
+    # La reserve militaire est opposable : 50 en stock, 40 reserves -> 10 vendables.
+    r = acheter(td, "zztest-eco-d", {"metal": 11})
+    verifier("la reserve militaire reste opposable a l'achat",
+             r.get("raison") == "stock_insuffisant" and r.get("disponible") == 10, r)
+    r = acheter(td, "zztest-eco-d", {"metal": 10})
+    verifier("acheter exactement le disponible civil : accepte", r.get("ok") is True, r)
+    e = entrepot()
+    verifier("la reserve militaire n'a pas ete entamee",
+             e["entrepot"]["stock"]["metal"] == 40, e["entrepot"]["stock"])
+
+    avant = entrepot()
+    r = acheter(td, "zztest-eco-d", {"bois": 999999})
+    verifier("acheter plus que le stock : refuse", r.get("raison") == "stock_insuffisant", r)
+    r = acheter(td, "zztest-eco-d", {"or_massif": 1})
+    verifier("ressource inventee : refusee", r.get("raison") == "ressource_inconnue", r)
+    verifier("apres les refus : entrepot intact", entrepot() == avant, "ok")
+
+    r = acheter(tb, "zztest-eco-d", {"bois": 1})
+    verifier("acheter au nom d'un autre joueur : refuse",
+             r.get("code") == "42501" or r.get("ok") is not True, r)
+
+    http("DELETE", "/rest/v1/comptes_bancaires?personnage=eq.zztest-eco-d", jeton=td)
+    http("DELETE", "/rest/v1/personnages?name=eq.zztest-eco-d", jeton=td)
+    http("DELETE", "/rest/v1/batiments_etat?id=eq." + ENT, jeton=ta)
+
     # --- Miroir des couts : coherence avec le vrai data.js --------------------
     # C'est le garde-fou contre l'oubli : si un ordre est ajoute ou son cout
     # modifie dans data.js sans regenerer le miroir, les deux empreintes divergent
@@ -188,7 +246,7 @@ def main():
     for nom, jeton in ((A, ta), (B, tb), ("zztest-eco-c", tc)):
         http("DELETE", "/rest/v1/comptes_bancaires?personnage=eq." + nom, jeton=jeton)
         http("DELETE", "/rest/v1/personnages?name=eq." + nom, jeton=jeton)
-    for nom in (A, B, "zztest-eco-c"):
+    for nom in (A, B, "zztest-eco-c", "zztest-eco-d"):
         c, r = http("GET", "/rest/v1/personnages?select=name&name=eq." + nom)
         if r: reste.append(nom)
 

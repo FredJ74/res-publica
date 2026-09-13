@@ -22,7 +22,10 @@ ANON = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im
 
 JUGE, PRESIDENT, QUIDAM, DETENU = ("zztest-juge", "zztest-president",
                                    "zztest-quidam", "zztest-detenu")
-DETENTION = "zztest-det-pouvoirs"
+# Id UNIQUE par execution : le registre judiciaire n'a volontairement aucune policy
+# DELETE -- une detention ne s'efface pas, meme de test. Reutiliser le meme id ferait
+# echouer l'insertion au deuxieme passage et le banc mesurerait la ligne d'hier.
+DETENTION = "zztest-det-pouvoirs-" + str(int(__import__("time").time()))
 resultats = []
 
 
