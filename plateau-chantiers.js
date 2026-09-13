@@ -763,7 +763,16 @@ function reinitialiserHeuresJour(chantier) {
 // deux etats) ; ici on se contente de dire quoi acheter et a quel prix.
 // Aucun materiau n'est cree : on n'achete jamais plus que le besoin, plus que le stock reellement
 // present dans l'entrepot, ni plus que la tresorerie ne peut payer.
-function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresorerie, prixParMatiere) {
+// RESERVE MILITAIRE (13 septembre 2026) : sixieme parametre, optionnel. Pendant un Effort de
+// guerre, une part du stock des entrepots est reservee a l'armement. Elle reste PHYSIQUEMENT dans
+// l'entrepot -- elle est seulement indisponible aux usages non militaires, chantiers compris.
+// D'ou la separation stricte, ici, entre deux quantites qu'il ne faut jamais confondre :
+//   - `dispo`  = ce que le chantier peut acheter      = stock - reserve
+//   - `present`= ce qui reste ecrit dans l'entrepot    = stock - achat
+// Soustraire la reserve du stock rendu ferait disparaitre la marchandise reservee a la premiere
+// ecriture de l'appelant : c'est exactement le piege que cette distinction evite.
+// Consequence assumee : a 100 % de reserve, les chantiers du pays s'arretent faute de matiere.
+function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresorerie, prixParMatiere, reserveEntrepot) {
   const achats = {};
   const nouveauChantier = {};
   const nouvelEntrepot = Object.assign({}, stockEntrepot || {});
@@ -774,14 +783,16 @@ function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresor
     const manque = Math.max(0, Math.max(0, nombreFini((besoin || {})[cle], 0)) - enChantier);
     if (manque <= 0) return;
     const prix = Math.max(0, nombreFini((prixParMatiere || {})[cle], prixMateriau(cle)));
-    const dispo = Math.max(0, Math.floor(nombreFini(nouvelEntrepot[cle], 0)));
+    const present = Math.max(0, Math.floor(nombreFini(nouvelEntrepot[cle], 0)));
+    const reserve = Math.max(0, Math.floor(nombreFini((reserveEntrepot || {})[cle], 0)));
+    const dispo = Math.max(0, present - reserve);
     const abordable = prix > 0 ? Math.floor(Math.max(0, nombreFini(tresorerie, 0) - depense) / prix) : 0;
     const qte = Math.min(manque, dispo, abordable);
     if (qte <= 0) return;
     achats[cle] = qte;
     depense += qte * prix;
     nouveauChantier[cle] = enChantier + qte;
-    nouvelEntrepot[cle] = dispo - qte;
+    nouvelEntrepot[cle] = present - qte;
   });
   return { achats: achats, depense: depense, stockChantier: nouveauChantier, stockEntrepot: nouvelEntrepot };
 }

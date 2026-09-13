@@ -2445,6 +2445,77 @@ async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// =====================
+// EFFORT DE GUERRE (13 septembre 2026, migration_effort_de_guerre.sql)
+// =====================
+// Toutes ces RPC sont SECURITY DEFINER, verrouillent leurs lignes (FOR UPDATE) et sont
+// TOUT-OU-RIEN. Elles remplacent le lire-modifier-ecrire client partout ou ce chantier
+// touche a du stock, a de l'argent ou a un registre -- aucune ne doit etre doublee d'un
+// repli non atomique : FAIL-CLOSED, un null se traduit par « rien ne s'est passe ».
+
+// Recalcule la reserve militaire nationale et la repartit sur les entrepots au prorata de
+// leurs stocks. pct = 0 libere tout. Aucune marchandise n'est deplacee ni payee.
+async function sbEffortReserveAppliquer(pays, entrepots, ressources, pct) {
+  const rows = await sbRpc('effort_reserve_appliquer', {
+    p_pays: pays, p_entrepots: entrepots, p_ressources: ressources, p_pct: pct
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Retrait REGLEMENTAIRE par un chef de section : decremente le stock ET inscrit au registre
+// dans la meme transaction. Le poste et la presence physique sont revalides cote serveur.
+async function sbMilitaireRetrait(pays, produit, quantite, lieutenant, section, jour) {
+  const rows = await sbRpc('militaire_retrait', {
+    p_pays: pays, p_produit: produit, p_quantite: quantite,
+    p_lieutenant: lieutenant, p_section: section || null,
+    p_jour: (typeof jour === 'number') ? jour : null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Subtilisation : meme decrement de stock, AUCUNE inscription au registre. C'est la seule
+// difference, et elle est portee par deux RPC distinctes plutot que par un drapeau.
+async function sbMilitaireSubtiliser(pays, joueur) {
+  const rows = await sbRpc('militaire_subtiliser', { p_pays: pays, p_joueur: joueur });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Repas du refectoire : marqueur quotidien, consommation de la ration (ou fabrication
+// automatique d'un lot de 10) et gain de PA, le tout dans une seule transaction.
+async function sbRefectoireRepas(pays, joueur, jour, paMax, gain) {
+  const rows = await sbRpc('refectoire_repas', {
+    p_pays: pays, p_joueur: joueur, p_jour: jour,
+    p_pa_max: (typeof paMax === 'number') ? paMax : 30,
+    p_gain: (typeof gain === 'number') ? gain : 2
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// File des commandes militaires (FIFO par created_at). Lecture seule cote client.
+async function sbGetCommandesMilitaires(pays, statut) {
+  const filtre = `pays=eq.${encodeURIComponent(pays)}`
+    + (statut ? `&statut=eq.${encodeURIComponent(statut)}` : '')
+    + '&order=created_at.asc&select=*';
+  return (await sbGet('commandes_militaires', filtre)) || [];
+}
+
+async function sbCreerCommandeMilitaire(commande) {
+  return sbInsert('commandes_militaires', commande);
+}
+
+// Annulation du reliquat : le statut passe a 'annulee', quantite_produite n'est JAMAIS
+// touchee -- ce qui a ete produit, paye et livre reste definitif.
+async function sbAnnulerCommandeMilitaire(id) {
+  return sbUpdate('commandes_militaires', `id=eq.${encodeURIComponent(id)}`,
+                  { statut: 'annulee', updated_at: new Date().toISOString() });
+}
+
+// Registre des sorties de materiel militaire (armes ET explosifs, registre unique).
+async function sbGetRetraitsMateriel(pays) {
+  return (await sbGet('retraits_materiel_militaire',
+    `pays=eq.${encodeURIComponent(pays)}&order=created_at.desc&limit=100&select=*`)) || [];
+}
+
 // CESSION D'UNE IMPRIMERIE DE REPUBLIA (12 septembre 2026, migration_cession_imprimerie.sql).
 // Credite le prix dans la caisse du Ministere des Finances ET inscrit la propriete dans UNE SEULE
 // transaction : jamais de propriete sans paiement, jamais de paiement sans propriete. Idempotent sur

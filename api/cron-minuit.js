@@ -3375,6 +3375,287 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterExpulsionsAmbassadeursServeur(pays);
 }
 
+// ============================================================================
+// EFFORT DE GUERRE (13 septembre 2026) — TACHE NOCTURNE
+// ============================================================================
+// DUPLICATIONS CONTROLEES. Le cron est serverless et ne peut pas importer les fichiers client :
+// les constantes ci-dessous sont recopiees de plateau-effort-guerre.js et plateau-gouvernement.js,
+// selon la convention deja suivie par RESSOURCES_ECONOMIE_SERVEUR et DUREE_MESURES_EXCEPTION_MS_SERVEUR.
+// Toute modification d'un cote doit etre reportee de l'autre.
+const DUREE_EFFORT_GUERRE_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;
+const ENTREPOTS_EFFORT_SERVEUR = {
+  republic: [
+    { building: 'entrepot-logistique-luthecia',  city: 'capitale' },
+    { building: 'entrepot-logistique-psm',       city: 'ville_a'  },
+    { building: 'entrepot-logistique-montrouge', city: 'ville_b'  }
+  ]
+};
+const VILLES_ARMURERIES_SERVEUR = { republic: ['capitale', 'ville_a', 'ville_b'] };
+const COUT_HORAIRE_TRAVAIL_SERVEUR = 50;   // 1 PA = 50 FR (plateau-commerce.js)
+const PA_PRODUCTION_ARMURERIE_SERVEUR = 2; // forfait reel de toute production d'armurerie
+const RECETTES_MILITAIRES_SERVEUR = {
+  arme_de_poing:      { label: 'Pistolet militaire',   materiaux: { metal: 2, bois: 1 },    produitParLot: 1 },
+  mitraillette:       { label: 'Mitraillette',         materiaux: { metal: 2, bois: 2 },    produitParLot: 1 },
+  explosif_militaire: { label: 'Explosifs militaires', materiaux: { metal: 2, minerai: 3 }, pa: 1, produitParLot: 3 }
+};
+// Plafond de securite : borne le temps d'execution de la passe nocturne (le cron Vercel a une
+// duree limitee). Ce qui n'est pas produit ce soir le sera demain -- une commande n'echoue jamais.
+const LOTS_MILITAIRES_MAX_PAR_NUIT = 60;
+
+function paTravailMilitaireServeur(produit) {
+  const r = RECETTES_MILITAIRES_SERVEUR[produit];
+  if (!r) return 0;
+  return (typeof r.pa === 'number') ? r.pa : PA_PRODUCTION_ARMURERIE_SERVEUR;
+}
+
+function coutRevientLotMilitaireServeur(produit) {
+  const r = RECETTES_MILITAIRES_SERVEUR[produit];
+  if (!r) return 0;
+  let total = 0;
+  Object.keys(r.materiaux || {}).forEach(function (m) {
+    const prix = (RESSOURCES_ECONOMIE_SERVEUR[m] && RESSOURCES_ECONOMIE_SERVEUR[m].prixBase) || 0;
+    total += (Number(r.materiaux[m]) || 0) * prix;
+  });
+  return Math.round(total + paTravailMilitaireServeur(produit) * COUT_HORAIRE_TRAVAIL_SERVEUR);
+}
+
+function ressourcesMilitairesEligiblesServeur() {
+  const vues = {};
+  Object.keys(RECETTES_MILITAIRES_SERVEUR).forEach(function (p) {
+    Object.keys(RECETTES_MILITAIRES_SERVEUR[p].materiaux || {}).forEach(function (m) { vues[m] = true; });
+  });
+  return Object.keys(vues).sort();
+}
+
+function effortActifServeur(effort) {
+  if (!effort || effort.actif !== true) return false;
+  const fin = Number(effort.expireA);
+  if (!isFinite(fin)) return true;   // etat legacy sans echeance : on ne ferme jamais a l'aveugle
+  return fin > Date.now();
+}
+
+// Stock national par ressource, lu sur les trois entrepots.
+async function stocksNationauxEntrepots(pays) {
+  const liste = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
+  const total = {};
+  for (const e of liste) {
+    const etat = await sbGetBatimentEtat(pays, e.city, e.building).catch(() => ({}));
+    const stock = (etat && etat.entrepot && etat.entrepot.stock) || {};
+    const reserve = (etat && etat.entrepot && etat.entrepot.reserveMilitaire) || {};
+    Object.keys(stock).forEach(function (m) {
+      if (!total[m]) total[m] = { stock: 0, reserve: 0 };
+      total[m].stock += Math.max(0, Number(stock[m]) || 0);
+      total[m].reserve += Math.max(0, Number(reserve[m]) || 0);
+    });
+  }
+  return total;
+}
+
+// --- 1. EXPIRATION -----------------------------------------------------------
+// IDEMPOTENCE PAR LE DRAPEAU LUI-MEME, comme le regime d'exception : une fois actif passe a
+// false, le second passage ressort au premier test. Aucun marqueur de journee, l'echeance etant
+// horaire et non quotidienne.
+async function traiterExpirationEffortGuerreServeur(pays) {
+  const budget = await chargerBudgetNationalServeur(pays);
+  if (!budget) return { clos: false };
+  const effort = budget.effortGuerre;
+  if (!effort || effort.actif !== true) return { clos: false };
+  if (effortActifServeur(effort)) return { clos: false };
+
+  // Ordre volontaire, identique a la cloture volontaire cote client (cloturerEffortGuerre) :
+  // liberer la matiere, annuler les reliquats, puis seulement clore le drapeau. Si la passe est
+  // interrompue au milieu, le drapeau reste actif et tout sera rejoue proprement demain.
+  const ent = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
+  if (ent.length) {
+    await sbRpc('effort_reserve_appliquer', {
+      p_pays: pays, p_entrepots: ent, p_ressources: ressourcesMilitairesEligiblesServeur(), p_pct: 0
+    }, HEADERS_SERVICE).catch(() => null);
+  }
+  const cmds = await sbGet('commandes_militaires',
+    `pays=eq.${encodeURIComponent(pays)}&statut=eq.en_cours&select=id`).catch(() => null);
+  for (const c of (cmds || [])) {
+    await sbUpdate('commandes_militaires', `id=eq.${encodeURIComponent(c.id)}`,
+      { statut: 'annulee', updated_at: new Date().toISOString() }).catch(() => {});
+  }
+
+  const frais = await chargerBudgetNationalServeur(pays);
+  if (!frais) return { clos: false };
+  frais.effortGuerre = Object.assign({}, frais.effortGuerre || effort, {
+    actif: false, finA: Date.now(), motifFin: 'echeance'
+  });
+  await sauverBudgetNationalServeur(pays, frais);
+  return { clos: true, reliquatsAnnules: (cmds || []).length };
+}
+
+// --- 2. RESERVE STRATEGIQUE --------------------------------------------------
+// Recalculee CHAQUE NUIT, apres les livraisons et la production des transformateurs : c'est ce
+// qui fait que la reserve porte aussi sur les FLUX ENTRANTS, et pas seulement sur le stock
+// present au moment ou le ministre a bouge son curseur.
+async function traiterReserveMilitaireServeur(pays, effort) {
+  const ent = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
+  if (!ent.length) return null;
+  const pct = Math.max(0, Math.min(100, Number(effort.prioriteProductionMilitaire) || 0));
+  return sbRpc('effort_reserve_appliquer', {
+    p_pays: pays, p_entrepots: ent,
+    p_ressources: ressourcesMilitairesEligiblesServeur(), p_pct: pct
+  }, HEADERS_SERVICE).catch(() => null);
+}
+
+// --- 3. RAVITAILLEMENT -------------------------------------------------------
+// Les denrees sont REELLEMENT ACHETEES au prix normal : la caisse de la caserne paie, celles des
+// entrepots encaissent. Le ravitaillement achete sur le stock LIBRE (hors reserve de production).
+// Viande et poisson sont equivalents : regle deterministe = viande d'abord, poisson pour le solde.
+// PRIORITAIRE sur la production : il est appele avant elle, donc il se sert le premier dans une
+// caisse insuffisante -- c'est exactement la regle « ravitaillement d'abord, production ensuite ».
+async function traiterRavitaillementServeur(pays, effort) {
+  const ent = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
+  const pct = Math.max(0, Math.min(100, Number(effort.prioriteRavitaillement) || 0));
+  if (!ent.length || pct <= 0) return { achats: {}, total: 0 };
+
+  const nat = await stocksNationauxEntrepots(pays);
+  const libre = function (m) {
+    const n = nat[m] || { stock: 0, reserve: 0 };
+    return Math.max(0, n.stock - n.reserve);
+  };
+  const cibleCereales = Math.floor(libre('cereales') * pct / 100);
+  const besoinProt = Math.floor((libre('viande') + libre('poisson')) * pct / 100);
+  const cibleViande = Math.min(besoinProt, libre('viande'));
+  const ciblePoisson = besoinProt - cibleViande;
+  if (cibleCereales <= 0 && cibleViande <= 0 && ciblePoisson <= 0) return { achats: {}, total: 0 };
+
+  const prix = {};
+  ['cereales', 'viande', 'poisson'].forEach(function (m) {
+    prix[m] = (RESSOURCES_ECONOMIE_SERVEUR[m] && RESSOURCES_ECONOMIE_SERVEUR[m].prixBase) || 0;
+  });
+  const rows = await sbRpc('effort_ravitailler', {
+    p_pays: pays, p_entrepots: ent,
+    p_cibles: { cereales: cibleCereales, viande: cibleViande, poisson: ciblePoisson },
+    p_prix: prix
+  }, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { achats: {}, total: 0 };
+}
+
+// --- 4. PRODUCTION MILITAIRE -------------------------------------------------
+// FIFO strict sur created_at. Chaque lot est produit par une RPC tout-ou-rien qui, dans une
+// seule transaction : prend les matieres sur la RESERVE des entrepots, debite la caisse de la
+// caserne du cout de revient, credite l'armurerie du MEME montant, livre le stock de la caserne
+// avec son lot, avance la commande et inscrit la vente au registre.
+//
+// REPARTITION ENTRE LES TROIS ARMURERIES : rotation sur le nombre d'unites deja produites de la
+// commande. C'est la regle « aussi equitable que possible » la plus simple qui reste juste quand
+// la production s'etale sur plusieurs nuits -- la rotation reprend exactement ou elle en etait,
+// sans etat supplementaire a stocker. Le statut PJ/PNJ du proprietaire ne change rien, et une
+// armurerie detenue par le ministre participe normalement.
+async function traiterProductionMilitaireServeur(pays, effort) {
+  const ent = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
+  const villes = VILLES_ARMURERIES_SERVEUR[pays] || [];
+  const resultats = { lots: 0, unites: 0, arrets: [] };
+  if (!ent.length || !villes.length) return resultats;
+  if (Math.max(0, Number(effort.prioriteProductionMilitaire) || 0) <= 0) return resultats;
+
+  const cmds = await sbGet('commandes_militaires',
+    `pays=eq.${encodeURIComponent(pays)}&statut=eq.en_cours&order=created_at.asc&select=*`).catch(() => null);
+  if (!cmds || !cmds.length) return resultats;
+
+  const jour = new Date().toISOString().slice(0, 10);
+  for (const cmd of cmds) {
+    const rec = RECETTES_MILITAIRES_SERVEUR[cmd.produit];
+    if (!rec) continue;
+    const cout = coutRevientLotMilitaireServeur(cmd.produit);
+    let produitDansCetteCommande = Math.max(0, Number(cmd.quantite_produite) || 0);
+
+    while (produitDansCetteCommande < cmd.quantite_demandee && resultats.lots < LOTS_MILITAIRES_MAX_PAR_NUIT) {
+      const ville = villes[produitDansCetteCommande % villes.length];
+      const armurerieId = 'armurerie-' + pays + '-' + ville;
+      const lot = 'L' + jour.replace(/-/g, '') + '-' + ville + '-' + cmd.id.slice(-6) + '-' + produitDansCetteCommande;
+
+      const rows = await sbRpc('effort_produire_lot', {
+        p_pays: pays, p_commande_id: cmd.id, p_armurerie: armurerieId,
+        p_entrepots: ent,
+        p_recette: { materiaux: rec.materiaux, produitParLot: rec.produitParLot },
+        p_cout_revient: cout, p_lot: lot,
+        p_arme_label: rec.label, p_ville_arm: ville, p_jour: null
+      }, HEADERS_SERVICE).catch(() => null);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+
+      if (!r || r.ok !== true) {
+        // Arret PROPRE : la commande reste 'en_cours', son reliquat attend la nuit suivante.
+        // Aucune commande n'echoue jamais faute de matiere ou d'argent -- c'est la regle.
+        if (r && r.raison) resultats.arrets.push({ commande: cmd.id, raison: r.raison });
+        break;
+      }
+      resultats.lots += 1;
+      resultats.unites += Math.max(1, Number(r.quantite) || 1);
+      produitDansCetteCommande += Math.max(1, Number(r.quantite) || 1);
+      await envoyerFactureMilitaireServeur(pays, armurerieId, ville, cmd.produit, r);
+    }
+    if (resultats.lots >= LOTS_MILITAIRES_MAX_PAR_NUIT) break;
+  }
+  return resultats;
+}
+
+// FACTURE AU PROPRIETAIRE. Le montant annonce ici EST le montant credite : les deux viennent du
+// meme coutRevientLotMilitaireServeur, ils ne peuvent donc pas diverger. Un proprietaire PNJ ne
+// recoit pas de courrier (il n'a pas de boite aux lettres) : la regle economique, elle, est
+// identique pour lui.
+async function envoyerFactureMilitaireServeur(pays, armurerieId, ville, produit, resultat) {
+  const rows = await sbGet('entreprises', `id=eq.${encodeURIComponent(armurerieId)}&select=data`).catch(() => null);
+  const data = rows && rows[0] ? rows[0].data : null;
+  const proprio = data && data.proprietaire;
+  if (!proprio || proprio === 'PNJ') return;
+
+  const rec = RECETTES_MILITAIRES_SERVEUR[produit];
+  const pa = paTravailMilitaireServeur(produit);
+  const lignes = Object.keys(rec.materiaux || {}).map(function (m) {
+    const prix = (RESSOURCES_ECONOMIE_SERVEUR[m] && RESSOURCES_ECONOMIE_SERVEUR[m].prixBase) || 0;
+    const q = rec.materiaux[m];
+    return '- ' + m + ' x' + q + ' a ' + prix + ' FR = ' + (q * prix) + ' FR';
+  }).join('\n');
+  const valeurMatieres = Object.keys(rec.materiaux || {}).reduce(function (s, m) {
+    const prix = (RESSOURCES_ECONOMIE_SERVEUR[m] && RESSOURCES_ECONOMIE_SERVEUR[m].prixBase) || 0;
+    return s + rec.materiaux[m] * prix;
+  }, 0);
+  const total = Number(resultat.cout) || 0;
+
+  const corps =
+    'Commande du Ministere de la Guerre — Effort de guerre.\n\n'
+    + 'Produit : ' + rec.label + '\n'
+    + 'Quantite produite : ' + (resultat.quantite || rec.produitParLot) + ' (lot ' + (resultat.lot || '') + ')\n'
+    + 'Armurerie : ' + ville + '\n\n'
+    + 'MATIERES PRISES EN CHARGE\n' + lignes + '\n'
+    + 'Cout des matieres : ' + valeurMatieres + ' FR\n'
+    + 'Travail : ' + pa + ' PA x ' + COUT_HORAIRE_TRAVAIL_SERVEUR + ' FR = ' + (pa * COUT_HORAIRE_TRAVAIL_SERVEUR) + ' FR\n'
+    + 'Cout de revient : ' + total + ' FR\n'
+    + 'Montant retrocede : ' + total + ' FR\n\n'
+    + 'TOTAL CREDITE A VOTRE CAISSE : ' + total + ' FR\n\n'
+    + 'La production et la livraison ont ete automatiques : vous n\'aviez rien a faire.';
+
+  await sbInsert('mails', {
+    id: 'facture-mil-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
+    from_player: 'Ministère de la Guerre', to_player: proprio,
+    subject: 'Facture — commande militaire (' + rec.label + ')',
+    body: corps, read: false
+  }).catch(() => {});
+}
+
+// --- ORCHESTRATION -----------------------------------------------------------
+// ORDRE IMPERATIF : expiration d'abord (un Effort echu ne doit rien produire ce soir), puis
+// reserve (elle conditionne les matieres disponibles a la production), puis ravitaillement
+// (prioritaire sur la caisse), puis production (elle se sert de ce qui reste).
+async function traiterEffortDeGuerreServeur(pays) {
+  const expiration = await traiterExpirationEffortGuerreServeur(pays);
+  const budget = await chargerBudgetNationalServeur(pays);
+  const effort = budget && budget.effortGuerre;
+  if (!effortActifServeur(effort)) return { actif: false, expiration: expiration };
+
+  const reserve = await traiterReserveMilitaireServeur(pays, effort);
+  const ravitaillement = await traiterRavitaillementServeur(pays, effort);
+  const production = await traiterProductionMilitaireServeur(pays, effort);
+  return { actif: true, expiration: expiration, reserve: !!reserve,
+           ravitaillement: ravitaillement, production: production };
+}
+
 // Titulaire ACTUEL des murs d'un bail, lu sur le terrain porteur -- jamais sur une valeur figee
 // dans le bail. C'est la meme regle que celle appliquee par prelever_loyer_bail pour choisir le
 // beneficiaire : vendre les murs transfere les loyers a venir, sans toucher au bail.
@@ -4939,6 +5220,21 @@ export default async function handler(req, res) {
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await produireTransformateursQuotidien();
 
+    // 13b. EFFORT DE GUERRE (13 septembre 2026) — expiration, reserve, ravitaillement, production.
+    // POSITION IMPERATIVE : APRES les livraisons (12) et la production des transformateurs (13),
+    // pour que la reserve porte sur les flux REELLEMENT arrives dans les entrepots cette nuit,
+    // apres la redirection vers les usines locales. Et APRES le virement quotidien vers la caserne
+    // (5 bis, traiterQuotidienNationalServeur), qui alimente la caisse dans laquelle le
+    // ravitaillement puis la production vont puiser.
+    // Tache non critique : son echec ne doit pas emporter la passe, d'ou le try/catch local,
+    // sur le modele des taches 0, 0 bis et 17.
+    let effortDeGuerre = null;
+    try {
+      effortDeGuerre = await traiterEffortDeGuerreServeur('republic');
+    } catch (e) {
+      console.error('traiterEffortDeGuerreServeur', e);
+    }
+
     // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
     const conflitsBNE = await verifierConflitsEmploiBNE();
 
@@ -4992,7 +5288,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

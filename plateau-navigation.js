@@ -259,8 +259,14 @@ function enterBuilding(buildingId, skipAutoRoom) {
     }).catch(() => {});
   }
 
-  // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
-  if (state.estEmprisonne && buildingId !== 'commissariat') {
+  // Verrou : emprisonnement — impossible de quitter sa cellule avant la fin de la peine.
+  // Le batiment autorise vient de celluleDeDetention (plateau-justice-economie.js), source
+  // unique : il vaut 'commissariat'/'commissariat-local' selon la ville, ou 'qhs-prison' pour
+  // un detenu en haute securite. L'ancienne constante 'commissariat' codee en dur enfermait un
+  // detenu de Montrouge/PSM hors de son propre commissariat, et ignorait le QHS.
+  const batimentCellule = (typeof celluleDeDetention === 'function')
+    ? celluleDeDetention(state.estEmprisonne).buildingId : 'commissariat';
+  if (state.estEmprisonne && buildingId !== batimentCellule) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
@@ -528,12 +534,14 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Montrouge/PSM : commissariat-local/geoles, meme template partage -- state.currentCity est
   // donc indispensable en plus du buildingId/roomId pour distinguer Montrouge de PSM, qui
   // partagent litteralement les memes ids de navigation).
+  // Depuis le 13/09/2026 le triplet vient de celluleDeDetention (source unique), qui couvre
+  // aussi le QHS : ville 'qhs', batiment 'qhs-prison', piece 'cellules_qhs'.
   let estDansSaCellule = true;
   if (state.estEmprisonne) {
-    const villeDetention = state.estEmprisonne.city || state.currentCity;
-    const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(villeDetention) : 'commissariat';
-    const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
-    estDansSaCellule = state.currentCity === villeDetention && buildingId === buildingIdCellule && roomId === roomIdCellule;
+    const c = (typeof celluleDeDetention === 'function')
+      ? celluleDeDetention(state.estEmprisonne)
+      : { city: state.estEmprisonne.city || state.currentCity, buildingId: 'commissariat', roomId: 'prison' };
+    estDansSaCellule = state.currentCity === c.city && buildingId === c.buildingId && roomId === c.roomId;
   }
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
   if (state.estEmprisonne && !estDansSaCellule) {
@@ -895,7 +903,15 @@ function doPasserDouanesAeroport() {
   // memes consequences que les autres objets prohibes ici (confiscation + convocation), jamais
   // la detention 1 jour prevue pour l'echec critique de distribution (ce controle n'a jamais ete
   // branche sur procederArrestation/state.estEmprisonne, seulement sur les convocations).
-  const objetsProhibes = (state.inventory || []).filter(i => (i.type === 'arme' || i.type === 'poison' || i.type === 'tract_calomnieux') && i.legal === false);
+  // BRIQUE COMMUNE (13 septembre 2026). Ce filtre etait jusqu'ici code en dur ici, et divergeait
+  // de la fouille policiere sur deux points : il exigeait `legal === false` EN PLUS du type, et
+  // il ignorait totalement les interdictions votees par l'Assemblee (§39) -- une marchandise
+  // devenue illegale par une loi passait donc la douane, alors qu'elle etait saisie dans la rue.
+  // Les trois circuits (douane, fouille policiere, arrestation) lisent desormais objetsSaisissables.
+  const saisissables = (typeof objetsSaisissables === 'function')
+    ? objetsSaisissables(state.inventory) : null;
+  const objetsProhibes = Array.isArray(saisissables) ? saisissables
+    : (state.inventory || []).filter(i => i && i.legal === false);
   if (objetsProhibes.length > 0) {
     const nomsConfisques = objetsProhibes.map(i => i.name).join(', ');
     state.inventory = state.inventory.filter(i => !objetsProhibes.includes(i));

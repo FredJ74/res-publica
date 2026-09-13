@@ -1961,7 +1961,10 @@ const BUILDINGS = {
           {fn:'postes_par_decret',        label:'Postes et comites par decret',     pa:0, cost:0,    type:'legal',   icon:'ti-user-star',        successRate:100, requiresPost:'president', desc:'Creer un poste ministeriel ou un comite (3 PA chacun), ou supprimer celui deja cree.'},
           {fn:'pouvoirs_exceptionnels',   label:'Pouvoirs exceptionnels',           pa:0, cost:0,    type:'legal',   icon:'ti-alert-triangle',   successRate:100, requiresPost:'president', desc:'Etat d urgence (3 PA), declaration de guerre (5 PA), dissolution de l Assemblee (4 PA).'},
           {fn:'adresse_a_la_nation',      label:'S adresser a la Nation',           pa:0, cost:0,    type:'legal',   icon:'ti-speakerphone',     successRate:100, requiresPost:'president', desc:'Referendum (3 PA), deuil national (1 PA) ou decret presidentiel (1 PA).'},
-          {fn:'gracier',                label:'Traiter les demandes de grâce',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Examiner les recommandations de grace du Ministre de la Justice — accepter ou refuser.'}
+          {fn:'gracier',                label:'Traiter les demandes de grâce',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Examiner les recommandations de grace du Ministre de la Justice — accepter ou refuser.'},
+          // Effort national (13 septembre 2026). Entree a 0 PA comme les autres regroupements :
+          // le declenchement et le renouvellement portent eux-memes leur cout de 2 PA.
+          {fn:'effort_national',        label:'Effort national',                         pa:0, cost:0,    type:'legal',   icon:'ti-flame',          successRate:100,requiresPost:'president', desc:'Effort de guerre : mobilisation economique et materielle du pays, par periodes de 3 jours (2 PA). Arret anticipe gratuit.'}
         ]
       },
       salle_presse_elysee: {
@@ -2746,6 +2749,7 @@ const BUILDINGS = {
           {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-tristan-cabane.png', photoPos:'50% 15%'}
         ],
         orders: [
+          {fn:'accepter_incorporation', label:'Accepter le transfert à la caserne', pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, desc:'Reserve aux deserteurs detenus, tant que la mobilisation dure. Le choix revient chaque jour. N\'efface aucune autre peine.'},
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
@@ -3936,6 +3940,7 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: [
+          {fn:'accepter_incorporation', label:'Accepter le transfert à la caserne', pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, desc:'Reserve aux deserteurs detenus, tant que la mobilisation dure. Le choix revient chaque jour. N\'efface aucune autre peine.'},
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
@@ -4509,7 +4514,7 @@ const BUILDINGS = {
           {fn:'affecter_engage',    label:'Affecter un engagé à une section', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Installer un engage valide par le Commandant comme lieutenant d\'une section.'},
           {fn:'engager_officier',   label:'S\'engager comme officier',  pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
           {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'},
-          {fn:'se_presenter_affectation', label:'Se présenter à mon affectation', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Reserve aux civils requisitionnes, avant expiration du delai.'},
+          {fn:'se_presenter_affectation', label:'Se présenter à mon affectation', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Civils requisitionnes avant expiration du delai — et deserteurs, a tout moment : se rendre eteint les poursuites pour desertion.'},
           {fn:'stage_caserne', label:'Stage à la Caserne', pa:3, cost:0, type:'legal', icon:'ti-heart-bolt', successRate:100, desc:'Ouvert a tout le monde. +5 Volonte. 1 fois par jour, maximum 3 jours consecutifs puis 7 jours de repos obligatoire.'}
         ]
       },
@@ -4536,7 +4541,10 @@ const BUILDINGS = {
           {fn:'equiper_section',     label:'Gerer l\'equipement de ma section', pa:1, cost:0, type:'legal', icon:'ti-sword', successRate:100, requiresPost:'lieutenant', desc:'Equiper ou desequiper individuellement les soldats de sa section, selon le stock d\'armes attribue par le Capitaine.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:0, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:['min_def','commandant'], desc:'Deux niveaux : passer les troupes en revue ou inspecter les unites en detail (effectifs, officiers, equipement, budget reels).'},
-          {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'}
+          {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'},
+          // Tableau de controle de l'Effort de guerre (13 septembre 2026). N'est utilisable que
+          // pendant un Effort decrete par le President : hors Effort, il le dit et ne fait rien.
+          {fn:'tableau_effort_guerre', label:'Effort de guerre — tableau de contrôle', pa:0, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'min_def', desc:'Curseurs de ravitaillement et de production militaire, commandes d\'armement, gestion des reliquats. Reglages gratuits.'}
         ]
       },
       armurerie_militaire: {
@@ -4549,9 +4557,29 @@ const BUILDINGS = {
           {name:'Armurier Militaire (PNJ)', role:'PNJ - Sergent armurier', rel:'neutral', job:'armurier_mil'}
         ],
         orders: [
-          {fn:'acheter_arme_militaire', label:'Acheter de l\'armement', pa:1, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'min_def', desc:'Achat institutionnel d\'armes pour l\'armee, alimente le stock de l\'Armurerie Militaire (a repartir ensuite par les Capitaines).'},
-          {fn:'acheter_bombe_mil',      label:'Obtenir des explosifs',        pa:2, cost:0,   type:'legal',   icon:'ti-bomb',      successRate:100, requiresPost:'min_def', desc:'Explosifs reglementaires. Tracables. Ajoutes a l\'inventaire.'},
-          {fn:'acheter_bombe_illegale', label:'Subtiliser des explosifs',     pa:2, cost:0,   type:'illegal', icon:'ti-eye-off',   successRate:35,  desc:'Taux 35%. Echec partiel : -30 HP. Echec critique : -80 HP + alerte.'}
+          // Refonte du 13 septembre 2026 : l'armurerie militaire n'est plus un guichet qui CREE
+          // du materiel, c'est un lieu de STOCK / RETRAIT / VOL. L'achat institutionnel ex nihilo
+          // (acheter_arme_militaire) et l'obtention gratuite d'explosifs (acheter_bombe_mil) ont
+          // ete supprimes : le stock ne se reconstitue plus que par l'Effort de guerre.
+          {fn:'retirer_armes_militaires',     label:'Retirer des armes',        pa:0, cost:0, type:'legal',   icon:'ti-shield',  successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Retrait sur le stock reel de l\'armurerie. Inscrit au registre.'},
+          {fn:'retirer_explosifs_militaires', label:'Retirer des explosifs',    pa:0, cost:0, type:'legal',   icon:'ti-bomb',    successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Retrait sur le stock reel. Inscrit au registre (lot, quantite, jour, responsable).'},
+          {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l\'ISN et la reputation criminelle. Echec detecte : QHS.'}
+        ]
+      },
+      // Refectoire (13 septembre 2026, chantier Effort de guerre). Volontairement SANS
+      // requiresPostId ni requiresPost : le refectoire est ouvert a tout PJ physiquement present
+      // a la caserne, quel que soit son statut -- militaire, mobilise, ministre, civil, refugie.
+      // Accueillir des civils pese donc reellement sur le ravitaillement militaire, c'est voulu.
+      refectoire: {
+        name: "Réfectoire",
+        imageBg: "linear-gradient(135deg,#0a0a06,#13130c)",
+        desc: "Longues tables, bancs de bois, odeur de soupe. Les rations sortent de la cuisine par lots de dix. Ici, le grade ne donne droit a rien de plus qu'une gamelle.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-refectoire.png",
+        persons: [
+          {name:'Cuistot Marmiton (PNJ)', role:'PNJ - Cuisinier de compagnie', rel:'friendly', job:'cuistot_mil'}
+        ],
+        orders: [
+          {fn:'manger_ration', label:'Manger sa ration', pa:0, cost:0, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour. Gratuit. +2 PA. Puise dans le stock de rations de la caserne, alimente par le ravitaillement de l\'Effort de guerre.'}
         ]
       },
       salle_faits_armes: {

@@ -8458,10 +8458,10 @@ const CAP_ENTRAINEMENT_PAR_SESSION = 12;
 // achat institutionnel puis une dotation reelle.
 const CATEGORIES_ARME_STOCK = ['arme_de_poing', 'mitraillette'];
 
-// Prix d'achat institutionnel par unite, fixes le 27 aout 2026 (decision de game design,
-// finalisation du chantier logistique armement du 576f7b5). corps_a_corps reste hors stock,
-// gratuit, inchange.
-const PRIX_ARME_MILITAIRE = { arme_de_poing: 300, mitraillette: 800 };
+// PRIX_ARME_MILITAIRE (300/800) a ete supprime le 13 septembre 2026 avec l'achat institutionnel
+// qu'il tarifait (voir plus bas). L'armement militaire n'a plus de prix d'achat : il a un COUT DE
+// REVIENT, calcule par plateau-effort-guerre.js a partir de la recette reelle, et c'est ce montant
+// qui est verse a l'armurerie qui l'a produit.
 
 // Stock national de l'Armurerie Militaire : porte par budgetNat (meme rail que
 // coefficientsArmesAcquis/rechercheMilitaire, deja persiste sans schema fixe via
@@ -8469,6 +8469,13 @@ const PRIX_ARME_MILITAIRE = { arme_de_poing: 300, mitraillette: 800 };
 async function chargerStockArmurerieMilitaire(pays) {
   const budgetNat = await chargerBudgetNational(pays);
   if (!budgetNat.stockArmurerieMilitaire) budgetNat.stockArmurerieMilitaire = { arme_de_poing: 0, mitraillette: 0 };
+  // RETRO-COMPATIBILITE (13 septembre 2026) : les explosifs militaires rejoignent le meme stock,
+  // mais une ligne ecrite avant ce chantier ne porte pas la cle. On la comble en memoire sans
+  // rien persister ici -- exactement comme les deux categories d'armes au-dessus, dont
+  // l'initialisation n'a jamais ete sauvegardee par cette fonction. Aucune donnee n'est ecrasee.
+  if (typeof budgetNat.stockArmurerieMilitaire.explosif_militaire !== 'number') {
+    budgetNat.stockArmurerieMilitaire.explosif_militaire = 0;
+  }
   return budgetNat;
 }
 
@@ -8728,6 +8735,10 @@ async function rafraichirCacheImmuniteMilitaire() {
   }
   const budgetNat = await chargerBudgetNational(state.country || 'republic').catch(() => null);
   state.mobilisationNationaleCache = !!budgetNat?.mobilisationNationaleActive;
+  // Cache de l'Effort de guerre (13 septembre 2026), pose ici plutot que dans un second
+  // rafraichissement : les deux etats sont lus sur le MEME budget national, deja charge.
+  // Comme mobilisationNationaleCache, il n'est jamais persiste sur la fiche du joueur.
+  state.effortGuerreCache = budgetNat ? (budgetNat.effortGuerre || null) : null;
 }
 
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
@@ -9019,6 +9030,12 @@ function renderBlocVueEnsembleArmee(etat) {
   CATEGORIES_ARME_STOCK.forEach(cat => {
     html += '<div style="color:#a89870;margin-bottom:.3rem">' + labelsArme[cat] + ' — stock Armurerie : ' + (etat.stockArmurerie[cat]||0) + ' · attribuées aux unités : ' + (etat.armesAssignees[cat]||0) + ' · libres en section : ' + (etat.armesLibresSections[cat]||0) + '</div>';
   });
+  // EXPLOSIFS (13 septembre 2026) : ils vivent dans le meme stock national mais ne sont PAS dans
+  // CATEGORIES_ARME_STOCK -- ce ne sont pas des armes distribuables aux sections par le Capitaine.
+  // Ils sont donc affiches a part, en lecture seule. Voir n'est pas retirer : seul le Lieutenant
+  // chef de section peut les sortir du magasin.
+  html += '<div style="color:#a89870;margin-top:.3rem">Explosifs militaires — stock Armurerie : '
+       + ((etat.stockArmurerie && etat.stockArmurerie.explosif_militaire) || 0) + '</div>';
   html += '<div style="color:#C9A84C;margin-top:.4rem">Taux d\'équipement global : ' + (etat.tauxEquipementGlobal == null ? 'non calculable (aucun soldat)' : Math.round(etat.tauxEquipementGlobal*100) + '%') + '</div>';
   html += '</div>';
   return html;
@@ -9069,59 +9086,17 @@ function renderInspectionDetaillee(etat) {
   return html;
 }
 
-// ---- ACHAT INSTITUTIONNEL D'ARMEMENT (Armurerie Militaire, reserve au Ministre de la Defense) ----
-async function ouvrirAchatArmureMilitaire() {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
-  const prixManquant = CATEGORIES_ARME_STOCK.some(cat => PRIX_ARME_MILITAIRE[cat] == null);
-  document.getElementById('postes-modal-title').textContent = 'Achat d\'armement — Armurerie Militaire';
-  if (prixManquant) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.82rem;color:#8a8060;font-style:italic">Le prix d\'achat de l\'armement institutionnel n\'a pas encore été fixé. L\'achat reste indisponible en attendant cette décision.</div>';
-    document.getElementById('modal-postes').classList.add('open');
-    return;
-  }
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerStockArmurerieMilitaire(pays);
-  const stock = budgetNat.stockArmurerieMilitaire;
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-  const labels = { arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
-
-  let html = '<div style="padding:1rem">';
-  CATEGORIES_ARME_STOCK.forEach(cat => {
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.3rem">' + labels[cat] + ' — Stock actuel : ' + (stock[cat]||0) + '</div>';
-    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">' + PRIX_ARME_MILITAIRE[cat].toLocaleString('fr-FR') + ' ' + cur + ' / unité</div>';
-    html += '<input id="qte-achat-' + cat + '" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.4rem"/>';
-    html += '<button onclick="confirmerAchatArmureMilitaire(\'' + cat + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerAchatArmureMilitaire(categorie) {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
-  const qte = parseInt(document.getElementById('qte-achat-' + categorie)?.value || '0');
-  if (qte <= 0) return;
-  const prixUnitaire = PRIX_ARME_MILITAIRE[categorie];
-  if (prixUnitaire == null) return;
-  const pays = state.country || 'republic';
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-  const total = qte * prixUnitaire;
-
-  // Debit institutionnel atomique (tout ou rien, meme primitive que confirmerRechercheMilitaireDepuisMinistere)
-  // AVANT toute augmentation de stock : un echec ici ne cree jamais de stock non paye.
-  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_def', total);
-  if (montantVerse < total) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas ' + total.toLocaleString('fr-FR') + ' ' + cur + '.', false); return; }
-
-  const budgetNat = await chargerStockArmurerieMilitaire(pays);
-  budgetNat.stockArmurerieMilitaire[categorie] = (budgetNat.stockArmurerieMilitaire[categorie] || 0) + qte;
-  await sbSaveBudgetNational(pays, budgetNat);
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Armement acheté', qte + ' unité(s) ajoutée(s) au stock de l\'Armurerie Militaire (-' + total.toLocaleString('fr-FR') + ' ' + cur + ').', true, true);
-  addJournalEntry('Achat institutionnel : ' + qte + ' ' + categorie.replace(/_/g,' ') + ' (-' + total.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-info');
-}
+// ---- ACHAT INSTITUTIONNEL D'ARMEMENT — SUPPRIME LE 13 SEPTEMBRE 2026 ----------------------
+// ouvrirAchatArmureMilitaire / confirmerAchatArmureMilitaire creaient des armes EX NIHILO : le
+// ministre debitait sa caisse et le stock de l'Armurerie Militaire montait, sans qu'aucune arme
+// ait ete produite nulle part, sans matiere consommee et sans armurier paye. Le chantier Effort
+// de guerre supprime ce circuit parallele : desormais l'armement militaire n'a qu'une seule
+// origine, la production par les trois armureries civiles sur commande du Ministre pendant un
+// Effort de guerre (plateau-effort-guerre.js, api/cron-minuit.js). Hors Effort, la caserne vit
+// sur son stock existant -- reconstituer ce stock EXIGE de decreter un Effort.
+// PRIX_ARME_MILITAIRE (300/800) disparait avec eux : c'etaient les memes chiffres legacy que les
+// prix civils de l'armurerie, et plus rien ne les lit. Le stock deja present en base n'est pas
+// touche ; chargerStockArmurerieMilitaire et ouvrirRepartirArmement continuent de le servir.
 
 // ---- DOTATION DES SECTIONS (reservee au Capitaine) : transfere de l'armement entre le stock
 // national de l'Armurerie Militaire et le stock libre d'une section de sa compagnie. ----
@@ -9136,7 +9111,14 @@ async function ouvrirRepartirArmement() {
 
   document.getElementById('postes-modal-title').textContent = 'Répartir l\'armement';
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
-  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock Armurerie Militaire — Arme de poing : ' + (stockArmurerie.arme_de_poing||0) + ' · Mitraillette : ' + (stockArmurerie.mitraillette||0) + '</div>';
+  // VISIBILITE DES STOCKS (13 septembre 2026) : le Capitaine voit les TROIS produits du magasin,
+  // explosifs compris, par la meme brique que le Lieutenant, le Commandant et le Ministre.
+  // Il ne peut repartir que les armes : les explosifs ne sont pas une dotation de section, et
+  // seul le chef de section peut les sortir du magasin. Voir n'est pas retirer.
+  html += (typeof htmlStockArmurerieMilitaire === 'function')
+    ? htmlStockArmurerieMilitaire(stockArmurerie)
+    : '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock Armurerie Militaire — Arme de poing : ' + (stockArmurerie.arme_de_poing||0) + ' · Mitraillette : ' + (stockArmurerie.mitraillette||0) + '</div>';
+  html += '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">Seules les armes se répartissent entre sections. Les explosifs sont retirés directement par le chef de section.</div>';
   (compagnie.sections || []).forEach(s => {
     const stockSection = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
@@ -9603,10 +9585,125 @@ async function doDemobiliser() {
   budgetNat.mobilisationNationaleActive = false;
   await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
   state.mobilisationNationaleCache = false;
+
+  // EXTINCTION DES POURSUITES POUR DESERTION (13 septembre 2026) — et de celles-la SEULEMENT.
+  await eteindrePoursuitesDesertion(pays);
+
   updateUI();
-  showToast('Démobilisation', 'La mobilisation nationale est levée. Les réquisitions cessent et l\'immunité militaire prend fin.', true, true);
+  showToast('Démobilisation', 'La mobilisation nationale est levée. Les réquisitions cessent, les poursuites pour désertion s\'éteignent et l\'immunité militaire prend fin.', true, true);
   addJournalEntry('Démobilisation nationale ordonnée.', 'event-info');
   addExternalEvent('🎖️ DÉMOBILISATION : la mobilisation nationale est levée.');
+}
+
+// ---------------------------------------------------------------------------
+// DESERTION — INCORPORATION, EXTINCTION, BONUS D'EVASION (13 septembre 2026)
+// ---------------------------------------------------------------------------
+// PRINCIPE DIRECTEUR : la desertion est UN motif parmi d'autres. Elle s'eteint seule, elle ne
+// libere jamais un detenu qui purge autre chose, et rien de ce qui la concerne n'a le droit
+// d'effacer un motif etranger. C'est la traduction exacte de la dette « state.recherche = [] »
+// relevee par l'audit : ici on ne remplace jamais le tableau, on le FILTRE.
+
+function estMotifDesertion(entree) {
+  return !!entree && entree.acte === 'desertion';
+}
+
+// Retire les seules entrees de desertion, sur la fiche du joueur courant ET en base. Tout autre
+// motif (crime, condamnation en attente, mandat, motif d'un autre empire) est conserve tel quel.
+async function eteindrePoursuitesDesertion(pays) {
+  const nom = state.char?.name;
+  const estMienne = function (e) {
+    return estMotifDesertion(e) && (!e.country || e.country === pays);
+  };
+
+  if (Array.isArray(state.recherche) && state.recherche.some(estMienne)) {
+    state.recherche = state.recherche.filter(function (e) { return !estMienne(e); });
+  }
+  // HISTORIQUE CONSERVE : on trace l'episode, on n'efface pas le souvenir de la desertion.
+  if (state.char?.requisition && state.char.requisition.statut === 'deserteur') {
+    state.char.requisition = Object.assign({}, state.char.requisition,
+      { statut: 'eteinte', eteinteJour: state.day || 1 });
+  }
+  // Le bonus d'evasion est PROPRE A L'EPISODE : une nouvelle mobilisation repart de zero.
+  if (state.char) state.char.joursDetenuDeserteur = 0;
+
+  // Liberation UNIQUEMENT si la detention ne tenait qu'a la desertion.
+  if (state.estEmprisonne && state.estEmprisonne.motifDesertionSeul === true) {
+    state.estEmprisonne = null;
+    addMailNotification('Caserne', 'Poursuites éteintes',
+      'La démobilisation met fin aux poursuites pour désertion. Vous êtes libéré(e).');
+  }
+
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  if (nom && typeof sbUpdate === 'function') {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
+      { recherche: state.recherche || [] }).catch(() => {});
+  }
+}
+
+// DETENU DESERTEUR : le choix du transfert revient CHAQUE JOUR tant que la mobilisation dure.
+// Accepter n'efface aucune autre peine : si la detention porte d'autres motifs, ils se purgent
+// d'abord et l'incorporation prend effet a la liberation.
+async function doAccepterIncorporation() {
+  const pays = state.country || 'republic';
+  const req = state.char?.requisition;
+  if (!state.estEmprisonne) { showToast('Impossible', 'Vous n\'êtes pas détenu(e).', false); return; }
+  if (!req || req.statut !== 'deserteur') { showToast('Sans objet', 'Vous n\'êtes pas détenu(e) comme déserteur(se).', false); return; }
+  if (!state.mobilisationNationaleCache) { showToast('Mobilisation levée', 'Plus aucune incorporation n\'est possible.', false); return; }
+
+  state.char.requisition = Object.assign({}, req, { statut: 'incorpore', incorporeJour: state.day || 1 });
+  if (Array.isArray(state.recherche)) {
+    state.recherche = state.recherche.filter(function (e) {
+      return !(estMotifDesertion(e) && (!e.country || e.country === pays));
+    });
+  }
+
+  if (state.estEmprisonne.motifDesertionSeul === true) {
+    // La detention ne tenait qu'a la desertion : transfert immediat a la caserne.
+    state.estEmprisonne = null;
+    state.currentCity = 'caserne';
+    state.currentBuilding = 'caserne-militaire';
+    state.currentRoom = 'corps_garde';
+    if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
+      enterBuilding('caserne-militaire', true);
+      if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
+    }
+    showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true);
+  } else {
+    // D'autres peines courent : l'incorporation est actee mais differee a la liberation.
+    state.estEmprisonne.incorporationAcceptee = true;
+    showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true);
+  }
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  if (typeof sbUpdate === 'function' && state.char?.name) {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, {
+      requisition: JSON.stringify(state.char.requisition),
+      recherche: state.recherche || []
+    }).catch(() => {});
+  }
+  updateUI();
+  addJournalEntry('Transfert vers la caserne accepté : incorporation.', 'event-info');
+}
+
+// BONUS D'EVASION DU DESERTEUR : +10 points par jour REELLEMENT passe en detention comme
+// deserteur, plafonne a +50. Cumulatif, conserve apres une evasion ratee et apres une reprise,
+// remis a zero par la demobilisation ou l'incorporation.
+const BONUS_EVASION_DESERTEUR_PAR_JOUR = 10;
+const BONUS_EVASION_DESERTEUR_MAX = 50;
+
+function bonusEvasionDeserteur() {
+  const jours = Math.max(0, Math.floor(Number(state.char?.joursDetenuDeserteur) || 0));
+  return Math.min(BONUS_EVASION_DESERTEUR_MAX, jours * BONUS_EVASION_DESERTEUR_PAR_JOUR);
+}
+
+// Appele une fois par jour de jeu, depuis le meme passage quotidien que la liberation.
+function incrementerDetentionDeserteur() {
+  if (!state.estEmprisonne) return;
+  if (state.char?.requisition?.statut !== 'deserteur') return;
+  if (!state.mobilisationNationaleCache) return;
+  const jour = state.day || 1;
+  if (state.char.dernierJourDetentionDeserteur === jour) return;
+  state.char.dernierJourDetentionDeserteur = jour;
+  state.char.joursDetenuDeserteur = Math.max(0, Math.floor(Number(state.char.joursDetenuDeserteur) || 0)) + 1;
 }
 
 async function ouvrirGererCouvreFeu(pa, cost) {
@@ -9820,7 +9917,8 @@ async function suivreEscorteAvecMoi(nouveauBuildingId) {
 // =====================
 // REQUISITION CIVILE — loterie aleatoire, doublement d'effectif, desertion publique
 // =====================
-const DELAI_REQUISITION_HEURES = 36;
+// Porte de 36 a 48 heures le 13 septembre 2026 (arbitrage du chantier Mobilisation).
+const DELAI_REQUISITION_HEURES = 48;
 
 async function ouvrirRequisitionCivile(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
@@ -9889,8 +9987,13 @@ async function confirmerRequisitionCivile(compagnieId, sectionId, pa, cost) {
 // Le civil convoque se presente a son affectation (doit etre physiquement a la caserne, avant le delai)
 async function doSePresenterAffectation(pa, cost) {
   const req = state.char?.requisition ? (typeof state.char.requisition === 'string' ? JSON.parse(state.char.requisition) : state.char.requisition) : null;
-  if (!req || req.statut !== 'convoque') { showToast('Aucune convocation en attente', '', false); return; }
-  if (Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé.', false); return; }
+  // PRESENTATION VOLONTAIRE D'UN DESERTEUR (13 septembre 2026) : le meme ordre sert desormais
+  // les deux cas, plutot qu'un second ordre parallele. Un convoque se presente dans son delai ;
+  // un deserteur peut se presenter A TOUT MOMENT, sans delai et sans passer par l'arrestation --
+  // c'est precisement ce qui fait de la reddition une option de jeu.
+  const estDeserteur = !!req && req.statut === 'deserteur';
+  if (!req || (req.statut !== 'convoque' && !estDeserteur)) { showToast('Aucune convocation en attente', '', false); return; }
+  if (!estDeserteur && Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).', false); return; }
   if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
@@ -9905,9 +10008,28 @@ async function doSePresenterAffectation(pa, cost) {
 
   req.statut = 'affecte';
   state.char.requisition = req;
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { requisition: JSON.stringify(req) }).catch(() => {});
-  showToast('Affectation confirmée', 'Vous rejoignez la Section ' + (section?.numero||'?') + ' pour la durée de la mobilisation.', true, true);
-  addJournalEntry('Présenté(e) à mon affectation militaire (réquisition civile).', 'event-good');
+
+  // La presentation ETEINT la poursuite pour desertion -- et elle seule. Filtrage, jamais
+  // remplacement : tout autre motif (crime, condamnation en attente, motif d'un autre empire)
+  // survit intact. Le bonus d'evasion de l'episode retombe a zero.
+  if (estDeserteur) {
+    const paysReq = state.country || 'republic';
+    if (Array.isArray(state.recherche)) {
+      state.recherche = state.recherche.filter(function (e) {
+        return !(estMotifDesertion(e) && (!e.country || e.country === paysReq));
+      });
+    }
+    if (state.char) state.char.joursDetenuDeserteur = 0;
+  }
+
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { requisition: JSON.stringify(req), recherche: state.recherche || [] }).catch(() => {});
+  showToast(estDeserteur ? 'Incorporé(e)' : 'Affectation confirmée',
+    estDeserteur
+      ? 'Vous vous rendez de vous-même. Incorporation immédiate, poursuites pour désertion éteintes.'
+      : 'Vous rejoignez la Section ' + (section?.numero||'?') + ' pour la durée de la mobilisation.', true, true);
+  addJournalEntry(estDeserteur
+    ? 'Présentation volontaire à la caserne : incorporation, poursuites pour désertion éteintes.'
+    : 'Présenté(e) à mon affectation militaire (réquisition civile).', 'event-good');
 }
 
 // Verifie chaque jour les convocations expirees non honorees ⇒ desertion publique

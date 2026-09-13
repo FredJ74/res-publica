@@ -151,14 +151,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'traiter_demandes_logement_social') { traiterDemandesLogementSocial(pa, cost); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
-  if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(pa, cost); return; }
-  if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(pa, cost); return; }
-  // Revu le 27 aout 2026 (chantier logistique armement, remplace le raccordement temporaire du
-  // 883fb4c) : achat institutionnel reel de stock d'armes (Armurerie Militaire), distinct de la
-  // recherche militaire (technologie, ouvrirRechercheMilitaireDepuisMinistere, inchangee et
-  // toujours utilisee par gerer_budget_caserne juste en dessous). Voir plateau-politique.js
-  // (PRIX_ARME_MILITAIRE, chargerStockArmurerieMilitaire, ouvrirAchatArmureMilitaire).
-  if (fn === 'acheter_arme_militaire') { ouvrirAchatArmureMilitaire(); return; }
+  // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre
+  // ouvrait le modal du marche noir a 1 200 FR, alors que son libelle et sa description
+  // promettaient un vol a 35 % avec pertes de PV. C'est desormais un vrai vol dans le stock reel
+  // de l'armurerie militaire. Le marche noir garde sa filiere propre, par l'ordre marche_noir
+  // (doMarcheNoir -> doAcheterExplosifs), inchangee et partagee entre les quatre empires.
+  if (fn === 'acheter_bombe_illegale') { doSubtiliserExplosifsMilitaires(pa, cost); return; }
+  // EFFORT DE GUERRE (13 septembre 2026). acheter_arme_militaire et acheter_bombe_mil ont ete
+  // supprimes : ils creaient armes et explosifs ex nihilo. L'armurerie militaire est desormais un
+  // lieu de stock, alimente uniquement par la production de l'Effort de guerre.
+  if (fn === 'effort_national') { ouvrirEffortNational(); return; }
+  if (fn === 'tableau_effort_guerre') { ouvrirTableauEffortMinistre(); return; }
+  if (fn === 'retirer_armes_militaires') { doRetirerArmesMilitaires(); return; }
+  if (fn === 'retirer_explosifs_militaires') { doRetirerExplosifsMilitaires(); return; }
+  if (fn === 'manger_ration') { doMangerRation(); return; }
   if (fn === 'repartir_armement') { ouvrirRepartirArmement(); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
@@ -570,6 +576,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
+  if (fn === 'accepter_incorporation') { doAccepterIncorporation(); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(pa, cost); return; }

@@ -968,7 +968,17 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   const typeBase = ACTES_ILLEGAUX[acte]?.type || acte;
 
   state.estEmprisonne = { jours, jourFin: state.day + jours, raison: peineCalc.label };
-  state.recherche = [];
+  // UN MOTIF N'EN EFFACE JAMAIS UN AUTRE (correctif du 13 septembre 2026). Cette ligne etait un
+  // `state.recherche = []` : etre arrete une journee pour violation de couvre-feu effacait toutes
+  // les autres poursuites, y compris une condamnation a trente jours en attente d'execution et
+  // les motifs relevant d'un AUTRE empire, que le reste du code prend pourtant soin de ne jamais
+  // traiter hors de sa competence territoriale. Seul le motif reellement juge ici s'eteint ;
+  // chaque autre motif continue de vivre pour son propre compte.
+  state.recherche = (state.recherche || []).filter(r => r && r.acte !== acte);
+  // Une detention qui ne tient QU'A LA DESERTION peut etre levee par l'incorporation ou par la
+  // demobilisation ; une detention qui porte autre chose ne le peut jamais. Le drapeau est pose
+  // ici, au seul endroit qui connaisse le motif reellement juge.
+  state.estEmprisonne.motifDesertionSeul = (acte === 'desertion');
   if (amende > 0) state.arg = Math.max(0, state.arg - amende);
   if (state.poste && typeBase === 'crime') {
     addExternalEvent('Votre poste de ' + state.poste.name + ' vous a ete retire suite a votre arrestation.');
@@ -996,14 +1006,22 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   // jusqu'ici le joueur vers un batiment inexistant pour sa ville, avec un verrou de navigation
   // (enterRoom) qui ne reconnaissait de toute facon que 'commissariat'/'prison' comme cellule
   // valide -- le joueur restait alors bloque sans pouvoir jamais atteindre une piece coherente.
-  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(state.currentCity) : 'commissariat';
-  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
-  state.currentBuilding = buildingIdCellule;
-  state.currentRoom = roomIdCellule;
-  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-    enterBuilding(buildingIdCellule, true);
-    if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
+  // FOUILLE A L'ECROU (13 septembre 2026). Une arrestation conduit en cellule : le circuit
+  // comporte donc bien une fouille, et la regle generale s'applique -- tout materiel illegal
+  // decouvert est confisque. procederArrestation ne touchait jusqu'ici RIEN a l'inventaire :
+  // un joueur arrete gardait armes non enregistrees, poisons et explosifs de chantier.
+  // La saisie n'ajoute aucune peine : celle de l'acte juge ci-dessus reste la seule.
+  // Le materiel militaire reglementaire (legal:true) n'est pas concerne.
+  if (typeof objetsSaisissables === 'function' && typeof confisquerObjets === 'function') {
+    const saisis = objetsSaisissables(state.inventory);
+    if (Array.isArray(saisis) && saisis.length > 0) {
+      const noms = confisquerObjets(saisis);
+      addExternalEvent('Fouille a l\'ecrou : ' + noms + ' confisque(s).');
+      addJournalEntry('Fouille à l\'écrou : objets prohibés confisqués (' + noms + ').', 'event-bad');
+    }
   }
+
+  teleporterVersCellule(state.estEmprisonne);
 
   // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
   // appelee APRES la persistance (enregistrerDetention) et la teleportation ci-dessus -- ne
@@ -1019,14 +1037,123 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
 }
 
 // Verification periodique (a minuit / au reveil) : liberation automatique en fin de peine
+// CELLULE DE DETENTION — SOURCE UNIQUE (13 septembre 2026).
+// Le couple batiment/piece d'une cellule etait jusqu'ici recalcule a l'identique en cinq
+// endroits (procederArrestation, verifierArrestationRecherchePolice, les deux verrous de
+// navigation, construireResultatArrestationHtml), et toujours pour le seul commissariat. Le QHS
+// n'avait donc AUCUNE existence physique : un transfere restait dans sa cellule d'origine.
+// Cette fonction est desormais la seule autorite sur « ou se trouve physiquement un detenu ».
+function celluleDeDetention(detention) {
+  const d = detention || {};
+  if (d.qhs === true) {
+    return { city: 'qhs', buildingId: 'qhs-prison', roomId: 'cellules_qhs' };
+  }
+  const ville = d.city || state.currentCity;
+  const buildingId = (typeof getBuildingIdCommissariatNavigation === 'function')
+    ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
+  return { city: ville, buildingId: buildingId, roomId: (buildingId === 'commissariat') ? 'prison' : 'geoles' };
+}
+
+function teleporterVersCellule(detention) {
+  const c = celluleDeDetention(detention);
+  state.currentCity = c.city;
+  state.currentBuilding = c.buildingId;
+  state.currentRoom = c.roomId;
+  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
+    enterBuilding(c.buildingId, true);
+    if (typeof enterRoom === 'function') enterRoom(c.buildingId, c.roomId, null);
+  }
+}
+
+// PLACEMENT AU QHS — mecanisme MINIMAL (chantier Effort de guerre, 13 septembre 2026).
+// Le QHS reste incomplet et fera l'objet d'un chantier dedie : on n'ajoute ici que ce qu'exige
+// la chaine « vol detecte -> QHS N jours -> retour au lieu d'origine ».
+//
+// TROIS REGLES DE PRESERVATION, sans lesquelles cette sanction ecraserait l'existant :
+//   1. state.recherche n'est JAMAIS touche -- aucun motif de recherche n'est eteint.
+//   2. Une detention deja en cours est PROLONGEE (prolongerDetentionActive, precedent existant
+//      de la sentence QHS du tribunal), jamais remplacee : les autres peines se purgent.
+//   3. La ville de retour est memorisee sur la detention, pour que la liberation ramene le
+//      joueur la ou il a ete pris, et non dans une ville quelconque.
+async function placerAuQHS(pays, jours, raison, villeRetour) {
+  const j = Math.max(1, Math.floor(Number(jours) || 1));
+  const nom = state.char?.name;
+  const maintenant = new Date().toISOString();
+  const motif = { type: raison, jour_fait: state.day, city: state.currentCity,
+                  jours: j, source: 'flagrant_delit', date_evenement: maintenant };
+
+  if (state.estEmprisonne && state.estEmprisonne.detentionId && typeof prolongerDetentionActive === 'function') {
+    // Deja detenu : la sanction s'AJOUTE a la peine en cours et la bascule en haute securite.
+    await prolongerDetentionActive(nom, [motif], true).catch(() => {});
+    state.estEmprisonne.qhs = true;
+    if (!state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = villeRetour || null;
+  } else {
+    const jourFin = (state.day || 1) + j;
+    state.estEmprisonne = { jours: j, jourFin: jourFin, raison: raison, qhs: true,
+                            retourVille: villeRetour || null };
+    if (typeof enregistrerDetention === 'function') {
+      await enregistrerDetention(nom, raison, jourFin, true, 'qhs',
+        { country: pays, motifs: [motif] }).catch(() => {});
+    }
+  }
+
+  // Ligne QHS visible par le Ministre de la Justice, et plafond de PA du quartier : deux
+  // mecaniques deja existantes, reutilisees telles quelles.
+  if (typeof sbCreerPrisonnierQHS === 'function') {
+    await sbCreerPrisonnierQHS({ pays: pays, nom: nom, raison: raison,
+      photoUrl: state.char?.photoUrl || null, jourDebut: state.day || 1,
+      jourFin: (state.estEmprisonne.jourFin || ((state.day || 1) + j)) }).catch(() => {});
+  }
+  if (typeof sbUpdate === 'function' && nom) {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
+      { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+  }
+
+  teleporterVersCellule(state.estEmprisonne);
+  updateUI();
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+}
+
 function verifierLiberationPrisonniers() {
   if (!state.estEmprisonne) return;
+  // Compte les jours reellement passes en detention comme deserteur : c'est ce compteur qui
+  // alimente le bonus d'evasion (+10/jour, plafond +50). Pose ici parce que c'est l'unique
+  // passage quotidien deja garanti pour un detenu (runMidnightUpdate et doDormir).
+  if (typeof incrementerDetentionDeserteur === 'function') incrementerDetentionDeserteur();
   if (state.day >= state.estEmprisonne.jourFin) {
     const detentionId = state.estEmprisonne.detentionId || null;
+    const sortaitDuQHS = state.estEmprisonne.qhs === true;
+    const retourVille = state.estEmprisonne.retourVille || null;
     if (detentionId && typeof sbUpdate === 'function') {
       sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'purgee', jour_fin_effective: state.day, date_fin_effective: new Date().toISOString() }).catch(() => {});
     }
     state.estEmprisonne = null;
+
+    // SORTIE DE QHS (13 septembre 2026) : jusqu'ici le drapeau detention_qhs n'etait jamais
+    // leve autrement que par un transfert manuel du Ministre de la Justice -- un detenu dont la
+    // peine expirait restait plafonne a 3 PA indefiniment. Une peine purgee lève le drapeau.
+    if (sortaitDuQHS) {
+      const nom = state.char?.name;
+      if (typeof sbUpdate === 'function' && nom) {
+        sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
+          { detention_qhs: JSON.stringify({ enQHS: false }) }).catch(() => {});
+      }
+      state.detentionQHS = null;
+      // Retour au lieu d'origine quand il a ete memorise (sortie de QHS apres un vol a la
+      // caserne) : sans cela le joueur serait relache dans une zone speciale sans domicile.
+      if (retourVille) {
+        state.currentCity = retourVille;
+        const batiments = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[retourVille]?.buildings) || [];
+        if (batiments.length && typeof enterBuilding === 'function') {
+          state.currentBuilding = batiments[0];
+          state.currentRoom = null;
+          enterBuilding(batiments[0], true);
+        } else if (typeof forceRenderCity === 'function') {
+          forceRenderCity();
+        }
+      }
+    }
+
     addMailNotification('Commissariat', 'Libération', 'Votre peine est purgée. Vous êtes libre de circuler.');
     addJournalEntry('Vous avez purgé votre peine et êtes libéré(e).', 'event-good');
     updateUI();
@@ -1459,6 +1586,14 @@ async function doTentativeEvasion(pa, cost) {
   let taux = 10 + (dup - 10) * 2 - (isn - 45) / 3;
   taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(2, Math.min(40, Math.round(taux)));
+  // BONUS DU DESERTEUR (arbitrage du conflit technique, 13 septembre 2026) : on calcule
+  // normalement, on applique le plafond ordinaire de 40 %, PUIS on ajoute le bonus -- dans cet
+  // ordre precis. L'equilibrage de l'evasion ordinaire reste donc rigoureusement inchange pour
+  // tout detenu non deserteur, et le maximum absolu est 90 %.
+  if (typeof bonusEvasionDeserteur === 'function') {
+    const bonusDeserteur = bonusEvasionDeserteur();
+    if (bonusDeserteur > 0) taux = Math.min(90, taux + bonusDeserteur);
+  }
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
@@ -1504,7 +1639,13 @@ async function doTentativeEvasion(pa, cost) {
     }
 
     state.estEmprisonne = null;
-    state.recherche = [];
+    // LE `state.recherche = []` QUI SE TROUVAIT ICI A ETE SUPPRIME (13 septembre 2026). Il etait
+    // doublement destructeur : il effacait les autres motifs de poursuite, et surtout il ecrasait
+    // l'entree « Evasion + reliquat » que ajouterCondamnationRecherche venait d'ecrire EN BASE
+    // quelques lignes plus haut -- celle-ci ne passe que par sbUpdate sans toucher state, si bien
+    // que la prochaine sbSavePersonnage (declenchee par le moindre changement de piece) republiait
+    // un tableau vide par-dessus. Une evasion pouvait donc s'auto-amnistier.
+    // Rien n'est efface : l'evasion AJOUTE un motif, elle n'en eteint aucun.
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
     addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
@@ -4376,7 +4517,12 @@ async function doOuvrirAchatEntrepot(pa, cost) {
   const buildingId = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
-  const stock = etat.entrepot?.stock || {};
+  // RESERVE MILITAIRE (13 septembre 2026) : pendant un Effort de guerre, une part du stock est
+  // reservee a l'armement. Elle reste physiquement en entrepot mais n'est plus vendable aux
+  // particuliers. On affiche donc le stock REELLEMENT disponible, jamais le stock physique --
+  // sans quoi le joueur verrait une quantite qu'il ne pourrait pas acheter.
+  const dispoCivil = (typeof stockCivilDisponible === 'function') ? stockCivilDisponible(etat) : null;
+  const stock = (dispoCivil && typeof dispoCivil === 'object') ? dispoCivil : (etat.entrepot?.stock || {});
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
@@ -4420,7 +4566,11 @@ async function doOuvrirAchatEntrepot(pa, cost) {
 async function confirmerAchatEntrepot(buildingId, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const stock = etat.entrepot?.stock || {};
+  const stockPhysique = etat.entrepot?.stock || {};
+  // Le controle de disponibilite porte sur stock - reserve militaire ; le DEBIT, lui, porte sur
+  // le stock physique (plus bas) : la marchandise reservee ne doit jamais disparaitre.
+  const dispoCivil = (typeof stockCivilDisponible === 'function') ? stockCivilDisponible(etat) : null;
+  const stock = (dispoCivil && typeof dispoCivil === 'object') ? dispoCivil : stockPhysique;
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   // Premiere passe : lire les quantites demandees, calculer le total, verifier stock+argent
@@ -4445,7 +4595,8 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     }
     const enStock = stock[cle] || 0;
     if (qte > enStock) {
-      showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
+      showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label
+        + ' disponible(s) à la vente.' + (enStock === 0 ? ' Une réserve militaire est en vigueur.' : ''), false);
       return;
     }
     const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessourceEntrepot(cle);
@@ -4479,6 +4630,10 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
       desc: 'Ressource achetée à l\'entrepôt logistique.'
     });
     if (qteAjoutee > 0) {
+      // On debite le stock PHYSIQUE, jamais la vue « disponible a la vente » : celle-ci est une
+      // projection (stock - reserve militaire), et la reecrire en base ferait disparaitre pour de
+      // bon la marchandise reservee a l'armement.
+      stockPhysique[cle] = (stockPhysique[cle] || 0) - qteAjoutee;
       stock[cle] = (stock[cle] || 0) - qteAjoutee;
       totalReellementPaye += qteAjoutee * prix;
     }
@@ -4493,7 +4648,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 
   // Revenu credite a la caisse de l'entrepot — corrige le 8 aout 2026 : jusque-la, l'argent
   // paye par le joueur disparaissait sans contrepartie, la caisse ne pouvant que baisser.
-  etat.entrepot = { ...(etat.entrepot || {}), stock, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
+  etat.entrepot = { ...(etat.entrepot || {}), stock: stockPhysique, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -6299,8 +6454,11 @@ async function confirmerConstruction(niveauKey) {
     ['bois', 'minerai', 'metal'].forEach(function (m) {
       prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
     });
+    // La reserve militaire de l'Effort de guerre bloque aussi les chantiers : le sixieme
+    // argument retire du disponible ce qui est reserve, sans faire disparaitre la marchandise.
     const plan = planifierApprovisionnement(besoinJ1, chantier.stockMateriaux,
-      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, chantier.tresorerie, prix);
+      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, chantier.tresorerie, prix,
+      (typeof reserveMilitaireEntrepot === 'function') ? reserveMilitaireEntrepot(etatEnt) : {});
     if (plan.depense > 0) {
       chantier = Object.assign({}, chantier, {
         stockMateriaux: plan.stockChantier,
@@ -6771,8 +6929,11 @@ async function confirmerReconfiguration() {
     ['bois', 'minerai', 'metal'].forEach(function (m) {
       prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
     });
+    // Idem reconfiguration : la reserve militaire est opposable a ce chantier-ci comme a tout
+    // autre usage non militaire.
     const plan = planifierApprovisionnement(besoinJ1, ch.stockMateriaux,
-      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, ch.tresorerie, prix);
+      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, ch.tresorerie, prix,
+      (typeof reserveMilitaireEntrepot === 'function') ? reserveMilitaireEntrepot(etatEnt) : {});
     if (plan.depense > 0) {
       ch = Object.assign({}, ch, {
         stockMateriaux: plan.stockChantier,
@@ -9572,13 +9733,29 @@ async function acheterLotNonReclameeFret(caisseId) {
 }
 
 // ---- FOUILLE GENERIQUE (inventaire) ----
-// Detection generique : tout objet legal:false est repere (reutilise le flag deja universel du
-// jeu). Seuls les types deja dotes d'un vrai traitement de confiscation ailleurs dans le jeu
-// (whitelist deja utilisee par les douanes, doPasserDouanesAeroport, plateau-navigation.js)
-// declenchent une consequence reelle -- ne pas etendre cette liste sans decision explicite de
-// peine pour les autres types legal:false existants (kompromat, contrebande, document_falsifie,
-// tract, photo_compromettante, explosif, loukoum_contrebande).
-const OBJET_ILLEGAL_PEINE_CONNUE = { arme: true, poison: true, tract_calomnieux: true };
+// REGLE GENERALE ARRETEE LE 13 SEPTEMBRE 2026 : « tout materiel illegal decouvert lors d'une
+// fouille douaniere ou d'une fouille/arrestation policiere est confisque. »
+//
+// L'ancienne liste fermee OBJET_ILLEGAL_PEINE_CONNUE = {arme, poison, tract_calomnieux} A ETE
+// SUPPRIMEE. Elle produisait une anomalie : identifierObjetsIllegaux REPERAIT bien un objet
+// legal:false hors whitelist, puis separerObjetsIllegauxConnus le rangeait dans `nonReconnus`
+// et l'unique appelant ne lisait que `connus` -- l'objet etait donc detecte, puis jete par le
+// code. Explosifs de chantier, kompromat, contrebande, documents falsifies et photos
+// compromettantes traversaient ainsi tous les controles.
+// La justification historique de la whitelist (« pas de peine connue pour ces types ») ne tenait
+// pas : la peine appliquee, possession_illegale_douane, est generique et ne depend d'aucun type.
+//
+// CE QUI RESTE HORS DE PORTEE DE LA SAISIE, volontairement :
+//   - les objets legaux, y compris le materiel MILITAIRE (explosifs et armes reglementaires
+//     portent legal:true) : leur possession n'est pas illegale en soi, et une saisie automatique
+//     desarmerait un lieutenant a chaque controle de routine ;
+//   - les objets de quete proteges (colisSecretProtege), deja intransferables partout ailleurs
+//     dans le jeu -- les confisquer rendrait une quete impossible a terminer.
+function objetsSaisissables(inventory) {
+  return identifierObjetsIllegaux(inventory).filter(function (o) {
+    return !(typeof colisSecretProtege === 'function' && colisSecretProtege(o));
+  });
+}
 
 // §39 (chantier Assemblee, 10 septembre 2026) : un objet parfaitement legal a l'achat peut etre
 // devenu interdit depuis, par une loi mecanique adoptee entre-temps. Il ne porte alors PAS
@@ -9595,17 +9772,6 @@ function identifierObjetsIllegaux(inventory) {
     if (i.legal === false) return true;
     return (typeof assembleeInterdictionObjet === 'function') && !!assembleeInterdictionObjet(i);
   });
-}
-
-function separerObjetsIllegauxConnus(objets) {
-  // Un objet vise par une loi d'interdiction en vigueur est TOUJOURS "connu" : la loi lui donne
-  // precisement le traitement penal qui manquait aux types hors whitelist.
-  const estConnu = o => !!OBJET_ILLEGAL_PEINE_CONNUE[o.type]
-    || ((typeof assembleeInterdictionObjet === 'function') && !!assembleeInterdictionObjet(o));
-  return {
-    connus: objets.filter(estConnu),
-    nonReconnus: objets.filter(o => !estConnu(o))
-  };
 }
 
 // Retire purement et simplement les objets confisques de l'inventaire local (aucune convocation,
@@ -9740,7 +9906,7 @@ function resoudreControlePoliceAutomatique(perGroupe, volGroupe) {
     return;
   }
 
-  const { connus } = separerObjetsIllegauxConnus(identifierObjetsIllegaux(state.inventory));
+  const connus = objetsSaisissables(state.inventory);
   if (connus.length === 0) {
     showToast('Fouille effectuée', 'Rien d\'illégal trouvé sur vous. Vous êtes relâché(e).', true, true);
     addJournalEntry('Fouille policière : rien trouvé.', '');
@@ -10127,6 +10293,16 @@ async function ajouterCondamnationRecherche(nom, entree) {
   const actuelle = rows?.[0]?.recherche || [];
   actuelle.push(entree);
   await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { recherche: actuelle }).catch(() => {});
+  // REFLET LOCAL OBLIGATOIRE (13 septembre 2026). Cette fonction n'ecrivait qu'en base. Or
+  // sbSavePersonnage republie state.recherche EN BLOC (supabase.js) et le trigger serveur
+  // personnages_preserver_judiciaire ne protege que convocations et historique_crimes, pas
+  // recherche : la premiere sauvegarde client venue -- un simple changement de piece -- effacait
+  // donc la condamnation qui vient d'etre inscrite. Meme precaution que le mandat d'arret des
+  // tracts calomnieux (plateau-communication.js), qui reflete deja l'ecriture serveur dans state.
+  if (nom && nom === state.char?.name) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push(entree);
+  }
 }
 
 function doMenerEnquete(pa, cost) {

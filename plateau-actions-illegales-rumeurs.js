@@ -534,7 +534,10 @@ async function confirmerAssassinatArme(encodedCible, mode) {
     // correspond exactement a la sanction voulue. La cle technique est CONSERVEE telle quelle :
     // c'est un identifiant de bareme, jamais un libelle montre au joueur (§17).
     addExternalEvent('Tentative de neutralisation sur ' + cible.name + ' ! Vous avez été identifié(e). Arrestation imminente.');
-    state.recherche = [{ acte: 'tentative_assassinat', type: 'crime', jour: state.day }];
+    // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
+    // les autres motifs de poursuite, dont une condamnation en attente d'execution.
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
     setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
   }
   updateUI();
@@ -576,7 +579,10 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
   if (!reussi) {
     // Echec sur un depute : pris sur le fait, meme sanction que sur toute autre cible (§25).
     addExternalEvent('Tentative de neutralisation sur le député ' + siege.nom + ' ! L\'auteur a été identifié.');
-    state.recherche = [{ acte: 'tentative_assassinat', type: 'crime', jour: state.day }];
+    // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
+    // les autres motifs de poursuite, dont une condamnation en attente d'execution.
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
     showToast('Raté', siege.nom + ' esquive maladroitement et hurle. Les huissiers accourent.', false, true);
     addJournalEntry('Tentative de neutralisation ratée sur le député ' + siege.nom + '.', 'event-bad');
     updateUI();
@@ -1410,6 +1416,16 @@ async function ouvrirModalAcheterArme() {
 
   document.getElementById('postes-modal-title').textContent = 'Choisissez votre arme';
   let html = '<div style="padding:1rem">';
+  // EFFORT DE GUERRE : on le DIT en vitrine, on ne laisse pas le joueur le decouvrir au refus.
+  // Le circuit legal seul est suspendu -- le marche noir, lui, reste ouvert et le reste visible.
+  const effortVitrine = await chargerEffortGuerre(pays).catch(() => null);
+  const ventesSuspendues = (typeof verdictVenteLegaleArme === 'function')
+    && !verdictVenteLegaleArme(effortVitrine, Date.now()).ok;
+  if (ventesSuspendues) {
+    html += '<div style="font-size:.8rem;color:#cc8844;margin-bottom:1rem;padding:.6rem;background:#0f0d05;border:1px solid #3a2810">'
+         + '<strong>Effort de guerre.</strong> La vente d\'armes aux particuliers est suspendue : l\'armement part aux casernes. '
+         + 'Les armes que vous possédez déjà ne sont pas concernées.</div>';
+  }
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Achat légal : enregistré au registre de vente, prix normal. Marché noir : non enregistré, 3x le prix, risque de dénonciation par l\'armurier. Seules les armes réellement en stock (produites par les employés de l\'armurerie) sont disponibles.</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">';
 
@@ -1476,11 +1492,32 @@ async function confirmerAchatArme(armeId) {
     return;
   }
 
+  // LE -50 % DE LA MOBILISATION NATIONALE A ETE SUPPRIME LE 13 SEPTEMBRE 2026. La Mobilisation
+  // est une mobilisation HUMAINE : elle ne touche ni le prix ni la disponibilite du marche civil
+  // des armes. La remise etait par ailleurs invisible en vitrine (ouvrirModalAcheterArme affichait
+  // le prix plein) et ne s'appliquait pas au marche noir : le joueur decouvrait le vrai prix au
+  // debit. C'est desormais l'Effort de guerre, mobilisation ECONOMIQUE, qui agit sur ce marche --
+  // en le suspendant, pas en le bradant.
   const prixVente = data.parametres.prixVente[armeId] || arme.prix;
-  const prixApplique = state.mobilisationNationaleCache ? Math.round(prixVente / 2) : prixVente;
+  const prixApplique = prixVente;
   if (state.arg < prixApplique) {
     showToast('Fonds insuffisants', prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
     return;
+  }
+
+  // EFFORT DE GUERRE : ventes civiles suspendues (§I). Le predicat pur vit dans
+  // plateau-gouvernement.js et attendait ce point d'interposition depuis sa creation.
+  // N'affecte NI le stock, NI le prix, NI les armes deja possedees -- seule la vente au
+  // particulier est refusee. Le gilet pare-balles (confirmerAchatGilet) n'est pas concerne,
+  // et le marche noir reste ouvert : c'est ce qui rend la mesure interessante.
+  if (typeof verdictVenteLegaleArme === 'function') {
+    const effort = (typeof chargerEffortGuerre === 'function')
+      ? await chargerEffortGuerre(pays).catch(() => null) : null;
+    const vGuerre = verdictVenteLegaleArme(effort, Date.now());
+    if (!vGuerre.ok) {
+      showToast('Vente suspendue', 'L\'Effort de guerre suspend la vente d\'armes aux particuliers. L\'armement va aux casernes.', false);
+      return;
+    }
   }
 
   // Achat LEGAL : l'armurerie, PNJ ou rachetee par un PJ, est un fournisseur legal. Une loi en
@@ -1819,28 +1856,144 @@ async function confirmerAchatGilet() {
 // =====================
 // EXPLOSIFS (marche noir, modal avec image, comme le parapluie)
 // =====================
-// Explosifs reglementaires, reserves au Ministre de la Defense — traçables (contrairement
-// a la version marche noir), pas de risque ni de cout : ordre defini dans data.js
-// (acheter_bombe_mil) mais jamais routee. Corrige le 5 aout 2026.
-async function doObtenirExplosifsMilitaires(pa, cost) {
-  if (state.poste?.id !== 'min_def') {
-    showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false);
+// doObtenirExplosifsMilitaires a ete SUPPRIME le 13 septembre 2026. Il creait un explosif ex
+// nihilo pour 2 PA, sans limite, sans stock a decrementer et sans la moindre trace -- alors que
+// sa description promettait un materiel « tracable ». Le retrait reglementaire le remplace :
+// doRetirerExplosifsMilitaires (plateau-effort-guerre.js), reserve au chef de section, gratuit,
+// pris sur le stock reel et inscrit au registre.
+
+// =====================
+// SUBTILISER DES EXPLOSIFS — VOL REEL DANS LE STOCK DE LA CASERNE (13 septembre 2026)
+// =====================
+// Ouvert a TOUT PJ physiquement present a la caserne : militaire, mobilise, civil, refugie.
+// Aucune condition de poste -- c'est precisement ce qui en fait la faille du systeme.
+//
+// MOTEUR : celui du vol de materiaux de chantier (plateau-chantiers.js), reutilise tel quel --
+// DUP, ISN local, reputation criminelle, benediction, UN SEUL JET dont decoule la detection.
+// Aucun second tirage, aucun echec critique : le cahier des charges n'en prevoit pas ici.
+// Seule difference assumee : la reussite de base est de 35 % et non ~50 %. Elle est obtenue en
+// deplacant le SEUIL (SEUIL_REUSSITE_SUBTILISATION), jamais en dupliquant le moteur -- le score
+// reste calcule par scoreVolMateriaux, avec exactement les memes termes.
+const SEUIL_REUSSITE_SUBTILISATION = 66;   // score >= 66 -> reussite, soit EXACTEMENT 35 %
+// (le jet uniforme 1..100 rend 101 - seuil issues gagnantes : 66 donne 35, 65 en donnerait 36)
+const SEUIL_DETECTION_SUBTILISATION = 20;  // score < 20  -> echec DETECTE (meme borne basse que le chantier)
+const PA_SUBTILISATION = 2;                // aligne sur le vol de materiaux de chantier
+const JOURS_QHS_SUBTILISATION = 3;
+
+// Verdict a trois issues, sur un seul score. Meme forme que verdictVolMateriaux, seuil different.
+function verdictSubtilisationExplosif(score) {
+  const s = Math.max(0, Math.min(100, Number(score) || 0));
+  if (s < SEUIL_DETECTION_SUBTILISATION) return { reussite: false, detecte: true, score: s };
+  if (s < SEUIL_REUSSITE_SUBTILISATION) return { reussite: false, detecte: false, score: s };
+  return { reussite: true, detecte: false, score: s };
+}
+
+async function doSubtiliserExplosifsMilitaires(pa, cost) {
+  const pays = state.country || 'republic';
+  const stock = (typeof chargerStockMilitaireCaserne === 'function')
+    ? await chargerStockMilitaireCaserne(pays).catch(() => null) : null;
+  const dispo = stock ? (stock.explosif_militaire || 0) : 0;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#cc8844;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">'
+       + 'Acte criminel. Vous tentez de faire disparaître un explosif du stock de l\'armurerie militaire. '
+       + 'Rien ne sera inscrit au registre — mais si la garde vous repère, c\'est le Quartier Haute Sécurité pour '
+       + JOURS_QHS_SUBTILISATION + ' jours.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Stock de l\'armurerie : <strong style="color:#C9A84C">'
+       + dispo + '</strong> explosif(s).</div>';
+  if (dispo <= 0) {
+    html += '<div style="font-size:.78rem;color:#8a6a4a;font-style:italic">Il n\'y a rien à voler : l\'armurerie est vide.</div>';
+  } else {
+    html += '<button onclick="confirmerSubtilisationExplosif()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">Tenter de subtiliser ('
+         + PA_SUBTILISATION + ' PA)</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Subtiliser des explosifs';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSubtilisationExplosif() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'caserne';
+
+  const r = await deduireCoutOrdre({ pa: PA_SUBTILISATION, cost: 0 });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  // Bonus/malus : STRICTEMENT les memes termes que le vol de materiaux de chantier. L'ISN lu est
+  // celui de la zone ou se trouve le joueur ; la caserne etant une zone speciale sans indices
+  // propres, getIndiceVille retombe sur la valeur par defaut, comme partout ailleurs.
+  const dup = getStatEffective('DUP');
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn')
+            : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
+  let bonus = (dup - 10) * 2 - (isn - 45) / 3
+            + (typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0);
+  if (typeof consommerBonusBenediction === 'function') bonus = consommerBonusBenediction(50 + bonus) - 50;
+
+  // UN SEUL JET, comme le vol de chantier. Aucun vigile ici : le troisieme terme est nul.
+  const jet = (Math.floor(Math.random() * 100) + 1) - 50;
+  const score = (typeof scoreVolMateriaux === 'function') ? scoreVolMateriaux(bonus, 0, jet)
+              : Math.max(0, Math.min(100, 50 + bonus + jet));
+  const verdict = verdictSubtilisationExplosif(score);
+
+  if (verdict.reussite) {
+    // Le stock est decremente AVANT que l'objet n'existe : jamais d'explosif cree de rien, et si
+    // le stock a ete vide entre-temps la tentative echoue proprement (les PA restent consommes,
+    // comme pour toute tentative).
+    const res = (typeof sbMilitaireSubtiliser === 'function')
+      ? await sbMilitaireSubtiliser(pays, state.char?.name || '') : null;
+    if (!res || res.ok !== true) {
+      showToast('Rien à prendre', (res && res.raison === 'stock_insuffisant')
+        ? 'Le râtelier était déjà vide.' : 'Vous n\'avez rien pu emporter.', false);
+      addJournalEntry('Tentative de subtilisation d\'explosifs : rien à prendre.', 'event-info');
+      return;
+    }
+    const lot = (Array.isArray(res.lots) && res.lots[0]) ? res.lots[0].lot : 'legacy';
+    if (typeof poserObjetMilitaire === 'function') poserObjetMilitaire('explosif_militaire', lot);
+
+    // Trace d'enquete anonyme : le fait est constatable, l'auteur ne l'est pas. Aucune ligne au
+    // registre reglementaire -- c'est toute la difference avec un retrait.
+    if (typeof sbTracerAction === 'function') {
+      await sbTracerAction({
+        id: 'subtilisation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        auteur: state.char?.name, cible: null, type_action: 'subtilisation_explosif',
+        country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
+      }).catch(() => {});
+    }
+    if (typeof addExternalEvent === 'function') {
+      addExternalEvent('Un explosif manque à l\'inventaire de l\'armurerie militaire.', 'local');
+    }
+    updateUI();
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+    showToast('Explosif subtilisé', 'Personne ne vous a vu. L\'objet ne figure sur aucun registre.', true, true);
+    addJournalEntry('Explosif militaire subtilisé à l\'armurerie de la caserne (lot ' + lot + ').', 'event-bad');
     return;
   }
-  // Fourniture legale d'equipement : regle generale des interdictions, avant tout debit.
-  if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale([{ type: 'explosif' }]))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    type: 'explosif', name: 'Explosifs militaires réglementaires', icon: 'ti-bomb', legal: true,
-    desc: 'Explosifs traçables, obtenus légalement par le Ministère de la Défense. Usage unique.',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-marche-noir.png'
-  });
-  updateUI();
-  showToast('Explosifs obtenus', 'Explosifs réglementaires ajoutés à votre inventaire.', true, true);
-  addJournalEntry('Explosifs militaires réglementaires obtenus (Ministère de la Défense).', 'event-info');
+
+  if (verdict.detecte) {
+    // ECHEC DETECTE : arrestation immediate, QHS 3 jours, retour a la caserne a la sortie.
+    // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
+    // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
+    // Les autres motifs de recherche et de detention sont integralement preserves.
+    await placerAuQHS(pays, JOURS_QHS_SUBTILISATION, 'Vol de matériel militaire', CASERNE_CITY);
+    showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
+      + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
+    addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION
+      + ' jours de QHS, puis retour à la caserne.', 'event-bad');
+    return;
+  }
+
+  // ECHEC DISCRET : rien obtenu, aucune identification, mais le fait reste constatable.
+  if (typeof sbTracerAction === 'function') {
+    await sbTracerAction({
+      id: 'subtilisationratee-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      auteur: state.char?.name, cible: null, type_action: 'tentative_subtilisation_explosif',
+      country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
+    }).catch(() => {});
+  }
+  showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
+  addJournalEntry('Tentative manquée de subtilisation d\'explosifs. Personne ne vous a vu.', 'event-info');
 }
 
 // =====================
@@ -2381,7 +2534,9 @@ async function confirmerEmpoisonnement(cibleNom) {
     //
     // Ce n'est pas une regle nouvelle : c'est la valeur que le jeu declare deja pour cet acte
     // precis, et qui n'etait simplement jamais lue. Signale au rapport pour arbitrage.
-    state.recherche = [{ acte:'tentative_empoisonnement', type:'crime', jour:state.day }];
+    // AJOUT, jamais remplacement (13/09/2026) -- meme correctif que les tentatives d'assassinat.
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte:'tentative_empoisonnement', type:'crime', jour:state.day });
     showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false);
     addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
     setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);

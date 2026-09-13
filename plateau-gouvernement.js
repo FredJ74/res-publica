@@ -881,73 +881,134 @@ function verdictReportElection(cycle, regime, maintenantMs, auteur) {
 // ---------------------------------------------------------------------------
 // CE N'EST PLUS UNE DECISION DU CONSEIL (arbitrage du 7 septembre 2026). Le President le declenche
 // en sa qualite de chef des armees : sans vote, meme en temps de paix, meme contre l'avis du
-// Premier ministre. Il n'a AUCUNE duree maximale et ne prend fin que par une seconde decision
-// presidentielle explicite -- il ne s'eteint donc jamais tout seul, contrairement aux mesures
-// d'exception du Conseil.
+// Premier ministre.
 //
-// C'est une asymetrie voulue : les libertes publiques sont rendues au bout de 9 jours au plus,
-// l'effort de guerre non.
+// DUREE (arbitrage du 13 septembre 2026, remplace le « sans duree maximale » d'origine) : l'effort
+// vit par PERIODES DE 3 JOURS REELS. L'echeance est une DATE ABSOLUE, comme pour les mesures
+// d'exception du Conseil : la periode est morte quand l'heure est passee, que quelqu'un se
+// connecte ou non. Sans renouvellement, l'effort s'arrete donc tout seul.
+//
+// HORS GUERRE DECLAREE : 2 periodes consecutives au maximum (les 3 jours initiaux + une seule
+// prolongation), et cette prolongation preventive coute -2 IS dans chacune des trois villes.
+// AVEC GUERRE DECLAREE : renouvellements illimites tant que la guerre existe, aucune penalite.
+// Une guerre qui commence pendant un effort preventif laisse courir la periode en cours et remet
+// le compteur preventif a zero ; la fin d'une guerre le reinitialise de la meme facon, si bien que
+// les regles preventives normales reprennent ensuite sans traitement particulier.
 const AUTORITE_EFFORT_DE_GUERRE = 'president';
+const DUREE_EFFORT_GUERRE_MS = 3 * 24 * 60 * 60 * 1000;   // 3 jours REELS
+const PERIODES_PREVENTIVES_MAX = 2;                       // 3 jours + UNE prolongation
+const COUT_PA_EFFORT_GUERRE = 2;                          // declenchement ET renouvellement
+const IS_PROLONGATION_PREVENTIVE = -2;                    // par ville, cle reelle 'social'
+const PRIORITE_MILITAIRE_DEFAUT = 50;                     // curseurs PNJ/defaut : 50 % / 50 %
 
-function verdictDeclencherEffortDeGuerre(posteId, effortActuel) {
+function verdictDeclencherEffortDeGuerre(posteId, effortActuel, maintenantMs) {
   if (posteId !== AUTORITE_EFFORT_DE_GUERRE) return { ok: false, raison: 'reserve_au_president' };
-  if (effortDeGuerreActif(effortActuel)) return { ok: false, raison: 'deja_actif' };
+  if (effortDeGuerreActif(effortActuel, maintenantMs)) return { ok: false, raison: 'deja_actif' };
   return { ok: true, raison: null };
 }
 
-function verdictTerminerEffortDeGuerre(posteId, effortActuel) {
+function verdictTerminerEffortDeGuerre(posteId, effortActuel, maintenantMs) {
   if (posteId !== AUTORITE_EFFORT_DE_GUERRE) return { ok: false, raison: 'reserve_au_president' };
-  if (!effortDeGuerreActif(effortActuel)) return { ok: false, raison: 'pas_actif' };
+  if (!effortDeGuerreActif(effortActuel, maintenantMs)) return { ok: false, raison: 'pas_actif' };
   return { ok: true, raison: null };
 }
 
-// Aucune echeance : l'absence de champ d'expiration est le fait mecanique qui traduit « sans duree
-// maximale ». On ne pose pas une echeance lointaine, qui serait une duree maximale deguisee.
-function ouvrirEffortDeGuerre(auteur, maintenantMs) {
-  return { actif: true, debutA: Number(maintenantMs) || 0, par: auteur || null, finA: null };
+// RENOUVELER, C'EST REPOUSSER L'ECHEANCE DE 3 JOURS A PARTIR DE MAINTENANT. Renouveler avant
+// expiration ne fait perdre aucun temps restant mais ne le cumule pas non plus : une periode reste
+// une periode. Commandes, curseurs et stocks sont conserves tels quels (aucune remise a zero).
+function verdictRenouvelerEffortDeGuerre(posteId, effortActuel, maintenantMs, guerreEnCours) {
+  if (posteId !== AUTORITE_EFFORT_DE_GUERRE) return { ok: false, raison: 'reserve_au_president' };
+  if (!effortDeGuerreActif(effortActuel, maintenantMs)) return { ok: false, raison: 'pas_actif' };
+  const preventives = Math.max(0, Math.floor(Number((effortActuel || {}).periodesPreventives) || 0));
+  if (!guerreEnCours && preventives >= PERIODES_PREVENTIVES_MAX) {
+    return { ok: false, raison: 'prolongation_preventive_epuisee', maximum: PERIODES_PREVENTIVES_MAX };
+  }
+  // La penalite d'IS ne frappe que la prolongation PREVENTIVE : en guerre declaree, aucune.
+  return { ok: true, raison: null, penaliteIS: !guerreEnCours };
 }
 
-function fermerEffortDeGuerre(effort, auteur, maintenantMs) {
+function ouvrirEffortDeGuerre(auteur, maintenantMs, guerreEnCours) {
+  const t = Number(maintenantMs) || 0;
+  return {
+    actif: true, debutA: t, expireA: t + DUREE_EFFORT_GUERRE_MS, par: auteur || null, finA: null,
+    periodes: 1,
+    // Le declenchement initial ne coute aucun IS : seule la PROLONGATION preventive en coute.
+    periodesPreventives: guerreEnCours ? 0 : 1,
+    prioriteRavitaillement: PRIORITE_MILITAIRE_DEFAUT,
+    prioriteProductionMilitaire: PRIORITE_MILITAIRE_DEFAUT
+  };
+}
+
+function renouvelerEffortDeGuerre(effort, maintenantMs, guerreEnCours) {
   const e = effort || {};
-  return { actif: false, debutA: e.debutA || null, par: e.par || null,
-           finA: Number(maintenantMs) || 0, terminePar: auteur || null };
+  const t = Number(maintenantMs) || 0;
+  return Object.assign({}, e, {
+    actif: true, expireA: t + DUREE_EFFORT_GUERRE_MS, finA: null,
+    periodes: Math.max(1, Math.floor(Number(e.periodes) || 1)) + 1,
+    // En guerre le compteur preventif retombe a zero : c'est ce qui fait que la fin de la guerre
+    // rend automatiquement droit a une prolongation preventive pleine, sans traitement dedie.
+    periodesPreventives: guerreEnCours
+      ? 0
+      : Math.max(0, Math.floor(Number(e.periodesPreventives) || 0)) + 1
+  });
 }
 
-function effortDeGuerreActif(effort) {
-  return !!(effort && effort.actif === true);
+// On CLOT, on n'efface pas : les curseurs et le compteur de periodes restent en trace.
+function fermerEffortDeGuerre(effort, auteur, maintenantMs, motif) {
+  const e = effort || {};
+  return Object.assign({}, e, {
+    actif: false, finA: Number(maintenantMs) || 0,
+    terminePar: auteur || null, motifFin: motif || 'decision'
+  });
+}
+
+// L'ECHEANCE FAIT FOI. Un effort legacy sans expireA (forme d'origine du 7 septembre, jamais
+// ecrite en production mais lue par validerRepartitionBudget) reste actif : on ne ferme jamais
+// retroactivement un etat qu'on ne sait pas dater.
+function effortDeGuerreActif(effort, maintenantMs) {
+  if (!effort || effort.actif !== true) return false;
+  const fin = Number(effort.expireA);
+  if (!isFinite(fin)) return true;
+  return fin > (Number(maintenantMs) || Date.now());
+}
+
+function effortDeGuerreEcheance(effort) {
+  const fin = Number((effort || {}).expireA);
+  return isFinite(fin) ? fin : null;
 }
 
 // ---------------------------------------------------------------------------
 // 7. CONSEQUENCES ECONOMIQUES DE L'EFFORT DE GUERRE
 // ---------------------------------------------------------------------------
-// DEUX CONSEQUENCES, ET DEUX SEULEMENT. La mobilisation industrielle est un chantier economique
-// dedie : aucun circuit production -> armureries -> casernes n'est fabrique ici, aucun quota
-// artificiel, aucune ressource fictive. Les deux points d'accroche ci-dessous sont concus pour
-// qu'un futur chantier s'y raccorde sans avoir a defaire quoi que ce soit.
-
 // (1) BUDGET : le plafond de la Defense saute. Voir section 8, parametre 'effortDeGuerre'.
 
 // (2) VENTES LEGALES D'ARMES AUX PARTICULIERS : bloquees. Les armes vont en priorite aux casernes.
-// Predicat pur, a interposer devant confirmerAchatArme -- il ne touche NI au stock, NI au prix, NI
-// a la production : seule la vente au particulier est refusee. Le marche noir n'est pas concerne,
-// c'est precisement ce qui rend la mesure interessante.
-function verdictVenteLegaleArme(effort) {
-  if (effortDeGuerreActif(effort)) {
+// Predicat pur, interpose devant confirmerAchatArme (plateau-actions-illegales-rumeurs.js) -- il ne
+// touche NI au stock, NI au prix, NI a la production : seule la vente au particulier est refusee,
+// et uniquement pour les armes du catalogue civil. Le gilet pare-balles (type 'protection', vendu
+// par confirmerAchatGilet) reste vendable, et le marche noir n'est pas concerne -- c'est
+// precisement ce qui rend la mesure interessante.
+// AUCUN EFFET RETROACTIF : les armes deja possedees ne sont ni confisquees ni requalifiees.
+function verdictVenteLegaleArme(effort, maintenantMs) {
+  if (effortDeGuerreActif(effort, maintenantMs)) {
     return { ok: false, raison: 'effort_de_guerre_ventes_suspendues' };
   }
   return { ok: true, raison: null };
 }
 
-// POINT D'ACCROCHE POUR LE FUTUR CHANTIER ECONOMIQUE. Rend l'etat de mobilisation sous une forme
-// stable que la mobilisation industrielle pourra lire, sans qu'aucun flux n'existe aujourd'hui.
-// Volontairement descriptif : il ne CALCULE rien et n'oriente aucune matiere.
-function contexteMobilisation(effort) {
+// (3) MOBILISATION INDUSTRIELLE : le circuit entrepots -> reserve -> armureries civiles ->
+// armurerie de la caserne existe depuis le 13 septembre 2026 (plateau-effort-guerre.js).
+// Cette fonction reste purement DESCRIPTIVE : elle ne calcule rien et n'oriente aucune matiere,
+// elle donne l'etat sous une forme stable aux appelants qui n'ont pas a connaitre le detail.
+function contexteMobilisation(effort, maintenantMs) {
+  const actif = effortDeGuerreActif(effort, maintenantMs);
   return {
-    effortDeGuerre: effortDeGuerreActif(effort),
-    ventesParticuliersSuspendues: effortDeGuerreActif(effort),
-    plafondDefenseLeve: effortDeGuerreActif(effort),
-    // Non implemente : le circuit matieres -> armureries -> casernes n'existe pas.
-    mobilisationIndustrielle: false
+    effortDeGuerre: actif,
+    ventesParticuliersSuspendues: actif,
+    plafondDefenseLeve: actif,
+    mobilisationIndustrielle: actif,
+    prioriteRavitaillement: actif ? Math.max(0, Math.min(100, Number((effort || {}).prioriteRavitaillement) || 0)) : 0,
+    prioriteProductionMilitaire: actif ? Math.max(0, Math.min(100, Number((effort || {}).prioriteProductionMilitaire) || 0)) : 0
   };
 }
 
