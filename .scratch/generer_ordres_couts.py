@@ -33,6 +33,19 @@ import hashlib, json, os, re, subprocess, sys, tempfile
 JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+EXTRACTEUR_RESSOURCES = r"""
+var g = (new Function(readFile('data.js') + "\n; return { R: RESSOURCES_ECONOMIE };"))();
+var out = [];
+Object.keys(g.R).sort().forEach(function (k) {
+  var r = g.R[k];
+  out.push({ cle: k, prix_base: r.prixBase,
+             prix_achat_fournisseur: (r.prixAchatFournisseur === undefined) ? null : r.prixAchatFournisseur,
+             plafond: (r.plafond === undefined) ? null : r.plafond,
+             source: r.source || '' });
+});
+print(JSON.stringify(out));
+"""
+
 EXTRACTEUR = r"""
 var src = readFile('data.js');
 var g = (new Function(src + "\n; return { B: typeof BUILDINGS!=='undefined'?BUILDINGS:null,"
@@ -61,9 +74,9 @@ print(JSON.stringify(out));
 """
 
 
-def extraire():
+def executer_jsc(script):
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
-        f.write(EXTRACTEUR)
+        f.write(script)
         chemin = f.name
     try:
         r = subprocess.run([JSC, chemin], capture_output=True, text=True, cwd=RACINE, timeout=120)
@@ -72,6 +85,34 @@ def extraire():
     if r.returncode != 0 or not r.stdout.strip():
         raise SystemExit("extraction impossible :\n" + r.stdout + r.stderr)
     return json.loads(r.stdout.strip().splitlines()[-1])
+
+
+def extraire():
+    return executer_jsc(EXTRACTEUR)
+
+
+def ressources():
+    """Prix des ressources, extraits de RESSOURCES_ECONOMIE. Meme doctrine que les
+    couts d'ordre : le serveur ne doit jamais porter un tarif perime."""
+    return executer_jsc(EXTRACTEUR_RESSOURCES)
+
+
+def nombre(x):
+    """Representation stable d'un nombre : 3 et 3.0 doivent donner la meme
+    empreinte des deux cotes, sinon un prix entier cote JS et numeric cote
+    Postgres feraient diverger deux miroirs pourtant identiques."""
+    if x is None:
+        return ""
+    f = float(x)
+    return str(int(f)) if f == int(f) else repr(f)
+
+
+def empreinte_ressources(rs):
+    brut = "\n".join("%s|%s|%s|%s|%s" % (r["cle"], nombre(r["prix_base"]),
+                                         nombre(r["prix_achat_fournisseur"]),
+                                         nombre(r["plafond"]), r["source"] or "")
+                     for r in sorted(rs, key=lambda r: r["cle"]))
+    return hashlib.md5(brut.encode("utf-8")).hexdigest()[:16]
 
 
 def ordres_hors_data():
@@ -125,6 +166,16 @@ def main():
     if "--empreinte" in sys.argv:
         print(empreinte(t))
         return 0
+    if "--ressources-sql" in sys.argv:
+        print(",".join("('%s',%s,%s,%s,'%s')" % (
+            r["cle"], nombre(r["prix_base"]),
+            nombre(r["prix_achat_fournisseur"]) or "null",
+            nombre(r["plafond"]) or "null", r["source"] or "")
+            for r in ressources()))
+        return 0
+    if "--ressources-empreinte" in sys.argv:
+        print(empreinte_ressources(ressources()))
+        return 0
     fns = {x[0] for x in t}
     variables = {fn for fn in fns if len([1 for x in t if x[0] == fn]) > 1}
     print("declarations lues : %d" % len(brut))
@@ -133,6 +184,8 @@ def main():
     print("dont declares hors data.js : %d" % len(ordres_hors_data() - {
         (o["fn"], int(o["pa"]), int(o["cost"])) for o in brut}))
     print("empreinte du miroir : %s" % empreinte(t))
+    rs = ressources()
+    print("ressources economiques : %d  | empreinte : %s" % (len(rs), empreinte_ressources(rs)))
     print("ordres a cout variable selon le lieu : %d  (%s)"
           % (len(variables), ', '.join(sorted(variables))))
     return 0

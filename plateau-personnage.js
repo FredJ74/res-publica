@@ -2167,118 +2167,82 @@ const PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE = [
 // COMMUN aux 3 (une seule cle state.char.stats.soinPublicJour, jamais scopee par batiment) : un
 // joueur ne peut pas repeter le soin public dans une autre ville le meme jour.
 async function doSoinPublic(pa, cost) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur verifiait lui-meme la limite
+  // quotidienne, le stock medical et les fonds, puis decrementait le stock de la structure et
+  // s'accordait ses gains. recevoir_soin refait tout au serveur, sous verrou : marqueur du jour
+  // relu sur la fiche, stock reel, cout revalide contre le miroir des couts, gains appliques par
+  // la base -- +10 Sante, +1 PA, valeurs inchangees.
   if (!state.char) return;
   const buildingId = state.currentBuilding;
   const cfg = STRUCTURES_MEDICALES[buildingId];
   if (!cfg || cfg.financement !== 'institution') { showToast('Indisponible', '', false); return; }
-  const today = state.day || 1;
+
+  const r = await deduireCoutOrdre({ pa, cost: 0, fn: 'soin_public' });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const rows = await sbRpc('recevoir_soin', {
+    p_acteur: state.char?.name, p_pays: state.country || 'republic',
+    p_ville: state.currentCity || 'capitale', p_batiment: buildingId,
+    p_type: 'public', p_cout: cost });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    if (raison === 'deja_soigne_aujourdhui') {
+      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin public par jour, quelle que soit la ville.', false);
+    } else if (raison === 'rupture_stock') {
+      showToast('Rupture de stock', PHRASE_INFIRMIERE_RUPTURE_STOCK, false);
+    } else if (raison === 'fonds_insuffisants') {
+      showToast('Fonds insuffisants', cost + ' FR requis.', false);
+    } else { showToast('Soin impossible', 'Refusé (' + raison + ').', false); }
+    return;
+  }
+  state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
   if (!state.char.stats) state.char.stats = {};
-
-  // 1) limite quotidienne (commune aux 3 structures publiques)
-  if (state.char.stats.soinPublicJour === today) {
-    showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin public par jour, quelle que soit la ville.', false);
-    return;
-  }
-  // 2) fonds du patient
-  if ((state.arg || 0) < cost) {
-    showToast('Fonds insuffisants', cost + ' FR requis.', false);
-    return;
-  }
-  // 3) stock medical de la structure (local a la ville reelle du batiment)
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  const sante = etat?.sante || { stockMatieres: {} };
-  if (!sante.stockMatieres) sante.stockMatieres = {};
-  const stockDesinfectant = sante.stockMatieres.desinfectant || 0;
-  if (stockDesinfectant < 1) {
-    showToast('Rupture de stock', PHRASE_INFIRMIERE_RUPTURE_STOCK, false);
-    return;
-  }
-
-  // 4) debit FR + ressources (seulement maintenant que tout est verifie)
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
-  sante.stockMatieres.desinfectant = stockDesinfectant - 1;
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, { ...etat, sante }).catch(() => {});
-
-  // 5) effets fixes, jamais de jet/multiplicateur
-  state.hp = Math.min(100, (state.hp || 0) + 10);
-  state.pa = Math.min(PA_MAX, (state.pa || 0) + 1);
-
-  // 6) enregistrement de l'utilisation quotidienne (compteur commun, pas par batiment)
-  state.char.stats.soinPublicJour = today;
-
+  state.char.stats.soinPublicJour = state.day || 1;
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
   const phrase = PHRASES_INFIRMIERE_SOIN_PUBLIC[Math.floor(Math.random() * PHRASES_INFIRMIERE_SOIN_PUBLIC.length)];
-  showToast('Soins reçus', '+10 Santé, +1 PA. « ' + phrase + ' »', true, true);
-  addJournalEntry('Soin public reçu au dispensaire (-' + cost + ' FR). +10 Santé, +1 PA.', 'event-good');
+  showToast('Soins reçus', '+' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA. « ' + phrase + ' »', true, true);
+  addJournalEntry('Soin public reçu au dispensaire (-' + cost + ' FR). +' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA.', 'event-good');
 }
+
 
 async function doSoinCliniquePrivee(pa, cost) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Meme bascule que le soin public, plus la
+  // taxation : le navigateur calculait la taxe locale et nationale ET la persistait lui-meme
+  // dans les budgets. appliquer_taxe_transaction, appelee par recevoir_soin, le fait desormais
+  // dans la meme transaction que le soin -- memes taux, meme arrondi, memes destinations.
   if (!state.char) return;
-  const today = state.day || 1;
+
+  const r = await deduireCoutOrdre({ pa, cost: 0, fn: 'soins' });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const rows = await sbRpc('recevoir_soin', {
+    p_acteur: state.char?.name, p_pays: state.country || 'republic',
+    p_ville: state.currentCity || 'capitale', p_batiment: 'clinique-privee',
+    p_type: 'clinique', p_cout: cost });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    if (raison === 'deja_soigne_aujourdhui') {
+      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin en clinique par jour.', false);
+    } else if (raison === 'rupture_stock') {
+      showToast('Rupture de stock', 'La clinique manque actuellement de désinfectant et/ou de médicaments.', false);
+    } else if (raison === 'fonds_insuffisants') {
+      showToast('Fonds insuffisants', cost + ' FR requis.', false);
+    } else { showToast('Soin impossible', 'Refusé (' + raison + ').', false); }
+    return;
+  }
+  state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
   if (!state.char.stats) state.char.stats = {};
-
-  // 1) limite quotidienne (compteur independant de celui du soin public)
-  if (state.char.stats.soinCliniqueJour === today) {
-    showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin en clinique privée par jour.', false);
-    return;
-  }
-  // 2) fonds du patient
-  if ((state.arg || 0) < cost) {
-    showToast('Fonds insuffisants', cost + ' FR requis.', false);
-    return;
-  }
-  // 3) stock medical de la structure (desinfectant ET medicaments) -- clinique privee, Luthecia
-  // uniquement (pas concernee par l'extension aux 3 dispensaires publics)
-  const pays = state.country || 'republic';
-  const ville = 'capitale';
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, 'clinique-privee').catch(() => null) : null;
-  const sante = etat?.sante || { caisse: 0, stockMatieres: {} };
-  if (!sante.stockMatieres) sante.stockMatieres = {};
-  const stockDesinfectant = sante.stockMatieres.desinfectant || 0;
-  const stockMedicaments = sante.stockMatieres.medicaments || 0;
-  if (stockDesinfectant < 1 || stockMedicaments < 1) {
-    showToast('Rupture de stock', 'La clinique manque actuellement de désinfectant et/ou de médicaments.', false);
-    return;
-  }
-
-  // 4) debit du patient
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
-
-  // 5) taxation existante (aucune fiscalite specifique clinique) puis credit reel de la caisse --
-  // correctif demande par Fred, 20 aout 2026 : plus aucune dotation initiale inventee, la caisse
-  // demarre a 0 et ne se remplit que du produit net (apres taxe) de ses propres soins payes.
-  let net = cost;
-  if (typeof appliquerTaxeTransaction === 'function') {
-    const t = await appliquerTaxeTransaction(cost);
-    net = t.net;
-  }
-  sante.caisse = (sante.caisse || 0) + net;
-
-  // 6) decrement des ressources consommees
-  sante.stockMatieres.desinfectant = stockDesinfectant - 1;
-  sante.stockMatieres.medicaments = stockMedicaments - 1;
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, 'clinique-privee', { ...etat, sante }).catch(() => {});
-
-  // 7) gains Sante/PA fixes
-  state.hp = Math.min(100, (state.hp || 0) + 30);
-  state.pa = Math.min(PA_MAX, (state.pa || 0) + 2);
-
-  // 8) enregistrement de l'utilisation quotidienne
-  state.char.stats.soinCliniqueJour = today;
-
+  state.char.stats.soinCliniqueJour = state.day || 1;
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
   const phraseSophie = PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE[Math.floor(Math.random() * PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE.length)];
-  showToast('Soins reçus', '+30 Santé, +2 PA. « ' + phraseSophie + ' »', true, true);
-  addJournalEntry('Soin reçu en clinique privée (-' + cost + ' FR). +30 Santé, +2 PA.', 'event-good');
+  showToast('Soins reçus', '+' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA. « ' + phraseSophie + ' »', true, true);
+  addJournalEntry('Soin reçu en clinique privée (-' + cost + ' FR). +' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA.', 'event-good');
 }
+
 
 // =====================
 // APPROVISIONNEMENT DES STRUCTURES MEDICALES -- vente par un joueur, depuis son inventaire

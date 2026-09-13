@@ -4981,68 +4981,55 @@ async function doOuvrirVenteDirecteUsine(pa, cost) {
 }
 
 async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Cette fonction choisissait le prix, calculait le
+  // total et REECRIVAIT la caisse de l'usine. Elle n'envoie plus que des quantites voulues :
+  // acheter_vente_directe_usine relit le stock reel sous verrou, applique le prix du directeur
+  // ou le prix variable selon le remplissage (getPrixRessource, transcrit tel quel cote serveur),
+  // verifie les fonds, applique le plafond d'inventaire et n'encaisse que ce qui est entre.
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
-  const venteDirecte = etat.usine?.venteDirecte || {};
-  const prixManuel = etat.usine?.prixManuel || {};
-
-  const achats = {};
-  let total = 0;
+  const quantites = {};
   for (const cle of produitsUsine(buildingId)) {
-    const qte = parseInt(document.getElementById('vente-usine-' + cle)?.value || 0);
-    if (!qte || qte <= 0) continue;
-    const enStock = venteDirecte[cle] || 0;
-    if (qte > enStock) {
-      showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
-      return;
-    }
-    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
-    achats[cle] = { qte, prix };
-    total += qte * prix;
+    const q = parseInt(document.getElementById('vente-usine-' + cle)?.value || 0);
+    if (q > 0) quantites[cle] = q;
   }
-
-  if (Object.keys(achats).length === 0) {
-    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false);
-    return;
+  if (Object.keys(quantites).length === 0) {
+    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return;
   }
-  if (state.arg < total) {
-    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
-    return;
-  }
-  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
-  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
   if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
+      && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'vente_directe_usine' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  let totalReellementPaye = 0;
-  for (const [cle, { prix }] of Object.entries(achats)) {
-    const res = RESSOURCES_ECONOMIE[cle];
-    const qteAjoutee = addToInventory({
-      name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: achats[cle].qte,
-      desc: 'Produit acheté en vente directe.'
-    });
-    if (qteAjoutee > 0) {
-      venteDirecte[cle] = (venteDirecte[cle] || 0) - qteAjoutee;
-      totalReellementPaye += qteAjoutee * prix;
-    }
+  const rows = await sbRpc('acheter_vente_directe_usine', {
+    p_acteur: state.char?.name, p_pays: state.country, p_ville: state.currentCity,
+    p_batiment: buildingId, p_achats: quantites });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    const libelles = {
+      stock_insuffisant: 'Il ne reste que ' + ((v && v.disponible) || 0) + ' unité(s) de '
+        + ((v && RESSOURCES_ECONOMIE[v.cle]?.label) || 'ce produit') + '.',
+      fonds_insuffisants: Math.round((v && v.requis) || 0) + ' ' + cur + ' requis, vous avez '
+        + Math.round((v && v.disponible) || 0) + ' ' + cur + '.',
+      inventaire_plein: 'Votre inventaire est plein (plafond de 100 objets).'
+    };
+    showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
+    return;
   }
-  state.arg -= totalReellementPaye;
-
-  const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), venteDirecte, caisse: (etat.usine?.caisse || 0) + totalReellementPaye } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
-
-  // Sauvegarde personnage immediate (correctif, 20 aout 2026) : meme raisonnement que
-  // confirmerAchatEntrepot ci-dessus -- l'argent est deja irreversiblement debite de l'usine,
-  // ne pas dependre du debounce de 3s pour que l'inventory recu survive a un refresh immediat.
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
+  state.inventory = v.inventory || state.inventory;
+  state.liquide = v.liquide; state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
+  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = v.solde_national;
+  }
+  if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Achat effectué !', '-' + Math.round(totalReellementPaye) + ' ' + cur + '.', true, true);
-  addJournalEntry('Achat en vente directe : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+  showToast('Achat effectué !', '-' + Math.round(v.paye) + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat en vente directe : ' + (v.lignes || []).map(function (l) {
+    return l.qte + ' ' + (RESSOURCES_ECONOMIE[l.cle]?.label || l.cle); }).join(', ') + '.', 'event-good');
 }
+
 
 // =====================
 // PRODUCTION PJ DES USINES (10 aout 2026) — meme principe que produire_arme a l'Armurerie :
@@ -5101,51 +5088,50 @@ async function doProduireUsine(produitId) {
 }
 
 async function confirmerProductionUsine(produitId) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). C'est ici que le navigateur decidait de LA
+  // QUANTITE PRODUITE et SE VERSAIT SON PROPRE SALAIRE (state.arg += c.salairePA), tout en
+  // reecrivant le stock de matiere et la caisse de l'usine. produire_en_usine applique
+  // desormais les memes regles, mais cote serveur et sous verrou : 5 de matiere consommee,
+  // 10 produits par PA plafonnes par la place restante (50 max), salaire prelevé sur la caisse
+  // de l'usine et verse en liquide -- aucune valeur creee.
   const c = CHAINES_PRODUCTION_USINE[produitId];
   if (!c) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
 
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
-  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-  const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
-  let caisse = usine.caisse ?? 0;
-  const venteDirecte = usine.venteDirecte || {};
-  const stockMatieres = usine.stockMatieres || {};
+  // Les PA restent preleves par la voie centrale (cost:0 : le salaire est un GAIN).
+  const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_USINE, cost: 0, fn: 'produire_' + produitId });
+  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false);
+    document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  const stockMatiereActuel = stockMatieres[c.matiere] || 0;
-  if (stockMatiereActuel < MATIERE_PAR_PA_USINE) { showToast('Stock de matière insuffisant', 'Il manque du ' + RESSOURCES_ECONOMIE[c.matiere].label + ' en stock.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const rows = await sbRpc('produire_en_usine', {
+    p_acteur: state.char?.name, p_pays: state.country, p_produit: produitId });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    const libelles = {
+      matiere_insuffisante: 'Il manque du ' + (RESSOURCES_ECONOMIE[c.matiere]?.label || c.matiere) + ' en stock.',
+      caisse_insuffisante: "L'usine ne peut pas payer ce travail actuellement.",
+      stock_plein: 'Le stock local de ce produit est au maximum.',
+      chaine_inconnue: 'Production indisponible.'
+    };
+    showToast(raison === 'stock_plein' ? 'Stock plein' : 'Production impossible',
+              libelles[raison] || ('Refusé (' + raison + ').'), false);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    return;
+  }
 
-  if (caisse < c.salairePA) { showToast('Caisse insuffisante', "L'usine ne peut pas payer ce travail actuellement.", false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  const stockActuel = venteDirecte[produitId] || 0;
-  const placeRestante = Math.max(0, PLAFOND_VENTE_DIRECTE_USINE - stockActuel);
-  if (placeRestante <= 0) { showToast('Stock plein', 'Le stock local de ce produit est au maximum.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  // Deduction PA centralisee (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est
-  // desormais l'AUTORITE UNIQUE sur la disponibilite des PA (plus de garde manuelle
-  // state.pa<... redondante, qui bloquait a tort meme sous TEST_MODE=true). Appelee ICI, AVANT
-  // toute mutation de stock/caisse et avant l'ecriture Supabase : fail-closed, rien n'est mute
-  // ni persiste si les PA manquent. cost:0 car le salaire est un GAIN verse au joueur
-  // (state.arg += plus bas), pas un cout preleve par deduireCoutOrdre.
-  const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_USINE, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
-  const produitsAjoutes = Math.min(PRODUIT_PAR_PA_USINE, placeRestante);
-  stockMatieres[c.matiere] = stockMatiereActuel - MATIERE_PAR_PA_USINE;
-  caisse -= c.salairePA;
-  venteDirecte[produitId] = stockActuel + produitsAjoutes;
-
-  const nouvelEtat = { ...etat, usine: { ...usine, caisse, venteDirecte, stockMatieres } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, c.city, c.buildingId, nouvelEtat).catch(() => {});
-
-  state.arg = (state.arg || 0) + c.salairePA;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
   updateUI();
-  showToast('Production réussie !', RESSOURCES_ECONOMIE[produitId].label + ' produit(s). +' + c.salairePA + ' ' + cur + ' de salaire.', true, true);
-  addJournalEntry('Production de ' + produitsAjoutes + ' ' + RESSOURCES_ECONOMIE[produitId].label + ' (+' + c.salairePA + ' ' + cur + ').', 'event-good');
+  showToast('Production réussie !', RESSOURCES_ECONOMIE[produitId].label + ' produit(s). +'
+    + v.salaire + ' ' + cur + ' de salaire.', true, true);
+  addJournalEntry('Production de ' + v.produits + ' ' + RESSOURCES_ECONOMIE[produitId].label
+    + ' (+' + v.salaire + ' ' + cur + ').', 'event-good');
 
   // Ne ferme pas le modal : rafraichit pour permettre d'enchainer, meme logique que produire_arme.
   doProduireUsine(produitId);
 }
+
 
 // =====================
 // VENTE DE MATIERES PREMIERES A UNE USINE (lot filiere alcool->desinfectant, 20 aout 2026) --
@@ -5375,44 +5361,32 @@ function produitsUsine(buildingId) {
 }
 
 async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte) {
-  if (!matieresAccepteesParUsine(buildingId, pays, ville).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur fixait le montant que l'usine lui
+  // versait, retirait le lot de son propre inventaire et reecrivait la caisse. vendre_matiere_a_usine
+  // refait tout cote serveur : matiere reellement acceptee par cette usine, quantite reellement
+  // detenue, plafond de stock, tarif detail ou fournisseur selon la configuration de l'usine,
+  // caisse suffisante, cout moyen pondere recalcule -- et l'ensemble sous verrou.
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
 
-  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
-
-  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un circuit
-  // legal. Regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout mouvement.
+  // Rachat LEGAL d'une matiere a un joueur : regle generale des interdictions, avant tout mouvement.
   if (typeof assembleeControlerVenteLegale === 'function' && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
     return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
 
-  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  if (!etat) return { ok: false, raison: 'introuvable' };
-  const usine = etat.usine || defautUsine(buildingId, pays, ville);
-  if (!usine.stockMatieres) usine.stockMatieres = {};
+  const rows = await sbRpc('vendre_matiere_a_usine', {
+    p_acteur: state.char?.name, p_pays: pays, p_ville: ville,
+    p_batiment: buildingId, p_matiere: matiere, p_qte: qte });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) return { ok: false, raison: (v && v.raison) || 'indisponible',
+                                    placeRestante: v && v.placeRestante };
 
-  const res = RESSOURCES_ECONOMIE[matiere];
-  const stockActuel = usine.stockMatieres[matiere] || 0;
-  const placeRestante = Math.max(0, res.plafond - stockActuel);
-  if (placeRestante < qte) return { ok: false, raison: 'stock_plein', placeRestante };
-
-  const prixUnitaire = prixRachatMatierePremiereUsine(buildingId, pays, ville, res);
-  const total = prixUnitaire * qte;
-  if ((usine.caisse || 0) < total) return { ok: false, raison: 'caisse_insuffisante' };
-
-  lot.qty -= qte;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-
-  crediterStockMatiereCommerce(usine, matiere, qte, prixUnitaire);
-  usine.caisse = (usine.caisse || 0) - total;
-  state.arg = (state.arg || 0) + total;
-
-  const nouvelEtat = { ...etat, usine };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
-
-  return { ok: true, total, prixUnitaire, qte };
+  state.inventory = v.inventory || state.inventory;
+  state.arg = v.arg; state.liquide = v.liquide;
+  if (state.char) state.char.arg = state.arg;
+  if (typeof renderInventory === 'function') renderInventory();
+  return { ok: true, total: v.total, prixUnitaire: v.prixUnitaire, qte: v.qte };
 }
+
 
 function doVendreMatierePremiereUsineGenerique(pa, cost) {
   const buildingId = state.currentBuilding;
@@ -8720,67 +8694,52 @@ async function ouvrirAcheterCriee(pa, cost) {
 }
 
 async function confirmerAcheterCriee(pa, cost) {
+  // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur decrementait lui-meme
+  // port.criee.stock et creditait la caisse du port. acheter_a_la_criee relit le stock reel
+  // sous verrou, applique le prix de base, verifie les fonds, respecte le plafond d'inventaire
+  // et credite la caisse du port dans la meme transaction.
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
-  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {}, criee: {} };
-  const stock = { ...(port.criee?.stock || {}) };
-
-  const achats = {};
-  let total = 0;
+  const quantites = {};
   for (const cle of RESSOURCES_CRIEE_VENDABLES) {
-    const qte = parseInt(document.getElementById('achat-criee-' + cle)?.value || 0);
-    if (!qte || qte <= 0) continue;
-    const enStock = stock[cle] || 0;
-    if (qte > enStock) {
-      showToast('Stock insuffisant', 'Il ne reste que ' + Math.round(enStock) + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + ' à la Criée.', false);
-      return;
-    }
-    const prix = getPrixRessourceEntrepot(cle);
-    achats[cle] = { qte, prix };
-    total += qte * prix;
+    const q = parseInt(document.getElementById('achat-criee-' + cle)?.value || 0);
+    if (q > 0) quantites[cle] = q;
   }
-  if (Object.keys(achats).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
-  if (getFondsDisponiblesOrdinaires() < total) {
-    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
-    return;
-  }
-  // Vente legale/institutionnelle : regle generale des interdictions (arbitrage du 11 septembre
-  // 2026), decidee par le serveur a l'instant de la transaction, AVANT tout debit.
+  if (Object.keys(quantites).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
   if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale(Object.keys(achats).map(cle => ({ stackKey: cle }))))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
+      && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'acheter_criee' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  let totalReellementPaye = 0;
-  for (const [cle, { qte, prix }] of Object.entries(achats)) {
-    const res = RESSOURCES_ECONOMIE[cle];
-    const qteAjoutee = addToInventory({
-      name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: qte,
-      desc: 'Marchandise achetée à la Criée du Port de Port-Sainte-Marie.'
-    });
-    if (qteAjoutee > 0) {
-      stock[cle] = (stock[cle] || 0) - qteAjoutee;
-      totalReellementPaye += qteAjoutee * prix;
-    }
-  }
-  if (totalReellementPaye <= 0) {
-    showToast('Inventaire plein', 'Aucune marchandise n\'a pu être récupérée.', false);
+  const rows = await sbRpc('acheter_a_la_criee', {
+    p_acteur: state.char?.name, p_pays: 'republic', p_ville: VILLE_ID_PORT,
+    p_batiment: BUILDING_ID_PORT, p_achats: quantites });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const raison = (v && v.raison) || 'indisponible';
+    const libelles = {
+      stock_insuffisant: 'Il ne reste que ' + Math.round((v && v.disponible) || 0) + ' unité(s) de '
+        + ((v && RESSOURCES_ECONOMIE[v.cle]?.label) || 'cette marchandise') + ' à la Criée.',
+      fonds_insuffisants: Math.round((v && v.requis) || 0) + ' ' + cur + ' requis, vous avez '
+        + Math.round((v && v.disponible) || 0) + ' ' + cur + '.',
+      inventaire_plein: 'Aucune marchandise n\'a pu être récupérée.'
+    };
+    showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }
-  // Lot 4B : debit personnage via la primitive canonique, persistance deja geree (retire le
-  // sbSavePersonnage explicite redondant). Ne devrait jamais refuser ici (totalReellementPaye
-  // <= total, deja verifie) : filet de securite uniquement.
-  const debitCriee = await debiterFondsOrdinaires(totalReellementPaye);
-  if (!debitCriee.ok) { showToast('Erreur', 'Paiement impossible.', false); return; }
-
-  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, criee: { ...(port.criee || {}), stock } } }).catch(() => {});
-  await crediterCaisseBatiment('republic', BUILDING_ID_PORT, totalReellementPaye).catch(() => {});
-
+  state.inventory = v.inventory || state.inventory;
+  state.liquide = v.liquide; state.arg = v.arg;
+  if (state.char) state.char.arg = state.arg;
+  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = v.solde_national;
+  }
+  if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Achat effectué !', '-' + Math.round(totalReellementPaye) + ' ' + cur + '.', true, true);
-  addJournalEntry('Achat à la Criée du port : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+  showToast('Achat effectué !', '-' + Math.round(v.paye) + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat à la Criée du port : ' + (v.lignes || []).map(function (l) {
+    return l.qte + ' ' + (RESSOURCES_ECONOMIE[l.cle]?.label || l.cle); }).join(', ') + '.', 'event-good');
 }
+
 
 // ---- MANIFESTE (registre administratif persistant, 0 PA / 0 FR, accessible a tout PJ — lot du
 // 25 aout 2026, §9/§10) ----
