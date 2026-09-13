@@ -30,6 +30,32 @@ async function chargerPersonnageParNom() {
       return;
     }
 
+    // CONTROLE DE PROPRIETE (chantier B, 14 septembre 2026).
+    // « Retrouver mon personnage » n'exigeait qu'une chose : connaitre le nom -- lequel est
+    // public, puisque sbListPersonnages() le diffuse a tout le monde. N'importe qui pouvait
+    // donc prendre la main sur n'importe quel personnage. Desormais le serveur tranche : soit
+    // ce personnage appartient deja a ce compte, soit il n'appartient a personne et lui est
+    // rattache maintenant, soit il est a quelqu'un d'autre et l'acces est refuse.
+    if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthRattacherPersonnage === 'function') {
+      const session = await rpAuthAssurerSession().catch(() => null);
+      if (session) {
+        const verdict = await rpAuthRattacherPersonnage(nom).catch(() => null);
+        if (verdict && verdict.ok === false) {
+          msg.style.color = '#8a3a2a';
+          if (verdict.raison === 'personnage_deja_possede') {
+            msg.textContent = 'Ce personnage appartient deja a un autre compte. '
+              + 'Si c\'est le votre, reconnectez-vous depuis l\'appareil ou le compte d\'origine.';
+          } else if (verdict.raison === 'compte_deja_pourvu') {
+            msg.textContent = 'Ce navigateur possede deja le personnage « ' + (verdict.personnage || '') + ' ». '
+              + 'Un compte ne peut porter qu\'un seul personnage.';
+          } else {
+            msg.textContent = 'Acces refuse (' + (verdict.raison || 'inconnu') + ').';
+          }
+          return;
+        }
+      }
+    }
+
     // Sauvegarder dans localStorage avec position complète
     const charData = {
       ...sbState.char,
@@ -454,7 +480,30 @@ function renderReview(){
     </div>`;
 }
 
-function validateChar(){
+async function validateChar(){
+  // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
+  // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin
+  // qui faisait un PATCH si le nom etait deja pris : saisir le nom d'un joueur existant
+  // REMPLACAIT sa fiche entiere, silencieusement, et l'ecran de succes s'affichait quand meme.
+  // Desormais : on ouvre d'abord la session (pour que la base rattache le personnage au
+  // compte), on INSERE, ON ATTEND, et on ne quitte cet ecran qu'en cas de reussite.
+  const boutonValider = document.querySelector('#screen-8 .btn-primary, #btn-valider-perso');
+  const afficherErreurCreation = function (titre, message) {
+    let zone = document.getElementById('creation-erreur');
+    if (!zone) {
+      zone = document.createElement('div');
+      zone.id = 'creation-erreur';
+      zone.style.cssText = 'margin:1rem 0;padding:.8rem 1rem;border:1px solid #8a3a2a;' +
+        'background:#2a1410;color:#e8b4a0;font-size:.9rem;line-height:1.5;border-radius:4px';
+      const hote = document.getElementById('screen-8') || document.body;
+      hote.insertBefore(zone, hote.firstChild);
+    }
+    zone.innerHTML = '<strong>' + titre + '</strong><br>' + message;
+    zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (boutonValider) { boutonValider.disabled = false; boutonValider.textContent = 'Valider'; }
+  };
+  if (boutonValider) { boutonValider.disabled = true; boutonValider.textContent = 'Creation en cours...'; }
+
   // Sauvegarde du personnage en localStorage pour le plateau
   const char={
     country:G.country, origin:G.origin, school:G.school,
@@ -506,18 +555,46 @@ function validateChar(){
         objectifs_completes: [],
         votes_pnj: {},
       };
-      sbSavePersonnage(tempState)
-        .then(() => {
-          if (typeof sbCreerCompteBancaire !== 'function') return;
-          return sbCreerCompteBancaire({
-            id: 'nationale_' + char.name,
-            personnage: char.name,
-            pays: char.country,
-            banque: 'nationale',
-            solde: soldeBanqueNationale
-          });
-        })
-        .catch(e => console.error('Échec de la création du compte Banque nationale pour ' + char.name + ' — le personnage existe mais sans compte bancaire initial, à corriger manuellement.', e));
+      // INSERT SEC, ATTENDU. La contrainte UNIQUE(name) est desormais l'autorite : si le nom
+      // est pris, la base refuse et rien n'est ecrase.
+      const creation = await sbCreerPersonnageInitial(tempState).catch(e => {
+        console.error('Creation du personnage', e);
+        return { ok: false, raison: 'erreur_reseau' };
+      });
+
+      if (!creation.ok) {
+        if (creation.raison === 'nom_deja_pris') {
+          afficherErreurCreation('Ce nom est deja porte',
+            'Un personnage nomme « ' + char.name + ' » existe deja dans Republia. ' +
+            'Choisissez un autre nom : revenez a l\'etape precedente pour le modifier.<br><br>' +
+            '<em>Si ce personnage est le votre et que vous avez perdu l\'acces, utilisez ' +
+            '« Retrouver mon personnage » depuis l\'accueil plutot que d\'en recreer un.</em>');
+        } else {
+          afficherErreurCreation('Creation impossible',
+            'Votre personnage n\'a pas pu etre enregistre (' + (creation.raison || 'erreur inconnue') + '). ' +
+            'Verifiez votre connexion et reessayez ; rien n\'a ete perdu.');
+        }
+        // On NE quitte PAS cet ecran : le joueur corrige et revalide.
+        // Le cache local a ete ecrit plus haut, avant l'aller-retour reseau : on le retire
+        // entierement, sinon loadCharacter() retrouverait au prochain chargement un personnage
+        // qui n'existe pas en base -- ou pire, celui d'un autre joueur portant ce nom.
+        try {
+          localStorage.removeItem('respublica_char_' + char.name);
+          localStorage.removeItem('respublica_last_char');
+          localStorage.removeItem('respublica_char');
+        } catch (e) {}
+        return;
+      }
+
+      if (typeof sbCreerCompteBancaire === 'function') {
+        await sbCreerCompteBancaire({
+          id: 'nationale_' + char.name,
+          personnage: char.name,
+          pays: char.country,
+          banque: 'nationale',
+          solde: soldeBanqueNationale
+        }).catch(e => console.error('Échec de la création du compte Banque nationale pour ' + char.name + ' — le personnage existe mais sans compte bancaire initial, à corriger manuellement.', e));
+      }
 
       // Ville de naissance (17 aout 2026, mini-lot etat-civil) : ecriture separee, une seule
       // fois, dans une table dediee (etat_civil_naissances) -- jamais dans 'personnages', qui

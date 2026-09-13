@@ -6,18 +6,33 @@
 const SUPABASE_URL = 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 
-const SB_HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_ANON,
-  'Authorization': `Bearer ${SUPABASE_ANON}`
-};
+// EN-TETES DYNAMIQUES (chantier B, 14 septembre 2026). C'etait une constante :
+// toutes les requetes partaient sous la cle anon publique, donc sans aucune
+// identite -- la base ne pouvait pas distinguer un joueur d'un autre, ni d'un
+// visiteur. Desormais 'apikey' reste la cle anon (elle identifie le PROJET,
+// Supabase l'exige sur chaque appel) mais 'Authorization' porte le jeton de
+// session du joueur des qu'il en a un : c'est lui qui alimente auth.uid() cote
+// Postgres, et donc toutes les policies RLS.
+//
+// REPLI INTEGRAL. Tant qu'aucune session n'existe -- connexion anonyme pas
+// encore activee cote Supabase, reseau coupe, navigation privee --, on retombe
+// exactement sur l'ancien comportement. Aucune fenetre pendant laquelle un
+// joueur se retrouverait bloque.
+function sbEnTetes() {
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON,
+    'Authorization': 'Bearer ' + (jeton || SUPABASE_ANON)
+  };
+}
 
 // =====================
 // UTILITAIRES
 // =====================
 async function sbGet(table, filters = '') {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }
+    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' }
   });
   if (!res.ok) { console.error('sbGet error', await res.text()); return null; }
   return res.json();
@@ -31,7 +46,7 @@ async function sbInsert(table, data, preferResolution) {
   const prefer = preferResolution ? `return=representation,resolution=${preferResolution}` : 'return=representation';
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': prefer },
+    headers: { ...sbEnTetes(), 'Prefer': prefer },
     body: JSON.stringify(data)
   });
   if (!res.ok) { console.error('sbInsert error', await res.text()); return null; }
@@ -41,7 +56,7 @@ async function sbInsert(table, data, preferResolution) {
 async function sbUpdate(table, filters, data) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
     method: 'PATCH',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
     body: JSON.stringify(data)
   });
   if (!res.ok) { console.error('sbUpdate error', await res.text()); return null; }
@@ -51,7 +66,7 @@ async function sbUpdate(table, filters, data) {
 async function sbDelete(table, filters) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
     method: 'DELETE',
-    headers: SB_HEADERS
+    headers: sbEnTetes()
   });
   if (!res.ok) { console.error('sbDelete error', await res.text()); return null; }
   return true;
@@ -121,6 +136,47 @@ async function sbEcrirePersonnage(data) {
   }
 }
 
+// CREATION D'UN PERSONNAGE — CHEMIN DEDIE ET NON DESTRUCTEUR (chantier B, 14 septembre 2026).
+//
+// LE DEFAUT CORRIGE. La creation passait par sbEcrirePersonnage ci-dessus, qui est un
+// upsert-par-nom : trouvant une ligne du meme nom, il faisait un PATCH. Saisir a l'ecran de
+// creation le nom d'un joueur existant REMPLACAIT donc sa fiche entiere -- stats, argent,
+// inventaire, poste, domicile -- sans la moindre erreur affichee. La contrainte UNIQUE(name)
+// existait pourtant en base : elle n'etait simplement jamais atteinte, puisque le client
+// choisissait lui-meme de faire un UPDATE plutot qu'un INSERT.
+//
+// Ici, INSERT SEC. C'est la base qui tranche : si le nom est pris, Postgres rejette (23505) et
+// la creation echoue proprement. On ne consulte pas la table d'abord -- un controle prealable
+// laisserait une fenetre de concurrence entre la lecture et l'ecriture, la contrainte non.
+async function sbCreerPersonnageUnique(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/personnages`, {
+    method: 'POST',
+    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if (res.ok) {
+    const lignes = await res.json().catch(() => null);
+    return { ok: true, ligne: (lignes && lignes[0]) || null };
+  }
+  const texte = await res.text();
+  let erreur = null; try { erreur = JSON.parse(texte); } catch (e) {}
+  // 23505 = violation de contrainte d'unicite : le nom est deja porte par un personnage.
+  if (res.status === 409 || (erreur && erreur.code === '23505')) {
+    return { ok: false, raison: 'nom_deja_pris' };
+  }
+  console.error('sbCreerPersonnageUnique', res.status, texte);
+  return { ok: false, raison: 'erreur_serveur', detail: (erreur && erreur.message) || texte };
+}
+
+// Le nom est-il deja porte ? Confort d'IHM UNIQUEMENT (message immediat pendant la saisie) :
+// l'autorite reste la contrainte UNIQUE ci-dessus, jamais cette lecture.
+async function sbNomPersonnageDisponible(nom) {
+  if (!nom) return false;
+  const rows = await sbGet('personnages', `select=name&name=eq.${encodeURIComponent(nom)}`);
+  if (rows === null) return null; // indeterminable (reseau) : ne pas conclure
+  return rows.length === 0;
+}
+
 // Garde de bootstrap (lot du 25 aout 2026, correctif generique de concurrence client/serveur) :
 // tant que loadCharacter() n'a pas fini de reconcilier state.char avec Supabase
 // (state.personnageChargeDepuisServeur === false, jamais undefined -- voir loadCharacter,
@@ -132,6 +188,15 @@ async function sbEcrirePersonnage(data) {
 // ailleurs qu'au tout debut du chargement de page).
 async function sbSavePersonnage(charState) {
   if (charState.personnageChargeDepuisServeur === false) return;
+  const data = sbPayloadPersonnage(charState);
+  return sbEnfilerEcriturePersonnage(charState, data);
+}
+
+// Construction du payload, extraite de sbSavePersonnage (chantier B, 14 septembre 2026) pour
+// que la PREMIERE ecriture d'un personnage puisse emprunter exactement les memes 48 colonnes
+// sans les recopier. Aucune valeur, aucun defaut, aucun commentaire n'a change : seul
+// l'emplacement du bloc bouge.
+function sbPayloadPersonnage(charState) {
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
   const data = {
@@ -239,7 +304,10 @@ async function sbSavePersonnage(charState) {
     reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
+  return data;
+}
 
+function sbEnfilerEcriturePersonnage(charState, data) {
   // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
   // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
   const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data)).then((resultat) => {
@@ -255,6 +323,27 @@ async function sbSavePersonnage(charState) {
   }, (err) => { reporterDeltaPopNonEcrit(charState, data.resources); throw err; });
   sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
   return tache;
+}
+
+// PREMIERE ECRITURE D'UN PERSONNAGE (chantier B, 14 septembre 2026).
+// Construit exactement le meme payload que sbSavePersonnage -- on ne duplique pas les 48
+// colonnes, on reutilise la fonction -- mais l'ecrit par un INSERT SEC, de sorte qu'un nom
+// deja pris soit refuse par la contrainte UNIQUE plutot que d'ecraser son porteur.
+//
+// ORDRE IMPERATIF : la session d'authentification est ouverte AVANT l'insertion. C'est elle
+// qui donne son auth.uid() a la requete, et c'est le declencheur serveur
+// personnages_lier_proprietaire qui inscrit ce uid dans user_id. Creer d'abord et rattacher
+// ensuite laisserait une fenetre pendant laquelle le personnage n'appartient a personne.
+async function sbCreerPersonnageInitial(charState) {
+  if (typeof rpAuthAssurerSession === 'function') {
+    await rpAuthAssurerSession().catch(() => null);
+  }
+  // On emprunte le constructeur de payload de sbSavePersonnage en neutralisant son ecriture :
+  // la garde de bootstrap est inoperante ici (personnage tout neuf), on passe donc par une
+  // capture directe du meme objet.
+  const data = sbPayloadPersonnage(charState);
+  if (!data || !data.name) return { ok: false, raison: 'nom_manquant' };
+  return await sbCreerPersonnageUnique(data);
 }
 
 // Variante prudente de sbSavePersonnage, reservee au filet de securite periodique de 30s
@@ -1085,7 +1174,7 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/presences`, {
       method: 'POST',
-      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      headers: { ...sbEnTetes(), 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({
         name, country, city, building_id: buildingId, room_id: roomId,
         groupe_pnj: groupePnj || [],
@@ -1097,7 +1186,7 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
     if (typeof state !== 'undefined' && buildingId && roomId) {
       const hLog = String(state.hour || 0).padStart(2, '0');
       fetch(`${SUPABASE_URL}/rest/v1/historique_deplacements`, {
-        method: 'POST', headers: SB_HEADERS,
+        method: 'POST', headers: sbEnTetes(),
         body: JSON.stringify({ name, country, city, building_id: buildingId, room_id: roomId, jour: state.day || 1, heure: hLog + 'h' })
       }).catch(() => {});
     }
@@ -1176,7 +1265,7 @@ function sbSauvegardeUrgenceDechargement() {
   try {
     fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(state.char.name)}`, {
       method: 'PATCH',
-      headers: SB_HEADERS,
+      headers: sbEnTetes(),
       body,
       keepalive: true
     }).catch(() => {});
@@ -1226,19 +1315,19 @@ async function sbSetMailArchived(mailId, archived) {
 async function sbDeletePersonnage(name) {
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: SB_HEADERS
+      method: 'DELETE', headers: sbEnTetes()
     });
     await fetch(`${SUPABASE_URL}/rest/v1/presences?name=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: SB_HEADERS
+      method: 'DELETE', headers: sbEnTetes()
     });
     await fetch(`${SUPABASE_URL}/rest/v1/dons_en_attente?destinataire=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: SB_HEADERS
+      method: 'DELETE', headers: sbEnTetes()
     });
     await fetch(`${SUPABASE_URL}/rest/v1/votes_electoraux?votant=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: SB_HEADERS
+      method: 'DELETE', headers: sbEnTetes()
     });
     await fetch(`${SUPABASE_URL}/rest/v1/candidatures?nom=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: SB_HEADERS
+      method: 'DELETE', headers: sbEnTetes()
     });
     return true;
   } catch(e) { console.error('sbDeletePersonnage error', e); return false; }
@@ -2938,7 +3027,7 @@ async function sbMajCompteBancaire(id, patch) {
 async function sbRpc(fn, params) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
     body: JSON.stringify(params || {})
   });
   if (!res.ok) { console.error('sbRpc error (' + fn + ')', await res.text()); return null; }

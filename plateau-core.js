@@ -547,6 +547,27 @@ function afficherBandeauNouvelleVersion() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  // IDENTITE AVANT TOUT (chantier B, 14 septembre 2026). On ouvre la session -- anonyme et
+  // silencieuse -- AVANT la premiere requete, pour que toutes les lectures et ecritures de la
+  // page partent deja sous l'identite du joueur, et non sous la cle anon partagee par tous les
+  // visiteurs. Volontairement NON bloquant : si le fournisseur est indisponible, tout retombe
+  // sur l'ancien comportement et le jeu demarre quand meme (voir auth.js).
+  if (typeof rpAuthAssurerSession === 'function') {
+    rpAuthAssurerSession()
+      .then(session => {
+        if (!session) return;
+        // Personnage cree AVANT l'authentification : il n'appartient encore a personne. On le
+        // rattache au compte de ce navigateur. Fenetre transitoire, fermee a la
+        // reinitialisation de la beta (voir rattacher_personnage, cote base).
+        // Lu depuis localStorage, et non depuis state : loadCharacter() n'a pas encore tourne.
+        let nom = null;
+        try { nom = localStorage.getItem('respublica_last_char'); } catch (e) {}
+        if (nom && typeof rpAuthRattacherPersonnage === 'function') {
+          rpAuthRattacherPersonnage(nom).catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }
   loadCharacter();
   // Restaurer dernierDormir depuis localStorage
   try {
