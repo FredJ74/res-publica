@@ -95,6 +95,47 @@ var bouchons = {
   // reel du jeu et non une absence de reseau. Le controle du cout declare, lui, appartient au
   // serveur et n'a pas de sens ici : le banc n'appelle que des couts legitimes.
   sbRpc: function (fn, p) {
+    // CHANTIER C (14 septembre 2026) : la production de tracts ne passe plus par
+    // deduireCoutOrdre + caisse + salaire en trois temps -- l'ordre imprimer_tracts_* declare
+    // (1 PA, 150 FR) et le client envoyait (N PA, 150N FR), refuse des deux lots. Tout est
+    // reuni dans imprimerie_produire_tracts. Le bouchon reproduit sa semantique exacte pour que
+    // le banc continue de mesurer le comportement REEL du jeu : memes bornes, meme ordre de
+    // controle, aucune mutation si l'une d'elles echoue.
+    if (fn === 'imprimerie_produire_tracts') {
+      var st2 = bouchons.state, lots = p.p_lots || 0;
+      var cle2 = p.p_pays + '/' + p.p_ville + '/' + p.p_batiment;
+      var etat2 = ETATS[cle2] || {};
+      var imp = etat2.imprimerie || {};
+      var bois = imp.stockBois || 0, caisse2 = imp.caisse || 0;
+      var cout2 = lots * 150, salaire2 = lots * 50, paReq = lots * 1;
+      if (lots <= 0) return Promise.resolve([{ ok: false, raison: 'lots_invalides' }]);
+      if (bois < lots) {
+        return Promise.resolve([{ ok: false, raison: 'bois_insuffisant', stock: bois, requis: lots }]);
+      }
+      if ((st2.pa || 0) < paReq) {
+        return Promise.resolve([{ ok: false, raison: 'pa_insuffisants', requis: paReq, pa_reel: st2.pa || 0 }]);
+      }
+      var soldeN = (st2.comptesBancaires && st2.comptesBancaires.nationale)
+        ? (st2.comptesBancaires.nationale.solde || 0) : 0;
+      if ((st2.liquide || 0) + soldeN < cout2) {
+        return Promise.resolve([{ ok: false, raison: 'fonds_insuffisants', cout: cout2 }]);
+      }
+      var prisL = Math.min(st2.liquide || 0, cout2), prisN = cout2 - prisL;
+      st2.liquide = (st2.liquide || 0) - prisL + salaire2;
+      st2.arg = (st2.arg || 0) - cout2 + salaire2;
+      if (st2.comptesBancaires && st2.comptesBancaires.nationale) {
+        st2.comptesBancaires.nationale.solde = soldeN - prisN;
+      }
+      st2.pa = (st2.pa || 0) - paReq;
+      if (!ETATS[cle2]) ETATS[cle2] = {};
+      ETATS[cle2].imprimerie = Object.assign({}, imp,
+        { stockBois: bois - lots, caisse: caisse2 + (cout2 - salaire2) });
+      journal.sauvegardes.push(p.p_batiment);
+      return Promise.resolve([{ ok: true, lots: lots, cout: cout2, salaire: salaire2,
+        bois: lots, paConsommes: paReq, stockBois: bois - lots,
+        caisseAtelier: caisse2 + (cout2 - salaire2),
+        pa: st2.pa, arg: st2.arg, liquide: st2.liquide }]);
+    }
     if (fn !== 'payer_ordre') return Promise.resolve(null);
     var st = bouchons.state, pa = p.p_pa || 0, cost = p.p_cost || 0;
     var solde = (st.comptesBancaires && st.comptesBancaires.nationale) ? (st.comptesBancaires.nationale.solde || 0) : 0;

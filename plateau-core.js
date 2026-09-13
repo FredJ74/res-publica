@@ -1280,21 +1280,23 @@ async function debiterFondsOrdinaires(montant) {
   const avantLiquide = state.liquide || 0;
   const avantNational = state.comptesBancaires?.nationale?.solde || 0;
 
-  const ok = await sbRpc('helvetia_debiter_fonds_ordinaires', {
-    p_personnage: state.char.name, p_montant: montant
+  // debiter_fonds_ordinaires est le GUICHET : il prouve l'identite avant tout mouvement, puis
+  // delegue a la primitive interne. Celle-ci prend un nom de personnage sans le verifier et
+  // reste donc fermee au navigateur.
+  const r = await sbRpc('debiter_fonds_ordinaires', {
+    p_acteur: state.char.name, p_montant: montant
   }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
     .catch(function () { return null; });
-  if (ok !== true) return { ok: false, raison: 'fonds_insuffisants' };
+  if (!r || r.ok !== true) return { ok: false, raison: (r && r.raison) || 'fonds_insuffisants' };
 
-  // Recopie de ce que le serveur a retenu, jamais un calcul local. La repartition suit la meme
-  // regle que celle appliquee au serveur, elle est donc exacte.
+  // Recopie de ce que le serveur a retenu, jamais un calcul local.
   const preleveLiquide = Math.min(avantLiquide, montant);
   const preleveNational = montant - preleveLiquide;
-  state.liquide = avantLiquide - preleveLiquide;
-  if (preleveNational > 0 && state.comptesBancaires?.nationale) {
-    state.comptesBancaires.nationale.solde = avantNational - preleveNational;
+  state.liquide = Number(r.liquide);
+  state.arg = Number(r.arg);
+  if (state.comptesBancaires?.nationale && typeof r.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = Number(r.solde_national);
   }
-  state.arg = Math.max(0, (state.arg || 0) - montant);
   if (state.char) state.char.arg = state.arg;
 
   return { ok: true, preleveLiquide, preleveNational };
