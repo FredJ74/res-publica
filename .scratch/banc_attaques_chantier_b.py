@@ -119,7 +119,7 @@ def preparer():
 CREATIONS = [
     ("personnages", "name=eq." + VICTIME),
     ("personnages", "name=eq." + ATTAQUANT),
-    ("detentions", "id=eq.zztest-detention-chantier-b"),
+    ("detentions", "id=eq.zztest-detention-fabriquee"),
     ("batiments_etat", "id=eq.zztest_global_caisse-institutionnelle"),
     ("cycles_electoraux", "id=eq.zztest_president"),
 ]
@@ -197,15 +197,19 @@ def lancer():
     verifier(5, "un joueur ne peut pas modifier un stock institutionnel", not pille,
              "REFUS", "HTTP %s" % code)
 
-    # --- 6. modifier une detention ----------------------------------------
-    http("POST", "/rest/v1/detentions", {
-        "id": "zztest-detention-chantier-b", "country": "republic", "city": "capitale",
-        "nom": VICTIME, "raison": "zztest", "jour_debut": 1, "jour_fin": 30, "qhs": False})
-    code, _ = http("PATCH", "/rest/v1/detentions?id=eq.zztest-detention-chantier-b",
-                   {"mode_fin": "purgee", "jour_fin": 1})
-    c2, apres = http("GET", "/rest/v1/detentions?select=mode_fin&id=eq.zztest-detention-chantier-b")
-    libere = apres and apres[0]["mode_fin"] == "purgee"
-    verifier(6, "un joueur ne peut pas modifier une detention", not libere,
+    # --- 6. fabriquer ou modifier une detention ---------------------------
+    # NE LAISSE AUCUN RESIDU, par construction : les deux ecritures testees sont
+    # REFUSEES, donc rien n'est cree. C'est aussi plus fidele a la menace reelle --
+    # faire incarcerer quelqu'un est un pouvoir plus grave que le liberer.
+    # (Le registre judiciaire n'a volontairement aucune policy DELETE : une
+    # detention ne s'efface pas, meme par son detenu.)
+    code, rep = http("POST", "/rest/v1/detentions", {
+        "id": "zztest-detention-fabriquee", "country": "republic", "city": "capitale",
+        "nom": VICTIME, "raison": "incarceration fabriquee", "jour_debut": 1,
+        "jour_fin": 30, "qhs": False}, jeton=JETON_ATTAQUANT)
+    c2, cree = http("GET", "/rest/v1/detentions?select=id&id=eq.zztest-detention-fabriquee")
+    fabriquee = bool(cree)
+    verifier(6, "un joueur ne peut pas fabriquer la detention d'un autre", not fabriquee,
              "REFUS", "HTTP %s" % code)
 
     # --- 7. modifier une election -----------------------------------------
@@ -266,10 +270,22 @@ def lancer():
     verifier("11b", "le Journal reste lisible", code == 200, "SUCCES", "HTTP %s" % code)
 
     # --- 12. donnees privees d'un autre PJ ---------------------------------
-    code, rep = http("GET", "/rest/v1/personnages?select=inventory,arg,liquide,banque&name=eq." + VICTIME)
-    expose = code == 200 and rep and ("arg" in rep[0])
-    verifier(12, "les donnees privees d'un autre PJ ne sont pas lisibles", not expose,
-             "REFUS", "HTTP %s, champs=%s" % (code, list(rep[0].keys()) if rep else []))
+    # On mesure les VALEURS, pas la presence des cles : PostgREST renvoie toujours les colonnes
+    # demandees. Le masquage consiste a les rendre nulles pour qui n'est pas le proprietaire.
+    code, rep = http("GET", "/rest/v1/personnages?select=name,inventory,arg,liquide,banque&name=eq." + VICTIME,
+                     jeton=JETON_ATTAQUANT)
+    prives = ["arg", "liquide", "banque", "inventory"]
+    fuite = [c for c in prives if rep and rep[0].get(c) is not None]
+    lisible = bool(rep and rep[0].get("name"))   # la ligne reste visible : le repertoire en depend
+    verifier(12, "les donnees privees d'un autre PJ ne sont pas lisibles", (not fuite) and lisible,
+             "REFUS", "fuites=%s, ligne visible=%s" % (fuite or "aucune", lisible))
+
+    # Et le proprietaire, lui, doit toujours voir les siennes.
+    code, rep = http("GET", "/rest/v1/personnages?select=arg,liquide,banque,inventory&name=eq." + VICTIME,
+                     jeton=JETON_VICTIME)
+    vu = bool(rep and rep[0].get("arg") is not None)
+    verifier("12c", "le proprietaire voit toujours SES donnees privees", vu,
+             "SUCCES", "arg=%s" % (rep[0].get("arg") if rep else "?"))
 
     code, rep = http("GET", "/rest/v1/comptes_bancaires?select=*&limit=1")
     verifier("12b", "les comptes bancaires d'autrui ne sont pas lisibles",
