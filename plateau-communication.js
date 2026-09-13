@@ -2700,58 +2700,56 @@ async function openFinancesModal(pa, cost) {
 // state.banque (jamais mis a jour depuis le Lot 2, donc jusqu'ici un depot/retrait etait
 // invisible a tout le reste du nouveau modele). arg reste inchange dans les deux sens : simple
 // deplacement entre deux poches deja comptees dedans.
+// CHANTIER C (14 septembre 2026). Le dernier compte du jeu encore pilote par une ecriture
+// cliente. Le navigateur deplacait l'argent entre liquide et compte national dans son propre
+// etat, puis persistait les deux cotes SEPAREMENT -- le personnage d'un cote, le compte de
+// l'autre, en fire-and-forget. Un echec du second appel creait ou detruisait de l'argent sans
+// que personne en soit informe. Et sbMajCompteBancaire ecrivait un SOLDE ABSOLU sans le moindre
+// controle d'identite.
+// banque_nationale_mouvement fait le deplacement sous verrou, dans une seule transaction.
+// Un depot/retrait ne cree ni ne detruit de valeur : 'arg' ne bouge pas, seule la repartition
+// entre les poches change -- regle existante, conservee.
+async function mouvementBanqueNationale(sens, amount, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return null; }
+
+  const v = await sbRpc('banque_nationale_mouvement', {
+    p_acteur: state.char?.name, p_sens: sens, p_montant: amount
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+
+  if (!v || v.ok !== true) {
+    const messages = {
+      liquide_insuffisant: 'Vous n\'avez pas cette somme en liquide.',
+      solde_insuffisant: 'Solde bancaire insuffisant.',
+      montant_invalide: 'Montant invalide.'
+    };
+    showToast('Operation refusee', messages[(v && v.raison) || ''] || '', false);
+    return null;
+  }
+
+  state.liquide = Number(v.liquide);
+  if (!state.comptesBancaires) state.comptesBancaires = {};
+  state.comptesBancaires.nationale = Object.assign({}, state.comptesBancaires.nationale,
+    { id: v.compte, solde: Number(v.solde) });
+  if (typeof updateUI === 'function') updateUI();
+  return v;
+}
+
 async function deposerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
-  if (!amount || amount <= 0 || amount > state.liquide) {
-    showToast('Erreur', 'Montant invalide ou insuffisant en liquide.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  if (!state.comptesBancaires) state.comptesBancaires = {};
-  if (!state.comptesBancaires.nationale) state.comptesBancaires.nationale = { solde: 0 };
-  state.liquide -= amount;
-  state.comptesBancaires.nationale.solde += amount;
-
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  const compteId = state.comptesBancaires.nationale.id;
-  if (compteId && typeof sbMajCompteBancaire === 'function') {
-    sbMajCompteBancaire(compteId, { solde: state.comptesBancaires.nationale.solde }).catch(() => {
-      console.error('Echec de persistance du depot sur le compte Banque nationale (solde local deja modifie, id=' + compteId + ')');
-    });
-  } else {
-    console.error('Depot effectue en memoire mais aucun compte Banque nationale identifiable (id manquant) -- non persiste sur comptes_bancaires.');
-  }
-
+  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); return; }
+  const v = await mouvementBanqueNationale('depot', amount, pa, cost);
+  if (!v) return;
   document.getElementById('modal-finances').classList.remove('open');
   showToast('Depot effectue', `${amount.toLocaleString('fr-FR')} deposes en banque.`, true);
   addJournalEntry(`Depot bancaire : ${amount.toLocaleString('fr-FR')}.`, '');
 }
 
 async function retirerArgent(pa, cost) {
-  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
   const amount = parseInt(document.getElementById('finance-amount-input').value);
-  if (!amount || amount <= 0 || amount > soldeNational) {
-    showToast('Erreur', 'Montant invalide ou solde bancaire insuffisant.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  state.comptesBancaires.nationale.solde -= amount;
-  state.liquide += amount;
-
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  const compteId = state.comptesBancaires.nationale.id;
-  if (compteId && typeof sbMajCompteBancaire === 'function') {
-    sbMajCompteBancaire(compteId, { solde: state.comptesBancaires.nationale.solde }).catch(() => {
-      console.error('Echec de persistance du retrait sur le compte Banque nationale (solde local deja modifie, id=' + compteId + ')');
-    });
-  } else {
-    console.error('Retrait effectue en memoire mais aucun compte Banque nationale identifiable (id manquant) -- non persiste sur comptes_bancaires.');
-  }
-
+  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); return; }
+  const v = await mouvementBanqueNationale('retrait', amount, pa, cost);
+  if (!v) return;
   document.getElementById('modal-finances').classList.remove('open');
   showToast('Retrait effectue', `${amount.toLocaleString('fr-FR')} retires de la banque.`, true);
   addJournalEntry(`Retrait bancaire : ${amount.toLocaleString('fr-FR')}.`, '');

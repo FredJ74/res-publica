@@ -1260,29 +1260,42 @@ function getFondsDisponiblesOrdinaires() {
 // couvre arg+liquide (memes champs racine, un seul appel sbSavePersonnage) ; le solde du compte
 // Banque nationale est persiste separement (table distincte, aucune transaction croisee possible
 // via l'API REST -- meme limite deja documentee ailleurs dans le projet), en best-effort trace.
+// CHANTIER C (14 septembre 2026) — LE DEBIT PASSE AU SERVEUR.
+//
+// Cette primitive -- 23 appelants -- prelevait dans l'etat du navigateur, puis persistait les
+// deux cotes SEPAREMENT : le personnage d'une part, le compte Banque nationale d'autre part, en
+// best-effort. Un echec du second laissait le joueur avec de l'argent qu'il avait deja depense.
+// Le meme calcul existait deja cote serveur, sous verrou : helvetia_debiter_fonds_ordinaires,
+// meme regle (liquide d'abord, complete par la Banque nationale, jamais de debit partiel).
+//
+// FAIL-CLOSED. Si l'appel n'aboutit pas, rien n'est preleve et l'appelant refuse son effet --
+// c'est l'invariant deja porte par cette fonction : « paiement reussi -> effet / paiement
+// refuse -> aucun effet ». Le client recopie ensuite l'etat arrete par le serveur.
 async function debiterFondsOrdinaires(montant) {
   if (!(montant > 0)) return { ok: true, preleveLiquide: 0, preleveNational: 0 };
-  const compteNational = state.comptesBancaires?.nationale;
-  const soldeNational = compteNational?.solde || 0;
-  const disponible = (state.liquide || 0) + soldeNational;
-  if (disponible < montant) return { ok: false, raison: 'fonds_insuffisants' };
+  if (typeof sbRpc !== 'function' || !state.char?.name) {
+    return { ok: false, raison: 'paiement_indisponible' };
+  }
 
-  const preleveLiquide = Math.min(state.liquide || 0, montant);
+  const avantLiquide = state.liquide || 0;
+  const avantNational = state.comptesBancaires?.nationale?.solde || 0;
+
+  const ok = await sbRpc('helvetia_debiter_fonds_ordinaires', {
+    p_personnage: state.char.name, p_montant: montant
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+    .catch(function () { return null; });
+  if (ok !== true) return { ok: false, raison: 'fonds_insuffisants' };
+
+  // Recopie de ce que le serveur a retenu, jamais un calcul local. La repartition suit la meme
+  // regle que celle appliquee au serveur, elle est donc exacte.
+  const preleveLiquide = Math.min(avantLiquide, montant);
   const preleveNational = montant - preleveLiquide;
-
-  state.liquide = (state.liquide || 0) - preleveLiquide;
-  if (preleveNational > 0 && compteNational) {
-    compteNational.solde -= preleveNational;
+  state.liquide = avantLiquide - preleveLiquide;
+  if (preleveNational > 0 && state.comptesBancaires?.nationale) {
+    state.comptesBancaires.nationale.solde = avantNational - preleveNational;
   }
-  state.arg = (state.arg || 0) - montant;
+  state.arg = Math.max(0, (state.arg || 0) - montant);
   if (state.char) state.char.arg = state.arg;
-
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  if (preleveNational > 0 && compteNational?.id && typeof sbMajCompteBancaire === 'function') {
-    sbMajCompteBancaire(compteNational.id, { solde: compteNational.solde }).catch(() => {
-      console.error('Echec de persistance du debit sur le compte Banque nationale (solde local deja modifie, id=' + compteNational.id + ')');
-    });
-  }
 
   return { ok: true, preleveLiquide, preleveNational };
 }

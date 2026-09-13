@@ -3161,12 +3161,26 @@ async function sbGetPlacementsBancaires(personnage) {
   return rows || [];
 }
 
+// Le compte Banque nationale d'un personnage neuf. Le solde n'est plus transmis : la RPC relit
+// la fortune reellement enregistree sur la ligne du personnage et en deduit la part non liquide.
+// La table est fermee en ecriture -- un INSERT client permettrait sinon de se doter d'un compte
+// au solde de son choix.
 async function sbCreerCompteBancaire(compte) {
-  return await sbInsert('comptes_bancaires', compte);
+  const nom = (compte && compte.personnage) || null;
+  if (!nom) return null;
+  const rows = await sbRpc('compte_bancaire_initial', { p_acteur: nom }).catch(() => null);
+  return Array.isArray(rows) ? rows[0] : rows;
 }
 
-async function sbMajCompteBancaire(id, patch) {
-  return await sbUpdate('comptes_bancaires', `id=eq.${encodeURIComponent(id)}`, { ...patch, updated_at: new Date().toISOString() });
+// NEUTRALISEE (14 septembre 2026). Elle ecrivait un SOLDE ABSOLU sur n'importe quelle ligne de
+// comptes_bancaires, sans controle d'identite : le dernier endroit du jeu ou un navigateur
+// pouvait s'attribuer la somme de son choix. Ses deux appelants -- depot/retrait et la primitive
+// de debit -- passent desormais par banque_nationale_mouvement et
+// helvetia_debiter_fonds_ordinaires, toutes deux verrouillees. La table est fermee en ecriture.
+async function sbMajCompteBancaire(id) {
+  console.error('sbMajCompteBancaire est neutralisee (chantier C) : utiliser '
+    + 'banque_nationale_mouvement. Ecriture ignoree pour ' + id);
+  return null;
 }
 
 // RPC generique (Prefer: return=representation pour recuperer la ligne retournee par la
