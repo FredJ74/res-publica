@@ -147,13 +147,29 @@ function reporterDeltaPopNonEcrit(charState, ressources) {
   }
 }
 
+// UNE SAUVEGARDE NE CREE JAMAIS UN PERSONNAGE (chantier B, 13 septembre 2026).
+//
+// Cette fonction inserait la ligne quand elle ne la trouvait pas. C'etait la porte par laquelle
+// un cache localStorage perime pouvait RESSUSCITER un personnage supprime -- constate a la
+// reinitialisation de la beta : un joueur encore connecte continuait d'ecrire, et sa prochaine
+// sauvegarde aurait recree sa fiche, argent compris, a partir de son seul navigateur. C'etait
+// aussi, plus banalement, ce qui permettait a une sauvegarde de faire le travail d'une creation
+// sans aucun des controles de celle-ci.
+//
+// Desormais : UPDATE seul. La creation a son propre chemin, avec sa contrainte d'unicite et son
+// rattachement au compte (sbCreerPersonnageUnique / sbCreerPersonnageInitial). Si la ligne
+// n'existe pas, la sauvegarde ne fait rien et le dit -- l'appelant, lui, verra simplement que
+// rien n'a ete ecrit, ce qu'il sait deja gerer (voir reporterDeltaPopNonEcrit).
 async function sbEcrirePersonnage(data) {
-  const existing = await sbGet('personnages', `name=eq.${encodeURIComponent(data.name)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
-  } else {
-    return sbInsert('personnages', data);
+  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
+  // PostgREST rend un tableau VIDE quand le filtre ne trouve rien -- valeur truthy, que
+  // l'appelant prendrait pour une reussite. On rend explicitement null : c'est le signal que
+  // sbSavePersonnage sait deja interpreter (report du delta de POP non ecrit).
+  if (Array.isArray(r) && r.length === 0) {
+    console.warn('sbEcrirePersonnage : aucun personnage nomme « ' + data.name + ' » — sauvegarde ignoree.');
+    return null;
   }
+  return r;
 }
 
 // CREATION D'UN PERSONNAGE — CHEMIN DEDIE ET NON DESTRUCTEUR (chantier B, 14 septembre 2026).
