@@ -7,6 +7,13 @@
 // ORDERS SYSTEM
 // =====================
 function doOrder(fn, pa, cost, label, desc, successRate) {
+  // ORDRE COURANT (chantier C, 13 septembre 2026). deduireCoutOrdre ne recoit que
+  // {pa, cost} de ses 268 appelants : elle ne sait pas QUEL ordre elle facture, et
+  // le serveur en a besoin pour verifier que le cout annonce est bien un cout
+  // declare. On le depose ici, au seul point de passage obligatoire, plutot que de
+  // modifier 268 signatures. Les handlers qui facturent apres une confirmation
+  // differee (modale) peuvent le passer explicitement via l'option `fn`.
+  if (typeof state !== 'undefined') state._ordreEnCours = fn;
   if (typeof queteAccueilNotifierOrdre === 'function') queteAccueilNotifierOrdre(fn);
   successRate = successRate || 70;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';

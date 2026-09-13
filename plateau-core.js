@@ -1417,7 +1417,53 @@ function advanceTime(pa) {
 //     honnete refletant ce qui a reellement ete preleve, pas la valeur declarative de l'ordre)
 //   echec  : { ok: false, raison: 'pa_insuffisants' | 'fonds_insuffisants' | 'caisse_institution_insuffisante' }
 //     aucune ressource n'est modifiee en cas d'echec.
-async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
+async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
+  // ===========================================================================
+  // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)
+  // ===========================================================================
+  // Tout ce qui suivait se passait dans le navigateur : c'est lui qui verifiait
+  // les PA, verifiait les fonds, puis se prelevait lui-meme. Le joueur decidait
+  // donc de ce que son action lui coutait. 268 sites du jeu passent par ici : les
+  // convertir un par un n'aurait aucun sens quand un seul point de bascule suffit.
+  //
+  // La RPC payer_ordre fait les trois choses AU SERVEUR et sous verrou : elle
+  // verifie que le cout annonce est un cout REELLEMENT declare pour cet ordre
+  // (miroir extrait de data.js), relit les PA et les fonds sur la ligne du
+  // personnage, et preleve. Le client n'annonce plus qu'une INTENTION ; il
+  // recopie ensuite ce que le serveur a effectivement retenu.
+  //
+  // FAIL CLOSED. Si l'appel n'aboutit pas, on refuse l'ordre. C'est l'invariant
+  // deja pose par cette fonction -- « paiement reussi -> effet / paiement refuse
+  // -> aucun effet » -- et il vaut mieux une action qui echoue franchement qu'un
+  // effet accorde sans contrepartie.
+  //
+  // Le chemin institutionnel (payeur.type === 'institution') n'est pas concerne :
+  // il passe deja par debiterCaisseBatimentAtomique, atomique cote serveur.
+  const ordre = fn || state._ordreEnCours || null;
+  if (payeur === 'joueur' && (pa > 0 || cost > 0)
+      && typeof sbRpc === 'function' && state.char?.name) {
+    const rows = await sbRpc('payer_ordre', {
+      p_acteur: state.char.name, p_fn: ordre, p_pa: pa, p_cost: cost
+    });
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r) return { ok: false, raison: 'paiement_indisponible', pa, cost };
+    if (r.ok !== true) {
+      return { ok: false, raison: r.raison || 'paiement_refuse', pa, cost,
+               fondsDisponibles: (typeof r.disponible === 'number') ? r.disponible : undefined };
+    }
+    // On recopie l'etat que le SERVEUR a arrete, jamais un calcul local : la
+    // prochaine sauvegarde complete republiera donc exactement ses valeurs.
+    state.pa = r.pa;
+    state.liquide = r.liquide;
+    state.arg = r.arg;
+    if (state.char) state.char.arg = state.arg;
+    if (state.comptesBancaires?.nationale && typeof r.solde_national === 'number') {
+      state.comptesBancaires.nationale.solde = r.solde_national;
+    }
+    if (typeof updateUI === 'function') updateUI();
+    return { ok: true, paPreleves: r.pa_preleves, montantPreleve: r.montant_preleve };
+  }
+
   // A. PA : toujours personnels, ignores sous TEST_MODE (comme partout ailleurs dans le jeu)
   if (!TEST_MODE && (state.pa || 0) < pa) {
     // pa/cost joints au resultat (lot ergonomique 1) : purement additif, permet a

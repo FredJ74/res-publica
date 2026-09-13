@@ -88,6 +88,31 @@ var bouchons = {
   signalerRefusCout: function (r) { journal.toasts.push('refus:' + r.raison); },
   sauvegarderPersonnageImmediat: function () { journal.appels.push('sauvegardePJ'); },
   getPrixRessourceEntrepot: function () { return 5; }, getPrixRessource: function () { return 5; },
+  // CHANTIER C (13 septembre 2026) : deduireCoutOrdre ne preleve plus elle-meme, elle demande
+  // a la RPC payer_ordre. Le bouchon reproduit sa semantique exacte -- verification des PA puis
+  // des fonds ordinaires (liquide + Banque nationale), ponction du liquide d'abord, refus SANS
+  // mutation si l'un des deux manque -- pour que le banc continue de mesurer le comportement
+  // reel du jeu et non une absence de reseau. Le controle du cout declare, lui, appartient au
+  // serveur et n'a pas de sens ici : le banc n'appelle que des couts legitimes.
+  sbRpc: function (fn, p) {
+    if (fn !== 'payer_ordre') return Promise.resolve(null);
+    var st = bouchons.state, pa = p.p_pa || 0, cost = p.p_cost || 0;
+    var solde = (st.comptesBancaires && st.comptesBancaires.nationale) ? (st.comptesBancaires.nationale.solde || 0) : 0;
+    if ((st.pa || 0) < pa) return Promise.resolve([{ ok: false, raison: 'pa_insuffisants' }]);
+    if ((st.liquide || 0) + solde < cost) return Promise.resolve([{ ok: false, raison: 'fonds_insuffisants', disponible: (st.liquide || 0) + solde }]);
+    var prisLiquide = Math.min(st.liquide || 0, cost), prisNational = cost - prisLiquide;
+    // ATOMICITE. La vraie RPC lit la ligne sous SELECT ... FOR UPDATE : un second appel
+    // concurrent attend la fin du premier et voit donc l'etat DEJA debite. Le bouchon doit
+    // reproduire cette serialisation, sinon deux ordres lances ensemble liraient tous deux
+    // l'etat d'avant et passeraient tous les deux -- ce que le serveur, lui, refuse.
+    st.pa = (st.pa || 0) - pa;
+    st.liquide = (st.liquide || 0) - prisLiquide;
+    st.arg = (st.arg || 0) - cost;
+    if (st.comptesBancaires && st.comptesBancaires.nationale) st.comptesBancaires.nationale.solde = solde - prisNational;
+    return Promise.resolve([{ ok: true, pa: st.pa, liquide: st.liquide,
+                              arg: st.arg, solde_national: solde - prisNational,
+                              pa_preleves: pa, montant_preleve: cost }]);
+  },
   sbGetBatimentEtat: function (p, v, b) { return Promise.resolve(JSON.parse(JSON.stringify(ETATS[p + '/' + v + '/' + b] || {}))); },
   sbSetBatimentEtat: function (p, v, b, e) { ETATS[p + '/' + v + '/' + b] = JSON.parse(JSON.stringify(e)); journal.sauvegardes.push(b); return Promise.resolve(); },
   // Meme semantique que la RPC batiment_caisse_mouvement (tout-ou-rien, jamais de solde negatif).
