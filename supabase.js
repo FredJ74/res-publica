@@ -31,6 +31,11 @@ function sbEnTetes() {
 // UTILITAIRES
 // =====================
 async function sbGet(table, filters = '') {
+  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
+  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
+  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    await rpAuthAssurerSession().catch(() => null);
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
     headers: { ...sbEnTetes(), 'Prefer': 'return=representation' }
   });
@@ -43,6 +48,11 @@ async function sbGet(table, filters = '') {
 // ON CONFLICT DO NOTHING). Retrocompatible : tous les appelants existants (dizaines, deux
 // arguments) gardent exactement le meme comportement, seul un appel a 3 arguments est affecte.
 async function sbInsert(table, data, preferResolution) {
+  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
+  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
+  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    await rpAuthAssurerSession().catch(() => null);
+  }
   const prefer = preferResolution ? `return=representation,resolution=${preferResolution}` : 'return=representation';
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
@@ -54,6 +64,11 @@ async function sbInsert(table, data, preferResolution) {
 }
 
 async function sbUpdate(table, filters, data) {
+  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
+  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
+  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    await rpAuthAssurerSession().catch(() => null);
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
     method: 'PATCH',
     headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
@@ -64,6 +79,11 @@ async function sbUpdate(table, filters, data) {
 }
 
 async function sbDelete(table, filters) {
+  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
+  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
+  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    await rpAuthAssurerSession().catch(() => null);
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
     method: 'DELETE',
     headers: sbEnTetes()
@@ -3025,6 +3045,15 @@ async function sbMajCompteBancaire(id, patch) {
 // transactions Postgres, seule facon de garantir qu'un debit de compte ne peut jamais avoir lieu
 // sans creer/resoudre le placement correspondant, et inversement).
 async function sbRpc(fn, params) {
+  // IDENTITE GARANTIE AVANT L'APPEL (chantier B, 14 septembre 2026). Les RPC verifient
+  // desormais que l'acteur declare est bien le personnage du compte connecte (exiger_acteur).
+  // Sans jeton, elles refuseraient tout. L'ouverture de session est lancee au chargement de la
+  // page, mais une action tres precoce pourrait la devancer : on l'attend donc ici, une fois --
+  // rpAuthAssurerSession est idempotente et deduplique les appels concurrents, donc ce n'est un
+  // aller-retour reseau qu'a la toute premiere invocation.
+  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    await rpAuthAssurerSession().catch(() => null);
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
