@@ -1461,10 +1461,25 @@ ${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' ? (() => {
   const ordresIci = (BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.orders || [])
     .map(o => '- ' + o.label + (o.desc ? ' : ' + o.desc : ''))
     .join('\n');
+  // OU EN EST LA QUETE (audit du 14 septembre 2026). Jusqu'ici, le contexte envoye a l'IA ne
+  // contenait AUCUNE information sur la quete d'accueil : ni l'etape, ni l'objectif en cours.
+  // Jeremy, dont c'est pourtant la seule raison d'etre, repondait donc a toute question du type
+  // « on fait quoi maintenant ? » sans savoir qu'une quete etait en cours -- il improvisait a
+  // partir du lieu, ce que le joueur percevait comme des reponses hors sujet.
+  // On ne lui donne que ce que le jeu sait deja : l'etape, et la phrase d'objectif deja
+  // affichee dans « Mes Objectifs ». Aucun texte nouveau, aucune regle de jeu modifiee.
+  const etapeJeremy = state.char?.queteAccueil?.etape || null;
+  const objectifJeremy = (typeof queteAccueilObjectifActuel === 'function')
+    ? queteAccueilObjectifActuel() : null;
+  const etapeQueteJeremy = objectifJeremy
+    ? `Ou en est la visite : le joueur en est actuellement a l'etape "${etapeJeremy}". Ce qu'il doit faire maintenant : ${objectifJeremy}\n`
+      + `Si le joueur demande ou il en est, ce qu'il doit faire, ou comment continuer -- sous n'importe quelle formulation -- redis-lui precisement cette etape-la, avec tes mots, sans inventer une autre consigne ni une autre destination.`
+    : (etapeJeremy ? `Ou en est la visite : le joueur en est a l'etape "${etapeJeremy}", qui n'attend aucune action precise de sa part. S'il demande quoi faire, dis-lui simplement qu'il est libre de continuer a decouvrir la ville.` : '');
   return `Contexte special : tu es actuellement en train de faire visiter la ville a ce nouveau joueur, dans le cadre de son accueil. Tu es un peu maladroit mais serviable et honnete. Tu vouvoies TOUJOURS le joueur, sans exception.
 IMPORTANT : fie-toi UNIQUEMENT au "Lieu actuel" indique plus haut pour savoir ou vous etes reellement. Ne dis JAMAIS que vous etes encore a l'Hotel de Ville, ou a un autre endroit deja visite plus tot dans la visite, si le lieu actuel indique autre chose. Si AUCUN lieu actuel n'est indique plus haut (vous etes dans la rue, pas dans un batiment), ne devine JAMAIS un nom de lieu precis (n'invente jamais "Place de la Concorde" ou autre) : dis simplement que vous etes ensemble dans la rue et propose de consulter le bouton PLAN, en haut de l'ecran, pour s'orienter.
 Si on te demande un chemin ou une direction vers un lieu que vous n'avez pas encore visite, reponds de facon coherente avec la vraie geographie de Luthecia. Ne donne jamais d'indication de trajet inventee ou incoherente, et ne mentionne jamais d'activites illegales ou de corruption ; si tu n'es pas sur, propose plutot de consulter le bouton PLAN en haut de l'ecran.
-${ordresIci ? 'Voici les actions reellement disponibles dans la piece ou vous vous trouvez, utilise-les pour donner des reponses precises et concretes si le joueur te pose une question sur le fonctionnement d\'un lieu ou d\'un mecanisme du jeu :\n' + ordresIci : ''}`;
+${ordresIci ? 'Voici les actions reellement disponibles dans la piece ou vous vous trouvez, utilise-les pour donner des reponses precises et concretes si le joueur te pose une question sur le fonctionnement d\'un lieu ou d\'un mecanisme du jeu :\n' + ordresIci : ''}
+${etapeQueteJeremy}`;
 })() : ''}
 ${autresJoueursTexte}
 
@@ -1510,7 +1525,22 @@ RÈGLES ABSOLUES :
         messages
       })
     });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    // PANNE RENDUE VISIBLE (audit du 14 septembre 2026). Jusqu'ici, un echec de /api/chat
+    // -- credit Anthropic epuise, quota, modele retire -- etait AVALE en silence : tous les PNJ
+    // se mettaient a repondre trois phrases generiques, sans le moindre signal ni au joueur ni
+    // au developpeur. C'est ce qui a ete remonte comme « les reponses de Jeremy n'ont pas de
+    // pertinence ». On journalise desormais la raison exacte ; le comportement joueur, lui, ne
+    // change pas (aucun message technique affiche en jeu).
+    if (!resp.ok) {
+      let raison = 'HTTP ' + resp.status;
+      try {
+        const err = await resp.clone().json();
+        if (err?.error?.message) raison += ' — ' + err.error.message;
+        else if (err?.error) raison += ' — ' + err.error;
+      } catch (eLecture) {}
+      console.warn('[PNJ] /api/chat indisponible (' + raison + ') — repli hors IA pour ' + (pnj.name || '?'));
+      throw new Error(raison);
+    }
     const data = await resp.json();
     const text = data.content?.[0]?.text;
     if (text) {
@@ -1521,6 +1551,16 @@ RÈGLES ABSOLUES :
       state.pnjConversations[convKey] = history;
     } else { throw new Error('no text'); }
   } catch(e) {
+    // REPLI UTILE POUR JEREMY. Les trois phrases generiques ci-dessous n'ont aucun sens pour un
+    // guide dont c'est le seul role : quand l'IA est indisponible, il vaut mieux redire l'etape
+    // en cours de la quete -- un contenu qui existe deja et qui est, lui, toujours exact --
+    // que « Oui ? J'ecoute. ». Aucun texte nouveau n'est invente ici : on rejoue le rappel
+    // deja ecrit pour cette etape.
+    const estJeremy = (pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy';
+    if (estJeremy && typeof queteAccueilRappel === 'function' && queteAccueilRappel()) {
+      speech.textContent = 'Je vous remontre où nous en sommes.';
+      return;
+    }
     const fallbacks = {
       enemy:   ['Circulez, il n\'y a rien a vous dire.', 'Votre presence m\'importune.', 'Je n\'ai rien a declarer.'],
       ally:    ['Ah, vous voila ! On a des choses a discuter.', 'Je vous attendais justement.', 'Entrons dans le vif du sujet.'],

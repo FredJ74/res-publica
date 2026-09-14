@@ -980,9 +980,19 @@ function restaurerPositionApresChargement(char) {
   const buildingCible = char.currentBuilding, roomCible = char.currentRoom;
   setTimeout(() => {
     try {
+      // Drapeau de RESTAURATION (audit quete d'accueil, 14 septembre 2026). Le chargement de
+      // page rejoue enterBuilding/enterRoom a l'identique d'un vrai deplacement : tout hook de
+      // navigation qui interprete "le joueur s'est deplace" confond donc un F5 avec un
+      // deplacement volontaire. C'etait le cas de queteAccueilVerifierDepartJeremy, qui
+      // terminait la quete d'accueil au premier rechargement a l'etape "Ajoutez Jeremy a vos
+      // contacts" -- le joueur perdait Jeremy ET la question d'orientation de carriere.
+      // Le drapeau est pose autour des seuls appels de restauration, qui sont synchrones pour
+      // les hooks concernes, et retire dans le finally quoi qu'il arrive.
+      window._restaurationPositionEnCours = true;
       enterBuilding(buildingCible, true);
       enterRoom(buildingCible, roomCible, null);
     } catch(e) { console.warn('Erreur restauration position', e); }
+    finally { window._restaurationPositionEnCours = false; }
   }, 300);
 }
 

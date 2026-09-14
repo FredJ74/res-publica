@@ -703,6 +703,12 @@ function queteAccueilMarquerPresentationPubliee() {
 function queteAccueilVerifierDepartJeremy() {
   if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
   if (state.char.queteAccueil.etape !== 'attente_depart_jeremy') return;
+  // Un RECHARGEMENT DE PAGE n'est pas un depart (audit du 14 septembre 2026). Le chargement
+  // rejoue enterRoom() sur la position restauree, ce qui appelait ce filet de securite et
+  // terminait la quete : le joueur perdait Jeremy et la question d'orientation de carriere qui
+  // cloture le tronc commun, sans avoir rien fait d'autre que rafraichir sa page.
+  // Le depart volontaire, lui, reste inchange : tout deplacement REEL le declenche toujours.
+  if (typeof window !== 'undefined' && window._restaurationPositionEnCours) return;
   state.char.queteAccueil = { etape: 'quete_terminee_sans_aide' };
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   if (typeof quitterJeremy === 'function') quitterJeremy();
