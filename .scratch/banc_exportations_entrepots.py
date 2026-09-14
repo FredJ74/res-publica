@@ -44,6 +44,9 @@ C = lire('api/cron-minuit.js')
 SOURCES = ''.join(en_expression(x) for x in [
     extraire(C, 'RESSOURCES_ECONOMIE_SERVEUR', 'const'),
     extraire(C, 'ENTREPOTS_VILLES', 'const'),
+    extraire(C, 'CAPACITE_ENTREPOT_PAR_RESSOURCE', 'const'),
+    extraire(C, 'DESIDERATA_PNJ_DEFAUT', 'const'),
+    extraire(C, 'desiderataEffectifs'),
     extraire(C, 'EXPORTATIONS_PORT', 'const'),
     extraire(C, 'ORIGINE_IMPORTS_PORT', 'const'),
     extraire(C, 'RESSOURCES_REROUTEES_PORT', 'const'),
@@ -81,6 +84,10 @@ async function sbSetBatimentEtat(pays, ville, bat, etat) {
   return etat;
 }
 async function matieresInterditesRepublia() { return interditesSimulees; }
+// Le reapprovisionnement lit desormais le transit et les directeurs en poste, et ecrit au
+// registre : bouchons neutres, ce banc ne teste pas ces chemins-la.
+async function sbGet(table) { return []; }
+async function sbInsert(table, lignes) { return lignes; }
 var console = { error: function () {}, warn: function () {}, log: function () {} };
 
 %SOURCES%

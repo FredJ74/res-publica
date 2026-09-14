@@ -5215,6 +5215,7 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
         ]
       }
@@ -5373,6 +5374,7 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
         ]
       }
@@ -5402,6 +5404,7 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Marcel Silo (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
+          {fn:'tableau_bord_entrepot', label:'Tableau de bord logistique', pa:0, cost:0, type:'legal', icon:'ti-layout-dashboard', successRate:100, requiresPost:'directeur_entrepot', desc:"Trésorerie, stocks et capacité, stocks cibles, marché des fournisseurs, commandes et registre de l'établissement."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix de vente", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue par l'entrepôt. Laissez vide pour revenir au prix automatique."}
         ]
       }

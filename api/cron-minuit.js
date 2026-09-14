@@ -2458,6 +2458,38 @@ const ENTREPOTS_VILLES = [
   { buildingId: 'entrepot-logistique-montrouge', city: 'ville_b' }
 ];
 
+// =====================================================================
+// CAPACITE ET STOCKS CIBLES DES ENTREPOTS (14 septembre 2026)
+// =====================================================================
+// La capacite d'un entrepot est de 5 000 unites PAR RESSOURCE. Elle est volontairement
+// distincte de RESSOURCES_ECONOMIE_SERVEUR[x].plafond, qui reste la capacite des USINES, le
+// denominateur du prix dynamique de la vente directe, et surtout la base du contrat
+// d'exportation (plafond x equivalentVilles = 225 cereales / 125 viande). Confondre les deux
+// ferait passer l'export a 7 500 et 5 000 unites par nuit. Miroir de capacite_entrepot() en base.
+const CAPACITE_ENTREPOT_PAR_RESSOURCE = 5000;
+
+// DESIDERATAS PAR DEFAUT (entrepot dirige par un PNJ).
+// Ces valeurs ne sont pas choisies : ce sont EXACTEMENT les anciens plafonds de chaque
+// ressource, c'est-a-dire le niveau que la livraison automatique visait deja depuis toujours.
+// Les reprendre tels quels garantit qu'un entrepot sans directeur PJ se comporte apres ce lot
+// exactement comme avant -- aucun equilibre economique n'est deplace par le passage a 5 000.
+// Voir le rapport pour les flux observes et la couverture reelle qu'ils offrent.
+const DESIDERATA_PNJ_DEFAUT = Object.fromEntries(
+  Object.entries(RESSOURCES_ECONOMIE_SERVEUR).map(([cle, r]) => [cle, r.plafond]));
+
+// Desideratas REELLEMENT applicables a un entrepot cette nuit.
+// Un directeur PJ pose ses cibles dans entrepot.desiderata, signees de son nom. Des qu'il n'est
+// plus en poste, elles sont abandonnees et les valeurs PNJ reprennent automatiquement : c'est
+// verifie ici, a chaque passage, plutot que par un hook de depart qu'un revocation brutale ou
+// une suppression de personnage pourrait contourner.
+function desiderataEffectifs(entrepot, directeursEnPoste, city) {
+  const pose = entrepot && entrepot.desiderata;
+  const par = entrepot && entrepot.desiderataPar;
+  if (!pose || !par) return DESIDERATA_PNJ_DEFAUT;
+  if (directeursEnPoste[city] !== par) return DESIDERATA_PNJ_DEFAUT;   // plus en poste
+  return Object.assign({}, DESIDERATA_PNJ_DEFAUT, pose);
+}
+
 const VOLUME_TOTAL_JOUR = 800;
 const NB_LIVRAISONS_JOUR = 6;
 
@@ -2872,6 +2904,27 @@ async function livrerEntrepotsQuotidien() {
     resultats.matieresInterdites = [...interdites];
     const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([cle, r]) => r.source === 'livraison' && cle !== 'bois' && !interdites.has(cle));
 
+    // Qui dirige reellement chaque entrepot cette nuit ? Une seule requete, lue une fois :
+    // elle sert a savoir si les desideratas poses par un PJ sont encore les siens.
+    const directeursEnPoste = {};
+    try {
+      const dirs = await sbGet('personnages', 'select=name,poste&poste->>id=eq.directeur_entrepot');
+      (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
+    } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
+
+    // Ce qui est deja en route vers chaque entrepot, par ressource. Sans cette lecture, une
+    // commande directe passee la veille serait rachetee une seconde fois par le cron.
+    const transitsParRessource = {};
+    try {
+      const enRoute = await sbGet('entrepot_transits', 'select=destination_id,ressource,quantite');
+      (enRoute || []).forEach(t => {
+        const ville = (ENTREPOTS_VILLES.find(e => t.destination_id === 'republic_' + e.city + '_' + e.buildingId) || {}).city;
+        if (!ville) return;
+        if (!transitsParRessource[ville]) transitsParRessource[ville] = {};
+        transitsParRessource[ville][t.ressource] = (transitsParRessource[ville][t.ressource] || 0) + (t.quantite || 0);
+      });
+    } catch (e) { /* transit illisible : on approvisionne sans en tenir compte, jamais l'inverse */ }
+
     for (const { buildingId, city } of ENTREPOTS_VILLES) {
       const etat = await sbGetBatimentEtat('republic', city, buildingId).catch(() => null);
       if (!etat) {
@@ -2890,6 +2943,7 @@ async function livrerEntrepotsQuotidien() {
       let unitesEntrepot = 0;
       let coutEntrepot = 0;
       let lotsRefusesTresorerie = 0;   // lots que la caisse n'a pas pu payer, voir plus bas
+      const achatsDuJour = [];         // pour le registre commercial de l'etablissement
 
       // Usine locale de cette ville (redirection 20% des matieres qu'elle utilise, voir constante
       // PART_REDIRECTION_USINE ci-dessus)
@@ -2901,24 +2955,52 @@ async function livrerEntrepotsQuotidien() {
         if (etatUsine) stockMatieresUsine = (etatUsine.usine && etatUsine.usine.stockMatieres) || {};
       }
 
-      for (let i = 0; i < NB_LIVRAISONS_JOUR; i++) {
-        // Volume de cette livraison : moyenne 800/6 ~133, avec une vraie irregularite
-        const moyenneParLivraison = VOLUME_TOTAL_JOUR / NB_LIVRAISONS_JOUR;
-        const volumeLivraison = Math.round(moyenneParLivraison * (0.5 + Math.random()));
+      // =================================================================
+      // APPROVISIONNEMENT PILOTE PAR LES DESIDERATAS (14 septembre 2026)
+      // =================================================================
+      // L'ancien mecanisme tirait au hasard 3 a 8 ressources par livraison et leur repartissait
+      // un volume aleatoire. Un directeur PJ subissait donc une repartition arbitraire qu'il ne
+      // pouvait pas piloter. Desormais chaque entrepot vise des STOCKS CIBLES -- ceux du
+      // directeur PJ s'il en a pose, sinon les valeurs PNJ par defaut -- et n'achete que ce qui
+      // lui manque reellement.
+      //
+      // BESOIN = cible - (stock reel + ce qui est deja en route vers cet entrepot). Sans le
+      // transit, une commande directe passee la veille serait rachetee une seconde fois.
+      //
+      // TRESORERIE INSUFFISANTE : plus de refus en bloc. Le budget disponible est reparti AU
+      // PRORATA DE LA VALEUR des besoins (besoin x prix d'achat), pas du nombre d'unites --
+      // sans quoi une ressource bon marche capterait la meme part qu'une ressource chere.
+      // Mathematiquement, cela revient a servir chaque besoin dans la meme proportion.
+      const desiderata = desiderataEffectifs(entrepot, directeursEnPoste, city);
+      const capacite = CAPACITE_ENTREPOT_PAR_RESSOURCE;
 
-        // Ressources disponibles pour cette livraison (pas deja pleines)
-        const disponibles = ressourcesLivrables.filter(([cle]) => (stock[cle] || 0) < RESSOURCES_ECONOMIE_SERVEUR[cle].plafond);
-        if (disponibles.length === 0) continue; // tout est plein, pas de livraison possible
+      const besoins = [];
+      for (const [cle, res] of ressourcesLivrables) {
+        const cible = Math.max(0, Math.min(capacite, Number(desiderata[cle]) || 0));
+        if (cible <= 0) continue;                       // 0 = aucun reapprovisionnement voulu
+        const enRoute = (transitsParRessource[city] && transitsParRessource[city][cle]) || 0;
+        const dejaAcquis = (stock[cle] || 0) + enRoute;
+        // Le besoin ne depasse jamais la place reellement disponible : l'entrepot ne paie plus
+        // jamais des unites qui ne pourraient pas entrer (anomalie relevee par l'audit du
+        // 14 septembre -- l'ancien code reglait la quantite entiere, surplus perdu compris).
+        const place = Math.max(0, capacite - (stock[cle] || 0) - enRoute);
+        const besoin = Math.max(0, Math.min(cible - dejaAcquis, place));
+        if (besoin > 0) besoins.push({ cle, res, besoin, prix: res.prixAchatFournisseur });
+      }
 
-        const nbRessources = Math.min(disponibles.length, 3 + Math.floor(Math.random() * 6)); // 3 a 8
-        const tirage = [...disponibles].sort(() => Math.random() - 0.5).slice(0, nbRessources);
+      // Rythme quotidien conserve : un entrepot ne peut pas absorber plus de VOLUME_TOTAL_JOUR
+      // unites par nuit, comme avant ce lot. Seule la maniere de les repartir change.
+      const totalBesoins = besoins.reduce((s, b) => s + b.besoin, 0);
+      const facteurVolume = totalBesoins > VOLUME_TOTAL_JOUR ? VOLUME_TOTAL_JOUR / totalBesoins : 1;
+      besoins.forEach(b => { b.besoin = Math.floor(b.besoin * facteurVolume); });
 
-        // Repartition aleatoire et inegale du volume entre les ressources tirees
-        const poids = tirage.map(() => Math.random() + 0.2);
-        const sommePoids = poids.reduce((s, p) => s + p, 0);
+      const valeurTotale = besoins.reduce((s, b) => s + b.besoin * b.prix, 0);
+      const facteurBudget = (valeurTotale > caisse && valeurTotale > 0) ? caisse / valeurTotale : 1;
+      if (facteurBudget < 1) lotsRefusesTresorerie++;   // servi partiellement, faute de tresorerie
 
-        tirage.forEach(([cle, res], idx) => {
-          const qteLivree = Math.round(volumeLivraison * (poids[idx] / sommePoids));
+      {
+        besoins.forEach(({ cle, res, besoin, prix }) => {
+          const qteLivree = Math.floor(besoin * facteurBudget);
           if (qteLivree <= 0) return;
 
           // Redirection vers l'usine locale, carvee sur cette meme livraison (pas un volume
@@ -2946,20 +3028,25 @@ async function livrerEntrepotsQuotidien() {
           }
           if (qteRestante <= 0) return;
 
-          const placeRestante = Math.max(0, res.plafond - (stock[cle] || 0));
+          // ANOMALIE CORRIGEE (audit du 14 septembre 2026). L'ancien code calculait le cout sur
+          // la quantite ENTIERE puis n'en stockait que ce qui tenait : l'entrepot payait donc le
+          // surplus perdu. Le besoin etant desormais borne par la place disponible, la quantite
+          // achetee est exactement celle qui entre -- il n'y a plus de surplus a perdre, ni a
+          // payer. La capacite de 5 000 rend d'ailleurs le cas pratiquement inatteignable.
+          const placeRestante = Math.max(0, capacite - (stock[cle] || 0));
           const qteStockee = Math.min(qteRestante, placeRestante);
+          if (qteStockee <= 0) return;
 
-          // L'entrepot paie la totalite restante (hors part redirigee), meme ce qui depasse et se perd
-          const cout = qteRestante * res.prixAchatFournisseur;
+          const cout = Math.round(qteStockee * prix * 100) / 100;
           if (caisse >= cout) {
             caisse -= cout;
             stock[cle] = (stock[cle] || 0) + qteStockee;
             unitesEntrepot += qteStockee;
             coutEntrepot += cout;
+            achatsDuJour.push({ cle, qte: qteStockee, prix, cout });
           } else {
-            // Si la caisse ne peut pas payer, la livraison est simplement annulee (pas de dette).
-            // On le COMPTE desormais, pour que le compte rendu puisse dire « approvisionnement
-            // impossible faute de tresorerie » plutot que de laisser croire a une nuit normale.
+            // Ne devrait plus arriver : le facteur de budget a deja ramene l'ensemble des achats
+            // sous la tresorerie disponible. Filet de securite, jamais une dette.
             lotsRefusesTresorerie++;
           }
         });
@@ -2985,6 +3072,17 @@ async function livrerEntrepotsQuotidien() {
                                    cout: Math.round(coutEntrepot * 100) / 100,
                                    caisseRestante: Math.round(caisse * 100) / 100,
                                    lotsRefusesTresorerie });
+
+      // REGISTRE COMMERCIAL. Une ligne par ressource reellement achetee, jamais une ligne par
+      // nuit vide : le registre appartient a l'etablissement et doit rester leger.
+      if (achatsDuJour.length > 0) {
+        const entrepotId = 'republic_' + city + '_' + buildingId;
+        await sbInsert('entrepot_journal', achatsDuJour.map(a => ({
+          entrepot_id: entrepotId, operation: 'approvisionnement_auto', sens: 'entree',
+          contrepartie: 'Fournisseurs', ressource: a.cle, quantite: a.qte,
+          prix_unitaire: a.prix, fret_unitaire: 0, montant: a.cout, statut: 'livre'
+        }))).catch(() => {});
+      }
 
       resultats.entrepots++;
       resultats.unitesLivrees += unitesEntrepot;
@@ -5495,6 +5593,15 @@ export default async function handler(req, res) {
     // produireUneChaine pour les entreprises ciblees.
     const effetsGrevesOrdinaires = await appliquerEffetsGrevesOrdinaires();
     const effetsGreveGenerale = await appliquerEffetsGreveGenerale();
+
+    // 11 ter. Livraison des commandes directes arrivees a echeance (J+1 national, J+2 etranger).
+    // AVANT l'approvisionnement automatique : ce qui vient d'arriver doit compter dans le stock
+    // du jour, sinon le cron rachèterait ce qu'il vient de recevoir. La RPC est idempotente par
+    // construction -- elle supprime chaque ligne livree dans la meme transaction que le credit.
+    const transitsLivres = await tacheQuotidienne('transits_entrepots', async function () {
+      const r = await sbRpc('entrepot_livrer_transits', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
 
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)

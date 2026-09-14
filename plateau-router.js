@@ -272,6 +272,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(pa, cost); return; }
   if (fn === 'virement_usine_ministere') { doOuvrirVirementUsineMinistere(pa, cost); return; }
   if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(pa, cost); return; }
+  if (fn === 'tableau_bord_entrepot')     { ouvrirTableauBordEntrepot(); return; }
   if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(pa, cost); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
