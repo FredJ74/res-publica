@@ -839,9 +839,19 @@ function loadCharacter() {
             const positionLocaleRoom = state.char?.currentRoom;
             const positionLocaleCountry = state.char?.country;
             const positionLocaleVille = state.char?.currentCity;
+            // Pont de migration (chantier C, 14 septembre 2026) : queteCarriere n'a JAMAIS ete
+            // persiste en base jusqu'a ce lot -- il ne vivait que dans localStorage. La colonne
+            // existe desormais, mais elle est vide pour tout personnage anterieur. Sans cette
+            // reprise, la premiere reconciliation apres deploiement ecraserait par null une
+            // quete de carriere reellement en cours. On ne retient le local QUE si le serveur
+            // n'a rien : des qu'il porte une valeur, c'est lui qui fait autorite, comme partout.
+            const queteCarriereLocale = state.char?.queteCarriere || null;
 
             // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
+            if (state.char && !state.char.queteCarriere && queteCarriereLocale) {
+              state.char.queteCarriere = queteCarriereLocale;
+            }
             // Repere de fraicheur (lot du 25 aout 2026, correctif filet de securite 30s) :
             // memorise le updated_at serveur connu au moment de cette reconciliation -- voir
             // sbVerifierEtSauvegarderPersonnage (supabase.js).
