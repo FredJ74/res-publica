@@ -116,15 +116,20 @@ def deroulement(tp, tq):
     # de migration. On refuse de mesurer un etat derive plutot que de rendre un faux vert.
     depart = entreprise()
     attendu = {"proprietaire": PROPRIO, "caisse": 2000}
+    # Le TYPE du commerce fait partie de la fixture : recettes_commerce.types_autorises le
+    # verifie, et sans lui toute la section production repond 'type_non_autorise'. Il manquait
+    # au message de rearmement, ce qui a fait perdre une passe entiere (14 septembre 2026).
     derive = (not depart
               or depart.get("proprietaire") != attendu["proprietaire"]
               or float(depart.get("caisse", -1)) != float(attendu["caisse"])
+              or depart.get("type") != "cafe"
               or (depart.get("stockMatieres") or {}).get("produits_exotiques") != 10)
     if derive:
         print("FIXTURE ABSENTE OU DERIVEE (%s).\nRearmer par migration SQL : proprietaire=%s, "
-              "caisse=2000, stockMatieres produits_exotiques=10/fruits_legumes=10/cereales=2, "
-              "carte [cafe_boisson, vin]."
-              % (json.dumps({k: depart.get(k) for k in ("proprietaire", "caisse", "stockMatieres")}
+              "type=cafe, caisse=2000, stockMatieres produits_exotiques=10/fruits_legumes=10/"
+              "cereales=2, carte [cafe_boisson, vin]."
+              % (json.dumps({k: depart.get(k) for k in ("proprietaire", "type", "caisse",
+                                                        "stockMatieres")}
                             if depart else None)[:160], PROPRIO))
         return 2
 
