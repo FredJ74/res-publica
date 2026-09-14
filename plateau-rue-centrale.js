@@ -740,6 +740,11 @@ const RUE_CENTRALE_NOEUDS = {
   // existe quand meme, en type 'a-venir' : le clic affiche un refus discret au lieu d'ouvrir une
   // salle vide ou de ne rien faire du tout. Le jour ou le batiment est developpe, il suffit de
   // remplacer { type: 'a-venir' } par { type: 'batiment', buildingId: '...' }.
+  //
+  // Compte exact a la livraison : 34 hotspots, dont 17 raccordes (16 batiments distincts, le
+  // Grand Hotel comptant deux entrees) et 17 encore fermes. Le message du commit ef4bcc9
+  // annoncait par erreur 13 raccordes / 21 fermes ; les chiffres exacts sont ceux-ci, verifies
+  // par banc_novomirsk.py.
   // ===========================================================
   soviet: {
 
