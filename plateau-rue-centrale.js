@@ -1,6 +1,7 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
-  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' }
+  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
+  soviet:   { capitale: 'novomirsk-vue-1' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -16,6 +17,13 @@ const RUE_CENTRALE_DEPART = {
 // IMPORTANT : remplacer les URLs par les vraies une fois les images hebergees sur GitHub
 // (dossier images/), et ajuster les xPct une fois les coordonnees exactes confirmees.
 // =====================
+// Le moteur place par defaut la fleche "arriere" EN HAUT et "toutDroit" au centre-droit
+// (voir stylesParDefaut dans afficherNoeudRue). Pour une ville dessinee en vues frontales,
+// "bas" doit etre en bas et "haut" en haut : ces deux constantes evitent de recopier la
+// meme chaine CSS dans chaque noeud, comme cela avait ete fait a la main pour Montrouge.
+const RC_FLECHE_HAUT = 'top:10px; left:50%; transform:translateX(-50%);';
+const RC_FLECHE_BAS  = 'bottom:10px; left:50%; transform:translateX(-50%);';
+
 const RUE_CENTRALE_NOEUDS = {
   republic: {
 
@@ -717,6 +725,235 @@ const RUE_CENTRALE_NOEUDS = {
       liens: { toutDroit: 'montrouge-vue-3' },
       flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     }
+  },
+
+  // ===========================================================
+  // NOVOMIRSK — capitale de Sovarka. 18 vues, graphe valide par Fred (chantier du 15 septembre 2026).
+  // Les directions sont celles VALIDEES, pas une deduction geographique : ne pas les "corriger"
+  // en regardant l'angle de camera (meme regle que Montrouge).
+  //
+  // Trois fleches avaient ete prevues au cadrage mais leur destination n'a jamais ete definie
+  // (V4 bas, V5 bas, V8 bas). Elles sont VOLONTAIREMENT absentes : une cle omise = pas de fleche.
+  // Ne pas les inventer.
+  //
+  // Beaucoup de batiments de Sovarka n'ont pas encore d'interieur ni de mecanique. Leur hotspot
+  // existe quand meme, en type 'a-venir' : le clic affiche un refus discret au lieu d'ouvrir une
+  // salle vide ou de ne rien faire du tout. Le jour ou le batiment est developpe, il suffit de
+  // remplacer { type: 'a-venir' } par { type: 'batiment', buildingId: '...' }.
+  // ===========================================================
+  soviet: {
+
+    // V1 — Place du Peuple. Point de depart de la ville.
+    'novomirsk-vue-1': {
+      image: 'images/rue-palais-gouvernement-place-novomirsk.png',
+      zones: [
+        { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'a-venir' },
+        // Le grand palais abritera plus tard la Presidence ET le Gouvernement ; son nom
+        // fonctionnel est desormais "Palais du Gouvernement de Sovarka", quel que soit
+        // l'ancien nom du fichier image.
+        { xPct: [34, 64], yPct: [28, 74], nom: 'Palais du Gouvernement de Sovarka', type: 'batiment', buildingId: 'palais-gouvernement' }
+      ],
+      liens: { arriere: 'novomirsk-vue-2', gauche: 'novomirsk-vue-10', droite: 'novomirsk-vue-11' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    // V2 — Musee municipal et restaurant.
+    'novomirsk-vue-2': {
+      image: 'images/rue-musee-restaurant-novomirsk.png',
+      zones: [
+        { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'a-venir' },
+        { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'a-venir' }
+      ],
+      liens: { toutDroit: 'novomirsk-vue-1', arriere: 'novomirsk-vue-3' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V3 — Office notarial et commissariat.
+    'novomirsk-vue-3': {
+      image: 'images/rue-notaire-commissariat-novomirsk.png',
+      zones: [
+        { xPct: [0, 17],   yPct: [10, 72], nom: 'Office notarial de Sovarka', type: 'batiment', buildingId: 'office-notarial' },
+        { xPct: [81, 100], yPct: [12, 74], nom: 'Commissariat de Novomirsk', type: 'batiment', buildingId: 'commissariat' }
+      ],
+      liens: { toutDroit: 'novomirsk-vue-2', arriere: 'novomirsk-vue-4' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V4 — Grand Hotel (entree principale) et Galeries.
+    // Le Grand Hotel a DEUX entrees exterieures (V4 et V5) ; sa sortie canonique ramene
+    // toujours ici, d'ou le sortieNoeudId pose sur les deux zones.
+    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    'novomirsk-vue-4': {
+      image: 'images/rue-hotel-galeries-novomirsk.png',
+      zones: [
+        { xPct: [0, 23],   yPct: [8, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' },
+        { xPct: [79, 100], yPct: [2, 70], nom: 'Galeries de Novomirsk', type: 'batiment', buildingId: 'centre-commercial' }
+      ],
+      liens: { gauche: 'novomirsk-vue-5', droite: 'novomirsk-vue-15' }
+    },
+
+    // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
+    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    'novomirsk-vue-5': {
+      image: 'images/rue-hotel-centre-affaires-novomirsk.png',
+      zones: [
+        { xPct: [0, 25],   yPct: [8, 74], nom: 'Centre d\'affaires de Novomirsk', type: 'batiment', buildingId: 'centre-affaires' },
+        { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
+      ],
+      liens: { droite: 'novomirsk-vue-4', toutDroit: 'novomirsk-vue-6' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+    },
+
+    // V6 — Quartier diplomatique et armurerie.
+    'novomirsk-vue-6': {
+      image: 'images/rue-ambassades-armurerie-novomirsk.png',
+      zones: [
+        { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'a-venir' },
+        { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
+      ],
+      liens: { arriere: 'novomirsk-vue-5', toutDroit: 'novomirsk-vue-7' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V7 — Place de la Grande Eglise. Trois hotspots, tous cliquables.
+    'novomirsk-vue-7': {
+      image: 'images/rue-residences-eglise-novomirsk.png',
+      zones: [
+        { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'a-venir' },
+        { xPct: [33, 70],  yPct: [2, 74],  nom: 'Grande Église du Tractorisme', type: 'batiment', buildingId: 'kolkhoze-spirituel' },
+        { xPct: [85, 100], yPct: [18, 74], nom: 'Résidence impériale', type: 'a-venir' }
+      ],
+      liens: { arriere: 'novomirsk-vue-6', gauche: 'novomirsk-vue-18', droite: 'novomirsk-vue-8' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    // V8 — Entrepot et Renseignement. Le Centre multimodal visible au fond n'est PAS cliquable
+    // depuis cette vue (il a la sienne, V9).
+    // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
+    'novomirsk-vue-8': {
+      image: 'images/rue-entrepot-renseignement-novomirsk.png',
+      zones: [
+        { xPct: [0, 29],   yPct: [20, 74], nom: 'Entrepôt logistique de Novomirsk', type: 'a-venir' },
+        { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'a-venir' }
+      ],
+      liens: { droite: 'novomirsk-vue-7', toutDroit: 'novomirsk-vue-9' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+    },
+
+    // V9 — Centre multimodal. Le batiment est le hub partage (centre-multinodal-luthecia,
+    // habille par WORLD.soviet.capitale.buildingContext) : sa mecanique existe deja et n'est
+    // pas touchee. C'est aussi ce qui fait qu'une arrivee en avion repositionne
+    // automatiquement le joueur ici (trouverNoeudRueCentralePourBatiment).
+    'novomirsk-vue-9': {
+      image: 'images/rue-centre-multimodal-novomirsk.png',
+      zones: [
+        { xPct: [6, 73], yPct: [0, 74], nom: 'Centre multimodal de Novomirsk', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
+      ],
+      liens: { arriere: 'novomirsk-vue-8', droite: 'novomirsk-vue-10' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    // V10 — Tribunal. Le palais visible au fond est le Palais du Gouvernement, atteint par V1 :
+    // pas de hotspot ici (un batiment d'arriere-plan n'est pas rendu cliquable).
+    'novomirsk-vue-10': {
+      image: 'images/rue-tribunal-palais-novomirsk.png',
+      zones: [
+        { xPct: [0, 34], yPct: [0, 78], nom: 'Tribunal de Novomirsk', type: 'batiment', buildingId: 'tribunal' }
+      ],
+      liens: { toutDroit: 'novomirsk-vue-9', arriere: 'novomirsk-vue-1' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V11 — Premiere entree de la Caserne centrale, et garage.
+    // La Caserne a DEUX entrees (V11 et V12) ; sa sortie canonique ramene toujours a V12.
+    'novomirsk-vue-11': {
+      image: 'images/rue-caserne-garage-novomirsk.png',
+      zones: [
+        { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'a-venir' }
+      ],
+      liens: { arriere: 'novomirsk-vue-1', toutDroit: 'novomirsk-vue-12' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V12 — Seconde entree de la Caserne (sortie canonique), et salon de coiffure.
+    'novomirsk-vue-12': {
+      image: 'images/rue-salon-coiffure-novomirsk.png',
+      zones: [
+        { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
+        { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'a-venir' }
+      ],
+      liens: { arriere: 'novomirsk-vue-11', droite: 'novomirsk-vue-13' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    // V13 — UN SEUL hotspot : l'Agence officielle de presse et l'Imprimerie officielle
+    // partagent une unique entree exterieure et constituent, pour la navigation, un seul
+    // batiment. Les salles interieures separees viendront plus tard.
+    'novomirsk-vue-13': {
+      image: 'images/rue-presse-imprimerie-novomirsk.png',
+      zones: [
+        { xPct: [55, 100], yPct: [0, 80], nom: 'Agence officielle de presse / Imprimerie officielle de Sovarka', type: 'batiment', buildingId: 'la-tribune' }
+      ],
+      liens: { droite: 'novomirsk-vue-12', toutDroit: 'novomirsk-vue-14' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+    },
+
+    // V14 — Pharmacie et logements.
+    'novomirsk-vue-14': {
+      image: 'images/rue-pharmacie-logements-novomirsk.png',
+      zones: [
+        { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'a-venir' },
+        { xPct: [71, 100], yPct: [18, 86], nom: 'Pharmacie officielle de Novomirsk', type: 'a-venir' }
+      ],
+      liens: { arriere: 'novomirsk-vue-13', droite: 'novomirsk-vue-15', toutDroit: 'novomirsk-vue-16' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V15 — Clinique privee et hopital public. Pas de hotspot EHPAD pour l'instant, meme si
+    // l'enseigne est visible sur l'image.
+    'novomirsk-vue-15': {
+      image: 'images/rue-clinique-hopital-novomirsk.png',
+      zones: [
+        { xPct: [12, 38],  yPct: [0, 74], nom: 'Clinique privée Saint-Pavel', type: 'batiment', buildingId: 'clinique-privee' },
+        { xPct: [61, 100], yPct: [0, 78], nom: 'Hôpital public de Novomirsk', type: 'batiment', buildingId: 'dispensaire-public' }
+      ],
+      liens: { arriere: 'novomirsk-vue-4', gauche: 'novomirsk-vue-14', droite: 'novomirsk-vue-16' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+
+    // V16 — Quai du marche. La marchande de poissons est un hotspot PROPRE, distinct du Marche.
+    'novomirsk-vue-16': {
+      image: 'images/rue-marche-novomirsk.png',
+      zones: [
+        { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'a-venir' },
+        { xPct: [60, 98],  yPct: [32, 74], nom: 'Marché de Novomirsk', type: 'batiment', buildingId: 'marche' }
+      ],
+      liens: { arriere: 'novomirsk-vue-14', toutDroit: 'novomirsk-vue-17' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V17 — Stade et centre artisanal.
+    'novomirsk-vue-17': {
+      image: 'images/rue-stade-centre-artisanal-novomirsk.png',
+      zones: [
+        { xPct: [0, 50],   yPct: [0, 70],  nom: 'Stade du Dynamo de Novomirsk', type: 'batiment', buildingId: 'stade' },
+        { xPct: [75, 100], yPct: [10, 80], nom: 'Centre artisanal de Novomirsk', type: 'batiment', buildingId: 'centre-artisanal' }
+      ],
+      liens: { arriere: 'novomirsk-vue-16', toutDroit: 'novomirsk-vue-18' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // V18 — Usine pharmaceutique et musee national. Ferme la boucle avec V7.
+    'novomirsk-vue-18': {
+      image: 'images/rue-usine-pharma-musee-novomirsk.png',
+      zones: [
+        { xPct: [0, 41],   yPct: [6, 74], nom: 'Usine pharmaceutique Pharmanov', type: 'a-venir' },
+        { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'a-venir' }
+      ],
+      liens: { arriere: 'novomirsk-vue-17', toutDroit: 'novomirsk-vue-7' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    }
   }
 };
 
@@ -877,7 +1114,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
       div.style.top = z.yPct[0] + '%';
       div.style.height = (z.yPct[1] - z.yPct[0]) + '%';
     }
-    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom));
+    div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom, z.type));
     div.addEventListener('mouseleave', masquerTooltipRue);
     // Zoom leger sur toute l'image, mais avec le point d'origine du zoom place au centre
     // horizontal du batiment survole, ce qui accentue visuellement ce batiment.
@@ -898,13 +1135,31 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     div.addEventListener('click', () => {
       if (z.type === 'noeud') naviguerVersNoeudRue(pays, z.noeudId, z.nom);
       else if (z.type === 'sous-lieu') ouvrirTerrainsMontrouge();
-      else entrerDansBatimentRue(z.buildingId, z.nom);
+      else if (z.type === 'a-venir') {
+        // Batiment dessine sur l'image mais dont l'interieur/la mecanique n'existe pas encore.
+        // Refus explicite et discret : ni faux interieur, ni clic mort. Avant ce type, une zone
+        // pointant vers un buildingId inconnu ne faisait strictement rien (enterBuilding sort
+        // sur `if (!b) return;`), ce qui etait indistinguable d'un bug pour le joueur.
+        if (typeof showToast === 'function') {
+          showToast('Lieu fermé', z.nom + ' n\'est pas encore accessible.', false);
+        }
+      }
+      else {
+        // Un meme batiment peut avoir plusieurs entrees sur la rue (Grand Hotel de Sovarka :
+        // V4 et V5). sortieNoeudId fixe alors la scene ou le joueur ressortira, quelle que soit
+        // celle par laquelle il est entre : sans cela, la sortie le rend a la derniere scene
+        // memorisee, donc a l'entree de service au lieu de l'entree principale.
+        if (z.sortieNoeudId && typeof state !== 'undefined' && state.currentCity) {
+          memoriserNoeudRueCentrale(pays, state.currentCity, z.sortieNoeudId, null);
+        }
+        entrerDansBatimentRue(z.buildingId, z.nom);
+      }
     });
     scene.appendChild(div);
   });
 }
 
-function afficherTooltipRue(e, nom) {
+function afficherTooltipRue(e, nom, type) {
   let tip = document.getElementById('rc-tooltip');
   if (!tip) {
     tip = document.createElement('div');
@@ -912,7 +1167,7 @@ function afficherTooltipRue(e, nom) {
     tip.className = 'rc-tooltip';
     document.body.appendChild(tip);
   }
-  tip.textContent = 'Entrer dans : ' + nom;
+  tip.textContent = (type === 'a-venir' ? 'Fermé : ' : 'Entrer dans : ') + nom;
   tip.style.left = (e.pageX + 16) + 'px';
   tip.style.top = (e.pageY - 10) + 'px';
   tip.classList.add('visible');

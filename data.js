@@ -6176,7 +6176,9 @@ const ROOM_IMAGES_EMPIRE = {
   },
   soviet: {
     'centre-multinodal-luthecia': {
-      'hall_gare':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-sovarka.png',
+      // Nouvel accueil du Centre multimodal de Novomirsk (15 septembre 2026) : seule l'image
+      // change, la mecanique du hub partage (ordres de transport sur hall_gare) est intacte.
+      'hall_gare':  'images/accueil-centre-multimodal-novomirsk.png',
       'aeroport':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-sovarka.png'
     },
     'palais-presidentiel': {
