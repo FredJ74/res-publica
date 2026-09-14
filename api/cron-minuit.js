@@ -2843,7 +2843,14 @@ async function produireTransformateursQuotidien() {
 }
 
 async function livrerEntrepotsQuotidien() {
-  const resultats = { entrepots: 0, unitesLivrees: 0, coutTotal: 0 };
+  // COMPTE RENDU LISIBLE (correctif du 14 septembre 2026). `entrepots` s'incrementait meme
+  // quand la caisse trop faible empechait le moindre achat : le cron annoncait « 3 entrepots
+  // traites » pour une nuit ou zero unite avait ete livree, et l'assechement des caisses a pu
+  // durer des jours sans la moindre alerte. On distingue desormais trois issues, sans changer
+  // aucune regle economique -- une tresorerie insuffisante reste un fonctionnement NORMAL du
+  // jeu, jamais une erreur technique.
+  const resultats = { entrepots: 0, unitesLivrees: 0, coutTotal: 0,
+                      approvisionnes: 0, sansTresorerie: 0, echecsTechniques: 0, parEntrepot: [] };
   // Accumulateur national (lot logistique portuaire, 25 aout 2026) : sommme, sur les 3 tirages
   // INDEPENDANTS des 3 entrepots (inchanges, meme RNG qu'avant ce lot), la part de
   // bois/petrole/produits_exotiques desormais reroutee vers le port plutot que creditee
@@ -2867,7 +2874,13 @@ async function livrerEntrepotsQuotidien() {
 
     for (const { buildingId, city } of ENTREPOTS_VILLES) {
       const etat = await sbGetBatimentEtat('republic', city, buildingId).catch(() => null);
-      if (!etat) continue; // batiment pas encore accessible dans cette ville
+      if (!etat) {
+        // Vrai echec technique : l'etat du batiment n'a pas pu etre lu. Distingue d'une
+        // tresorerie insuffisante, qui est un fonctionnement normal.
+        resultats.echecsTechniques++;
+        resultats.parEntrepot.push({ city, buildingId, issue: 'echec_technique', unites: 0 });
+        continue;
+      }
       // Dotation de depart : de quoi remplir un stock vide a son plafond au prix fournisseur
       // (~8500 FR, calcule sur les 8 ressources livrables). Sans ca, la caisse resterait a 0
       // et l'entrepot ne pourrait jamais payer sa toute premiere livraison.
@@ -2876,6 +2889,7 @@ async function livrerEntrepotsQuotidien() {
       let caisse = entrepot.caisse || 0;
       let unitesEntrepot = 0;
       let coutEntrepot = 0;
+      let lotsRefusesTresorerie = 0;   // lots que la caisse n'a pas pu payer, voir plus bas
 
       // Usine locale de cette ville (redirection 20% des matieres qu'elle utilise, voir constante
       // PART_REDIRECTION_USINE ci-dessus)
@@ -2942,8 +2956,12 @@ async function livrerEntrepotsQuotidien() {
             stock[cle] = (stock[cle] || 0) + qteStockee;
             unitesEntrepot += qteStockee;
             coutEntrepot += cout;
+          } else {
+            // Si la caisse ne peut pas payer, la livraison est simplement annulee (pas de dette).
+            // On le COMPTE desormais, pour que le compte rendu puisse dire « approvisionnement
+            // impossible faute de tresorerie » plutot que de laisser croire a une nuit normale.
+            lotsRefusesTresorerie++;
           }
-          // Si la caisse ne peut pas payer, la livraison est simplement annulee (pas de dette)
         });
       }
 
@@ -2951,6 +2969,23 @@ async function livrerEntrepotsQuotidien() {
       if (usineLocale && etatUsine) {
         await sbSetBatimentEtat('republic', city, usineLocale.buildingId, { ...etatUsine, usine: { ...(etatUsine.usine || {}), stockMatieres: stockMatieresUsine } }).catch(() => {});
       }
+      // Trois issues distinctes, jamais confondues :
+      //   approvisionne        au moins une unite reellement achetee et stockee ;
+      //   sans_tresorerie      aucune unite, et au moins un lot refuse faute de caisse ;
+      //   rien_a_livrer        aucune unite et aucun refus (tout etait deja au plafond, ou
+      //                        toutes les matieres etaient interdites par une loi en vigueur).
+      // `entrepots` garde son sens historique -- nombre d'entrepots parcourus -- mais il n'est
+      // plus le seul chiffre publie, et il ne peut plus faire passer une nuit blanche pour une
+      // nuit normale.
+      const issue = unitesEntrepot > 0 ? 'approvisionne'
+                  : (lotsRefusesTresorerie > 0 ? 'sans_tresorerie' : 'rien_a_livrer');
+      if (issue === 'approvisionne') resultats.approvisionnes++;
+      else if (issue === 'sans_tresorerie') resultats.sansTresorerie++;
+      resultats.parEntrepot.push({ city, buildingId, issue, unites: unitesEntrepot,
+                                   cout: Math.round(coutEntrepot * 100) / 100,
+                                   caisseRestante: Math.round(caisse * 100) / 100,
+                                   lotsRefusesTresorerie });
+
       resultats.entrepots++;
       resultats.unitesLivrees += unitesEntrepot;
       resultats.coutTotal += coutEntrepot;
@@ -3129,6 +3164,24 @@ async function traiterExportationsPortQuotidien() {
         villesIds.forEach((v, i) => { preleves[v] = montants[i]; });
       }
 
+      // RECETTE D'EXPORTATION (arbitrage du 14 septembre 2026). Jusqu'a ce lot, l'exportation
+      // etait le SEUL flux du jeu qui retirait du stock sans rien crediter en retour : les
+      // entrepots payaient leurs livraisons et voyaient partir cereales et viande gratuitement,
+      // ce qui les a menes a la faillite et maintenait ces deux ressources a zero.
+      //
+      // Le prix retenu est le prix_base de la ressource, lu dans le MIROIR SERVEUR
+      // (RESSOURCES_ECONOMIE_SERVEUR, la meme source qui fournit deja le plafond du contrat
+      // quelques lignes plus haut) -- jamais une valeur fournie par un client, qui n'intervient
+      // a aucun moment dans ce cron. Meme patron que approvisionner_chantier : prix du miroir,
+      // debit physique du stock, credit de la caisse de l'entrepot fournisseur.
+      //
+      // La repartition financiere suit EXACTEMENT la repartition physique calculee ci-dessus :
+      // chaque entrepot n'encaisse que le produit des marchandises qu'il a reellement fournies.
+      // Rien n'est credite au Port, ni a un budget national, ni a une caisse etrangere -- Al-Khalija
+      // n'est represente par aucune caisse, on n'invente donc aucun debit en face.
+      const prixExport = RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase;
+      let recetteTotale = 0;
+
       for (const e of ENTREPOTS_VILLES) {
         const qte = preleves[e.city] || 0;
         if (qte <= 0) continue;
@@ -3137,12 +3190,19 @@ async function traiterExportationsPortQuotidien() {
         const entrepotCible = cible.etat.entrepot || { stock: {}, caisse: 8500 };
         const stockCible = entrepotCible.stock || {};
         stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
-        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
+        const recette = Math.round(qte * prixExport * 100) / 100;
+        recetteTotale += recette;
+        // La caisse est relue sur cible.etat, qui porte deja les credits de la ressource
+        // precedente de cette meme passe : les deux exportations du jour s'additionnent.
+        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible,
+          caisse: Math.round(((entrepotCible.caisse || 0) + recette) * 100) / 100 } };
       }
 
       const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
-      exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct, jour: new Date().toISOString() };
-      resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct };
+      exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct,
+        prixUnitaire: prixExport, recette: recetteTotale, jour: new Date().toISOString() };
+      resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct,
+        prixUnitaire: prixExport, recette: recetteTotale };
     }
 
     for (const e of ENTREPOTS_VILLES) {

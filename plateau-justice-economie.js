@@ -4830,7 +4830,15 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
 // =====================
 // TABLEAU DE BORD DU DIRECTEUR D'ENTREPOT PJ — meme principe que le directeur d'usine
 // (nomme par le Maire au lieu du Ministre des Finances, poste local via scope:'ville').
-// Fixe le prix de vente de l'entrepot dans la meme fourchette ±40% que partout ailleurs.
+// Fixe le prix auquel l'entrepot VEND ses marchandises (lu par acheter_a_entrepot, qui credite
+// la caisse du produit de la vente) -- ce n'est jamais un prix d'achat, malgre le nom historique
+// de l'ordre fixer_prix_achat_entrepot, conserve tel quel pour ne pas invalider le miroir des
+// couts et les 3 declarations de data.js qui le portent.
+// AUCUNE FOURCHETTE (arbitrage du 14 septembre 2026) : le directeur PJ est libre de brader ou de
+// marger comme il l'entend. La RPC fixer_prix_entrepot ne valide que le technique -- ressource
+// connue, valeur numerique strictement positive, jamais NaN. La mention « ±40% » qui figurait ici
+// et dans les trois descriptions d'ordre etait obsolete : aucune borne de ce genre n'a jamais
+// existe cote serveur pour l'entrepot.
 // =====================
 const ENTREPOT_PAR_VILLE = {
   capitale: 'entrepot-logistique-luthecia',
@@ -4875,7 +4883,7 @@ async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
   html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixAchatEntrepot(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
   html += '</div>';
 
-  document.getElementById('postes-modal-title').textContent = "Fixer les prix d'achat";
+  document.getElementById('postes-modal-title').textContent = "Fixer les prix de vente";
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -4911,7 +4919,7 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
   }
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Prix mis à jour', 'Les nouveaux prix de vente sont actifs.', true, true);
-  addJournalEntry("Prix d'achat de l'entrepôt ajustés en tant que directeur.", 'event-good');
+  addJournalEntry("Prix de vente de l'entrepôt ajustés en tant que directeur.", 'event-good');
 }
 
 
