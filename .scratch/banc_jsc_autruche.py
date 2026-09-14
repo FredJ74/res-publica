@@ -812,7 +812,36 @@ with (bac) {
 
     raz(); joueur({ ville: 'ville_a' }); lotCal(10); lotTract('pour', 5); bouchons.state.currentBuilding = 'centre-multinodal-port-sainte-marie'; bouchons.state.dis = 50;
     bouchons.getMalusISN = function () { return 0; }; bouchons.addMailNotification = function (de, sujet) { journal.appels.push('mail:' + sujet); };
-    doPasserDouanesAeroport();
+    // ADAPTATION (chantier C, 14 septembre 2026). Deux choses ont change sous ce test.
+    //
+    // 1. La confiscation est passee au serveur (guichet inventaire_confisquer) : le bouchon
+    //    ci-dessous reproduit sa regle -- saisir tout objet legal === false, laisser le reste --
+    //    et renvoie l'inventaire faisant foi, comme la vraie RPC.
+    // 2. Le repli local du controle douanier a ete SUPPRIME. Or objetsSaisissables/
+    //    confisquerObjets ne sont pas reellement dans ce bac a sable (plateau-justice-economie
+    //    n'y est pas charge en entier) : ils y resolvaient en bouchons muets renvoyant
+    //    undefined, et c'est le repli supprime qui faisait passer ce test jusqu'ici -- le banc
+    //    validait donc le chemin de secours, jamais la brique commune. On fournit les deux
+    //    briques explicitement, pour que ce soit bien la regle reelle qui soit eprouvee.
+    bouchons.sbInventaireConfisquer = function (acteur) {
+      var inv = bouchons.state.inventory || [];
+      var saisis = inv.filter(function (i) { return i && i.legal === false; });
+      var restant = inv.filter(function (i) { return !(i && i.legal === false); });
+      return Promise.resolve({ ok: true, saisis: saisis, inventory: restant,
+        noms: saisis.map(function (o) { return o.name; }).join(', ') });
+    };
+    bouchons.objetsSaisissables = function (inv) {
+      return (inv || []).filter(function (i) { return i && i.legal === false; });
+    };
+    bouchons.confisquerObjets = function (objets) {
+      if (!objets || !objets.length) return Promise.resolve('');
+      return sbInventaireConfisquer(bouchons.state.char.name).then(function (r) {
+        if (!r || r.ok !== true) return '';
+        bouchons.state.inventory = r.inventory || bouchons.state.inventory || [];
+        return r.noms || '';
+      });
+    };
+    await doPasserDouanesAeroport();
     verifier('C5. controle douanier : tracts calomnieux confisques + convocation (possession_illegale_douane), tracts ordinaires conserves',
       !bouchons.state.inventory.some(function (i) { return i.type === 'tract_calomnieux'; }) && bouchons.state.inventory.some(function (i) { return i.type === 'tract'; })
       && bouchons.state.convocations.some(function (c) { return c.motif === 'possession_illegale_douane'; }), JSON.stringify(bouchons.state.convocations.map(function (c) { return c.motif; })));

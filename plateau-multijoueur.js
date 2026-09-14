@@ -1069,6 +1069,17 @@ function confirmerDonnerEmploye(nomEmploye, idx) {
   const item = state.inventory[idx];
   if (!emp || !item) return;
 
+  // TROU DE PROTECTION COMBLE (chantier C, 14 septembre 2026). Les quatre autres sorties
+  // d'inventaire refusaient le colis secret ; celle-ci ne verifiait rien, et permettait donc de
+  // s'en separer malgre tout -- rendant la quete criminelle impossible a terminer.
+  // Garde CLIENT et non serveur, faute de mieux : la charge d'un employe vit dans state.employes,
+  // un blob encore entierement cote navigateur. Cette sortie ne pourra passer par l'entonnoir
+  // serveur que lorsque les employes y seront eux-memes -- voir le rapport, familles restantes.
+  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
+    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+    return;
+  }
+
   const chargeActuelle = getTotalChargeEmploye(emp);
   const placeRestante = Math.max(0, PLAFOND_CHARGE_EMPLOYE - chargeActuelle);
   if (placeRestante <= 0) {

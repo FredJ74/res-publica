@@ -358,6 +358,12 @@ function sbPayloadPersonnage(charState) {
     signature_html:   charState.char?.signatureHtml || null,
     signature_blocks: charState.char?.signatureBlocks || [],
     quete_accueil:    charState.char?.queteAccueil || null,
+    // CORRECTIF (chantier C, entonnoir de sortie d'inventaire, 14 septembre 2026) : queteCarriere
+    // n'etait ecrit dans AUCUNE colonne -- il ne survivait que par localStorage, donc perdu au
+    // changement de navigateur ou d'appareil. C'est aussi de lui que depend TOUTE la protection
+    // du colis secret (colisSecretProtege) : sans lui en base, le serveur ne peut pas evaluer la
+    // protection, et le retrait d'inventaire resterait arbitre par le navigateur.
+    quete_carriere:   charState.char?.queteCarriere || null,
     enigme1:          charState.char?.enigme1 || null,
     maxence:          charState.char?.maxence || null,
     succes_maxence:   charState.char?.succesMaxence || null,
@@ -524,7 +530,8 @@ async function sbLoadPersonnage(name) {
              currentRoom: r.current_room || null, motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
-             queteAccueil: r.quete_accueil || null, enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
+             queteAccueil: r.quete_accueil || null, queteCarriere: r.quete_carriere || null,
+             enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
              journal: r.journal || [], excommunie: r.excommunie || null, reservationHotel: r.reservation_hotel || null },
     country:       r.country,
     inf:           r.resources?.inf || 0,
@@ -1609,9 +1616,75 @@ async function sbRamasserObjetAbandonne(objetId) {
 // Don direct d'objet a un vrai joueur — reellement persiste (contrairement a l'ancien
 // mecanisme purement local qui faisait juste disparaitre l'objet chez l'expediteur sans
 // jamais l'ajouter chez le destinataire). Recupere a la prochaine connexion du destinataire.
+//
+// PORTEE RESTREINTE (chantier C, 14 septembre 2026) : cette fonction ne fait QU'UN DEPOT, elle
+// n'a jamais rien retire d'un inventaire -- le retrait etait au site d'appel, dans une requete
+// separee, ce qui rendait le transfert non atomique.
+//
+// Un DON depuis l'inventaire passe desormais par removeFromInventory(idx, 'donner'), qui retire
+// et depose dans la meme transaction. Ne subsistent ici que les depots SANS source d'inventaire,
+// pour lesquels il n'y a rien a retirer et donc rien a rendre atomique :
+//   - delivrerDocumentUrbanisme (plateau-immobilier.js) : le document est cree pour l'occasion ;
+//   - recupererVolsEnAttente (plateau-communication.js) : butin de vol, famille non encore
+//     migree -- elle a son propre protocole de confirmation en deux temps (type_butin).
 async function sbDonnerObjetJoueur(objet, destinataire, expediteur) {
   const data = { id: 'objet-recu-' + Date.now() + '-' + Math.floor(Math.random()*1000), destinataire, expediteur, data: JSON.stringify(objet) };
   return sbInsert('objets_recus', data);
+}
+
+// =====================================================================
+// ENTONNOIR SERVEUR DE SORTIE D'INVENTAIRE (chantier C, 14 septembre 2026)
+// =====================================================================
+// Cinq guichets, un par famille de sortie reelle. Chacun verifie l'identite par le compte
+// connecte (exiger_acteur), localise l'objet lui-meme, applique la protection de quete, et
+// renvoie L'INVENTAIRE FAISANT FOI -- que l'appelant doit adopter tel quel. Le navigateur
+// n'annonce plus aucune quantite finale.
+//
+// L'index transmis n'est qu'un INDICE : le serveur ne le retient que si l'objet qui s'y trouve
+// correspond a la signature annoncee. Voir inventaire_localiser (migration_inventaire_sortie.sql).
+async function sbInventaireDetruire(acteur, index, signature, qte) {
+  return verdictRpc(await sbRpc('inventaire_detruire', {
+    p_acteur: acteur, p_index: index, p_signature: signature, p_qte: qte || 1
+  }));
+}
+
+async function sbInventaireAbandonner(acteur, index, signature, country, city, building, room) {
+  return verdictRpc(await sbRpc('inventaire_abandonner', {
+    p_acteur: acteur, p_index: index, p_signature: signature,
+    p_country: country, p_city: city, p_building: building, p_room: room
+  }));
+}
+
+// p_mutations : transformations de PRESENTATION appliquees a l'exemplaire qui part (la carte
+// postale ecrite est le seul cas du jeu). Le serveur en retire d'office quantite, empilement,
+// type, legalite, encombrement et identifiant -- le navigateur ne decore que l'apparence.
+async function sbInventaireDonner(acteur, destinataire, index, signature, qte, mutations) {
+  return verdictRpc(await sbRpc('inventaire_donner', {
+    p_acteur: acteur, p_destinataire: destinataire, p_index: index,
+    p_signature: signature, p_qte: qte || 1, p_mutations: mutations || null
+  }));
+}
+
+// Remise a un PNJ designe : le destinataire n'a pas d'inventaire, l'objet quitte le jeu. C'est
+// aussi le seul chemin par lequel un objet protege peut legitimement sortir (remettre le colis
+// secret a sa destinataire est la facon de terminer la quete).
+async function sbInventaireRemettre(acteur, index, signature, destinataire) {
+  return verdictRpc(await sbRpc('inventaire_remettre', {
+    p_acteur: acteur, p_index: index, p_signature: signature, p_destinataire: destinataire
+  }));
+}
+
+async function sbInventaireConsommer(acteur, index, signature) {
+  return verdictRpc(await sbRpc('inventaire_consommer', {
+    p_acteur: acteur, p_index: index, p_signature: signature
+  }));
+}
+
+// Confiscation EN MASSE : le perimetre n'est pas choisi par le joueur, il est calcule par la
+// regle (objet illegal, ou vise par une loi mecanique en vigueur, moins les objets de quete
+// proteges). Le navigateur ne decide plus de ce qu'il rend.
+async function sbInventaireConfisquer(acteur) {
+  return verdictRpc(await sbRpc('inventaire_confisquer', { p_acteur: acteur }));
 }
 
 // =====================================================================

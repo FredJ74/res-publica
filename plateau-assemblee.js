@@ -309,9 +309,11 @@ function assembleeHeuresRestantes(c) {
 async function assembleeConfisquerInterdits() {
   const vises = assembleeObjetsInterditsPortes();
   if (!vises.length) return '';
-  const noms = (typeof confisquerObjets === 'function')
-    ? confisquerObjets(vises)
-    : (state.inventory = (state.inventory || []).filter(i => !vises.includes(i)), vises.map(o => o.name).join(', '));
+  // Repli local SUPPRIME (chantier C, 14 septembre 2026) : il reecrivait l'inventaire depuis le
+  // navigateur si le moteur generique manquait -- exactement le repli permissif que la
+  // securisation retire partout ailleurs. Sans moteur, la confiscation n'a pas lieu.
+  if (typeof confisquerObjets !== 'function') return '';
+  const noms = await confisquerObjets(vises);
   if (typeof sauvegarderPersonnageImmediat === 'function') await sauvegarderPersonnageImmediat();
   return noms;
 }

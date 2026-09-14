@@ -1117,6 +1117,104 @@ function recevoirObjetAutomatique(item) {
   return addToInventory(item, { automatique: true });
 }
 
+// =====================================================================
+// ENTONNOIR DE SORTIE D'INVENTAIRE (chantier C, 14 septembre 2026)
+// =====================================================================
+// Symetrique d'addToInventory, qui existait depuis toujours sans jumeau : 32 sites retiraient
+// des objets par splice/filter directs, chacun avec sa propre idee des regles. Trois
+// consequences mesurees pendant l'audit :
+//   - la protection du colis secret etait absente de trois chemins (dropItem, don a un employe,
+//     depot en caisse de fret) : l'objet indispensable a la quete y etait perdable ;
+//   - un don ou un abandon faisait le splice AVANT l'ecriture serveur, avec .catch(() => {})
+//     par-dessus : une coupure reseau detruisait l'objet sans qu'il arrive nulle part ;
+//   - la quantite finale de l'inventaire etait decidee par le navigateur.
+//
+// Ici, le client n'exprime qu'une INTENTION (quel objet, pour quel motif). Le serveur verifie
+// possession, quantite, famille et protection, applique la sortie et sa contrepartie dans une
+// seule transaction, puis renvoie l'inventaire qui fait foi -- adopte tel quel ci-dessous.
+// En cas de refus, RIEN n'est modifie localement : pas de retrait optimiste a rattraper.
+//
+// Motifs acceptes, un par guichet serveur :
+//   'detruire'   destruction definitive, aucune contrepartie
+//   'abandonner' depose dans la piece courante, ramassable par un autre joueur
+//   'donner'     remis a un autre joueur (options.destinataire)
+//   'consommer'  aliment, medicament, explosif, poison -- disparait a l'usage
+//   'remettre'   remis a un PNJ designe (options.destinataire) : l'objet quitte le jeu. Seul
+//                motif par lequel un objet protege peut sortir, et seulement vers le
+//                destinataire prevu par sa quete.
+const MOTIFS_SORTIE_INVENTAIRE = ['detruire', 'abandonner', 'donner', 'consommer', 'remettre'];
+
+// Signature d'identification d'un objet. Le jeu n'a jamais eu de convention d'identifiant
+// (plateau-objets.js le documente : chaque site pousse les champs qui l'arrangent), et la
+// plupart des objets uniques n'ont AUCUN id. Ces trois champs sont les seuls presents partout
+// et discriminants ; le serveur s'en sert pour verifier que l'index annonce designe bien
+// l'objet que le joueur a vu a l'ecran.
+function signatureObjetInventaire(item) {
+  return { name: item?.name || '', type: item?.type || '', stackKey: item?.stackKey || '' };
+}
+
+async function removeFromInventory(idx, motif, options) {
+  const opts = options || {};
+  const item = (state.inventory || [])[idx];
+  if (!item) return { ok: false, raison: 'objet_absent' };
+  if (MOTIFS_SORTIE_INVENTAIRE.indexOf(motif) === -1) return { ok: false, raison: 'motif_inconnu' };
+
+  const acteur = state.char?.name;
+  if (!acteur) return { ok: false, raison: 'acteur_non_authentifie' };
+  const signature = signatureObjetInventaire(item);
+  const qte = opts.qte || 1;
+
+  let r = null;
+  try {
+    if (motif === 'detruire') {
+      r = await sbInventaireDetruire(acteur, idx, signature, qte);
+    } else if (motif === 'abandonner') {
+      r = await sbInventaireAbandonner(acteur, idx, signature,
+        state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+    } else if (motif === 'donner') {
+      r = await sbInventaireDonner(acteur, opts.destinataire, idx, signature, qte, opts.mutations || null);
+    } else if (motif === 'remettre') {
+      r = await sbInventaireRemettre(acteur, idx, signature, opts.destinataire);
+    } else {
+      r = await sbInventaireConsommer(acteur, idx, signature);
+    }
+  } catch (e) {
+    r = null;
+  }
+
+  // FAIL-CLOSED : sbRpc renvoie null si la fonction n'existe pas encore ou si l'appel echoue.
+  // L'action est alors refusee et l'inventaire reste exactement ce qu'il etait -- jamais un
+  // repli local qui retirerait l'objet "quand meme".
+  if (!r || r.ok !== true) {
+    return { ok: false, raison: (r && r.raison) || 'refus_serveur', objet: item };
+  }
+
+  // L'inventaire du serveur fait foi, y compris sur ce que le client croyait retirer.
+  state.inventory = r.inventory || [];
+  if (typeof renderInventory === 'function') renderInventory();
+  if (typeof updateUI === 'function') updateUI();
+  return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null };
+}
+
+// Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun
+// leur formulation -- et surtout pour que le motif reel du serveur soit toujours dit au joueur.
+function messageRefusSortieInventaire(raison) {
+  if (raison === 'objet_protege') {
+    return 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.';
+  }
+  if (raison === 'objet_absent') return "Cet objet n'est plus dans votre inventaire.";
+  if (raison === 'quantite_insuffisante') return "Vous n'en possédez pas autant.";
+  if (raison === 'objet_non_consommable') return "Cet objet ne se consomme pas.";
+  if (raison === 'destinataire_introuvable') return "Ce destinataire n'existe pas.";
+  if (raison === 'destinataire_non_designe') {
+    return "Cet objet est destiné à quelqu'un de précis, personne d'autre.";
+  }
+  if (raison === 'destinataire_invalide') return 'Destinataire invalide.';
+  if (raison === 'lieu_invalide') return 'Vous ne pouvez rien déposer ici.';
+  if (raison === 'acteur_non_authentifie') return 'Session expirée. Rechargez la page.';
+  return "L'opération a été refusée. Rien n'a été modifié.";
+}
+
 function enSurcharge() {
   return getTotalInventaire() > PLAFOND_INVENTAIRE_EMPILABLE;
 }

@@ -868,7 +868,8 @@ function doAllerDouanesAeroport() {
   if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'hall_douanes', null);
 }
 
-function doPasserDouanesAeroport() {
+// Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
+async function doPasserDouanesAeroport() {
   const pays = state.country || 'republic';
   const msgs = {
     republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
@@ -910,12 +911,14 @@ function doPasserDouanesAeroport() {
   // Les trois circuits (douane, fouille policiere, arrestation) lisent desormais objetsSaisissables.
   const saisissables = (typeof objetsSaisissables === 'function')
     ? objetsSaisissables(state.inventory) : null;
-  const objetsProhibes = Array.isArray(saisissables) ? saisissables
-    : (state.inventory || []).filter(i => i && i.legal === false);
-  if (objetsProhibes.length > 0) {
-    const nomsConfisques = objetsProhibes.map(i => i.name).join(', ');
-    state.inventory = state.inventory.filter(i => !objetsProhibes.includes(i));
-
+  // Repli local SUPPRIME (chantier C, 14 septembre 2026) : sans la brique commune, ce controle
+  // retombait sur son propre filtre et reecrivait l'inventaire depuis le navigateur. La saisie
+  // passe desormais par le guichet serveur, qui recalcule lui-meme le perimetre.
+  const objetsProhibes = Array.isArray(saisissables) ? saisissables : [];
+  // Le serveur recalcule le perimetre et fait foi : s'il ne saisit rien, il n'y a ni
+  // confiscation ni convocation -- jamais une peine pour une saisie qui n'a pas eu lieu.
+  const nomsConfisques = objetsProhibes.length > 0 ? await confisquerObjets(objetsProhibes) : '';
+  if (nomsConfisques) {
     if (!state.convocations) state.convocations = [];
     state.convocations.push({
       // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).

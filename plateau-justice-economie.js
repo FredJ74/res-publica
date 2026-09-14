@@ -1032,12 +1032,18 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   // un joueur arrete gardait armes non enregistrees, poisons et explosifs de chantier.
   // La saisie n'ajoute aucune peine : celle de l'acte juge ci-dessus reste la seule.
   // Le materiel militaire reglementaire (legal:true) n'est pas concerne.
+  // confisquerObjets est devenue serveur, donc asynchrone (chantier C, 14 septembre 2026).
+  // procederArrestation reste SYNCHRONE : 13 appelants en dependent, et l'arrestation elle-meme
+  // ne doit pas attendre la saisie pour teleporter en cellule. La saisie s'acheve donc en
+  // arriere-plan et n'annonce ses noms qu'une fois le serveur d'accord -- jamais avant.
   if (typeof objetsSaisissables === 'function' && typeof confisquerObjets === 'function') {
     const saisis = objetsSaisissables(state.inventory);
     if (Array.isArray(saisis) && saisis.length > 0) {
-      const noms = confisquerObjets(saisis);
-      addExternalEvent('Fouille a l\'ecrou : ' + noms + ' confisque(s).');
-      addJournalEntry('Fouille à l\'écrou : objets prohibés confisqués (' + noms + ').', 'event-bad');
+      confisquerObjets(saisis).then(function (noms) {
+        if (!noms) return;
+        addExternalEvent('Fouille a l\'ecrou : ' + noms + ' confisque(s).');
+        addJournalEntry('Fouille à l\'écrou : objets prohibés confisqués (' + noms + ').', 'event-bad');
+      }).catch(function () {});
     }
   }
 
@@ -3114,15 +3120,15 @@ async function confirmerDonObjetPj(encodedPnj, idx) {
   }
 
   const cible = pnj.name.replace(' (PNJ)', '');
-  state.inventory.splice(idx, 1);
-  renderInventory();
-  document.getElementById('modal-postes')?.classList.remove('open');
-
-  // Persistance reelle cote destinataire (corrige un trou : l'objet disparaissait avant
-  // sans jamais vraiment arriver chez l'autre joueur). Recupere a sa prochaine connexion.
-  if (typeof sbDonnerObjetJoueur === 'function') {
-    await sbDonnerObjetJoueur(item, cible, state.char?.name || 'Anonyme').catch(() => {});
+  // Retrait et remise au destinataire dans la MEME transaction (chantier C, 14 septembre 2026).
+  // L'ordre precedent -- splice local, puis INSERT avale par un .catch(() => {}) -- detruisait
+  // l'objet chez l'expediteur si le reseau lachait entre les deux.
+  const r = await removeFromInventory(idx, 'donner', { destinataire: cible });
+  if (!r.ok) {
+    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
+    return;
   }
+  document.getElementById('modal-postes')?.classList.remove('open');
 
   showToast('Objet donné', '"' + item.name + '" donné à ' + cible + '.', true, true);
   addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
@@ -3216,7 +3222,9 @@ function ouvrirDonObjetPnjModal(encodedPnj) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDonObjetPnj(objIdx, encodedPnj) {
+// Devient async (chantier C, 14 septembre 2026) : la remise passe par le guichet serveur.
+// Appelee depuis un onclick, donc rien a attendre cote appelant.
+async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   const obj = state.inventory[objIdx];
@@ -3229,11 +3237,15 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
     // Quete Pat Hounette/Brigitte Menottes : ce colis n'est destine qu'a elle -- a tout autre
     // PNJ, transfert refuse plutot que de le laisser se perdre hors de la chaine de la quete
     // (voir queteCarriereObjectifActuel/section 18 : solution la plus simple pour la beta).
-    if (nomCourt !== 'Brigitte Menottes') {
-      showToast('Impossible', 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', false);
+    // Remise de quete (chantier C, 14 septembre 2026) : le guichet serveur est le SEUL chemin
+    // par lequel un objet protege peut sortir, et seulement vers son destinataire designe.
+    // La verification du nom n'est donc plus faite ici : elle est portee par le serveur, qui
+    // refuse 'destinataire_non_designe' pour tout autre PNJ.
+    const rRemise = await removeFromInventory(objIdx, 'remettre', { destinataire: nomCourt });
+    if (!rRemise.ok) {
+      showToast('Impossible', messageRefusSortieInventaire(rRemise.raison), false);
       return;
     }
-    state.inventory.splice(objIdx, 1);
     updateUI();
     if (typeof remettreColisBrigitte === 'function') remettreColisBrigitte();
     return;
@@ -3243,18 +3255,29 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
     // « Distribuer un tract » (dimanche d'un scrutin ouvert, bon lieu) : le don ne consomme rien.
     showToast('Tract électoral', 'Pour faire voter ' + nomCourt + ', utilisez « Distribuer un tract » un dimanche de scrutin.', false);
     return;
-  } else if (obj.type === 'kompromat') {
+  }
+
+  // Le retrait passe par le guichet serveur (chantier C, 14 septembre 2026) et precede tout
+  // effet : un refus laisse l'inventaire ET les ressources exactement en l'etat, jamais un gain
+  // d'INF/POP obtenu pour un objet qui serait reste en poche.
+  const rDon = await removeFromInventory(objIdx, 'remettre', { destinataire: nomCourt });
+  if (!rDon.ok) {
+    showToast('Impossible', messageRefusSortieInventaire(rDon.raison), false);
+    return;
+  }
+
+  if (obj.type === 'kompromat') {
     if (['journaliste','redacteur'].includes(job)) {
-      state.inventory.splice(objIdx,1); state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
+      state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
       const cible=obj.cible||'une personnalite';
       addExternalEvent('SCANDALE : Un kompromat sur '+cible+' a ete divulgue !');
       msg='Le journaliste s\'empare du dossier. +8 INF +5 POP.';
     } else {
-      state.inventory.splice(objIdx,1); state.inf=Math.min(100,(state.inf||0)+3);
+      state.inf=Math.min(100,(state.inf||0)+3);
       msg=nomCourt+' prend le document. +3 INF.';
     }
   } else {
-    state.inventory.splice(objIdx,1); state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
+    state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
     msg=nomCourt+' accepte le cadeau. +3 Moral +2 INF.';
     addJournalEntry('Objet offert a '+nomCourt+'.','event-good');
   }
@@ -9777,18 +9800,32 @@ function identifierObjetsIllegaux(inventory) {
 // Retire purement et simplement les objets confisques de l'inventaire local (aucune convocation,
 // aucune peine -- ces consequences sont ajoutees separement par chaque appelant ci-dessous, qui
 // ont des besoins differents : soumission = convocation deferee, fuite ratee = peine immediate).
-function confisquerObjets(objetsConnus) {
+// ENTONNOIR SERVEUR (chantier C, 14 septembre 2026). La liste transmise n'est plus qu'un
+// PRE-CALCUL d'affichage : c'est le serveur qui determine le perimetre reel de la saisie, avec
+// exactement la meme regle (objetsSaisissables ci-dessus) -- legal === false, ou vise par une
+// loi mecanique en vigueur via assemblee_loi_en_vigueur(), moins les objets de quete proteges.
+// Un navigateur ne peut donc plus presenter une liste vide pour ne rien rendre.
+//
+// Devient async : les cinq appelants attendent desormais le verdict serveur avant d'appliquer
+// leurs propres consequences (convocation, detention, amende), qui restent chez eux.
+async function confisquerObjets(objetsConnus) {
   if (!objetsConnus || objetsConnus.length === 0) return '';
-  const noms = objetsConnus.map(o => o.name).join(', ');
-  state.inventory = (state.inventory || []).filter(i => !objetsConnus.includes(i));
-  return noms;
+  if (typeof sbInventaireConfisquer !== 'function' || !state.char?.name) return '';
+  const r = await sbInventaireConfisquer(state.char.name).catch(() => null);
+  // FAIL-CLOSED : pas de repli local. Une saisie qui n'a pas eu lieu cote serveur ne doit pas
+  // etre mimee cote client -- l'objet reapparaitrait au prochain chargement, et la peine aurait
+  // ete appliquee pour une confiscation qui n'existe pas.
+  if (!r || r.ok !== true) return '';
+  state.inventory = r.inventory || state.inventory || [];
+  if (typeof renderInventory === 'function') renderInventory();
+  return r.noms || '';
 }
 
 // Se soumettre au controle : confiscation + convocation deferee, EXACTEMENT la meme consequence
 // que le controle douanier (motif possession_illegale_douane reutilise tel quel, aucune peine
 // inventee).
-function appliquerConsequencesSoumissionFouille(objetsConnus) {
-  const noms = confisquerObjets(objetsConnus);
+async function appliquerConsequencesSoumissionFouille(objetsConnus) {
+  const noms = await confisquerObjets(objetsConnus);
   if (!noms) return;
 
   if (!state.convocations) state.convocations = [];
@@ -9812,8 +9849,8 @@ function appliquerConsequencesSoumissionFouille(objetsConnus) {
 // +1 jour cumulatif (ajouterJourFuiteRatee, precedent additif existant). La peine immediate est
 // necessaire ici : sans elle, ajouterJourFuiteRatee n'aurait aucune detention de base sur
 // laquelle cumuler (state.estEmprisonne serait absent).
-function appliquerConsequencesFuiteRatee(objetsConnus) {
-  const noms = confisquerObjets(objetsConnus);
+async function appliquerConsequencesFuiteRatee(objetsConnus) {
+  const noms = await confisquerObjets(objetsConnus);
   if (typeof procederArrestation === 'function') procederArrestation('possession_illegale_douane', false, false);
   ajouterJourFuiteRatee();
   updateUI();

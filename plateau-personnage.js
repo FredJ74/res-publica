@@ -2541,21 +2541,30 @@ function verifierProgressionHospitalisation() {
   addJournalEntry('Convalescence en cours (' + state.hospitalisation.lieu + '). Encore ' + joursRestants + ' jour(s).', 'event-info');
 }
 
-function doSesoigner() {
+// Le medicament est un consommable a usage unique : meme entonnoir que l'aliment, l'explosif
+// et le poison (chantier C, 14 septembre 2026). Les +20 de sante restent ici, c'est l'effet.
+async function doSesoigner() {
   const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
   if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
   const idx = state.inventory.indexOf(medocs[0]);
-  state.inventory.splice(idx, 1);
+  const r = await removeFromInventory(idx, 'consommer');
+  if (!r.ok) { showToast('Soins impossibles', messageRefusSortieInventaire(r.raison), false); return; }
   state.hp = Math.min(100, state.hp + 20);
   updateUI();
   showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
   switchSelfTab('inventaire', null);
 }
 
-function dropItem(index) {
+// Second bouton "Jeter", atteint depuis l'AUTRE popup de detail d'objet (ouvrirDetailObjet).
+// ANOMALIE CORRIGEE (chantier C, 14 septembre 2026) : ce chemin ne verifiait AUCUNE protection
+// de quete, alors que les trois autres sorties le faisaient -- le colis secret y etait donc
+// destructible, rendant la quete criminelle impossible a terminer. La protection est desormais
+// portee par le serveur, donc identique sur les quatre chemins sans avoir a la recopier.
+async function dropItem(index) {
   const item = state.inventory[index];
   if (!item) return;
-  state.inventory.splice(index, 1);
+  const r = await removeFromInventory(index, 'detruire');
+  if (!r.ok) { showToast('Impossible', messageRefusSortieInventaire(r.raison), false); return; }
   showToast('Objet jete', item.name + ' retire de votre inventaire.', false);
   switchSelfTab('inventaire', null);
 }
@@ -2674,8 +2683,15 @@ async function consommerAliment(idx) {
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  state.inventory.splice(idx, 1);
-  renderInventory();
+  // Le retrait passe par l'entonnoir serveur (chantier C, 14 septembre 2026). Il reste le
+  // PREMIER geste avant tout effet, donc la protection contre le double-clic demeure : c'est
+  // desormais le serveur qui la garantit, et non plus l'ordre des lignes de cette fonction.
+  // L'effet (peremption, PA) reste ici : c'est une regle de jeu, pas une quantite d'inventaire.
+  const r = await removeFromInventory(idx, 'consommer');
+  if (!r.ok) {
+    showToast('Consommation impossible', messageRefusSortieInventaire(r.raison), false);
+    return;
+  }
 
   const age = Date.now() - item.dateAchat;
   const perime = age > DUREE_FRAICHEUR_ALIMENT_MS;
@@ -2864,30 +2880,36 @@ async function envoyerCartePostale(idx) {
   const btn = document.getElementById('carte-postale-envoyer-btn');
   if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
 
-  if (typeof sbDonnerObjetJoueur !== 'function') {
+  if (typeof removeFromInventory !== 'function') {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     showToast('Envoi impossible', 'Le service de courrier est indisponible pour le moment.', false);
     return;
   }
 
-  const carteEcrite = Object.assign({}, item, {
-    etatCarte: 'ecrite',
-    auteur: moi,
-    destinataireInitial: destinataire,
-    message: message.slice(0, 500),
-    dateEnvoi: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString(),
-    bonusDeclenche: false
+  // Seul don du jeu qui TRANSFORME l'objet en partant : l'exemplaire vierge quitte
+  // l'inventaire, un exemplaire ecrit arrive chez le destinataire. Ces champs ne sont que de
+  // la presentation -- le serveur retire d'office de ces mutations tout ce qui a une valeur
+  // (quantite, empilement, type, legalite, encombrement, identifiant).
+  // Le retrait et le depot sont desormais UNE SEULE transaction : l'ancien enchainement
+  // (envoi d'abord, splice ensuite) etait deja fail-closed, mais il pouvait laisser une carte
+  // partie ET restee en inventaire si le splice n'avait pas lieu.
+  const r = await removeFromInventory(idx, 'donner', {
+    destinataire: destinataire,
+    mutations: {
+      etatCarte: 'ecrite',
+      auteur: moi,
+      destinataireInitial: destinataire,
+      message: message.slice(0, 500),
+      dateEnvoi: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString(),
+      bonusDeclenche: false
+    }
   });
-
-  const ok = await sbDonnerObjetJoueur(carteEcrite, destinataire, moi).then(() => true).catch(() => false);
-  if (!ok) {
+  if (!r.ok) {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Envoi échoué', 'Erreur réseau, la carte n\'a pas pu être envoyée. Réessayez.', false);
+    showToast('Envoi échoué', messageRefusSortieInventaire(r.raison), false);
     return;
   }
 
-  state.inventory.splice(idx, 1);
-  renderInventory();
   fermerModalCartePostale();
   showToast('Carte envoyée', 'Votre carte postale a été envoyée à ' + destinataire + '.', true, true);
   addJournalEntry('Vous avez envoyé une carte postale à ' + destinataire + '.', 'event-info');
@@ -2976,29 +2998,23 @@ async function lireCartePostale(idx) {
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 
+// Don a un joueur present dans la piece — retrait et depot chez le destinataire dans la MEME
+// transaction (chantier C, 14 septembre 2026). La protection du colis secret est desormais
+// portee par le serveur, qui refuse aussi un destinataire inexistant : donner a un nom invente
+// faisait jusqu'ici disparaitre l'objet dans le vide.
 async function donnerObjetAJoueur(idx) {
   const item = state.inventory[idx];
   const cible = document.getElementById('donner-objet-cible')?.value;
   if (!item || !cible) return;
-  // Meme protection que la destruction/l'abandon : ce chemin (fiche detail d'un objet, donner
-  // a un vrai joueur present dans la piece) contournerait sinon la restriction "Brigitte
-  // Menottes uniquement" deja posee sur confirmerDonObjetPj (plateau-justice-economie.js).
-  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
-    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+
+  const r = await removeFromInventory(idx, 'donner', { destinataire: cible });
+  if (!r.ok) {
+    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
     return;
   }
-
-  state.inventory.splice(idx, 1);
-  renderInventory();
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Objet donné', 'Vous avez donné "' + item.name + '" à ' + cible + '.', true, true);
   addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
-
-  // Persistance reelle cote destinataire (corrige un trou : l'objet disparaissait avant
-  // sans jamais vraiment arriver chez l'autre joueur — seul le mail etait reel).
-  if (typeof sbDonnerObjetJoueur === 'function') {
-    await sbDonnerObjetJoueur(item, cible, state.char?.name || 'Anonyme').catch(() => {});
-  }
 
   // Notifier le destinataire par mail reel
   if (typeof sbSendMail === 'function') {
@@ -3009,34 +3025,34 @@ async function donnerObjetAJoueur(idx) {
   }
 }
 
-function supprimerItemInventaire(idx) {
+// Destruction definitive — passe par l'entonnoir serveur (chantier C, 14 septembre 2026).
+// La protection du colis secret n'est plus evaluee ici : c'est le serveur qui la porte, pour
+// que les trois chemins de sortie l'appliquent identiquement (celui-ci l'avait, dropItem non).
+async function supprimerItemInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
-  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
-    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+  const r = await removeFromInventory(idx, 'detruire');
+  if (!r.ok) {
+    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
     return;
   }
-  state.inventory.splice(idx, 1);
-  renderInventory();
   showToast('Objet détruit', '"' + item.name + '" a été détruit définitivement. Aucune trace.', true);
   addJournalEntry('Vous avez détruit "' + item.name + '" définitivement.', 'event-info');
 }
 
+// Abandon au sol — retrait de l'inventaire ET depot dans la piece DANS LA MEME TRANSACTION
+// (chantier C, 14 septembre 2026). Avant ce lot, le splice local precedait un INSERT separe
+// avale par un .catch(() => {}) : une coupure reseau entre les deux detruisait l'objet sans
+// que personne ne puisse jamais le ramasser.
 async function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
-  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
-    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+  const r = await removeFromInventory(idx, 'abandonner');
+  if (!r.ok) {
+    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
     return;
   }
-  state.inventory.splice(idx, 1);
-  renderInventory();
   document.getElementById('modal-postes').classList.remove('open');
-
-  // Persister l'objet dans la piece courante pour qu'un autre PJ puisse le ramasser
-  if (typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
-    await sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
-  }
   showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
   addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
   // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)

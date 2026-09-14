@@ -2229,8 +2229,10 @@ async function confirmerUtiliserExplosifs() {
   const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
   if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
 
-  // Consommer l'objet (usage unique)
-  state.inventory.splice(explosifIdx, 1);
+  // Consommer l'objet (usage unique) — entonnoir serveur (chantier C, 14 septembre 2026).
+  // Reste APRES la deduction PA et AVANT tout effet, l'ordre fail-closed du Lot 2A est conserve.
+  const rSortie = await removeFromInventory(explosifIdx, 'consommer');
+  if (!rSortie.ok) { showToast('Impossible', messageRefusSortieInventaire(rSortie.raison), false); return; }
 
   const malusISN = getMalusISN();
   const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
@@ -2475,10 +2477,15 @@ async function confirmerEmpoisonnement(cibleNom) {
   const taux = Math.max(5, 40 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
 
-  // Supprimer l'objet poison de l'inventaire (usage unique)
+  // Supprimer l'objet poison de l'inventaire (usage unique) — entonnoir serveur (chantier C,
+  // 14 septembre 2026). Si le serveur refuse, l'empoisonnement n'a pas lieu : mieux vaut une
+  // action annulee qu'un poison consomme sans effet, ou un effet sans poison consomme.
   const poisonObj = (state.inventory || []).find(i => i.type === 'poison');
   const poisonIdx = (state.inventory || []).findIndex(i => i.type === 'poison');
-  if (poisonIdx >= 0) state.inventory.splice(poisonIdx, 1);
+  if (poisonIdx >= 0) {
+    const rSortie = await removeFromInventory(poisonIdx, 'consommer');
+    if (!rSortie.ok) { showToast('Impossible', messageRefusSortieInventaire(rSortie.raison), false); return; }
+  }
 
   const poisonType = poisonObj?.poisonType || 'parapluie';
 
@@ -3038,11 +3045,18 @@ const BONUS_CARRIERE_VOL = {
 //
 // La suppression retablit l'original, qui applique bien PEINES_ACTES.
 
-function doSesoigner() {
+// DOUBLON de doSesoigner (plateau-personnage.js:2544), corps identique. Les deux fichiers
+// etant charges a la suite, c'est CETTE definition qui l'emporte a l'execution. Migre vers
+// l'entonnoir serveur comme l'autre (chantier C, 14 septembre 2026) : tant que le doublon
+// existe, laisser l'une des deux ecrire en direct suffirait a rouvrir le contournement.
+// Le doublon lui-meme n'est pas supprime ici -- ce serait une modification de structure sans
+// rapport avec la securisation, a faire dans une passe dediee.
+async function doSesoigner() {
   const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
   if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
   const idx = state.inventory.indexOf(medocs[0]);
-  state.inventory.splice(idx, 1);
+  const r = await removeFromInventory(idx, 'consommer');
+  if (!r.ok) { showToast('Soins impossibles', messageRefusSortieInventaire(r.raison), false); return; }
   state.hp = Math.min(100, state.hp + 20);
   updateUI();
   showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
