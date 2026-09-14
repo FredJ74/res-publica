@@ -9973,17 +9973,23 @@ function ouvrirChoixSoumissionFuite(objetsConnus, volAdversaire) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doSeSoumettrePolice() {
+// Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
+// Seuls des boutons appellent cette fonction, aucun appelant a adapter -- mais l'await est
+// necessaire pour que la convocation ne soit posee qu'apres une saisie reellement acceptee.
+async function doSeSoumettrePolice() {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!_policeFouilleEnCours) return;
-  appliquerConsequencesSoumissionFouille(_policeFouilleEnCours.objetsConnus);
+  const objets = _policeFouilleEnCours.objetsConnus;
   _policeFouilleEnCours = null;
+  await appliquerConsequencesSoumissionFouille(objets);
 }
 
 // Etape 4 (si fuite choisie) : VOL PJ vs VOL groupe police, AUCUN bonus d'effectif (regle
 // explicite, distincte de PER). Fuite reussie = le PJ garde tout, aucune trace/enquete inventee.
 // Fuite ratee = confiscation + peine immediate + jour cumulatif (appliquerConsequencesFuiteRatee).
-function doTenterFuitePolice() {
+// Devient async pour la meme raison que doSeSoumettrePolice ci-dessus : la peine de la fuite
+// ratee ne doit tomber qu'apres une saisie reellement acceptee par le serveur.
+async function doTenterFuitePolice() {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!_policeFouilleEnCours) return;
   const { objetsConnus, volAdversaire } = _policeFouilleEnCours;
@@ -9997,7 +10003,7 @@ function doTenterFuitePolice() {
     addJournalEntry('Fuite réussie face à un contrôle policier.', 'event-good');
     return;
   }
-  appliquerConsequencesFuiteRatee(objetsConnus);
+  await appliquerConsequencesFuiteRatee(objetsConnus);
 }
 
 function getBuildingIdCentreMultimodal(ville, pays) {
