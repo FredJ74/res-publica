@@ -2882,7 +2882,8 @@ async function livrerEntrepotsQuotidien() {
   // aucune regle economique -- une tresorerie insuffisante reste un fonctionnement NORMAL du
   // jeu, jamais une erreur technique.
   const resultats = { entrepots: 0, unitesLivrees: 0, coutTotal: 0,
-                      approvisionnes: 0, sansTresorerie: 0, echecsTechniques: 0, parEntrepot: [] };
+                      approvisionnes: 0, sansTresorerie: 0, echecsTechniques: 0,
+                      dotationsPubliques: 0, entrepotsDotes: 0, parEntrepot: [] };
   // Accumulateur national (lot logistique portuaire, 25 aout 2026) : sommme, sur les 3 tirages
   // INDEPENDANTS des 3 entrepots (inchanges, meme RNG qu'avant ce lot), la part de
   // bois/petrole/produits_exotiques desormais reroutee vers le port plutot que creditee
@@ -2911,6 +2912,18 @@ async function livrerEntrepotsQuotidien() {
       const dirs = await sbGet('personnages', 'select=name,poste&poste->>id=eq.directeur_entrepot');
       (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
+
+    // Caisses municipales : c'est la VILLE qui soutient son entrepot PNJ, jamais l'Etat. Lues
+    // une fois, mutees en memoire pendant la boucle, reecrites une seule fois a la fin -- meme
+    // patron que preleverTaxeFonciere, qui manipule deja ces memes lignes.
+    const budgetsMunicipaux = {};
+    const villesADebiter = {};
+    for (const { city } of ENTREPOTS_VILLES) {
+      try {
+        const rows = await sbGet('budgets_municipaux', 'id=eq.' + encodeURIComponent('republic_' + city));
+        if (rows && rows[0] && rows[0].data) budgetsMunicipaux[city] = rows[0].data;
+      } catch (e) { /* budget illisible : aucun soutien versé a cette ville cette nuit */ }
+    }
 
     // Ce qui est deja en route vers chaque entrepot, par ressource. Sans cette lecture, une
     // commande directe passee la veille serait rachetee une seconde fois par le cron.
@@ -2994,7 +3007,67 @@ async function livrerEntrepotsQuotidien() {
       const facteurVolume = totalBesoins > VOLUME_TOTAL_JOUR ? VOLUME_TOTAL_JOUR / totalBesoins : 1;
       besoins.forEach(b => { b.besoin = Math.floor(b.besoin * facteurVolume); });
 
-      const valeurTotale = besoins.reduce((s, b) => s + b.besoin * b.prix, 0);
+      // COUT REELLEMENT A LA CHARGE DE L'ENTREPOT. Toutes les unites tirees ne sont pas payees
+      // par lui : la part redirigee vers l'usine locale (20 %) et la totalite des ressources
+      // reroutees vers le port (petrole, produits exotiques) sont des dotations publiques
+      // gratuites. Calculer le soutien sur besoin x prix le ferait donc SUR-financer, et le
+      // surplus resterait en caisse -- exactement l'accumulation que la regle interdit.
+      // On simule ici, sans rien muter, la meme cascade que la boucle d'achat ci-dessous.
+      let placeUsineSimulee = {};
+      const valeurTotale = besoins.reduce(function (s, b) {
+        let restante = b.besoin;
+        if (usineLocale && etatUsine && usineLocale.matieres.includes(b.cle)) {
+          const dejaUsine = (placeUsineSimulee[b.cle] !== undefined)
+            ? placeUsineSimulee[b.cle] : (stockMatieresUsine[b.cle] || 0);
+          const place = Math.max(0, b.res.plafond - dejaUsine);
+          const redirigee = Math.min(Math.round(b.besoin * PART_REDIRECTION_USINE), place);
+          placeUsineSimulee[b.cle] = dejaUsine + redirigee;
+          restante -= redirigee;
+        }
+        if (RESSOURCES_REROUTEES_PORT.includes(b.cle)) return s;   // part au port, gratuit
+        const placeEntrepot = Math.max(0, capacite - (stock[b.cle] || 0));
+        return s + Math.min(restante, placeEntrepot) * b.prix;
+      }, 0);
+
+      // =================================================================
+      // SOUTIEN MUNICIPAL DIFFERENTIEL (arbitrage du 14 septembre 2026)
+      // =================================================================
+      // Le directeur d'entrepot est nomme par le maire : c'est donc la VILLE, et non l'Etat,
+      // qui soutient son etablissement quand il est tenu par un PNJ. Sans ce filet, les trois
+      // entrepots resteraient bloques -- sans marchandise, pas d'export ; sans export, pas de
+      // recette ; sans recette, pas de reapprovisionnement.
+      //
+      // DIFFERENTIEL, jamais une rente : on ne verse QUE le complement manquant, calcule sur le
+      // besoin REEL etabli ci-dessus -- desideratas PNJ, moins le stock, moins ce qui est deja
+      // en route, borne par la capacite et par le rythme quotidien. Caisse suffisante ->
+      // versement nul. Rien ne s'accumule : ce qui est verse est depense dans la foulee.
+      //
+      // JAMAIS DE MONNAIE ARTIFICIELLE. Le versement est plafonne par ce que la caisse
+      // municipale detient reellement. Une ville ruinee laisse donc son entrepot sous-finance,
+      // sans aucune compensation de l'Etat : c'est une consequence politique assumee.
+      //
+      // IL DISPARAIT DES QU'UN PJ DIRIGE L'ETABLISSEMENT. Le test porte sur la detention reelle
+      // du poste, pas sur la presence de desideratas : un directeur PJ qui n'a rien configure
+      // assume quand meme sa gestion, sa tresorerie et sa faillite eventuelle.
+      //
+      // PLACEMENT. Ici et nulle part ailleurs : apres la livraison des transits (le besoin tient
+      // donc compte de ce qui vient d'arriver) et avant les exportations (dont la recette
+      // viendra reduire le soutien des nuits suivantes). Aucun double financement possible --
+      // le soutien ne finance que le besoin calcule, jamais un montant forfaitaire.
+      const dirigeParPj = !!directeursEnPoste[city];
+      let dotationPublique = 0;
+      const budgetVille = budgetsMunicipaux[city];
+      if (!dirigeParPj && valeurTotale > caisse && budgetVille) {
+        const manque = Math.round((valeurTotale - caisse) * 100) / 100;
+        const disponibleVille = Math.max(0, Number(budgetVille.caisse) || 0);
+        dotationPublique = Math.round(Math.min(manque, disponibleVille) * 100) / 100;
+        if (dotationPublique > 0) {
+          caisse += dotationPublique;
+          budgetVille.caisse = Math.round((disponibleVille - dotationPublique) * 100) / 100;
+          villesADebiter[city] = true;
+        }
+      }
+
       const facteurBudget = (valeurTotale > caisse && valeurTotale > 0) ? caisse / valeurTotale : 1;
       if (facteurBudget < 1) lotsRefusesTresorerie++;   // servi partiellement, faute de tresorerie
 
@@ -3071,22 +3144,44 @@ async function livrerEntrepotsQuotidien() {
       resultats.parEntrepot.push({ city, buildingId, issue, unites: unitesEntrepot,
                                    cout: Math.round(coutEntrepot * 100) / 100,
                                    caisseRestante: Math.round(caisse * 100) / 100,
-                                   lotsRefusesTresorerie });
+                                   lotsRefusesTresorerie,
+                                   dirigeParPj, dotationPublique });
+      resultats.dotationsPubliques += dotationPublique;
+      if (dotationPublique > 0) resultats.entrepotsDotes++;
 
       // REGISTRE COMMERCIAL. Une ligne par ressource reellement achetee, jamais une ligne par
       // nuit vide : le registre appartient a l'etablissement et doit rester leger.
-      if (achatsDuJour.length > 0) {
-        const entrepotId = 'republic_' + city + '_' + buildingId;
-        await sbInsert('entrepot_journal', achatsDuJour.map(a => ({
-          entrepot_id: entrepotId, operation: 'approvisionnement_auto', sens: 'entree',
-          contrepartie: 'Fournisseurs', ressource: a.cle, quantite: a.qte,
-          prix_unitaire: a.prix, fret_unitaire: 0, montant: a.cout, statut: 'livre'
-        }))).catch(() => {});
+      // La dotation publique y figure explicitement, en tete : sans elle, les comptes de
+      // l'etablissement seraient inexplicables -- de l'argent apparaitrait sans origine.
+      const entrepotId = 'republic_' + city + '_' + buildingId;
+      const lignesRegistre = [];
+      if (dotationPublique > 0) {
+        lignesRegistre.push({
+          entrepot_id: entrepotId, operation: 'soutien_municipal', sens: 'entree',
+          contrepartie: 'Caisse municipale', ressource: null, quantite: null,
+          prix_unitaire: null, fret_unitaire: 0, montant: dotationPublique, statut: 'comptant'
+        });
+      }
+      achatsDuJour.forEach(a => lignesRegistre.push({
+        entrepot_id: entrepotId, operation: 'approvisionnement_auto', sens: 'entree',
+        contrepartie: 'Fournisseurs', ressource: a.cle, quantite: a.qte,
+        prix_unitaire: a.prix, fret_unitaire: 0, montant: a.cout, statut: 'livre'
+      }));
+      if (lignesRegistre.length > 0) {
+        await sbInsert('entrepot_journal', lignesRegistre).catch(() => {});
       }
 
       resultats.entrepots++;
       resultats.unitesLivrees += unitesEntrepot;
       resultats.coutTotal += coutEntrepot;
+    }
+
+    // Les caisses municipales reellement ponctionnees sont reecrites une seule fois, apres la
+    // boucle : une ville ne finance qu'un entrepot, mais l'ecriture groupee evite un aller-retour
+    // par entrepot et garde le debit atomique du point de vue de la ligne budgetaire.
+    for (const city of Object.keys(villesADebiter)) {
+      await sbUpdate('budgets_municipaux', 'id=eq.' + encodeURIComponent('republic_' + city),
+        { data: budgetsMunicipaux[city], updated_at: new Date().toISOString() }).catch(() => {});
     }
 
     // Production nationale de bois (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :

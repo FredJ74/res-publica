@@ -63,7 +63,7 @@ function verifier(nom, ok, detail) {
   resultats.push({ nom: nom, ok: !!ok, detail: String(detail === undefined ? '' : detail).slice(0, 170) });
 }
 
-var BASE = {}, TRANSITS = [], DIRECTEURS = [], JOURNAL = [];
+var BASE = {}, TRANSITS = [], DIRECTEURS = [], JOURNAL = [], BUDGETS = {}, ECRITS = [];
 var VILLE_ID_PORT_PSM = 'ville_a', BUILDING_ID_PORT_PSM = 'port-sainte-marie';
 function cleBat(p, v, b) { return p + '_' + v + '_' + b; }
 
@@ -76,15 +76,24 @@ async function matieresInterditesRepublia() { return new Set(); }
 async function sbGet(table, filtre) {
   if (table === 'entrepot_transits') return TRANSITS;
   if (table === 'personnages') return DIRECTEURS;
+  if (table === 'budgets_municipaux') {
+    var m = /id=eq\.republic_(.+)$/.exec(filtre || '');
+    var v = m ? decodeURIComponent(m[1]) : null;
+    return (v && BUDGETS[v] !== undefined) ? [{ id: 'republic_' + v, data: BUDGETS[v] }] : [];
+  }
   return [];
 }
+async function sbUpdate(table, filtre, patch) { ECRITS.push({ table: table, filtre: filtre, patch: patch }); return [patch]; }
 async function sbInsert(table, lignes) { if (table === 'entrepot_journal') JOURNAL = JOURNAL.concat(lignes); return lignes; }
 var console = { error: function () {}, warn: function () {}, log: function () {} };
 
 %SOURCES%
 
-function poser(stocks, caisses, desiderata, desiderataPar) {
-  BASE = {}; TRANSITS = []; JOURNAL = [];
+function poser(stocks, caisses, desiderata, desiderataPar, caissesVilles) {
+  BASE = {}; TRANSITS = []; JOURNAL = []; ECRITS = []; BUDGETS = {};
+  ENTREPOTS_VILLES.forEach(function (e, i) {
+    BUDGETS[e.city] = { key: 'republic_' + e.city, caisse: (caissesVilles && caissesVilles[i] !== undefined) ? caissesVilles[i] : 0 };
+  });
   ENTREPOTS_VILLES.forEach(function (e, i) {
     var ent = { stock: JSON.parse(JSON.stringify(stocks[i] || {})), caisse: caisses[i] || 0 };
     if (desiderata && desiderata[i]) { ent.desiderata = desiderata[i]; ent.desiderataPar = desiderataPar; }
@@ -197,6 +206,125 @@ function lire(i) { var e = ENTREPOTS_VILLES[i]; return BASE[cleBat('republic', e
            JOURNAL[0].ressource && JOURNAL[0].quantite > 0 && JOURNAL[0].prix_unitaire > 0
            && JOURNAL[0].montant > 0 && JOURNAL[0].statut === 'livre',
            JSON.stringify(JOURNAL[0]).slice(0, 150));
+
+  // === J. SOUTIEN MUNICIPAL DIFFERENTIEL ================================
+  // Objectif : n'observer QUE la capitale. Les deux autres villes ont un budget nul, donc
+  // aucun soutien possible -- elles ne polluent pas la mesure.
+  function detail(r, ville) { return (r.parEntrepot || []).find(function (x) { return x.city === ville; }); }
+
+  // J1. Caisse a 0, besoins reels, ville riche : le soutien couvre exactement le besoin.
+  poser([{}, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  DIRECTEURS = [];
+  r = await livrerEntrepotsQuotidien();
+  var d = detail(r, 'capitale');
+  verifier('J1 caisse a 0 : la ville verse exactement de quoi financer le besoin',
+           d.dotationPublique > 0 && Math.abs(d.dotationPublique - d.cout) < 0.02,
+           'verse=' + d.dotationPublique + ' depense=' + d.cout);
+  verifier('J2 rien ne s\'accumule : la caisse revient a zero apres les achats',
+           Math.abs(d.caisseRestante) < 0.02, d.caisseRestante);
+  verifier('J3 la ville est debitee du montant exact',
+           Math.abs((1000000 - BUDGETS.capitale.caisse) - d.dotationPublique) < 0.02,
+           'ville : 1000000 -> ' + BUDGETS.capitale.caisse);
+  verifier('J4 le debit municipal est reellement ecrit en base',
+           ECRITS.some(function (e) { return e.table === 'budgets_municipaux' && /capitale/.test(e.filtre); }),
+           JSON.stringify(ECRITS.map(function (e) { return e.filtre; })));
+  verifier('J5 le registre trace le soutien, avec la ville pour contrepartie',
+           JOURNAL.some(function (l) { return l.operation === 'soutien_municipal'
+                       && l.contrepartie === 'Caisse municipale' && l.montant === d.dotationPublique; }),
+           JSON.stringify(JOURNAL.filter(function (l) { return l.operation === 'soutien_municipal'; })).slice(0, 150));
+
+  var besoinComplet = d.dotationPublique;
+
+  // J6. Caisse partiellement suffisante : seul le complement est verse.
+  poser([{}, {}, {}], [besoinComplet / 2, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J6 caisse a moitie suffisante : seul le complement est verse',
+           Math.abs(d.dotationPublique - besoinComplet / 2) < 1,
+           'verse=' + d.dotationPublique + ' (attendu ~' + (besoinComplet / 2) + ')');
+
+  // J7. Caisse largement suffisante : aucun versement.
+  poser([{}, {}, {}], [1000000, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J7 caisse suffisante : soutien nul, la ville n\'est pas touchee',
+           d.dotationPublique === 0 && BUDGETS.capitale.caisse === 1000000,
+           'verse=' + d.dotationPublique + ' ville=' + BUDGETS.capitale.caisse);
+
+  // J8. Stock et transit reduisent le besoin, donc le soutien.
+  // On isole UNE ressource en comblant toutes les autres a leur cible PNJ : il ne reste alors
+  // qu'un seul besoin, mesurable exactement. (Des desideratas PJ ne conviendraient pas ici :
+  // leur presence suppose un PJ en poste, ce qui desactive le filet par construction.)
+  function pleinSauf(cle) {
+    var o = {}; Object.keys(DESIDERATA_PNJ_DEFAUT).forEach(function (k) { o[k] = DESIDERATA_PNJ_DEFAUT[k]; });
+    o[cle] = 0; return o;
+  }
+  DIRECTEURS = [];
+  poser([pleinSauf('textile'), {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  TRANSITS = [];
+  r = await livrerEntrepotsQuotidien();
+  verifier('J8a un seul besoin (125 textile a 2,5 FR) : soutien de 312,5 FR',
+           Math.abs(detail(r, 'capitale').dotationPublique - 312.5) < 0.02,
+           detail(r, 'capitale').dotationPublique);
+
+  var avecStock = pleinSauf('textile'); avecStock.textile = 100;
+  poser([avecStock, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  TRANSITS = [];
+  r = await livrerEntrepotsQuotidien();
+  verifier('J8b 100 deja en stock : il ne reste que 25 a financer (62,5 FR)',
+           Math.abs(detail(r, 'capitale').dotationPublique - 62.5) < 0.02,
+           detail(r, 'capitale').dotationPublique);
+
+  poser([avecStock, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  TRANSITS = [{ destination_id: 'republic_capitale_entrepot-logistique-luthecia',
+                ressource: 'textile', quantite: 25 }];
+  r = await livrerEntrepotsQuotidien();
+  verifier('J8c 100 en stock + 25 en route : plus aucun besoin, soutien nul',
+           detail(r, 'capitale').dotationPublique === 0, detail(r, 'capitale').dotationPublique);
+  TRANSITS = [];
+
+  // J9. Desideratas PNJ deja entierement satisfaits : aucun besoin, aucun soutien.
+  var pleins = {};
+  Object.keys(DESIDERATA_PNJ_DEFAUT).forEach(function (k) { pleins[k] = DESIDERATA_PNJ_DEFAUT[k]; });
+  poser([pleins, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J9 objectifs PNJ deja atteints : aucun besoin, aucun soutien',
+           d.dotationPublique === 0 && BUDGETS.capitale.caisse === 1000000,
+           'verse=' + d.dotationPublique);
+
+  // J10. Ville ruinee : on verse ce qu'elle a, jamais davantage, jamais de budget negatif.
+  poser([{}, {}, {}], [0, 0, 0], null, null, [50, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J10 ville ruinee : le soutien est plafonne a ce qu\'elle detient',
+           d.dotationPublique === 50, d.dotationPublique);
+  verifier('J11 le budget municipal ne devient jamais negatif',
+           BUDGETS.capitale.caisse === 0, BUDGETS.capitale.caisse);
+  verifier('J12 l\'entrepot reste alors sous-finance, sans compensation de l\'Etat',
+           d.cout <= 50.01 && d.issue === 'approvisionne', 'depense=' + d.cout + ' issue=' + d.issue);
+
+  // J13. Entrepot dirige par un PJ : aucun soutien, meme caisse a zero.
+  DIRECTEURS = [{ name: 'zzdir', poste: { id: 'directeur_entrepot', city: 'capitale' } }];
+  poser([{}, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J13 entrepot dirige par un PJ : AUCUN soutien, meme a caisse vide',
+           d.dotationPublique === 0 && d.dirigeParPj === true && BUDGETS.capitale.caisse === 1000000,
+           'verse=' + d.dotationPublique + ' pj=' + d.dirigeParPj);
+  verifier('J14 le PJ assume : son entrepot reste sans tresorerie',
+           d.issue === 'sans_tresorerie', d.issue);
+
+  // J15. Le PJ s'en va : le filet revient des la nuit suivante.
+  DIRECTEURS = [];
+  poser([{}, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien(); d = detail(r, 'capitale');
+  verifier('J15 depart du PJ : le filet municipal reprend immediatement',
+           d.dotationPublique > 0 && d.dirigeParPj === false, d.dotationPublique);
+
+  // J16. Deux nuits de suite sur un entrepot qui n'a rien depense : pas d'accumulation.
+  poser([pleins, {}, {}], [0, 0, 0], null, null, [1000000, 0, 0]);
+  r = await livrerEntrepotsQuotidien();
+  var apres1 = BUDGETS.capitale.caisse, caisse1 = lire(0).caisse;
+  r = await livrerEntrepotsQuotidien();
+  verifier('J16 aucune accumulation : deux nuits sans besoin ne versent rien',
+           BUDGETS.capitale.caisse === apres1 && lire(0).caisse === caisse1,
+           'ville ' + apres1 + ' -> ' + BUDGETS.capitale.caisse + ', entrepot ' + caisse1 + ' -> ' + lire(0).caisse);
 
   print(JSON.stringify(resultats));
 })();
