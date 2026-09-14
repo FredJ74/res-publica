@@ -77,9 +77,11 @@ def creer(jeton, nom, liquide, solde, pa=10):
         "name": nom, "country": "republic", "arg": liquide + solde, "liquide": liquide,
         "pa": pa, "hp": 100, "moral": 75, "day": 1, "current_city": "capitale",
         "stats": {}, "resources": {}, "inventory": []}, jeton=jeton)
-    http("POST", "/rest/v1/comptes_bancaires", {
-        "id": "nationale_" + nom, "personnage": nom, "pays": "republic",
-        "banque": "nationale", "solde": solde}, jeton=jeton)
+    # CHANTIER C (14 septembre 2026) : comptes_bancaires est ferme en ecriture -- un INSERT
+    # client permettrait de se doter d'un compte au solde de son choix. Le compte s'ouvre par
+    # compte_bancaire_initial, qui deduit le solde de la fortune deja enregistree :
+    # arg = liquide + solde, donc le solde voulu decoule des valeurs passees ci-dessus.
+    http("POST", "/rest/v1/rpc/compte_bancaire_initial", {"p_acteur": nom}, jeton=jeton)
 
 
 def main():
