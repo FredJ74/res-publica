@@ -4633,8 +4633,16 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
   if (!r.ok) { signalerRefusCout(r); return; }
 
   if (estPJ) {
-    if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomTitulaire)}`, { poste: null }).catch(() => {});
+    // REVOCATION SERVEUR (15 septembre 2026). L'ecriture directe de la fiche d'autrui est refusee
+    // depuis le chantier B (trigger de la vue, 403 avale par le .catch) : cette revocation ne
+    // revoquait donc plus personne. La RPC revalide l'autorite, la protection de 3 jours, et
+    // retire la fonction du registre ET de la fiche.
+    const rRev = (typeof sbRpc === 'function')
+      ? await sbRpc('poste_revoquer', { p_poste: posteId, p_city: villeCourante }).catch(() => null) : null;
+    const vRev = Array.isArray(rRev) ? rRev[0] : rRev;
+    if (!vRev || vRev.ok !== true) {
+      showToast('Revocation refusee', messageRefusNomination(vRev), false);
+      return;
     }
     const revoqueurNom = state.char?.name || 'Anonyme';
     if (typeof sbSendMail === 'function') {
@@ -4796,8 +4804,16 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
         false);
       return;
     }
-    if (typeof sbSetTitulairePnj === 'function') {
-      await sbSetTitulairePnj(state.country, posteId, villeNom ? state.currentCity : null, destinataire).catch(() => {});
+    // La table titulaires_pnj n'est plus ecrivable par un client (chantier « autorite des
+    // postes », 15 septembre 2026) : la prise de fonction d'un PNJ passe par la RPC, qui
+    // revalide au passage que l'appelant detient bien l'autorite de nomination.
+    const rPnj = (typeof sbRpc === 'function')
+      ? await sbRpc('poste_nommer', { p_poste: posteId, p_city: villeNom ? state.currentCity : null,
+                                      p_destinataire: destinataire }).catch(() => null) : null;
+    const vPnj = Array.isArray(rPnj) ? rPnj[0] : rPnj;
+    if (!vPnj || vPnj.ok !== true) {
+      showToast('Nomination refusee', messageRefusNomination(vPnj), false);
+      return;
     }
     addExternalEvent('🏛 ' + destinataire + ' (PNJ) a ete nomme(e) ' + regle.label + (villeNom ? ' de ' + villeNom : '') + ' par ' + nommeurNom + '.', villeNom ? 'local' : 'national');
     addJournalEntry('Nomination de ' + destinataire + ' (PNJ) au poste de ' + regle.label + '.', 'event-good');
@@ -4813,10 +4829,22 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
     return;
   }
 
+  // PROPOSITION ENREGISTREE COTE SERVEUR. Le bouton du mail ne prouvait rien : n'importe qui
+  // pouvait appeler accepterNominationPosteNomme() avec les bons arguments. C'est desormais la
+  // ligne nominations_en_attente qui fait foi, et le mail n'en porte que l'identifiant.
+  const rProp = (typeof sbRpc === 'function')
+    ? await sbRpc('poste_nommer', { p_poste: posteId, p_city: villeNom ? state.currentCity : null,
+                                    p_destinataire: destinataire }).catch(() => null) : null;
+  const vProp = Array.isArray(rProp) ? rProp[0] : rProp;
+  if (!vProp || vProp.ok !== true) {
+    showToast('Nomination refusee', messageRefusNomination(vProp), false);
+    return;
+  }
+
   const corps = nommeurNom + ' vous propose le poste de <strong>' + regle.label + '</strong>' +
     (villeNom ? ' pour la ville de ' + villeNom : ' pour ' + (COUNTRIES[state.country]?.n || "l'empire")) + '.<br><br>' +
     '<em>Ce poste est incompatible avec tout autre poste, sauf Député.</em><br><br>' +
-    '<button onclick="accepterNominationPosteNomme(\'' + posteId + '\',\'' + (villeNom ? state.currentCity : '') + '\',\'' + state.country + '\',\'' + nommeurNom.replace(/'/g,'') + '\')" ' +
+    '<button onclick="accepterNominationPosteNomme(\'' + vProp.id + '\')" ' +
     'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter le poste</button>';
 
   if (typeof sbSendMail === 'function') {
@@ -4836,39 +4864,46 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
 // personne jusqu'ici, contrairement a accepterCandidaturePoste ; sans correctif, ce canal de
 // nomination directe aurait pu produire deux PJ simultanement "titulaires" du meme poste, et
 // surtout aurait pu contourner la protection de 7 jours du titulaire en place).
-async function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
-  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
-  if (!regle) return;
+// Libelle d'un refus serveur de nomination. Les raisons viennent des RPC poste_nommer /
+// poste_accepter_nomination, jamais d'une deduction locale.
+function messageRefusNomination(verdict) {
+  const messages = {
+    autorite_insuffisante: "Vous ne detenez pas l'autorite de nomination sur ce poste.",
+    titulaire_protege: 'Le titulaire actuel beneficie encore de sa periode de protection.',
+    poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
+    destinataire_absent: 'Aucun destinataire indique.',
+    nomination_introuvable: 'Cette proposition n\'existe plus ou a deja ete traitee.',
+    nomination_pas_pour_vous: 'Cette proposition ne vous est pas adressee.',
+    acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
+  };
+  return (verdict && messages[verdict.raison]) || 'Nomination refusee par le serveur.';
+}
 
-  const check = peutAccepterPosteNomme(posteId);
-  if (!check.ok) {
-    showToast('Impossible', check.raison, false);
+// ACCEPTATION D'UNE NOMINATION (reecrit le 15 septembre 2026).
+// L'ancienne version posait elle-meme state.poste puis sauvegardait sa fiche : c'etait la voie
+// par laquelle un joueur pouvait se declarer ministre, juge ou commissaire. Elle prenait aussi
+// ses arguments du bouton d'un mail, que rien n'authentifiait. Desormais un identifiant de
+// proposition serveur suffit : la RPC verifie que la proposition existe, qu'elle nous est
+// adressee, qu'elle n'a pas deja ete consommee, et c'est ELLE qui inscrit le poste au registre.
+// Le trigger d'attestation n'accepterait de toute facon aucune autre ecriture.
+async function accepterNominationPosteNomme(idNomination) {
+  if (!idNomination || typeof idNomination !== 'string' || idNomination.indexOf('nom-') !== 0) {
+    // Ancien mail, envoye avant ce chantier : ses arguments ne prouvent rien.
+    showToast('Proposition perimee', 'Cette proposition date d\'avant la reforme des nominations. Demandez a l\'autorite de la renouveler.', false);
     return;
   }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  const rows = await sbRpc('poste_accepter_nomination', { p_id: idNomination }).catch(() => null);
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) { showToast('Nomination refusee', messageRefusNomination(v), false); return; }
 
-  // Protection du titulaire actuel (§10-12 du lot) : un remplacement direct PJ -> PJ pendant la
-  // fenetre de protection est explicitement interdit, meme via ce canal de nomination directe
-  // ("action equivalente permettant de contourner la revocation").
-  if (typeof getTitulaireActuel === 'function') {
-    const ancienTitulaire = await getTitulaireActuel(posteId, city || null);
-    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== (state.char?.name || '') && estPosteProtege(ancienTitulaire.posteComplet)) {
-      showToast('Titulaire protégé', 'Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(ancienTitulaire.posteComplet) + ' restant).', false);
-      return;
-    }
-    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== (state.char?.name || '') && typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
-    }
-  }
+  const posteId = v.poste, city = v.city || null, country = state.country;
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteId };
 
-  state.poste = { id: posteId, name: regle.label, city: city || null, nommeLe: Date.now() };
+  // Le serveur a deja ecrit la fiche : on recopie localement ce qu'il a arrete, jamais l'inverse.
+  state.poste = { id: posteId, name: regle.label, city: city, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
-  // Nettoie un eventuel titulaire PNJ perime (ce poste etait peut-etre auto-pourvu avant
-  // qu'un vrai joueur ne l'accepte) - sinon il resurgirait comme "occupe par un PNJ" si ce
-  // joueur quitte le poste plus tard, sans passage par la cascade cron.
-  if (typeof sbSupprimerTitulairePnj === 'function') {
-    sbSupprimerTitulairePnj(state.country, posteId, city || null).catch(() => {});
-  }
   // Solde un eventuel dossier de candidature persistant pour ce poste (§8 du lot) : ce poste est
   // desormais pourvu, les candidatures encore listees deviennent obsoletes.
   const candidaturesNettoyage = await chargerCandidaturesPostes(state.country);
@@ -4962,13 +4997,18 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
       }
     }
   }
-  if (typeof sbSupprimerTitulairePnj === 'function') {
-    await sbSupprimerTitulairePnj(state.country, posteId, villeDuPoste).catch(() => {});
-  }
-
-  if (typeof sbUpdate === 'function') {
-    const posteAAccorder = { id: posteId, name: posteName, city: villeDuPoste, nommeLe: Date.now() };
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(candidatNom)}`, { poste: posteAAccorder }).catch(() => {});
+  // ATTRIBUTION SERVEUR (15 septembre 2026). Les trois ecritures precedentes -- delogement du
+  // titulaire, suppression du PNJ, attribution au candidat -- portaient toutes sur des lignes
+  // d'autrui ou sur une table desormais fermee : aucune n'aboutissait plus. La RPC les fait
+  // toutes les trois, sous la meme transaction, apres avoir revalide que l'appelant detient bien
+  // l'autorite de nomination sur ce poste et que le titulaire n'est plus protege.
+  const rCand = (typeof sbRpc === 'function')
+    ? await sbRpc('poste_attribuer_candidature',
+                  { p_poste: posteId, p_city: villeDuPoste, p_candidat: candidatNom }).catch(() => null) : null;
+  const vCand = Array.isArray(rCand) ? rCand[0] : rCand;
+  if (!vCand || vCand.ok !== true) {
+    showToast('Attribution refusee', messageRefusNomination(vCand), false);
+    return;
   }
 
   // Solde le dossier de candidature persistant pour ce poste (§8 du lot) : nettoie les autres

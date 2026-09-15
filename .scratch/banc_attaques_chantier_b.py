@@ -292,6 +292,47 @@ def lancer():
              code in (401, 403) or rep == [],
              "REFUS", "HTTP %s, %s lignes" % (code, len(rep) if isinstance(rep, list) else "?"))
 
+    # --- 13. AUTORITE DES POSTES (chantier du 15 septembre 2026) -----------
+    # personnages.poste servait de PREUVE d'autorite a dix-sept prerogatives serveur, alors que
+    # le joueur l'ecrivait lui-meme sur sa propre ligne. Un trigger n'accepte plus qu'un poste
+    # ATTESTE (cycles_electoraux pour les elus, compagnies_militaires pour les militaires,
+    # postes_attribues pour les postes nommes). Le banc dedie banc_postes_autorite.py couvre les
+    # chemins legitimes ; on verifie ici les trois usurpations les plus lourdes.
+    for poste in ("president", "juge", "commissaire"):
+        http("PATCH", "/rest/v1/personnages?name=eq." + ATTAQUANT,
+             {"poste": {"id": poste, "name": poste, "city": "capitale"}}, jeton=JETON_ATTAQUANT)
+        code, rep = http("GET", "/rest/v1/personnages?select=poste&name=eq." + ATTAQUANT,
+                         jeton=JETON_ATTAQUANT)
+        obtenu = rep[0].get("poste") if rep else "?"
+        verifier("13" + poste[0], "s'auto-declarer %s ne prend pas" % poste, obtenu is None,
+                 "REFUS", "poste=%s" % obtenu)
+
+    # Et la prerogative correspondante reste fermee apres la tentative.
+    code, rep = http("POST", "/rest/v1/rpc/presidence_gracier",
+                     {"p_condamne": VICTIME, "p_jour": 1}, jeton=JETON_ATTAQUANT)
+    ok_grace = code in (400, 401, 403) or not (isinstance(rep, dict) and rep.get("ok") is True)
+    verifier("13d", "un faux President ne peut pas gracier", ok_grace,
+             "REFUS", "HTTP %s %s" % (code, str(rep)[:60]))
+
+    code, rep = http("POST", "/rest/v1/rpc/arrestation_urgence",
+                     {"p_cible": VICTIME, "p_motif": "usurpation"}, jeton=JETON_ATTAQUANT)
+    r0 = rep[0] if isinstance(rep, list) and rep else rep
+    verifier("13e", "un faux commissaire ne peut pas ordonner d'arrestation",
+             not (isinstance(r0, dict) and r0.get("ok") is True),
+             "REFUS", "HTTP %s %s" % (code, str(r0)[:60]))
+
+    # Les registres d'autorite ne sont pas ecrivables par un client.
+    for table, ligne in (("postes_attribues", {"id": "zztest-usurp", "country": "republic",
+                                               "poste_id": "president", "city": None,
+                                               "titulaire": ATTAQUANT, "source": "attaque"}),
+                         ("titulaires_pnj", {"id": "zztest-usurp-pnj", "country": "republic",
+                                             "poste_id": "juge", "city": None,
+                                             "nom_pnj": ATTAQUANT})):
+        code, rep = http("POST", "/rest/v1/" + table, ligne, jeton=JETON_ATTAQUANT)
+        code2, apres = http("GET", "/rest/v1/" + table + "?select=id&id=like.zztest-usurp*")
+        verifier("13" + table[0], "un client ne peut pas ecrire dans %s" % table,
+                 apres == [], "REFUS", "HTTP %s" % code)
+
 
 # =========================================================================
 def main():

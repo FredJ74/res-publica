@@ -4730,6 +4730,23 @@ async function traiterCandidaturesPostesExpirees() {
       const gagnant = candidatsEligibles[Math.floor(Math.random() * candidatsEligibles.length)];
 
       await sbSupprimerTitulairePnjServeur('republic', dossier.posteId, dossier.city || null);
+      // REGISTRE D'ABORD (chantier « autorite des postes », 15 septembre 2026). Depuis ce
+      // chantier, la fiche n'est plus une preuve : c'est postes_attribues qui atteste qu'un
+      // joueur occupe une fonction nommee. Le tirage au sort est un chemin d'attribution
+      // legitime a part entiere -- il doit donc inscrire le gagnant au registre, sans quoi sa
+      // nomination serait affichee mais jamais opposable, et la moindre reecriture de sa fiche
+      // la lui reprendrait.
+      // Upsert explicite : sbInsert n'accepte pas d'en-tete Prefer, et une ligne de registre
+      // peut deja exister pour ce poste (titulaire precedent).
+      await fetch(`${SUPABASE_URL}/rest/v1/postes_attribues`, {
+        method: 'POST',
+        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          id: 'republic_' + dossier.posteId + '_' + (dossier.city || 'national'),
+          country: 'republic', poste_id: dossier.posteId, city: dossier.city || null,
+          titulaire: gagnant, source: 'tirage_au_sort_candidature'
+        })
+      }).catch(() => {});
       await sbUpdate('personnages', `name=eq.${encodeURIComponent(gagnant)}`, {
         poste: { id: dossier.posteId, name: regle.label, city: dossier.city || null, nommeLe: now }
       }).catch(() => {});

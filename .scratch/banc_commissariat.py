@@ -18,12 +18,18 @@ URL = re.search(r'URL = "([^"]+)"', SRC).group(1)
 BLOC = SRC[SRC.index('ANON = ('):SRC.index('SUF =')]
 ANON = ''.join(re.findall(r'"([^"]*)"', BLOC))
 
-SUF = str(int(time.time()))
+# Noms FIXES depuis le chantier « autorite des postes » (15 septembre 2026) : un poste ne
+# s'ecrit plus sur sa propre fiche, il doit etre ATTESTE par postes_attribues. Le banc ne peut
+# donc plus se nommer commissaire lui-meme -- c'est precisement ce qu'on a ferme. Les deux
+# attestations dont il a besoin sont posees en SQL avant la passe, comme le fait le cron.
+SUF = ''
 VILLE = 'zzville-cmr'
+VILLE_AILLEURS = 'zzville-ailleurs'
 VILLE_PNJ = 'zzville-pnj'
-CMR = 'zztest-cmr-commissaire-' + SUF
-CIBLE = 'zztest-cmr-cible-' + SUF
-QUIDAM = 'zztest-cmr-quidam-' + SUF
+CMR = 'zztest-cmr-commissaire'
+CIBLE = 'zztest-cmr-cible'
+QUIDAM = 'zztest-cmr-quidam'
+MININT = 'zztest-cmr-minint'
 CAISSE = 'republic_commissariat_' + VILLE
 resultats = []
 
@@ -85,6 +91,16 @@ def poser_poste(nom, token, poste):
                 {'poste': poste}, token=token)
 
 
+def lire_poste(nom):
+    c, b = http('GET', '/rest/v1/personnages?select=poste&name=eq.' + urllib.request.quote(nom))
+    return (b[0]['poste'] if b else None)
+
+
+def poser_poste_et_lire(nom, token, poste):
+    poser_poste(nom, token, poste)
+    return lire_poste(nom)
+
+
 def lire(nom):
     c, b = http('GET', '/rest/v1/personnages?select=name,est_emprisonne&name=eq.' +
                 urllib.request.quote(nom))
@@ -93,13 +109,21 @@ def lire(nom):
 
 def main():
     print('Ouverture des sessions (debit limite : cela peut prendre une minute)...')
-    tokC, tokQ, tokX = session('commissaire'), session('quidam'), session('cible')
+    tokC, tokQ, tokX, tokM = (session('commissaire'), session('quidam'),
+                              session('cible'), session('min_int'))
 
-    for nom, tok in ((CMR, tokC), (QUIDAM, tokQ), (CIBLE, tokX)):
+    for nom, tok in ((CMR, tokC), (QUIDAM, tokQ), (CIBLE, tokX), (MININT, tokM)):
         c, b = creer(nom, tok, VILLE)
         verifier('personnage %s cree' % nom.split('-')[2], c in (200, 201), 'HTTP %s %s' % (c, b))
 
+    # Les postes sont deja attestes en base (fixture SQL) : le client ne fait que recopier, et le
+    # trigger l'accepte parce que le registre le confirme. C'est le chemin normal du jeu.
     poser_poste(CMR, tokC, {'id': 'commissaire', 'name': 'Commissaire', 'city': VILLE})
+    poser_poste(MININT, tokM, {'id': 'min_int', 'name': "Ministre de l'Interieur", 'city': None})
+    verifier('poste atteste recopie sur la fiche du commissaire',
+             (lire_poste(CMR) or {}).get('id') == 'commissaire', lire_poste(CMR))
+    verifier('poste NON atteste refuse sur la fiche du quidam',
+             poser_poste_et_lire(QUIDAM, tokQ, {'id': 'juge', 'name': 'Juge'}) is None, 'falsification')
 
     # --- FIXTURES zztest (tables ouvertes en ecriture cliente, aucune donnee reelle touchee) ---
     rpc('caisse_institution_mouvement', {'p_id': CAISSE, 'p_delta': 500}, tokC)   # cree la caisse
@@ -116,11 +140,7 @@ def main():
     verifier('sans poste : arrestation refusee',
              b and b.get('raison') == 'autorite_insuffisante', b)
 
-    poser_poste(QUIDAM, tokQ, {'id': 'juge', 'name': 'Juge'})
-    c, b = rpc('arrestation_urgence', {'p_cible': CIBLE, 'p_motif': 'test'}, tokQ)
-    verifier('le juge est EXCLU des autorites habilitees',
-             b and b.get('raison') == 'autorite_insuffisante', b)
-    poser_poste(QUIDAM, tokQ, None)
+    # (le cas « le juge est exclu » est couvert par banc_postes_autorite.py, avec un juge atteste)
 
     c, b = rpc('arrestation_urgence', {'p_cible': CMR, 'p_motif': 'test'}, tokC)
     verifier('on ne s arrete pas soi-meme', b and b.get('raison') == 'cible_est_l_acteur', b)
@@ -162,12 +182,14 @@ def main():
     c, b = rpc('arrestation_urgence', {'p_cible': CIBLE, 'p_motif': 'bis'}, tokC)
     verifier('cible deja detenue : refus', b and b.get('raison') == 'cible_deja_detenue', b)
 
-    # juridiction : le commissaire d une autre ville n a pas autorite
-    poser_poste(CMR, tokC, {'id': 'commissaire', 'name': 'Commissaire', 'city': 'zzville-ailleurs'})
+    # juridiction : une cible qui n est pas dans la ville du commissaire lui echappe
+    http('PATCH', '/rest/v1/personnages?name=eq.' + urllib.request.quote(QUIDAM),
+         {'current_city': VILLE_AILLEURS}, token=tokQ)
     c, b = rpc('arrestation_urgence', {'p_cible': QUIDAM, 'p_motif': 'hors zone'}, tokC)
-    verifier('commissaire hors de SA ville : refus',
+    verifier('cible hors de la ville du commissaire : refus',
              b and b.get('raison') == 'hors_juridiction_ville', b)
-    poser_poste(CMR, tokC, {'id': 'commissaire', 'name': 'Commissaire', 'city': VILLE})
+    http('PATCH', '/rest/v1/personnages?name=eq.' + urllib.request.quote(QUIDAM),
+         {'current_city': VILLE}, token=tokQ)
 
     # --- FIXTURES zztest (tables ouvertes en ecriture cliente, aucune donnee reelle touchee) ---
     rpc('caisse_institution_mouvement', {'p_id': CAISSE, 'p_delta': 500}, tokC)   # cree la caisse
@@ -198,11 +220,9 @@ def main():
     verifier('le commissaire ne lit pas la caisse d une autre ville',
              b and b.get('raison') == 'autorite_insuffisante', b)
 
-    poser_poste(QUIDAM, tokQ, {'id': 'min_int', 'name': "Ministre de l'Interieur"})
-    c, b = rpc('caisse_commissariat_lire', {'p_id': CAISSE}, tokQ)
+    c, b = rpc('caisse_commissariat_lire', {'p_id': CAISSE}, tokM)
     verifier('le ministre de l Interieur lit les commissariats de son empire',
              b and b.get('ok') is True, b)
-    poser_poste(QUIDAM, tokQ, None)
 
     # l oracle de lecture par mouvement nul est ferme
     c, b = rpc('caisse_institution_mouvement_plafonne', {'p_id': CAISSE, 'p_montant': 0}, tokQ)
@@ -295,7 +315,7 @@ def rapport():
         if not ok:
             print('  KO  %-62s %s' % (nom, detail))
     print('\n%d/%d' % (len(resultats) - len(ko), len(resultats)))
-    print('Fixtures a nettoyer : zztest-cmr-%%-' + SUF)
+    print('Fixtures a nettoyer : zztest-cmr-*')
     return 1 if ko else 0
 
 
