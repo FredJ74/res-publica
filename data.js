@@ -2739,7 +2739,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Ouvre un dossier transmis au commissaire de la ville. C\'est lui qui decide de classer ou d\'enqueter.'},
-          {fn:'consulter_caisse_commissariat', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'commissaire', desc:'Solde de la caisse du commissariat. Reserve au commissaire ; le Ministre de l\'Interieur la consulte depuis son ministere.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
           {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention. Confiscation dans tous les cas.'}
@@ -2754,7 +2753,6 @@ const BUILDINGS = {
           {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-tristan-cabane.png', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'accepter_incorporation', label:'Accepter le transfert à la caserne', pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, desc:'Reserve aux deserteurs detenus, tant que la mobilisation dure. Le choix revient chaque jour. N\'efface aucune autre peine.'},
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
@@ -3948,7 +3946,6 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: [
-          {fn:'accepter_incorporation', label:'Accepter le transfert à la caserne', pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, desc:'Reserve aux deserteurs detenus, tant que la mobilisation dure. Le choix revient chaque jour. N\'efface aucune autre peine.'},
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}

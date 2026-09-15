@@ -127,7 +127,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recruter_policier') { doRecruterPolicier(pa, cost); return; }
   if (fn === 'recruter_policier_cynophile') { doRecruterPolicierCynophile(pa, cost); return; }
   if (fn === 'gerer_effectifs_police') { ouvrirGererEffectifsPolice(); return; }
-  if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
+  // 'consulter_caisse_commissariat' : ordre retire le 16 septembre 2026. Le solde s'affiche
+  // desormais dans l'en-tete du batiment, pour le seul commissaire (voir enterBuilding).
   // 'cambrioler_caisse_commissariat' : ordre retire du commissariat le 15 septembre 2026
   // (voir plateau-justice-economie.js). Aucune route de compatibilite n'est laissee : un ordre
   // qui n'existe plus dans data.js ne peut plus etre declenche, et payer_ordre le refuserait.
@@ -587,7 +588,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
-  if (fn === 'accepter_incorporation') { doAccepterIncorporation(); return; }
+  // 'accepter_incorporation' : ordre retire le 16 septembre 2026. Le transfert vers la caserne
+  // est desormais propose par une fenetre contextuelle, une fois par jour de jeu, quand les
+  // conditions existantes sont reunies (voir proposerTransfertCaserne).
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(pa, cost); return; }

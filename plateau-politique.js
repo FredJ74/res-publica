@@ -1444,6 +1444,17 @@ function ouvrirModalCandidature(posteId, country, poste, cycle, city) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// LE DEPOT DE CANDIDATURE EST UN ORDRE A PART ENTIERE (16 septembre 2026).
+// Il ne vit dans aucune salle -- on y arrive par la liste ouverte par 'se_porter_candidat' --
+// mais il coute 2 PA, et tout cout doit etre DECLARE pour que payer_ordre l'accepte. Ce litteral
+// est donc la seule source du cout : .scratch/generer_ordres_couts.py le ramasse comme les
+// quatre ordres d'etat civil qui vivent deja dans ce fichier.
+const ORDRE_DEPOT_CANDIDATURE = {
+  fn: 'deposer_candidature', label: 'Déposer sa candidature', pa: 2, cost: 0,
+  type: 'legal', icon: 'ti-user-plus', successRate: 100,
+  desc: 'Déposer effectivement sa candidature à un scrutin ouvert, programme à l\'appui.'
+};
+
 async function confirmerCandidature(el) {
   const posteId = el?.dataset?.poste || el;
   const country = el?.dataset?.country || arguments[1];
@@ -1467,10 +1478,20 @@ async function confirmerCandidature(el) {
     return;
   }
 
-  // Deduction PA centralisee (Lot 2C) -- au moment de la confirmation effective, pas a
-  // l'ouverture du modal (ouvrirModalCandidature). Avant toute mutation irreversible.
-  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  // COUT DECLARE, ET NON PLUS CODE EN DUR SOUS LE NOM D'UN AUTRE ORDRE (16 septembre 2026).
+  //
+  // Ce site facturait 2 PA sans passer de `fn`. deduireCoutOrdre retombait donc sur
+  // state._ordreEnCours, c'est-a-dire 'se_porter_candidat' -- l'ordre qui OUVRE la salle des
+  // elections, declare a 0 PA dans data.js (trois emplacements) parce qu'ouvrir une liste ne
+  // coute rien. Le serveur recevait le couple (se_porter_candidat, 2, 0), absent du miroir, et
+  // refusait avec 'cout_non_declare'. Le depot de candidature etait donc IMPOSSIBLE, quel que
+  // soit le nombre de PA du joueur. C'est ce qu'a rencontre le game designer avec 12 PA.
+  //
+  // Le cout de jeu ne change pas : deposer une candidature coute toujours 2 PA. Il porte
+  // desormais son propre nom d'ordre, declare juste au-dessus et repris par le miroir serveur
+  // (generer_ordres_couts.py ramasse les litteraux d'ordre des modules, pas seulement data.js).
+  const r = await deduireCoutOrdre({ pa: 2, cost: 0, fn: 'deposer_candidature' });
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const cycle = CYCLES_ELECTORAUX[country][cle];
   const nouveauCandidat = {
@@ -6202,7 +6223,7 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
     document.getElementById('modal-postes')?.classList.remove('open');
     // Deduction PA centralisee (Lot 2C) -- avant la premiere mutation (solde de la cible).
     const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-    if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+    if (!rPa.ok) { signalerRefusCout(rPa); return; }
     const montantVise = 2000;
     const montantPreleve = -(await ajusterSoldeCibleFiscale(typeCible, idCible, -montantVise));
     const budgetNat = await chargerBudgetNational(state.country);
@@ -6248,7 +6269,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   // (debiterCaisseBatimentPlafonne, volontairement laisse tolerant au partiel : comportement
   // metier inchange).
   const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  if (!rPa.ok) { signalerRefusCout(rPa); return; }
 
   const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
   if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
@@ -7448,7 +7469,7 @@ async function doReceptionAvecBonus(fn, cost) {
   }
   // Deduction PA centralisee (Lot 2C) -- apres verification du budget, avant tout debit.
   const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  if (!rPa.ok) { signalerRefusCout(rPa); return; }
   budgetPresidence.solde -= budgetPresidence.coutOrdre;
 
   // Bonus/malus selon popularite
@@ -7549,7 +7570,7 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   // special 'blocus' ci-dessous).
   if (fn === 'mobiliser_police') {
     const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-    if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+    if (!rPa.ok) { signalerRefusCout(rPa); return; }
   }
 
   // Cas special : disperser un blocus reellement en cours dans le batiment ou l'on se trouve
@@ -9708,6 +9729,62 @@ async function eteindrePoursuitesDesertion(pays) {
 // DETENU DESERTEUR : le choix du transfert revient CHAQUE JOUR tant que la mobilisation dure.
 // Accepter n'efface aucune autre peine : si la detention porte d'autres motifs, ils se purgent
 // d'abord et l'incorporation prend effet a la liberation.
+//
+// PRESENTATION REVUE LE 16 SEPTEMBRE 2026. « Accepter le transfert a la caserne » n'est plus un
+// ordre permanent du commissariat : il n'a de sens que dans une situation exceptionnelle, et
+// l'afficher en permanence a tout le monde n'en avait aucun. Il devient une PROPOSITION
+// contextuelle, presentee une fois par jour de jeu tant que les conditions tiennent.
+//
+// LES CONDITIONS NE CHANGENT PAS. Elles sont extraites telles quelles du handler ci-dessous,
+// pour que la proposition et l'execution ne puissent jamais diverger : detenu, requisition au
+// statut 'deserteur', et mobilisation nationale en cours.
+function peutEtreIncorpore() {
+  if (!state.estEmprisonne) return false;
+  if (state.char?.requisition?.statut !== 'deserteur') return false;
+  if (!state.mobilisationNationaleCache) return false;
+  return true;
+}
+
+// La memoire du « deja propose aujourd'hui » vit sur LE PERSONNAGE, pas dans le navigateur :
+// elle est sauvegardee avec la fiche et compte en jours de jeu (state.day), l'horloge partagee.
+// Vider son localStorage ne fait donc pas revenir la proposition.
+async function proposerTransfertCaserne() {
+  if (!peutEtreIncorpore()) return;
+  const jour = state.day || 1;
+  if (state.char?.transfertCaserneProposeJour === jour) return;
+  if (!document.getElementById('modal-postes')) return;
+
+  if (state.char) state.char.transfertCaserneProposeJour = jour;
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  document.getElementById('postes-modal-title').textContent = 'Transfert vers la caserne';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.1rem">' +
+    '<div style="font-size:.86rem;color:#e0d8c0;font-family:Crimson Pro,serif;line-height:1.6;margin-bottom:1rem">' +
+    'La mobilisation nationale est en cours. En tant que déserteur(se) détenu(e), l\'armée vous propose ' +
+    'de rejoindre la caserne plutôt que de purger votre détention pour désertion.<br><br>' +
+    '<em style="color:#8a8060">Ce choix n\'efface aucune autre peine : si votre détention porte d\'autres motifs, ' +
+    'ils se purgent d\'abord et l\'incorporation prend effet à votre libération.</em>' +
+    '</div>' +
+    '<div style="display:flex;gap:.6rem">' +
+    '<button onclick="accepterTransfertCaserne()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Accepter</button>' +
+    '<button onclick="refuserTransfertCaserne()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Refuser</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function refuserTransfertCaserne() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  // Rien d'autre : le jour est deja marque, la proposition ne reviendra pas avant demain. Fermer
+  // la fenetre sans repondre produit exactement le meme effet, ce qui est l'intention.
+  addJournalEntry('Proposition de transfert vers la caserne déclinée pour aujourd\'hui.', 'event-info');
+}
+
+async function accepterTransfertCaserne() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  await doAccepterIncorporation();
+}
+
 async function doAccepterIncorporation() {
   const pays = state.country || 'republic';
   const req = state.char?.requisition;

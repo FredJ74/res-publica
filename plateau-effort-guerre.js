@@ -345,7 +345,7 @@ async function confirmerDeclenchementEffort() {
   }
   const cout = (typeof COUT_PA_EFFORT_GUERRE === 'number') ? COUT_PA_EFFORT_GUERRE : 2;
   const r = await deduireCoutOrdre({ pa: cout, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', cout + ' PA requis.', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const guerre = await effortGuerreGuerreEnCours(pays);
   const nouveau = ouvrirEffortDeGuerre(state.char?.name || 'Le Président', Date.now(), guerre);
@@ -377,7 +377,7 @@ async function confirmerRenouvellementEffort() {
   }
   const cout = (typeof COUT_PA_EFFORT_GUERRE === 'number') ? COUT_PA_EFFORT_GUERRE : 2;
   const r = await deduireCoutOrdre({ pa: cout, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', cout + ' PA requis.', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const renouvele = renouvelerEffortDeGuerre(effort, Date.now(), guerre);
   await ecrireEffortGuerre(pays, renouvele);

@@ -11251,34 +11251,10 @@ async function lireCaisseCommissariat(pays, buildingId) {
   return r || { ok: false, raison: 'indisponible' };
 }
 
-async function doConsulterCaisseCommissariat() {
-  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
-  const pays = state.country;
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-  document.getElementById('postes-modal-title').textContent = 'Caisse — Commissariat';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  const r = await lireCaisseCommissariat(pays, buildingId);
-  if (!r.ok) {
-    // Un refus n'est jamais presente comme une caisse a zero : l'audit du 15 septembre a montre
-    // que chargerCaisseBatiment transformait toute lecture refusee en « 0 FR » plausible.
-    const messages = {
-      autorite_insuffisante: 'Le solde de la caisse est reserve au commissaire de cette ville.',
-      hors_juridiction: 'Cette caisse ne releve pas de votre empire.',
-      acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.'
-    };
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1.2rem;text-align:center;font-size:.85rem;color:#8a3a2a;font-family:Crimson Pro,serif">' +
-      (messages[r.raison] || 'Consultation refusee.') + '</div>';
-    return;
-  }
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem;text-align:center">' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
-    '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Solde actuel de la caisse du commissariat.</div>' +
-    '</div>';
-}
+// doConsulterCaisseCommissariat a ete RETIRE le 16 septembre 2026 avec son ordre : le solde
+// s'affiche desormais dans l'en-tete du batiment (plateau-navigation.js), et uniquement pour le
+// commissaire. lireCaisseCommissariat, elle, reste : c'est le seul acces au solde, et elle sert
+// a l'en-tete, a l'ecran des caisses communales et a l'ecran du ministre de l'Interieur.
 
 // A3 (lot caisses locales, 16 aout 2026) : identifiant de caisse LOCALE, distinct du buildingId
 // de navigation qui peut etre partage entre plusieurs villes (meme principe que l'armurerie :

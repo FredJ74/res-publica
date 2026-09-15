@@ -422,6 +422,26 @@ function enterBuilding(buildingId, skipAutoRoom) {
         elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
       }).catch(() => { elCaisse.textContent = 'Caisse : indisponible'; });
     }
+  } else if (buildingId === 'commissariat' || buildingId === 'commissariat-local') {
+    // CAISSE DU COMMISSARIAT — AFFICHEE DANS L'EN-TETE, POUR LE SEUL COMMISSAIRE (16 sept. 2026).
+    // L'ordre « Consulter la caisse » a ete retire : un bouton grise pour la quasi-totalite des
+    // joueurs, alors que l'information ne concerne qu'une fonction. Le solde s'affiche desormais
+    // a cote du nom du batiment -- et RIEN du tout pour les autres : ni zero, ni tiret, ni
+    // element grise, l'element reste simplement masque.
+    // Generique aux trois commissariats : le buildingId de navigation est partage, la caisse est
+    // resolue par getBuildingIdCommissariat(ville), et c'est le serveur qui tranche l'acces.
+    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+    if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
+    if (typeof lireCaisseCommissariat === 'function' && typeof getBuildingIdCommissariat === 'function') {
+      const idCaisseCmr = getBuildingIdCommissariat(state.currentCity);
+      lireCaisseCommissariat(state.country || 'republic', idCaisseCmr).then(r => {
+        if (state.currentBuilding !== buildingId) return;   // le joueur a change de batiment
+        if (!r || r.ok !== true || !elCaisse) return;       // non autorise : on n'affiche rien
+        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+        elCaisse.style.display = 'block';
+        elCaisse.textContent = 'Caisse : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur;
+      }).catch(() => {});
+    }
   } else {
     if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
     if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
@@ -856,6 +876,16 @@ function enterRoom(buildingId, roomId, tabEl) {
   const ctxName = ctx?.name || b.shortName || b.name;
   document.getElementById('loc-name').textContent = ctxName;
   document.getElementById('loc-sub').textContent = room.name;
+
+  // PROPOSITION DE TRANSFERT VERS LA CASERNE (16 septembre 2026). Elle a remplace l'ordre
+  // permanent « Accepter le transfert a la caserne », qui s'affichait a tout visiteur du
+  // commissariat alors qu'il ne concerne qu'un deserteur detenu pendant une mobilisation. La
+  // fenetre ne s'ouvre que dans une cellule, et seulement si les conditions existantes sont
+  // reunies -- peutEtreIncorpore() les lit telles quelles dans le handler d'origine.
+  if ((roomId === 'prison' || roomId === 'geoles' || roomId === 'cellules_qhs')
+      && typeof proposerTransfertCaserne === 'function') {
+    proposerTransfertCaserne();
+  }
 }
 
 // =====================
