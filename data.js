@@ -2088,7 +2088,13 @@ const BUILDINGS = {
           {fn:'gestion_manifestations', label:'Gerer les manifestations',       pa:0, cost:0,    type:'legal',   icon:'ti-users-group',  successRate:100, requiresPost:'min_int', desc:'Traiter les demandes (1 PA), interdire (2 PA) ou reprimer une manifestation (3 PA).'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
-          {fn:'gerer_chef_douanes',   label:'Gérer le Chef des Douanes',  pa:1, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Titulaire en fonction, candidatures reçues, nomination et révocation.'}
+          {fn:'gerer_chef_douanes',   label:'Gérer le Chef des Douanes',  pa:1, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Titulaire en fonction, candidatures reçues, nomination et révocation.'},
+          // Ecran ARME le 15 septembre 2026. Le moteur (ouvrirModalFinancerMinInt /
+          // confirmerSubventionMinInt) existait deja et etait route sur ce fn dans
+          // plateau-router.js, mais AUCUN ordre ne le portait : la route etait orpheline. C'est
+          // aussi l'endroit ou le ministre voit le solde des commissariats de son empire, depuis
+          // son ministere -- la consultation depuis le commissariat lui-meme reste au commissaire.
+          {fn:'subvention_min_int',   label:'Financer la police',         pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Solde des commissariats de l\'empire et du QHS, et virement depuis la caisse du Ministere.'}
         ]
       },
       bureau_min_fin: {
@@ -2732,11 +2738,10 @@ const BUILDINGS = {
           {name:'Gardien de la Paix (PNJ)', role:'Agent d\'accueil', rel:'neutral', job:'gardien_paix', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-gardien-paix.png', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
-          {fn:'consulter_caisse_commissariat', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse du commissariat.'},
-          {fn:'cambrioler_caisse_commissariat', label:'Cambrioler la caisse', pa:3, cost:0, type:'illegal', icon:'ti-lock-open', successRate:20, desc:"Tentative risquee de voler dans la caisse. Echec critique = demasque immediatement."},
-          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Registre des detentions passees et en cours, consultable par tous.'},
-          {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'},
+          {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Ouvre un dossier transmis au commissaire de la ville. C\'est lui qui decide de classer ou d\'enqueter.'},
+          {fn:'consulter_caisse_commissariat', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'commissaire', desc:'Solde de la caisse du commissariat. Reserve au commissaire ; le Ministre de l\'Interieur la consulte depuis son ministere.'},
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
+          {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention. Confiscation dans tous les cas.'}
         ]
       },
@@ -2764,6 +2769,9 @@ const BUILDINGS = {
           {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png', photoPos:'50% 10%'}
         ],
         orders: [
+          // Dossiers de plainte : l'ecran d'instruction du commissaire (15 septembre 2026). Une
+          // plainte n'est plus tranchee par un tirage au sort, elle lui est adressee.
+          {fn:'dossiers_plaintes',      label:'Dossiers de plainte',         pa:0, cost:0,   type:'legal', icon:'ti-folders',      successRate:100, requiresPost:'commissaire', desc:'Plaintes deposees dans votre ville. Classer sans suite, ou ouvrir une enquete.'},
           {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
           {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
           {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
@@ -7148,7 +7156,10 @@ const ORDER_EFFECTS = {
   interview:          {pop:5,            successRate:100},
   article:            {pop:8,            successRate:70},
   plainte:            {inf:2,            successRate:100},
-  plainte_police:     {inf:1,            successRate:100},
+  // L'inf:1 etait mort deux fois : ecrase plus bas par une seconde declaration de
+  // plainte_police (Object.assign), et de toute facon jamais atteint puisque le routeur
+  // special-case cet ordre avant applyEffects. Retire le 15 septembre 2026.
+  plainte_police:     {successRate:100},
   archives:           {},
   archives_police:    {},
   defense:            {},
@@ -7161,7 +7172,11 @@ const ORDER_EFFECTS = {
   corrompre_journaliste:{},
   corrompre_fonct_v:  {inf:3,  dis:-4,   successRate:65},
   recruter_info:      {},
-  arreter:            {inf:3,  dis:-8,   successRate:50},
+  // Videe le 15 septembre 2026, meme motif que corrompre_journaliste ci-dessus : 'arreter' est
+  // special-case dans le routeur, qui rend la main avant applyEffects. Le « +3 INF » etait donc
+  // annonce au joueur et jamais applique, et le -8 DIS non plus. L'arrestation d'urgence n'a
+  // desormais que des effets de VILLE (securite +1, IS -1), poses par la RPC serveur.
+  arreter:            {successRate:100},
   etouffer:           {dis:-5,           successRate:45},
   falsifier_docs:     {dis:-8,           successRate:40},
   introduction_loge:  {inf:2,            successRate:100},

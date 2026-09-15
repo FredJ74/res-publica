@@ -103,8 +103,11 @@ def deroulement(tj):
     # La caisse est creee par la PRIMITIVE, pas par le client : c'est tout l'objet du correctif.
     c, v = rpc("caisse_institution_mouvement",
                {"p_id": CAISSE, "p_delta": 1000, "p_exiger_existant": False}, jeton=tj)
-    verifier("A2 le credit cree la caisse et la dote", v.get("ok") is True and v.get("solde") == 1000,
-             str(v)[:100])
+    # Le solde n'est plus renvoye par la RPC depuis le 15 septembre 2026 : le retourner faisait
+    # d'elle un oracle de lecture (un appel a delta nul lisait n'importe quelle caisse sans rien
+    # ecrire). On verifie donc l'effet REEL, en relisant la table.
+    verifier("A2 le credit cree la caisse et la dote", v.get("ok") is True and solde() == 1000,
+             "%s / solde=%s" % (str(v)[:60], solde()))
 
     c, r = http("PATCH", "/rest/v1/caisses_batiments?id=eq." + CAISSE,
                 {"data": {"solde": 10 ** 9}}, jeton=tj, prefer="return=representation")
@@ -119,11 +122,15 @@ def deroulement(tj):
              "HTTP %s %s" % (c, str(r)[:70]))
     verifier("A6 la lecture reste ouverte", solde() is not None, solde())
 
+    c, v = rpc("caisse_institution_mouvement_plafonne", {"p_id": CAISSE, "p_montant": 0}, jeton=tj)
+    verifier("A7 mouvement nul refuse : plus d'oracle de lecture",
+             v.get("ok") is False and "solde" not in v, str(v)[:90])
+
     # === B. DEBIT TOUT-OU-RIEN =============================================
     c, v = rpc("caisse_institution_mouvement",
                {"p_id": CAISSE, "p_delta": -300, "p_exiger_existant": True}, jeton=tj)
-    verifier("B1 debit de 300 sur 1000 : accepte", v.get("ok") is True and v.get("solde") == 700,
-             str(v)[:100])
+    verifier("B1 debit de 300 sur 1000 : accepte", v.get("ok") is True and solde() == 700,
+             "%s / solde=%s" % (str(v)[:60], solde()))
 
     c, v = rpc("caisse_institution_mouvement",
                {"p_id": CAISSE, "p_delta": -10000, "p_exiger_existant": True}, jeton=tj)

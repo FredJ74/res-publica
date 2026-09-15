@@ -119,6 +119,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
   if (fn === 'plainte_police') { openPlainteModal(pa, cost); return; }
   if (fn === 'arreter') { doArreter(pa, cost); return; }
+  if (fn === 'dossiers_plaintes') { ouvrirDossiersPlaintes(); return; }
   if (fn === 'mener_enquete') { doMenerEnquete(pa, cost); return; }
   if (fn === 'organiser_filature') { doOrganiserFilature(pa, cost); return; }
   if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }
@@ -127,7 +128,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recruter_policier_cynophile') { doRecruterPolicierCynophile(pa, cost); return; }
   if (fn === 'gerer_effectifs_police') { ouvrirGererEffectifsPolice(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
-  if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
+  // 'cambrioler_caisse_commissariat' : ordre retire du commissariat le 15 septembre 2026
+  // (voir plateau-justice-economie.js). Aucune route de compatibilite n'est laissee : un ordre
+  // qui n'existe plus dans data.js ne peut plus etre declenche, et payer_ordre le refuserait.
   if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }
   if (fn === 'archives_police') { doArchivesPolice(pa, cost); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }

@@ -8130,10 +8130,26 @@ async function doConsulterIndicesLocaux() {
   let html = '<div style="padding:1rem">';
   for (const cat of CATEGORIES_BUDGET_MAIRIE) {
     const buildingId = getBuildingIdPourCategorieBudget(cat, ville);
-    const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
+    // LE COMMISSARIAT FAIT EXCEPTION DEPUIS LE 15 SEPTEMBRE 2026. Cet ecran est public et gratuit
+    // a l'Hotel de Ville : il exposait donc le solde du commissariat a n'importe quel joueur, ce
+    // qui aurait rendu cosmetique la restriction posee sur l'ordre du commissariat lui-meme. La
+    // caisse est desormais lue par une RPC qui tranche l'autorisation (commissaire de la ville,
+    // maire et adjoint, ministre de l'Interieur, president) ; les cinq autres caisses communales
+    // restent publiques, c'est un choix de game design propre a leurs batiments.
+    let libelleSolde;
+    if (cat === 'commissariat') {
+      const r = (typeof lireCaisseCommissariat === 'function')
+        ? await lireCaisseCommissariat(pays, buildingId) : { ok: false };
+      libelleSolde = r && r.ok
+        ? Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur
+        : 'reserve';
+    } else {
+      const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
+      libelleSolde = (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur;
+    }
     html += '<div style="display:flex;justify-content:space-between;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
     html += '<span style="font-size:.82rem;color:#c0b090">' + LABELS_BUDGET_MAIRIE[cat] + '</span>';
-    html += '<strong style="font-size:.82rem;color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong>';
+    html += '<strong style="font-size:.82rem;color:' + (libelleSolde === 'reserve' ? '#6a5a30' : '#C9A84C') + '">' + libelleSolde + '</strong>';
     html += '</div>';
   }
   html += '</div>';

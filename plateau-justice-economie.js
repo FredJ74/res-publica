@@ -297,40 +297,51 @@ async function accepterRachat(acheteur, buildingId, prix) {
   }
 }
 
+// ===========================================================================
+// ARRESTATION D'URGENCE (refonte du 15 septembre 2026)
+// ===========================================================================
+// CE QUI EXISTAIT. « Faire arreter quelqu'un » exigeait l'etat d'urgence -- jamais actif, table
+// etats_urgence vide : personne n'a jamais pu passer la premiere ligne. L'ordre excluait par
+// ailleurs le commissaire (le code s'en excusait lui-meme : « Commissaire a venir »), coutait
+// 500 FR qui disparaissaient de l'economie, annoncait « +3 INF » que le routeur n'appliquait
+// jamais, et surtout ecrivait est_emprisonne sur la ligne de la CIBLE depuis le navigateur.
+// Depuis le chantier B, le trigger personnages_vue_modifier refuse cette ecriture (403) et le
+// .catch() l'avalait : le jeu affichait « Arrestation executee » sans arrestation.
+//
+// CE QUE FAIT LA VERSION ACTUELLE. Le navigateur n'exprime plus qu'une intention. La RPC
+// arrestation_urgence tranche TOUT au serveur, dans une seule transaction : autorite, juridiction,
+// existence de la cible, cible deja detenue, creation de la ligne detentions avec ses motifs,
+// ecriture d'est_emprisonne avec ses ancres, et les deux effets de ville. Il n'y a plus de jet
+// aleatoire : une autorite competente qui arrete dans sa juridiction reussit.
 async function doArreter(pa, cost) {
-  const actif = typeof estEtatUrgenceActif === 'function' ? await estEtatUrgenceActif(state.country) : false;
-  if (!actif) {
-    showToast('Non autorise', "Cet ordre necessite que l'etat d'urgence soit en vigueur.", false);
-    return;
-  }
-  const posteOk = ['president','min_just','min_int','juge'].includes(state.poste?.id);
-  if (!posteOk) {
-    showToast('Acces refuse', 'Reserve au President, au Ministre de la Justice, au Ministre de l\'Interieur ou a un Juge (Commissaire a venir).', false);
+  const postesHabilites = ['president', 'min_int', 'min_just', 'commissaire'];
+  if (!postesHabilites.includes(state.poste?.id)) {
+    showToast('Acces refuse', "Reserve au President, au Ministre de l'Interieur, au Ministre de la Justice et au Commissaire.", false);
     return;
   }
 
   const contacts = state.contacts || [];
   const contactsSection = contacts.length === 0
-    ? `<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Votre repertoire est vide. Enregistrez-y la personne visee au prealable.</div>`
-    : contacts.map(c => `
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0">
-          <input type="radio" name="arreter-cible" value="${c.name}" style="accent-color:#C9A84C"/>
-          ${c.name} — ${c.role || ''}
-        </label>`).join('');
+    ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Votre repertoire est vide. Enregistrez-y la personne visee au prealable.</div>'
+    : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0">' +
+        '<input type="radio" name="arreter-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' +
+        c.name + ' — ' + (c.role || '') + '</label>').join('');
 
-  document.getElementById('postes-modal-title').textContent = 'Faire arreter quelqu\'un';
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      <div style="font-size:.82rem;color:#8a3a2a;font-style:italic;margin-bottom:1rem">Mesure exceptionnelle sous etat d'urgence. Une arrestation infondee vous exposera a un lourd malus.</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE (dans votre repertoire)</div>
-      ${contactsSection}
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1rem 0 .4rem">MOTIF DU DOSSIER</div>
-      <textarea id="arreter-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Faits reproches..."></textarea>
-      <button onclick="confirmerArrestation(${pa},${cost})" style="margin-top:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">
-        <i class="ti ti-handcuffs" style="font-size:.8rem"></i> Ordonner l'arrestation
-      </button>
-    </div>
-  `;
+  const portee = state.poste?.id === 'commissaire'
+    ? 'Votre competence s\'arrete a votre ville.'
+    : 'Votre competence couvre tout l\'empire.';
+
+  document.getElementById('postes-modal-title').textContent = "Arrestation d'urgence";
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#8a3a2a;font-style:italic;margin-bottom:1rem">Mesure extrajudiciaire : detention immediate d\'un jour, sans condamnation. ' + portee + ' Securite +1 et indice social -1 dans la ville.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE (dans votre repertoire)</div>' +
+    contactsSection +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1rem 0 .4rem">MOTIF</div>' +
+    '<textarea id="arreter-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Faits reproches..."></textarea>' +
+    '<button onclick="confirmerArrestation(' + pa + ',' + cost + ')" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">' +
+    '<i class="ti ti-handcuffs" style="font-size:.8rem"></i> Ordonner l\'arrestation</button>' +
+    '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -338,55 +349,42 @@ async function confirmerArrestation(pa, cost) {
   const cibleInput = document.querySelector('input[name="arreter-cible"]:checked');
   const motif = document.getElementById('arreter-motif')?.value?.trim();
   if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); return; }
-  if (!motif) { showToast('Motif requis', 'Precisez le motif du dossier.', false); return; }
-  const rArret = await deduireCoutOrdre({ pa, cost });
-  if (!rArret.ok) { signalerRefusCout(rArret); return; }
+  if (!motif) { showToast('Motif requis', 'Precisez le motif de l\'arrestation.', false); return; }
   const cible = cibleInput.value;
-  document.getElementById('modal-postes').classList.remove('open');
 
-  const from = state.char?.name || 'Autorite';
-  const preuveReelle = await verifierPreuveReelle(state.country, cible, motif).catch(() => false);
-  let roll = Math.floor(Math.random() * 100) + 1;
-  if (preuveReelle) roll = Math.max(roll, 75);
+  // ORDRE DES OPERATIONS. Le serveur tranche AVANT que le moindre PA ne soit preleve : une
+  // arrestation hors juridiction, contre une personne deja detenue ou introuvable ne doit rien
+  // couter. C'est l'inverse de l'ancien code, qui facturait puis tirait un de.
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  const rows = await sbRpc('arrestation_urgence', { p_cible: cible, p_motif: motif }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
 
-  if (roll >= 50) {
-    const jours = 2;
-    // DEUX CORRECTIFS DE FOND (chantier A / P0-3, 14 septembre 2026), sur la seule ecriture de
-    // est_emprisonne du depot qui divergeait des six autres :
-    //  1. JSON.stringify() : la colonne est jsonb et sbUpdate serialise deja tout le corps -- ce
-    //     stringify deposait un SCALAIRE jsonb de type string. Relu, il restait truthy (le joueur
-    //     etait bien bloque) mais '.jourFin' valait undefined, donc 'state.day >= undefined' etait
-    //     toujours faux : LA PEINE NE POUVAIT JAMAIS EXPIRER. Detention perpetuelle sur un ordre
-    //     de garde a vue de deux jours. On ecrit l'objet, comme partout ailleurs.
-    //  2. jourFin: null -- une echeance nulle n'est pas une echeance. jourFin s'exprime dans le
-    //     state.day de LA CIBLE, que l'auteur de l'arrestation ne connait pas : on le lit sur sa
-    //     ligne, exactement comme le fait deja le seul autre site distant (plateau-politique.js,
-    //     fraude electorale revelee par contestation).
-    const cibleRows = await sbGet('personnages', `name=eq.${encodeURIComponent(cible)}&select=name,day`).catch(() => []);
-    const jourCible = (cibleRows && cibleRows[0] && cibleRows[0].day) || 1;
-    const infoArrestation = {
-      jours,
-      jourFin: jourCible + jours,
-      raison: 'Arrestation sur ordre de ' + from + ' (' + motif + ')',
-      // Ancre temps reel : sans elle, le filet de securite nocturne ne peut pas liberer la cible
-      // si elle ne se reconnecte jamais. Voir enregistrerDetention, meme champ, meme role.
-      debutTs: Date.now()
+  if (!r || r.ok !== true) {
+    const messages = {
+      autorite_insuffisante: "Votre poste n'autorise pas une arrestation d'urgence.",
+      hors_juridiction: 'Cette personne ne releve pas de votre empire.',
+      hors_juridiction_ville: 'Votre competence de commissaire s\'arrete a votre ville.',
+      cible_introuvable: 'Cette personne est introuvable.',
+      cible_deja_detenue: 'Cette personne est deja detenue.',
+      cible_est_l_acteur: 'Vous ne pouvez pas vous arreter vous-meme.',
+      acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
     };
-    if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { est_emprisonne: infoArrestation }).catch(() => {});
-    }
-    addExternalEvent('ARRESTATION : ' + cible + ' a ete place(e) en garde a vue sur ordre de ' + from + ', dans le cadre de l\'etat d\'urgence.', 'local');
-    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence', cible);
-    addJournalEntry('Arrestation ordonnee contre ' + cible + '. Motif : ' + motif + '.', 'event-info');
-    showToast('Arrestation executee', cible + ' a ete place(e) en garde a vue.', true);
-  } else {
-    state.pop = Math.max(0, (state.pop || 50) - 10);
-    state.dis = Math.max(0, (state.dis || 0) - 8);
-    updateUI();
-    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence_abusive', cible);
-    addJournalEntry('Tentative d\'arrestation contre ' + cible + ' rejetee (dossier juge insuffisant). -10 POP, -8 DIS.', 'event-bad');
-    showToast('Arrestation rejetee', 'Le dossier a ete juge insuffisant. -10 POP, -8 DIS.', false);
+    showToast('Arrestation refusee', (r && messages[r.raison]) || "L'arrestation n'a pas pu etre executee.", false);
+    return;
   }
+
+  // L'arrestation EXISTE desormais reellement (ligne detentions + est_emprisonne de la cible).
+  // Les PA ne sont preleves qu'ensuite : un refus serveur ne coute rien, une arrestation reussie
+  // se paie. Le cout financier a ete supprime (0 FR).
+  const rCout = await deduireCoutOrdre({ pa, cost, fn: 'arreter' });
+  if (!rCout.ok) signalerRefusCout(rCout);
+
+  document.getElementById('modal-postes').classList.remove('open');
+  const from = state.char?.name || 'Autorite';
+  addExternalEvent('ARRESTATION : ' + cible + ' a ete place(e) en detention sur ordre de ' + from + '.', 'local');
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence', cible);
+  addJournalEntry('Arrestation d\'urgence contre ' + cible + '. Motif : ' + motif + '. Securite +1, indice social -1.', 'event-info');
+  showToast('Arrestation executee', cible + ' est place(e) en detention pour 1 jour.', true);
 }
 
 function openPlainteModal(pa, cost) {
@@ -431,42 +429,53 @@ function openPlainteModal(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// DEPOT D'UNE PLAINTE (reconstruit le 15 septembre 2026).
+// L'ancienne version inserait elle-meme dans plaintes_en_cours (table alors ouverte a tous en
+// ecriture), puis attendait que le PLAIGNANT repasse minuit ou dorme pour qu'un 1d100 decide seul
+// du sort de son affaire. Desormais le navigateur n'exprime qu'une intention : la RPC
+// plainte_deposer ouvre le dossier, identifie le commissaire competent de la ville, et --
+// s'il est PNJ -- l'instruit immediatement sur un critere deterministe. Plus rien ne depend du
+// retour du plaignant.
+//
+// Le fn est passe EXPLICITEMENT a deduireCoutOrdre. C'est le correctif du defaut releve par
+// l'audit : renderRoomActions cable cet ordre en onclick direct, sans passer par doOrder, donc
+// state._ordreEnCours n'etait jamais pose et payer_ordre recevait un fn nul ou perime -- l'ordre
+// etait facture sous le nom d'un autre, ou refuse.
 async function soumettrePlaynte(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
+
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  const rows = await sbRpc('plainte_deposer', { p_cible: cible, p_motif: motif }).catch(() => null);
+  const res = Array.isArray(rows) ? rows[0] : rows;
+
+  if (!res || res.ok !== true) {
+    const messages = {
+      plainte_deja_en_cours: 'Vous avez deja une plainte en cours contre cette personne.',
+      motif_absent: 'Precisez le motif de votre plainte.',
+      acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
+    };
+    showToast('Plainte refusee', (res && messages[res.raison]) || "La plainte n'a pas pu etre enregistree.", false);
+    return;
+  }
+
+  // Le dossier existe : la plainte est facturee.
+  const rCout = await deduireCoutOrdre({ pa, cost, fn: 'plainte_police' });
+  if (!rCout.ok) signalerRefusCout(rCout);
+
   document.getElementById('modal-postes').classList.remove('open');
 
-  const h = String(state.hour).padStart(2,'0');
-  const m = String(state.minute||0).padStart(2,'0');
-  const resultH = (state.hour + 24) % 24;
-
-  addJournalEntry(`Plainte deposee contre ${cible}. Motif : ${motif}. Vous serez informe du resultat demain a ${String(resultH).padStart(2,'0')}h${m}.`, 'event-info');
-  showToast('Plainte enregistree', `Resultat communique demain a ${String(resultH).padStart(2,'0')}h${m}.`, true);
-
-  // Simuler le resultat 24h apres (en jeu = apres l'ordre dormir)
-  if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  const nouvellePlainte = {
-    id: 'plainte-' + Date.now(),
-    country: state.country,
-    city: state.currentCity,
-    cible, motif,
-    heure: `${String(resultH).padStart(2,'0')}h${m}`,
-    // AUTEUR : la table plaintes_en_cours est PARTAGEE, et ouvrirPorterPlainte() charge dans
-    // state.plaintesEnCours les plaintes de TOUS les joueurs du pays. Sans ce champ, le minuit
-    // prive de n'importe quel joueur ayant consulte le registre traitait les plaintes des autres
-    // -- N joueurs = N traitements de la MEME plainte, donc N mails a la cible et N affaires
-    // dupliquees au tribunal. traiterPlaintes() ne traite desormais que les siennes.
-    auteur: state.char?.name || null,
-    day: state.day + 1,
-    // jour : meme valeur que day, sous le nom qu'attend l'affichage du registre
-    // (ouvrirPorterPlainte lisait a.jour, jamais pose ici -- il affichait « Jour undefined »).
-    jour: state.day + 1,
-    status: 'pending'
-  };
-  state.plaintesEnCours.push(nouvellePlainte);
-  if (typeof sbSavePlainte === 'function') sbSavePlainte(nouvellePlainte).catch(() => {});
+  const commissaire = res.commissaire || 'le commissaire';
+  if (res.decision === 'transmise_commissaire') {
+    addJournalEntry('Plainte deposee contre ' + cible + '. Motif : ' + motif + '. Dossier transmis a ' + commissaire + '.', 'event-info');
+    showToast('Plainte enregistree', 'Dossier transmis a ' + commissaire + ', qui decidera de la suite.', true);
+  } else if (res.decision === 'enquete_ouverte') {
+    addJournalEntry('Plainte contre ' + cible + ' : ' + commissaire + ' a ouvert une enquete. ' + cible + ' est place(e) en garde a vue.', 'event-good');
+    showToast('Enquete ouverte', commissaire + ' a retenu des elements a charge contre ' + cible + '.', true);
+  } else {
+    addJournalEntry('Plainte contre ' + cible + ' : classee sans suite par ' + commissaire + ', faute d\'elements a charge.', 'event-info');
+    showToast('Plainte classee', commissaire + ' n\'a retenu aucun element a charge.', false);
+  }
 }
 
 // Verifie si une accusation repose sur une action reellement tracee (ex: torture au QHS).
@@ -483,74 +492,93 @@ async function verifierPreuveReelle(country, accuse, motif) {
   return false;
 }
 
+
+// ===========================================================================
+// DOSSIERS DE PLAINTE — L'ECRAN D'INSTRUCTION DU COMMISSAIRE (15 septembre 2026)
+// ===========================================================================
+// Une plainte deposee dans la ville d'un commissaire JOUEUR ne se resout plus toute seule : elle
+// l'attend ici. Il classe, ou il ouvre l'enquete. La decision et ses effets sont tranches par la
+// RPC plainte_traiter : le navigateur n'affiche que le dossier et transmet l'intention.
+async function ouvrirDossiersPlaintes() {
+  if (state.poste?.id !== 'commissaire') {
+    showToast('Acces refuse', 'Reserve au commissaire.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Dossiers de plainte';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const ville = state.poste?.city || state.currentCity;
+  const toutes = (typeof sbLoadPlaintes === 'function')
+    ? await sbLoadPlaintes(state.country).catch(() => []) : [];
+  // sbLoadPlaintes rend le contenu de data ; on ne garde que les dossiers de SA ville encore
+  // ouverts. Le serveur revalide de toute facon la juridiction a la decision.
+  const dossiers = (toutes || []).filter(p => p.status === 'deposee' && (p.city === ville || !p.city));
+
+  if (dossiers.length === 0) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem;text-align:center;font-size:.85rem;color:#8a8060;font-family:Crimson Pro,serif">Aucun dossier en attente dans votre ville.</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
+  dossiers.forEach(function (p) {
+    const id = String(p.id).replace(/'/g, '');
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+      '<span style="font-family:Playfair Display,serif;font-size:.86rem;color:#E8C97A">Contre ' + (p.cible || 'X') + '</span>' +
+      '<span style="font-size:.7rem;color:#5a4030">Jour ' + (p.jour || '?') + '</span></div>' +
+      '<div style="font-size:.76rem;color:#8a8060;margin:.1rem 0 .45rem">Plaignant : ' + (p.auteur || 'inconnu') + '</div>' +
+      '<div style="font-size:.82rem;color:#c0b090;font-family:Crimson Pro,serif;margin-bottom:.55rem">' + (p.motif || '') + '</div>' +
+      '<div style="display:flex;gap:.5rem">' +
+      '<button onclick="deciderDossierPlainte(\'' + id + '\',\'enqueter\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.09em;padding:.4rem .9rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir une enquete</button>' +
+      '<button onclick="deciderDossierPlainte(\'' + id + '\',\'classer\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.09em;padding:.4rem .9rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Classer sans suite</button>' +
+      '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function deciderDossierPlainte(id, decision) {
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  const rows = await sbRpc('plainte_traiter', { p_id: id, p_decision: decision }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) {
+    const messages = {
+      autorite_insuffisante: 'Reserve au commissaire.',
+      hors_juridiction: 'Ce dossier ne releve pas de votre ville.',
+      dossier_deja_instruit: 'Ce dossier a deja ete instruit.',
+      dossier_introuvable: 'Dossier introuvable.'
+    };
+    showToast('Decision refusee', (r && messages[r.raison]) || "La decision n'a pas pu etre enregistree.", false);
+    return;
+  }
+  if (r.decision === 'enquete_ouverte') {
+    showToast('Enquete ouverte', 'Elements a charge retenus : la personne est placee en garde a vue.', true);
+    addJournalEntry('Enquete ouverte sur plainte. Garde a vue de 2 jours.', 'event-good');
+  } else {
+    showToast('Dossier classe', 'La plainte est classee sans suite.', true);
+    addJournalEntry('Plainte classee sans suite.', 'event-info');
+  }
+  await ouvrirDossiersPlaintes();
+}
+
+// TRAITEMENT DIFFERE DES PLAINTES — NEUTRALISE LE 15 SEPTEMBRE 2026.
+//
+// Cette fonction portait l'ancien pipeline : un 1d100 decidait seul du sort d'une plainte,
+// 24 h apres son depot, et UNIQUEMENT si le plaignant repassait minuit ou dormait. Trois defauts
+// l'ont condamnee : la decision etait un tirage au sort la ou elle revient desormais au
+// commissaire ; l'issue « transmise » annoncait par mail une garde a vue qui n'existait dans
+// aucune table (enregistrerDetention sur un tiers se heurte a detentions_ecriture_soi) ; et une
+// plainte dont l'auteur ne revenait jamais restait pending a vie.
+//
+// L'instruction se fait maintenant cote serveur, au depot (plainte_deposer) ou a la decision du
+// commissaire (plainte_traiter). La fonction est conservee, vide, parce que deux appelants
+// existent encore (runMidnightUpdate et l'ordre Dormir) : la retirer imposerait de les toucher
+// tous les deux sans aucun gain. Elle ne peut de toute facon plus rien trouver -- aucune plainte
+// ne porte plus le statut 'pending' qu'elle filtrait.
 async function traiterPlaintes() {
-  // RECHARGEMENT AU TRAITEMENT. state.plaintesEnCours n'est ni sauvegarde en localStorage ni
-  // inclus dans sbSavePersonnage : apres un simple F5, il valait undefined et la fonction sortait
-  // immediatement. Le plaignant ne voyait donc JAMAIS aboutir sa propre plainte, sauf a rouvrir
-  // par hasard le registre du commissariat avant de dormir. On relit la table partagee ici.
-  if (typeof sbLoadPlaintes === 'function') {
-    const toutes = await sbLoadPlaintes(state.country).catch(() => null);
-    if (toutes) state.plaintesEnCours = toutes;
-  }
-  if (!state.plaintesEnCours) return;
-  // Une plainte n'est traitee QUE par son auteur (voir soumettrePlaynte). Les plaintes anterieures
-  // a l'ajout du champ `auteur` n'ont pas de proprietaire identifiable : elles restent en attente
-  // plutot que d'etre traitees N fois par N joueurs, ce qui etait le comportement precedent.
-  const moi = state.char?.name || null;
-  const traitees = state.plaintesEnCours.filter(p =>
-    p.auteur && moi && p.auteur === moi && p.day <= state.day && p.status === 'pending');
-  for (const p of traitees) {
-    let roll = Math.floor(Math.random() * 100) + 1;
-    // Preuve reelle trouvee : le resultat est quasi automatiquement a charge, peu importe le
-    // hasard du jet de base — une plainte gratuite sans preuve reste soumise a l'alea habituel.
-    const preuveReelle = await verifierPreuveReelle(p.country || state.country, p.cible, p.motif);
-    if (preuveReelle) roll = Math.max(roll, 80);
-    let result = '';
-    let notifierJoueurs = true;
-    // STATUT REEL, PAS 'done' POUR LES TROIS ISSUES. p.status etait fixe a 'done' avant le jet, et
-    // LIBELLES_STATUT traduit 'done' par « Classee sans suite » : une plainte ayant abouti a une
-    // garde a vue ou a l'ouverture d'une enquete s'affichait donc, dans le registre du
-    // commissariat, comme classee sans suite. Chaque branche pose maintenant son propre statut.
-    if (roll < 40) {
-      p.status = 'classee';
-      result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_sans_suite', p.cible);
-      notifierJoueurs = false;
-    } else if (roll < 75) {
-      p.status = 'enquete';
-      result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
-      // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
-      if (!state.enquetesEnCours) state.enquetesEnCours = [];
-      // city propagee depuis la plainte d'origine (A3 lot judiciaire) -- l'enquete concerne la
-      // meme affaire, elle doit rester attachee a la meme ville.
-      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, city: p.city, day: state.day + 1, status: 'pending' });
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_enquete', p.cible);
-    } else {
-      p.status = 'transmise';
-      result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
-      addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_confirmee', p.cible);
-      // Transmettre directement au tribunal — l'affaire est mure pour jugement
-      transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.', p.city);
-    }
-    if (notifierJoueurs) {
-      // "Jour N" retire du sujet/corps (correctif du 21 aout 2026) : p.day reste utilise tel
-      // quel plus haut dans cette fonction pour la logique de traitement, seul l'affichage change.
-      // MAIL REELLEMENT LISIBLE. addMailNotification() n'ecrit que dans state.mails, tableau qui
-      // n'est ni persiste, ni hydrate, ni jamais rendu : la boite aux lettres (forum.js) lit
-      // exclusivement la table Supabase via sbGetMailsFor(). Le plaignant voyait donc son badge
-      // s'incrementer sans jamais pouvoir ouvrir le resultat de sa propre plainte. On passe par
-      // le canal reel, celui-la meme qui notifie deja la cible trois lignes plus bas.
-      if (state.char?.name && typeof sbSendMail === 'function') {
-        await sbSendMail('Commissariat Central', state.char.name, 'RE: Votre plainte', result,
-          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-      }
-      if (p.cible && p.cible !== 'X' && typeof envoyerNotificationVraiJoueur === 'function') {
-        await envoyerNotificationVraiJoueur(p.cible, 'Convocation - Plainte a votre encontre', 'Une plainte a ete deposee contre vous, elle a evolue : ' + result);
-      }
-    }
-    if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
-  }
+  return;
 }
 
 async function traiterEnquetes() {
@@ -10074,7 +10102,10 @@ async function ouvrirModalFinancerCommunal(pa, cost) {
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse municipale disponible : <strong style="color:#C9A84C">' + (budgetMuni?.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">BATIMENT</div>';
   html += '<select id="financer-batiment-id" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
-  options.forEach(o => { html += '<option value="' + o.id + '">' + o.label + '</option>'; });
+  options.forEach(o => {
+    const solde = (o.solde != null) ? ' — ' + o.solde.toLocaleString('fr-FR') + ' ' + cur : '';
+    html += '<option value="' + o.id + '">' + o.label + solde + '</option>';
+  });
   html += '</select>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
   html += '<input type="number" id="financer-montant" min="0" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
@@ -10123,6 +10154,15 @@ async function ouvrirModalFinancerMinInt(pa, cost) {
     label: 'Commissariat de ' + (WORLD[state.country]?.[v]?.name || v)
   }));
   options.push({ id: 'qhs', label: 'QHS' });
+  // LE MINISTRE VOIT LES SOLDES DEPUIS SON MINISTERE (15 septembre 2026). C'est ici, et nulle part
+  // ailleurs, qu'il connait l'etat des commissariats de son empire : la consultation depuis le
+  // commissariat lui-meme reste au commissaire. La RPC tranche l'autorisation cote serveur.
+  for (const o of options) {
+    if (o.id === 'qhs') continue;
+    const r = (typeof lireCaisseCommissariat === 'function')
+      ? await lireCaisseCommissariat(state.country, o.id) : { ok: false };
+    o.solde = (r && r.ok) ? Number(r.solde || 0) : null;
+  }
   const caisse = await chargerCaisseBatiment(state.country, 'gouvernement-min_int');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -10450,8 +10490,20 @@ async function confirmerMenerEnquete(pa, cost) {
   }
 
   const action = candidats[0];
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('actions_tracables', 'id=eq.' + encodeURIComponent(action.id), { decouvert: true }).catch(() => {});
+  // GARDE A VUE REELLE (15 septembre 2026). Le demasquage de l'acte ET la detention de la cible
+  // passent desormais par la RPC commissaire_enqueter, dans une seule transaction serveur. Avant,
+  // le client marquait l'acte decouvert lui-meme puis appelait enregistrerDetention() sur un
+  // tiers : la policy detentions_ecriture_soi refusait l'insert, le .catch() l'avalait, et
+  // l'enquete « reussie » ne placait personne en garde a vue. On ne marque donc plus rien ici :
+  // c'est le serveur qui choisit l'acte et le demasque, sinon il ne trouverait plus rien a
+  // instruire.
+  const rGav = (typeof sbRpc === 'function')
+    ? await sbRpc('commissaire_enqueter', { p_cible: cible }).catch(() => null) : null;
+  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
+  if (!gav || gav.ok !== true || gav.decision !== 'enquete_ouverte') {
+    addJournalEntry('Enquete contre ' + cible + ' : le dossier n a pas pu etre instruit. -250 FR.', 'event-info');
+    showToast('Enquete sans suite', "Aucun element n'a pu etre retenu contre " + cible + '.', false);
+    return;
   }
   // Enquete menee par un commissaire depuis sa propre ville (le journal d'actions tracables
   // fouille est deja filtre sur "ville" ci-dessus, A3 lot judiciaire) : l'affaire appartient
@@ -10462,10 +10514,8 @@ async function confirmerMenerEnquete(pa, cost) {
   // jeu sans ancrage calendaire fiable) -- l'affichage doit libeller cette date "demasquage",
   // jamais "date des faits".
   const motifsEnquete = [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue', date_evenement: new Date().toISOString() }];
-  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville, {
-    country: pays,
-    motifs: motifsEnquete
-  }).catch(() => {});
+  // La detention a deja ete creee par la RPC ci-dessus, avec ces memes motifs cote serveur.
+  void motifsEnquete;
   if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Enquete de police', 'Une enquete a mis en evidence un acte illegal vous concernant. Vous avez ete place en garde a vue.');
@@ -10828,95 +10878,17 @@ function augmenterReputationCriminelle(montant) {
   }
 }
 
-// ---- CAMBRIOLAGE DE CAISSE (generique, reutilisable pour n'importe quel batiment) ----
-// Ouvreur du cambriolage au commissariat. RESTAURE le 8 septembre 2026 : ce wrapper avait ete
-// supprime COLLATERALEMENT par la refonte du vol de ressources (une accolade mal recollee a emporte
-// la fonction voisine), laissant l'ordre cambrioler_caisse_commissariat router vers une fonction
-// inexistante -- donc un ReferenceError au clic. Le moteur, lui, n'a jamais bouge :
-// doCambriolerCaisse et confirmerCambriolerCaisse sont intacts, et l'ordre jumeau
-// consulter_caisse_commissariat fonctionne. Trois lignes manquaient.
-function doCambriolerCaisseCommissariat() {
-  const buildingId = (typeof getBuildingIdCommissariat === 'function')
-    ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
-  doCambriolerCaisse(buildingId, 'Commissariat');
-}
-
-function doCambriolerCaisse(buildingId, buildingLabel) {
-  document.getElementById('postes-modal-title').textContent = 'Cambrioler la caisse — ' + buildingLabel;
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem">' +
-    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">Tentative risquee et difficile. En cas d echec critique, vous serez demasque(e) immediatement.</div>' +
-    '<button onclick="confirmerCambriolerCaisse(\'' + buildingId + '\',\'' + buildingLabel.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Tenter le cambriolage</button>' +
-    '</div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
-  document.getElementById('modal-postes').classList.remove('open');
-  // Deduction PA centralisee (Lot 2C) -- deduireCoutOrdre() est l'AUTORITE UNIQUE. Appelee ICI,
-  // avant tout calcul et toute mutation (jet, caisse, reputation, recherche) : fail-closed. Cout
-  // du que le cambriolage reussisse ou non, comme pour les actes illegaux deja migres au Lot 2A.
-  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
-  const pays = state.country;
-  const dup = getStatEffective('DUP');
-  const ville = state.currentCity || 'capitale';
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  const bonusReputation = getBonusReputationCriminelle();
-
-  let taux = 20 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(5, Math.min(60, Math.round(taux)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
-    const pct = 0.10 + Math.random() * 0.15;
-    const montantVise = Math.floor((caisse?.solde || 0) * pct);
-    if (montantVise <= 0) {
-      showToast('Caisse vide', "Il n'y avait rien a voler.", false);
-      return;
-    }
-    // Lot 4B (conservation) : credite exactement le montant REELLEMENT preleve de la caisse
-    // (valeur de retour de debiterCaisseBatimentPlafonne), jamais montantVise -- l'ancien code
-    // ignorait la valeur de retour et pouvait crediter plus que ce qui avait ete effectivement
-    // retire de la caisse en cas de solde change entre les deux appels (aucune caisse desormais
-    // creditee sans avoir ete reellement debitee du meme montant).
-    const montantVole = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) : montantVise;
-    if (montantVole <= 0) {
-      showToast('Caisse vide', "Il n'y avait rien a voler.", false);
-      return;
-    }
-    crediterFondsOrdinaires(montantVole);
-    augmenterReputationCriminelle(8);
-    updateUI();
-    showToast('Cambriolage reussi !', '+' + montantVole.toLocaleString('fr-FR') + ' FR voles dans la caisse.', true, true);
-    addJournalEntry('Cambriolage reussi contre la caisse du ' + buildingLabel + '. +' + montantVole.toLocaleString('fr-FR') + ' FR.', 'event-good');
-    return;
-  }
-
-  const critique = (Math.floor(Math.random() * 100) + 1) <= 25;
-  if (critique) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'cambriolage_caisse', type: 'delit_grave', jour: state.day || 1 });
-    addExternalEvent((state.char?.name || 'Quelqu\'un') + ' a ete pris en flagrant delit de tentative de vol dans la caisse du ' + buildingLabel + ' !', 'local');
-    addJournalEntry('Cambriolage rate et decouvert immediatement. Avis de recherche emis contre vous.', 'event-bad');
-    showToast('Demasque !', 'Vous avez ete pris en flagrant delit. Avis de recherche emis.', false);
-  } else {
-    if (typeof sbTracerAction === 'function') {
-      await sbTracerAction({
-        id: 'cambriolage-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        auteur: state.char?.name, cible: null, type_action: 'cambriolage_caisse',
-        country: pays, city: state.currentCity,
-        jour: state.day || 1, jour_expiration: (state.day || 1) + 15
-      }).catch(() => {});
-    }
-    addExternalEvent("Quelqu'un a tente de voler dans la caisse du " + buildingLabel + ', sans succes.', 'local');
-    addJournalEntry('Cambriolage rate contre la caisse du ' + buildingLabel + '.', 'event-info');
-    showToast('Cambriolage echoue', "Vous avez echappe a la detection pour l'instant.", false);
-  }
-}
+// ---- CAMBRIOLAGE DE CAISSE : ORDRE RETIRE (15 septembre 2026) ----
+// L'audit a montre que c'etait le SEUL ordre de cambriolage de caisse du jeu -- une exception
+// historique, cousue main : absente d'ACTES_ILLEGAUX (donc jamais soumise a checkDetection, ni a
+// une immunite de poste, ni a un malus DIS), sans aucune trace en cas de REUSSITE alors que
+// toutes les autres primitives de vol en laissent une, sans cooldown, sans rumeur, et creditant
+// le joueur en memoire pendant que seul le debit de l'institution etait verrouille.
+//
+// Arbitrage : on ne repare pas ce mecanisme, on le retire. Une mecanique GENERIQUE de cambriolage
+// des caisses -- detection, traces, sanctions -- fera l'objet d'un chantier dedie, applicable a
+// tous les batiments eligibles. Les trois fonctions (doCambriolerCaisseCommissariat,
+// doCambriolerCaisse, confirmerCambriolerCaisse) n'avaient QUE cet appelant : elles partent avec.
 
 // Vol de materiel de chantier — meme principe que le cambriolage de caisse (formule DUP +
 // indice + reputation), mais base 60% (plus facile, materiel non surveille comme une
@@ -11260,24 +11232,52 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
 }
 
-async function doConsulterCaisseBatimentGenerique(buildingId, buildingLabel) {
-  const pays = state.country;
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-  document.getElementById('postes-modal-title').textContent = 'Caisse — ' + buildingLabel;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
+// doConsulterCaisseBatimentGenerique a ete RETIRE le 15 septembre 2026 : son unique appelant
+// etait le commissariat, qui lit desormais par RPC. La garder aurait ete un piege -- elle lisait
+// caisses_batiments en direct, ce qui, pour une caisse de commissariat, ne renvoie plus rien
+// depuis la fermeture de la policy, et son fail-soft aurait affiche « 0 FR » a la place.
 
-  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem;text-align:center">' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
-    '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Solde actuel de la caisse.</div>' +
-    '</div>';
+// LA CAISSE DU COMMISSARIAT N'EST PLUS PUBLIQUE (15 septembre 2026).
+// Elle passe par une RPC serveur qui tranche l'autorisation : le commissaire pour SA ville, le
+// Ministre de l'Interieur et le President pour leur empire, le maire et son adjoint pour leur
+// ville. La lecture directe de caisses_batiments est fermee pour ces caisses cote RLS, donc ce
+// n'est pas un simple masquage d'affichage : un client qui interrogerait la table lui-meme
+// n'obtiendrait rien non plus.
+async function lireCaisseCommissariat(pays, buildingId) {
+  if (typeof sbRpc !== 'function') return { ok: false, raison: 'indisponible' };
+  const rows = await sbRpc('caisse_commissariat_lire', { p_id: pays + '_' + buildingId })
+    .catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'indisponible' };
 }
 
 async function doConsulterCaisseCommissariat() {
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
-  await doConsulterCaisseBatimentGenerique(buildingId, 'Commissariat');
+  const pays = state.country;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Caisse — Commissariat';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const r = await lireCaisseCommissariat(pays, buildingId);
+  if (!r.ok) {
+    // Un refus n'est jamais presente comme une caisse a zero : l'audit du 15 septembre a montre
+    // que chargerCaisseBatiment transformait toute lecture refusee en « 0 FR » plausible.
+    const messages = {
+      autorite_insuffisante: 'Le solde de la caisse est reserve au commissaire de cette ville.',
+      hors_juridiction: 'Cette caisse ne releve pas de votre empire.',
+      acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.'
+    };
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem;text-align:center;font-size:.85rem;color:#8a3a2a;font-family:Crimson Pro,serif">' +
+      (messages[r.raison] || 'Consultation refusee.') + '</div>';
+    return;
+  }
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;text-align:center">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Solde actuel de la caisse du commissariat.</div>' +
+    '</div>';
 }
 
 // A3 (lot caisses locales, 16 aout 2026) : identifiant de caisse LOCALE, distinct du buildingId
