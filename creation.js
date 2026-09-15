@@ -48,6 +48,17 @@ async function chargerPersonnageParNom() {
           } else if (verdict.raison === 'compte_deja_pourvu') {
             msg.textContent = 'Ce navigateur possede deja le personnage « ' + (verdict.personnage || '') + ' ». '
               + 'Un compte ne peut porter qu\'un seul personnage.';
+          } else if (/^http_/.test(verdict.raison || '')) {
+            // PANNE DE LA VERIFICATION, PAS UN VERDICT DE PROPRIETE (incident du 15 septembre
+            // 2026). La RPC rattacher_personnage n'avait jamais ete creee en base : PostgREST
+            // repondait 404, auth.js traduisait en 'http_404' et le joueur lisait « Acces
+            // refuse (http_404) » -- un message qui accusait le joueur d'un probleme de droits
+            // alors que le serveur n'avait tout simplement pas repondu.
+            // On continue de REFUSER : ceder ici rouvrirait la prise de controle de n'importe
+            // quel personnage par la seule connaissance de son nom, qui est public. Mais on ne
+            // fait plus passer une indisponibilite pour un refus d'acces.
+            msg.textContent = 'Vérification de propriété momentanément indisponible ('
+              + verdict.raison + '). Votre personnage est intact, réessayez dans un instant.';
           } else {
             msg.textContent = 'Acces refuse (' + (verdict.raison || 'inconnu') + ').';
           }
