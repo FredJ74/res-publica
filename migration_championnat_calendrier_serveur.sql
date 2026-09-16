@@ -56,11 +56,10 @@
 --
 -- service_role (cron, reparations) n'est jamais concerne.
 --
--- LIMITE CONNUE ET ASSUMEE : les publications des PHASES FINALES (tours de playoff, sacre du
--- champion) partent encore du client. Elles ne sont pas atteignables par le vecteur constate --
--- une saison fantome nait toujours en phase reguliere, journee 1 -- et les router au serveur
--- demanderait de reconstituer cote base des libelles qui n'y sont pas (noms de clubs). A traiter
--- dans un chantier dedie.
+-- LIMITE DE CE PREMIER LOT, LEVEE LE SOIR MEME : les publications des PHASES FINALES (tours de
+-- playoff, sacre du champion) partaient encore du client. Voir le COMPLEMENT en fin de fichier --
+-- elles sont desormais ecrites par le serveur, comme les journees, et les noms de clubs viennent
+-- d'un miroir genere plutot que du navigateur.
 
 -- ===================================================================== journal des tentatives
 CREATE TABLE IF NOT EXISTS public.championnat_tentatives (
