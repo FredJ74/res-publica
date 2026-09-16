@@ -2352,10 +2352,18 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
     const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     await prolongerDetentionActive(affaire.cible, motifsTorture);
-    // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
-    // le joueur actuellement connecte).
-    if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { pop: 0 }).catch(() => {});
+    // Perte totale de popularite appliquee au personnage reel (peut ne pas etre le joueur
+    // actuellement connecte).
+    // CORRIGE LE 17 SEPTEMBRE 2026 (audit des frontieres d'autorite). Cette ligne etait un
+    // sbUpdate brut sur la fiche d'AUTRUI, avec DEUX defauts cumules : (1) la colonne
+    // personnages.pop n'existe pas -- la vraie POP vit dans resources.pop -- et (2) un joueur ne
+    // peut pas ecrire la fiche d'un autre depuis la fermeture RLS. sbUpdate ne levant jamais, la
+    // peine « popularite a zero » annoncee au juge n'a donc JAMAIS ete appliquee a personne.
+    // On passe par la primitive atomique deja existante, celle qu'utilisent deja les rumeurs.
+    // -100 met la POP exactement a zero : la RPC borne le resultat a [0,100], donc pour toute
+    // valeur de depart dans cet intervalle, pop - 100 est ramene a 0. Aucune regle nouvelle.
+    if (typeof sbAjusterPopJoueur === 'function') {
+      await sbAjusterPopJoueur(affaire.cible, -100);
     }
     // Enregistrer cette condamnation pour permettre le cumul des peines a l'avenir
     if (typeof sbTracerAction === 'function') {

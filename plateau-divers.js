@@ -576,11 +576,17 @@ async function appliquerMalusPopExcommunication(nomCible) {
     state.pop = Math.max(0, (state.pop || 0) - 15);
     return;
   }
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=resources`).catch(() => []);
-  const res = rows?.[0]?.resources || {};
-  const nouveauPop = Math.max(0, (res.pop || 0) - 15);
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCible)}`, { resources: { ...res, pop: nouveauPop } }).catch(() => {});
+  // CORRIGE LE 17 SEPTEMBRE 2026 (audit des frontieres d'autorite). C'etait un lire-modifier-
+  // reecrire sur la fiche d'AUTRUI : sbGet des resources, calcul local, puis sbUpdate du BLOC
+  // resources ENTIER. Trois defauts : (1) depuis la fermeture RLS un joueur ne peut plus ecrire
+  // la fiche d'un autre et sbUpdate rend null sans lever, donc le malus n'etait jamais applique ;
+  // (2) la lecture masquee ramenait un objet vide, le calcul partait donc de 0 ; (3) reecrire le
+  // blob entier aurait ecrase l'INF et la DIS gagnes entre la lecture et l'ecriture.
+  // La primitive atomique existe deja et fait exactement cela en un seul UPDATE sous verrou,
+  // borne a [0,100] : c'est celle qu'utilisent deja les rumeurs. Meme malus de -15, inchange.
+  if (typeof sbAjusterPopJoueur === 'function') {
+    await sbAjusterPopJoueur(nomCible, -15);
+  }
 }
 
 async function appliquerExcommunication(nomCible, nomGrandPretre) {

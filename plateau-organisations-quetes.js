@@ -328,6 +328,22 @@ async function remettreRecompenseQuete(quete) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let msg = '';
 
+  // RECOMPENSE REJOUABLE CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
+  // Avant : la recompense (argent, terrain, objet, dossier) etait distribuee D'ABORD, puis la
+  // quete etait marquee resolue par sbMettreAJourQuete(...).catch(() => {}) -- or sbUpdate ne
+  // leve jamais, il rend null. Si le marquage echouait, la quete restait 'active' : le joueur
+  // pouvait la reboucler et encaisser la recompense autant de fois qu'il le voulait. Et deux
+  // joueurs resolvant la meme affaire en meme temps etaient tous deux payes.
+  // Desormais : la quete est RECLAMEE d'abord, par une mise a jour conditionnelle au statut
+  // 'active' (PostgREST renvoie les lignes reellement modifiees : zero ligne = quelqu'un d'autre
+  // l'a prise, ou elle etait deja resolue). La recompense n'est distribuee qu'apres.
+  const reclamee = (typeof sbReclamerQuete === 'function')
+    ? await sbReclamerQuete(quete.id, state.char?.name || 'Anonyme') : null;
+  if (!reclamee) {
+    showToast('Affaire déjà classée', 'Cette affaire a déjà été résolue. Aucune récompense n\'a été remise.', false);
+    return;
+  }
+
   if (quete.recompense_type === 'terrain') {
     let terrainInfo = null;
     try { terrainInfo = JSON.parse(quete.recompense_detail); } catch(e) {}
