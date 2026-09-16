@@ -6282,10 +6282,48 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
   if (!rPa.ok) { signalerRefusCout(rPa); return; }
 
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
-  if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
-
-  await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
+  // SUBVENTION A UN CITOYEN : UNE SEULE TRANSACTION SERVEUR (16 septembre 2026).
+  //
+  // Le versement se faisait ici en deux temps : la caisse du gouvernement etait debitee par une
+  // RPC (donc reellement), puis le beneficiaire etait credite par une ecriture directe sur SA
+  // fiche -- que la vue personnages refuse depuis le chantier B. L'argent quittait la caisse
+  // publique sans jamais arriver. Pire, le montant credite etait calcule comme « solde relu +
+  // montant », et la fortune d'autrui n'etant plus lisible non plus, la relecture renvoyait 0 :
+  // l'ecriture, si elle etait passee, aurait REMIS la fortune du beneficiaire au montant de la
+  // subvention. Le refus nous a protege d'une perte de donnees.
+  //
+  // subvention_citoyen_verser fait les deux mouvements dans la meme transaction, verifie le
+  // poste min_fin cote serveur, et incremente au lieu de reecrire. Les autres beneficiaires
+  // (club, entreprise, organisation) gardent leur chemin, qui fonctionne.
+  let montantVerse = 0;
+  if (typeCible === 'citoyen') {
+    const rows = await sbRpc('subvention_citoyen_verser',
+      { p_beneficiaire: idCible, p_montant: montant }).catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) {
+      const motif = (r && r.raison === 'beneficiaire_introuvable')
+        ? 'Ce bénéficiaire est introuvable.'
+        : (r && r.raison === 'montant_invalide')
+          ? 'Montant invalide.'
+          : (r && r.raison === 'autorite_insuffisante')
+            ? 'Seul le Ministre des Finances peut accorder une subvention.'
+            : 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.';
+      showToast(r && r.raison === 'caisse_insuffisante' ? 'Caisse insuffisante' : 'Subvention refusée', motif, false);
+      return;
+    }
+    montantVerse = Number(r.verse || 0);
+    // Le ministre peut se subventionner lui-meme -- le moteur l'autorise, c'est assume. Il faut
+    // alors que sa copie locale suive le serveur : sans cela, sa prochaine sauvegarde de fiche
+    // republierait son ancienne fortune et effacerait le versement.
+    if (idCible === state.char?.name) {
+      state.arg = (state.arg || 0) + montantVerse;
+      if (state.char) state.char.arg = state.arg;
+    }
+  } else {
+    montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
+    if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
+    await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
+  }
   if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
   updateUI();
   showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
