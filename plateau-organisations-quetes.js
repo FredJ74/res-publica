@@ -1900,16 +1900,32 @@ function joursEcoulesDepuis(dateISO) {
 // un tout autre jour en cas de rattrapage). Sans cette distinction, un rattrapage du mardi
 // afficherait silencieusement le mardi comme etant la date du match alors que la journee
 // sportive theorique est le dimanche precedent.
+// LA PUBLICATION EST DEMANDEE, PLUS FABRIQUEE (16 septembre 2026).
+//
+// Le 16 septembre a 00h38, un compte rendu de « Journée 1 » est apparu au forum alors qu'aucun
+// match n'avait ete joue : un onglet executant un bundle d'avant le 5 septembre avait simule une
+// saison entiere dans sa seule memoire -- il n'avait rien pu ecrire dans championnat, mais rien
+// ne l'empechait d'ecrire au forum. Un compte rendu ne doit raconter que ce que la base contient.
+//
+// championnat_publier_journee compose donc le sujet ET le message a partir des recits reellement
+// persistes, sous un identifiant derive de (saison, journee) : republier n'a aucun effet, et une
+// journee qui n'est pas jouee en base n'a pas de compte rendu. Le serveur refuse desormais qu'un
+// client insere lui-meme un sujet « Journée … » signe de la Ligue.
 async function publierResultatsJourneeSurForum(numeroSaison, journee, dateSportiveTheorique) {
-  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  if (typeof formatDateHeureJeu !== 'function') return;
   const time = formatDateHeureJeu();
   const suffixeDate = dateSportiveTheorique ? ' (journée du ' + dateSportiveTheorique + ')' : '';
   const titre = 'Journée ' + journee.numero + ' — Saison ' + numeroSaison + suffixeDate;
   const contenu = journee.matchs.map(m => m.recit).join('<br>');
 
-  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
-  if (topicId && typeof sbCreatePost === 'function') {
-    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  let topicId = null;
+  if (typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_journee', { p_journee: journee.numero })
+      .catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;          // rien en base, rien a afficher
+    if (r.deja_publie) return;                // un autre client l'a deja publiee
+    topicId = r.topic_id || null;
   }
   if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
   FORUM_TOPICS['sport'].unshift({
