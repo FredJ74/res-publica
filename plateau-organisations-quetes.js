@@ -9038,32 +9038,30 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
 }
 
 // Resout tous les paris en attente pour une journee qui vient d'etre jouee
+// RESOLUTION ET PAIEMENT SONT INDISSOCIABLES (16 septembre 2026).
+//
+// Le pari etait d'abord marque `resolu = true` -- ecriture qui aboutit -- puis le gagnant etait
+// credite par une ecriture directe sur SA fiche, que la vue personnages refuse depuis le
+// chantier B. Le pari devenait donc definitivement resolu sans que le gain soit verse, pendant
+// qu'un mail « Pari gagne ! » partait, et aucune passe ne le reprenait plus jamais.
+//
+// football_paris_resoudre retrouve le match dans le championnat, exige qu'il soit joue, lit le
+// score persiste, applique les memes cotes, et fait les deux ecritures dans la meme transaction.
+// Le client n'annonce plus que ce qui a REELLEMENT eu lieu -- les mails sont envoyes a partir du
+// compte rendu du serveur, jamais d'un calcul local.
 async function resoudreParisJournee(saisonNumero, journee) {
-  if (typeof sbGetParisJourneeNonResolus !== 'function') return;
-  const paris = await sbGetParisJourneeNonResolus(journee.numero, saisonNumero).catch(() => []);
-  if (!paris.length) return;
+  if (typeof sbRpc !== 'function') return;
+  const rows = await sbRpc('football_paris_resoudre', { p_journee: journee.numero }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true || !Array.isArray(r.detail) || !r.detail.length) return;
 
-  const gains = { domicile: 2.5, nul: 3.5, adversaire: 3 };
-  for (const pari of paris) {
-    const m = journee.matchs.find(mm => mm.home === pari.homeId && mm.away === pari.awayId);
-    if (!m || !m.played) continue;
-
-    let resultatReel;
-    if (m.scoreHome > m.scoreAway) resultatReel = 'domicile';
-    else if (m.scoreHome < m.scoreAway) resultatReel = 'adversaire';
-    else resultatReel = 'nul';
-
-    const gagne = resultatReel === pari.choix;
-    const gain = gagne ? Math.round(pari.mise * gains[pari.choix]) : 0;
-    await sbResoudrePari(pari.id, pari.joueur, gain);
-
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
-    if (typeof sbSendMail === 'function') {
-      const msg = gagne
-        ? 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est gagnant ! +' + gain.toLocaleString('fr-FR') + ' FR.'
-        : 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est perdant. Mise perdue.';
-      await sbSendMail('Ligue Officielle', pari.joueur, gagne ? 'Pari gagné !' : 'Pari perdu', msg, time).catch(() => {});
-    }
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  for (const pari of r.detail) {
+    if (typeof sbSendMail !== 'function') break;
+    const msg = pari.gagne
+      ? 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est gagnant ! +' + Number(pari.gain || 0).toLocaleString('fr-FR') + ' FR.'
+      : 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est perdant. Mise perdue.';
+    await sbSendMail('Ligue Officielle', pari.joueur, pari.gagne ? 'Pari gagné !' : 'Pari perdu', msg, time).catch(() => {});
   }
 }
 

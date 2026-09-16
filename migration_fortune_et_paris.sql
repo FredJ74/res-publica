@@ -1,0 +1,44 @@
+-- FORTUNE ET PARIS : PREMIERE ETAPE DE L'AUTORITE SERVEUR (16 septembre 2026).
+-- DEJA EXECUTEE en production (migrations MCP : fortune_naissance_bornee,
+-- football_paris_resolution_atomique).
+--
+-- 1. ON NE NAIT PLUS RICHE
+-- -----------------------
+-- Verifie avant correctif : un personnage pouvait etre cree avec arg = 999999, liquide = 888888
+-- et banque = 777777, acceptes tels quels. Meme faille que les PA avant leur verrou, sur la
+-- ressource la plus sensible du jeu.
+--
+-- La dotation de depart n'est pas une constante : origine + ecole + archetype + carriere
+-- (creation.js, totalArg). Le serveur borne donc au MAXIMUM ATTEIGNABLE, mesure sur le vrai
+-- data.js par JavaScriptCore : 2200 + 400 + 1200 + 1200 = 5000. La combinaison la plus
+-- genereuse passe exactement -- le banc le verifie. liquide et banque sont des sous-ensembles
+-- de la fortune : bornes a arg.
+--
+-- CE LOT NE FERME QUE LA NAISSANCE. L'ecriture de la fortune EN COURS DE PARTIE reste ouverte :
+-- 16 appels a crediterFondsOrdinaires et 26 hausses directes de state.arg/state.liquide vivent
+-- encore dans le client. Fermer l'UPDATE avant de les avoir raccordes casserait des gains
+-- legitimes -- et, contrairement aux PA, autoriser les baisses ne suffirait pas : une
+-- sauvegarde de fiche perimee ecraserait un credit serveur par une valeur plus basse. Les deux
+-- sens devront etre fermes ensemble, apres raccordement. Le banc .scratch/banc_arg_autorite.py
+-- mesure exactement ce qui reste ouvert et le nomme.
+--
+-- A noter : les DEPENSES centrales passent deja par le serveur (debiterFondsOrdinaires ->
+-- debiter_fonds_ordinaires, payer_ordre). C'est le versant CREDIT qui reste client.
+--
+-- 2. UN PARI RESOLU EST UN PARI PAYE
+-- ----------------------------------
+-- sbResoudrePari marquait d'abord le pari `resolu = true` -- ecriture qui aboutit -- puis
+-- creditait le gagnant par une ecriture directe sur SA fiche, refusee depuis le chantier B. Le
+-- pari devenait DEFINITIVEMENT resolu sans que le gain soit verse, pendant qu'un mail « Pari
+-- gagne ! +X FR » partait, et aucune passe ne le reprenait plus jamais.
+--
+-- football_paris_resoudre retrouve le match dans le championnat, exige qu'il soit joue, lit le
+-- score persiste, applique les memes cotes (2.5 domicile / 3.5 nul / 3 adversaire, gain =
+-- round(mise x cote)) et fait les deux ecritures dans la MEME transaction. Le client ne designe
+-- qu'une journee, et n'annonce plus que ce que le serveur a reellement fait.
+--
+-- IDEMPOTENCE : seuls les paris `resolu = false` sont repris, sous FOR UPDATE SKIP LOCKED --
+-- deux navigateurs qui resolvent la meme journee au meme instant ne paient jamais deux fois.
+--
+-- Le SQL exact est celui applique en base ; voir les migrations nommees ci-dessus.
+-- Bancs : .scratch/banc_arg_autorite.py (13) et .scratch/banc_championnat_calendrier.py (44).
