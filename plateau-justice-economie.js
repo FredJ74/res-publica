@@ -3185,18 +3185,37 @@ async function confirmerDonPnj(encodedPnj) {
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
-  state.arg -= montant;
-  updateUI();
 
-  // Don a un VRAI joueur — depot reel via Supabase, credite automatiquement a sa prochaine connexion
+  // DON A UN VRAI JOUEUR — SERVEUR AUTORITAIRE (17 septembre 2026, audit des frontieres
+  // d'autorite). Avant : le navigateur se debitait lui-meme (state.arg -= montant) PUIS inserait
+  // une ligne dans dons_en_attente via sbDeposerDon, un sbInsert brut sur une table en RLS
+  // « allow_all ». Les deux moities etaient separables et la seconde etait falsifiable : il a ete
+  // PROUVE qu'un visiteur SANS AUCUN COMPTE pouvait inserer un don de 999 999 999 FR a n'importe
+  // qui, credite ensuite par le client du destinataire. Creation monetaire pure.
+  // Desormais : don_argent_deposer debite reellement l'expediteur (fonds ordinaires) et depose le
+  // don dans la meme transaction, ou ne fait rien. Le debit local a disparu : c'est le retour du
+  // serveur qui fait foi.
   if (pnj.isPJ) {
     const nomCourt = pnj.name.replace(' (PNJ)','');
     const expediteur = state.char?.name || 'Anonyme';
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    if (typeof sbDeposerDon === 'function') {
-      await sbDeposerDon(nomCourt, montant, expediteur).catch(() => {});
+    const r = (typeof sbDonArgentDeposer === 'function')
+      ? await sbDonArgentDeposer(nomCourt, montant) : null;
+    if (!r || r.ok !== true) {
+      const motifs = {
+        fonds_insuffisants: 'Vos fonds ordinaires ne couvrent pas ' + montant + ' ' + cur + '.',
+        destinataire_introuvable: nomCourt + ' n\'existe plus.',
+        destinataire_invalide: 'Destinataire invalide.',
+        montant_invalide: 'Montant invalide.',
+        acteur_non_authentifie: 'Votre session n\'est pas reconnue.'
+      };
+      showToast('Don impossible', (r && motifs[r.raison]) || 'Le don n\'a pas pu être effectué. Rien n\'a été débité.', false);
+      return;
     }
+    if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+    if (typeof r.liquide === 'number') state.liquide = r.liquide;
+    updateUI();
     if (typeof sbSendMail === 'function') {
       await sbSendMail(expediteur, nomCourt, 'Don d\'argent recu',
         expediteur + ' vous a fait don de ' + montant + ' ' + cur + '. La somme sera automatiquement creditee sur votre compte a votre prochaine connexion.', time).catch(() => {});
@@ -3206,6 +3225,11 @@ async function confirmerDonPnj(encodedPnj) {
     tracerActionPourRumeur('don', nomCourt);
     return;
   }
+
+  // Don a un PNJ : aucune ligne de personnage en face, l'argent est detruit. Le debit local reste
+  // donc le mecanisme (inchange), applique seulement une fois la branche PJ ecartee.
+  state.arg -= montant;
+  updateUI();
   const dup = getStatEffective('DUP');
   const nomCourt = pnj.name.replace(' (PNJ)','');
   const jobsRisques = ['commissaire','policier','inspecteur','juge'];

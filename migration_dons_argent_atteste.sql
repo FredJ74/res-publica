@@ -1,0 +1,78 @@
+-- =====================================================================================
+-- LOT 2 — DONS D'ARGENT : FERMETURE D'UNE CREATION MONETAIRE TRIVIALE
+-- Audit des frontieres d'autorite, 17 septembre 2026.
+-- TRACE des migrations Supabase reellement appliquees, dans cet ordre :
+--   don_argent_atteste
+--   naturalisation_traiter_atteste
+--   rls_dons_et_vols_en_attente
+--
+-- CONSTAT PROUVE AVANT CORRECTIF (transaction BEGIN ... ROLLBACK) :
+--   dons_en_attente portait la politique « allow_all_dons_en_attente » (role public, ALL,
+--   USING true, WITH CHECK true). Sous le seul role anon (AUCUNE session) :
+--     INSERT INTO dons_en_attente (destinataire, montant, expediteur, traite)
+--     VALUES ('Arnie', 999999999, 'zztest-attaquant-sans-compte', false);
+--   -> ligne ACCEPTEE. Le client du destinataire (recupererDonsEnAttente, plateau-communication.js)
+--   credite ensuite cette somme a sa prochaine connexion. Creation monetaire pure, a distance,
+--   sur n'importe quel joueur, sans compte. Cote client, sbDeposerDon n'etait qu'un sbInsert brut.
+--   vols_en_attente portait la meme politique : lecture des files d'autrui, depot d'un vol
+--   arbitraire impute a n'importe qui, marquage traite=true sur les lignes des autres.
+--
+-- FERMETURE : plus AUCUNE ecriture cliente directe sur dons_en_attente. Les deux seuls emetteurs
+-- legitimes passent par une RPC SECURITY DEFINER qui atteste l'acteur ET realise la contrepartie
+-- dans la meme transaction.
+
+-- 1. DON ENTRE JOUEURS — don_argent_deposer(p_requete, p_destinataire, p_montant)
+--    * l'expediteur n'est plus un parametre : c'est mon_personnage() ;
+--    * le debit passe par helvetia_debiter_fonds_ordinaires (primitive EXISTANTE : liquide
+--      d'abord, complete par la Banque nationale, jamais de debit partiel) -- aucune regle,
+--      aucun montant, aucun taux invente ;
+--    * fail-closed : sans debit effectif, aucun depot ;
+--    * idempotence par table dons_requetes (PK = p_requete), sur le modele de
+--      tracts_donner_joueur : un double-clic ou un retry reseau ne depose qu'une fois.
+--
+-- 2. REMBOURSEMENT DE NATURALISATION — naturalisation_traiter(p_demande_id, p_accepter)
+--    Avant : le client du Ministre faisait un sbUpdate brut du statut, puis en cas de refus
+--    sbDeposerDon('<demandeur>', floor(montant*0.5), 'Service de l''Immigration').
+--    RIEN du game design ne change : meme autorite (data.js declare deja requiresPost:'min_int'
+--    sur l'ordre « Demandes de naturalisation »), meme taux de 50 %, meme delai de 48 h
+--    (date_traitement_possible, deja porte par la ligne). Tout cela est desormais RELU par le
+--    serveur au lieu d'etre fourni par le navigateur. La transition depuis statut='pending' sous
+--    verrou de ligne sert de verrou anti-double-remboursement.
+--    Le pays est controle : un ministre ne traite que les demandes visant SON pays.
+--
+-- 3. RLS
+--    dons_en_attente : SELECT et UPDATE reserves au destinataire (destinataire = mon_personnage()),
+--      AUCUNE politique INSERT -> l'insertion cliente est refusee. Les RPC SECURITY DEFINER
+--      ecrivent en tant que proprietaire de la table et ne sont pas soumises a ces politiques ;
+--      le cron passe en service_role et les contourne de meme.
+--    vols_en_attente : SELECT/UPDATE reserves a la victime ; INSERT autorise au seul voleur
+--      declare (voleur = mon_personnage()), ce qui conserve la doctrine existante (le transfert
+--      est resolu par le client de la VICTIME, jamais par une ecriture sur sa fiche) tout en
+--      supprimant le vol anonyme et le vol impute a autrui.
+--
+-- PREUVE APRES CORRECTIF (transactions annulees) :
+--   * anon rejouant l'INSERT prouve            -> refuse, 0 ligne creee ;
+--   * don legitime d'Arnie a Phileas (100 FR)  -> {"ok":true}, arg 3118 -> 3018, debit reel 100,
+--                                                 1 seule ligne dans dons_en_attente ;
+--   * MEME p_requete rejoue                    -> {"rejeu":true}, aucun second debit, toujours
+--                                                 1 seule ligne ;
+--   * 50 000 000 (dans les bornes, au-dela des fonds) -> refuse, aucun debit, aucune ligne ;
+--   * don a soi-meme       -> 'destinataire_invalide' ;
+--   * destinataire absent  -> 'destinataire_introuvable' ;
+--   * montant negatif      -> 'montant_invalide'.
+--   Residus verifies a 0 sur dons_requetes, dons_en_attente, caisses_batiments, batiments_etat.
+--
+-- COTE CLIENT (meme lot) :
+--   * supabase.js          : sbDeposerDon SUPPRIMEE ; ajout de sbDonArgentDeposer et
+--                            sbNaturalisationTraiter ;
+--   * plateau-justice-economie.js confirmerDonPnj : le debit local (state.arg -= montant) ne
+--     s'applique plus qu'au don a un PNJ (argent detruit, aucune ligne en face) ; le don a un PJ
+--     passe integralement par la RPC et l'etat local suit le retour serveur ;
+--   * plateau-politique.js traiterDemandeNaturalisation : passe par la RPC, affiche le montant
+--     recalcule par le serveur, et distingue le rejeu.
+--
+-- RESTE OUVERT ET DOCUMENTE : le MONTANT du butin d'un vol est encore decide par le navigateur du
+-- voleur (jet de des client). Le fermer suppose de porter la resolution du vol cote serveur --
+-- meme famille que les rumeurs et personnage_ajuster_pop_inf. Voir le rapport, section « failles
+-- ouvertes ».
+-- =====================================================================================

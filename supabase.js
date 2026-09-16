@@ -1421,8 +1421,35 @@ async function sbInit() {
 // =====================
 // DONS D'ARGENT ENTRE JOUEURS (en attente de credit)
 // =====================
-async function sbDeposerDon(destinataire, montant, expediteur) {
-  return sbInsert('dons_en_attente', { destinataire, montant, expediteur, traite: false });
+// sbDeposerDon A ETE SUPPRIMEE (17 septembre 2026, audit des frontieres d'autorite). C'etait un
+// sbInsert brut dans dons_en_attente, table alors en RLS « allow_all » : il a ete PROUVE qu'un
+// visiteur sans aucun compte pouvait y deposer un don de 999 999 999 FR a n'importe quel joueur,
+// credite ensuite par le client du destinataire. Aucune preuve que l'expediteur ait ete debite.
+// Les deux seuls emetteurs legitimes passent desormais par une RPC qui atteste l'acteur ET
+// realise la contrepartie dans la meme transaction :
+//   - don entre joueurs        -> sbDonArgentDeposer / RPC don_argent_deposer (debite l'expediteur) ;
+//   - remboursement d'immigration -> sbNaturalisationTraiter / RPC naturalisation_traiter
+//     (reserve au Ministre de l'Interieur, montant relu sur la demande).
+// L'INSERT client sur dons_en_attente est desormais refuse par RLS : ne pas recreer de raccourci.
+
+// Don d'argent entre joueurs. L'expediteur n'est PAS un parametre : le serveur prend le
+// personnage du compte connecte. p_requete rend l'operation idempotente (double-clic, retry).
+async function sbDonArgentDeposer(destinataire, montant) {
+  const requete = 'don-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  const rows = await sbRpc('don_argent_deposer', {
+    p_requete: requete, p_destinataire: destinataire, p_montant: montant
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Traitement d'une demande de naturalisation par le Ministre de l'Interieur. Le serveur relit le
+// montant sur la ligne, applique le meme taux (50 %) et le meme delai (48 h) qu'avant, et refuse
+// une seconde execution (statut deja sorti de 'pending').
+async function sbNaturalisationTraiter(demandeId, accepter) {
+  const rows = await sbRpc('naturalisation_traiter', {
+    p_demande_id: demandeId, p_accepter: !!accepter
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
 async function sbRecupererDonsEnAttente(destinataire) {

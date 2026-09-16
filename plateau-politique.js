@@ -4673,9 +4673,30 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
   const demande = (demandes || []).find(d => d.id === demandeId);
   if (!demande) { showToast('Introuvable', 'Cette demande n\'existe plus.', false); return; }
 
-  const nouveauStatut = accepter ? 'acceptee' : 'refusee';
-  if (typeof sbTraiterDemandeNaturalisation === 'function') {
-    await sbTraiterDemandeNaturalisation(demandeId, nouveauStatut).catch(() => {});
+  // SERVEUR AUTORITAIRE (17 septembre 2026, audit des frontieres d'autorite). Avant : le client
+  // changeait le statut par un sbUpdate brut, puis, en cas de refus, deposait le remboursement
+  // par sbDeposerDon -- un INSERT brut dans une table en RLS « allow_all », sans autorite ni
+  // montant attestes. Rien du game design ne change ici : meme autorite (data.js declare deja
+  // requiresPost:'min_int' sur cet ordre), meme taux de 50 %, meme delai de 48 h -- mais tout
+  // cela est desormais RELU par le serveur au lieu d'etre fourni par le navigateur, et la
+  // transition de statut sert de verrou anti-double-remboursement.
+  const r = (typeof sbNaturalisationTraiter === 'function')
+    ? await sbNaturalisationTraiter(demandeId, accepter) : null;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      demande_introuvable: 'Cette demande n\'existe plus.',
+      hors_juridiction: 'Cette demande ne vise pas votre pays.',
+      delai_non_ecoule: 'Le délai de 48 h n\'est pas écoulé.',
+      acteur_non_authentifie: 'Seul le Ministre de l\'Intérieur en exercice peut traiter cette demande.'
+    };
+    showToast('Traitement impossible', (r && motifs[r.raison]) || 'La demande n\'a pas pu être traitée.', false);
+    ouvrirDemandesNaturalisation();
+    return;
+  }
+  if (r.rejeu) {
+    showToast('Déjà traitée', 'Cette demande a déjà été traitée.', false);
+    ouvrirDemandesNaturalisation();
+    return;
   }
 
   const h = String(state.hour || 8).padStart(2,'0');
@@ -4689,10 +4710,8 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
     showToast('Demande acceptée', demande.demandeur + ' devient citoyen de ' + (COUNTRIES[state.country]?.n||state.country) + '.', true, true);
     addExternalEvent('🛂 ' + demande.demandeur + ' obtient la nationalité ' + (COUNTRIES[state.country]?.n||state.country) + '.', 'national');
   } else {
-    const remboursement = Math.floor(demande.montant * 0.5);
-    if (typeof sbDeposerDon === 'function') {
-      await sbDeposerDon(demande.demandeur, remboursement, 'Service de l\'Immigration').catch(() => {});
-    }
+    // Montant renvoye par le serveur, qui l'a recalcule depuis la ligne de la demande.
+    const remboursement = Number(r.remboursement || 0);
     if (typeof sbSendMail === 'function') {
       sbSendMail('Service de l\'Immigration', demande.demandeur, 'Naturalisation refusée',
         'Votre demande de naturalisation a été refusée par le Ministre de l\'Intérieur. ' + remboursement + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' vous sont remboursés.', time).catch(() => {});

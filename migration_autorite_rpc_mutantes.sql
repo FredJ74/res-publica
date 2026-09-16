@@ -1,0 +1,94 @@
+-- =====================================================================================
+-- LOT 1 — IDENTITE ET AUTORITE SUR LES RPC MUTANTES SANS AUCUN CONTROLE
+-- Audit des frontieres d'autorite, 17 septembre 2026.
+-- TRACE de ce qui a reellement ete applique en base (migrations Supabase, dans cet ordre) :
+--   revoque_appliquer_taxe_transaction_client
+--   batiment_caisse_mouvement_exige_acteur
+--   caisse_institution_mouvement_exige_acteur
+--   presse_publication_reservee_a_l_auteur
+--   effort_reserve_appliquer_exige_acteur
+--
+-- CONSTAT PROUVE AVANT CORRECTIF (transactions BEGIN ... ROLLBACK, aucune donnee laissee) :
+--   * role authenticated, sans aucun controle d'identite dans les fonctions :
+--       caisse_institution_mouvement('republic_gouvernement-min_fin', 50000000)  -> credite 50 M
+--       caisse_institution_mouvement('zztest_caisse_inventee', 99999999)         -> CREE la caisse
+--       caisse_institution_mouvement_plafonne('republic_gouvernement-min_fin', 1e8) -> la vide
+--   * role anon (AUCUNE session, simple cle publique) :
+--       batiment_caisse_mouvement('republic','capitale','la-tribune','imprimerie',
+--                                  50000000,'stockBois',9999)
+--       -> caisse de l'imprimerie 178 -> 50 000 178 ; stockBois 4 -> 10 003
+--       batiment_caisse_mouvement('zzpays','zzville','zzbatiment','zzcaisse', 77777777)
+--       -> batiment inexistant CREE avec 77 777 777 en caisse
+--   * fuite_publier / scandale_publier : executables sans session, publication de texte arbitraire
+--     dans chronique_nationale ; scandale_publier declenchait en plus
+--     personnage_ajuster_pop_inf(cible, -15, -15) sur un joueur.
+--   * effort_reserve_appliquer : reserve militaire nationale reglable sans session.
+--
+-- POURQUOI REVOQUER LE ROLE anon EST SANS RISQUE (fondement, verifie) :
+--   personnages_donnees n'accorde INSERT/UPDATE/DELETE qu'au role authenticated (politiques
+--   personnages_creation_soi / personnages_maj_soi / personnages_suppression_soi). Un client en
+--   role anon ne peut donc JAMAIS enregistrer de personnage : il ne peut pas jouer. Les comptes
+--   anonymes du jeu (331 lignes auth.users, toutes is_anonymous) portent une session JWT et le
+--   role authenticated, pas anon. Le repli sur la cle anon de rpAuthOuvrirAnonyme (auth.js) n'est
+--   donc pas un mode de jeu degrade : c'est un mode ou rien ne peut etre sauvegarde. Tout EXECUTE
+--   accorde a anon sur une fonction MUTANTE est de la surface d'attaque pure.
+--   (Piege connu et confirme : ALTER DEFAULT PRIVILEGES accorde EXECUTE a anon sur toute nouvelle
+--   fonction du schema public -- d'ou ces droits jamais demandes.)
+--
+-- PREUVE APRES CORRECTIF (memes appels rejoues) :
+--   role anon               -> ERROR 42501 permission denied for function batiment_caisse_mouvement
+--   authenticated sans perso -> {"ok":false,"raison":"acteur_non_authentifie"} (les 3 primitives)
+--   etat reel inchange      -> min_fin 34849, caisse inventee absente, La Tribune {caisse:178, bois:4}
+-- NON-REGRESSION : session d'un joueur reel (mon_personnage() = 'Arnie', est_appel_serveur()=false)
+--   -> caisse_institution_mouvement {"ok":true} ; batiment_caisse_mouvement {"ok":true,caisse:179} ;
+--      caisse_institution_mouvement_plafonne {"ok":true,"verse":1}. Transaction annulee.
+--
+-- CE QUE CE LOT NE FAIT PAS : il ne ferme PAS la possibilite, pour un joueur AUTHENTIFIE, de
+-- pousser un delta arbitraire vers une caisse. Cela suppose de rattacher chaque mouvement a sa
+-- contrepartie, flux par flux (41 sites d'appel cote client, via crediterCaisseBatiment /
+-- debiterCaisseBatimentPlafonne / debiterCaisseBatimentAtomique). C'est le chantier
+-- caisse_institution_mouvement, laisse OUVERT et documente dans le rapport.
+-- =====================================================================================
+
+-- 1. appliquer_taxe_transaction — REVOCATION SECHE.
+-- Verifie : AUCUN appelant client (une seule mention dans tout le depot, en commentaire). Ses deux
+-- appelants reels sont les RPC SECURITY DEFINER commerce_vendre_produit et recevoir_soin, qui
+-- s'executent avec les droits du proprietaire : non affectees. Exposee, elle creditait le budget
+-- municipal ET la reserve nationale depuis un p_montant_brut fourni par l'appelant, sans identite
+-- ni contrepartie.
+REVOKE EXECUTE ON FUNCTION public.appliquer_taxe_transaction(text, text, numeric) FROM anon, authenticated;
+
+-- 2 a 5. GARDE D'ATTRIBUTION ajoutee en tete de corps, sans toucher au calcul existant :
+--
+--     IF NOT public.est_appel_serveur() AND public.mon_personnage() IS NULL THEN
+--       RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+--     END IF;
+--
+-- appliquee a : batiment_caisse_mouvement, caisse_institution_mouvement,
+--               caisse_institution_mouvement_plafonne, effort_reserve_appliquer.
+-- (Les valeurs par defaut des parametres ont ete conservees a l'identique : Postgres refuse un
+--  CREATE OR REPLACE qui les retirerait.)
+--
+-- Plus les revocations :
+REVOKE EXECUTE ON FUNCTION public.batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.effort_reserve_appliquer(text, jsonb, text[], numeric) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.fuite_publier(bigint, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.scandale_publier(bigint, text) FROM anon;
+
+-- 6. fuite_publier / scandale_publier — PUBLICATION RESERVEE A L'AUTEUR.
+-- La regle n'est PAS inventee : fuites_journalistiques.auteur et scandales_presse.auteur existent
+-- deja et sont renseignes par fuite_reserver / scandale_tenter, qui passent eux-memes par
+-- exiger_acteur. On ne fait qu'appliquer ce que la ligne dit deja :
+--
+--     IF NOT public.est_appel_serveur() THEN
+--       v_moi := public.mon_personnage();
+--       IF v_moi IS NULL THEN ... 'acteur_non_authentifie' ... END IF;
+--       IF <table>.auteur IS DISTINCT FROM v_moi THEN ... 'pas_auteur' ... END IF;
+--     END IF;
+--
+-- Les deux tables etaient VIDES au moment du correctif (0 ligne) : aucune donnee existante
+-- affectee, aucune publication historique rendue impossible.
+
+-- ARBITRAGE RESTANT (documente, non decide ici) : QUI doit pouvoir regler la reserve militaire
+-- nationale (effort_reserve_appliquer) -- ministre de la Defense ? etat-major ? La garde posee
+-- etablit seulement qu'il faut etre un joueur identifie ou le serveur, pas n'importe quel visiteur.
