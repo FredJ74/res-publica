@@ -7318,6 +7318,10 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
     }
   }
 
+  // Ordre reellement en cours : 'emprunter', 'emprunter_prive' ou 'emprunter_construction' selon
+  // le guichet. Capture AVANT le prelevement, pour qu'un eventuel remboursement de PA porte sur le
+  // bon ordre (pa_crediter_atteste relit le cout reel dans le miroir ordres_couts).
+  const ordreEmprunt = state._ordreEnCours || 'emprunter';
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -7344,8 +7348,27 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
     statut: 'en_cours'
   };
 
-  if (typeof sbCreerPret === 'function') {
-    await sbCreerPret(pret).catch(() => {});
+  // PAS DE CREDIT SANS DETTE (17 septembre 2026, audit des frontieres d'autorite).
+  // Avant : sbCreerPret(pret).catch(() => {}) -- or sbInsert ne leve jamais, il rend null. Si
+  // l'insertion de la dette echouait, le capital etait CREDITE quand meme et le toast annoncait
+  // « Pret accorde ». L'emprunteur recevait de l'argent qu'aucune ligne de prets ne reclamait
+  // jamais : creation monetaire pure, silencieuse, et d'autant plus grave que les prets travaux
+  // et immobilier n'ont aucun plafond de montant.
+  // Desormais : la dette doit exister en base AVANT que le capital ne soit verse. Sinon rien
+  // n'est credite, les PA de l'ordre sont rendus et l'echec est dit.
+  const detteCreee = (typeof sbCreerPret === 'function') ? await sbCreerPret(pret) : null;
+  if (!detteCreee) {
+    if (r.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
+      await sbRpc('pa_crediter_atteste', {
+        p_acteur: state.char.name, p_source: 'remboursement_ordre',
+        p_reference: 'pret-echec-' + pret.id,
+        p_ordre: ordreEmprunt
+      }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
+                        if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+    }
+    updateUI();
+    showToast('Prêt impossible', 'Le contrat n\'a pas pu être enregistré. Aucun capital n\'a été versé.', false);
+    return;
   }
 
   // ARGENT REELLEMENT DEPENSABLE. Crediter state.arg seul gonflait l'affichage sans rien changer

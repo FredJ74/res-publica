@@ -633,10 +633,29 @@ async function verifierObjetsRecus() {
       // passer son destinataire en Surcharge, et la ligne objets_recus est alors normalement
       // supprimee juste en dessous. Avant ce lot, addToInventory renvoyait 0 au-dela de 100 et
       // l'objet restait bloque dans la file, invisible.
-      const qteAjoutee = typeof recevoirObjetAutomatique === 'function' ? recevoirObjetAutomatique(objet)
-                       : (typeof addToInventory === 'function' ? addToInventory(objet) : 0);
+      // DUPLICATION D'OBJET CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
+      // Avant : l'objet etait ajoute a l'inventaire PUIS sbSupprimerObjetRecu etait appele avec un
+      // .catch(() => {}) decoratif -- or sbDelete ne leve jamais, il rend null. Si la suppression
+      // echouait, la ligne restait en base et ce poll (toutes les 2 minutes) redonnait le meme
+      // objet indefiniment.
+      // Desormais : on RECLAME d'abord la ligne, exactement comme le fait deja le don de tracts
+      // juste au-dessus (sbTractsReclamerDon). L'objet n'entre en inventaire que si la reclamation
+      // est confirmee ; sinon rien n'est ajoute et la ligne sera reproposee au prochain passage.
+      // La reception automatique n'echoue jamais faute de place (recevoirObjetAutomatique fait
+      // entrer l'objet quitte a passer en Surcharge), donc reclamer d'abord ne peut pas perdre
+      // l'objet. Le repli addToInventory, lui, peut refuser : dans ce cas on garde l'ordre
+      // historique (ajouter puis supprimer) pour ne pas perdre l'objet sur un inventaire plein.
+      const receptionAutomatique = typeof recevoirObjetAutomatique === 'function';
+      let qteAjoutee = 0;
+      if (receptionAutomatique) {
+        const reclame = (typeof sbSupprimerObjetRecu === 'function') ? await sbSupprimerObjetRecu(id) : null;
+        if (!reclame) continue;                       // non reclame : rien n'entre, on reessaiera
+        qteAjoutee = recevoirObjetAutomatique(objet);
+      } else {
+        qteAjoutee = (typeof addToInventory === 'function') ? addToInventory(objet) : 0;
+      }
       if (qteAjoutee > 0) {
-        if (typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id).catch(() => {});
+        if (!receptionAutomatique && typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id);
         // Carte postale (Lot 4, 23 aout 2026) : message fixe, jamais de nom d'expediteur ni de
         // contenu du message a l'arrivee (point 10 du cahier des charges) -- l'expediteur et le
         // texte ne sont reveles qu'a la lecture volontaire (lireCartePostale, plateau-
@@ -1441,16 +1460,32 @@ async function recupererDonsEnAttente() {
     const dons = await sbRecupererDonsEnAttente(moi);
     if (!dons || dons.length === 0) return;
     const cur = COUNTRIES[state.country]?.cur || 'FR';
+    // DUPLICATION D'ARGENT CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
+    // Avant : le montant etait additionne au total PUIS sbMarquerDonTraite etait appele avec un
+    // .catch(() => {}) decoratif -- or sbUpdate ne leve jamais, il rend null. Si le marquage
+    // echouait, le don restait traite=false en base ET l'argent etait quand meme credite : la
+    // session suivante le recreditait, et ainsi de suite a chaque connexion. Monnaie dupliquee
+    // sans limite, sans que rien ne le signale.
+    // Desormais : un don n'est credite QUE si sa consommation est confirmee en base. Un don non
+    // marque n'est pas credite et reste en file pour la prochaine tentative -- jamais perdu,
+    // jamais double.
     let total = 0;
+    let nonConsommes = 0;
     for (const don of dons) {
-      total += don.montant;
-      if (typeof sbMarquerDonTraite === 'function') await sbMarquerDonTraite(don.id).catch(() => {});
+      const marque = (typeof sbMarquerDonTraite === 'function') ? await sbMarquerDonTraite(don.id) : null;
+      if (marque) total += don.montant;
+      else nonConsommes++;
     }
     if (total > 0) {
       state.arg = (state.arg || 0) + total;
+      if (state.char) state.char.arg = state.arg;
+      if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
       updateUI();
       addJournalEntry('💰 Vous avez reçu ' + total + ' ' + cur + ' en dons.', 'event-good');
       showToast('Dons reçus !', '+' + total + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
+    }
+    if (nonConsommes > 0) {
+      console.warn('[dons] ' + nonConsommes + ' don(s) non consommes en base : non credites, reessai a la prochaine connexion.');
     }
   } catch(e) { console.warn('recupererDonsEnAttente error', e); }
 }

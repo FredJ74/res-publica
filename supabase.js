@@ -1432,6 +1432,16 @@ async function sbInit() {
 //     (reserve au Ministre de l'Interieur, montant relu sur la demande).
 // L'INSERT client sur dons_en_attente est desormais refuse par RLS : ne pas recreer de raccourci.
 
+// Debauchage d'un PNJ employe : retire le PNJ de la liste de son ANCIEN employeur, sous verrou,
+// cote serveur. Une ecriture cliente sur la fiche d'autrui echouait toujours en silence et
+// laissait le PNJ employe des deux joueurs a la fois. Renvoie {ok, retire, deja_parti...}.
+async function sbPnjEmployeDebaucher(ancienProprietaire, pnjNom, job) {
+  const rows = await sbRpc('pnj_employe_debaucher', {
+    p_ancien_proprietaire: ancienProprietaire || '', p_pnj_nom: pnjNom, p_job: job || 'default'
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Don d'argent entre joueurs. L'expediteur n'est PAS un parametre : le serveur prend le
 // personnage du compte connecte. p_requete rend l'operation idempotente (double-clic, retry).
 async function sbDonArgentDeposer(destinataire, montant) {

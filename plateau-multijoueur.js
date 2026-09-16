@@ -937,19 +937,30 @@ async function confirmerDebauchage() {
     return;
   }
 
-  try {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}&select=employes,escort_active`).catch(() => []);
-    const owner = rows?.[0];
-    if (owner) {
-      if (p.job === 'escort') {
-        const nouvelleListe = (owner.escort_active || []).filter(e => e.nom !== p.nom);
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}`, { escort_active: nouvelleListe }).catch(() => {});
-      } else {
-        const nouvelleListe = (owner.employes || []).filter(e => e.nom !== p.nom);
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}`, { employes: nouvelleListe }).catch(() => {});
-      }
-    }
-  } catch(e) {}
+  // DUPLICATION DE PNJ CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
+  // Avant : un sbGet puis un sbUpdate DIRECTS sur la fiche de l'ancien employeur, dans un
+  // try/catch et un .catch(() => {}) decoratifs. Depuis la fermeture RLS, un joueur ne peut plus
+  // ecrire la fiche d'un autre et sbUpdate rend null sans lever : le retrait echouait TOUJOURS,
+  // pendant que l'ajout chez le debaucheur (sa propre fiche) reussissait. Le PNJ restait donc
+  // employe des DEUX joueurs, et le toast annoncait quand meme la reussite.
+  // Desormais : le retrait est fait par le serveur, sous verrou. Tant qu'il n'est pas confirme,
+  // le PNJ n'est PAS ajoute ici -- pas de second exemplaire, jamais.
+  const retrait = (typeof sbPnjEmployeDebaucher === 'function')
+    ? await sbPnjEmployeDebaucher(p.proprietaire, p.nom, p.job) : null;
+  if (!retrait || retrait.ok !== true) {
+    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+    updateUI();
+    showToast('Débauchage impossible', 'Le transfert n\'a pas pu être enregistré. Votre argent vous est rendu.', false);
+    document.getElementById('modal-pnj')?.classList.remove('open');
+    return;
+  }
+  if (retrait.deja_parti) {
+    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+    updateUI();
+    showToast('Trop tard', p.nom + ' ne travaille déjà plus pour ' + (p.proprietaire || 'cet employeur') + '.', false);
+    document.getElementById('modal-pnj')?.classList.remove('open');
+    return;
+  }
 
   if (p.job === 'escort') {
     if (!state.escortActive) state.escortActive = [];
