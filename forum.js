@@ -274,6 +274,12 @@ function ouvrirForumSurEditeur(forumId, titreSuggere) {
   currentTopicId = null;
   const f = getForums()[currentForumId];
   if (f?.cat) forumCategorieActive = f.cat;
+  // renderForumModal() D'ABORD, et ce n'est pas un detail : #forum-main n'existe pas dans la page
+  // -- c'est cette fonction qui le cree, dans #forum-body. Sans elle, showComposeCanvasForm()
+  // ecrit dans un element null et leve, ce qui rendait le clic « Se porter candidat » totalement
+  // muet tant que la fenetre Forum n'avait jamais ete ouverte dans la session. C'est exactement
+  // ce que fait openForum_module() avant d'ouvrir, et que cette passerelle avait omis.
+  renderForumModal();
   showComposeCanvasForm();
   document.getElementById('modal-forum').classList.add('open');
   // Le titre n'est qu'une suggestion : l'auteur reste libre de le reecrire.

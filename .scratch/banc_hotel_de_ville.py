@@ -16,10 +16,36 @@ function _el(id) {
   if (!_els[id]) _els[id] = { id: id, textContent: '', innerHTML: '', value: '', style: {},
                               classList: { _c: {}, add: function (c) { this._c[c] = 1; },
                                            remove: function (c) { delete this._c[c]; },
+                                           toggle: function (c, on) { if (on) this._c[c] = 1; else delete this._c[c]; },
                                            contains: function (c) { return !!this._c[c]; } } };
   return _els[id];
 }
-var document = { getElementById: _el, querySelector: function () { return null; },
+// Le DOM du banc imite la page : seuls les elements REELLEMENT presents dans plateau.html
+// existent d'entree. #forum-main, lui, n'est cree que par renderForumModal() -- c'est
+// precisement ce qui a rendu le clic « Se porter candidat » muet en production.
+var ELEMENTS_DE_LA_PAGE = ['postes-body', 'postes-modal-title', 'modal-postes', 'modal-forum',
+                           'forum-body', 'modal-forum-title', 'compose-canvas-title'];
+function _elStrict(id) {
+  if (!_els[id] && ELEMENTS_DE_LA_PAGE.indexOf(id) === -1) return null;
+  return _el(id);
+}
+// Ecrire du HTML cree les elements qu'il contient, comme dans un navigateur : c'est ainsi que
+// #forum-main vient a l'existence, et le banc doit le reproduire pour que l'ordre des appels
+// (renderForumModal avant showComposeCanvasForm) soit reellement mis a l'epreuve.
+function _brancherCreationParHtml(id) {
+  var el = _el(id);
+  var _html = '';
+  Object.defineProperty(el, 'innerHTML', {
+    get: function () { return _html; },
+    set: function (v) {
+      _html = String(v || '');
+      var re = /id="([a-zA-Z0-9_-]+)"/g, m;
+      while ((m = re.exec(_html)) !== null) _el(m[1]);
+    }
+  });
+}
+['forum-body', 'postes-body'].forEach(_brancherCreationParHtml);
+var document = { getElementById: _elStrict, querySelector: function () { return null; },
                  querySelectorAll: function () { return []; }, addEventListener: function () {},
                  body: { appendChild: function () {} },
                  createElement: function () { return { style: {}, classList: { add: function(){}, remove: function(){} },
@@ -31,10 +57,20 @@ function showToast() {} function addJournalEntry() {} function updateUI() {}
 function sbRpc() { return Promise.resolve(null); }
 function sbGet() { return Promise.resolve([]); }
 
+var TOASTS = [];
+showToast = function (a, b) { TOASTS.push(a + ' | ' + b); };
+function setTimeout(f) { try { f(); } catch (e) {} }
+function sbRpc() { return Promise.resolve(null); }
+function sbGet() { return Promise.resolve([]); }
+function sbInsert() { return Promise.resolve(null); }
+function sbUpdate() { return Promise.resolve(null); }
+load('%(racine)s/forum-canvas.js');
+load('%(racine)s/forum.js');
 load('%(racine)s/data.js');
 load('%(racine)s/plateau-core.js');
 load('%(racine)s/plateau-politique.js');
 load('%(racine)s/plateau-router.js');
+showToast = function (a, b) { TOASTS.push(a + ' | ' + b); };
 
 function ordresDe(b, r) {
   var p = (BUILDINGS[b] && BUILDINGS[b].rooms[r]) || {};
@@ -96,6 +132,36 @@ s.fonctions = {
 };
 // L'ordre de depot garde son cout : c'est lui que le serveur facture.
 s.coutDepot = (typeof ORDRE_DEPOT_CANDIDATURE !== 'undefined') ? ORDRE_DEPOT_CANDIDATURE : null;
+
+// ============ LE CLIC REEL ============
+// Ce bloc aurait echoue sur la version livree en production : le bouton existait, la fonction
+// existait, et pourtant rien ne s'ouvrait. Verifier la presence ne suffit pas -- il faut cliquer.
+state.char = { name: 'Testeur' };
+state.country = 'republic';
+state.currentCity = 'ville_b';            // Montrouge, pas la capitale
+state.pa = 12; state.inf = 50;
+state.domicile = { country: 'republic', city: 'ville_b' };
+CYCLES_ELECTORAUX['republic'] = CYCLES_ELECTORAUX['republic'] || {};
+CYCLES_ELECTORAUX['republic']['maire_ville_b'] = {
+  phase: 'candidatures', resultatsTraites: false,
+  dateDebutCandidatures: Date.now() - 1000,
+  dateDebutCampagne: Date.now() + 86400000,
+  candidats: [], votes: {}, tour: 1
+};
+TOASTS = [];
+s.clic = { exception: null, forumView: null, modalOuverte: false, redaction: null, toasts: null };
+try {
+  // Exactement ce que fait le bouton du calendrier : onclick="ouvrirRedactionProgramme(this)".
+  ouvrirRedactionProgramme({ dataset: { poste: 'maire', country: 'republic', city: 'ville_b' } });
+} catch (e) {
+  s.clic.exception = String(e);
+}
+s.clic.forumView = (typeof forumView !== 'undefined') ? forumView : null;
+s.clic.modalOuverte = _el('modal-forum').classList.contains('open');
+s.clic.editeurRendu = (_el('forum-body').innerHTML || '').indexOf('forum-main') >= 0;
+s.clic.redaction = (typeof _candidatureEnRedaction !== 'undefined') ? _candidatureEnRedaction : null;
+s.clic.toasts = TOASTS.slice();
+
 print(JSON.stringify(s));
 """
 
@@ -168,6 +234,20 @@ def main():
     verifier('le depot de candidature coute toujours 2 PA',
              d['coutDepot'] and d['coutDepot'].get('pa') == 2
              and d['coutDepot'].get('fn') == 'deposer_candidature', d['coutDepot'])
+
+    # ---- LE CLIC : l'effet observable, pas la simple existence du bouton ----
+    c = d.get('clic') or {}
+    verifier('cliquer « Se porter candidat » ne leve aucune exception',
+             not c.get('exception'), c.get('exception'))
+    verifier('la fenetre du forum s ouvre', c.get('modalOuverte') is True, c)
+    verifier('l editeur riche est la vue active', c.get('forumView') == 'compose-canvas',
+             c.get('forumView'))
+    verifier('la structure du forum a ete rendue (#forum-main cree)',
+             c.get('editeurRendu') is True, c.get('editeurRendu'))
+    verifier('aucun message d erreur n est affiche au joueur', not c.get('toasts'), c.get('toasts'))
+    verifier('le scrutin vise est memorise pour la publication',
+             (c.get('redaction') or {}).get('posteId') == 'maire'
+             and (c.get('redaction') or {}).get('city') == 'ville_b', c.get('redaction'))
 
     ko = [r for r in resultats if not r[0]]
     for ok, nom, detail in resultats:
