@@ -408,6 +408,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
+  // REGROUPEMENTS UX de l'Hotel de Ville (16 septembre 2026) : un bouton par POSTE plutot qu'un
+  // bouton par ACTION. Les anciens ordres n'existent plus dans data.js, mais leurs handlers sont
+  // intacts -- c'est l'ecran de regroupement qui les appelle, avec leurs couts d'origine.
+  if (fn === 'entrepot_direction')     { ouvrirGestionPosteNomme('directeur_entrepot'); return; }
+  if (fn === 'maire_adjoint_gestion')  { ouvrirGestionPosteNomme('maire_adjoint'); return; }
+  if (fn === 'commissaire_gestion')    { ouvrirGestionPosteNomme('commissaire'); return; }
   if (fn === 'observer_debats')         { observerDebats(pa, cost); return; }
   if (fn === 'objet_trouve')            { reclamerObjetTrouve(pa, cost); return; }
   // Salle des elections centralisee (chantier "Hotel de Ville / elections", 4 septembre 2026) :

@@ -263,6 +263,45 @@ let onboardingComposeEnCours = false;
 function onboardingArmerComposeCanvas() { onboardingComposeEnCours = true; }
 
 // =====================
+// PASSERELLES DEPUIS LE JEU (16 septembre 2026)
+// =====================
+// Deux entrees pour que le reste du jeu puisse se servir du forum sans le reimplementer : ouvrir
+// directement l'editeur de redaction d'un forum donne, et ouvrir un sujet precis. C'est ce qui
+// permet au Calendrier electoral d'envoyer un candidat rediger son programme, puis d'offrir a
+// tous « voir le programme » -- sans qu'aucun ecran de campagne ne duplique le forum.
+function ouvrirForumSurEditeur(forumId, titreSuggere) {
+  currentForumId = forumId || 'local';
+  currentTopicId = null;
+  const f = getForums()[currentForumId];
+  if (f?.cat) forumCategorieActive = f.cat;
+  showComposeCanvasForm();
+  document.getElementById('modal-forum').classList.add('open');
+  // Le titre n'est qu'une suggestion : l'auteur reste libre de le reecrire.
+  if (titreSuggere) {
+    setTimeout(function () {
+      const champ = document.getElementById('compose-canvas-title');
+      if (champ && !champ.value) champ.value = titreSuggere;
+    }, 60);
+  }
+}
+
+function ouvrirForumSurTopic(topicId) {
+  if (!topicId) return;
+  // Le sujet peut vivre dans n'importe quel forum : on le retrouve par son id, sans supposer
+  // lequel. Si le cache local ne l'a pas encore, openTopic le chargera.
+  let forumTrouve = null;
+  Object.keys(FORUM_TOPICS || {}).forEach(function (fid) {
+    if ((FORUM_TOPICS[fid] || []).some(function (t) { return t.id === topicId; })) forumTrouve = fid;
+  });
+  currentForumId = forumTrouve || currentForumId || 'local';
+  const f = getForums()[currentForumId];
+  if (f?.cat) forumCategorieActive = f.cat;
+  renderForumModal();
+  document.getElementById('modal-forum').classList.add('open');
+  openTopic(topicId);
+}
+
+// =====================
 // MODAL PRINCIPALE
 // =====================
 function openForum_module(forumId) {
@@ -1984,6 +2023,26 @@ async function submitReplyComposed(layout, content) {
 
 async function submitComposeCanvas() {
   const enEdition = editingTopicId != null && editingPostId != null;
+
+  // PROGRAMME ELECTORAL (16 septembre 2026) : quand une candidature est en cours de redaction,
+  // publier ne cree pas un sujet ordinaire -- c'est le serveur qui, dans une seule transaction,
+  // verifie l'eligibilite et la periode, preleve les 2 PA, enregistre la candidature ET publie
+  // le sujet officiel. Rien ici ne doit ecrire au forum avant lui : un sujet cree puis une
+  // candidature refusee laisserait un faux programme derriere elle.
+  if (!enEdition && currentTopicId == null && typeof publierProgrammeCandidature === 'function'
+      && typeof _candidatureEnRedaction !== 'undefined' && _candidatureEnRedaction) {
+    const titreProg = (document.getElementById('compose-canvas-title')?.value || '').trim();
+    const layoutProg = (typeof rpCanvasSerializeCompose === 'function') ? rpCanvasSerializeCompose() : null;
+    const texteProg = (typeof rpCanvasBuildFallbackContent === 'function')
+      ? rpCanvasBuildFallbackContent(layoutProg) : '';
+    const traite = await publierProgrammeCandidature(titreProg, texteProg);
+    if (traite) {
+      forumView = 'list';
+      renderForumModal();
+      if (typeof loadForumTopicsFromSB === 'function') loadForumTopicsFromSB(currentForumId);
+      return;
+    }
+  }
   // Réponse dans le sujet courant (correctif bugs bêta forum) : distingué sans nouvelle
   // variable globale, en réutilisant currentTopicId/editingPostId déjà maintenus par
   // openTopic()/showComposeCanvasReply() -- currentTopicId n'est jamais posé quand on arrive

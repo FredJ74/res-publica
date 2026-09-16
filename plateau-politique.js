@@ -525,8 +525,13 @@ async function ouvrirCalendrierElectoral() {
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
+      // LE CALENDRIER DEVIENT LE TABLEAU DE BORD DE L'ELECTION (16 septembre 2026) : chaque
+      // candidat declare y figure, avec l'acces direct a son programme publie au forum.
       (nbCandidats > 0
-        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' +
+          cycle.candidats.map(c => c.nom + (c.topicId
+            ? ' <a href="#" onclick="ouvrirProgrammeCandidat(\'' + String(c.topicId).replace(/'/g, '') + '\');return false;" style="color:#8aaaea;text-decoration:none;font-size:.68rem">[voir le programme]</a>'
+            : '')).join(' · ') + '</div>'
         : '') +
       // Détail calendaire réel (dates/heures) — plus un jargon de phase abstrait seul
       (detail.lignes.length > 0
@@ -538,8 +543,11 @@ async function ouvrirCalendrierElectoral() {
       // Boutons action
       '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
         '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Détails →</button>' +
-        (phase === PHASES_ELECTORALES.CANDIDATURES
-          ? '<button onclick="deposerCandidatureBtn2Btn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Candidater</button>'
+        // « Se porter candidat » vit desormais ICI, et nulle part ailleurs. La condition est celle
+        // du jeu (candidaturesOuvertes), pas la seule phase CANDIDATURES -- c'est la meme regle
+        // que verifie le serveur. Un candidat deja declare ne se la voit pas proposer deux fois.
+        ((candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name))
+          ? '<button onclick="ouvrirRedactionProgramme(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Se porter candidat</button>'
           : '') +
       '</div>' +
     '</div>';
@@ -554,6 +562,111 @@ async function ouvrirCalendrierElectoral() {
     lignes +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// ==========================================================================================
+// SE PORTER CANDIDAT : LE PROGRAMME D'ABORD (16 septembre 2026)
+// ==========================================================================================
+//
+// DECISION DE JEU : une candidature n'existe pas tant que son programme n'est pas public. Le
+// clic ci-dessous n'inscrit donc personne -- il ouvre le VRAI editeur du forum, celui qui sait
+// mettre en page et poser des images. C'est la publication qui vaut candidature.
+//
+// Refermer l'editeur, changer d'avis, partir ailleurs : rien ne s'est passe, et rien n'a coute.
+// Aucune exigence sur le contenu : un programme d'un mot est un programme. Ce qu'on impose, ce
+// n'est pas un effort d'ecriture, c'est un acte public.
+//
+// Cette memoire ne vit que le temps de la redaction. Elle ne PROUVE rien -- au moment de
+// publier, le serveur revalide tout : eligibilite, periode, cout, unicite.
+let _candidatureEnRedaction = null;
+
+function ouvrirRedactionProgramme(el) {
+  const posteId = el?.dataset?.poste;
+  const country = el?.dataset?.country || state.country;
+  const city = el?.dataset?.city || null;
+  if (!posteId) return;
+
+  const cle = getCleCycle(posteId, city);
+  const cycle = CYCLES_ELECTORAUX[country]?.[cle];
+  if (!cycle || !candidaturesOuvertes(cycle)) {
+    showToast('Candidatures closes', 'Les candidatures a ce scrutin sont closes.', false);
+    return;
+  }
+  const poste = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local]
+    .find(x => x.id === posteId);
+  if (!poste) return;
+
+  _candidatureEnRedaction = {
+    posteId, country,
+    city: posteEstLocal(posteId) ? (city || state.currentCity || null) : null,
+    cleScrutin: (typeof cleEcheanceElectorale === 'function')
+      ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures,
+    titreSuggere: '🗳️ Programme de ' + (state.char?.name || '') + ' — ' + poste.name
+      + (posteEstLocal(posteId) ? ' (' + (WORLD[country]?.[city || state.currentCity]?.name || '') + ')' : '')
+  };
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  // Le forum LOCAL pour un scrutin de ville, NATIONAL pour un scrutin national -- exactement le
+  // choix que faisait deja le depot de candidature avant ce lot.
+  const forumCible = posteEstLocal(posteId) ? 'local' : 'national';
+  if (typeof ouvrirForumSurEditeur === 'function') {
+    ouvrirForumSurEditeur(forumCible, _candidatureEnRedaction.titreSuggere);
+  } else {
+    showToast('Forum indisponible', "L'editeur du forum n'est pas accessible pour le moment.", false);
+    _candidatureEnRedaction = null;
+  }
+}
+
+// Publication du programme = depot de la candidature. Appelee par l'editeur du forum a la place
+// de sa publication ordinaire quand une redaction de programme est en cours. Renvoie true si
+// l'editeur doit considerer la publication faite (et se refermer), false pour le laisser suivre
+// son chemin habituel.
+async function publierProgrammeCandidature(titre, contenu) {
+  const att = _candidatureEnRedaction;
+  if (!att) return false;
+  if (typeof sbRpc !== 'function') return false;
+
+  const rows = await sbRpc('candidature_publier', {
+    p_poste: att.posteId, p_city: att.city,
+    p_cle_scrutin: (att.cleScrutin != null && isFinite(Number(att.cleScrutin))) ? Number(att.cleScrutin) : null,
+    p_titre: titre || att.titreSuggere, p_contenu: contenu || ''
+  }).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+
+  if (!rows || rows.ok !== true) {
+    showToast('Candidature refusee', messageRefusCandidature(rows), false);
+    return true;   // traite : on ne publie pas un sujet orphelin a la place
+  }
+  _candidatureEnRedaction = null;
+
+  // Le serveur a debite les PA : on recopie son solde plutot que de le recalculer.
+  if (rows.pa != null) {
+    state.pa = Number(rows.pa);
+    if (typeof updateUI === 'function') updateUI();
+  }
+  if (!rows.deja_candidat) {
+    showToast('Candidature enregistree', 'Votre programme est publie : vous etes officiellement candidat.', true, true);
+    addJournalEntry('🗳️ Candidature deposee et programme publie.', 'event-info');
+  }
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase().catch(() => {});
+  return true;
+}
+
+function messageRefusCandidature(r) {
+  const raison = r && r.raison;
+  if (raison === 'influence_insuffisante') return 'Votre influence est insuffisante pour ce poste (' + (r.reel || 0) + '/' + (r.requis || 0) + ').';
+  if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
+  if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
+  if (raison === 'deja_depute') return 'Vous etes deja depute.';
+  if (raison === 'pa_insuffisants') return 'Il vous faut 2 PA pour deposer une candidature.';
+  if (raison === 'poste_inconnu') return 'Ce scrutin n\'existe pas.';
+  return 'Les candidatures a ce scrutin sont closes, ou la candidature n\'a pas pu etre enregistree. Rien n\'a ete debite.';
+}
+
+function ouvrirProgrammeCandidat(topicId) {
+  if (!topicId) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof ouvrirForumSurTopic === 'function') ouvrirForumSurTopic(topicId);
+  else showToast('Programme indisponible', "Le forum n'est pas accessible pour le moment.", false);
 }
 
 function deposerCandidatureBtn2Btn(el) { deposerCandidatureBtn2(el.dataset.poste, el.dataset.country, el.dataset.city); }
@@ -794,6 +907,11 @@ async function syncCyclesDepuisSupabase() {
       const candidatsRetenus = await filtrerCandidaturesDePersonnagesExistants(candidaturesDuScrutin);
       CYCLES_ELECTORAUX[country][cle].candidats = candidatsRetenus.map(c => ({
         nom: c.nom, programme: c.programme, archetype: c.archetype,
+        // topicId : le sujet officiel du programme, publie par le serveur au moment du depot
+        // (16 septembre 2026). Il permet au calendrier d'offrir « Voir le programme » sans
+        // deviner quoi que ce soit -- et son absence, sur une candidature anterieure a ce lot,
+        // se traduit simplement par un bouton en moins.
+        topicId: c.topic_id || null,
         prospectusDistribues: 0,
         dateInscription: c.created_at ? Date.parse(c.created_at) : undefined
       }));
@@ -4624,6 +4742,80 @@ function consulterAnnuaireDeputes() {
 // getTitulairePosteNomme (ex-fonction locale) retiree le 9 aout 2026 (refonte des postes) —
 // remplacee partout par getTitulaireActuel (plateau-organisations-quetes.js), qui couvre
 // aussi les postes elus, pas seulement les postes nommes.
+
+// REGROUPEMENT DES POSTES NOMMES SOUS UN SEUL BOUTON (16 septembre 2026).
+//
+// Trois ordres pour l'Entrepot, deux pour le Maire adjoint, deux pour le Commissaire : autant de
+// boutons pour ce qui est, du point de vue du joueur, une seule question -- « qui occupe ce poste,
+// et qu'est-ce que j'en fais ? ». Cet ecran repond d'abord a la premiere partie, puis propose les
+// actions existantes. RIEN d'autre ne change : memes primitives, memes couts, memes autorites,
+// memes effets. Les PA sont preleves par les actions elles-memes, comme avant -- le bouton
+// d'ouverture, lui, est gratuit, exactement comme « Se porter candidat » l'etait.
+//
+// GENERIQUE PAR CONSTRUCTION : la ville vient de POSTES_NOMMES_EXCLUSIFS[posteId].scope et de
+// state.currentCity. Luthecia, Montrouge et Port-Sainte-Marie empruntent le meme chemin.
+const ACTIONS_POSTE_NOMME = {
+  commissaire:        { candidatures: null, nommer: 3, revoquer: 1 },
+  maire_adjoint:      { candidatures: 1,    nommer: null, revoquer: 1 },
+  directeur_entrepot: { candidatures: 1,    nommer: 3,    revoquer: 1 }
+};
+
+async function ouvrirGestionPosteNomme(posteId) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  const actions = ACTIONS_POSTE_NOMME[posteId];
+  if (!regle || !actions) return;
+
+  // Meme garde d'autorite que chacun des anciens ordres, verifiee ici une fois pour toutes --
+  // les handlers appeles ensuite la revalident chacun de leur cote, et le serveur aussi.
+  if (!autoriteCouvre(state.poste?.id || '', regle.nommePar)) {
+    showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut gerer ce poste.', false);
+    return;
+  }
+
+  const ville = regle.scope === 'ville' ? (state.currentCity || null) : null;
+  const villeNom = ville ? (WORLD[state.country]?.[ville]?.name || ville) : null;
+  document.getElementById('postes-modal-title').textContent = regle.label + (villeNom ? ' — ' + villeNom : '');
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem;color:#8a8060;font-style:italic">Consultation du registre...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const titulaire = await getTitulaireActuel(posteId, ville);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">';
+  if (titulaire) {
+    html += '<b>' + titulaire.nom + '</b>' + (titulaire.estPJ ? '' : ' (PNJ)') + ' occupe actuellement ce poste';
+    if (titulaire.estPJ && estPosteProtege(titulaire.posteComplet)) {
+      html += '.<br><span style="color:#8a6a20;font-style:italic;font-size:.78rem">Protection apres nomination : '
+            + tempsProtectionRestanteTexte(titulaire.posteComplet) + ' restant.</span>';
+    } else {
+      html += '.';
+    }
+  } else {
+    html += '<i>Poste vacant' + (villeNom ? ' a ' + villeNom : '') + '.</i>';
+  }
+  html += '</div><div style="display:flex;flex-direction:column;gap:.5rem">';
+
+  const bouton = (onclick, libelle, cout, couleur) =>
+    '<button onclick="' + onclick + '" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.09em;'
+    + 'padding:.55rem;border:1px solid ' + couleur + ';background:transparent;color:' + couleur + ';cursor:pointer;text-align:left">'
+    + libelle + (cout ? ' <span style="opacity:.7">(' + cout + ' PA)</span>' : '') + '</button>';
+
+  if (actions.candidatures !== null) {
+    html += bouton("ouvrirGestionCandidatures(['" + posteId + "']," + actions.candidatures + ",0)",
+                   'Gerer les candidatures recues', actions.candidatures, '#8a7a40');
+  }
+  if (actions.nommer !== null) {
+    html += bouton("ouvrirNominerPosteNomme('" + posteId + "'," + actions.nommer + ",0)",
+                   titulaire ? 'Nommer quelqu\'un d\'autre' : 'Nommer un titulaire', actions.nommer, '#8a7a40');
+  }
+  if (actions.revoquer !== null && titulaire) {
+    html += bouton("ouvrirRevoquerPosteNomme('" + posteId + "'," + actions.revoquer + ",0)",
+                   'Revoquer le titulaire', actions.revoquer, '#8a3a2a');
+  }
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
 
 async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];

@@ -337,7 +337,10 @@ const WORLD = {
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
                 {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
-                {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+                // « Se porter candidat » a quitte la salle de vote (16 septembre 2026) : le parcours unique
+                // passe desormais par le Calendrier electoral, d'ou l'on choisit son scrutin puis on redige
+                // son programme. La primitive de depot, elle, vit toujours -- c'est la publication du
+                // programme qui la declenche.
                 {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
                 {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
                 {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
@@ -850,7 +853,10 @@ const WORLD = {
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
                 {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
-                {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+                // « Se porter candidat » a quitte la salle de vote (16 septembre 2026) : le parcours unique
+                // passe desormais par le Calendrier electoral, d'ou l'on choisit son scrutin puis on redige
+                // son programme. La primitive de depot, elle, vit toujours -- c'est la publication du
+                // programme qui la declenche.
                 {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
                 {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
                 {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
@@ -3079,10 +3085,8 @@ const BUILDINGS = {
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.'},
           {fn:'repartition_budget_local', label:'Repartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
-          {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
-          {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'},
-          {fn:'revoquer_maire_adjoint', label:'Révoquer le Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste au Maire Adjoint actuellement en fonction.'}
+          {fn:'commissaire_gestion', label:'Commissaire', pa:0, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, nomination et révocation du commissaire de cette ville — regroupés en un seul écran.'},
+          {fn:'maire_adjoint_gestion', label:'Maire adjoint', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, candidatures reçues et révocation — regroupés en un seul écran.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -3096,9 +3100,10 @@ const BUILDINGS = {
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
-          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},
-          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur d\'entrepôt', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire_adjoint', desc:"Nommer un PJ directeur de l'entrepôt de cette ville. Poste exclusif (sauf député)."},
-          {fn:'revoquer_directeur_entrepot', label:"Revoquer le directeur d'entrepôt", pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire_adjoint', desc:"Retirer le poste de directeur d'entrepôt au titulaire actuel de la ville."}
+          // REGROUPEMENT UX (16 septembre 2026) : les trois actions Entrepôt tiennent derrière un
+          // seul bouton. Aucune règle ne change -- l'écran qui s'ouvre propose exactement les
+          // mêmes actions, avec leurs coûts, leurs autorités et leurs effets d'origine.
+          {fn:'entrepot_direction', label:'Entrepôt', pa:0, cost:0, type:'legal', icon:'ti-building-warehouse', successRate:100, requiresPost:'maire_adjoint', desc:"Gérer la direction de l'Entrepôt Logistique de cette ville : candidatures, nomination, révocation."}
         ]
       },
       salle_elections: {
@@ -3112,7 +3117,10 @@ const BUILDINGS = {
         orders: [
           {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
           {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
-          {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+          // « Se porter candidat » a quitte la salle de vote (16 septembre 2026) : le parcours unique
+                // passe desormais par le Calendrier electoral, d'ou l'on choisit son scrutin puis on redige
+                // son programme. La primitive de depot, elle, vit toujours -- c'est la publication du
+                // programme qui la declenche.
           {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
           {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
           {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
@@ -3622,10 +3630,8 @@ const BUILDINGS = {
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale.'},
           {fn:'repartition_budget_local', label:'Répartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
-          {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
-          {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'},
-          {fn:'revoquer_maire_adjoint', label:'Révoquer le Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste au Maire Adjoint actuellement en fonction.'}
+          {fn:'commissaire_gestion', label:'Commissaire', pa:0, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, nomination et révocation du commissaire de cette ville — regroupés en un seul écran.'},
+          {fn:'maire_adjoint_gestion', label:'Maire adjoint', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, candidatures reçues et révocation — regroupés en un seul écran.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -3640,9 +3646,10 @@ const BUILDINGS = {
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
-          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},
-          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur d\'entrepôt', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire_adjoint', desc:"Nommer un PJ directeur de l'entrepôt de cette ville. Poste exclusif (sauf député)."},
-          {fn:'revoquer_directeur_entrepot', label:"Revoquer le directeur d'entrepôt", pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire_adjoint', desc:"Retirer le poste de directeur d'entrepôt au titulaire actuel de la ville."}
+          // REGROUPEMENT UX (16 septembre 2026) : les trois actions Entrepôt tiennent derrière un
+          // seul bouton. Aucune règle ne change -- l'écran qui s'ouvre propose exactement les
+          // mêmes actions, avec leurs coûts, leurs autorités et leurs effets d'origine.
+          {fn:'entrepot_direction', label:'Entrepôt', pa:0, cost:0, type:'legal', icon:'ti-building-warehouse', successRate:100, requiresPost:'maire_adjoint', desc:"Gérer la direction de l'Entrepôt Logistique de cette ville : candidatures, nomination, révocation."}
         ]
       }
     }

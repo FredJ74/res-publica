@@ -1,0 +1,53 @@
+-- UNE CANDIDATURE N'EXISTE QU'AVEC SON PROGRAMME PUBLIE (16 septembre 2026).
+-- DEJA EXECUTEE en production (migration MCP : candidature_publication_atomique).
+--
+-- DECISION DE JEU : le clic « Se porter candidat » n'inscrit plus personne. Il ouvre la redaction
+-- du programme dans le VRAI editeur du forum ; c'est la PUBLICATION qui vaut candidature. Fermer
+-- l'editeur ne coute rien et ne declare personne. Aucune exigence sur le contenu : ce qu'on
+-- impose n'est pas un effort d'ecriture, c'est un acte public.
+--
+-- candidature_publier est le point unique ou tout se joue, dans UNE SEULE TRANSACTION :
+-- eligibilite, periode, cout, candidature, sujet officiel. Si quoi que ce soit echoue, rien ne
+-- reste -- ni candidature, ni PA debites, ni faux programme abandonne au forum.
+--
+-- GENERIQUE PAR CONSTRUCTION : rien n'est propre a une ville. Le pays vient de la fiche du
+-- candidat, la ville est celle du scrutin, un poste national l'ignore. Luthecia, Montrouge et
+-- Port-Sainte-Marie empruntent exactement le meme chemin, avec les memes cycles
+-- (maire/capitale, maire/ville_a, maire/ville_b, depute/... deja presents en base).
+--
+-- CE QUI EST REUTILISE, ET NON REECRIT :
+--   * trg_candidatures_cloture verifiait DEJA la periode a l'INSERT -- on le laisse faire : son
+--     exception annule toute la transaction, donc le paiement et le sujet avec lui ;
+--   * payer_ordre preleve les 2 PA de 'deposer_candidature', via le miroir des couts ;
+--   * l'identifiant de candidature garde exactement la forme du client (pays_cle_nom[_scrutin]) :
+--     un second depot au meme scrutin bute sur la cle primaire.
+--
+-- MIROIR DES REGLES : postes_electifs_regles est GENERE depuis le vrai data.js par
+-- .scratch/generer_postes_electifs.py (empreinte 2390eb52a42ae6a6). Sans lui, le serveur ne
+-- pourrait pas verifier l'influence minimale et devrait croire le navigateur. A REJOUER si
+-- POSTES_ELECTIFS change.
+--
+-- ELIGIBILITE VERIFIEE PAR LE SERVEUR, telle qu'elle existe deja dans le jeu : domiciliation
+-- dans l'empire, influence minimale du poste, cumul president/maire interdit, deja depute,
+-- deja candidat, periode ouverte.
+--
+-- LIEN CANDIDATURE <-> PROGRAMME : colonne additive candidatures.topic_id, et identifiant de
+-- sujet derive de la candidature ('topic-programme-<id>'). Le calendrier retrouve donc le
+-- programme sans rien deviner. Un client ne peut pas fabriquer un faux programme officiel : un
+-- declencheur refuse tout sujet dont l'identifiant porte ce prefixe, sauf a venir de la RPC.
+--
+-- EDITION : aucune mecanique nouvelle. Le premier message est un message de forum ordinaire, que
+-- son auteur edite avec les droits habituels -- corriger une faute ne recree rien et ne redebite
+-- rien.
+--
+-- Eprouve en transaction annulee sur la base reelle : publication -> candidature creee, 12 -> 10
+-- PA, sujet dans le forum local ; deux appels -> 10 PA, 1 candidature, 1 sujet ; influence
+-- insuffisante -> refus, PA intacts, rien cree ; hors periode -> refus, PA intacts, rien cree ;
+-- faux 'topic-programme-...' insere par un client -> refuse.
+--
+-- POINT D'ARBITRAGE REMONTE, NON TRANCHE : il n'existe pas de forum local PAR VILLE. forum_id
+-- 'local' est un identifiant global, et forum_topics n'a pas de colonne ville. Le programme d'un
+-- candidat de Montrouge parait donc dans le meme forum « Local » que celui d'un candidat de
+-- Luthecia -- exactement comme le faisait deja le depot de candidature avant ce lot. Creer des
+-- forums locaux par ville (modele 'tribunal_<ville>', qui existe) serait une refonte du forum,
+-- explicitement hors perimetre ici.
