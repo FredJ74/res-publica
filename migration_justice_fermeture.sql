@@ -1,0 +1,61 @@
+-- JUSTICE : PASSE DE FERMETURE (16 septembre 2026).
+-- DEJA EXECUTEE en production (migrations MCP : justice_qhs_registre_et_geoles,
+-- justice_condamnations_recherchees_canoniques, justice_garde_a_vue_enquete).
+--
+-- PRINCIPE : `detentions` est la source de verite de toute incarceration effective.
+-- `personnages.est_emprisonne` n'est plus qu'un miroir de compatibilite, ecrit par le serveur
+-- dans la meme transaction que la table canonique. Une personne CONDAMNEE MAIS LIBRE n'a jamais
+-- de ligne `detentions` -- c'est l'invariant pose par le game design.
+--
+-- 1. REGISTRE QHS. prisonniers_qhs avait la RLS DESACTIVEE : n'importe quel navigateur pouvait y
+--    inscrire qui il voulait. La table est alignee sur `detentions` -- lecture publique, ecriture
+--    limitee a soi-meme, aucun DELETE. Les deux chemins legitimes du client (placerAuQHS,
+--    rebellion matee) inscrivent le joueur lui-meme et fonctionnent toujours ; la sentence QHS du
+--    juge, qui visait un tiers, passe desormais par justice_prolonger_peine, qui tient le registre
+--    dans la meme transaction que la peine.
+--
+-- 2. PROLONGATION. justice_prolonger_peine cherchait la detention dans est_emprisonne ; elle lit
+--    maintenant `detentions` via detention_active().
+--
+-- 3. GEOLES. La liste des detenus interrogeait est_emprisonne CHEZ AUTRUI -- masque depuis le
+--    chantier B, donc toujours vide. geoles_detenus(pays, ville) la construit depuis `detentions`
+--    (mode_fin et jour_fin_effective nuls) et ne renvoie que nom, photo et drapeau QHS. Une peine
+--    close disparait de la liste a l'instant ou elle est close.
+--
+-- 4. CONDAMNES RECHERCHES. L'avis de recherche vivait dans le blob personnages.recherche, ecrit
+--    par read-modify-write depuis le navigateur du juge : refuse depuis le chantier B, donc plus
+--    personne n'etait jamais recherche -- ni les condamnes, ni les deserteurs. AUCUNE TABLE
+--    NOUVELLE : `jugements` existait deja, vide, et porte la bonne notion (accuse, motif, peine,
+--    juge, executee). Une condamnation `executee = false` EST l'avis de recherche. Seul ajout,
+--    additif : une colonne `data` pour conserver l'entree telle que le jeu la compose.
+--      * justice_condamner(cible, entree)        -- reserve au juge
+--      * justice_recherches(nom)                 -- lecture minimale
+--      * justice_executer_condamnation(id, ville)-- reserve au commissaire : c'est ici, et la
+--        seule, que « recherche » devient « detenu ». Elle passe par detention_ouvrir_interne,
+--        refuse d'ouvrir une seconde peine sur quelqu'un de deja detenu, et se verrouille
+--        (FOR UPDATE) : rejouee, elle ne cree pas de double detention.
+--
+-- 5. GARDE A VUE APRES ENQUETE. traiterEnquetes ouvrait la detention de la cible par une ecriture
+--    directe sur sa fiche -- refusee, et avalee par un .catch() muet : on annoncait « mise en
+--    garde a vue immediate » et la personne continuait de jouer. enquete_garde_a_vue passe par la
+--    primitive canonique. L'autorite n'est pas declaree mais PROUVEE : le serveur relit le blob
+--    enquetes_en_cours SUR LA FICHE DE L'APPELANT et exige d'y retrouver une enquete visant cette
+--    cible et arrivee a terme.
+--
+-- 6. FRAUDE ELECTORALE (cote client). emprisonnerPourFraude posait un est_emprisonne fabrique a
+--    la main, SANS detentionId ni debutTs : la peine etait invisible du registre du commissariat
+--    ET du filet de liberation nocturne, qui s'ancre sur debutTs. Elle passe par
+--    enregistrerDetention comme toutes les autres, et liberationElection est simplement repose
+--    apres coup. Sanction inchangee.
+--
+-- 7. CHASSE A L'HOMME (cote client). Elle lisait le blob `recherche` de la cible (toujours vide,
+--    donc injouable contre quiconque) puis ouvrait la detention et retirait l'avis sur la fiche
+--    d'autrui (refuse). Elle lit desormais justice_recherches et execute par
+--    justice_executer_condamnation ; un refus n'annonce plus ni arrestation, ni mail, ni evenement.
+--
+-- Aucune duree, aucun motif, aucune autorite, aucune sanction n'a ete modifie.
+--
+-- Bancs : .scratch/banc_justice_qhs.py (25 controles) + chaine complete eprouvee en transaction
+-- annulee sur la base reelle : condamnation -> 0 detention / 1 avis ; execution -> 1 detention,
+-- 0 avis, miroir pose, 1 detenu dans les geoles ; rejeu -> toujours 1 detention ; cloture ->
+-- 0 detention active, 0 dans les geoles.

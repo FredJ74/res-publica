@@ -594,10 +594,18 @@ async function traiterEnquetes() {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
     } else {
       result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
-      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete', undefined, undefined, e.city, {
-        country: e.country || state.country,
-        motifs: [{ type: e.motif || 'Garde a vue suite a enquete', jour_fait: e.day, city: e.city, jours: null, source: 'garde_a_vue', date_evenement: new Date().toISOString() }]
-      });
+      // GARDE A VUE PAR LE SERVEUR (16 septembre 2026). Cette ligne ouvrait la detention par une
+      // ecriture directe sur la fiche de la cible -- refusee depuis le chantier B et avalee par
+      // un .catch() muet : on annoncait « mise en garde a vue immediate » et la personne
+      // continuait de jouer. enquete_garde_a_vue passe par la primitive canonique, apres avoir
+      // verifie SUR LA FICHE DE L'APPELANT que cette enquete existe et est arrivee a terme.
+      const rGav = await sbRpc('enquete_garde_a_vue', {
+        p_cible: e.cible, p_motif: e.motif || 'Garde a vue suite a enquete', p_ville: e.city
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!rGav || rGav.ok !== true) {
+        // Le serveur a refuse : on ne raconte pas une arrestation qui n'a pas eu lieu.
+        result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. La garde a vue n'a pas pu etre executee.`;
+      }
       addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
       // Transmettre au tribunal pour jugement public
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
@@ -2320,7 +2328,10 @@ async function appliquerSentence(affaireId, type, pa, cost) {
         const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(affaire.cible)}&select=photoUrl`).catch(() => []);
         photoUrl = rows?.[0]?.photoUrl || null;
       }
-      await sbCreerPrisonnierQHS({ pays: state.country || 'republic', nom: affaire.cible, raison: affaire.motif, photoUrl, jourDebut: state.day, jourFin: state.day + 30 }).catch(() => {});
+      // Le registre du QHS est desormais tenu par justice_prolonger_peine, dans la meme
+      // transaction que la detention (16 septembre 2026). L'inscription depuis le navigateur du
+      // juge visait la fiche d'un tiers : prisonniers_qhs n'accepte plus que les inscriptions
+      // qu'un joueur fait pour lui-meme.
       if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
     }
   } else if (type === 'torture') {
@@ -10413,7 +10424,28 @@ async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
 // pas eu lieu (voir confirmerOrganiserChasseHomme). personnages.recherche reste le meme champ
 // que les avis de recherche existants (actes auto-detectes) ; les anciennes entrees plates
 // {acte,type,jour} continuent de coexister sans etre touchees ni migrees.
+// LES CONDAMNES ENCORE LIBRES VIVENT DANS `jugements` (16 septembre 2026).
+//
+// Cette fonction relisait le blob `recherche` de la cible puis le reecrivait : depuis le
+// chantier B la lecture rend `[]` et l'ecriture est refusee -- personne n'etait plus jamais mis
+// sous avis de recherche, ni les condamnes du tribunal ni les deserteurs. Et une reouverture
+// naive aurait efface les avis existants, le blob relu etant vide.
+//
+// `jugements` portait deja la bonne notion (accuse, motif, peine, juge, executee) : on s'y
+// adosse plutot que d'inventer une table. Une condamnation non executee EST l'avis de recherche ;
+// aucune detention n'est creee tant qu'elle n'est pas executee.
 async function ajouterCondamnationRecherche(nom, entree) {
+  if (nom && nom !== state.char?.name && typeof sbRpc === 'function') {
+    const rows = await sbRpc('justice_condamner', { p_cible: nom, p_entree: entree })
+      .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+    return !!(rows && rows.ok === true);
+  }
+  return ajouterCondamnationRechercheLocale(nom, entree);
+}
+
+// Chemin conserve pour SA PROPRE fiche (evasion, fuite ratee) : le joueur ecrit sur sa ligne,
+// ce que les policies autorisent, et aucun pouvoir n'est en jeu.
+async function ajouterCondamnationRechercheLocale(nom, entree) {
   if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=recherche`).catch(() => []);
   const actuelle = rows?.[0]?.recherche || [];
@@ -10660,12 +10692,24 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
     motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche', date_evenement: new Date().toISOString() }];
     extra = { country: entree.country || state.country, motifs: motifsDetention };
   }
-  const detentionId = (typeof enregistrerDetention === 'function') ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
-  // Ne retirer QUE l'entree effectivement traitee (egalite de reference, l'objet vient bien du
-  // meme tableau juste charge) -- jamais tout le tableau.
-  const rechercheMaj = rechercheActuelle.filter(r => r !== entree);
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { recherche: rechercheMaj }).catch(() => {});
-  return { motif, joursTotal, detentionId };
+  // L'EXECUTION EST UNE TRANSACTION SERVEUR (16 septembre 2026). Ces deux ecritures visaient la
+  // fiche de la cible -- ouvrir sa detention, puis retirer l'avis execute de son blob `recherche`.
+  // Toutes deux refusees depuis le chantier B : la chasse etait annoncee reussie, la personne
+  // restait libre ET toujours recherchee. justice_executer_condamnation ouvre la detention par la
+  // primitive canonique et clot la condamnation dans le meme mouvement ; rejouee, elle ne cree
+  // pas de seconde peine.
+  if (nom === state.char?.name) {
+    // Flagrant delit sur soi-meme : chemin direct conserve, aucune autorite en jeu.
+    const detentionId = (typeof enregistrerDetention === 'function')
+      ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
+    return { motif, joursTotal, detentionId };
+  }
+  const rEx = (typeof sbRpc === 'function' && entree && entree.id)
+    ? await sbRpc('justice_executer_condamnation', { p_jugement_id: entree.id, p_ville: ville })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!rEx || rEx.ok !== true) return { motif, joursTotal: 0, detentionId: null, echec: true };
+  return { motif, joursTotal: Number(rEx.jours || joursTotal), detentionId: rEx.detention_id || null };
 }
 
 async function confirmerOrganiserChasseHomme(pa, cost) {
@@ -10674,8 +10718,16 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
-  const rechercheRows = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(cible)}&select=recherche`).catch(() => []) : [];
-  const rechercheActuelle = rechercheRows?.[0]?.recherche || [];
+  // LES CONDAMNATIONS VIENNENT DU SERVEUR (16 septembre 2026). Cette lecture interrogeait le blob
+  // `recherche` de la cible : masque depuis le chantier B, il rendait toujours `[]` -- la chasse a
+  // l'homme etait donc injouable contre qui que ce soit, sans le dire. justice_recherches ne
+  // renvoie que les condamnations reellement prononcees et non encore executees.
+  const rechercheRows = typeof sbRpc === 'function'
+    ? await sbRpc('justice_recherches', { p_nom: cible }).catch(() => []) : [];
+  const rechercheActuelle = (Array.isArray(rechercheRows) ? rechercheRows : []).map(function (r) {
+    return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
+                                             ville_condamnation: r.ville_condamnation });
+  });
   // Competence territoriale (regle validee, 26 aout 2026) : une condamnation n'est executable
   // que dans le meme empire. Les anciennes entrees plates (actes auto-detectes, sans `country`)
   // n'ont jamais porte cette information -- on ne leur applique donc pas retroactivement de
@@ -10721,7 +10773,13 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026). Execution factorisee
   // (executerCondamnationRecherchee) avec verifierArrestationRecherchePolice, meme logique.
   const entree = eligibles[0];
-  const { joursTotal } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
+  const { joursTotal, echec } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
+  if (echec) {
+    // Le serveur a refuse -- cible deja detenue, condamnation deja executee, autorite absente.
+    // On n'annonce ni arrestation, ni mail, ni evenement public : rien n'a eu lieu.
+    showToast('Arrestation impossible', cible + " n'a pas pu etre arrete(e) : la condamnation n'est plus executable.", false);
+    return;
+  }
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
   }

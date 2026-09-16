@@ -2152,11 +2152,30 @@ function departageCandidats(candidats, nomA, nomB) {
 // est effectivement clos (liberationElection, verifie cote serveur). "24h reelles" (bourrage
 // d'urnes) reprend exactement l'idiome deja existant du jeu pour une peine de ce type (jours:1,
 // voir plateau-communication.js/distribuerTractCalomnieux).
-function emprisonnerPourFraude(joursPlafond, raison, liberationElection) {
+async function emprisonnerPourFraude(joursPlafond, raison, liberationElection) {
+  // DETENTION CANONIQUE (16 septembre 2026). Ce bloc posait un est_emprisonne fabrique a la main,
+  // SANS detentionId ni debutTs : la peine etait donc invisible du registre du commissariat ET du
+  // filet de liberation nocturne, qui s'ancre sur debutTs. Une detention fantome, que seule la
+  // navigation voyait. enregistrerDetention cree la vraie ligne `detentions` et le miroir, comme
+  // toutes les autres incarcerations -- le fraudeur s'emprisonne lui-meme, l'ecriture est donc
+  // autorisee sur sa propre fiche.
+  //
+  // La sanction ne change pas d'un jour. liberationElection est simplement REPOSE apres coup :
+  // c'est lui qui permet au cron de liberer des que CE scrutin est clos, avant le plafond.
   const jourFin = (state.day || 1) + joursPlafond;
-  state.estEmprisonne = { jours: joursPlafond, jourFin, raison, liberationElection: liberationElection || null };
+  if (typeof enregistrerDetention === 'function') {
+    await enregistrerDetention(state.char?.name, raison, jourFin, undefined, state.currentCity, {
+      country: state.country || 'republic',
+      source: 'fraude_electorale',
+      motifs: [{ type: raison, jour_fait: state.day || 1, city: state.currentCity || 'capitale',
+                 jours: joursPlafond, source: 'fraude_electorale',
+                 date_evenement: new Date().toISOString() }]
+    }).catch(() => {});
+  }
+  if (!state.estEmprisonne) state.estEmprisonne = { jours: joursPlafond, jourFin, raison };
+  state.estEmprisonne.liberationElection = liberationElection || null;
   if (state.char) state.char.estEmprisonne = state.estEmprisonne;
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 
 async function listerScrutinsPourFraude(filtrePoste) {
@@ -2251,7 +2270,7 @@ async function confirmerFalsifierListes(posteId, city, candidatNom) {
     showToast('Listes falsifiées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
     addJournalEntry('🗳️ Listes électorales falsifiées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    emprisonnerPourFraude(20, 'Falsification des listes électorales — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
+    await emprisonnerPourFraude(20, 'Falsification des listes électorales — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral.', false);
     addJournalEntry('🚨 Tentative de falsification des listes électorales déjouée.', 'event-bad');
   }
@@ -2317,7 +2336,7 @@ async function confirmerBourrerUrnes(posteId, city, candidatNom) {
     showToast('Urnes bourrées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
     addJournalEntry('🗳️ Urnes bourrées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    emprisonnerPourFraude(1, 'Bourrage d\'urnes — pris(e) sur le fait');
+    await emprisonnerPourFraude(1, 'Bourrage d\'urnes — pris(e) sur le fait');
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. 24h de prison.', false);
     addJournalEntry('🚨 Tentative de bourrage d\'urnes déjouée. 24h de prison.', 'event-bad');
   }
@@ -2412,7 +2431,7 @@ async function confirmerTruquerDepouillement(posteId, city, candidatNom, sens) {
     showToast('Dépouillement truqué', 'La fraude a réussi (' + (sens > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + ').', true, true);
     addJournalEntry('🗳️ Dépouillement truqué : ' + (sens > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + '.', 'event-good');
   } else {
-    emprisonnerPourFraude(20, 'Trucage du dépouillement — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
+    await emprisonnerPourFraude(20, 'Trucage du dépouillement — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral. Vous conservez votre poste.', false);
     addJournalEntry('🚨 Tentative de trucage du dépouillement déjouée.', 'event-bad');
     // Evenement public prioritaire pour La Tribune (demande explicite, section 7C) : jamais

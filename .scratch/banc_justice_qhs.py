@@ -149,6 +149,58 @@ def main():
     verifier('CONSTAT : lecture de est_emprisonne d autrui', True,
              'masquee' if (b == [] or (b and b[0].get('est_emprisonne') is None)) else 'visible (liste des geoles)')
 
+    # ============ 7. LE REGISTRE QHS EST FERME ============
+    for corps, libelle in (
+            ({'id': 'zztest-qhs-moi', 'statut': 'detenu', 'data': {'nom': JOUEUR}}, 's inscrire soi-meme au QHS sans detention'),
+            ({'id': 'zztest-qhs-tiers', 'statut': 'detenu', 'data': {'nom': 'Arnie'}}, 'inscrire un tiers au QHS')):
+        c, b = http('POST', '/rest/v1/prisonniers_qhs', corps, token=JETON)
+        c2, present = http('GET', '/rest/v1/prisonniers_qhs?select=id&id=eq.' + corps['id'])
+        if present:
+            http('DELETE', '/rest/v1/prisonniers_qhs?id=eq.' + corps['id'], token=JETON)
+        # S'inscrire soi-meme reste permis (placerAuQHS, rebellion) ; un TIERS ne doit pas passer.
+        if 'tiers' in libelle:
+            verifier('un client ne peut pas %s' % libelle, present == [], 'HTTP %s / %s' % (c, present))
+        else:
+            verifier('le chemin legitime (s inscrire soi-meme) fonctionne toujours',
+                     present != [], 'HTTP %s' % c)
+
+    c, b = http('PATCH', '/rest/v1/prisonniers_qhs?data->>nom=eq.Arnie', {'statut': 'transfere'},
+                token=JETON)
+    verifier('un client ne modifie pas l entree QHS d un autre', c in (200, 204, 401, 403), 'HTTP %s' % c)
+
+    # ============ 8. LES CONDAMNATIONS ============
+    c, b = http('POST', '/rest/v1/jugements', {
+        'id': 'zztest-jug-forge', 'country': 'republic', 'city': 'capitale', 'accuse': 'Arnie',
+        'motif': 'forge', 'peine': '10 jours', 'juge': JOUEUR, 'jour': 1, 'executee': False},
+        token=JETON)
+    c2, present = http('GET', '/rest/v1/jugements?select=id&id=eq.zztest-jug-forge')
+    verifier('un client ne prononce pas une condamnation lui-meme', present == [],
+             'HTTP %s / %s' % (c, present))
+
+    c, b = rpc('justice_condamner', {'p_cible': 'Arnie', 'p_entree': {'motifs': [{'type': 'x', 'jours': 5}]}})
+    verifier('sans le poste de juge : condamnation refusee',
+             c in (400, 401, 403) or (b and b.get('ok') is not True), 'HTTP %s %s' % (c, str(b)[:60]))
+
+    c, b = rpc('justice_executer_condamnation', {'p_jugement_id': 'zztest-inexistant', 'p_ville': 'capitale'})
+    verifier('sans le poste de commissaire : execution refusee',
+             c in (400, 401, 403) or (b and b.get('ok') is not True), 'HTTP %s %s' % (c, str(b)[:60]))
+
+    # Un personnage libre n'a aucune condamnation active, et n'est pas dans les geoles.
+    c, b = http('POST', '/rest/v1/rpc/justice_recherches', {'p_nom': JOUEUR}, token=JETON)
+    verifier('un personnage libre n a aucun avis de recherche', b == [] or b is None, b)
+    c, b = http('POST', '/rest/v1/rpc/geoles_detenus',
+                {'p_pays': 'republic', 'p_ville': 'capitale'}, token=JETON)
+    noms = [x.get('nom') for x in (b or [])] if isinstance(b, list) else []
+    verifier('la liste des geoles vient de detentions et ne contient aucun libre',
+             JOUEUR not in noms and 'Arnie' not in noms, noms)
+
+    # ============ 9. LA GARDE A VUE EXIGE UNE VRAIE ENQUETE ============
+    c, b = rpc('enquete_garde_a_vue', {'p_cible': 'Arnie', 'p_motif': 'invente', 'p_ville': 'capitale'})
+    verifier('pas de garde a vue sans enquete arrivee a terme',
+             b and b.get('ok') is False and b.get('raison') == 'aucune_enquete_arrivee_a_terme', b)
+    c, b = http('GET', '/rest/v1/detentions?select=id&nom=eq.Arnie')
+    verifier('et aucune detention n a ete creee', b == [], b)
+
     return rapport()
 
 

@@ -1959,15 +1959,21 @@ async function sbLoadDetentions(country, city) {
   return sbGet('detentions', `country=eq.${encodeURIComponent(country)}${filtreCity}&order=jour_debut.desc`);
 }
 
-// Salle des geoles (lot "geoles", 26 aout 2026) : personnages REELLEMENT emprisonnes en ce
-// moment dans CETTE prison precise (country+city), d'apres leur etat carceral vivant
-// (personnages.est_emprisonne), jamais depuis l'historique detentions -- une ancienne ligne
-// d'archive ne dit rien de l'etat actuel de quelqu'un. Filtre directement sur les sous-champs
-// jsonb city/country d'est_emprisonne (portes par enregistrerDetention/prolongerDetentionActive
-// depuis ce lot ; une detention active plus ancienne, sans ces sous-champs, ne remontera pas ici
-// -- aucune reconstruction retroactive tentee).
+// Salle des geoles : personnages REELLEMENT detenus en ce moment dans CETTE prison.
+//
+// La liste interrogeait personnages.est_emprisonne CHEZ AUTRUI. Depuis le chantier B ces colonnes
+// sont masquees : la requete ne rendait plus rien et la salle paraissait vide, quel que soit le
+// nombre de detenus. Elle vient desormais de `detentions`, source canonique (16 septembre 2026) --
+// et la crainte d'origine, qu'une vieille ligne d'archive fasse croire a une detention en cours,
+// est levee par le filtre du serveur : mode_fin et jour_fin_effective nuls, donc peine toujours
+// ouverte. Une peine purgee disparait de la liste au moment ou elle est close.
+//
+// Le serveur ne renvoie que ce que l'affichage demande -- un nom, une photo, un drapeau QHS.
 async function sbGetDetenusActifs(country, city) {
-  return sbGet('personnages', `est_emprisonne->>country=eq.${encodeURIComponent(country)}&est_emprisonne->>city=eq.${encodeURIComponent(city)}&select=name,photo_url,est_emprisonne`);
+  const rows = await sbRpc('geoles_detenus', { p_pays: country, p_ville: city }).catch(() => null);
+  if (!Array.isArray(rows)) return [];
+  return rows.map(r => ({ name: r.nom, photo_url: r.photo_url,
+                          est_emprisonne: { qhs: !!r.qhs, city, country } }));
 }
 
 async function sbCreerJugement(data) {
