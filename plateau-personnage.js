@@ -1721,45 +1721,28 @@ async function doDormir() {
   // desormais un bonus hotelier, apres cet appel, jamais ici.
   state.moral = Math.min(100, state.moral + 1 + (bonusLogement.moral || 0));
 
-  // Recuperation des PA (Lot 1, 18 aout 2026) — ADDITIVE : les PA restants avant sommeil ne
-  // sont plus jamais ecrases, seule la recuperation elle-meme s'ajoute au stock, sous reserve
-  // du plafond de reserve PA_MAX (plateau-core.js). state.paMax n'est plus recalcule ici : le
-  // plafond est desormais une constante fonctionnelle unique (PA_MAX). Plus aucun bonus lie a
-  // la simple presence dans un hotel (correctif du 23 aout 2026, voir plus haut) -- seul
-  // doDormirChambre() ajoute desormais +2 PA, apres cet appel, jamais ici.
-  const PA_BASE_NORMAL = 12;
-  let recuperationPA = PA_BASE_NORMAL;
-  let detentionQHS = null;
-  if (typeof sbGet === 'function' && state.char?.name) {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=detention_qhs`).catch(() => []);
-    detentionQHS = rows?.[0]?.detention_qhs ? (typeof rows[0].detention_qhs === 'string' ? JSON.parse(rows[0].detention_qhs) : rows[0].detention_qhs) : null;
+  // RECUPERATION DES PA — DESORMAIS TRANCHEE PAR LE SERVEUR (16 septembre 2026).
+  //
+  // C'etait la principale source de PA du jeu, et elle etait entierement cliente : +12 ecrits en
+  // memoire puis publies par la sauvegarde de fiche. Un joueur pouvait s'en donner autant qu'il
+  // voulait, et la detention en QHS ne mordait que s'il voulait bien la lire.
+  //
+  // pa_repos_nocturne applique EXACTEMENT les memes regles que les 40 lignes qu'elle remplace ici
+  // -- recuperation additive de +12 (PA_BASE_NORMAL), sanction QHS qui REMPLACE le stock par 1 ou
+  // 3 au lieu de s'y ajouter, consommation du bonus de repas, plafond PA_MAX -- mais sur le solde
+  // reel, avec un bonus differe que seul le serveur comptabilise, et une garde d'un repos par
+  // jour : ni state.day ni dernier_dormir, que le client ecrit, ne peuvent plus servir d'horloge.
+  // Le client recopie le solde arrete par le serveur ; il ne le calcule plus.
+  const rRepos = (typeof sbRpc === 'function' && state.char?.name)
+    ? await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null) : null;
+  const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
+  if (vRepos && typeof vRepos.pa === 'number') {
+    state.pa = vRepos.pa;
+    if (vRepos.bonus_consomme) {
+      addJournalEntry('Bonus de repas applique : +' + vRepos.bonus_consomme + ' PA.', 'event-good');
+    }
   }
-  if (detentionQHS?.enQHS) {
-    // Sanction QHS : remplace (ne s'ajoute pas a) le stock existant, pour empecher toute
-    // accumulation normale jusqu'a PA_MAX pendant la detention. Comportement inchange par
-    // rapport a avant ce lot -- seul le plafond global (Math.min ci-dessous) est nouveau, en
-    // pure securite (ne change rien en pratique tant que la sanction reste tres inferieure a
-    // PA_MAX).
-    const plafondQHS = detentionQHS.paLimite1Jour ? 1 : 3;
-    if (detentionQHS.paLimite1Jour) {
-      detentionQHS.paLimite1Jour = false;
-      if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { detention_qhs: JSON.stringify(detentionQHS) }).catch(() => {});
-    }
-    state.pa = plafondQHS;
-    if (state.bonusPaProchainDormir) {
-      state.pa += state.bonusPaProchainDormir;
-      addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
-      state.bonusPaProchainDormir = 0;
-    }
-    state.pa = Math.min(PA_MAX, Math.max(0, state.pa));
-  } else {
-    if (state.bonusPaProchainDormir) {
-      recuperationPA += state.bonusPaProchainDormir;
-      addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
-      state.bonusPaProchainDormir = 0;
-    }
-    state.pa = Math.min(PA_MAX, (state.pa || 0) + recuperationPA);
-  }
+  state.bonusPaProchainDormir = 0;   // le compteur de bonus differe vit desormais cote serveur
 
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
@@ -2461,7 +2444,11 @@ async function doServiceEtage(pa) {
   if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
   state.hp = Math.min(100, (state.hp || 0) + 10);
   state.moral = Math.min(100, (state.moral || 0) + 1);
-  state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+  // Bonus differe atteste : le serveur tient le compteur et connait le montant de la source.
+  if (typeof sbRpc === 'function' && state.char?.name) {
+    sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name,
+                                         p_source: 'service_etage_hotel' }).catch(() => {});
+  }
   updateUI();
   showToast('Service d\'etage', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.', true, true);
   addJournalEntry('Service d\'etage en chambre : +10 Sante, +1 Moral, +1 PA differe au prochain Dormir.', 'event-good');
@@ -2503,7 +2490,14 @@ async function doDormirChambre() {
     // Plafonne a PA_MAX (Lot 1) : doDormir() a deja plafonne sa propre recuperation, mais ce
     // bonus de chambre s'applique dans un second temps, en dehors de doDormir() -- sans ce
     // Math.min, il pourrait a lui seul faire depasser la reserve maximale.
-    state.pa = Math.min(PA_MAX, (state.pa || 0) + reservation.bonus.paBonus);
+    // Bonus de chambre : montant DECLARE cote serveur par batiment, et reservation consommee
+    // dans la meme transaction -- le blob de reservation, que le client ecrit, ne decide plus
+    // du montant (16 septembre 2026).
+    const rCh = (typeof sbRpc === 'function' && state.char?.name)
+      ? await sbRpc('pa_bonus_chambre', { p_acteur: state.char.name,
+                                          p_batiment: state.currentBuilding }).catch(() => null) : null;
+    const vCh = Array.isArray(rCh) ? rCh[0] : rCh;
+    if (vCh && typeof vCh.pa === 'number') state.pa = vCh.pa;
     state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
     // Consommation de la reservation (urgence du 27 aout 2026) : nullifiee sur state.char (meme
     // champ que la creation ci-dessus), persistee immediatement -- une reservation deja
@@ -2693,15 +2687,21 @@ async function consommerAliment(idx) {
     return;
   }
 
-  const age = Date.now() - item.dateAchat;
-  const perime = age > DUREE_FRAICHEUR_ALIMENT_MS;
+  // L'EFFET EN PA EST TRANCHE PAR LE SERVEUR (16 septembre 2026), dans la transaction qui retire
+  // reellement l'aliment : c'est le seul endroit ou une consommation est comptee exactement une
+  // fois. La fraicheur est appreciee sur l'horodatage du serveur ; la regle, elle, est la meme
+  // qu'avant (7 jours, +1 PA frais, -1 PA perime). Le client ne fait plus que dire ce qui s'est
+  // passe -- et se rabat sur son propre calcul pour le SEUL affichage si le serveur, plus ancien,
+  // ne le lui dit pas encore.
+  const perime = (typeof r.aliment_frais === 'boolean')
+    ? !r.aliment_frais
+    : (Date.now() - item.dateAchat) > DUREE_FRAICHEUR_ALIMENT_MS;
+  if (typeof r.pa === 'number') state.pa = r.pa;
 
   if (perime) {
-    state.pa = Math.max(0, (state.pa || 0) - 1);
     showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et vous rend malade. -1 PA.', false);
     addJournalEntry('Vous avez consommé "' + item.name + '" — périmé, -1 PA.', 'event-bad');
   } else {
-    state.pa = Math.min(PA_MAX, (state.pa || 0) + 1);
     showToast('Casse-croûte', 'Vous avez mangé votre ' + item.name + '. +1 PA.', true, true);
     addJournalEntry('Vous avez consommé "' + item.name + '". +1 PA.', 'event-good');
   }

@@ -321,6 +321,46 @@ def lancer():
              not (isinstance(r0, dict) and r0.get("ok") is True),
              "REFUS", "HTTP %s %s" % (code, str(r0)[:60]))
 
+    # --- 14. LES PA NE S'ECRIVENT PLUS DEPUIS LE NAVIGATEUR ---------------
+    # Meme nature de faille que le poste : une colonne de pouvoir que le client publiait.
+    http("PATCH", "/rest/v1/personnages?name=eq." + ATTAQUANT, {"pa": 10}, jeton=JETON_ATTAQUANT)
+    code, _ = http("PATCH", "/rest/v1/personnages?name=eq." + ATTAQUANT, {"pa": 999},
+                   jeton=JETON_ATTAQUANT)
+    c2, rep = http("GET", "/rest/v1/personnages?select=pa&name=eq." + ATTAQUANT, jeton=JETON_ATTAQUANT)
+    obtenu = rep[0]["pa"] if rep else "?"
+    verifier("14a", "un joueur ne peut pas s'attribuer des PA", obtenu == 10,
+             "REFUS", "HTTP %s, pa=%s" % (code, obtenu))
+
+    # Meme un seul PA de plus : le critere de fermeture est litteral.
+    http("PATCH", "/rest/v1/personnages?name=eq." + ATTAQUANT, {"pa": 11}, jeton=JETON_ATTAQUANT)
+    c2, rep = http("GET", "/rest/v1/personnages?select=pa&name=eq." + ATTAQUANT, jeton=JETON_ATTAQUANT)
+    obtenu = rep[0]["pa"] if rep else "?"
+    verifier("14b", "pas meme un seul PA supplementaire", obtenu == 10, "REFUS", "pa=%s" % obtenu)
+
+    # Et il ne peut pas davantage recharger un autre joueur (ni se faire recharger par complice).
+    code, _ = http("PATCH", "/rest/v1/personnages?name=eq." + VICTIME, {"pa": 30}, jeton=JETON_ATTAQUANT)
+    c2, rep = http("GET", "/rest/v1/personnages?select=pa&name=eq." + VICTIME)
+    obtenu = rep[0]["pa"] if rep else "?"
+    verifier("14c", "un joueur ne peut pas recharger les PA d'un autre", obtenu == 10,
+             "REFUS", "HTTP %s, pa=%s" % (code, obtenu))
+
+    # Les RPC de gain refusent de crediter un personnage qu'on ne possede pas.
+    code, rep = http("POST", "/rest/v1/rpc/pa_repos_nocturne", {"p_acteur": VICTIME},
+                     jeton=JETON_ATTAQUANT)
+    r0 = rep[0] if isinstance(rep, list) and rep else rep
+    c2, apres = http("GET", "/rest/v1/personnages?select=pa&name=eq." + VICTIME)
+    verifier("14d", "on ne repose pas le personnage d'un autre",
+             not (isinstance(r0, dict) and r0.get("ok") is True) and apres and apres[0]["pa"] == 10,
+             "REFUS", "HTTP %s %s" % (code, str(r0)[:60]))
+
+    # Les colonnes d'autorite des PA ne sont meme pas exposees par la vue.
+    for colonne in ("bonus_pa_differe", "pa_repos_le"):
+        code, rep = http("GET", "/rest/v1/personnages?select=%s&name=eq.%s" % (colonne, ATTAQUANT),
+                         jeton=JETON_ATTAQUANT)
+        verifier("14e" if colonne[0] == "b" else "14f",
+                 "%s n'est pas exposee au client" % colonne, code >= 400,
+                 "REFUS", "HTTP %s" % code)
+
     # Les registres d'autorite ne sont pas ecrivables par un client.
     for table, ligne in (("postes_attribues", {"id": "zztest-usurp", "country": "republic",
                                                "poste_id": "president", "city": None,

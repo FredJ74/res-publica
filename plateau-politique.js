@@ -1513,7 +1513,18 @@ async function confirmerCandidature(el) {
     (typeof cleEcheanceElectorale === 'function') ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures);
   if (!ecritureReussie) {
     // Refus serveur (cloture atteinte entre-temps) ou erreur : les 2 PA sont rendus.
-    if (r.paPreleves) state.pa = (state.pa || 0) + r.paPreleves;
+    // Remboursement ATTESTE (16 septembre 2026) : le montant est celui que l'ordre coute
+    // reellement d'apres le miroir serveur, et la reference (ce scrutin, ce candidat) fait
+    // qu'il ne peut etre accorde qu'une fois -- un remboursement rejouable serait un
+    // robinet a PA.
+    if (r.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
+      await sbRpc('pa_crediter_atteste', {
+        p_acteur: state.char.name, p_source: 'remboursement_ordre',
+        p_reference: 'candidature-' + posteId + '-' + (city || '') + '-' + cle,
+        p_ordre: 'deposer_candidature'
+      }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
+                        if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+    }
     showToast('Échec de l\'inscription', candidaturesOuvertes(cycle) ? 'La candidature n\'a pas pu être enregistrée. Réessayez.' : 'Les candidatures à ce scrutin sont closes.', false);
     return;
   }

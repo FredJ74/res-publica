@@ -69,8 +69,17 @@ def pa_serveur():
 
 
 def poser_pa(valeur, token):
+    """Depuis le verrou du 16 septembre 2026, le client ne peut que BAISSER ses PA. Pour remonter,
+       le banc passe par un gain legitime atteste -- c'est-a-dire par le jeu lui-meme."""
     http('PATCH', '/rest/v1/personnages?name=eq.' + urllib.request.quote(JOUEUR),
          {'pa': valeur}, token=token)
+
+
+def crediter(n, token):
+    for i in range(n):
+        rpc('pa_crediter_atteste', {'p_acteur': JOUEUR, 'p_source': 'aliment_frais',
+                                    'p_reference': '%s-remontee-%d-%d' % (JOUEUR, time.time(), i),
+                                    'p_ordre': None}, token)
 
 
 def payer(fn, pa, cost, token):
@@ -86,7 +95,8 @@ def main():
         'stats_affaiblies': {}, 'demandeur_emploi': False, 'bonus_lobbyiste': 0,
         'day': 5, 'pa': 12, 'liquide': 5000, 'arg': 5000
     }, token=tok, prefer='return=representation')
-    verifier('personnage de test cree avec 12 PA', c in (200, 201) and pa_serveur() == 12,
+    # La fiche demande 12 PA ; le serveur donne la reserve de depart du jeu, et rien d'autre.
+    verifier('personnage de test cree avec la reserve de depart', c in (200, 201) and pa_serveur() == 10,
              'HTTP %s / pa=%s' % (c, pa_serveur()))
 
     # ============ REPRODUCTION DU BUG D'ORIGINE ============
@@ -96,13 +106,13 @@ def main():
              b and b.get('ok') is False, b)
     verifier('et la raison n est PAS un manque de PA',
              b and b.get('raison') == 'cout_non_declare', b)
-    verifier('aucun PA preleve par ce refus', pa_serveur() == 12, pa_serveur())
+    verifier('aucun PA preleve par ce refus', pa_serveur() == 10, pa_serveur())
 
     # ============ LE CORRECTIF ============
     c, b = payer('deposer_candidature', 2, 0, tok)
-    verifier('12 PA / depot de candidature a 2 PA : ACCEPTE', b and b.get('ok') is True, b)
-    verifier('le serveur renvoie 10 PA', b and b.get('pa') == 10, b)
-    verifier('le serveur a reellement debite : relecture a 10', pa_serveur() == 10, pa_serveur())
+    verifier('10 PA / depot de candidature a 2 PA : ACCEPTE', b and b.get('ok') is True, b)
+    verifier('le serveur renvoie 8 PA', b and b.get('pa') == 8, b)
+    verifier('le serveur a reellement debite : relecture a 8', pa_serveur() == 8, pa_serveur())
     verifier('le montant preleve est annonce', b and b.get('pa_preleves') == 2, b)
 
     # ============ COUTS 1 / 2 / 3 PA SUR D AUTRES ORDRES ============
@@ -120,7 +130,7 @@ def main():
     verifier('PA exactement egaux au cout : accepte', b and b.get('ok') is True, b)
     verifier('solde ramene a 0', pa_serveur() == 0, pa_serveur())
 
-    poser_pa(1, tok)
+    crediter(1, tok)
     c, b = payer('deposer_candidature', 2, 0, tok)
     verifier('un PA de moins que le cout : refuse',
              b and b.get('ok') is False and b.get('raison') == 'pa_insuffisants', b)
@@ -128,14 +138,15 @@ def main():
     verifier('rien n est preleve sur un refus', pa_serveur() == 1, pa_serveur())
 
     # ============ LE CLIENT PEUT-IL FALSIFIER SES PA ? ============
+    # A l'origine de ce banc : oui, et payer_ordre prenait le solde falsifie pour argent comptant.
+    # Depuis le verrou du 16 septembre 2026, non -- et l'ordre reste donc impayable.
+    avant = pa_serveur()
     poser_pa(999, tok)
-    falsifiable = (pa_serveur() == 999)
-    verifier('CONSTAT : les PA restent ecrits par le client (a signaler, hors lot)',
-             True, 'pa apres falsification = %s' % pa_serveur())
-    if falsifiable:
-        c, b = payer('arreter', 3, 0, tok)
-        verifier('un solde falsifie est pris pour argent comptant par payer_ordre',
-                 True, 'accepte=%s' % (b and b.get('ok')))
+    verifier('le solde ne se falsifie plus par requete directe', pa_serveur() == avant,
+             'pa apres tentative = %s' % pa_serveur())
+    c, b = payer('arreter', 3, 0, tok)
+    verifier('et l ordre reste refuse faute de PA reels',
+             b and b.get('ok') is False and b.get('raison') == 'pa_insuffisants', b)
 
     return rapport()
 

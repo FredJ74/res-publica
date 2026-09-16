@@ -1193,7 +1193,12 @@ async function removeFromInventory(idx, motif, options) {
   state.inventory = r.inventory || [];
   if (typeof renderInventory === 'function') renderInventory();
   if (typeof updateUI === 'function') updateUI();
-  return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null };
+  // `pa` et `aliment_frais` : effets que le SERVEUR a appliques dans la meme transaction que le
+  // retrait (consommation d'un aliment, 16 septembre 2026). Purement additifs -- les appelants
+  // qui ne les lisent pas se comportent exactement comme avant.
+  return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null,
+           pa: (typeof r.pa === 'number') ? r.pa : undefined,
+           aliment_frais: (typeof r.aliment_frais === 'boolean') ? r.aliment_frais : undefined };
 }
 
 // Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun

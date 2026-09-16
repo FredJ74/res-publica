@@ -2578,7 +2578,8 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
       if (cfgPnj.moral) state.moral = Math.min(100, (state.moral || 0) + cfgPnj.moral);
       if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
       if (cfgPnj.ent) appliquerGainENT(cfgPnj.ent);
-      if (cfgPnj.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfgPnj.paDiffere;
+      // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
+      if (cfgPnj.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: type }).catch(() => {}); }
       updateUI();
       showToast('Invitation acceptée !', nomInvite + ' a accepté votre invitation à ' + cfgPnj.verbe + '. -' + cost + ' FR.', true, true);
       addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' : acceptée. -' + cost + ' FR.', 'event-good');
@@ -2652,7 +2653,8 @@ async function verifierReponseInvitationSociale() {
         if (cfg.moral) state.moral = Math.min(100, (state.moral || 0) + cfg.moral);
         if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
         if (cfg.ent) appliquerGainENT(cfg.ent);
-        if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
+        // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
+        if (cfg.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: infos.type }).catch(() => {}); }
         showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '. -' + infos.cost + ' FR.', true, true);
         addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
         if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
@@ -2716,7 +2718,8 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
     if (cfg.moral) state.moral = Math.min(100, (state.moral || 0) + cfg.moral);
     if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
     if (cfg.ent) appliquerGainENT(cfg.ent);
-    if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
+    // Bonus differe atteste : c'est le serveur qui detient le montant de chaque invitation.
+    if (cfg.paDiffere && typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: valide?.type }).catch(() => {}); }
     updateUI();
     showToast('Invitation acceptée !', 'Vous rejoignez ' + nomInviteur + ' pour ' + (cfg.verbe || 'un moment') + '.', true, true);
     addJournalEntry('Vous avez accepté l\'invitation de ' + nomInviteur + ' (' + (cfg.verbe || '') + ').', 'event-good');

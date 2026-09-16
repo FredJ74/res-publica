@@ -22,7 +22,10 @@ ANON = ''.join(re.findall(r'"([^"]*)"', BLOC))
 # s'ecrit plus sur sa propre fiche, il doit etre ATTESTE par postes_attribues. Le banc ne peut
 # donc plus se nommer commissaire lui-meme -- c'est precisement ce qu'on a ferme. Les deux
 # attestations dont il a besoin sont posees en SQL avant la passe, comme le fait le cron.
-SUF = ''
+# Les personnages portent des noms fixes (leurs postes sont attestes par une fixture SQL), mais
+# les PREUVES doivent etre neuves a chaque passe : une enquete marque l'acte « decouvert », et un
+# acte deja decouvert ne serait plus un element a charge -- le banc ne serait rejouable qu'une fois.
+SUF = str(int(time.time()))
 VILLE = 'zzville-cmr'
 VILLE_AILLEURS = 'zzville-ailleurs'
 VILLE_PNJ = 'zzville-pnj'
@@ -151,7 +154,8 @@ def main():
     # le coeur : aucune condition d'etat d'urgence, le commissaire est habilite
     c, b = rpc('arrestation_urgence', {'p_cible': CIBLE, 'p_motif': 'trouble a l ordre public'}, tokC)
     verifier('le commissaire peut arreter, sans etat d urgence', b and b.get('ok') is True, b)
-    verifier('duree de 1 jour', b and (b.get('jour_fin') - b.get('jour_debut')) == 1, b)
+    verifier('duree de 1 jour',
+             b and b.get('jour_fin') is not None and (b['jour_fin'] - b['jour_debut']) == 1, b)
     det_id = (b or {}).get('detention_id')
 
     ligne = lire(CIBLE)

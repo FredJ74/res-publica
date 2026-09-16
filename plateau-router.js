@@ -678,19 +678,26 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
 // roll, effets, toast, journal, detection, temps) partage par doOrder() (chemin par defaut,
 // inchange) ET par doRepasGastronomiqueGenerique() ci-dessous (apres verification du stock),
 // pour eviter toute duplication/divergence du moteur de jet existant.
-function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
-  // Deduire PA et argent
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
-  // Lot 3 (chantier fiscalite/Helvetia) : debit via la primitive canonique (liquide -> Banque
-  // nationale, jamais Helvetia/placements). La suffisance a deja ete verifiee en amont par
-  // doOrder() (meme regle, getFondsDisponiblesOrdinaires), ce debit ne devrait donc jamais
-  // echouer ici en pratique. Appel non attendu (cette fonction n'est pas async) : les mutations
-  // de liquide/comptes/arg sont synchrones (avant le premier await interne de la primitive),
-  // donc deja effectives des la ligne suivante -- seule la persistance reseau se poursuit en
-  // arriere-plan, exactement comme le reste de cette fonction le fait deja pour updateUI() plus bas.
-  if (cost > 0) {
-    if (typeof debiterFondsOrdinaires === 'function') debiterFondsOrdinaires(cost);
-    else state.arg = Math.max(0, state.arg - cost);
+async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
+  // LE CHEMIN GENERIQUE PAIE DESORMAIS AU SERVEUR (16 septembre 2026).
+  //
+  // C'etait le trou principal du systeme de PA. Tous les ordres SANS handler dedie finissent ici,
+  // et ce bloc se contentait de faire `state.pa -= pa` en memoire : aucun appel a payer_ordre,
+  // aucune verification serveur du solde ni du cout. Le serveur ne voyait jamais passer ces
+  // ordres -- ils n'apparaissaient donc meme pas dans ordres_couts_ecarts. Un joueur qui se
+  // donnait des PA pouvait les depenser sans que rien ne le contredise, et un joueur qui n'en
+  // avait pas pouvait contourner la seule garde existante (le `state.pa < pa` de doOrder).
+  //
+  // deduireCoutOrdre debite les PA ET l'argent au serveur, sous verrou, apres avoir verifie que
+  // le couple (fn, pa, cost) est un cout REELLEMENT declare, puis recopie l'etat arrete par le
+  // serveur. Les deux debits locaux qui suivaient disparaissent : ils feraient double emploi.
+  // FAIL CLOSED : un paiement refuse n'execute pas l'ordre.
+  if (typeof deduireCoutOrdre === 'function') {
+    const rPaiement = await deduireCoutOrdre({ pa, cost, fn });
+    if (!rPaiement.ok) {
+      if (typeof signalerRefusCout === 'function') signalerRefusCout(rPaiement);
+      return;
+    }
   }
 
   // Roll
@@ -785,7 +792,9 @@ function applyEffects(fn, resultType, cost) {
   // a 4 PA pour un ordre annonce a 1 (voir plateau-personnage.js, meme correctif).
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
   if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
-    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+    // Bonus differe atteste cote serveur (16 septembre 2026) : le montant est declare dans
+    // le miroir pa_bonus_differes, le client ne le choisit plus.
+    if (typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: 'repas_gastronomique' }).catch(() => {}); }
   }
 }
 

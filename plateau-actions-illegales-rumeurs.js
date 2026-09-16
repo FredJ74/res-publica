@@ -4753,7 +4753,12 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
     if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
     if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
-    if (effets.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + effets.paDiffere;
+    // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
+    // client ne fait que nommer la source (16 septembre 2026).
+    if (effets.paDiffere && typeof sbRpc === 'function' && state.char?.name) {
+      sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name,
+                                           p_source: (recette && recette.id) || '' }).catch(() => {});
+    }
   }
 
 
@@ -6208,6 +6213,10 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
 
   window._cessionImprimerieEnCours = true;
   try {
+    // Reference stable de CETTE cession, calculee avant tout debit : elle sert d'identifiant
+    // d'idempotence aux remboursements ci-dessous (un seul remboursement par cession).
+    const requeteCession = ('cession-' + def.id + '-' + (data.compromisAt || 0)).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80);
+    const fnCession = state._ordreEnCours;
     const rRachat = await deduireCoutOrdre({ pa, cost });
     if (!rRachat.ok) { signalerRefusCout(rRachat); return; }
 
@@ -6218,7 +6227,14 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
       // Defensif : la suffisance vient d'etre verifiee sur le total. On rend les frais d'acte et les
       // PA pour ne rien laisser preleve sans contrepartie.
       if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(rRachat.montantPreleve || 0);
-      state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+      // Remboursement ATTESTE : montant declare, reference unique a cette cession.
+      if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
+        await sbRpc('pa_crediter_atteste', {
+          p_acteur: state.char.name, p_source: 'remboursement_ordre',
+          p_reference: requeteCession + '-remb', p_ordre: fnCession
+        }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
+                          if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+      }
       if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
       updateUI();
       showToast('Paiement impossible', 'Le paiement n\'a pas pu être prélevé. Aucune somme n\'a été retenue.', false);
@@ -6227,7 +6243,7 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
 
     // Id de requete stable pour CE compromis : identique a chaque clic et a chaque rejeu, donc un
     // seul credit possible ; different pour un futur compromis (compromisAt change).
-    const requete = ('cession-' + def.id + '-' + (data.compromisAt || 0)).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80);
+    const requete = requeteCession;
 
     let r = await sbImprimerieCessionFinaliser(requete, nom, def.id, def.prix, state.day);
     if (r === null) r = await sbImprimerieCessionFinaliser(requete, nom, def.id, def.prix, state.day);
@@ -6241,7 +6257,14 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
         if (typeof crediterFondsOrdinaires === 'function') {
           crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
         }
-        state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+        // Remboursement ATTESTE : montant declare, reference unique a cette cession.
+        if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
+          await sbRpc('pa_crediter_atteste', {
+            p_acteur: state.char.name, p_source: 'remboursement_ordre',
+            p_reference: requeteCession + '-remb', p_ordre: fnCession
+          }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
+                            if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+        }
         if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
         updateUI();
         showToast('Acte non enregistré', 'L\'acte n\'a pas pu être enregistré. Vous avez été intégralement remboursé ; revenez chez le notaire.', false);
@@ -6253,7 +6276,14 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
       if (typeof crediterFondsOrdinaires === 'function') {
         crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
       }
-      state.pa = (state.pa || 0) + (rRachat.paPreleves || 0);
+      // Remboursement ATTESTE : montant declare, reference unique a cette cession.
+      if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
+        await sbRpc('pa_crediter_atteste', {
+          p_acteur: state.char.name, p_source: 'remboursement_ordre',
+          p_reference: requeteCession + '-remb', p_ordre: fnCession
+        }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
+                          if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+      }
       if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
       updateUI();
       const motifs = {
