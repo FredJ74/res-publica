@@ -81,17 +81,17 @@ def match(home, away, joue, bh=None, ba=None):
     return m
 
 
-def creer_ligne(ident, semaine, matchs, journee=1, numero=1):
+def creer_ligne(ident, semaine, matchs, journee=1, numero=1, extra=None):
     """Cree une ligne de championnat de test. L'INSERT n'est pas soumis au verrou : c'est le
        decor du scenario, pas une tentative de resolution."""
     LIGNES.append(ident)
     http('DELETE', '/rest/v1/championnat?id=eq.%d' % ident, token=JETON)
-    c, b = http('POST', '/rest/v1/championnat', {
-        'id': ident,
-        'data': {'schemaVersion': 2, 'numero': numero, 'phase': 'reguliere',
-                 'derniereSemaineResolue': semaine,
-                 'calendrier': [{'numero': journee, 'matchs': matchs}]}
-    }, token=JETON, prefer='return=representation')
+    data = {'schemaVersion': 2, 'numero': numero, 'phase': 'reguliere',
+            'derniereSemaineResolue': semaine,
+            'calendrier': [{'numero': journee, 'matchs': matchs}]}
+    data.update(extra or {})
+    c, b = http('POST', '/rest/v1/championnat', {'id': ident, 'data': data},
+                token=JETON, prefer='return=representation')
     return c
 
 
@@ -270,6 +270,126 @@ def main():
     c, present = http('GET', '/rest/v1/forum_topics?select=id&id=eq.' + ordinaire)
     verifier('un sujet ordinaire de joueur passe toujours', present != [], present)
     http('DELETE', '/rest/v1/forum_topics?id=eq.' + ordinaire, token=JETON)
+
+    # ============ 11. PHASES FINALES : LA MEME AUTORITE ============
+    # Les playoffs vivent dans data.playoffs, hors du calendrier : c'est pour cela qu'ils
+    # echappaient encore au verrou. Le tableau, les qualifications et les scores restent ceux du
+    # jeu -- seule l'autorite change de camp.
+    def tableau(etape, avec_resultats=True):
+        t = {'etape': etape, 'prochainKickoffISO': '2026-01-01T19:00:00.000Z',
+             'quarts': {'paires': [['a', 'b']], 'aller': None, 'retour': None, 'vainqueurs': None},
+             'demies': {'paires': None, 'aller': None, 'retour': None, 'vainqueurs': None},
+             'finale': {'paire': ['a', 'b'], 'resultat': None}}
+        if avec_resultats:
+            t['quarts']['aller'] = [{'home': 'a', 'away': 'b', 'scoreHome': 2, 'scoreAway': 1,
+                                     'recit': 'Quart aller'}]
+        return t
+
+    # (a) trop tot : la semaine courante est deja consommee -> l'echeance est la semaine prochaine
+    creer_ligne(9904, semaine_iso(0), [match(*M_A, True, 1, 0)],
+                extra={'playoffs': tableau('quarts_aller')})
+    d = lire(9904); d['playoffs']['etape'] = 'quarts_retour'
+    d['playoffs']['quarts']['retour'] = [{'home': 'b', 'away': 'a', 'recit': 'Quart retour'}]
+    d['derniereSemaineResolue'] = semaine_iso(0)
+    c, b = ecrire(9904, d)
+    verifier('playoff avant l echeance : le tour ne tombe pas',
+             lire(9904)['playoffs']['etape'] == 'quarts_aller', lire(9904)['playoffs']['etape'])
+
+    # (b) a l'heure : le tour tombe
+    creer_ligne(9905, semaine_iso(-2), [match(*M_A, True, 1, 0)],
+                extra={'playoffs': tableau('quarts_aller'), 'palmares': []})
+    d = lire(9905); d['playoffs']['etape'] = 'quarts_retour'
+    d['playoffs']['quarts']['retour'] = [{'home': 'b', 'away': 'a', 'recit': 'Quart retour'}]
+    d['derniereSemaineResolue'] = semaine_iso(0)
+    c, b = ecrire(9905, d)
+    verifier('playoff a l echeance : le tour est joue',
+             lire(9905)['playoffs']['etape'] == 'quarts_retour', lire(9905)['playoffs']['etape'])
+
+    # (c) le meme tour ne retombe pas dans la foulee
+    d = lire(9905); d['playoffs']['etape'] = 'demies_aller'
+    d['playoffs']['demies']['aller'] = [{'recit': 'Demie aller'}]
+    c, b = ecrire(9905, d)
+    verifier('pas deux tours dans la meme semaine',
+             lire(9905)['playoffs']['etape'] == 'quarts_retour', lire(9905)['playoffs']['etape'])
+
+    # (d) on ne saute pas un tour, on ne revient pas en arriere
+    creer_ligne(9906, semaine_iso(-2), [match(*M_A, True, 1, 0)],
+                extra={'playoffs': tableau('quarts_aller')})
+    d = lire(9906); d['playoffs']['etape'] = 'finale'
+    c, b = ecrire(9906, d)
+    verifier('un tour ne peut pas etre saute',
+             lire(9906)['playoffs']['etape'] == 'quarts_aller', lire(9906)['playoffs']['etape'])
+    d = lire(9906); d['playoffs']['etape'] = 'termine'
+    c, b = ecrire(9906, d)
+    verifier('on ne se declare pas directement termine',
+             lire(9906)['playoffs']['etape'] == 'quarts_aller', lire(9906)['playoffs']['etape'])
+
+    # (e) une manche acquise est definitive
+    d = lire(9906)
+    d['playoffs']['quarts']['aller'] = [{'home': 'a', 'away': 'b', 'scoreHome': 9, 'scoreAway': 0,
+                                         'recit': 'Quart aller refait'}]
+    c, b = ecrire(9906, d)
+    verifier('le resultat d une manche jouee ne se reecrit pas',
+             lire(9906)['playoffs']['quarts']['aller'][0]['scoreHome'] == 2,
+             lire(9906)['playoffs']['quarts']['aller'][0])
+
+    # (f) un champion proclame le reste, et le palmares ne se raccourcit pas
+    creer_ligne(9907, semaine_iso(-2), [match(*M_A, True, 1, 0)],
+                extra={'playoffs': tableau('termine'), 'phase': 'terminee',
+                       'palmares': [{'saison': 1, 'champion': 'Dynamo Novomirsk'}],
+                       'resultatsFinales': {'champion': 'dynamo-novomirsk',
+                                            'stadeClubId': 'olympique-luthecia',
+                                            'finale': {'recit': 'Finale'}}})
+    d = lire(9907); d['resultatsFinales']['champion'] = 'rojos-cartel'
+    c, b = ecrire(9907, d)
+    verifier('un champion proclame ne change pas de nom',
+             lire(9907)['resultatsFinales']['champion'] == 'dynamo-novomirsk',
+             lire(9907)['resultatsFinales']['champion'])
+    d = lire(9907); d['palmares'] = []
+    c, b = ecrire(9907, d)
+    verifier('le palmares ne se raccourcit pas', len(lire(9907)['palmares']) == 1,
+             lire(9907)['palmares'])
+
+    # (g) course entre clients sur un tour de playoff : un seul gagnant
+    creer_ligne(9908, semaine_iso(-2), [match(*M_A, True, 1, 0)],
+                extra={'playoffs': tableau('quarts_aller')})
+    c, b = http('GET', '/rest/v1/championnat?select=data,updated_at&id=eq.9908')
+    version, d = b[0]['updated_at'], b[0]['data']
+    d['playoffs']['etape'] = 'quarts_retour'
+    d['playoffs']['quarts']['retour'] = [{'recit': 'Quart retour'}]
+    d['derniereSemaineResolue'] = semaine_iso(0)
+    gagnants = 0
+    for _ in range(3):
+        c, rep = http('PATCH', '/rest/v1/championnat?id=eq.9908&updated_at=eq.'
+                      + urllib.request.quote(str(version)),
+                      {'data': d, 'updated_at': datetime.datetime.utcnow().isoformat()},
+                      token=JETON, prefer='return=representation')
+        if rep:
+            gagnants += 1
+    verifier('trois clients sur le meme tour de playoff : un seul gagne', gagnants == 1,
+             '%d gagnant(s)' % gagnants)
+
+    # ============ 12. LES COMMUNIQUES OFFICIELS ============
+    for titre in ('Quarts de finale (aller) — Saison 1', '🏆 Sacre du champion — Saison 1',
+                  'Journée 7 — Saison 1'):
+        faux = 'zztest-officiel-' + str(int(time.time() * 1000))
+        http('POST', '/rest/v1/forum_topics', {
+            'id': faux, 'forum_id': 'sport', 'title': titre, 'author': 'Ligue Officielle',
+            'country': 'republic', 'time': 'x', 'views': 1, 'replies': 0,
+            'last_post_author': 'Ligue Officielle', 'last_post_time': 'x'}, token=JETON)
+        c, present = http('GET', '/rest/v1/forum_topics?select=id&id=eq.' + faux)
+        verifier('aucun client ne signe « %s »' % titre[:34], present == [], present)
+
+    # Les RPC ne publient rien qui ne soit acquis en base (la saison reelle est en phase
+    # reguliere : ni tour, ni sacre).
+    for fn, params, attendu in (
+            ('championnat_publier_tour', {'p_manche': 'quarts_aller'}, 'manche_non_jouee'),
+            ('championnat_publier_tour', {'p_manche': 'finale_secrete'}, 'manche_inconnue'),
+            ('championnat_publier_sacre', {}, 'sacre_non_acquis')):
+        c, b = http('POST', '/rest/v1/rpc/' + fn, params, token=JETON)
+        r = b[0] if isinstance(b, list) and b else b
+        verifier('%s refuse : %s' % (fn.replace('championnat_publier_', ''), attendu),
+                 r and r.get('ok') is False and r.get('raison') == attendu, r)
 
     # ============ 10. LA LIGNE REELLE EST INTACTE ============
     c, b = http('GET', '/rest/v1/championnat?select=data&id=eq.2')

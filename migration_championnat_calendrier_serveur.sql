@@ -331,3 +331,45 @@ CREATE TRIGGER trg_forum_verrou_message_ligue
 
 -- Banc de verification : .scratch/banc_championnat_calendrier.py (18 controles, attaque le
 -- serveur comme un client avec la cle anon publique).
+
+-- =====================================================================================
+-- COMPLEMENT DU 16 septembre 2026 (soir) : LES PHASES FINALES
+-- =====================================================================================
+-- DEJA EXECUTE en production (migrations MCP : clubs_football_miroir_serveur,
+-- championnat_phases_finales_autorite_serveur, championnat_publication_phases_finales).
+--
+-- Le verrou du matin ne regardait que data->'calendrier'. Les playoffs vivent dans
+-- data->'playoffs' : ils passaient donc par la branche « ecriture ordinaire », sans controle
+-- d'echeance. Un client pouvait encore faire tomber des quarts un mercredi et publier lui-meme
+-- le sacre d'un champion. Le MEME declencheur est etendu -- pas un second moteur.
+--
+-- CE QUI RESTE AU CLIENT, VOLONTAIREMENT : la simulation des rencontres, exactement comme pour
+-- la saison reguliere. Le serveur ne tire pas les scores ; il decide QUAND un tour peut tomber,
+-- refuse qu'on le rejoue, et signe seul les communiques.
+--
+-- Ajouts :
+--   * public.clubs_football -- miroir serveur des 12 clubs, GENERE par
+--     .scratch/generer_clubs_football.py depuis le vrai data.js (empreinte 2c2f8d0fe578a8bb).
+--     Necessaire pour que le serveur ecrive « X est sacre champion » sans croire le navigateur
+--     sur parole. Lecture publique, ecriture a personne.
+--   * public.championnat_rang_etape -- ordre des tours : quarts_aller(1) -> quarts_retour(2)
+--     -> demies_aller(3) -> demies_retour(4) -> finale(5) -> termine(6).
+--   * championnat_verrou_calendrier etendu : une etape ne peut avancer que d'un cran et pas
+--     avant l'echeance ; une manche jouee, un champion proclame et le palmares sont definitifs.
+--     L'entree en playoffs (etape absente -> quarts_aller) est la mise en place du tableau :
+--     elle ne consomme pas de semaine.
+--   * championnat_publier_tour(manche) et championnat_publier_sacre() -- memes principes que
+--     championnat_publier_journee : texte recompose depuis l'etat persiste, identifiant derive
+--     de (saison, manche), republier ne fait rien. Libelles repris A L'IDENTIQUE du jeu.
+--   * forum_verrou_compte_rendu_journee elargi : plus AUCUN sujet signe « Ligue Officielle »
+--     ne peut etre insere depuis un navigateur, quel que soit son titre. Les trois communiques
+--     officiels passent par les RPC.
+--
+-- Le SQL exact de ces objets est celui applique en base ; voir les migrations nommees ci-dessus.
+-- Banc : .scratch/banc_championnat_calendrier.py (33 controles).
+--
+-- CONSTAT REMONTE, NON CORRIGE ICI : sbAppliquerSalaire (supabase.js) verse les primes de match
+-- par un UPDATE direct sur le personnage d'AUTRUI. Depuis le chantier B, la vue personnages
+-- refuse cette ecriture (personnage_non_possede) -- ce qui ferme le vecteur d'abus, mais
+-- signifie aussi que les primes ne sont probablement plus versees. Relevé du game design, pas
+-- tranche seul.

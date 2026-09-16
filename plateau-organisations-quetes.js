@@ -1935,15 +1935,33 @@ async function publierResultatsJourneeSurForum(numeroSaison, journee, dateSporti
   });
 }
 
+// Manche -> cle serveur. Le libelle affiche reste celui du jeu ; la cle sert a designer au
+// serveur QUELLE manche publier, pour qu'il aille en relire lui-meme le resultat persiste.
+const MANCHES_PLAYOFF = {
+  'Quarts de finale (aller)':  'quarts_aller',
+  'Quarts de finale (retour)': 'quarts_retour',
+  'Demi-finales (aller)':      'demies_aller',
+  'Demi-finales (retour)':     'demies_retour'
+};
+
+// Comme pour les journees (16 septembre 2026) : le communique officiel d'un tour est ecrit par
+// le serveur a partir des recits reellement persistes, sous un identifiant derive de (saison,
+// manche). Le client demande la publication, il ne la fabrique plus -- et ne peut plus signer
+// « Ligue Officielle » au forum.
 async function publierTourPlayoffSurForum(numeroSaison, titreManche, resultats) {
-  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  if (typeof formatDateHeureJeu !== 'function') return;
   const time = formatDateHeureJeu();
   const titre = titreManche + ' — Saison ' + numeroSaison;
   const contenu = resultats.map(r => r.recit).join('<br>');
 
-  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
-  if (topicId && typeof sbCreatePost === 'function') {
-    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  let topicId = null;
+  const manche = MANCHES_PLAYOFF[titreManche];
+  if (manche && typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_tour', { p_manche: manche }).catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;      // rien d'acquis en base, rien a annoncer
+    if (r.deja_publie) return;            // un autre client l'a deja fait
+    topicId = r.topic_id || null;
   }
   if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
   FORUM_TOPICS['sport'].unshift({
@@ -1953,16 +1971,24 @@ async function publierTourPlayoffSurForum(numeroSaison, titreManche, resultats) 
   });
 }
 
+// Le sacre est l'annonce la plus lourde du championnat : c'est celle qu'un client ne doit
+// surtout pas pouvoir fabriquer. Le serveur relit le champion et le stade dans l'etat persiste,
+// et leurs noms dans le miroir clubs_football -- jamais dans le message qu'on lui envoie.
+// Le texte affiche ici en local est le meme, mot pour mot.
 async function publierPhasesFinalesSurForum(numeroSaison, rf) {
-  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  if (typeof formatDateHeureJeu !== 'function') return;
   const time = formatDateHeureJeu();
   const titre = '🏆 Sacre du champion — Saison ' + numeroSaison;
   let contenu = '<b>Finale</b> (au ' + getClub(rf.stadeClubId).nom + ')<br>' + rf.finale.recit;
   contenu += '<br><br><b>' + getClub(rf.champion).nom + ' est sacré champion de la saison ' + numeroSaison + ' !</b>';
 
-  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
-  if (topicId && typeof sbCreatePost === 'function') {
-    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  let topicId = null;
+  if (typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_sacre', {}).catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;
+    if (r.deja_publie) return;
+    topicId = r.topic_id || null;
   }
   if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
   FORUM_TOPICS['sport'].unshift({
