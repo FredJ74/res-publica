@@ -2543,8 +2543,24 @@ async function confirmerContesterResultats(posteId, city) {
     return;
   }
 
-  // ---- Fraude detectee : revelation definitive, correction des voix, recalcul du resultat ----
-  await sbRevelerFraude(fraudeChoisie.id, state.char?.name);
+  // ---- Fraude detectee : revelation, sanction et recompense, en une seule transaction ----
+  //
+  // La revelation et la sanction etaient separees : la premiere aboutissait, la seconde -- amende
+  // et detention du fraudeur -- passait par une ecriture sur SA fiche, refusee depuis le chantier
+  // B et avalee par un .catch() muet. On annoncait la chute d'un fraudeur qui n'etait ni amende
+  // ni detenu. fraude_electorale_sanctionner retrouve la fraude dans fraudes_electorales, verifie
+  // qu'elle n'est pas deja revelee -- c'est le verrou contre le rejeu et la concurrence -- puis
+  // applique les trois effets ensemble. Les montants et la duree viennent du serveur.
+  const rSanction = await sbRpc('fraude_electorale_sanctionner',
+    { p_fraude_id: fraudeChoisie.id, p_ville: city || null })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!rSanction || rSanction.ok !== true) {
+    showToast('Contestation sans suite',
+      (rSanction && rSanction.raison === 'fraude_deja_revelee')
+        ? 'Cette fraude a déjà été révélée par quelqu\'un d\'autre.'
+        : "La fraude n'a pas pu être établie. Aucune sanction n'a été prononcée.", false);
+    return;
+  }
 
   const fraudesRestantes = (await sbGetFraudesNonRevelees(country, posteId, city || null, cycleDebut))
     .filter(f => f.id !== fraudeChoisie.id);
@@ -2600,27 +2616,15 @@ async function confirmerContesterResultats(posteId, city) {
   // cote client (r.est_emprisonne redeviendrait une chaine, jamais un objet, faisant echouer tout
   // controle sur .jourFin/.city) -- meme piege que confirmerArrestation (plateau-justice-economie.js),
   // qui semble deja l'avoir, hors perimetre de cette correction.
-  const PEINE_JOURS_DECOUVERTE_A_POSTERIORI = 2;
-  const fraudeurRows = await sbGet('personnages', `name=eq.${encodeURIComponent(fraudeChoisie.auteur)}&select=name,arg,day`).catch(() => []);
-  const fraudeur = fraudeurRows && fraudeurRows[0];
-  if (fraudeur) {
-    const joursPeine = PEINE_JOURS_DECOUVERTE_A_POSTERIORI;
-    const jourActuelFraudeur = fraudeur.day || 1;
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(fraudeur.name)}`, {
-      arg: Math.max(0, (fraudeur.arg || 0) - 500),
-      est_emprisonne: {
-        jours: joursPeine, jourFin: jourActuelFraudeur + joursPeine,
-        raison: 'Fraude électorale (' + fraudeChoisie.type.replace(/_/g, ' ') + ') révélée par contestation',
-        country, city: city || null,
-        // Ancre temps reel (chantier A / P0-3, 14 septembre 2026) : jourFin est exprime dans le
-        // state.day du fraudeur, que le serveur ne sait pas interpreter. Sans debutTs, un fraudeur
-        // qui ne se reconnecte jamais reste incarcere indefiniment. Voir enregistrerDetention.
-        debutTs: Date.now()
-      }
-    }).catch(() => {});
+  // L'amende (-500 FR), la detention de 2 jours du fraudeur et la recompense du contestataire
+  // (+200 FR) ont ete appliquees ensemble par le serveur, plus haut. On se contente de refleter
+  // la fortune qu'il a arretee : sans cela, la prochaine sauvegarde de fiche republierait
+  // l'ancienne valeur et effacerait la recompense.
+  if (typeof rSanction.arg_contestataire === 'number') {
+    state.arg = Number(rSanction.arg_contestataire);
+    if (state.char) state.char.arg = state.arg;
+    if (typeof updateUI === 'function') updateUI();
   }
-  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(200);
-  else state.arg = (state.arg || 0) + 200;
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
 
   // Fait public pour La Tribune (demande explicite, section 8) : jamais invente, meme si la

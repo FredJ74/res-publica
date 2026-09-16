@@ -2332,7 +2332,9 @@ async function appliquerSentence(affaireId, type, pa, cost) {
       // transaction que la detention (16 septembre 2026). L'inscription depuis le navigateur du
       // juge visait la fiche d'un tiers : prisonniers_qhs n'accepte plus que les inscriptions
       // qu'un joueur fait pour lui-meme.
-      if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+      // Le drapeau QHS de la fiche est pose par justice_prolonger_peine, dans la meme
+      // transaction que la peine et le registre (16 septembre 2026). Cette ecriture visait la
+      // fiche d'un tiers et etait refusee depuis le chantier B.
     }
   } else if (type === 'torture') {
     // Torture suppose egalement une personne deja detenue -- verifie en amont (voir garde en

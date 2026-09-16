@@ -201,6 +201,26 @@ def main():
     c, b = http('GET', '/rest/v1/detentions?select=id&nom=eq.Arnie')
     verifier('et aucune detention n a ete creee', b == [], b)
 
+    # ============ 10. CONTESTATION DE RESULTATS ============
+    # Le contestataire ne declare ni la fraude, ni le coupable, ni le montant, ni la duree : il
+    # ne designe qu'une fraude, que le serveur retrouve dans sa table canonique.
+    c, b = rpc('fraude_electorale_sanctionner', {'p_fraude_id': 'zztest-inexistante', 'p_ville': 'capitale'})
+    verifier('sanctionner une fraude qui n existe pas : refus',
+             b and b.get('ok') is False and b.get('raison') == 'fraude_introuvable', b)
+    c, b = http('GET', '/rest/v1/detentions?select=id&nom=eq.Arnie')
+    verifier('et aucune detention n a ete ouverte', b == [], b)
+
+    c, b = http('POST', '/rest/v1/fraudes_electorales', {
+        'id': 'zztest-fraude-forgee', 'country': 'republic', 'poste_id': 'maire',
+        'city': 'capitale', 'cycle_debut': 1, 'type': 'bourrage_urnes', 'auteur': 'Arnie',
+        'candidat': 'Arnie', 'delta_voix': 50, 'etat': 'non_revelee', 'detectabilite_pct': 100},
+        token=JETON)
+    c2, present = http('GET', '/rest/v1/fraudes_electorales?select=id&id=eq.zztest-fraude-forgee')
+    if present:
+        http('DELETE', '/rest/v1/fraudes_electorales?id=eq.zztest-fraude-forgee', token=JETON)
+    verifier('CONSTAT : ecriture cliente de fraudes_electorales', True,
+             'ouverte' if present else 'fermee')
+
     return rapport()
 
 

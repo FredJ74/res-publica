@@ -59,3 +59,39 @@
 -- annulee sur la base reelle : condamnation -> 0 detention / 1 avis ; execution -> 1 detention,
 -- 0 avis, miroir pose, 1 detenu dans les geoles ; rejeu -> toujours 1 detention ; cloture ->
 -- 0 detention active, 0 dans les geoles.
+
+-- =====================================================================================
+-- COMPLEMENT : CONTESTATION DE RESULTATS (dernier chemin judiciaire)
+-- =====================================================================================
+-- DEJA EXECUTE en production (migration MCP : fraude_electorale_sanction_serveur, plus une
+-- reecriture de justice_prolonger_peine pour qu'elle pose aussi le drapeau detention_qhs).
+--
+-- LE DEFAUT. Quand une contestation etablit une fraude, le contestataire encaissait ses +200 FR
+-- et l'evenement public etait publie -- deux ecritures qui aboutissent. La sanction du fraudeur,
+-- elle, passait par une ecriture directe sur SA fiche : refusee depuis le chantier B, avalee par
+-- un .catch() muet. Le fraudeur n'etait ni amende ni detenu, et la peine qu'on lui fabriquait
+-- n'avait de toute facon ni detentionId ni ligne `detentions`.
+--
+-- LA REGLE, retrouvee dans le code et NON MODIFIEE : fraudeur -500 FR et 2 jours (peine fixe de
+-- la decouverte a posteriori, distincte des peines du flagrant delit) ; contestataire +200 FR ;
+-- motif « Fraude électorale (<type>) révélée par contestation ».
+--
+-- fraude_electorale_sanctionner retrouve la fraude dans `fraudes_electorales`, n'accepte que si
+-- elle n'est pas deja revelee, puis applique les quatre effets dans la MEME transaction :
+-- revelation, amende, detention (par detention_ouvrir_interne) et recompense. Le navigateur ne
+-- declare ni la fraude, ni le coupable (c'est `auteur` en base), ni le montant, ni la duree.
+--
+-- IDEMPOTENCE : le passage a l'etat « revelee » se fait sous verrou AVANT toute sanction. Rejeu,
+-- F5 ou requetes concurrentes : la seconde voit une fraude deja revelee et ne produit rien.
+--
+-- Eprouve en transaction annulee : fraudeur 3096 -> 2596, contestataire 2600 -> 2800, detention
+-- active de 2 jours visible en geole, miroir pose ; rejeu refuse ; fraude inconnue refusee.
+--
+-- DERNIER CHEMIN FERME AU PASSAGE : la sentence QHS du juge posait encore detention_qhs sur la
+-- fiche de la cible. justice_prolonger_peine le pose desormais elle-meme.
+--
+-- DEPENDANCE MILITAIRE, PAS UN DEFAUT JUDICIAIRE : verifierDesertionsQuotidien appelle
+-- ajouterCondamnationRecherche, donc justice_condamner, qui exige le poste de juge -- or la
+-- desertion est constatee par une boucle militaire quotidienne, sans juge. Cette branche reste
+-- sans effet et releve du chantier Militaire (reQuisition -> presentation -> desertion ->
+-- recherche -> arrestation), hors perimetre ici.
