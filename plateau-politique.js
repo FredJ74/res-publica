@@ -634,7 +634,7 @@ async function publierProgrammeCandidature(titre, contenu) {
 
   if (!rows || rows.ok !== true) {
     showToast('Candidature refusee', messageRefusCandidature(rows), false);
-    return true;   // traite : on ne publie pas un sujet orphelin a la place
+    return { traite: true, topicId: null };   // traite : pas de sujet orphelin a la place
   }
   _candidatureEnRedaction = null;
 
@@ -648,7 +648,9 @@ async function publierProgrammeCandidature(titre, contenu) {
     addJournalEntry('🗳️ Candidature deposee et programme publie.', 'event-info');
   }
   if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase().catch(() => {});
-  return true;
+  // Le sujet cree par la transaction serveur est rendu a l'appelant : c'est LUI qu'on ouvrira,
+  // jamais un sujet devine d'apres le titre ou le nom du candidat.
+  return { traite: true, topicId: rows.topic_id || null };
 }
 
 function messageRefusCandidature(r) {

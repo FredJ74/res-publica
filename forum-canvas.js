@@ -110,9 +110,14 @@ function renderComposedPost(layout) {
   // doit se fondre totalement dans le corps du message, sans aucune différence visuelle avec
   // le fond normal du post -- comportement par défaut demandé ; un futur choix de couleur de
   // fond par l'auteur n'est PAS implémenté ici.
-  return '<div class="rp-composed-canvas" style="position:relative;width:' + canvasWidth + 'px;' +
+  // Le canvas garde ses dimensions exactes -- c'est ce qui preserve tailles et positions voulues
+  // par l'auteur -- mais il est enveloppe dans un conteneur qui defile horizontalement si la place
+  // manque. Sur un ecran etroit, la mise en page se consulte donc en faisant glisser, au lieu de
+  // deborder sur le reste de la page. Meme doctrine que les tableaux larges du jeu.
+  return '<div class="rp-composed-wrap" style="max-width:100%;overflow-x:auto">' +
+    '<div class="rp-composed-canvas" style="position:relative;width:' + canvasWidth + 'px;' +
     'min-height:' + canvasHeight + 'px;background:transparent;border:none;box-shadow:none">' +
-    elementsHtml + '</div>';
+    elementsHtml + '</div></div>';
 }
 
 // ===========================================================================
@@ -1327,8 +1332,16 @@ function rpCanvasSerializeCompose() {
     return null;
   }).filter(Boolean);
 
+  // LARGEUR REELLE, MESUREE (16 septembre 2026). Cette valeur etait ecrite en dur a 680 au motif
+  // que le canvas d'edition faisait 680px -- mais il porte aussi max-width:100%, donc il est plus
+  // etroit des que la colonne du forum l'est. On enregistrait ainsi des coordonnees prises dans un
+  // canvas de, disons, 500px, que le rendu replacait ensuite dans un canvas de 680px : une image
+  // centree a l'edition se retrouvait decalee vers la gauche, et toutes les tailles paraissaient
+  // fausses. On mesure donc ce que l'auteur a reellement sous les yeux.
+  const canvasEl = document.getElementById('rp-compose-canvas');
+  const largeurReelle = (canvasEl && canvasEl.offsetWidth) ? Math.round(canvasEl.offsetWidth) : 680;
   return {
-    canvas_width: 680,
+    canvas_width: largeurReelle,
     elements,
     reading_order: elements.map((_, i) => i),
   };

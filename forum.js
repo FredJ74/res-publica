@@ -2041,11 +2041,19 @@ async function submitComposeCanvas() {
     const layoutProg = (typeof rpCanvasSerializeCompose === 'function') ? rpCanvasSerializeCompose() : null;
     const texteProg = (typeof rpCanvasBuildFallbackContent === 'function')
       ? rpCanvasBuildFallbackContent(layoutProg) : '';
-    const traite = await publierProgrammeCandidature(titreProg, texteProg);
-    if (traite) {
-      forumView = 'list';
+    const res = await publierProgrammeCandidature(titreProg, texteProg);
+    if (res && res.traite) {
+      // ON MONTRE CE QUI VIENT D'ETRE PUBLIE (16 septembre 2026). Revenir a la liste ne suffisait
+      // pas : elle etait rechargee en arriere-plan, donc le programme n'y figurait pas encore et
+      // le candidat repartait sans rien voir de son propre texte. On recharge les sujets, puis on
+      // ouvre CELUI que la transaction serveur a cree -- son identifiant nous est rendu, il n'est
+      // jamais devine d'apres un titre ou un nom.
+      if (typeof loadForumTopicsFromSB === 'function') {
+        await loadForumTopicsFromSB(currentForumId).catch(function () {});
+      }
       renderForumModal();
-      if (typeof loadForumTopicsFromSB === 'function') loadForumTopicsFromSB(currentForumId);
+      if (res.topicId && typeof openTopic === 'function') openTopic(res.topicId);
+      else { forumView = 'list'; renderForumModal(); }
       return;
     }
   }
