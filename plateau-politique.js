@@ -10642,14 +10642,31 @@ async function ouvrirFichePrisonnierQHS(prisonnierId) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Motif de refus d'un pouvoir QHS, dit au Ministre plutot qu'avale en silence.
+function messageRefusQhs(r) {
+  const raison = r && r.raison;
+  if (raison === 'cible_non_detenue') return "Cette personne n'est plus détenue : aucun pouvoir ne s'exerce sur elle.";
+  if (raison === 'prisonnier_introuvable') return "Ce prisonnier n'est plus au registre du QHS.";
+  if (raison === 'autorite_insuffisante' || raison === 'acteur_non_authentifie') {
+    return 'Seul le Ministre de la Justice en exercice peut agir sur le QHS.';
+  }
+  return "L'opération a été refusée. Rien n'a été modifié.";
+}
+
 // ---- Transfert vers une prison normale (pas de reduction de peine, ouvre droit a un bonus avocat futur) ----
 async function doTransfererPrisonNormale(prisonnierId) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
   const p = rows?.[0]?.data;
   if (!p) return;
-  await sbMajPrisonnierQHS(prisonnierId, 'transfere', {});
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, { detention_qhs: JSON.stringify({ enQHS: false, eligibleBonusAvocat: true }) }).catch(() => {});
+  // Le pouvoir passe par le serveur (16 septembre 2026) : il relit le poste sur la ligne de
+  // l'appelant, exige une DETENTION CANONIQUE active dans `detentions` -- jamais le
+  // est_emprisonne de la fiche, que le client pourrait dicter -- puis change le registre QHS et
+  // le miroir de la fiche dans la meme transaction. L'ecriture directe qui vivait ici etait
+  // refusee depuis le chantier B : le detenu restait au QHS pendant qu'on annoncait son transfert.
+  const rT = await sbRpc('qhs_pouvoir', { p_prisonnier_id: prisonnierId, p_acte: 'transferer' })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!rT || rT.ok !== true) { showToast('Transfert impossible', messageRefusQhs(rT), false); return; }
   showToast('Transfert effectué', p.nom + ' est transféré(e) vers une prison normale. Éligible à un bonus de réduction de peine via avocat.', true, true);
   addJournalEntry(p.nom + ' transféré(e) du QHS vers une prison normale.', 'event-info');
 }
@@ -10657,21 +10674,23 @@ async function doTransfererPrisonNormale(prisonnierId) {
 // ---- Ameliorer les conditions de detention ----
 async function doAmeliorerConditionsQHS(prisonnierId) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
   const cout = 500;
-  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'qhs-prison', cout);
-  if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du QHS ne couvre pas ce coût (' + cout + ' FR).', false); return; }
-
   const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
   const p = rows?.[0]?.data;
   if (!p) return;
 
-  const persoRows = await sbGet('personnages', `name=eq.${encodeURIComponent(p.nom)}&select=moral`).catch(() => []);
-  const moralActuel = persoRows?.[0]?.moral ?? 50;
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, {
-    moral: Math.min(100, moralActuel + 15),
-    detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false, conditionsAmeliorees: true })
-  }).catch(() => {});
+  // DEBIT ET EFFET DANS LA MEME TRANSACTION (16 septembre 2026). Auparavant les 500 FR sortaient
+  // reellement de la caisse du QHS, puis l'amelioration etait ecrite sur la fiche du detenu --
+  // ecriture que la vue refuse depuis le chantier B. L'argent public etait detruit et le detenu
+  // ne gagnait rien. Le serveur fait desormais les deux, ou aucun des deux.
+  const rA = await sbRpc('qhs_pouvoir', { p_prisonnier_id: prisonnierId, p_acte: 'ameliorer' })
+    .then(rows2 => Array.isArray(rows2) ? rows2[0] : rows2).catch(() => null);
+  if (!rA || rA.ok !== true) {
+    showToast(rA && rA.raison === 'caisse_insuffisante' ? 'Caisse insuffisante' : 'Amélioration impossible',
+      rA && rA.raison === 'caisse_insuffisante'
+        ? 'La caisse du QHS ne couvre pas ce coût (' + cout + ' FR).' : messageRefusQhs(rA), false);
+    return;
+  }
   showToast('Conditions améliorées', p.nom + ' bénéficie de meilleures conditions. +15 Moral, PA de récupération relevés. -' + cout + ' FR.', true, true);
   addJournalEntry('Conditions de détention améliorées pour ' + p.nom + ' (-' + cout + ' FR).', 'event-good');
 }
@@ -10685,11 +10704,15 @@ async function doTorturerPrisonnierQHS(prisonnierId) {
   const pays = state.country || 'republic';
   const mjNom = state.char?.name;
 
-  // Consequences sur le detenu : perte de tous ses indices, PA plafonnes a 1 le lendemain uniquement
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, {
-    inf: 0, pop: 0, dis: 0, moral: 0,
-    detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: true })
-  }).catch(() => {});
+  // Consequences sur le detenu : perte de tous ses indices, PA plafonnes a 1 le lendemain
+  // uniquement. Ce bloc ecrivait des colonnes `inf`, `pop` et `dis` QUI N'EXISTENT PAS -- ce sont
+  // des cles du blob `resources` -- en plus d'ecrire la fiche d'autrui, refusee depuis le
+  // chantier B : la torture etait doublement inoperante, et seul le Ministre en subissait le
+  // contrecoup. Le serveur applique maintenant l'effet reel, apres avoir verifie la detention
+  // canonique. Les regles sont celles d'origine, au chiffre pres.
+  const rTo = await sbRpc('qhs_pouvoir', { p_prisonnier_id: prisonnierId, p_acte: 'torturer' })
+    .then(rows2 => Array.isArray(rows2) ? rows2[0] : rows2).catch(() => null);
+  if (!rTo || rTo.ok !== true) { showToast('Interrogatoire impossible', messageRefusQhs(rTo), false); return; }
 
   // Sanction immediate et automatique sur le MJ : POP et INF a 10
   state.pop = 10; state.inf = 10;

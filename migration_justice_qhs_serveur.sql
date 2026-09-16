@@ -1,0 +1,43 @@
+-- LE QHS PASSE SOUS AUTORITE SERVEUR, ET `detentions` FAIT FOI (16 septembre 2026).
+-- DEJA EXECUTEE en production (migration MCP : justice_qhs_autorite_serveur).
+--
+-- ARBITRAGE APPLIQUE : `detentions` est la source de verite de l'incarceration.
+-- `personnages.est_emprisonne` n'est plus une autorite -- c'est un miroir, ecrit par le serveur
+-- dans la meme transaction que la table canonique.
+--
+-- LES DEFAUTS CORRIGES. Les trois pouvoirs du Ministre de la Justice sur un detenu du QHS --
+-- transfert, amelioration des conditions, torture -- ecrivaient directement la fiche de la CIBLE.
+-- Depuis le chantier B la vue personnages refuse cette ecriture : la ligne prisonniers_qhs
+-- changeait d'etat et l'interface annoncait le resultat, mais le detenu ne subissait rien.
+--   * L'amelioration detruisait en plus de l'argent public : 500 FR sortaient reellement de la
+--     caisse du QHS avant l'ecriture refusee. Debit et effet sont desormais dans la meme
+--     transaction -- soit les deux, soit aucun.
+--   * La torture etait DOUBLEMENT cassee : elle ecrivait des colonnes `inf`, `pop` et `dis` qui
+--     n'existent pas -- ce sont des cles du blob `resources`. Meme sans RLS, elle n'aurait rien
+--     fait. Seul le Ministre subissait le contrecoup de son propre acte.
+--
+-- CE QUE LE SERVEUR ATTESTE : le poste min_just relu sur la ligne de l'appelant ; le prisonnier
+-- present au registre QHS ; et surtout une DETENTION CANONIQUE ACTIVE dans `detentions` -- jamais
+-- le est_emprisonne fourni par le client. Un personnage libre inscrit au registre QHS ne peut
+-- donc etre ni ameliore ni torture.
+--
+-- Regles de jeu inchangees : autorite min_just, 500 FR, +15 Moral plafonne a 100, torture qui
+-- remet indices et moral a zero et plafonne les PA a 1 le lendemain.
+--
+-- detention_active(nom) est le point de lecture unique : derniere detention sans mode_fin ni
+-- jour_fin_effective -- memes colonnes que le filet de securite nocturne du cron.
+--
+-- Le SQL exact est celui applique en base ; voir la migration nommee ci-dessus.
+-- Bancs : .scratch/banc_justice_qhs.py (15 controles d'attaque) + effets eprouves en
+-- transaction annulee sur la base reelle (moral 40 -> 55, caisse 1200 -> 700, ensemble).
+--
+-- POINTS OUVERTS CONSIGNES, NON TRAITES DANS CETTE PASSE :
+--   * prisonniers_qhs reste ecrivable par un client -- sans consequence sur les pouvoirs, qui
+--     exigent la detention canonique, mais le registre affiche peut etre pollue ;
+--   * sbGetDetenusActifs lit personnages.est_emprisonne d'autrui, masque depuis le chantier B :
+--     la liste des detenus affichee dans les geoles est donc vide. A basculer sur `detentions` ;
+--   * garde a vue apres enquete (traiterEnquetes), fraude electorale
+--     (confirmerContesterResultats), chasse a l'homme et avis de recherche ecrivent encore la
+--     fiche d'autrui et restent inertes ;
+--   * emprisonnerPourFraude ne pose ni debutTs ni detentionId : la detention qu'il cree est
+--     invisible du cron de liberation et du registre.
