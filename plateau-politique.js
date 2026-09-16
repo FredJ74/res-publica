@@ -1872,11 +1872,13 @@ async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, ca
   return true;
 }
 
-// Liste les candidats actuellement en campagne (lot tracts electoraux PSM, 24 aout 2026) --
-// utilise pour restreindre le choix de cible a l'impression d'un tract electoral a de vrais
-// candidats resolvables (evite d'imprimer un tract pour quelqu'un qui ne se presente a rien,
-// dont la distribution ne pourrait jamais s'ecrire dans le vrai systeme electoral). Memes phases
-// (phases de campagne actives).
+// Liste les candidats actuellement en campagne (lot tracts electoraux PSM, 24 aout 2026).
+// NE FILTRE PLUS L'IMPRESSION depuis le 16 septembre 2026 : l'imprimerie accepte n'importe quelle
+// cible (listerCiblesTractsElectoraux, plateau-communication.js) et n'utilise plus cette liste que
+// pour AFFICHER la mention « en campagne » a cote des noms concernes. La garantie qu'un tract ne
+// puisse pas peser sur un scrutin ou sa cible n'est pas inscrite est portee par la distribution
+// (scrutinsDistribuablesPourTract ci-dessus, et le refus serveur 'candidat_hors_scrutin'), pas par
+// l'impression. Reste la definition unique de « en campagne » : memes phases de campagne actives.
 function listerCandidatsElectorauxActifs() {
   const country = state.country;
   const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};

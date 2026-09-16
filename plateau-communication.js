@@ -216,7 +216,8 @@ const PRIX_LOT_TRACTS = 150;
 // moteurs, deux libelles, deux couts en PA et deux sources de matiere. Socle commun desormais
 // applique a L'Autruche Entravee (Luthecia), au Cheminot Informe (Montrouge) et a l'Imprimerie-
 // Librairie Gutenberg (Port-Sainte-Marie) :
-//   - POUR ou CONTRE un candidat reellement en campagne (garantit un tract distribuable) ;
+//   - POUR ou CONTRE n'importe quel personnage (depuis le 16 septembre 2026 : voir
+//     listerCiblesTractsElectoraux, la candidature n'est plus exigee a l'impression) ;
 //   - lots de 10 ; 1 PA par commande ; prixLotTractsAtelier() par lot (tarif public : 150 FR) ;
 //   - BOIS_PAR_LOT_TRACTS par lot, pris dans le stock PERSONNEL du joueur ;
 //   - fonds ordinaires reels (liquide puis Banque nationale) verifies AVANT toute production ;
@@ -243,7 +244,7 @@ function selectTractType(type) {
 // dans le stock de l'atelier, et l'impression le consomme. Les tracts electoraux et les tracts
 // calomnieux partagent exactement la meme matiere.
 const BOIS_PAR_LOT_TRACTS = 1;
-const QUANTITES_LOTS_TRACTS = [10, 20, 50, 100];
+const TRACTS_PAR_LOT = 10;
 
 // Capacite de stockage d'une imprimerie tenue par un PNJ. Ce n'est PAS une constante de game design
 // definitive : quand les imprimeries appartiendront a des PJ, cette limite sera reglee par la future
@@ -282,12 +283,20 @@ async function mouvementBoisAtelier(deltaBois) {
     .catch(() => null);
 }
 
-// Nombre de lots de 10 tracts realisables ici : borne par le stock de bois de l'imprimerie ET par
-// les PA du producteur (1 PA par lot). Sert a la fois a l'affichage et aux controles de commande.
-function lotsImprimablesIci(stockBois) {
+// Nombre de lots de 10 tracts realisables ici, et ce qui l'y limite. Trois bornes, exactement
+// celles que imprimerie_produire_tracts revalidera cote serveur : le bois du stock de l'atelier
+// (1 par lot), les PA du producteur (1 par lot) et ses fonds ordinaires (prixLotTractsAtelier()
+// par lot). Le detail sert a dire au joueur POURQUOI il ne peut pas commander davantage, plutot
+// que de lui proposer une quantite que le serveur refusera.
+function capaciteImpressionTracts(stockBois) {
+  const prixLot = prixLotTractsAtelier();
+  const enTest = (typeof TEST_MODE !== 'undefined' && TEST_MODE);
   const parBois = Math.floor((stockBois || 0) / BOIS_PAR_LOT_TRACTS);
-  const parPa = (typeof TEST_MODE !== 'undefined' && TEST_MODE) ? parBois : Math.floor(state.pa || 0);
-  return Math.max(0, Math.min(parBois, parPa));
+  const parPa = enTest ? parBois : Math.floor(state.pa || 0);
+  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function')
+    ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  const parFonds = enTest ? parBois : Math.floor(fonds / prixLot);
+  return { lots: Math.max(0, Math.min(parBois, parPa, parFonds)), parBois, parPa, parFonds, fonds, prixLot };
 }
 
 // Production d'un ou plusieurs lots, commune aux tracts electoraux et calomnieux. Chaque lot de 10 :
@@ -342,84 +351,159 @@ function messageStockBoisInsuffisant(nbLots, dispo) {
 }
 
 // --- Tracts electoraux : moteur unique des trois imprimeries ---
-// La cible est restreinte aux candidats REELLEMENT en campagne (listerCandidatsElectorauxActifs,
-// plateau-politique.js) : un tract imprime est ainsi toujours distribuable dans le vrai systeme
-// electoral. POUR (+1 voix) ou CONTRE (-1 voix, plancher 0) : les deux sens sont traites par le
+// CIBLE (regle du 16 septembre 2026) : N'IMPORTE QUEL PERSONNAGE -- candidat ou non, campagne
+// ouverte ou non, SOI-MEME COMPRIS. L'ancienne restriction aux candidats « reellement en
+// campagne » (listerCandidatsElectorauxActifs) fermait l'imprimerie hors des phases de campagne :
+// un joueur ayant depose sa candidature pendant la phase « candidatures » ne pouvait imprimer
+// aucun tract, pas meme pour lui-meme, et lisait « Aucun candidat en campagne actuellement ».
+// La contrainte electorale n'est pas supprimee, elle reste LA OU ELLE A TOUJOURS ETE UTILE, a la
+// DISTRIBUTION : scrutinsDistribuablesPourTract (plateau-politique.js) n'ouvre un scrutin que si
+// la cible y est inscrite, et le serveur refuse 'candidat_hors_scrutin'. Un tract imprime trop tot
+// n'est donc jamais perdu ni distribuable a tort : il devient utilisable des que sa cible se
+// presente. Corollaire assume : le lot n'est plus epingle a un scrutin (electionPosteId /
+// electionCity), puisqu'a l'impression ce scrutin peut ne pas exister -- ces deux champs restent
+// lus pour les lots HISTORIQUES, qui gardent leur restriction (test conditionnel deja en place).
+// POUR (+1 voix) ou CONTRE (-1 voix, plancher 0) : inchange, les deux sens sont traites par le
 // moteur serveur des tracts (migration_tracts_electoraux_pnj.sql), qui les accepte tous deux.
+//
+// Source des cibles : l'annuaire des joueurs (sbListPersonnages, exactement la meme source que les
+// tracts calomnieux et ouvrirAnnuaireJoueurs), UNION les candidats deja declares dans les cycles.
+// Cette union n'est pas decorative : elle preserve les cibles PNJ, qui ne figurent dans aucun
+// annuaire de PJ et etaient ciblables avant ce lot -- sans elle, ce chantier supprimerait une
+// possibilite existante.
+async function listerCiblesTractsElectoraux() {
+  const parNom = new Map();
+  const ajouter = (nom, extra) => {
+    if (!nom) return;
+    const cle = String(nom);
+    const e = parNom.get(cle) || { nom: cle, country: null, enCampagne: false };
+    if (extra && extra.country && !e.country) e.country = extra.country;
+    if (extra && extra.enCampagne) e.enCampagne = true;
+    parNom.set(cle, e);
+  };
+  if (typeof sbListPersonnages === 'function') {
+    try { ((await sbListPersonnages()) || []).forEach(j => ajouter(j.name, { country: j.country || null })); }
+    catch (e) { /* annuaire injoignable : repli sur le repertoire, ci-dessous */ }
+  }
+  if (parNom.size === 0) (state.contacts || []).forEach(c => ajouter(c && c.name));
+  // Soi-meme : explicitement ciblable (on imprime d'abord pour sa propre campagne). Ajoute meme si
+  // l'annuaire l'omet ou est injoignable.
+  ajouter(state.char && state.char.name, { country: state.country });
+  // Candidats declares, TOUTES PHASES CONFONDUES (y compris « candidatures ») et PJ comme PNJ.
+  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[state.country]) || {};
+  Object.keys(cycles).forEach(cle => {
+    ((cycles[cle] && cycles[cle].candidats) || []).forEach(c => ajouter(c && c.nom, { country: state.country }));
+  });
+  // Mention « en campagne » purement informative : listerCandidatsElectorauxActifs reste la
+  // definition unique de cette notion (plateau-politique.js), elle ne filtre simplement plus rien.
+  const actifs = (typeof listerCandidatsElectorauxActifs === 'function') ? listerCandidatsElectorauxActifs() : [];
+  actifs.forEach(c => ajouter(c && c.nom, { enCampagne: true }));
+  return Array.from(parNom.values()).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+}
+
+function echapperTexteTract(s) {
+  if (typeof escapeHtmlText === 'function') return escapeHtmlText(s);
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function ouvrirModalImprimerTractsElectoraux(pa, cost) {
-  const candidats = (typeof listerCandidatsElectorauxActifs === 'function') ? listerCandidatsElectorauxActifs() : [];
+  const cibles = await listerCiblesTractsElectoraux();
   const stockBois = await stockBoisAtelier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const prixLot = prixLotTractsAtelier();
+  const cap = capaciteImpressionTracts(stockBois);
+  const prixLot = cap.prixLot;
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
+  const empireNoms = { republic: 'Républia', narco: 'El Estado', soviet: 'Sovarka', khalija: 'Al-Khalija' };
+  const moi = (state.char && state.char.name) || '';
   document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
   let html = '<div style="padding:1rem">';
-  const lotsPossibles = lotsImprimablesIci(stockBois);
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Par lot de 10 tracts : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
-  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + imprimeur : 'de l\'imprimerie') + ' : ' + stockBois + ' (soit ' + (stockBois * 10) + ' tracts imprimables) — vos PA : ' + (state.pa || 0) + '</div>';
-  if (candidats.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucun candidat en campagne actuellement.</div>';
-  } else if (stockBois < BOIS_PAR_LOT_TRACTS) {
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Par lot de ' + TRACTS_PAR_LOT + ' tracts : ' + prixLot + ' ' + cur + ', ' + BOIS_PAR_LOT_TRACTS + ' bois du stock de l\'imprimerie et 1 PA de travail, rémunéré ' + SALAIRE_LOT_TRACTS + ' ' + cur + '.</div>';
+  html += '<div style="font-size:.76rem;color:' + (cap.parBois >= 1 ? '#8a8060' : '#cc5540') + ';margin-bottom:.4rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock ' + (imprimeur ? 'de ' + echapperTexteTract(imprimeur) : 'de l\'imprimerie') + ' : ' + stockBois + ' (soit ' + (cap.parBois * TRACTS_PAR_LOT) + ' tracts imprimables)</div>';
+  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.8rem">Vos PA : ' + (state.pa || 0) + ' — vos fonds ordinaires : ' + cap.fonds.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (cibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun personnage à viser n\'est accessible pour l\'instant.</div>';
+  } else if (cap.parBois < 1) {
     html += '<div style="font-size:.85rem;color:#cc5540">L\'imprimerie n\'a plus de bois. Vendez-lui des matières premières avant de commander.</div>';
-  } else if (lotsPossibles < 1) {
-    html += '<div style="font-size:.85rem;color:#cc5540">Il faut au moins 1 PA pour produire un lot de 10 tracts.</div>';
+  } else if (cap.parPa < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Il faut au moins 1 PA pour produire un lot de ' + TRACTS_PAR_LOT + ' tracts.</div>';
+  } else if (cap.parFonds < 1) {
+    html += '<div style="font-size:.85rem;color:#cc5540">Il vous faut ' + prixLot + ' ' + cur + ' disponibles pour un lot de ' + TRACTS_PAR_LOT + ' tracts.</div>';
   } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRACT</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">ORIENTATION DU TRACT</div>';
     html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
-    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR le candidat</button>';
-    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE le candidat</button>';
+    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR</button>';
+    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE</button>';
     html += '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT VISÉ</div>';
-    html += '<select id="tract-electoral-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    candidats.forEach((c, idx) => { html += '<option value="' + idx + '">' + c.nom + '</option>'; });
-    html += '</select>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITÉ</div>';
-    html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    QUANTITES_LOTS_TRACTS.filter(q => (q / 10) <= lotsPossibles).forEach(q => {
-      const n = q / 10;
-      html += '<option value="' + q + '">' + q + ' tracts — ' + (n * prixLot) + ' ' + cur + ', ' + (n * BOIS_PAR_LOT_TRACTS) + ' bois, ' + n + ' PA (salaire ' + (n * SALAIRE_LOT_TRACTS) + ' ' + cur + ')</option>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PERSONNE VISÉE</div>';
+    html += '<select id="tract-electoral-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
+    cibles.forEach(c => {
+      const n = echapperTexteTract(c.nom);
+      let suffixe = '';
+      if (c.nom === moi) suffixe += ' — vous';
+      else if (c.country && empireNoms[c.country] && c.country !== state.country) suffixe += ' — ' + empireNoms[c.country];
+      if (c.enCampagne) suffixe += ' — en campagne';
+      html += '<option value="' + n + '"' + (c.nom === moi ? ' selected' : '') + '>' + n + suffixe + '</option>';
     });
     html += '</select>';
+    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Un tract se distribue le dimanche d\'un scrutin où la personne visée est candidate.</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">NOMBRE DE LOTS</div>';
+    html += '<select id="tract-electoral-lots" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
+    // Aucune quantite pre-remplie au maximum : la liste commence a 1 lot, qui reste selectionne
+    // par defaut. Le plafond est la plus contraignante des trois bornes (bois, PA, fonds).
+    for (let n = 1; n <= cap.lots; n++) {
+      html += '<option value="' + n + '">' + n + ' lot' + (n > 1 ? 's' : '') + ' — ' + (n * TRACTS_PAR_LOT) + ' tracts, ' + (n * prixLot) + ' ' + cur + ', ' + (n * BOIS_PAR_LOT_TRACTS) + ' bois, ' + n + ' PA (salaire ' + (n * SALAIRE_LOT_TRACTS) + ' ' + cur + ')</option>';
+    }
+    html += '</select>';
+    let limite = 'le stock de bois de l\'imprimerie';
+    if (cap.parPa <= cap.parBois && cap.parPa <= cap.parFonds) limite = 'vos PA';
+    else if (cap.parFonds <= cap.parBois) limite = 'vos fonds';
+    html += '<div style="font-size:.72rem;color:#7a7050;font-style:italic;margin-bottom:.8rem">Maximum ici : ' + cap.lots + ' lot' + (cap.lots > 1 ? 's' : '') + ', limité par ' + limite + '.</div>';
     html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-  window._candidatsElectorauxActifs = candidats;
   window._tractType = 'pour';
 }
 
 async function confirmerImprimerTractsElectoraux(pa, cost) {
-  const idx = parseInt(document.getElementById('tract-electoral-cible')?.value ?? '-1');
-  const candidat = (window._candidatsElectorauxActifs || [])[idx];
-  if (!candidat) { showToast('Aucun candidat', '', false); return; }
+  const cible = document.getElementById('tract-electoral-cible')?.value;
+  if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée par les tracts.', false); return; }
   const sens = window._tractType === 'contre' ? 'contre' : 'pour';
-  const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
-  const nbLots = Math.max(1, Math.round(quantite / 10));
+  const nbLots = Math.max(1, parseInt(document.getElementById('tract-electoral-lots')?.value || '1', 10) || 1);
+  const quantite = nbLots * TRACTS_PAR_LOT;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  // Production : 1 PA, 150 FR, 1 bois de l'imprimerie et 50 FR de salaire PAR LOT de 10.
+  // Production : 1 PA, 150 FR, 1 bois de l'imprimerie et 50 FR de salaire PAR LOT de 10. Tout ou
+  // rien : imprimerie_produire_tracts relit le tarif, le bois, les PA et les fonds sous verrou et
+  // ne renvoie ok qu'apres avoir tout ecrit. Un refus n'a rien consomme -- l'inventaire ci-dessous
+  // n'est donc alimente qu'apres confirmation serveur.
   const prod = await produireLotsTracts(nbLots, pa);
   if (!prod) return;
   const montantDebite = prod.montantDebite;
 
   if (!state.inventory) state.inventory = [];
-  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && (i.tractType || 'pour') === sens);
+  // Empilement : meme cible ET meme orientation -- POUR X et CONTRE X restent deux lots distincts.
+  // Les lots HISTORIQUES epingles a un scrutin (electionPosteId) sont exclus de la fusion : les
+  // absorber ferait heriter au nouveau lot une restriction de scrutin qu'il n'a pas. Les tracts de
+  // la mission Jean-Lou (origineQuete) sont exclus pour la meme raison, circuit dedie.
+  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === cible
+    && (i.tractType || 'pour') === sens && !i.electionPosteId && !i.origineQuete);
   if (existing) {
     existing.quantite = (existing.quantite || 0) + quantite;
   } else {
     state.inventory.push({
-      type: 'tract', name: 'Tracts ' + (sens === 'contre' ? 'CONTRE ' : 'POUR ') + candidat.nom,
-      icon: 'ti-file-description', tractType: sens, cible: candidat.nom, quantite: quantite, legal: true,
-      electionPosteId: candidat.posteId, electionCity: candidat.city
+      type: 'tract', name: 'Tracts ' + (sens === 'contre' ? 'CONTRE ' : 'POUR ') + cible,
+      icon: 'ti-file-description', tractType: sens, cible: cible, quantite: quantite, legal: true
     });
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' ajoutés à votre inventaire. -' + montantDebite + ' ' + cur + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + cur + ' de main-d\'œuvre.', true, true);
-  addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + candidat.nom + ' (' + prod.paConsommes + ' PA, salaire ' + prod.salaire + ' ' + cur + ').', 'event-info');
+  showToast('Tracts imprimés !', quantite + ' tracts ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + cible + ' ajoutés à votre inventaire. -' + montantDebite + ' ' + cur + ', -' + prod.paConsommes + ' PA, +' + prod.salaire + ' ' + cur + ' de main-d\'œuvre.', true, true);
+  addJournalEntry('Impression de ' + quantite + ' tracts électoraux ' + (sens === 'contre' ? 'contre ' : 'en faveur de ') + cible + ' (' + prod.paConsommes + ' PA, salaire ' + prod.salaire + ' ' + cur + ').', 'event-info');
 }
 
 // --- Tract calomnieux (atelier) ---
