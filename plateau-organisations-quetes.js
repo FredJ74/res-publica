@@ -2082,7 +2082,14 @@ async function simulerTourPur(paires) {
     const clubA = getClub(a), clubB = getClub(b);
     const [contribA, contribB] = await Promise.all([calculerContributionEquipe(clubA), calculerContributionEquipe(clubB)]);
     const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
-    resultats.push({ home: a, away: b, scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit });
+    // Compositions PERSISTEES (16 septembre 2026) : sans elles, le serveur ne sait pas qui a
+    // dispute le tour et ne peut donc pas verser les primes lui-meme. Purement additif -- meme
+    // forme que les matchs de la saison reguliere, aucune regle ni aucun montant ne change.
+    resultats.push({ home: a, away: b, scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit,
+      compositions: {
+        home: { titulaires: contribA.titulaires.map(t => t.nom), remplacants: contribA.remplacants.map(t => t.nom) },
+        away: { titulaires: contribB.titulaires.map(t => t.nom), remplacants: contribB.remplacants.map(t => t.nom) }
+      } });
     effets.push({ club: clubA, contrib: contribA, butsPour: res.scoreHome, butsContre: res.scoreAway });
     effets.push({ club: clubB, contrib: contribB, butsPour: res.scoreAway, butsContre: res.scoreHome });
   }
@@ -2187,7 +2194,11 @@ async function progresserPlayoffs(saison) {
     const [a, b] = p.finale.paire;
     const tour = await simulerTourPur([[a, b]]);
     const r = tour.resultats[0];
-    p.finale.resultat = { home: a, away: b, scoreHome: r.scoreHome, scoreAway: r.scoreAway, recit: r.recit };
+    // `compositions` reprise telle quelle depuis le resultat simule (16 septembre 2026) : la
+    // finale se recopie champ par champ ici, elle aurait donc perdu la seule information qui
+    // permet au serveur de savoir a qui verser les primes.
+    p.finale.resultat = { home: a, away: b, scoreHome: r.scoreHome, scoreAway: r.scoreAway,
+                          recit: r.recit, compositions: r.compositions };
 
     const champion = r.scoreHome >= r.scoreAway ? a : b;
     const finaliste = champion === a ? b : a;
@@ -2302,6 +2313,14 @@ async function verifierEtJouerJournees() {
       // n'emet donc rien -- ni salaire, ni popularite, ni blessure, ni mail, ni publication.
       if (r.ok) {
         await appliquerEffetsTour(tour.effets);
+        // Primes du tour : meme primitive serveur que les journees, meme registre, meme
+        // idempotence. L'etape a deja avance en base, on paie donc la manche qu'on vient de jouer.
+        if (typeof sbRpc === 'function') {
+          for (const pub of tour.publications) {
+            const manche = (pub.type === 'finale') ? 'finale' : MANCHES_PLAYOFF[pub.titre];
+            if (manche) await sbRpc('football_primes_tour', { p_manche: manche }).catch(() => {});
+          }
+        }
         for (const pub of tour.publications) {
           if (pub.type === 'finale') await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales).catch(() => {});
           else await publierTourPlayoffSurForum(saison.numero, pub.titre, pub.resultats).catch(() => {});
@@ -2471,16 +2490,13 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
   // inchange. Aucun bonus lie a une performance individuelle (but, triplé...) -- decision de
   // game design separee, hors perimetre de ce correctif.
   const gainPop = victoire ? 30 : 20;
+  // L'ARGENT NE PASSE PLUS PAR ICI (16 septembre 2026) : les primes et le debit de la caisse du
+  // club sont verses par football_primes_journee/_tour, qui recalcule les montants et ne paie
+  // chaque joueur qu'une fois. Voir appliquerEffetRestant pour le detail du defaut corrige.
+  // La popularite et le courrier restent au client : leurs chemins fonctionnent.
   for (const t of contrib.titulaires) {
-    const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
-    if (montant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(t.nom, montant).catch(() => {});
     if (gainPop > 0 && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(t.nom, gainPop).catch(() => {});
   }
-  for (const r of contrib.remplacants) {
-    if (salaires.remplacant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(r.nom, salaires.remplacant).catch(() => {});
-  }
-  const totalVerse = contrib.titulaires.length * (salaires.titulaire + (victoire ? salaires.primeVictoire : 0)) + contrib.remplacants.length * salaires.remplacant;
-  if (totalVerse > 0) await crediterBudgetClub(club.id, -totalVerse, 'Salaires des joueurs (' + resultat + ')');
 
   for (const t of contrib.titulaires) {
     let messageBlessure = '';
@@ -2945,13 +2961,20 @@ async function appliquerEffetRestant(item) {
     return;
   }
   if (item.type === 'recompense') {
-    if (item.montant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(item.nom, item.montant).catch(() => {});
+    // L'ARGENT NE PASSE PLUS PAR ICI (16 septembre 2026). sbAppliquerSalaire ecrivait la fiche
+    // d'un AUTRE personnage : depuis le chantier B la vue refuse cette ecriture, et l'appel
+    // etait avale par un .catch() muet -- la prime etait perdue en silence, sauf quand le
+    // beneficiaire se trouvait etre le joueur dont le navigateur drainait l'effet, qui se
+    // creditait alors lui-meme. football_primes_journee/_tour verse desormais tout le monde,
+    // au montant que le serveur recalcule, une seule fois. Popularite et courrier restent ici :
+    // ils passent par des chemins qui fonctionnent.
     if (item.gainPop && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(item.nom, item.gainPop).catch(() => {});
     if (typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', item.nom, item.sujet, item.corps, formatDateHeureJeu()).catch(() => {});
     return;
   }
   if (item.type === 'budget_club') {
-    if (typeof crediterBudgetClub === 'function') await crediterBudgetClub(item.clubId, -item.montant, item.motif).catch(() => {});
+    // La caisse du club est debitee par le serveur, dans la meme transaction que les primes
+    // qu'elle finance -- la debiter encore ici la ponctionnerait deux fois.
     return;
   }
 }
@@ -3170,6 +3193,13 @@ async function avancerFootballLive() {
       if (prochaine.matchs.every(m => m.played)) {
         const dateSportiveTheorique = kickoff.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' });
         await publierResultatsJourneeSurForum(saison.numero, prochaine, dateSportiveTheorique).catch(() => {});
+        // PRIMES : versees par le serveur, qui relit lui-meme la composition figee, verifie les
+        // licences et recalcule les montants. Idempotent -- rappeler cet ordre ne paie personne
+        // deux fois, ce qui permet a n'importe quel client de rattraper une journee dont le
+        // gagnant du compare-and-swap aurait disparu avant d'arriver ici.
+        if (typeof sbRpc === 'function') {
+          await sbRpc('football_primes_journee', { p_journee: prochaine.numero }).catch(() => {});
+        }
         await resoudreParisJournee(saison.numero, prochaine).catch(() => {});
       }
     }

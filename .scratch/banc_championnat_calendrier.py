@@ -24,6 +24,7 @@ URL = re.search(r'URL = "([^"]+)"', SRC).group(1)
 BLOC = SRC[SRC.index('ANON = ('):SRC.index('SUF =')]
 ANON = ''.join(re.findall(r'"([^"]*)"', BLOC))
 
+JOUEUR_PRIME = 'zztest-prime-' + str(int(time.time()))
 LIGNES = []          # ids de championnat crees par le banc
 TOPICS = []          # sujets de forum crees par le banc, retires en fin de passe
 resultats = []
@@ -231,10 +232,12 @@ def main():
     r = b[0] if isinstance(b, list) and b else b
     c, apres_pub = http('GET', '/rest/v1/forum_topics?select=id&author=eq.Ligue%20Officielle')
     verifier('publier une journee deja jouee ne cree pas de doublon',
-             r and r.get('ok') is True and len(apres_pub or []) == len(avant or []) + 1,
-             '%d -> %d' % (len(avant or []), len(apres_pub or [])))
-    nouveau = [t['id'] for t in (apres_pub or []) if t not in (avant or [])]
-    TOPICS.extend(nouveau)
+             r and r.get('ok') is True
+             and len(apres_pub or []) == len(avant or []) + (0 if r.get('deja_publie') else 1),
+             '%d -> %d (deja=%s)' % (len(avant or []), len(apres_pub or []), r.get('deja_publie')))
+    # Le sujet produit par la RPC est retire en fin de passe, qu'il vienne d'etre cree ou
+    # qu'une passe precedente l'ait laisse : le forum des joueurs ne garde rien du banc.
+    TOPICS.append((r or {}).get('topic_id'))
     c, b = http('POST', '/rest/v1/rpc/championnat_publier_journee', {'p_journee': 4},
                 token=JETON)
     r = b[0] if isinstance(b, list) and b else b
@@ -391,6 +394,78 @@ def main():
         verifier('%s refuse : %s' % (fn.replace('championnat_publier_', ''), attendu),
                  r and r.get('ok') is False and r.get('raison') == attendu, r)
 
+    # ============ 13. LES PRIMES DE MATCH ============
+    # Le defaut d'origine : sbAppliquerSalaire creditait la fiche d'un AUTRE personnage. La vue
+    # le refuse depuis le chantier B, et l'appel etait avale par un .catch() muet -- la prime
+    # disparaissait sans bruit. Le versement passe desormais par le serveur ; ce bloc verifie
+    # qu'un client ne peut ni s'en fabriquer une, ni en choisir le montant ou le beneficiaire.
+    # Le personnage de test n'a AUCUNE licence : il n'est eligible a rien.
+    creer_perso = {'name': JOUEUR_PRIME, 'country': 'republic', 'current_city': 'capitale',
+                   'stats': {}, 'resources': {}, 'qualifications': {}, 'effets_actifs': {},
+                   'stats_affaiblies': {}, 'demandeur_emploi': False, 'bonus_lobbyiste': 0,
+                   'day': 5, 'arg': 1000, 'liquide': 0, 'hp': 100, 'moral': 75}
+    http('POST', '/rest/v1/personnages', creer_perso, token=JETON, prefer='return=representation')
+
+    def argent(nom):
+        # Avec le jeton : depuis le chantier B, la fortune n'est lisible que par son proprietaire.
+        c, b = http('GET', '/rest/v1/personnages?select=arg&name=eq.' + urllib.request.quote(nom),
+                    token=JETON)
+        return (b[0]['arg'] if b else None)
+
+    depart = argent(JOUEUR_PRIME)
+    verifier('personnage de test cree, sans licence', depart == 1000, depart)
+
+    # (a) le client ne choisit PAS le beneficiaire ni le montant : la RPC n'a qu'un parametre,
+    #     et toute tentative d'en passer d'autres est rejetee par l'API elle-meme.
+    c, b = http('POST', '/rest/v1/rpc/football_primes_journee',
+                {'p_journee': 4, 'p_beneficiaire': JOUEUR_PRIME, 'p_montant': 999999}, token=JETON)
+    verifier('on ne peut pas glisser un beneficiaire ni un montant dans l appel',
+             c >= 400, 'HTTP %s' % c)
+
+    # (b) une journee reellement jouee, mais aucun licencie de test : rien n'est verse.
+    c, b = http('POST', '/rest/v1/rpc/football_primes_journee', {'p_journee': 4}, token=JETON)
+    r = b[0] if isinstance(b, list) and b else b
+    verifier('journee reelle : l appel aboutit', r and r.get('ok') is True, r)
+    verifier('un non-licencie ne touche rien', argent(JOUEUR_PRIME) == depart,
+             '%s -> %s' % (depart, argent(JOUEUR_PRIME)))
+
+    # (c) match qui n'existe pas
+    c, b = http('POST', '/rest/v1/rpc/football_primes_journee', {'p_journee': 99}, token=JETON)
+    r = b[0] if isinstance(b, list) and b else b
+    verifier('journee inexistante : refus',
+             r and r.get('ok') is False and r.get('raison') == 'journee_inconnue', r)
+    c, b = http('POST', '/rest/v1/rpc/football_primes_tour', {'p_manche': 'coupe_imaginaire'},
+                token=JETON)
+    r = b[0] if isinstance(b, list) and b else b
+    verifier('manche inventee : refus',
+             r and r.get('ok') is False and r.get('raison') == 'manche_inconnue', r)
+
+    # (d) journee non jouee : aucun versement
+    c, b = http('POST', '/rest/v1/rpc/football_primes_journee', {'p_journee': 5}, token=JETON)
+    r = b[0] if isinstance(b, list) and b else b
+    verifier('journee a venir : aucun versement',
+             r and r.get('ok') is True and r.get('verses') == 0, r)
+
+    # (e) LE VIEUX CLIENT : c'est exactement ce que faisait sbAppliquerSalaire. Il doit echouer,
+    #     et le verrou du chantier B doit rester entier.
+    # La fortune d'autrui n'est meme pas lisible (chantier B) : on mesure donc le REFUS lui-meme,
+    # qui est la preuve directe, plutot qu'un solde qu'on ne peut pas relire.
+    c, lecture = http('GET', '/rest/v1/personnages?select=arg&name=eq.Arnie', token=JETON)
+    verifier('la fortune d un autre personnage reste masquee',
+             lecture == [] or (lecture and lecture[0].get('arg') is None), lecture)
+    c, b = http('PATCH', '/rest/v1/personnages?name=eq.Arnie', {'arg': 999999}, token=JETON)
+    verifier('un client ne credite pas la fiche d un autre (personnage_non_possede)',
+             c in (401, 403) and 'personnage_non_possede' in str(b), 'HTTP %s %s' % (c, str(b)[:90]))
+
+    # (f) le registre des primes reste invisible au client
+    c, b = http('GET', '/rest/v1/football_primes_versees?select=reference', token=JETON)
+    verifier('le registre des primes n est pas lisible par un client', c >= 400, 'HTTP %s' % c)
+    c, b = http('POST', '/rest/v1/football_primes_versees',
+                {'reference': 'zztest-forge', 'beneficiaire': JOUEUR_PRIME,
+                 'club': 'olympique-luthecia', 'role': 'titulaires', 'montant': 99999},
+                token=JETON)
+    verifier('ni falsifiable', c >= 400, 'HTTP %s' % c)
+
     # ============ 10. LA LIGNE REELLE EST INTACTE ============
     c, b = http('GET', '/rest/v1/championnat?select=data&id=eq.2')
     reelle = b[0]['data'] if b else {}
@@ -404,9 +479,11 @@ def main():
 
 def rapport():
     # Le banc ne laisse aucun sujet au forum des joueurs.
-    for tid in TOPICS:
+    for tid in [t for t in TOPICS if t]:
         http('DELETE', '/rest/v1/forum_posts?topic_id=eq.' + tid, token=JETON)
         http('DELETE', '/rest/v1/forum_topics?id=eq.' + tid, token=JETON)
+    http('DELETE', '/rest/v1/personnages?name=eq.' + urllib.request.quote(JOUEUR_PRIME),
+         token=JETON)
     for ident in LIGNES:
         http('DELETE', '/rest/v1/championnat?id=eq.%d' % ident, token=JETON)
     c, reste = http('GET', '/rest/v1/championnat?select=id&id=gt.9000')
@@ -422,4 +499,12 @@ def rapport():
 
 
 if __name__ == '__main__':
-    sys.exit(main() or 0)
+    # Le rapport (et donc le nettoyage) doit passer meme si une assertion leve : une passe morte
+    # en cours de route laissait jusqu'ici ses sujets au forum de production.
+    try:
+        code = main() or 0
+    except Exception as e:
+        print('INTERROMPU : %s' % e)
+        code = 2
+        rapport()
+    sys.exit(code)

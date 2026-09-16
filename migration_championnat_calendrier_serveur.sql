@@ -372,3 +372,52 @@ CREATE TRIGGER trg_forum_verrou_message_ligue
 -- refuse cette ecriture (personnage_non_possede) -- ce qui ferme le vecteur d'abus, mais
 -- signifie aussi que les primes ne sont probablement plus versees. Relevé du game design, pas
 -- tranche seul.
+
+-- =====================================================================================
+-- COMPLEMENT DU 16 septembre 2026 : LE VERSEMENT DES PRIMES DE MATCH
+-- =====================================================================================
+-- DEJA EXECUTE en production (migrations MCP : football_primes_versement_serveur,
+-- football_primes_phases_finales).
+--
+-- LE DEFAUT. sbAppliquerSalaire (supabase.js) verse une prime par un UPDATE direct sur la fiche
+-- d'un AUTRE personnage. Depuis le chantier B, la vue personnages refuse cette ecriture
+-- (personnage_non_possede), et l'appel est enveloppe dans un .catch() muet : la prime etait
+-- perdue en silence -- sauf dans le cas fortuit ou le beneficiaire etait justement le joueur
+-- dont le navigateur drainait l'effet, qui se creditait alors lui-meme. Un versement qui depend
+-- de QUI a un onglet ouvert n'est pas un versement.
+--
+-- LA REGLE, retrouvee dans le code et NON MODIFIEE :
+--   titulaire  : salaires.titulaire + (salaires.primeVictoire si SON club a gagne)
+--   remplacant : salaires.remplacant           non retenu : rien
+--   salaires lus dans budgets_clubs (100 / 50 / 150 par defaut, memes valeurs de repli que
+--   chargerBudgetClub) ; le total reellement verse est debite de la caisse du club.
+--
+-- CE QUE LE SERVEUR ATTESTE, sans rien croire de l'appelant : le match existe et porte
+-- played=true ; le beneficiaire figure dans la composition FIGEE ; il detient une licence ACTIVE
+-- dans ce club ; le montant est recalcule depuis budgets_clubs et le score persiste (jamais lu
+-- d'un parametre, jamais lu de effetsRestants, que le client ecrit) ; la prime n'a pas deja ete
+-- versee. L'appelant ne designe qu'une journee ou une manche.
+--
+-- IDEMPOTENCE : reference DETERMINISTE -- saison, rencontre, affiche, beneficiaire, role -- en
+-- cle primaire de football_primes_versees. Elle ne doit rien a l'identifiant aleatoire que le
+-- client fabrique dans effetsRestants, qui serait rejouable en changeant son suffixe. La ligne
+-- du championnat est verrouillee (FOR UPDATE) : deux appels simultanes passent l'un apres
+-- l'autre et le second ne trouve plus rien a verser.
+--
+-- Objets : football_primes_versees (registre, aucune policy), football_noms_composition,
+-- football_primes_match (coeur commun, non appelable par un client), football_primes_journee,
+-- football_primes_tour. Cote client : sbAppliquerSalaire n'est plus appele par le football, et
+-- l'item budget_club devient inerte (le serveur debite la caisse dans la meme transaction).
+--
+-- AUCUNE REGULARISATION N'A ETE FAITE, et c'est un resultat, pas un oubli : sur les quatre
+-- journees jouees, les compositions ne comptent qu'UN SEUL titulaire (Arnie, journee 3, le
+-- 6 septembre) ; les journees 1, 2 et 4 n'avaient aucun licencie, donc aucune prime due. Or la
+-- journee 3 est anterieure au chantier B ET au reset de la beta, et le personnage « Arnie »
+-- actuel a ete cree le 13 septembre a 22h49, apres la journee 4 : ce n'est pas le meme
+-- personnage. Crediter aujourd'hui pour un match dispute par un homonyme disparu serait une
+-- approximation -- remonte pour arbitrage plutot que decide ici.
+--
+-- DEFAUT DE MEME NATURE, HORS FOOTBALL, DOCUMENTE ET NON CORRIGE (hors perimetre de ce lot) :
+-- plateau-politique.js, subvention du ministre des Finances a un joueur. La caisse du
+-- gouvernement est bien debitee (debiterCaisseBatimentPlafonne) puis le versement passe par
+-- sbAppliquerSalaire : l'argent quitte la caisse et n'arrive jamais au beneficiaire.
