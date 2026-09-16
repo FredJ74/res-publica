@@ -19,8 +19,11 @@ HARNAIS = r"""
 var _els = {};
 function _el(id) {
   if (!_els[id]) _els[id] = { id: id, innerHTML: '', value: '', offsetWidth: 0, style: {},
+    children: [],
     addEventListener: function () {}, removeEventListener: function () {},
-    appendChild: function () {}, querySelector: function () { return null; },
+    appendChild: function (n) { this.children.push(n); n.parentNode = this; return n; },
+    removeChild: function (n) { var i = this.children.indexOf(n); if (i >= 0) this.children.splice(i, 1); },
+    querySelector: function () { return null; },
     querySelectorAll: function () { return []; }, getBoundingClientRect: function () {
       return { left: 0, top: 0, width: this.offsetWidth || 0, height: 0 }; },
     classList: { _c: {}, add: function (c) { this._c[c] = 1; }, remove: function (c) { delete this._c[c]; },
@@ -46,9 +49,37 @@ function _brancherCreationParHtml(id) {
 var document = { getElementById: _elStrict, querySelector: function(){return null;},
   querySelectorAll: function(){return [];}, addEventListener: function(){},
   body: { appendChild: function(){} },
-  createElement: function(){ return { style:{}, classList:{add:function(){},remove:function(){}},
-                                      addEventListener:function(){}, appendChild:function(){} }; } };
-var window = { addEventListener: function(){}, location: { search: '' } };
+  createElement: function (tag) {
+    var noeud = { tagName: String(tag || 'div').toUpperCase(), style: {}, children: [],
+      className: '', innerHTML: '', textContent: '', contentEditable: '', dataset: {},
+      classList: { _c: {}, add: function (c) { this._c[c] = 1; },
+                   remove: function (c) { delete this._c[c]; },
+                   toggle: function (c, o) { if (o) this._c[c] = 1; else delete this._c[c]; },
+                   contains: function (c) { return !!this._c[c]; } },
+      appendChild: function (n) { this.children.push(n); n.parentNode = this; return n; },
+      removeChild: function (n) { var i = this.children.indexOf(n); if (i >= 0) this.children.splice(i, 1); },
+      addEventListener: function () {}, removeEventListener: function () {},
+      querySelector: function () { return null; }, querySelectorAll: function () { return []; },
+      getBoundingClientRect: function () { return { left:0, top:0, width:0, height:0 }; },
+      setAttribute: function () {}, focus: function () {} };
+    return noeud;
+  } };
+var TIPTAP_INSTANCES = [];
+function FauxEditeur(opts) {
+  this.opts = opts; this._html = (opts && opts.content) || '<p></p>'; this.focusAppele = 0;
+  var self = this;
+  this.commands = { focus: function () { self.focusAppele++; return true; } };
+  this.getHTML = function () { return self._html; };
+  this.setHTML = function (h) { self._html = h; };
+  this.chain = function () { var c = { focus: function(){return c;}, run: function(){return true;} };
+                             return c; };
+  this.on = function () {}; this.destroy = function () {};
+  this.isActive = function () { return false; };
+  this.state = { selection: {} };
+  TIPTAP_INSTANCES.push(this);
+}
+var window = { addEventListener: function(){}, location: { search: '' },
+               RP_TIPTAP_EDITOR: FauxEditeur, RP_TIPTAP_STARTER_KIT: { configure: function(){ return {}; } } };
 var localStorage = { getItem: function(){return null;}, setItem: function(){}, removeItem: function(){} };
 var navigator = { language: 'fr' };
 var TOASTS = [];
@@ -135,6 +166,18 @@ CYCLES_ELECTORAUX['republic']['maire_ville_b'] = {
 ouvrirRedactionProgramme({ dataset: { poste: 'maire', country: 'republic', city: 'ville_b' } });
 s.editeurOuvert = (typeof forumView !== 'undefined') ? forumView : null;
 
+s.redactionAvantPublication = (typeof _candidatureEnRedaction !== 'undefined' && _candidatureEnRedaction) ? 'posee' : 'absente';
+s.currentTopicIdAvant = (typeof currentTopicId !== 'undefined') ? currentTopicId : 'indefini';
+s.zonesCreees = (typeof rpComposeElements !== 'undefined') ? rpComposeElements.length : -1;
+s.toolbarSelectionnee = (typeof rpComposeElements !== 'undefined' && rpComposeElements[0] && rpComposeElements[0].el)
+  ? rpComposeElements[0].el.classList.contains('selected') : null;
+s.focusDemande = (typeof TIPTAP_INSTANCES !== 'undefined' && TIPTAP_INSTANCES[0]) ? TIPTAP_INSTANCES[0].focusAppele : -1;
+// La serialisation parcourt le DOM reel du canvas ; elle est eprouvee separement plus haut
+// (largeur mesuree). Ici on teste la NAVIGATION apres publication : on la bouchonne pour que le
+// harnais n'ait pas a simuler tout ProseMirror.
+rpCanvasSerializeCompose = function () { return { canvas_width: 500, elements: [], reading_order: [] }; };
+rpCanvasBuildFallbackContent = function () { return 'Mon programme.'; };
+_el('compose-canvas-title').value = 'Programme de Testeur';
 TOASTS = []; RPC_APPELS = [];
 s.publication = { exception: null };
 var fini = false;
@@ -185,6 +228,18 @@ def main():
              d['largeurSerialisee'] == 500, d['largeurSerialisee'])
     verifier('et se rabat sur 680 si le canvas n est pas mesurable',
              d['largeurRepli'] == 680, d['largeurRepli'])
+
+    # ---- OUVERTURE DE L EDITEUR : les premieres secondes ----
+    verifier('une zone de redaction est prete des l ouverture', d.get('zonesCreees') == 1,
+             d.get('zonesCreees'))
+    verifier('elle est selectionnee, donc la barre d outils est visible',
+             d.get('toolbarSelectionnee') is True, d.get('toolbarSelectionnee'))
+    verifier('le curseur y est place sans clic prealable', (d.get('focusDemande') or 0) >= 1,
+             d.get('focusDemande'))
+    verifier('DIAGNOSTIC : la redaction est bien memorisee avant publication',
+             d.get('redactionAvantPublication') == 'posee', d.get('redactionAvantPublication'))
+    verifier('DIAGNOSTIC : aucun sujet courant ne bloque la publication',
+             d.get('currentTopicIdAvant') in (None, 'indefini'), d.get('currentTopicIdAvant'))
 
     # ---- BUG 1 : voir ce qu'on vient de publier ----
     pub = d['publication']

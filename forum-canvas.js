@@ -576,7 +576,38 @@ function rpCanvasInitComposeScreen() {
     if (post && post.content_layout) {
       rpCanvasDeserializeIntoCompose(post.content_layout, container);
     }
+    return;
   }
+
+  // PREMIERES SECONDES DE LA REDACTION (16 septembre 2026).
+  //
+  // A l'ouverture, le canvas etait entierement VIDE : rien n'indiquait ou ecrire, et la barre de
+  // mise en forme restait invisible -- elle ne s'affiche que sur une zone SELECTIONNEE
+  // (.rp-zone.selected .rp-zone-toolbar), or il n'y avait aucune zone. Il fallait donc deviner
+  // qu'il fallait d'abord en creer une, puis cliquer dedans. Une fois ce premier obstacle passe,
+  // l'editeur plait tel quel : on ne change donc QUE le point de depart.
+  //
+  // On pose une premiere zone, vide, selectionnee et prete a recevoir le texte. Elle n'a rien de
+  // particulier -- c'est une zone ordinaire, deplacable, redimensionnable et supprimable comme
+  // les autres, et l'auteur peut en ajouter d'autres exactement comme avant.
+  container.style.minHeight = '';
+  if (container.scrollTop) container.scrollTop = 0;
+  const zoneInitiale = rpCanvasCreateTextZone(rpComposeController, container, 40, 40, 520, '<p></p>');
+  if (zoneInitiale && rpComposeController) {
+    const entree = rpComposeElements[rpComposeElements.length - 1];
+    if (entree && entree.el && entree.state) {
+      rpComposeController.selectElement(entree.el, entree.state);   // la barre d'outils apparait
+    }
+    // Le curseur dans la zone, sans attendre un clic. Differe d'un tick : Tiptap vient d'etre
+    // monte, et le focus pose trop tot est perdu au premier rendu de l'editeur.
+    if (entree && entree.editor && typeof setTimeout === 'function') {
+      setTimeout(function () { try { entree.editor.commands.focus('end'); } catch (e) {} }, 0);
+    }
+  }
+  // La vue repart du haut du formulaire : sans cela, une redaction precedente laissait la page
+  // defilee au niveau ou l'auteur l'avait quittee, loin de la zone qui vient d'apparaitre.
+  const ecran = document.getElementById('forum-main');
+  if (ecran && typeof ecran.scrollTop === 'number') ecran.scrollTop = 0;
 }
 
 // Largeur minimale des zones de texte : 140px, PAS le repli générique du moteur (40px,
