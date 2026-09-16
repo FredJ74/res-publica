@@ -673,7 +673,7 @@ function queteAccueilProposerPresentationForum() {
 // publication reelle n'est pas confirmee (voir queteAccueilMarquerPresentationPubliee).
 function queteAccueilLancerPresentationForum() {
   if (typeof openForumView === 'function') openForumView('local');
-  else if (typeof openForum_module === 'function') openForum_module('local');
+  else if (typeof openForum_module === 'function') openForum_module(typeof idForumLocal === 'function' ? idForumLocal() : 'local');
   if (typeof showComposeCanvasForm === 'function') showComposeCanvasForm();
   if (typeof onboardingArmerComposeCanvas === 'function') onboardingArmerComposeCanvas();
   const titleEl = document.getElementById('compose-canvas-title');

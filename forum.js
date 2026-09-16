@@ -4,7 +4,10 @@
    =========================== */
 
 const FORUMS_BASE = {
-  local:         { name: 'Forum Local',          icon: 'ti-home',          desc: 'Discussions de votre ville', private: false, cat: 'intra' },
+  // 'local' N'EST PLUS UN FORUM (16 septembre 2026) : il en existe un PAR VILLE, fabrique par
+  // getForums() sous la forme 'local_<ville>'. Le joueur voit toujours « Local » -- c'est
+  // l'identifiant, donc les donnees, qui portent la ville. Meme schema que 'tribunal_<ville>',
+  // deja en place, et donc valable pour Sovarka comme pour Republia sans un seul cas particulier.
   national:      { name: 'Forum National',        icon: 'ti-flag',          desc: 'Débats politiques nationaux', private: false, cat: 'intra' },
   presidence:    { name: 'La Présidence à la Nation', icon: 'ti-flag-3',    desc: 'Discours et annonces officielles depuis la Présidence', private: false, cat: 'intra', sousGroupe: 'institutions' },
   // Assemblee nationale (chantier du 10 septembre 2026). Public : tout le monde peut lire et
@@ -20,6 +23,13 @@ const FORUMS_BASE = {
 };
 
 // Getter dynamique — ajoute le forum Tribunal de la ville courante
+// Identifiant du forum Local d'une ville. Point unique : tout producteur ou consommateur de
+// contenu local passe par ici, si bien qu'aucun appelant n'a a connaitre la convention.
+function idForumLocal(villeId) {
+  const v = villeId || (typeof state !== 'undefined' && state.currentCity) || 'capitale';
+  return 'local_' + v;
+}
+
 function getForums() {
   const villeId = (typeof state !== 'undefined' && state.currentCity) || 'capitale';
   const tribunalKey = 'tribunal_' + villeId;
@@ -42,6 +52,10 @@ function getForums() {
 
   return {
     ...FORUMS_BASE,
+    // Le Local de LA ville ou se trouve le joueur. Son libelle reste « Local » : le cloisonnement
+    // est une affaire de donnees, pas d'etiquette a rallonge dans la liste des forums.
+    [idForumLocal(villeId)]: { name: 'Forum Local', icon: 'ti-home',
+      desc: 'Discussions de ' + villeNom, private: false, cat: 'intra' },
     [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false, cat: 'intra', sousGroupe: 'institutions' },
     ...orgForums
   };
@@ -65,8 +79,10 @@ const FORUMS = new Proxy({}, {
 // Supabase (forum_topics) -- repondre a l'un d'eux echouait systematiquement, sbCreatePost
 // echouant sur un topic_id sans ligne reelle correspondante. Retires plutot que migres : aucun
 // sujet affiche dans le forum ne doit exister uniquement cote client.
+// Le cache des sujets est indexe par forum_id : les entrees 'local_<ville>' y apparaissent
+// naturellement au premier chargement de chaque ville (16 septembre 2026), sans qu'il faille les
+// declarer -- c'est deja ainsi que fonctionnent 'tribunal_<ville>' et les forums d'organisation.
 const FORUM_TOPICS = {
-  local: [],
   national: [],
   international: [],
   gouvernement: [], presse: []

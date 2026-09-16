@@ -608,7 +608,12 @@ function ouvrirRedactionProgramme(el) {
   document.getElementById('modal-postes')?.classList.remove('open');
   // Le forum LOCAL pour un scrutin de ville, NATIONAL pour un scrutin national -- exactement le
   // choix que faisait deja le depot de candidature avant ce lot.
-  const forumCible = posteEstLocal(posteId) ? 'local' : 'national';
+  // LA VILLE DU SCRUTIN, PAS CELLE DU CANDIDAT (16 septembre 2026). Un scrutin porte sa propre
+  // juridiction : c'est elle qui decide du forum, meme si le candidat se trouve ailleurs au
+  // moment ou il redige. Un poste national ignore la ville.
+  const forumCible = posteEstLocal(posteId)
+    ? ((typeof idForumLocal === 'function') ? idForumLocal(_candidatureEnRedaction.city) : 'local')
+    : 'national';
   if (typeof ouvrirForumSurEditeur === 'function') {
     ouvrirForumSurEditeur(forumCible, _candidatureEnRedaction.titreSuggere);
   } else {
@@ -729,10 +734,12 @@ function nommerAdministrateurSiVacant(country, posteId) {
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
     const titre = '🏛 Nomination : ' + adminDef.name;
     const texte = 'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.';
-    sbCreateTopic('local', titre, 'Système', country, time).then(topicId => {
+    // Le Local de la ville concernee par la nomination (16 septembre 2026).
+    const forumNomination = (typeof idForumLocal === 'function') ? idForumLocal(city) : 'local';
+    sbCreateTopic(forumNomination, titre, 'Système', country, time).then(topicId => {
       if (topicId && typeof sbCreatePost === 'function') sbCreatePost(topicId, 'Système', texte, time);
-      if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
-      FORUM_TOPICS['local'].unshift({
+      if (!FORUM_TOPICS[forumNomination]) FORUM_TOPICS[forumNomination] = [];
+      FORUM_TOPICS[forumNomination].unshift({
         id: topicId || 'topic-' + Date.now(), title: titre, author: 'Système',
         time, views: 1, replies: 0, lastPostAuthor: 'Système', lastPostTime: time,
         posts: [{ id: 'p-' + Date.now(), author: 'Système', time, content: texte }]
@@ -1658,7 +1665,9 @@ async function confirmerCandidature(el) {
   // Publier sur le forum — national pour un poste national, local pour un poste de ville
   if (typeof sbCreateTopic === 'function') {
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
-    const forumCible = posteEstLocal(posteId) ? 'local' : 'national';
+    const forumCible = posteEstLocal(posteId)
+      ? ((typeof idForumLocal === 'function') ? idForumLocal(city) : 'local')
+      : 'national';
     const titre = '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name;
     const texte = nom + ' se présente aux élections.\n\nProgramme :\n' + programme;
     sbCreateTopic(forumCible, titre, nom, country, time).then(topicId => {

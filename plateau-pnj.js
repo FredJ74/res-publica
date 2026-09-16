@@ -1388,7 +1388,7 @@ function verifierSuccesMaxence(cle) {
   const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
 
   // Récupérer les derniers posts du forum local pour le contexte
-  const recentPosts = (FORUM_TOPICS['local'] || []).slice(0, 2).map(t =>
+  const recentPosts = (FORUM_TOPICS[typeof idForumLocal === 'function' ? idForumLocal() : 'local'] || []).slice(0, 2).map(t =>
     `"${t.title}" (par ${t.author})`).join(', ');
   const forumContext = recentPosts ? `Actualité du forum local : ${recentPosts}.` : '';
 

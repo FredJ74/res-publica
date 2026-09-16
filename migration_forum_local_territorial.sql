@@ -1,0 +1,34 @@
+-- LE FORUM LOCAL DEVIENT CELUI DE CHAQUE VILLE (16 septembre 2026).
+-- DEJA EXECUTEE en production (migration MCP : forum_local_territorialise).
+--
+-- LE DEFAUT. forum_id = 'local' etait un identifiant UNIQUE et GLOBAL : les trois villes de
+-- Republia partageaient le meme « Forum Local ». Un programme municipal de Montrouge paraissait
+-- a cote de celui de Luthecia. La lecture (sbLoadForumTopics) ne filtre que sur forum_id, et
+-- forum_topics n'a pas de colonne ville.
+--
+-- L'ARCHITECTURE RETENUE : 'local_<ville>', exactement le schema deja en place pour
+-- 'tribunal_<ville>'. Trois consequences qui ont motive ce choix plutot qu'une colonne `city` :
+--   * la cle territoriale est PERSISTEE dans la donnee elle-meme ;
+--   * le cloisonnement est acquis par la requete de lecture existante, sans ajouter le moindre
+--     filtre de confort cote client -- donc sans risque d'oubli dans un ecran ;
+--   * rien n'est code pour Republia : la ville vient des donnees de jeu, si bien que Sovarka et
+--     Krasnov fonctionneront sans une ligne de plus.
+-- Le joueur, lui, continue de voir « Forum Local » : c'est l'identifiant, pas l'etiquette, qui
+-- porte la ville.
+--
+-- CE QUE LE SERVEUR GARANTIT. trg_forum_local_territorial relit la ville du personnage de
+-- l'appelant et refuse toute insertion dans le Local d'une AUTRE ville -- annoncer une ville
+-- differente dans la requete ne franchit pas la frontiere. Les publications institutionnelles
+-- (programmes, communiques de la Ligue) traversent par le laissez-passer local deja en place,
+-- pose uniquement a l'interieur des RPC concernees. La LECTURE reste publique : un forum de
+-- ville est un lieu public du jeu, et l'ancien 'local' l'etait deja.
+--
+-- LES PROGRAMMES MUNICIPAUX suivent LA VILLE DU SCRUTIN, jamais celle ou se trouve le candidat
+-- au moment ou il redige : c'est la juridiction de l'election qui fait foi (candidature_publier).
+-- Les programmes presidentiels restent au National.
+--
+-- CONTENUS HISTORIQUES : AUCUN. La table ne contenait aucun sujet en forum_id = 'local' au
+-- moment de la bascule (verifie) -- donc aucune migration de donnees, et aucun cas ambigu a
+-- arbitrer. Rien n'a ete supprime.
+--
+-- Bancs : .scratch/banc_forum_local_territorial.py (13 controles de cloisonnement, deux villes).

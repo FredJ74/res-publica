@@ -1491,7 +1491,8 @@ function ouvrirMailOrga(orgaId) {
 function ouvrirForumDepuisOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   const mapping = { sportive: 'sport', supporters: 'sport', syndicale: 'syndicats', mediatique: 'presse' };
-  const forumCible = mapping[orga?.type] || 'local';
+  // Repli sur le Local de la ville courante pour une organisation sans forum dedie.
+  const forumCible = mapping[orga?.type] || ((typeof idForumLocal === 'function') ? idForumLocal() : 'local');
   document.getElementById('modal-postes')?.classList.remove('open');
   document.getElementById('vue-self')?.classList.remove('active');
   openForumView(forumCible);

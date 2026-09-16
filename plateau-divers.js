@@ -140,7 +140,9 @@ async function publierSondage(texte) {
   document.getElementById('modal-postes').classList.remove('open');
   if (typeof sbCreateTopic === 'function') {
     const from = state.char?.name || 'Anonyme';
-    await sbCreateTopic('local', '📊 Sondage : ' + texte.substring(0, 50) + '...', texte, from);
+    // Le sondage appartient a la ville ou il est lance (16 septembre 2026).
+    await sbCreateTopic(typeof idForumLocal === 'function' ? idForumLocal() : 'local',
+      '📊 Sondage : ' + texte.substring(0, 50) + '...', texte, from);
     showToast('Sondage publié !', 'Visible sur le forum local.', true);
     addJournalEntry('Sondage publié sur le forum.', 'event-info');
   } else {
@@ -1302,7 +1304,7 @@ async function genererMeteoPolitique() {
   const co = COUNTRIES[state.country];
   const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
   const presidentNom = CYCLES_ELECTORAUX?.[state.country]?.['president']?.eluId || 'Personne';
-  const topics = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS['local'] || []) : []).slice(0, 2).map(t => t.title).join(', ');
+  const topics = (typeof FORUM_TOPICS !== 'undefined' && typeof idForumLocal === 'function' ? (FORUM_TOPICS[idForumLocal()] || []) : []).slice(0, 2).map(t => t.title).join(', ');
 
   const prompt = 'Tu es le météorologue politique de ' + (co?.n || 'l\'empire') + ' dans Res Publica, jeu parodique. ' +
     'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. Chef : ' + empireStyle.leader + '. ' +
