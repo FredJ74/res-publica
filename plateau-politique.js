@@ -7392,7 +7392,7 @@ async function confirmerRenseignement(empireCible, nomCible, pa, cost) {
   const demiSection = [...section.soldats].sort(() => Math.random() - 0.5).slice(0, 12);
   let contenu = 'Section identifiée : Lieutenant ' + section.lieutenantNom + ' (' + nomCible + '). Indices du Lieutenant adverse — Perception : ' + (leurLt.per??'?') + ' · Intelligence : ' + (leurLt.int??'?') + '.<br><br>';
   const armesLabelsRenseignement = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
-  demiSection.forEach(s => { contenu += s.matricule + ' — FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · Équipement : ' + (armesLabelsRenseignement[s.arme] || 'Aucun') + '<br>'; });
+  demiSection.forEach(s => { contenu += (s.pj === true ? ('Soldat ' + s.nom) : s.matricule) + ' — ' + libelleFormationSoldat(s) + ' · Équipement : ' + (armesLabelsRenseignement[s.arme] || 'Aucun') + '<br>'; });
 
   if (typeof sbCreerRapportRenseignement === 'function') {
     await sbCreerRapportRenseignement({ pays, lieutenantNom: notreLieutenantNom, empireCible, nomCible, contenu, remonte: false });
@@ -8933,6 +8933,25 @@ const COEF_ARME_MILITAIRE = { corps_a_corps: 1, arme_de_poing: 2.5, mitraillette
 const PA_MAX_SOLDAT = 12;
 const PA_BASE_ROUND = 2;
 const CAP_ENTRAINEMENT_PAR_SESSION = 12;
+// QUATRE DOMAINES D'ENTRAINEMENT (18 septembre 2026), echelle 0..100. Remplacent les anciennes
+// jauges militaires force/endurance/tir. Miroir des constantes de militaire_entrainer_section,
+// qui seule fait autorite : elle refuse tout domaine hors de cette liste.
+const DOMAINES_ENTRAINEMENT = [
+  { id: 'combat_rapproche', label: 'Combat rapproché' },
+  { id: 'tir',              label: 'Tir' },
+  { id: 'reconnaissance',   label: 'Reconnaissance / camouflage' },
+  { id: 'secourisme',       label: 'Secourisme' }
+];
+const PA_SEANCE_ENTRAINEMENT = 6;   // par soldat participant ET pour le Lieutenant
+
+// Libelle compact des quatre domaines d'un soldat PNJ. Un soldat PJ n'a pas de `formation` : ses
+// caracteristiques sont son capital, et les domaines ne sont pas des doublons de celles-ci.
+function libelleFormationSoldat(sol) {
+  if (!sol || sol.pj === true) return 'joueur';
+  const f = sol.formation || {};
+  return 'CBT ' + (f.combat_rapproche || 0) + ' · TIR ' + (f.tir || 0)
+       + ' · REC ' + (f.reconnaissance || 0) + ' · SEC ' + (f.secourisme || 0);
+}
 
 // ---- LOGISTIQUE ARMEMENT (chantier 27 aout 2026 : Armurerie -> Section -> Soldat) ----
 // corps_a_corps reste hors stock : etat par defaut gratuit et illimite de tout soldat recrute
@@ -9768,12 +9787,18 @@ async function construireEtatArmee(pays) {
       effectifTotal += soldats.length;
       if (s.lieutenantNom) lieutenantsPourvus++; else lieutenantsVacants++;
 
-      let sommeForce = 0, sommeEndurance = 0, sommeTir = 0;
+      // QUATRE DOMAINES (18 septembre 2026). Les moyennes ne portent que sur les soldats PNJ :
+      // un soldat PJ n'a pas de `formation`, ses caracteristiques vivent sur sa fiche.
+      let sommeCbt = 0, sommeRec = 0, sommeSec = 0, sommeTir = 0, nbPnj = 0;
       const armesUnite = { arme_de_poing: 0, mitraillette: 0 };
       soldats.forEach(sol => {
-        sommeForce += sol.formation?.force || 0;
-        sommeEndurance += sol.formation?.endurance || 0;
-        sommeTir += sol.formation?.tir || 0;
+        if (sol.pj !== true) {
+          nbPnj++;
+          sommeCbt += sol.formation?.combat_rapproche || 0;
+          sommeTir += sol.formation?.tir || 0;
+          sommeRec += sol.formation?.reconnaissance || 0;
+          sommeSec += sol.formation?.secourisme || 0;
+        }
         if (sol.arme && armesUnite[sol.arme] !== undefined) { armesUnite[sol.arme]++; armesAssignees[sol.arme]++; }
       });
       const stockLibre = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
@@ -9785,9 +9810,12 @@ async function construireEtatArmee(pays) {
         effectif: soldats.length, capacite: EFFECTIF_SECTION,
         // null (jamais 0) si section vide : une moyenne/un taux ne se calcule que sur des membres
         // reels, jamais fabrique pour remplir une case (voir renderInspectionDetaillee, affiche "—").
-        moyenneForce: soldats.length ? sommeForce / soldats.length : null,
-        moyenneEndurance: soldats.length ? sommeEndurance / soldats.length : null,
-        moyenneTir: soldats.length ? sommeTir / soldats.length : null,
+        effectifPnj: nbPnj,
+        effectifPj: soldats.length - nbPnj,
+        moyenneCombatRapproche: nbPnj ? sommeCbt / nbPnj : null,
+        moyenneTir: nbPnj ? sommeTir / nbPnj : null,
+        moyenneReconnaissance: nbPnj ? sommeRec / nbPnj : null,
+        moyenneSecourisme: nbPnj ? sommeSec / nbPnj : null,
         armesUnite, stockLibre,
         tauxEquipement: soldats.length ? nbArmesUnite / soldats.length : null,
         mission: s.mission || null, cibleEscorte: s.cibleEscorte || null
@@ -9865,7 +9893,12 @@ function renderInspectionDetaillee(etat) {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .6rem;margin-bottom:.4rem;font-size:.74rem">';
       html += '<div style="color:#e0d5b8;margin-bottom:.25rem">Section ' + s.numero + ' — Lieutenant : ' + (s.lieutenantNom || 'poste vacant') + '</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Effectif : ' + s.effectif + '/' + s.capacite + '</div>';
-      html += '<div style="color:#a89870;margin-bottom:.2rem">Moyennes — Force : ' + (s.moyenneForce==null?'—':s.moyenneForce.toFixed(1)) + ' · Endurance : ' + (s.moyenneEndurance==null?'—':s.moyenneEndurance.toFixed(1)) + ' · Tir : ' + (s.moyenneTir==null?'—':s.moyenneTir.toFixed(1)) + '</div>';
+      const m1 = (v) => (v == null ? '—' : v.toFixed(1));
+      html += '<div style="color:#a89870;margin-bottom:.2rem">Moyennes PNJ — Combat rapproché : ' + m1(s.moyenneCombatRapproche)
+            + ' · Tir : ' + m1(s.moyenneTir) + ' · Reconnaissance : ' + m1(s.moyenneReconnaissance)
+            + ' · Secourisme : ' + m1(s.moyenneSecourisme) + '</div>';
+      html += '<div style="color:#8a8060;font-size:.72rem;margin-bottom:.2rem">Effectif : ' + (s.effectifPnj || 0)
+            + ' PNJ + ' + (s.effectifPj || 0) + ' joueur(s)</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Armes attribuées — Arme de poing : ' + (s.armesUnite.arme_de_poing||0) + ' · Mitraillette : ' + (s.armesUnite.mitraillette||0) + ' (stock libre non distribué : ' + (s.stockLibre.arme_de_poing||0) + ' / ' + (s.stockLibre.mitraillette||0) + ')</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Taux d\'équipement : ' + (s.tauxEquipement==null?'non calculable (section vide)':Math.round(s.tauxEquipement*100)+'%') + '</div>';
       html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission) + (s.cibleEscorte?(' ('+s.cibleEscorte+')'):'')) : 'aucune mission assignée') + '</div>';
@@ -10023,7 +10056,9 @@ async function doVoirMaSection() {
     const localisation = libelleLieuSoldat(s);
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
     html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
-    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
+    html += '<div style="color:#a89870">' + libelleFormationSoldat(s)
+          + (s.pj === true ? '' : ' · PA ' + (s.pa || 0) + '/' + PA_MAX_SOLDAT)
+          + ' · ' + localisation + '</div>';
     html += '<div style="color:#8a8060">Équipement : ' + (armesLabels[s.arme] || 'Aucun') + '</div>';
     html += '</div>';
   });
@@ -10041,10 +10076,24 @@ async function doEntrainerSection(pa, cost) {
 
   document.getElementById('postes-modal-title').textContent = 'Entraîner la section';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Choisissez la compétence à travailler. ' + CAP_ENTRAINEMENT_PAR_SESSION + ' soldats maximum par session (les moins entraînés dans cette compétence sont sélectionnés en priorité).</div>';
-  ['force','endurance','tir'].forEach(stat => {
-    const label = { force:'Force', endurance:'Endurance', tir:'Tir' }[stat];
-    html += '<button onclick="confirmerEntrainementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + stat + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + label + '</button>';
+  // QUATRE DOMAINES (18 septembre 2026). « Endurance » a disparu : les PA remplissent deja ce
+  // role. Pas de competence radio ni tente -- ce sont des outils, pas des savoir-faire.
+  const eligibles = (section.soldats || []).filter(x => x && x.pj !== true
+                     && Number(x.pa || 0) >= PA_SEANCE_ENTRAINEMENT).length;
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.4rem">Choisissez le domaine a travailler. '
+        + CAP_ENTRAINEMENT_PAR_SESSION + ' soldats maximum par seance, les moins entraines d\'abord. +3 par participant, plafond 100.</div>';
+  html += '<div style="font-size:.74rem;color:#c0a060;margin-bottom:.8rem">Coût : <b>' + PA_SEANCE_ENTRAINEMENT
+        + ' PA pour vous</b> et <b>' + PA_SEANCE_ENTRAINEMENT + ' PA pour chaque soldat</b>. '
+        + eligibles + ' soldat(s) de votre section ont actuellement les PA requis'
+        + (Number(state.pa || 0) < PA_SEANCE_ENTRAINEMENT ? ' — et il vous manque des PA.' : '.') + '</div>';
+  DOMAINES_ENTRAINEMENT.forEach(d => {
+    const moy = (() => {
+      const pnj = (section.soldats || []).filter(x => x && x.pj !== true);
+      if (!pnj.length) return null;
+      return Math.round(pnj.reduce((t, x) => t + Number(x.formation?.[d.id] || 0), 0) / pnj.length);
+    })();
+    html += '<button onclick="confirmerEntrainementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + d.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">'
+          + d.label + (moy === null ? '' : ' <span style="font-size:.7rem;color:#8a8060">— moyenne de la section : ' + moy + '/100</span>') + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -10056,17 +10105,23 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Le serveur applique la meme regle : les 12 soldats les moins formes gagnent +3, plafond 100.
+  // LES PA SONT DEBITES PAR LE SERVEUR, plus par le client (18 septembre 2026). L'ordre est
+  // declare a 0 PA dans data.js et la RPC preleve elle-meme les 6 PA du Lieutenant ET les 6 PA de
+  // chaque soldat participant, dans la meme transaction. Un deduireCoutOrdre ici ferait un double
+  // prelevement, et surtout il prelevait avant de savoir si la seance pouvait avoir lieu.
   const rEnt = await sbMilitaireEntrainerSection(compagnieId, sectionId, stat);
   if (!rEnt || rEnt.ok !== true) {
+    const m = rEnt && rEnt.raison;
     showToast('Entraînement impossible',
-      rEnt && rEnt.raison === 'pas_lieutenant_de_cette_section'
-        ? 'Vous ne commandez pas cette section.' : 'Entraînement refusé.', false);
+      m === 'pas_lieutenant_de_cette_section' ? 'Vous ne commandez pas cette section.'
+      : m === 'pa_chef_insuffisants' ? 'Il vous faut ' + PA_SEANCE_ENTRAINEMENT + ' PA pour conduire une séance.'
+      : m === 'aucun_soldat_en_etat' ? 'Aucun soldat n\'a les ' + PA_SEANCE_ENTRAINEMENT + ' PA nécessaires. Laissez-les récupérer.'
+      : m === 'domaine_invalide' ? 'Ce domaine d\'entraînement n\'existe pas.'
+      : 'Entraînement refusé (' + (m || 'indisponible') + ').', false);
     return;
   }
+  // On recopie les PA arretes par le SERVEUR, jamais un calcul local.
+  if (typeof rEnt.pa_restants_chef === 'number') { state.pa = rEnt.pa_restants_chef; updateUI(); }
   const nbProgresses = Number(rEnt.progresses || 0);
   showToast('Entraînement terminé', nbProgresses + ' soldats ont progressé en ' + stat + '.', true, true);
   addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + nbProgresses + ' soldats).', 'event-good');
@@ -10161,9 +10216,13 @@ async function confirmerEquipementIndividuel(compagnieId, sectionId, matricule, 
 // ---- COMBAT AUTOMATIQUE ENTRE TROUPES DE PAYS EN GUERRE ----
 function calculerPointsGroupe(soldats, coefsArmes) {
   const coefs = coefsArmes || COEF_ARME_MILITAIRE;
-  const force = soldats.reduce((s, sol) => s + sol.formation.force, 0);
-  const tir = soldats.reduce((s, sol) => s + sol.formation.tir * (coefs[sol.arme] || 1), 0);
-  const endurance = soldats.reduce((s, sol) => s + sol.formation.endurance, 0);
+  // MOTEUR ABANDONNE. calculerPointsGroupe appartient a resoudreCombat, dont la formule est
+  // abandonnee (deterministe, PA en pool collectif, aneantissement binaire, persistance cassee).
+  // Il lit encore force/endurance/tir, cles qui n'existent plus sur un soldat : il rend donc 0.
+  // Ne PAS le « reparer » -- il sera remplace par le moteur physique serveur.
+  const force = soldats.reduce((s, sol) => s + (sol.formation?.force || 0), 0);
+  const tir = soldats.reduce((s, sol) => s + (sol.formation?.tir || 0) * (coefs[sol.arme] || 1), 0);
+  const endurance = soldats.reduce((s, sol) => s + (sol.formation?.endurance || 0), 0);
   return { force, tir, endurance, points: force * 3 + tir };
 }
 
