@@ -8966,10 +8966,52 @@ function genererMatriculesSection(numeroSection) {
   return Array.from({ length: EFFECTIF_SECTION }, (_, i) => aaaamm + '-' + ss + '-' + String(i + 1).padStart(3, '0'));
 }
 
+// ===========================================================================================
+// POSITION CANONIQUE D'UN SOLDAT (17 septembre 2026)
+// ===========================================================================================
+// Un soldat n'etait localise que par buildingId + roomId. Or 'caserne-militaire' est LE MEME
+// identifiant de batiment dans les quatre empires, et 'marche', 'armurerie', 'stade',
+// 'la-tribune', 'mairie' sont partages entre plusieurs villes d'un meme empire : la position
+// etait donc structurellement ambigue, et depot comme recuperation pouvaient viser les hommes
+// d'une autre ville.
+//
+// La cle canonique est (compagnie.pays, soldat.ville, soldat.buildingId, soldat.roomId). Le pays
+// reste porte par la COMPAGNIE -- un soldat ne change pas d'empire sans elle -- donc seule la
+// ville s'ajoute sur le soldat. Meme idiome que getEntrepriseIdArmurerie(country, city),
+// introduit precisement parce que Luthecia, Montrouge et PSM partageaient sinon la meme caisse.
+//
+// UN SEUL PREDICAT, utilise partout : sans lui le triple test se recopiait a sept endroits et
+// un oubli suffisait a reintroduire l'ambiguite en silence.
+function soldatEstIci(sol, ville, buildingId, roomId) {
+  return !!sol && sol.ville === ville && sol.buildingId === buildingId && sol.roomId === roomId;
+}
+
+// Un soldat qui suit son chef n'a AUCUNE position propre : sa position est celle de son chef.
+// La valeur est comparee en litteral et non via ROOM_AVEC_LIEUTENANT, declaree plus bas dans ce
+// fichier : un const de module n'est pas hoiste, et ce predicat doit rester appelable sans
+// dependre de l'ordre des declarations. La constante reste le point de verite pour tout le reste.
+function soldatSuitSonChef(sol) {
+  return !!sol && sol.roomId === '__avec_lieutenant__';
+}
+
+// Libelle lisible du lieu d'un soldat, ville comprise : deux batiments homonymes dans deux villes
+// ne doivent plus s'afficher a l'identique.
+function libelleLieuSoldat(sol) {
+  if (!sol) return '?';
+  const bat = sol.buildingId ? (BUILDINGS[sol.buildingId]?.shortName || BUILDINGS[sol.buildingId]?.name || sol.buildingId) : null;
+  const ville = sol.ville ? (WORLD[state.country]?.[sol.ville]?.name || sol.ville) : null;
+  if (!bat) return ville || 'Caserne';
+  return ville ? (bat + ' — ' + ville) : bat;
+}
+
+// La caserne est une ville a part entiere ('caserne', isSpecial:true) dans les quatre empires.
+const VILLE_CASERNE = 'caserne';
+
 function creerSoldatsSection(numeroSection) {
   return genererMatriculesSection(numeroSection).map(matricule => ({
     matricule, formation: { force: 0, endurance: 0, tir: 0 }, arme: 'corps_a_corps',
-    buildingId: 'caserne-militaire', roomId: 'corps_garde', pa: PA_MAX_SOLDAT
+    ville: VILLE_CASERNE, buildingId: 'caserne-militaire', roomId: 'corps_garde',
+    pa: PA_MAX_SOLDAT
   }));
 }
 
@@ -9030,8 +9072,8 @@ async function doGererDetachement() {
   const section = getSectionDuLieutenant(compagnie);
   if (!section) return;
 
-  const ici = section.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom).length;
-  const avecMoi = section.soldats.filter(s => s.roomId === ROOM_AVEC_LIEUTENANT).length;
+  const ici = section.soldats.filter(s => soldatEstIci(s, state.currentCity, state.currentBuilding, state.currentRoom)).length;
+  const avecMoi = section.soldats.filter(soldatSuitSonChef).length;
   const ailleurs = section.soldats.length - ici - avecMoi;
 
   document.getElementById('postes-modal-title').textContent = 'Gérer mon détachement';
@@ -9069,7 +9111,7 @@ async function deposerSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
-  if (typeof verifierCombatAutomatique === 'function') verifierCombatAutomatique(state.currentBuilding, state.currentRoom).catch(() => {});
+  if (typeof verifierCombatAutomatique === 'function') verifierCombatAutomatique(state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
 }
 
 async function recupererSoldats(compagnieId, sectionId) {
@@ -9091,11 +9133,11 @@ async function recupererSoldats(compagnieId, sectionId) {
 }
 
 // Retourne le libelle a afficher dans une piece pour un detachement present, ou null
-async function getAffichageDetachementPiece(pays, buildingId, roomId) {
+async function getAffichageDetachementPiece(pays, ville, buildingId, roomId) {
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
   for (const c of compagnies) {
     for (const s of (c.sections || [])) {
-      const presents = s.soldats.filter(sol => sol.buildingId === buildingId && sol.roomId === roomId);
+      const presents = s.soldats.filter(sol => soldatEstIci(sol, ville, buildingId, roomId));
       if (presents.length > 0) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', lieutenantNom: s.lieutenantNom, nombre: presents.length, mission: s.mission, sectionId: s.id, compagnieId: c.id, pays: c.pays };
     }
   }
@@ -9116,7 +9158,7 @@ async function doAssignerMission(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
-  const iciCount = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom).length || 0;
+  const iciCount = section?.soldats.filter(s => soldatEstIci(s, state.currentCity, state.currentBuilding, state.currentRoom)).length || 0;
   if (iciCount <= 0) { showToast('Aucun soldat ici', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
@@ -9226,7 +9268,7 @@ async function rafraichirCacheImmuniteMilitaire() {
   state.immuniteMilitaireActuelle = await estImmuniteMilitaire().catch(() => false);
   // Malus "securiser" applicable dans la piece courante (cache pour un usage synchrone dans doOrder)
   if (typeof getAffichageDetachementPiece === 'function') {
-    const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentBuilding, state.currentRoom).catch(() => null);
+    const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, state.currentBuilding, state.currentRoom).catch(() => null);
     state.malusSecuriteMilitaire = (det?.mission === 'securiser') ? Math.min(40, 10 + det.nombre) : 0;
   }
   const budgetNat = await chargerBudgetNational(state.country || 'republic').catch(() => null);
@@ -9240,7 +9282,7 @@ async function rafraichirCacheImmuniteMilitaire() {
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
 async function verifierMissionMilitaireEntree(buildingId, roomId) {
   if (typeof getAffichageDetachementPiece !== 'function') return false;
-  const det = await getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId);
+  const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId);
   if (!det || !det.mission) return false;
 
   // Exemption : la chaine de commandement de la meme section n'est jamais bloquee/attaquee par ses propres troupes
@@ -9726,7 +9768,7 @@ async function doVoirMaSection() {
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
   const armesLabels = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
   section.soldats.forEach(s => {
-    const localisation = s.roomId === ROOM_AVEC_LIEUTENANT ? 'Avec vous' : (s.buildingId ? (BUILDINGS[s.buildingId]?.name || s.buildingId) : 'Caserne');
+    const localisation = soldatSuitSonChef(s) ? 'Avec vous' : libelleLieuSoldat(s);
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
     html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
     html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
@@ -9811,7 +9853,7 @@ async function ouvrirGestionEquipementSection(compagnieId, sectionId) {
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock libre de la section — Arme de poing : ' + (stock.arme_de_poing||0) + ' · Mitraillette : ' + (stock.mitraillette||0) + '</div>';
   section.soldats.forEach(s => {
-    const localisation = s.roomId === ROOM_AVEC_LIEUTENANT ? 'Avec vous' : (s.buildingId ? (BUILDINGS[s.buildingId]?.name || s.buildingId) : 'Caserne');
+    const localisation = soldatSuitSonChef(s) ? 'Avec vous' : libelleLieuSoldat(s);
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem">';
     html += '<div><div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
     html += '<div style="color:#a89870">' + localisation + '</div>';
@@ -9881,14 +9923,17 @@ async function getCoefsArmesPays(pays) {
 }
 
 // A appeler apres tout depot de troupes dans une piece (deposerSoldats) : verifie une rencontre hostile et resout le combat
-async function verifierCombatAutomatique(buildingId, roomId) {
+async function verifierCombatAutomatique(ville, buildingId, roomId) {
   const compagniesRepublic = []; // toutes compagnies, tous pays, pour verifier les rencontres inter-empires
   const paysListe = Object.keys(COUNTRIES);
   let sectionsIci = [];
   for (const p of paysListe) {
     const compagnies = await sbGetCompagnies(p).catch(() => []);
     compagnies.forEach(c => (c.sections || []).forEach(s => {
-      const presents = s.soldats.filter(sol => sol.buildingId === buildingId && sol.roomId === roomId);
+      // La ville entre dans le predicat comme partout ailleurs. Ce n'est pas une reparation du
+      // moteur de combat (sa formule est abandonnee) : c'est eviter d'y laisser un filtre qui
+      // matcherait des soldats d'une autre ville.
+      const presents = s.soldats.filter(sol => soldatEstIci(sol, ville, buildingId, roomId));
       if (presents.length > 0) sectionsIci.push({ pays: p, compagnieId: c.id, section: s, presents });
     }));
   }

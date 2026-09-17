@@ -1,0 +1,42 @@
+-- =====================================================================================
+-- POSITION CANONIQUE D'UN SOLDAT — Res Publica, 17 septembre 2026
+-- Premier prerequis du chantier militaire, architecture validee par le GD.
+--
+-- LE DEFAUT. Un soldat n'etait localise que par buildingId + roomId. Or 'caserne-militaire' est
+-- LE MEME identifiant de batiment dans les quatre empires (data.js:954, 1197, 1441, 1710), et
+-- 'marche', 'armurerie', 'stade', 'la-tribune', 'centre-commercial', 'mairie' sont partages entre
+-- plusieurs villes d'un meme empire. La position d'un soldat etait donc structurellement ambigue :
+-- un Lieutenant au marche de Montrouge pouvait recuperer les hommes laisses au marche de Luthecia.
+--
+-- LA CLE CANONIQUE est desormais (compagnie.pays, soldat.ville, soldat.buildingId, soldat.roomId).
+-- Le pays reste porte par la COMPAGNIE -- un soldat ne change pas d'empire sans elle -- donc seule
+-- la ville s'ajoute sur le soldat. Meme idiome que getEntrepriseIdArmurerie(country, city),
+-- introduit precisement parce que Luthecia, Montrouge et PSM partageaient sinon la meme caisse.
+--
+-- LA POSITION RESTE LUE, JAMAIS CRUE : ville/batiment/piece viennent de la fiche du Lieutenant
+-- (current_city / current_building / current_room), jamais d'un parametre client. Un Lieutenant
+-- dont la ville est inconnue est refuse (position_inconnue) plutot que place par defaut.
+--
+-- Un soldat qui suit son chef n'a AUCUNE position propre : ville = NULL, buildingId = NULL,
+-- roomId = '__avec_lieutenant__'. Sa position est celle de son chef.
+--
+-- compagnies_militaires est VIDE en production : aucune donnee a migrer, aucune compatibilite
+-- ascendante a assurer.
+--
+-- COTE CLIENT, un seul predicat partage (soldatEstIci) remplace le triple test recopie a sept
+-- endroits : sans lui, un seul oubli suffisait a reintroduire l'ambiguite en silence.
+-- creerSoldatsSection estampille desormais ville:'caserne' (la caserne est une ville a part
+-- entiere, isSpecial:true, dans les quatre empires), et les libelles de localisation affichent la
+-- ville pour que deux batiments homonymes ne se confondent plus a l'ecran.
+--
+-- BANC 5/5 en transaction annulee, zero residu :
+--   1. Lt a caserne/caserne-militaire/corps_garde : recupere 3 -> OK, position effacee
+--   2. Lt a capitale/marche/marche_ext : depose 3 -> OK, les 3 portent ville='capitale'
+--   3. Lt a ville_b/marche/marche_ext (MEME buildingId, autre ville) : recuperer -> REFUS
+--      'effectif_insuffisant_ici'. C'EST LE SCENARIO DECISIF : avant ce correctif le filtre
+--      matchait sur buildingId+roomId seuls et ramenait les hommes de l'autre ville.
+--   4. Lt revenu a capitale/marche/marche_ext : recupere 3 -> OK
+--   5. Lt sans ville connue : deposer -> REFUS 'position_inconnue'
+--
+-- Le corps applique est celui de la migration « militaire_position_canonique_ville ».
+-- =====================================================================================

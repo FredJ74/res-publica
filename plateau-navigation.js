@@ -792,7 +792,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // militaire/police, etendu ici aux detenus reels pour la meme raison).
   if (typeof getAffichageDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function' || estSalleGeoles) {
     Promise.all([
-      typeof getAffichageDetachementPiece === 'function' ? getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).catch(() => null) : null,
+      typeof getAffichageDetachementPiece === 'function' ? getAffichageDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
       typeof getAffichagePolicePiece === 'function' ? getAffichagePolicePiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
       (estSalleGeoles && typeof sbGetDetenusActifs === 'function') ? sbGetDetenusActifs(state.country || 'republic', state.currentCity).catch(() => []) : null
     ]).then(([det, pol, detenus]) => {
