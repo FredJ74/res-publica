@@ -8771,26 +8771,47 @@ async function envoyerNominationCapitaine(pa, cost) {
   const compagnieId = document.getElementById('nomme-capitaine-compagnie')?.value;
   const destinataire = document.getElementById('nomme-capitaine-nom')?.value;
   if (!compagnieId || !destinataire) return;
+  // NOMINATION ENREGISTREE COTE SERVEUR (17 septembre 2026, passe 3). Avant, le mail portait un
+  // bouton qui ecrivait directement capitaineNom dans compagnies_militaires -- table alors SANS
+  // RLS : n'importe qui pouvait s'y nommer capitaine sans jamais avoir ete choisi. La proposition
+  // est desormais une ligne attestee (le serveur verifie que l'emetteur est bien le Commandant du
+  // pays et que la compagnie est vacante), et c'est SON identifiant que porte le bouton.
+  const prop = await sbMilitaireProposerCapitaine(compagnieId, destinataire);
+  if (!prop || prop.ok !== true) {
+    const motifs = { compagnie_deja_commandee: 'Cette compagnie a déjà un capitaine.',
+                     destinataire_introuvable: destinataire + ' est introuvable dans votre pays.',
+                     hors_juridiction: 'Cette compagnie relève d\'un autre pays.' };
+    showToast('Nomination impossible', (prop && motifs[prop.raison]) || 'Réservé au Commandant en exercice.', false);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
-    '<button onclick="accepterNominationCapitaine(\'' + compagnieId + '\',\'' + (state.char?.name||'').replace(/'/g,'') + '\')" ' +
+    '<button onclick="accepterNominationCapitaine(\'' + prop.id + '\')" ' +
     'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Capitaine', corps, time).catch(() => {});
   showToast('Nomination envoyée', '', true, true);
 }
 
-async function accepterNominationCapitaine(compagnieId, nommeurNom) {
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
-  if (!compagnie) return;
-  compagnie.capitaineNom = state.char?.name;
-  await sbSaveCompagnie(compagnieId, compagnie);
-  state.poste = { id: 'capitaine', name: 'Capitaine', compagnieId };
+// L'acceptation ne s'ecrit plus depuis le navigateur : c'est la NOMINATION ENREGISTREE qui fait
+// autorite. Le serveur verifie que l'acceptant est bien le destinataire de cette nomination et que
+// la compagnie est toujours vacante, puis pose capitaineNom ET le poste dans la meme transaction.
+async function accepterNominationCapitaine(nominationId) {
+  const r = await sbMilitaireAccepterCapitaine(nominationId);
+  if (!r || r.ok !== true) {
+    const motifs = { pas_destinataire: 'Cette nomination ne vous est pas adressée.',
+                     compagnie_deja_commandee: 'Cette compagnie a déjà un capitaine.',
+                     nomination_introuvable: 'Cette nomination n\'existe plus.' };
+    showToast('Acceptation impossible', (r && motifs[r.raison]) || 'La nomination n\'a pas pu être enregistrée.', false);
+    return;
+  }
+  if (r.rejeu) { showToast('Déjà accepté', '', false); return; }
+  state.poste = { id: 'capitaine', name: 'Capitaine', compagnieId: r.compagnie };
   if (state.char) state.char.poste = state.poste;
   updateUI();
-  showToast('Poste accepté !', 'Vous êtes désormais Capitaine de la compagnie ' + compagnieId + '.', true, true);
+  showToast('Poste accepté !', 'Vous êtes désormais Capitaine de la compagnie ' + r.compagnie + '.', true, true);
   addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Capitaine.');
 }
 
@@ -8822,28 +8843,45 @@ async function envoyerNominationLieutenant(compagnieId, pa, cost) {
   const sectionId = document.getElementById('nomme-lieutenant-section')?.value;
   const destinataire = document.getElementById('nomme-lieutenant-nom')?.value;
   if (!sectionId || !destinataire) return;
+  // Meme correctif que pour le Capitaine : la proposition devient une ligne attestee. Le serveur
+  // verifie que l'emetteur est LE capitaine de CETTE compagnie et que la section existe et est
+  // vacante -- un capitaine d'une autre compagnie est refuse la, pas par l'affichage.
+  const prop = await sbMilitaireProposerLieutenant(compagnieId, sectionId, destinataire);
+  if (!prop || prop.ok !== true) {
+    const motifs = { pas_capitaine_de_cette_compagnie: 'Vous ne commandez pas cette compagnie.',
+                     section_deja_commandee: 'Cette section a déjà un lieutenant.',
+                     section_introuvable: 'Cette section n\'existe pas.',
+                     destinataire_introuvable: destinataire + ' est introuvable dans votre pays.' };
+    showToast('Nomination impossible', (prop && motifs[prop.raison]) || 'Réservé au Capitaine de cette compagnie.', false);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
-    '<button onclick="accepterNominationLieutenant(\'' + compagnieId + '\',\'' + sectionId + '\')" ' +
+    '<button onclick="accepterNominationLieutenant(\'' + prop.id + '\')" ' +
     'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Lieutenant', corps, time).catch(() => {});
   showToast('Nomination envoyée', '', true, true);
 }
 
-async function accepterNominationLieutenant(compagnieId, sectionId) {
-  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
-  if (!compagnie) return;
-  const section = (compagnie.sections || []).find(s => s.id === sectionId);
-  if (!section) return;
-  section.lieutenantNom = state.char?.name;
-  await sbSaveCompagnie(compagnieId, compagnie);
-  state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId, sectionId };
+// Acceptation attestee : le serveur verifie que l'acceptant est le destinataire de CETTE
+// nomination et que la section est toujours vacante, puis pose lieutenantNom ET le poste ensemble.
+async function accepterNominationLieutenant(nominationId) {
+  const r = await sbMilitaireAccepterLieutenant(nominationId);
+  if (!r || r.ok !== true) {
+    const motifs = { pas_destinataire: 'Cette nomination ne vous est pas adressée.',
+                     section_indisponible: 'Cette section a déjà un lieutenant.',
+                     nomination_introuvable: 'Cette nomination n\'existe plus.' };
+    showToast('Acceptation impossible', (r && motifs[r.raison]) || 'La nomination n\'a pas pu être enregistrée.', false);
+    return;
+  }
+  if (r.rejeu) { showToast('Déjà accepté', '', false); return; }
+  state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId: r.compagnie, sectionId: r.section };
   if (state.char) state.char.poste = state.poste;
   updateUI();
-  showToast('Poste accepté !', 'Vous êtes désormais Lieutenant de la section "' + (state.char?.name) + '".', true, true);
+  showToast('Poste accepté !', 'Vous êtes désormais Lieutenant de la section ' + r.section + '.', true, true);
   addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Lieutenant.');
 }
 
@@ -9933,9 +9971,18 @@ async function confirmerDemissionLieutenant(compagnieId, sectionId, pa, cost) {
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  const ancien = section.lieutenantNom;
-  section.lieutenantNom = null;
-  await sbSaveCompagnie(compagnieId, compagnie);
+  // DEMISSION ATTESTEE (17 septembre 2026, passe 3). L'ancien chemin effacait section.lieutenantNom
+  // mais JAMAIS personnages.poste : le demis restait « lieutenant » pour le serveur et gardait
+  // l'autorite de retirer des armes (militaire_retrait lit la colonne poste). La RPC fait tomber
+  // la fonction ET le poste dans la meme transaction, et n'accepte que le Capitaine de la compagnie.
+  const d = await sbMilitaireDemettreLieutenant(compagnieId, sectionId);
+  if (!d || d.ok !== true) {
+    showToast('Destitution impossible',
+      d && d.raison === 'pas_capitaine_de_cette_compagnie'
+        ? 'Vous ne commandez pas cette compagnie.' : 'La destitution n\'a pas pu être enregistrée.', false);
+    return;
+  }
+  const ancien = d.ancien_lieutenant || section.lieutenantNom;
   showToast('Lieutenant démis', ancien + ' n\'est plus en poste.', false, true);
   addJournalEntry(ancien + ' démis de son poste de Lieutenant.', 'event-bad');
 }

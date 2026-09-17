@@ -758,12 +758,24 @@ function applyEffects(fn, resultType, cost) {
   const mult = resultType === 'crit' ? 1.5 : resultType === 'success' ? 1 :
                resultType === 'partial' ? 0.5 : resultType === 'fail' ? 0 : -0.5;
 
-  // Remboursement partiel si echec -- credit generique (Lot 3) : atterrit en liquide, jamais
-  // automatiquement sur la Banque nationale.
+  // REMBOURSEMENT PARTIEL SI ECHEC — DESORMAIS ATTESTE (17 septembre 2026, passe 3).
+  // Le debit de l'ordre passe par payer_ordre, qui valide le cout contre le miroir de data.js ;
+  // le remboursement, lui, etait un simple credit local (crediterFondsOrdinaires), donc une
+  // asymetrie : le serveur savait ce qu'on avait paye, mais pas ce qu'on se rendait.
+  // fonds_crediter_atteste relit le cout REEL de l'ordre dans ce meme miroir et applique la part
+  // de 30 % declaree cote serveur. Le navigateur ne transmet aucun montant, et la reference rend
+  // le rejeu sans effet. Le taux de 30 % est inchange, seulement deplace la ou il est verifiable.
   if (resultType === 'fail' && cost > 0) {
-    const remboursement = Math.floor(cost * 0.3);
-    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(remboursement);
-    else state.arg += remboursement;
+    const reference = 'ordre-' + fn + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    if (typeof sbFondsCrediterAtteste === 'function') {
+      sbFondsCrediterAtteste('remboursement_ordre_echoue', reference, fn).then(function (r) {
+        if (r && r.ok === true) {
+          if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+          if (typeof r.liquide === 'number') state.liquide = r.liquide;
+          if (typeof updateUI === 'function') updateUI();
+        }
+      });
+    }
   }
   if (resultType === 'crit-fail' && cost > 0) { /* Pas de remboursement */ }
 

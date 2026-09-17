@@ -3851,3 +3851,41 @@ async function sbAssembleeAchatIllegal(nom, circuit, ref, requete) {
     p_nom: nom, p_circuit: circuit, p_ref: ref, p_requete: requete
   }));
 }
+
+// ---- CHAINE MILITAIRE : NOMINATIONS ATTESTEES (17 septembre 2026, passe 3) ----
+// compagnies_militaires etait la derniere table de la chaine de commandement SANS RLS : la source
+// de verite que poste_est_atteste interroge pour valider capitaine/lieutenant etait en ecriture
+// ouverte. Les nominations passent desormais par des RPC qui verifient la hierarchie reelle
+// (Commandant -> Capitaine -> Lieutenant) et le rattachement compagnie/section.
+async function sbMilitaireProposerCapitaine(compagnieId, destinataire) {
+  const rows = await sbRpc('militaire_proposer_capitaine',
+    { p_compagnie_id: compagnieId, p_destinataire: destinataire });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireAccepterCapitaine(nominationId) {
+  const rows = await sbRpc('militaire_accepter_capitaine', { p_nomination_id: nominationId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireProposerLieutenant(compagnieId, sectionId, destinataire) {
+  const rows = await sbRpc('militaire_proposer_lieutenant',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_destinataire: destinataire });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireAccepterLieutenant(nominationId) {
+  const rows = await sbRpc('militaire_accepter_lieutenant', { p_nomination_id: nominationId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireDemettreLieutenant(compagnieId, sectionId) {
+  const rows = await sbRpc('militaire_demettre_lieutenant',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Credit d'argent ATTESTE : pendant monetaire de pa_crediter_atteste. Le montant n'est JAMAIS
+// transmis par le client -- le serveur le lit dans le miroir des couts d'ordres -- et le
+// beneficiaire est toujours le compte connecte. Idempotent par (source, reference).
+async function sbFondsCrediterAtteste(source, reference, ordre) {
+  const rows = await sbRpc('fonds_crediter_atteste', {
+    p_acteur: state.char?.name, p_source: source, p_reference: reference, p_ordre: ordre || null });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
