@@ -1474,6 +1474,21 @@ async function sbVenteStructureEncaisser(fn, pa, cost, caisseId, ville) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// CREATION D'UNE COMPAGNIE, attestee (17 septembre 2026). Remplace l'ecriture cliente du blob.
+// Le Commandant reel est exige serveur, les 3 PA sont valides contre le miroir des couts (la
+// branche institutionnelle de deduireCoutOrdre ne consulte PAS le miroir et deduisait les PA cote
+// navigateur seulement), et les 20 000 FR sont debites de la caisse de la caserne dans la MEME
+// transaction.
+//
+// MODELE GD : la compagnie nait avec ses 4 sections VIDES et un CONTINGENT de 96 PNJ en reserve.
+// Ce ne sont pas quatre achats independants de 24 PNJ : c'est une ressource humaine unique, que
+// chaque Lieutenant installe entame de 24 hommes au plus.
+// Renvoie {ok, compagnie, contingent, sections, cout, pa} ou {ok:false, raison}.
+async function sbMilitaireCompagnieCreer() {
+  const rows = await sbRpc('militaire_compagnie_creer', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // LEADER OPERATIONNEL : confier des PNJ de sa section a un soldat PJ (17 septembre 2026).
 // Reservee au LIEUTENANT STRUCTUREL de la section, verifie serveur. Le leader designe doit etre
 // physiquement present aupres de lui -- meme principe de presence reelle que militaire_retrait,

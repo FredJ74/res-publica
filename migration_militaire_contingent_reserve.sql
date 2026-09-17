@@ -1,0 +1,74 @@
+-- =====================================================================================
+-- CONTINGENT ET RESERVE D'UNE COMPAGNIE — Res Publica, 17 septembre 2026
+-- Troisieme prerequis du chantier militaire.
+--
+-- MODELE GD. Les 20 000 FR n'achetent PAS quatre lots independants de 24 PNJ : ils constituent un
+-- CONTINGENT MAXIMAL DE 96 PNJ attribuables a la compagnie. Elle nait avec ses 4 sections VIDES,
+-- et chaque Lieutenant reellement installe y fait entrer jusqu'a 24 hommes pris dans ce
+-- contingent. Un contingent deja entame donne une section incomplete -- la 4e section peut naitre
+-- incomplete, exactement comme le GD le decrit.
+--
+-- REPRESENTATION, SANS NOUVELLE TABLE. Deux cles sur compagnies_militaires.data :
+--   contingentInitial : ce que les 20 000 FR ont achete (96), invariant de reference ;
+--   reserve           : tableau d'OBJETS SOLDATS COMPLETS non affectes a une section.
+-- La reserve porte des objets complets et non un compteur, et c'est necessaire : un PNJ remplace
+-- par un PJ y retourne AVEC son entrainement, et la regle « un veteran mort emporte son capital
+-- d'entrainement » n'a de sens que si le capital voyage avec l'individu.
+--
+-- Un soldat en reserve reste physiquement a la caserne (ville='caserne', corps de garde) : il a
+-- une position et aucun leader, l'invariant « leaderCourant renseigne <=> position vide » tient.
+-- La distinction reserve / section est STRUCTURELLE, pas positionnelle. La reserve vit au niveau
+-- COMPAGNIE : aucune RPC de section ne peut y puiser, militaire_recuperer_soldats ne regardant
+-- que les soldats de SA section.
+--
+-- LA LIMITE DE 24 EST DESORMAIS APPLIQUEE. EFFECTIF_SECTION = 24 n'etait qu'une taille de lot
+-- pour la generation des matricules, verifiee NULLE PART -- ni client ni serveur. Le tirage
+-- depuis la reserve la borne maintenant reellement.
+--
+-- MATRICULE. Le numero de section quitte le matricule (ancien 'AAAAMM-SS-NNN', nouveau
+-- 'AAAAMM-NNN') : un soldat n'est plus ne dans une section, il est ne dans un contingent.
+-- compagnies_militaires etant vide en production, aucune donnee n'est concernee.
+--
+-- AUTORITE. La creation passait par une ecriture CLIENTE du blob entier (sbSaveCompagnie), que la
+-- RLS autorise au Commandant : il pouvait donc y ecrire n'importe quoi. Et les 3 PA passaient par
+-- la branche institutionnelle de deduireCoutOrdre, qui ne consulte PAS le miroir des couts et les
+-- deduit cote navigateur seulement. militaire_compagnie_creer exige le Commandant reel, valide les
+-- 3 PA contre le miroir et debite les 20 000 FR dans la meme transaction.
+--
+-- ORDRE DES OPERATIONS, et le banc a servi a le corriger. Une premiere version prelevait les PA
+-- puis rendait proprement {ok:false} si la caisse refusait -- et les PA restaient preleves pour
+-- rien : un RETURN ne defait RIEN, seule une exception annule. Le banc l'a montre (PA 7 -> 4 sur
+-- un refus) alors que le commentaire du code promettait le contraire. D'ou l'ordre retenu :
+--   1. pre-controle des PA sans rien ecrire -> motif propre ;
+--   2. debit de la caisse sous verrou -> motif propre, rien d'ecrit avant ;
+--   3. payer_ordre, qui fait AUTORITE -> s'il refuse malgre le pre-controle (course entre deux
+--      appels), on LEVE, ce qui annule le debit de la caisse.
+--
+-- AUDIT COMPTABLE DEMANDE, et son resultat : aucun mecanisme de fonds engages n'existe dans ce
+-- jeu. Une caisse est un scalaire {solde} ; la seule immobilisation existante (les placements
+-- bancaires) est une TABLE DEDIEE a ligne par operation, pas une sous-cle de caisse. Cette
+-- migration conserve donc le DEBIT IMMEDIAT deja en vigueur. Le flux total est identique a
+-- aujourd'hui, puisque doRecruterSection et ses 4 x 5 000 FR de recompletement disparaissent.
+-- Reste ouverte la seule question du reliquat : une compagnie qui n'obtient jamais ses
+-- 4 Lieutenants a-t-elle droit au remboursement des 5 000 FR par section non pourvue ?
+--
+-- A SIGNALER : les caisses de caserne contiennent 200 FR (les quatre empires). Une compagnie a
+-- 20 000 FR est donc aujourd'hui INATTEIGNABLE en pratique, quelle que soit l'autorite.
+--
+-- L'entrainement conserve volontairement ses trois cles historiques force/endurance/tir : les
+-- quatre domaines du nouveau GD sont l'etape suivante, et il ne faut jamais laisser un ecrivain
+-- (militaire_entrainer_section) et un lecteur en desaccord sur la forme des donnees.
+--
+-- BANC, en transactions annulees, zero residu :
+--   1. Commandant cree la compagnie -> caisse 25 000 -> 5 000, PA 10 -> 7, reserve 96,
+--      4 sections VIDES sans lieutenant
+--   2. Caisse retombee a 5 000 -> REFUS 'solde_insuffisant' et PA INTACTS a 7
+--   3. Commandant a 2 PA -> REFUS 'pa_insuffisants', caisse intacte a 25 000, 0 compagnie creee
+--   4. Acteur non Commandant -> 'autorite_insuffisante: poste commandant requis'
+--   5. 1er Lieutenant installe, reserve a 30 -> 24 hommes, section COMPLETE, reserve 30 -> 6
+--   6. 2e Lieutenant installe, reserve a 6  -> 6 hommes, incomplete=true, reserve 6 -> 0
+--   7. 3e Lieutenant installe, reserve vide -> 0 homme, section existante mais vide
+--
+-- Le corps applique est celui des migrations « militaire_contingent_reserve » puis
+-- « militaire_compagnie_creer_atomique ».
+-- =====================================================================================

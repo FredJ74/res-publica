@@ -8624,6 +8624,9 @@ async function confirmerRepartitionBudget(pa, cost) {
 const EFFECTIF_SECTION = 24; // + 1 lieutenant = 25 par section
 const NB_SECTIONS_COMPAGNIE = 4; // 100 hommes par compagnie
 const COUT_COMPAGNIE = 20000; // preleve sur la caisse de la caserne
+// Contingent achete par les 20 000 FR : 4 sections x 24 places. Miroir de la constante
+// serveur de militaire_compagnie_creer, qui seule fait autorite.
+const CONTINGENT_COMPAGNIE = NB_SECTIONS_COMPAGNIE * EFFECTIF_SECTION;
 
 // ---- GUERRE PARTAGEE ----
 async function ouvrirModalGuerreEmpire(pa, cost) {
@@ -9034,6 +9037,11 @@ function libelleLieuSoldat(sol) {
 // La caserne est une ville a part entiere ('caserne', isSpecial:true) dans les quatre empires.
 const VILLE_CASERNE = 'caserne';
 
+// CODE MORT depuis l'adoption du contingent (17 septembre 2026) : les soldats naissent desormais
+// dans la reserve de la compagnie, cotes serveur par militaire_compagnie_creer, avec un matricule
+// 'AAAAMM-NNN' dont le numero de section a disparu -- un soldat n'est plus ne dans une section.
+// Conservee le temps de verifier qu'aucun chemin ne la rappelle, a supprimer ensuite avec
+// genererMatriculesSection. NE PAS la rebrancher : elle recreerait des hommes gratuitement.
 function creerSoldatsSection(numeroSection) {
   return genererMatriculesSection(numeroSection).map(matricule => ({
     matricule, formation: { force: 0, endurance: 0, tir: 0 }, arme: 'corps_a_corps',
@@ -9046,43 +9054,65 @@ function creerSoldatsSection(numeroSection) {
 // Commandant ; le Commandant conduit ensuite ses operations, dont le recrutement. Le moteur de
 // recrutement lui-meme est INCHANGE -- seule l'autorite qui peut le declencher change, et elle
 // s'aligne sur recruter_section, deja reservee au Commandant et debitant la meme caisse.
+// ===========================================================================================
+// SERVEUR AUTORITAIRE (17 septembre 2026) et NOUVEAU MODELE DE CONTINGENT.
+// ===========================================================================================
+// Ce qui se passait ici : le client construisait lui-meme 4 sections DEJA PEUPLEES de 24 soldats
+// et ecrivait le blob entier par sbSaveCompagnie. Deux defauts. D'une part le Commandant, seul
+// habilite par la RLS a ecrire une compagnie, pouvait donc y ecrire n'importe quoi. D'autre part
+// les 3 PA passaient par la branche institutionnelle de deduireCoutOrdre, qui ne consulte PAS le
+// miroir des couts et les deduit cote navigateur seulement.
+//
+// MODELE GD. Les 20 000 FR n'achetent pas quatre lots de 24 hommes : ils constituent un
+// CONTINGENT MAXIMAL de 96 PNJ attribuables a la compagnie. Elle nait donc avec ses 4 sections
+// VIDES, et chaque Lieutenant reellement installe y fait entrer jusqu'a 24 hommes pris dans ce
+// contingent. Un contingent entame par des pertes donne une section incomplete -- c'est voulu.
 async function doRecruterCompagnie() {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', 'Le recrutement d\'une compagnie relève du Commandant de la Caserne, pas du Ministre.', false); return; }
-  const pays = state.country || 'republic';
-  // Deduction PA+cout centralisee (Lot 2C) -- payeur institutionnel (caisse de la caserne)
-  // delegue a la primitive via payeur:{type:'institution'}, qui garantit le debit atomique de
-  // la caisse PUIS la deduction des PA seulement si celui-ci a reussi.
-  const r = await deduireCoutOrdre({ pa: 3, cost: COUT_COMPAGNIE, payeur: { type: 'institution', pays, buildingId: 'caserne-militaire' } });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Budget insuffisant', r.raison === 'pa_insuffisants' ? '3 PA requis.' : 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
-
-  const id = 'compagnie-' + pays + '-' + Date.now();
-  const sections = Array.from({ length: NB_SECTIONS_COMPAGNIE }, (_, i) => ({
-    id: id + '-s' + (i + 1), numero: i + 1, lieutenantNom: null,
-    soldats: creerSoldatsSection(i + 1)
-  }));
-  await sbSaveCompagnie(id, { id, pays, capitaineNom: null, sections });
-  showToast('Compagnie recrutée !', '100 soldats (4 sections) rejoignent la caserne. -' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR.', true, true);
-  addJournalEntry('Recrutement d\'une nouvelle compagnie (' + COUT_COMPAGNIE + ' FR).', 'event-good');
+  if (typeof sbMilitaireCompagnieCreer !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireCompagnieCreer();
+  if (!r || r.ok !== true) {
+    const motif = r?.raison;
+    showToast(motif === 'pa_insuffisants' ? 'PA insuffisants'
+              : motif === 'solde_insuffisant' ? 'Budget insuffisant'
+              : motif === 'autorite_insuffisante' ? 'Réservé au Commandant' : 'Impossible',
+      motif === 'pa_insuffisants' ? '3 PA requis.'
+      : motif === 'solde_insuffisant' ? 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).'
+      : 'Refus du serveur (' + (motif || 'indisponible') + ').', false);
+    return;
+  }
+  // On recopie l'etat arrete par le serveur, jamais un calcul local.
+  if (typeof r.pa === 'number') { state.pa = r.pa; updateUI(); }
+  const contingent = r.contingent || 96;
+  showToast('Compagnie constituée !', contingent + ' hommes de contingent rejoignent la caserne, en réserve. '
+    + 'Les ' + (r.sections || 4) + ' sections sont vides : chaque Lieutenant installé y fera entrer jusqu\'à '
+    + EFFECTIF_SECTION + ' hommes. -' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR.', true, true);
+  addJournalEntry('Constitution d\'une compagnie : contingent de ' + contingent + ' hommes en réserve ('
+    + COUT_COMPAGNIE + ' FR).', 'event-good');
 }
 
-// Recompletement d'une seule section vidée (moins cher qu'une compagnie complète)
+// MODELE ABANDONNE PAR LE GD (17 septembre 2026). Le recompletement d'une section a 5 000 FR
+// reposait sur l'idee de quatre achats independants de 24 PNJ. Le contingent est desormais unique
+// et non renouvelable : 20 000 FR achetent 96 hommes une fois pour toutes, les morts reduisent
+// definitivement ce capital, et une section se recomplete en y affectant des hommes encore
+// disponibles dans la reserve -- jamais en en achetant de nouveaux.
+// La constante et la fonction sont conservees le temps que l'ordre soit retire de data.js, mais
+// la fonction refuse desormais toute execution.
 const COUT_SECTION = Math.round(COUT_COMPAGNIE / NB_SECTIONS_COMPAGNIE);
+// NEUTRALISEE, modele abandonne par le GD. Elle achetait 24 recrues neuves pour 5 000 FR, ce qui
+// permettait de reconstituer indefiniment un effectif : les pertes ne coutaient donc rien. Le
+// contingent est desormais UNIQUE et NON RENOUVELABLE -- un mort reduit definitivement le capital
+// humain de la compagnie. Une section se recomplete en y affectant des hommes encore disponibles
+// dans la reserve, ce qui relevera de l'affectation des soldats, jamais d'un achat.
+//
+// L'ordre reste declare dans data.js : le retirer obligerait a regenerer le miroir des couts, et
+// un ordre declare mais refuse vaut mieux qu'un miroir desynchronise. La fonction n'ecrit plus
+// rien et ne preleve plus ni PA ni argent.
 async function doRecruterSection(compagnieId, sectionId, pa, cost) {
-  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
-  const pays = state.country || 'republic';
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
-  const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_SECTION);
-  if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
-
-  section.soldats = creerSoldatsSection(section.numero);
-  await sbSaveCompagnie(compagnieId, compagnie);
-  showToast('Section recomplétée', '24 nouvelles recrues sans expérience rejoignent la section.', true, true);
-  addJournalEntry('Section ' + sectionId + ' recomplétée (-' + COUT_SECTION + ' FR).', 'event-info');
+  showToast('Recomplètement supprimé',
+    'On n\'achète plus de recrues à la pièce. Une compagnie dispose d\'un contingent unique de '
+    + CONTINGENT_COMPAGNIE + ' hommes, que les pertes réduisent définitivement. Affectez des hommes '
+    + 'encore disponibles dans la réserve de la compagnie.', false);
 }
 
 // ---- DETACHEMENTS DE SOLDATS ----
@@ -9575,7 +9605,11 @@ async function construireEtatArmee(pays) {
         mission: s.mission || null, cibleEscorte: s.cibleEscorte || null
       };
     });
-    return { capitaineNom: c.capitaineNom || null, sections };
+    // RESERVE DE CONTINGENT, exposee au Commandant : le contingent n'est plus renouvelable,
+    // savoir combien d'hommes restent disponibles devient une information vitale.
+    const reserve = Array.isArray(c.reserve) ? c.reserve.length : 0;
+    const contingentInitial = (typeof c.contingentInitial === 'number') ? c.contingentInitial : null;
+    return { capitaineNom: c.capitaineNom || null, sections, reserve, contingentInitial };
   });
 
   const armesAssigneesTotal = CATEGORIES_ARME_STOCK.reduce((sum, cat) => sum + armesAssignees[cat], 0);
