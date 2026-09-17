@@ -1832,21 +1832,41 @@ async function doContrebandePort(pa, cost) {
 }
 
 async function doBlocusPortuaire(pa, cost) {
+  // LE BLOCUS PORTUAIRE EST UNE ACTION SYNDICALE (decision de game design du 17 septembre 2026).
+  //
   // Correctif du 25 aout 2026 (bug remonte en production v69 : n'importe quel PJ pouvait
-  // declencher un blocus depuis le quai principal). blocus_portuaire est desormais reserve au
-  // chef du Syndicat des Dockers de PSM et revalide ici INDEPENDAMMENT de l'affichage (meme
-  // principe que le precedent chef des supporters, doOrganiserManifestation) -- un appel direct
-  // au handler par un non-chef (non-membre, simple membre, ancien chef, ou tout autre PJ) echoue
-  // avant tout cout/effet de bord. Scope volontairement limite a 'republic' : c'est le seul pays
-  // dote d'un syndicat des dockers reel pour l'instant (voir getSyndicatDockersPSM,
-  // plateau-organisations-quetes.js) -- le blocus_portuaire d'El Estado (data.js:5570, meme fn,
-  // meme handler) reste inchange et hors perimetre de ce lot.
-  if ((state.country || 'republic') === 'republic') {
-    const orga = typeof chargerOuCreerSyndicatDockersPSM === 'function' ? await chargerOuCreerSyndicatDockersPSM() : null;
-    if (!orga || orga.chef !== (state.char?.name || '')) {
-      showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
-      return;
-    }
+  // declencher un blocus depuis le quai principal) : le blocus est reserve au chef du syndicat
+  // des dockers et revalide ici INDEPENDAMMENT de l'affichage -- un appel direct au handler par un
+  // non-chef echoue avant tout cout ou effet de bord.
+  //
+  // Ce qui change aujourd'hui : ce controle etait encadre par `if (state.country === 'republic')`,
+  // ce qui revenait a traiter l'ABSENCE de syndicat comme une autorite valable. A El Estado, ou
+  // data.js declare aussi blocus_portuaire mais sans syndicat constitue, n'importe quel PJ pouvait
+  // donc paralyser le port. L'autorite est desormais cherchee GENERIQUEMENT pour le territoire ou
+  // l'on se trouve (syndicatDockersDuTerritoire) : plus de test sur le nom du pays.
+  //
+  // Si aucun syndicat de dockers n'existe sur ce territoire, l'ordre est REFUSE avec un message
+  // explicite -- il n'est pas supprime en silence, et l'absence de structure ne vaut pas
+  // permission. ARBITRAGE/CONTENU GD EN ATTENTE : quelle organisation portera cette autorite a El
+  // Estado (nom, siege, chef par defaut) releve du chantier de contenu de cet empire ; rien n'est
+  // invente ici.
+  const ville = state.currentCity;
+  let syndicat = (typeof syndicatDockersDuTerritoire === 'function')
+    ? syndicatDockersDuTerritoire(state.country, ville) : null;
+  // Republia : le syndicat est cree paresseusement a la premiere visite de sa salle. On le
+  // materialise ici aussi, pour ne rien changer au parcours existant.
+  if (!syndicat && state.country === 'republic' && ville === 'ville_a'
+      && typeof chargerOuCreerSyndicatDockersPSM === 'function') {
+    syndicat = await chargerOuCreerSyndicatDockersPSM();
+  }
+  if (!syndicat) {
+    showToast('Aucun syndicat compétent',
+      "Le blocus portuaire est une action syndicale : aucun syndicat des dockers n'est constitué ici.", false);
+    return;
+  }
+  if (syndicat.chef !== (state.char?.name || '')) {
+    showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
+    return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }

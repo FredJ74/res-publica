@@ -7718,8 +7718,26 @@ function getClubSupportersLocal() {
 // permission. Seule vraie difference avec le club de supporters : la creation est declenchee par
 // une simple visite de la room (voir enterRoom, plateau-navigation.js), pas par un order
 // d'adhesion dedie (aucune UI de membres pour ce lot, hors perimetre).
+// IDENTIFIANT GENERIQUE D'UN SYNDICAT DE DOCKERS (17 septembre 2026, application de la decision
+// « le blocus portuaire est une action syndicale »). L'identifiant historique de Republia,
+// 'orga_syndicat_dockers_republic_ville_a', suit deja le schema <pays>_<ville> : on se contente de
+// le CALCULER au lieu de le coder en dur, pour que la meme mecanique vaille dans tout empire ou un
+// syndicat de dockers sera un jour constitue. Aucun syndicat n'est cree ici : la fonction rend
+// null si le territoire n'en a pas.
+function idSyndicatDockers(country, city) {
+  if (!country || !city) return null;
+  return 'orga_syndicat_dockers_' + country + '_' + city;
+}
+
+// Syndicat des dockers COMPETENT pour un territoire donne, quel que soit l'empire.
+function syndicatDockersDuTerritoire(country, city) {
+  const id = idSyndicatDockers(country, city);
+  if (!id) return null;
+  return (state.organisations || []).find(o => o.id === id) || null;
+}
+
 function getSyndicatDockersPSM() {
-  return (state.organisations || []).find(o => o.id === 'orga_syndicat_dockers_republic_ville_a') || null;
+  return syndicatDockersDuTerritoire('republic', 'ville_a');
 }
 
 function getChefSyndicatDockersPSM() {
