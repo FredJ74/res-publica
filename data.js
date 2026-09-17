@@ -2989,7 +2989,7 @@ const BUILDINGS = {
           {
             fn:'acheter_gilet',
             label:'Acheter un gilet pare-balles',
-            pa: 0, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            pa: 0, cost:380, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
             imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
           },
@@ -4162,7 +4162,7 @@ const BUILDINGS = {
           {
             fn:'acheter_gilet',
             label:'Acheter un gilet pare-balles',
-            pa: 0, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            pa: 0, cost:380, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
             imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
           },

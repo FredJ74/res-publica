@@ -86,6 +86,68 @@ const RECETTES_MILITAIRES = {
     typeObjet: 'explosif', sousType: 'militaire',
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-militaires.png',
     desc: 'Explosifs réglementaires de l\'armée de Républia.'
+  },
+
+  // =========================================================================================
+  // ACCESSOIRES MILITAIRES (18 septembre 2026, recettes et prix PNJ fixes par le GD).
+  // =========================================================================================
+  // LES AJOUTER ICI SUFFIT, et c'est tout l'interet de ce catalogue : ressourcesMilitairesEligibles()
+  // DEDUIT les matieres eligibles a la reserve strategique des recettes elles-memes, et
+  // caserne_stock_mouvement est entierement generique (aucune liste blanche de produit). Declarer
+  // ces cinq entrees etend donc automatiquement l'approvisionnement des armureries a textile,
+  // minerai, charbon et fruits_legumes -- sans aucun cas special « legumes », comme demande.
+  //
+  // prixPnj est le prix de vente PNJ de reference arrete par le GD. Les armureries PJ restent
+  // libres de fixer le leur selon le modele economique existant (COEF_PRIX_MAX_PJ).
+  //
+  // imageUrl est volontairement NULL : une planche d'accessoires a ete produite mais son nom de
+  // fichier canonique n'est pas connu de ce depot. Ne PAS inventer de nom -- voir le rapport pour
+  // la liste exacte des assets attendus.
+  gilet_pare_balles: {
+    label: 'Gilet pare-balles',
+    materiaux: { metal: 2, textile: 2 },
+    pa: 3, produitParLot: 1, prixPnj: 380,
+    icon: 'ti-shield-check',
+    typeObjet: 'equipement', sousType: 'militaire',
+    imageUrl: null,
+    desc: 'Gilet pare-balles réglementaire. Protège contre les attaques pertinentes, notamment les tirs.'
+  },
+  radio: {
+    label: 'Radio de campagne',
+    materiaux: { metal: 1, textile: 1, minerai: 1 },
+    pa: 3, produitParLot: 1, prixPnj: 360,
+    icon: 'ti-radio',
+    typeObjet: 'equipement', sousType: 'militaire',
+    imageUrl: null,
+    desc: 'Poste radio de campagne. Relais de commandement : permet de transmettre des ordres à distance, jamais de se déplacer instantanément.'
+  },
+  tente: {
+    label: 'Tente de campagne',
+    materiaux: { metal: 1, textile: 1 },
+    pa: 2, produitParLot: 1, prixPnj: 240,
+    icon: 'ti-tent',
+    typeObjet: 'equipement', sousType: 'militaire',
+    imageUrl: null,
+    capacite: 13,                           // capacite de bivouac, arbitree par le GD
+    desc: 'Tente de campagne. Abrite 13 personnes en bivouac. Aucun montage à ordonner : la posséder suffit.'
+  },
+  jumelles: {
+    label: 'Jumelles',
+    materiaux: { metal: 1, textile: 1, minerai: 1 },
+    pa: 2, produitParLot: 1, prixPnj: 260,
+    icon: 'ti-binoculars',
+    typeObjet: 'equipement', sousType: 'militaire',
+    imageUrl: null,
+    desc: 'Jumelles d\'observation. Permettent d\'observer un secteur et d\'en tirer un renseignement toujours approximatif.'
+  },
+  tenue_camouflage: {
+    label: 'Tenue de camouflage',
+    materiaux: { textile: 1, charbon: 1, fruits_legumes: 1 },
+    pa: 2, produitParLot: 1, prixPnj: 230,
+    icon: 'ti-eye-off',
+    typeObjet: 'equipement', sousType: 'militaire',
+    imageUrl: null,
+    desc: 'Tenue de camouflage. Protège CELUI QUI LA PORTE : une seule tenue ne dissimule pas une section entière.'
   }
 };
 
