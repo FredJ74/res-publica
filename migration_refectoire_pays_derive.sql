@@ -24,3 +24,34 @@
 -- de regle, pas un correctif : non tranche ici.
 -- =====================================================================================
 -- Le corps applique est celui de la migration « refectoire_pays_derive_serveur ».
+
+-- =====================================================================================
+-- SUITE (meme jour) : ANTI-REJEU QUOTIDIEN — le jour n'est plus cru non plus
+--
+-- Arbitrage GD rendu apres audit : ne PAS creer d'horloge jour_de_jeu(). Le depot utilise deja
+-- largement, comme convention serveur pour toute garde « une fois par jour », la DATE REELLE
+-- Europe/Paris -- pa_repos_nocturne (pa_repos_le), assemblee_verser_indemnite,
+-- calomnie_distribuer_interne, corruption_presse_tenter, championnat_*. On applique la meme.
+-- p_jour reste dans la signature et est desormais ignore, comme p_pays, p_gain et p_pa_max.
+--
+-- CONSTAT QUI A MOTIVE CET ARBITRAGE : il n'existe AUCUNE source serveur du jour de jeu.
+-- personnages_donnees.day est un compteur PRIVE et divergent ; jourPartageISO() et
+-- jourCourantISO() renvoient tous deux la date reelle malgre leur nom ; et
+-- corruption_presse_tenter insere « jour: 0, jour_expiration: 0 » dans actions_tracables --
+-- preuve directe que le serveur ne sait pas quel jour de jeu il est. La coexistence entre
+-- state.day individuel et temporalite serveur releve du chantier TEMPORALITE, pas de ce lot.
+--
+-- PIEGE EVITE, et il aurait annule le correctif : le client ecrivait
+-- state.char.stats.repasCaserneJour = state.day APRES la RPC. La prochaine sauvegarde complete du
+-- personnage republiant tout le blob stats, ce state.day aurait ECRASE le marqueur serveur et le
+-- rejeu aurait redevenu possible des le lendemain. La RPC renvoie donc « jourCle » et le client
+-- recopie exactement ce que le serveur a inscrit (plateau-effort-guerre.js).
+--
+-- TRANSITION : une valeur heritee au format entier ne peut jamais egaler une date ISO -- le
+-- premier repas suivant le deploiement est donc accorde. Voulu, sans consequence.
+--
+-- BANC 5/5 en transaction annulee : marqueur herite 47 -> premier repas accorde et marqueur
+-- devenu « 2026-09-17 » ; puis rejeu refuse (deja_mange) avec p_jour=48, p_jour=9999,
+-- p_jour=NULL, et p_jour=123 combine a p_pays='narco'. Rations 7 -> 6 une seule fois, PA 5 -> 7.
+-- =====================================================================================
+-- Le corps applique est celui de la migration « refectoire_antirejeu_date_reelle ».

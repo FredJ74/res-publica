@@ -794,7 +794,14 @@ async function doMangerRation() {
   }
   state.pa = res.pa;
   if (!state.char.stats) state.char.stats = {};
-  state.char.stats.repasCaserneJour = state.day || 1;
+  // ON RECOPIE LE MARQUEUR POSE PAR LE SERVEUR, jamais un calcul local (17 septembre 2026).
+  // Cette ligne ecrivait state.day, alors que la garde anti-rejeu du serveur est desormais la
+  // DATE REELLE Europe/Paris -- la convention deja en vigueur pour toutes les autres gardes
+  // « une fois par jour » du projet. La prochaine sauvegarde complete du personnage republie tout
+  // le blob stats : y laisser state.day aurait donc ECRASE le marqueur serveur, et le rejeu
+  // aurait redevenu possible des le lendemain. res.jourCle est la cle exacte que le serveur a
+  // inscrite ; en son absence (RPC plus ancienne) on ne touche pas a la cle.
+  if (res.jourCle) state.char.stats.repasCaserneJour = res.jourCle;
   updateUI();
   showToast('Ration avalée', '+2 PA.' + (res.fabrique ? ' Un lot de rations vient d\'être préparé.' : '')
     + ' Reste ' + res.rations + ' ration(s).', true, true);
