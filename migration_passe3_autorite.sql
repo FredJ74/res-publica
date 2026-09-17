@@ -1,0 +1,52 @@
+-- =====================================================================================
+-- PASSE 3 DE L'AUDIT D'AUTORITE — 17 septembre 2026
+-- TRACE des migrations Supabase appliquees, dans l'ordre :
+--   appliquer_taxe_transaction_revoque_public
+--   fonds_crediter_atteste
+--   compagnies_militaires_rls_et_nominations
+--   militaire_nominations_rpc  (+ _fix_jsonb)
+--   compagnies_militaires_rls_via_primitives
+--
+-- 1. LE BANC D'ABORD. .scratch/banc_autorite_generique.sql juge desormais D'ABORD L'ETAT
+--    (juge souverain : un etat inchange ne peut pas etre une faille), puis l'exception, puis le
+--    retour applicatif {"ok":false} -- et il exerce le VRAI role Postgres (SET ROLE), sans quoi la
+--    couche GRANT/REVOKE n'etait pas testee. Il rapporte aussi le MOTIF du refus, ce qui a permis
+--    de detecter qu'une politique RLS refusait pour la mauvaise raison (voir 4).
+--
+-- 2. FAILLE TROUVEE PAR CE BANC DANS UN CORRECTIF DE LA PASSE 1.
+--    appliquer_taxe_transaction etait declaree fermee. Elle ne l'etait pas : PostgreSQL accorde
+--    EXECUTE a PUBLIC par defaut et l'ACL portait « =X/postgres ». Retirer anon et authenticated
+--    ne changeait rien, authenticated heritant via PUBLIC. Prouve : un joueur ordinaire creditait
+--    reellement le budget municipal et la reserve nationale avec 100 000 000 de brut.
+--    REVOKE ... FROM PUBLIC. Reteste : permission denied, etat inchange.
+--    LECON GENERALE : nommer PUBLIC dans toute revocation, pas seulement anon et authenticated.
+--    Balayage du schema effectue : c'etait le seul cas mutant sans controle d'identite concerne.
+--
+-- 3. fonds_crediter_atteste — pendant monetaire de pa_crediter_atteste, ferme par construction :
+--    beneficiaire = le compte connecte (aucun parametre de destinataire n'existe), montant JAMAIS
+--    transmis par le client (lu dans le miroir ordres_couts, multiplie par une part declaree),
+--    cause en liste blanche (fonds_credits_sources), idempotence par (source, reference),
+--    journalisation dans fonds_credits_uniques.
+--    Prouve : legitime +200 = cout declare ; rejeu refuse, delta 0 ; part 30% -> +60 ; cause
+--    falsifiee / ordre absent du miroir / ordre a cout nul -> refuses ; beneficiaire falsifie ->
+--    exception, delta 0.
+--
+-- 4. CHAINE MILITAIRE. L'angle mort n'etait pas l'absence de capitaine/lieutenant dans
+--    postes_nommes_regles (cette absence est CORRECTE : le registre generique ne porte que des
+--    postes scalaires, et le design reserve la protection 3 jours au seul Commandant), mais le
+--    fait que compagnies_militaires -- la table que poste_est_atteste interroge pour valider ces
+--    deux grades -- avait la RLS DESACTIVEE.
+--    RLS posee + 5 RPC de nomination + table nominations_militaires portant le rattachement
+--    compagnie/section que le registre generique ne sait pas exprimer.
+--    PIEGE RENCONTRE ET CORRIGE : la premiere version des politiques interrogeait
+--    personnages_donnees, sur laquelle le role authenticated n'a AUCUN droit (le jeu y accede par
+--    la vue personnages) -- elles refusaient donc TOUT LE MONDE, y compris un Commandant
+--    legitime. Reecrites via acteur_poste_courant(), primitive SECURITY DEFINER du projet.
+--    Non-regression prouvee : joueur sans poste refuse (0 ligne) ; LE capitaine de la compagnie
+--    autorise ; le Commandant peut creer une compagnie.
+--    Corrige aussi le « lieutenant fantome » : la destitution fait tomber la fonction ET le poste.
+--
+-- RESTE OUVERT : personnage_ajuster_pop_inf (P0, detectee par le banc a chaque passe), la
+-- resolution serveur de la rumeur, les groupes de caisses fret/ventes/salaires, le redressement
+-- fiscal, l'inventaire en entree, la temporalite. Voir le rapport.
+-- =====================================================================================
