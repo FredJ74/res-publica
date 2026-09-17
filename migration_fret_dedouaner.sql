@@ -1,0 +1,34 @@
+-- =====================================================================================
+-- CAISSES FRET/DOUANE — DEDOUANEMENT ATTESTE (17 septembre 2026)
+-- Migration Supabase appliquee : fret_dedouaner_atteste
+--
+-- CONSTAT : dedouanerCaisseFret calculait le montant dans le navigateur (avec SON horloge pour le
+-- gardiennage), debitait le joueur en local, puis creditait la caisse du port par un SECOND appel
+-- en .catch(() => {}). Entre les deux, l'argent n'existait nulle part : un echec du credit le
+-- detruisait apres que le joueur l'ait paye. L'autorite « etre le destinataire » n'etait verifiee
+-- que cote client -- le PATCH de caisses_fret ne filtrait pas dessus, donc un appel direct
+-- dedouanait la caisse d'un autre.
+--
+-- FORMULE INCHANGEE, RECALCULEE PAR LE SERVEUR :
+--   douane      = round(valeur_declaree * 10 / 100)
+--   gardiennage = round(valeur_declaree * 1 / 100 * max(0, jours_depuis_arrivee - 7))
+-- Le « maintenant » est celui du serveur : une horloge locale avancee ne peut plus gonfler ni
+-- reduire le gardiennage.
+--
+-- Debit sur les FONDS ORDINAIRES (liquide puis Banque nationale), primitive canonique de depense,
+-- meme doctrine que eviction_indemniser. Credit du port par caisse_institution_mouvement dans la
+-- MEME transaction. Idempotence par la transition dedouanee false -> true sous verrou de ligne.
+--
+-- PREUVE (transaction annulee) :
+--   dedouaner la caisse d'un autre -> pas_destinataire
+--   legitime (valeur 1000, arrivee il y a 10 jours) -> total 130 = douane 100 + gardiennage 30,
+--     debit reel 130, caisse du port creditee de 130 (conservation exacte)
+--   rejeu -> rejeu=true, deja_dedouanee, aucun second debit
+--   caisse inexistante -> caisse_introuvable
+--
+-- NON TRAITE DANS CE LOT : acheterLotNonReclameeFret. Son prix est tout aussi deterministe, mais
+-- l'operation transfere aussi des objets vers l'inventaire de l'acheteur -- c'est une ENTREE
+-- d'inventaire, et le projet n'a aucune primitive attestee pour les entrees (contrairement aux
+-- cinq sorties). Le traiter ici reviendrait a resoudre a moitie le chantier « inventaire en
+-- entree ». Il y est donc renvoye.
+-- =====================================================================================

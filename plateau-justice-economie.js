@@ -9716,24 +9716,35 @@ async function dedouanerCaisseFret(caisseId, pa) {
   const caisse = rows && rows[0];
   if (!caisse || caisse.destinataire !== moi || caisse.dedouanee || caisse.statut !== 'arrivee') { showToast('Action impossible', '', false); return; }
 
-  const douane = calculerDroitsDouaneCaisseFret(caisse);
-  const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
-  const total = douane + gardiennage;
-
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
-  if ((state.arg || 0) < total) { showToast('Fonds insuffisants', 'Il vous faut ' + total + ' FR (douane + gardiennage).', false); return; }
 
-  // Filtre &dedouanee=eq.false : evite un double paiement en cas de double-clic rapide (le
-  // second appel ne matche plus aucune ligne une fois le premier passe a true).
-  const maj = typeof sbUpdate === 'function'
-    ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&dedouanee=eq.false', { dedouanee: true, date_dedouanement: new Date().toISOString() }).catch(() => null)
-    : null;
-  if (!maj || maj.length === 0) { showToast('Déjà dédouanée', '', false); return; }
+  // DEDOUANEMENT SERVEUR-AUTORITAIRE (17 septembre 2026, audit des frontieres d'autorite).
+  // AVANT : le montant etait calcule par le navigateur (avec SON horloge pour le gardiennage),
+  // le joueur se debitait en local, puis la caisse du port etait creditee par un SECOND appel en
+  // .catch(() => {}) -- entre les deux, l'argent n'existait nulle part et un echec le detruisait
+  // apres paiement. L'autorite « etre le destinataire » n'etait verifiee que cote client : le
+  // PATCH ne filtrait pas dessus, donc un appel direct dedouanait la caisse d'un autre.
+  // MAINTENANT : une seule transaction. Le serveur relit la valeur declaree et la date d'arrivee,
+  // recalcule douane et gardiennage a la formule inchangee avec SON horloge, verifie le
+  // destinataire, debite, credite le port et marque la caisse -- ou ne fait rien.
+  const rDed = await sbFretDedouaner(caisseId);
+  if (!rDed || rDed.ok !== true) {
+    const motifs = {
+      pas_destinataire: 'Cette caisse ne vous est pas destinée.',
+      fonds_insuffisants: 'Il vous faut ' + (rDed && rDed.requis ? rDed.requis : '') + ' FR (douane + gardiennage).',
+      statut_invalide: 'Cette caisse n\'est pas en instance de dédouanement.',
+      caisse_introuvable: 'Cette caisse n\'existe plus.'
+    };
+    showToast(rDed && rDed.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'Action impossible',
+      (rDed && motifs[rDed.raison]) || '', false);
+    return;
+  }
+  if (rDed.rejeu) { showToast('Déjà dédouanée', '', false); await afficherCaisseArriveeFret(caisseId, pa); return; }
 
-  state.arg -= total;
-  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(caisse.pays_destination, caisse.building_destination, total).catch(() => {});
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  const total = Number(rDed.total || 0);
+  if (typeof rDed.arg === 'number') { state.arg = rDed.arg; if (state.char) state.char.arg = rDed.arg; }
+  if (typeof rDed.liquide === 'number') state.liquide = rDed.liquide;
 
   updateUI();
   showToast('Caisse dédouanée', total + ' FR versés à la caisse du port. Retraits libres.', true, true);

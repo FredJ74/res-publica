@@ -3930,3 +3930,12 @@ async function sbMilitaireArmurerieTransfert(compagnieId, sectionId, produit, qt
     p_produit: produit, p_qte: qte, p_sens: sens });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
+
+// Dedouanement d'une caisse de fret : UNE transaction serveur. Le montant (douane + gardiennage)
+// est recalcule cote serveur depuis valeur_declaree et date_arrivee_reelle, avec l'horloge du
+// serveur ; le destinataire est verifie ; debit du joueur et credit de la caisse du port sont
+// atomiques. Idempotent : un rejeu rend {rejeu:true} sans rien debiter.
+async function sbFretDedouaner(caisseId) {
+  const rows = await sbRpc('fret_dedouaner', { p_caisse_id: caisseId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
