@@ -1,0 +1,26 @@
+-- =====================================================================================
+-- refectoire_repas : le pays n'est plus cru — Res Publica, 17 septembre 2026
+--
+-- LE DEFAUT. La fonction verifiait la presence physique (current_building = 'caserne-militaire')
+-- mais lisait le stock du refectoire sur budgets_nationaux.id = p_pays, un PARAMETRE CLIENT. Or
+-- 'caserne-militaire' est LE MEME identifiant de batiment dans les quatre empires (data.js:954,
+-- 1197, 1441, 1710) : la presence ne distinguait donc pas la caserne ou l'on se trouve de celle
+-- dont on consommait le stock. Un joueur pouvait manger les rations d'un autre empire.
+--
+-- LE CORRECTIF. v_pays est desormais lu sur la fiche du personnage (territoire ou il se trouve
+-- reellement). p_pays reste dans la signature pour ne casser aucun appelant, et est volontairement
+-- ignore -- meme convention que p_gain et p_pa_max, deja ignores par cette fonction.
+-- Aucune regle de jeu modifiee : +2 PA, plafond 30, recette de 10 rations inchangees.
+--
+-- BANC 3/3 en transaction annulee : en declarant p_pays='narco' depuis la caserne de Republia,
+-- c'est bien REPUBLIA qui est debitee (7 -> 6) et Narcovia reste intacte (99) ; second repas le
+-- meme jour refuse (deja_mange) ; p_gain=99 donne toujours +2 PA.
+--
+-- DEFAUT RESIDUEL NON CORRIGE, signale pour arbitrage : p_jour reste transmis par le client et
+-- sert de cle anti-rejeu (stats.repasCaserneJour). Un client qui incremente p_jour mange autant
+-- de fois qu'il veut -- le banc l'a constate (scenario 3 : un second repas passe avec p_jour=2).
+-- Le fermer demande de choisir la source du jour : le compteur de jeu prive (state.day) ou la
+-- date reelle Europe/Paris, comme le fait deja pa_repos_nocturne avec pa_repos_le. C'est un choix
+-- de regle, pas un correctif : non tranche ici.
+-- =====================================================================================
+-- Le corps applique est celui de la migration « refectoire_pays_derive_serveur ».
