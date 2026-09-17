@@ -2383,7 +2383,7 @@ const BUILDINGS = {
           {fn:'produire_commerce', label:'Servir', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:1, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
+          {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa: 0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
           {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
       },
@@ -2983,13 +2983,13 @@ const BUILDINGS = {
           {
             fn:'choisir_arme',
             label:'Acheter une arme',
-            pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
+            pa: 0, cost:0, type:'grey', icon:'ti-sword', successRate:100,
             desc:'Couteau, revolver ou carabine — achat légal (enregistré) ou marché noir (3x le prix), au choix pour chaque arme.'
           },
           {
             fn:'acheter_gilet',
             label:'Acheter un gilet pare-balles',
-            pa:1, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            pa: 0, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
             imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
           },
@@ -4156,13 +4156,13 @@ const BUILDINGS = {
           {
             fn:'choisir_arme',
             label:'Acheter une arme',
-            pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
+            pa: 0, cost:0, type:'grey', icon:'ti-sword', successRate:100,
             desc:'Couteau, revolver ou carabine — achat légal (enregistré) ou marché noir (3x le prix), au choix pour chaque arme.'
           },
           {
             fn:'acheter_gilet',
             label:'Acheter un gilet pare-balles',
-            pa:1, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            pa: 0, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
             imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
           },
@@ -5204,7 +5204,7 @@ const BUILDINGS = {
           {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Le Grand Confiseur garde vos secrets... la plupart du temps.'},
           {fn:'faire_don',       label:'Offrir des loukoums',          pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP. Péché mortel de refuser un loukoum.'},
           {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'},
-          {fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa:1, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}
+          {fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa: 0, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}
         ]
       }
     }
@@ -5226,7 +5226,7 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.jpg",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -5385,7 +5385,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-pole-tabac-psm.png",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -5415,7 +5415,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-ventes-entrepot-luthecia.png",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -5862,7 +5862,7 @@ const BUILDINGS = {
         imageUrl: "images/port-sainte-marie-port-industriel-criee.png",
         persons: [],
         orders: [
-          {fn:'acheter_criee', label:'Acheter à la Criée', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}
+          {fn:'acheter_criee', label:'Acheter à la Criée', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}
         ]
       },
       // isLocationRoom/locationData retires ici (lot du 25 aout 2026, §13-14) : l'ancien bail
@@ -6041,7 +6041,7 @@ const BUILDINGS = {
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:75, desc:'Très facile à El Estado. DIS/10 + DUP/10. +25% modificateur El Estado.'},
-          {fn:'acheter_ghb', label:'Acheter du GHB', pa:1, cost:300, type:'illegal', icon:'ti-flask', successRate:80, desc:'Objet poison El Estado. Usage unique. DIS/10. Disponible uniquement ici.'},
+          {fn:'acheter_ghb', label:'Acheter du GHB', pa: 0, cost:300, type:'illegal', icon:'ti-flask', successRate:80, desc:'Objet poison El Estado. Usage unique. DIS/10. Disponible uniquement ici.'},
           {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:65, desc:'Paralyse commerce 24h. VOL/10 + ENT/10.'}
         ]
       }
@@ -6070,7 +6070,7 @@ const BUILDINGS = {
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:60, desc:'Possible mais discret. DIS/10 + DUP/10. +10% Al-Khalija.'},
-          {fn:'acheter_vipere', label:'Acheter une Vipère des sables', pa:1, cost:350, type:'grey', icon:'ti-bug', successRate:85, desc:'Objet poison Al-Khalija. Usage unique. Disponible uniquement ici.'},
+          {fn:'acheter_vipere', label:'Acheter une Vipère des sables', pa: 0, cost:350, type:'grey', icon:'ti-bug', successRate:85, desc:'Objet poison Al-Khalija. Usage unique. Disponible uniquement ici.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours.'}
         ]
       }

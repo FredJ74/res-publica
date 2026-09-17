@@ -10837,20 +10837,38 @@ async function verifierRechercheMilitaireQuotidien(pays) {
 }
 
 // Deplace automatiquement les soldats d'une section en mission "escorter" quand leur protege change de batiment
+// ==========================================================================================
+// NEUTRALISEE (18 septembre 2026). Elle entrait en CONFLIT DIRECT avec le modele valide.
+// ==========================================================================================
+// Ce que faisait cette fonction : a chaque changement de batiment du PJ escorte, elle parcourait
+// toutes les compagnies du pays et reecrivait la position de TOUS les soldats de la section
+// d'escorte, en les deposant dans la premiere piece du batiment.
+//
+// Quatre defauts, dont trois sont des regressions des lots « position canonique » et
+// « leaderCourant » :
+//   1. ECRITURE CLIENTE du blob entier de la compagnie, donc REFUSEE EN SILENCE par la RLS des
+//      que l'escorte n'est ni Commandant ni Capitaine de cette compagnie -- c'est-a-dire presque
+//      toujours. La mecanique ne fonctionnait deja pratiquement jamais.
+//   2. Elle ecrivait buildingId/roomId SANS ville : elle recreait donc l'ambiguite de position
+//      entre deux villes partageant le meme buildingId, que le lot 853d046 a fermee.
+//   3. Elle ecrasait la position d'un soldat qui SUIT UN CHEF (leaderCourant renseigne, position
+//      vide), produisant l'etat « a la fois avec un chef et quelque part » que l'invariant du lot
+//      1ccf670 interdit.
+//   4. Elle deplacait les soldats OU QU'ILS SOIENT, y compris ceux laisses ailleurs, et les
+//      regroupait arbitrairement dans la premiere piece.
+//
+// L'ESCORTE N'EST PAS PERDUE : elle s'exprime desormais exactement par leaderCourant -- un soldat
+// qui suit physiquement un PJ n'a pas de position propre, la sienne est celle de son chef, et le
+// deplacement est donc automatique et gratuit par construction. La difference est que
+// l'affectation passe par militaire_affecter_leader, donc par l'AUTORITE du Lieutenant, au lieu
+// d'etre un effet de bord du deplacement de l'escorte.
+//
+// La valeur de mission 'escorter' et section.cibleEscorte restent en place : elles ne produisent
+// plus de deplacement, mais les retirer de MISSIONS_DETACHEMENT et de militaire_assigner_mission
+// est un lot de menage a part -- et le GD a demande de ne pas supprimer aveuglement les
+// consommateurs.
 async function suivreEscorteAvecMoi(nouveauBuildingId) {
-  const moi = state.char?.name;
-  if (!moi) return;
-  const pays = state.country || 'republic';
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-  for (const c of compagnies) {
-    for (const s of (c.sections || [])) {
-      if (s.mission === 'escorter' && s.cibleEscorte === moi && s.soldats.length > 0) {
-        const premiereRoom = Object.keys(BUILDINGS[nouveauBuildingId]?.rooms || {})[0] || null;
-        s.soldats.forEach(sol => { sol.buildingId = nouveauBuildingId; sol.roomId = premiereRoom; });
-        await sbSaveCompagnie(c.id, c);
-      }
-    }
-  }
+  return;
 }
 
 // =====================
