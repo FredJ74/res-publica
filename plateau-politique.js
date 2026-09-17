@@ -9679,29 +9679,27 @@ async function traiterVirementJournalierCaserne(pays) {
 
 
 // ---- SOLDE QUOTIDIENNE DES SOLDATS (versee chaque nuit, juste apres que le MG touche sa part) ----
+// ==========================================================================================
+// SOLDE PNJ SUPPRIMEE (18 septembre 2026, arbitrage GD).
+// ==========================================================================================
+// Elle versait 20 FR par soldat PNJ et par jour, preleves sur la caisse de la caserne. Le GD l'a
+// abandonnee : les PNJ militaires n'ont AUCUNE solde recurrente. Le contingent a deja ete paye
+// une fois pour toutes par les 20 000 FR de la compagnie, et le faire repayer chaque nuit
+// revenait a taxer indefiniment un achat unique.
+//
+// LES DEUX COTES SONT RETIRES ENSEMBLE, et c'est indispensable : ce miroir client et
+// payerSoldeServeur (api/cron-minuit.js) partageaient la meme cle de journee
+// budgetNat.derniereSoldeJour. N'en retirer qu'un aurait laisse l'autre payer seul, en posant le
+// marqueur et en masquant le probleme.
+//
+// La fonction est conservee en coquille vide plutot que supprimee : elle est appelee par
+// runMidnightUpdate (plateau-core.js) et un appel a une fonction disparue leverait. Le prochain
+// passage sur runMidnightUpdate pourra retirer l'appel et cette coquille ensemble.
+//
+// La cle derniereSoldeJour de budgets_nationaux.data devient orpheline. Elle n'est lue par plus
+// aucun chemin : inoffensive, a nettoyer si une passe de menage passe par la.
 async function payerSoldeQuotidienne(pays) {
-  // MEME DEFAUT, MEME CORRECTIF que le virement ci-dessus : la solde n'avait aucune garde, donc
-  // N joueurs connectes payaient N fois les memes soldats. L'ordre virement -> solde reste assure
-  // par l'ordre des appels dans runMidnightUpdate, inchange.
-  const budgetNatSolde = await chargerBudgetNational(pays).catch(() => null);
-  const jourS = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
-  if (budgetNatSolde && jourS) {
-    if (budgetNatSolde.derniereSoldeJour === jourS) return;
-    budgetNatSolde.derniereSoldeJour = jourS;
-    await sbSaveBudgetNational(pays, budgetNatSolde).catch(() => {});
-  }
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-  const coutParSoldat = 20; // FR/jour/soldat
-  let totalDu = 0;
-  // CORRECTIF : s.effectifTotal n'existe pas sur une section -- l'effectif canonique est
-  // s.soldats.length, deja utilise partout ailleurs (inspection des troupes). Le total valait donc
-  // toujours 0 et la fonction sortait immediatement : la solde n'a jamais ete versee.
-  compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += ((s.soldats||[]).length) * coutParSoldat; }));
-  if (totalDu <= 0) return;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', totalDu) : 0;
-  if (montantVerse < totalDu) {
-    addExternalEvent('⚠️ La solde des troupes de ' + (COUNTRIES[pays]?.n||pays) + ' n\'a pu être versée qu\'en partie faute de budget suffisant.');
-  }
+  return;
 }
 
 // ---- INSPECTION DES TROUPES (chantier "Inspecter les troupes", 4 septembre 2026) : remplace

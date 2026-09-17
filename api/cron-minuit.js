@@ -3679,23 +3679,14 @@ async function virementCaserneServeur(pays) {
 // --- 3. SOLDE QUOTIDIENNE DES SOLDATS ---------------------------------------
 // Miroir de payerSoldeQuotidienne (plateau-politique.js). 20 FR par soldat et par jour, effectif lu
 // sur soldats.length -- la representation canonique d'une section.
+// SOLDE PNJ SUPPRIMEE (18 septembre 2026, arbitrage GD) : les PNJ militaires n'ont aucune solde
+// recurrente, le contingent ayant deja ete paye une fois pour toutes par les 20 000 FR de la
+// compagnie. Retiree EN MEME TEMPS que son miroir client payerSoldeQuotidienne
+// (plateau-politique.js) : les deux partageaient la cle de journee derniereSoldeJour, et n'en
+// retirer qu'un aurait laisse l'autre payer seul.
+// Coquille conservee : l'appel vit dans la sequence nocturne, le retirer est un lot de menage.
 async function payerSoldeServeur(pays) {
-  const budgetNat = await chargerBudgetNationalServeur(pays);
-  if (!budgetNat) return;
-  const jour = jourCourantISO();
-  if (budgetNat.derniereSoldeJour === jour) return;
-
-  budgetNat.derniereSoldeJour = jour;
-  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
-
-  const rows = await sbGet('compagnies_militaires', 'select=*').catch(() => null);
-  const compagnies = (rows || []).map(r => r.data).filter(c => c && c.pays === pays);
-  let totalDu = 0;
-  compagnies.forEach(c => (c.sections || []).forEach(s => {
-    totalDu += ((s.soldats || []).length) * COUT_SOLDE_PAR_SOLDAT_SERVEUR;
-  }));
-  if (totalDu <= 0) return;
-  await debiterCaisseBatimentPlafonneServeur(pays, 'caserne-militaire', totalDu);
+  return;
 }
 
 // --- 4. DESERTIONS : convoque -> deserteur a l'expiration du delai ------------
