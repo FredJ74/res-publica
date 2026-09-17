@@ -3260,6 +3260,13 @@ function ouvrirDetailObjet(idx) {
   // cible et le calcul du gain sont SERVEUR (militaire_trousse_utiliser) : le gain vaut +2 PA et
   // +1 par tranche complete de 25 de Secourisme DU SOIGNANT, et la trousse disparait dans la meme
   // transaction que le soin.
+  // JUMELLES — ordre « Observer » (phase 2, 18 septembre 2026). 1 PA, +30 au jet de
+  // reconnaissance. Snapshot, jamais un radar : chaque clic est un jet independant. Le serveur ne
+  // renvoie QUE du renseignement deja degrade -- les effectifs et positions exacts ne quittent
+  // jamais la base, sans quoi les masquer a l'ecran les rendrait recuperables.
+  if (item.produitMilitaire === 'jumelles') {
+    html += '<button onclick="doObserverJumelles();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a4a6a;background:transparent;color:#5a8ac0;cursor:pointer">Observer (1 PA)</button>';
+  }
   if (item.produitMilitaire === 'trousse_secours') {
     html += '<button onclick="ouvrirSoinTrousse();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Soigner</button>';
   }
@@ -3453,4 +3460,49 @@ async function doRetirerTrousse() {
   updateUI();
   showToast('Trousse délivrée', 'Une trousse de premiers secours vient d\'être préparée pour vous.', true, true);
   addJournalEntry('Retrait d\'une trousse de premiers secours à l\'infirmerie.', 'event-info');
+}
+
+// =====================
+// OBSERVATION AUX JUMELLES (phase 2, 18 septembre 2026)
+// =====================
+// Le jet, la dégradation et le débit du PA sont SERVEUR. Le client n'affiche que ce qu'on lui
+// donne : il ne recoit jamais d'effectif ni de position exacts. Un echec ne renvoie rien du tout
+// -- surtout pas « vous n'avez pas repere X hommes », qui trahirait leur existence.
+async function doObserverJumelles() {
+  if (typeof sbMilitaireObserver !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireObserver();
+  if (!r || r.ok !== true) {
+    showToast('Observation impossible',
+      r?.raison === 'pas_de_jumelles' ? 'Vous n\'avez pas de jumelles.'
+      : r?.raison === 'pa_insuffisants' ? 'Il vous faut 1 PA.'
+      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  if (typeof r.pa_restants === 'number') { state.pa = r.pa_restants; updateUI(); }
+  const contacts = Array.isArray(r.contacts) ? r.contacts : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Observation';
+  let html = '<div style="padding:1rem">';
+  if (!contacts.length) {
+    // Formulation VOLONTAIREMENT neutre : elle doit etre identique qu'il n'y ait personne ou que
+    // le jet ait echoue. Toute nuance ici trahirait une presence.
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Vous balayez le secteur aux jumelles. Rien de notable.</div>';
+  } else {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Observation instantanée. Ce que vous voyez a pu bouger depuis.</div>';
+    contacts.forEach(c => {
+      const lieu = c.batiment ? (BUILDINGS[c.batiment]?.shortName || BUILDINGS[c.batiment]?.name || c.batiment) : null;
+      const ville = c.ville ? (WORLD[state.country]?.[c.ville]?.name || c.ville) : null;
+      const nat = c.nationalite ? (COUNTRIES[c.nationalite]?.n || c.nationalite) : null;
+      html += '<div style="border:1px solid #2a3a4a;padding:.6rem;margin-bottom:.5rem;background:#0a0f14">';
+      html += '<div style="font-size:.86rem;color:#8ab0d8">' + escapeHtmlText(c.libelle || '?') + '</div>';
+      html += '<div style="font-size:.74rem;color:#8a8060;margin-top:.25rem">'
+            + (lieu ? escapeHtmlText(lieu) + (ville ? ' — ' + escapeHtmlText(ville) : '') : (ville ? escapeHtmlText(ville) : 'Secteur indéterminé'))
+            + (nat ? ' · ' + escapeHtmlText(nat) + (c.nationalite_sure ? '' : ' (incertain)') : ' · nationalité non identifiée')
+            + '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  addJournalEntry('Observation aux jumelles : ' + (contacts.length ? contacts.length + ' contact(s) repéré(s).' : 'rien de notable.'), 'event-info');
 }

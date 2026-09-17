@@ -1524,6 +1524,15 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- OBSERVATION AUX JUMELLES (phase 2, 18 septembre 2026) ----
+// 1 PA, +30 au jet de reconnaissance, snapshot et non radar. Le serveur ne renvoie QUE du
+// renseignement deja degrade : les effectifs et positions exacts ne quittent jamais la base. Un
+// echec ne renvoie rien du tout -- ne jamais reveler, meme implicitement, ce qui n'a pas ete vu.
+async function sbMilitaireObserver() {
+  const rows = await sbRpc('militaire_observer', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- INFIRMERIE ET TROUSSES (phase 2, 18 septembre 2026) ----
 // Meme patron que le refectoire : le stock de matieres vit dans budgets_nationaux.data.infirmerie
 // et la trousse est FABRIQUEE A LA DEMANDE au retrait. Les trois intrants (1 textile,
