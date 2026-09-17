@@ -1474,6 +1474,56 @@ async function sbVenteStructureEncaisser(fn, pa, cost, caisseId, ville) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// ---- FILIERE SOLDAT PJ (18 septembre 2026) ----
+// Reutilise engagements_militaires, la table generique des candidatures militaires qui portait
+// deja la filiere officier : espace de statuts distinct ('soldat_*'), aucune table parallele.
+//
+// Un soldat PJ est represente par une entree { pj:true, nom } dans sections[].soldats. Rien de
+// plus : ses PA, sa position et ses caracteristiques vivent sur sa fiche et n'ont pas a etre
+// recopies -- deux sources de verite pour la meme donnee finissent toujours par diverger. Il
+// compte en revanche dans les 24 places.
+async function sbMilitaireCandidaterSoldat(compagnieId, sectionId) {
+  const rows = await sbRpc('militaire_candidater_soldat',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Reservee au Lieutenant structurel de la section visee. A l'acceptation : place libre -> le PJ
+// l'occupe ; 24 dont au moins un PNJ -> le PNJ COMPLET (matricule et entrainement) retourne en
+// reserve de compagnie ; 24 PJ -> liste d'attente, aucun PJ n'est evince et le candidat reste
+// civil. Renvoie {ok, resultat:'accepte'|'refuse'|'liste_attente'|'deja_present', ...}.
+async function sbMilitaireCandidatureTraiter(engagementId, accepter) {
+  const rows = await sbRpc('militaire_candidature_traiter',
+    { p_engagement_id: engagementId, p_accepter: !!accepter });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Demission (par le soldat lui-meme) ou renvoi (par le Lieutenant de sa section) : les deux
+// seules autorites acceptees. Un depart administratif n'est JAMAIS une mort au combat -- il
+// libere une place et ne cree ni ne detruit aucun PNJ. Clot la periode de service.
+async function sbMilitaireSoldatRetirer(compagnieId, sectionId, nom) {
+  const rows = await sbRpc('militaire_soldat_retirer',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nom: nom });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Jours cumules de service effectif, source canonique services_militaires (periodes
+// interruptibles et additionnables). Base de la regle des 63 jours.
+async function sbMilitaireServiceJours(nom, grade) {
+  const rows = await sbRpc('militaire_service_jours', { p_nom: nom, p_grade: grade || null });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  return (typeof v === 'number') ? v : Number(v || 0);
+}
+
+// Candidatures de soldats en attente, lues directement (table generique deja lisible).
+async function sbMilitaireCandidaturesSoldats(sectionId) {
+  const rows = await sbGet('engagements_militaires',
+    'statut=in.(soldat_attente_lieutenant,soldat_liste_attente)&select=id,statut,data');
+  if (!rows) return [];
+  return rows.filter(r => !sectionId || r.data?.sectionId === sectionId)
+             .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
+}
+
 // CREATION D'UNE COMPAGNIE, attestee (17 septembre 2026). Remplace l'ecriture cliente du blob.
 // Le Commandant reel est exige serveur, les 3 PA sont valides contre le miroir des couts (la
 // branche institutionnelle de deduireCoutOrdre ne consulte PAS le miroir et deduisait les PA cote

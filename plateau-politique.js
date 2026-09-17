@@ -9115,6 +9115,194 @@ async function doRecruterSection(compagnieId, sectionId, pa, cost) {
     + 'encore disponibles dans la réserve de la compagnie.', false);
 }
 
+// ===========================================================================================
+// FILIERE SOLDAT PJ (18 septembre 2026)
+// ===========================================================================================
+// Un PJ peut s'engager comme SIMPLE SOLDAT, sans aucune qualification militaire. Sa candidature
+// est adressee au Lieutenant de la section visee, seule autorite habilitee a l'accepter ou la
+// refuser -- verifie serveur. Toute la logique de places (place libre, remplacement d'un PNJ qui
+// retourne COMPLET en reserve, liste d'attente si 24 PJ) vit dans militaire_candidature_traiter :
+// le client ne fait que presenter et rapporter.
+
+// Retrouve la section ou le PJ sert comme soldat. Un soldat PJ n'a PAS de poste : il est une
+// entree { pj:true, nom } dans sections[].soldats, et c'est la seule source de verite.
+async function trouverMaSectionSoldat() {
+  const nom = state.char?.name;
+  if (!nom) return null;
+  const compagnies = await sbGetCompagnies(state.country || 'republic').catch(() => []);
+  for (const c of compagnies) {
+    for (const sec of (c.sections || [])) {
+      if ((sec.soldats || []).some(sol => sol && sol.pj === true && sol.nom === nom)) {
+        return { compagnie: c, section: sec };
+      }
+    }
+  }
+  return null;
+}
+
+async function ouvrirEngagementSoldat() {
+  const pays = state.country || 'republic';
+  if (['lieutenant', 'capitaine', 'commandant'].includes(state.poste?.id)) {
+    showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return;
+  }
+  const deja = await trouverMaSectionSoldat();
+  if (deja) { showToast('Déjà soldat', 'Vous servez déjà dans la section ' + (deja.section.numero || '?') + '.', false); return; }
+
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  document.getElementById('postes-modal-title').textContent = 'S\'engager comme soldat';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Aucun diplôme n\'est requis pour servir comme soldat. Votre candidature sera adressée au Lieutenant de la section choisie, qui reste libre de l\'accepter ou non.</div>';
+  let sectionsOffertes = 0;
+  compagnies.forEach(c => {
+    (c.sections || []).forEach(sec => {
+      if (!sec.lieutenantNom) return;   // une section sans Lieutenant n'a personne pour decider
+      sectionsOffertes++;
+      const eff = (sec.soldats || []).length;
+      const pnj = (sec.soldats || []).filter(x => x && x.pj !== true).length;
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.82rem;color:#c0b090">Section ' + (sec.numero || '?') + ' — Lieutenant <b>' + escapeHtmlText(sec.lieutenantNom) + '</b></div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin:.25rem 0">Effectif ' + eff + '/' + EFFECTIF_SECTION
+            + (eff >= EFFECTIF_SECTION
+                ? (pnj > 0 ? ' — complète, mais un soldat PNJ peut vous céder sa place.' : ' — complète, uniquement des joueurs : liste d\'attente.')
+                : ' — ' + (EFFECTIF_SECTION - eff) + ' place(s) libre(s).') + '</div>';
+      html += '<button onclick="confirmerEngagementSoldat(\'' + c.id + '\',\'' + sec.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Candidater à cette section</button>';
+      html += '</div>';
+    });
+  });
+  if (!sectionsOffertes) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune section ne dispose actuellement d\'un Lieutenant en mesure de recevoir votre candidature.</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEngagementSoldat(compagnieId, sectionId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbMilitaireCandidaterSoldat !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireCandidaterSoldat(compagnieId, sectionId);
+  if (!r || r.ok !== true) {
+    const m = r?.raison;
+    showToast('Candidature refusée',
+      m === 'pas_sur_place' ? 'Vous devez être à la caserne pour vous engager.'
+      : m === 'deja_officier' ? 'Vous occupez déjà un poste militaire.'
+      : m === 'deja_soldat' ? 'Vous servez déjà dans une section.'
+      : m === 'candidature_en_cours' ? 'Votre candidature précédente est encore en cours de traitement.'
+      : m === 'section_sans_lieutenant' ? 'Cette section n\'a aucun Lieutenant pour décider.'
+      : m === 'hors_juridiction' ? 'Cette compagnie ne relève pas de votre empire.'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+  if (r.lieutenant && typeof sbSendMail === 'function') {
+    await sbSendMail(state.char?.name || 'Un citoyen', r.lieutenant, 'Candidature d\'engagement',
+      (state.char?.name || 'Un citoyen') + ' souhaite servir comme soldat dans votre section. '
+      + 'Rendez-vous au Corps de Garde pour traiter les candidatures.',
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+  showToast('Candidature transmise', 'Le Lieutenant ' + (r.lieutenant || '') + ' examinera votre engagement.', true, true);
+  addJournalEntry('Candidature déposée pour servir comme soldat.', 'event-info');
+}
+
+async function ouvrirCandidaturesSection() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => []))
+    .find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  if (!section) { showToast('Section introuvable', '', false); return; }
+  const cands = typeof sbMilitaireCandidaturesSoldats === 'function'
+    ? await sbMilitaireCandidaturesSoldats(section.id).catch(() => []) : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Candidatures de ma section';
+  let html = '<div style="padding:1rem">';
+  const eff = (section.soldats || []).length;
+  const pnj = (section.soldats || []).filter(x => x && x.pj !== true).length;
+  html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Effectif ' + eff + '/' + EFFECTIF_SECTION
+        + ' — dont ' + pnj + ' soldat(s) PNJ. Accepter un joueur alors que la section est complète fait revenir un PNJ en réserve de compagnie, avec son matricule et son entraînement.</div>';
+  if (!cands.length) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
+  } else {
+    cands.forEach(e => {
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.85rem;color:#c0b090"><b>' + escapeHtmlText(e.nom || '?') + '</b>'
+            + (e.statut === 'soldat_liste_attente' ? ' <span style="font-size:.68rem;color:#8a6a20">(liste d\'attente)</span>' : '') + '</div>';
+      html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+      html += '<button onclick="confirmerCandidatureSoldat(\'' + e.id + '\',true,\'' + encodeURIComponent(e.nom || '') + '\')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.74rem">Accepter</button>';
+      html += '<button onclick="confirmerCandidatureSoldat(\'' + e.id + '\',false,\'' + encodeURIComponent(e.nom || '') + '\')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#c07070;cursor:pointer;font-size:.74rem">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCandidatureSoldat(engagementId, accepter, nomEncode) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const nom = decodeURIComponent(nomEncode || '');
+  if (typeof sbMilitaireCandidatureTraiter !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireCandidatureTraiter(engagementId, accepter);
+  if (!r || r.ok !== true) {
+    showToast('Impossible', 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false); return;
+  }
+  const envoyer = (sujet, corps) => {
+    if (nom && typeof sbSendMail === 'function') {
+      sbSendMail('Lieutenant ' + (state.char?.name || ''), nom, sujet, corps,
+        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    }
+  };
+  if (r.resultat === 'refuse') {
+    showToast('Candidature refusée', nom + ' reste civil.', true);
+    envoyer('Candidature refusée', 'Votre candidature pour servir dans la section n\'a pas été retenue.');
+    addJournalEntry('Candidature de ' + nom + ' refusée.', 'event-info');
+  } else if (r.resultat === 'liste_attente') {
+    showToast('Liste d\'attente', 'Les 24 places sont tenues par des joueurs : ' + nom + ' attend qu\'une place se libère.', true, true);
+    // Texte voulu par le game design. C'est une plaisanterie d'interface : aucune mecanique de
+    // balayage n'existe et il n'en faut pas.
+    envoyer('Candidature en liste d\'attente',
+      'Votre candidature a été placée sur liste d\'attente. Les effectifs de la section sont '
+      + 'actuellement complets. En attendant qu\'une place se libère, la cour de la caserne ne va '
+      + 'pas se balayer toute seule.');
+  } else if (r.resultat === 'deja_present') {
+    showToast('Déjà dans la section', nom + ' y sert déjà.', true);
+  } else {
+    const rendu = r.pnj_rendu_reserve
+      ? ' Le soldat ' + (r.matricule_rendu || 'PNJ') + ' retourne en réserve de compagnie.' : '';
+    showToast('Engagement accepté', nom + ' rejoint la section (' + (r.effectif || '?') + '/' + EFFECTIF_SECTION + ').' + rendu, true, true);
+    envoyer('Engagement accepté', 'Votre candidature a été acceptée. Vous servez désormais comme soldat.');
+    addJournalEntry('Engagement de ' + nom + ' accepté.' + rendu, 'event-good');
+  }
+}
+
+async function ouvrirQuitterArmee() {
+  const mien = await trouverMaSectionSoldat();
+  if (!mien) {
+    showToast('Vous n\'êtes pas soldat',
+      ['lieutenant','capitaine','commandant'].includes(state.poste?.id)
+        ? 'Un officier quitte ses fonctions par la voie hiérarchique, pas par cet ordre.'
+        : 'Vous ne servez dans aucune section.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Quitter l\'armée';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.6rem">Vous servez dans la section ' + (mien.section.numero || '?')
+        + ' sous les ordres du Lieutenant <b>' + escapeHtmlText(mien.section.lieutenantNom || '?') + '</b>.</div>';
+  html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre départ est administratif : votre période de service se termine, votre solde militaire cesse, et votre place est libérée. Aucun soldat n\'est perdu.</div>';
+  html += '<button onclick="confirmerQuitterArmee(\'' + mien.compagnie.id + '\',\'' + mien.section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a4a4a;background:transparent;color:#c07070;cursor:pointer">Démissionner</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerQuitterArmee(compagnieId, sectionId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await sbMilitaireSoldatRetirer(compagnieId, sectionId, state.char?.name);
+  if (!r || r.ok !== true) {
+    showToast('Impossible', 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false); return;
+  }
+  showToast('Démission enregistrée', 'Vous redevenez civil. ' + (r.places_libres || 0) + ' place(s) libre(s) dans la section.', true, true);
+  addJournalEntry('Démission de l\'armée. Période de service terminée.', 'event-info');
+}
+
 // ---- DETACHEMENTS DE SOLDATS ----
 // Recupere le detachement present dans la piece courante pour la section du lieutenant connecte
 function getSectionDuLieutenant(compagnie) {

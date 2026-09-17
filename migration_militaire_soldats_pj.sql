@@ -1,0 +1,77 @@
+-- =====================================================================================
+-- SOLDATS PJ, CANDIDATURES, ET HISTORIQUE DE SERVICE — Res Publica, 18 septembre 2026
+-- Lots 1 et 2 du chantier de finalisation militaire.
+--
+-- REUTILISATION PLUTOT QUE CREATION. engagements_militaires (id, statut, data jsonb) est deja la
+-- table generique des candidatures militaires : elle porte la filiere officier. La filiere soldat
+-- s'y greffe avec un espace de statuts distinct ('soldat_attente_lieutenant', 'soldat_accepte',
+-- 'soldat_refuse', 'soldat_liste_attente'). Aucune table parallele, aucun second systeme.
+--
+-- REPRESENTATION D'UN SOLDAT PJ : une entree { pj:true, nom } dans sections[].soldats. Rien de
+-- plus. Ses PA, sa position et ses caracteristiques vivent sur sa fiche (personnages_donnees) et
+-- ne sont PAS recopies ici : deux sources de verite pour la meme donnee finissent toujours par
+-- diverger. Il compte en revanche dans les 24 places, comme le GD le demande. L'idiome est celui
+-- de construireCivilsCombat, qui fabriquait deja des « humains nommes occupant une place ».
+--
+-- REGLE DES PLACES, entierement serveur (militaire_candidature_traiter) :
+--   place libre                  -> le PJ l'occupe ;
+--   24 dont au moins un PNJ      -> remplacement ATOMIQUE, le PNJ COMPLET (matricule ET
+--                                   entrainement) retourne en reserve de compagnie ;
+--   24 PJ                        -> liste d'attente, AUCUN PJ evince, le candidat reste civil.
+-- La liste d'attente est reexaminable : des qu'une place se libere, la meme candidature peut
+-- etre acceptee (banc, scenarios 5 et 6).
+--
+-- DEPART. Deux autorites et deux seulement : le soldat lui-meme (demission) ou le Lieutenant de
+-- SA section (renvoi). Un depart administratif n'est JAMAIS une mort au combat -- il libere une
+-- place, clot la periode de service, et ne cree ni ne detruit aucun PNJ. La reaffectation d'un
+-- PNJ de reserve reste une decision du Lieutenant, jamais un effet de bord automatique.
+--
+-- HISTORIQUE DE SERVICE : services_militaires est la SOURCE CANONIQUE. Le futur calepin de
+-- campagne n'en sera qu'une projection publique, jamais une autorite. Forme reprise de
+-- mandats_maires_archives, seule archive datee existante du projet : une ligne par PERIODE
+-- (debut_ts / fin_ts), additionnables et interruptibles. Un index unique partiel garantit qu'un
+-- personnage n'a jamais deux periodes ouvertes pour le meme grade -- donc pas de doublon sur
+-- double clic ni sur rejeu. Ecriture reservee au serveur, lecture publique (c'est une histoire
+-- publique, comme mandats_maires_archives).
+--
+-- REGLE DES 63 JOURS : militaire_service_jours(nom, 'soldat') somme les periodes, ouvertes
+-- comprises. Verifie au banc sur des periodes INTERROMPUES : 60 jours + 5 jours = 65, regle
+-- atteinte. Ce n'est donc pas 63 jours continus.
+--
+-- UN SEUL DECLENCHEUR POUR L'OUVERTURE ET LA FERMETURE DES PERIODES D'OFFICIER. Le trigger
+-- personnages_lien_militaire_rompu, deja pose pour la rupture du lien operationnel, gere
+-- desormais aussi les periodes de service : il ouvre a la prise de fonction et ferme a la perte,
+-- quel que soit le chemin -- RPC de nomination, revocation, ou ARRESTATION pour crime qui retire
+-- le poste sans passer par aucune RPC militaire. Un evenement, un endroit, une verite.
+--
+-- LE BANC A TROUVE UN MANQUE REEL : militaire_soldat_retirer ne verifiait pas la juridiction. Un
+-- officier pouvait retirer un soldat d'une compagnie d'un AUTRE empire. Corrige : meme garde que
+-- militaire_section_de_moi, verifiee au banc (refus 'hors_juridiction').
+--
+-- DETTE ASSUMEE ET DOCUMENTEE : engagements_militaires a la RLS desactivee et les DEFAULT
+-- PRIVILEGES du schema lui donnaient tous les droits DML a anon -- retire ici. La filiere OFFICIER
+-- ecrit encore cette table depuis le client (sbCreerEngagement / sbMajEngagement) : fermer
+-- authenticated exigerait de la migrer d'abord. Un authenticated peut donc encore forger une
+-- candidature, dont le pire effet est de PROPOSER un faux candidat qu'un Lieutenant doit encore
+-- accepter -- aucune duplication, aucun effet economique.
+--
+-- PA DES ORDRES : les trois ordres (engager_soldat, candidatures_section, quitter_armee) sont
+-- declares a 0 PA. Ce sont des actes purement administratifs, et cela evite toute dependance au
+-- miroir des couts (payer_ordre n'est consulte que si pa ou cost sont non nuls). La symetrie avec
+-- les 2 PA de engager_officier reste un point de game design a arbitrer.
+--
+-- BANCS, en transactions annulees, zero residu :
+--   Banc A (6/6) : candidature acceptee ; seconde candidature -> 'candidature_en_cours' ; le
+--     candidat traitant sa propre candidature -> 'pas_lieutenant_de_cette_section' ; acceptation
+--     par le Lieutenant -> effectif 0 -> 1 et periode de service ouverte ; rejeu ->
+--     'engagement_deja_traite' ; renvoi -> place liberee.
+--   Banc B (6/6) : candidature sur section de 24 PNJ acceptee -> effectif reste 24, reserve 0 -> 1,
+--     et le PNJ rendu porte bien son matricule 202609-001 ET sa formation force=2 (identite et
+--     entrainement preserves) ; 'hors_juridiction' sur une compagnie narcovienne ;
+--     'pas_soldat_de_cette_section' ; 24 PJ -> 'liste_attente' sans eviction ; retrait -> 24 -> 23 ;
+--     la candidature en liste d'attente est ensuite acceptee -> 23 -> 24.
+--   Regle des 63 jours : 60 + 5 = 65 jours cumules sur periodes interrompues, seuil atteint.
+--
+-- Corps applique : migrations « militaire_soldats_pj_et_service »,
+-- « militaire_soldat_depart_et_service_trigger », « militaire_soldat_retirer_juridiction ».
+-- =====================================================================================

@@ -589,6 +589,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }
   if (fn === 'recruter_section') { ouvrirRecruterSection(pa, cost); return; }
   if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
+  // FILIERE SOLDAT (18 septembre 2026)
+  if (fn === 'engager_soldat') { ouvrirEngagementSoldat(); return; }
+  if (fn === 'candidatures_section') { ouvrirCandidaturesSection(); return; }
+  if (fn === 'quitter_armee') { ouvrirQuitterArmee(); return; }
   if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }
   if (fn === 'affecter_engage') { ouvrirAffecterEngage(pa, cost); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
