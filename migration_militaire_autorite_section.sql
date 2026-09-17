@@ -67,3 +67,29 @@
 -- du materiel de l'armurerie ». Changer repartir_armement de grade retirerait une prerogative au
 -- Capitaine : c'est une decision de design, pas un correctif. L'autorite actuelle est preservee.
 -- =====================================================================================
+
+-- -------------------------------------------------------------------------------------
+-- ARBITRAGE GD RENDU : armurerie_retrait_reserve_au_lieutenant (17 septembre 2026)
+-- -------------------------------------------------------------------------------------
+-- « Seul le Lieutenant peut retirer du materiel de l'armurerie militaire de la caserne. »
+-- Le Capitaine perd cette prerogative. militaire_armurerie_transfert passe de « LE capitaine de
+-- cette compagnie » a « LE lieutenant de CETTE section » (garde militaire_section_de_moi) :
+-- un chef de section ne dote donc que SA section, jamais celle d'un autre.
+-- data.js : repartir_armement passe de requiresPost:'capitaine' a 'lieutenant'.
+-- Client : ouvrirRepartirArmement et confirmerTransfertArmement exigent le lieutenant, et
+-- l'ecran ne liste plus que la section de l'appelant.
+--
+-- PREUVE (transaction annulee) :
+--   Lieutenant dote SA section        -> ok, armurerie 10 -> 7, section 2 -> 5
+--   Lieutenant dote la section d'un autre -> pas_lieutenant_de_cette_section
+--   autre juridiction                 -> hors_juridiction
+--   CAPITAINE                         -> pas_lieutenant_de_cette_section
+--   COMMANDANT                        -> pas_lieutenant_de_cette_section
+--   joueur ordinaire                  -> pas_lieutenant_de_cette_section
+--   Lieutenant rend 2 au magasin      -> ok, armurerie 7 -> 9, section 5 -> 3
+--
+-- BALAYAGE DES CONTOURNEMENTS : les quatre ordres touchant l'armurerie declarent desormais
+-- lieutenant (repartir_armement, retirer_armes_militaires, retirer_explosifs_militaires ;
+-- recherche_militaire est commandant mais ne retire rien, elle depense la caisse de la caserne).
+-- Aucun chemin client n'ecrit plus stockArmurerieMilitaire, et le trigger budgets_armurerie_verrou
+-- neutralise toute ecriture directe restante.

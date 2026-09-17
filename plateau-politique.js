@@ -9565,8 +9565,11 @@ function renderInspectionDetaillee(etat) {
 
 // ---- DOTATION DES SECTIONS (reservee au Capitaine) : transfere de l'armement entre le stock
 // national de l'Armurerie Militaire et le stock libre d'une section de sa compagnie. ----
+// AUTORITE BASCULEE AU LIEUTENANT (arbitrage du 17 septembre 2026) : seul le chef de section
+// retire du magasin, et seulement pour SA section. Le Capitaine n'a plus cette prerogative --
+// ce que le code notait deja pour les explosifs (« seul le chef de section peut les sortir »).
 async function ouvrirRepartirArmement() {
-  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant, pas du Capitaine.', false); return; }
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   if (!compagnie) return;
@@ -9584,7 +9587,8 @@ async function ouvrirRepartirArmement() {
     ? htmlStockArmurerieMilitaire(stockArmurerie)
     : '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock Armurerie Militaire — Arme de poing : ' + (stockArmurerie.arme_de_poing||0) + ' · Mitraillette : ' + (stockArmurerie.mitraillette||0) + '</div>';
   html += '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">Seules les armes se répartissent entre sections. Les explosifs sont retirés directement par le chef de section.</div>';
-  (compagnie.sections || []).forEach(s => {
+  // Une seule section est dotable : celle que commande l'appelant.
+  (compagnie.sections || []).filter(s => s.lieutenantNom === state.char?.name).forEach(s => {
     const stockSection = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">Section ' + s.numero + (s.lieutenantNom ? (' — Lt. ' + s.lieutenantNom) : ' (sans lieutenant)') + ' · ' + s.soldats.length + ' soldats</div>';
@@ -9607,7 +9611,7 @@ async function ouvrirRepartirArmement() {
 }
 
 async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sens) {
-  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant.', false); return; }
   const qte = parseInt(document.getElementById('qte-' + sectionId + '-' + categorie)?.value || '0');
   if (qte <= 0) return;
   const pays = state.country || 'republic';
@@ -9631,7 +9635,8 @@ async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sen
     const motifs = {
       stock_insuffisant: 'L\'Armurerie Militaire ne dispose pas de ' + qte + ' unité(s).',
       stock_section_insuffisant: 'Seules ' + (rArm && rArm.disponible !== undefined ? rArm.disponible : 0) + ' unité(s) sont libres dans cette section (le reste est porté par des soldats — voir Gérer l\'équipement).',
-      pas_capitaine_de_cette_compagnie: 'Réservé au Capitaine de cette compagnie.',
+      pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.',
+      section_introuvable: 'Cette section n\'existe pas.',
       hors_juridiction: 'Cette compagnie relève d\'un autre pays.'
     };
     showToast('Transfert impossible', (rArm && motifs[rArm.raison]) || 'Opération refusée.', false);
@@ -9807,7 +9812,7 @@ async function confirmerEquipementIndividuel(compagnieId, sectionId, matricule, 
   // seule ecriture.
   const rEq = await sbMilitaireEquiperSoldat(compagnieId, sectionId, matricule, categorie);
   if (!rEq || rEq.ok !== true) {
-    const motifs = { stock_section_insuffisant: 'Aucune unité disponible dans le stock de la section — voir le Capitaine pour une dotation.',
+    const motifs = { stock_section_insuffisant: 'Aucune unité disponible dans le stock de la section — dotez-la depuis l\'Armurerie.',
                      pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.',
                      soldat_introuvable: 'Ce soldat n\'est pas dans votre section.' };
     showToast(rEq && rEq.raison === 'stock_section_insuffisant' ? 'Stock insuffisant' : 'Équipement impossible',
