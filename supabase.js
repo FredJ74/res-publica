@@ -1524,6 +1524,33 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- LOGISTIQUE DE TERRAIN : rations, bivouac, radio (phase 2, 18 septembre 2026) ----
+// Un SEUL ordre collectif pour deux actions, parce qu'elles partagent tout : meme groupe cible,
+// meme garde quotidienne (date reelle Europe/Paris), meme atomicite, meme condition de radio.
+//
+// ATOMICITE COLLECTIVE : si les ressources ne couvrent pas TOUT le groupe, l'ordre est refuse en
+// entier. Jamais de bonus sans consommation reelle, jamais de consommation partielle.
+//
+// Le LEADER porte les rations et les tentes de son groupe -- un groupe de PNJ n'a pas
+// d'inventaire propre. Une tente abrite 13 personnes ; il en faut donc plafond(N/13). Le bivouac
+// ne detruit PAS la tente ; la ration, elle, est consommee.
+//
+// DOUBLE RADIO pour commander a distance : le Lieutenant ET le chef du groupe doivent chacun en
+// porter une. C'est un relais de commandement, jamais une teleportation.
+async function sbMilitaireOrdreCollectif(compagnieId, sectionId, action, leader) {
+  const rows = await sbRpc('militaire_ordre_collectif', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId, p_action: action, p_leader: leader || null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Retrait de rations de combat sur le stock EXISTANT du refectoire -- celui que refectoire_repas
+// fabrique deja par lots de 10 a partir d'1 cereale + 1 viande OU poisson. Aucune recette nouvelle.
+async function sbMilitaireRationsRetirer(nombre) {
+  const rows = await sbRpc('militaire_rations_retirer', { p_nombre: nombre });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- OBSERVATION AUX JUMELLES (phase 2, 18 septembre 2026) ----
 // 1 PA, +30 au jet de reconnaissance, snapshot et non radar. Le serveur ne renvoie QUE du
 // renseignement deja degrade : les effectifs et positions exacts ne quittent jamais la base. Un
