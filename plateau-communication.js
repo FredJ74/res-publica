@@ -1577,12 +1577,18 @@ async function recupererVolsEnAttente() {
           if (perte > 0) {
             let transfereOk = vol.type_butin === 'matiere_confirmee';
             if (!transfereOk) {
-              transfereOk = vol.voleur && typeof sbDonnerObjetJoueur === 'function'
-                ? await sbDonnerObjetJoueur({ name: stack.name, icon: stack.icon, stackable: true, stackKey: vol.objet_id, qty: perte }, vol.voleur, 'Butin de vol').then(() => true).catch(() => false)
-                : false;
-              if (transfereOk && typeof sbUpdate === 'function') {
-                await sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(vol.id)}`, { type_butin: 'matiere_confirmee' }).catch(() => {});
-              }
+              // DEPOT ATTESTE (17 septembre 2026, fermeture du P0 objets_recus). Le serveur relit
+              // la ligne de vol, exige que l'acteur en soit la victime et le destinataire le
+              // voleur, puis depose le butin ET bascule type_butin dans la MEME transaction --
+              // le marquage etait auparavant une seconde requete qui pouvait rester en arriere.
+              // On lit desormais r.ok : l'ancien `.then(() => true)` comptait comme un succes un
+              // sbInsert qui avait renvoye null, et la victime perdait alors son bien pour rien.
+              const rDepot = vol.voleur && typeof sbObjetSasDeposer === 'function'
+                ? await sbObjetSasDeposer('butin_vol', vol.voleur,
+                    { name: stack.name, icon: stack.icon, stackable: true, stackKey: vol.objet_id, qty: perte },
+                    vol.id).catch(() => null)
+                : null;
+              transfereOk = !!(rDepot && rDepot.ok === true);
             }
             if (transfereOk) {
               stack.qty = (stack.qty || 0) - perte;
@@ -1599,12 +1605,13 @@ async function recupererVolsEnAttente() {
         if (idx !== -1) {
           let transfereOk = vol.type_butin === 'objet_confirme';
           if (!transfereOk) {
-            transfereOk = vol.voleur && typeof sbDonnerObjetJoueur === 'function'
-              ? await sbDonnerObjetJoueur({ ...state.inventory[idx] }, vol.voleur, 'Butin de vol').then(() => true).catch(() => false)
-              : false;
-            if (transfereOk && typeof sbUpdate === 'function') {
-              await sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(vol.id)}`, { type_butin: 'objet_confirme' }).catch(() => {});
-            }
+            // Meme depot atteste que pour la matiere ci-dessus : la ligne de vol fait foi, et le
+            // marquage objet_confirme se fait dans la meme transaction que le depot.
+            const rDepotObjet = vol.voleur && typeof sbObjetSasDeposer === 'function'
+              ? await sbObjetSasDeposer('butin_vol', vol.voleur,
+                  { ...state.inventory[idx] }, vol.id).catch(() => null)
+              : null;
+            transfereOk = !!(rDepotObjet && rDepotObjet.ok === true);
           }
           if (transfereOk) {
             state.inventory.splice(idx, 1);

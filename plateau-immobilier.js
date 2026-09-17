@@ -924,7 +924,7 @@ function objetInventaireDocumentUrbanisme(doc) {
 // bloque dans la file objets_recus ; il entre, et son destinataire passe en Surcharge tant qu'il
 // n'est pas redescendu a 100. Aucune regle propre aux documents d'urbanisme : c'est le mecanisme
 // generique de tout objet recu automatiquement.
-async function delivrerDocumentUrbanisme(doc, destinataire) {
+async function delivrerDocumentUrbanisme(doc, destinataire, referenceArchive) {
   const objet = objetInventaireDocumentUrbanisme(doc);
   const pourMoi = (typeof estTitulaire === 'function') && destinataire && estTitulaire(destinataire);
 
@@ -941,8 +941,13 @@ async function delivrerDocumentUrbanisme(doc, destinataire) {
     return objet;
   }
 
-  if (destinataire && typeof sbDonnerObjetJoueur === 'function') {
-    await sbDonnerObjetJoueur(objet, destinataire, 'Services d\'urbanisme').catch(function () {});
+  // Depot atteste (17 septembre 2026) : le serveur verifie que referenceArchive designe bien une
+  // ligne de dossiers_urbanisme dont le demandeur est ce destinataire. L'archive COMMANDE deja --
+  // un joueur ne doit jamais detenir un recepisse d'un acte que la mairie n'a pas enregistre --
+  // c'est donc elle qui fait foi.
+  if (destinataire && typeof sbObjetSasDeposer === 'function') {
+    const r = await sbObjetSasDeposer('document_urbanisme', destinataire, objet, referenceArchive);
+    if (!r || r.ok !== true) doc.documentRemis = false;
   }
   return objet;
 }
@@ -1009,10 +1014,14 @@ function libelleEvenementUrbanisme(doc) {
 async function archiverEvenementUrbanisme(doc) {
   const type = TYPES_EVENEMENT_URBANISME[doc && doc.nature];
   if (!type || typeof sbArchiverEvenementUrbanisme !== 'function') return false;
+  // L'identifiant d'archive est desormais CONSTRUIT ICI puis RENVOYE : c'est lui qui sert de
+  // piece justificative au depot atteste du document dans le sas (objet_sas_deposer). Il differe
+  // de doc.id, qui est l'identifiant du document lui-meme.
+  const idArchive = 'urb-' + type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
   let rows = null;
   try {
     rows = await sbArchiverEvenementUrbanisme({
-      id: 'urb-' + type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+      id: idArchive,
       country: doc.pays || 'republic',
       city: doc.ville || null,
       building_id: doc.buildingId || null,
@@ -1024,7 +1033,9 @@ async function archiverEvenementUrbanisme(doc) {
       data: doc                                    // snapshot fige, deja copie en profondeur
     });
   } catch (e) { return false; }
-  return !!(rows && rows.length > 0);
+  // Renvoie l'identifiant (chaine non vide, donc truthy : le contrat « falsy = echec » des
+  // appelants est preserve) plutot qu'un simple booleen.
+  return (rows && rows.length > 0) ? idArchive : false;
 }
 
 // Regroupe des lignes d'evenements en DOSSIERS. L'en-tete d'un dossier est lu sur son evenement de
@@ -1107,7 +1118,7 @@ async function emettreDocumentUrbanisme(ts, permis, nature, options) {
   const doc = construireDocumentUrbanisme(ts, permis, nature, options);
   const archive = await archiverEvenementUrbanisme(doc);
   if (!archive) return null;
-  try { await delivrerDocumentUrbanisme(doc, (permis && permis.demandeur) || null); }
+  try { await delivrerDocumentUrbanisme(doc, (permis && permis.demandeur) || null, archive); }
   catch (e) { doc.documentRemis = false; }
   return doc;
 }

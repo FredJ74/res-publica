@@ -1748,9 +1748,26 @@ async function sbRamasserObjetAbandonne(objetId) {
 //   - delivrerDocumentUrbanisme (plateau-immobilier.js) : le document est cree pour l'occasion ;
 //   - recupererVolsEnAttente (plateau-communication.js) : butin de vol, famille non encore
 //     migree -- elle a son propre protocole de confirmation en deux temps (type_butin).
-async function sbDonnerObjetJoueur(objet, destinataire, expediteur) {
-  const data = { id: 'objet-recu-' + Date.now() + '-' + Math.floor(Math.random()*1000), destinataire, expediteur, data: JSON.stringify(objet) };
-  return sbInsert('objets_recus', data);
+// FERME LE 17 SEPTEMBRE 2026 (P0). Cette fonction faisait un sbInsert CLIENT dans objets_recus,
+// une table qui avait la RLS desactivee, zero policy et tous les droits DML accordes a anon.
+// N'importe qui, meme non authentifie, pouvait donc fabriquer un objet arbitraire au profit de
+// n'importe quel joueur -- un robinet de creation d'objets -- lire le sas d'autrui, ou supprimer
+// un objet en transit pour le faire disparaitre.
+//
+// Le depot passe desormais par objet_sas_deposer, qui exige un MOTIF declare et le verifie contre
+// la trace serveur qui justifie le depot : la ligne de vols_en_attente pour un butin (l'acteur
+// doit y etre la victime et le destinataire le voleur), la ligne d'archive de dossiers_urbanisme
+// pour un document (elle nomme le demandeur legitime). Elle n'est donc jamais une API generique
+// « donne tel objet a X ».
+//
+// Pour un butin, elle bascule aussi type_butin vers *_confirme DANS LA MEME TRANSACTION : le
+// marquage etait auparavant une seconde requete cliente qui pouvait rester en arriere.
+// Renvoie {ok, id, destinataire, motif} ou {ok:false, raison}.
+async function sbObjetSasDeposer(motif, destinataire, objet, reference) {
+  const rows = await sbRpc('objet_sas_deposer', {
+    p_motif: motif, p_destinataire: destinataire, p_objet: objet, p_reference: reference || null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
 // =====================================================================
