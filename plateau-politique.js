@@ -8982,22 +8982,49 @@ function genererMatriculesSection(numeroSection) {
 //
 // UN SEUL PREDICAT, utilise partout : sans lui le triple test se recopiait a sept endroits et
 // un oubli suffisait a reintroduire l'ambiguite en silence.
+//
+// « Sur place » exige leaderCourant vide : un soldat qui suit un chef n'a PAS de position propre,
+// il ne peut donc jamais etre « ici ». Meme predicat que cote serveur.
 function soldatEstIci(sol, ville, buildingId, roomId) {
-  return !!sol && sol.ville === ville && sol.buildingId === buildingId && sol.roomId === roomId;
+  return !!sol && !sol.leaderCourant
+      && sol.ville === ville && sol.buildingId === buildingId && sol.roomId === roomId;
 }
 
-// Un soldat qui suit son chef n'a AUCUNE position propre : sa position est celle de son chef.
-// La valeur est comparee en litteral et non via ROOM_AVEC_LIEUTENANT, declaree plus bas dans ce
-// fichier : un const de module n'est pas hoiste, et ce predicat doit rester appelable sans
-// dependre de l'ordre des declarations. La constante reste le point de verite pour tout le reste.
-function soldatSuitSonChef(sol) {
-  return !!sol && sol.roomId === '__avec_lieutenant__';
+// ===========================================================================================
+// LEADER OPERATIONNEL COURANT (17 septembre 2026)
+// ===========================================================================================
+// Le sentinel historique '__avec_lieutenant__' cachait un leader implicite dans un identifiant de
+// piece : il ne savait designer que le Lieutenant de la section, et un soldat dont le chef perdait
+// son poste restait attache a un fantome. soldat.leaderCourant nomme desormais explicitement le PJ
+// qui mene physiquement ce soldat.
+//
+// L'AUTORITE STRUCTURELLE N'EST PAS TRANSFEREE : section.lieutenantNom reste souverain. Un soldat
+// PJ a qui l'on confie des hommes les MENE, mais ne peut pas les reprendre s'il les laisse
+// quelque part -- seul le Lieutenant structurel peut. C'est le serveur qui le garantit.
+//
+// TRANSITION : le sentinel est encore ACCEPTE en lecture (aucun soldat ne doit rester bloque s'il
+// en portait un) et n'est plus jamais ECRIT, ni ici ni cote serveur.
+function soldatSuitUnChef(sol) {
+  return !!sol && (!!sol.leaderCourant || sol.roomId === '__avec_lieutenant__');
+}
+
+// Ce soldat suit-il CE PJ ? Un soldat portant encore le seul sentinel est compte pour l'appelant :
+// le sentinel n'a jamais voulu dire autre chose que « suit le Lieutenant de sa section », et le
+// seul appelant de ce predicat est precisement ce Lieutenant.
+function soldatSuitCePJ(sol, nom) {
+  if (!sol || !nom) return false;
+  return sol.leaderCourant === nom || (!sol.leaderCourant && sol.roomId === '__avec_lieutenant__');
 }
 
 // Libelle lisible du lieu d'un soldat, ville comprise : deux batiments homonymes dans deux villes
-// ne doivent plus s'afficher a l'identique.
+// ne doivent plus s'afficher a l'identique. Un soldat qui suit un chef n'a pas de lieu propre --
+// on nomme son chef, qui EST sa position.
 function libelleLieuSoldat(sol) {
   if (!sol) return '?';
+  if (sol.leaderCourant) {
+    return sol.leaderCourant === state.char?.name ? 'Avec vous' : ('Avec ' + sol.leaderCourant);
+  }
+  if (sol.roomId === '__avec_lieutenant__') return 'Avec son lieutenant';
   const bat = sol.buildingId ? (BUILDINGS[sol.buildingId]?.shortName || BUILDINGS[sol.buildingId]?.name || sol.buildingId) : null;
   const ville = sol.ville ? (WORLD[state.country]?.[sol.ville]?.name || sol.ville) : null;
   if (!bat) return ville || 'Caserne';
@@ -9064,6 +9091,9 @@ function getSectionDuLieutenant(compagnie) {
   return (compagnie?.sections || []).find(s => s.lieutenantNom === state.char?.name);
 }
 
+// SENTINEL HISTORIQUE, conserve en LECTURE SEULE le temps de la transition. Plus aucun chemin ne
+// l'ecrit -- ni le client, ni les RPC militaires. Il sera supprime quand plus aucune donnee ne le
+// portera. Le point de verite du suivi est desormais soldat.leaderCourant.
 const ROOM_AVEC_LIEUTENANT = '__avec_lieutenant__';
 
 async function doGererDetachement() {
@@ -9073,7 +9103,7 @@ async function doGererDetachement() {
   if (!section) return;
 
   const ici = section.soldats.filter(s => soldatEstIci(s, state.currentCity, state.currentBuilding, state.currentRoom)).length;
-  const avecMoi = section.soldats.filter(soldatSuitSonChef).length;
+  const avecMoi = section.soldats.filter(s => soldatSuitCePJ(s, state.char?.name)).length;
   const ailleurs = section.soldats.length - ici - avecMoi;
 
   document.getElementById('postes-modal-title').textContent = 'Gérer mon détachement';
@@ -9768,7 +9798,7 @@ async function doVoirMaSection() {
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
   const armesLabels = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
   section.soldats.forEach(s => {
-    const localisation = soldatSuitSonChef(s) ? 'Avec vous' : libelleLieuSoldat(s);
+    const localisation = libelleLieuSoldat(s);
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
     html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
     html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
@@ -9853,7 +9883,7 @@ async function ouvrirGestionEquipementSection(compagnieId, sectionId) {
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock libre de la section — Arme de poing : ' + (stock.arme_de_poing||0) + ' · Mitraillette : ' + (stock.mitraillette||0) + '</div>';
   section.soldats.forEach(s => {
-    const localisation = soldatSuitSonChef(s) ? 'Avec vous' : libelleLieuSoldat(s);
+    const localisation = libelleLieuSoldat(s);
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem">';
     html += '<div><div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
     html += '<div style="color:#a89870">' + localisation + '</div>';

@@ -1474,6 +1474,22 @@ async function sbVenteStructureEncaisser(fn, pa, cost, caisseId, ville) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// LEADER OPERATIONNEL : confier des PNJ de sa section a un soldat PJ (17 septembre 2026).
+// Reservee au LIEUTENANT STRUCTUREL de la section, verifie serveur. Le leader designe doit etre
+// physiquement present aupres de lui -- meme principe de presence reelle que militaire_retrait,
+// refectoire_repas et inventaire_donner.
+//
+// AUCUNE AUTORITE STRUCTURELLE N'EST TRANSFEREE : le soldat PJ MENE les hommes confies, mais ne
+// peut pas les reprendre s'il les laisse quelque part. Seul le Lieutenant peut les recuperer ou
+// les reaffecter -- le serveur le refuse par militaire_section_de_moi.
+// Renvoie {ok, affectes, leader} ou {ok:false, raison}.
+async function sbMilitaireAffecterLeader(compagnieId, sectionId, nb, leader) {
+  const rows = await sbRpc('militaire_affecter_leader', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb, p_leader: leader
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // REDRESSEMENT FISCAL ATTESTE (17 septembre 2026). Debit de la cible ET versement au Tresor dans
 // UNE transaction, sous verrou, apres verification du poste min_fin REEL. Le chemin client
 // precedent n'avait aucun controle d'autorite dans sa fonction d'execution (le poste n'etait

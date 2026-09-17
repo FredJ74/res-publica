@@ -1,0 +1,62 @@
+-- =====================================================================================
+-- LEADER OPERATIONNEL COURANT — Res Publica, 17 septembre 2026
+-- Deuxieme prerequis du chantier militaire. Remplace le sentinel '__avec_lieutenant__'.
+--
+-- LE DEFAUT DU SENTINEL. '__avec_lieutenant__' cachait un leader IMPLICITE dans un identifiant de
+-- piece. Trois consequences : il ne savait designer que le Lieutenant de la section ; un soldat
+-- dont le chef perdait son poste restait attache a un fantome, sans porteur et sans position ; et
+-- il etait impossible de confier des hommes a qui que ce soit d'autre.
+--
+-- LE MODELE. Un soldat est dans exactement l'un de deux etats :
+--   SUIT UN CHEF : leaderCourant = '<nom du PJ>', ville/buildingId/roomId = NULL.
+--                  Sa position effective est DERIVEE de la position canonique de son chef.
+--   SUR PLACE    : leaderCourant = NULL, ville/buildingId/roomId renseignes.
+-- Le predicat « est ici » exige donc leaderCourant vide, cote serveur comme cote client.
+--
+-- L'AUTORITE STRUCTURELLE N'EST JAMAIS TRANSFEREE. section.lieutenantNom reste souverain : seul
+-- le Lieutenant structurel cree ou modifie les affectations de ses PNJ. Un soldat PJ a qui l'on
+-- confie des hommes en est le leader OPERATIONNEL -- il les mene physiquement, mais ne peut pas
+-- les reprendre s'il les laisse quelque part. C'est militaire_section_de_moi qui le garantit, et
+-- le banc le prouve (scenario 6 : refus 'pas_lieutenant_de_cette_section').
+--
+-- LA RUPTURE DU LIEN EST GENERIQUE, et non un correctif particulier a
+-- militaire_demettre_lieutenant. Regle appliquee : les soldats concernes sont MATERIALISES a la
+-- derniere position canonique connue du chef, leaderCourant passe a NULL, ils restent sur place
+-- comme groupe PNJ sans leader, et leur autorite structurelle reste celle de leur section. Ils ne
+-- restent pas attaches a un fantome, ne suivent pas le PJ dans sa vie civile, et ne sont pas
+-- teleportes a la caserne.
+--
+-- LE DECLENCHEUR est un TRIGGER sur la perte de poste (AFTER UPDATE OF poste), sur le modele exact
+-- de trg_personnages_poste_perdu. Il couvre d'un seul coup DEUX chemins independants :
+--   - militaire_demettre_lieutenant, qui met poste a NULL ;
+--   - toute autre perte de poste, notamment l'ARRESTATION pour crime, qui retire le poste par la
+--     vue personnages sans passer par aucune RPC militaire.
+-- Un second trigger (BEFORE DELETE) evite qu'un personnage supprime laisse un leaderCourant
+-- orphelin.
+--
+-- militaire_lien_operationnel_rompre n'est PAS accordee au client : rompre un lien de commandement
+-- n'est pas une action de joueur, c'est une consequence. Elle n'est appelable que par les triggers
+-- et par d'autres fonctions SECURITY DEFINER.
+--
+-- CONSOMMATEURS DU SENTINEL, cherches avant de le neutraliser : 5 au total --
+-- militaire_deposer_soldats et militaire_recuperer_soldats cote SQL, et cote client la constante
+-- ROOM_AVEC_LIEUTENANT plus deux tests. Tous migres. Le sentinel reste ACCEPTE EN LECTURE
+-- (militaire_deposer_soldats, soldatSuitUnChef, soldatSuitCePJ, libelleLieuSoldat) pour qu'aucun
+-- soldat ne reste bloque s'il en portait un, et n'est plus jamais ECRIT. A supprimer quand plus
+-- aucune donnee ne le portera -- compagnies_militaires etant vide, ce sera immediat en pratique.
+--
+-- BANC 7/7 puis 4/4, en transactions annulees, zero residu :
+--   1. Lt recupere ses 3 PNJ -> leaderCourant='Phileas Frogg', position videe
+--   2. Acteur non autorise (Arnie) recupere -> 'pas_lieutenant_de_cette_section', etat inchange
+--   3. Lt voyage a capitale/marche puis depose 1 -> materialise a capitale, leaderCourant null
+--   4. Lt a ville_b/marche (MEMES buildingId/roomId) recupere -> 'effectif_insuffisant_ici' :
+--      aucun melange entre deux villes homonymes
+--   5. Lt confie 2 PNJ au soldat PJ Arnie, present -> leaderCourant='Arnie'
+--   6. Arnie, leader OPERATIONNEL, veut les reprendre -> REFUS : il n'a pas l'autorite structurelle
+--   7. Demission du Lieutenant -> les hommes d'Arnie restent a Arnie
+--   Rupture, banc dedie : 2 PNJ suivant le Lt demis sont materialises a novomirsk_centre/marche/
+--   marche_ext (sa derniere position) avec leaderCourant null ; et un PNJ suivant un Lt dont le
+--   poste est mis a NULL HORS RPC (arrestation) est materialise a psm/stade/tribunes.
+--
+-- Le corps applique est celui de la migration « militaire_leader_courant ».
+-- =====================================================================================
