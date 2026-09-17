@@ -3889,3 +3889,44 @@ async function sbFondsCrediterAtteste(source, reference, ordre) {
     p_acteur: state.char?.name, p_source: source, p_reference: reference, p_ordre: ordre || null });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
+
+// ---- OPERATIONS DU LIEUTENANT SUR SA SECTION (17 septembre 2026) ----
+// La RLS de compagnies_militaires (passe 3) autorise le Commandant et LE Capitaine de la
+// compagnie, mais pas le Lieutenant : ses ecritures directes etaient refusees en silence.
+// Lui ouvrir la ligne en RLS lui donnerait le droit d'ecrire TOUT le blob (autres sections,
+// capitaineNom, formation de n'importe quel soldat). Ces RPC sont bornees a SA section.
+async function sbMilitaireDeposerSoldats(compagnieId, sectionId, nb) {
+  const rows = await sbRpc('militaire_deposer_soldats',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireRecupererSoldats(compagnieId, sectionId, nb) {
+  const rows = await sbRpc('militaire_recuperer_soldats',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_nb: nb });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireAssignerMission(compagnieId, sectionId, mission, cible) {
+  const rows = await sbRpc('militaire_assigner_mission',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_mission: mission, p_cible: cible || null });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
+  const rows = await sbRpc('militaire_entrainer_section',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_stat: stat });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireEquiperSoldat(compagnieId, sectionId, matricule, categorie) {
+  const rows = await sbRpc('militaire_equiper_soldat',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId, p_matricule: matricule, p_categorie: categorie });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Transfert armurerie nationale <-> stock d'une section, en UNE transaction serveur.
+// Remplace la lecture-modification-reecriture cliente de budgets_nationaux, qui n'avait aucune
+// autorite serveur, reecrivait le blob national entier et desynchronisait la file de lots.
+async function sbMilitaireArmurerieTransfert(compagnieId, sectionId, produit, qte, sens) {
+  const rows = await sbRpc('militaire_armurerie_transfert', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId,
+    p_produit: produit, p_qte: qte, p_sens: sens });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}

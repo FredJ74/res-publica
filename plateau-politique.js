@@ -9016,11 +9016,18 @@ async function deposerSoldats(compagnieId, sectionId) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
 
-  const disponibles = section.soldats.filter(s => s.roomId === ROOM_AVEC_LIEUTENANT);
-  if (disponibles.length < nb) { showToast('Pas assez de soldats avec vous', '', false); return; }
-  disponibles.slice(0, nb).forEach(s => { s.buildingId = state.currentBuilding; s.roomId = state.currentRoom; });
-
-  await sbSaveCompagnie(compagnieId, compagnie);
+  // SERVEUR AUTORITAIRE (17 septembre 2026). L'ecriture directe de compagnies_militaires par un
+  // Lieutenant est refusee par la RLS posee en passe 3 -- et l'ouvrir lui donnerait le droit
+  // d'ecrire TOUT le blob (autres sections, capitaineNom, formation de n'importe quel soldat).
+  // La RPC est bornee a SA section, et lit sa POSITION sur sa fiche au lieu de la croire.
+  const rDep = await sbMilitaireDeposerSoldats(compagnieId, sectionId, nb);
+  if (!rDep || rDep.ok !== true) {
+    const motifs = { pas_assez_avec_vous: 'Pas assez de soldats avec vous.',
+                     pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.',
+                     position_inconnue: 'Votre position n\'est pas enregistrée.' };
+    showToast('Dépôt impossible', (rDep && motifs[rDep.raison]) || 'Opération refusée.', false);
+    return;
+  }
   showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
   if (typeof verifierCombatAutomatique === 'function') verifierCombatAutomatique(state.currentBuilding, state.currentRoom).catch(() => {});
 }
@@ -9031,10 +9038,15 @@ async function recupererSoldats(compagnieId, sectionId) {
   if (nb <= 0) return;
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
-  const ici = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom) || [];
-  if (ici.length < nb) { showToast('Effectif insuffisant ici', '', false); return; }
-  ici.slice(0, nb).forEach(s => { s.buildingId = null; s.roomId = ROOM_AVEC_LIEUTENANT; });
-  await sbSaveCompagnie(compagnieId, compagnie);
+  // Meme correctif que deposerSoldats : la RPC verifie que l'appelant commande bien CETTE
+  // section et compte elle-meme les soldats reellement presents a sa position enregistree.
+  const rRec = await sbMilitaireRecupererSoldats(compagnieId, sectionId, nb);
+  if (!rRec || rRec.ok !== true) {
+    const motifs = { effectif_insuffisant_ici: 'Effectif insuffisant ici.',
+                     pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.' };
+    showToast('Récupération impossible', (rRec && motifs[rRec.raison]) || 'Opération refusée.', false);
+    return;
+  }
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
 }
 
@@ -9088,9 +9100,13 @@ async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  section.mission = missionId;
-  section.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
-  await sbSaveCompagnie(compagnieId, compagnie);
+  const rMis = await sbMilitaireAssignerMission(compagnieId, sectionId, missionId, cibleEscorte);
+  if (!rMis || rMis.ok !== true) {
+    showToast('Mission impossible',
+      rMis && rMis.raison === 'pas_lieutenant_de_cette_section'
+        ? 'Vous ne commandez pas cette section.' : 'Mission refusée.', false);
+    return;
+  }
   showToast('Mission attribuée', MISSIONS_DETACHEMENT.find(m=>m.id===missionId)?.label, true, true);
 }
 
@@ -9600,25 +9616,30 @@ async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sen
   if (!compagnie || !section) return;
   if (!section.stockArmes) section.stockArmes = { arme_de_poing: 0, mitraillette: 0 };
 
+  // FIN DU DOUBLE CIRCUIT DE L'ARMURERIE (17 septembre 2026).
+  // Ce bloc ecrivait budgets_nationaux.data.stockArmurerieMilitaire en lecture-modification-
+  // reecriture cliente : sans autorite serveur (la garde « capitaine » etait ici, donc
+  // contournable), sans verrou, en reecrivant le blob national ENTIER (donc en ecrasant toute
+  // modification concurrente de la reserve fiscale, du refectoire, de la recherche...), et sans
+  // jamais toucher lotsMilitaires -- ce qui desynchronisait le stock de sa file de lots et
+  // faisait ensuite servir des lots fantomes 'legacy' par militaire_retrait.
+  // Desormais : une seule transaction serveur qui passe par caserne_stock_mouvement, la primitive
+  // atomique que militaire_retrait utilise deja. Meme autorite qu'avant (le Capitaine de cette
+  // compagnie), memes produits, memes quantites.
+  const rArm = await sbMilitaireArmurerieTransfert(compagnieId, sectionId, categorie, qte, sens);
+  if (!rArm || rArm.ok !== true) {
+    const motifs = {
+      stock_insuffisant: 'L\'Armurerie Militaire ne dispose pas de ' + qte + ' unité(s).',
+      stock_section_insuffisant: 'Seules ' + (rArm && rArm.disponible !== undefined ? rArm.disponible : 0) + ' unité(s) sont libres dans cette section (le reste est porté par des soldats — voir Gérer l\'équipement).',
+      pas_capitaine_de_cette_compagnie: 'Réservé au Capitaine de cette compagnie.',
+      hors_juridiction: 'Cette compagnie relève d\'un autre pays.'
+    };
+    showToast('Transfert impossible', (rArm && motifs[rArm.raison]) || 'Opération refusée.', false);
+    return;
+  }
   if (sens === 'vers_section') {
-    const budgetNat = await chargerStockArmurerieMilitaire(pays);
-    const dispo = budgetNat.stockArmurerieMilitaire[categorie] || 0;
-    if (dispo < qte) { showToast('Stock insuffisant', 'L\'Armurerie Militaire ne dispose que de ' + dispo + ' unité(s).', false); return; }
-    // Retrait de l'armurerie AVANT credit a la section : jamais de double-compte si le
-    // deuxieme enregistrement echoue (au pire l'armement disparait temporairement, jamais duplique).
-    budgetNat.stockArmurerieMilitaire[categorie] = dispo - qte;
-    await sbSaveBudgetNational(pays, budgetNat);
-    section.stockArmes[categorie] = (section.stockArmes[categorie] || 0) + qte;
-    await sbSaveCompagnie(compagnieId, compagnie);
     showToast('Armement transféré', qte + ' unité(s) transférée(s) vers la section.', true, true);
   } else {
-    const libres = section.stockArmes[categorie] || 0;
-    if (libres < qte) { showToast('Stock section insuffisant', 'Seules ' + libres + ' unité(s) sont libres dans cette section (le reste est porté par des soldats — voir Gérer l\'équipement).', false); return; }
-    section.stockArmes[categorie] = libres - qte;
-    await sbSaveCompagnie(compagnieId, compagnie);
-    const budgetNat = await chargerStockArmurerieMilitaire(pays);
-    budgetNat.stockArmurerieMilitaire[categorie] = (budgetNat.stockArmurerieMilitaire[categorie] || 0) + qte;
-    await sbSaveBudgetNational(pays, budgetNat);
     showToast('Armement récupéré', qte + ' unité(s) récupérée(s) vers l\'Armurerie.', true, true);
   }
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -9699,11 +9720,17 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const tries = [...section.soldats].sort((a, b) => a.formation[stat] - b.formation[stat]).slice(0, CAP_ENTRAINEMENT_PAR_SESSION);
-  tries.forEach(s => { s.formation[stat] = Math.min(100, s.formation[stat] + 3); });
-  await sbSaveCompagnie(compagnieId, compagnie);
-  showToast('Entraînement terminé', tries.length + ' soldats ont progressé en ' + stat + '.', true, true);
-  addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + tries.length + ' soldats).', 'event-good');
+  // Le serveur applique la meme regle : les 12 soldats les moins formes gagnent +3, plafond 100.
+  const rEnt = await sbMilitaireEntrainerSection(compagnieId, sectionId, stat);
+  if (!rEnt || rEnt.ok !== true) {
+    showToast('Entraînement impossible',
+      rEnt && rEnt.raison === 'pas_lieutenant_de_cette_section'
+        ? 'Vous ne commandez pas cette section.' : 'Entraînement refusé.', false);
+    return;
+  }
+  const nbProgresses = Number(rEnt.progresses || 0);
+  showToast('Entraînement terminé', nbProgresses + ' soldats ont progressé en ' + stat + '.', true, true);
+  addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + nbProgresses + ' soldats).', 'event-good');
 }
 
 // ---- EQUIPEMENT INDIVIDUEL (revu 27 aout 2026, chantier logistique armement) ----
@@ -9774,20 +9801,19 @@ async function confirmerEquipementIndividuel(compagnieId, sectionId, matricule, 
   const ancienneArme = soldat.arme || 'corps_a_corps';
   if (ancienneArme === categorie) return;
 
-  if (categorie !== 'corps_a_corps') {
-    const dispo = section.stockArmes[categorie] || 0;
-    if (dispo <= 0) { showToast('Stock insuffisant', 'Aucune unité disponible dans le stock de la section — voir le Capitaine pour une dotation.', false); return; }
-    section.stockArmes[categorie] = dispo - 1;
+  // SERVEUR AUTORITAIRE (17 septembre 2026). Meme regle qu'avant -- l'arme quittee retourne au
+  // stock LIBRE DE LA SECTION, jamais a l'Armurerie centrale -- mais appliquee par la RPC, qui
+  // exige d'etre le lieutenant de CETTE section et fait la transition stock/soldat dans une
+  // seule ecriture.
+  const rEq = await sbMilitaireEquiperSoldat(compagnieId, sectionId, matricule, categorie);
+  if (!rEq || rEq.ok !== true) {
+    const motifs = { stock_section_insuffisant: 'Aucune unité disponible dans le stock de la section — voir le Capitaine pour une dotation.',
+                     pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.',
+                     soldat_introuvable: 'Ce soldat n\'est pas dans votre section.' };
+    showToast(rEq && rEq.raison === 'stock_section_insuffisant' ? 'Stock insuffisant' : 'Équipement impossible',
+      (rEq && motifs[rEq.raison]) || 'Opération refusée.', false);
+    return;
   }
-  // L'arme quittee retourne au stock LIBRE DE LA SECTION (jamais a l'Armurerie centrale --
-  // seul le Capitaine peut rapatrier vers l'Armurerie, voir confirmerTransfertArmement).
-  if (ancienneArme !== 'corps_a_corps') {
-    section.stockArmes[ancienneArme] = (section.stockArmes[ancienneArme] || 0) + 1;
-  }
-  soldat.arme = categorie;
-  // Ecriture unique (un seul document JSON) : la transition A->B est atomique par construction,
-  // pas de risque d'etat intermediaire incoherent entre stock et soldat.
-  await sbSaveCompagnie(compagnieId, compagnie);
   const armesLabels = { corps_a_corps: 'déséquipé', arme_de_poing: 'arme de poing', mitraillette: 'mitraillette' };
   showToast('Équipement mis à jour', soldat.matricule + ' : ' + armesLabels[categorie] + '.', true, true);
   await ouvrirGestionEquipementSection(compagnieId, sectionId);

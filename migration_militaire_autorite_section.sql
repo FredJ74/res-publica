@@ -1,0 +1,69 @@
+-- =====================================================================================
+-- DEUX CORRECTIFS TECHNIQUES INDEPENDANTS — 17 septembre 2026
+-- TRACE des migrations Supabase appliquees :
+--   militaire_section_rpc_lieutenant
+--   militaire_armurerie_transfert_atteste
+--   armurerie_militaire_verrou_ecriture
+--
+-- LOT A — REGRESSION RLS DE LA PASSE 3 (operations du Lieutenant)
+-- La politique posee en passe 3 autorisait le Commandant du pays et LE Capitaine de la compagnie,
+-- mais pas le Lieutenant : gerer_detachement, equiper_section, assigner_mission et
+-- entrainer_section etaient refuses (0 ligne, en silence puisque sbUpdate rend null).
+-- Impact reel nul -- compagnies_militaires est vide en production -- mais bloquant des la
+-- premiere compagnie.
+--
+-- CHOIX : PAS de politique RLS pour le Lieutenant. La RLS est par LIGNE ; lui ouvrir la ligne
+-- lui donnerait le droit d'ecrire TOUT le blob (capitaineNom, autres sections, stocks, formation
+-- de n'importe quel soldat) -- exactement le « droit generique » a eviter. Ses cinq mutations
+-- passent par des RPC attestees bornees a SA section :
+--   militaire_deposer_soldats, militaire_recuperer_soldats, militaire_assigner_mission,
+--   militaire_entrainer_section, militaire_equiper_soldat.
+-- Autorite commune : etre le lieutenantNom de LA section visee, dans une compagnie de SON pays.
+-- Renforcement au passage : la POSITION du lieutenant est lue sur sa fiche, plus annoncee par
+-- le navigateur. Aucune regle de jeu ne change (12 soldats par session, +3, plafond 100,
+-- memes missions, arme quittee rendue au stock de section).
+--
+-- PREUVE (transactions annulees, jugement par etat + retour + motif) :
+--   autre joueur depose dans la section d'Arnie -> pas_lieutenant_de_cette_section
+--   Lieutenant depose 1 soldat                  -> ok, etat change
+--   Lieutenant vise une AUTRE compagnie         -> pas_lieutenant_de_cette_section
+--   compagnie d'un autre empire                 -> hors_juridiction
+--   Lieutenant equipe un soldat                 -> ok, stock section 2 -> 1
+--   equipement sans stock                       -> stock_section_insuffisant
+--   entrainement                                -> ok, 2 soldats progresses
+--   mission inventee                            -> mission_invalide
+--   Capitaine ecrit sa compagnie                -> autorise (RLS de la passe 3 conservee)
+--
+-- LOT B — DOUBLE CIRCUIT DE L'ARMURERIE MILITAIRE
+-- Deux chemins ecrivaient le MEME stock (budgets_nationaux.data.stockArmurerieMilitaire) :
+--   militaire_retrait -> caserne_stock_mouvement (attestee, verrouillee, lots FIFO, registre)
+--   confirmerTransfertArmement (capitaine) : lecture-modification-reecriture CLIENTE du blob.
+-- Trois defauts du chemin client, tous corriges :
+--   1. aucune autorite serveur (garde « capitaine » cote client, donc contournable) ;
+--   2. reecriture du blob national ENTIER, ecrasant toute modification concurrente (reserve
+--      fiscale, refectoire, recherche militaire...) ;
+--   3. DESYNCHRONISATION DES LOTS : le stock etait decremente sans jamais toucher lotsMilitaires,
+--      si bien que militaire_retrait servait ensuite des lots fantomes 'legacy'.
+-- militaire_armurerie_transfert fait les deux mouvements dans UNE transaction, via
+-- caserne_stock_mouvement. Autorite INCHANGEE (le Capitaine de cette compagnie, comme data.js le
+-- declare pour repartir_armement).
+--
+-- Migrer le client ne suffisait pas : budgets_nationaux porte une RLS totalement ouverte
+-- (role public, UPDATE, USING true). Un laissez-passer de session local a la transaction, pose
+-- par caserne_stock_mouvement seule, et un trigger qui restaure silencieusement les deux cles
+-- protegees pour toute autre ecriture, ferment reellement l'ancien chemin sans toucher au reste
+-- du budget national.
+--
+-- PREUVE : ancien chemin client (armurerie a 99999) -> NEUTRALISE, reste a 10 ;
+--          autre cle du budget national -> toujours modifiable (pas de fermeture trop large) ;
+--          voie legitime (Capitaine, 3 armes) -> ok, armurerie 10 -> 7 ;
+--          lots coherents apres aller-retour : L1 ramene a 6 + lot 'retour-s1' de 2, somme = 8 ;
+--          joueur non capitaine / autre empire / produit invente / quantite negative -> refuses ;
+--          stock armurerie ou section insuffisant -> refus atomique, aucun effet partiel.
+--
+-- ARBITRAGE SIGNALE, NON TRANCHE : data.js declare DEUX ordres de retrait sur ce meme stock, avec
+-- deux grades differents -- repartir_armement (capitaine, ligne 4546) et retirer_armes_militaires
+-- (lieutenant, ligne 4576). La regle de game design confirmee dit « seul le Lieutenant peut sortir
+-- du materiel de l'armurerie ». Changer repartir_armement de grade retirerait une prerogative au
+-- Capitaine : c'est une decision de design, pas un correctif. L'autorite actuelle est preservee.
+-- =====================================================================================
