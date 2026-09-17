@@ -1052,12 +1052,19 @@ async function sbAppliquerSalaire(nomJoueur, montant) {
 // ATOMIQUE DEPUIS LE 12 septembre 2026 (migration_ajustement_pop_inf.sql) : la version precedente
 // relisait resources puis reecrivait le blob ENTIER ({inf, pop, dis}) -- la cible perdait les gains
 // d'INF ou de DIS obtenus entre la lecture et l'ecriture. Un seul UPDATE sous verrou desormais.
-async function sbAjusterPopularite(nomJoueur, delta) {
+async function sbAjusterPopularite(nomJoueur, delta, cause) {
   // ACTEUR OBLIGATOIRE (chantier B, 13 septembre 2026). Cette RPC modifie la POPULARITE D'AUTRUI :
   // sans acteur, n'importe quel navigateur pouvait l'appeler sur n'importe qui. Le serveur exige
   // desormais que l'acteur declare soit bien le personnage du compte connecte.
+  //
+  // CAUSE OBLIGATOIRE (17 septembre 2026, audit d'autorite). Prouver QUI agit ne suffisait pas :
+  // rien ne verifiait l'autorite sur la CIBLE, et tout joueur authentifie pouvait donc modifier
+  // de +/-100 la POP de n'importe qui. L'appelant doit desormais nommer la MECANIQUE invoquee ;
+  // le serveur en deduit l'autorite exigee et l'amplitude permise. Une cause absente ou inconnue
+  // est refusee. Aucun personnage ne possede de droit generique sur la POP d'un autre.
   return await sbRpc('personnage_ajuster_pop_inf',
-    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta, p_inf: null });
+    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta,
+      p_inf: null, p_cause: cause || null });
 }
 
 async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
@@ -2801,12 +2808,13 @@ async function sbResoudreRumeur(id) {
 // fonction echouait toujours silencieusement (erreur avalee par le .catch() des appelants),
 // la POP d'une cible n'a donc jamais ete reellement modifiee par lancer_rumeur_cible.
 // Meme correctif d'atomicite que sbAjusterPopularite ci-dessus (12 septembre 2026).
-async function sbAjusterPopJoueur(nomJoueur, delta) {
-  // ACTEUR OBLIGATOIRE (chantier B, 13 septembre 2026). Cette RPC modifie la POPULARITE D'AUTRUI :
-  // sans acteur, n'importe quel navigateur pouvait l'appeler sur n'importe qui. Le serveur exige
-  // desormais que l'acteur declare soit bien le personnage du compte connecte.
+async function sbAjusterPopJoueur(nomJoueur, delta, cause) {
+  // ACTEUR OBLIGATOIRE (chantier B, 13 septembre 2026) puis CAUSE OBLIGATOIRE (17 septembre 2026) :
+  // voir l'entete de sbAjusterPopularite ci-dessus. Le serveur deduit de la cause qui a le droit
+  // d'agir et dans quelle amplitude ; il n'existe plus de droit generique sur la POP d'autrui.
   const rows = await sbRpc('personnage_ajuster_pop_inf',
-    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta, p_inf: null });
+    { p_acteur: state?.char?.name || null, p_cible: nomJoueur, p_pop: delta,
+      p_inf: null, p_cause: cause || null });
   const r = Array.isArray(rows) ? rows[0] : rows;
   return (r && r.ok) ? Number(r.pop) : null;
 }

@@ -604,7 +604,7 @@ async function appliquerMalusPopExcommunication(nomCible) {
   // La primitive atomique existe deja et fait exactement cela en un seul UPDATE sous verrou,
   // borne a [0,100] : c'est celle qu'utilisent deja les rumeurs. Meme malus de -15, inchange.
   if (typeof sbAjusterPopJoueur === 'function') {
-    await sbAjusterPopJoueur(nomCible, -15);
+    await sbAjusterPopJoueur(nomCible, -15, 'excommunication');
   }
 }
 

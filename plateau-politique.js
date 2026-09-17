@@ -8117,13 +8117,13 @@ async function confirmerDementi(rumeurId, cible, popPerdu, pa, cost) {
 
   if (roll <= taux) {
     if (typeof sbResoudreRumeur === 'function') await sbResoudreRumeur(rumeurId).catch(() => {});
-    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, popPerdu).catch(() => null) : null;
+    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, popPerdu, 'dementi_reussi').catch(() => null) : null;
     if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
     showToast('Démenti réussi !', 'La rumeur est effacée, la popularité de ' + cible + ' est rétablie.', true, true);
     addJournalEntry('Démenti officiel réussi concernant ' + cible + '.', 'event-good');
     addExternalEvent('📢 La présidence dément officiellement les rumeurs concernant ' + cible + '.');
   } else {
-    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, -(popPerdu * 2)).catch(() => null) : null;
+    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, -(popPerdu * 2), 'dementi_rate').catch(() => null) : null;
     if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
     showToast('Démenti raté !', 'L\'opération se retourne contre ' + cible + '. Perte de popularité doublée.', false);
     addJournalEntry('Démenti officiel raté, la situation s\'aggrave pour ' + cible + '.', 'event-bad');

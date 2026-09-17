@@ -1954,7 +1954,7 @@ function construirePhraseCibleTracee(type, cibleLabel) {
 async function appliquerEffetRumeur(type, cibleValue, cibleLabel) {
   if (type === 'pj') {
     const perte = Math.floor(Math.random() * 16) + 5; // 5 a 20 inclus
-    if (typeof sbAjusterPopJoueur === 'function') await sbAjusterPopJoueur(cibleValue, -perte).catch(() => {});
+    if (typeof sbAjusterPopJoueur === 'function') await sbAjusterPopJoueur(cibleValue, -perte, 'rumeur_pj').catch(() => {});
     return '-' + perte + ' POP sur ' + cibleLabel;
   }
 
@@ -1989,7 +1989,7 @@ async function appliquerEffetRumeur(type, cibleValue, cibleLabel) {
       }
     }
     if (typeof sbAjusterPopJoueur === 'function') {
-      for (const nom of membres) await sbAjusterPopJoueur(nom, -perte).catch(() => {});
+      for (const nom of membres) await sbAjusterPopJoueur(nom, -perte, 'rumeur_gouvernement').catch(() => {});
     }
     return membres.length > 0
       ? ('-' + perte + ' POP sur ' + membres.length + ' membre(s) du gouvernement de ' + cibleLabel)

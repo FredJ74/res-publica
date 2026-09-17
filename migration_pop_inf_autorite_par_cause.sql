@@ -1,0 +1,57 @@
+-- =====================================================================================
+-- POP/INF D'AUTRUI : AUTORITE PAR CAUSE — Res Publica, 17 septembre 2026
+-- Dernier P0 ouvert de l'audit des frontieres d'autorite.
+--
+-- LE DEFAUT. personnage_ajuster_pop_inf(p_acteur, p_cible, p_pop, p_inf) etait accordee a
+-- authenticated. exiger_acteur(p_acteur) prouvait QUI agissait, mais RIEN ne verifiait l'autorite
+-- sur la CIBLE, et l'amplitude n'etait bornee qu'a +/-100. Tout joueur authentifie pouvait donc
+-- mettre a zero la popularite de n'importe quel personnage du jeu, autant de fois qu'il voulait.
+--
+-- CE QUI EXISTAIT DEJA et que cette migration n'invente pas : les SEPT mecaniques qui modifient
+-- legitimement la POP d'un autre personnage, avec leur autorite et leur amplitude, toutes lues
+-- dans le code existant.
+--
+--   cause                | mecanique / site                          | autorite            | POP
+--   ---------------------|-------------------------------------------|---------------------|---------
+--   rumeur_pj            | appliquerEffetRumeur, plateau-pnj.js      | tout joueur (gris)  | -20..-5
+--   rumeur_gouvernement  | idem, cible gouvernementale               | tout joueur (gris)  | -5..-1
+--   excommunication      | appliquerMalusPopExcommunication          | Grand Pretre        | -15 pile
+--   dementi_reussi       | confirmerDementi, plateau-politique.js    | president/min_info  | +1..+100
+--   dementi_rate         | idem, branche d'echec                     | president/min_info  | -100..-1
+--   sentence_torture     | appliquerSentence, justice-economie       | juge                | -100 pile
+--   football_match       | resolution de match, organisations-quetes | (voir residu)       | +20/+30
+--
+-- Les amplitudes sont exactement celles des tirages et constantes deja en place : 5..20 pour une
+-- rumeur sur un PJ, 1..5 sur un gouvernement, -15 pour une excommunication (§6), -100 pour la
+-- peine « popularite a zero », +20/+30 pour un titulaire apres un match. Les autorites sont
+-- exactement les requiresPost declares dans data.js ('juge' pour rendre_sentence, 'president' et
+-- 'min_info' pour dementi) et, pour l'excommunication, la ligne titulaires_pnj('grand_pretre')
+-- que le client compare deja au nom du joueur (estGrandPretreActuel).
+--
+-- CE QUI CHANGE. L'appelant doit nommer la cause. Le serveur en deduit l'autorite exigee et
+-- l'amplitude permise, et refuse toute cause absente ou inconnue. L'ancienne surcharge sans
+-- cause n'est plus accordee a authenticated : un client en cache echoue franchement plutot que
+-- d'obtenir un effet non autorise.
+--
+-- p_inf est refuse cote joueur : aucune mecanique ne modifie aujourd'hui l'INF d'un AUTRE
+-- personnage (l'influence d'une organisation est une autre jauge, portee par la table
+-- organisations). Une porte sans usage reste fermee.
+--
+-- RESIDUS DOCUMENTES, volontairement non fermes ici.
+--   1. football_match n'exige aucun poste : le championnat n'a pas de moteur serveur, il avance
+--      depuis les navigateurs des joueurs (fait etabli, arbitre). L'amplitude est bornee aux deux
+--      seules valeurs declarees et le sens est POSITIF : le pire abus est d'elever la POP d'un
+--      personnage, jamais de l'abaisser. Fermeture definitive = moteur serveur du championnat.
+--   2. Les tirages des rumeurs et du dementi restent cote client. Leur amplitude est desormais
+--      bornee par cause, mais un client modifie tirera toujours la valeur la plus favorable dans
+--      l'intervalle autorise. Fermeture = porter la resolution de la rumeur cote serveur, ce qui
+--      exige d'y porter aussi le taux de reussite declare (75%), le retour de baton, la tracabilite
+--      judiciaire et les cibles non-PJ (organisation, local, gouvernement, pays) : un lot en soi.
+--
+-- BANC : 11/11 en transaction annulee. Rumeur -10 acceptee et constatee sur l'etat ; rumeur -100
+-- refusee ; torture, excommunication et dementi refuses faute d'autorite ; cause inventee et
+-- cause NULL refusees ; football +30 accepte, +25 refuse ; ancienne surcharge en permission
+-- denied ; acteur usurpe refuse par exiger_acteur.
+--
+-- Le corps exact applique est celui de la migration Supabase « pop_inf_autorite_par_cause ».
+-- =====================================================================================

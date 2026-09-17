@@ -2512,7 +2512,7 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
   // chaque joueur qu'une fois. Voir appliquerEffetRestant pour le detail du defaut corrige.
   // La popularite et le courrier restent au client : leurs chemins fonctionnent.
   for (const t of contrib.titulaires) {
-    if (gainPop > 0 && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(t.nom, gainPop).catch(() => {});
+    if (gainPop > 0 && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(t.nom, gainPop, 'football_match').catch(() => {});
   }
 
   for (const t of contrib.titulaires) {
@@ -2985,7 +2985,7 @@ async function appliquerEffetRestant(item) {
     // creditait alors lui-meme. football_primes_journee/_tour verse desormais tout le monde,
     // au montant que le serveur recalcule, une seule fois. Popularite et courrier restent ici :
     // ils passent par des chemins qui fonctionnent.
-    if (item.gainPop && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(item.nom, item.gainPop).catch(() => {});
+    if (item.gainPop && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(item.nom, item.gainPop, 'football_match').catch(() => {});
     if (typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', item.nom, item.sujet, item.corps, formatDateHeureJeu()).catch(() => {});
     return;
   }

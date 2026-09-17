@@ -2363,7 +2363,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     // -100 met la POP exactement a zero : la RPC borne le resultat a [0,100], donc pour toute
     // valeur de depart dans cet intervalle, pop - 100 est ramene a 0. Aucune regle nouvelle.
     if (typeof sbAjusterPopJoueur === 'function') {
-      await sbAjusterPopJoueur(affaire.cible, -100);
+      await sbAjusterPopJoueur(affaire.cible, -100, 'sentence_torture');
     }
     // Enregistrer cette condamnation pour permettre le cumul des peines a l'avenir
     if (typeof sbTracerAction === 'function') {
