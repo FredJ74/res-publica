@@ -1524,6 +1524,32 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- SOLDES MILITAIRES (phase 2, 18 septembre 2026) ----
+// Le payeur est la CAISSE DE LA CASERNE, plus jamais une creation monetaire cliente. Registre
+// quotidien a cle unique « nom:jour » qui sert d'anti-rejeu, debit PLAFONNE par la caisse, et la
+// part non versee devient une DETTE nominative qui survit au changement de grade, a la demission
+// et au depart de l'armee. Meme patron que assemblee_verser_indemnite.
+// Renvoie {ok, grade, du, verse, dette, liquide, arg} ou {ok:false, raison}.
+async function sbMilitaireSoldePercevoir() {
+  const rows = await sbRpc('militaire_solde_percevoir', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Reglement des arrieres, les plus anciens d'abord, dans la limite de ce que la caisse contient.
+async function sbMilitaireArrieresRegler() {
+  const rows = await sbRpc('militaire_arrieres_regler', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Arrieres d'un militaire, ou dettes totales d'une caserne. Table en lecture publique : un PJ doit
+// voir ce qu'on lui doit, et l'autorite de la caserne ce qu'elle doit.
+async function sbMilitaireSoldesImpayees(nom, pays) {
+  const filtre = nom ? ('personnage=eq.' + encodeURIComponent(nom))
+                     : ('pays=eq.' + encodeURIComponent(pays || 'republic'));
+  const rows = await sbGet('soldes_militaires', filtre + '&select=personnage,grade,jour,du,verse&order=jour');
+  return (rows || []).filter(r => Number(r.verse) < Number(r.du));
+}
+
 // CREATION D'UNE COMPAGNIE, attestee (17 septembre 2026). Remplace l'ecriture cliente du blob.
 // Le Commandant reel est exige serveur, les 3 PA sont valides contre le miroir des couts (la
 // branche institutionnelle de deduireCoutOrdre ne consulte PAS le miroir et deduisait les PA cote

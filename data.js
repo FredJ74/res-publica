@@ -7280,19 +7280,13 @@ const SALAIRES = {
   adj_maire:   500,
   gouverneur:  1500,
   prefet:      900,
-  // SOLDES MILITAIRES (18 septembre 2026, arbitrage GD). Elles passent par le mecanisme de
-  // salaire de poste deja en place pour les 17 autres postes -- aucun circuit parallele.
-  lieutenant:  150,
-  capitaine:   250,
-  // commandant : NON FIXEE par le GD. Il touche donc aujourd'hui SALAIRES.default (150), ce qui
-  // est moins qu'un Capitaine. A arbitrer, ne pas inventer.
-  //
-  // soldat : IMPOSSIBLE A BRANCHER ICI. Un soldat PJ n'a PAS de poste -- il est une entree
-  // { pj:true, nom } dans sections[].soldats -- donc calculerSalaireDormir() le fait tomber sur
-  // default (150), soit TROIS FOIS la solde de 50 FR voulue par le GD. Le brancher exige de
-  // detecter le service militaire hors de state.poste. Voir le rapport : le payeur des soldes PJ
-  // n'est de toute facon atteste par personne (doDormir fait state.arg += salaire, sans debiter
-  // aucune caisse), donc ce point releve du meme arbitrage.
+  // LES SOLDES MILITAIRES NE SONT PAS ICI, ET C'EST DELIBERE (phase 2, 18 septembre 2026).
+  // Ce tableau alimente calculerSalaireDormir(), qui fait « state.arg += salaire » : de la
+  // creation monetaire cliente, sans qu'aucune caisse soit debitee. Les soldes militaires
+  // (soldat 50, lieutenant 150, capitaine 250, commandant 400) sont desormais versees par la
+  // RPC militaire_solde_percevoir, qui debite reellement la caisse de la caserne et inscrit une
+  // DETTE nominative pour ce qu'elle ne peut pas payer. Les remettre ici les paierait DEUX fois,
+  // dont une en monnaie inventee.
   default:     150  // Citoyen sans poste
 };
 

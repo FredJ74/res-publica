@@ -392,7 +392,15 @@ function closeSelfView() {
 // Salaire verse a l'ordre Dormir : poste politique prioritaire, sinon emploi BNE actif
 // (state.emploiBNE, cache local rafraichi par rafraichirCacheEmploiBNE — voir
 // plateau-justice-economie.js), sinon le plancher universel SALAIRES.default (9 aout 2026).
+// LES MILITAIRES NE SONT PAS PAYES ICI (phase 2, 18 septembre 2026). Cette fonction alimente une
+// creation monetaire cliente (state.arg += salaire) sans debiter aucune caisse. Les soldes
+// militaires sont versees par militaire_solde_percevoir, qui debite reellement la caisse de la
+// caserne et inscrit une dette pour ce qu'elle ne peut pas payer. state.gradeMilitaire est pose
+// par cette RPC au moment du sommeil, juste avant cet appel.
+const GRADES_PAYES_PAR_LA_CASERNE = ['soldat', 'lieutenant', 'capitaine', 'commandant'];
 function calculerSalaireDormir() {
+  if (GRADES_PAYES_PAR_LA_CASERNE.includes(state.gradeMilitaire)) return 0;
+  if (state.poste && GRADES_PAYES_PAR_LA_CASERNE.includes(state.poste.id)) return 0;
   if (state.poste) return SALAIRES[state.poste.id] || SALAIRES.default;
   if (state.emploiBNE?.offreId && typeof OFFRES_EMPLOI_BNE !== 'undefined') {
     const offre = OFFRES_EMPLOI_BNE[state.emploiBNE.offreId];
@@ -1694,6 +1702,31 @@ async function doDormir() {
     if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   }
   localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
+  // SOLDE MILITAIRE D'ABORD (phase 2). Elle est versee par la caserne, pas creee par le client.
+  // Son retour nous dit AUSSI quel grade militaire le serveur reconnait -- c'est lui qui fait foi,
+  // pas state.poste, puisqu'un soldat PJ n'a aucun poste. calculerSalaireDormir() lit ensuite
+  // state.gradeMilitaire pour ne pas payer une seconde fois, en monnaie inventee.
+  state.gradeMilitaire = null;
+  if (typeof sbMilitaireSoldePercevoir === 'function') {
+    const rSolde = await sbMilitaireSoldePercevoir().catch(() => null);
+    if (rSolde && rSolde.ok === true) {
+      state.gradeMilitaire = rSolde.grade || null;
+      if (typeof rSolde.liquide === 'number') state.liquide = rSolde.liquide;
+      if (typeof rSolde.arg === 'number') { state.arg = rSolde.arg; if (state.char) state.char.arg = state.arg; }
+      const du = Number(rSolde.du || 0), verse = Number(rSolde.verse || 0);
+      if (verse >= du) {
+        addJournalEntry('Solde militaire perçue : ' + verse + ' FR (' + rSolde.grade + ').', 'event-good');
+      } else if (verse > 0) {
+        addJournalEntry('Solde militaire versée en partie : ' + verse + ' FR sur ' + du
+          + '. La caserne vous doit ' + (du - verse) + ' FR.', 'event-bad');
+      } else {
+        addJournalEntry('Solde militaire NON versée : la caisse de la caserne est vide. '
+          + 'Elle vous doit ' + du + ' FR.', 'event-bad');
+      }
+    } else if (rSolde && rSolde.raison === 'deja_percue_aujourdhui') {
+      state.gradeMilitaire = 'soldat';   // suffisant pour bloquer le double paiement civil
+    }
+  }
   const salaire = calculerSalaireDormir();
   // Lot 2 (chantier fiscalite/Helvetia) : l'ancienne repartition 30%/70% liquide/banque,
   // incoherente avec le 15%/85% de l'hydratation (deux conventions differentes coexistaient),
