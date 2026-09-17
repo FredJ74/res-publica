@@ -6647,18 +6647,37 @@ async function confirmerRecolte(matiere, pa, cost) {
 async function doConsommerBuvette(pa, cost) {
   const cout = 50;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
+
+  // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de caisse
+  // financiere autonome -- tout argent genere dans l'enceinte du stade appartient a la caisse du
+  // stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non demontrable avec
+  // certitude) reste intacte et ne recoit plus aucune nouvelle recette.
+  const pays = state.country || 'republic';
+  const idCaisseStade = typeof getCaisseLocaleId === 'function'
+    ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
+
+  // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
+  // recette du stade sont desormais UNE seule transaction serveur. Avant, la taxe etait un appel
+  // client distinct du prelevement -- donc contournable par un client modifie -- et le credit de
+  // la caisse un tir-et-oublie dont le retour n'etait jamais lu : un verre pouvait etre paye sans
+  // que le stade encaisse quoi que ce soit. Memes taux, meme caisse, meme montant declare.
+  let recetteEncaissee = false;
+  let r;
+  if (typeof encaisserVenteStructure === 'function') {
+    r = await encaisserVenteStructure('consommer_buvette', pa, cost,
+                                      pays + '_' + idCaisseStade, state.currentCity);
+    recetteEncaissee = r.ok;
+  } else {
+    r = await deduireCoutOrdre({ pa, cost });
+  }
   if (!r.ok) { signalerRefusCout(r); return; }
   state.pop = Math.min(100, (state.pop || 0) + 2);
 
-  if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
+  // Chemin de repli uniquement (RPC indisponible) : ancien enchainement taxe-puis-credit.
+  if (!recetteEncaissee
+      && typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
     const { net } = await appliquerTaxeTransaction(cout);
-    // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de
-    // caisse financiere autonome -- tout argent genere dans l'enceinte du stade appartient a
-    // la caisse du stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non
-    // demontrable avec certitude) reste intacte et ne recoit plus aucune nouvelle recette.
-    const idCaisseStade = typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
-    await crediterCaisseBatiment(state.country || 'republic', idCaisseStade, net).catch(() => {});
+    await crediterCaisseBatiment(pays, idCaisseStade, net).catch(() => {});
   }
 
   updateUI();

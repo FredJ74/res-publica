@@ -2375,11 +2375,23 @@ async function doReserverChambreHotel(pa) {
                          && typeof chargerCommerce === 'function'
                          && typeof commerceVendreProduit === 'function');
   let r;
+  // Vrai des que la recette a deja ete encaissee dans la meme transaction que le prelevement
+  // (entreprise du Republica, ou vente_structure_encaisser pour les autres hotels).
+  let recetteEncaissee = viaEntreprise;
   if (viaEntreprise) {
     const dataHotel = await chargerCommerce('brasserie', pays, ville, 'hotel-republica', null);
     r = dataHotel
       ? await commerceVendreProduit(dataHotel.id, [], 'service', 'reserver_chambre_hotel', pa, cout)
       : { ok: false, raison: 'introuvable' };
+  } else if (cout > 0 && typeof encaisserVenteStructure === 'function'
+             && typeof getCaisseLocaleId === 'function') {
+    // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
+    // recette de l'hotel sont desormais UNE transaction serveur. Avant, la taxe etait un appel
+    // client separe -- donc contournable -- et le credit de la caisse un tir-et-oublie dont le
+    // retour n'etait jamais lu. Memes taux, meme caisse, meme montant declare qu'avant.
+    r = await encaisserVenteStructure('reserver_chambre_hotel', pa, cout,
+                                      pays + '_' + getCaisseLocaleId('hotel', ville), ville);
+    recetteEncaissee = r.ok;
   } else {
     r = await deduireCoutOrdre({ pa, cost: cout });
   }
@@ -2403,15 +2415,16 @@ async function doReserverChambreHotel(pa) {
   // privee (l'entreprise du commerce), pas la caisse institutionnelle 'hotel' partagee par Hotel
   // du Port/Hotel de la Victoire (non touches, toujours sur crediterCaisseBatiment ci-dessous).
   // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
-  if (cout > 0 && !viaEntreprise) {
+  // Chemin de repli uniquement : si ni l'entreprise ni vente_structure_encaisser n'ont encaisse
+  // la recette (RPC indisponible), on retombe sur l'ancien enchainement taxe-puis-credit. Dans le
+  // cas normal recetteEncaissee est vrai et ce bloc ne s'execute pas.
+  if (cout > 0 && !recetteEncaissee) {
     let net = cout;
     if (typeof appliquerTaxeTransaction === 'function') {
       const t = await appliquerTaxeTransaction(cout);
       net = t.net;
     }
-    // Le Republica a deja ete credite par la RPC ci-dessus (prelevement et recette dans la
-    // meme transaction) : il n'y a plus rien a faire ici pour lui.
-    if (!viaEntreprise && typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
+    if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
       await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
     }
   }

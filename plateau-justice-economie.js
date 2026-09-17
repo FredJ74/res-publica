@@ -11652,6 +11652,50 @@ async function appliquerTaxeTransaction(montantBrut) {
   return { net, taxeLocale, taxeNationale, tauxLocal, tauxNational };
 }
 
+// VENTE A UNE STRUCTURE — prelevement, taxe et recette dans UNE seule transaction serveur
+// (17 septembre 2026, lot « ventes a une structure » de l'audit d'autorite).
+//
+// CE QUE FAISAIT LE CODE AVANT, sur les trois sites concernes (don religieux, chambre d'hotel,
+// buvette du stade) : trois appels clients successifs et independants --
+//   deduireCoutOrdre()          le seul des trois qui etait atteste
+//   appliquerTaxeTransaction()  taxe calculee et ecrite par le navigateur
+//   crediterCaisseBatiment()    credit en tir-et-oublie, retour jamais lu
+// Deux consequences prouvees : (a) la taxe etait OPTIONNELLE -- un client modifie sautait le
+// deuxieme appel et la recette municipale comme la reserve nationale ne voyaient rien passer ;
+// (b) le debit pouvait aboutir sans le credit, l'argent quittant le joueur sans arriver nulle
+// part, sans le moindre signal (.catch(() => {})).
+//
+// Desormais un seul appel. Le serveur valide le montant contre le miroir des couts, decide seul
+// si l'ordre est taxe (registre serveur, miroir exact de ces trois sites), applique les memes
+// taux qu'avant, credite la structure, et annule TOUT si l'une des etapes echoue.
+//
+// appliquerTaxeTransaction() reste en place pour les autres appelants (elle n'est plus utilisee
+// par ces trois-ci) : sa migration est un lot distinct.
+async function encaisserVenteStructure(fn, pa, cost, caisseId, ville) {
+  if (typeof sbVenteStructureEncaisser !== 'function') {
+    return { ok: false, raison: 'paiement_indisponible' };
+  }
+  const r = await sbVenteStructureEncaisser(fn, pa, cost, caisseId,
+                                            ville || state.currentCity || 'capitale');
+  if (!r) return { ok: false, raison: 'paiement_indisponible' };
+  if (r.ok !== true) {
+    return { ok: false, raison: r.raison || 'paiement_refuse',
+             fondsDisponibles: (typeof r.disponible === 'number') ? r.disponible : undefined };
+  }
+  // On recopie l'etat arrete par le SERVEUR, jamais un calcul local -- meme convention que
+  // deduireCoutOrdre, dont cette fonction reprend l'invariant « paiement reussi -> effet ».
+  state.pa = r.pa;
+  state.liquide = r.liquide;
+  state.arg = r.arg;
+  if (state.char) state.char.arg = state.arg;
+  if (state.comptesBancaires?.nationale && typeof r.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = r.solde_national;
+  }
+  if (typeof updateUI === 'function') updateUI();
+  return { ok: true, net: r.net, taxe: r.taxe,
+           paPreleves: r.pa_preleves, montantPreleve: r.montant_preleve };
+}
+
 // Verifie une fois par jour : effets du taux d'imposition total sur IS/ISN, distribution aux caisses publiques
 async function verifierEffetsEtDistributionFiscale() {
   const pays = state.country || 'republic';

@@ -726,13 +726,25 @@ async function doSeConfeser(pa, cost) {
 const EGLISES_REPUBLIA_CAISSE = ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'];
 
 async function doFaireDon(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  // Le don a une eglise de Republia alimente la caisse du batiment : prelevement et recette
+  // doivent alors se faire dans la MEME transaction serveur (lot « ventes a une structure »,
+  // 17 septembre 2026). Auparavant le credit etait un appel separe en tir-et-oublie : un don
+  // pouvait etre preleve au joueur sans jamais arriver dans la caisse de l'eglise. Un don n'est
+  // pas une vente : il n'est pas taxe, et le serveur le sait (registre de vente_structure_encaisser).
+  // Hors de ces 3 batiments, aucune caisse n'existe et le chemin ordinaire reste inchange.
+  const versEgliseRepublia = (pays === 'republic'
+                              && EGLISES_REPUBLIA_CAISSE.includes(state.currentBuilding));
+  const parVenteStructure = (versEgliseRepublia && cost > 0
+                             && typeof encaisserVenteStructure === 'function');
+  const r = parVenteStructure
+    ? await encaisserVenteStructure('faire_don', pa, cost, pays + '_' + state.currentBuilding, ville)
+    : await deduireCoutOrdre({ pa, cost });
   if (!r.ok) {
     showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
     return;
   }
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
   // Republia : meme derivation depuis le ledger que doPrier ci-dessus, jamais modifierIP.
   // §6 du lot 2 ne restreint QUE la priere pour un excommunie -- le don continue de produire de
   // la piete meme pour un excommunie (non mentionne par la regle validee, comportement inchange).
@@ -745,8 +757,12 @@ async function doFaireDon(pa, cost) {
     modifierIP(5);
   }
   state.pop = Math.min(100, state.pop + 3);
-  if (pays === 'republic' && EGLISES_REPUBLIA_CAISSE.includes(state.currentBuilding) && typeof crediterCaisseBatiment === 'function') {
-    crediterCaisseBatiment('republic', state.currentBuilding, cost).catch(() => {});
+  // Dans le cas normal la caisse de l'eglise a deja ete creditee par vente_structure_encaisser,
+  // dans la meme transaction que le prelevement. Le bloc ci-dessous est un repli pour le seul cas
+  // ou cette RPC serait indisponible : sans lui, un don a une eglise de Republia serait preleve
+  // sans jamais alimenter sa caisse.
+  if (versEgliseRepublia && !parVenteStructure && typeof crediterCaisseBatiment === 'function') {
+    await crediterCaisseBatiment('republic', state.currentBuilding, cost).catch(() => {});
   }
   updateUI();
   showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[pays]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);

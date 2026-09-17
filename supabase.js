@@ -1449,6 +1449,24 @@ async function sbCaisseMinistereMouvement(pays, souscleSource, montant, souscleD
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// VENTE A UNE STRUCTURE — un seul acte attesté (17 septembre 2026, lot « ventes a une structure »).
+// Remplace l'enchainement deduireCoutOrdre() + appliquerTaxeTransaction() + crediterCaisseBatiment(),
+// qui etait un enchainement de TROIS appels clients distincts : la taxe etait donc optionnelle (un
+// client modifie sautait simplement le deuxieme appel) et le credit n'etait jamais verifie (le
+// joueur pouvait payer sans que la structure recoive rien). Le serveur decide seul si l'ordre est
+// taxe, applique les memes taux via appliquer_taxe_transaction() -- deja en service pour les
+// commerces et les soins -- et annule le prelevement si le credit echoue. Tout ou rien.
+//
+// Aucun prix, aucun taux, aucun beneficiaire nouveau : le registre serveur est le miroir exact des
+// trois sites existants (faire_don non taxe, reserver_chambre_hotel et consommer_buvette taxes).
+// Renvoie {ok, pa, liquide, arg, solde_national, net, taxe, ...} ou un motif de refus.
+async function sbVenteStructureEncaisser(fn, pa, cost, caisseId, ville) {
+  const rows = await sbRpc('vente_structure_encaisser', {
+    p_fn: fn, p_pa: pa || 0, p_cost: cost || 0, p_caisse: caisseId, p_ville: ville || null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Convocation douaniere emise chez un TIERS (le deposant du fret). Ecriture serveur sous verrou,
 // reservee au Chef des Douanes en exercice -- l'autorite que data.js declare deja sur l'ordre
 // « Controler une caisse de fret ». Idempotente : meme motif + meme jour d'emission non traitee
