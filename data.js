@@ -4522,9 +4522,9 @@ const BUILDINGS = {
           {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
         ],
         orders: [
-          {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
-          {fn:'affecter_engage',    label:'Affecter un engagé à une section', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Installer un engage valide par le Commandant comme lieutenant d\'une section.'},
-          {fn:'engager_officier',   label:'S\'engager comme officier',  pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
+          {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
+          {fn:'affecter_engage',    label:'Affecter un engagé à une section', pa:0, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Installer un engage valide par le Commandant comme lieutenant d\'une section.'},
+          {fn:'engager_officier',   label:'S\'engager comme officier',  pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
           // FILIERE SOLDAT (18 septembre 2026). Aucune qualification militaire requise pour
           // devenir simple soldat. Ces trois ordres sont declares a 0 PA : ce sont des actes
           // purement administratifs et declaratifs, et cela evite toute dependance au miroir des
@@ -4533,7 +4533,7 @@ const BUILDINGS = {
           {fn:'engager_soldat',     label:'S\'engager comme soldat',    pa:0, cost:0, type:'legal', icon:'ti-shield', successRate:100, desc:'Candidater comme simple soldat aupres du Lieutenant d\'une section. Aucun diplome requis.'},
           {fn:'candidatures_section', label:'Candidatures de ma section', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, requiresPost:'lieutenant', desc:'Reserve au Lieutenant. Accepter ou refuser les candidatures de soldats adressees a sa section.'},
           {fn:'quitter_armee',      label:'Quitter l\'armée',            pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Demissionner de son poste de soldat. Le depart est administratif : aucune perte humaine.'},
-          {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'},
+          {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'},
           {fn:'se_presenter_affectation', label:'Se présenter à mon affectation', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Civils requisitionnes avant expiration du delai — et deserteurs, a tout moment : se rendre eteint les poursuites pour desertion.'},
           {fn:'stage_caserne', label:'Stage à la Caserne', pa:3, cost:0, type:'legal', icon:'ti-heart-bolt', successRate:100, desc:'Ouvert a tout le monde. +5 Volonte. 1 fois par jour, maximum 3 jours consecutifs puis 7 jours de repos obligatoire.'}
         ]
@@ -4548,8 +4548,8 @@ const BUILDINGS = {
           {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
         ],
         orders: [
-          {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:2, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
-          {fn:'traiter_engagements', label:'Traiter les engagements',   pa:1, cost:0,    type:'legal',   icon:'ti-clipboard-list', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Affecter les demandes d\'engagement a une compagnie.'},
+          {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:0, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
+          {fn:'traiter_engagements', label:'Traiter les engagements',   pa:0, cost:0,    type:'legal',   icon:'ti-clipboard-list', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Affecter les demandes d\'engagement a une compagnie.'},
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'repartir_armement', label:'Doter ma section en armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Transferer des armes entre le stock de l\'Armurerie Militaire et sa propre section. Le Capitaine ne retire plus du magasin (arbitrage du 17 septembre 2026).'},
           {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'100 soldats (4 sections). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
