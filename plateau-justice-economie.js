@@ -6146,35 +6146,57 @@ async function doSupprimerSubdivision(idx) {
   const lot = subdivisions[idx];
   if (!lot) return;
 
-  // Lot 1.3 : l'occupant est lu sur le bail unifie, jamais plus sur le miroir subdivision.
+  // EVICTION SERVEUR-AUTORITAIRE (17 septembre 2026, suite de l'audit des frontieres d'autorite).
+  //
+  // AVANT : le proprietaire se debitait lui-meme (state.arg -= indemnite), puis tentait de crediter
+  // le locataire par un sbGet + sbUpdate DIRECTS sur la fiche d'autrui. Depuis la fermeture RLS ces
+  // deux appels echouent en silence (sbUpdate rend null sans lever) : le proprietaire payait, le
+  // locataire ne recevait RIEN, et un mail lui annoncait pourtant le versement. Perte seche pour la
+  // victime, doublee d'un mensonge.
+  //
+  // MAINTENANT : une seule transaction serveur (eviction_indemniser) fait tout -- controle que
+  // l'acteur est bien le proprietaire, recalcul du montant depuis le loyer inscrit dans l'etat du
+  // terrain, lecture de l'occupant SUR LE BAIL, debit, credit, suppression du bail et retrait du
+  // lot. Aucune moitie ne peut survivre seule. Le navigateur ne fournit plus ni le montant, ni le
+  // beneficiaire. Meme regle d'indemnite (un an de loyer), inchangee.
   const occupantLot = locataireDuLot(id, lot);
-  if (occupantLot) {
-    const indemnite = (lot.loyer || 0) * 365;
-    if (state.arg < indemnite) {
-      showToast('Fonds insuffisants', "L'indemnité d'éviction (1 an de loyer, " + indemnite.toLocaleString('fr-FR') + " FR) doit être payée pour retirer ce lot.", false);
-      return;
-    }
-    state.arg -= indemnite;
-    if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(occupantLot)}`).catch(function() { return null; });
-      const locPerso = rows && rows[0];
-      if (locPerso) {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(occupantLot)}`, { arg: (locPerso.arg || 0) + indemnite }).catch(function() {});
-      }
-    }
-    if (typeof sendMail === 'function') {
-      await sendMail(occupantLot, "Éviction — indemnité versée", "Le propriétaire a repris le lot « " + lot.label + " ». Une indemnité d'éviction d'un an de loyer (" + indemnite.toLocaleString('fr-FR') + " FR) vous a été versée.");
-    }
-    showToast('Indemnité versée', indemnite.toLocaleString('fr-FR') + ' FR versés à ' + occupantLot + '.', true);
+  const r = (typeof sbEvictionIndemniser === 'function')
+    ? await sbEvictionIndemniser(state.country, id, lot.id) : null;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      fonds_insuffisants: "L'indemnité d'éviction (1 an de loyer" + (r && r.requis ? ', ' + Number(r.requis).toLocaleString('fr-FR') + ' FR' : '') + ") doit être payée pour retirer ce lot.",
+      pas_proprietaire: "Vous n'êtes pas propriétaire de ce terrain.",
+      chantier_requis: "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».",
+      lot_introuvable: "Ce lot n'existe plus.",
+      occupant_introuvable: "Le locataire de ce lot n'existe plus.",
+      terrain_introuvable: "Ce terrain n'existe plus."
+    };
+    showToast('Retrait impossible', (r && motifs[r.raison]) || "Le lot n'a pas pu être retiré. Rien n'a été débité.", false);
+    return;
   }
 
-  // Lot 1.3 : le lot disparait, donc son bail aussi -- sans quoi locations_actives porterait un
-  // bail actif sur un local qui n'existe plus (et la piece dynamique ne serait plus hydratee).
-  if (typeof supprimerBailDuLot === 'function') await supprimerBailDuLot(id, lot);
+  // Le serveur fait foi sur le montant reellement verse et sur l'identite de l'evince.
+  const evince = r.occupant || occupantLot || null;
+  const indemnite = Number(r.indemnite || 0);
+  if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+  if (typeof r.liquide === 'number') state.liquide = r.liquide;
 
+  // Le mail n'est envoye qu'APRES confirmation du versement : plus jamais d'annonce sans effet.
+  if (evince && indemnite > 0) {
+    if (typeof sendMail === 'function') {
+      await sendMail(evince, "Éviction — indemnité versée", "Le propriétaire a repris le lot « " + lot.label + " ». Une indemnité d'éviction d'un an de loyer (" + indemnite.toLocaleString('fr-FR') + " FR) vous a été versée.");
+    }
+    showToast('Indemnité versée', indemnite.toLocaleString('fr-FR') + ' FR versés à ' + evince + '.', true);
+  }
+
+  // L'etat local suit ce que le serveur a reellement ecrit (le lot et son bail sont deja retires
+  // la-bas, dans la meme transaction).
+  // Le serveur a deja supprime la ligne de bail dans la meme transaction ; cet appel ne sert plus
+  // qu'a retirer le miroir local (state.locationsActives). Le DELETE qu'il refait est sans effet.
+  if (typeof supprimerBailDuLot === 'function') await supprimerBailDuLot(id, lot);
   subdivisions.splice(idx, 1);
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  setTerrainState(id, { subdivisions: subdivisions });
+  updateUI();
   doOuvrirDivisionTerrain();
 }
 
@@ -9464,6 +9486,7 @@ async function confirmerControleCaisseFret(caisseId, pa) {
   }
 
   const parDeposant = {};
+  const convocationsRatees = [];
   lignesIllegales.forEach(l => { (parDeposant[l.deposant] = parDeposant[l.deposant] || []).push(l); });
 
   for (const [deposant, ses] of Object.entries(parDeposant)) {
@@ -9491,27 +9514,44 @@ async function confirmerControleCaisseFret(caisseId, pa) {
     // (sbSavePersonnage) comme n'importe quelle autre mutation de state ; ecrire aussi en base ici
     // l'exposerait a etre silencieusement ecrasee par le prochain sbSavePersonnage (qui reecrit
     // convocations en entier depuis state, sans le connaitre).
+    // CONVOCATION SERVEUR-AUTORITAIRE (17 septembre 2026, suite de l'audit des frontieres
+    // d'autorite). Le bloc precedent lisait puis reecrivait la fiche du deposant : refuse en
+    // silence depuis la fermeture RLS (sbUpdate rend null sans lever). Le deposant recevait donc
+    // le mail « presentez-vous sous 24h, faute de quoi vous serez arrete(e) » sans qu'aucune
+    // convocation n'existe sur sa fiche. La RPC l'ecrit reellement, sous verrou, et n'accepte que
+    // le Chef des Douanes en exercice -- l'autorite que data.js declarait deja sur cet ordre.
+    let convocationEmise = true;
     if (deposant === (state.char?.name || '')) {
       state.convocations = state.convocations || [];
       state.convocations.push(nouvelleConvocation);
     } else {
-      const perso = await sbGet('personnages', 'name=eq.' + encodeURIComponent(deposant)).catch(() => []);
-      const ligne = perso && perso[0];
-      if (ligne) {
-        const convocationsActuelles = ligne.convocations || [];
-        convocationsActuelles.push(nouvelleConvocation);
-        await sbUpdate('personnages', 'name=eq.' + encodeURIComponent(deposant), { convocations: convocationsActuelles }).catch(() => {});
+      const rc = (typeof sbConvocationDouaneEmettre === 'function')
+        ? await sbConvocationDouaneEmettre(deposant, nouvelleConvocation) : null;
+      convocationEmise = !!(rc && rc.ok === true);
+      if (!convocationEmise) {
+        console.error('[douane] convocation non emise pour ' + deposant, rc);
       }
     }
-    if (typeof sbSendMail === 'function') {
+    // Le mail n'affirme la convocation que si elle a reellement ete inscrite.
+    if (convocationEmise && typeof sbSendMail === 'function') {
       await sbSendMail('Chef des Douanes', deposant, 'Convocation officielle',
         'Un contrôle douanier a détecté et confisqué du contenu prohibé dans une caisse de fret que vous avez approvisionnée (' + noms + '). Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).',
         typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    } else if (!convocationEmise) {
+      convocationsRatees.push(deposant);
     }
   }
 
-  showToast('Contrôle positif !', 'Contenu prohibé découvert et confisqué. Le ou les responsables ont été convoqués.', true, true);
-  addJournalEntry('Contrôle douanier positif sur une caisse de fret : contenu illicite confisqué, convocation(s) émise(s).', 'event-good');
+  // Le toast dit la verite : si une convocation n'a pas pu etre inscrite, on ne pretend pas
+  // qu'elle l'a ete. La confiscation, elle, a bien eu lieu dans tous les cas.
+  if (convocationsRatees.length === 0) {
+    showToast('Contrôle positif !', 'Contenu prohibé découvert et confisqué. Le ou les responsables ont été convoqués.', true, true);
+    addJournalEntry('Contrôle douanier positif sur une caisse de fret : contenu illicite confisqué, convocation(s) émise(s).', 'event-good');
+  } else {
+    showToast('Contrôle positif — convocation incomplète',
+      'Contenu prohibé confisqué, mais la convocation de ' + convocationsRatees.join(', ') + ' n\'a pas pu être enregistrée.', false, true);
+    addJournalEntry('Contrôle douanier positif : contenu illicite confisqué. Convocation non enregistrée pour ' + convocationsRatees.join(', ') + '.', 'event-bad');
+  }
   updateUI();
 }
 
@@ -10257,12 +10297,23 @@ async function confirmerSubventionMinInt(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const montantVerse = await debiterCaisseBatimentPlafonne(state.country, 'gouvernement-min_int', montant);
-  if (montantVerse <= 0) {
-    showToast('Fonds insuffisants', "La caisse du Ministere ne couvre pas ce montant.", false);
+  // AUTORITE MINISTERIELLE ATTESTEE + ATOMICITE (17 septembre 2026, audit des frontieres
+  // d'autorite). AVANT : debit de min_int puis credit du commissariat/QHS en DEUX appels HTTP --
+  // entre les deux l'argent n'existait nulle part, et un echec du second le detruisait. Et le
+  // poste min_int n'etait verifie qu'a l'ouverture de la modale, jamais ici : cette fonction
+  // globale etait appelable depuis la console par n'importe quel joueur authentifie.
+  // MAINTENANT : une seule transaction, poste deduit par le serveur de l'identifiant de la caisse
+  // source. Montant toujours libre (un ministre choisit ce qu'il subventionne), mais l'autorite
+  // ne l'est plus.
+  const rMin = await sbCaisseMinistereMouvement(state.country, 'gouvernement-min_int', montant, buildingId, true);
+  if (!rMin || rMin.ok !== true) {
+    showToast(rMin && rMin.raison === 'solde_insuffisant' ? 'Fonds insuffisants' : 'Subvention impossible',
+      rMin && rMin.raison === 'solde_insuffisant'
+        ? "La caisse du Ministere ne couvre pas ce montant."
+        : "Réservé au Ministre de l'Intérieur en exercice.", false);
     return;
   }
-  await crediterCaisseBatiment(state.country, buildingId, montantVerse);
+  const montantVerse = Number(rMin.verse || 0);
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   showToast('Subvention versee', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' verses.', true, true);

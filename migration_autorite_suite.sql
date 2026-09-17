@@ -1,0 +1,82 @@
+-- =====================================================================================
+-- SUITE OPERATIONNELLE DE L'AUDIT D'AUTORITE — 17 septembre 2026
+-- TRACE des migrations Supabase reellement appliquees, dans cet ordre :
+--   eviction_indemniser_atteste
+--   convocation_douane_emettre
+--   caisse_ministere_mouvement_atteste
+--
+-- -------------------------------------------------------------------------------------
+-- 1. eviction_indemniser(p_country, p_building_id, p_lot_id)
+-- -------------------------------------------------------------------------------------
+-- CONSTAT : doSupprimerSubdivision debitait le proprietaire en local (state.arg -= indemnite)
+-- puis tentait de crediter le locataire evince par sbGet + sbUpdate sur la fiche d'AUTRUI.
+-- Refuse en silence depuis la fermeture RLS : le proprietaire payait, le locataire ne recevait
+-- rien, et un mail lui annoncait le versement. Le lot etait retire meme quand le paiement echouait.
+-- FERMETURE : une seule transaction (autorite, montant, occupant, debit, credit, bail, lot).
+--   * autorite : terrains_etat.proprietaire doit etre le personnage du compte connecte ;
+--   * montant  : RECALCULE serveur depuis le loyer inscrit dans l'etat du terrain (loyer * 365,
+--                regle existante inchangee) -- le navigateur ne le fournit plus ;
+--   * occupant : LU sur le bail (locations_actives), plus fourni par le navigateur ;
+--   * debit    : helvetia_debiter_fonds_ordinaires (primitive existante, fail-closed) ;
+--   * idempotence : le lot est retire dans la meme transaction ; un rejeu rend 'lot_introuvable'.
+-- PREUVE (transactions annulees, fixture creee et annulee) :
+--   indemnite recalculee 3650 = 10 x 365 ; debit proprietaire 3650 ; credit locataire 3650 ;
+--   bail supprime ; lot-A retire, lot-B intact ; rejeu -> 'lot_introuvable'.
+--   Refus : fonds insuffisants (requis 365000, liquide intact a 100, LOT NON RETIRE) ;
+--           pas proprietaire ; terrain introuvable ; lot sans occupant -> ok, indemnite 0.
+-- NOTE : le debit porte desormais sur les FONDS ORDINAIRES (liquide puis Banque nationale) et non
+-- sur `arg`. C'est la primitive canonique de depense du projet -- `arg` inclut Helvetia et les
+-- placements, qui ne doivent jamais couvrir une depense courante.
+--
+-- -------------------------------------------------------------------------------------
+-- 2. convocation_douane_emettre(p_cible, p_motif, p_jour_emission, p_heure_emission,
+--                               p_jour_limite, p_heure_limite)
+-- -------------------------------------------------------------------------------------
+-- CONSTAT : sur un controle douanier positif, la convocation etait ecrite chez le deposant du
+-- fret par sbGet + sbUpdate sur sa fiche : refuse en silence. Le deposant recevait le mail
+-- « presentez-vous sous 24h, faute de quoi vous serez arrete(e) » sans qu'aucune convocation
+-- n'existe. Le motif lire-modifier-reecrire ecrasait en outre ses autres convocations.
+-- AUTORITE : exiger_poste('chef_douanes') -- data.js declare deja requiresPost:'chef_douanes'
+-- sur l'ordre « Controler une caisse de fret ». Rien d'invente.
+-- IDEMPOTENCE : meme motif + meme jour d'emission non traitee = pas d'empilement.
+-- PREUVE : sans le poste -> refus (autorite_insuffisante) ; avec le poste, sur 4 appels
+--   (1 emission, 1 rejeu meme jour, 1 autre jour, 1 cible absente) -> exactement 2 convocations
+--   inscrites, motif et emetteur corrects.
+-- Cote client : le mail n'est envoye QUE si la convocation a ete inscrite, et le toast dit la
+-- verite quand elle ne l'a pas ete (la confiscation, elle, a bien eu lieu).
+--
+-- -------------------------------------------------------------------------------------
+-- 3. caisse_ministere_mouvement(p_source_id, p_montant, p_destination_id, p_plafonne)
+-- -------------------------------------------------------------------------------------
+-- CONSTAT : sept ordres ministeriels ne verifiaient le poste requis QU'A L'OUVERTURE de leur
+-- modale, jamais au moment de l'action et jamais cote serveur. Les fonctions etant globales
+-- (confirmerSubventionMinInt, confirmerVirementPonctuel, confirmerVirementPonctuelQHS,
+-- confirmerPropositionGrace, annulerAffaire, confirmerRechercheMilitaireDepuisMinistere...),
+-- un appel direct depuis la console d'un joueur authentifie quelconque contournait integralement
+-- l'autorite. Le grisage du bouton (requiresPost) est purement cosmetique.
+-- Second defaut : debit de la source et credit de la destination etaient DEUX appels HTTP --
+-- entre les deux, l'argent n'existait nulle part.
+--
+-- REGLE APPLIQUEE, MECANIQUEMENT DEDUITE, RIEN D'INVENTE : une caisse ministerielle porte
+-- l'identifiant '<pays>_gouvernement-<posteId>' (verifie sur les 28 caisses ministerielles des
+-- quatre empires en production). Le poste habilite est donc litteralement inscrit dans
+-- l'identifiant. On exige ce poste, plus l'appartenance au meme pays.
+-- Le MONTANT reste une intention libre : c'est voulu (un ministre choisit ce qu'il verse). Ce flux
+-- ne peut pas etre ferme par un montant canonique -- seule l'autorite peut l'etre.
+--
+-- PREUVE (transactions annulees) :
+--   joueur sans le poste            -> refus, caisses intactes (min_def 57612, caserne 200) ;
+--   ministre de la Defense          -> verse 5000, debit source 5000, credit destination 5000 ;
+--   caisse d'un AUTRE ministere     -> refus (autorite_insuffisante) ;
+--   caisse non ministerielle        -> refus ('caisse_non_ministerielle') ;
+--   meme poste, AUTRE pays          -> refus ('hors_juridiction'), solde narco inchange 6660.
+--
+-- SITES MIGRES (6) : confirmerVirementPonctuelQHS (min_just -> QHS),
+--   confirmerVirementPonctuel (min_def -> caserne), confirmerPropositionGrace (min_just, 300),
+--   annulerAffaire (min_just, 250), confirmerRechercheMilitaireDepuisMinistere (min_def, 8000),
+--   confirmerSubventionMinInt (min_int -> commissariat/QHS).
+--
+-- RESTE OUVERT : les caisses NON ministerielles (caserne, mairie, budgets municipaux) n'ont pas
+-- d'identifiant portant leur poste habilite -- etablir cette correspondance est un choix de
+-- modele, pas une deduction. Voir le rapport, section Arbitrages.
+-- =====================================================================================

@@ -6181,8 +6181,21 @@ async function confirmerPropositionGrace(idx, pa, cost) {
 
   const pays = state.country || 'republic';
   const cout = 300;
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
-  if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
+  // AUTORITE MINISTERIELLE ATTESTEE (17 septembre 2026, audit des frontieres d'autorite) :
+  // le poste habilite est deduit par le serveur de l'identifiant de la caisse source
+  // ('<pays>_gouvernement-<posteId>'), au lieu d'etre suppose depuis l'ouverture de la modale.
+  // Ces fonctions sont globales : elles etaient appelables depuis la console par n'importe
+  // quel joueur authentifie, qui ponctionnait ainsi une caisse ministerielle sans en occuper
+  // le poste. Montant et bareme inchanges.
+  const rMin = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_just', cout, null, false);
+  if (!rMin || rMin.ok !== true) {
+    showToast(rMin && rMin.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Action impossible',
+      rMin && rMin.raison === 'solde_insuffisant'
+        ? 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).'
+        : 'Réservé au Ministre de la Justice en exercice.', false);
+    return;
+  }
+  const montantVerse = Number(rMin.verse || 0);
 
   await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
 
@@ -7131,8 +7144,15 @@ async function annulerAffaire(refId, mode, pa, cost) {
       if (!r.ok) { signalerRefusCout(r); return; }
       const pays = state.country || 'republic';
       const cout = 250;
-      const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
-      if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
+      // Meme correctif d'autorite ministerielle que ci-dessus (audit du 17 septembre 2026).
+      const rMin = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_just', cout, null, false);
+      if (!rMin || rMin.ok !== true) {
+        showToast(rMin && rMin.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Action impossible',
+          rMin && rMin.raison === 'solde_insuffisant'
+            ? 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).'
+            : 'Réservé au Ministre de la Justice en exercice.', false);
+        return;
+      }
 
       affaire.status = 'annulee';
       if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
@@ -9213,9 +9233,18 @@ async function confirmerVirementPonctuel() {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (montant <= 0) return;
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', montant);
-  if (montantVerse <= 0) { showToast('Caisse insuffisante', '', false); return; }
-  await crediterCaisseBatiment(pays, 'caserne-militaire', montantVerse);
+  // Meme correctif que confirmerVirementPonctuelQHS : une seule transaction serveur, et le poste
+  // min_def deduit de l'identifiant de la caisse source au lieu d'etre suppose depuis l'ouverture
+  // de la modale. confirmerVirementPonctuel() etant globale, elle etait appelable depuis la
+  // console par n'importe quel joueur authentifie.
+  const r = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_def', montant, 'caserne-militaire', true);
+  if (!r || r.ok !== true) {
+    showToast(r && r.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Virement impossible',
+              r && r.raison === 'hors_juridiction' ? 'Cette caisse relève d\'un autre pays.'
+              : (r && r.raison === 'solde_insuffisant' ? '' : 'Réservé au Ministre de la Défense en exercice.'), false);
+    return;
+  }
+  const montantVerse = Number(r.verse || 0);
   showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers la caserne.', true, true);
   addJournalEntry('Virement ponctuel de ' + montantVerse + ' FR vers la caserne.', 'event-good');
 }
@@ -10776,8 +10805,20 @@ async function ouvrirRechercheMilitaireDepuisMinistere() {
 async function confirmerRechercheMilitaireDepuisMinistere(arme) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_def', COUT_RECHERCHE);
-  if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas le coût de la recherche.', false); return; }
+  // AUTORITE MINISTERIELLE ATTESTEE (17 septembre 2026, audit des frontieres d'autorite) :
+  // le poste habilite est deduit par le serveur de l'identifiant de la caisse source
+  // ('<pays>_gouvernement-<posteId>'), au lieu d'etre suppose depuis l'ouverture de la modale.
+  // Ces fonctions sont globales : elles etaient appelables depuis la console par n'importe
+  // quel joueur authentifie, qui ponctionnait ainsi une caisse ministerielle sans en occuper
+  // le poste. Montant et bareme inchanges.
+  const rMin = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_def', COUT_RECHERCHE, null, false);
+  if (!rMin || rMin.ok !== true) {
+    showToast(rMin && rMin.raison === 'solde_insuffisant' ? 'Budget insuffisant' : 'Action impossible',
+      rMin && rMin.raison === 'solde_insuffisant'
+        ? 'Votre caisse ministérielle ne couvre pas le coût de la recherche.'
+        : 'Réservé au Ministre de la Défense en exercice.', false);
+    return;
+  }
 
   const budgetNat = await chargerBudgetNational(pays);
   budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS, dateFin: Date.now() + DUREE_RECHERCHE_JOURS * 86400000 } };
@@ -10845,9 +10886,22 @@ async function confirmerVirementPonctuelQHS() {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (montant <= 0) return;
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', montant);
-  if (montantVerse <= 0) { showToast('Caisse insuffisante', '', false); return; }
-  await crediterCaisseBatiment(pays, 'qhs-prison', montantVerse);
+  // VIREMENT MINISTERIEL ATTESTE (17 septembre 2026, suite de l'audit des frontieres d'autorite).
+  // AVANT : deux appels HTTP separes (debit min_just, puis credit QHS) -- entre les deux, l'argent
+  // n'existait nulle part, et un echec du second le detruisait. Surtout, le poste min_just n'etait
+  // verifie qu'a l'OUVERTURE de la modale, jamais ici : confirmerVirementPonctuelQHS() etant une
+  // fonction globale, n'importe quel joueur authentifie pouvait l'appeler depuis la console et
+  // vider la caisse du ministere de la Justice vers le QHS.
+  // MAINTENANT : une seule transaction serveur. Le poste habilite est deduit de l'identifiant meme
+  // de la caisse ('<pays>_gouvernement-min_just'), et le pays de l'acteur doit correspondre.
+  const r = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_just', montant, 'qhs-prison', true);
+  if (!r || r.ok !== true) {
+    showToast(r && r.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Virement impossible',
+              r && r.raison === 'hors_juridiction' ? 'Cette caisse relève d\'un autre pays.'
+              : (r && r.raison === 'solde_insuffisant' ? '' : 'Réservé au Ministre de la Justice en exercice.'), false);
+    return;
+  }
+  const montantVerse = Number(r.verse || 0);
   showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers le QHS.', true, true);
 }
 

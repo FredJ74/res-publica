@@ -531,11 +531,22 @@ async function verifierConqueteReligieuse(pays, ville, auteur, quantiteAjoutee) 
   if (titulaireLocal?.nom !== auteur) {
     const scoreTitulaire = await scoreTitulaireActuel(pays, 'pretre', ville);
     if (scoreAuteur > scoreTitulaire) { // strictement -- une egalite ne suffit jamais
-      if (typeof sbSetTitulairePnj === 'function') await sbSetTitulairePnj(pays, 'pretre', ville, auteur).catch(() => {});
-      const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
-      showToast('Charge conquise !', 'Vous devenez Prêtre titulaire de ' + nomVille + '.', true, true);
-      addJournalEntry('Vous devenez Prêtre titulaire de ' + nomVille + '.', 'event-good');
-      if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient Prêtre titulaire de ' + nomVille + '.');
+      // ANNONCE APRES CONFIRMATION (17 septembre 2026, audit des frontieres d'autorite).
+      // L'attribution partait en .catch(() => {}) et la conquete etait annoncee NATIONALEMENT
+      // (addExternalEvent, irreversible aux yeux des autres joueurs) sans qu'on sache si elle
+      // avait ete ecrite. Or sbSetTitulairePnj ne leve jamais : il rend null. Un joueur pouvait
+      // donc etre proclame Pretre titulaire sans jamais le devenir en base -- et sans pouvoir
+      // exercer la moindre prerogative de la charge.
+      const attribue = (typeof sbSetTitulairePnj === 'function')
+        ? await sbSetTitulairePnj(pays, 'pretre', ville, auteur) : null;
+      if (attribue) {
+        const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+        showToast('Charge conquise !', 'Vous devenez Prêtre titulaire de ' + nomVille + '.', true, true);
+        addJournalEntry('Vous devenez Prêtre titulaire de ' + nomVille + '.', 'event-good');
+        if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient Prêtre titulaire de ' + nomVille + '.');
+      } else {
+        console.error('[religion] attribution de la charge de pretre non enregistree', { pays, ville, auteur });
+      }
     }
   }
 
@@ -547,10 +558,18 @@ async function verifierConqueteReligieuse(pays, ville, auteur, quantiteAjoutee) 
   if (grandPretre?.nom === auteur) return;
   const scoreGrandPretre = await scoreTitulaireActuel(pays, 'grand_pretre', null);
   if (scoreAuteur > scoreGrandPretre) {
-    if (typeof sbSetTitulairePnj === 'function') await sbSetTitulairePnj(pays, 'grand_pretre', null, auteur).catch(() => {});
-    showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true);
-    addJournalEntry('Vous devenez Grand Prêtre national de Républia.', 'event-good');
-    if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient le nouveau Grand Prêtre national de Républia.');
+    // Meme correctif : la charge nationale la plus visible du jeu ne doit pas etre proclamee
+    // avant d'exister. Sans cela, le « Grand Pretre » annonce ne pouvait exercer aucun de ses
+    // pouvoirs (excommunication...), puisque ceux-ci relisent le titulaire reel.
+    const attribueGP = (typeof sbSetTitulairePnj === 'function')
+      ? await sbSetTitulairePnj(pays, 'grand_pretre', null, auteur) : null;
+    if (attribueGP) {
+      showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true);
+      addJournalEntry('Vous devenez Grand Prêtre national de Républia.', 'event-good');
+      if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient le nouveau Grand Prêtre national de Républia.');
+    } else {
+      console.error('[religion] attribution du Grand Pretre non enregistree', { pays, auteur });
+    }
   }
 }
 

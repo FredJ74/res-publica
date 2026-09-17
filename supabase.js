@@ -1432,6 +1432,50 @@ async function sbInit() {
 //     (reserve au Ministre de l'Interieur, montant relu sur la demande).
 // L'INSERT client sur dons_en_attente est desormais refuse par RLS : ne pas recreer de raccourci.
 
+// VIREMENT DEPUIS UNE CAISSE MINISTERIELLE, en UNE seule transaction serveur.
+// Le poste habilite n'est pas transmis par le client : le serveur le deduit de l'identifiant de la
+// caisse source, qui s'ecrit toujours '<pays>_gouvernement-<posteId>'. Il verifie en plus que
+// l'acteur appartient au meme pays. La destination est creditee dans la meme transaction que le
+// debit -- deux appels HTTP separes laissaient l'argent disparaitre entre les deux.
+// destination = null pour une depense seche (frais de dossier, recherche).
+// plafonne = true : verse au plus ce qui est disponible ; false : tout ou rien.
+async function sbCaisseMinistereMouvement(pays, souscleSource, montant, souscleDestination, plafonne) {
+  const rows = await sbRpc('caisse_ministere_mouvement', {
+    p_source_id: pays + '_' + souscleSource,
+    p_montant: montant,
+    p_destination_id: souscleDestination ? (pays + '_' + souscleDestination) : null,
+    p_plafonne: !!plafonne
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Convocation douaniere emise chez un TIERS (le deposant du fret). Ecriture serveur sous verrou,
+// reservee au Chef des Douanes en exercice -- l'autorite que data.js declare deja sur l'ordre
+// « Controler une caisse de fret ». Idempotente : meme motif + meme jour d'emission non traitee
+// ne s'empile pas. Renvoie {ok, convocation} ou un motif de refus.
+async function sbConvocationDouaneEmettre(cible, convocation) {
+  const rows = await sbRpc('convocation_douane_emettre', {
+    p_cible: cible,
+    p_motif: convocation.motif,
+    p_jour_emission: convocation.jourEmission,
+    p_heure_emission: convocation.heureEmission,
+    p_jour_limite: convocation.jourLimite,
+    p_heure_limite: convocation.heureLimite
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Eviction d'un locataire de lot : UNE seule transaction serveur (controle du proprietaire,
+// recalcul de l'indemnite depuis le loyer inscrit dans l'etat du terrain, lecture de l'occupant
+// sur le bail, debit, credit, suppression du bail, retrait du lot). Le navigateur ne fournit ni
+// le montant ni le beneficiaire. Renvoie {ok, occupant, indemnite, arg, liquide} ou un motif.
+async function sbEvictionIndemniser(country, buildingId, lotId) {
+  const rows = await sbRpc('eviction_indemniser', {
+    p_country: country, p_building_id: buildingId, p_lot_id: lotId
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Debauchage d'un PNJ employe : retire le PNJ de la liste de son ANCIEN employeur, sous verrou,
 // cote serveur. Une ecriture cliente sur la fiche d'autrui echouait toujours en silence et
 // laissait le PNJ employe des deux joueurs a la fois. Renvoie {ok, retire, deja_parti...}.
