@@ -3255,6 +3255,14 @@ function ouvrirDetailObjet(idx) {
   if (item.type === 'medicament') {
     html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
   }
+  // TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026). Reutilise le meme motif d'action
+  // d'objet que le medicament : un bouton dans le detail, pas un systeme parallele. Le choix de la
+  // cible et le calcul du gain sont SERVEUR (militaire_trousse_utiliser) : le gain vaut +2 PA et
+  // +1 par tranche complete de 25 de Secourisme DU SOIGNANT, et la trousse disparait dans la meme
+  // transaction que le soin.
+  if (item.produitMilitaire === 'trousse_secours') {
+    html += '<button onclick="ouvrirSoinTrousse();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Soigner</button>';
+  }
   if (item.type === 'explosif') {
     html += '<button onclick="doUtiliserExplosifs();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Utiliser</button>';
   }
@@ -3358,3 +3366,91 @@ function renderRulesContent(section) {
     '</div>';
 }
 
+
+
+// =====================
+// TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026)
+// =====================
+// Le gain est calcule et applique SERVEUR : +2 PA, +1 par tranche complete de 25 de Secourisme du
+// SOIGNANT, plafonne par le maximum de PA existant. La trousse quitte l'inventaire dans la meme
+// transaction. Les cibles proposees sont les joueurs reellement presents dans la piece -- meme
+// source que le don d'objet (sbGetPresencesInRoom), pas une liste inventee.
+async function ouvrirSoinTrousse() {
+  const presents = (typeof sbGetPresencesInRoom === 'function')
+    ? await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => [])
+    : [];
+  const autres = (presents || []).map(p => p.name || p.nom).filter(n => n && n !== state.char?.name);
+
+  document.getElementById('postes-modal-title').textContent = 'Premiers secours';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">La trousse est à usage unique. Son efficacité dépend de VOTRE compétence de Secourisme : +2 PA de base, et +1 par tranche complète de 25 points.</div>';
+  html += '<button onclick="confirmerSoinTrousse(\'\')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Me soigner moi-même</button>';
+  if (!autres.length) {
+    html += '<div style="font-size:.76rem;color:#5a5040;font-style:italic">Personne d\'autre n\'est présent ici.</div>';
+  } else {
+    autres.forEach(n => {
+      html += '<button onclick="confirmerSoinTrousse(\'' + encodeURIComponent(n) + '\')" style="width:100%;margin-bottom:.4rem;padding:.45rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">Soigner ' + escapeHtmlText(n) + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSoinTrousse(cibleEncodee) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const cible = decodeURIComponent(cibleEncodee || '');
+  if (typeof sbMilitaireTrousseUtiliser !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireTrousseUtiliser(cible || null);
+  if (!r || r.ok !== true) {
+    showToast('Soins impossibles',
+      r?.raison === 'aucune_trousse' ? 'Vous n\'avez aucune trousse de premiers secours.'
+      : r?.raison === 'cible_introuvable' ? 'Cette personne est introuvable.'
+      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  // On recopie l'etat arrete par le serveur, et on relit l'inventaire qu'il a modifie.
+  const pourMoi = !cible || cible === state.char?.name;
+  if (pourMoi && typeof r.pa_apres === 'number') state.pa = r.pa_apres;
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+    if (l && l[0] && Array.isArray(l[0].inventory)) {
+      state.inventory = l[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
+  updateUI();
+  const gain = Number(r.gain_reel || 0), theo = Number(r.gain_theorique || 0);
+  showToast('Premiers secours', (pourMoi ? 'Vous récupérez ' : (cible + ' récupère ')) + gain + ' PA'
+    + (gain < theo ? ' (plafond atteint, ' + theo + ' possibles).' : '.'), true, true);
+  addJournalEntry('Trousse de premiers secours utilisée' + (pourMoi ? '' : ' sur ' + cible) + ' : +' + gain + ' PA.', 'event-good');
+}
+
+// Retrait d'une trousse a l'Infirmerie. La fabrication est faite A LA DEMANDE par le serveur, sur
+// le stock de l'infirmerie : aucun ordre de production prealable, comme pour les rations du
+// refectoire. Si un des trois intrants manque, RIEN n'est consomme.
+async function doRetirerTrousse() {
+  if (typeof sbMilitaireTrousseRetirer !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireTrousseRetirer();
+  if (!r || r.ok !== true) {
+    const m = r?.raison;
+    showToast('Impossible',
+      m === 'ingredients_insuffisants' ? 'L\'infirmerie manque de matières : ' + (r.textile||0) + ' textile, ' + (r.medicaments||0) + ' médicament(s), ' + (r.desinfectant||0) + ' désinfectant.'
+      : m === 'pas_sur_place' ? 'Vous devez être à la caserne.'
+      : m === 'inventaire_plein' ? 'Votre inventaire est plein.'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+    if (l && l[0] && Array.isArray(l[0].inventory)) {
+      state.inventory = l[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
+  updateUI();
+  showToast('Trousse délivrée', 'Une trousse de premiers secours vient d\'être préparée pour vous.', true, true);
+  addJournalEntry('Retrait d\'une trousse de premiers secours à l\'infirmerie.', 'event-info');
+}

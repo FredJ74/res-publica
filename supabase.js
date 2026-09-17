@@ -1524,6 +1524,23 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- INFIRMERIE ET TROUSSES (phase 2, 18 septembre 2026) ----
+// Meme patron que le refectoire : le stock de matieres vit dans budgets_nationaux.data.infirmerie
+// et la trousse est FABRIQUEE A LA DEMANDE au retrait. Les trois intrants (1 textile,
+// 1 medicament, 1 desinfectant) sont deduits atomiquement -- s'il en manque un, rien n'est
+// consomme ni cree.
+async function sbMilitaireTrousseRetirer() {
+  const rows = await sbRpc('militaire_trousse_retirer', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Usage unique. Gain = +2 PA, +1 par tranche COMPLETE de 25 de Secourisme DU SOIGNANT, plafonne
+// par le maximum de PA. La trousse quitte l'inventaire dans la meme transaction que le soin.
+async function sbMilitaireTrousseUtiliser(cible) {
+  const rows = await sbRpc('militaire_trousse_utiliser', { p_cible: cible || null });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- SOLDES MILITAIRES (phase 2, 18 septembre 2026) ----
 // Le payeur est la CAISSE DE LA CASERNE, plus jamais une creation monetaire cliente. Registre
 // quotidien a cle unique « nom:jour » qui sert d'anti-rejeu, debit PLAFONNE par la caisse, et la

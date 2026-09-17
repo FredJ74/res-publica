@@ -4538,6 +4538,25 @@ const BUILDINGS = {
           {fn:'stage_caserne', label:'Stage à la Caserne', pa:3, cost:0, type:'legal', icon:'ti-heart-bolt', successRate:100, desc:'Ouvert a tout le monde. +5 Volonte. 1 fois par jour, maximum 3 jours consecutifs puis 7 jours de repos obligatoire.'}
         ]
       },
+      // INFIRMERIE (phase 2, 18 septembre 2026). Destination des PJ NEUTRALISES au combat, et lieu
+      // de fabrication des trousses de premiers secours. Un PJ simplement blesse n'y est PAS
+      // envoye : il reste sur le terrain et recupere par le sommeil, la nourriture, la ration, le
+      // bivouac ou une trousse.
+      //
+      // AUCUN imageUrl : aucun fond de salle d'infirmerie n'existe dans le depot, et inventer un
+      // nom de fichier produirait une image morte. Le degrade de repli suffit -- voir le rapport
+      // pour la liste exacte des assets attendus.
+      infirmerie: {
+        name: "Infirmerie",
+        imageBg: "linear-gradient(135deg,#0a1010,#0f1a18)",
+        desc: "L'infirmerie de la caserne. Odeur d'antiseptique, lits de camp alignes, armoire a pharmacie fermee a cle.",
+        persons: [
+          {name:'Ève Toahémarch (PNJ)', role:'PNJ - Infirmière militaire', rel:'neutral', job:'infirmier_mil'}
+        ],
+        orders: [
+          {fn:'retirer_trousse', label:'Retirer une trousse de premiers secours', pa:0, cost:0, type:'legal', icon:'ti-first-aid-kit', successRate:100, desc:'Fabriquee a la demande : 1 textile + 1 medicament + 1 desinfectant pris sur le stock de l\'infirmerie. Usage unique.'}
+        ]
+      },
       salle_commandement: {
         name: "Salle de Commandement",
         imageBg: "linear-gradient(135deg,#060f06,#0a180a)",

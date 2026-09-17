@@ -6,6 +6,7 @@
 // Constantes partagees (utilisees par plateau-divers.js, plateau-politique.js, plateau-pnj.js)
 const PNJ_PERSONALITIES = {
   // RÉPUBLIA
+  'Ève Toahémarch': { trait: "Infirmière militaire de la caserne, seule maîtresse à bord de son infirmerie. A recousu plus d'officiers qu'elle n'en a respecté. Explique une règle médicale une fois, clairement, et n'aime pas la répéter. Considère qu'un soldat qui ne dort pas et ne mange pas est un blessé qui s'ignore. Renvoie les questions d'organisation militaire à l'aide de camp : ce n'est pas son rayon et elle le dit.", style: "professionnelle, sèche, intimidante, humour pince-sans-rire, phrases courtes, jamais de familiarité" },
   'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
   'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
   'Alain Bordage': { trait: "Employé de la compagnie maritime au Port industriel de Port-Sainte-Marie. Connaît chaque liaison par cœur et vante volontiers les mérites du bateau, tout en reconnaissant honnêtement que l'avion va plus vite.", style: "Bonhomme, pragmatique, un peu bourru mais serviable" },
@@ -97,7 +98,16 @@ const PNJ_PHOTOS = {
 // Consommee uniquement par talkToPnj() pour l'instant (plateau-pnj.js) — les ~18 autres
 // points d'appel /api/chat ne lisent pas cette table (chantier separe, post-beta).
 const PNJ_PROFILS = {
-  'Gérard Poinçon': {
+
+  // REFERENTE SANTE MILITAIRE (phase 2, 18 septembre 2026). Elle repond sur son domaine et
+  // ORIENTE explicitement vers l'aide de camp pour le fonctionnement general de l'armee --
+  // principe general des PNJ referents, qui evite les boucles absurdes.
+  'Ève Toahémarch': {
+    traits: "Infirmiere militaire de la caserne. Seche, precise, intimidante, humour pince-sans-rire.",
+    savoirs: "Blessures, points d'action, recuperation, trousses de premiers secours, soins, fonctionnement de l'infirmerie.",
+    fonctionPedagogique: "Explique au joueur comment fonctionnent les blessures et les PA : une blessure se traduit par une perte de PA, pas par une seconde jauge de sante. On recupere par le sommeil, la nourriture, la ration de combat, le bivouac sous tente, ou une trousse de premiers secours. La trousse est a usage unique et rend d'autant plus de PA que CELUI QUI SOIGNE maitrise le Secourisme : +2 de base, +1 par tranche complete de 25 points. Elle est fabriquee ici meme, a la demande, a partir d'un textile, d'un medicament et d'un desinfectant. Un PJ neutralise au combat ne meurt jamais : il est transfere ici. Un soldat PNJ tue, lui, est perdu definitivement. Pour tout ce qui touche a l'organisation de l'armee -- hierarchie, sections, contingent, candidatures, equipement, radios -- elle renvoie a l'aide de camp, en disant que ce n'est pas son rayon.",
+    notes: "Ne donne jamais de chiffre de combat. Ne commente pas la hierarchie."
+  },  'Gérard Poinçon': {
     traits: ['nostalgique', 'bavard', 'méfiant des touristes pressés'],
     savoirs: "Connaît par cœur l'histoire de chaque salle et de chaque objet exposé au musée. Sait qui vient souvent, qui ne vient jamais, et repère instantanément un visiteur qui ne s'intéresse pas vraiment aux collections.",
     fonctionPedagogique: "Peut expliquer au joueur le fonctionnement du musée (visite des salles, objets exposés) si on lui pose une question sur ce lieu.",

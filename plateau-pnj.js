@@ -1211,6 +1211,28 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
+  // ==========================================================================================
+  // EVE TOAHEMARCH (phase 2, 18 septembre 2026) — overrides deterministes.
+  // ==========================================================================================
+  // Reutilise le motif d'override existant : nom court + regex sur la phrase du joueur, avant
+  // tout appel a l'IA. Aucun sous-systeme de flirt n'est cree : deux repliques, une escalade, puis
+  // retour aux sujets medicaux. L'escalade est memorisee sur state.char (persiste), pas sur la
+  // racine de state qui n'est jamais sauvegardee.
+  if (nomCourtEnigme === 'Ève Toahémarch') {
+    if (/flirt|jolie|belle|charmante|dr(a|â)gue|s(o|ô)rtir avec|amour|s(é|e)duire|c(é|e)libataire|un verre/i.test(action)) {
+      if (state.char) state.char.eveInsistance = (state.char.eveInsistance || 0) + 1;
+      speech.textContent = ((state.char?.eveInsistance || 1) <= 1)
+        ? "Je vais doubler la ration de bromure dans vos soins, ça va calmer vos envies."
+        : "Insistez encore, et ce n'est pas la jambe que je vais amputer.";
+      return;
+    }
+    // Orientation explicite : elle ne repond pas sur l'organisation militaire.
+    if (/hi(é|e)rarchie|compagnie|section|contingent|r(é|e)serve|candidature|grade|lieutenant|capitaine|commandant|radio|equipement|équipement|entra(î|i)nement|decoration|décoration/i.test(action)) {
+      speech.textContent = "Ce n'est pas mon rayon. Voyez l'aide de camp, c'est lui qui tient la boutique. Moi je recouds ce qu'il vous renvoie.";
+      return;
+    }
+  }
+
   // Enigme du portrait disparu : temoignages scriptes des 3 pensionnaires de l'EHPAD.
   // Ne se declenchent que si l'enigme est active (evite un texte hors-sujet sinon).
   const nomCourtEhpad = (pnj.name || '').replace(' (PNJ)', '').trim();
