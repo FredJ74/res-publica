@@ -726,18 +726,30 @@ async function confirmerRetraitMilitaire(produit) {
     return;
   }
 
-  // L'objet ne rejoint l'inventaire qu'APRES la sortie de stock effective : jamais d'unite
-  // creee de rien, jamais d'unite perdue entre les deux.
-  const lots = Array.isArray(res.lots) ? res.lots : [];
-  let poses = 0;
-  lots.forEach(function (l) {
-    const n = Math.max(0, Number(l.qte) || 0);
-    for (let i = 0; i < n; i++) { if (poserObjetMilitaire(produit, l.lot)) poses++; }
-  });
+  // ==========================================================================================
+  // L'INVENTAIRE EST DESORMAIS ECRIT PAR LE SERVEUR (18 septembre 2026).
+  // ==========================================================================================
+  // Ce bloc fabriquait les objets cote client (poserObjetMilitaire) puis republiait tout le blob
+  // inventory. L'objet arrivait bien chez le Lieutenant, mais son EXISTENCE etait decidee par le
+  // navigateur : un client modifie pouvait retirer une unite et s'en ajouter cent. militaire_retrait
+  // ecrit maintenant les objets elle-meme, dans la meme transaction que le debit de stock et
+  // l'inscription au registre.
+  //
+  // On RELIT donc l'inventaire arrete par le serveur au lieu de le recalculer. Le faire encore ici
+  // DOUBLERAIT les objets.
+  const poses = Number(res.objets_poses || 0);
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const lignes = await sbGet('personnages',
+      'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(function () { return null; });
+    if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
+      state.inventory = lignes[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(function () {});
   showToast('Matériel retiré', poses + ' × ' + r.label + ' — inscrit au registre.', true, true);
   addJournalEntry('Retrait réglementaire : ' + poses + ' × ' + r.label + ' (registre de l\'armurerie militaire).', 'event-info');
 }
@@ -745,6 +757,10 @@ async function confirmerRetraitMilitaire(produit) {
 // Objet d'inventaire militaire. Les armes gardent type:'arme' pour rester fonctionnellement des
 // armes partout ailleurs dans le jeu ; ce qui les distingue est sousType:'militaire' et le lot,
 // qui voyagent avec l'objet -- donc survivent au don, au depot, au ramassage et au vol.
+//
+// PLUS APPELEE PAR LE RETRAIT depuis le 18 septembre 2026 : militaire_retrait ecrit desormais les
+// objets cote serveur, et les refabriquer ici les DOUBLERAIT. La forme de l'objet reste la source
+// de verite recopiee dans la RPC -- toute evolution doit etre faite des DEUX cotes.
 function poserObjetMilitaire(produit, lot) {
   const r = recetteMilitaire(produit);
   if (!r) return false;
