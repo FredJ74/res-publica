@@ -6492,19 +6492,59 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
 
   if (action === 'redressement_fiscal') {
     document.getElementById('modal-postes')?.classList.remove('open');
-    // Deduction PA centralisee (Lot 2C) -- avant la premiere mutation (solde de la cible).
+    // ==========================================================================================
+    // REDRESSEMENT FISCAL — SERVEUR AUTORITAIRE (17 septembre 2026, audit des frontieres
+    // d'autorite). Ce bloc enchainait trois ecritures clientes independantes :
+    //   1. ajusterSoldeCibleFiscale()  -> debit de la cible
+    //   2. chargerBudgetNational + sbSaveBudgetNational().catch(() => {})  -> versement au Tresor
+    //   3. mutation de INDICES_NATIONAUX en memoire
+    // avec trois defauts :
+    //   a) AUCUN CONTROLE D'AUTORITE. Le poste min_fin n'etait verifie qu'a l'OUVERTURE du
+    //      panneau (ouvrirPilotageFiscalBudgetaire). Cette fonction, appelable depuis un onclick,
+    //      ne le reverifiait pas -- et les cibles club_sportif et organisation ecrivaient dans des
+    //      tables ouvertes (budgets_clubs a RLS desactivee, organisations en policy USING true).
+    //      N'importe quel client pouvait donc ponctionner un club ou une organisation, 2 PA la
+    //      passe, sans etre Ministre des Finances.
+    //   b) NON ATOMIQUE. Debit et versement au Tresor etaient deux requetes separees, le second
+    //      en reecriture du blob entier de budgets_nationaux sans verrou, retour jamais lu.
+    //   c) MONTANT DECIDE PAR LE NAVIGATEUR (litteral 2000, invisible du serveur).
+    // La RPC fait les deux mouvements sous verrou dans une seule transaction, exige le poste
+    // min_fin reel, replafonne sur la caisse reelle de la cible, et porte le montant de 2000 --
+    // la meme valeur qu'ici, simplement hors de portee du navigateur. Rien d'autre ne change.
+    // ==========================================================================================
     const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
     if (!rPa.ok) { signalerRefusCout(rPa); return; }
-    const montantVise = 2000;
-    const montantPreleve = -(await ajusterSoldeCibleFiscale(typeCible, idCible, -montantVise));
-    const budgetNat = await chargerBudgetNational(state.country);
-    budgetNat.reserveJour = (budgetNat.reserveJour || 0) + montantPreleve;
-    await sbSaveBudgetNational(state.country, budgetNat).catch(() => {});
+
+    // La cible « citoyen » n'a JAMAIS fonctionne : la vue personnages masque la colonne arg d'un
+    // tiers (lue null, ramenee a 0) et son trigger INSTEAD OF refuse l'ecriture. Le prelevement
+    // valait donc toujours 0 -- mais le toast, le journal et le mail a la cible annoncaient
+    // quand meme un redressement. On dit desormais la verite. L'ACTIVER serait un choix de game
+    // design (prelever reellement 2000 FR sur la fortune d'un joueur), pas un correctif : la RPC
+    // ne couvre donc pas ce type, et l'arbitrage reste a rendre.
+    if (typeCible === 'citoyen') {
+      showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur. Les 2 PA ont été engagés.', false);
+      addJournalEntry('Redressement fiscal contre ' + nomCible + ' : aucun prélèvement possible sur un particulier.', 'event-bad');
+      return;
+    }
+
+    const rFisc = typeof sbRedressementFiscalAppliquer === 'function'
+      ? await sbRedressementFiscalAppliquer(typeCible, idCible) : null;
+    if (!rFisc || rFisc.ok !== true) {
+      const motif = rFisc?.raison || 'indisponible';
+      showToast('Redressement refusé',
+        motif === 'autorite_insuffisante' ? 'Réservé au Ministre des Finances en exercice.'
+        : motif === 'caisse_vide' ? 'La caisse de ' + nomCible + ' est vide.'
+        : motif === 'cible_introuvable' ? nomCible + ' est introuvable.'
+        : 'Refus du serveur (' + motif + ').', false);
+      return;
+    }
+    const montantPreleve = Number(rFisc.montant || 0);
+    // INDICES_NATIONAUX vit en memoire (data.js) et n'a aucune persistance : ce -3 IE ne survit
+    // pas a un rafraichissement. Comportement inchange, signale pour memoire.
     INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
     updateUI();
     showToast('Redressement', 'Redressement fiscal contre ' + nomCible + ' : ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' prélevés pour le Trésor. -3 IE.', true, true);
     addJournalEntry('Redressement fiscal contre ' + nomCible + ' (+' + montantPreleve + ' FR pour l\'État).', 'event-info');
-    if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Redressement fiscal', 'Un redressement fiscal de ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' vous a été notifié et prélevé.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
     return;
   }
 

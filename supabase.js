@@ -1474,6 +1474,21 @@ async function sbVenteStructureEncaisser(fn, pa, cost, caisseId, ville) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// REDRESSEMENT FISCAL ATTESTE (17 septembre 2026). Debit de la cible ET versement au Tresor dans
+// UNE transaction, sous verrou, apres verification du poste min_fin REEL. Le chemin client
+// precedent n'avait aucun controle d'autorite dans sa fonction d'execution (le poste n'etait
+// verifie qu'a l'ouverture du panneau) et ecrivait dans des tables ouvertes : un client modifie
+// pouvait ponctionner un club sportif ou une organisation sans etre Ministre des Finances.
+// Montant porte par le serveur (2000 FR, la valeur deja en vigueur cote client).
+// Types couverts : club_sportif, organisation, entreprise. La cible « citoyen » n'est PAS couverte
+// -- elle n'a jamais fonctionne, et l'activer releve d'un arbitrage de game design.
+// Renvoie {ok, montant, pays} ou {ok:false, raison}.
+async function sbRedressementFiscalAppliquer(typeCible, idCible) {
+  const rows = await sbRpc('redressement_fiscal_appliquer',
+    { p_type: typeCible, p_cible: idCible });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Convocation douaniere emise chez un TIERS (le deposant du fret). Ecriture serveur sous verrou,
 // reservee au Chef des Douanes en exercice -- l'autorite que data.js declare deja sur l'ordre
 // « Controler une caisse de fret ». Idempotente : meme motif + meme jour d'emission non traitee
