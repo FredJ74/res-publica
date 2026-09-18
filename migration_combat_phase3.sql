@@ -1,0 +1,37 @@
+-- ============================================================================
+-- ARMEE PHASE 3 : MOTEUR PHYSIQUE DE COMBAT
+-- Trace des migrations appliquees via MCP. Ce fichier documente, il ne s'execute pas.
+-- ============================================================================
+
+-- ============================================================================
+-- LOT 1 : FERMETURE DU CANAL DE DEGATS `impacts_indices_attente` (19 septembre 2026)
+-- Applique sous `impacts_indices_attente_fermeture`.
+--
+-- La table etait en RLS mais portait une politique unique `allow_all` en ALL, USING true /
+-- WITH CHECK true, et anon comme authenticated avaient INSERT/UPDATE/SELECT. N'importe qui
+-- pouvait deposer un hp_set arbitraire sur n'importe quelle victime -- sans jet, sans arme, sans
+-- PA, sans etre present, sans meme etre authentifie.
+--
+-- INVENTAIRE EXHAUSTIF, fait AVANT de fermer :
+--   hp_set              x4 : Neutraliser reussi, Neutraliser echec partiel, explosion, mission
+--                            militaire `assassiner`
+--   poison_start        x1 : empoisonnement
+--   moral_carte_postale x1 : bonus de lecture d'une carte postale
+--   pop / inf / dis     x0 : consommes par le client, plus AUCUN producteur -- vestiges
+--   consommateur unique : traiterImpactsEnAttente (plateau-communication.js)
+--
+-- DECOUVERTE AU PASSAGE : le producteur d'empoisonnement envoie `poisonType` et `statsTouchees`,
+-- DEUX COLONNES QUI N'EXISTENT PAS, et omet `delta` qui est NOT NULL sans defaut. Cet INSERT a
+-- donc toujours ete rejete par PostgREST, silencieusement -- l'empoisonnement n'a jamais atteint
+-- sa victime. La RPC refuse desormais VISIBLEMENT (raison `schema_incomplet`) au lieu d'echouer
+-- sans bruit. Le reparer demande un schema, pas un correctif de canal : lot a part.
+--
+-- CE QUE CETTE FERMETURE FAIT ET NE FAIT PAS : elle rend le CANAL atteste (identite, existence de
+-- la victime, et CO-PRESENCE REELLE pour tout degat physique). Elle ne rend pas le JET de
+-- Neutraliser serveur -- dette anterieure et distincte. Le moteur militaire, lui, n'emprunte pas
+-- ce canal : il travaille en PA canoniques.
+--
+-- Banc 10/10 : anon et authenticated refuses en INSERT direct ; RPC a distance refusee
+-- (pas_au_meme_endroit) ; co-presence acceptee ; rejeu du meme id sans second effet ; poison
+-- refuse visiblement ; la victime lit sa file, un tiers ne la voit pas ; un tiers ne peut pas
+-- marquer traite, la victime oui.

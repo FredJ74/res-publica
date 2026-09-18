@@ -3470,8 +3470,25 @@ async function sbGetActionsTracablesParAuteur(country, auteur, typeAction, jourA
 // Necessaire pour qu'un appelant puisse determiner de facon fiable "cette ligne existe-t-elle
 // reellement en base ?" a partir de la seule valeur de retour (non-null = oui), sans jamais
 // pouvoir se retrouver bloque par un doublon qu'il ne peut plus jamais confirmer.
+// CANAL ATTESTE (19 septembre 2026). C'etait un sbInsert DIRECT sur une table dont la politique
+// RLS etait `allow_all` : n'importe qui, y compris `anon`, pouvait deposer un hp_set arbitraire
+// sur n'importe quelle victime -- sans jet, sans arme, sans PA, sans etre present. La table est
+// desormais fermee en ecriture et impact_deposer revalide serveur : identite de l'acteur,
+// existence de la victime, et CO-PRESENCE REELLE pour tout degat physique.
+//
+// Un seul point de passage change ici, donc les cinq producteurs (Neutraliser reussi, Neutraliser
+// echec partiel, explosion, empoisonnement, carte postale) sont migres d'un coup, sans toucher
+// leurs sites d'appel.
+//
+// Le retour reste FAUX-SUR-ECHEC comme avant (null), pour ne rien changer aux appelants qui
+// l'ignorent deja -- sauf la carte postale, qui teste le resultat et continue donc a fonctionner.
 async function sbDeposerImpactIndice(impact) {
-  return sbInsert('impacts_indices_attente', impact, 'ignore-duplicates');
+  const rows = await sbRpc('impact_deposer', {
+    p_id: impact?.id, p_victime: impact?.victime, p_indice: impact?.indice,
+    p_delta: Math.round(Number(impact?.delta) || 0), p_palier: impact?.palier || null
+  });
+  const r = rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+  return (r && r.ok === true) ? r : null;
 }
 
 async function sbRecupererImpactsEnAttente(victime) {
@@ -3479,8 +3496,10 @@ async function sbRecupererImpactsEnAttente(victime) {
   return sbGet('impacts_indices_attente', filtre) || [];
 }
 
+// Reserve a la VICTIME : la RPC ne marque que ses propres lignes. Un tiers obtient marques:0.
 async function sbMarquerImpactTraite(impactId) {
-  return sbUpdate('impacts_indices_attente', `id=eq.${encodeURIComponent(impactId)}`, { traite: true });
+  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
 // =====================
