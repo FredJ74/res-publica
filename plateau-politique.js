@@ -9704,8 +9704,12 @@ const MISSIONS_DETACHEMENT = [
   { id: 'securiser', label: 'Sécuriser la pièce (malus actes illégaux)' },
   { id: 'assassiner', label: 'Assassiner toute personne entrant' },
   { id: 'arreter', label: 'Arrêter toute personne entrant' },
-  { id: 'surveiller', label: 'Surveiller (rapport passif)' },
-  { id: 'escorter', label: 'Escorter une personne précise' }
+  { id: 'surveiller', label: 'Surveiller (rapport passif)' }
+  // 'escorter' RETIRE le 18 septembre 2026 (arbitrage GD). Elle etait assignable et affichee mais
+  // n'a jamais rien fait : son seul effet, suivreEscorteAvecMoi, avait ete neutralise au lot
+  // leaderCourant. La fonction existe ailleurs et elle marche -- militaire_affecter_leader confie
+  // des hommes a un PJ present, qui les mene ensuite via leaderCourant. Un soldat qui suit un chef
+  // n'a pas de position propre : il se deplace donc avec lui par construction, sans mission.
 ];
 
 async function doAssignerMission(pa, cost) {
@@ -9720,23 +9724,19 @@ async function doAssignerMission(pa, cost) {
   MISSIONS_DETACHEMENT.forEach(m => {
     html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
   });
-  if (MISSIONS_DETACHEMENT.find(m=>m.id==='escorter')) {
-    html += '<input id="mission-escorte-cible" type="text" placeholder="Nom de la personne à escorter (si mission Escorter)" style="width:100%;margin-top:.4rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box"/>';
-  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
 async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
-  const cibleEscorte = document.getElementById('mission-escorte-cible')?.value?.trim() || null;
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  const rMis = await sbMilitaireAssignerMission(compagnieId, sectionId, missionId, cibleEscorte);
+  const rMis = await sbMilitaireAssignerMission(compagnieId, sectionId, missionId, null);
   if (!rMis || rMis.ok !== true) {
     showToast('Mission impossible',
       rMis && rMis.raison === 'pas_lieutenant_de_cette_section'
@@ -10127,7 +10127,7 @@ async function construireEtatArmee(pays) {
         moyenneSecourisme: nbPnj ? sommeSec / nbPnj : null,
         armesUnite, stockLibre,
         tauxEquipement: soldats.length ? nbArmesUnite / soldats.length : null,
-        mission: s.mission || null, cibleEscorte: s.cibleEscorte || null
+        mission: s.mission || null
       };
     });
     // RESERVE DE CONTINGENT, exposee au Commandant : le contingent n'est plus renouvelable,
@@ -10210,7 +10210,7 @@ function renderInspectionDetaillee(etat) {
             + ' PNJ + ' + (s.effectifPj || 0) + ' joueur(s)</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Armes attribuées — Arme de poing : ' + (s.armesUnite.arme_de_poing||0) + ' · Mitraillette : ' + (s.armesUnite.mitraillette||0) + ' (stock libre non distribué : ' + (s.stockLibre.arme_de_poing||0) + ' / ' + (s.stockLibre.mitraillette||0) + ')</div>';
       html += '<div style="color:#a89870;margin-bottom:.2rem">Taux d\'équipement : ' + (s.tauxEquipement==null?'non calculable (section vide)':Math.round(s.tauxEquipement*100)+'%') + '</div>';
-      html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission) + (s.cibleEscorte?(' ('+s.cibleEscorte+')'):'')) : 'aucune mission assignée') + '</div>';
+      html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission)) : 'aucune mission assignée') + '</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -11147,40 +11147,22 @@ async function verifierRechercheMilitaireQuotidien(pays) {
   if (commandantNom && typeof sbSendMail === 'function') sbSendMail('Chercheurs Civils', commandantNom, 'Recherche achevée', 'Le programme de recherche sur "' + enCours.arme + '" est terminé. Coefficient amélioré.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
 }
 
-// Deplace automatiquement les soldats d'une section en mission "escorter" quand leur protege change de batiment
 // ==========================================================================================
-// NEUTRALISEE (18 septembre 2026). Elle entrait en CONFLIT DIRECT avec le modele valide.
+// suivreEscorteAvecMoi SUPPRIMEE (18 septembre 2026) -- avec la mission 'escorter' elle-meme.
 // ==========================================================================================
-// Ce que faisait cette fonction : a chaque changement de batiment du PJ escorte, elle parcourait
-// toutes les compagnies du pays et reecrivait la position de TOUS les soldats de la section
-// d'escorte, en les deposant dans la premiere piece du batiment.
+// Elle reecrivait, a chaque changement de batiment du PJ escorte, la position de TOUS les soldats
+// de la section, en les deposant dans la premiere piece. Quatre defauts, dont trois regressaient
+// des lots deja livres : ecriture cliente du blob de la compagnie (donc refusee en silence par la
+// RLS des que l'escorte n'etait ni Commandant ni Capitaine, c'est-a-dire presque toujours) ;
+// buildingId/roomId ecrits SANS ville, ce qui rouvrait l'ambiguite entre deux villes partageant le
+// meme buildingId ; ecrasement de la position d'un soldat qui SUIT UN CHEF, etat que l'invariant
+// leaderCourant interdit ; et deplacement des soldats ou qu'ils soient, y compris ceux laisses
+// ailleurs.
 //
-// Quatre defauts, dont trois sont des regressions des lots « position canonique » et
-// « leaderCourant » :
-//   1. ECRITURE CLIENTE du blob entier de la compagnie, donc REFUSEE EN SILENCE par la RLS des
-//      que l'escorte n'est ni Commandant ni Capitaine de cette compagnie -- c'est-a-dire presque
-//      toujours. La mecanique ne fonctionnait deja pratiquement jamais.
-//   2. Elle ecrivait buildingId/roomId SANS ville : elle recreait donc l'ambiguite de position
-//      entre deux villes partageant le meme buildingId, que le lot 853d046 a fermee.
-//   3. Elle ecrasait la position d'un soldat qui SUIT UN CHEF (leaderCourant renseigne, position
-//      vide), produisant l'etat « a la fois avec un chef et quelque part » que l'invariant du lot
-//      1ccf670 interdit.
-//   4. Elle deplacait les soldats OU QU'ILS SOIENT, y compris ceux laisses ailleurs, et les
-//      regroupait arbitrairement dans la premiere piece.
-//
-// L'ESCORTE N'EST PAS PERDUE : elle s'exprime desormais exactement par leaderCourant -- un soldat
-// qui suit physiquement un PJ n'a pas de position propre, la sienne est celle de son chef, et le
-// deplacement est donc automatique et gratuit par construction. La difference est que
-// l'affectation passe par militaire_affecter_leader, donc par l'AUTORITE du Lieutenant, au lieu
-// d'etre un effet de bord du deplacement de l'escorte.
-//
-// La valeur de mission 'escorter' et section.cibleEscorte restent en place : elles ne produisent
-// plus de deplacement, mais les retirer de MISSIONS_DETACHEMENT et de militaire_assigner_mission
-// est un lot de menage a part -- et le GD a demande de ne pas supprimer aveuglement les
-// consommateurs.
-async function suivreEscorteAvecMoi(nouveauBuildingId) {
-  return;
-}
+// L'escorte n'est pas perdue : elle EST leaderCourant. militaire_affecter_leader confie des hommes
+// a un PJ present, qui les mene ; un soldat qui suit un chef n'a pas de position propre, donc il se
+// deplace avec lui par construction -- sans mission, sans reecriture, et sous l'autorite du
+// Lieutenant plutot que par effet de bord du deplacement de l'escorte.
 
 // =====================
 // REQUISITION CIVILE — loterie aleatoire, doublement d'effectif, desertion publique

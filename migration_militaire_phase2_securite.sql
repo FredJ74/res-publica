@@ -185,3 +185,26 @@ REVOKE ALL ON FUNCTION public.militaire_subtiliser(text, text) FROM PUBLIC, anon
 -- client de minuit en a besoin, comme des dizaines d'autres. Banc 8/8 : quidam refuse par la RPC
 -- et annule en ecriture directe, Ministre accepte, juridiction non parametrable, sous-cles
 -- voisines intactes, ecritures legitimes non regressees.
+
+-- ============================================================================
+-- MISSION 'escorter' RETIREE (18 septembre 2026, arbitrage GD)
+-- Applique sous `militaire_assigner_mission_sans_escorte`.
+--
+-- Elle etait assignable, affichee (« Escorte en cours »), et n'a jamais rien fait : son seul
+-- effet, suivreEscorteAvecMoi, avait ete neutralise au lot leaderCourant parce qu'il ecrivait une
+-- position SANS ville et ecrasait leaderCourant -- il regressait deux lots a lui seul.
+--
+-- La fonction n'est pas perdue : militaire_affecter_leader confie des hommes a un PJ present, qui
+-- les mene via leaderCourant. Un soldat qui suit un chef n'a pas de position propre, donc il se
+-- deplace avec lui par construction -- sans mission, et sous l'autorite du Lieutenant.
+--
+-- LA SIGNATURE NE CHANGE PAS, DEFAUT COMPRIS : retirer p_cible, ou meme seulement son DEFAULT,
+-- creerait une SURCHARGE et laisserait l'ancienne primitive joignable par les clients en cache.
+-- Le parametre est conserve et ignore. Verifie au banc : une seule ligne dans pg_proc.
+--
+-- Aucune section en production ne portait de mission au moment du retrait (verifie AVANT) : aucune
+-- donnee 'escorter' a migrer. La cle morte cibleEscorte est retiree de la section a chaque
+-- assignation, pour qu'elle ne finisse pas par sembler vouloir dire quelque chose.
+--
+-- Banc 7/7 : 'escorter' refuse (mission_invalide), les quatre missions restantes acceptees,
+-- cibleEscorte disparu, mission finale reellement enregistree, aucune surcharge.

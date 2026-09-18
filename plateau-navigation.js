@@ -251,7 +251,6 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Rafraichit le cache des indices de ville de Republia (partage entre joueurs via Supabase)
   if (state.country === 'republic' && typeof chargerIndicesRepublia === 'function') chargerIndicesRepublia().catch(() => {});
   if (typeof verifierCouvreFeu === 'function') verifierCouvreFeu().catch(() => {});
-  if (typeof suivreEscorteAvecMoi === 'function') suivreEscorteAvecMoi(buildingId).catch(() => {});
   // L'appel qui vivait ici passait `roomId = null` en dur et ne pouvait donc JAMAIS matcher un
   // detachement, qui est toujours pose dans une piece precise. Il est remonte dans
   // declencherEntreeZone(), appele depuis enterRoom -- seul endroit ou la piece est connue.
@@ -800,7 +799,7 @@ function enterRoom(buildingId, roomId, tabEl) {
       if (!(det || pol || (detenus && detenus.length > 0)) || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
       const extras = [];
       if (det) {
-        const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance', escorter:'Escorte en cours' }[det.mission] || 'Sans consigne';
+        const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance' }[det.mission] || 'Sans consigne';
         extras.push({ name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' });
       }
       if (pol) {
