@@ -125,3 +125,29 @@ REVOKE ALL ON FUNCTION public.militaire_subtiliser(text, text) FROM PUBLIC, anon
 -- Banc : 8/8 -- sans autorite refuse, auto-decoration refusee, hors juridiction refusee, le
 -- Commandant obtient bien le niveau 'compagnie', rejeu exact refuse, autre intitule accepte,
 -- INSERT et DELETE directs refuses par les GRANT.
+
+-- ============================================================================
+-- MODELE CANONIQUE DE BATAILLE + GILET FRAGILISE (18 septembre 2026)
+-- Applique sous `batailles_modele_canonique_et_gilet`.
+--
+-- BATAILLES : PREPARATION, pas implementation. Le moteur physique de combat n'est pas construit
+-- ici. Ce qui est pose, c'est l'endroit ou il ecrira, pour qu'il n'ait pas a inventer son propre
+-- format le jour venu. `batailles` porte le FAIT, `batailles_engagements` porte QUI y etait et
+-- dans quel etat il en est sorti -- avec une contrainte qui impose qu'un participant soit un PJ
+-- (nom) OU un PNJ (matricule), jamais les deux.
+--
+-- Pourquoi pas chronique_nationale : elle restera le RECIT public, lu par la Tribune. Mais un
+-- recit ne se requete pas -- on ne peut pas lui demander les pertes d'une compagnie. Meme
+-- partage que services_militaires (canonique) et le calepin (projection).
+--
+-- `issue` est volontairement du texte libre : figer les issues possibles serait decider a la
+-- place du moteur qui n'existe pas encore.
+--
+-- GILET : 50 % cote serveur. La protection balistique ne peut pas etre un tirage du navigateur de
+-- celui qu'on vise. Un gilet qui a encaisse devient `fragilise` et ne protege plus -- il ne
+-- disparait pas, il temoigne. La REPARATION n'est pas construite : elle suppose un atelier, une
+-- recette et un cout, decisions GD non rendues. Dette assumee.
+--
+-- Banc : 7/7 -- appel client refuse au niveau du GRANT, INSERT de bataille par un joueur refuse,
+-- deux impacts fragilisent les deux gilets, le troisieme ne trouve plus de gilet intact, et
+-- AUCUN objet n'est detruit.
