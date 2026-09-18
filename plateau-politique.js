@@ -207,6 +207,41 @@ async function reconcilierAutoriteCandidature(dossier) {
 // vrai joueur est donc acceptee directement, sans mail ni attente. Si l'autorite est un PJ, une
 // fenetre de decision de 48h reelles commence (persistee, voir plus haut) au lieu de laisser
 // l'autorite ignorer indefiniment la candidature (faille identifiee a l'audit du 25 aout 2026).
+// Candidature a un poste dont l'autorite de nomination est un PNJ : le serveur tranche seul.
+// Le client ne pose JAMAIS le poste lui-meme -- il recopie ce que la RPC a arrete.
+async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  const rows = await sbRpc('poste_postuler', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null);
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  if (!v || v.ok !== true) {
+    const motifs = {
+      poste_deja_occupe_par_un_joueur: 'Ce poste vient d\'etre pris par un autre joueur.',
+      autorite_joueur_doit_decider: 'L\'autorite de nomination est desormais tenue par un joueur : votre candidature doit passer par elle.',
+      poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
+      acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.'
+    };
+    showToast('Candidature refusee', (v && motifs[v.raison]) || 'Le serveur a refuse cette candidature.', false);
+    return;
+  }
+
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteName || posteId };
+  state.poste = { id: posteId, name: regle.label, city: villeCourante || null, nommeLe: Date.now() };
+  if (state.char) state.char.poste = state.poste;
+  state.salaireTouche = false;
+  updateUI();
+  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    if (room) renderPersonsList(room.persons || []);
+  }
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  const lieu = villeCourante ? ' de ' + (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : '';
+  showToast('Poste obtenu', 'Vous etes desormais ' + regle.label + lieu + '.', true, true);
+  addJournalEntry('Vous avez obtenu le poste de ' + regle.label + '.', 'event-good');
+  addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' est nomme(e) ' + regle.label + lieu + '.',
+                   villeCourante ? 'local' : 'national');
+}
+
 async function demanderNominationPoste(posteId, posteName) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
@@ -224,7 +259,20 @@ async function demanderNominationPoste(posteId, posteName) {
   }
 
   if (!titulaireAutorite.estPJ) {
-    accepterNominationPosteNomme(posteId, villeCourante, state.country, titulaireAutorite.nom + ' (PNJ)');
+    // RELIQUAT DE LA REFORME DU 15 SEPTEMBRE 2026, corrige le 19.
+    // Cette ligne appelait encore accepterNominationPosteNomme() avec son ANCIENNE signature a
+    // quatre arguments (posteId, ville, pays, nommeur). Depuis la reforme, cette fonction prend
+    // un unique identifiant de proposition serveur commencant par 'nom-' : elle recevait donc
+    // 'min_def' comme identifiant, echouait sa garde de format, et repondait au joueur
+    // « Cette proposition date d'avant la reforme des nominations » -- un message exact mais
+    // trompeur, puisque le joueur ne repondait a aucune proposition : il POSTULAIT.
+    //
+    // La regle de priorite PJ est inchangee : quand l'autorite de nomination est un PNJ
+    // auto-pourvu, il ne prend aucune decision politique, la candidature d'un vrai joueur est
+    // donc acceptee directement. C'est exactement ce que fait poste_postuler cote serveur --
+    // RPC deja livree, deja accordee, mais qu'aucun appelant n'avait jamais branchee. Elle
+    // refuse d'elle-meme si un PJ occupe deja le poste ou si l'autorite est tenue par un joueur.
+    await postulerPosteAutoritePnj(posteId, posteName, villeCourante);
     return;
   }
 
