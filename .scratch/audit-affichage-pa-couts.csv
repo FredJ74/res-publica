@@ -1,0 +1,554 @@
+fn,label,pa_data_js,pa_affiche_bouton,cost_data_js,cost_affiche_bouton,statut,cause_probable,ligne_data_js
+marche_noir,Marché Noir,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",183
+sinscrire_demandeur_emploi,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",234
+consulter_offres_emploi,,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",235
+demissionner_emploi_bne,Démissionner de mon emploi,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",236
+marche_noir,Marché Noir,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",432
+marche_noir,Marché Noir,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",663
+marche_noir,Marché Noir,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",914
+reserver_chambre_hotel,Reserver une chambre,1,0,80,80,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1181
+choisir_suite,Louer une suite,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1182
+repas_gastronomique,Se nourrir,0,0,120,120,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1199
+diner_affaires,Diner d\,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1200
+ecouter_rumeurs,Ecouter les tables,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1201
+lancer_rumeur_cible,Lancer une rumeur,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1202
+boire_verre,Offrir un verre,0,0,50,50,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1218
+ecouter_rumeurs,Ecouter le barman,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1219
+recruter_informateur_pnj,Recruter un informateur,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1220
+escort_piege,Organiser une rencontre piège,3,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1221
+dormir_chambre,Dormir,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1232
+service_etage,Faire appel au service d\,0,0,150,150,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1233
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1245
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1257
+solliciter_audience_president,Solliciter une audience,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1284
+creer_poste_ministre,Creer un poste ministeriel,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1298
+creer_comite,Creer un comite,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1299
+supprimer_poste_custom,Supprimer un poste cree,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1300
+nommer_ministre,Nommer un Premier Ministre,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1301
+revoquer_pm,Revoquer le Premier Ministre,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1302
+etat_urgence,Declarer l\,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1303
+declarer_guerre,Declarer la guerre,5,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1304
+gracier,Traiter les demandes de grâce,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1305
+dissoudre_assemblee,Dissoudre l\,4,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1306
+decret_referendum,Ordonner un referendum,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1307
+jour_deuil,Decret de deuil national,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1308
+decret_inutile,Signer un decret,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1309
+conference_presse,Conference de presse,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1321
+propagande_etat,Propagande d\,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1322
+dementi,Dementi officiel,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1323
+reception_etat,Organiser une reception,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1335
+banquet_diplo,Banquet diplomatique,3,0,2000,2000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1336
+postuler,Postuler a un poste,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1361
+organigramme,Organigramme du pays,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1362
+nommer_ministre_pm,Nommer des ministres,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1374
+revoquer_ministre_pm,Revoquer un ministre,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1375
+declencher_vote_confiance,Déclencher un vote de confiance,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1376
+conference_presse,Conférence de presse,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1399
+propagande_etat,Campagne de propagande,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1400
+dementi,Démenti officiel,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1401
+consulter_dossiers_gouv,Consulter des dossiers,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1413
+fuite_info,Produire une fuite,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1414
+mobiliser_police,Faire intervenir les forces de l\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1427
+traiter_manifestations,Traiter les demandes de manifestation,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1428
+demandes_naturalisation,Demandes de naturalisation,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1429
+gerer_couvre_feu,Instaurer un couvre-feu,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1430
+subvention_min_int,Allouer une subvention,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1431
+interdire_manif,Interdire une manifestation,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1432
+reprimer_manif,Reprimer une manifestation,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1433
+fixer_impots_nationaux,Fixer le taux d\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1444
+redressement_fiscal,Ordonner un redressement,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1445
+subvention,Accorder une subvention,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1446
+fiscal,Repartition budgetaire,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1447
+gerer_candidatures_directeurs,Gérer les candidatures de directeurs,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1448
+allegement_fiscal,Allegement fiscal sectoriel,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1449
+preempter_entreprise,Droit de preemption sur une entreprise,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1450
+annuler_poursuites,Classer une plainte,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1461
+ouvrir_enquete,Ouvrir une enquete,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1462
+proposer_grace,Proposer une grace,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1463
+nommer_juge,Nommer un juge,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1464
+revoquer_juge,Revoquer un juge,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1465
+gestion_qhs,Gestion du QHS,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1466
+mobiliser_armee,Mobiliser l\,4,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1477
+activer_cessez_le_feu,Activer un cessez-le-feu,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1478
+nommer_commandant,Nommer le Commandant,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1479
+recruter_compagnie,Recruter une compagnie,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1480
+renseignement,Lancer une operation de renseignement,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1481
+requisition_civile,Réquisition civile,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1482
+gerer_candidature_commandant,Gérer les candidatures au Commandant,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1483
+propagande_etat,Campagne de propagande,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1494
+censurer_media,Censurer un media,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1495
+commanditer_sondage,Commanditer un sondage,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1496
+dementi,Dementi officiel,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1497
+proposer_treve,Proposer une trêve,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1508
+accord_diplomatique,Ouvrir des negociations diplomatiques,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1509
+signer_traite,Signer un traite,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1510
+ouvrir_ambassade,Ouvrir une ambassade,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1511
+sanctions_diplo,Imposer des sanctions,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1512
+reponses_diplomatiques,Répondre aux propositions,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1513
+nommer_ambassadeur_cible,Nommer un ambassadeur,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1514
+demettre_ambassadeur_cible,Démettre un ambassadeur de son poste,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1515
+expulser_ambassadeur_cible,Expulser un ambassadeur,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1516
+calendrier_elections,Calendrier electoral,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1543
+consulter_annuaire_deputes,Consulter l\,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1544
+observer_debats,Observer les debats,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1559
+voter_loi,Voter une loi,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1560
+projet_loi,Deposer un projet,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1561
+marchander_vote,Marchander un vote,0,0,200,200,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1562
+consulter_lobbyiste,Consulter le Lobbyiste,1,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1576
+ecouter_rumeurs,Ecouter les rumeurs,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1577
+consulter_archives_lois,Consulter les archives,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1589
+presentation_office_notarial,Se renseigner sur les services,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1615
+redaction_testament,Rediger un testament,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1627
+consulter_succession,Consulter une succession,1,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1628
+acte_vente_terrain,Officialiser une vente de terrain,1,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1640
+racheter_entreprise,Racheter une entreprise,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1641
+acte_rachat_entreprise,Officialiser le rachat d\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1642
+acte_rachat_entreprise_preemption,Officialiser une preemption d\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1643
+transferer_compromis,Transférer un compromis,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1644
+valider_transfert_compromis,Valider un transfert de compromis,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1645
+contrat_mariage,Negocier un contrat de mariage,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1646
+demander_divorce,Demander le divorce,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1647
+consulter_archives_notariales,Consulter les archives notariales,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1659
+observer_match,Consulter le calendrier et le classement,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1683
+regarder_live,Regarder le live,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1684
+prendre_licence_sportive,Prendre sa licence sportive,1,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1696
+tenue_entrainement,,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1697
+tenue_match,Mettre la tenue de match,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1698
+conseil_entraineur_adjoint,,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1699
+consommer_buvette,Prendre un verre,1,0,50,50,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1711
+choisir_accessoire_club,Acheter un accessoire,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1712
+acheter_accessoire_personnalise,Acheter un accessoire personnalisé,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1713
+parier_match,Parier sur un match,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1725
+consulter_classement_joueurs_club,Connaître le classement des joueurs du club,0,0,75,75,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1726
+rejoindre_club_supporters,Rejoindre le club de supporters,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1738
+consulter_palmares,Consulter le palmares du club,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1739
+consulter_organigramme_supporters,Consulter l\,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1740
+declencher_election_club,Déclencher une élection,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1741
+organiser_manifestation,Organiser une manifestation,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1742
+organiser_boycott,Organiser un boycott,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1743
+distribuer_tracts_match,Distribuer des tracts avant le match,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1744
+postuler_president_club,Postuler au poste de président,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1754
+consulter_bureau_president,Consulter le bureau,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1755
+proposer_transfert,Proposer un transfert,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1756
+gerer_offres_transfert,Gérer les offres reçues,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1757
+sponsoriser_club,Sponsoriser le club,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1758
+consulter_budget_club,Consulter le budget du club,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1759
+gerer_salaires_club,Gérer les salaires des joueurs,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1760
+recolter_matiere,Récolter,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1781
+plainte,Consulter les affaires en cours,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1806
+defense,Se defendre,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1807
+archives,Consulter les archives,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1820
+falsifier_document,Falsifier un document,3,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1821
+demander_juge_instruction,Demander à parler à un juge,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1822
+gerer_finances,Gerer mon compte,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1847
+investir,Investir,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1848
+emprunter,Emprunter,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1849
+fiscal,Optimisation fiscale,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1850
+presenter_autorisation_coffre,Présenter une autorisation judiciaire,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1851
+louer_local,Louer ce coffre (600 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1863
+gerer_finances,Gérer mes finances,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1864
+gerer_local,Gérer mon coffre,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1865
+gerer_finances,Gerer mon compte,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1890
+compte_offshore,Ouvrir compte offshore,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1891
+emprunter_prive,Emprunter (sans verification),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1892
+blanchiment,Blanchir des fonds,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1893
+societe_ecran,Creer une societe ecran,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1894
+soins,Consultation et soins,0,0,200,200,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1919
+soins_urgence,Soins acceleres (urgence),0,0,500,500,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1920
+soins_discrets,Soins sans trace,1,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1921
+centre_anti_poison,Centre anti-poison,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1922
+se_nourrir,Manger,1,0,30,30,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1923
+soins_basiques,Soins basiques (gratuit),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1949
+soins,Consultation medecin,0,0,20,20,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1950
+centre_anti_poison,Centre anti-poison,1,0,60,60,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1951
+transfert_clinique_privee,Être transféré en clinique privée,0,0,1000,1000,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1952
+plainte_police,Porter plainte,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1988
+consulter_caisse_commissariat,Consulter la caisse,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",1989
+cambrioler_caisse_commissariat,Cambrioler la caisse,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1990
+archives_police,Consulter les archives,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1991
+arreter,,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1992
+se_justifier,Se justifier (convocation),2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",1993
+requete_avocat,Requérir les services d\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2005
+se_rebeller,Se rebeller,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2006
+tentative_evasion,Tenter de s\,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2007
+mener_enquete,,2,0,250,250,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2019
+organiser_filature,Organiser une filature,2,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2020
+organiser_chasse_homme,,3,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2021
+se_renseigner,Se renseigner,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2047
+consulter_archives_presse,Consulter les archives de presse,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2048
+imprimer_tracts,Faire imprimer des tracts,2,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2049
+vendre_bois_imprimerie,Vendre du bois à Gustave,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2050
+produire_fuite,Produire une fuite,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2064
+fabriquer_scandale,Fabriquer un scandale,3,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2065
+interview,Donner une interview,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2066
+article,Placer un article favorable,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2067
+corrompre_journaliste,Corrompre un journaliste,2,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2068
+etouffer,Etouffer un article,3,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2069
+demander_parler_loge,Demander a parler a quelqu\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2095
+demander_info_loge,Demander des informations,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2122
+recruter_informateur_2,Recruter un informateur (Niv.2),1,0,400,400,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2123
+recruter_info_4,Recruter une Taupe N4,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2124
+consulter_info_4,Consulter la Taupe N4,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2125
+gerer_informateurs,Gérer mes informateurs,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2126
+voter_loi,Participer aux deliberations,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2137
+se_former,Suivre une formation,2,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2162
+donner_conf,Donner une conference,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2163
+recruter_etud,Recruter des militants,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2164
+louer_local,Louer cette salle (180 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2176
+recruter_etud,Recruter des militants,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2177
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2178
+produire_arme,Produire une arme,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2221
+acheter_produit_stock,Acheter en stock (fabrication maison),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2222
+se_nourrir,Acheter a manger,0,0,8,8,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2248
+pouls_populaire,Prendre le pouls,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2249
+distribuer_tract,Distribuer un tract,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2250
+lancer_rumeur_cible,Lancer une rumeur,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2251
+calendrier_elections,Calendrier electoral,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2279
+organigramme,Organigramme du pays,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2280
+deposer_candidature,Deposer une candidature,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2281
+consulter_elections,Consulter les elections,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2282
+acte_officiel,Demander un acte officiel,1,0,50,50,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2283
+demander_naturalisation,Demander la naturalisation,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2284
+demander_mariage,Demander en mariage,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2285
+officialiser_mariage,Officialiser un mariage,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2286
+consulter_indices_locaux,Consulter les caisses communales,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2287
+objet_trouve,Reclamer un objet trouve,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2288
+fixer_impots_locaux,Fixer les impôts locaux,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2300
+repartition_budget_local,Repartir le budget municipal,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2301
+campagne_securite,Lancer une campagne de securite,2,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2302
+contester_resultats,Contester des resultats,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2303
+nommer_commissaire,Nommer un commissaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2304
+revoquer_commissaire,Revoquer le commissaire,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2305
+gerer_candidature_maire_adjoint,Gérer les candidatures au Maire Adjoint,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2306
+traiter_demandes_permis,Traiter les demandes de permis,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2316
+acte_officiel_mairie,Delivrer un acte officiel,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2317
+financer_communal,Financer un batiment communal,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2318
+gerer_candidature_directeur_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2319
+nommer_directeur_entrepot,Nommer un directeur d\,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2320
+revoquer_directeur_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2321
+consulter_elections,Voir les candidats,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2333
+contester_resultats,Contester des resultats,3,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2334
+falsifier_docs,Falsifier une liste,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2335
+consulter_etat_civil,,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2347
+consulter_mandats_maires,Consulter les résumés de mandats,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2348
+se_renseigner,Se renseigner,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2476
+louer_local,Louer ce local (800 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2489
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2490
+louer_local,Louer ce local (400 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2502
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2503
+louer_local,Louer ce local (150 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2515
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2516
+louer_local,Louer ce local (80 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2528
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2529
+se_renseigner,Se renseigner,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2554
+louer_local,Louer ce local (600 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2567
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2568
+louer_local,Louer ce local (300 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2580
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2581
+louer_local,Louer ce local (100 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2593
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2594
+se_renseigner,Se renseigner,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2619
+louer_local,Louer ce local (1000 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2632
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2633
+louer_local,Louer ce local (500 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2645
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2646
+louer_local,Louer ce local (200 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2658
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2659
+produire_fuite,Produire une fuite,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2670
+interview,Donner une interview,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2671
+article,Placer un article favorable,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2672
+appeler_police_terrain,Appeler la police,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2681
+faire_disparaitre_cadavre,Faire disparaitre le corps,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2681
+negocier_squatteurs,Negocier le depart,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2681
+signer_compromis,Signer un compromis,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2681
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+acheter_terrain,Acheter ce terrain (1850 m² — 22 200 FR),2,0,22200,22200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+construire_sur_terrain,Construire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2682
+corrompre_rdv_notaire,Accélérer le rendez-vous (corruption),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+payer_versement_chantier,Payer le versement du chantier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2682
+corrompre_chantier,Accélérer le chantier (corruption),2,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+voler_materiel_chantier,Voler du matériel de chantier,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+diviser_construction,Diviser / gérer les lots,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2682
+louer_lot_ici,Louer un lot ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+gerer_lot_loue,Gérer mon local loué,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2682
+emprunter_construction,Faire un prêt (Banque Nationale),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2682
+racheter_terrain,Offre de rachat,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2682
+appeler_police_terrain,Appeler la police,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2687
+faire_disparaitre_cadavre,Faire disparaitre le corps,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2687
+negocier_squatteurs,Negocier le depart,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2687
+signer_compromis,Signer un compromis,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2687
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+acheter_terrain,Acheter ce terrain (2750 m² — 33 000 FR),2,0,33000,33000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+construire_sur_terrain,Construire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2688
+corrompre_rdv_notaire,Accélérer le rendez-vous (corruption),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+payer_versement_chantier,Payer le versement du chantier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2688
+corrompre_chantier,Accélérer le chantier (corruption),2,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+voler_materiel_chantier,Voler du matériel de chantier,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+diviser_construction,Diviser / gérer les lots,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2688
+louer_lot_ici,Louer un lot ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+gerer_lot_loue,Gérer mon local loué,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2688
+emprunter_construction,Faire un prêt (Banque Nationale),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2688
+racheter_terrain,Offre de rachat,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2688
+appeler_police_terrain,Appeler la police,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2693
+faire_disparaitre_cadavre,Faire disparaitre le corps,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2693
+negocier_squatteurs,Negocier le depart,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2693
+signer_compromis,Signer un compromis,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2693
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+acheter_terrain,Acheter ce terrain,2,0,25000,25000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+construire_sur_terrain,Construire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2694
+corrompre_rdv_notaire,Accélérer le rendez-vous (corruption),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+payer_versement_chantier,Payer le versement du chantier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2694
+corrompre_chantier,Accélérer le chantier (corruption),2,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+voler_materiel_chantier,Voler du matériel de chantier,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+diviser_construction,Diviser / gérer les lots,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2694
+louer_lot_ici,Louer un lot ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+gerer_lot_loue,Gérer mon local loué,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2694
+emprunter_construction,Faire un prêt (Banque Nationale),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2694
+racheter_terrain,Offre de rachat,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2694
+appeler_police_terrain,Appeler la police,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2699
+faire_disparaitre_cadavre,Faire disparaitre le corps,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2699
+negocier_squatteurs,Negocier le depart,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2699
+signer_compromis,Signer un compromis,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2699
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+acheter_terrain,Acheter ce terrain,2,0,25000,25000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+construire_sur_terrain,Construire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2700
+corrompre_rdv_notaire,Accélérer le rendez-vous (corruption),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+payer_versement_chantier,Payer le versement du chantier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2700
+corrompre_chantier,Accélérer le chantier (corruption),2,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+voler_materiel_chantier,Voler du matériel de chantier,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+diviser_construction,Diviser / gérer les lots,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2700
+louer_lot_ici,Louer un lot ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+gerer_lot_loue,Gérer mon local loué,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2700
+emprunter_construction,Faire un prêt (Banque Nationale),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2700
+racheter_terrain,Offre de rachat,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2700
+appeler_police_terrain,Appeler la police,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2718
+faire_disparaitre_cadavre,Faire disparaitre le corps,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2719
+negocier_squatteurs,Negocier le depart,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2720
+donner_argent_pnj,Donner de l\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2721
+signer_compromis,Signer un compromis,2,0,1000,1000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2722
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2723
+acheter_terrain,Acheter ce terrain (2150 m² — 25 800 FR),2,0,25800,25800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2724
+construire_sur_terrain,Construire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2725
+corrompre_rdv_notaire,Accélérer le rendez-vous (corruption),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2725
+payer_versement_chantier,Payer le versement du chantier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2725
+corrompre_chantier,Accélérer le chantier (corruption),2,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2725
+voler_materiel_chantier,Voler du matériel de chantier,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2725
+diviser_construction,Diviser / gérer les lots,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2725
+louer_lot_ici,Louer un lot ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2725
+gerer_lot_loue,Gérer mon local loué,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2725
+emprunter_construction,Faire un prêt (Banque Nationale),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2726
+racheter_terrain,Offre de rachat,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2727
+postuler,Postuler a un poste,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2752
+gerer_finances,Gerer les finances locales,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2753
+corrompre_fonct,Corrompre un employ,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2754
+demander_naturalisation,Demander la naturalisation,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2755
+demander_mariage,Demander en mariage,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2756
+officialiser_mariage,Officialiser un mariage,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2757
+consulter_indices_locaux,Consulter les caisses communales,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2758
+fixer_impots_locaux,Fixer les impôts locaux,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2771
+repartition_budget_local,Répartir le budget municipal,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2772
+campagne_securite,Lancer une campagne de securite,2,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2773
+nommer_commissaire,Nommer un commissaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2774
+revoquer_commissaire,Revoquer le commissaire,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2775
+gerer_candidature_maire_adjoint,Gérer les candidatures au Maire Adjoint,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2776
+traiter_demandes_permis,Traiter les demandes de permis,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2787
+acte_officiel_mairie,Delivrer un acte officiel,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2788
+financer_communal,Financer un batiment communal,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2789
+gerer_candidature_directeur_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2790
+nommer_directeur_entrepot,Nommer un directeur d\,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2791
+revoquer_directeur_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2792
+se_nourrir,Se nourrir,0,0,20,20,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2814
+reserver_chambre_hotel,Réserver une chambre d\,0,0,60,60,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2815
+dormir_chambre,Dormir,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2825
+louer_local,Louer cette arrière-salle (120 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2848
+gerer_local,Gérer mon local,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2849
+se_nourrir,Boire et manger,0,0,15,15,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2861
+ecouter_rumeurs,Ecouter,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2862
+contrebande,Contacter reseau,2,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2863
+recruter_informateur_3,Recruter un informateur (Niv.3),1,0,700,700,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2864
+recruter_info_3,Recruter informateur N3,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2865
+consulter_info_3,Consulter informateur N3,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2866
+mobiliser,Mobiliser les membres,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2888
+greve,Lancer une greve,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2889
+acheter_entreprise,Racheter l\,3,0,8000,8000,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2911
+se_nourrir,Se nourrir,0,0,15,15,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2933
+dormir,Dormir,0,0,40,40,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2934
+gerer_finances,Gerer mon compte,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2956
+emprunter,Emprunter,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",2957
+soins_basiques,Soins basiques (gratuit),0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",2979
+plainte_police,Porter plainte,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3001
+plainte,Consulter les affaires,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3025
+defense,Se defendre,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3026
+rendre_sentence,Rendre la sentence,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3027
+imprimer_tracts,Faire imprimer des tracts,2,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3051
+imprimer_livre,Faire imprimer un livre,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3052
+imprimer_clandestin,Impression clandestine,2,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3053
+imprimer_tracts_sportifs,Imprimer des tracts pour un match,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3054
+acheter_terrain,Acheter ce terrain,2,0,3500,3500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3282
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3283
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3284
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3285
+acheter_terrain,Acheter ce terrain,2,0,3500,3500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3305
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3306
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3307
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3308
+acheter_terrain,Acheter ce terrain,2,0,3500,3500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3328
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3329
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3330
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3331
+acheter_terrain,Acheter ce terrain,2,0,3500,3500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3351
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3352
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3353
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3354
+acheter_terrain,Acheter ce terrain (2300 m² — 27 600 FR),2,0,27600,27600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3375
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3376
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3377
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3378
+acheter_terrain,Acheter ce terrain (2300 m² — 27 600 FR),2,0,27600,27600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3399
+deposer_demande_permis,Déposer une demande de permis,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3400
+corrompre_fonctionnaire_permis,Corrompre un fonctionnaire (accélérer),2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3401
+plainte_obstruction_permis,Contester un refus (obstruction),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3402
+nommer_lieutenant,Nommer un Lieutenant,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3427
+affecter_engage,Affecter un engagé à une section,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3428
+engager_officier,S\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3429
+demettre_lieutenant,Démettre un Lieutenant,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3430
+se_presenter_affectation,Se présenter à mon affectation,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3431
+stage_caserne,Stage à la Caserne,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3432
+nommer_capitaine,Nommer un Capitaine,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3445
+traiter_engagements,Traiter les engagements,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3446
+recherche_militaire,Lancer une recherche sur l\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3447
+recruter_section,Recompléter une section,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3448
+gerer_detachement,Gérer mon détachement,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3449
+assigner_mission,Attribuer une mission,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3450
+voir_ma_section,Voir ma section,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3451
+entrainer_section,Entrainer la section,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3452
+equiper_section,Equiper les soldats ici,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3453
+remonter_renseignement,Faire remonter un renseignement,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3454
+inspecter_troupes,Inspecter les troupes,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3455
+gerer_budget_caserne,Gérer le budget militaire,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3456
+acheter_arme_militaire,Obtenir equipement militaire,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3469
+acheter_bombe_mil,Obtenir des explosifs,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3470
+acheter_bombe_illegale,Subtiliser des explosifs,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3471
+consulter_faits_armes,Consulter les faits d\,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3483
+recruter_etud,Recruter pour un groupe,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3496
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3668
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3678
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3689
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3700
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3711
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3731
+consulter_personnalites_musee,Consulter les personnalités,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3751
+demander_audience_ambassadeur,Demander audience à l\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3825
+demander_asile_politique,Demander l\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3826
+reserver_salle_reception,Réserver la Salle de Réception,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3827
+relations_bilaterales,Consulter les relations bilatérales,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3844
+corrompre_homologue_local,Corrompre un homologue local,2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3845
+organiser_reception_diplomatique,Organiser une réception diplomatique,2,0,1200,1200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3846
+financer_oeuvre_culturelle,Financer une œuvre culturelle,1,0,600,600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3847
+relations_bilaterales,Consulter les relations bilatérales,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3856
+corrompre_homologue_local,Corrompre un homologue local,2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3857
+organiser_reception_diplomatique,Organiser une réception diplomatique,2,0,1200,1200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3858
+financer_oeuvre_culturelle,Financer une œuvre culturelle,1,0,600,600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3859
+relations_bilaterales,Consulter les relations bilatérales,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3868
+corrompre_homologue_local,Corrompre un homologue local,2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3869
+organiser_reception_diplomatique,Organiser une réception diplomatique,2,0,1200,1200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3870
+financer_oeuvre_culturelle,Financer une œuvre culturelle,1,0,600,600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3871
+visiter_prisonnier,Demander une visite,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3895
+corrompre_fonct,Corrompre le directeur,3,0,1500,1500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3896
+archives_police,Consulter le registre,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3897
+requete_avocat,Requérir un avocat,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3910
+greve_faim,Greve de la faim,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3911
+corrompre_gardien,Corrompre un gardien,2,0,800,800,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3912
+tentative_evasion,Tenter de s\,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3913
+interroger,Interroger un detenu,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3923
+corrompre_fonct,Falsifier un proces-verbal,3,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3924
+se_reposer,Prendre l\,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",3934
+prier,Prier le Formulaire Sacré,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3961
+se_confesser,Se confesser,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3962
+faire_don,Faire un don a l\,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3963
+demander_benediction,Demander une bénédiction,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3964
+pelerin,Se déclarer pèlerin,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3965
+excommunier,Excommunier un fidèle,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3977
+benediction_etat,Bénir un acte d\,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3978
+consulter_confessions,Consulter les confessions,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",3979
+prier,Communier avec la Feuille,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4003
+se_confesser,Se confesser,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4004
+faire_don,Faire une offrande,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4005
+pelerin,Se déclarer pèlerin,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4006
+prier,Chanter l\,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4030
+se_confesser,Se confesser,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4031
+faire_don,Donner au Kolkhoze,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4032
+pelerin,Se déclarer pèlerin,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4033
+prier,Communier avec le Loukoum,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4057
+se_confesser,Se confesser,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4058
+faire_don,Offrir des loukoums,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4059
+pelerin,Se déclarer pèlerin,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4060
+acheter_relique,Acheter une relique du Loukoum,1,0,500,500,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4061
+acheter_ressources_entrepot,Acheter des ressources,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4083
+fixer_prix_achat_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4092
+vente_directe_usine,Vente directe,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4112
+nommer_directeur_raffinerie,Nommer un directeur,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4121
+fixer_prix_vente_directe,Fixer les prix de vente,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4122
+fixer_repartition_production,Répartir la production,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4123
+produire_carburant,Produire du carburant,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4133
+sinscrire_demandeur_emploi,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4154
+consulter_offres_emploi,,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4155
+demissionner_emploi_bne,Démissionner de mon emploi,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4156
+sinscrire_demandeur_emploi,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4187
+consulter_offres_emploi,,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4188
+demissionner_emploi_bne,Démissionner de mon emploi,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4189
+vente_directe_usine,Vente directe,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4217
+nommer_directeur_tabac_alcools,Nommer un directeur,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4226
+fixer_prix_vente_directe,Fixer les prix de vente,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4227
+fixer_repartition_production,Répartir la production,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4228
+produire_alcool,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4238
+produire_tabac,Produire du tabac,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4248
+acheter_ressources_entrepot,Acheter des ressources,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4268
+fixer_prix_achat_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4277
+acheter_ressources_entrepot,Acheter des ressources,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4297
+fixer_prix_achat_entrepot,,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4306
+vente_directe_usine,Vente directe,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4326
+nommer_directeur_pharma,Nommer un directeur,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4335
+fixer_prix_vente_directe,Fixer les prix de vente,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4336
+fixer_repartition_production,Répartir la production,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4337
+produire_medicaments,Produire des médicaments,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4347
+prendre_train,Prendre le train,2,0,75,75,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4371
+prendre_bus_taxi,Prendre un bus ou taxi,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4372
+aller_douanes_aeroport,Prendre l\,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4373
+taxi_caserne,Taxi vers la Caserne,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4374
+taxi_qhs,Taxi vers le QHS,1,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4375
+passer_douanes_aeroport,Passer le contrôle douanier,0,0,0,0,OK,"pa declare = 0, donc affichage 0 PA correct par coincidence",4387
+corrompre_douanier,Corrompre l\,1,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4388
+prendre_avion,Prendre l\,3,0,250,250,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4400
+prendre_train,Prendre le train,2,0,75,75,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4423
+prendre_bus_taxi,Prendre un bus ou taxi,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4424
+prendre_train,Prendre le train,2,0,75,75,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4448
+prendre_bus_taxi,Prendre un bus ou taxi,1,0,150,150,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4449
+prendre_bateau,Prendre le bateau,4,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4476
+expedier_colis,Expédier un colis,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4477
+receptionner_commande,Réceptionner une commande,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4478
+contrebande_port,Contrebande portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4479
+blocus_portuaire,Blocus portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4480
+inspecter_cargaisons,Inspecter les cargaisons,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4481
+consulter_manifeste,Consulter le manifeste,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4493
+falsifier_manifeste,Falsifier le manifeste,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4494
+louer_local,Louer cet entrepôt (350 FR/jour),1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4506
+gerer_local,Gérer mon entrepôt,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4507
+prendre_bateau,Prendre le bateau,4,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4568
+expedier_colis,Expédier un colis,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4569
+receptionner_commande,Réceptionner une commande,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4570
+contrebande_port,Contrebande portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4571
+acheter_polonium,Obtenir du Polonium,2,0,600,600,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4572
+inspecter_cargaisons,Inspecter les cargaisons,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4573
+prendre_bateau,Prendre le bateau,4,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4597
+expedier_colis,Expédier un colis,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4598
+receptionner_commande,Réceptionner une commande,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4599
+contrebande_port,Contrebande portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4600
+acheter_ghb,Acheter du GHB,1,0,300,300,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4601
+blocus_portuaire,Blocus portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4602
+prendre_bateau,Prendre le bateau,4,0,100,100,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4626
+expedier_colis,Expédier un colis,2,0,200,200,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4627
+receptionner_commande,Réceptionner une commande,1,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4628
+contrebande_port,Contrebande portuaire,3,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4629
+acheter_vipere,Acheter une Vipère des sables,1,0,350,350,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4630
+inspecter_cargaisons,Inspecter les cargaisons,2,0,0,0,DIVERGENCE,"TEST_MODE ? '0 PA' : o.pa+' PA' (plateau-politique.js:1544) -- cosmetique, doOrder recoit quand meme o.pa reel",4631

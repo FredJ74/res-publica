@@ -151,3 +151,37 @@ REVOKE ALL ON FUNCTION public.militaire_subtiliser(text, text) FROM PUBLIC, anon
 -- Banc : 7/7 -- appel client refuse au niveau du GRANT, INSERT de bataille par un joueur refuse,
 -- deux impacts fragilisent les deux gilets, le troisieme ne trouve plus de gilet intact, et
 -- AUCUN objet n'est detruit.
+
+-- ============================================================================
+-- DETECTION PASSIVE SUR ENTREE DE ZONE + VIREMENT JOURNALIER ATTESTE (18 septembre 2026)
+-- Appliques sous `militaire_detection_passive_entree_zone`, `militaire_entree_zone_portee_ville`,
+-- `militaire_entree_zone_garde_paresseuse`, `caserne_virement_journalier_atteste`.
+--
+-- CAUSE REELLE DE roomId = null : il n'existait qu'UN crochet d'entree, dans enterBuilding, appele
+-- avec `null` litteral -- parce qu'a ce moment-la aucune piece n'est choisie. Or un detachement est
+-- positionne en (ville, batiment, PIECE) et soldatEstIci() exige l'egalite des trois. enterRoom,
+-- seul endroit ou la position canonique devient vraie, n'avait AUCUN crochet. Les quatre missions
+-- d'entree etaient donc inertes par absence d'evenement, pas par bug de leur logique.
+--
+-- DEUX DEFAUTS DE CONCEPTION ATTRAPES AU BANC, tous deux corriges :
+--  1. militaire_bande_distance rend 'hors' des que les pays different -- or deux ennemis sont par
+--     construction de pays differents. En lui passant les nationalites, AUCUNE detection n'aurait
+--     jamais eu lieu. On lui passe donc le meme pays des deux cotes (elle compare des POSITIONS),
+--     et la portee passive est bornee a la ville de l'acteur.
+--  2. La garde anti-rejeu etait posee AVANT la recherche d'ennemis : traverser une zone en temps
+--     de paix consommait la tentative du jour. Elle est desormais PARESSEUSE -- posee juste avant
+--     le premier jet reel.
+--
+-- CONFIDENTIALITE : la fonction ne prend AUCUN parametre (la position est relue en base, jamais
+-- declaree) et ne renvoie que du renseignement deja degrade. Un echec ne renvoie rien du tout :
+-- il n'y a aucune liste complete envoyee au navigateur, donc rien a masquer et rien a fuiter.
+-- Banc : 60 entrees avec ennemi camoufle -> 0 fuite sur les 40 echecs.
+--
+-- CONTACT MUTUEL : seul artefact durable. contacts_militaires est l'etat canonique que le futur
+-- moteur physique consommera sans refaire la detection. Aucun combat n'est declenche ici.
+--
+-- VIREMENT JOURNALIER : verrou de SOUS-CLE, motif deja en service pour le stock d'armurerie. On ne
+-- revoque pas l'UPDATE de budgets_nationaux -- l'inventaire des producteurs montre que le miroir
+-- client de minuit en a besoin, comme des dizaines d'autres. Banc 8/8 : quidam refuse par la RPC
+-- et annule en ecriture directe, Ministre accepte, juridiction non parametrable, sous-cles
+-- voisines intactes, ecritures legitimes non regressees.

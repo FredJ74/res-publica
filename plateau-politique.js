@@ -9847,8 +9847,21 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
     return true;
   }
   if (det.mission === 'surveiller' && det.lieutenantNom && typeof sbSendMail === 'function') {
-    sbSendMail('Détachement militaire', det.lieutenantNom, 'Rapport de surveillance',
-      (state.char?.name || 'Une personne') + ' a été vue dans la zone surveillée.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    // ANTI-SPAM (18 septembre 2026). Cette branche n'avait jamais pu s'executer : le crochet
+    // d'entree passait roomId = null et ne matchait aucun detachement. Maintenant qu'elle
+    // s'execute reellement, un aller-retour dans un couloir surveille enverrait un rapport a
+    // chaque pas. Un rapport par zone et par jour suffit a dire « cette personne est passee »,
+    // qui est tout ce que la mission promet. Garde technique, pas un equilibrage.
+    const jourSurv = (typeof jourPartageISO === 'function') ? jourPartageISO() : String(state.day || 0);
+    const cleSurv = jourSurv + '|' + state.currentCity + '/' + buildingId + '/' + roomId;
+    if (!state.surveillancesSignalees || state.surveillancesSignalees.jour !== jourSurv) {
+      state.surveillancesSignalees = { jour: jourSurv, zones: [] };
+    }
+    if (!state.surveillancesSignalees.zones.includes(cleSurv)) {
+      state.surveillancesSignalees.zones.push(cleSurv);
+      sbSendMail('Détachement militaire', det.lieutenantNom, 'Rapport de surveillance',
+        (state.char?.name || 'Une personne') + ' a été vue dans la zone surveillée.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    }
     return false;
   }
   if (det.mission === 'assassiner' || det.mission === 'arreter') {
@@ -9907,15 +9920,26 @@ async function ouvrirGererBudgetMilitaire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// ECRITURE ATTESTEE (18 septembre 2026). Cette fonction relisait puis reecrivait le blob entier
+// de budgets_nationaux SANS aucune attestation -- elle est globale, donc n'importe quel joueur
+// authentifie pouvait fixer depuis la console le montant preleve chaque nuit sur la caisse du
+// Ministere, et la reecriture du blob pouvait ecraser les sous-cles modifiees entre-temps. Le
+// meme correctif avait ete applique au virement PONCTUEL en son temps ; le journalier avait ete
+// oublie.
+//
+// La RPC deduit le pays de l'acteur au lieu de l'accepter en parametre, et ecrit par SOUS-CLE.
+// L'execution quotidienne, elle, n'est pas touchee : traiterVirementJournalierCaserne et son
+// miroir cron continuent exactement comme avant, marqueur de journee partage compris.
 async function confirmerVirementJournalier() {
   const montant = Math.max(0, parseInt(document.getElementById('montant-virement-journalier')?.value || '0'));
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.virementJournalierCaserne = montant;
-  await sbSaveBudgetNational(pays, budgetNat);
-  showToast('Virement journalier fixé', montant.toLocaleString('fr-FR') + ' FR/jour vers la caserne, à partir de demain.', true, true);
-  addJournalEntry('Virement journalier vers la caserne fixé à ' + montant + ' FR.', 'event-info');
+  const r = await sbCaserneVirementJournalierFixer(montant);
+  if (!r || r.ok !== true) {
+    showToast('Virement non fixé', 'Réservé au Ministre de la Défense en exercice.', false);
+    return;
+  }
+  showToast('Virement journalier fixé', Number(r.montant).toLocaleString('fr-FR') + ' FR/jour vers la caserne, à partir de demain.', true, true);
+  addJournalEntry('Virement journalier vers la caserne fixé à ' + r.montant + ' FR.', 'event-info');
 }
 
 async function confirmerVirementPonctuel() {

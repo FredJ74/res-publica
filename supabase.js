@@ -3160,6 +3160,25 @@ async function sbMilitaireSubtiliser(pays, joueur) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// Fixe le virement quotidien Ministere de la Defense -> caserne. Le PAYS n'est pas un parametre :
+// la RPC le deduit du poste atteste de l'acteur, donc un Ministre ne peut pas toucher au budget
+// d'un autre empire. L'ecriture se fait par SOUS-CLE, jamais en reecrivant le blob.
+async function sbCaserneVirementJournalierFixer(montant) {
+  const rows = await sbRpc('caserne_virement_journalier_fixer', { p_montant: Math.max(0, Number(montant) || 0) });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// DETECTION PASSIVE A L'ENTREE D'UNE ZONE. AUCUN PARAMETRE, et c'est le point essentiel : la
+// position n'est pas transmise par le navigateur, elle est relue en base. Un client ne peut donc
+// pas se pretendre ailleurs pour sonder une zone qu'il n'occupe pas.
+//
+// Le serveur ne renvoie QUE ce que l'acteur a reellement vu, deja degrade. Quand le jet echoue il
+// ne renvoie rien : il n'y a aucune liste complete a masquer cote client, donc rien a fuiter.
+async function sbMilitaireEntreeZone() {
+  const rows = await sbRpc('militaire_entree_zone', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Calepin de campagne : PROJECTION, jamais un registre. Rien n'est stocke -- tout est relu depuis
 // services_militaires, competences_militaires et soldes_militaires. Une table de calepin aurait
 // cree une seconde verite qui se serait mise a diverger.

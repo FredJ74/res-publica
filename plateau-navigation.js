@@ -252,12 +252,10 @@ function enterBuilding(buildingId, skipAutoRoom) {
   if (state.country === 'republic' && typeof chargerIndicesRepublia === 'function') chargerIndicesRepublia().catch(() => {});
   if (typeof verifierCouvreFeu === 'function') verifierCouvreFeu().catch(() => {});
   if (typeof suivreEscorteAvecMoi === 'function') suivreEscorteAvecMoi(buildingId).catch(() => {});
-  if (typeof verifierMissionMilitaireEntree === 'function') {
-    const buildingPrecedent = state.currentBuilding, roomPrecedent = state.currentRoom;
-    verifierMissionMilitaireEntree(buildingId, null).then(bloque => {
-      if (bloque && buildingPrecedent) enterBuilding(buildingPrecedent, true);
-    }).catch(() => {});
-  }
+  // L'appel qui vivait ici passait `roomId = null` en dur et ne pouvait donc JAMAIS matcher un
+  // detachement, qui est toujours pose dans une piece precise. Il est remonte dans
+  // declencherEntreeZone(), appele depuis enterRoom -- seul endroit ou la piece est connue.
+  // enterBuilding enchaine de toute facon sur enterRoom : aucune entree n'echappe au crochet.
 
   // Verrou : emprisonnement — impossible de quitter sa cellule avant la fin de la peine.
   // Le batiment autorise vient de celluleDeDetention (plateau-justice-economie.js), source
@@ -547,6 +545,9 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Position AVANT le changement : le raccordement d'entree en a besoin pour faire reculer un
+  // joueur refoule, et elle n'existe plus une fois state.currentRoom ecrase.
+  const _zonePrecedente = { buildingId: state.currentBuilding, roomId: state.currentRoom };
   // Cellule reelle du personnage emprisonne (lot "ordres carceraux hors Luthecia", 26 aout
   // 2026) : deduite de est_emprisonne.city/country (lieu REEL de detention, jamais suppose),
   // repli sur state.currentCity uniquement si l'info manque (anciens etats). Genere le bon
@@ -885,6 +886,82 @@ function enterRoom(buildingId, roomId, tabEl) {
   if ((roomId === 'prison' || roomId === 'geoles' || roomId === 'cellules_qhs')
       && typeof proposerTransfertCaserne === 'function') {
     proposerTransfertCaserne();
+  }
+
+  // EVENEMENT D'ENTREE EN ZONE. Pose ICI, en dernier, parce que c'est ici -- et nulle part
+  // ailleurs -- que la position canonique du joueur devient vraie : state.currentRoom est ecrit,
+  // state.char est synchronise, la presence est publiee et la fiche est poussee en base.
+  // Le declencher plus tot ferait raisonner les consommateurs sur une position que le joueur
+  // n'occupe pas encore.
+  declencherEntreeZone(buildingId, roomId, _zonePrecedente);
+}
+
+// =========================================================================================
+// RACCORDEMENT GENERIQUE DES EVENEMENTS D'ENTREE (18 septembre 2026)
+// =========================================================================================
+// POURQUOI CE POINT UNIQUE. Il existait un seul crochet d'entree, dans enterBuilding, appele
+// avec `roomId = null` litteral -- parce qu'a ce moment-la aucune piece n'est encore choisie.
+// Or un detachement est positionne en (ville, batiment, PIECE), et soldatEstIci() exige
+// l'egalite stricte des trois. Avec roomId null, le predicat ne pouvait matcher qu'un soldat
+// dont le roomId serait lui aussi null -- ce que militaire_deposer_soldats n'ecrit jamais.
+// Les quatre missions d'entree etaient donc INERTES depuis toujours, non par bug de leur
+// logique, mais parce que l'evenement qui devait les declencher n'existait pas au bon endroit.
+//
+// On ne pose donc PAS un crochet militaire de plus : on pose l'evenement d'entree manquant, une
+// fois, la ou la position devient canonique, et on y branche les consommateurs.
+async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
+  // 1. MISSIONS DE DETACHEMENT. Meme fonction qu'avant, mais avec la vraie piece.
+  if (typeof verifierMissionMilitaireEntree === 'function') {
+    try {
+      const bloque = await verifierMissionMilitaireEntree(buildingId, roomId);
+      if (bloque) {
+        // Refoulement : on revient d'ou l'on vient. Si le joueur venait d'un autre batiment, on
+        // laisse enterBuilding faire le retour ; sinon on remonte simplement d'une piece.
+        if (zonePrecedente?.buildingId && zonePrecedente.buildingId !== buildingId
+            && typeof enterBuilding === 'function') {
+          // On restaure la piece EXACTE d'ou l'on venait, jamais la premiere du batiment : un
+          // refoulement ne doit pas deplacer le joueur ailleurs que la ou il etait.
+          enterBuilding(zonePrecedente.buildingId, true);
+          if (zonePrecedente.roomId) enterRoom(zonePrecedente.buildingId, zonePrecedente.roomId, null);
+        } else if (zonePrecedente?.roomId && zonePrecedente.roomId !== roomId) {
+          enterRoom(buildingId, zonePrecedente.roomId, null);
+        }
+        return;   // refoule : aucune detection, le joueur n'est pas entre
+      }
+    } catch (e) { /* une mission qui echoue ne doit jamais bloquer la navigation */ }
+  }
+
+  // 2. DETECTION PASSIVE MILITAIRE. Entierement serveur : la position n'est pas transmise, elle
+  // est relue en base. Le client ne recoit QUE du renseignement deja degrade, et rien du tout
+  // quand son jet echoue -- il n'y a donc rien a masquer cote navigateur.
+  if (typeof sbMilitaireEntreeZone === 'function') {
+    try {
+      const r = await sbMilitaireEntreeZone();
+      if (r && r.ok === true && Array.isArray(r.contacts) && r.contacts.length > 0) {
+        afficherContactsDetectes(r);
+      }
+    } catch (e) { /* idem : la detection ne bloque jamais un deplacement */ }
+  }
+}
+
+// Le serveur n'envoie que ce qui a ete reellement vu, deja degrade. L'affichage se contente donc
+// de raconter -- il n'a aucun filtrage a faire, et c'est voulu : rien a filtrer, rien a fuiter.
+function afficherContactsDetectes(r) {
+  for (const c of r.contacts) {
+    const ou = c.batiment ? (c.ville + ', ' + c.batiment) : c.ville;
+    const qui = c.nationalite_sure
+      ? ((typeof COUNTRIES !== 'undefined' && COUNTRIES[c.nationalite]?.n) || c.nationalite)
+      : 'nationalité incertaine';
+    if (typeof showToast === 'function') {
+      showToast('Troupes repérées', c.libelle + ' — ' + ou + ' (' + qui + ').', true, true);
+    }
+    if (typeof addJournalEntry === 'function') {
+      addJournalEntry('Reconnaissance : ' + c.libelle + ' repéré(s) — ' + ou + '.', 'event-info');
+    }
+  }
+  if (r.contacts_mutuels > 0 && typeof addJournalEntry === 'function') {
+    addJournalEntry('Contact établi : vous avez été repéré(e) en retour. '
+      + r.contacts_mutuels + ' force(s) ennemie(s) vous ont vu(s).', 'event-bad');
   }
 }
 
