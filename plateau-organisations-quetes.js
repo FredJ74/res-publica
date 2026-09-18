@@ -1066,10 +1066,7 @@ async function envoyerInvitationOrga(orgaId) {
   const sujet = 'Invitation — ' + orga.nom;
   const corps = 'L\'organisation <strong>' + orga.nom + '</strong> vous invite à la rejoindre.<br><br>' +
     '<em>Cette invitation est privée : personne d\'autre n\'en a connaissance.</em><br><br>' +
-    '<button onclick="accepterInvitationOrga(\'' + orgaId + '\',\'' + nomInvitantEchap + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem;margin-right:.5rem">✓ Accepter l\'invitation</button>' +
-    '<button onclick="refuserInvitationOrga(\'' + orgaId + '\',\'' + nomInvitantEchap + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a3a2a;background:transparent;color:#8a4a2a;cursor:pointer;margin-top:.5rem">✕ Refuser l\'invitation</button>';
+    marqueurActionMail('orga_oui', orgaId, nomInvitantEchap) + marqueurActionMail('orga_non', orgaId, nomInvitantEchap);
 
   if (typeof sbSendMail === 'function') {
     await sbSendMail(orga.nom, destinataire, sujet, corps, time).catch(() => {});
@@ -9449,8 +9446,7 @@ async function confirmerAppelGreveGenerale(orgaId) {
     if (s.id === orga.id) continue;
     const corps = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br>' +
       '<i>Revendications :</i> ' + escapeHtmlText(revendications) + '<br><br>' +
-      '<button onclick="repondreAppelGreveGenerale(&quot;' + ggId + '&quot;,&quot;' + s.id + '&quot;,&quot;accepte&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.5rem">✓ Accepter</button>' +
-      '<button onclick="repondreAppelGreveGenerale(&quot;' + ggId + '&quot;,&quot;' + s.id + '&quot;,&quot;refuse&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">✗ Refuser</button>';
+      marqueurActionMail('greve_oui', ggId, s.id) + marqueurActionMail('greve_non', ggId, s.id);
     await sbSendMail(orga.nom, s.chef, sujet, corps, time).catch(() => {});
   }
 

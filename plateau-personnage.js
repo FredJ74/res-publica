@@ -57,7 +57,7 @@ async function openCharSheet() {
         <div class="cs-title">Ressources</div>
         <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${state.arg.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${totalComptesBancaires().toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Placements</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Emprunts en cours</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Influence</span><span class="cs-stat-val">${state.inf}/100</span></div>
@@ -524,10 +524,30 @@ function switchSelfTab(tab, el) {
     // Argent
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">FINANCES</div>';
+    // Meme source que la vue generale (resumeFortune, plateau-core.js) : les deux ecrans ne
+    // peuvent plus diverger en silence. Les placements manquaient ici alors qu'ils comptent
+    // dans la fortune -- un joueur qui en detenait voyait un total inexplicable.
+    const f = (typeof resumeFortune === 'function') ? resumeFortune()
+            : { liquide: state.liquide||0, comptes: totalComptesBancaires(), placements: 0,
+                poches: (state.liquide||0) + totalComptesBancaires(), arg: state.arg||0, ecart: 0 };
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.liquide.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.comptes.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    if (f.placements > 0) {
+      html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Placements</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.placements.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    }
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Total</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.poches.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '</div>';
+    if (f.ecart !== 0) {
+      // On n'arbitre PAS : on montre l'ecart la ou le joueur le constate, au lieu de laisser deux
+      // chiffres se contredire sans explication.
+      html += '<div style="margin-top:.5rem;padding:.5rem;border:1px solid #6a4a20;background:#151005;font-size:.72rem;color:#cc9a44">'
+           + 'La vue générale annonce <strong>' + f.arg.toLocaleString('fr-FR') + ' ' + cur + '</strong>, '
+           + 'soit ' + Math.abs(f.ecart).toLocaleString('fr-FR') + ' ' + cur + ' de '
+           + (f.ecart > 0 ? 'plus' : 'moins') + ' que le détail ci-dessus. '
+           + 'Votre fiche n\'est pas synchronisée avec le serveur — rechargez la page.</div>';
+    }
+    html += '</div>';
 
     // Objets
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem">';

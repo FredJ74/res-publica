@@ -2366,6 +2366,80 @@ function readMail(mailId) {
   if (typeof rafraichirVoyantMailLocal === 'function') rafraichirVoyantMailLocal();
 }
 
+// ==========================================================================================
+// ACTIONS DE MAIL (19 septembre 2026) — correctif du bouton d'acceptation inerte.
+// ==========================================================================================
+// CAUSE. Les mails d'action (nomination, candidature, invitation d'organisation, mariage, vote de
+// confiance, appel a la greve, arbitrage d'emploi) embarquaient un <button onclick="..."> dans
+// leur corps HTML. Or ce corps traverse sanitizeRichHtml DEUX FOIS : a l'envoi (sbSendMail, filet
+// XSS du lot H2) et a l'affichage (renderMailRead ci-dessous). BUTTON n'est pas dans
+// RICH_ALLOWED_TAGS : la balise est depliee, son contenu textuel conserve. Et meme si elle
+// l'etait, onclick serait retire comme tout attribut hors style/src/href/target/rel.
+// Resultat observe en production : le mail affiche « ✓ Accepter le poste » en texte mort.
+// Quatorze boutons, huit parcours, tous inertes depuis le lot H2.
+//
+// CORRECTIF. L'action ne voyage plus dans le HTML : le corps porte un MARQUEUR TEXTUEL inerte,
+// que les deux sanitisations laissent passer sans y toucher. L'affichage l'extrait, le retire du
+// texte, et reconstruit un vrai bouton HORS du corps sanitise, a partir d'une TABLE BLANCHE de
+// handlers. Aucun eval, aucun nom de fonction venu de la donnee : seule une cle connue est
+// acceptee, et un marqueur inconnu ne produit rien.
+const ACTIONS_MAIL = {
+  poste:            { fn:'accepterNominationPosteNomme', n:1, label:'✓ Accepter le poste' },
+  capitaine:        { fn:'accepterNominationCapitaine',  n:1, label:'✓ Accepter le poste' },
+  lieutenant:       { fn:'accepterNominationLieutenant', n:1, label:'✓ Accepter le poste' },
+  candidature:      { fn:'accepterCandidaturePoste',     n:3, label:'✓ Accepter la candidature' },
+  mariage_oui:      { fn:'accepterDemandeMariage',       n:1, label:'💍 Accepter' },
+  mariage_non:      { fn:'refuserDemandeMariage',        n:1, label:'Refuser', refus:true },
+  confiance_pour:   { fn:'voterConfiance', n:1, apres:['pour'],   label:'✓ Confiance' },
+  confiance_contre: { fn:'voterConfiance', n:1, apres:['contre'], label:'✗ Censure', refus:true },
+  orga_oui:         { fn:'accepterInvitationOrga', n:2, label:'✓ Accepter l\'invitation' },
+  orga_non:         { fn:'refuserInvitationOrga',  n:2, label:'✕ Refuser l\'invitation', refus:true },
+  greve_oui:        { fn:'repondreAppelGreveGenerale', n:2, apres:['accepte'], label:'✓ Accepter' },
+  greve_non:        { fn:'repondreAppelGreveGenerale', n:2, apres:['refuse'],  label:'✗ Refuser', refus:true },
+  bne_garder:       { fn:'trancherEmploiBNE', n:2, avant:[true],  label:'Garder mon poste actuel' },
+  bne_prendre:      { fn:'trancherEmploiBNE', n:2, avant:[false], label:'Prendre le nouveau poste' }
+};
+
+// Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un
+// identifiant exotique ne puisse pas casser -- ou etendre -- le marqueur.
+function marqueurActionMail(cle, ...args) {
+  const propres = args.map(a => String(a == null ? '' : a).replace(/[|\]\[]/g, ''));
+  return '[[act:' + cle + (propres.length ? '|' + propres.join('|') : '') + ']]';
+}
+
+// Extrait les marqueurs d'un corps et rend le corps debarrasse de ceux-ci.
+function extraireActionsMail(body) {
+  const actions = [];
+  const corps = String(body || '').replace(/\[\[act:([a-z_]+)((?:\|[^|\]]*)*)\]\]/g, (_, cle, reste) => {
+    if (!ACTIONS_MAIL[cle]) return '';          // cle inconnue : on retire, on n'execute rien
+    const args = reste ? reste.split('|').slice(1) : [];
+    actions.push({ cle, args });
+    return '';
+  });
+  return { corps, actions };
+}
+
+// Reconstruit les boutons. Le nom de la fonction vient de la TABLE, jamais de la donnee.
+function boutonsActionMail(actions) {
+  if (!actions || !actions.length) return '';
+  let html = '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+  for (const a of actions) {
+    const def = ACTIONS_MAIL[a.cle];
+    if (!def) continue;
+    const args = []
+      .concat(def.avant || [])
+      .concat(a.args.slice(0, def.n).map(v => "'" + String(v).replace(/['\\]/g, '') + "'"))
+      .concat((def.apres || []).map(v => "'" + v + "'"));
+    const couleur = def.refus ? '#cc4444' : '#C9A84C';
+    const bord = def.refus ? '#6a2a20' : '#C9A84C';
+    html += '<button onclick="' + def.fn + '(' + args.join(',') + ')" '
+         + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;'
+         + 'padding:.45rem 1rem;border:1px solid ' + bord + ';background:transparent;color:'
+         + couleur + ';cursor:pointer">' + escapeHtmlText(def.label) + '</button>';
+  }
+  return html + '</div>';
+}
+
 function renderMailRead() {
   const mail = getMails().find(m => m.id === currentMailId);
   if (!mail) return renderMailInbox();
@@ -2384,6 +2458,9 @@ function renderMailRead() {
   if (estPropositionJodie && typeof jodiePortraitRafraichirEtatMail === 'function') {
     setTimeout(() => jodiePortraitRafraichirEtatMail(), 0);
   }
+  // Les marqueurs d'action sont retires du corps AVANT sanitisation, et rendus comme de vrais
+  // boutons hors du bloc sanitise -- seul endroit ou un onclick peut survivre.
+  const _actionsMail = extraireActionsMail(mail.body || '');
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
@@ -2400,7 +2477,8 @@ function renderMailRead() {
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
-      <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
+      <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(_actionsMail.corps) : ''}</div>
+      ${boutonsActionMail(_actionsMail.actions)}
       ${estPropositionJodie ? '<div id="jodie-portrait-etat" style="margin-top:1rem"></div>' : ''}
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         ${mail.to === myName && !mail.fromIsOrg ? `
@@ -2509,7 +2587,14 @@ function submitMail() {
   }
   // Sanitisation à l'écriture (lot H2, faille XSS pipeline mail) : le corps vient d'un
   // contenteditable, même filtre que les posts du forum (RICH_ALLOWED_TAGS).
-  const body = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(bodyEl?.innerHTML?.trim() || '') : (bodyEl?.innerHTML?.trim() || '');
+  // Les marqueurs d'action sont un canal RESERVE AU CODE DU JEU. Un joueur qui taperait
+  // « [[act:poste|...] ] » dans son mail verrait sinon apparaitre un vrai bouton chez son
+  // destinataire. Les RPC verifient certes l'autorite derriere chaque handler, mais on ne laisse
+  // pas un joueur fabriquer l'appat : la sequence est neutralisee a la source, et un texte
+  // litteral reste lisible.
+  const brut = bodyEl?.innerHTML?.trim() || '';
+  const sansMarqueur = brut.replace(/\[\[act:/gi, '[&#91;act:');
+  const body = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(sansMarqueur) : sansMarqueur;
   sendMail(to, subject, body);
   mailDefaultTo = '';
   mailView = 'inbox';

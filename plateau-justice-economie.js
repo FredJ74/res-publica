@@ -12089,8 +12089,7 @@ async function postulerOffreEmploiBNE(offreId) {
 
   const corps = 'Vous occupez déjà le poste de <strong>' + (ancienneOffre?.label || emploiActuel.offreId) + '</strong> et avez postulé pour <strong>' + offre.label + '</strong>.<br><br>' +
     'Votre poste actuel reste actif tant que vous n\'avez pas tranché. La nouvelle offre vous est réservée en attendant votre réponse.<br><br>' +
-    '<button onclick="trancherEmploiBNE(true,\'' + emploiActuel.offreId + '\',\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#c0b090;cursor:pointer;margin-right:.5rem">Garder mon poste actuel</button>' +
-    '<button onclick="trancherEmploiBNE(false,\'' + emploiActuel.offreId + '\',\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Prendre le nouveau poste</button>';
+    marqueurActionMail('bne_garder', emploiActuel.offreId, offreId) + marqueurActionMail('bne_prendre', emploiActuel.offreId, offreId);
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');

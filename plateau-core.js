@@ -1154,6 +1154,31 @@ function totalComptesBancaires() {
 // sur la fortune globale : cette fonction se contente donc de logger toute divergence (avec assez
 // de contexte pour diagnostiquer), sans jamais modifier arg, liquide, comptesBancaires ni
 // placementsBancaires.
+// SOURCE UNIQUE DES AFFICHAGES FINANCIERS (19 septembre 2026).
+// Symptome remonte en production : la vue generale annoncait « ARGENT 22 344 FR » pendant que le
+// panneau detaille affichait « liquide 0 » et « en banque 3 278 ». Les deux lisaient des sources
+// differentes -- state.arg d'un cote, state.liquide + state.comptesBancaires de l'autre -- sans
+// que rien ne les confronte a l'ecran.
+//
+// CE QUE CETTE FONCTION NE FAIT PAS : elle ne choisit pas laquelle est « la bonne » et ne corrige
+// aucune valeur. L'architecture est explicite (voir verifierCoherenceFortune ci-dessous) :
+// personnages.arg reste TEMPORAIREMENT l'autorite de compatibilite sur la fortune globale, parce
+// que des dizaines d'ecritures historiques modifient encore arg sans toucher aux poches. Aligner
+// automatiquement annulerait ces ecritures.
+//
+// CE QU'ELLE FAIT : elle donne aux deux ecrans le MEME objet, poches detaillees ET ecart compris,
+// pour qu'ils ne puissent plus raconter deux histoires differentes en silence. Un ecart devient
+// visible a l'endroit exact ou le joueur le constate.
+function resumeFortune() {
+  const comptes = Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
+  const placements = (state.placementsBancaires || [])
+    .filter(p => p && p.statut === 'actif')
+    .reduce((s, p) => s + (p.montant || 0), 0);
+  const liquide = state.liquide || 0;
+  const poches = liquide + comptes + placements;
+  return { liquide, comptes, placements, poches, arg: state.arg || 0, ecart: (state.arg || 0) - poches };
+}
+
 function verifierCoherenceFortune() {
   const comptesTotal = Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
   const placementsTotal = (state.placementsBancaires || [])

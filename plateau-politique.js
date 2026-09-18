@@ -264,8 +264,7 @@ async function demanderNominationPoste(posteId, posteName) {
 
   const sujet = 'Candidature au poste de ' + posteName;
   const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>. Vous disposez de 48h pour choisir un candidat depuis la fenêtre de gestion des candidatures, sans quoi le système tranchera automatiquement.<br><br>' +
-    '<button onclick="accepterCandidaturePoste(\'' + posteId + '\',\'' + posteName.replace(/'/g,'') + '\',\'' + candidatNom.replace(/'/g,'') + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter la candidature</button>';
+    marqueurActionMail('candidature', posteId, posteName, candidatNom);
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
@@ -5123,8 +5122,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   const corps = nommeurNom + ' vous propose le poste de <strong>' + regle.label + '</strong>' +
     (villeNom ? ' pour la ville de ' + villeNom : ' pour ' + (COUNTRIES[state.country]?.n || "l'empire")) + '.<br><br>' +
     '<em>Ce poste est incompatible avec tout autre poste, sauf Député.</em><br><br>' +
-    '<button onclick="accepterNominationPosteNomme(\'' + vProp.id + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter le poste</button>';
+    marqueurActionMail('poste', vProp.id);
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
@@ -5678,8 +5676,7 @@ async function confirmerDemandeMariage(pa, cost) {
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     const corps = (state.char?.name || 'Quelqu\'un') + ' vous demande en mariage !<br><br>' +
-      '<button onclick="accepterDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">💍 Accepter</button>' +
-      '<button onclick="refuserDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
+      marqueurActionMail('mariage_oui', demande.id) + marqueurActionMail('mariage_non', demande.id);
     await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Demande en mariage 💍', corps, time).catch(() => {});
   }
 
@@ -8373,8 +8370,7 @@ async function notifierDeputesPourVoteConfiance(vote) {
     const sujet = 'Vote de confiance — Assemblée Nationale';
     const corps = 'Le Premier Ministre ' + vote.pm_nom + ' engage la responsabilité de son gouvernement. ' +
       'Votez avant 48h.<br><br>' +
-      '<button onclick="voterConfiance(&quot;' + vote.id + '&quot;,&quot;pour&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.5rem">✓ Confiance</button>' +
-      '<button onclick="voterConfiance(&quot;' + vote.id + '&quot;,&quot;contre&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">✗ Censure</button>';
+      marqueurActionMail('confiance_pour', vote.id) + marqueurActionMail('confiance_contre', vote.id);
 
     for (const dep of deputesPJ) {
       await sbSendMail('Assemblée Nationale', dep.name, sujet, corps, time).catch(() => {});
@@ -8832,8 +8828,7 @@ async function envoyerNominationCapitaine(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
-    '<button onclick="accepterNominationCapitaine(\'' + prop.id + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
+    marqueurActionMail('capitaine', prop.id);
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Capitaine', corps, time).catch(() => {});
   showToast('Nomination envoyée', '', true, true);
 }
@@ -8903,8 +8898,7 @@ async function envoyerNominationLieutenant(compagnieId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
-    '<button onclick="accepterNominationLieutenant(\'' + prop.id + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
+    marqueurActionMail('lieutenant', prop.id);
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Lieutenant', corps, time).catch(() => {});
   showToast('Nomination envoyée', '', true, true);
 }
