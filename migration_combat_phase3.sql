@@ -35,3 +35,53 @@
 -- (pas_au_meme_endroit) ; co-presence acceptee ; rejeu du meme id sans second effet ; poison
 -- refuse visiblement ; la victime lit sa file, un tiers ne la voit pas ; un tiers ne peut pas
 -- marquer traite, la victime oui.
+
+-- ============================================================================
+-- LOT 2 : MOTEUR PHYSIQUE DE COMBAT V1 (19 septembre 2026)
+-- Applique sous : combat_schema_etat_bataille, combat_primitives_jet,
+-- combat_combattants_et_gilet, combat_moteur_round, combat_actions_application_rapport,
+-- combat_engagement_et_decisions, combat_decisions_repli_doctrine, combat_rpc_client,
+-- combat_poursuivre_participant.
+--
+-- FORMULE, a la lettre du GD et non ajustee :
+--   Tir  : T = 20 + Tir*0.7              - PER_cible*2
+--   CaC  : T = 20 + Combat_rapproche*0.7 - DUP_cible*2
+--   T = clamp(round(...), 10, 85)   -- arrondi UNE fois, a la fin, puis clamp
+--   jet uniforme 1..100
+--   echec critique 96-100 TESTE EN PREMIER ; puis jet<=T/4 critique (-3 PA),
+--   <=3T/4 reussite (-2), <=T partielle (-1), sinon echec. Seuils NON arrondis.
+-- Verifie : T(0,10)=10, T(100,10)=70, T(100,0)=85, T(50,25)=10, T(50,3)=49 ;
+-- a T=85 les bascules tombent exactement sur 21/22, 63/64, 85/86, et 96 est echec critique.
+--
+-- AUCUN PV. Les degats sont en PA canoniques. A 0 PA : PNJ MORT (supprime reellement de la
+-- section, contingent diminue definitivement) ; PJ NEUTRALISE (jamais mort) et transfere a
+-- l'Infirmerie de sa propre caserne (ville 'caserne', meme zone dans les quatre empires).
+--
+-- RIEN N'EST DUPLIQUE : PA, position, inventaire, accessoires et appartenance au groupe restent
+-- lus et ecrits a leur source canonique. batailles_engagements ne dit QUE qui participe et qui
+-- est sorti.
+--
+-- CONFIDENTIALITE STRUCTURELLE : deux lignes de rapport par round, une par camp, et chaque camp
+-- ne lit que la sienne. Les pertes adverses sont degradees A L'ECRITURE via militaire_degrader --
+-- la donnee exacte n'entre jamais dans la ligne lisible par l'autre. Rien n'est envoye puis masque.
+--
+-- ATOMICITE : verrou FOR UPDATE sur la ligne de bataille, plus un index unique
+-- (bataille, numero, camp) sur les rapports, plus un index unique partiel garantissant une seule
+-- bataille en cours par zone.
+--
+-- POINT A ARBITRER, isole dans militaire_defense_pnj() : un soldat PNJ ne porte AUCUNE
+-- caracteristique defensive. DUP=3 est repris de PNJ_STATS_PAR_JOB.soldat (valeur reelle) et
+-- PER=10 de la « valeur neutre deja retenue ailleurs » (neutraliserPerCible). Ce sont les seuls
+-- chiffres du moteur qui ne viennent pas du cahier des charges.
+--
+-- BANCS (transactions annulees, zero residu) :
+--   * bataille complete 6v5 : 7 rounds, victoire, 5 PNJ reellement supprimes, PV du PJ inchanges
+--   * simultaneite : 60 duels a 1 PA -> 12 aneantissements mutuels, impossibles si le mort ne
+--     tirait pas ; echecs critiques marques 7 fois (~5 % attendu)
+--   * gilet : 50 tirs mortels -> 15 neutralisations evitees / 13 morts (50 % attendu) et
+--     15 gilets fragilises ; 30 coups d'arme blanche -> 0 declenchement
+--   * repli : 6 sovietiques avant et apres le decrochage (aucune riposte), survivants deplaces
+--     vers la position canonique capturee a l'ouverture
+--   * doctrine : tenir -> 10 morts sur 10 ; repli_50 -> decrochage a 5/10, 4 survivants
+--   * concurrence : deux resolutions donnent les rounds 1 puis 2, 4 lignes de rapport
+--   * securite : round, appliquer, soldat_supprimer et soldat_pa_fixer refuses a authenticated
