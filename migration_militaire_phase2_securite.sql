@@ -104,3 +104,24 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE TRUNCATE ON TABLES FROM authent
 -- authenticated est donc silencieusement revertie. Le verrou est correct ; c'etait le banc qui
 -- mentait.
 REVOKE ALL ON FUNCTION public.militaire_subtiliser(text, text) FROM PUBLIC, anon, authenticated;
+
+-- ============================================================================
+-- CALEPIN DE CAMPAGNE + DECORATIONS (18 septembre 2026)
+-- Applique sous `militaire_calepin_campagne`, `decorations_militaires`,
+-- `militaire_decorer_poste_scalaire`, `militaire_calepin_decorations`.
+--
+-- Le calepin est une PROJECTION (services_militaires + competences_militaires + soldes_militaires
+-- + decorations_militaires). Aucune table de calepin : elle aurait cree une seconde verite.
+--
+-- Decorations : AUCUNE grille de merite, AUCUN catalogue de medailles. L'intitule est saisi par
+-- celui qui decore. Le NIVEAU n'est pas un parametre, il est deduit du poste atteste :
+-- commandant -> compagnie, min_def -> armee, president -> etat.
+--
+-- PIEGE CORRIGE AU BANC : acteur_poste_courant() renvoie TABLE(nom, poste_id, poste_city, pays).
+-- L'affecter a une variable text donnait "(zztestCmdt,,,republic)" et AUCUN poste ne
+-- correspondait jamais -- la fonction etait integralement morte, en fail-closed. Visible
+-- uniquement parce que le banc rapporte le MOTIF du refus et pas seulement son existence.
+--
+-- Banc : 8/8 -- sans autorite refuse, auto-decoration refusee, hors juridiction refusee, le
+-- Commandant obtient bien le niveau 'compagnie', rejeu exact refuse, autre intitule accepte,
+-- INSERT et DELETE directs refuses par les GRANT.

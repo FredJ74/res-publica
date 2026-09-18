@@ -4528,6 +4528,13 @@ const BUILDINGS = {
           // Consultation pure, ouverte a tous : un civil qui n'a jamais servi obtient un calepin
           // vide, pas un refus. Ne pas avoir servi est une reponse.
           {fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires et soldes restant dues.'},
+          // Ordre ouvert a tous : c'est la RPC qui reconnait l'autorite, et elle seule. Le niveau
+          // decoule de la fonction du decernant, il ne se choisit pas. Aucun catalogue de
+          // medailles : l'intitule est ecrit par celui qui decore.
+          // 0 PA : c'est ce que le code fait REELLEMENT (la RPC ne debite rien). Declarer un cout
+          // non preleve afficherait un prix mensonger. Le cout en PA d'une decoration est un
+          // arbitrage GD qui n'a pas ete rendu -- a fixer, pas a deviner.
+          {fn:'decorer_militaire',  label:'Decerner une decoration', pa:0, cost:0, type:'legal', icon:'ti-medal', successRate:100, desc:'Reserve au Commandant de la Caserne, au Ministre de la Defense et au chef de l\'Etat.'},
           // FILIERE SOLDAT (18 septembre 2026). Aucune qualification militaire requise pour
           // devenir simple soldat. Ces trois ordres sont declares a 0 PA : ce sont des actes
           // purement administratifs et declaratifs, et cela evite toute dependance au miroir des

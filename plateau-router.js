@@ -594,6 +594,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'retirer_trousse') { doRetirerTrousse(); return; }
   if (fn === 'retirer_rations') { ouvrirRetraitRations(); return; }
   if (fn === 'calepin_campagne') { ouvrirCalepinCampagne(); return; }
+  if (fn === 'decorer_militaire') { ouvrirDecorerMilitaire(); return; }
   if (fn === 'candidatures_section') { ouvrirCandidaturesSection(); return; }
   if (fn === 'quitter_armee') { ouvrirQuitterArmee(); return; }
   if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }

@@ -9412,6 +9412,60 @@ const LIBELLES_DOMAINES_MILITAIRES = {
   combat_rapproche: 'Combat rapproché', tir: 'Tir',
   reconnaissance: 'Reconnaissance', secourisme: 'Secourisme'
 };
+// Les trois niveaux de decoration. Ils correspondent A L'AUTORITE qui decerne, pas a un bareme de
+// merite : le jeu n'a aucun avis sur qui merite quoi.
+const LIBELLES_NIVEAUX_DECORATION = {
+  compagnie: 'ordre de la compagnie', armee: 'ordre de l\'armée', etat: 'ordre de l\'État'
+};
+
+// ---- DECERNER UNE DECORATION (UI de militaire_decorer) ----
+// L'ordre est ouvert a tous : c'est la RPC qui reconnait l'autorite, et elle seule. L'interface ne
+// devine pas le niveau et ne propose aucune liste de medailles -- l'intitule est ECRIT par celui
+// qui decore. Une decoration est un geste politique, pas un palier de progression.
+async function ouvrirDecorerMilitaire() {
+  document.getElementById('postes-modal-title').textContent = 'Décerner une décoration';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Réservé au Commandant de la Caserne, au Ministre de la Défense et au chef de l\'État. Le niveau de la décoration découle de votre fonction ; il ne se choisit pas.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Qui décorez-vous ?</label>';
+  html += '<input id="deco-nom" type="text" placeholder="Nom exact du personnage" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Intitulé de la distinction</label>';
+  html += '<input id="deco-intitule" type="text" maxlength="120" placeholder="Vous l\'écrivez vous-même" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Citation (facultative)</label>';
+  html += '<textarea id="deco-citation" maxlength="600" rows="3" placeholder="Le motif, tel qu\'il sera lu" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.82rem;outline:none;box-sizing:border-box;margin-bottom:.7rem;resize:vertical"></textarea>';
+  html += '<button onclick="confirmerDecoration()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Décerner</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDecoration() {
+  const nom = (document.getElementById('deco-nom')?.value || '').trim();
+  const intitule = (document.getElementById('deco-intitule')?.value || '').trim();
+  const citation = (document.getElementById('deco-citation')?.value || '').trim();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!nom || !intitule) { showToast('Décoration incomplète', 'Il faut un nom et un intitulé.', false); return; }
+
+  const r = await sbMilitaireDecorer(nom, intitule, citation);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      autorite_insuffisante: 'Seuls le Commandant, le Ministre de la Défense et le chef de l\'État décorent.',
+      auto_decoration_refusee: 'On ne se décore pas soi-même.',
+      decore_introuvable: 'Ce personnage n\'existe pas.',
+      hors_juridiction: 'Vous ne pouvez décorer que vos compatriotes.',
+      deja_decernee: 'Vous lui avez déjà décerné cette distinction.',
+      intitule_invalide: 'L\'intitulé doit faire entre 3 et 120 caractères.',
+      citation_trop_longue: 'La citation est trop longue (600 caractères).'
+    };
+    showToast('Décoration refusée', (r && motifs[r.raison]) || 'Opération refusée.', false);
+    return;
+  }
+  showToast('Décoration décernée', escapeHtmlText(nom) + ' — ' + escapeHtmlText(r.intitule) +
+            ' (' + (LIBELLES_NIVEAUX_DECORATION[r.niveau] || r.niveau) + ').', true, true);
+  addJournalEntry('Décoration décernée à ' + nom + ' : ' + r.intitule + '.', 'event-good');
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent(nom + ' a été décoré(e) : ' + r.intitule + '.', 'national');
+  }
+}
 
 async function ouvrirCalepinCampagne() {
   const c = await sbMilitaireCalepin();
@@ -9442,6 +9496,20 @@ async function ouvrirCalepinCampagne() {
     html += '</div>';
   }
   html += '<div style="font-size:.7rem;color:#6a6048;margin:.4rem 0 .9rem">Ces compétences sont distinctes de vos caractéristiques et vous restent acquises après l\'armée.</div>';
+
+  const decos = Array.isArray(c.decorations) ? c.decorations : [];
+  if (decos.length) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">DÉCORATIONS</div>';
+    for (const d of decos) {
+      html += '<div style="border:1px solid #3a2c10;background:#120e05;padding:.5rem;margin-bottom:.45rem">';
+      html += '<div style="font-size:.8rem;color:#C9A84C">' + escapeHtmlText(d.intitule || '') +
+              ' <span style="font-size:.66rem;color:#8a8060">— ' + (LIBELLES_NIVEAUX_DECORATION[d.niveau] || d.niveau) + '</span></div>';
+      if (d.citation) html += '<div style="font-size:.72rem;color:#c0b090;font-style:italic;margin-top:.2rem">« ' + escapeHtmlText(d.citation) + ' »</div>';
+      html += '<div style="font-size:.68rem;color:#6a6048;margin-top:.2rem">Décernée par ' + escapeHtmlText(d.decerne_par || '') + ' le ' + escapeHtmlText(d.le || '') + '</div>';
+      html += '</div>';
+    }
+    html += '<div style="height:.5rem"></div>';
+  }
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">ÉTAT DE SERVICE</div>';
   const periodes = Array.isArray(c.periodes) ? c.periodes : [];

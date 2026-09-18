@@ -3168,6 +3168,19 @@ async function sbMilitaireCalepin() {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// DECORER. Le NIVEAU n'est pas un parametre : le serveur le deduit du poste atteste de l'acteur
+// (commandant -> compagnie, min_def -> armee, president -> etat). Un Commandant ne peut donc pas
+// s'attribuer une decoration d'Etat en cochant une case.
+//
+// AUCUNE GRILLE DE MERITE, AUCUN CATALOGUE DE MEDAILLES : l'intitule est saisi par celui qui
+// decore. Le jeu n'a pas d'avis sur qui merite quoi -- il enregistre qui a decide, et a quel titre.
+async function sbMilitaireDecorer(decore, intitule, citation) {
+  const rows = await sbRpc('militaire_decorer', {
+    p_decore: decore, p_intitule: intitule, p_citation: citation || null
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Subtilisation : TOUT est serveur -- le debit des 2 PA, le jet, les seuils, le decrement du
 // stock et la creation de l'explosif dans l'inventaire. Le client ne fait que raconter le
 // resultat. AUCUNE inscription au registre reglementaire : c'est toute la difference avec un
