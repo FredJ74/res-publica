@@ -2779,6 +2779,18 @@ async function openFinancesModal(pa, cost) {
       <div class="finance-label">Argent total</div>
       <div class="finance-amount">${state.arg.toLocaleString('fr-FR')} ${cur}</div>
     </div>
+    ${(() => {
+      // Meme controle que le panneau Inventaire (resumeFortune, plateau-core.js) : si le total
+      // annonce ne correspond pas a la somme reelle des poches, on le DIT ici aussi, au lieu de
+      // laisser trois ecrans afficher trois chiffres sans explication. « En banque » ci-dessous
+      // reste volontairement le solde de la banque NATIONALE -- c'est le sens de cet ecran-ci --
+      // alors que le controle porte sur l'ensemble des comptes.
+      const f = (typeof resumeFortune === 'function') ? resumeFortune() : null;
+      if (!f || f.ecart === 0) return '';
+      return `<div style="padding:.5rem 1rem;background:#151005;border-bottom:1px solid #6a4a20;font-size:.72rem;color:#cc9a44">`
+        + `Écart de ${Math.abs(f.ecart).toLocaleString('fr-FR')} ${cur} avec le détail de vos poches `
+        + `(${f.poches.toLocaleString('fr-FR')} ${cur}). Votre fiche n'est pas synchronisée avec le serveur — rechargez la page.</div>`;
+    })()}
     <div class="finance-row">
       <div class="finance-label">Argent liquide (sur vous)</div>
       <div class="finance-amount">${state.liquide.toLocaleString('fr-FR')} ${cur}</div>
