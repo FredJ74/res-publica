@@ -85,3 +85,21 @@
 --   * doctrine : tenir -> 10 morts sur 10 ; repli_50 -> decrochage a 5/10, 4 survivants
 --   * concurrence : deux resolutions donnent les rounds 1 puis 2, 4 lignes de rapport
 --   * securite : round, appliquer, soldat_supprimer et soldat_pa_fixer refuses a authenticated
+
+-- ============================================================================
+-- LOT 3 : INTERFACE, HISTORIQUE, ET RETRAIT DE L'ANCIEN MOTEUR (19 septembre 2026)
+--
+-- ANCIEN MOTEUR COLLECTIF SUPPRIME cote client : calculerPointsGroupe, getCoefsArmesPays,
+-- construireCivilsCombat, verifierCombatAutomatique et resoudreCombat partent ENSEMBLE, avec
+-- l'appel automatique que deposerSoldats faisait sur eux. Il formait une SECONDE resolution
+-- concurrente. Rien de sa formule n'est recupere ; seule la nomenclature d'armes
+-- COEF_ARME_MILITAIRE est conservee, parce que c'est le vocabulaire des categories d'arme des
+-- soldats et non un morceau de moteur.
+--
+-- Une bataille commence desormais sur DECISION d'un chef (militaire_bataille_engager), a partir
+-- d'un contact reel -- jamais comme effet de bord d'un depot de troupes.
+--
+-- PARCOURS CLIENT VERIFIE de bout en bout : etat (aucune bataille) -> engager -> etat (round 0,
+-- leader, doctrine tenir) -> decider('continuer') -> round 1 resolu -> bilan observable. Le bilan
+-- rendu au camp republicain porte « 5 a 7 soldats » pour un effectif reel de 6 : l'estimation est
+-- degradee A L'ECRITURE, le navigateur ne recoit jamais le chiffre exact.

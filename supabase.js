@@ -3179,6 +3179,49 @@ async function sbMilitaireEntreeZone() {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// ---- MOTEUR PHYSIQUE DE COMBAT (phase 3, 19 septembre 2026) ----
+// TOUT est serveur : le tirage des cibles, le de, les degres, les degats, les morts, les
+// neutralisations et les deplacements de repli. Le client ne transmet JAMAIS ni cible, ni jet, ni
+// degat -- il demande, et il raconte ce que le serveur lui rend. Les primitives internes du
+// moteur (round, actions, application, suppression de soldat, ecriture de PA) ne sont accordees
+// a personne : un navigateur ne peut pas les appeler.
+//
+// L'etat rendu ne contient QUE la vue du camp du lecteur : les pertes adverses y sont deja
+// degradees. Il n'y a donc rien a masquer ici.
+async function sbMilitaireBatailleEtat(batailleId) {
+  const rows = await sbRpc('militaire_bataille_etat', { p_bataille_id: batailleId || null });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+async function sbMilitaireBatailleEngager() {
+  const rows = await sbRpc('militaire_bataille_engager', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Reserve au leader du camp : sa decision est ECRITE avant que le serveur ne regarde, et c'est
+// ainsi qu'elle prime sur la doctrine.
+async function sbMilitaireBatailleDecider(batailleId, decision) {
+  const rows = await sbRpc('militaire_bataille_decider', { p_bataille_id: batailleId, p_decision: decision });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Ouvert a tout participant engage : une bataille ne doit jamais s'arreter parce que le chef
+// d'en face n'est pas connecte. La doctrine du camp absent repond a sa place.
+async function sbMilitaireBataillePoursuivre(batailleId) {
+  const rows = await sbRpc('militaire_bataille_poursuivre', { p_bataille_id: batailleId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+async function sbMilitaireBatailleDoctrine(batailleId, doctrine) {
+  const rows = await sbRpc('militaire_bataille_doctrine', { p_bataille_id: batailleId, p_doctrine: doctrine });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+async function sbMilitaireMesBatailles(limite) {
+  const rows = await sbRpc('militaire_mes_batailles', { p_limite: limite || 10 });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Calepin de campagne : PROJECTION, jamais un registre. Rien n'est stocke -- tout est relu depuis
 // services_militaires, competences_militaires et soldes_militaires. Une table de calepin aurait
 // cree une seconde verite qui se serait mise a diverger.

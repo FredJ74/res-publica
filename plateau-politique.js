@@ -9381,7 +9381,6 @@ async function deposerSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
-  if (typeof verifierCombatAutomatique === 'function') verifierCombatAutomatique(state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
 }
 
 async function recupererSoldats(compagnieId, sectionId) {
@@ -9400,6 +9399,142 @@ async function recupererSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
+}
+
+// ==========================================================================================
+// PANNEAU DE COMBAT (phase 3, 19 septembre 2026)
+// ==========================================================================================
+// Le joueur ne voit JAMAIS les mathematiques : ni taux, ni de, ni formule, ni coefficient. Il voit
+// un bilan de round -- ce qu'il a perdu, ce qu'il a vu tomber en face, et un ordre de grandeur de
+// ce qui reste debout. Cet ordre de grandeur est degrade PAR LE SERVEUR : le navigateur ne recoit
+// pas la donnee exacte, il n'a donc rien a cacher.
+const LIBELLES_DOCTRINE = { tenir: 'Tenir la position', repli_50: 'Se replier si la situation devient défavorable' };
+
+async function ouvrirPanneauCombat(batailleId) {
+  const e = await sbMilitaireBatailleEtat(batailleId || null);
+  if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); return; }
+  const b = e.bataille;
+
+  document.getElementById('postes-modal-title').textContent = b ? 'Combat en cours' : 'Engagement';
+  let html = '<div style="padding:1rem">';
+
+  if (!b) {
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Vous n\'êtes engagé(e) dans aucun combat. Si une force ennemie occupe cette zone et que vos deux pays sont en guerre, vous pouvez l\'attaquer.</div>';
+    html += '<div style="font-size:.74rem;color:#6a6048;margin-bottom:.8rem">Attaquer une force qui ne vous a pas repéré(e) vous donne un premier passage avant toute riposte. Si elle vous a repéré(e), le premier round est simultané.</div>';
+    html += '<button onclick="confirmerEngagementCombat()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.55rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">Engager le combat</button>';
+    html += '</div>';
+    document.getElementById('postes-body').innerHTML = html;
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  const fini = (b.statut !== 'en_cours');
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' +
+          escapeHtmlText(b.lieu?.ville || '') + ' — ' + escapeHtmlText(b.lieu?.batiment || '') + '</div>';
+  html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Round ' + b.round_courant +
+          ' · vos combattants : ' + b.mon_effectif_actuel + ' sur ' + b.mon_effectif_initial +
+          (fini ? ' · <strong style="color:#cc6a44">combat terminé</strong>' : '') + '</div>';
+
+  const rounds = Array.isArray(b.rounds) ? b.rounds : [];
+  const dernier = rounds.length ? rounds[rounds.length - 1] : null;
+  if (dernier) {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.8rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">BILAN DU ROUND ' + dernier.round + '</div>';
+    html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +
+            ' PA sur ' + (dernier.mes_combattants_touches || 0) + ' combattant(s) touché(s).</div>';
+    if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' soldat(s) tué(s).</div>';
+    if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres évacué(s) à l\'infirmerie.</div>';
+    html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
+    html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
+    html += '</div>';
+  }
+
+  if (!fini) {
+    if (b.je_suis_leader) {
+      html += '<div style="display:flex;gap:.4rem;margin-bottom:.7rem">';
+      html += '<button onclick="deciderCombat(' + b.id + ',\'continuer\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Continuer</button>';
+      html += '<button onclick="deciderCombat(' + b.id + ',\'replier\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se replier</button>';
+      html += '</div>';
+      html += '<div style="font-size:.7rem;color:#6a6048;margin-bottom:.5rem">Se replier n\'est pas gratuit : l\'adversaire obtient un dernier passage de décrochage, et vous ne ripostez pas.</div>';
+      html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Si vous n\'êtes pas là pour décider :</label>';
+      html += '<select id="combat-doctrine" onchange="changerDoctrineCombat(' + b.id + ')" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.76rem;outline:none">';
+      for (const cle of Object.keys(LIBELLES_DOCTRINE)) {
+        html += '<option value="' + cle + '"' + (b.ma_doctrine === cle ? ' selected' : '') + '>' + LIBELLES_DOCTRINE[cle] + '</option>';
+      }
+      html += '</select>';
+    } else {
+      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous ne commandez pas ce groupe. Vous combattez, mais la décision revient à votre chef — ou à sa doctrine s\'il n\'est pas là.</div>';
+      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
+    }
+  } else if (b.issue) {
+    html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">Issue : ' + escapeHtmlText(b.issue) + '</div>';
+  }
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEngagementCombat() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await sbMilitaireBatailleEngager();
+  if (!r || r.ok !== true) {
+    const motifs = { pas_militaire: 'Seul un militaire en service peut engager le combat.',
+                     aucun_ennemi_ici: 'Aucune force ennemie ici, ou vos deux pays ne sont pas en guerre.',
+                     bataille_deja_en_cours: 'Un combat est déjà en cours ici.',
+                     effectif_insuffisant: 'Il n\'y a pas de quoi engager un combat des deux côtés.' };
+    showToast('Engagement impossible', (r && motifs[r.raison]) || 'Opération refusée.', false);
+    return;
+  }
+  showToast('Combat engagé', r.mon_effectif + ' contre ' + r.effectif_adverse +
+    (r.initiative === 'a' ? ' — vous ouvrez le feu sans avoir été repéré(e).' : ' — vous vous êtes vus.'), false, true);
+  addJournalEntry('Combat engagé contre les troupes de ' + r.camp_adverse + '.', 'event-bad');
+  await ouvrirPanneauCombat(r.bataille_id);
+}
+
+async function deciderCombat(batailleId, decision) {
+  const r = await sbMilitaireBatailleDecider(batailleId, decision);
+  if (!r || r.ok !== true) {
+    showToast('Décision refusée', (r && r.raison === 'pas_leader_de_ce_camp')
+      ? 'Vous ne commandez pas ce groupe.' : 'Opération refusée.', false);
+    return;
+  }
+  await rafraichirApresRound(batailleId);
+}
+
+async function poursuivreCombat(batailleId) {
+  const r = await sbMilitaireBataillePoursuivre(batailleId);
+  if (!r || r.ok !== true) { showToast('Impossible', 'Le round n\'a pas pu être résolu.', false); return; }
+  await rafraichirApresRound(batailleId);
+}
+
+// Les PA et la position du joueur ont pu changer cote SERVEUR pendant le round : on les relit au
+// lieu de les deviner. Un PJ neutralise se retrouve a l'infirmerie de sa caserne.
+async function rafraichirApresRound(batailleId) {
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) +
+      '&select=pa,current_city,current_building,current_room,inventory').catch(() => null);
+    if (l && l[0]) {
+      state.pa = l[0].pa;
+      if (Array.isArray(l[0].inventory)) { state.inventory = l[0].inventory; if (state.char) state.char.inventory = state.inventory; }
+      if (l[0].current_room !== state.currentRoom || l[0].current_building !== state.currentBuilding) {
+        state.currentCity = l[0].current_city;
+        if (typeof enterBuilding === 'function') enterBuilding(l[0].current_building, true);
+        if (typeof enterRoom === 'function') enterRoom(l[0].current_building, l[0].current_room, null);
+        showToast('Hors de combat', 'Vous avez été évacué(e) à l\'infirmerie de votre caserne.', false, true);
+      }
+      updateUI();
+    }
+  }
+  await ouvrirPanneauCombat(batailleId);
+}
+
+async function changerDoctrineCombat(batailleId) {
+  const d = document.getElementById('combat-doctrine')?.value;
+  if (!d) return;
+  const r = await sbMilitaireBatailleDoctrine(batailleId, d);
+  if (!r || r.ok !== true) { showToast('Doctrine refusée', 'Seul le chef du groupe la fixe.', false); return; }
+  showToast('Doctrine enregistrée', LIBELLES_DOCTRINE[d], true);
 }
 
 // ---- CALEPIN DE CAMPAGNE (UI de militaire_calepin) ----
@@ -9506,6 +9641,29 @@ async function ouvrirCalepinCampagne() {
               ' <span style="font-size:.66rem;color:#8a8060">— ' + (LIBELLES_NIVEAUX_DECORATION[d.niveau] || d.niveau) + '</span></div>';
       if (d.citation) html += '<div style="font-size:.72rem;color:#c0b090;font-style:italic;margin-top:.2rem">« ' + escapeHtmlText(d.citation) + ' »</div>';
       html += '<div style="font-size:.68rem;color:#6a6048;margin-top:.2rem">Décernée par ' + escapeHtmlText(d.decerne_par || '') + ' le ' + escapeHtmlText(d.le || '') + '</div>';
+      html += '</div>';
+    }
+    html += '<div style="height:.5rem"></div>';
+  }
+
+  // BATAILLES : projection de batailles_engagements, comme le reste du calepin. Un joueur revenant
+  // apres un combat resolu en son absence le relit ici -- l'evenement est canonique et unique, il
+  // n'en existe pas une copie par participant.
+  const hb = await sbMilitaireMesBatailles(10);
+  const batailles = (hb && hb.ok === true && Array.isArray(hb.batailles)) ? hb.batailles : [];
+  if (batailles.length) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">BATAILLES</div>';
+    for (const bt of batailles) {
+      const rds = Array.isArray(bt.rounds) ? bt.rounds : [];
+      const paPerdus = rds.reduce((t, r) => t + (r.mes_pa_perdus || 0), 0);
+      const morts = rds.reduce((t, r) => t + (r.mes_morts_pnj || 0), 0);
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem;margin-bottom:.45rem">';
+      html += '<div style="font-size:.78rem;color:#C9A84C">' + escapeHtmlText(bt.lieu?.ville || '') +
+              ' — ' + escapeHtmlText(bt.lieu?.batiment || '') + '</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060">' + String(bt.debut || '').slice(0, 10) +
+              ' · ' + rds.length + ' round(s) · ' + (bt.issue ? escapeHtmlText(bt.issue) : 'en cours') + '</div>';
+      html += '<div style="font-size:.72rem;color:#c0b090;margin-top:.2rem">' + paPerdus + ' PA perdus par votre camp, ' +
+              morts + ' soldat(s) tué(s)' + (bt.mon_etat ? ' · vous : ' + escapeHtmlText(bt.mon_etat) : '') + '.</div>';
       html += '</div>';
     }
     html += '<div style="height:.5rem"></div>';
@@ -10522,158 +10680,29 @@ async function confirmerEquipementIndividuel(compagnieId, sectionId, matricule, 
   await ouvrirGestionEquipementSection(compagnieId, sectionId);
 }
 
-// ---- COMBAT AUTOMATIQUE ENTRE TROUPES DE PAYS EN GUERRE ----
-function calculerPointsGroupe(soldats, coefsArmes) {
-  const coefs = coefsArmes || COEF_ARME_MILITAIRE;
-  // MOTEUR ABANDONNE. calculerPointsGroupe appartient a resoudreCombat, dont la formule est
-  // abandonnee (deterministe, PA en pool collectif, aneantissement binaire, persistance cassee).
-  // Il lit encore force/endurance/tir, cles qui n'existent plus sur un soldat : il rend donc 0.
-  // Ne PAS le « reparer » -- il sera remplace par le moteur physique serveur.
-  const force = soldats.reduce((s, sol) => s + (sol.formation?.force || 0), 0);
-  const tir = soldats.reduce((s, sol) => s + (sol.formation?.tir || 0) * (coefs[sol.arme] || 1), 0);
-  const endurance = soldats.reduce((s, sol) => s + (sol.formation?.endurance || 0), 0);
-  return { force, tir, endurance, points: force * 3 + tir };
-}
-
-async function getCoefsArmesPays(pays) {
-  const coefs = { ...COEF_ARME_MILITAIRE };
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  Object.entries(budgetNat?.coefficientsArmesAcquis || {}).forEach(([arme, bonus]) => { coefs[arme] = (coefs[arme]||1) + bonus; });
-  return coefs;
-}
-
-// A appeler apres tout depot de troupes dans une piece (deposerSoldats) : verifie une rencontre hostile et resout le combat
-async function verifierCombatAutomatique(ville, buildingId, roomId) {
-  const compagniesRepublic = []; // toutes compagnies, tous pays, pour verifier les rencontres inter-empires
-  const paysListe = Object.keys(COUNTRIES);
-  let sectionsIci = [];
-  for (const p of paysListe) {
-    const compagnies = await sbGetCompagnies(p).catch(() => []);
-    compagnies.forEach(c => (c.sections || []).forEach(s => {
-      // La ville entre dans le predicat comme partout ailleurs. Ce n'est pas une reparation du
-      // moteur de combat (sa formule est abandonnee) : c'est eviter d'y laisser un filtre qui
-      // matcherait des soldats d'une autre ville.
-      const presents = s.soldats.filter(sol => soldatEstIci(sol, ville, buildingId, roomId));
-      if (presents.length > 0) sectionsIci.push({ pays: p, compagnieId: c.id, section: s, presents });
-    }));
-  }
-  if (sectionsIci.length < 2) return;
-
-  // Chercher une paire de pays effectivement en guerre parmi les sections presentes
-  for (let i = 0; i < sectionsIci.length; i++) {
-    for (let j = i + 1; j < sectionsIci.length; j++) {
-      const A = sectionsIci[i], B = sectionsIci[j];
-      if (A.pays === B.pays) continue;
-      const guerres = await sbGetGuerresPays(A.pays).catch(() => []);
-      const enGuerre = guerres.some(g => g.statut === 'active' && ((g.attaquant===A.pays&&g.attaque===B.pays)||(g.attaque===A.pays&&g.attaquant===B.pays)));
-      if (enGuerre) { await resoudreCombat(A, B); return; }
-    }
-  }
-}
-
-async function construireCivilsCombat(section) {
-  const affectes = (section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte');
-  const civils = [];
-  for (const c of affectes) {
-    let stats = { int: 10, vol: 10, per: 10 };
-    if (typeof sbGet === 'function') {
-      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(c.nom)}&select=int,vol,per`).catch(() => []);
-      if (rows?.[0]) stats = rows[0];
-    }
-    civils.push({
-      matricule: 'CIVIL-' + c.nom,
-      formation: { force: stats.int || 0, endurance: stats.vol || 0, tir: stats.per || 0 },
-      arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom
-    });
-  }
-  return civils;
-}
-
-async function resoudreCombat(A, B) {
-  const civilsA = await construireCivilsCombat(A.section);
-  const civilsB = await construireCivilsCombat(B.section);
-  let soldatsA = [...A.presents, ...civilsA], soldatsB = [...B.presents, ...civilsB];
-  const coefsA = await getCoefsArmesPays(A.pays);
-  const coefsB = await getCoefsArmesPays(B.pays);
-  let round = 0;
-  while (soldatsA.length > 0 && soldatsB.length > 0 && round < 100) {
-    round++;
-    const ptsA = calculerPointsGroupe(soldatsA, coefsA);
-    const ptsB = calculerPointsGroupe(soldatsB, coefsB);
-
-    // Degats : mes points de groupe = dommages infliges au PA adverse
-    const paTotalA = soldatsA.reduce((s, sol) => s + sol.pa, 0) - ptsB.points;
-    const paTotalB = soldatsB.reduce((s, sol) => s + sol.pa, 0) - ptsA.points;
-
-    // Attrition d'endurance : base 2 PA/round/soldat, reduite selon l'avantage relatif d'endurance
-    const ecartA = ptsB.endurance > 0 ? (ptsA.endurance - ptsB.endurance) / ptsB.endurance : 0;
-    const ecartB = ptsA.endurance > 0 ? (ptsB.endurance - ptsA.endurance) / ptsA.endurance : 0;
-    const attritionA = Math.max(0, PA_BASE_ROUND * soldatsA.length * (1 - Math.max(0, ecartA)));
-    const attritionB = Math.max(0, PA_BASE_ROUND * soldatsB.length * (1 - Math.max(0, ecartB)));
-
-    const paFinalA = paTotalA - attritionA;
-    const paFinalB = paTotalB - attritionB;
-
-    if (paFinalA <= 0) { soldatsA = []; }
-    if (paFinalB <= 0) { soldatsB = []; }
-    if (paFinalA > 0 && paFinalB > 0) {
-      // Repartir les PA restants proportionnellement (simplification : pas de suivi individuel round par round)
-      const ratioA = paFinalA / (soldatsA.reduce((s, sol) => s + sol.pa, 0) || 1);
-      const ratioB = paFinalB / (soldatsB.reduce((s, sol) => s + sol.pa, 0) || 1);
-      soldatsA.forEach(s => s.pa = Math.max(0, s.pa * ratioA));
-      soldatsB.forEach(s => s.pa = Math.max(0, s.pa * ratioB));
-    }
-  }
-
-  const compagnieA = (await sbGetCompagnies(A.pays).catch(() => [])).find(c => c.id === A.compagnieId);
-  const sectionA = compagnieA?.sections.find(s => s.id === A.section.id);
-  const compagnieB = (await sbGetCompagnies(B.pays).catch(() => [])).find(c => c.id === B.compagnieId);
-  const sectionB = compagnieB?.sections.find(s => s.id === B.section.id);
-
-  const matriculesMortsA = A.presents.filter(s => soldatsA.length === 0).map(s => s.matricule);
-  const matriculesMortsB = B.presents.filter(s => soldatsB.length === 0).map(s => s.matricule);
-  const civilsMortsA = civilsA.length > 0 && soldatsA.length === 0 ? civilsA.length : 0;
-  const civilsMortsB = civilsB.length > 0 && soldatsB.length === 0 ? civilsB.length : 0;
-
-  if (soldatsA.length === 0 && sectionA) {
-    sectionA.soldats = sectionA.soldats.filter(s => !A.presents.some(p => p.matricule === s.matricule));
-    if (sectionA.civilsRequisitionnes) sectionA.civilsRequisitionnes = sectionA.civilsRequisitionnes.filter(c => c.statut !== 'affecte');
-  }
-  if (soldatsB.length === 0 && sectionB) {
-    sectionB.soldats = sectionB.soldats.filter(s => !B.presents.some(p => p.matricule === s.matricule));
-    if (sectionB.civilsRequisitionnes) sectionB.civilsRequisitionnes = sectionB.civilsRequisitionnes.filter(c => c.statut !== 'affecte');
-  }
-
-  if (compagnieA) await sbSaveCompagnie(A.compagnieId, compagnieA);
-  if (compagnieB) await sbSaveCompagnie(B.compagnieId, compagnieB);
-
-  const resultat = soldatsA.length === 0 && soldatsB.length === 0 ? 'Anéantissement mutuel'
-    : soldatsA.length === 0 ? (COUNTRIES[B.pays]?.n||B.pays) + ' l\'emporte' : (COUNTRIES[A.pays]?.n||A.pays) + ' l\'emporte';
-
-  addExternalEvent('⚔️ COMBAT : affrontement entre les troupes de ' + (COUNTRIES[A.pays]?.n||A.pays) + ' et ' + (COUNTRIES[B.pays]?.n||B.pays) + ' — ' + resultat + ' (' + round + ' rounds).');
-
-  if (typeof sbCreerFaitArmes === 'function') {
-    await sbCreerFaitArmes({
-      jour: state.day || 1,
-      campA: { pays: A.pays, sectionId: A.section.id, lieutenantNom: A.section.lieutenantNom, effectifEngage: A.presents.length + civilsA.length, pertes: matriculesMortsA.length + civilsMortsA },
-      campB: { pays: B.pays, sectionId: B.section.id, lieutenantNom: B.section.lieutenantNom, effectifEngage: B.presents.length + civilsB.length, pertes: matriculesMortsB.length + civilsMortsB },
-      resultat, rounds: round
-    }).catch(() => {});
-  }
-  if (A.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', A.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsA.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  if (B.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', B.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsB.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-
-  if (soldatsA.length === 0 && sectionA?.soldats.length === 0 && A.section.lieutenantNom) {
-    const commandantInfoA = await getTitulaireActuel('commandant', null, A.pays);
-    const commandantNomA = commandantInfoA?.estPJ ? commandantInfoA.nom : null;
-    if (commandantNomA) await sbSendMail('État-Major', commandantNomA, 'Section anéantie', 'La section de ' + A.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-  if (soldatsB.length === 0 && sectionB?.soldats.length === 0 && B.section.lieutenantNom) {
-    const commandantInfoB = await getTitulaireActuel('commandant', null, B.pays);
-    const commandantNomB = commandantInfoB?.estPJ ? commandantInfoB.nom : null;
-    if (commandantNomB) await sbSendMail('État-Major', commandantNomB, 'Section anéantie', 'La section de ' + B.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-}
+// ==========================================================================================
+// ANCIEN MOTEUR COLLECTIF SUPPRIME (19 septembre 2026), remplace par le moteur physique serveur.
+// ==========================================================================================
+// calculerPointsGroupe / getCoefsArmesPays / construireCivilsCombat / verifierCombatAutomatique /
+// resoudreCombat partaient tous les cinq. Ils formaient une SECONDE resolution concurrente, et
+// c'est precisement ce qu'il ne faut pas laisser vivre a cote du nouveau moteur.
+//
+// Pourquoi il etait mort, et pas seulement demode :
+//   1. calculerPointsGroupe lisait formation.force/endurance/tir, cles abolies par les quatre
+//      domaines d'entrainement : il rendait 0 partout ;
+//   2. avec 0 des deux cotes, aucun camp ne passait sous le seuil -- la boucle tournait 100 rounds
+//      a vide et ne tuait personne ;
+//   3. entierement deterministe, aucun de ;
+//   4. aneantissement binaire : pas de pertes partielles, pas de blesses, aucun PJ ;
+//   5. persistance par sbSaveCompagnie, donc ecriture cliente du blob, REFUSEE EN SILENCE par la
+//      RLS des que l'appelant n'etait ni Commandant ni Capitaine.
+//
+// Il etait encore APPELE, depuis deposerSoldats : deposer des troupes dans une piece occupee par
+// un ennemi declenchait cette resolution fantome. Cet appel part avec lui. Une bataille commence
+// desormais sur DECISION d'un chef (militaire_bataille_engager), a partir d'un contact reel.
+//
+// Rien n'est recupere de sa formule. La nomenclature d'armes COEF_ARME_MILITAIRE est CONSERVEE
+// plus haut : c'est le vocabulaire des categories d'arme des soldats, pas un morceau de moteur.
 
 // ---- LE CAPITAINE PEUT DEMETTRE UN LIEUTENANT ----
 async function doDemettreLieutenant(pa, cost) {

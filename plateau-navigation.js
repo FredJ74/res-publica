@@ -941,6 +941,18 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
       }
     } catch (e) { /* idem : la detection ne bloque jamais un deplacement */ }
   }
+
+  // 3. COMBAT. Une bataille en cours a laquelle je participe s'impose : on n'entre pas dans une
+  // fusillade sans s'en apercevoir. Le panneau est le seul endroit ou l'on decide -- et il
+  // n'affiche jamais les mathematiques du moteur.
+  if (typeof sbMilitaireBatailleEtat === 'function' && typeof ouvrirPanneauCombat === 'function') {
+    try {
+      const e = await sbMilitaireBatailleEtat(null);
+      if (e && e.ok === true && e.bataille && e.bataille.statut === 'en_cours') {
+        await ouvrirPanneauCombat(e.bataille.id);
+      }
+    } catch (err) { /* un panneau qui echoue ne bloque jamais la navigation */ }
+  }
 }
 
 // Le serveur n'envoie que ce qui a ete reellement vu, deja degrade. L'affichage se contente donc
@@ -962,6 +974,9 @@ function afficherContactsDetectes(r) {
     addJournalEntry('Contact établi : vous avez été repéré(e) en retour. '
       + r.contacts_mutuels + ' force(s) ennemie(s) vous ont vu(s).', 'event-bad');
   }
+  // Avoir repere quelqu'un n'engage rien : c'est le joueur qui decide d'attaquer, et le panneau
+  // lui dit ce que la surprise change avant qu'il ne tranche.
+  if (typeof ouvrirPanneauCombat === 'function') ouvrirPanneauCombat(null).catch(function () {});
 }
 
 // =====================
