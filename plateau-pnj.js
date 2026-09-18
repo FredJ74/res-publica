@@ -1233,6 +1233,48 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
+  // ==========================================================================================
+  // ADJUDANT GASPARD FERRIERE — aide de camp (phase 2, 18 septembre 2026).
+  // ==========================================================================================
+  // Pendant exact d'Eve : elle tient la sante, il tient l'organisation, et chacun renvoie a
+  // l'autre. Ces repliques sont DETERMINISTES a dessein : l'aide de camp est le PNJ auquel on
+  // renvoie un joueur perdu, il doit donc repondre meme quand l'IA est indisponible. Il n'a
+  // aucune autorite et n'en prend aucune : il explique, il n'engage pas.
+  if (nomCourtEnigme === 'Adjudant Gaspard Ferrière') {
+    if (/blessure|soin|infirm|sant(é|e)|trousse|secourisme|mort|tu(é|e)|pa\b|point d'action/i.test(action)) {
+      speech.textContent = "Tout ce qui saigne, c'est l'infirmerie. Voyez Toahémarch. Prévenez-moi seulement si elle vous rend en état de reprendre le service.";
+      return;
+    }
+    if (/hi(é|e)rarchie|grade|lieutenant|capitaine|commandant|section/i.test(action)) {
+      speech.textContent = "Quatre sections par compagnie, vingt-quatre hommes au plus par section. Le Lieutenant est la seule autorité de sa section — c'est écrit, et ça ne se discute pas. Un soldat qui mène un groupe le mène ; il ne le commande pas. La nuance vous paraîtra mince jusqu'au jour où elle ne le sera plus.";
+      return;
+    }
+    if (/contingent|r(é|e)serve|effectif|recrut/i.test(action)) {
+      speech.textContent = "Le contingent d'une compagnie est fixé le jour de sa création, et il ne se reconstitue jamais. Ce que vous perdez, vous ne le remplacez pas. Les officiers l'oublient volontiers ; le registre, lui, n'oublie rien.";
+      return;
+    }
+    if (/candidature|engag|s'engager|soldat|postuler/i.test(action)) {
+      speech.textContent = "On s'engage ici même, au corps de garde. Officier, c'est le Commandant qui tranche puis le Capitaine qui installe. Simple soldat, c'est le Lieutenant de la section, et il n'y a aucune qualification à produire. Une place occupée par un homme en chair vaut une place occupée par un appelé : elle compte pareil.";
+      return;
+    }
+    if (/radio|distance|ordre collectif|ration|bivouac|tente/i.test(action)) {
+      speech.textContent = "Pour commander un groupe que vous ne voyez pas, il faut une radio de chaque côté. C'est un relais, pas un tour de magie : sans les deux, votre ordre n'arrive nulle part. Une ration nourrit un homme, une tente en abrite treize. Faites le calcul avant de partir, pas après.";
+      return;
+    }
+    if (/solde|paie|salaire|arri(é|e)r|dette/i.test(action)) {
+      speech.textContent = "La caisse de la caserne paie. Quand elle ne peut pas, la différence devient une dette à votre nom — elle vous suit au changement de grade, à la démission, et jusqu'à la porte. Réclamez-la, c'est votre droit.";
+      return;
+    }
+    if (/entra(î|i)n|comp(é|e)tence|tir|reconnaissance/i.test(action)) {
+      speech.textContent = "Quatre domaines : combat rapproché, tir, reconnaissance, secourisme. Ce ne sont pas vos caractéristiques, et c'est précisément l'intérêt — ça s'acquiert, et ça vous reste quand vous aurez rendu l'uniforme.";
+      return;
+    }
+    if (/calepin|(é|e)tat de service|d(é|e)coration|m(é|e)daille/i.test(action)) {
+      speech.textContent = "Votre calepin de campagne est consultable ici. Il porte votre temps de service, vos compétences, ce qu'on vous doit et ce qu'on vous a décerné. Une décoration ne se mérite pas au barème : quelqu'un décide de vous la donner, ou personne ne le fait.";
+      return;
+    }
+  }
+
   // Enigme du portrait disparu : temoignages scriptes des 3 pensionnaires de l'EHPAD.
   // Ne se declenchent que si l'enigme est active (evite un texte hors-sujet sinon).
   const nomCourtEhpad = (pnj.name || '').replace(' (PNJ)', '').trim();

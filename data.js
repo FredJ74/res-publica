@@ -4519,7 +4519,12 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-corps-de-garde.png",
         persons: [
           {name:'Sergent Dubois (PNJ)', role:'PNJ - Sous-officier de garde', rel:'neutral', job:'militaire'},
-          {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
+          {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'},
+          // AIDE DE CAMP : place a l'ENTREE, pas dans un bureau du fond. C'est le premier PNJ
+          // qu'un joueur croise en arrivant a la caserne, et c'est le seul qui sache expliquer
+          // comment l'armee fonctionne. Sans lui, l'orientation d'Eve Toahemarch tombait dans
+          // le vide. Il n'a aucune autorite : il explique, il n'engage pas.
+          {name:'Adjudant Gaspard Ferrière (PNJ)', role:'PNJ - Aide de camp', rel:'friendly', job:'aide_de_camp'}
         ],
         orders: [
           {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},

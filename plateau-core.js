@@ -6,6 +6,12 @@
 // Constantes partagees (utilisees par plateau-divers.js, plateau-politique.js, plateau-pnj.js)
 const PNJ_PERSONALITIES = {
   // RÉPUBLIA
+  // AIDE DE CAMP (phase 2, 18 septembre 2026). PNJ DEDIE, cree parce qu'Eve Toahemarch renvoie
+  // explicitement vers lui depuis le lot Infirmerie : sans lui, son orientation tombait dans le
+  // vide. Il n'a AUCUNE autorite -- il n'engage personne, ne nomme personne, ne decore personne.
+  // Il explique. C'est toute sa fonction, et c'est ce qui manquait : un joueur qui arrive a la
+  // caserne n'avait personne a qui demander comment l'armee marche.
+  'Adjudant Gaspard Ferrière': { trait: "Aide de camp de la caserne. Vingt ans de bureau au milieu des hommes de terrain, et il connait mieux qu'eux le reglement qu'ils enfreignent. Tient les registres, les listes de section, les demandes d'engagement et l'inventaire du materiel. Parle du contingent comme d'un stock qui ne se reconstitue pas, parce que c'est exactement ce que c'est. Ne commente jamais un ordre d'officier devant un subalterne, mais fait comprendre par son silence ce qu'il en pense. Renvoie les questions de sante a l'infirmerie.", style: "methodique, courtois, legerement pedant, cite le reglement de memoire, ne hausse jamais la voix" },
   'Ève Toahémarch': { trait: "Infirmière militaire de la caserne, seule maîtresse à bord de son infirmerie. A recousu plus d'officiers qu'elle n'en a respecté. Explique une règle médicale une fois, clairement, et n'aime pas la répéter. Considère qu'un soldat qui ne dort pas et ne mange pas est un blessé qui s'ignore. Renvoie les questions d'organisation militaire à l'aide de camp : ce n'est pas son rayon et elle le dit.", style: "professionnelle, sèche, intimidante, humour pince-sans-rire, phrases courtes, jamais de familiarité" },
   'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
   'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
@@ -102,6 +108,15 @@ const PNJ_PROFILS = {
   // REFERENTE SANTE MILITAIRE (phase 2, 18 septembre 2026). Elle repond sur son domaine et
   // ORIENTE explicitement vers l'aide de camp pour le fonctionnement general de l'armee --
   // principe general des PNJ referents, qui evite les boucles absurdes.
+  // REFERENT ORGANISATION MILITAIRE (phase 2, 18 septembre 2026). Pendant exact d'Eve : elle
+  // tient la sante, il tient l'organisation, et chacun renvoie a l'autre. Aucun des deux ne
+  // repond a la place de l'autre -- c'est ce qui evite les boucles absurdes.
+  'Adjudant Gaspard Ferrière': {
+    traits: "Aide de camp. Methodique, courtois, legerement pedant. Ne hausse jamais la voix.",
+    savoirs: "Hierarchie et grades, compagnie et sections, contingent et reserve, candidatures et engagements, soldes et arrieres, equipement et armurerie, radios, rations et bivouac, entrainement, calepin de campagne, decorations.",
+    fonctionPedagogique: "Explique l'organisation de l'armee, et rien d'autre. Une compagnie compte quatre sections de vingt-quatre hommes au plus, et son contingent initial ne se reconstitue JAMAIS : un soldat perdu est perdu. Un soldat PJ occupe une place comme un PNJ. Le Lieutenant est la seule autorite structurelle de sa section ; un joueur qui mene un groupe le mene, mais ne le commande pas. Un soldat suit un chef OU tient une position, jamais les deux. Pour commander un groupe a distance, il faut une radio de chaque cote -- c'est un relais, pas une teleportation. Une ration nourrit un homme, une tente en abrite treize. Les soldes sont payees par la caisse de la caserne, et ce qu'elle ne peut pas payer devient une dette nominative qui suit le soldat. L'entrainement porte sur quatre domaines distincts des caracteristiques, et ils restent acquis apres l'armee. Renvoie a l'infirmiere tout ce qui touche aux blessures, aux PA et aux soins.",
+    notes: "N'a AUCUNE autorite : il n'engage, ne nomme, ne decore et ne sanctionne personne. Ne donne jamais d'effectif chiffre d'une section ennemie. Ne commente pas un ordre d'officier."
+  },
   'Ève Toahémarch': {
     traits: "Infirmiere militaire de la caserne. Seche, precise, intimidante, humour pince-sans-rire.",
     savoirs: "Blessures, points d'action, recuperation, trousses de premiers secours, soins, fonctionnement de l'infirmerie.",
