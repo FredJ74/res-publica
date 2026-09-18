@@ -1524,6 +1524,30 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- FILIERE OFFICIER ATTESTEE (phase 2, 18 septembre 2026) ----
+// engagements_militaires n'accepte plus aucune ecriture cliente. Les trois transitions legitimes
+// (creation -> attente_commandant -> attente_capitaine -> affecte) passent par ces RPC, qui
+// verifient l'identite, l'autorite, la juridiction ET L'ETAT PRECEDENT -- on ne saute pas une
+// etape et on ne rejoue pas.
+//
+// L'affectation en section corrige au passage une PANNE REELLE : l'ancien chemin ecrivait
+// personnages.poste DU CANDIDAT par sbUpdate, ce que la RLS refuse depuis le chantier B sans que
+// sbUpdate ne leve. Le candidat n'obtenait jamais son poste de Lieutenant.
+async function sbMilitaireEngagementCreer() {
+  const rows = await sbRpc('militaire_engagement_creer', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireEngagementAffecterCompagnie(engagementId, compagnieId) {
+  const rows = await sbRpc('militaire_engagement_affecter_compagnie',
+    { p_engagement_id: engagementId, p_compagnie_id: compagnieId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+async function sbMilitaireEngagementAffecterSection(engagementId, sectionId) {
+  const rows = await sbRpc('militaire_engagement_affecter_section',
+    { p_engagement_id: engagementId, p_section_id: sectionId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- EQUIPEMENT DES SOLDATS PNJ (phase 2, 18 septembre 2026) ----
 // Un objet REEL qui se deplace, jamais un drapeau : inventaire du Lieutenant -> soldat.accessoires,
 // et l'inverse. Aucune creation, aucune destruction, aucune copie -- l'objet garde son identite
@@ -2960,6 +2984,9 @@ async function sbMarquerRapportRemonte(id) {
   return sbUpdate('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`, { data });
 }
 
+// PLUS APPELEE depuis le 18 septembre 2026 : engagements_militaires n'accepte plus d'ecriture
+// cliente. Conservee pour ne pas casser un appel oublie, mais l'INSERT sera refuse par les
+// droits. Utiliser sbMilitaireEngagementCreer.
 async function sbCreerEngagement(data) {
   const id = 'engagement-' + Date.now();
   await sbInsert('engagements_militaires', { id, statut: 'attente_commandant', data });
@@ -2972,6 +2999,8 @@ async function sbGetEngagementsPays(pays, statut) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
+// PLUS APPELEE depuis le 18 septembre 2026 : les transitions de statut passent par les RPC
+// attestees sbMilitaireEngagementAffecterCompagnie / _Section.
 async function sbMajEngagement(id, statut, patch) {
   const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(id)}`);
   const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };

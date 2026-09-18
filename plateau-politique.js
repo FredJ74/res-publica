@@ -11129,7 +11129,18 @@ async function doEngagerOfficier(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const id = await sbCreerEngagement({ pays, nom: state.char?.name, jour: state.day || 1 });
+  // ATTESTE (phase 2, 18 septembre 2026). L'INSERT client dans engagements_militaires est
+  // remplace par une RPC qui verifie l'identite, l'absence de poste d'officier et l'absence de
+  // candidature deja en cours. La table n'accepte plus d'ecriture directe.
+  const rCreer = (typeof sbMilitaireEngagementCreer === 'function') ? await sbMilitaireEngagementCreer() : null;
+  if (!rCreer || rCreer.ok !== true) {
+    showToast('Candidature impossible',
+      rCreer?.raison === 'deja_officier' ? 'Vous occupez déjà un poste militaire.'
+      : rCreer?.raison === 'candidature_en_cours' ? 'Votre candidature précédente est encore en cours.'
+      : 'Refus du serveur (' + (rCreer?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  const id = rCreer.engagement;
   const commandantInfoEng = await getTitulaireActuel('commandant', null, pays);
   const commandantNom = commandantInfoEng?.estPJ ? commandantInfoEng.nom : null;
   if (commandantNom && typeof sbSendMail === 'function') {
@@ -11170,26 +11181,30 @@ async function ouvrirTraiterEngagements(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// ATTESTE (phase 2). Le Commandant reel est exige serveur, la juridiction verifiee, et l'ETAT
+// PRECEDENT de la candidature controle -- on ne saute pas une etape et on ne rejoue pas.
 async function confirmerAffectationCompagnie(engagementId, pa, cost) {
-  const compagnieId = document.getElementById('compagnie-' + engagementId)?.value;
+  const compagnieId = document.getElementById('cie-' + engagementId)?.value;
   if (!compagnieId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
-  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(engagementId)}`).catch(() => []);
-  const engagement = rows?.[0]?.data;
-  if (!engagement) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  await sbMajEngagement(engagementId, 'attente_capitaine', { compagnieId });
+  if (typeof sbMilitaireEngagementAffecterCompagnie !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireEngagementAffecterCompagnie(engagementId, compagnieId);
+  if (!r || r.ok !== true) {
+    showToast('Affectation impossible',
+      r?.raison === 'autorite_insuffisante' ? 'Réservé au Commandant en exercice.'
+      : r?.raison === 'etape_invalide' ? 'Cette candidature n\'est plus en attente du Commandant.'
+      : r?.raison === 'hors_juridiction' ? 'Hors de votre empire.'
+      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => [])).find(c => c.id === compagnieId);
   if (compagnie?.capitaineNom && typeof sbSendMail === 'function') {
     await sbSendMail('Commandement', compagnie.capitaineNom, 'Nouvel engagé à affecter',
-      engagement.nom + ' vous est affecté par le Commandant. Rendez-vous au Corps de Garde pour l\'installer dans une section.',
+      'Un engagé vous est affecté par le Commandant. Rendez-vous au Corps de Garde pour l\'installer dans une section.',
       typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   }
   showToast('Engagé affecté à la compagnie', compagnie?.capitaineNom ? 'Le Capitaine a été notifié.' : 'Cette compagnie n\'a pas encore de Capitaine — en attente.', true, true);
-  addJournalEntry(engagement.nom + ' affecté à la compagnie ' + compagnieId + '.', 'event-info');
+  addJournalEntry('Engagé affecté à la compagnie ' + compagnieId + '.', 'event-info');
 }
 
 // Le Capitaine installe un engage affecte a sa compagnie comme lieutenant d'une section
@@ -11223,51 +11238,40 @@ async function ouvrirAffecterEngage(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// ATTESTE (phase 2, 18 septembre 2026). CE CHEMIN ETAIT CASSE : il ecrivait personnages.poste DU
+// CANDIDAT par sbUpdate, ce que la RLS refuse depuis le chantier B -- et sbUpdate ne leve pas. Le
+// candidat n'obtenait donc jamais son poste de Lieutenant, exactement la « promotion fantome » que
+// le code disait avoir corrigee. Les trois ecritures (lieutenantNom, poste du candidat, statut de
+// la candidature) sont desormais faites dans UNE transaction serveur, qui peuple aussi la section
+// depuis la reserve de contingent.
 async function confirmerAffectationSection(engagementId, pa, cost) {
   const sectionId = document.getElementById('section-' + engagementId)?.value;
   if (!sectionId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(engagementId)}`).catch(() => []);
-  const engagement = rows?.[0]?.data;
-  if (!engagement) return;
-
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === engagement.compagnieId);
-  const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  section.lieutenantNom = engagement.nom;
-  await sbSaveCompagnie(engagement.compagnieId, compagnie);
-  await sbMajEngagement(engagementId, 'affecte', {});
-
-  // Bug corrige (promotion fantome) : seul section.lieutenantNom etait renseigne ici -- le
-  // candidat recevait un mail de confirmation sans jamais obtenir state.poste.id:'lieutenant',
-  // donc sans acces reel aux ordres requiresPost:'lieutenant'. Le Capitaine qui valide n'est
-  // pas forcement le candidat (autre PJ, potentiellement hors session) : on ne peut donc pas se
-  // contenter de modifier le state local de l'acteur courant. Meme technique que
-  // accepterCandidaturePoste() (ligne ~2737, fix du 10 aout 2026 pour ce meme probleme sur les
-  // nominations de poste electif/ministeriel) : ecriture directe sur la fiche Supabase du
-  // candidat (personnages.poste), effective immediatement pour tout le monde (getTitulaireActuel),
-  // visible par le candidat des son prochain chargement -- pas besoin qu'il soit connecte.
-  const posteLieutenant = { id: 'lieutenant', name: 'Lieutenant', compagnieId: engagement.compagnieId, sectionId };
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(engagement.nom)}`, { poste: posteLieutenant }).catch(() => {});
+  if (typeof sbMilitaireEngagementAffecterSection !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireEngagementAffecterSection(engagementId, sectionId);
+  if (!r || r.ok !== true) {
+    showToast('Installation impossible',
+      r?.raison === 'pas_capitaine_de_cette_compagnie' ? 'Vous ne commandez pas cette compagnie.'
+      : r?.raison === 'etape_invalide' ? 'Cette candidature n\'est plus en attente du Capitaine.'
+      : r?.raison === 'section_indisponible' ? 'Cette section a déjà un Lieutenant.'
+      : r?.raison === 'hors_juridiction' ? 'Hors de votre empire.'
+      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
   }
-  // Si le candidat est justement le joueur connecte dans cette session (rare mais possible),
-  // mettre aussi a jour son state local immediatement plutot que d'attendre un rechargement.
-  if (engagement.nom === state.char?.name) {
-    state.poste = posteLieutenant;
+  if (typeof sbSendMail === 'function' && r.nom) {
+    await sbSendMail('Commandement', r.nom, 'Vous êtes nommé Lieutenant',
+      'Vous prenez le commandement d\'une section. ' + (r.hommes || 0) + ' homme(s) du contingent vous sont affectés'
+      + (r.incomplete ? ' — la section est incomplète.' : '.'),
+      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  if (r.nom === state.char?.name) {
+    state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId: r.compagnie, sectionId };
     if (state.char) state.char.poste = state.poste;
     updateUI();
   }
-
-  if (typeof sbSendMail === 'function') {
-    await sbSendMail('Commandement', engagement.nom, 'Nomination confirmée',
-      'Vous êtes désormais Lieutenant de la section ' + sectionId + '.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-  showToast('Engagé affecté', engagement.nom + ' est nommé Lieutenant de la section ' + sectionId + '.', true, true);
-  addExternalEvent('🎖 ' + engagement.nom + ' est nommé Lieutenant après engagement volontaire.');
+  showToast('Lieutenant installé', (r.nom || '') + ' prend la tête de la section avec ' + (r.hommes || 0) + ' homme(s).', true, true);
+  addJournalEntry((r.nom || '') + ' installé comme Lieutenant de section.', 'event-good');
 }
 
 async function ouvrirRechercheMilitaireDepuisMinistere() {
