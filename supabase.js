@@ -1524,6 +1524,24 @@ async function sbMilitaireCandidaturesSoldats(sectionId) {
              .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
+// ---- EQUIPEMENT DES SOLDATS PNJ (phase 2, 18 septembre 2026) ----
+// Un objet REEL qui se deplace, jamais un drapeau : inventaire du Lieutenant -> soldat.accessoires,
+// et l'inverse. Aucune creation, aucune destruction, aucune copie -- l'objet garde son identite
+// complete, donc son id, son lot et tout etat futur comme le « fragilise » du gilet.
+//
+// AUTORITE STRUCTURELLE SEULEMENT : le Lieutenant de CETTE section. Un soldat PJ temporairement
+// leader d'un groupe n'acquiert PAS ce droit -- leaderCourant est operationnel, pas structurel.
+//
+// GENERIQUE : la fonction ne connait aucun accessoire en particulier. Radio, tente, jumelles,
+// tenue, gilet, ration et trousse passent par le meme chemin.
+async function sbMilitaireEquiperAccessoire(compagnieId, sectionId, matricule, objetId, sens) {
+  const rows = await sbRpc('militaire_equiper_accessoire', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId,
+    p_matricule: matricule, p_objet_id: objetId, p_sens: sens
+  });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- LOGISTIQUE DE TERRAIN : rations, bivouac, radio (phase 2, 18 septembre 2026) ----
 // Un SEUL ordre collectif pour deux actions, parce qu'elles partagent tout : meme groupe cible,
 // meme garde quotidienne (date reelle Europe/Paris), meme atomicite, meme condition de radio.
