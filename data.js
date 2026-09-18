@@ -4525,6 +4525,9 @@ const BUILDINGS = {
           {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
           {fn:'affecter_engage',    label:'Affecter un engagé à une section', pa:0, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Installer un engage valide par le Commandant comme lieutenant d\'une section.'},
           {fn:'engager_officier',   label:'S\'engager comme officier',  pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
+          // Consultation pure, ouverte a tous : un civil qui n'a jamais servi obtient un calepin
+          // vide, pas un refus. Ne pas avoir servi est une reponse.
+          {fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires et soldes restant dues.'},
           // FILIERE SOLDAT (18 septembre 2026). Aucune qualification militaire requise pour
           // devenir simple soldat. Ces trois ordres sont declares a 0 PA : ce sont des actes
           // purement administratifs et declaratifs, et cela evite toute dependance au miroir des

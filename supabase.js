@@ -3160,6 +3160,14 @@ async function sbMilitaireSubtiliser(pays, joueur) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// Calepin de campagne : PROJECTION, jamais un registre. Rien n'est stocke -- tout est relu depuis
+// services_militaires, competences_militaires et soldes_militaires. Une table de calepin aurait
+// cree une seconde verite qui se serait mise a diverger.
+async function sbMilitaireCalepin() {
+  const rows = await sbRpc('militaire_calepin', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Subtilisation : TOUT est serveur -- le debit des 2 PA, le jet, les seuils, le decrement du
 // stock et la creation de l'explosif dans l'inventaire. Le client ne fait que raconter le
 // resultat. AUCUNE inscription au registre reglementaire : c'est toute la difference avec un

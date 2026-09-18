@@ -9402,6 +9402,67 @@ async function recupererSoldats(compagnieId, sectionId) {
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
 }
 
+// ---- CALEPIN DE CAMPAGNE (UI de militaire_calepin) ----
+// Lecture seule et sans PA. Le calepin d'un civil est VIDE, et c'est un resultat : le jeu doit
+// pouvoir dire « vous n'avez jamais servi » sans que cela ressemble a une panne.
+const LIBELLES_GRADES_MILITAIRES = {
+  soldat: 'Soldat', lieutenant: 'Lieutenant', capitaine: 'Capitaine', commandant: 'Commandant'
+};
+const LIBELLES_DOMAINES_MILITAIRES = {
+  combat_rapproche: 'Combat rapproché', tir: 'Tir',
+  reconnaissance: 'Reconnaissance', secourisme: 'Secourisme'
+};
+
+async function ouvrirCalepinCampagne() {
+  const c = await sbMilitaireCalepin();
+  if (!c || c.ok !== true) { showToast('Calepin indisponible', 'Le serveur n\'a pas répondu.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Calepin de campagne';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C;letter-spacing:.06em">' + escapeHtmlText(c.nom || '') + '</div>';
+  html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.9rem">' +
+          (c.en_service ? 'En service — ' + (LIBELLES_GRADES_MILITAIRES[c.grade_courant] || c.grade_courant)
+                        : 'Pas en service actuellement') +
+          ' · ' + (c.jours_total || 0) + ' jour(s) sous les drapeaux au total</div>';
+
+  if (c.arrieres_dus > 0) {
+    html += '<div style="border:1px solid #8a3a20;background:#150c06;padding:.5rem;margin-bottom:.8rem;font-size:.76rem;color:#cc6a44">'
+         + 'Soldes restant dues : <strong>' + Number(c.arrieres_dus).toLocaleString('fr-FR') + ' FR</strong>. '
+         + 'Cette dette est nominative : elle vous suit même après un changement de grade ou un départ.</div>';
+  }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">COMPÉTENCES MILITAIRES</div>';
+  const comp = c.competences || {};
+  for (const cle of Object.keys(LIBELLES_DOMAINES_MILITAIRES)) {
+    const v = Number(comp[cle] || 0);
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">';
+    html += '<span style="font-size:.74rem;color:#8a8060;width:9rem">' + LIBELLES_DOMAINES_MILITAIRES[cle] + '</span>';
+    html += '<span style="flex:1;height:.4rem;background:#1a1408;display:block"><span style="display:block;height:100%;width:' + v + '%;background:#8a6a20"></span></span>';
+    html += '<span style="font-size:.74rem;color:#f0ead6;width:2rem;text-align:right">' + v + '</span>';
+    html += '</div>';
+  }
+  html += '<div style="font-size:.7rem;color:#6a6048;margin:.4rem 0 .9rem">Ces compétences sont distinctes de vos caractéristiques et vous restent acquises après l\'armée.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">ÉTAT DE SERVICE</div>';
+  const periodes = Array.isArray(c.periodes) ? c.periodes : [];
+  if (periodes.length === 0) {
+    html += '<div style="font-size:.76rem;color:#8a8060">Aucune période de service. Vous n\'avez jamais porté l\'uniforme.</div>';
+  } else {
+    for (const p of periodes) {
+      html += '<div style="border-left:2px solid ' + (p.en_cours ? '#8a6a20' : '#2a2010') + ';padding:.3rem .6rem;margin-bottom:.45rem">';
+      html += '<div style="font-size:.8rem;color:#f0ead6">' + (LIBELLES_GRADES_MILITAIRES[p.grade] || escapeHtmlText(p.grade || '')) +
+              (p.en_cours ? ' <span style="color:#8ac05a;font-size:.68rem">— en cours</span>' : '') + '</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060">' + escapeHtmlText(p.debut || '') +
+              ' → ' + (p.fin ? escapeHtmlText(p.fin) : 'aujourd\'hui') + ' · ' + (p.jours || 0) + ' jour(s)' +
+              (p.section ? ' · section ' + escapeHtmlText(p.section) : '') + '</div>';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 // ---- ORDRES COLLECTIFS : ration et bivouac (UI de militaire_ordre_collectif) ----
 // Le groupe, et non le soldat, est l'unite d'ordre : un PNJ n'a pas d'inventaire, c'est son chef
 // qui porte ses rations et ses tentes. L'ecran liste donc les GROUPES de la section, c'est-a-dire
