@@ -103,3 +103,56 @@
 -- leader, doctrine tenir) -> decider('continuer') -> round 1 resolu -> bilan observable. Le bilan
 -- rendu au camp republicain porte « 5 a 7 soldats » pour un effectif reel de 6 : l'estimation est
 -- degradee A L'ECRITURE, le navigateur ne recoit jamais le chiffre exact.
+
+-- ============================================================================
+-- LOT 4 : CORRECTIF DE CIBLAGE + FORMULE CALIBREE (20 septembre 2026)
+-- Applique sous `combat_ciblage_independant_et_formule` et `combat_actions_photo_complete`.
+--
+-- BUG CORRIGE. militaire_bataille_actions utilisait :
+--   CROSS JOIN LATERAL (SELECT d.* FROM militaire_bataille_combattants(...) d
+--                        ORDER BY random() LIMIT 1) c
+-- Cette sous-requete ne referencait PAS la ligne attaquante et portait sur une fonction STABLE :
+-- PostgreSQL l'evaluait UNE SEULE FOIS et reutilisait la meme cible pour tous les attaquants.
+-- Mesure avant correctif : 25 attaquants, 21 jets distincts, UNE seule cible distincte.
+-- Consequence : surtuage massif, batailles ~45 rounds au lieu de ~30, et violation du GD
+-- (« plusieurs attaquants PEUVENT viser le meme adversaire » etait devenu « visent TOUJOURS le
+-- meme »). Les simulations du rapport de phase 3 en etaient faussees.
+--
+-- La fonction est desormais en plpgsql avec une boucle explicite : les defenseurs sont
+-- photographies UNE fois dans des tableaux, puis CHAQUE attaquant tire son propre indice a chaque
+-- tour de boucle. Aucune liberte laissee au planificateur.
+-- Mesure apres correctif : 25 attaquants -> 15 cibles distinctes, 25 attaquants distincts,
+-- 0 cible hors du roster adverse, et le PJ leader vise 40 fois sur 1000 tirs pour 38 attendus
+-- (1/26) -- aucun biais leader.
+--
+-- FORMULE CALIBREE :
+--   T = clamp(25 + competence_offensive x 0,7
+--                - competence_defensive_cible x 0,5
+--                - PER_ou_DUP_cible x 0,5, 10, 85)
+-- La competence defend desormais autant qu'elle attaque, a poids reduit. PER/DUP porte le meme
+-- coefficient mais sur une amplitude cinq fois moindre (5-20 contre 0-100) : aptitude generale
+-- secondaire, jamais dominante.
+--
+-- La competence DEFENSIVE est celle du MEME domaine que l'attaque subie : on ne se protege pas
+-- d'une balle avec son corps-a-corps.
+--
+-- Calibrage sur banc (simulateur en memoire, tirage independant, 2000 batailles par point) :
+--   10 elites c80 vs 25 recrues c20 -> def 0,35 : 60,0 % | def 0,45 : 71,3 % |
+--   def 0,50 : 74,40 % (+/-1,91) | def 0,55 : 84,0 % | def 0,70 : 89,5 %
+-- Cible GD 70-75 % : def 0,50 retenu, avec base = 25 (coefficients ronds).
+--
+-- SIGNATURE CHANGEE : militaire_taux_combat passe de (numeric, numeric) a
+-- (numeric, numeric, numeric). L'ancienne est DROPPEE explicitement -- verifie, une seule ligne
+-- subsiste dans pg_proc. Elle n'etait accordee a personne, aucun client n'est concerne.
+--
+-- INCHANGES : de 1..100, clamp 10-85, cinq degres, degats 3/2/1, echec critique 96-100 teste
+-- en premier.
+--
+-- VERIFICATION MOTEUR CONTRE BANC, apres correctif :
+--   25c50 sym      : moteur 31,6 rounds / 20,0-20,9 morts | banc 29,9 / 19,0-19,2
+--   10c80 vs 25c20 : moteur 30,1 rounds, 9 victoires sur 14 | banc 32,0 / 74,4 %
+--   4c95 vs 25c50  : moteur 12,7 rounds, 4-0 | banc 13,1 / 4-0
+--   4c50 vs 25c50  : moteur 4,8 rounds, 4-0  | banc 5,5 / 4-0
+--
+-- HORS PERIMETRE, volontairement : l'annihilation symetrique (condition de fin) et la surprise
+-- (mecanique d'ouverture). Le banc a etabli qu'aucune ne depend des coefficients.
