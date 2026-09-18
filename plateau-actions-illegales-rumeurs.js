@@ -1932,39 +1932,39 @@ async function confirmerSubtilisationExplosif() {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'caserne';
 
-  const r = await deduireCoutOrdre({ pa: PA_SUBTILISATION, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Bonus/malus : STRICTEMENT les memes termes que le vol de materiaux de chantier. L'ISN lu est
-  // celui de la zone ou se trouve le joueur ; la caserne etant une zone speciale sans indices
-  // propres, getIndiceVille retombe sur la valeur par defaut, comme partout ailleurs.
-  const dup = getStatEffective('DUP');
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn')
-            : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  let bonus = (dup - 10) * 2 - (isn - 45) / 3
-            + (typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0);
-  if (typeof consommerBonusBenediction === 'function') bonus = consommerBonusBenediction(50 + bonus) - 50;
-
-  // UN SEUL JET, comme le vol de chantier. Aucun vigile ici : le troisieme terme est nul.
-  const jet = (Math.floor(Math.random() * 100) + 1) - 50;
-  const score = (typeof scoreVolMateriaux === 'function') ? scoreVolMateriaux(bonus, 0, jet)
-              : Math.max(0, Math.min(100, 50 + bonus + jet));
-  const verdict = verdictSubtilisationExplosif(score);
+  // RESOLUTION ENTIEREMENT SERVEUR (18 septembre 2026). Le navigateur tirait le de, decidait de
+  // la reussite, puis FABRIQUAIT lui-meme l'explosif dans son inventaire. Deux failles : forcer
+  // la reussite depuis la console, et creer un explosif sans jet du tout. Le client ne fait plus
+  // que demander et raconter -- il n'arbitre plus rien, et ne debite plus les PA non plus :
+  // militaire_subtiliser_tenter prend les 2 PA lui-meme, avant le jet, comme toute tentative.
+  const verdict = (typeof sbMilitaireSubtiliserTenter === 'function')
+    ? await sbMilitaireSubtiliserTenter(pays) : null;
+  if (!verdict || verdict.ok !== true) {
+    const motifs = { pas_sur_place: 'Vous devez être à la caserne.',
+                     pa_insuffisants: 'Il vous faut ' + PA_SUBTILISATION + ' PA.',
+                     personnage_absent: 'Personnage introuvable.' };
+    showToast('Impossible', (verdict && motifs[verdict.raison]) || 'Tentative refusée.', false);
+    return;
+  }
+  // Le serveur a deja debite les PA. On reflete la BAISSE en local pour que l'affichage suive :
+  // les triggers de la vue conservent les baisses clientes et ignorent les hausses, donc ce
+  // miroir ne peut pas creer de PA, seulement remettre l'ecran d'accord avec la base.
+  state.pa = Math.max(0, (state.pa || 0) - PA_SUBTILISATION);
+  updateUI();
 
   if (verdict.reussite) {
-    // Le stock est decremente AVANT que l'objet n'existe : jamais d'explosif cree de rien, et si
-    // le stock a ete vide entre-temps la tentative echoue proprement (les PA restent consommes,
-    // comme pour toute tentative).
-    const res = (typeof sbMilitaireSubtiliser === 'function')
-      ? await sbMilitaireSubtiliser(pays, state.char?.name || '') : null;
-    if (!res || res.ok !== true) {
-      showToast('Rien à prendre', (res && res.raison === 'stock_insuffisant')
-        ? 'Le râtelier était déjà vide.' : 'Vous n\'avez rien pu emporter.', false);
-      addJournalEntry('Tentative de subtilisation d\'explosifs : rien à prendre.', 'event-info');
-      return;
+    // L'explosif a ete pose dans l'inventaire par le SERVEUR. On relit plutot que de recreer :
+    // le recreer ici le doublerait.
+    const lot = verdict.lot || 'legacy';
+    if (typeof sbGet === 'function' && state.char?.name) {
+      const lignes = await sbGet('personnages',
+        'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+      if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
+        state.inventory = lignes[0].inventory;
+        if (state.char) state.char.inventory = state.inventory;
+        if (typeof renderInventory === 'function') renderInventory();
+      }
     }
-    const lot = (Array.isArray(res.lots) && res.lots[0]) ? res.lots[0].lot : 'legacy';
-    if (typeof poserObjetMilitaire === 'function') poserObjetMilitaire('explosif_militaire', lot);
 
     // Trace d'enquete anonyme : le fait est constatable, l'auteur ne l'est pas. Aucune ligne au
     // registre reglementaire -- c'est toute la difference avec un retrait.
@@ -1982,6 +1982,12 @@ async function confirmerSubtilisationExplosif() {
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
     showToast('Explosif subtilisé', 'Personne ne vous a vu. L\'objet ne figure sur aucun registre.', true, true);
     addJournalEntry('Explosif militaire subtilisé à l\'armurerie de la caserne (lot ' + lot + ').', 'event-bad');
+    return;
+  }
+
+  if (verdict.raison === 'stock_insuffisant') {
+    showToast('Rien à prendre', 'Le râtelier était déjà vide.', false);
+    addJournalEntry('Tentative de subtilisation d\'explosifs : rien à prendre.', 'event-info');
     return;
   }
 

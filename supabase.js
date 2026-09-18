@@ -3152,10 +3152,20 @@ async function sbMilitaireRetrait(pays, produit, quantite, lieutenant, section, 
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-// Subtilisation : meme decrement de stock, AUCUNE inscription au registre. C'est la seule
-// difference, et elle est portee par deux RPC distinctes plutot que par un drapeau.
+// MORTE depuis le 18 septembre 2026, et revoquee cote base. Elle decrementait le stock SANS
+// aucun jet : le navigateur decidait seul de la reussite puis appelait ceci. Conservee comme
+// trace le temps que tous les caches clients aient tourne. Ne pas rebrancher.
 async function sbMilitaireSubtiliser(pays, joueur) {
   const rows = await sbRpc('militaire_subtiliser', { p_pays: pays, p_joueur: joueur });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Subtilisation : TOUT est serveur -- le debit des 2 PA, le jet, les seuils, le decrement du
+// stock et la creation de l'explosif dans l'inventaire. Le client ne fait que raconter le
+// resultat. AUCUNE inscription au registre reglementaire : c'est toute la difference avec un
+// retrait d'armurerie, et elle reste portee par deux RPC distinctes plutot que par un drapeau.
+async function sbMilitaireSubtiliserTenter(pays) {
+  const rows = await sbRpc('militaire_subtiliser_tenter', { p_pays: pays });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 

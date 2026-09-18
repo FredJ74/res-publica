@@ -78,3 +78,29 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE TRUNCATE ON TABLES FROM authent
 -- RESTE OUVERT, VOLONTAIREMENT : UPDATE et INSERT. Des dizaines de producteurs clients ecrivent
 -- encore ces tables en direct ; les fermer avant migration casserait le jeu. C'est le prochain
 -- lot d'autorite, pas celui-ci.
+
+-- ============================================================================
+-- SUBTILISATION D'EXPLOSIF : RESOLUTION ENTIEREMENT SERVEUR (18 septembre 2026)
+-- Applique sous le nom `militaire_subtiliser_resolution_serveur`.
+-- Voir la source complete dans pg_proc : militaire_subtiliser_tenter(text).
+--
+-- Avant : Math.random() cote navigateur decidait de la reussite, puis le client FABRIQUAIT
+-- lui-meme l'explosif (poserObjetMilitaire). Deux failles distinctes -- forcer la reussite, et
+-- creer un explosif sans aucun jet.
+--
+-- La formule n'a PAS ete retouchee : bonus = (DUP-10)*2 - (ISN-45)/3 + palier de reputation
+-- criminelle ; score = borner(50 + bonus + 1d100 - 50, 0, 100) ; <20 detecte, <66 echec, >=66
+-- reussite. Banc du 18/09, 80 tentatives : a bonus -7, 30 % de reussites et 25 % de detections
+-- (attendu 28 % / 26 %) ; a bonus +36, 23 reussites sur 40 et ZERO detection (le score plancher
+-- passe a 37, donc la detection devient impossible -- conforme).
+--
+-- DEUX TERMES NON PORTES, signales plutot que devines : bonusFormation (+2 temporaire) et le
+-- bonus de benediction n'existent qu'en memoire cliente. Les faire declarer par le client aurait
+-- rouvert la faille. Ecart assume, a arbitrer par le GD.
+--
+-- PIEGE RENCONTRE AU BANC : `budgets_armurerie_verrou` (BEFORE UPDATE sur budgets_nationaux)
+-- ANNULE toute ecriture de stockArmurerieMilitaire / lotsMilitaires qui ne vient pas d'un appel
+-- serveur ou ne pose pas `rp.armurerie_militaire = '1'`. Une fixture de banc posant des claims
+-- authenticated est donc silencieusement revertie. Le verrou est correct ; c'etait le banc qui
+-- mentait.
+REVOKE ALL ON FUNCTION public.militaire_subtiliser(text, text) FROM PUBLIC, anon, authenticated;
