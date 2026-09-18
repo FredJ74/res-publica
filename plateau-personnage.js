@@ -3462,6 +3462,51 @@ async function doRetirerTrousse() {
   addJournalEntry('Retrait d\'une trousse de premiers secours à l\'infirmerie.', 'event-info');
 }
 
+// ---- RATIONS DE COMBAT EMPORTEES (UI de militaire_rations_retirer) ----
+// Une ration retiree ici est la MEME que celle du refectoire : meme stock, meme produit fini. La
+// difference est qu'elle quitte la caserne dans un inventaire, et devient alors le seul moyen de
+// nourrir un groupe de PNJ en campagne -- eux n'ont pas d'inventaire, leur chef porte tout.
+function ouvrirRetraitRations() {
+  document.getElementById('postes-modal-title').textContent = 'Emporter des rations';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Les rations sortent du stock du réfectoire et entrent dans votre inventaire. En campagne, une ration donnée à un soldat lui rend 1 PA, une fois par jour.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre de rations (1 à 50)</label>';
+  html += '<input id="nb-rations" type="number" min="1" max="50" value="5" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.7rem"/>';
+  html += '<button onclick="doRetirerRations()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Retirer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doRetirerRations() {
+  const nb = parseInt(document.getElementById('nb-rations')?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!(nb > 0)) return;
+  if (typeof sbMilitaireRationsRetirer !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireRationsRetirer(nb);
+  if (!r || r.ok !== true) {
+    const m = r?.raison;
+    showToast('Retrait impossible',
+      m === 'rations_insuffisantes' ? 'Le réfectoire n\'a que ' + (r.disponibles || 0) + ' ration(s) en stock.'
+      : m === 'pas_sur_place' ? 'Vous devez être à la caserne.'
+      : m === 'inventaire_plein' ? 'Votre inventaire ne peut pas porter autant de rations.'
+      : m === 'nombre_invalide' ? 'Nombre invalide (1 à 50).'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+    if (l && l[0] && Array.isArray(l[0].inventory)) {
+      state.inventory = l[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
+  updateUI();
+  showToast('Rations emportées', r.retirees + ' ration(s) dans votre inventaire — ' + r.restantes + ' restante(s) au réfectoire.', true, true);
+  addJournalEntry('Retrait de ' + (r.retirees || nb) + ' ration(s) de combat au réfectoire.', 'event-info');
+}
+
 // =====================
 // OBSERVATION AUX JUMELLES (phase 2, 18 septembre 2026)
 // =====================

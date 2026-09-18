@@ -4618,7 +4618,10 @@ const BUILDINGS = {
           {name:'Cuistot Marmiton (PNJ)', role:'PNJ - Cuisinier de compagnie', rel:'friendly', job:'cuistot_mil'}
         ],
         orders: [
-          {fn:'manger_ration', label:'Manger sa ration', pa:0, cost:0, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour. Gratuit. +2 PA. Puise dans le stock de rations de la caserne, alimente par le ravitaillement de l\'Effort de guerre.'}
+          {fn:'manger_ration', label:'Manger sa ration', pa:0, cost:0, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour. Gratuit. +2 PA. Puise dans le stock de rations de la caserne, alimente par le ravitaillement de l\'Effort de guerre.'},
+          // Retrait pur d'un bien deja en stock : 0 PA (regle transversale). La ration emportee est
+          // le SEUL moyen de nourrir un groupe de PNJ en campagne -- ils n'ont pas d'inventaire.
+          {fn:'retirer_rations', label:'Emporter des rations de combat', pa:0, cost:0, type:'legal', icon:'ti-package', successRate:100, desc:'Prend des rations sur le stock du refectoire et les place dans votre inventaire. Une ration nourrit un soldat pour la journee.'}
         ]
       },
       salle_faits_armes: {

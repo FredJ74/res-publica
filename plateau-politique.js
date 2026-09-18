@@ -9352,6 +9352,9 @@ async function doGererDetachement() {
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à récupérer ici (rejoint votre groupe)</label>';
   html += '<input id="nb-recuperer" type="number" min="0" max="' + ici + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<button onclick="recupererSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Récupérer</button>';
+  html += '<div style="border-top:1px solid #2a2010;margin:.9rem 0 .7rem"></div>';
+  html += '<button onclick="ouvrirOrdresCollectifs(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Ordres collectifs (ration, bivouac)</button>';
+  html += '<button onclick="ouvrirEquipementSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Équiper les soldats</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -9397,6 +9400,161 @@ async function recupererSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
+}
+
+// ---- ORDRES COLLECTIFS : ration et bivouac (UI de militaire_ordre_collectif) ----
+// Le groupe, et non le soldat, est l'unite d'ordre : un PNJ n'a pas d'inventaire, c'est son chef
+// qui porte ses rations et ses tentes. L'ecran liste donc les GROUPES de la section, c'est-a-dire
+// les valeurs distinctes de leaderCourant, et jamais les soldats un par un.
+//
+// Un groupe mene par quelqu'un d'autre n'est joignable qu'a la radio : le bouton reste affiche
+// mais annonce la condition, parce que cacher l'ordre empecherait le joueur de comprendre a quoi
+// sert sa radio. C'est le serveur qui refuse, jamais l'interface.
+async function ouvrirOrdresCollectifs(compagnieId, sectionId) {
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = (compagnie?.sections || []).find(s => s.id === sectionId);
+  if (!section) { showToast('Section introuvable', '', false); return; }
+
+  const moi = state.char?.name;
+  const groupes = {};
+  for (const sol of (section.soldats || [])) {
+    if (sol.pj) continue;
+    const chef = sol.leaderCourant;
+    if (!chef) continue;
+    groupes[chef] = (groupes[chef] || 0) + 1;
+  }
+  const chefs = Object.keys(groupes).sort((a, b) => (a === moi ? -1 : b === moi ? 1 : a.localeCompare(b)));
+
+  document.getElementById('postes-modal-title').textContent = 'Ordres collectifs';
+  let html = '<div style="padding:1rem">';
+  if (chefs.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucun groupe en mouvement. Un ordre collectif s\'adresse aux soldats qui suivent un chef ; ceux qui tiennent une position n\'en reçoivent pas.</div>';
+  } else {
+    html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Une ration nourrit un soldat (+1 PA, consommée). Une tente abrite 13 hommes et n\'est pas détruite. L\'ordre est refusé en bloc si les ressources ne couvrent pas tout le groupe.</div>';
+    for (const chef of chefs) {
+      const distant = chef !== moi;
+      const n = groupes[chef];
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#C9A84C">' + escapeHtmlText(chef) + (distant ? '' : ' (vous)') + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">' + n + ' soldat(s)' + (distant ? ' — à distance : vous et ce chef devez chacun porter une radio.' : ' — avec vous.') + '</div>';
+      const args = '\'' + compagnieId + '\',\'' + sectionId + '\',\'' + chef.replace(/'/g, "\\'") + '\'';
+      html += '<button onclick="confirmerOrdreCollectif(' + args + ',\'ration\')" style="width:49%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Faire manger</button> ';
+      html += '<button onclick="confirmerOrdreCollectif(' + args + ',\'bivouac\')" style="width:49%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Bivouaquer</button>';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOrdreCollectif(compagnieId, sectionId, chef, action) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await sbMilitaireOrdreCollectif(compagnieId, sectionId, action, chef);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      autorite_insuffisante: 'Vous ne commandez pas ce groupe.',
+      radio_manquante: 'Commander à distance exige que vous et le chef du groupe portiez chacun une radio.',
+      aucun_soldat_concerne: 'Aucun soldat de ce groupe n\'a besoin de cet ordre aujourd\'hui.',
+      rations_insuffisantes: 'Rations insuffisantes : il en faut une par soldat (' + ((r && r.requis) || '?') + ' requises, ' + ((r && r.disponibles) || 0) + ' disponibles).',
+      tentes_insuffisantes: 'Tentes insuffisantes : ' + ((r && r.requis) || '?') + ' requise(s) pour ce groupe, ' + ((r && r.disponibles) || 0) + ' disponible(s).',
+      compagnie_introuvable: 'Compagnie introuvable.',
+      section_introuvable: 'Section introuvable.'
+    };
+    showToast('Ordre refusé', (r && motifs[r.raison]) || 'Opération refusée.', false);
+    return;
+  }
+  const titre = action === 'ration' ? 'Groupe nourri' : 'Bivouac monté';
+  const detail = r.soldats + ' soldat(s) +' + r.gain_pa + ' PA' +
+    (action === 'ration' ? ' — ' + r.rations_consommees + ' ration(s) consommée(s).'
+                         : ' — ' + r.tentes_requises + ' tente(s) montée(s), conservées.') +
+    (r.a_distance ? ' Ordre transmis par radio.' : '');
+  showToast(titre, detail, true, true);
+  addJournalEntry('Ordre collectif (' + action + ') : ' + r.soldats + ' soldat(s).', 'event-info');
+}
+
+// ---- EQUIPEMENT DES SOLDATS PNJ (UI de militaire_equiper_accessoire) ----
+// L'accessoire est un OBJET REEL : il sort de l'inventaire du Lieutenant et rejoint le soldat, ou
+// l'inverse. Rien n'est cree, rien n'est detruit -- ce qui est sur un soldat manque reellement au
+// Lieutenant. C'est pour cela que l'ecran montre les deux cotes en meme temps.
+async function ouvrirEquipementSoldats(compagnieId, sectionId) {
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = (compagnie?.sections || []).find(s => s.id === sectionId);
+  if (!section) { showToast('Section introuvable', '', false); return; }
+
+  const pnj = (section.soldats || []).filter(s => !s.pj && s.matricule);
+  const dispo = (state.inventory || state.char?.inventory || []).filter(o => o && o.produitMilitaire && o.id);
+
+  document.getElementById('postes-modal-title').textContent = 'Équiper les soldats';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Votre inventaire : ' +
+          (dispo.length ? dispo.length + ' équipement(s) militaire(s)' : 'aucun équipement militaire') +
+          '. Ce que porte un soldat ne vous appartient plus tant que vous ne le reprenez pas.</div>';
+  if (pnj.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucun soldat PNJ dans cette section.</div>';
+  }
+  for (const sol of pnj) {
+    const acc = Array.isArray(sol.accessoires) ? sol.accessoires : [];
+    html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#C9A84C">' + escapeHtmlText(sol.nom || sol.matricule) + ' <span style="color:#8a8060;font-size:.7rem">' + escapeHtmlText(sol.matricule) + '</span></div>';
+    if (acc.length) {
+      for (const a of acc) {
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.3rem">';
+        html += '<span style="font-size:.74rem;color:#f0ead6">' + escapeHtmlText(a.name || a.produitMilitaire) + '</span>';
+        html += '<button onclick="equiperSoldat(\'' + compagnieId + '\',\'' + sectionId + '\',\'' + sol.matricule + '\',\'' + a.id + '\',\'desequiper\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #8a4a4a;background:transparent;color:#d05a5a;cursor:pointer">Reprendre</button>';
+        html += '</div>';
+      }
+    } else {
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.3rem">Rien d\'équipé.</div>';
+    }
+    if (dispo.length) {
+      html += '<div style="display:flex;gap:.4rem;margin-top:.5rem">';
+      html += '<select id="eq-' + sol.matricule + '" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.74rem;outline:none">';
+      for (const o of dispo) html += '<option value="' + escapeHtmlText(o.id) + '">' + escapeHtmlText(o.name || o.produitMilitaire) + '</option>';
+      html += '</select>';
+      html += '<button onclick="equiperSoldatDepuisSelect(\'' + compagnieId + '\',\'' + sectionId + '\',\'' + sol.matricule + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .6rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Équiper</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function equiperSoldatDepuisSelect(compagnieId, sectionId, matricule) {
+  const objetId = document.getElementById('eq-' + matricule)?.value;
+  if (!objetId) return;
+  equiperSoldat(compagnieId, sectionId, matricule, objetId, 'equiper');
+}
+
+async function equiperSoldat(compagnieId, sectionId, matricule, objetId, sens) {
+  const r = await sbMilitaireEquiperAccessoire(compagnieId, sectionId, matricule, objetId, sens);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      pas_lieutenant_de_cette_section: 'Seul le Lieutenant de cette section équipe ses soldats.',
+      soldat_introuvable: 'Ce soldat n\'est pas dans votre section.',
+      objet_absent_de_l_inventaire: 'Vous ne portez pas cet objet.',
+      objet_non_porte: 'Ce soldat ne porte pas cet objet.',
+      inventaire_plein: 'Votre inventaire est plein.'
+    };
+    showToast('Opération refusée', (r && motifs[r.raison]) || 'Opération refusée.', false);
+    return;
+  }
+  // L'objet a REELLEMENT change de main cote serveur. On RELIT l'inventaire arrete par le serveur
+  // au lieu de le recalculer : le recalculer ici doublerait ou perdrait l'objet.
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const lignes = await sbGet('personnages',
+      'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(function () { return null; });
+    if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
+      state.inventory = lignes[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
+  showToast(sens === 'equiper' ? 'Soldat équipé' : 'Équipement repris',
+            (r.objet || '') + ' — ' + matricule, true, true);
+  ouvrirEquipementSoldats(compagnieId, sectionId);
 }
 
 // Retourne le libelle a afficher dans une piece pour un detachement present, ou null
