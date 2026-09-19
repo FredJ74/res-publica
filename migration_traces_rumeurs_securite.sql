@@ -1,0 +1,69 @@
+-- =====================================================================
+-- TRACE — AUDIT RUMEURS / TRACES / ORGANISATIONS (19 septembre 2026)
+-- Preparation de la future cellule de renseignement (PNJ Traducteur).
+--
+-- CE FICHIER N'EST QU'UNE TRACE. Il n'est pas execute par le jeu : la
+-- migration a deja ete appliquee en production sous le nom
+--   fermeture_delete_anon_traces_orgas_presences
+-- =====================================================================
+--
+-- CE QUI N'A PAS ETE TOUCHE, ET POURQUOI
+-- --------------------------------------
+-- L'audit etait en LECTURE SEULE. Tout ce qui revient a decider QUI a le
+-- droit de connaitre une information a ete SIGNALE, jamais ferme :
+--
+--   * actions_tracables, rumeurs_actives, organisations, presences,
+--     historique_deplacements et chronique_nationale sont LISIBLES PAR
+--     TOUS, `anon` compris. Banc : en role anon, lecture des 9 506 lignes
+--     d'historique_deplacements et de la position exacte d'Arnie
+--     (capitale / palais-gouvernement / bureau_min_def).
+--     Refermer une de ces lectures, c'est trancher le brouillard
+--     d'information du jeu -> arbitrage GD, pas une correction technique.
+--
+--   * rumeurs_actives a RLS DESACTIVEE avec trois policies "publique"
+--     inertes. Le defaut est identique a celui de rapports_renseignement
+--     (ferme le meme jour), mais ici restreindre la lecture reviendrait a
+--     decider qui entend une rumeur -> laisse ouvert.
+--
+--   * plainte_instruire_interne() ne filtre PAS jour_expiration, contrairement
+--     a ce qu'affirme son propre commentaire ("non expire"). Banc : enquete
+--     ouverte sur une trace expiree depuis le jour 8. Corriger changerait ce
+--     qu'un commissaire peut poursuivre -> regle de jeu, pas un bug technique.
+--
+--   * /api/renseignements (action interroger_pnj_sujet) renvoie le texte
+--     revele a l'appelant HTTP apres avoir verifie le poste du nom DECLARE
+--     par le client. Un appelant qui forge le nom d'un commissaire lit donc
+--     la revelation. Fermer cela suppose une authentification reelle par
+--     personnage, explicitement hors perimetre du projet a ce jour.
+--
+-- CE QUI A ETE FERME
+-- ------------------
+-- Un visiteur NON AUTHENTIFIE pouvait EFFACER les preuves judiciaires.
+-- Banc hostile, en transaction annulee, en role `anon` :
+--   DELETE d'une trace de actions_tracables ................. ACCEPTE
+--   UPDATE de presences (Arnie teleporte a Novomirsk) ....... ACCEPTE
+--   INSERT d'un faux deplacement ............................ ACCEPTE
+--
+-- Origine : le lot `fermeture_truncate_et_delete_anon` du 18/09 (voir
+-- migration_militaire_phase2_securite.sql) exemptait en bloc une liste
+-- `c_delete_legitime` contenant actions_tracables, organisations et
+-- presences. La raison etait juste -- LE CLIENT y supprime legitimement
+-- (confession qui efface une trace, dissolution, depart d'une piece) --
+-- mais l'exemption etait plus large que sa raison : le client du jeu est
+-- TOUJOURS `authenticated` (auth anonyme Supabase = une session), jamais
+-- `anon`. Avant connexion, le joueur n'a meme pas de personnage.
+--
+-- Ce lot ne renverse donc pas la decision du 18/09, il la resserre sur sa
+-- propre raison. DELETE reste ouvert a `authenticated`.
+--
+-- Banc de non-regression, AVANT et APRES, en transaction annulee : en role
+-- authenticated avec les claims d'Arnie, la suppression d'une trace
+-- (parcours exact de la confession) renvoie 1 ligne supprimee dans les deux
+-- cas. Apres migration, la meme suppression en role anon renvoie
+-- "permission denied for table actions_tracables".
+--
+-- AUCUNE REGLE DE JEU N'EST MODIFIEE. La lecture n'est pas touchee.
+
+REVOKE DELETE ON public.actions_tracables FROM anon, PUBLIC;
+REVOKE DELETE ON public.organisations     FROM anon, PUBLIC;
+REVOKE DELETE ON public.presences         FROM anon, PUBLIC;
