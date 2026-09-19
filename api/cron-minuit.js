@@ -4546,7 +4546,10 @@ const PNJ_PAR_DEFAUT_POSTE = {
   min_int:     "Le Ministre de l'Intérieur (PNJ)",
   min_fin:     'Le Ministre des Finances (PNJ)',
   min_just:    'Le Ministre de la Justice (PNJ)',
-  min_def:     'Le Ministre de la Défense (PNJ)',
+  // Martial Bouterin (19 septembre 2026) : le PNJ du ministere a desormais une identite, comme
+  // le Juge Fontaine et le Commandant Tom Hawak. Renommer ICI est indispensable -- sans quoi le
+  // cron restaurerait l'ancien libelle generique des que le poste redeviendrait vacant.
+  min_def:     'Martial Bouterin (PNJ)',
   min_info:    "Le Ministre de l'Information (PNJ)",
   min_ae:      'Le Ministre des Affaires Étrangères (PNJ)',
   juge:        'Juge Fontaine',

@@ -640,6 +640,16 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
+  // CONTINUITE INSTITUTIONNELLE DE MARTIAL BOUTERIN (19 septembre 2026).
+  // Le ministere n'a qu'UN SEUL PNJ, et il ne disparait jamais. Tant que le poste de Ministre de
+  // la Defense est tenu par le PNJ, Martial EST le Ministre. Des qu'un joueur l'occupe, Martial
+  // reste en place et devient Attache ministeriel -- il perd le titre, jamais sa presence. Le
+  // titre est donc recalcule a chaque entree dans la piece, jamais fige dans data.js : c'est ce
+  // qui garantit qu'aucun doublon Ministre/Attache ne puisse exister.
+  if (buildingId === 'palais-gouvernement' && roomId === 'bureau_min_def') {
+    ajusterAttacheMinisteriel(buildingId, roomId);
+  }
+
   // Charger les militants deja recrutes par CE joueur (sessions precedentes), pour qu'ils
   // reapparaissent dans la liste des personnes presentes a l'universite.
   if (buildingId === 'universite' && typeof sbGetMesMilitants === 'function' && state.char?.name) {
@@ -908,6 +918,27 @@ function enterRoom(buildingId, roomId, tabEl) {
 //
 // On ne pose donc PAS un crochet militaire de plus : on pose l'evenement d'entree manquant, une
 // fois, la ou la position devient canonique, et on y branche les consommateurs.
+// Recalcule le titre du PNJ du ministere de la Defense selon qui detient reellement le poste.
+// LECTURE SEULE de l'autorite canonique : getTitulaireActuel interroge le registre serveur, jamais
+// state.poste. Un joueur qui se croirait ministre ne changerait donc rien a l'affichage.
+async function ajusterAttacheMinisteriel(buildingId, roomId) {
+  const room = BUILDINGS[buildingId]?.rooms?.[roomId];
+  const martial = (room?.persons || []).find(p => p.job === 'min_def');
+  if (!martial) return;
+  let titulaire = null;
+  try {
+    titulaire = (typeof getTitulaireActuel === 'function')
+      ? await getTitulaireActuel('min_def', null) : null;
+  } catch (e) { return; }               // en cas de doute, on ne touche a rien
+  if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+
+  const tenuParUnJoueur = !!(titulaire && titulaire.estPJ);
+  martial.role = tenuParUnJoueur
+    ? 'PNJ - Attaché ministériel — Spécialiste des forces armées'
+    : 'PNJ - Ministre de la Defense';
+  if (typeof renderPersonsList === 'function') renderPersonsList(room.persons || []);
+}
+
 async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
   // 1. MISSIONS DE DETACHEMENT. Meme fonction qu'avant, mais avec la vraie piece.
   if (typeof verifierMissionMilitaireEntree === 'function') {

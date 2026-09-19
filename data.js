@@ -2138,7 +2138,13 @@ const BUILDINGS = {
         desc: "Le bureau du Ministre de la Defense. Armee, securite nationale, renseignement militaire.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         requiresPostId: 'min_def',
-        persons: [{name:'Le Ministre de la Défense (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def'}],
+        // MEME PNJ que precedemment, simplement nomme : « Le Ministre de la Défense (PNJ) »
+        // devient Martial Bouterin. Son titre affiche est recalcule a l'entree dans la piece
+        // (ajusterAttacheMinisteriel, plateau-navigation.js) : Ministre tant que le poste est
+        // tenu par le PNJ, Attaché ministériel des qu'un joueur l'occupe. Jamais deux PNJ.
+        persons: [{name:'Martial Bouterin (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def',
+                   photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/martial-bouterin.png',
+                   photoPos:'50% 25%'}],
         orders: [
           {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee, requisitionner des civils, demobiliser. Chaque action garde son cout.'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
@@ -4565,6 +4571,9 @@ const BUILDINGS = {
         name: "Infirmerie",
         imageBg: "linear-gradient(135deg,#0a1010,#0f1a18)",
         desc: "L'infirmerie de la caserne. Odeur d'antiseptique, lits de camp alignes, armoire a pharmacie fermee a cle.",
+        // Eve Toahemarch figure DANS cette image : aucun avatar separe n'est cree pour elle,
+        // l'architecture n'en exige pas et un second portrait ferait doublon.
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-infirmerie.png",
         persons: [
           {name:'Ève Toahémarch (PNJ)', role:'PNJ - Infirmière militaire', rel:'neutral', job:'infirmier_mil'}
         ],
