@@ -643,7 +643,19 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   // "l'organisation « XYZ »", "l'etablissement « Cafe de la Gare »", "le gouvernement de Sovarka",
   // "Sovarka"), construite par confirmerLancerRumeur() selon le type de cible choisi -- jamais de
   // detail supplementaire invente ici, meme principe evasif que les autres formulations.
-  fausse_rumeur: (a, c) => 'On raconte que ' + a + ' aurait lance une rumeur visant ' + c + '.'
+  fausse_rumeur: (a, c) => 'On raconte que ' + a + ' aurait lance une rumeur visant ' + c + '.',
+
+  // Trace laissee par un agent de renseignement etranger apres une collecte
+  // productive (RPC serveur agent_trace_deposer). `a` est son IDENTITE DE
+  // COUVERTURE -- jamais son vrai nom, jamais son pays, jamais sa fonction : la
+  // ligne actions_tracables ne contient de toute facon aucune de ces colonnes.
+  //
+  // REGLE DE GAME DESIGN : le bar fait naitre un SOUPCON, jamais une certitude.
+  // Cette phrase doit rester un indice ambigu et purement RP -- elle ne dit
+  // jamais "espion", "agent" ni "etranger". Seule l'enquete officielle du
+  // Commissaire sur cette meme trace peut etablir les niveaux de connaissance.
+  // `c` est toujours nul pour ce type d'action : on ne l'utilise pas.
+  presence_suspecte: (a) => 'On raconte que ' + a + ' pose beaucoup de questions ces derniers temps.'
 };
 
 async function ecouterRumeurs(successRate, pa, cost) {

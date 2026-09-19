@@ -1,0 +1,95 @@
+-- =====================================================================
+-- TRACE — CONTRE-ESPIONNAGE, LOTS 1 A 3 (19 septembre 2026)
+--
+-- CE FICHIER N'EST QU'UNE TRACE. Migrations appliquees en production :
+--   contre_espionnage_memoire
+--   agent_trace_suspecte
+--   contre_espionnage_enquete_paliers
+-- =====================================================================
+--
+-- ===================== LOT 1 — MEMOIRE INSTITUTIONNELLE ==============
+--
+-- AUCUNE TABLE NOUVELLE : tout vit dans renseignements_connus, dont la
+-- migration d'origine avait prevu ce cas (« fait_objectif_ref est une
+-- reference LEGERE et OPTIONNELLE, ex. "actions_tracables:123" »).
+--
+-- TITULAIRE = L'ETAT ('etat:<pays>'), pas la personne : le GD exige que la
+-- connaissance ne parte pas avec le Commissaire. Colonne texte libre sans FK,
+-- extension semantique et non structurelle ; le prefixe 'etat:' ne peut pas
+-- entrer en collision avec un nom de personnage.
+--
+-- UNE LIGNE PAR PALIER (4 au maximum par Etat et par couverture) : l'historique
+-- dit quand chaque niveau a ete acquis et sur quelle trace, et « une
+-- connaissance acquise n'est jamais perdue » devient un max(). Le niveau est
+-- porte par `categorie` (libre, sans CHECK).
+-- mode_acquisition = 'interrogatoire' : valeur DEJA au CHECK, definie comme
+-- « obtenu sous l'autorite d'un enqueteur habilite ». Aucune migration.
+-- NON-EXPIRATION : sentinelle 2147483647, pour n'avoir aucun jour de jeu a
+-- deviner (state.day est un compteur prive et divergent).
+--
+-- TRANSMISSION AUTOMATIQUE : aucune ligne dupliquee vers le Commissaire.
+-- contre_espionnage_dossiers() n'accepte AUCUN parametre d'identite, derive le
+-- lecteur de acteur_poste_courant() et rend les dossiers de son Etat au
+-- min_int (memoire nationale) comme au commissaire (enqueteur local). Le
+-- ministre n'a donc jamais a « faire le facteur ».
+--
+-- BANCS : 2 puis 1 puis 4 -> niveau final 4, exactement 4 lignes, l'enquete
+-- moins bonne n'ecrit RIEN (0 ligne portant sa reference), un autre Etat reste
+-- a 0. Commissaire -> dossier complet ; min_fin -> autorite_insuffisante.
+--
+-- ===================== LOT 2 — TRACE ET RUMEUR =======================
+--
+-- risque = max(5, 30 - DUP), RNG serveur, une trace au maximum par agent et
+-- par jour. Un agent porte par un chef ne collecte pas : agent_non_pose.
+--
+-- ANTI-REJEU = LA CLE (doctrine soldes_militaires / scandales_tentatives) :
+-- id = 'agent-<id>-j<jour>' + ON CONFLICT DO NOTHING. Aucun index ajoute.
+-- BANC : 200 collectes productives -> EXACTEMENT 1 trace.
+--
+-- LE JOUR DE JEU. Le serveur n'en connait aucun ; le seul ecrivain serveur
+-- existant (corruption_presse_tenter) abandonne et ecrit jour = 0, ce qui rend
+-- ses traces INVISIBLES au client et DERNIERES au tri. On derive donc le jour
+-- du pays d'accueil : max(day) de ses personnages, 1 a defaut -- le
+-- referentiel des joueurs susceptibles de decouvrir la trace. Banc : j8-15.
+--
+-- CONFIDENTIALITE PAR CONSTRUCTION : actions_tracables n'a aucune colonne pour
+-- un pays d'origine, une fonction ou une cellule. La trace ne peut pas fuiter
+-- ce que le GD veut cacher.
+--
+-- GABARIT DE RUMEUR (plateau-actions-illegales-rumeurs.js) : indice ambigu et
+-- purement RP, qui ne dit jamais « espion », « agent » ni « etranger ». Le bar
+-- fait naitre un soupcon, l'enquete seule etablit la connaissance.
+--
+-- ===================== LOT 3 — ENQUETE A PALIERS =====================
+--
+-- On GREFFE sur plainte_instruire_interne, coeur commun deja partage par
+-- commissaire_enqueter, plainte_deposer (commissaire PNJ) et plainte_traiter --
+-- plutot que de creer une seconde chaine. La branche agent ne se declenche que
+-- si l'auteur de la trace decouverte est la couverture d'un agent reel du pays,
+-- et elle remplace la garde a vue (detention_ouvrir_interne refuserait de toute
+-- facon : pas de fiche).
+--
+-- LE JET DEVIENT SERVEUR. Jusqu'ici le seul jet d'enquete du jeu etait un
+-- Math.random() navigateur, et cette fonction ne tirait rien.
+-- PER de l'instructeur lu en base ; un commissaire PNJ (sans fiche) retombe sur
+-- la valeur neutre 8 via assemblee_stat_base.
+--
+-- APPROFONDISSEMENT sur agent detenu : meme moteur, une tentative par agent et
+-- par jour, anti-rejeu porte par la CLE PRIMAIRE de
+-- contre_espionnage_tentatives (pays, couverture, jour_paris) -- meme forme que
+-- scandales_tentatives. Date reelle : aucun jour de jeu a deviner.
+--
+-- BANCS :
+--   NON-REGRESSION PJ : trace ordinaire -> decision 'enquete_ouverte' et
+--     detention creee, STRICTEMENT comme avant.
+--   Agent : decision 'contre_espionnage', avec score, palier et progression.
+--   PLAFOND DE LA FORMULE verifie : PER 10 vs DUP 15 a IS 30 -> modificateur
+--     -25, score maximum 75. Apres 200 enquetes le dossier plafonne a
+--     NIVEAU 2, jamais 3 ni 4, et ne compte que 2 lignes.
+--     Consequence de jeu : un commissaire mediocre peut etablir « fausse
+--     identite + agent etranger » (donc rendre l'agent arretable) mais
+--     n'apprendra JAMAIS le vrai nom ni le pays d'un agent bien dissimule.
+--
+-- Zero residu apres tous les bancs : 0 cellule, 0 agent, 0 memoire, 0 trace,
+-- 0 detention, 0 tentative. Seules subsistent les deux identites reelles
+-- validees par le GD (Raymond Hialiste / DUP 15, Yannick Helle / DUP 12).
