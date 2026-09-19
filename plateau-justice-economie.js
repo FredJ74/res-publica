@@ -499,6 +499,89 @@ async function verifierPreuveReelle(country, accuse, motif) {
 // Une plainte deposee dans la ville d'un commissaire JOUEUR ne se resout plus toute seule : elle
 // l'attend ici. Il classe, ou il ouvre l'enquete. La decision et ses effets sont tranches par la
 // RPC plainte_traiter : le navigateur n'affiche que le dossier et transmet l'intention.
+// =====================
+// CONTRE-ESPIONNAGE — dossiers du Commissaire (19 septembre 2026)
+// =====================
+// Greffe sur l'ecran EXISTANT du commissaire (dossiers_plaintes, 0 PA, 0 FR,
+// requiresPost deja en place) : aucun ordre nouveau, aucune entree a ajouter au
+// miroir des couts.
+//
+// LE CLIENT NE RECOIT QUE CE QUI EST DEJA CONNU. contre_espionnage_dossiers()
+// n'accepte aucun parametre d'identite : elle derive le lecteur de son poste
+// atteste et ne rend que les dossiers de SON Etat, avec les seuls faits
+// correspondant au niveau REELLEMENT acquis. Les niveaux non encore atteints
+// n'existent nulle part dans la reponse -- ils ne sont pas masques a
+// l'affichage, ils ne sont jamais envoyes.
+async function ouvrirDossiersContreEspionnage() {
+  document.getElementById('postes-modal-title').textContent = 'Contre-espionnage';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const r = typeof sbRpc === 'function' ? await sbRpc('contre_espionnage_dossiers', {}).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;color:#cc4444">' + (res?.raison === 'autorite_insuffisante'
+        ? 'Reserve au Commissaire et au Ministre de l\'Interieur.' : 'Indisponible.') + '</div>';
+    return;
+  }
+  const dossiers = res.dossiers || [];
+  let h = '<div style="padding:1rem">';
+  if (dossiers.length === 0) {
+    h += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier. Une enquete sur une trace peut en ouvrir un.</div>';
+  }
+  const NIVEAUX = { 1: 'Fausse identite etablie', 2: 'Agent etranger etabli', 3: 'Identite reelle connue', 4: 'Puissance d\'origine connue' };
+  dossiers.forEach(d => {
+    h += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">';
+    h += '<div style="font-size:.85rem;color:#C9A84C">' + escapeHtmlText(d.couverture) + '</div>';
+    h += '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.3rem">' + (NIVEAUX[d.niveau] || '') + '</div>';
+    (d.faits || []).forEach(f => { h += '<div style="font-size:.74rem;color:#a09060">• ' + escapeHtmlText(f) + '</div>'; });
+    h += '<button onclick="approfondirContreEspionnage(\'' + String(d.couverture).replace(/'/g, "\\'") + '\')" style="margin-top:.45rem;width:100%;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">Approfondir (1 fois par jour)</button>';
+    if ((d.niveau || 0) >= 2) {
+      h += '<button onclick="arreterAgentDemasque(\'' + String(d.couverture).replace(/'/g, "\\'") + '\')" style="margin-top:.3rem;width:100%;padding:.35rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">Arreter</button>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  document.getElementById('postes-body').innerHTML = h;
+}
+
+async function approfondirContreEspionnage(couverture) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('contre_espionnage_approfondir', { p_couverture: couverture }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const m = { deja_tente_aujourdhui: 'Deja tente aujourd\'hui.', cible_non_detenue: 'L\'approfondissement exige que l\'agent soit detenu.',
+                cible_inconnue: 'Aucun agent connu sous ce nom.', autorite_insuffisante: 'Reserve au Commissaire ou au Juge.' };
+    showToast('Approfondissement impossible', m[res?.raison] || (res?.raison || 'indisponible'), false);
+    return;
+  }
+  // Le score n'est PAS montre : le joueur apprend ce qu'il a appris, pas la
+  // mecanique. L'absence de progression est rendue telle quelle.
+  showToast(res.progression ? 'Le dossier avance' : 'Rien de neuf',
+    res.progression ? 'Une information supplementaire a ete etablie.' : 'L\'interrogatoire n\'a rien donne de plus.',
+    !!res.progression);
+  ouvrirDossiersContreEspionnage();
+}
+
+// L'arrestation passe par le systeme GENERAL, pas par une fonction dediee :
+// c'est arrestation_urgence qui tranche, et qui refuse elle-meme si le niveau
+// de connaissance de l'Etat est inferieur a 2.
+async function arreterAgentDemasque(couverture) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('arrestation_urgence', { p_cible: couverture, p_motif: 'agent etranger demasque' }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const m = { cible_non_arretable: 'Le dossier n\'etablit pas encore qu\'il s\'agit d\'un agent etranger.',
+                cible_introuvable: 'Introuvable dans votre juridiction.',
+                hors_juridiction_ville: 'Hors de votre ville.', cible_deja_detenue: 'Deja detenu.' };
+    showToast('Arrestation impossible', m[res?.raison] || (res?.raison || 'indisponible'), false);
+    return;
+  }
+  showToast('Arrestation', escapeHtmlText(couverture) + ' est place en detention.', true, true);
+  addJournalEntry('Arrestation de ' + couverture + ' (agent etranger demasque).', 'event-good');
+  ouvrirDossiersContreEspionnage();
+}
+
 async function ouvrirDossiersPlaintes() {
   if (state.poste?.id !== 'commissaire') {
     showToast('Acces refuse', 'Reserve au commissaire.', false);
@@ -515,13 +598,17 @@ async function ouvrirDossiersPlaintes() {
   // ouverts. Le serveur revalide de toute facon la juridiction a la decision.
   const dossiers = (toutes || []).filter(p => p.status === 'deposee' && (p.city === ville || !p.city));
 
+  // Acces au volet contre-espionnage, greffe sur l'ecran existant du
+  // commissaire : aucun ordre nouveau, aucune entree au miroir des couts.
   if (dossiers.length === 0) {
     document.getElementById('postes-body').innerHTML =
+      '<div style="padding:.6rem 1rem 0"><button onclick="ouvrirDossiersContreEspionnage()" style="width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Dossiers de contre-espionnage</button></div>' +
       '<div style="padding:1.2rem;text-align:center;font-size:.85rem;color:#8a8060;font-family:Crimson Pro,serif">Aucun dossier en attente dans votre ville.</div>';
     return;
   }
 
-  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
+  let html = '<div style="padding:.6rem 1rem 0"><button onclick="ouvrirDossiersContreEspionnage()" style="width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Dossiers de contre-espionnage</button></div>' +
+      '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
   dossiers.forEach(function (p) {
     const id = String(p.id).replace(/'/g, '');
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">' +
