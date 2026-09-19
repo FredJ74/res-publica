@@ -5709,6 +5709,29 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // 11 quater. CELLULES DE RENSEIGNEMENT.
+    //
+    // Deux balayages serveur, tous deux idempotents (ils ne voient que ce qui est
+    // encore ouvert, et reclore une cellule deja close renvoie rejeu:true).
+    //
+    // libererDetentionsEchuesServeur (tache 3) pilote la liberation depuis les FICHES
+    // de personnages : il ne verra JAMAIS un detenu PNJ, qui n'en a pas. C'est ce trou
+    // que couvre detentions_pnj_liberer_echues -- sans toucher au chemin PJ, qui reste
+    // strictement celui d'avant.
+    const detentionsPnj = await tacheQuotidienne('detentions_pnj', async function () {
+      const r = await sbRpc('detentions_pnj_liberer_echues', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
+    // Fin naturelle a J+10 et echec quand les quatre agents sont morts. L'arbitrage GD
+    // est que la fin naturelle suit EXACTEMENT la meme regle de sortie que la fin
+    // volontaire : agent libre -> disparu, agent detenu -> disparu ET detention cloturee
+    // avec mode_fin = 'evasion'. Les deux chemins appellent la meme routine.
+    const cellulesRenseignement = await tacheQuotidienne('cellules_renseignement', async function () {
+      const r = await sbRpc('cellules_renseignement_balayer', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)
     const livraisons = await tacheQuotidienne('livraisons_entrepots', livrerEntrepotsQuotidien);
@@ -5799,7 +5822,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       return res.status(500).json(corps);

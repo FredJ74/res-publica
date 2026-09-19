@@ -1,0 +1,73 @@
+-- =====================================================================
+-- TRACE — CONTRE-ESPIONNAGE, LOTS 4 ET 5 (19 septembre 2026)
+--
+-- CE FICHIER N'EST QU'UNE TRACE. Migrations appliquees en production :
+--   arrestation_pnj_adaptateur
+--   cellule_fin_evasion_alerte
+--   arrestation_agent_alerte_ministre
+-- =====================================================================
+--
+-- ============ LOT 4 — ARRESTATION D'UN PNJ DETENABLE =================
+--
+-- ARCHITECTURE : justice commune -> branche PJ INCHANGEE -> adaptateur pour les
+-- systemes PNJ declares detenables -> etat canonique propre a la cible.
+-- PAR DEFAUT TOUT PNJ RESTE INARRETABLE : l'adaptateur ne connait qu'un seul
+-- systeme, les agents de renseignement. Tout autre nom sans fiche recoit
+-- toujours 'cible_introuvable'.
+--
+-- ELIGIBILITE, entierement verifiee cote serveur, rien du client :
+--   cellule active + statut 'actif' + pose (pas porte par un chef) + position
+--   canonique reelle + dans la juridiction de l'autorite + NIVEAU DE
+--   CONNAISSANCE >= 2 detenu par L'ETAT QUI ARRETE.
+-- L'adaptateur ne renvoie jamais le vrai nom ni le pays d'origine.
+--
+-- GARDE-FOU DE COLLISION : detentions.provenance, NULLE pour toutes les lignes
+-- existantes -- le comportement historique des detentions PJ est strictement
+-- inchange. Ancre temps reel cote agent (detenu_depuis), equivalent de
+-- est_emprisonne.debutTs : sans elle rien ne libererait jamais.
+--
+-- BANCS :
+--   PNJ ordinaire (Martial Bouterin) ...... cible_introuvable
+--   agent, niveau 0 ....................... cible_non_arretable (requis 2)
+--   PJ reel ............................... arrestation NORMALE, inchangee
+--   agent, niveau 2 ....................... detention creee SOUS LA COUVERTURE
+--     « José Bayamoréna », provenance='agent_renseignement', agent -> detenu,
+--     ancre posee, ET AUCUNE fausse fiche personnages_donnees (0)
+--
+-- ============ LOT 5 — ALERTE, FIN DE MISSION, EVASION ================
+--
+-- ARBITRAGE GD : la fin naturelle a J+10 suit EXACTEMENT la meme regle de
+-- sortie que la fin volontaire. Pas de cas « agent abandonne ». Les deux
+-- chemins appellent donc la MEME routine (cellule_renseignement_clore) ; seul
+-- `mode_fin` distingue le moment.
+--
+-- ALERTE : le Ministre proprietaire apprend QUE son agent est arrete et SOUS
+-- QUELLE COUVERTURE -- jamais ce que l'Etat adverse a decouvert, ni le niveau
+-- atteint. Destinataire = le titulaire reel du poste (PJ s'il y en a un, sinon
+-- le PNJ du registre titulaires_pnj).
+--
+-- BANC ARRESTATION + ALERTE : « Martial Bouterin (PNJ) : Agent arrete —
+-- José Bayamoréna ».
+--
+-- BANC FIN VOLONTAIRE (cellule avec 1 detenu, 1 mort, 1 libre) :
+--   retour {ok, evasions:1, agents_disparus:2, morts:1}
+--   agents : a1=disparu, a2=MORT (reste mort), a3=disparu
+--   cellule : terminee/volontaire
+--   detention : « José Bayamoréna -> evasion (j8) », LIGNE CONSERVEE (1)
+--   memoire adverse : INTACTE a 3
+--
+-- BANC BALAYAGE (cron) :
+--   cellule echue avec un detenu -> terminee/naturelle, agent disparu,
+--     detention -> EVASION (confirme que fin naturelle == fin volontaire)
+--   cellule dont les 4 agents sont morts -> echec/echec_agents, morts inchanges
+--   retour {ok, fins_naturelles:1, echecs:1}
+--
+-- mode_fin='evasion' est une valeur DEJA EXISTANTE, deja rendue en rouge dans
+-- le registre carceral : aucun champ ni aucune valeur n'a ete invente.
+--
+-- CRON : deux appels ajoutes dans api/cron-minuit.js (tache 11 quater).
+-- libererDetentionsEchuesServeur pilote la liberation depuis les FICHES de
+-- personnages et ne verrait jamais un detenu PNJ : c'est ce trou que couvre
+-- detentions_pnj_liberer_echues, sans toucher au chemin PJ.
+--
+-- Zero residu apres tous les bancs.
