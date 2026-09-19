@@ -9099,9 +9099,55 @@ async function ouvrirExpedierColis(pa, cost) {
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
+  // CORRECTIF R2 (19 septembre 2026) — PERTE SECHE DANS 3 EMPIRES SUR 4.
+  // L'ordre expedier_colis est declare dans les quatre ports (data.js:5938,
+  // 6058, 6087, 6116), mais PORTS_FRET ne contient que Republia et
+  // ROOM_CHARGEMENT_FRET vaut 'entrepot', room qui n'existe qu'a PSM -- les
+  // trois autres ont quai_sovarka / quai_el_estado / quai_al_khalija.
+  // Consequence mesuree : le joueur payait 2 PA + 200 FR a la reservation,
+  // puis afficherGestionCaisseOuverteFret abandonnait sur « Absent du port ».
+  // La caisse restait ouverte et rejouait l'abandon a chaque retour : perte
+  // definitive. On refuse donc AVANT tout debit. Ce n'est pas une nouvelle
+  // fonctionnalite : c'est l'arret de l'hemorragie, en attendant que le fret
+  // soit reellement ouvert ailleurs qu'a Republia.
+  if (!PORTS_FRET[pays]) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem;font-size:.85rem;color:#8a8060;font-style:italic">'
+      + 'Le fret maritime n\'est pas encore ouvert dans cet empire. Aucun frais n\'a été engagé.</div>';
+    return;
+  }
+
   const caisses = typeof sbGet === 'function'
     ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.ouverte').catch(() => [])
     : [];
+
+  // CORRECTIF R1 — LA RUPTURE PRINCIPALE. Une caisse FERMEE n'etait listee
+  // NULLE PART : expedierCaisseFret existait depuis le 24 aout 2026 mais
+  // n'etait appelee d'aucun onclick, et cet ecran ne cherchait que les caisses
+  // 'ouverte'. Le leader qui venait de fermer la sienne se voyait proposer d'en
+  // REPAYER une autre. Toute la chaine en aval (transit, arrivee, dedouanement,
+  // retrait, J15) etait donc du code mort.
+  const fermees = typeof sbGet === 'function'
+    ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.fermee').catch(() => [])
+    : [];
+  if (fermees && fermees.length > 0) {
+    let h = '<div style="padding:1rem">';
+    h += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse(s) fermée(s), prêtes à partir. Le transport dure 1 jour.</div>';
+    fermees.forEach(c => {
+      h += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">'
+        +  '<div style="font-size:.82rem;color:#C9A84C">Vers ' + escapeHtmlText(c.destinataire || '?') + '</div>'
+        +  '<div style="font-size:.72rem;color:#8a8060">Déclaration : ' + escapeHtmlText(c.declaration_douaniere || '—')
+        +  ' · valeur déclarée ' + (c.valeur_declaree || 0) + ' FR</div>'
+        +  '<button onclick="expedierCaisseFret(\'' + c.id + '\')" style="margin-top:.4rem;width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Expédier</button>'
+        +  '</div>';
+    });
+    if (caisses && caisses.length > 0) {
+      h += '<button onclick="afficherGestionCaisseOuverteFret(\'' + caisses[0].id + '\')" style="width:100%;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;font-size:.74rem">Gérer ma caisse ouverte</button>';
+    }
+    h += '</div>';
+    document.getElementById('postes-body').innerHTML = h;
+    return;
+  }
 
   if (!caisses || caisses.length === 0) {
     let html = '<div style="padding:1rem">';
@@ -9208,6 +9254,21 @@ async function deposerDansCaisseFret(caisseId) {
   const itemActuel = (state.inventory || []).find(i => i === obj);
   if (!itemActuel || (itemActuel.qty || 1) < qte) { showToast('Quantité indisponible', 'Votre inventaire a changé.', false); return; }
 
+  // CORRECTIF R4 (19 septembre 2026) — LE CONTENU N'ETAIT JAMAIS FIGE.
+  // Cette fonction ne relisait JAMAIS caisses_fret : ni statut, ni autorite.
+  // Une modale restee ouverte permettait donc de deposer dans une caisse DEJA
+  // FERMEE ET DECLAREE -- apres le figeage de la declaration douaniere et de la
+  // DIS de dissimulation. On relit, et on exige 'ouverte'.
+  const etatCaisse = typeof sbGet === 'function'
+    ? (await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []))?.[0] : null;
+  if (!etatCaisse || etatCaisse.statut !== 'ouverte') {
+    showToast('Dépôt impossible', 'Cette caisse est fermée.', false); return;
+  }
+  const moiDepot = state.char?.name || '';
+  if (etatCaisse.leader !== moiDepot && !(etatCaisse.chargeurs_autorises || []).includes(moiDepot)) {
+    showToast('Accès refusé', 'Vous n\'êtes pas chargeur de cette caisse.', false); return;
+  }
+
   const lignes = await chargerContenuCaisseFret(caisseId);
   const totalActuel = totalContenuFret(lignes);
   if (totalActuel + qte > CAPACITE_MAX_CAISSE_FRET) {
@@ -9230,6 +9291,21 @@ async function deposerDansCaisseFret(caisseId) {
       }).catch(() => null)
     : null;
   const nouvelleLigne = inserted && inserted[0];
+
+  // CORRECTIF R5 — DESTRUCTION D'OBJET. L'inventaire etait ampute et sauvegarde
+  // AVANT l'INSERT ; si celui-ci echouait, la compensation plus bas etait sautee
+  // (elle teste nouvelleLigne) et le toast annoncait quand meme « Déposé ».
+  // L'objet disparaissait purement et simplement. On le rend.
+  if (!nouvelleLigne) {
+    const rendu = { ...objetSansQty };
+    if (qte > 1) rendu.qty = qte;
+    state.inventory = state.inventory || [];
+    state.inventory.push(rendu);
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+    updateUI();
+    showToast('Dépôt échoué', 'La marchandise vous a été rendue.', false);
+    return;
+  }
 
   // Re-verification post-insertion : la caisse n'a ni verrou ni contrainte au niveau base
   // (INSERT, pas de compare-and-swap possible sur une SOMME multi-lignes comme pour un simple
@@ -9261,6 +9337,18 @@ async function reprendreDeCaisseFret(caisseId, contenuId) {
   const ligne = rows && rows[0];
   if (!ligne || ligne.caisse_id !== caisseId || ligne.deposant !== moi || ligne.quantite <= 0) {
     showToast('Reprise impossible', 'Vous ne pouvez reprendre que vos propres dépôts.', false);
+    return;
+  }
+  // CORRECTIF R4 (19 septembre 2026) — LA CAISSE N'ETAIT JAMAIS RELUE ICI NON
+  // PLUS. Le seul filtre etait « c'est mon depot », sans aucun controle de
+  // statut : un deposant pouvait donc vider sa part d'une caisse 'fermee',
+  // 'en_transit', 'arrivee' (APRES que le destinataire a paye 10 % de droits
+  // sur la valeur declaree) ou 'a_vendre'. On exige desormais 'ouverte' :
+  // une fois la caisse fermee, son contenu est fige.
+  const etatCaisseReprise = typeof sbGet === 'function'
+    ? (await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []))?.[0] : null;
+  if (!etatCaisseReprise || etatCaisseReprise.statut !== 'ouverte') {
+    showToast('Reprise impossible', 'La caisse est fermée : son contenu ne peut plus être repris.', false);
     return;
   }
   // Meme verrou optimiste que retirerDeCaisseFret : le PATCH ne reussit que si la ligne vaut
@@ -9311,7 +9399,19 @@ async function ouvrirFermerCaisseFret(caisseId) {
 
   document.getElementById('postes-modal-title').textContent = 'Fermer et déclarer la caisse';
   let joueurs = [];
-  if (typeof sbListPersonnages === 'function') joueurs = (await sbListPersonnages().catch(() => []) || []).filter(j => j.name && j.name !== moi);
+  // CORRECTIF R3 (19 septembre 2026) — la liste proposait TOUS les joueurs, mais
+  // confirmerFermetureCaisseFret refuse ensuite tout destinataire dont le pays
+  // n'est pas dans PORTS_FRET (« Port indisponible ») : le joueur choisissait un
+  // destinataire etranger, remplissait la declaration, puis se voyait refuser
+  // apres coup. On n'affiche desormais que les destinataires reellement
+  // livrables. La promesse de data.js (« vers un PJ d'un autre empire ») ne sera
+  // tenue que lorsque les trois autres ports seront ouverts.
+  if (typeof sbListPersonnages === 'function') joueurs = (await sbListPersonnages().catch(() => []) || [])
+    .filter(j => j.name && j.name !== moi && PORTS_FRET[j.country]);
+  if (joueurs.length === 0) {
+    showToast('Aucun destinataire livrable', 'Aucun port de destination n\'est ouvert pour l\'instant.', false);
+    return;
+  }
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Une fois fermée, plus aucun dépôt ni retrait n\'est possible. La déclaration (destinataire, nature, valeur) est indépendante du contenu réel — elle sera la seule base des droits de douane futurs.</div>';
@@ -9605,16 +9705,41 @@ async function expedierCaisseFret(caisseId) {
 
   const maintenant = new Date();
   const dateArriveePrevue = new Date(maintenant.getTime() + DUREE_TRANSPORT_FRET_JOURS * 86400000);
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), {
+
+  // CORRECTIF (19 septembre 2026). Trois defauts de cette fonction, tous
+  // independants du fait qu'elle n'etait appelee nulle part :
+  //
+  //  1. Le PATCH n'avait AUCUN compare-and-swap (`id=eq.` seul), alors que ses
+  //     deux soeurs en ont un. Le controle de statut n'etait qu'un read-check :
+  //     deux clics rapides passaient tous deux la lecture, et le second PATCH
+  //     REPOUSSAIT date_arrivee_prevue d'un jour. Le filtre porte desormais
+  //     `&leader=eq.&statut=eq.fermee` -- le second PATCH ne trouve plus rien.
+  //  2. Le resultat etait jete (`.catch(() => {})`) et le toast de succes
+  //     inconditionnel : un echec reseau annoncait « Caisse expediee ! » sur
+  //     une caisse restee fermee. On teste desormais le retour.
+  //  3. Le mail partait a l'EXPEDITEUR : addMailNotification envoie toujours a
+  //     state.char.name (voir son propre commentaire, plateau-communication.js).
+  //     Le DESTINATAIRE n'etait jamais prevenu. On passe par sbSendMail.
+  if (typeof sbUpdate !== 'function') { showToast('Expédition impossible', '', false); return; }
+  const maj = await sbUpdate('caisses_fret',
+    'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.fermee', {
       statut: 'en_transit',
       date_depart: maintenant.toISOString(),
       date_arrivee_prevue: dateArriveePrevue.toISOString()
-    }).catch(() => {});
+    }).catch(() => null);
+  if (!maj || maj.length === 0) {
+    showToast('Expédition impossible', 'La caisse a déjà quitté le port ou son état a changé.', false);
+    return;
   }
+
   showToast('Caisse expédiée !', 'Arrivée sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour à destination.', true, true);
   addJournalEntry('Caisse de fret expédiée vers ' + caisse.destinataire + '.', 'event-info');
-  if (typeof addMailNotification === 'function') addMailNotification('Administration Portuaire', 'Caisse en route', 'Une caisse de fret vous a été expédiée par ' + moi + '. Elle sera à retirer au port sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour.');
+  if (typeof sbSendMail === 'function') {
+    sbSendMail('Administration Portuaire', caisse.destinataire, 'Caisse de fret en route',
+      'Une caisse de fret vous a été expédiée par ' + escapeHtmlText(moi)
+      + '. Elle sera à retirer au port sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour.',
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
 }
 
 // ---- RECEPTION (cote destinataire, port de destination) ----
