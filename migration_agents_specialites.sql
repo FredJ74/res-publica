@@ -77,3 +77,35 @@
 -- Un agent detenu, mort ou disparu est indisponible.
 --
 -- Zero residu apres tous les bancs.
+
+-- =====================================================================
+-- AJOUT — B. CONSEILLERE DIPLOMATIQUE (Gladys Crête)
+-- Migration appliquee : specialite_conseillere_diplomatique
+-- =====================================================================
+--
+-- CIBLES : personnalites politiques presentes dans le MEME BATIMENT, toutes
+-- pieces confondues. Perimetre pris sur les identifiants de postes REELS du
+-- jeu : president, pm et les six ministeres (postes_nommes_regles), depute et
+-- maire (postes_electifs_regles) -- le siege de depute pouvant aussi etre porte
+-- par la colonne dediee poste_depute, les deux formes sont acceptees.
+--
+-- DEUX CANAUX INDEPENDANTS, une tentative de chacun par cible et par jour :
+--   trace criminelle : clamp(10, 90, 90 - 2 x DUP_cible)
+--   appartenance     : clamp(10, 75, 75 - 2 x DUP_cible)
+-- Une meme journee peut donc produire les deux. Un echec n'ecrit RIEN -- il ne
+-- signifie jamais innocence ni absence d'appartenance.
+-- L'anti-rejeu EST la cle : PRIMARY KEY (agent_id, cible, canal, jour_paris).
+--
+-- CONFIDENTIALITE : le canal appartenance ne lit QUE l'appartenance de la
+-- personne visee. Jamais la liste des membres, jamais l'organisation entiere.
+--
+-- BANC (cible min_just, DUP 7 -> 76 % et 61 %) :
+--   1re passe -> 2 faits :
+--     trace_criminelle    :: « Phileas Frogg serait implique dans : corruption
+--                             (vise : Arnie), a ville_a. »  <- AUTRE VILLE que
+--                             celle de l'agent, comme le GD le prevoit
+--     appartenance_secrete:: « Phileas Frogg appartiendrait a la loge
+--                             « Les Frères du Sextant ». »
+--   2e passe -> 0 fait, et 2 tentatives enregistrees au total : bien une seule
+--   tentative par canal et par cible dans la journee.
+--   Zero residu.
