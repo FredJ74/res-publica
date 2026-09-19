@@ -1333,12 +1333,24 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
       })
     });
     if (!res.ok) { console.error('sbUpdatePresence error', await res.text()); return null; }
-    // Journal des deplacements (append-only, pour la filature policiere)
-    if (typeof state !== 'undefined' && buildingId && roomId) {
+    // Journal des deplacements — desormais par RPC SERVEUR (19 septembre 2026).
+    //
+    // L'ecriture directe dans historique_deplacements est REVOQUEE pour tout le
+    // monde. Deux defauts la rendaient inexploitable comme source :
+    //   - RLS desactivee et anon en ecriture : n'importe qui pouvait forger le
+    //     deplacement de n'importe qui ;
+    //   - ce n'etait pas un journal de deplacements mais un BATTEMENT : cette
+    //     fonction est appelee toutes les 30 s par le rafraichissement de
+    //     presence, et 98 % des lignes repetaient la precedente a l'identique.
+    //
+    // deplacement_enregistrer derive le personnage de mon_personnage(), le pays
+    // et le jour de personnages_donnees, et N'INSERE QUE SI LA POSITION A
+    // CHANGE. Une ligne = un passage reel. Le nom et le pays passes ici ne sont
+    // donc plus transmis : le serveur ne les accepterait pas.
+    if (typeof state !== 'undefined' && buildingId && roomId && typeof sbRpc === 'function') {
       const hLog = String(state.hour || 0).padStart(2, '0');
-      fetch(`${SUPABASE_URL}/rest/v1/historique_deplacements`, {
-        method: 'POST', headers: sbEnTetes(),
-        body: JSON.stringify({ name, country, city, building_id: buildingId, room_id: roomId, jour: state.day || 1, heure: hLog + 'h' })
+      sbRpc('deplacement_enregistrer', {
+        p_city: city, p_building: buildingId, p_room: roomId, p_heure: hLog + 'h'
       }).catch(() => {});
     }
     return res.json();
