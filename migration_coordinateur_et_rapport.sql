@@ -1,0 +1,66 @@
+-- =====================================================================
+-- TRACE — COORDINATEUR MULTIMODAL ET RAPPORT QUOTIDIEN (19/09/2026)
+--
+-- Migrations appliquees en production :
+--   evenement_confiscation_douaniere
+--   deplacements_attestes
+--   specialite_coordinateur_multimodal
+--   cellules_collecte_et_rapport_quotidien
+-- =====================================================================
+--
+-- ===== EVENEMENT DOUANIER CANONIQUE ==================================
+-- Une confiscation reussie ne laissait AUCUNE trace. inventaire_confisquer
+-- ecrit desormais, DANS LA MEME TRANSACTION que le retrait, une ligne par objet
+-- reellement confisque : personne, objet, quantite, lieu canonique, horodatage,
+-- reference. Jamais l'inventaire complet, jamais les mails.
+-- Ce n'est pas un journal d'espionnage mais un fait du monde -- RLS + zero
+-- policy, lecture serveur. Signature INCHANGEE (une signature modifiee creerait
+-- une surcharge, piege connu). Idempotence NATURELLE : un rejeu ne trouve plus
+-- rien a saisir, donc n'ecrit aucun evenement.
+-- BANC : 3 objets dont 2 illegaux -> 2 evenements avec le lieu exact, l'objet
+-- legal conserve, rejeu sans effet.
+--
+-- ===== DEPLACEMENTS ATTESTES =========================================
+-- historique_deplacements avait RLS desactivee et anon en ecriture, et n'etait
+-- pas un journal mais un BATTEMENT de 30 s dont 98 % des lignes repetaient la
+-- precedente. L'ecriture directe est revoquee pour tous ; elle passe par
+-- deplacement_enregistrer, qui derive le personnage de mon_personnage(), le
+-- pays et le jour de personnages_donnees, et N'INSERE QUE SI LA POSITION A
+-- CHANGE. Une ligne = un passage. Deux index poses (l'audit avait mesure un
+-- Seq Scan sur la synthese par lieu).
+-- BANC : 4 appels dont 2 battements -> 2 lignes ; forger le deplacement d'un
+-- tiers -> refuse.
+-- LIMITE ASSUMEE : la position reste declaree par le client, comme presences --
+-- personnages_donnees n'est pas synchrone au changement de piece. Le niveau de
+-- confiance est celui de presences, tres superieur a l'etat anterieur ou
+-- l'identite elle-meme etait forgeable.
+--
+-- ===== C. COORDINATEUR — volet CENTRE MULTIMODAL =====================
+-- Observation automatique de TOUS les PJ transitant par le centre ou il est
+-- pose. Compte de VRAIS passages (les battements n'existent plus).
+-- Origine/destination derivees des lignes qui ENCADRENT l'entree dans le
+-- centre -- absentes si elles n'existent pas, jamais supposees.
+-- AUCUNE interpretation de motif ni d'alliance.
+-- Confiscations : lues dans l'evenement monde, jamais dans les mails.
+-- BANC : parcours marche -> centre -> hotel -> centre -> stade, soit 5 lignes,
+--   restitue « Phileas Frogg : 2 passages au centre multimodal de capitale,
+--   entre 16:02 et 18:02, en provenance de marche, reparti vers stade. »
+--   plus « Les douanes ont confisque a Phileas Frogg : Revolver de
+--   contrebande (x1). » ; 2e passe -> 0 fait.
+--
+-- ===== COLLECTE ET RAPPORT QUOTIDIEN =================================
+-- PAS de troisieme cron, cron-minuit n'est pas deplace : la passe quotidienne
+-- appelle la collecte puis la generation, AVANT le balayage -- une cellule qui
+-- s'eteint aujourd'hui recoit ainsi son dernier rapport.
+--
+-- LE RAPPORT N'EST PAS ENVOYE PAR MAIL. La table mails est en allow_all PUBLIC
+-- avec SELECT/UPDATE/DELETE ouverts a anon : y faire transiter des secrets
+-- d'Etat les exposerait a tout visiteur. Le contenu reste en base (RLS + zero
+-- policy) et n'est rendu que par cellule_rapports_mes_cellules, reservee au
+-- ministre proprietaire. Seule la NOTIFICATION passe par le canal ordinaire,
+-- et elle ne revele rien.
+--
+-- IDEMPOTENCE : la cle primaire (cellule_id, jour) EST l'anti-rejeu.
+-- AUCUN FAIT INVENTE : le contenu est exactement ce que les agents ont ecrit.
+-- BANC : collecte 2 agents / 2 faits -> 1 rapport agregeant les deux avec leur
+-- couverture en source -> retry immediat : 0 rapport.

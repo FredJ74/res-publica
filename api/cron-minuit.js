@@ -5723,6 +5723,21 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // Collecte des quatre agents, PUIS rapport quotidien par cellule. Dans cet
+    // ordre, et AVANT le balayage : une cellule qui s'eteint aujourd'hui doit
+    // recevoir son dernier rapport. Les deux sont idempotents -- la collecte
+    // dedoublonne sur fait_objectif_ref, le rapport sur sa cle primaire
+    // (cellule, jour). Pas de troisieme cron : le "rapport de 22 h" est une
+    // convention diegetique, l'execution technique est celle de cette passe.
+    const collecteAgents = await tacheQuotidienne('collecte_agents', async function () {
+      const r = await sbRpc('cellules_renseignement_collecter', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+    const rapportsCellules = await tacheQuotidienne('rapports_cellules', async function () {
+      const r = await sbRpc('cellules_rapports_generer', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // Fin naturelle a J+10 et echec quand les quatre agents sont morts. L'arbitrage GD
     // est que la fin naturelle suit EXACTEMENT la meme regle de sortie que la fin
     // volontaire : agent libre -> disparu, agent detenu -> disparu ET detention cloturee
@@ -5822,7 +5837,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       return res.status(500).json(corps);
