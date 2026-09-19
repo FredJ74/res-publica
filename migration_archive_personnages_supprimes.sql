@@ -1,0 +1,72 @@
+-- =====================================================================
+-- TRACE — ARCHIVAGE AVANT SUPPRESSION D'UN PERSONNAGE (19/09/2026)
+--
+-- Migrations appliquees en production :
+--   archive_personnages_supprimes
+--   archive_personnages_role_appelant
+-- =====================================================================
+--
+-- POURQUOI. Le diagnostic sur la disparition de la fiche V2 de Vince Major
+-- Kubrick n'a PAS pu conclure. Aucun chemin applicatif identifie ne reproduit
+-- cette disparition silencieuse -- il n'existe ni deces ni succession, et sa
+-- ligne `presences` a survecu alors que sbDeletePersonnage la supprime -- mais
+-- rien ne permet de dater ni de situer ce qui s'est passe : auth.audit_log_
+-- entries est vide, et aucune trace applicative n'existe. Ce garde-fou existe
+-- pour que la question soit repondable la prochaine fois.
+--
+-- POSE SUR LA TABLE CANONIQUE, PAS SUR LA VUE : il couvre donc aussi une
+-- suppression directe contournant entierement l'application -- precisement le
+-- cas que le diagnostic n'a pas pu exclure.
+--
+-- IL N'EMPECHE RIEN : il archive puis rend OLD. Mort/succession fonctionne a
+-- l'identique.
+--
+-- IL N'INVENTE JAMAIS « QUI A SUPPRIME ». Il n'enregistre que du contexte
+-- PostgreSQL reellement disponible.
+--
+-- CE QUI EST REELLEMENT CAPTURABLE, ET CE QUI NE L'EST PAS
+-- --------------------------------------------------------
+--   * `chemin` — 'vue' ou 'direct'. LE discriminant le plus utile : la vue pose
+--     un drapeau LOCAL avant de supprimer. Un seul BEFORE DELETE se declenche
+--     de toute facon (celui de la table), donc aucun double archivage n'est
+--     possible -- le drapeau ne sert qu'a qualifier le chemin.
+--   * `role_sql` — DEFAUT CORRIGE AU BANC : current_user, dans une fonction
+--     SECURITY DEFINER, vaut le PROPRIETAIRE (postgres), jamais l'appelant. On
+--     lit donc current_setting('role'), qui reflete le SET ROLE effectif, avec
+--     repli sur session_user. Mesure : 'authenticated' par la vue, 'postgres'
+--     en direct.
+--   * `jwt_role` / `jwt_sub` — presents pour un appel PostgREST, ABSENTS pour
+--     une suppression depuis l'editeur SQL. Leur absence est une information ;
+--     elle ne designe personne.
+--   * `requete` — current_query(), tronquee a 2000 caracteres.
+--   * aussi : session_user, application_name, inet_client_addr, backend_pid,
+--     txid, et un champ `origine` libre qu'un chemin applicatif legitime peut
+--     renseigner via un GUC LOCAL.
+--   * CE QUI RESTE IMPOSSIBLE : identifier une PERSONNE derriere une
+--     suppression lancee en session privilegiee. Aucune colonne ne le pretend.
+--
+-- SECURITE : RLS activee + AUCUNE policy + REVOKE ALL explicite sur la table ET
+-- sa sequence (les DEFAULT PRIVILEGES du schema public accordent arwdDxtm a
+-- anon sur tout objet cree).
+--
+-- BANC (transactions annulees, zero residu verifie) :
+--   1/2/8. Suppression legitime par la VUE, en tant que proprietaire ->
+--          EXACTEMENT 1 archive, chemin='vue', role='authenticated',
+--          jwt='authenticated'. Aucun double archivage.
+--   3.     Fiche reellement supprimee (0 ligne restante).
+--   4.     Archive complete : 74 champs, arg/liquide/pa/day/user_id intacts.
+--   5.     Suppression DIRECTE sur personnages_donnees, contournant la vue --
+--          le cas qui semble avoir touche Vince -> 1 archive, chemin='direct',
+--          role='postgres', 74 champs, requete capturee.
+--          (Le jwt apparait ici uniquement parce que le banc l'avait pose ;
+--           une vraie suppression en editeur SQL n'en porterait aucun.)
+--   6.     Etancheite : authenticated ET anon -> LIRE, INSERER, MODIFIER,
+--          SUPPRIMER = REFUSE 42501 dans les six cas.
+--   7.     Non-regression mort/succession : la suppression par la vue n'est
+--          jamais bloquee.
+--
+-- VINCE N'A PAS ETE TOUCHE : fixtures nommees zzArchive*, toutes annulees.
+-- Verifie apres banc : 0 archive residuelle, 0 fixture, personnages = Arnie et
+-- Phileas Frogg, reconciliation_fantomes = 0 ligne, sauvegarde_beta_20260913
+-- = 15 lignes dont la fiche de Vince, et ses 1835 deplacements + 1 presence +
+-- 1 mail intacts.
