@@ -1,0 +1,42 @@
+-- =====================================================================
+-- TRACE — COORDINATEUR PORT (19 septembre 2026)
+-- Migrations : specialite_coordinateur_port, coordinateur_port_correctifs
+-- =====================================================================
+--
+-- Il compare les deux sources canoniques, desormais REELLEMENT alimentees
+-- depuis la reparation de la chaine fret :
+--   DECLARE : caisses_fret.declaration_douaniere
+--   REEL    : contenu_caisses_fret, et data.port.arrivages pour le vrac.
+--
+-- IL NE RESTITUE QUE DES DIVERGENCES OBJECTIVEMENT ETABLISSABLES. Deux le sont :
+--   A. QUANTITE -- quantite_arrivee est fige par le cron a l'arrivee ; un total
+--      reel different signifie que de la marchandise a bouge depuis. Ecart
+--      arithmetique, pas interpretation.
+--   B. NATURE -- la declaration est du texte libre : on ne peut pas en deduire
+--      objectivement « c'est faux ». Le seul enonce defendable est textuel :
+--      aucun mot significatif ne se retrouve de part et d'autre. Le rapport dit
+--      exactement cela, jamais « fraude ».
+--
+-- CE QUI N'EST PAS FAIT, FAUTE DE DONNEE : comparer valeur_declaree a une
+-- valeur reelle. Les objets d'une caisse n'ont aucune valeur canonique -- la
+-- comparaison serait inventee.
+--
+-- DEUX DEFAUTS TROUVES PAR LE BANC, ET CORRIGES :
+--   * FAUX POSITIF : « Caisses de vin » contre « Caisse de vin de Luthecia »
+--     etait signale, le test comparant les mots bruts (pluriel vs singulier).
+--     Le rapport accusait a tort -- precisement ce que le GD interdit. Le test
+--     tolere desormais le pluriel et compare DANS LES DEUX SENS ; en cas de
+--     doute il ne signale rien, le silence valant mieux qu'une fausse
+--     accusation.
+--   * Les arrivages rendaient des lignes textuellement identiques (meme
+--     ressource et meme origine, jours differents) : la date est dans le texte.
+--
+-- BANC APRES CORRECTION :
+--   « Farine et textiles » contre « Fusil-mitrailleur » -> signale
+--   « Caisses de vin » contre « Caisse de vin de Luthecia » -> NON signale (0)
+--   quantite 40 a l'arrivee, 25 restantes -> signale
+--   2e passe -> 0 fait.
+--
+-- Le Coordinateur a desormais DEUX usages selon sa position : la collecte
+-- quotidienne tente le centre multimodal puis le port, l'un des deux rendant
+-- 'pas_dans_...' sans rien faire.
