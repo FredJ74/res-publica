@@ -640,6 +640,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
+  // Agents etrangers sous couverture presents ici. Le serveur ne renvoie que
+  // leur identite de couverture, et relit lui-meme la position de l'appelant :
+  // impossible de balayer la carte a la recherche d'agents.
+  if (typeof chargerAgentsSousCouverture === 'function') chargerAgentsSousCouverture();
+
   // CONTINUITE INSTITUTIONNELLE DE MARTIAL BOUTERIN (19 septembre 2026).
   // Le ministere n'a qu'UN SEUL PNJ, et il ne disparait jamais. Tant que le poste de Ministre de
   // la Defense est tenu par le PNJ, Martial EST le Ministre. Des qu'un joueur l'occupe, Martial

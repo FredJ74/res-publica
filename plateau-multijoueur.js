@@ -371,6 +371,49 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
   } catch(e) { console.warn('chargerVraisJoueursPresents error', e); }
 }
 
+// =====================
+// AGENTS ETRANGERS SOUS COUVERTURE (19 septembre 2026)
+// =====================
+// Un agent de renseignement etranger depose dans cette piece s'y affiche comme
+// n'importe quel passant -- et RIEN de plus.
+//
+// CE QUE LE NAVIGATEUR RECOIT. La RPC agents_renseignement_ici() ne renvoie
+// qu'une colonne : nom_couverture. Elle n'accepte AUCUN parametre : le serveur
+// relit la position de l'appelant en base, de sorte qu'on ne peut pas balayer
+// la carte a la recherche d'agents. Ni le vrai nom, ni le role, ni l'empire
+// proprietaire, ni l'identifiant de cellule ne quittent jamais le serveur --
+// ils vivent dans des tables en RLS sans aucune policy.
+//
+// L'objet construit ici est donc volontairement PAUVRE : c'est lui qui part
+// dans data-enc via encodePnjSafe, et tout champ qu'on y ajouterait serait
+// lisible a l'inspecteur. On n'y met que ce qu'un passant voit.
+async function chargerAgentsSousCouverture(targetId) {
+  try {
+    targetId = targetId || 'persons-list';
+    const list = document.getElementById(targetId);
+    if (!list) return;
+    list.querySelectorAll('.agent-couverture-card').forEach(el => el.remove());
+    if (typeof sbRpc !== 'function') return;
+    const rows = await sbRpc('agents_renseignement_ici', {}).catch(() => null);
+    if (!Array.isArray(rows) || rows.length === 0) return;
+
+    const html = rows.map(r => {
+      const nom = r && r.nom_couverture ? String(r.nom_couverture) : null;
+      if (!nom) return '';
+      // Strictement la couverture. Aucun identifiant, aucun attribut cache.
+      const enc = encodePnjSafe({ name: nom, role: 'De passage', rel: 'neutral', job: 'default' });
+      return '<div class="person-card agent-couverture-card" onclick="openPnjModal(\'' + enc + '\')" title="Interagir">' +
+        '<div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>' +
+        '<div><div class="person-name">' + escapeHtmlText(nom) + '</div>' +
+        '<div class="person-role">De passage</div></div></div>';
+    }).join('');
+    if (!html) return;
+    const empty = list.querySelector('.person-empty');
+    if (empty) empty.remove();
+    list.insertAdjacentHTML('beforeend', html);
+  } catch (e) { /* un agent qui ne s'affiche pas ne doit jamais casser la piece */ }
+}
+
 function ouvrirFichePnjAutreJoueur(idx) {
   const p = (window._pnjDesAutresJoueurs || [])[idx];
   if (!p) return;

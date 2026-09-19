@@ -7377,77 +7377,151 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// =====================
+// CELLULE DE RENSEIGNEMENT — Ministre de la Defense (19 septembre 2026)
+// =====================
+// L'ancien ordre `renseignement` etait entierement cote navigateur : autorite
+// grisee seulement, jet Math.random(), et il telechargeait la compagnie ennemie
+// AVANT le jet (le brouillard etait contourne quel que soit le resultat). Il
+// lisait en outre personnages.per/int, deux colonnes QUI N'EXISTENT PAS -- les
+// deux termes valaient donc 0 des deux cotes depuis toujours.
+//
+// Il est remplace par l'ouverture d'une CELLULE, entierement serveur. Le meme
+// ordre est reutilise (meme fn, memes 3 PA et 500 FR deja declares au miroir
+// des couts) : rien a ajouter dans ordres_couts.
+//
+// LE CLIENT NE PAIE PLUS ET NE TIRE PLUS RIEN. La RPC verifie le poste min_def
+// ATTESTE, debite elle-meme les 3 PA et les 500 FR de la caisse du ministere,
+// tire les couvertures et cree les quatre agents -- le tout dans une seule
+// transaction. Un refus ne laisse donc aucun debit derriere lui.
 function ouvrirModalRenseignement(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('postes-modal-title').textContent = 'Opération de renseignement militaire';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Empire à espionner. Le taux de réussite dépend de votre localisation actuelle, de la Sécurité Nationale des deux camps, et de la Perception/Intelligence du Ministre.</div>';
+  document.getElementById('postes-modal-title').textContent = 'Cellule de renseignement';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+       +  'Quatre agents sous couverture seront envoyés dans l\'empire choisi pour <strong>10 jours</strong>. '
+       +  'Coût : ' + cost + ' FR sur la caisse du Ministère, et ' + pa + ' PA. '
+       +  'Vous devrez les convoyer vous-même et les déposer sur place.</div>';
   empires.forEach(([k, co]) => {
-    html += '<button onclick="confirmerRenseignement(\'' + k + '\',\'' + co.n.replace(/'/g,"\\'") + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
+    html += '<button onclick="confirmerCelluleRenseignement(\'' + k + '\')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
   });
-  html += '</div>';
+  html += '<div style="border-top:1px solid #2a2010;margin-top:.8rem;padding-top:.6rem;display:flex;gap:.4rem">'
+       +  '<button onclick="ouvrirPanneauCellules()" style="flex:1;padding:.45rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em">Mes cellules</button>'
+       +  '<button onclick="ouvrirRapportsCellules()" style="flex:1;padding:.45rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em">Rapports</button>'
+       +  '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRenseignement(empireCible, nomCible, pa, cost) {
+// Refus typés rendus tels quels : le serveur dit POURQUOI, on ne devine pas.
+const CELLULE_REFUS = {
+  acteur_non_authentifie:        'Session expirée.',
+  autorite_insuffisante:         'Réservé au Ministre de la Défense.',
+  cible_est_mon_pays:            'On n\'ouvre pas une cellule chez soi.',
+  identites_reelles_incompletes: 'Les agents ne sont pas encore tous recrutés.',
+  pool_couvertures_insuffisant:  'Pas assez d\'identités de couverture disponibles dans cet empire.',
+  pa_insuffisants:               'PA insuffisants.',
+  caisse_insuffisante:           'La caisse du Ministère ne couvre pas l\'opération.'
+};
+
+async function confirmerCelluleRenseignement(empireCible) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const r = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId: 'caserne-militaire' } });
-  if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Budget insuffisant',
-      r.raison === 'pa_insuffisants' ? '' : 'La caisse de la caserne ne couvre pas le coût de l\'opération.', false);
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('cellule_renseignement_creer', { p_pays_cible: empireCible }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    showToast('Cellule impossible', CELLULE_REFUS[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').'), false);
     return;
   }
+  // Les PA sont debites SERVEUR : on reprend la valeur qu'il renvoie, jamais
+  // une soustraction locale.
+  if (typeof res.pa_restants === 'number') { state.pa = res.pa_restants; if (typeof updateUI === 'function') updateUI(); }
+  const nom = COUNTRIES[empireCible]?.n || empireCible;
+  showToast('Cellule ouverte', 'Quatre agents sont en route pour ' + nom + '. −' + res.cout + ' FR.', true, true);
+  addJournalEntry('Ouverture d\'une cellule de renseignement visant ' + nom + '.', 'event-info');
+  ouvrirPanneauCellules();
+}
 
-  // Choisir la section adverse ciblee AVANT le jet, puisque le jet depend des indices de son lieutenant
-  const compagniesCible = await sbGetCompagnies(empireCible).catch(() => []);
-  const sectionsPourvues = [];
-  compagniesCible.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom && s.soldats.length > 0) sectionsPourvues.push(s); }));
-  if (sectionsPourvues.length === 0) { showToast('Opération annulée', 'Aucune section ennemie identifiable pour l\'instant.', false); return; }
-  const section = sectionsPourvues[Math.floor(Math.random() * sectionsPourvues.length)];
-
-  // Choisir un de nos propres lieutenants pour mener l'operation
-  const compagniesNous = await sbGetCompagnies(pays).catch(() => []);
-  const nosLieutenants = [];
-  compagniesNous.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom) nosLieutenants.push(s.lieutenantNom); }));
-  if (nosLieutenants.length === 0) { showToast('Opération impossible', 'Aucun lieutenant disponible pour mener l\'opération.', false); return; }
-  const notreLieutenantNom = nosLieutenants[Math.floor(Math.random() * nosLieutenants.length)];
-
-  const rows1 = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(notreLieutenantNom)}&select=per,int`).catch(() => []) : [];
-  const rows2 = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(section.lieutenantNom)}&select=per,int`).catch(() => []) : [];
-  const notreLt = rows1?.[0] || { per:0, int:0 };
-  const leurLt = rows2?.[0] || { per:0, int:0 };
-
-  const base = state.country === empireCible ? 30 : 45;
-  const isnNotre = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(pays, 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 0);
-  const isnLeur = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(empireCible, 'isn') : (INDICES_NATIONAUX[empireCible]?.ISN || 0);
-  const notreScore = isnNotre + (notreLt.per||0) + (notreLt.int||0);
-  const leurScore = isnLeur + (leurLt.per||0) + (leurLt.int||0);
-  const tauxFinal = Math.max(5, Math.min(95, Math.round(base + (notreScore - leurScore) / 10)));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll > tauxFinal) {
-    showToast('Opération échouée', 'Aucune information exploitable n\'a pu être obtenue sur ' + nomCible + ' (taux : ' + tauxFinal + '%).', false);
-    addJournalEntry('Opération de renseignement ratée contre ' + nomCible + '.', 'event-bad');
-    if (typeof sbSendMail === 'function') sbSendMail('Ministère de la Défense', notreLieutenantNom, 'Opération de renseignement échouée', 'Votre opération contre ' + nomCible + ' n\'a rien donné.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+// Panneau du ministre : ses cellules, leurs agents, leur vraie identite.
+// Toutes ces donnees viennent d'une RPC reservee au min_def du pays -- aucune
+// n'est lisible par un autre joueur, meme en appelant la RPC directement.
+async function ouvrirPanneauCellules() {
+  document.getElementById('postes-modal-title').textContent = 'Mes cellules de renseignement';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const r = typeof sbRpc === 'function' ? await sbRpc('cellule_renseignement_mes_cellules', {}).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#cc4444">' + (CELLULE_REFUS[res?.raison] || 'Indisponible.') + '</div>';
     return;
   }
-
-  const demiSection = [...section.soldats].sort(() => Math.random() - 0.5).slice(0, 12);
-  let contenu = 'Section identifiée : Lieutenant ' + section.lieutenantNom + ' (' + nomCible + '). Indices du Lieutenant adverse — Perception : ' + (leurLt.per??'?') + ' · Intelligence : ' + (leurLt.int??'?') + '.<br><br>';
-  const armesLabelsRenseignement = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
-  demiSection.forEach(s => { contenu += (s.pj === true ? ('Soldat ' + s.nom) : s.matricule) + ' — ' + libelleFormationSoldat(s) + ' · Équipement : ' + (armesLabelsRenseignement[s.arme] || 'Aucun') + '<br>'; });
-
-  if (typeof sbCreerRapportRenseignement === 'function') {
-    await sbCreerRapportRenseignement({ pays, lieutenantNom: notreLieutenantNom, empireCible, nomCible, contenu, remonte: false });
+  const cellules = res.cellules || [];
+  let html = '<div style="padding:1rem">';
+  if (cellules.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune cellule.</div>';
   }
-  if (typeof sbSendMail === 'function') {
-    await sbSendMail('Ministère de la Défense', notreLieutenantNom, 'Rapport de renseignement — ' + nomCible,
-      contenu + '<br><br><em>À vous de faire remonter ce rapport à votre Capitaine.</em>', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  cellules.forEach(c => {
+    const restant = Math.max(0, Math.ceil((new Date(c.echeance) - Date.now()) / 86400000));
+    const actif = c.statut === 'active';
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.6rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">'
+         +  '<span style="font-size:.85rem;color:#C9A84C">' + (COUNTRIES[c.pays_cible]?.n || c.pays_cible) + '</span>'
+         +  '<span style="font-size:.7rem;color:' + (actif ? '#6a9a6a' : '#8a8060') + '">'
+         +  (actif ? (restant + ' jour(s) restant(s)') : (c.statut + (c.mode_fin ? ' — ' + c.mode_fin : ''))) + '</span></div>';
+    (c.agents || []).forEach(a => {
+      const pos = a.leader ? ('convoyé par ' + escapeHtmlText(a.leader))
+                : (a.ville ? (escapeHtmlText(a.ville) + (a.batiment ? ' / ' + escapeHtmlText(a.batiment) : '')) : 'non déployé');
+      html += '<div style="font-size:.74rem;color:#a09060;margin-top:.35rem;border-top:1px solid #1a1810;padding-top:.3rem">'
+           +  '<strong>' + escapeHtmlText(a.vrai_nom) + '</strong> (' + a.role + ') — sous couverture : <em>'
+           +  escapeHtmlText(a.couverture) + '</em><br>'
+           +  '<span style="color:#8a8060">' + a.statut + ' · ' + pos + '</span></div>';
+    });
+    if (actif) {
+      html += '<button onclick="terminerCelluleRenseignement(\'' + c.cellule + '\')" style="margin-top:.5rem;width:100%;padding:.35rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">Mettre fin à la mission</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function terminerCelluleRenseignement(cellId) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('cellule_renseignement_terminer', { p_cellule_id: cellId }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) { showToast('Impossible', CELLULE_REFUS[res?.raison] || (res?.raison || 'indisponible'), false); return; }
+  showToast('Mission terminée', (res.agents_disparus || 0) + ' agent(s) rappelé(s)'
+    + ((res.evasions || 0) > 0 ? ', ' + res.evasions + ' évasion(s)' : '') + '. Aucun remboursement.', true);
+  addJournalEntry('Fin de mission d\'une cellule de renseignement.', 'event-info');
+  ouvrirPanneauCellules();
+}
+
+async function ouvrirRapportsCellules() {
+  document.getElementById('postes-modal-title').textContent = 'Rapports de renseignement';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const r = typeof sbRpc === 'function' ? await sbRpc('cellule_rapports_mes_cellules', { p_limite: 15 }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#cc4444">' + (CELLULE_REFUS[res?.raison] || 'Indisponible.') + '</div>';
+    return;
   }
-  showToast('Opération réussie', 'Le rapport a été transmis au Lieutenant ' + notreLieutenantNom + ' (taux : ' + tauxFinal + '%).', true, true);
-  addJournalEntry('Opération de renseignement réussie contre ' + nomCible + ', transmise à ' + notreLieutenantNom + '.', 'event-good');
+  const rapports = res.rapports || [];
+  let html = '<div style="padding:1rem">';
+  if (rapports.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun rapport pour l\'instant.</div>';
+  rapports.forEach(rap => {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.6rem">'
+         +  '<div style="font-size:.78rem;color:#C9A84C">' + escapeHtmlText(rap.jour || '') + ' — '
+         +  (COUNTRIES[rap.pays_cible]?.n || rap.pays_cible) + ' <span style="color:#8a8060">('
+         +  (rap.nb_faits || 0) + ' fait(s))</span></div>';
+    (rap.faits || []).forEach(f => {
+      html += '<div style="font-size:.74rem;color:#a09060;margin-top:.3rem">• ' + escapeHtmlText(f.fait) + '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 function ouvrirModalMedia(pa, cost) {
