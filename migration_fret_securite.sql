@@ -1,0 +1,60 @@
+-- =====================================================================
+-- TRACE — AUDIT PORT INDUSTRIEL / COORDINATEUR (19 septembre 2026)
+--
+-- CE FICHIER N'EST QU'UNE TRACE. Il n'est pas execute par le jeu : la
+-- migration a deja ete appliquee en production sous le nom
+--   fermeture_ecriture_anon_fret
+-- =====================================================================
+--
+-- CONSTAT, banc hostile en transaction annulee, en role `anon` (visiteur
+-- NON authentifie, sans session, sans personnage) :
+--   lit la declaration douaniere ET le contenu reel ........ ACCEPTE
+--   reecrit declaration_douaniere et valeur_declaree ....... ACCEPTE
+--   passe dedouanee a true (auto-dedouanement) ............. ACCEPTE
+--   reecrit le contenu reel d'une caisse ................... ACCEPTE
+--   injecte une ligne dans la caisse d'autrui .............. ACCEPTE
+--
+-- caisses_fret et contenu_caisses_fret avaient relrowsecurity = false,
+-- aucune policy, anon en SELECT/INSERT/UPDATE. Aucune contrainte CHECK
+-- sur `statut` non plus.
+--
+-- POURQUOI MALGRE DES TABLES VIDES. Le jeu possede deja une RPC de
+-- dedouanement correctement construite -- fret_dedouaner : verifie que
+-- l'appelant est le destinataire, exige statut='arrivee', calcule 10 %
+-- de droits sur valeur_declaree plus 1 %/jour de gardiennage au-dela de
+-- 7 jours, debite le joueur et credite la caisse du port dans la meme
+-- transaction, idempotente au rejeu. Ecrire directement dans la table
+-- contournait integralement cette porte. Une porte verrouillee a cote
+-- d'une fenetre ouverte.
+--
+-- CE QUI EST FERME : uniquement l'ECRITURE par `anon`. Le client du jeu
+-- est toujours `authenticated` (auth anonyme Supabase = une session) ;
+-- aucun parcours ne reserve une caisse ni n'y depose sans session.
+-- Meme resserrage que fermeture_delete_anon_traces_orgas_presences,
+-- applique le meme jour.
+--
+-- CE QUI N'EST PAS TOUCHE, ET POURQUOI
+-- ------------------------------------
+--   * La LECTURE reste ouverte a tous. Savoir qui a le droit de consulter
+--     une declaration douaniere est exactement la question de game design
+--     que pose le futur Coordinateur (consultation clandestine du
+--     registre) : signalee dans le rapport, pas tranchee ici.
+--   * L'ECART entre declaration et contenu reel est un choix de design
+--     ASSUME, ecrit dans l'interface que voit le joueur ("la declaration
+--     est independante du contenu reel -- elle sera la seule base des
+--     droits de douane futurs"). Rien n'est change de ce cote : c'est la
+--     matiere premiere du pouvoir du Coordinateur.
+--   * Le cycle du fret est ROMPU en amont (expedierCaisseFret, defini en
+--     plateau-justice-economie.js:9594, n'est appele nulle part ; aucune
+--     caisse ne peut donc atteindre 'en_transit', ni rien de ce qui suit).
+--     C'est un bug de gameplay, pas une faille : signale, pas corrige.
+--
+-- Banc de non-regression AVANT et APRES, en transaction annulee, en role
+-- authenticated avec les claims d'Arnie : reservation d'une caisse, depot
+-- d'une ligne de contenu, puis fermeture avec declaration -- les trois
+-- passent dans les deux cas ("Bois / 50 / fermee"). Apres migration, le
+-- meme UPDATE en role anon renvoie "permission denied for table
+-- caisses_fret". Zero residu : tout en BEGIN/ROLLBACK, verifie.
+
+REVOKE INSERT, UPDATE ON public.caisses_fret         FROM anon, PUBLIC;
+REVOKE INSERT, UPDATE ON public.contenu_caisses_fret FROM anon, PUBLIC;
