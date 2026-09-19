@@ -1,0 +1,57 @@
+-- =====================================================================
+-- TRACE — POOLS DE COUVERTURES ET ATTRIBUTION SEXEE (19 septembre 2026)
+--
+-- Migrations appliquees en production :
+--   pools_couvertures_quatre_empires
+--   creation_cellule_couvertures_sexees
+-- =====================================================================
+--
+-- 48 couvertures : 6 masculines et 6 feminines par empire. Creation deleguee
+-- par le game designer.
+--
+-- REGLES APPLIQUEES
+--   * Aucune personnalite reelle.
+--   * Saveur discrete, jamais au point qu'un nom trahisse un espion. L'univers
+--     est deja peuple de PNJ aux noms legerement appuyes (Martial Bouterin,
+--     Ginette Conteneur, Pascal Paguevite) : une identite trop sage detonnerait
+--     autant qu'une blague. Les couvertures sont donc des noms ordinaires de
+--     leur aire culturelle.
+--   * Les quatre VRAIES identites sont interdites de pool, et un DELETE final
+--     le garantit structurellement plutot que par vigilance.
+--   * Les deux prototypes sont conserves : José Bayamoréna (El Estado) et
+--     Foued Al-Khali (Al-Khalija).
+--   * Republia : francophones ordinaires. Sovarka : coherence patronymique
+--     slave entierement fictive. El Estado : hispanophones fictifs.
+--     Al-Khalija : arabophones fictifs.
+--
+-- SEXE. Colonne ajoutee sur les couvertures ET sur les identites reelles.
+-- Roster actuel : Gladys Crête (F), Raymond Hialiste / Boris Ketou /
+-- Yannick Helle (H) -- donc 3 couvertures masculines et 1 feminine par mission.
+-- Le controle de disponibilite du pool compte desormais PAR SEXE.
+--
+-- EVITEMENT DE REATTRIBUTION. Aucune table d'historique creee : la couverture
+-- precedente du MEME role dans le MEME pays vit deja dans les lignes d'agents
+-- des cellules passees. Un simple ORDER BY cree_le DESC LIMIT 1 la retrouve.
+-- Repli explicite si l'evitement rendait le tirage impossible : la consigne dit
+-- « si possible », jamais au prix d'un echec de creation.
+--
+-- BANCS (transactions annulees) :
+--   Deux cellules, cibles differentes -> 8 couvertures DISTINCTES,
+--     0 desaccord de sexe :
+--       conseiller (F) -> Irina Soulkova [F] / Pilar Monterroso [F]
+--       coordinateur (H) -> Iouri Bratsev / Nicolás Berruga
+--       garde (H) -> Mikhaïl Sourenko / Aurelio Pinzón
+--       traducteur (H) -> Vassili Tchoudine / Ramón Delgadillo
+--   Deux missions SUCCESSIVES sur la MEME cible (la premiere close, donc ses
+--     couvertures redevenues libres) -> AUCUN role ne reprend la sienne :
+--       conseiller   : Zoïa Malinova    -> Lioudmila Vareneva
+--       coordinateur : Arkadi Lemenov   -> Guennadi Vostrov
+--       garde        : Mikhaïl Sourenko -> Piotr Zabline
+--       traducteur   : Vassili Tchoudine-> Mikhaïl Sourenko
+--     (le traducteur reprend l'ancienne couverture du GARDE : la regle est bien
+--      par role, comme demande.)
+--   Verification finale : 48 couvertures, 0 vraie identite dans un pool,
+--   caisse et PA intacts, zero residu.
+--
+-- `pool_couvertures_insuffisant` est donc leve : la creation d'une cellule
+-- fonctionne desormais de bout en bout pour les quatre empires.
