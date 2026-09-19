@@ -1,0 +1,79 @@
+-- =====================================================================
+-- TRACE — SPECIALITES D'AGENTS, TRANSPORT, ET CORRECTIF DE DISTANCE
+-- (19 septembre 2026)
+--
+-- Migrations appliquees en production :
+--   bande_distance_positionnelle_et_identites
+--   specialites_garde_et_traducteur
+--   agents_depot_reprise
+-- =====================================================================
+--
+-- ===== 1. IDENTITES REELLES — contenu GD desormais complet ===========
+-- Gladys Crête (conseillere, DUP 13), Raymond Hialiste (traducteur, 15),
+-- Boris Ketou (garde, 10), Yannick Helle (coordinateur, 12). Secrets serveur,
+-- jamais exposes dans la projection publique.
+--
+-- ===== 2. militaire_bande_distance devient POSITIONNELLE =============
+-- DEFAUT : elle renvoyait 'hors' des que les pays differaient, MEME AU MEME
+-- ENDROIT. Verifie avant correctif :
+--   (republic/capitale/marche) vs (soviet/capitale/marche) -> 'hors'
+-- La distance doit dependre des positions physiques, pas de la nationalite.
+--
+-- AUCUNE REGRESSION POSSIBLE : les deux seuls appelants existants,
+-- militaire_observer et militaire_entree_zone, passent deja `v_pays` DES DEUX
+-- COTES (contournement historique de ce meme defaut) -- la branche des pays
+-- differents ne s'est jamais declenchee pour eux. Verifie avant migration.
+--
+-- APRES : pays differents au meme endroit -> 'proche' ; meme ville -> 'moyenne'
+-- ; autre ville d'un autre pays -> 'hors'. Memes pays : proche / moyenne /
+-- longue, identiques a avant.
+--
+-- ===== 3. OU VIVENT LES FAITS COLLECTES ==============================
+-- renseignements_connus, titulaire 'cellule:<id>' -- meme convention que
+-- 'etat:<pays>' du lot 1. Aucune table nouvelle, et l'index
+-- (titulaire, jour_expiration) rendra l'agregation du rapport immediate.
+-- DEDUPLICATION par fait_objectif_ref, champ prevu pour cela par la migration
+-- d'origine : « nouvelle information » a donc un sens verifiable.
+-- REGLE COMMUNE : agent_trace_deposer n'est appele QUE si au moins un fait a
+-- reellement ete enregistre.
+--
+-- ===== 4. GARDE DU CORPS — Boris Ketou ===============================
+-- Reconnaissance canonique 75, MEME VILLE uniquement, automatique, 0 PA.
+-- REUTILISE le moteur militaire existant sans en creer un second :
+-- militaire_camouflage_groupe, militaire_chance_detection,
+-- militaire_modif_distance, militaire_degrader.
+-- Deux differences assumees avec militaire_observer : ni guerre active (le GD
+-- ne l'exige pas pour une operation de renseignement) ni jumelles (un agent
+-- sous couverture n'en porte pas).
+-- BANC : 6 soldats de Republia dans un autre batiment de sa ville ->
+--   « Forces reperees a capitale : 5 à 10 hommes — republic. » (DEGRADE par le
+--   moteur existant, bande 'moyenne') ; 2e passe -> 0 (dedup du jour) ; ses
+--   PROPRES forces -> jamais rapportees (0).
+--
+-- ===== 5. TRADUCTEUR — Raymond Hialiste ==============================
+-- Ecoute des traces VRAIES de SA ville, fenetre de 7 jours portee exactement
+-- par jour_expiration (toute trace est ecrite avec jour + 7) -- il peut donc
+-- apprendre des faits anterieurs a son arrivee. Maximum 3 par jour, aucune
+-- garantie, jamais de rumeur de remplissage.
+-- BANC : 5 traces eligibles en ville, 1 hors ville, 1 expiree ->
+--   1re passe 3 faits, 2e passe 2 faits, total 5, refs toutes distinctes,
+--   et 0 pour la trace hors ville comme pour l'expiree.
+--
+-- SOUS-POINT NON LIVRE, SIGNALE : la ponderation se fait par RECENCE seule.
+-- Le moteur existant pondere recence x IMPORTANCE, mais son bareme
+-- (POIDS_IMPORTANCE_CATEGORIE) porte sur des CATEGORIES de renseignement, et
+-- il n'existe aucun bareme d'importance pour les ~30 valeurs de
+-- actions_tracables.type_action. En inventer un serait du game design.
+--
+-- ===== 6. DEPOT / REPRISE ============================================
+-- REUTILISATION DU CONTRAT EXISTANT, pas d'un second systeme : exactement les
+-- deux etats des soldats PNJ. Suit un chef (position derivee) OU pose
+-- (position propre). Ne se deplace jamais seul, ne se teleporte jamais.
+-- Seul un PJ de l'EMPIRE PROPRIETAIRE peut le porter : un joueur etranger ne
+-- sait meme pas que c'est un agent.
+-- BANC, cycle complet : prise sur place -> ok ; le groupe le liste ; depot a
+-- Port-Sainte-Marie -> il y reste ; tentative de reprise depuis le marche de
+-- la capitale -> 'pas_au_meme_endroit'. Un PJ doit physiquement revenir.
+-- Un agent detenu, mort ou disparu est indisponible.
+--
+-- Zero residu apres tous les bancs.
