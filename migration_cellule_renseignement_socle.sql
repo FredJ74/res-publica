@@ -1,0 +1,60 @@
+-- =====================================================================
+-- TRACE — SOCLE CANONIQUE DE LA CELLULE DE RENSEIGNEMENT (19/09/2026)
+--
+-- CE FICHIER N'EST QU'UNE TRACE. Migrations deja appliquees en production :
+--   cellules_renseignement_socle
+--   cellule_renseignement_creer
+--   cellule_renseignement_projections
+-- =====================================================================
+--
+-- CONFIDENTIALITE. cellules_renseignement, agents_renseignement,
+-- renseignement_identites_reelles et renseignement_couvertures portent des
+-- SECRETS DE GAMEPLAY. Elles suivent donc le patron deja en production sur
+-- renseignements_connus / militaire_detections : RLS ACTIVEE + AUCUNE POLICY,
+-- plus un REVOKE ALL explicite (les DEFAULT PRIVILEGES du schema public
+-- accordent arwdDxtm a anon sur toute table creee -- piege connu). Le client
+-- ne lit jamais ces tables ; il recoit une PROJECTION construite par le serveur.
+-- C'est la seule protection reelle : encodePnjSafe serialise l'objet PNJ entier
+-- dans data-enc, et sbGet part sans select=.
+-- BANC : authenticated -> 42501 sur les trois tables.
+--
+-- POSITION. Aucun second systeme geographique. On reprend le CONTRAT a deux
+-- etats des soldats PNJ (suit un chef OU pose quelque part), avec les quatre
+-- niveaux canoniques du projet (pays/ville/building/room). Le stockage reste
+-- ici : compagnies_militaires decrit une compagnie de l'armee, pas une cellule.
+--
+-- CONTENU GD. Architecture oui, contenu definitif non. Seule identite reelle
+-- validee : Raymond Hialiste, traducteur, DUP 15. Les trois autres roles et
+-- TOUS les pools de noms de couverture sont VIDES : la RPC refuse proprement
+-- (`identites_reelles_incompletes`, `pool_couvertures_insuffisant`) plutot que
+-- d'inventer un nom. Les DUP canoniques arbitrees (13/15/10/12) vivent cote
+-- serveur et ne dependent ni de data.js ni du navigateur.
+--
+-- PAIEMENT NON CONTOURNABLE. Consigne : ne pas rendre l'espionnage dependant
+-- d'un debit falsifiable. caisse_institution_mouvement n'exige aujourd'hui
+-- qu'"un personnage authentifie" -- dette connue, signalee, hors perimetre.
+-- Elle n'est donc PAS appelee par le navigateur : la RPC verifie d'abord le
+-- poste min_def ATTESTE, puis debite elle-meme, dans la meme transaction.
+--
+-- CAISSE : <pays>_gouvernement-min_def. Le GD confie la cellule au Ministre de
+-- la Defense. L'ancien ordre `renseignement` visait la caisse de caserne, qui
+-- contient 200 FR pour un cout de 500 -- il etait donc inexecutable (constat
+-- deja rapporte). Un seul identifiant a changer si l'arbitrage differe.
+--
+-- BANCS (tous en transaction annulee, zero residu verifie) :
+--   Arnie sans poste ............................ autorite_insuffisante
+--   min_def, cible = son propre pays ............ cible_est_mon_pays
+--   min_def, identites GD incompletes (1/4) ..... identites_reelles_incompletes
+--   chemin nominal .............................. 1 cellule, 4 agents,
+--     4 couvertures DISTINCTES tirees dans un pool de 5, DUP 13/15/10/12,
+--     PA 10 -> 7, caisse 65292 -> 64792
+--   caisse a 100 FR pour un cout de 500 ......... caisse_insuffisante ET
+--     etat final intact : 0 cellule, 0 agent, PA toujours 10, caisse toujours 100
+--   joueur ordinaire dans la piece .............. voit "José Bayamoréna" et
+--     RIEN d'autre ; vue ministre -> autorite_insuffisante
+--   ministre proprietaire ailleurs dans la ville  projection locale VIDE
+--     (la position est reelle, pas declaree) ; vue ministre complete
+--     (vrai_nom, couverture, DUP, role, position, echeance J+10)
+--
+-- Le detail SQL exact des trois migrations est en base ; ce fichier consigne
+-- la doctrine, les arbitrages et les preuves.
