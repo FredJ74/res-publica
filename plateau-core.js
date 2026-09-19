@@ -1831,6 +1831,25 @@ function showPostRequired(posteRequisNom) {
 // joueur une fortune et des affiliations que la reinitialisation avait supprimees. Le cache
 // n'est efface que sur action explicite du joueur.
 function signalerPersonnageFantome(nom, resultat) {
+  // RECONCILIATION (19 septembre 2026). La beta n'utilise que l'identite anonyme : aucun compte
+  // n'a d'adresse e-mail, et aucune donnee serveur ne relie un personnage disparu a son compte.
+  // On profite donc du SEUL instant ou les deux sont reunis -- ce navigateur, a cet instant --
+  // pour declarer l'uid de la session et une empreinte du personnage local. Le joueur n'a rien a
+  // faire : recharger le jeu suffit. Aucune console, aucune manipulation.
+  //
+  // L'empreinte ne contient que des champs poses a la CREATION et jamais modifies ensuite. Elle
+  // sert a CORROBORER une restauration ; le nom seul ne prouverait rien.
+  if (typeof sbDeclarerPersonnageFantome === 'function' && nom) {
+    sbDeclarerPersonnageFantome(nom, {
+      archetype: state.char?.archetype || null,
+      career:    state.char?.career || null,
+      origin:    state.char?.origin || null,
+      school:    state.char?.school || null,
+      stats:     state.char?.stats || null,
+      pays:      state.country || null,
+      etat:      (resultat && resultat.etat) || null
+    }).catch(() => {});
+  }
   if (document.getElementById('bandeau-personnage-fantome')) return;
   const etat = (resultat && resultat.etat) || 'orphelin';
   const messages = {

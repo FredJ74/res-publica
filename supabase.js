@@ -482,6 +482,18 @@ function normaliserJsonPersonnage(valeur) {
 //   'orphelin'      ce compte n'a aucun personnage, et aucune ligne ne porte ce nom ;
 //   'appartient_a_autrui'  la ligne existe mais appartient a un autre compte ;
 //   'indetermine'   on n'a pas pu savoir (reseau, RPC indisponible) -- ne rien conclure.
+// Declare au serveur l'uid de cette session ET une empreinte du personnage local, quand la
+// reconciliation a prouve qu'aucune fiche serveur ne lui correspond. La beta n'utilisant que
+// l'identite anonyme (aucun compte n'a d'e-mail), c'est le SEUL moyen de relier un personnage
+// orphelin a son compte -- et il suffit au joueur de recharger le jeu.
+//
+// L'empreinte porte les champs poses a la CREATION et jamais modifies ensuite : un nom seul ne
+// prouverait rien, cette combinaison si.
+async function sbDeclarerPersonnageFantome(nom, empreinte) {
+  const rows = await sbRpc('personnage_fantome_declarer', { p_nom: nom, p_empreinte: empreinte || {} });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 async function sbEtatIdentitePersonnage(nomLocal) {
   if (!nomLocal || typeof sbRpc !== 'function') return { etat: 'indetermine' };
 
