@@ -1369,7 +1369,50 @@ async function debiterFondsOrdinaires(montant) {
   }
   if (state.char) state.char.arg = state.arg;
 
-  return { ok: true, preleveLiquide, preleveNational };
+  // debitId : identifiant de la ligne que le serveur vient d'inscrire dans son registre des
+  // debits. C'est le SEUL moyen de faire annuler ce prelevement plus tard -- voir
+  // rembourserFondsOrdinaires(). Les appelants qui ne remboursent jamais l'ignorent.
+  return { ok: true, preleveLiquide, preleveNational, debitId: r.debit_id || null };
+}
+
+// REMBOURSEMENT ATTESTE (§6.1, 20 septembre 2026).
+//
+// CE QUI EXISTAIT. Quand le serveur refusait une action deja payee, le client rendait l'argent
+// par crediterFondsOrdinaires(montant) -- une addition locale, avec un montant que le navigateur
+// portait lui-meme. C'etait le plus gros bloc de creation monetaire cliente restante, et c'est
+// ce qui empechait d'activer le verrou arg/liquide : un remboursement local serait ecrase, et le
+// joueur aurait paye sans rien recevoir ni etre rembourse.
+//
+// CE QUI SE PASSE MAINTENANT. On ne transmet PAS un montant : on designe le debit a annuler.
+// Le serveur rend ce qu'il a reellement preleve (ou la part declaree par la source, 30 % pour un
+// ordre rate), une seule fois -- la ligne du debit porte l'anti-rejeu. Le debit d'un autre joueur
+// est introuvable, par construction.
+//
+// FAIL-SOFT ASSUME. Sans debitId (appelant pas encore migre) ou si l'appel echoue, on retombe
+// sur le credit local d'avant : un remboursement perdu serait pire que non atteste. Ce repli
+// disparaitra avec l'activation du verrou, qui suppose justement que tous les producteurs sont
+// passes par le serveur.
+async function rembourserFondsOrdinaires(debitId, source, montantDeRepli) {
+  if (debitId && typeof sbRpc === 'function') {
+    const rows = await sbRpc('fonds_rembourser', { p_debit_id: debitId, p_source: source })
+      .catch(function () { return null; });
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (r && r.ok === true) {
+      state.liquide = Number(r.liquide);
+      state.arg = Number(r.arg);
+      if (state.char) state.char.arg = state.arg;
+      return { ok: true, montant: Number(r.montant || 0) };
+    }
+    // Deja rembourse : ce n'est pas un echec, c'est l'anti-rejeu qui a fait son travail.
+    if (r && r.raison === 'deja_rembourse') {
+      if (typeof r.arg === 'number') { state.arg = Number(r.arg); if (state.char) state.char.arg = state.arg; }
+      if (typeof r.liquide === 'number') state.liquide = Number(r.liquide);
+      return { ok: true, montant: 0, deja: true };
+    }
+    console.error('[fonds] remboursement non atteste (' + source + ') : ' + ((r && r.raison) || 'appel echoue'));
+  }
+  crediterFondsOrdinaires(montantDeRepli || 0);
+  return { ok: false, montant: montantDeRepli || 0 };
 }
 
 // Credit generique (salaire, remboursement, effet de resultat positif...) : atterrit
@@ -1423,12 +1466,32 @@ function formatDateHeureJeu() {
 // structurellement inoperant en multijoueur -- c'est ce qui permet aujourd'hui a N joueurs de
 // declencher N fois la meme solde ou la meme distribution fiscale le meme soir.
 //
-// Cette fonction rend EXACTEMENT la meme chaine que jourCourantISO() du cron
-// (api/cron-minuit.js) : new Date().toISOString().slice(0, 10). Ce n'est pas un second concept de
-// date, c'est le MEME, rendu disponible au client -- condition pour que les deux chemins partagent
-// une garde persistante et que le second devienne sans effet apres le premier.
+// Cette fonction rend EXACTEMENT la meme chaine que jourParisISO() du cron
+// (api/cron-minuit.js). Ce n'est pas un second concept de date, c'est le MEME, rendu disponible
+// au client -- condition pour que les deux chemins partagent une garde persistante et que le
+// second devienne sans effet apres le premier.
+// EUROPE/PARIS DEPUIS LE 20 SEPTEMBRE 2026 (arbitrage GD : Paris est la reference
+// canonique de Republia). Cette fonction rendait la date UTC, ce qui etait faux entre
+// 00 h et 02 h de Paris -- la fenetre exacte du franchissement de minuit. Le commentaire
+// de runMidnightUpdate() le signalait deja : « en heure d'ete, minuit a Paris tombe
+// l'avant-veille en UTC ».
+//
+// POURQUOI C'EST SUR MAINTENANT. Tant que quatre traitements nationaux etaient executes
+// A LA FOIS ici et par le cron, basculer un seul cote aurait fait diverger les gardes
+// partagees. Ces quatre passes ont ete retirees juste au-dessus : la seule colonne
+// encore ecrite des deux cotes est prets.jour_dernier_prelevement, que le client ne
+// renseigne qu'a la CREATION du pret, et que le cron bascule sur Paris dans le meme
+// deploiement.
+//
+// Construite par parties plutot que par toLocaleDateString('en-CA') : le format rendu
+// par un locale depend de l'ICU du navigateur, celui-ci n'en depend pas.
+const FMT_JOUR_PARIS_CLIENT = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit'
+});
 function jourPartageISO() {
-  return new Date().toISOString().slice(0, 10);
+  const p = {};
+  for (const part of FMT_JOUR_PARIS_CLIENT.formatToParts(new Date())) p[part.type] = part.value;
+  return p.year + '-' + p.month + '-' + p.day;
 }
 
 function dateReelleParisStr() {
@@ -1658,12 +1721,37 @@ async function runMidnightUpdate() {
   mettreAJourBudgets();
   mettreAJourPopulation();
   await alimenterBudgets();
-  if (typeof verifierEffetsEtDistributionFiscale === 'function') await verifierEffetsEtDistributionFiscale();
-  if (typeof traiterVirementJournalierCaserne === 'function') await traiterVirementJournalierCaserne(state.country || 'republic').catch(() => {});
-  if (typeof payerSoldeQuotidienne === 'function') await payerSoldeQuotidienne(state.country || 'republic').catch(() => {});
+  // ---------------------------------------------------------------------------
+  // LES TRAITEMENTS NATIONAUX QUOTIDIENS NE SONT PLUS DECLENCHES D'ICI
+  // (20 septembre 2026, balayage « passe cliente qui double un miroir serveur »).
+  //
+  // CE QUE FAISAIT CE BLOC. Quatre traitements NATIONAUX -- distribution fiscale,
+  // virement vers la caserne, solde des soldats, desertions -- etaient lances par
+  // le navigateur du premier joueur a franchir minuit. Le cron les execute DEJA,
+  // par traiterQuotidienNationalServeur() (api/cron-minuit.js) : ce sont deux
+  // moteurs pour un seul effet, qui ne se coordonnaient que par un marqueur de
+  // journee partage dans budgets_nationaux.
+  //
+  // POURQUOI LES RETIRER MAINTENANT. Ce partage est devenu un obstacle concret :
+  // l'arbitrage du 20 septembre fait d'Europe/Paris la reference canonique, et
+  // les deux chemins ne calculent pas la date de la meme facon (le client par
+  // jourPartageISO(), en UTC). Entre 00 h et 02 h de Paris -- c'est-a-dire
+  // exactement la fenetre ou ce code s'execute -- les deux gardes divergeraient
+  // d'une journee, et chaque traitement serait execute DEUX FOIS.
+  // Un seul moteur, donc, et c'est le serveur : il tourne que quelqu'un joue ou
+  // non, ce qui etait la raison d'etre des miroirs (Lot 4.3).
+  //
+  // CE QUI CHANGE POUR LE JOUEUR : l'alimentation des institutions se fait a
+  // l'heure du cron (00 h en heure d'hiver, 01 h en heure d'ete) plutot qu'a son
+  // propre franchissement de minuit. Aucun de ces traitements n'est observable
+  // en direct par un joueur -- ce sont des mouvements entre caisses nationales.
+  //
+  // CE QUI RESTE ICI : couvre-feu et recherche militaire, qui n'ont AUCUN miroir
+  // serveur (verifie). Tant qu'ils n'en ont pas, les retirer les supprimerait
+  // purement et simplement les nuits sans joueur connecte.
   if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
-  if (typeof verifierDesertionsQuotidien === 'function') await verifierDesertionsQuotidien(state.country || 'republic').catch(() => {});
+  // verifierDesertionsQuotidien() retiree ici : miroir serveur traiterDesertionsServeur().
   // Expulsions diplomatiques echues (Lot 4.3) : meme cadence que les desertions, meme fail-soft.
   if (typeof verifierExpulsionsAmbassadeursQuotidien === 'function') await verifierExpulsionsAmbassadeursQuotidien(state.country || 'republic').catch(() => {});
   checkScandale();

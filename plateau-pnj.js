@@ -2864,7 +2864,14 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
     addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
     showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
   } catch(e) {
-    crediterFondsOrdinaires(300);
+    // Remboursement ATTESTE (§6.1) : le serveur annule le debit qu'il a inscrit, il ne recoit
+    // pas un montant du navigateur. La source « remboursement_kompromat » declare 300 FR, mais
+    // le serveur plafonne au prelevement reel.
+    if (typeof rembourserFondsOrdinaires === 'function') {
+      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_kompromat', 300);
+    } else {
+      crediterFondsOrdinaires(300);
+    }
     showToast('Erreur', 'Impossible de fabriquer le kompromat pour le moment. Remboursé.', false);
   }
 }

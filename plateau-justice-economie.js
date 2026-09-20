@@ -582,11 +582,22 @@ async function arreterAgentDemasque(couverture) {
   ouvrirDossiersContreEspionnage();
 }
 
+// AUTORITES ADMISES : LE CLIENT NE DOIT PAS ETRE PLUS STRICT QUE LE SERVEUR (21 septembre 2026).
+// contre_espionnage_dossiers() accepte min_int OU commissaire -- son propre refus l'ecrit
+// ('Reserve au Commissaire et au Ministre de l'Interieur'), et le Ministre de l'Interieur est
+// l'autorite de tutelle de la police. Mais le seul bouton qui menait a cet ecran etait grave
+// dans une porte reservee au commissaire : le ministre n'avait aucun moyen de lire des dossiers
+// que le serveur lui ouvrait. Le volet plaintes, lui, reste commissaire : plainte_traiter exige
+// ce poste ET la ville, un ministre n'y a aucune decision a prendre.
 async function ouvrirDossiersPlaintes() {
-  if (state.poste?.id !== 'commissaire') {
-    showToast('Acces refuse', 'Reserve au commissaire.', false);
+  const posteLecteur = state.poste?.id;
+  if (posteLecteur !== 'commissaire' && posteLecteur !== 'min_int') {
+    showToast('Acces refuse', 'Reserve au commissaire et au Ministre de l\'Interieur.', false);
     return;
   }
+  // Le ministre entre directement dans le volet qui le concerne : il n'instruit pas les plaintes
+  // d'une ville dont il n'est pas le commissaire.
+  if (posteLecteur === 'min_int') { await ouvrirDossiersContreEspionnage(); return; }
   document.getElementById('postes-modal-title').textContent = 'Dossiers de plainte';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -640,7 +651,18 @@ async function deciderDossierPlainte(id, decision) {
     showToast('Decision refusee', (r && messages[r.raison]) || "La decision n'a pas pu etre enregistree.", false);
     return;
   }
-  if (r.decision === 'enquete_ouverte') {
+  if (r.decision === 'contre_espionnage') {
+    // Meme branche que l'enquete du commissaire : la plainte visait la couverture d'un agent
+    // etranger. Le dossier d'Etat a deja ete instruit par le serveur ; il n'y a pas de garde a
+    // vue, et annoncer un classement sans suite serait faux.
+    const progres = r.enquete?.progression === true;
+    showToast(progres ? 'Dossier de contre-espionnage' : 'Piste de contre-espionnage',
+      (progres ? 'L\'instruction a fait avancer un dossier de contre-espionnage.'
+               : 'L\'instruction rejoint un dossier de contre-espionnage, sans element nouveau.')
+      + ' Voir « Dossiers de contre-espionnage ».', progres);
+    addJournalEntry('Plainte instruite : la piste mene au contre-espionnage'
+      + (progres ? ' — le dossier a progresse.' : '.'), progres ? 'event-good' : 'event-info');
+  } else if (r.decision === 'enquete_ouverte') {
     showToast('Enquete ouverte', 'Elements a charge retenus : la personne est placee en garde a vue.', true);
     addJournalEntry('Enquete ouverte sur plainte. Garde a vue de 2 jours.', 'event-good');
   } else {
@@ -4142,42 +4164,29 @@ async function chargerTerrainState(buildingId) {
   return getTerrainState(buildingId);
 }
 
-// Revenu passif quotidien + bonus INF/POP/DIS par niveau de construction. Applique sans
-// condition (contrairement aux bureaux loues, qui necessitent une organisation domiciliee) :
-// c'est le proprietaire lui-meme qui en profite directement, chaque nuit.
-const REVENU_CONSTRUCTION = { hangar: 50, commerce_standard: 150, commerce_premium: 300, building: 500 };
-const BONUS_CONSTRUCTION = {
-  hangar: {},
-  commerce_standard: { inf: 3 },
-  commerce_premium: { inf: 6, pop: 2 },
-  building: { inf: 10, pop: 5, dis: 3 }
-};
-
-async function collecterRevenusConstructions() {
-  if (typeof sbGetTerrainsPossedesPar !== 'function' || !state.char?.name) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  let terrains;
-  try {
-    terrains = await sbGetTerrainsPossedesPar(state.country, state.char.name);
-  } catch(e) { return; }
-
-  (terrains || []).forEach(function(ts) {
-    if (!ts.niveau_construction) return;
-    // Si le batiment est divise, le revenu vient des loyers reels des locataires (voir
-    // payerLoyersLotsLoues), pas d'un montant fixe — evite un double revenu.
-    const revenu = (ts.subdivisions && ts.subdivisions.length > 0) ? 0 : (REVENU_CONSTRUCTION[ts.niveau_construction] || 0);
-    const bonus = BONUS_CONSTRUCTION[ts.niveau_construction] || {};
-    const label = NIVEAUX_CONSTRUCTION[ts.niveau_construction]?.label || ts.niveau_construction;
-
-    if (revenu > 0) {
-      state.arg = (state.arg || 0) + revenu;
-      addJournalEntry('Revenu du ' + label + ' : +' + revenu + ' ' + cur, 'event-good');
-    }
-    if (bonus.pop) state.pop = Math.min(100, (state.pop || 0) + bonus.pop);
-    if (bonus.inf) state.inf = Math.min(100, (state.inf || 0) + bonus.inf);
-    if (bonus.dis) state.dis = Math.min(100, (state.dis || 50) + bonus.dis);
-  });
-}
+// ============================================================================
+// REVENU_CONSTRUCTION / BONUS_CONSTRUCTION — SUPPRIMES (arbitrage GD du 20 septembre 2026)
+// ============================================================================
+// CE QUE C'ETAIT. Un rendement immobilier FORFAITAIRE verse chaque nuit au proprietaire d'un
+// batiment neuf : 50 FR pour un hangar, 150 pour un commerce standard, 300 pour un premium,
+// 500 pour un building -- par batiment, a l'action Dormir. Plus un bonus silencieux
+// INF/POP/DIS par palier. L'archeologie a etabli qu'il s'agissait d'un SUBSTITUT aux loyers,
+// pose le 3 aout 2026 a 23 h 22, et que son auteur avait ajoute 33 minutes plus tard une garde
+// « evite un double revenu » pour les batiments subdivises -- c'est-a-dire qu'il a reconnu le
+// double emploi sur-le-champ, sans le refermer entierement.
+//
+// POURQUOI C'EST SUPPRIME, PAS REMPLACE. Arbitrage economique : Republia est une economie de
+// marche. Un local prive ne rapporte rien s'il n'est pas loue, ou s'il ne produit pas un flux
+// reel par une autre mecanique explicitement prevue. Les revenus immobiliers, ce sont les
+// LOYERS REELS (locations_actives / prelever_loyer_bail), quand des locataires reels existent.
+// Aucune caisse publique ne prend le relais, aucun « locataire implicite » n'est invente,
+// aucune compensation n'est versee.
+//
+// LES BONUS AUSSI. Ils etaient appliques sans aucun journal, y compris sur un batiment loue --
+// donc cumules aux loyers reels. Supprimes egalement, sans mecanique de remplacement.
+//
+// NIVEAUX_CONSTRUCTION reste : il sert aux chantiers, aux permis, a la subdivision, a la valeur
+// du bien et a l'image affichee. Seuls le bareme de rendement et la table de bonus disparaissent.
 
 // =====================
 // ACTE DE VENTE — NOTAIRE (finalisation d'un compromis ou d'un achat direct avec rendez-vous)
@@ -8071,17 +8080,23 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
 // =====================
 const TAUX_TAXE_DEFAUT = 5; // %, local et national
 
-const SALAIRES_POLITIQUES = {
-  president: 800, pm: 600, min_int: 500, min_fin: 500, min_just: 500,
-  min_def: 500, min_info: 500, min_ae: 500, maire: 400
-};
-
-const CAISSE_BATIMENT_POSTE = {
-  president: 'palais-presidentiel', pm: 'gouvernement-pm',
-  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
-  maire: 'mairie-capitale'
-};
+// SALAIRES_POLITIQUES et CAISSE_BATIMENT_POSTE ONT ETE RETIRES (§6.1, 20 septembre 2026).
+//
+// C'ETAIT UNE SECONDE VERSION DE LA MEME MECANIQUE. Depuis le lot economique, le salaire d'un
+// poste est verse par salaire_civil_percevoir() : bareme dans salaires_civils_declares, caisse
+// payeuse resolue par salaire_caisse_de(), anti-rejeu par salaires_civils_verses (cle
+// personnage:jour reel). doDormir() l'appelle deja. verifierSalairePolitique() faisait le MEME
+// versement une deuxieme fois, juste apres, avec :
+//   - un autre bareme        (president 800 ici contre 5 000 cote serveur -- deux verites) ;
+//   - un autre anti-rejeu    (state.char.dernierSalairePolitiqueJour, une valeur du navigateur,
+//                             comparee a state.day et non a la date reelle) ;
+//   - un credit LOCAL        (state.arg += montantVerse), donc non atteste.
+// Un titulaire etait paye DEUX FOIS par nuit, et la seconde fois par un montant que son propre
+// navigateur portait. Les 9 postes couverts ici (president, pm, 6 ministres, maire) font tous
+// partie des 13 declares cote serveur, y compris hors capitale : rien n'est perdu en retirant
+// ce chemin. Verifie poste par poste avant suppression, caisse payeuse comprise.
+//
+// Les deux constantes n'avaient aucun autre lecteur (verifie : 0 occurrence ailleurs).
 
 // Part quotidienne de la reserve fiscale (dailyTaxRevenue + taxes accumulees) attribuee a chaque caisse publique
 // Chaque poste a sa propre caisse dediee, alimentee par sa part de la repartition nationale (min_fin)
@@ -10499,6 +10514,13 @@ async function ouvrirModalFinancerMinInt(pa, cost) {
 
   document.getElementById('postes-modal-title').textContent = 'Allouer une subvention';
   let html = '<div style="padding:1rem">';
+  // ENTREE DU MINISTRE VERS LE CONTRE-ESPIONNAGE (21 septembre 2026). contre_espionnage_dossiers()
+  // admet min_int autant que commissaire, mais le seul bouton existant etait greffe sur l'ecran
+  // « Dossiers de plainte », reserve au commissaire : le ministre n'avait aucun chemin vers des
+  // dossiers que le serveur lui ouvrait. On applique la doctrine deja suivie cote commissaire --
+  // greffe sur un ecran EXISTANT de l'autorite concernee, aucun ordre nouveau, aucune entree au
+  // miroir des couts.
+  html += '<button onclick="ouvrirDossiersContreEspionnage()" style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Dossiers de contre-espionnage</button>';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse du Ministere disponible : <strong style="color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
   html += '<select id="subvention-batiment-id" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
@@ -10863,6 +10885,26 @@ async function confirmerMenerEnquete(pa, cost) {
   const rGav = (typeof sbRpc === 'function')
     ? await sbRpc('commissaire_enqueter', { p_cible: cible }).catch(() => null) : null;
   const gav = Array.isArray(rGav) ? rGav[0] : rGav;
+  // BRANCHE CONTRE-ESPIONNAGE (21 septembre 2026). plainte_instruire_interne peut rendre une
+  // TROISIEME decision : 'contre_espionnage', quand l'auteur de la trace fouillee est la
+  // COUVERTURE d'un agent etranger. contre_espionnage_resoudre a alors deja tourne cote serveur
+  // et le dossier d'Etat a pu monter d'un palier ; il n'y a ni garde a vue ni affaire a
+  // transmettre, parce que la cible n'a pas de fiche -- l'arrestation, quand le dossier
+  // l'etablit, part de l'ecran de contre-espionnage. Ce client ne testait que
+  // decision !== 'enquete_ouverte' : il annoncait « Enquete sans suite » et effacait le seul
+  // resultat qui comptait.
+  if (gav && gav.ok === true && gav.decision === 'contre_espionnage') {
+    const progres = gav.enquete?.progression === true;
+    addJournalEntry('Enquete contre ' + cible + ' : la piste mene au contre-espionnage'
+      + (progres ? ' — le dossier a progresse.' : ' — rien de neuf a ce stade.') + ' -250 FR.',
+      progres ? 'event-good' : 'event-info');
+    showToast(progres ? 'Dossier de contre-espionnage' : 'Piste de contre-espionnage',
+      (progres
+        ? 'Ce que vous avez recueilli sur ' + cible + ' a fait avancer le dossier.'
+        : 'Ce que vous avez recueilli sur ' + cible + " n'a rien etabli de plus.")
+      + ' Voir « Dossiers de contre-espionnage ».', progres);
+    return;
+  }
   if (!gav || gav.ok !== true || gav.decision !== 'enquete_ouverte') {
     addJournalEntry('Enquete contre ' + cible + ' : le dossier n a pas pu etre instruit. -250 FR.', 'event-info');
     showToast('Enquete sans suite', "Aucun element n'a pu etre retenu contre " + cible + '.', false);
@@ -11975,40 +12017,13 @@ async function verifierEffetsEtDistributionFiscale() {
   await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
 }
 
-// Verifie et verse le salaire politique du jour, plafonne par la caisse de l'institution
-async function verifierSalairePolitique() {
-  const posteId = state.poste?.id;
-  if (!posteId || !SALAIRES_POLITIQUES[posteId]) return;
-  const jour = state.day || 1;
-  if (!state.char) return;
-  if (state.char.dernierSalairePolitiqueJour === jour) return;
+// verifierSalairePolitique() A ETE RETIREE (§6.1, 20 septembre 2026) : doublon client du
+// versement deja effectue par salaire_civil_percevoir(). Voir le bloc explicatif la ou se
+// trouvaient SALAIRES_POLITIQUES / CAISSE_BATIMENT_POSTE. Son appel dans doDormir a ete retire
+// en meme temps (plateau-personnage.js) : aucune autre reference ne subsiste.
 
-  const pays = state.country || 'republic';
-  // Poste municipal (city renseignee sur state.poste par reconcilierPosteElu, ex. maire) :
-  // caisse de la VILLE REELLE du poste, jamais une ville codee en dur (A3, lot finition
-  // financiere locale, 17 aout 2026) -- CAISSE_BATIMENT_POSTE reste la source pour les postes
-  // nationaux (president/pm/ministres), qui n'ont pas de city sur state.poste.
-  const buildingId = state.poste?.city
-    ? getBuildingIdMairie(state.poste.city)
-    : CAISSE_BATIMENT_POSTE[posteId];
-  const montantVise = SALAIRES_POLITIQUES[posteId];
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingId, montantVise);
-
-  state.arg = (state.arg || 0) + montantVerse;
-  state.char.dernierSalairePolitiqueJour = jour;
-  updateUI();
-  if (montantVerse > 0) {
-    showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < montantVise ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
-    addJournalEntry('Salaire politique perçu : ' + montantVerse + ' FR.', 'event-good');
-  } else {
-    showToast('Salaire impayé', 'La caisse de l\'institution est vide aujourd\'hui.', false);
-    addJournalEntry('Aucun salaire perçu : caisse de l\'institution vide.', 'event-bad');
-  }
-}
-
-// Salaire religieux (lot "carriere religieuse Republia", 26 aout 2026) : meme idiome que
-// verifierSalairePolitique juste au-dessus (garde dernierXJour, debiterCaisseBatimentPlafonne),
-// mais PAS la meme source de titulaire -- state.poste est exclusif avec les autres postes
+// Salaire religieux (lot "carriere religieuse Republia", 26 aout 2026).
+// La source du titulaire n'est PAS state.poste -- celui-ci est exclusif avec les autres postes
 // nommes, une charge religieuse ne doit jamais l'etre (voir getTitulaireReligieux,
 // plateau-divers.js), donc on interroge titulaires_pnj directement pour les 3 villes plutot que
 // de lire state.poste. 100 FR/jour de la charge locale de Pretre (caisse de SON eglise) ;
@@ -12017,26 +12032,24 @@ async function verifierSalairePolitique() {
 // Montrouge. Silencieux (aucun toast) si le joueur ne detient aucune charge religieuse -- ce sera
 // le cas de l'immense majorite des joueurs, contrairement au salaire politique qui a toujours un
 // poste (ou aucun) a verifier en un seul lieu.
+// PASSE AU SERVEUR LE 20 SEPTEMBRE 2026 (§6.1). Les regles ci-dessus sont inchangees, mais elles
+// sont desormais portees par salaire_religieux_percevoir() : le bareme, la carte des eglises et
+// le titulaire sont lus en base, le debit de la caisse et le credit du joueur se font dans la
+// MEME transaction, et l'anti-rejeu est une cle (personnage:charge:jour reel) et non plus une
+// valeur du navigateur. Ce client ne fait plus que declencher et recopier l'etat arrete.
 async function verifierSalaireReligieux() {
   if (!state.char?.name || (state.country || 'republic') !== 'republic') return;
-  const jour = state.day || 1;
-  if (state.char.dernierSalaireReligieuxJour === jour) return;
-  state.char.dernierSalaireReligieuxJour = jour;
+  if (typeof sbRpc !== 'function') return;
 
-  if (typeof getTitulaireReligieux !== 'function') return;
-  let total = 0;
-  for (const ville of Object.keys(VILLES_EGLISES_REPUBLIA)) {
-    const titulaire = await getTitulaireReligieux('pretre', ville).catch(() => null);
-    if (titulaire?.estPJ && titulaire.nom === state.char.name) {
-      const montant = await debiterCaisseBatimentPlafonne('republic', VILLES_EGLISES_REPUBLIA[ville], 100);
-      if (montant > 0) { state.arg = (state.arg || 0) + montant; total += montant; }
-    }
-  }
-  const grandPretre = await getTitulaireReligieux('grand_pretre', null).catch(() => null);
-  if (grandPretre?.estPJ && grandPretre.nom === state.char.name) {
-    const montant = await debiterCaisseBatimentPlafonne('republic', 'tabernacle-impots', 100);
-    if (montant > 0) { state.arg = (state.arg || 0) + montant; total += montant; }
-  }
+  const rows = await sbRpc('salaire_religieux_percevoir', {}).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) return;
+
+  const total = Number(r.total || 0);
+  // Recopie de l'etat serveur, jamais un calcul local -- y compris quand rien n'a ete verse :
+  // une autre action de la meme nuit a pu bouger le solde entre-temps.
+  if (typeof r.arg === 'number') { state.arg = Number(r.arg); if (state.char) state.char.arg = state.arg; }
+  if (typeof r.liquide === 'number') state.liquide = Number(r.liquide);
 
   if (total > 0) {
     updateUI();

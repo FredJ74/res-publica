@@ -2079,6 +2079,14 @@ const BUILDINGS = {
       },
 
       // ---- BUREAUX MINISTERIELS ----
+      // requiresPostId (audit du 21 septembre 2026) : ce champ n'est lu NULLE PART dans le jeu.
+      // Ce qui restreint reellement l'acces aux actions, c'est `requiresPost` sur chaque ordre --
+      // grise le bouton (renderRoomActions) et, pour les actions sensibles, revalide au serveur
+      // (exiger_poste / acteur_poste_courant dans les RPC). Verification exhaustive faite sur les
+      // six bureaux ci-dessous : LES 25 ORDRES portent deja requiresPost egal au requiresPostId de
+      // leur piece. La restriction voulue est donc deja appliquee, par le bon chemin d'autorite ;
+      // le champ de piece n'est qu'un doublon declaratif. Rien n'est ajoute ici : creer un verrou
+      // d'ENTREE de piece serait une restriction nouvelle, qui n'appartient pas a ce lot.
       bureau_min_int: {
         name: "Bureau - Ministre de l'Interieur",
         imageBg: "linear-gradient(135deg,#100a08,#1a1005)",
@@ -2146,7 +2154,12 @@ const BUILDINGS = {
                    photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/martial-bouterin.png',
                    photoPos:'50% 25%'}],
         orders: [
-          {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee, requisitionner des civils, demobiliser. Chaque action garde son cout.'},
+          // FACADE GRATUITE, SOUS-ACTIONS PAYANTES (comme gestion_manifestations) : ouvrir le
+          // tableau ne coute rien, les trois actions facturent 4, 3 et 2 PA sous ce meme `fn`.
+          // Ces trois couples sont declares dans ORDRES_MOBILISATION_NATIONALE
+          // (plateau-gouvernement.js) pour que le miroir des couts les connaisse : sans eux,
+          // payer_ordre refusait les trois en 'cout_non_declare' (corrige le 21 septembre 2026).
+          {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee (4 PA), requisitionner des civils (3 PA), demobiliser (2 PA).'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
           {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'},
           {fn:'gerer_commandement',  label:'Gérer le commandement',      pa:1, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'min_def', desc:'Commandant en fonction, candidatures reçues, nomination et révocation.'}
@@ -4586,6 +4599,14 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#060f06,#0a180a)",
         desc: "Le centre nerveux operationnel. Cartes, ecrans, officiers. Acces officiers superieurs.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-salle-commandement.png",
+        // requiresPostId : METADONNEE MORTE, ET ICI CONTRADICTOIRE (audit du 21 septembre 2026).
+        // Aucun code ne lit ce champ (ni enterRoom, ni renderRoomActions, ni doOrder) : c'est
+        // `requiresPost`, porte par chaque ordre, qui restreint reellement. Dans les six bureaux
+        // ministeriels les deux disent la meme chose, la restriction y est donc bien appliquee.
+        // ICI NON : 9 des 15 ordres de cette piece sont reserves au Lieutenant ou au Commandant,
+        // pas au Ministre de la Defense. Appliquer 'min_def' a la piece FERMERAIT la salle a tout
+        // chef de section, qui n'y atteindrait plus ses propres ordres. Ce n'est pas une decision
+        // que ce lot prend : le champ est laisse inerte et l'arbitrage est remonte au GD.
         requiresPostId: 'min_def',
         persons: [
           {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
@@ -4596,14 +4617,27 @@ const BUILDINGS = {
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'repartir_armement', label:'Doter ma section en armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Transferer des armes entre le stock de l\'Armurerie Militaire et sa propre section. Le Capitaine ne retire plus du magasin (arbitrage du 17 septembre 2026).'},
           {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'100 soldats (4 sections). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
-          {fn:'recruter_section',   label:'Recompléter une section',    pa:2, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, requiresPost:'commandant', desc:'Recompléter une section anéantie. Les nouvelles recrues n\'ont aucune experience.'},
+          // ORDRE SUPPRIME (21 septembre 2026). « Recompléter une section » (recruter_section)
+          // achetait 24 recrues neuves a la piece : modele ABANDONNE par le GD le 17 septembre
+          // (contingent unique et non renouvelable, les pertes sont definitives, la reserve de la
+          // compagnie est la seule source de renfort). Son handler ne faisait plus qu'afficher un
+          // refus depuis cet arbitrage : le bouton est retire plutot que laisse en facade morte.
+          // Aucune mecanique de recompletement n'est recreee ici. Sa ligne du miroir des couts
+          // ('recruter_section',2,0) est retiree dans la meme passe : plus aucun appelant.
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
           {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
           {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:0, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Combat rapproche, Tir, Reconnaissance ou Secourisme. 12 soldats max par seance. 6 PA pour vous et 6 PA par soldat, preleves par le serveur.'},
           {fn:'equiper_section',     label:'Gerer l\'equipement de ma section', pa:1, cost:0, type:'legal', icon:'ti-sword', successRate:100, requiresPost:'lieutenant', desc:'Equiper ou desequiper individuellement les soldats de sa section, selon le stock d\'armes attribue par le Capitaine.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
-          {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:0, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:['min_def','commandant'], desc:'Deux niveaux : passer les troupes en revue ou inspecter les unites en detail (effectifs, officiers, equipement, budget reels).'},
+          // COUT REEL RETABLI (21 septembre 2026). L'ordre etait declare pa:0 alors que ses deux
+          // niveaux facturent 1 PA (revue) et 2 PA (detaillee) : le miroir des couts ne connaissait
+          // donc que le triplet (inspecter_troupes,0,0) et payer_ordre refusait les deux niveaux
+          // en 'cout_non_declare' -- le bouton etait mort. On declare ici le cout d'ENTREE (1 PA,
+          // le niveau le moins cher) ; le second niveau est declare a cote de son propre bareme,
+          // dans NIVEAUX_INSPECTION_TROUPES (plateau-politique.js), que le generateur du miroir
+          // ramasse comme les autres ordres declares hors data.js.
+          {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:['min_def','commandant'], desc:'Deux niveaux : passer les troupes en revue (1 PA) ou inspecter les unites en detail (2 PA) — effectifs, officiers, equipement, budget reels.'},
           {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'},
           // Tableau de controle de l'Effort de guerre (13 septembre 2026). N'est utilisable que
           // pendant un Effort decrete par le President : hors Effort, il le dit et ne fait rien.
@@ -4615,6 +4649,11 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#080808,#121008)",
         desc: "L'armurerie de la caserne. Armes lourdes, equipements tactiques, explosifs reglementaires.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-armurerie-militaire.png",
+        // requiresPostId : METADONNEE MORTE, ET ICI CONTRADICTOIRE (meme audit que la Salle de
+        // Commandement). Les deux retraits sont reserves au Lieutenant, et « Subtiliser des
+        // explosifs » est un ordre ILLEGAL volontairement ouvert a n'importe qui : fermer la piece
+        // au seul Ministre de la Defense supprimerait le vol, qui est precisement le sel du lieu.
+        // Champ laisse inerte, arbitrage remonte au GD.
         requiresPostId: 'min_def',
         persons: [
           {name:'Armurier Militaire (PNJ)', role:'PNJ - Sergent armurier', rel:'neutral', job:'armurier_mil'}
@@ -6524,17 +6563,12 @@ const ORGANISATIONS_DEF = {
       khalija:  ['Associé', 'Directeur', 'Cheikh des Affaires', 'Sultan Économique'],
     },
     bonus: [
-      { grade: 0, stat: 'revenus_passifs', valeur: 100,  desc: '+100 FR/jour passif' },
-      { grade: 1, stat: 'revenus_passifs', valeur: 300,  desc: '+300 FR/jour passif' },
-      { grade: 2, stat: 'revenus_passifs', valeur: 700,  desc: '+700 FR/jour passif' },
-      { grade: 3, stat: 'revenus_passifs', valeur: 1500, desc: '+1500 FR/jour passif' },
       { grade: 1, stat: 'terrain_discount',valeur: 15,   desc: '-15% prix terrains et permis' },
       { grade: 2, stat: 'terrain_discount',valeur: 25,   desc: '-25% prix terrains et permis' },
       { grade: 1, stat: 'nego_cha',        valeur: 10,   desc: '+10% jets de négociation' },
       { grade: 2, stat: 'nego_cha',        valeur: 20,   desc: '+20% jets de négociation' },
       { grade: 3, stat: 'nego_cha',        valeur: 30,   desc: '+30% jets de négociation' },
       { grade: 2, stat: 'market_info',     valeur: true, desc: 'Prix terrains en temps réel' },
-      { grade: 3, stat: 'finance_campagne',valeur: true, desc: 'Financement campagne électorale' },
     ]
   },
   syndicale: {
@@ -6572,7 +6606,6 @@ const ORGANISATIONS_DEF = {
     color: '#8a6aaa',
     requis: { inf: 25 },
     maxParEmpire: 1,
-    cycleElection: 30,
     grades: {
       republic: ['Apprenti', 'Compagnon', 'Maître', 'Grand Maître'],
       narco:    ['Iniciado', 'Hermano', 'Maestro', 'Gran Maestro'],
@@ -6590,87 +6623,20 @@ const ORGANISATIONS_DEF = {
       { grade: 2, stat: 'dis',          valeur: 10,  desc: '+10 DIS passive' },
       { grade: 2, stat: 'pol_info',     valeur: true,desc: 'Infos politiques exclusives' },
       { grade: 3, stat: 'cooptation',   valeur: true,desc: 'Cooptation : accès poste sans élection' },
-      { grade: 3, stat: 'vote_bonus',   valeur: 3,   desc: '+3 votes PNJ coalitions électorales' },
     ]
   }
 };
 
 // =====================
-// SYNERGIES D'ORGANISATIONS
+// SYNERGIES D'ORGANISATIONS — SUPPRIME (20 septembre 2026)
 // =====================
-const SYNERGIES_ORGA = [
-  {
-    combo: ['criminelle', 'economique'],
-    label: 'Blanchiment',
-    desc: 'Crime + Économie : revenus passifs doublés, -50% risque détection transactions louches',
-    bonus: { revenus_passifs_mult: 2, detection_risk: -50 }
-  },
-  {
-    combo: ['criminelle', 'loge'],
-    label: 'Réseau de l\'Ombre',
-    desc: 'Crime + Loge : +15 DIS supplémentaire, accès aux informations politiques secrètes',
-    bonus: { dis: 15, pol_info_secret: true }
-  },
-  {
-    combo: ['economique', 'loge'],
-    label: 'Capitalisme Discret',
-    desc: 'Économie + Loge : délais administratifs réduits à zéro pour les terrains, +500 FR/jour',
-    bonus: { terrain_delay: 0, revenus_passifs: 500 }
-  },
-  {
-    combo: ['religieuse', 'syndicale'],
-    label: 'Front Populaire',
-    // « prospectus comptent double » retire le 12 septembre 2026 : le prospectus n'existe plus
-    // (seuls le tract electoral et le tract calomnieux subsistent), et prospectus_mult n'etait lu
-    // par aucun code. Le bonus n'est PAS reporte sur les tracts : ce serait une regle nouvelle.
-    desc: 'Religion + Syndicat : +15 POP supplémentaire',
-    bonus: { pop: 15 }
-  },
-  {
-    combo: ['religieuse', 'loge'],
-    label: 'Ordre Mystique',
-    desc: 'Religion + Loge : moral jamais en dessous de 50, +10 INF permanente',
-    bonus: { moral_floor: 50, inf: 10 }
-  },
-  {
-    combo: ['syndicale', 'economique'],
-    label: 'Partenariat Social',
-    desc: 'Syndicat + Économie : grèves impossibles contre vos entreprises, +10 POP travailleurs',
-    bonus: { greve_immune: true, pop_pnj: 10 }
-  },
-  {
-    combo: ['criminelle', 'syndicale'],
-    label: 'Syndicat Mafieux',
-    desc: 'Crime + Syndicat : intimidation des PNJ sans jet, squatteurs partent toujours au 1er tour',
-    bonus: { intimidation_auto: true, squatter_exit: true }
-  },
-  {
-    combo: ['criminelle', 'religieuse'],
-    label: 'Mafia Pieuse',
-    desc: 'Crime + Religion : corruption acceptée sans jet si PNJ est croyant, +10 POP malgré activités illicites',
-    bonus: { corruption_croyant: true, pop: 10 }
-  },
-  {
-    combo: ['economique', 'syndicale'],
-    label: 'Oligarque Bienveillant',
-    desc: 'Économie + Syndicat : -20% coût terrains supplémentaire, votes PNJ travailleurs automatiques',
-    bonus: { terrain_discount: 20, vote_travailleur_auto: true }
-  },
-  {
-    combo: ['criminelle', 'economique', 'loge'],
-    label: 'Maître du Monde',
-    desc: 'Crime + Économie + Loge : triple synergie — +30 DIS, revenus x3, cooptation garantie',
-    bonus: { dis: 30, revenus_passifs_mult: 3, cooptation_garanti: true },
-    triple: true
-  },
-  {
-    combo: ['religieuse', 'syndicale', 'loge'],
-    label: 'Mouvement Populaire',
-    desc: 'Religion + Syndicat + Loge : triple synergie — +30 POP, victoire électorale facilitée, motion auto',
-    bonus: { pop: 30, election_bonus: 10, motion_auto: true },
-    triple: true
-  },
-];
+// SYNERGIES_ORGA declarait 11 combinaisons d'organisations (Blanchiment, Reseau de
+// l'Ombre, Maitre du Monde...) et leurs bonus. La constante n'avait AUCUN appelant :
+// une seule occurrence dans tout le depot, sa propre declaration. Aucune de ces
+// synergies n'a jamais produit le moindre effet en jeu.
+// Retiree sur arbitrage du game designer : Git conserve la trace des intentions, le
+// code n'a pas a le faire. Trois de ces bonus citaient revenus_passifs, systeme lui
+// aussi supprime le meme jour.
 
 // Documents falsifiables au greffe du Tribunal (voir ouvrirFalsifierDocument)
 const DOCUMENTS_FALSIFIABLES = [
@@ -6748,10 +6714,7 @@ const TYPES_ORGANISATIONS = {
     maxAdhesion: 1,
     ordres: [
       { fn: 'orga_petition',      label: 'Lancer une pétition',        pa: 2, cost: 0,    icon: 'ti-pencil',       desc: 'Mobilise des soutiens. +POP si succes.' },
-      { fn: 'orga_financer_cand', label: 'Financer un candidat',       pa: 2, cost: 5000, icon: 'ti-coin',         desc: 'Finance la campagne d\'un PJ allie. +votes.' },
-      { fn: 'orga_torpiller',     label: 'Torpiller un adversaire',     pa: 3, cost: 1000, icon: 'ti-bomb',         desc: 'Campagne de denigrement. -POP cible.' },
       { fn: 'orga_meeting',       label: 'Organiser un meeting',        pa: 3, cost: 500,  icon: 'ti-speakerphone', desc: 'Rassemblement public. +POP membres +INF.' },
-      { fn: 'orga_coalition',     label: 'Proposer une coalition',      pa: 1, cost: 0,    icon: 'ti-handshake',    desc: 'Alliance avec une autre orga politique.' },
       { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
     ]
   },
@@ -6825,10 +6788,8 @@ const TYPES_ORGANISATIONS = {
     maxParCreation: 1,
     maxAdhesion: 1,
     ordres: [
-      { fn: 'orga_contrat',       label: 'Contrat exclusif',           pa: 2, cost: 2000, icon: 'ti-file-invoice', desc: 'Monopole temporaire sur un secteur. +arg passif membres.' },
       { fn: 'orga_blocus',        label: 'Blocus commercial',          pa: 3, cost: 1000, icon: 'ti-lock',         desc: 'Bloquer les revenus d\'une orga adverse.' },
       { fn: 'orga_dividendes',    label: 'Verser des dividendes',      pa: 1, cost: 0,    icon: 'ti-coins',        desc: 'Distribuer les benefices aux membres selon rang.' },
-      { fn: 'orga_fusion',        label: 'Proposer une fusion',        pa: 2, cost: 5000, icon: 'ti-git-merge',    desc: 'Absorber une orga economique alliee.' },
       { fn: 'orga_audit',         label: 'Auditer un concurrent',      pa: 2, cost: 500,  icon: 'ti-search',       desc: 'Revele les finances d\'une orga. +INF.' },
     ]
   },
@@ -6848,11 +6809,7 @@ const TYPES_ORGANISATIONS = {
     maxParCreation: 1,
     maxAdhesion: 1,
     ordres: [
-      { fn: 'orga_racket',        label: 'Racket',                     pa: 2, cost: 0,    icon: 'ti-hand-stop',    desc: 'Extorquer un commerce ou PJ. +arg, risque arrestation.' },
-      { fn: 'orga_contrebande',   label: 'Contrebande',                pa: 3, cost: 500,  icon: 'ti-package-import', desc: 'Faire passer une cargaison illicite. +arg +DIS.' },
       { fn: 'orga_intimidation',  label: 'Intimidation',               pa: 2, cost: 0,    icon: 'ti-user-exclamation', desc: 'Faire pression sur un PJ. -Moral cible, risque conflit.' },
-      { fn: 'orga_blanchiment',   label: 'Blanchiment',                pa: 2, cost: 0,    icon: 'ti-wash',         desc: 'Convertir des fonds sales en fonds propres. -DIS risque.' },
-      { fn: 'orga_coup_force',    label: 'Coup de force',              pa: 4, cost: 2000, icon: 'ti-bolt',         desc: 'Action violente coordonnee. Risque eleve, impact fort.' },
     ]
   },
 
@@ -6871,12 +6828,9 @@ const TYPES_ORGANISATIONS = {
     maxParCreation: 1,
     maxAdhesion: 1,
     maxParEmpire: 1,
-    cycleElection: 30,
     ordres: [
       { fn: 'orga_cooptation',    label: 'Cooptation discrete',        pa: 2, cost: 1000, icon: 'ti-user-check',   desc: 'Proposer un poste a un PJ sans election. Reserve Grand Maitre.' },
       { fn: 'orga_rituel',        label: 'Rituel d\'initiation',       pa: 2, cost: 500,  icon: 'ti-eye',          desc: 'Initier un nouveau membre. +INF nouveau +loyalty.' },
-      { fn: 'orga_kompromat_loge',label: 'Kompromat collectif',        pa: 3, cost: 0,    icon: 'ti-file-shredder',desc: 'Utiliser les secrets de la Loge contre un PJ. -DIS cible.' },
-      { fn: 'orga_election_loge', label: 'Election du Grand Maitre',   pa: 1, cost: 0,    icon: 'ti-crown',        desc: 'Organiser l\'election interne. Tous les 30 jours.' },
       { fn: 'orga_reseau',        label: 'Activer le reseau',          pa: 2, cost: 300,  icon: 'ti-network',      desc: 'Obtenir une information exclusive via le reseau. +INF.' },
     ]
   },
@@ -6994,11 +6948,7 @@ const CLUBS_SPORTIFS = [
 
 const ORGA_ORDRE_RANG_MIN = {
   orga_cooptation:    3, // Grand Maitre seulement
-  orga_election_loge: 3, // Grand Maitre seulement
   orga_excommunier:   3, // Chef seulement
-  orga_fusion:        3, // President seulement
-  orga_coup_force:    2, // Capo/Comandante minimum
-  orga_blanchiment:   1, // Soldat minimum
   orga_hooliganisme:  3, // Meneur seulement
 };
 
@@ -7319,13 +7269,22 @@ const SALAIRES = {
   min_info:    2800,
   min_ae:      2800,
   depute:      1200,
-  senateur:    1200,
   juge:        1800,
   commissaire: 1000,
   maire:       800,
-  adj_maire:   500,
-  gouverneur:  1500,
-  prefet:      900,
+  maire_adjoint: 500,
+  // IDENTIFIANT UNIFIE (20 septembre 2026). Ce barème s'appelait `adj_maire` ici et
+  // `maire_adjoint` partout ailleurs -- 1 occurrence contre 45. Or la fiche d'un adjoint porte
+  // l'identifiant ATTESTE, `maire_adjoint` : le salaire ne se resolvait donc jamais et l'adjoint
+  // touchait 150 FR de revenu universel au lieu de ses 500 FR. `maire_adjoint` est desormais
+  // canonique, et `adj_maire` supprime -- aucun autre consommateur ne le lisait.
+  //
+  // VESTIGES SUPPRIMES (20 septembre 2026) : senateur 1200, gouverneur 1500, prefet 900.
+  // Ces trois postes n'existent pas dans Res Publica. Verification faite avant suppression :
+  // ils n'apparaissaient NULLE PART ailleurs que dans ce tableau -- ni dans
+  // postes_nommes_regles, ni dans une caisse, ni dans un ordre, ni dans une RPC. Les laisser
+  // ici en faisait des sources de salaire pour un poste inexistant.
+  //
   // LES SOLDES MILITAIRES NE SONT PAS ICI, ET C'EST DELIBERE (phase 2, 18 septembre 2026).
   // Ce tableau alimente calculerSalaireDormir(), qui fait « state.arg += salaire » : de la
   // creation monetaire cliente, sans qu'aucune caisse soit debitee. Les soldes militaires
@@ -7353,16 +7312,27 @@ const OFFRES_EMPLOI_BNE = {
   serveur_luthecia:     { job:'serveur',    label:'Serveur — Hôtel Républica',                       portee:'locale',         ville:'capitale', salaire:200, places:2 },
   docker_psm:           { job:'docker',     label:'Docker — Port Industriel de Port-Sainte-Marie',   portee:'locale',         ville:'ville_a',  salaire:220, places:2 },
   hotelier_montrouge:   { job:'hotelier',   label:'Hôtelier — Hôtel du Mineur',                       portee:'locale',         ville:'ville_b',  salaire:250, places:1 },
-  secretaire_nationale: { job:'secretaire', label:'Secrétaire administratif (poste itinérant)',       portee:'nationale',      salaire:300, places:3 },
-  commercant_national:  { job:'commercant', label:'Commerçant itinérant',                             portee:'nationale',      salaire:220, places:3 },
-  banquier_national:    { job:'banquier',   label:'Conseiller bancaire',                              portee:'nationale',      salaire:450, places:1 },
-  hotesse_ambassade:    { job:'hotesse',    label:"Hôtesse d'accueil diplomatique",                   portee:'internationale', salaire:280, places:2 }
+  // LES QUATRE POSTES ITINERANTS NE SONT PAS SALARIES (arbitrage GD, 20 septembre 2026).
+  // Aucun employeur ne les represente dans l'economie : ni batiment, ni poste, ni caisse. Ils
+  // existent pour l'interaction, pas pour produire. Leur verser un salaire aurait signifie soit
+  // creer de la monnaie, soit inventer un employeur. Le salaire passe donc a 0 -- l'offre, son
+  // label, ses places et son role fonctionnel restent intacts. Le titulaire touche le revenu
+  // universel comme tout citoyen, ni plus ni moins.
+  secretaire_nationale: { job:'secretaire', label:'Secrétaire administratif (poste itinérant)',       portee:'nationale',      salaire:0, places:3 },
+  commercant_national:  { job:'commercant', label:'Commerçant itinérant',                             portee:'nationale',      salaire:0, places:3 },
+  banquier_national:    { job:'banquier',   label:'Conseiller bancaire',                              portee:'nationale',      salaire:0, places:1 },
+  hotesse_ambassade:    { job:'hotesse',    label:"Hôtesse d'accueil diplomatique",                   portee:'internationale', salaire:0, places:2 }
 };
 
 // Postes nommes (non electifs) avec regles de cumul strictes
 // 'depute' est le SEUL poste compatible avec juge/commissaire
 const POSTES_NOMMES_EXCLUSIFS = {
-  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
+  // UN JUGE PAR TRIBUNAL (arbitrage GD du 20 septembre 2026). Le siege est en VILLE --
+  // Luthecia, Montrouge et Port-Sainte-Marie ont chacune le leur -- mais l'autorite qui nomme
+  // reste NATIONALE : le Ministre de la Justice nomme les trois. Ce n'est donc pas un poste
+  // municipal, et le maire n'a aucune autorite sur le juge de sa ville. C'est ce que
+  // distingue autoriteScope, qui vaut 'ville' par defaut pour tous les autres postes.
+  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'ville', autoriteScope: 'pays', compatibles: ['depute'] },
   commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
   commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
   pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },

@@ -1220,14 +1220,6 @@ async function executerOrdreOrga(orgaId, fn) {
   // Deduction PA+cout centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
   // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
   // fail-closed.
-  const r = await deduireCoutOrdre({ pa: ordre.pa, cost: ordre.cost });
-  if (!r.ok) {
-    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants',
-      r.raison === 'fonds_insuffisants' ? ordre.cost + ' ' + cur + ' requis.' : ordre.pa + ' PA requis.', false);
-    return;
-  }
-
-  // Effets selon fonction
   const effets = {
     orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
     orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
@@ -1236,9 +1228,6 @@ async function executerOrdreOrga(orgaId, fn) {
     orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
     orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
     orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
-    orga_blanchiment:    () => { const s=Math.floor(Math.random()*100)+1; if(s<=40){state.dis=Math.max(0,(state.dis||50)-10);showToast('Blanchiment raté !','-10 DIS.',false);}else{const gain=Math.floor(Math.random()*2000)+500;state.arg+=gain;showToast('Blanchiment réussi !','+'+gain+' '+cur+'.',true);} addJournalEntry('Blanchiment via "'+orga.nom+'".','event-bad'); },
-    orga_racket:         () => { const s=Math.floor(Math.random()*100)+1; if(s<=30){state.dis=Math.max(0,(state.dis||50)-15);showToast('Racket raté !','Arrestation risquée. -15 DIS.',false);}else{const gain=Math.floor(Math.random()*1000)+300;state.arg+=gain;showToast('Racket réussi !','+'+gain+' '+cur+'.',true);} },
-    orga_contrebande:    () => { const s=Math.floor(Math.random()*100)+1; if(s<=35){state.dis=Math.max(0,(state.dis||50)-20);showToast('Cargaison saisie !','-20 DIS.',false);}else{const gain=Math.floor(Math.random()*3000)+1000;state.arg+=gain;showToast('Contrebande réussie !','+'+gain+' '+cur+'.',true);} },
     orga_campagne_presse:() => { state.pop=Math.min(100,(state.pop||0)+6); state.inf=Math.min(100,(state.inf||0)+5); showToast('Article favorable !','+6 POP +5 INF.',true,true); addExternalEvent('📰 "'+orga.nom+'" publie une campagne de presse favorable.'); },
     orga_scoop:          () => { state.inf=Math.min(100,(state.inf||0)+10); showToast('Scoop publié !','+10 INF. Scandale public.',true,true); addExternalEvent('🔥 "'+orga.nom+'" publie un scoop explosif !'); },
     orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
@@ -1259,9 +1248,55 @@ async function executerOrdreOrga(orgaId, fn) {
     },
   };
 
+  // ---------------------------------------------------------------------------
+  // AUCUN PAIEMENT POUR UN ORDRE SANS EFFET (20 septembre 2026).
+  //
+  // La table des effets est remontee ICI, AVANT le paiement, pour qu'on puisse verifier
+  // qu'un effet existe avant de prelever quoi que ce soit. C'est la condition qui rend sur
+  // le correctif du paiement juste en dessous : sans elle, transmettre enfin le nom de
+  // l'ordre transformerait les ordres encore non implementes en boutons REELLEMENT
+  // factures -- jusqu'a 2 000 FR et 4 PA pour une action qui ne fait rien.
+  //
+  // Le repli historique affichait « Action executee. » sur un ordre sans effet : c'etait la
+  // seule ligne du code qui affirmait au joueur quelque chose de faux. Il dit desormais la
+  // verite, et surtout il ne coute rien.
+  if (!effets[fn]) {
+    showToast('Action indisponible', (ordre.label || 'Cette action') + " n'est pas encore en service.", false);
+    return;
+  }
+
+  // LE NOM DE L'ORDRE EST ENFIN TRANSMIS (20 septembre 2026).
+  //
+  // Il manquait. deduireCoutOrdre retombait alors sur state._ordreEnCours -- le dernier ordre
+  // de PLATEAU joue, aucun ordre d'organisation ne passant par doOrder. payer_ordre etant
+  // fail-closed sur le couple (PA, cout) declare pour ce fn, l'ordre etait facture sous le nom
+  // d'un autre et refuse : le joueur voyait « PA insuffisants » avec trente PA en poche.
+  // Ce defaut frappait les 34 ordres d'organisation, y compris ceux qui ont un effet.
+  const r = await deduireCoutOrdre({ pa: ordre.pa, cost: ordre.cost, fn: fn });
+  if (!r.ok) {
+    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants',
+      r.raison === 'fonds_insuffisants' ? ordre.cost + ' ' + cur + ' requis.' : ordre.pa + ' PA requis.', false);
+    return;
+  }
+
+  // ORDRES CRIMINELS RETIRES le 20 septembre 2026 (arbitrage GD). orga_racket,
+  // orga_contrebande et orga_blanchiment crediaient un montant tire au sort sans
+  // debiter personne, et promettaient des mecaniques inexistantes : « extorquer un
+  // commerce ou PJ » sans jamais lire ni debiter une cible, « arrestation risquee »
+  // sans declencher d'arrestation, « +DIS » alors qu'ils ne pouvaient que la faire
+  // baisser, une « cargaison » n'entrant dans aucun stock. Jamais arbitres depuis
+  // leur introduction (V29, 16 juin 2026), et deja signales comme non tranches par
+  // l'audit du 27 aout 2026. Supprimes sans mecanique de remplacement : le principe
+  // est de ne pas remplacer une interaction humaine par un bouton automatique.
+  // Effets selon fonction
+
+  // L'absence d'effet a deja ete tranchee plus haut, AVANT le paiement : on ne peut plus
+  // arriver ici sans effet. La branche de repli est conservee en garde defensive, mais elle
+  // n'affirme plus qu'une action a ete executee -- c'est ce mensonge qui faisait croire au
+  // joueur qu'un ordre fantome avait produit quelque chose.
   const effet = effets[fn];
   if (effet) { effet(); }
-  else { showToast('Action exécutée.', ordre.label + ' accompli.', true); addJournalEntry(ordre.label + ' via "' + orga.nom + '".', ''); }
+  else { console.error('[orga] ordre sans effet parvenu apres paiement : ' + fn); }
 
   sauvegarderOrga(orga);
   document.getElementById('modal-postes').classList.remove('open');
@@ -8384,14 +8419,14 @@ async function doConsulterClassementBookmaker(pa, cost) {
 // =====================
 // PRESIDENT DU CLUB SPORTIF
 // =====================
+// LECTURE SEULE DEPUIS LE 20 SEPTEMBRE 2026 (§6.3). Cette fonction CREAIT la ligne quand elle
+// n'existait pas -- une ecriture a la simple consultation. La table est desormais fermee en
+// ecriture aux clients : la ligne est creee par le serveur, au depot de la premiere candidature.
+// Une absence de ligne n'est pas une anomalie, c'est un club sans president.
 async function chargerPresidentClub(clubId) {
   if (typeof sbGetPresidentClub !== 'function') return null;
-  let data = await sbGetPresidentClub(clubId).catch(() => null);
-  if (!data) {
-    data = { president: null, dateElection: null, candidature: null };
-    if (typeof sbSavePresidentClub === 'function') await sbSavePresidentClub(clubId, data).catch(() => {});
-  }
-  return data;
+  const data = await sbGetPresidentClub(clubId).catch(() => null);
+  return data || { president: null, dateElection: null, candidature: null };
 }
 
 // =====================
@@ -8524,17 +8559,27 @@ async function doPostulerPresidentClub(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const electeurs = await getElecteursClub(clubLocal);
-  const jour = state.day || 1;
-  data.candidature = {
-    candidat: state.char?.name,
-    dateDebut: jour,
-    dateLimite: jour + 2, // 48h ~ 2 jours de jeu
-    votes: {},
-    electeurs
-  };
-  await sbSavePresidentClub(clubLocal.id, data);
+  // LE SERVEUR RESOUT LES TROIS ELECTEURS (§6.3, 20 septembre 2026).
+  //
+  // CE QUI SE PASSAIT. La candidature embarquait un instantane des electeurs ECRIT PAR LE
+  // PROPOSANT, puis la ligne etait ecrite en direct. Comme le silence vaut accord, y inscrire
+  // trois noms quelconques -- ou trois complices -- suffisait a etre elu sans qu'aucun ne vote.
+  // Desormais le client ne transmet plus aucune identite : il donne le club, rien d'autre.
+  // Les regles sont inchangees (candidature unique, protection de 8 jours, scrutin de 2 jours).
+  const rPost = await sbRpc('club_president_postuler', { p_club: clubLocal.id })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+    .catch(function () { return null; });
+  if (!rPost || rPost.ok !== true) {
+    const motifs = {
+      candidature_en_cours: 'Une candidature est déjà en cours de vote.',
+      poste_protege:        'Le président en poste ne peut pas être remis en question avant la mi-saison.',
+      club_inconnu:         'Club introuvable.'
+    };
+    showToast('Candidature refusée', motifs[rPost && rPost.raison] || 'Le serveur a refusé la candidature.', false);
+    return;
+  }
 
+  const electeurs = rPost.electeurs || {};
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const votants = [electeurs.chefSupporters, electeurs.maire, electeurs.capitaine].filter(Boolean);
   for (const v of votants) {
@@ -8589,40 +8634,47 @@ async function doConsulterBureauPresident() {
 }
 
 async function voterPresidentClub(clubId, vote) {
-  const data = await chargerPresidentClub(clubId);
-  if (!data.candidature) return;
-  data.candidature.votes[state.char?.name] = vote;
-  await sbSavePresidentClub(clubId, data);
+  // Le serveur verifie que l'appelant est bien l'un des trois electeurs DE SON PROPRE
+  // instantane, et qu'il n'a pas deja vote. Le client ne transmet que son bulletin.
+  const rVote = await sbRpc('club_president_voter', { p_club: clubId, p_vote: !!vote })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+    .catch(function () { return null; });
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (!rVote || rVote.ok !== true) {
+    const motifs = {
+      non_electeur:       'Vous ne faites pas partie des trois électeurs.',
+      deja_vote:          'Vous avez déjà voté sur cette candidature.',
+      aucune_candidature: 'Aucune candidature en cours.'
+    };
+    showToast('Vote refusé', motifs[rVote && rVote.raison] || 'Le serveur a refusé ce vote.', false);
+    return;
+  }
   showToast('Vote enregistré', '', true, true);
   await verifierElectionPresident(getClub(clubId));
 }
 
+// LE DEPOUILLEMENT EST FAIT PAR LE SERVEUR (§6.3, 20 septembre 2026).
+//
+// Les regles sont celles d'avant, a la ligne pres : on ne depouille que si les trois ont vote
+// OU si l'echeance est atteinte ; les votes manquants comptent pour « oui » (silence = accord) ;
+// il faut 2 voix sur 3. Ce qui change, c'est que le comptage ne se fait plus dans le navigateur
+// a partir d'un instantane d'electeurs que le navigateur avait lui-meme ecrit.
+//
+// Appelable par n'importe qui sans risque : la RPC refuse tant que le scrutin est en cours, et
+// ne fait rien d'autre que ce que les bulletins disent. C'est ce qui permet de la declencher a
+// l'ouverture du bureau, comme avant.
 async function verifierElectionPresident(club) {
-  const data = await chargerPresidentClub(club.id);
-  if (!data.candidature) return;
-  const c = data.candidature;
-  const jour = state.day || 1;
-  const votants = [c.electeurs.chefSupporters, c.electeurs.maire, c.electeurs.capitaine].filter(Boolean);
-  const tousVotes = votants.every(v => c.votes[v] !== undefined);
-  const delaiDepasse = jour >= c.dateLimite;
+  if (!club || typeof sbRpc !== 'function') return;
+  const r = await sbRpc('club_president_cloturer', { p_club: club.id })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+    .catch(function () { return null; });
+  if (!r || r.ok !== true) return;   // scrutin en cours ou aucune candidature : rien a annoncer
 
-  if (!tousVotes && !delaiDepasse) return;
-
-  // Completer les votes manquants par "oui" (silence = accord)
-  votants.forEach(v => { if (c.votes[v] === undefined) c.votes[v] = true; });
-  const pourCount = Object.values(c.votes).filter(v => v === true).length;
-  const valide = pourCount >= 2;
-
-  if (valide) {
-    data.president = c.candidat;
-    data.dateElection = jour;
-    addExternalEvent('🏛 ' + c.candidat + ' est élu(e) président(e) de "' + club.nom + '".');
+  if (r.elu) {
+    addExternalEvent('🏛 ' + r.candidat + ' est élu(e) président(e) de "' + club.nom + '".');
   } else {
-    addExternalEvent('🏛 La candidature de ' + c.candidat + ' à la présidence de "' + club.nom + '" a été rejetée.');
+    addExternalEvent('🏛 La candidature de ' + r.candidat + ' à la présidence de "' + club.nom + '" a été rejetée.');
   }
-  data.candidature = null;
-  await sbSavePresidentClub(club.id, data);
 }
 
 // =====================
@@ -9056,13 +9108,39 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  state.arg -= mise;
-  updateUI();
 
-  await sbCreerPari({
-    joueur: state.char?.name, homeId, awayId, choix, mise,
-    journeeNumero, saisonNumero
-  });
+  // L'ENGAGEMENT DU PARI PASSE PAR LE SERVEUR (§6.3, 20 septembre 2026).
+  //
+  // CE QUI SE PASSAIT. La ligne etait inseree directement dans paris_sportifs, et la mise
+  // seulement retranchee de state.arg. Comme la table etait ouverte en ecriture a tout joueur
+  // connecte, il suffisait d'inserer APRES le coup de sifflet un pari portant le bon pronostic
+  // et la mise de son choix : football_paris_resoudre, elle, faisait son travail et payait.
+  // Gain garanti, mise jamais reellement payee.
+  //
+  // Desormais : le parieur est l'appelant, la saison est lue par le serveur, le match doit
+  // exister ET ne pas etre joue, la mise est REELLEMENT prelevee avant l'inscription, et
+  // l'identifiant deterministe interdit un second pari sur la meme rencontre.
+  const rPari = await sbRpc('football_pari_engager', {
+    p_home: homeId, p_away: awayId, p_journee: journeeNumero, p_choix: choix, p_mise: mise
+  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+    .catch(function () { return null; });
+
+  if (!rPari || rPari.ok !== true) {
+    const motifs = {
+      match_deja_joue:    'Ce match est déjà joué.',
+      pari_deja_engage:   'Vous avez déjà parié sur cette rencontre.',
+      fonds_insuffisants: 'Fonds insuffisants.',
+      mise_invalide:      'Mise invalide (minimum 10 FR).',
+      match_inconnu:      'Ce match est introuvable au calendrier.',
+      journee_inconnue:   'Journée introuvable au calendrier.'
+    };
+    showToast('Pari refusé', motifs[rPari && rPari.raison] || 'Le serveur a refusé ce pari.', false);
+    return;
+  }
+
+  // Recopie de l'etat arrete par le serveur, jamais un calcul local.
+  if (typeof rPari.arg === 'number') { state.arg = Number(rPari.arg); if (state.char) state.char.arg = state.arg; }
+  updateUI();
 
   const homeClub = getClub(homeId), advClub = getClub(awayId);
   showToast('Pari enregistré', mise + ' FR misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);

@@ -587,7 +587,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'equiper_section') { doEquiperSection(pa, cost); return; }
   if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(pa, cost); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }
-  if (fn === 'recruter_section') { ouvrirRecruterSection(pa, cost); return; }
+  // 'recruter_section' : route SUPPRIMEE le 21 septembre 2026 avec l'ordre lui-meme (modele de
+  // recompletement a la piece abandonne par le GD le 17 septembre). Plus aucune declaration dans
+  // data.js, plus de handler, plus de ligne dans le miroir des couts.
   if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
   // FILIERE SOLDAT (18 septembre 2026)
   if (fn === 'engager_soldat') { ouvrirEngagementSoldat(); return; }

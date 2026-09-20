@@ -1747,14 +1747,36 @@ async function doDormir() {
       state.gradeMilitaire = 'soldat';   // suffisant pour bloquer le double paiement civil
     }
   }
-  const salaire = calculerSalaireDormir();
-  // Lot 2 (chantier fiscalite/Helvetia) : l'ancienne repartition 30%/70% liquide/banque,
-  // incoherente avec le 15%/85% de l'hydratation (deux conventions differentes coexistaient),
-  // est retiree. Regle transitoire retenue : un credit generique atterrit integralement en
-  // liquide, jamais automatiquement sur un compte bancaire (aucun credit automatique de la
-  // Banque nationale). state.banque (champ legacy) n'est plus touche du tout.
-  state.arg += salaire;
-  state.liquide += salaire;
+  // LE SALAIRE CIVIL EST DESORMAIS VERSE PAR LE SERVEUR (lot P0-B, 20 septembre 2026).
+  //
+  // CE QUI SE PASSAIT ICI. `state.arg += salaire` avec un montant lu dans SALAIRES[] par le
+  // NAVIGATEUR : 17 salaires de poste + 7 offres du Bureau de l'Emploi + le revenu universel,
+  // soit 24 sources d'argent que le client decidait lui-meme. data.js:7330 le documentait deja
+  // comme « de la creation monetaire cliente ».
+  //
+  // CE QUI CHANGE : l'AUTORITE, pas l'economie. salaire_civil_percevoir() relit le poste et
+  // l'emploi EN BASE, prend le montant dans un miroir serveur, porte son anti-rejeu par une cle
+  // unique (personnage + JOUR REEL Europe/Paris, jamais state.day) et credite lui-meme. Aucune
+  // caisse n'est debitee, exactement comme avant. Meme forme que militaire_solde_percevoir.
+  //
+  // FAIL-CLOSED : si l'appel n'aboutit pas, rien n'est credite -- on n'invente pas un repli
+  // local, ce serait rouvrir la porte qu'on vient de fermer.
+  let salaire = 0;
+  if (typeof sbRpc === 'function' && state.char?.name) {
+    const rSal = await sbRpc('salaire_civil_percevoir', {}).catch(() => null);
+    const r = Array.isArray(rSal) ? rSal[0] : rSal;
+    if (r && r.ok === true) {
+      salaire = Number(r.montant || 0);
+      // On recopie l'etat arrete par le SERVEUR, jamais un calcul local.
+      state.arg = Number(r.arg);
+      state.liquide = Number(r.liquide);
+      if (state.char) state.char.arg = state.arg;
+    } else if (r && r.raison === 'deja_percu_aujourdhui') {
+      if (typeof r.arg === 'number') state.arg = r.arg;
+      if (typeof r.liquide === 'number') state.liquide = r.liquide;
+      if (state.char) state.char.arg = state.arg;
+    }
+  }
 
   // §47/§48 — INDEMNITE PARLEMENTAIRE. 250 FR/jour pour les deputes PJ uniquement, prelevés sur
   // la caisse de l'Assemblee, CUMULABLES avec le salaire de poste calcule juste au-dessus : un
@@ -1821,8 +1843,10 @@ async function doDormir() {
   try {
     // Payer les loyers des locations actives
     payerLocations();
-    // Revenu passif + bonus INF/POP/DIS des bâtiments construits sur des terrains possédés
-    if (typeof collecterRevenusConstructions === 'function') await collecterRevenusConstructions();
+    // collecterRevenusConstructions() RETIREE ici le 20 septembre 2026 (arbitrage GD) : le
+    // rendement forfaitaire des murs et ses bonus INF/POP/DIS sont supprimes. Un local prive ne
+    // rapporte que s'il est reellement loue -- et les loyers reels sont deja preleves ailleurs
+    // (prelever_loyer_bail, cron serveur). Rien ne la remplace.
     // NOTE : les loyers des lots subdivises sont desormais preleves par le cron serveur
     // (preleverLoyersLots, api/cron-minuit.js) — pas ici, pour ne pas defavoriser le
     // proprietaire si le locataire ne se connecte jamais.
@@ -1852,7 +1876,10 @@ async function doDormir() {
     checkArrestationAuReveil();
     verifierProgressionHospitalisation();
     if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
-    if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
+    // verifierSalairePolitique() retiree ici le 20 septembre 2026 (§6.1) : le salaire des 13
+    // postes declares est deja verse par salaire_civil_percevoir(), appelee plus haut dans ce
+    // meme reveil. L'appel ci-dessous payait une SECONDE fois, sur un autre bareme et par un
+    // credit local non atteste.
     if (typeof verifierSalaireReligieux === 'function') verifierSalaireReligieux();
     if (typeof verifierSalaireDirecteur === 'function') verifierSalaireDirecteur();
     if (typeof verifierSalaireDirecteurEntrepot === 'function') verifierSalaireDirecteurEntrepot();

@@ -414,6 +414,71 @@ async function chargerAgentsSousCouverture(targetId) {
   } catch (e) { /* un agent qui ne s'affiche pas ne doit jamais casser la piece */ }
 }
 
+// =====================
+// AGENTS QUE L'ON CONVOIE (21 septembre 2026)
+// =====================
+// LE DEPOT SE FAIT LA OU L'ON EST, DONC LE BOUTON VIT ICI. Le panneau du ministre
+// (« Mes cellules ») n'est atteignable que depuis son ministere, et sa RPC ne rend
+// que les cellules de l'empire OU IL SE TROUVE : une fois a l'etranger, il n'y a
+// plus d'ecran pour deposer. agents_de_mon_groupe() existait deja pour ca et n'avait
+// aucun appelant -- elle ne demande rien d'autre que « qui suis-je », relit la base
+// et ne rend QUE les agents dont je suis le chef courant.
+//
+// CE QUI EST AFFICHE N'EST PAS UN SECRET : ce sont mes propres agents, et le serveur
+// ne renvoie ni leur vrai nom ni leur cellule -- seulement la couverture, le role et
+// l'identifiant dont le bouton a besoin.
+async function chargerAgentsConvoyes(targetId) {
+  try {
+    targetId = targetId || 'persons-list';
+    const list = document.getElementById(targetId);
+    if (!list) return;
+    list.querySelectorAll('.agent-convoye-card').forEach(el => el.remove());
+    if (typeof sbRpc !== 'function') return;
+    const r = await sbRpc('agents_de_mon_groupe', {}).catch(() => null);
+    const res = Array.isArray(r) ? r[0] : r;
+    if (!res || res.ok !== true) return;
+    const agents = (res.agents || []).filter(a => a && a.id && a.statut === 'actif');
+    window._agentsConvoyes = agents;
+    if (!agents.length) return;
+
+    const html = agents.map((a, i) =>
+      '<div class="person-card agent-convoye-card" style="border-left:2px solid #8a6a20">' +
+      '<div class="person-avatar"><i class="ti ti-user-shield" style="font-size:.75rem"></i></div>' +
+      '<div style="flex:1"><div class="person-name">' + escapeHtmlText(String(a.couverture || 'Agent')) + '</div>' +
+      '<div class="person-role">Sous votre conduite · ' + escapeHtmlText(String(a.role || '')) + '</div>' +
+      '<button onclick="deposerAgentConvoye(' + i + ')" style="margin-top:.25rem;padding:.2rem .5rem;border:1px solid #6a8a20;background:transparent;color:#9ac04c;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.66rem;letter-spacing:.08em">Déposer ici</button>' +
+      '</div></div>').join('');
+    const empty = list.querySelector('.person-empty');
+    if (empty) empty.remove();
+    list.insertAdjacentHTML('beforeend', html);
+  } catch (e) { /* jamais bloquant pour la piece */ }
+}
+
+// Le refus vient du serveur et il est rendu tel quel : c'est lui qui sait si la
+// piece convient, si la couverture tient dans cet empire, et si l'agent est encore
+// disponible.
+async function deposerAgentConvoye(idx) {
+  const a = (window._agentsConvoyes || [])[idx];
+  if (!a || typeof sbRpc !== 'function') return;
+  const r = await sbRpc('agent_deposer', { p_agent_id: a.id }).catch(() => null);
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const attendu = res?.attendu ? ((typeof COUNTRIES !== 'undefined' && COUNTRIES[res.attendu]?.n) || res.attendu) : null;
+    const messages = {
+      position_indefinie:             'On ne dépose pas un agent en pleine rue : entrez dans un lieu.',
+      pas_mon_agent:                  'Vous ne convoyez pas cet agent.',
+      agent_indisponible:             'Cet agent n\'est plus disponible.',
+      pas_dans_le_pays_de_couverture: 'Sa couverture ne tient que dans l\'empire visé' + (attendu ? ' (' + attendu + ')' : '') + '.'
+    };
+    showToast('Dépôt impossible', messages[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').'), false);
+    return;
+  }
+  showToast('Agent en place', escapeHtmlText(String(a.couverture || 'L\'agent')) + ' reste ici et commence à recueillir des informations.', true, true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Un agent de renseignement a été déposé sur place.', 'event-info');
+  await chargerAgentsConvoyes();
+  if (typeof chargerAgentsSousCouverture === 'function') await chargerAgentsSousCouverture();
+}
+
 function ouvrirFichePnjAutreJoueur(idx) {
   const p = (window._pnjDesAutresJoueurs || [])[idx];
   if (!p) return;
@@ -991,14 +1056,19 @@ async function confirmerDebauchage() {
   const retrait = (typeof sbPnjEmployeDebaucher === 'function')
     ? await sbPnjEmployeDebaucher(p.proprietaire, p.nom, p.job) : null;
   if (!retrait || retrait.ok !== true) {
-    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+    // Remboursement ATTESTE : on designe le debit, le serveur rend ce qu'il a preleve (§6.1).
+    if (typeof rembourserFondsOrdinaires === 'function') {
+      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_debauchage', montant);
+    } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
     updateUI();
     showToast('Débauchage impossible', 'Le transfert n\'a pas pu être enregistré. Votre argent vous est rendu.', false);
     document.getElementById('modal-pnj')?.classList.remove('open');
     return;
   }
   if (retrait.deja_parti) {
-    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
+    if (typeof rembourserFondsOrdinaires === 'function') {
+      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_debauchage', montant);
+    } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
     updateUI();
     showToast('Trop tard', p.nom + ' ne travaille déjà plus pour ' + (p.proprietaire || 'cet employeur') + '.', false);
     document.getElementById('modal-pnj')?.classList.remove('open');

@@ -263,15 +263,26 @@ async function confirmerVol(encodedCible, jetBase) {
       }
     }
   } else {
-    // Vol sur un PNJ — inchange : aucun inventaire reel a piller (pas de systeme d'inventaire
-    // PNJ), aucune notification possible (pas de vrai joueur destinataire). Hors perimetre de ce
-    // lot (butin objet/matiere/arme reserve aux vraies cibles PJ, seules a posseder un inventaire
-    // reel a interroger).
-    const butinArgent = Math.floor(Math.random() * 200) + 50;
-    crediterFondsOrdinaires(butinArgent);
-    updateUI();
-    showToast('Vol réussi !', '+' + butinArgent + ' FR dérobés à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + ' (PNJ). +' + butinArgent + ' FR.', 'event-good');
+    // VOL SUR UN PNJ — LA CREATION MONETAIRE EST RETIREE (arbitrage GD du 20 septembre 2026).
+    //
+    // CE QUI SE PASSAIT. `Math.floor(Math.random()*200)+50` FR etaient credites au voleur sans
+    // qu'aucun detenteur ne soit debite : de la monnaie fabriquee. Le bouton « Voler » etant
+    // ajoute SANS CONDITION a la fiche de toute personne (plateau-pnj.js), et aucun PA n'etant
+    // reellement preleve, c'etait une source gratuite, intracable et illimitee sur 123 cibles.
+    //
+    // LE PRINCIPE ARBITRE : le butin d'un vol sur PNJ provient EXCLUSIVEMENT de ce que ce PNJ
+    // possede reellement. L'audit de reutilisation a etabli qu'un PNJ *personnage* ne possede
+    // aujourd'hui aucun argent : ni les employes salaries, ni les informateurs, ni les PNJ
+    // d'ambiance n'ont de champ monetaire, et donner de l'argent a un PNJ le DETRUIT au lieu de
+    // le lui remettre. Appliquer le principe donne donc, aujourd'hui, un butin vide.
+    //
+    // CE N'EST PAS UNE MECANIQUE DE REMPLACEMENT : on reprend mot pour mot l'issue « rien a
+    // voler » que la branche PJ applique deja quand la cible n'a rien (voir plus haut). La
+    // mecanique du vol sur PNJ reste VOULUE ; ce qu'elle deviendra depend d'arbitrages encore
+    // ouverts (quelles populations de PNJ sont volables, quelle part est prenable, qui porte
+    // plainte). Rien ici ne les prejuge.
+    showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
+    addJournalEntry('Tentative de vol sur ' + nomCible + ' (PNJ) : rien à voler.', 'event-info');
   }
 }
 
@@ -6244,7 +6255,20 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
     if (!debit.ok) {
       // Defensif : la suffisance vient d'etre verifiee sur le total. On rend les frais d'acte et les
       // PA pour ne rien laisser preleve sans contrepartie.
-      if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+      // Le debit du solde a echoue : il n'y a rien a lui annuler. Seul le COUT DE L'ORDRE a ete
+      // preleve, et son remboursement est deja atteste par le miroir des couts -- meme source et
+      // meme reference que la moitie PA juste en dessous (§6.1, 20 septembre 2026).
+      if (typeof sbFondsCrediterAtteste === 'function') {
+        const rf = await sbFondsCrediterAtteste('remboursement_ordre', requeteCession + '-remb-fonds', fnCession);
+        if (rf && rf.ok === true) {
+          state.arg = Number(rf.arg); state.liquide = Number(rf.liquide);
+          if (state.char) state.char.arg = state.arg;
+        } else if (typeof crediterFondsOrdinaires === 'function') {
+          crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+        }
+      } else if (typeof crediterFondsOrdinaires === 'function') {
+        crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+      }
       // Remboursement ATTESTE : montant declare, reference unique a cette cession.
       if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
         await sbRpc('pa_crediter_atteste', {
@@ -6272,8 +6296,22 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
       if (frais && frais.proprietaire === nom) {
         r = { ok: true, prix: def.prix, solde: solde };
       } else {
-        if (typeof crediterFondsOrdinaires === 'function') {
-          crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
+        // Deux prelevements distincts, donc deux remboursements distincts et attestes (§6.1) :
+        // le SOLDE par annulation de son debit, le COUT DE L'ORDRE par le miroir des couts.
+        // Le montant local ne sert plus que de repli si le serveur ne repond pas.
+        if (typeof rembourserFondsOrdinaires === 'function') {
+          await rembourserFondsOrdinaires(debit.debitId, 'remboursement_cession', solde);
+        } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(solde);
+        if (typeof sbFondsCrediterAtteste === 'function') {
+          const rf2 = await sbFondsCrediterAtteste('remboursement_ordre', requeteCession + '-remb-fonds', fnCession);
+          if (rf2 && rf2.ok === true) {
+            state.arg = Number(rf2.arg); state.liquide = Number(rf2.liquide);
+            if (state.char) state.char.arg = state.arg;
+          } else if (typeof crediterFondsOrdinaires === 'function') {
+            crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+          }
+        } else if (typeof crediterFondsOrdinaires === 'function') {
+          crediterFondsOrdinaires(rRachat.montantPreleve || 0);
         }
         // Remboursement ATTESTE : montant declare, reference unique a cette cession.
         if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
@@ -6291,8 +6329,20 @@ async function finaliserCessionImprimerie(def, data, solde, pa, cost) {
     }
     if (!r.ok) {
       // Refus serveur : rien n'a ete credite ni transfere. Remboursement integral.
-      if (typeof crediterFondsOrdinaires === 'function') {
-        crediterFondsOrdinaires(solde + (rRachat.montantPreleve || 0));
+      // Idem : deux prelevements, deux remboursements attestes (§6.1).
+      if (typeof rembourserFondsOrdinaires === 'function') {
+        await rembourserFondsOrdinaires(debit.debitId, 'remboursement_cession', solde);
+      } else if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(solde);
+      if (typeof sbFondsCrediterAtteste === 'function') {
+        const rf3 = await sbFondsCrediterAtteste('remboursement_ordre', requeteCession + '-remb-fonds', fnCession);
+        if (rf3 && rf3.ok === true) {
+          state.arg = Number(rf3.arg); state.liquide = Number(rf3.liquide);
+          if (state.char) state.char.arg = state.arg;
+        } else if (typeof crediterFondsOrdinaires === 'function') {
+          crediterFondsOrdinaires(rRachat.montantPreleve || 0);
+        }
+      } else if (typeof crediterFondsOrdinaires === 'function') {
+        crediterFondsOrdinaires(rRachat.montantPreleve || 0);
       }
       // Remboursement ATTESTE : montant declare, reference unique a cette cession.
       if (rRachat.paPreleves && typeof sbRpc === 'function' && state.char?.name) {

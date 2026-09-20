@@ -1252,7 +1252,36 @@ async function sbSendMail(from, to, subject, body, time, fromReal, fromOrgId, fr
     payload.from_org_icon = fromOrgIcon || null;
   }
   const inserted = await sbInsert('mails', payload);
-  return inserted ? id : null;
+  if (inserted) return id;
+
+  // UN MAIL REFUSE NE DOIT PLUS DISPARAITRE SANS TRACE (§5, 20 septembre 2026).
+  //
+  // POURQUOI. La politique RLS d'envoi n'accepte une identite institutionnelle que si
+  // l'emetteur a l'autorite correspondante. C'est voulu. Mais les ~60 envois systeme du jeu
+  // sont tous en .catch(() => {}) : un refus rendait simplement `null`, et l'avis etait perdu
+  // en silence -- le joueur croyait avoir depose sa demande, le titulaire n'etait jamais
+  // prevenu, et RIEN nulle part ne le disait. C'est ce qui rendait la fermeture de la
+  // tolerance risquee, bien plus que l'usurpation elle-meme.
+  //
+  // mail_systeme_envoyer() refait le MEME controle et, quand il refuse, inscrit la tentative
+  // dans mails_envois_systeme (auteur reel, identite visee, destinataire, sujet). On l'appelle
+  // donc uniquement sur l'echec, pour obtenir le motif et la trace. Verdict identique des deux
+  // cotes : si par construction il acceptait, le mail part -- et la premiere insertion n'aura
+  // ete qu'un essai infructueux, sans doublon possible puisqu'elle n'a rien ecrit.
+  if (!fromOrgId && typeof sbRpc === 'function') {
+    try {
+      const rows = await sbRpc('mail_systeme_envoyer', {
+        p_expediteur: from, p_destinataire: to, p_sujet: subject, p_corps: safeBody, p_heure: time
+      });
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (r && r.ok === true) return r.id || id;
+      console.error('[mails] envoi refuse sous l\'identite « ' + from + ' » vers « ' + to
+        + ' » : ' + ((r && r.raison) || 'motif inconnu') + ' — sujet : ' + (subject || ''));
+    } catch (e) {
+      console.error('[mails] envoi refuse et trace impossible (' + from + ' -> ' + to + ')', e);
+    }
+  }
+  return null;
 }
 
 // from_real.eq ajoute (17 aout 2026, envoi au nom d'une organisation) : pour un mail
@@ -2573,10 +2602,22 @@ async function sbRetirerPetiteAnnonce(id) {
   return !!res;
 }
 
+// CORRECTIF DU 20 SEPTEMBRE 2026 : `statut` N'ETAIT PAS CHARGE.
+//
+// Le select ne demandait que (id, data). Les objets rendus n'avaient donc jamais de champ
+// `statut`, et tout test `g.statut === 'active'` cote client etait FAUX en permanence --
+// notamment estEnGuerreAvec() et le filtre d'estImmuniteMilitaire(). Consequence mesurable :
+// l'immunite militaire liee a l'etat de guerre n'etait JAMAIS accordee ; seule la mobilisation
+// nationale la donnait. Le filtre serveur, lui, teste correctement le statut : les deux cotes
+// ne disaient pas la meme chose.
+//
+// Le filtre 'statut=neq.terminee' est conserve : il ne rend que les guerres non terminees, et
+// le champ est desormais present pour ceux qui le testent.
 async function sbGetGuerresPays(pays) {
-  const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
+  const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,statut,data');
   if (!rows) return [];
-  return rows.filter(r => r.data?.attaquant === pays || r.data?.attaque === pays).map(r => ({ id: r.id, ...r.data }));
+  return rows.filter(r => r.data?.attaquant === pays || r.data?.attaque === pays)
+             .map(r => ({ id: r.id, statut: r.statut, ...r.data }));
 }
 
 // =====================
@@ -2954,16 +2995,34 @@ async function sbFixerEcheanceExpulsion(paysHote, empire, jourEcheance) {
   return sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`, { data });
 }
 
-async function sbCreerGuerre(data) {
-  const id = 'guerre-' + Date.now();
-  await sbInsert('guerres', { id, statut: 'active', data });
-  return id;
+// LES ECRITURES SUR guerres PASSENT PAR LE SERVEUR (§6.3, 20 septembre 2026).
+//
+// La table etait ecrite en direct depuis le navigateur, RLS desactivee, avec trois politiques
+// permissives -- alors que trois RPC militaires la lisent pour decider si un combat est legal.
+// Les autorites sont celles du jeu, inchangees : le President declare la guerre, le Ministre
+// des Affaires Etrangeres propose la treve, le Ministre de la Defense active le cessez-le-feu
+// pour son pays. Le pays n'est plus transmis : le serveur le lit sur la fiche de l'acteur.
+async function sbDeclarerGuerre(paysAttaque) {
+  const rows = await sbRpc('guerre_declarer', { p_pays_attaque: paysAttaque });
+  return Array.isArray(rows) ? rows[0] : rows;
 }
 
-async function sbMajGuerre(id, patch) {
-  const rows = await sbGet('guerres', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), ...patch };
-  return sbUpdate('guerres', `id=eq.${encodeURIComponent(id)}`, { statut: data.statut || 'active', data });
+async function sbProposerTreve(guerreId) {
+  const rows = await sbRpc('guerre_treve_proposer', { p_guerre_id: guerreId });
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+// Repondre a une proposition de treve : le serveur verifie que l'appelant est le Ministre des
+// Affaires Etrangeres du pays DESTINATAIRE -- jamais celui qui a propose (arbitrage du
+// 20 septembre 2026 : MAE A propose, MAE B accepte ou refuse, Defense met en oeuvre).
+async function sbRepondreTreve(guerreId, accepte) {
+  const rows = await sbRpc('guerre_treve_repondre', { p_guerre_id: guerreId, p_accepte: !!accepte });
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+async function sbActiverCessezLeFeu(guerreId) {
+  const rows = await sbRpc('guerre_cessez_le_feu_activer', { p_guerre_id: guerreId });
+  return Array.isArray(rows) ? rows[0] : rows;
 }
 
 async function sbGetCompagnies(pays) {
@@ -3130,9 +3189,18 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
 // ci-dessus, mais pour les caisses du systeme "classique" (ministeres, mairies, commissariats...).
 // exigerExistant refuse de creer une caisse fantome quand l'appelant sait qu'elle doit deja exister.
 // FAIL-CLOSED : renvoie null si la RPC est absente ou injoignable -- aucun repli non atomique.
-async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant) {
-  const rows = await sbRpc('caisse_institution_mouvement', {
-    p_id: caisseId, p_delta: delta, p_exiger_existant: exigerExistant === true
+// AUTORITE (lot P0-A, 20 septembre 2026). La primitive caisse_institution_mouvement n'est plus
+// appelable depuis le navigateur : l'audit avait demontre qu'un joueur sans aucun poste vidait
+// republic_palais-presidentiel et creait une caisse a 99 000 000, le seul controle etant « il
+// existe un personnage ». Le droit EXECUTE lui a ete retire ; les 13 fonctions SQL qui s'en
+// servent (cellule_renseignement_creer, militaire_solde_percevoir, fret_dedouaner...) ne sont pas
+// touchees, car a l'interieur d'une SECURITY DEFINER l'utilisateur effectif est son proprietaire.
+// Le navigateur passe desormais par caisse_client_mouvement, qui exige que la caisse EXISTE et
+// qu'elle appartienne au PAYS de l'appelant, et qui journalise chaque mouvement.
+// exigerExistant disparait de la signature serveur : l'existence est maintenant toujours exigee.
+async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant, motif) {
+  const rows = await sbRpc('caisse_client_mouvement', {
+    p_caisse: caisseId, p_delta: delta, p_motif: motif || null, p_plafonne: false
   });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
@@ -3141,9 +3209,9 @@ async function sbCaisseInstitutionMouvement(caisseId, delta, exigerExistant) {
 // et rend ce qui a ete REELLEMENT verse. Necessaire parce qu'une partie du jeu tolere
 // deliberement un versement partiel (salaires politiques et religieux, virements, subventions,
 // reparations) -- c'est une regle existante, pas une tolerance a corriger. Meme fail-closed.
-async function sbCaisseInstitutionMouvementPlafonne(caisseId, montant) {
-  const rows = await sbRpc('caisse_institution_mouvement_plafonne', {
-    p_id: caisseId, p_montant: montant
+async function sbCaisseInstitutionMouvementPlafonne(caisseId, montant, motif) {
+  const rows = await sbRpc('caisse_client_mouvement', {
+    p_caisse: caisseId, p_delta: -Math.abs(montant), p_motif: motif || null, p_plafonne: true
   });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }

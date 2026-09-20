@@ -67,6 +67,63 @@ function signalerEchec(etape, detail) {
   ECHECS_PASSE.push({ etape, erreur: message.slice(0, 500) });
 }
 
+// ============================================================================
+// JOURNAL DURABLE DE LA PASSE (§6.12, 20 septembre 2026)
+// ============================================================================
+// CE QUI MANQUAIT. La detection d'echec existait deja (ECHECS_PASSE + HTTP 500),
+// mais sa TRACE etait volatile : elle ne vivait que dans la reponse rendue a
+// l'ordonnanceur. Impossible de repondre apres coup a « la taxe fonciere a-t-elle
+// tourne la nuit du 18 ? ». Et comme tacheQuotidienne() pose son marqueur AVANT
+// d'appeler fn() -- ce qui reste le bon choix contre le double debit -- une
+// exception dans fn() BRULAIT la journee en silence : la tache etait perdue, le
+// marqueur disait qu'elle avait tourne, et rien ne signalait l'ecart.
+//
+// REGLE. Le journal ne doit JAMAIS faire tomber la passe qu'il observe. Toute
+// erreur d'ecriture du journal est avalee ici, et uniquement ici : c'est le seul
+// catch silencieux legitime du fichier, parce qu'un observateur qui casse ce
+// qu'il observe est pire que pas d'observateur.
+// On n'emprunte VOLONTAIREMENT pas sbRpc() ici : sbRpc signale ses echecs via
+// signalerEchec(), ce qui ferait tomber la passe en 500 parce que son JOURNAL n'a
+// pas pu s'ecrire -- exactement l'inversion qu'on veut interdire. Appel autonome,
+// entierement muet, et borne dans le temps pour ne pas retenir la passe si
+// PostgREST ne repond plus.
+async function journaliserCron(tache, jour, statut, erreur, contexte, dureeMs) {
+  try {
+    const stop = new AbortController();
+    const minuteur = setTimeout(() => stop.abort(), 4000);
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/rpc/cron_journal_ecrire`, {
+        method: 'POST',
+        headers: HEADERS,
+        signal: stop.signal,
+        body: JSON.stringify({
+          p_tache: tache, p_jour: jour, p_statut: statut,
+          p_erreur: erreur ? String(erreur).slice(0, 2000) : null,
+          p_contexte: contexte || null,
+          p_duree_ms: (typeof dureeMs === 'number' && isFinite(dureeMs)) ? Math.round(dureeMs) : null
+        })
+      });
+    } finally { clearTimeout(minuteur); }
+  } catch (_) { /* observateur non bloquant : voir la REGLE ci-dessus */ }
+}
+
+// Resume d'un retour de tache, borne, pour tenir dans une colonne jsonb sans
+// recopier des listes entieres d'objets metier dans le journal.
+function resumeContexte(valeur) {
+  if (valeur === null || valeur === undefined) return null;
+  if (typeof valeur !== 'object') return { valeur: String(valeur).slice(0, 200) };
+  if (Array.isArray(valeur)) return { elements: valeur.length };
+  const out = {};
+  for (const [k, v] of Object.entries(valeur)) {
+    if (Object.keys(out).length >= 12) break;
+    if (v === null || v === undefined) continue;
+    if (typeof v === 'number' || typeof v === 'boolean') out[k] = v;
+    else if (typeof v === 'string') out[k] = v.slice(0, 120);
+    else if (Array.isArray(v)) out[k] = v.length;
+  }
+  return Object.keys(out).length ? out : { forme: 'objet' };
+}
+
 async function sbGet(table, filters = '') {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, { headers: HEADERS });
   if (!res.ok) { signalerEchec('sbGet:' + table, await res.text()); return null; }
@@ -1445,7 +1502,8 @@ async function traiterInstructionsPermis() {
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
-    const jour = new Date().toISOString().slice(0, 10);
+    // Cle CRON-SEULEMENT (permis.jourInstruction) : Europe/Paris (arbitrage du 20/09/2026).
+    const jour = jourParisISO();
 
     for (const row of terrains) {
       let etat;
@@ -1701,7 +1759,9 @@ async function avancerChantiersQuotidien() {
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
-    const jour = new Date().toISOString().slice(0, 10);
+    // jourTraite n'est ecrit qu'ici : plateau-chantiers.js ne fait que l'initialiser a
+    // null. Cle cron-seulement, donc Europe/Paris (arbitrage du 20 septembre 2026).
+    const jour = jourParisISO();
 
     for (const row of terrains) {
       let etat;
@@ -1937,8 +1997,11 @@ async function preleverPretsBancairesServeur() {
     // une seule fois, a la creation du pret, et relu nulle part. Toute seconde execution du cron
     // dans la meme journee reelle (relance manuelle, reessai de la plateforme) reprelevait une
     // mensualite entiere -- et, pour un debiteur a sec, faisait avancer le contentieux de deux
-    // crans d'un coup. Meme cle que la fiscalite, la solde et les loyers : jourCourantISO().
-    const jourPrets = jourCourantISO();
+    // crans d'un coup. Meme cle que la fiscalite, la solde et les loyers : jourParisISO().
+    // Europe/Paris (arbitrage du 20 septembre 2026). Le client n'ecrit cette colonne
+    // qu'a la CREATION du pret -- jamais comme garde quotidienne -- et jourPartageISO()
+    // bascule sur Paris dans le meme deploiement : les deux restent alignes.
+    const jourPrets = jourParisISO();
 
     for (const pret of prets) {
       // GEL DES PRETS ANTERIEURS A LA REPARATION (chantier A / P0-1, 14 septembre 2026).
@@ -2276,7 +2339,9 @@ async function appliquerDeltaSocialPaysServeur(pays, delta, floor) {
 // jour, aucun verrou equivalent n'existant par ailleurs pour la production economique generale.
 async function appliquerEffetsGrevesOrdinaires() {
   const resultats = { syndicatsTraites: 0 };
-  const aujourdHui = new Date().toISOString().slice(0, 10);
+  // Cle CRON-SEULEMENT (derniereApplicationJour / derniere_application_jour) :
+  // Europe/Paris (arbitrage du 20/09/2026). Le client n'ecrit que la valeur null.
+  const aujourdHui = jourParisISO();
   const coefficientsEntreprises = {};
   try {
     const organisations = await sbLoadOrganisationsServeur();
@@ -2347,7 +2412,9 @@ async function appliquerEffetsGrevesOrdinaires() {
 // doctrine que la greve ordinaire ci-dessus.
 async function appliquerEffetsGreveGenerale() {
   const resultats = { traitees: 0 };
-  const aujourdHui = new Date().toISOString().slice(0, 10);
+  // Cle CRON-SEULEMENT (derniereApplicationJour / derniere_application_jour) :
+  // Europe/Paris (arbitrage du 20/09/2026). Le client n'ecrit que la valeur null.
+  const aujourdHui = jourParisISO();
   try {
     const greves = await sbGet('greves_generales', 'statut=eq.active') || [];
     for (const gg of greves) {
@@ -3482,7 +3549,48 @@ async function nettoyerAchatsDirectsManques() {
 // anti-rejeu). Le moteur historique faisait deux UPDATE separes et ne creditait personne si le
 // proprietaire avait disparu -- l'argent etait detruit. FAIL-CLOSED : si la RPC n'est pas
 // installee, sbRpc renvoie null et RIEN n'est preleve.
-function jourCourantISO() { return new Date().toISOString().slice(0, 10); }
+// ============================================================================
+// LES DEUX DEFINITIONS DU « JOUR » (arbitrage GD du 20 septembre 2026)
+// ============================================================================
+// DECISION : Europe/Paris est la reference temporelle canonique de Republia.
+//
+// POURQUOI CE N'EST PAS UN SIMPLE CHANGEMENT DE FONCTION. Le cron tourne a 23 h
+// UTC ; a cette heure-la, la date parisienne est TOUJOURS UTC + 1 (CET ou CEST).
+// Basculer jourCourantISO() d'un bloc ferait, la nuit de la bascule, qu'une
+// tache deja marquee « 2026-09-19 » soit comparee a « 2026-09-20 » : elle
+// tournerait une seconde fois. Sur la taxe fonciere ou les prets, c'est un
+// double prelevement.
+//
+// ET SURTOUT : certaines cles de journee sont PARTAGEES avec le client, qui les
+// ecrit avec jourPartageISO() (plateau-core.js) -- meme formule UTC. Trois
+// traitements sont dans ce cas (prets bancaires, distribution fiscale, virement
+// caserne) : le cron les execute ET une passe cliente les execute. Basculer le
+// cron seul ferait diverger les deux gardes entre 00 h et 02 h de Paris, la
+// fenetre exacte ou le client franchit minuit -- donc double execution.
+// Ces trois-la restent donc sur jourCourantISO() jusqu'a ce que leur garde
+// partagee soit portee cote serveur. C'est une frontiere ASSUMEE, pas un oubli.
+//
+// jourParisISO() sert aux cles dont le cron est le SEUL ecrivain : le registre
+// des taches quotidiennes, le journal des crons, et le marqueur jourTraite des
+// chantiers (le client n'y ecrit que `null` a l'initialisation).
+
+// jourCourantISO() A ETE SUPPRIMEE le 20 septembre 2026. Plus aucune garde de
+// rejeu ne parle UTC : toutes ont ete portees sur jourParisISO() ci-dessous, et
+// les quatre passes CLIENTES qui partageaient une garde avec ce fichier ont ete
+// retirees de runMidnightUpdate() le meme jour. Ne pas la reintroduire : une
+// seule definition du jour, Europe/Paris.
+
+// Date Europe/Paris, au format YYYY-MM-DD. Construite par parties plutot que par
+// toLocaleDateString('en-CA') : le format rendu par un locale depend de l'ICU
+// embarquee par le runtime, celui-ci n'en depend pas.
+const FMT_JOUR_PARIS = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit'
+});
+function jourParisISO(d) {
+  const p = {};
+  for (const part of FMT_JOUR_PARIS.formatToParts(d || new Date())) p[part.type] = part.value;
+  return p.year + '-' + p.month + '-' + p.day;
+}
 
 // ============================================================================
 // REGISTRE D'EXECUTION QUOTIDIENNE (chantier A / P0-4, 14 septembre 2026)
@@ -3513,18 +3621,69 @@ function jourCourantISO() { return new Date().toISOString().slice(0, 10); }
 const REGISTRE_CRON_ID = { country: 'republic', city: 'global', building: 'cron-minuit' };
 let REGISTRE_JOURS_PASSE = null;
 
+// Decale une date YYYY-MM-DD d'un nombre de jours, sans passer par le fuseau local.
+function decalerJourISO(iso, jours) {
+  const t = Date.parse(iso + 'T12:00:00Z');
+  if (!isFinite(t)) return iso;
+  return new Date(t + jours * 86400000).toISOString().slice(0, 10);
+}
+
 async function chargerRegistreJours() {
   if (REGISTRE_JOURS_PASSE) return REGISTRE_JOURS_PASSE;
   const etat = await sbGetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building).catch(() => ({}));
-  REGISTRE_JOURS_PASSE = (etat && etat.joursCron) ? { ...etat.joursCron } : {};
+  const brut = (etat && etat.joursCron) ? { ...etat.joursCron } : {};
+
+  // BASCULE UTC -> EUROPE/PARIS, EN UNE SEULE FOIS (20 septembre 2026).
+  //
+  // Les marqueurs deja en base ont ete ecrits par le cron, a 23 h UTC : la date
+  // PARISIENNE de cette nuit-la etait donc leur valeur + 1 jour, toujours -- le
+  // decalage vaut +1 en heure d'hiver comme en heure d'ete a cette heure-ci.
+  // On les traduit donc une fois, ce qui fait que :
+  //   * un REJEU de la nuit deja traitee retrouve son marqueur et ne refait rien ;
+  //   * la nuit suivante porte une date parisienne differente et s'execute.
+  // Ni double execution, ni journee sautee.
+  //
+  // Le drapeau rend l'operation idempotente : une fois pose, plus aucune
+  // traduction n'aura lieu, y compris si cette passe est rejouee.
+  if (!(etat && etat.joursCronFuseau === 'Europe/Paris')) {
+    for (const cle of Object.keys(brut)) {
+      if (typeof brut[cle] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(brut[cle])) {
+        brut[cle] = decalerJourISO(brut[cle], 1);
+      }
+    }
+    await sbSetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building,
+      { joursCron: { ...brut }, joursCronFuseau: 'Europe/Paris' });
+    // Relecture : sans elle on tiendrait pour acquise une traduction que la base
+    // a pu refuser, et la passe suivante retraduirait -- decalant d'un jour de plus.
+    const verif = await sbGetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building).catch(() => null);
+    if (!verif || verif.joursCronFuseau !== 'Europe/Paris') {
+      signalerEchec('registre_jours:bascule_fuseau', 'traduction Europe/Paris non persistee');
+      // On repart des valeurs REELLEMENT en base, non traduites : mieux vaut
+      // sauter la nuit que risquer un double prelevement sur une traduction
+      // fantome. La passe suivante retentera la bascule.
+      REGISTRE_JOURS_PASSE = (verif && verif.joursCron) ? { ...verif.joursCron } : {};
+      return REGISTRE_JOURS_PASSE;
+    }
+  }
+
+  REGISTRE_JOURS_PASSE = brut;
   return REGISTRE_JOURS_PASSE;
 }
 
 // Enveloppe une tache quotidienne : au plus une execution par journee partagee.
 async function tacheQuotidienne(nom, fn) {
-  const jour = jourCourantISO();
+  // Cle CRON-SEULEMENT (verifie : aucun fichier client n'ecrit dans joursCron),
+  // donc basculee sur Europe/Paris sans fenetre de divergence possible.
+  const jour = jourParisISO();
   const registre = await chargerRegistreJours();
-  if (registre[nom] === jour) return { ignoree: 'deja_executee_ce_jour', jour };
+  if (registre[nom] === jour) {
+    // Cas NORMAL et cas ANORMAL se ressemblent ici : soit la tache a deja tourne
+    // cette nuit (rejeu sain), soit elle a plante apres la pose du marqueur lors
+    // d'une passe precedente et se retrouve sautee pour toujours. Le journal les
+    // distingue -- la ligne du jour porte deja 'ok' dans le premier cas, 'echec'
+    // ou 'demarree' dans le second. On n'ecrase donc PAS la ligne existante.
+    return { ignoree: 'deja_executee_ce_jour', jour };
+  }
 
   registre[nom] = jour;
   await sbSetBatimentEtat(REGISTRE_CRON_ID.country, REGISTRE_CRON_ID.city, REGISTRE_CRON_ID.building, { joursCron: { ...registre } });
@@ -3538,9 +3697,27 @@ async function tacheQuotidienne(nom, fn) {
     // mouvement au prochain rejeu, ce qui est pire que de perdre la tache pour cette nuit.
     delete registre[nom];
     signalerEchec('registre_jours:' + nom, 'marqueur non persiste, tache non executee');
+    await journaliserCron(nom, jour, 'ignoree', 'marqueur non persiste, tache non executee');
     return { ignoree: 'marqueur_non_persiste', jour };
   }
-  return await fn();
+
+  // A partir d'ici le marqueur EST pose : quoi qu'il arrive, la tache ne
+  // retournera pas cette nuit. C'est precisement pour cela qu'elle doit laisser
+  // une trace, y compris -- surtout -- quand elle echoue.
+  const depart = Date.now();
+  await journaliserCron(nom, jour, 'demarree');
+  try {
+    const resultat = await fn();
+    await journaliserCron(nom, jour, 'ok', null, resumeContexte(resultat), Date.now() - depart);
+    return resultat;
+  } catch (e) {
+    // L'exception est journalisee ET signalee (donc la passe rendra 500), puis
+    // relancee : on ne transforme pas un echec en succes silencieux, et on ne
+    // decide pas ici a la place de l'appelant si la passe doit continuer.
+    signalerEchec('tache:' + nom, e);
+    await journaliserCron(nom, jour, 'echec', (e && e.message) ? e.message : String(e), null, Date.now() - depart);
+    throw e;
+  }
 }
 
 // ============================================================================
@@ -3638,7 +3815,10 @@ async function debiterCaisseBatimentPlafonneServeur(pays, buildingId, montant) {
 async function distribuerFiscaliteServeur(pays) {
   const budgetNat = await chargerBudgetNationalServeur(pays);
   if (!budgetNat) return;
-  const jour = jourCourantISO();
+  // CRON-SEULEMENT depuis le 20 septembre 2026 : la passe cliente qui partageait
+  // ce marqueur (derniereDistribJour) a ete retiree de runMidnightUpdate().
+  // La garde peut donc parler Europe/Paris sans fenetre de divergence.
+  const jour = jourParisISO();
   if (budgetNat.derniereDistribJour === jour) return;
 
   const villes = RECETTES_FISCALES_JOUR_SERVEUR[pays] || {};
@@ -3666,7 +3846,10 @@ async function virementCaserneServeur(pays) {
   if (!budgetNat) return;
   const montant = budgetNat.virementJournalierCaserne || 0;
   if (montant <= 0) return;
-  const jour = jourCourantISO();
+  // CRON-SEULEMENT depuis le 20 septembre 2026 : la passe cliente qui partageait
+  // ce marqueur (dernierVirementCaserneJour) a ete retiree de runMidnightUpdate().
+  // La garde peut donc parler Europe/Paris sans fenetre de divergence.
+  const jour = jourParisISO();
   if (budgetNat.dernierVirementCaserneJour === jour) return;
 
   budgetNat.dernierVirementCaserneJour = jour;
@@ -3763,8 +3946,23 @@ async function traiterExpulsionsAmbassadeursServeur(pays) {
     delete suite.expulsionEcheance;
     suite.ambassadeur = null;
     suite.derniereExpulsion = { nom: nomExpulse, leTs: maintenant };
-    await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`,
-      { data: suite }).catch(() => {});
+    const maj = await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`,
+      { data: suite }).catch(() => null);
+
+    // L'AVIS D'EXPULSION EST EMIS ICI (§5, 20 septembre 2026), plus par le client.
+    // Il etait jusque-la envoye par verifierExpulsionsAmbassadeursQuotidien(), c'est-a-dire
+    // depuis le navigateur d'un joueur quelconque -- celui qui passait minuit en premier --
+    // sous l'en-tete « Ministere des Affaires Etrangeres ». Aucun de ces joueurs n'est
+    // ministre : ce chemin ne survit pas a la fermeture de la tolerance des expediteurs, et
+    // il produisait de toute facon un doublon avec cette passe. Le cron, lui, a l'autorite.
+    // Envoi conditionne a la reussite de l'ecriture : on n'annonce pas une expulsion
+    // qui n'a pas ete enregistree.
+    if (nomExpulse && maj) {
+      await envoyerMailSysteme(nomExpulse, 'Ministère des Affaires Étrangères',
+        'Fin de mission — expulsion',
+        'Le délai de 24 heures est écoulé. Votre mission diplomatique prend fin : vous n\'êtes plus ambassadeur et vous perdez l\'accès à l\'ambassade.'
+      ).catch(() => {});
+    }
   }
 }
 
@@ -4021,7 +4219,9 @@ async function traiterProductionMilitaireServeur(pays, effort) {
     `pays=eq.${encodeURIComponent(pays)}&statut=eq.en_cours&order=created_at.asc&select=*`).catch(() => null);
   if (!cmds || !cmds.length) return resultats;
 
-  const jour = new Date().toISOString().slice(0, 10);
+  // Etiquette de lot, pas une garde de rejeu -- alignee sur Europe/Paris par
+  // coherence : une seule definition du jour dans tout le fichier.
+  const jour = jourParisISO();
   for (const cmd of cmds) {
     const rec = RECETTES_MILITAIRES_SERVEUR[cmd.produit];
     if (!rec) continue;
@@ -4196,9 +4396,9 @@ async function preleverLoyersBaux() {
         const impaye = (data.impaye && typeof data.impaye === 'object') ? { ...data.impaye } : null;
         const prixDu = Number(data.prix) || 0;
         const majImpaye = impaye
-          ? { depuis: impaye.depuis || jourCourantISO(), jours: (Number(impaye.jours) || 0) + 1,
+          ? { depuis: impaye.depuis || jourParisISO(), jours: (Number(impaye.jours) || 0) + 1,
               montantDu: (Number(impaye.montantDu) || 0) + prixDu, avisEnvoye: impaye.avisEnvoye === true }
-          : { depuis: jourCourantISO(), jours: 1, montantDu: prixDu, avisEnvoye: false };
+          : { depuis: jourParisISO(), jours: 1, montantDu: prixDu, avisEnvoye: false };
 
         const premier = !majImpaye.avisEnvoye;
         majImpaye.avisEnvoye = true;
@@ -4575,6 +4775,17 @@ const PNJ_PAR_DEFAUT_POSTE = {
 // Directeur d'entrepot (scope:ville, nomme par le maire) : un PNJ different par ville, deja en
 // poste dans chaque entrepot (data.js) -- traite dans la boucle par ville ci-dessous, pas dans
 // CASCADE_NATIONALE (national uniquement).
+// UN JUGE PAR TRIBUNAL (arbitrage GD du 20 septembre 2026). Le juge a quitte
+// CASCADE_NATIONALE : il n'existe plus de juge national. Les trois noms ci-dessous ne
+// sont PAS inventes -- ce sont les juges PNJ deja presents dans data.js, chacun dans le
+// tribunal de sa ville (Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie,
+// Gerard Bretellewood a Montrouge). Meme idiome que les directeurs d'entrepot.
+const PNJ_JUGE_PAR_VILLE = {
+  capitale: 'Juge Fontaine',
+  ville_a:  'Mireille Sedlex (PNJ)',
+  ville_b:  'Gérard Bretellewood (PNJ)'
+};
+
 const PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE = {
   capitale: 'Marcel Silo (PNJ)',
   ville_a:  'Yvon Paletier (PNJ)',
@@ -4602,7 +4813,6 @@ const CASCADE_NATIONALE = [
   { posteId: 'min_def',  nommePar: 'pm' },
   { posteId: 'min_info', nommePar: 'pm' },
   { posteId: 'min_ae',   nommePar: 'pm' },
-  { posteId: 'juge',     nommePar: 'min_just' },
   { posteId: 'commandant',              nommePar: 'min_def' },
   { posteId: 'directeur_pharma',        nommePar: 'min_fin' },
   { posteId: 'directeur_tabac_alcools', nommePar: 'min_fin' },
@@ -4690,7 +4900,11 @@ async function traiterCandidaturesPostesExpirees() {
       // ecriture du dossier, le nouveau titulaire recoit une fenetre complete de 48h -- jamais
       // sanctionne pour l'inaction de son predecesseur, jamais sanctionne moins de 48h apres sa
       // propre prise de fonction.
-      const autoriteActuelle = await resoudreTitulaireActuelPosteServeur(regle.nommePar, regle.scope === 'ville' ? dossier.city : null);
+      // Portee de l'AUTORITE, pas celle du poste : un juge siege en ville mais son
+      // nominateur est national (voir autoriteScope, data.js).
+      const porteeAutorite = regle.autoriteScope || regle.scope;
+      const autoriteActuelle = await resoudreTitulaireActuelPosteServeur(
+        regle.nommePar, porteeAutorite === 'ville' ? dossier.city : null);
       const nomAutoriteActuelle = autoriteActuelle ? autoriteActuelle.nom : null;
       if (nomAutoriteActuelle && dossier.autoriteNom !== nomAutoriteActuelle) {
         dossier.autoriteNom = nomAutoriteActuelle;
@@ -4902,6 +5116,11 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       }
       if (!estOccupe('directeur_entrepot', ville) && estOccupe('maire', ville)) {
         await pourvoirPnj('directeur_entrepot', ville, PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE[ville]);
+      }
+      // Le juge de CE tribunal. L'autorite qui le nomme est NATIONALE : on attend que le
+      // Ministre de la Justice soit resolu, pas le maire -- qui n'a aucune autorite ici.
+      if (!estOccupe('juge', ville) && estOccupe('min_just', null) && PNJ_JUGE_PAR_VILLE[ville]) {
+        await pourvoirPnj('juge', ville, PNJ_JUGE_PAR_VILLE[ville]);
       }
     }
   } catch(e) { console.error('verifierPostesVacantsEtAutoPourvoir error', e); }
@@ -5354,6 +5573,14 @@ export default async function handler(req, res) {
   // registre de journees servirait un cache perime (chantier A / P0-2 et P0-4, 14 septembre 2026).
   ECHECS_PASSE = [];
   REGISTRE_JOURS_PASSE = null;
+
+  // Journal de la PASSE elle-meme (§6.12). Les lignes par tache ne disent rien
+  // d'une nuit ou le cron n'a pas ete declenche du tout, ou s'est interrompu
+  // avant sa premiere tache : ce cas-la ne se lit que par l'ABSENCE de ligne
+  // '_passe' du jour, ou par une ligne restee a 'demarree'.
+  const jourPasse = jourParisISO();
+  const departPasse = Date.now();
+  await journaliserCron('_passe', jourPasse, 'demarree');
 
   try {
     // 0. ASSEMBLEE NATIONALE — REVEIL AUTOMATIQUE DE MINUIT (§24, chantier du 10 septembre 2026)
@@ -5840,11 +6067,18 @@ export default async function handler(req, res) {
     const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
+      await journaliserCron('_passe', jourPasse, 'echec',
+        ECHECS_PASSE.map(e => e.etape).join(', '),
+        { nbEchecs: ECHECS_PASSE.length, traites: results.length }, Date.now() - departPasse);
       return res.status(500).json(corps);
     }
+    await journaliserCron('_passe', jourPasse, 'ok', null,
+      { traites: results.length }, Date.now() - departPasse);
     return res.status(200).json(corps);
   } catch (e) {
     console.error('Erreur cron-minuit', e);
+    await journaliserCron('_passe', jourPasse, 'echec', (e && e.message) ? e.message : String(e),
+      { nbEchecs: ECHECS_PASSE.length, interrompue: true }, Date.now() - departPasse);
     return res.status(500).json({ error: e.message, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length });
   }
 }

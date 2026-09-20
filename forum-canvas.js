@@ -51,9 +51,31 @@ function rpCanvasEscapeAttr(str) {
     .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// GEOMETRIE : COERCITION NUMERIQUE OBLIGATOIRE (lot P0-A, 20 septembre 2026).
+//
+// LE DEFAUT FERME ICI. content_layout est un jsonb ecrit tel quel par le client dans une table
+// qui etait en WITH CHECK(true). renderComposedPost interpolait lo.x / lo.y / lo.width / lo.z /
+// lo.minHeight et layout.canvas_width DIRECTEMENT dans un attribut style, sans aucune coercition :
+// un x valant la chaine  0px" onmouseover="...  sortait de l'attribut et executait du script chez
+// tous les lecteurs du sujet. XSS stocke.
+//
+// La doctrine existait deja dans ce fichier -- bgColor passe par RP_ZONE_BG_SAFE_RE, src par un
+// test ^https?://, alt et caption par rpCanvasEscapeAttr -- elle n'avait simplement pas ete
+// etendue a la geometrie.
+//
+// ON NE RETIRE AUCUNE FONCTIONNALITE DE MISE EN PAGE : une geometrie legitime est toujours un
+// nombre. On se contente de garantir que c'en est un, en le bornant a des valeurs de page
+// plausibles. Une valeur non numerique retombe sur le defaut, exactement comme le faisait
+// deja  lo.x || 0  pour une valeur absente.
+function rpCanvasNombre(valeur, defaut, min, max) {
+  const n = Number(valeur);
+  if (!Number.isFinite(n)) return defaut;
+  return Math.min(max, Math.max(min, Math.round(n)));
+}
+
 function renderComposedPost(layout) {
   if (!layout || !Array.isArray(layout.elements)) return '';
-  const canvasWidth = layout.canvas_width || 680;
+  const canvasWidth = rpCanvasNombre(layout.canvas_width, 680, 1, 4000);
 
   // Hauteur du canvas (correctif rendu, après E3) : ses enfants sont tous en position:absolute
   // (voir plus bas) -- selon les règles CSS standard, un enfant absolu ne contribue PAS à la
@@ -69,19 +91,24 @@ function renderComposedPost(layout) {
   // avant ce correctif, qui n'ont pas encore ces deux champs.
   const canvasHeight = layout.elements.reduce((max, el) => {
     const lo = el.layout || {};
-    const y = lo.y || 0;
+    const y = rpCanvasNombre(lo.y, 0, 0, 20000);
     let h = 0;
-    if (el.type === 'text_zone') h = Math.max(lo.minHeight || 0, lo.contentHeight || 0);
-    else if (el.type === 'image') h = lo.height || Math.round((lo.width || 200) * 0.75);
+    if (el.type === 'text_zone') h = Math.max(rpCanvasNombre(lo.minHeight, 0, 0, 20000),
+                                              rpCanvasNombre(lo.contentHeight, 0, 0, 20000));
+    else if (el.type === 'image') h = rpCanvasNombre(lo.height, 0, 0, 20000)
+                                     || Math.round(rpCanvasNombre(lo.width, 200, 1, 4000) * 0.75);
     return Math.max(max, y + h);
   }, 0);
 
   const elementsHtml = layout.elements.map(el => {
     const lo = el.layout || {};
-    const x = lo.x || 0, y = lo.y || 0, w = lo.width || 200, z = lo.z || 1;
+    const x = rpCanvasNombre(lo.x, 0, -4000, 20000),
+          y = rpCanvasNombre(lo.y, 0, -4000, 20000),
+          w = rpCanvasNombre(lo.width, 200, 1, 4000),
+          z = rpCanvasNombre(lo.z, 1, 0, 9999);
 
     if (el.type === 'text_zone') {
-      const minH = lo.minHeight || 0;
+      const minH = rpCanvasNombre(lo.minHeight, 0, 0, 20000);
       const safeHtml = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(el.html_fallback || '') : '';
       // Fond de zone (lot de finitions) : validé strictement avant interpolation dans le HTML
       // -- une valeur hors de ce format précis (rgba(...) uniquement) est silencieusement

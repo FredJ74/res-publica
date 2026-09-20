@@ -1,6 +1,6 @@
 // =====================
 // PLATEAU-POLITIQUE.JS
-// Votes, postes, calendrier electoral, moteur electoral, alliances, objectifs secrets,
+// Votes, postes, calendrier electoral, moteur electoral, objectifs secrets,
 // journal du matin, meteo politique
 // =====================
 
@@ -133,6 +133,18 @@ function estPosteMaire(posteId) {
 
 // Une autorite couvre-t-elle le poste attendu par la regle de nomination ? Meme correctif : le
 // startsWith brut de confirmerRevocationPosteNomme laissait un adjoint passer pour un maire.
+// LA VILLE DE L'AUTORITE N'EST PAS TOUJOURS CELLE DU POSTE (20 septembre 2026).
+// Un commissaire siege en ville ET est nomme par le maire DE CETTE VILLE : les deux
+// coincident. Un juge siege en ville mais est nomme par le Ministre de la Justice, qui est
+// national et dont la fiche ne porte aucune ville. Chercher « le min_just de ville_b »
+// ne renverrait jamais personne, et le poste serait impossible a pourvoir.
+// autoriteScope vaut 'ville' par defaut : tous les postes existants sont inchanges.
+function villeDeLAutorite(regle, villeDuPoste) {
+  if (!regle) return null;
+  const portee = regle.autoriteScope || regle.scope;
+  return portee === 'ville' ? (villeDuPoste || null) : null;
+}
+
 function autoriteCouvre(posteAutorite, nommeParAttendu) {
   if (typeof posteAutorite !== 'string' || typeof nommeParAttendu !== 'string') return false;
   if (nommeParAttendu === 'maire') return estPosteMaire(posteAutorite);
@@ -190,7 +202,7 @@ function tempsProtectionRestanteTexte(poste) {
 async function reconcilierAutoriteCandidature(dossier) {
   const regle = POSTES_NOMMES_EXCLUSIFS[dossier.posteId];
   if (!regle || typeof getTitulaireActuel !== 'function') return false;
-  const autoriteActuelle = await getTitulaireActuel(regle.nommePar, dossier.city || null);
+  const autoriteActuelle = await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, dossier.city));
   const nomActuel = autoriteActuelle ? autoriteActuelle.nom : null;
   if (nomActuel && dossier.autoriteNom !== nomActuel) {
     dossier.autoriteNom = nomActuel;
@@ -251,7 +263,9 @@ async function demanderNominationPoste(posteId, posteName) {
   if (!check.ok) { showToast('Impossible', check.raison, false); return; }
 
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
-  const titulaireAutorite = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(regle.nommePar, villeCourante) : null;
+  // La ville du POSTE sert a identifier le siege ; celle de l'AUTORITE peut differer.
+  const titulaireAutorite = typeof getTitulaireActuel === 'function'
+    ? await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, villeCourante)) : null;
 
   if (!titulaireAutorite) {
     showToast('Poste vacant', "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", false);
@@ -2936,120 +2950,16 @@ function ouvrirCreationOrgaBtn(el) { ouvrirCreationOrga(el.dataset.type); }
 
 
 // =====================
-// ALLIANCES ENTRE PJ
+// ALLIANCES ENTRE PJ — SUPPRIME (20 septembre 2026)
 // =====================
-function ouvrirMenuAlliances() {
-  if (typeof sbListPersonnages !== 'function') {
-    showToast('Indisponible', 'Connexion Supabase requise.', false);
-    return;
-  }
-
-  const alliances = state.alliances || [];
-  const demandesRecues = state.demandes_alliance || [];
-
-  sbListPersonnages().then(joueurs => {
-    const autres = (joueurs || []).filter(j => j.name !== state.char?.name);
-    const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-    const alliancesHtml = alliances.length > 0
-      ? '<div style="margin-bottom:.8rem">' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#4a8a4a;margin-bottom:.4rem">VOS ALLIANCES ACTIVES</div>' +
-        alliances.map(a =>
-          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
-          '<span style="font-size:.78rem;color:#c0b090">' + a.nom + '</span>' +
-          '<span style="font-size:.85rem;color:#4a8a4a">' + a.type + '</span>' +
-          '<button onclick="rompreAlliance(this)" data-nom="' + a.nom + '" style="font-size:.8rem;color:#8a3a2a;background:none;border:none;cursor:pointer">Rompre</button>' +
-          '</div>'
-        ).join('') +
-        '</div>'
-      : '<div style="font-size:.72rem;color:#9a8a68;margin-bottom:.8rem;font-style:italic">Aucune alliance active.</div>';
-
-    const demandesHtml = demandesRecues.length > 0
-      ? '<div style="margin-bottom:.8rem">' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin-bottom:.4rem">DEMANDES REÇUES</div>' +
-        demandesRecues.map(d =>
-          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
-          '<span style="font-size:.78rem;color:#c0b090">' + d.de + ' → ' + d.type + '</span>' +
-          '<div style="display:flex;gap:.4rem">' +
-          '<button onclick="accepterAlliance(this)" data-de="' + d.de + '" data-type="' + d.type + '" style="font-size:.85rem;color:#4a8a4a;background:none;border:1px solid #2a5a2a;padding:.2rem .4rem;cursor:pointer">✓ Accepter</button>' +
-          '<button onclick="refuserAlliance(this)" data-de="' + d.de + '" style="font-size:.85rem;color:#8a3a2a;background:none;border:1px solid #5a2a2a;padding:.2rem .4rem;cursor:pointer">✗ Refuser</button>' +
-          '</div></div>'
-        ).join('') +
-        '</div>'
-      : '';
-
-    const proposerHtml = autres.length > 0
-      ? '<div>' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#6a5a30;margin-bottom:.4rem">PROPOSER UNE ALLIANCE</div>' +
-        '<select id="alliance-joueur" style="width:100%;background:#0a0a07;border:1px solid #2a2010;color:#c0b090;padding:.3rem;margin-bottom:.4rem;font-family:Crimson Pro,Georgia,serif">' +
-        autres.map(j => '<option value="' + j.name + '">' + j.name + '</option>').join('') +
-        '</select>' +
-        '<select id="alliance-type" style="width:100%;background:#0a0a07;border:1px solid #2a2010;color:#c0b090;padding:.3rem;margin-bottom:.4rem;font-family:Crimson Pro,Georgia,serif">' +
-        '<option value="Non-agression">Pacte de non-agression</option>' +
-        '<option value="Coalition électorale">Coalition électorale</option>' +
-        '<option value="Partage d\'informateurs">Partage d\'informateurs</option>' +
-        '<option value="Alliance économique">Alliance économique</option>' +
-        '</select>' +
-        '<button onclick="proposerAlliance()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la proposition</button>' +
-        '</div>'
-      : '<div style="font-size:.72rem;color:#9a8a68;font-style:italic">Aucun autre joueur disponible.</div>';
-
-    document.getElementById('postes-modal-title').textContent = '🤝 Alliances';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:.6rem 1rem">' + alliancesHtml + demandesHtml + proposerHtml + '</div>';
-    document.getElementById('modal-postes').classList.add('open');
-  }).catch(() => showToast('Erreur', 'Impossible de charger les joueurs.', false));
-}
-
-async function proposerAlliance() {
-  const joueur = document.getElementById('alliance-joueur')?.value;
-  const type   = document.getElementById('alliance-type')?.value;
-  if (!joueur || !type) return;
-
-  const from = state.char?.name || 'Anonyme';
-  const sujet = '🤝 Proposition d\'alliance : ' + type;
-  const corps = from + ' vous propose une alliance de type <strong>' + type + '</strong>.<br><br>' +
-    'Pour accepter, répondez à ce mail avec "J\'accepte". Pour refuser, répondez "Je refuse".';
-
-  if (typeof sendMail === 'function') await sendMail(joueur, sujet, corps);
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Proposition envoyée !', joueur + ' a reçu votre demande d\'alliance.', true);
-  addJournalEntry('Proposition d\'alliance (' + type + ') envoyée à ' + joueur + '.', 'event-info');
-}
-
-function accepterAlliance(el) {
-  const de = el?.dataset?.de || el;
-  const type = el?.dataset?.type || arguments[1];
-  if (!state.alliances) state.alliances = [];
-  state.alliances.push({ nom: de, type: type, depuis: state.day || 1 });
-  state.demandes_alliance = (state.demandes_alliance || []).filter(d => d.de !== de);
-  if (typeof sendMail === 'function') {
-    sendMail(de, '✅ Alliance acceptée', state.char?.name + ' accepte votre proposition d\'alliance : ' + type + '.');
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Alliance conclue !', 'Avec ' + de + ' — ' + type, true);
-  addJournalEntry('Alliance conclue avec ' + de + ' : ' + type + '.', 'event-good');
-}
-
-function refuserAlliance(el) {
-  const de = el?.dataset?.de || el;
-  state.demandes_alliance = (state.demandes_alliance || []).filter(d => d.de !== de);
-  if (typeof sendMail === 'function') {
-    sendMail(de, '❌ Alliance refusée', state.char?.name + ' décline votre proposition d\'alliance.');
-  }
-  ouvrirMenuAlliances();
-}
-
-function rompreAlliance(el) {
-  const nom = el?.dataset?.nom || el;
-  state.alliances = (state.alliances || []).filter(a => a.nom !== nom);
-  if (typeof sendMail === 'function') {
-    sendMail(nom, '⚠️ Alliance rompue', state.char?.name + ' met fin à votre alliance.');
-  }
-  showToast('Alliance rompue', 'Avec ' + nom, false);
-  addJournalEntry('Alliance rompue avec ' + nom + '.', 'event-bad');
-  ouvrirMenuAlliances();
-}
+// ouvrirMenuAlliances / proposerAlliance / accepterAlliance / refuserAlliance /
+// rompreAlliance, le bouton « Alliances » de plateau.html et l'option « Coalition
+// electorale » ont ete retires sur arbitrage du game designer : une alliance ou une
+// coalition releve du RP et des interactions reelles entre joueurs, pas d'un clic.
+// Ce n'etait de toute facon qu'une coquille : state.alliances et state.demandes_alliance
+// n'etaient NI persistes (absents du payload de sauvegarde) NI lus par aucune mecanique,
+// donc la liste disparaissait au rechargement. Rien d'autre ne les ecrivait.
+// Le mail reste le canal : sendMail suffit a proposer une alliance et a y repondre.
 
 // =====================
 // OBJECTIFS SECRETS PAR ARCHÉTYPE
@@ -4146,8 +4056,13 @@ async function ouvrirOrganigramme() {
       { id:'min_info', name:"Ministre de l'Information", type:'nomme' },
       { id:'min_ae', name:'Ministre des Affaires Étrangères', type:'nomme' },
       { id:'commandant', name:'Commandant de la Caserne', type:'nomme' },
-      { id:'juge', name:'Juge', type:'nomme' },
       { id:'chef_syndicat', name:'Chef Syndical', type:'elu' }
+    ]},
+    // Le juge a sa propre section : il siege dans UN tribunal (donc une ville), mais il releve
+    // de la chaine nationale de la Justice, pas de la mairie. Le presenter sous « Ville — X »
+    // laisserait croire que le maire en dispose, ce qui est faux.
+    { title: 'Justice — tribunal de ' + villeNom, postes: [
+      { id:'juge', name:'Juge', type:'nomme', city: villeCourante }
     ]},
     { title: 'Ville — ' + villeNom, postes: [
       { id:'maire', name:'Maire', type:'elu', city: villeCourante },
@@ -7475,7 +7390,26 @@ async function ouvrirPanneauCellules() {
       html += '<div style="font-size:.74rem;color:#a09060;margin-top:.35rem;border-top:1px solid #1a1810;padding-top:.3rem">'
            +  '<strong>' + escapeHtmlText(a.vrai_nom) + '</strong> (' + a.role + ') — sous couverture : <em>'
            +  escapeHtmlText(a.couverture) + '</em><br>'
-           +  '<span style="color:#8a8060">' + a.statut + ' · ' + pos + '</span></div>';
+           +  '<span style="color:#8a8060">' + a.statut + ' · ' + pos + '</span>';
+      // LE CONVOI, ENFIN CLIQUABLE (21 septembre 2026). Le modal annonce depuis
+      // l'origine « Vous devrez les convoyer vous-meme et les deposer sur place »,
+      // mais AUCUN bouton n'appelait agent_prendre / agent_deposer : les deux RPC
+      // etaient du code mort, et la chaine s'arretait a la creation de la cellule.
+      // On ne cree pas de seconde mecanique : ces boutons appellent les RPC
+      // existantes, qui tranchent seules (empire, co-presence, pays de depot).
+      const idAgent = String(a.id || '').replace(/'/g, "\\'");
+      const moi = state.char?.name;
+      if (a.statut === 'actif' && a.id) {
+        if (!a.leader && !a.ville) {
+          html += '<button onclick="prendreAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Prendre en charge</button>';
+        } else if (a.leader && a.leader === moi) {
+          html += '<button onclick="deposerAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #6a8a20;background:transparent;color:#9ac04c;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Déposer ici</button>';
+        } else if (!a.leader && a.ville === state.currentCity
+                   && a.batiment === state.currentBuilding && a.piece === state.currentRoom) {
+          html += '<button onclick="prendreAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Reprendre</button>';
+        }
+      }
+      html += '</div>';
     });
     if (actif) {
       html += '<button onclick="terminerCelluleRenseignement(\'' + c.cellule + '\')" style="margin-top:.5rem;width:100%;padding:.35rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">Mettre fin à la mission</button>';
@@ -7484,6 +7418,55 @@ async function ouvrirPanneauCellules() {
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// CONVOI DES AGENTS — LES DEUX RPC QUI N'AVAIENT AUCUN APPELANT (21 septembre 2026).
+// Un agent vit dans TROIS etats, et c'est le serveur qui les arbitre : non deploye
+// (il attend dans l'empire qui l'a recrute), convoye (leader_courant = un PJ, il se
+// deplace avec lui sans position propre), pose (une ville, un batiment, une piece --
+// c'est le seul etat ou il collecte et ou le contre-espionnage adverse peut le voir).
+// On ne duplique donc AUCUNE position cote client : on affiche ce que la projection
+// du ministre renvoie, et on laisse agent_prendre / agent_deposer refuser.
+const AGENT_REFUS = {
+  acteur_non_authentifie:         'Session expirée.',
+  agent_introuvable:              'Agent introuvable.',
+  cellule_inactive:               'Cette cellule n\'est plus active.',
+  agent_indisponible:             'Cet agent n\'est plus disponible.',
+  deja_en_groupe:                 'Un autre agent de liaison le convoie déjà.',
+  pas_mon_empire:                 'Il faut être dans l\'empire qui l\'a recruté pour le prendre en charge.',
+  pas_au_meme_endroit:            'Il faut être physiquement auprès de lui.',
+  position_indefinie:             'On ne prend ni ne dépose un agent en pleine rue : entrez dans un lieu.',
+  pas_mon_agent:                  'Vous ne convoyez pas cet agent.'
+};
+
+async function prendreAgentRenseignement(agentId) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('agent_prendre', { p_agent_id: agentId }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    showToast('Prise en charge impossible', AGENT_REFUS[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').'), false);
+    return;
+  }
+  showToast('Agent pris en charge', 'Il vous suit désormais. Déposez-le sur place, dans l\'empire visé.', true);
+  addJournalEntry('Prise en charge d\'un agent de renseignement.', 'event-info');
+  ouvrirPanneauCellules();
+}
+
+async function deposerAgentRenseignement(agentId) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('agent_deposer', { p_agent_id: agentId }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const attendu = res?.attendu ? (COUNTRIES[res.attendu]?.n || res.attendu) : null;
+    showToast('Dépôt impossible',
+      res?.raison === 'pas_dans_le_pays_de_couverture'
+        ? ('Sa couverture ne tient que dans l\'empire visé' + (attendu ? ' (' + attendu + ')' : '') + '.')
+        : (AGENT_REFUS[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').')), false);
+    return;
+  }
+  showToast('Agent en place', 'Il reste ici et commence à recueillir des informations.', true, true);
+  addJournalEntry('Un agent de renseignement a été déposé sur place.', 'event-info');
+  ouvrirPanneauCellules();
 }
 
 async function terminerCelluleRenseignement(cellId) {
@@ -8778,7 +8761,16 @@ async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
-  await sbCreerGuerre({ attaquant: pays, attaque: empireId, jourDebut: state.day || 1, ceasefire: null });
+  // Le serveur verifie le poste et lit le pays sur la fiche : rien n'est transmis d'autre
+  // que l'empire vise (§6.3, 20 septembre 2026).
+  const rG = await sbDeclarerGuerre(empireId);
+  if (!rG || rG.ok !== true) {
+    const motifs = { reserve_au_president: 'Seul le Président peut déclarer la guerre.',
+                     guerre_deja_active:   'Une guerre est déjà active entre ces deux empires.',
+                     cible_invalide:       'Empire visé invalide.' };
+    showToast('Déclaration refusée', motifs[rG && rG.raison] || 'Le serveur a refusé la déclaration.', false);
+    return;
+  }
   state.pop = Math.max(0, (state.pop||0) - 20);
   state.inf = Math.min(100, (state.inf||0) + 10);
   INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID - 20);
@@ -8824,16 +8816,50 @@ async function confirmerPropositionTreve(guerreId, adversaire, pa, cost) {
       'Proposition de trêve', (state.char?.name||'Le Ministre') + ' propose une trêve. Répondez pour l\'accepter.',
       typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
   }
-  await sbMajGuerre(guerreId, { ceasefire: { proposePar: state.char?.name, accepteePar: null, actifPar: {} } });
+  const rT = await sbProposerTreve(guerreId);
+  if (!rT || rT.ok !== true) {
+    const motifs = { reserve_au_ministre_ae: 'Réservé au Ministre des Affaires Étrangères.',
+                     guerre_introuvable:     'Cette guerre n\'est plus active.',
+                     pays_non_belligerant:   'Votre empire n\'est pas partie à ce conflit.' };
+    showToast('Trêve refusée', motifs[rT && rT.raison] || 'Le serveur a refusé la proposition.', false);
+    return;
+  }
   showToast('Trêve proposée', 'En attente de la réponse de l\'homologue.', true, true);
   addJournalEntry('Trêve proposée à ' + (COUNTRIES[adversaire]?.n||adversaire) + '.', 'event-info');
 }
 
-async function accepterTreve(guerreId) {
-  await sbMajGuerre(guerreId, { ceasefire: { accepteePar: state.char?.name, actifPar: {} } });
-  showToast('Trêve acceptée', 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', true, true);
-  addExternalEvent('🕊️ Une trêve a été négociée entre les deux Ministères des Affaires Étrangères.');
+// REPONSE A UNE PROPOSITION DE TREVE — autorite arbitree le 20 septembre 2026.
+//
+// La chaine canonique est : le Ministre des Affaires Etrangeres du pays A propose, celui du
+// pays B DESTINATAIRE accepte ou refuse, puis chaque Ministre de la Defense met en oeuvre le
+// cessez-le-feu de son cote. Le serveur calcule lui-meme le destinataire a partir du pays du
+// proposant, desormais inscrit sur la proposition : ni le proposant ni un tiers ne peuvent
+// repondre a sa place.
+async function repondreTreve(guerreId, accepte) {
+  const r = await sbRepondreTreve(guerreId, accepte);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      reserve_au_ministre_ae:     'Réservé au Ministre des Affaires Étrangères.',
+      reserve_au_destinataire:    'Seul l\'empire destinataire de la proposition peut y répondre.',
+      aucune_proposition:         'Aucune trêve n\'a été proposée.',
+      proposition_deja_tranchee:  'Cette proposition a déjà reçu une réponse.',
+      guerre_introuvable:         'Cette guerre n\'est plus active.'
+    };
+    showToast('Réponse refusée', motifs[r && r.raison] || 'Le serveur a refusé la réponse.', false);
+    return;
+  }
+  if (r.accepte) {
+    showToast('Trêve acceptée', 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', true, true);
+    addExternalEvent('🕊️ Une trêve a été négociée entre les deux Ministères des Affaires Étrangères.');
+  } else {
+    showToast('Trêve refusée', 'La proposition a été déclinée.', false);
+    addExternalEvent('⚔️ Une proposition de trêve a été refusée.');
+  }
 }
+
+// Conservee comme alias : l'acceptation est le cas nominal.
+async function accepterTreve(guerreId) { return repondreTreve(guerreId, true); }
+async function refuserTreve(guerreId)  { return repondreTreve(guerreId, false); }
 
 // Etape 2 : chaque MG active independamment le cessez-le-feu de son cote
 async function ouvrirActiverCessezLeFeu(pa, cost) {
@@ -8873,7 +8899,17 @@ async function confirmerActivationCessezLeFeu(guerreId, adversaire, pa, cost) {
   if (!r.ok) { signalerRefusCout(r); return; }
   const actifPar = { ...(g.ceasefire?.actifPar || {}), [pays]: true };
   const tousActifs = actifPar[g.attaquant] && actifPar[g.attaque];
-  await sbMajGuerre(guerreId, { ceasefire: { ...g.ceasefire, actifPar }, statut: tousActifs ? 'terminee' : 'active' });
+  // Le serveur marque le cote de l'acteur et decide lui-meme si les deux cotes ont active :
+  // `actifPar` et `tousActifs` calcules ici ne servent plus qu'a l'affichage immediat.
+  const rC = await sbActiverCessezLeFeu(guerreId);
+  if (!rC || rC.ok !== true) {
+    const motifs = { reserve_au_ministre_defense: 'Réservé au Ministre de la Défense.',
+                     guerre_introuvable:          'Cette guerre n\'est plus active.',
+                     aucune_treve_proposee:       'Aucune trêve n\'a été proposée.',
+                     pays_non_belligerant:        'Votre empire n\'est pas partie à ce conflit.' };
+    showToast('Activation refusée', motifs[rC && rC.raison] || 'Le serveur a refusé l\'activation.', false);
+    return;
+  }
 
   INDICES_NATIONAUX[pays].ID = Math.min(100, INDICES_NATIONAUX[pays].ID + 10);
   updateUI();
@@ -9231,24 +9267,14 @@ async function doRecruterCompagnie() {
 // et non renouvelable : 20 000 FR achetent 96 hommes une fois pour toutes, les morts reduisent
 // definitivement ce capital, et une section se recomplete en y affectant des hommes encore
 // disponibles dans la reserve -- jamais en en achetant de nouveaux.
-// La constante et la fonction sont conservees le temps que l'ordre soit retire de data.js, mais
-// la fonction refuse desormais toute execution.
-const COUT_SECTION = Math.round(COUT_COMPAGNIE / NB_SECTIONS_COMPAGNIE);
-// NEUTRALISEE, modele abandonne par le GD. Elle achetait 24 recrues neuves pour 5 000 FR, ce qui
-// permettait de reconstituer indefiniment un effectif : les pertes ne coutaient donc rien. Le
-// contingent est desormais UNIQUE et NON RENOUVELABLE -- un mort reduit definitivement le capital
-// humain de la compagnie. Une section se recomplete en y affectant des hommes encore disponibles
-// dans la reserve, ce qui relevera de l'affectation des soldats, jamais d'un achat.
-//
-// L'ordre reste declare dans data.js : le retirer obligerait a regenerer le miroir des couts, et
-// un ordre declare mais refuse vaut mieux qu'un miroir desynchronise. La fonction n'ecrit plus
-// rien et ne preleve plus ni PA ni argent.
-async function doRecruterSection(compagnieId, sectionId, pa, cost) {
-  showToast('Recomplètement supprimé',
-    'On n\'achète plus de recrues à la pièce. Une compagnie dispose d\'un contingent unique de '
-    + CONTINGENT_COMPAGNIE + ' hommes, que les pertes réduisent définitivement. Affectez des hommes '
-    + 'encore disponibles dans la réserve de la compagnie.', false);
-}
+// SUPPRESSION EFFECTIVE (21 septembre 2026). La fonction neutralisee doRecruterSection, la
+// constante COUT_SECTION (5 000 FR, le quart d'une compagnie) et l'ordre recruter_section
+// disparaissent ensemble : declaration data.js, entree du routeur, fenetre de selection et ligne
+// du miroir des couts. Plus aucun appelant vivant -- verifie sur l'ensemble du depot. Le miroir a
+// ete regenere dans la meme passe, il n'est donc pas desynchronise (c'etait le seul motif pour
+// lequel l'ordre avait ete laisse en place). AUCUNE mecanique de recompletement n'est recreee :
+// le contingent reste unique et non renouvelable, les pertes definitives, et une section se
+// recomplete en y affectant des hommes encore disponibles dans la reserve de la compagnie.
 
 // ===========================================================================================
 // FILIERE SOLDAT PJ (18 septembre 2026)
@@ -9524,7 +9550,10 @@ async function recupererSoldats(compagnieId, sectionId) {
 // un bilan de round -- ce qu'il a perdu, ce qu'il a vu tomber en face, et un ordre de grandeur de
 // ce qui reste debout. Cet ordre de grandeur est degrade PAR LE SERVEUR : le navigateur ne recoit
 // pas la donnee exacte, il n'a donc rien a cacher.
-const LIBELLES_DOCTRINE = { tenir: 'Tenir la position', repli_50: 'Se replier si la situation devient défavorable' };
+// La DOCTRINE DE CAMP n'existe plus (arbitrage du 21 septembre 2026). Le repli
+// se decide GROUPE PAR GROUPE, a 50 % de pertes : fenetre de 90 secondes pour un
+// chef PJ, repli automatique pour un groupe mene par des PNJ. Un groupe allie
+// peut donc decrocher pendant qu'un autre tient la position.
 
 async function ouvrirPanneauCombat(batailleId) {
   const e = await sbMilitaireBatailleEtat(batailleId || null);
@@ -9566,20 +9595,27 @@ async function ouvrirPanneauCombat(batailleId) {
   }
 
   if (!fini) {
-    if (b.je_suis_leader) {
-      html += '<div style="display:flex;gap:.4rem;margin-bottom:.7rem">';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'continuer\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Continuer</button>';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'replier\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se replier</button>';
-      html += '</div>';
-      html += '<div style="font-size:.7rem;color:#6a6048;margin-bottom:.5rem">Se replier n\'est pas gratuit : l\'adversaire obtient un dernier passage de décrochage, et vous ne ripostez pas.</div>';
-      html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Si vous n\'êtes pas là pour décider :</label>';
-      html += '<select id="combat-doctrine" onchange="changerDoctrineCombat(' + b.id + ')" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.76rem;outline:none">';
-      for (const cle of Object.keys(LIBELLES_DOCTRINE)) {
-        html += '<option value="' + cle + '"' + (b.ma_doctrine === cle ? ' selected' : '') + '>' + LIBELLES_DOCTRINE[cle] + '</option>';
+    if (b.mon_groupe_replie) {
+      html += '<div style="font-size:.76rem;color:#C9A84C;padding:.5rem;border:1px solid #6a5420;margin-bottom:.6rem">Votre groupe a décroché. Le combat continue sans vous.</div>';
+    } else if (b.decision_attendue && b.je_suis_leader) {
+      // Seuil des 50 % de pertes atteint : le chef a 90 secondes pour trancher,
+      // et AUCUN round ne part tant qu'il n'a pas repondu. Passe ce delai, son
+      // groupe -- et lui seul -- se replie automatiquement.
+      html += '<div style="border:1px solid #8a2f2f;background:rgba(138,47,47,.12);padding:.6rem;margin-bottom:.7rem">';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e08a8a;margin-bottom:.25rem">Votre groupe a perdu la moitié de son effectif</div>';
+      html += '<div style="font-size:.74rem;color:#a89870;margin-bottom:.5rem">' + (b.mon_groupe_restants || 0) + ' sur ' + (b.mon_groupe_effectif_initial || 0) + ' encore debout. Sans réponse de votre part, le repli est ordonné automatiquement.</div>';
+      if (typeof b.secondes_restantes === 'number') {
+        html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.5rem">' + b.secondes_restantes + ' s</div>';
       }
-      html += '</select>';
+      html += '<div style="display:flex;gap:.4rem">';
+      html += '<button onclick="deciderCombat(' + b.id + ',\'tenir\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Tenir la position</button>';
+      html += '<button onclick="deciderCombat(' + b.id + ',\'replier\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ordonner le repli</button>';
+      html += '</div></div>';
+    } else if (b.je_suis_leader) {
+      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous commandez ce groupe. Tant qu\'il n\'a pas perdu la moitié de son effectif, le combat suit son cours.</div>';
+      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
     } else {
-      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous ne commandez pas ce groupe. Vous combattez, mais la décision revient à votre chef — ou à sa doctrine s\'il n\'est pas là.</div>';
+      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous ne commandez pas ce groupe' + (b.mon_chef ? ' — ' + escapeHtmlText(b.mon_chef) + ' en décide' : ', et aucun officier ne le mène : il se repliera de lui-même à la moitié de ses pertes') + '.</div>';
       html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
     }
   } else if (b.issue) {
@@ -9645,13 +9681,8 @@ async function rafraichirApresRound(batailleId) {
   await ouvrirPanneauCombat(batailleId);
 }
 
-async function changerDoctrineCombat(batailleId) {
-  const d = document.getElementById('combat-doctrine')?.value;
-  if (!d) return;
-  const r = await sbMilitaireBatailleDoctrine(batailleId, d);
-  if (!r || r.ok !== true) { showToast('Doctrine refusée', 'Seul le chef du groupe la fixe.', false); return; }
-  showToast('Doctrine enregistrée', LIBELLES_DOCTRINE[d], true);
-}
+// changerDoctrineCombat a ete retiree avec la doctrine de camp : le seuil de
+// 50 % s'applique desormais groupe par groupe et ne se regle pas a l'avance.
 
 // ---- CALEPIN DE CAMPAGNE (UI de militaire_calepin) ----
 // Lecture seule et sans PA. Le calepin d'un civil est VIDE, et c'est un resultat : le jeu doit
@@ -10046,7 +10077,11 @@ async function confirmerMobilisation(pa, cost) {
   const route = document.getElementById('mobil-route')?.value?.trim();
   if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
+  // `fn` explicite (21 septembre 2026) : les trois actions de la mobilisation facturent sous
+  // l'ordre de facade `mobilisation_nationale`, dont le miroir declare desormais les couples
+  // 4/3/2 PA. Sans ce parametre, le cout partait sous state._ordreEnCours, faux des que la
+  // fenetre est rouverte apres un autre ordre.
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'mobilisation_nationale' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = state.country || 'republic';
@@ -10298,9 +10333,16 @@ async function payerSoldeQuotidienne(pays) {
 // persiste (sbGetCompagnies, stock Armurerie, caisse de la caserne) : aucune nouvelle donnee
 // persistee, aucune statistique inventee (pas de moral/loyaute/discipline/puissance/bonus de
 // combat), aucun champ INF parallele (state.inf existant, meme plafond 100 que partout ailleurs).
+// COUTS DECLARES, PAS SEULEMENT FACTURES (21 septembre 2026). Ces deux niveaux prelevent 1 et
+// 2 PA, mais data.js ne declarait que (inspecter_troupes,0,0) : le miroir serveur ignorait les
+// deux couples reels et payer_ordre refusait les deux niveaux en 'cout_non_declare' -- l'ordre
+// etait integralement mort. Chaque niveau porte desormais `fn`/`label`/`cost` en plus de son
+// bareme : c'est exactement la forme que .scratch/generer_ordres_couts.py ramasse pour les ordres
+// declares hors data.js, donc le miroir connait les deux couples sans qu'aucun chiffre ne soit
+// recopie a la main. data.js declare le cout d'entree (1 PA), ce fichier le second niveau (2 PA).
 const NIVEAUX_INSPECTION_TROUPES = {
-  revue:     { label: 'Passer les troupes en revue', pa: 1, inf: 3, desc: 'Vue synthetique : effectif total, organisation, postes d\'officiers, stock et equipement.' },
-  detaillee: { label: 'Inspecter les unités',         pa: 2, inf: 5, desc: 'Vue synthetique + detail par compagnie/section (officiers, moyennes Force/Endurance/Tir, equipement, mission) et budget de la caserne.' }
+  revue:     { fn: 'inspecter_troupes', label: 'Passer les troupes en revue', pa: 1, cost: 0, inf: 3, desc: 'Vue synthetique : effectif total, organisation, postes d\'officiers, stock et equipement.' },
+  detaillee: { fn: 'inspecter_troupes', label: 'Inspecter les unités', pa: 2, cost: 0, inf: 5, desc: 'Vue synthetique + detail par compagnie/section (officiers, moyennes, equipement, mission) et budget de la caserne.' }
 };
 
 function accesInspectionTroupes() {
@@ -10327,7 +10369,9 @@ async function confirmerInspectionTroupes(niveau) {
   if (!accesInspectionTroupes()) { showToast('Réservé au Ministre de la Défense ou au Commandant', '', false); return; }
   const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
   if (!cfg) return;
-  const r = await deduireCoutOrdre({ pa: cfg.pa, cost: 0 });
+  // `fn` explicite : ne jamais dependre de state._ordreEnCours, qui porte le dernier ordre route
+  // et serait faux des que cette fenetre est rouverte depuis un autre chemin.
+  const r = await deduireCoutOrdre({ pa: cfg.pa, cost: cfg.cost, fn: cfg.fn });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
@@ -10536,7 +10580,7 @@ async function ouvrirRepartirArmement() {
   html += (typeof htmlStockArmurerieMilitaire === 'function')
     ? htmlStockArmurerieMilitaire(stockArmurerie)
     : '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock Armurerie Militaire — Arme de poing : ' + (stockArmurerie.arme_de_poing||0) + ' · Mitraillette : ' + (stockArmurerie.mitraillette||0) + '</div>';
-  html += '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">Seules les armes se répartissent entre sections. Les explosifs sont retirés directement par le chef de section.</div>';
+  html += '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">Seules les armes se répartissent entre sections. Les explosifs sont retirés directement par le chef de section. Chaque mouvement coûte 1 PA, prélevé par le serveur.</div>';
   // Une seule section est dotable : celle que commande l'appelant.
   (compagnie.sections || []).filter(s => s.lieutenantNom === state.char?.name).forEach(s => {
     const stockSection = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
@@ -10580,6 +10624,12 @@ async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sen
   // Desormais : une seule transaction serveur qui passe par caserne_stock_mouvement, la primitive
   // atomique que militaire_retrait utilise deja. Meme autorite qu'avant (le Capitaine de cette
   // compagnie), memes produits, memes quantites.
+  // LE COUT EST PRELEVE PAR LA RPC (21 septembre 2026). data.js declare repartir_armement a 1 PA
+  // et le miroir porte le couple ('repartir_armement',1,0), mais AUCUN des deux handlers de cet
+  // ordre n'appelait deduireCoutOrdre : l'ordre etait affiche payant et rendu gratuit. Le
+  // prelevement vit desormais dans militaire_armurerie_transfert, dans la meme transaction que le
+  // mouvement de stock -- il ne depend plus du navigateur, et un refus n'accorde aucun transfert.
+  // UN mouvement = 1 PA, dans les deux sens.
   const rArm = await sbMilitaireArmurerieTransfert(compagnieId, sectionId, categorie, qte, sens);
   if (!rArm || rArm.ok !== true) {
     const motifs = {
@@ -10587,11 +10637,14 @@ async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sen
       stock_section_insuffisant: 'Seules ' + (rArm && rArm.disponible !== undefined ? rArm.disponible : 0) + ' unité(s) sont libres dans cette section (le reste est porté par des soldats — voir Gérer l\'équipement).',
       pas_lieutenant_de_cette_section: 'Vous ne commandez pas cette section.',
       section_introuvable: 'Cette section n\'existe pas.',
-      hors_juridiction: 'Cette compagnie relève d\'un autre pays.'
+      hors_juridiction: 'Cette compagnie relève d\'un autre pays.',
+      pa_insuffisants: 'Chaque mouvement d\'armement coûte 1 PA, et il ne vous en reste pas assez.'
     };
     showToast('Transfert impossible', (rArm && motifs[rArm.raison]) || 'Opération refusée.', false);
     return;
   }
+  // On recopie les PA arretes par le serveur, jamais un decompte local.
+  if (typeof rArm.pa === 'number') { state.pa = rArm.pa; updateUI(); }
   if (sens === 'vers_section') {
     showToast('Armement transféré', qte + ' unité(s) transférée(s) vers la section.', true, true);
   } else {
@@ -10601,30 +10654,10 @@ async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sen
   ouvrirRepartirArmement();
 }
 
-// ---- FICHE DE SECTION (reservee au lieutenant) ----
-async function ouvrirRecruterSection(pa, cost) {
-  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
-  const pays = state.country || 'republic';
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-  const vides = [];
-  compagnies.forEach(c => (c.sections || []).forEach(s => { if (s.soldats.length === 0) vides.push({ compagnieId: c.id, section: s }); }));
-
-  document.getElementById('postes-modal-title').textContent = 'Recompléter une section';
-  let html = '<div style="padding:1rem">';
-  if (vides.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune section vide actuellement.</div>';
-  } else {
-    vides.forEach(v => {
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
-      html += '<span style="font-size:.85rem;color:#e0d5b8">' + v.section.id + ' (vide)</span>';
-      html += '<button onclick="doRecruterSection(\'' + v.compagnieId + '\',\'' + v.section.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recompléter (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR)</button>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
+// ouvrirRecruterSection SUPPRIMEE le 21 septembre 2026, avec l'ordre recruter_section lui-meme
+// (data.js, routeur, miroir des couts). Elle listait les sections vides pour y acheter 24 recrues
+// neuves : modele abandonne par le GD le 17 septembre. Un effectif perdu ne se rachete plus, il se
+// recomplete en puisant dans la reserve de contingent de la compagnie (militaire_affecter_leader).
 
 async function doVoirMaSection() {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
@@ -10918,7 +10951,10 @@ async function doDemobiliser() {
     showToast('Aucune mobilisation', 'Aucune mobilisation nationale n\'est en cours.', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  // Cout lu dans la table declarative de la facade (plateau-gouvernement.js), jamais re-code en
+  // dur ici : c'est cette meme table qui alimente le miroir serveur des couts.
+  const paDemobiliser = (typeof COUT_PA_DEMOBILISER === 'number') ? COUT_PA_DEMOBILISER : 2;
+  const r = await deduireCoutOrdre({ pa: paDemobiliser, cost: 0, fn: 'mobilisation_nationale' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   budgetNat.mobilisationNationaleActive = false;
@@ -11343,40 +11379,57 @@ async function ouvrirRequisitionCivile(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// LA REQUISITION PASSE ENTIEREMENT PAR LE SERVEUR (21 septembre 2026).
+//
+// CE QUE CETTE FONCTION FAISAIT, ET QUI NE MARCHAIT PAS. Elle ecrivait section.civilsRequisitionnes
+// par sbSaveCompagnie -- refuse par la policy de compagnies_militaires, qui n'autorise que le
+// Commandant ou le Capitaine, pas le Ministre -- puis bouclait 24 sbUpdate sur la fiche des AUTRES
+// joueurs -- refuses par le trigger personnages_vue_modifier (personnage_non_possede) -- le tout
+// avale par des .catch(() => {}). Seuls les 24 mails partaient : personne n'etait reellement
+// convoque, aucun delai n'existait en base, et « Se presenter a mon affectation » ne trouvait
+// jamais de convocation. Les 3 PA, eux, etaient bien preleves.
+//
+// DESORMAIS : militaire_requisition_civile (SECURITY DEFINER) verifie le poste min_def ATTESTE,
+// la mobilisation en cours, la section, tire au sort, ecrit le blob de la compagnie ET les fiches
+// des convoques, et paie les 3 PA contre le miroir des couts. Le navigateur n'ecrit plus rien :
+// il n'envoie que les mails, et n'annonce un succes que si le serveur en a confirme un.
 async function confirmerRequisitionCivile(compagnieId, sectionId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
-  const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  let civils = [];
-  if (typeof sbListPersonnages === 'function') {
-    const tous = await sbListPersonnages().catch(() => []);
-    civils = tous.filter(j => (j.domicile?.country || j.country) === pays && !['lieutenant','capitaine','commandant','min_def','president','pm','min_int','min_fin','min_just','min_info','min_ae','maire'].includes(j.poste?.id));
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); return; }
+  const rows = await sbRpc('militaire_requisition_civile', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      mobilisation_inactive: 'La réquisition n\'est possible que pendant une mobilisation nationale.',
+      deja_requisitionnee: 'Cette section a déjà reçu sa réquisition.',
+      section_sans_lieutenant: 'Cette section n\'a pas de chef : personne pour accueillir les requis.',
+      section_introuvable: 'Cette section n\'existe pas.',
+      compagnie_introuvable: 'Cette compagnie n\'existe pas.',
+      hors_juridiction: 'Cette compagnie relève d\'un autre pays.',
+      aucun_civil_eligible: 'Aucun civil domicilié n\'est réquisitionnable actuellement.',
+      pa_insuffisants: 'Il vous faut ' + COUT_PA_REQUISITION + ' PA.',
+      acteur_non_authentifie: 'Session non reconnue.'
+    };
+    showToast('Réquisition impossible', (r && motifs[r.raison]) || 'Refus du serveur (' + ((r && r.raison) || 'indisponible') + ').', false);
+    return;
   }
-  const tires = [...civils].sort(() => Math.random() - 0.5).slice(0, 24);
-  const deadline = Date.now() + DELAI_REQUISITION_HEURES * 3600000;
+  // On recopie l'etat arrete par le serveur, jamais un calcul local.
+  if (typeof r.pa === 'number') { state.pa = r.pa; updateUI(); }
+  const convoques = Array.isArray(r.convoques) ? r.convoques : [];
+  const heures = r.delai_heures || DELAI_REQUISITION_HEURES;
 
-  section.civilsRequisitionnes = tires.map(c => ({ nom: c.name, statut: 'convoque', deadline }));
-  await sbSaveCompagnie(compagnieId, compagnie);
-
-  for (const c of tires) {
+  // Les mails restent au client : c'est la seule part de l'action qui ne mute rien de sensible.
+  for (const nom of convoques) {
     if (typeof sbSendMail === 'function') {
-      await sbSendMail('Ministère de la Défense', c.name, 'CONVOCATION — Réquisition civile',
-        'Vous êtes réquisitionné(e) pour rejoindre la Section ' + section.numero + ' (Lt. ' + section.lieutenantNom + ') dans le cadre de la mobilisation nationale. Présentez-vous sous ' + DELAI_REQUISITION_HEURES + 'h, faute de quoi vous serez déclaré(e) déserteur(se).',
+      await sbSendMail('Ministère de la Défense', nom, 'CONVOCATION — Réquisition civile',
+        'Vous êtes réquisitionné(e) pour rejoindre la Section ' + (r.section || '?') + ' (Lt. ' + (r.lieutenant || '?') + ') dans le cadre de la mobilisation nationale. Présentez-vous sous ' + heures + 'h, faute de quoi vous serez déclaré(e) déserteur(se).',
         typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
     }
-    if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(c.name)}`, {
-        requisition: JSON.stringify({ compagnieId, sectionId, deadline, statut: 'convoque' })
-      }).catch(() => {});
-    }
   }
-  showToast('Réquisition lancée', '24 citoyens tirés au sort et convoqués.', true, true);
-  addExternalEvent('📯 Réquisition civile : 24 citoyens ont été convoqués pour renforcer la Section ' + section.numero + '.');
+  showToast('Réquisition lancée', convoques.length + ' citoyen(s) tiré(s) au sort et convoqué(s).', true, true);
+  addExternalEvent('📯 Réquisition civile : ' + convoques.length + ' citoyens ont été convoqués pour renforcer la Section ' + (r.section || '?') + '.');
 }
 
 // Le civil convoque se presente a son affectation (doit etre physiquement a la caserne, avant le delai)
@@ -11391,33 +11444,42 @@ async function doSePresenterAffectation(pa, cost) {
   if (!estDeserteur && Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).', false); return; }
   if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const pays = state.country || 'republic';
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === req.compagnieId);
-  const section = compagnie?.sections.find(s => s.id === req.sectionId);
-  const entree = section?.civilsRequisitionnes?.find(c => c.nom === state.char.name);
-  if (entree) entree.statut = 'affecte';
-  if (compagnie) await sbSaveCompagnie(req.compagnieId, compagnie);
-
-  req.statut = 'affecte';
-  state.char.requisition = req;
-
-  // La presentation ETEINT la poursuite pour desertion -- et elle seule. Filtrage, jamais
-  // remplacement : tout autre motif (crime, condamnation en attente, motif d'un autre empire)
-  // survit intact. Le bonus d'evasion de l'episode retombe a zero.
-  if (estDeserteur) {
-    const paysReq = state.country || 'republic';
-    if (Array.isArray(state.recherche)) {
-      state.recherche = state.recherche.filter(function (e) {
-        return !(estMotifDesertion(e) && (!e.country || e.country === paysReq));
-      });
-    }
-    if (state.char) state.char.joursDetenuDeserteur = 0;
+  // TOUT SE PASSE AU SERVEUR (21 septembre 2026), PAIEMENT COMPRIS.
+  //
+  // CE QUI ETAIT CASSE. Le PJ payait 1 PA, puis le navigateur posait statut='affecte' dans le blob
+  // de la compagnie par sbSaveCompagnie. La policy « compagnies maj par la chaine de commandement »
+  // n'autorise que le Commandant du pays ou le Capitaine de cette compagnie : le civil qui se
+  // presente etait refuse, sbUpdate avalait l'erreur, et le toast annoncait quand meme
+  // « Affectation confirmée ». Le statut restant 'convoque', la passe de desertion declarait
+  // ensuite DESERTEUR un joueur qui s'etait presente et avait paye.
+  //
+  // militaire_presentation_affectation reverifie tout (convocation, presence a la caserne, delai),
+  // ecrit le blob et la fiche cote serveur, eteint les seules poursuites pour desertion, puis
+  // preleve le PA contre le miroir des couts. AUCUN succes n'est affiche si elle refuse.
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); return; }
+  const rows = await sbRpc('militaire_presentation_affectation', {}).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      aucune_convocation: 'Aucune convocation en attente.',
+      pas_sur_place: 'Présentez-vous physiquement à la caserne.',
+      delai_depasse: 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).',
+      pa_insuffisants: 'Il vous faut 1 PA.',
+      personnage_introuvable: 'Personnage inconnu du serveur.',
+      acteur_non_authentifie: 'Session non reconnue.'
+    };
+    showToast('Présentation refusée', (r && motifs[r.raison]) || 'Refus du serveur (' + ((r && r.raison) || 'indisponible') + ').', false);
+    return;
   }
+  // On recopie l'etat arrete par le SERVEUR, jamais un calcul local : la prochaine sauvegarde
+  // complete republiera donc exactement ses valeurs (et n'ecrasera pas l'extinction des poursuites).
+  if (typeof r.pa === 'number') { state.pa = r.pa; }
+  if (r.requisition) { req.statut = 'affecte'; state.char.requisition = r.requisition; }
+  if (Array.isArray(r.recherche)) state.recherche = r.recherche;
+  if (estDeserteur && state.char) state.char.joursDetenuDeserteur = 0;
+  updateUI();
+  const section = { numero: r.section };
 
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { requisition: JSON.stringify(req), recherche: state.recherche || [] }).catch(() => {});
   showToast(estDeserteur ? 'Incorporé(e)' : 'Affectation confirmée',
     estDeserteur
       ? 'Vous vous rendez de vous-même. Incorporation immédiate, poursuites pour désertion éteintes.'
@@ -11428,39 +11490,52 @@ async function doSePresenterAffectation(pa, cost) {
 }
 
 // Verifie chaque jour les convocations expirees non honorees ⇒ desertion publique
+//
+// LA BASCULE DU STATUT PASSE AU SERVEUR (21 septembre 2026). Cette passe tournait dans le
+// navigateur de n'importe quel joueur connecte et ecrivait sur des objets qui ne lui
+// appartiennent pas : sbSaveCompagnie (refuse par la policy de compagnies_militaires) et
+// sbUpdate sur la fiche des AUTRES joueurs (refuse par le trigger personnages_vue_modifier).
+// Rien ne basculait donc jamais en base -- mais l'avis de recherche, lui, partait bien
+// (justice_condamner est serveur) : le meme absent etait re-condamne a chaque passage, chaque
+// jour, dans chaque navigateur. Et comme « se presenter » ne parvenait pas davantage a ecrire
+// 'affecte', un joueur qui s'etait presente et avait paye etait declare deserteur malgre lui.
+//
+// militaire_desertions_verifier fait desormais la bascule cote serveur, en une seule fois et de
+// facon idempotente : elle ne touche QUE les convocations dont le delai est reellement depasse et
+// qui sont encore 'convoque' -- un presente ('affecte') n'est plus jamais sanctionne -- et elle
+// RETOURNE les nouveaux deserteurs. Le client ne garde que ce qu'il sait faire legitimement :
+// l'avis de recherche par la voie existante, et l'annonce publique.
+//
+// ETAT REEL DE L'APPEL : cette fonction n'a AUCUN appelant aujourd'hui -- la sequence de minuit
+// cliente l'a retiree au profit du miroir serveur traiterDesertionsServeur (api/cron-minuit.js),
+// qui tourne en service_role et dont les ecritures aboutissent, elles. Ce miroir lit le MEME
+// statut dans le MEME blob : la presentation ecrivant desormais 'affecte' cote serveur, il cesse
+// lui aussi de sanctionner un joueur qui s'est presente. La fonction est remise d'aplomb pour
+// qu'elle soit juste si elle est un jour rebranchee, et surtout pour qu'elle n'ecrive plus jamais
+// sur la fiche d'autrui depuis un navigateur.
 async function verifierDesertionsQuotidien(pays) {
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-  for (const c of compagnies) {
-    for (const s of (c.sections || [])) {
-      for (const entree of (s.civilsRequisitionnes || [])) {
-        if (entree.statut === 'convoque' && Date.now() > entree.deadline) {
-          entree.statut = 'deserteur';
-          await sbSaveCompagnie(c.id, c);
-          if (typeof sbUpdate === 'function') {
-            await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`, {
-              requisition: JSON.stringify({ compagnieId: c.id, sectionId: s.id, statut: 'deserteur' })
-            }).catch(() => {});
-          }
-          // RACCORD (Lot 4.3) : le statut militaire devient REELLEMENT exploitable. Jusqu'ici il
-          // etait pose puis oublie -- le deserteur n'etait jamais recherche, jamais arretable, et le
-          // mot « recherche » de l'interface etait decoratif.
-          //
-          // ON NE CREE AUCUN BAREME JUDICIAIRE. L'entree porte volontairement type:'militaire', qui
-          // n'existe dans AUCUNE table de peines : elle rend le deserteur reperable et arretable par
-          // la machinerie existante, sans lui attacher de peine. Ce qui se passe APRES l'arrestation
-          // -- incorporation, detention pour refus, heures cumulees -- n'est pas deductible de
-          // l'ancien code et reste donc a arbitrer.
-          if (typeof ajouterCondamnationRecherche === 'function') {
-            await ajouterCondamnationRecherche(entree.nom, {
-              acte: 'desertion', type: 'militaire', jour: state.day,
-              country: pays, compagnieId: c.id, sectionId: s.id,
-              origine: 'requisition_civile'
-            }).catch(() => {});
-          }
-          addExternalEvent('🚨 ' + entree.nom + ' a été déclaré(e) DÉSERTEUR(SE) pour ne pas s\'être présenté(e) à sa réquisition.');
-        }
-      }
+  if (typeof sbRpc !== 'function') return;
+  const rows = await sbRpc('militaire_desertions_verifier', { p_pays: pays }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) return;
+  for (const d of (Array.isArray(r.deserteurs) ? r.deserteurs : [])) {
+    // RACCORD (Lot 4.3) : le statut militaire devient REELLEMENT exploitable. Jusqu'ici il
+    // etait pose puis oublie -- le deserteur n'etait jamais recherche, jamais arretable, et le
+    // mot « recherche » de l'interface etait decoratif.
+    //
+    // ON NE CREE AUCUN BAREME JUDICIAIRE. L'entree porte volontairement type:'militaire', qui
+    // n'existe dans AUCUNE table de peines : elle rend le deserteur reperable et arretable par
+    // la machinerie existante, sans lui attacher de peine. Ce qui se passe APRES l'arrestation
+    // -- incorporation, detention pour refus, heures cumulees -- n'est pas deductible de
+    // l'ancien code et reste donc a arbitrer.
+    if (typeof ajouterCondamnationRecherche === 'function') {
+      await ajouterCondamnationRecherche(d.nom, {
+        acte: 'desertion', type: 'militaire', jour: state.day,
+        country: pays, compagnieId: d.compagnieId, sectionId: d.sectionId,
+        origine: 'requisition_civile'
+      }).catch(() => {});
     }
+    addExternalEvent('🚨 ' + d.nom + ' a été déclaré(e) DÉSERTEUR(SE) pour ne pas s\'être présenté(e) à sa réquisition.');
   }
 }
 
@@ -11495,11 +11570,13 @@ async function verifierExpulsionsAmbassadeursQuotidien(pays) {
     await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`, { data: suite }).catch(() => {});
 
     if (nomExpulse) {
-      if (typeof sbSendMail === 'function') {
-        await sbSendMail('Ministère des Affaires Étrangères', nomExpulse, 'Fin de mission — expulsion',
-          'Le délai de 24 heures est écoulé. Votre mission diplomatique prend fin : vous n\'êtes plus ambassadeur et vous perdez l\'accès à votre bureau.',
-          typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-      }
+      // L'AVIS D'EXPULSION N'EST PLUS ENVOYE D'ICI (§5, 20 septembre 2026). Cette passe tourne
+      // dans le navigateur du premier joueur a franchir minuit -- un joueur quelconque, jamais
+      // le ministre -- et postait sous l'en-tete « Ministere des Affaires Etrangeres ».
+      // C'est desormais traiterExpulsionsAmbassadeursServeur() (api/cron-minuit.js) qui emet
+      // l'avis, avec l'autorite du serveur, et sans le doublon que les deux chemins
+      // produisaient. La mise a jour de l'ambassade, elle, reste faite ici : elle est
+      // idempotente (expulsionEcheance efface) et rend l'effet immediat pour le joueur present.
       addExternalEvent('🛂 ' + nomExpulse + ' a quitté ses fonctions d\'ambassadeur à l\'expiration du délai d\'expulsion.');
     }
   }

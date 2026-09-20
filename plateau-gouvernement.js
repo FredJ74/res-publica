@@ -617,9 +617,22 @@ function ouvrirGestionManifestations() {
 // COUTS : d'origine, codes en dur. Les trois prelevent a la CONFIRMATION -- confirmerMobilisation
 // et confirmerRequisitionCivile recoivent le pa qu'on leur propage ; doDemobiliser code ses 2 PA
 // en interne et ignore ce qu'on lui passe. Aucun ne preleve a l'ouverture : la facade est sure.
-const COUT_PA_MOBILISER = 4;
-const COUT_PA_DEMOBILISER = 2;
-const COUT_PA_REQUISITION = 3;
+//
+// LES TROIS COUPLES SONT DESORMAIS DECLARES (21 septembre 2026). Les trois actions facturent sous
+// le MEME `fn` -- mobilisation_nationale, l'ordre de facade -- mais le miroir serveur des couts ne
+// connaissait que le triplet (mobilisation_nationale,0,0) declare par data.js. payer_ordre exige le
+// triplet EXACT : les trois actions repartaient donc en 'cout_non_declare', aucune n'etait
+// executable. Les litteraux ci-dessous sont ramasses par .scratch/generer_ordres_couts.py, qui
+// collecte aussi les ordres declares hors data.js (il les reconnait a leur couple fn + label).
+// Ils sont la SOURCE des trois constantes : impossible de changer un cout sans changer le miroir.
+const ORDRES_MOBILISATION_NATIONALE = [
+  { fn: 'mobilisation_nationale', label: 'Mobiliser l\'armée', pa: 4, cost: 0 },
+  { fn: 'mobilisation_nationale', label: 'Réquisition civile', pa: 3, cost: 0 },
+  { fn: 'mobilisation_nationale', label: 'Démobiliser',        pa: 2, cost: 0 }
+];
+const COUT_PA_MOBILISER = ORDRES_MOBILISATION_NATIONALE[0].pa;
+const COUT_PA_REQUISITION = ORDRES_MOBILISATION_NATIONALE[1].pa;
+const COUT_PA_DEMOBILISER = ORDRES_MOBILISATION_NATIONALE[2].pa;
 
 // REGLE UX DU 8 SEPTEMBRE 2026 : UNE FACADE SE CONSULTE TOUJOURS.
 // Les trois entrees sont rendues quel que soit l'etat ; seule leur disponibilite varie.
