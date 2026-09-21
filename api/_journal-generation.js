@@ -1544,13 +1544,65 @@ async function solliciterInterviewsProactives(pays, contenu, index, maintenant) 
   }
 }
 
+// IDENTIFIANT D'EDITION (Lot 2, 21 septembre 2026).
+//
+// L'identifiant etait `${pays}_${dateEdition}`. Ce n'etait pas une convention de nommage : c'etait
+// une CONTRAINTE STRUCTURELLE. Il n'existe qu'une valeur possible par pays et par jour, donc un
+// pays ne pouvait physiquement pas avoir deux journaux paraissant le meme jour -- la cle primaire
+// l'interdisait. Aucun kiosque multi-titres n'etait possible tant que l'id portait cette
+// signification.
+//
+// L'identifiant devient donc OPAQUE : un UUID, qui ne signifie rien et ne contraint rien. La cle
+// METIER (« un titre ne parait qu'une fois par jour ») n'est pas perdue pour autant -- elle est
+// portee par la contrainte UNIQUE (journal_id, date_edition), posee au Lot 1, qui l'exprime bien
+// mieux puisqu'elle nomme le titre et non le pays.
+//
+// LES EDITIONS EXISTANTES NE SONT PAS MIGREES (arbitrage D). Leurs identifiants restent tels
+// quels : aucune cle etrangere ne pointe vers journal_editions (verifie), la colonne est du type
+// `text`, et rien ne parse ces identifiants. Les rebaptiser n'apporterait rien et ferait courir un
+// risque pour zero benefice. Anciens et nouveaux formats coexistent sans se gener.
+function nouvelIdEdition() {
+  // globalThis.crypto.randomUUID est disponible sur le runtime Node de Vercel. Le repli couvre un
+  // environnement plus ancien sans jamais produire de collision pratique (128 bits d'aleatoire).
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+  return 'ed-' + Date.now().toString(36) + '-'
+    + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 12);
+}
+
+// Titre qui parait automatiquement pour ce pays. C'est la MEME regle que le trigger
+// journal_edition_rattacher_au_titre appliquait en silence ; on la rend explicite ici pour que la
+// generation nomme le journal qu'elle alimente au lieu de le laisser deviner en base -- sans quoi
+// une edition pouvait etre rattachee a un titre que l'appelant n'avait jamais designe.
+async function journalGarantiDuPays(pays) {
+  const rows = await sbGet('journaux',
+    `select=id,nom&pays=eq.${encodeURIComponent(pays)}&garanti_automatique=is.true&limit=1`,
+    SB_HEADERS_SERVICE);
+  return (rows && rows[0]) || null;
+}
+
 async function genererEditionPays(pays) {
   const maintenant = new Date();
   const dateEdition = dateEditionPourPays(pays, maintenant);
-  const id = `${pays}_${dateEdition}`;
 
+  // Un pays sans titre a parution garantie n'a simplement pas de journal automatique : on le dit,
+  // au lieu de tenter un INSERT que la contrainte NOT NULL sur journal_id ferait echouer avec un
+  // message de base de donnees.
+  const journal = await journalGarantiDuPays(pays);
+  if (!journal) {
+    return { pays, dateEdition, statut: 'aucun_titre_garanti' };
+  }
+  const journalId = journal.id;
+  let id = nouvelIdEdition();
+
+  // LE VERROU RESTE L'INSERT LUI-MEME, et non une lecture prealable : deux generations
+  // concurrentes ne peuvent pas toutes deux croire la place libre. Ce qui change, c'est la
+  // contrainte qui refuse le doublon -- ce n'est plus la cle primaire (id, desormais aleatoire,
+  // ne collisionne jamais) mais UNIQUE (journal_id, date_edition). Le 409 garde donc exactement
+  // la meme signification qu'avant : « ce titre a deja une ligne pour ce jour ».
   const reservation = await sbInsert('journal_editions', {
-    id, country: pays, date_edition: dateEdition, statut: 'en_cours'
+    id, journal_id: journalId, country: pays, date_edition: dateEdition, statut: 'en_cours'
   }, SB_HEADERS_SERVICE);
   if (!reservation.ok) {
     const dejaExistante = reservation.status === 409;
@@ -1574,12 +1626,20 @@ async function genererEditionPays(pays) {
     // jusqu'ici ni lue ni ecrite, sert enfin : elle compte les reprises pour que l'echec repete
     // soit visible en base. Aucun plafond n'est pose ici -- le cron ne s'execute qu'une fois par
     // jour (vercel.json, "0 23 * * *"), il ne peut donc pas boucler.
+    // ON RETROUVE LA LIGNE PAR SA CLE METIER, pas par l'identifiant qu'on vient de tirer : celui-ci
+    // est aleatoire et n'a justement jamais ete insere. C'est (journal_id, date_edition) qui
+    // designe le numero deja present -- la meme paire que la contrainte UNIQUE qui vient de
+    // refuser l'insertion. On recupere aussi son `id` reel, car toute la suite de la generation
+    // (ecritures de contenu, publication) travaille sur cet identifiant.
     const existantes = await sbGet('journal_editions',
-      `id=eq.${encodeURIComponent(id)}&select=statut,nb_regenerations`, SB_HEADERS_SERVICE);
+      `journal_id=eq.${encodeURIComponent(journalId)}` +
+      `&date_edition=eq.${encodeURIComponent(dateEdition)}` +
+      `&select=id,statut,nb_regenerations`, SB_HEADERS_SERVICE);
     const existante = existantes && existantes[0];
     if (!existante || existante.statut !== 'echec') {
       return { pays, dateEdition, statut: 'ignoree_deja_existante', detail: reservation.detail };
     }
+    id = existante.id; // on reprend le numero en place, on n'en cree pas un second
     const reprise = await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'en_cours',
       validation_erreurs: null,

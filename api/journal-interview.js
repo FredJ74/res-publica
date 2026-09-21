@@ -260,9 +260,40 @@ function extraireTitreCorps(texteBrut, nom) {
 // mecanisme de compare-and-swap qu'avant (retente sur conflit d'ecriture concurrente).
 const MAX_INTERVIEWS_AVANT_DERNIERE_PAGE = 4;
 
+// CIBLAGE DE L'EDITION (corrige au Lot 2, 21 septembre 2026).
+//
+// La requete selectionnait « la derniere edition publiee du pays », sans autre critere. Deux
+// defauts, l'un deja actif, l'autre arme pour le multi-titres :
+//
+//  1. AUCUN FILTRE DE VERSION. Une edition v1 pouvait etre choisie, et l'interview y etait ecrite
+//     au format v2 (avant_derniere_page). Or les editions v1 ne sont affichees nulle part : le
+//     joueur avait donne son interview, le serveur repondait « publiee », et personne ne pouvait
+//     jamais la lire. Perte silencieuse.
+//
+//  2. AUCUN TITRE DESIGNE. Des que deux journaux paraissent le meme jour dans un pays,
+//     `order=date_edition.desc&limit=1` n'a plus de reponse determinee : les deux lignes ont la
+//     meme date, et PostgREST en rend une au hasard. L'interview atterrissait dans un titre ou
+//     dans l'autre selon l'humeur du plan d'execution.
+//
+// La correction ne tranche AUCUNE question editoriale -- « quel titre publie quelle interview »
+// releve du Lot 3. Elle se contente de nommer le titre que le jeu designe deja lui-meme : celui
+// dont la parution est garantie pour ce pays, exactement le meme que celui qu'alimente
+// genererEditionPays(). On rend explicite une regle existante, on n'en invente pas.
+const PROMPT_VERSION_LISIBLE = 'v2-la-tribune';
+
 async function tenterPublicationImmediate(pays, entreeCompacte, tentatives) {
+  const journaux = await sbGet('journaux',
+    `select=id&pays=eq.${encodeURIComponent(pays)}&garanti_automatique=is.true&limit=1`,
+    SB_HEADERS_SERVICE);
+  const journalId = journaux && journaux[0] && journaux[0].id;
+  if (!journalId) return { ok: false, raison: 'aucun_titre_garanti' };
+
   for (let i = 0; i < (tentatives || 3); i++) {
-    const editions = await sbGet('journal_editions', `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&order=date_edition.desc&limit=1`, SB_HEADERS_SERVICE);
+    const editions = await sbGet('journal_editions',
+      `journal_id=eq.${encodeURIComponent(journalId)}` +
+      `&statut=eq.publiee` +
+      `&prompt_version=eq.${encodeURIComponent(PROMPT_VERSION_LISIBLE)}` +
+      `&order=date_edition.desc&limit=1`, SB_HEADERS_SERVICE);
     const edition = editions && editions[0];
     if (!edition) return { ok: false, raison: 'aucune_edition' };
 

@@ -3257,9 +3257,23 @@ function renderDernierePageJournal(dp) {
   </section>`;
 }
 
-function construireHtmlJournalDuJour(edition) {
+// Reste une fonction PURE (Lot 2, 21 septembre 2026) : elle ne lit ni `state`, ni le DOM, et
+// n'ecrit rien -- elle transforme une edition en HTML, c'est tout. C'est ce qui permet de la
+// reutiliser telle quelle pour le numero du jour ET pour un numero d'archive, sans la dupliquer.
+//
+// MONOTITRE RETIRE. Le fronton affichait « La Tribune de Républia » en dur, quelle que soit
+// l'edition lue. Or ce titre n'existe pas : les quatre journaux en base sont « L'Autruche
+// Entravée » (republic), « Le Minaret Doré » (khalija), « El Narco Times » (narco) et
+// « La Pravdovka » (soviet). Tout lecteur de khalija lisait donc son propre quotidien sous le nom
+// d'un autre. Le nom vient desormais de la base (journaux.nom, joint par la RPC de lecture) ; le
+// repli n'invente pas de titre, il n'affiche que la date.
+function construireHtmlJournalDuJour(edition, options) {
   const dateFr = escapeHtmlText(formaterDateEditionFr(edition.date_edition));
   const index = construireIndexFaitsJournal(edition);
+  const nomTitre = (edition.journal && edition.journal.nom) || '';
+  // Origine du titre au fronton : la lecture etant internationale, un joueur peut avoir sous les
+  // yeux un quotidien etranger. Le pays leve l'ambiguite la ou le seul nom ne suffit plus.
+  const paysTitre = _presseNomPays(edition.journal && edition.journal.pays);
 
   const une = edition.une || {};
   const dp = edition.double_page_centrale || {};
@@ -3271,10 +3285,19 @@ function construireHtmlJournalDuJour(edition) {
   // bouton .modal-close existant (jamais de logique de fermeture dupliquee) -- .modal-header est
   // masque quand une edition s'affiche (voir .journal-mode, style.css), donc ce bouton devient
   // l'unique moyen de fermer visible.
+  // Le retour (vers le kiosque ou vers la liste d'archives) est fourni par l'appelant sous forme
+  // d'un libelle et d'une action : la fonction reste ainsi ignorante de la navigation.
+  // Le bouton de retour est volontairement de la MEME taille et de la meme forme que la croix de
+  // fermeture, et pose symetriquement a gauche : le fronton centre son titre entre 3rem de
+  // rembourrage de chaque cote, et une pastille portant un libelle deborderait sur ce titre aux
+  // largeurs etroites. Le libelle passe donc par title/aria-label, et il est repete en toutes
+  // lettres au pied du numero, ou la place ne manque pas.
+  const retour = (options && options.retour) || null;
   html += `<div class="tribune-fronton">
     <button type="button" class="tribune-fronton-close" onclick="document.querySelector('#modal-postes .modal-close')?.click()" aria-label="Fermer">✕</button>
-    <div class="tribune-fronton-titre">La Tribune de Républia</div>
-    <div class="tribune-fronton-sub">Quotidien national · Édition du ${dateFr}</div>
+    ${retour ? `<button type="button" class="tribune-fronton-retour" onclick="${escapeHtmlText(retour.action)}" title="${escapeHtmlText(retour.libelle)}" aria-label="${escapeHtmlText(retour.libelle)}">◀</button>` : ''}
+    ${nomTitre ? `<div class="tribune-fronton-titre">${escapeHtmlText(nomTitre)}</div>` : ''}
+    <div class="tribune-fronton-sub">${paysTitre ? escapeHtmlText(paysTitre) + ' · ' : ''}Édition du ${dateFr}</div>
   </div>`;
   html += `<div class="tribune-contenu">`;
 
@@ -3317,6 +3340,25 @@ function construireHtmlJournalDuJour(edition) {
   // Dernière page : arrivées/carnet/chiens écrasés/indices/petites annonces, assemblés côté
   // serveur. Même remarque : .tribune-derniere porte déjà sa propre bordure et son propre titre.
   html += renderDernierePageJournal(eco.derniere_page);
+
+  // PIED DE NUMERO : Kiosque et Archives, TOUJOURS, quelle que soit la provenance.
+  //
+  // C'est l'exigence de l'arbitrage « ouverture directe » : quand un seul titre parait, le joueur
+  // arrive dans le numero sans etre passe par l'ecran de selection. Il ne doit pas pour autant se
+  // retrouver enferme -- les deux destinations restent atteignables depuis le journal lui-meme.
+  // Ces deux entrees sont posees inconditionnellement (et non deduites de `retour`) precisement
+  // pour qu'aucune provenance ne puisse en priver le lecteur.
+  //
+  // `retour` s'y ajoute seulement quand il designe autre chose : revenir a la PAGE d'archives d'ou
+  // l'on vient n'est pas la meme chose qu'aller a la racine des archives.
+  const liens = [];
+  if (retour && retour.action !== 'presseAfficherKiosque()'
+             && retour.action !== 'presseAfficherArchivesTitres()') {
+    liens.push(`<span class="journal-action-link" onclick="${escapeHtmlText(retour.action)}">◀ ${escapeHtmlText(retour.libelle)}</span>`);
+  }
+  liens.push('<span class="journal-action-link" onclick="presseAfficherKiosque()">Kiosque</span>');
+  liens.push('<span class="journal-action-link" onclick="presseAfficherArchivesTitres()">Archives</span>');
+  html += `<div class="tribune-pied-retour">${liens.join('<span class="tribune-pied-sep">·</span>')}</div>`;
 
   html += `</div></div>`;
   return html;
@@ -3420,12 +3462,19 @@ function dateEditionAujourdhui(country) {
   return fmt.format(new Date());
 }
 
-// Version de schema editorial attendue par construireHtmlJournalDuJour() -- DOIT rester
-// synchronisee avec PROMPT_VERSION cote serveur (api/_journal-generation.js). Une edition dont le
-// prompt_version differe (ex. 'v1', ancien format villes/nationale/internationale) n'est jamais
-// selectionnee ici : correctif du 4 septembre 2026, le renderer actuel ne sait pas lire ce format
-// (confirme par diagnostic : rendu a 304 caracteres, quasiment vide, sur une vraie edition v1).
-const PROMPT_VERSION_JOURNAL_ATTENDU = 'v2-la-tribune';
+// Version de schema editorial attendue par construireHtmlJournalDuJour() : 'v2-la-tribune'. Une
+// edition dont le prompt_version differe (ex. 'v1', ancien format villes/nationale/
+// internationale) n'est jamais proposee au lecteur -- correctif du 4 septembre 2026, le renderer
+// actuel ne sait pas lire ce format (confirme par diagnostic : rendu a 304 caracteres, quasiment
+// vide, sur une vraie edition v1). Les editions v1 restent en base, simplement invisibles
+// (arbitrage A du Lot 2 : ni renderer v1, ni adaptateur, ni migration, ni suppression).
+//
+// LA CONSTANTE A DEMENAGE (Lot 2, 21 septembre 2026). Elle vit desormais dans supabase.js sous le
+// nom PRESSE_VERSION_LISIBLE, au plus pres des trois guichets qui filtrent dessus (kiosque,
+// archives, lecture). L'ancienne constante locale n'etait plus lue par personne depuis que la
+// selection s'y fait : la laisser aurait cree deux sources pour une meme regle, donc une
+// divergence possible entre ce que le kiosque propose et ce que le renderer sait afficher. Elle
+// doit rester synchronisee avec PROMPT_VERSION cote serveur (api/_journal-generation.js).
 
 // force=true (chantier "acces depuis le journal d'evenements", 1er septembre 2026) : contourne
 // le garde-fou "une seule fois par jour" ci-dessous, reserve a l'ouverture automatique au
@@ -3433,97 +3482,335 @@ const PROMPT_VERSION_JOURNAL_ATTENDU = 'v2-la-tribune';
 // d'evenements (voir plus bas) appelle TOUJOURS afficherJournalDuJour(true) -- sans ce parametre,
 // un clic sur ce lien apres la premiere ouverture automatique de la journee resterait sans effet
 // (return silencieux), ce qui aurait rendu le nouveau point d'acces inutilisable des le 2e clic.
+// =====================
+// KIOSQUE MULTI-TITRES (Lot 2, 21 septembre 2026)
+// =====================
+// Ce que le lot change, en une phrase : le Journal du jour n'ouvre plus UN quotidien suppose
+// unique, il ouvre un KIOSQUE ou figurent tous les titres parus aujourd'hui dans le pays, plus
+// l'acces aux archives de chacun.
+//
+// SIGNATURE PRESERVEE. afficherJournalDuJour(force) garde exactement son nom, son parametre et sa
+// semantique de verrou de session : elle est appelee depuis plateau-core.js (ouverture automatique
+// au chargement) et depuis le lien pose dans le journal d'evenements. Ce qu'elle AFFICHE change,
+// pas la facon dont on l'appelle.
+//
+// LECTURE GLOBALE (arbitrage F). Lire la presse ne coute pas de PA, n'exige aucun deplacement et
+// ne depend d'aucun batiment : il n'y a pas de kiosque physique sur le plateau. Le kiosque est un
+// ecran, pas un lieu.
+//
+// ETAT DE NAVIGATION. Les listes affichees sont conservees ici, et les gestionnaires de clic
+// reference un INDICE dans ces listes -- jamais un identifiant interpole dans du HTML. Aucune
+// donnee venue de la base ne transite donc par un attribut onclick.
+const PRESSE_ARCHIVES_PAR_PAGE = 12;
+let _presseEtat = { kiosque: [], titres: [], editions: [], titreCourant: null, page: 0 };
+
+function _presseCorps(html) {
+  const corps = document.getElementById('postes-body');
+  if (corps) corps.innerHTML = html;
+}
+
+// Les ecrans de navigation (kiosque, archives) ne sont PAS des numeros : ils gardent l'en-tete de
+// modale generique, qui porte la fermeture et la poignee de deplacement. Seule la lecture d'une
+// edition bascule en `journal-mode`, ou .tribune-fronton devient le seul en-tete visuel (voir
+// .journal-mode dans style.css). C'est la regle etablie le 4 septembre 2026, inchangee.
+// Le glisser-deposer n'est re-arme que si la poignee CHANGE reellement d'element. Re-armer
+// appelle desactiverDragJournal(), qui restitue le centrage flex de la fenetre : sans cette
+// garde, passer du kiosque aux archives puis a la collection recentrait la fenetre a chaque
+// ecran, annulant le deplacement que le joueur venait de faire. Le passage navigation <-> lecture
+// change en revanche vraiment de poignee (.modal-header <-> .tribune-fronton) et doit re-armer.
+let _presseDragPoignee = null;
+function _presseArmerDrag(selecteur) {
+  if (_presseDragPoignee === selecteur) return;
+  _presseDragPoignee = selecteur;
+  activerDragJournal(selecteur);
+}
+
+function _presseModeNavigation(titreModale) {
+  const t = document.getElementById('postes-modal-title');
+  if (t) t.textContent = titreModale;
+  document.querySelector('#modal-postes .modal-box')?.classList.remove('journal-mode');
+  _presseArmerDrag('.modal-header');
+}
+
+function _presseChargement(titreModale) {
+  _presseModeNavigation(titreModale);
+  _presseCorps('<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>');
+}
+
+// Conteneur unique de tous les ecrans de navigation. Il porte le papier, les marges negatives qui
+// annulent le rembourrage de la modale, et le pied. Sans lui, un bloc de message (marges
+// negatives) suivi d'un pied (marges normales) ne s'alignaient pas.
+function _presseEcran(contenu, pied) {
+  return `<div class="kiosque">${contenu}`
+    + (pied ? `<div class="kiosque-pied">${pied}</div>` : '')
+    + `</div>`;
+}
+
+// PANNE ET ABSENCE NE SE RESSEMBLENT PAS (exigence du lot). Les guichets de supabase.js rendent
+// `null` quand la presse est injoignable et `[]` quand personne n'a publie. Les deux messages
+// ci-dessous sont distincts et le second propose de reessayer : un joueur ne doit jamais croire
+// que le journal n'a pas paru alors que c'est la requete qui a echoue.
+//
+// L'habillage diegetique reste la regle (12 septembre 2026) : le joueur ne lit jamais un code
+// HTTP, un nom d'API ni un credit epuise. Mais une panne est nommee comme une panne -- la fiction
+// habille, elle ne ment pas sur ce qui s'est passe.
+function htmlKiosqueVide() {
+  return '<div class="kiosque-message">'
+    + '<div class="kiosque-message-titre">Aucun journal n\'a encore paru aujourd\'hui.</div>'
+    + '<p class="kiosque-message-texte">Les rotatives sont à l\'arrêt. Aucun titre n\'a tiré '
+    + 'd\'édition ce matin.</p>'
+    + '<p class="kiosque-message-texte">Les numéros déjà parus restent consultables aux archives.</p>'
+    + '</div>';
+}
+
+function htmlPressePanne() {
+  return '<div class="kiosque-message kiosque-message-panne">'
+    + '<div class="kiosque-message-titre">Le kiosque est injoignable</div>'
+    + '<p class="kiosque-message-texte">Impossible de savoir quels titres ont paru : la liaison '
+    + 'n\'a pas abouti. Ce n\'est pas une absence de parution.</p>'
+    + '<p class="kiosque-message-texte"><span class="journal-action-link" onclick="presseAfficherKiosque()">Réessayer</span></p>'
+    + '</div>';
+}
+
+// Nom lisible du pays d'origine d'un titre. Le kiosque etant international, l'origine cesse d'etre
+// une evidence : « L'Autruche Entravée » et « El Narco Times » cohabitent desormais sur le meme
+// ecran. Repli sur le code brut si le pays est inconnu -- on n'invente jamais un nom d'empire.
+function _presseNomPays(code) {
+  return (typeof COUNTRIES !== 'undefined' && COUNTRIES[code] && COUNTRIES[code].n) || code || '';
+}
+
+// ---- ECRAN 1 : LE KIOSQUE DU JOUR ----
+// METADONNEES SEULEMENT. sbGetKiosqueDuJour ne demande que id/journal_id/date + nom et pays du
+// titre : ouvrir le kiosque ne charge AUCUN contenu d'article, meme si dix titres paraissent. Le
+// numero n'est rapatrie qu'au moment ou le joueur en ouvre un.
+//
+// CHARGEMENT ET RENDU SONT SEPARES, et ce n'est pas un raffinement gratuit. Le point d'entree doit
+// arbitrer 0 / 1 / plusieurs titres AVANT de decider quoi afficher, alors qu'un lien « Kiosque »
+// pose dans un numero doit TOUJOURS aboutir au kiosque. Si une seule fonction faisait les deux,
+// le lien « Kiosque » d'un numero ouvert directement (cas « 1 seul titre ») rouvrirait ce meme
+// numero : le joueur ne pourrait jamais atteindre l'ecran de selection ni, de la, les archives.
+async function _presseChargerKiosque() {
+  const dateAujourdhui = dateEditionAujourdhui(state.country);
+  const parus = typeof sbGetKiosqueDuJour === 'function'
+    ? await sbGetKiosqueDuJour(dateAujourdhui).catch(() => null)
+    : null;
+  if (parus !== null) _presseEtat.kiosque = parus;
+  return parus;
+}
+
+function _presseRendreKiosque(parus) {
+  const lienArchives = '<span class="journal-action-link" onclick="presseAfficherArchivesTitres()">Consulter les archives</span>';
+
+  // L'acces aux archives est propose dans les TROIS cas -- titres parus, aucune parution, panne.
+  // Une journee sans journal ne doit jamais etre un cul-de-sac : la collection reste lisible.
+  if (parus === null) { _presseCorps(_presseEcran(htmlPressePanne(), lienArchives)); return; }
+  if (parus.length === 0) { _presseCorps(_presseEcran(htmlKiosqueVide(), lienArchives)); return; }
+
+  const cartes = parus.map((e, i) => {
+    const nom = (e.journaux && e.journaux.nom) || e.journal_id;
+    const pays = _presseNomPays(e.journaux && e.journaux.pays);
+    return `<div class="kiosque-titre" onclick="presseOuvrirEditionDuJour(${i})">
+      ${pays ? `<div class="kiosque-titre-pays">${escapeHtmlText(pays)}</div>` : ''}
+      <div class="kiosque-titre-nom">${escapeHtmlText(nom)}</div>
+      <div class="kiosque-titre-date">Édition du ${escapeHtmlText(formaterDateEditionFr(e.date_edition))}</div>
+    </div>`;
+  }).join('');
+
+  _presseCorps(_presseEcran(
+    `<div class="kiosque-entete">À la une aujourd'hui</div>
+     <div class="kiosque-grille">${cartes}</div>`, lienArchives));
+}
+
+// Toujours l'ecran de selection, meme s'il n'y a qu'un titre : c'est la destination des liens
+// « Kiosque » poses dans les numeros.
+async function presseAfficherKiosque() {
+  _presseChargement('Kiosque');
+  _presseRendreKiosque(await _presseChargerKiosque());
+}
+
+// ---- ECRAN 2 : LA LECTURE D'UN NUMERO ----
+// Unique chemin de lecture, partage par le kiosque et par les archives : meme guichet, meme
+// renderer. `retour` est le seul element qui differe entre les deux provenances.
+async function _presseLireEdition(editionId, retour, titreModale) {
+  _presseChargement(titreModale);
+  const edition = typeof sbLirePresseEdition === 'function'
+    ? await sbLirePresseEdition(editionId).catch(() => null)
+    : null;
+
+  if (!edition) {
+    // L'identifiant vient d'une liste que le serveur a lui-meme filtree : s'il ne rend rien, c'est
+    // que la lecture a echoue, pas que le numero n'existe pas.
+    _presseCorps(_presseEcran('<div class="kiosque-message kiosque-message-panne">'
+      + '<div class="kiosque-message-titre">Ce numéro n\'a pas pu être ouvert</div>'
+      + '<p class="kiosque-message-texte">La liaison avec les presses n\'a pas abouti.</p>'
+      + '</div>',
+      `<span class="journal-action-link" onclick="${retour.action}">◀ ${escapeHtmlText(retour.libelle)}</span>`));
+    return null;
+  }
+
+  _presseCorps(construireHtmlJournalDuJour(edition, { retour }));
+  // Hierarchie visuelle unique (correctif UX du 4 septembre 2026) : uniquement quand un vrai
+  // numero s'affiche, .tribune-fronton devient LE seul en-tete visuel et recoit la poignee de
+  // deplacement. Jamais pour le kiosque, les archives ou un message de repli.
+  document.querySelector('#modal-postes .modal-box')?.classList.add('journal-mode');
+  // Toujours re-arme, sans passer par la garde : .tribune-fronton est reconstruit a chaque
+  // numero affiche, donc l'ecouteur precedent pointerait sur un element detruit. Seul
+  // .modal-header, qui survit aux changements d'ecran, beneficie de la garde.
+  _presseDragPoignee = '.tribune-fronton';
+  activerDragJournal('.tribune-fronton');
+  return edition;
+}
+
+function presseOuvrirEditionDuJour(i) {
+  const e = _presseEtat.kiosque[i];
+  if (!e) return;
+  return _presseLireEdition(e.id, { libelle: 'Kiosque', action: 'presseAfficherKiosque()' }, 'Journal du jour');
+}
+
+// ---- ECRAN 3 : LES ARCHIVES, NIVEAU TITRES ----
+// Un titre n'apparait ici que s'il a reellement publie au moins un numero lisible (arbitrage C) :
+// la visibilite se deduit du contenu, aucune colonne `actif` n'est consultee ni maintenue. Un
+// journal cree mais muet -- c'est le cas de « La Pravdovka » aujourd'hui -- n'est pas propose.
+async function presseAfficherArchivesTitres() {
+  _presseChargement('Archives de la presse');
+  const titres = typeof sbGetPresseTitresArchives === 'function'
+    ? await sbGetPresseTitresArchives().catch(() => null)
+    : null;
+
+  const retour = '<span class="journal-action-link" onclick="presseAfficherKiosque()">◀ Retour au kiosque</span>';
+
+  if (titres === null) { _presseCorps(_presseEcran(htmlPressePanne(), retour)); return; }
+  _presseEtat.titres = titres;
+
+  if (titres.length === 0) {
+    _presseCorps(_presseEcran('<div class="kiosque-message">'
+      + '<div class="kiosque-message-titre">Les archives sont vides</div>'
+      + '<p class="kiosque-message-texte">Aucun titre n\'a encore publié de numéro.</p>'
+      + '</div>', retour));
+    return;
+  }
+
+  const lignes = titres.map((t, i) =>
+    `<div class="kiosque-titre" onclick="presseAfficherArchivesEditions(${i})">
+      ${t.pays ? `<div class="kiosque-titre-pays">${escapeHtmlText(_presseNomPays(t.pays))}</div>` : ''}
+      <div class="kiosque-titre-nom">${escapeHtmlText(t.nom)}</div>
+      <div class="kiosque-titre-date">${t.nb_editions} numéro${t.nb_editions > 1 ? 's' : ''} · dernier le ${escapeHtmlText(formaterDateEditionFr(t.derniere_parution))}</div>
+    </div>`).join('');
+
+  _presseCorps(_presseEcran(
+    `<div class="kiosque-entete">Archives — choisir un titre</div>
+     <div class="kiosque-grille">${lignes}</div>`, retour));
+}
+
+// ---- ECRAN 4 : LES ARCHIVES, NIVEAU NUMEROS D'UN TITRE ----
+// Du plus recent au plus ancien, page par page, METADONNEES SEULEMENT : cette liste ne charge
+// aucun article. Le guichet demande une ligne de plus que la page pour savoir s'il existe une
+// suite, sans compter la collection entiere.
+async function presseAfficherArchivesEditions(i, page) {
+  const titre = (i === undefined || i === null) ? _presseEtat.titreCourant : _presseEtat.titres[i];
+  if (!titre) return;
+  _presseEtat.titreCourant = titre;
+  _presseEtat.page = Math.max(0, page || 0);
+
+  _presseChargement(titre.nom);
+  const res = typeof sbGetPresseEditionsArchives === 'function'
+    ? await sbGetPresseEditionsArchives(titre.journal_id, PRESSE_ARCHIVES_PAR_PAGE,
+        _presseEtat.page * PRESSE_ARCHIVES_PAR_PAGE).catch(() => null)
+    : null;
+
+  const retour = '<span class="journal-action-link" onclick="presseAfficherArchivesTitres()">◀ Tous les titres</span>';
+
+  if (res === null) { _presseCorps(_presseEcran(htmlPressePanne(), retour)); return; }
+  _presseEtat.editions = res.editions;
+
+  if (res.editions.length === 0) {
+    _presseCorps(_presseEcran('<div class="kiosque-message">'
+      + '<div class="kiosque-message-titre">Aucun numéro sur cette page</div>'
+      + '</div>', retour));
+    return;
+  }
+
+  const lignes = res.editions.map((e, k) =>
+    `<div class="kiosque-numero" onclick="presseOuvrirEditionArchive(${k})">
+      ${escapeHtmlText(formaterDateEditionFr(e.date_edition))}
+    </div>`).join('');
+
+  const nav = [];
+  if (_presseEtat.page > 0) nav.push(`<span class="journal-action-link" onclick="presseAfficherArchivesEditions(null, ${_presseEtat.page - 1})">◀ Numéros plus récents</span>`);
+  if (res.encore) nav.push(`<span class="journal-action-link" onclick="presseAfficherArchivesEditions(null, ${_presseEtat.page + 1})">Numéros plus anciens ▶</span>`);
+
+  _presseCorps(_presseEcran(
+    `<div class="kiosque-entete">${escapeHtmlText(titre.nom)}${titre.pays ? ' · ' + escapeHtmlText(_presseNomPays(titre.pays)) : ''} — collection</div>
+     <div class="kiosque-numeros">${lignes}</div>
+     ${nav.length ? `<div class="kiosque-pagination">${nav.join('')}</div>` : ''}`, retour));
+}
+
+function presseOuvrirEditionArchive(k) {
+  const e = _presseEtat.editions[k];
+  if (!e) return;
+  // Le retour ramene a la PAGE d'ou l'on vient, pas au debut de la collection.
+  return _presseLireEdition(e.id,
+    { libelle: 'Archives', action: `presseAfficherArchivesEditions(null, ${_presseEtat.page})` },
+    _presseEtat.titreCourant ? _presseEtat.titreCourant.nom : 'Archives');
+}
+
+// ---- POINT D'ENTREE (signature inchangee) ----
+// force=true (chantier "acces depuis le journal d'evenements", 1er septembre 2026) : contourne
+// le garde-fou "une seule fois par jour" ci-dessous, reserve a l'ouverture automatique au
+// chargement (plateau-core.js). Le lien pose dans le journal d'evenements appelle TOUJOURS
+// afficherJournalDuJour(true) -- sans ce parametre, un clic apres la premiere ouverture
+// automatique de la journee resterait sans effet (return silencieux).
 async function afficherJournalDuJour(force) {
   const today = state.day || 1;
   const sessionKey = 'journal_dujour_day_' + today;
   if (!force && sessionStorage.getItem(sessionKey)) return;
   sessionStorage.setItem(sessionKey, '1');
 
-  document.getElementById('postes-modal-title').textContent = 'Journal du jour';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>';
   document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('modal-postes').classList.add('open');
-  activerDragJournal(); // etat de chargement : poignee sur .modal-header, seul en-tete existant a cet instant
+  _presseChargement('Journal du jour');
 
-  // Selection STRICTE : edition publiee, DATEE d'aujourd'hui (jamais "la derniere connue, aussi
-  // ancienne soit-elle"), ET dans le format attendu par le renderer actuel -- correctif du 4
-  // septembre 2026 (diagnostic production : l'ancienne requete remontait silencieusement une
-  // edition v1 vieille de 9 jours, faute de filtre sur la date ou le format). Aucune tolerance
-  // "N jours d'anciennete" : soit l'edition du jour existe et correspond au format actuel, soit
-  // aucun numero n'est affiche.
-  let edition = null;
-  if (typeof sbGet === 'function') {
-    try {
-      const dateAujourdhui = dateEditionAujourdhui(state.country);
-      const rows = await sbGet('journal_editions',
-        'country=eq.' + encodeURIComponent(state.country) +
-        '&statut=eq.publiee' +
-        '&date_edition=eq.' + encodeURIComponent(dateAujourdhui) +
-        '&prompt_version=eq.' + encodeURIComponent(PROMPT_VERSION_JOURNAL_ATTENDU) +
-        '&limit=1');
-      edition = (rows && rows[0]) || null;
-    } catch(e) { console.warn('afficherJournalDuJour error', e); }
+  // ARBITRAGE 0 / 1 / PLUSIEURS (21 septembre 2026).
+  //
+  // Le kiosque n'est impose que lorsqu'il y a un choix reel a faire. Un ecran de selection a une
+  // seule entree ne fait rien choisir du tout : il ajoute un clic entre le joueur et son journal,
+  // et rompt la fluidite historique de l'ouverture du matin. On ne l'affiche donc qu'a partir de
+  // deux titres parus.
+  //
+  // Un seul titre n'enferme personne pour autant : le numero ouvert directement porte en pied ses
+  // acces « Kiosque » et « Archives » (voir construireHtmlJournalDuJour). Le kiosque reste donc
+  // atteignable meme quand il ne s'affiche pas de lui-meme.
+  const parus = await _presseChargerKiosque();
+  if (parus && parus.length === 1) {
+    await presseOuvrirEditionDuJour(0);
+  } else {
+    _presseRendreKiosque(parus); // 0 titre -> message d'absence ; 2+ -> ecran de selection
   }
 
-  document.getElementById('postes-body').innerHTML = edition
-    ? construireHtmlJournalDuJour(edition)
-    : htmlRedactionEnGreve();
-
-  // Hierarchie visuelle unique (correctif UX du 4 septembre 2026, diagnostic production "fenetre
-  // dans une fenetre") : uniquement quand une vraie edition s'affiche, .tribune-fronton devient LE
-  // seul en-tete visuel -- .modal-header generique est masque (voir .journal-mode, style.css) et la
-  // poignee de glisser-deposer est re-armee sur .tribune-fronton (seul element visible portant
-  // desormais le role d'en-tete). Jamais applique pour le message de repli "aucun numero
-  // disponible" : il n'existe alors aucun .tribune-fronton, .modal-header doit rester visible et
-  // porter la fermeture/le drag comme avant.
-  document.querySelector('#modal-postes .modal-box')?.classList.toggle('journal-mode', !!edition);
-  activerDragJournal(edition ? '.tribune-fronton' : '.modal-header');
-
-  // Point d'acces depuis le journal d'evenements (chantier 1er septembre 2026) : reutilise
-  // exactement addJournalEntry() (jamais un second mecanisme de journal) et
-  // afficherJournalDuJour() elle-meme pour l'action -- aucune modale/logique de chargement
-  // dupliquee. "!force" est essentiel ici : sans lui, chaque clic sur "Lire le Journal du jour"
-  // (qui appelle afficherJournalDuJour(true), voir plus haut) republierait une NOUVELLE entree de
-  // notification a chaque reouverture -- verifie par execution reelle (WKWebView), c'etait le cas
-  // avant cet ajout. Avec !force, cette ligne n'est atteinte qu'une seule fois par edition
-  // (premiere decouverte automatique, jamais lors d'une reouverture manuelle) ; aucune entree si
-  // edition est null (aucune edition disponible).
-  // LIEN POSÉ DANS TOUS LES CAS (correctif du 12 septembre 2026). Il ne l'était que lorsqu'une
-  // édition avait été trouvée ("&& edition"). Combiné au verrou "une ouverture automatique par
-  // session", un joueur dont le pays n'avait pas de numéro disposait donc d'UNE seule apparition du
-  // journal par session, sur le message de repli, sans aucun moyen de le rouvrir : il n'existe ni
-  // ordre, ni bouton, ni kiosque menant au Journal. Le lien est désormais toujours écrit, et il
-  // reste cliquable dans l'historique du journal d'événements (restaurerJournal) : le joueur peut
-  // rouvrir La Tribune quand il veut, sans jamais toucher à une console ni à une API.
-  if (!force) addJournalEntry(
-    edition
-      ? '📰 La nouvelle édition de La Tribune de Républia est disponible. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Lire le Journal du jour</span>'
-      : '📰 La Tribune de Républia n\'a pas pu paraître. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Passer au kiosque</span>',
-    'event-info'
-  );
-}
-
-// HABILLAGE DIÉGÉTIQUE D'UNE PANNE (12 septembre 2026) — niveau 3 de la hiérarchie éditoriale.
-//
-// Le joueur ne doit JAMAIS lire un message technique : ni erreur, ni nom d'API, ni crédit épuisé,
-// ni code HTTP. Quand aucune édition n'est publiable, le jeu explique donc l'absence de journal
-// dans sa propre fiction : la rédaction est en grève.
-//
-// CE N'EST PAS UNE MÉCANIQUE DE JEU. Aucune grève réelle n'est créée, aucun syndicat n'est
-// impliqué, aucun indicateur ne bouge, rien n'est écrit en base : c'est un habillage d'affichage,
-// et rien d'autre. Il n'est atteint que si même l'édition déterministe n'a pu être produite
-// (api/_journal-generation.js, niveau 3) — jamais parce que l'actualité du jour était pauvre : une
-// journée calme produit un vrai numéro, court.
-function htmlRedactionEnGreve() {
-  return '<div class="tribune-greve">'
-    + '<div class="tribune-greve-bandeau">La Tribune de Républia</div>'
-    + '<div class="tribune-greve-titre">Pas de numéro aujourd\'hui</div>'
-    + '<p class="tribune-greve-texte">La rédaction est en grève. Les rotatives sont à l\'arrêt et '
-    + 'aucune édition n\'a pu être tirée ce matin.</p>'
-    + '<p class="tribune-greve-texte">Le quotidien reparaîtra dès la reprise du travail.</p>'
-    + '<div class="tribune-greve-signature">La direction</div>'
-    + '</div>';
+  // Notification dans le journal d'evenements, UNE SEULE FOIS par jour de jeu (d'ou "!force" :
+  // sans lui, chaque reouverture manuelle republierait une entree -- constate en execution reelle
+  // sous WKWebView avant que cette garde n'existe). Le lien est pose dans TOUS les cas (correctif
+  // du 12 septembre 2026) : il reste cliquable dans l'historique du journal, seul moyen pour le
+  // joueur de rouvrir la presse, puisqu'il n'existe ni ordre ni bouton de plateau qui y mene.
+  // Le libelle depend de ce qui a reellement paru, et ne nomme plus un titre en dur.
+  // L'entree du journal d'evenements distingue les MEMES trois etats que l'ecran -- panne,
+  // absence de parution, parution(s). Annoncer « aucun journal n'a paru » alors que la requete a
+  // echoue serait exactement la confusion que le lot demande d'eviter, deplacee d'un cran.
+  if (!force) {
+    const lien = '<span class="journal-action-link" onclick="afficherJournalDuJour(true)">';
+    let texte;
+    if (parus === null) {
+      texte = '📰 Le kiosque est injoignable. ' + lien + 'Réessayer</span>';
+    } else if (parus.length === 0) {
+      texte = '📰 Aucun journal n\'a paru aujourd\'hui. ' + lien + 'Passer au kiosque</span>';
+    } else if (parus.length === 1) {
+      const nom = (parus[0].journaux && parus[0].journaux.nom) || 'Un titre';
+      texte = `📰 ${escapeHtmlText(nom)} a paru aujourd'hui. ` + lien + 'Lire le journal</span>';
+    } else {
+      texte = `📰 ${parus.length} titres ont paru aujourd'hui. ` + lien + 'Passer au kiosque</span>';
+    }
+    addJournalEntry(texte, 'event-info');
+  }
 }
 
 // =====================

@@ -4142,6 +4142,137 @@ async function sbEnregistrerEvenementEscort(client, escort, typeEvenement) {
 
 
 // =====================
+// PRESSE — KIOSQUE, LECTURE, ARCHIVES (Lot 2, 21 septembre 2026)
+// =====================
+// Quatre guichets, une seule regle commune : ON NE RAPATRIE JAMAIS `faits_sources`.
+//
+// C'est la colonne qui porte la matiere brute ayant servi a ecrire le numero (jusqu'a 1,1 Mo pour
+// une seule edition). Le lecteur n'en voit rien. L'ancien appel du Journal du jour faisait un
+// sbGet SANS `select=` : PostgREST renvoie alors TOUTES les colonnes, donc celle-la -- 112 ko en
+// moyenne par ouverture, pour 4,7 ko reellement affiches. Tout `select=` ci-dessous est donc
+// explicite et limitatif, jamais decoratif.
+//
+// DISTINCTION PANNE / ABSENCE, exigee par le lot. sbGet renvoie `null` quand la requete echoue
+// (HTTP non-2xx) et `[]` quand elle reussit sans rien trouver. Ces guichets propagent cette
+// difference telle quelle : `null` = la presse est injoignable, `[]` = personne n'a publie.
+// L'appelant doit distinguer les deux -- un tableau vide n'est pas une erreur, et une erreur ne
+// doit jamais s'afficher comme « aucun journal n'a paru ».
+//
+// VISIBILITE (arbitrages A, B, C du lot). Un numero n'est visible que s'il est `publiee` ET en
+// `v2-la-tribune` : les editions v1 (que le renderer actuel ne sait pas lire) et les editions en
+// `echec` restent en base mais ne sont proposees nulle part, sans trou ni mention. Un titre
+// n'existe pour le lecteur que s'il a reellement publie -- c'est la presence d'editions qui le
+// rend visible, il n'y a pas de colonne `actif` a tenir a jour.
+const PRESSE_VERSION_LISIBLE = 'v2-la-tribune';
+
+// Filtre de visibilite partage par les trois lectures. Centralise pour qu'aucun guichet ne puisse
+// diverger des deux autres sur ce qui est montrable.
+function _pressefiltreVisible() {
+  return 'statut=eq.publiee&prompt_version=eq.' + encodeURIComponent(PRESSE_VERSION_LISIBLE);
+}
+
+// LA LECTURE DE LA PRESSE EST INTERNATIONALE (arbitrage du 21 septembre 2026).
+//
+// Le kiosque et les archives ne filtrent plus sur le pays du joueur. Un Republien lit la presse
+// d'El Estado, de Sovarka et d'Al-Khalija comme la sienne : c'est de la matiere de jeu (situation
+// economique etrangere, opportunites commerciales, actualite utile aux relations internationales),
+// pas une commodite d'affichage.
+//
+// CETTE OUVERTURE NE CONCERNE QUE LA LECTURE. Elle n'accorde aucun droit redactionnel etranger, ne
+// touche ni aux appartenances aux groupes de presse, ni aux delegations editoriales, ni aux regles
+// de publication. C'est structurellement vrai, pas seulement voulu : les droits vivent dans
+// `journaux_redacteurs`, `presse_membres` et `groupes_presse`, et la matiere privee des redactions
+// dans `journal_articles_en_attente` (RLS active, ZERO policy -- close a tout le monde). Aucune de
+// ces tables n'est lue ici. Les deux guichets ci-dessous ne touchent que `journal_editions` et
+// `journaux`, tous deux deja publics en lecture (policy USING(true)) : l'ouverture retire un
+// filtre cote client, elle n'ouvre aucune porte cote serveur.
+
+// KIOSQUE : tous les titres parus AUJOURD'HUI, tous pays confondus. Metadonnees seules -- ni
+// `une`, ni `double_page_centrale`, ni `page_economie_societe`. Ouvrir le kiosque ne doit couter
+// que quelques centaines d'octets, meme si dix titres paraissent : le contenu n'est charge que
+// lorsqu'un titre est reellement ouvert.
+// `journaux(nom,slug,pays)` est une jointure PostgREST via la cle etrangere journal_id ; `pays`
+// sert a afficher l'origine du titre, desormais utile a la comprehension.
+//
+// UNE SEULE DATE POUR TOUS LES PAYS. `date_edition` est calculee par le serveur avec
+// TIMEZONE_PAR_PAYS (api/_journal-generation.js), ou les quatre pays valent aujourd'hui
+// 'Europe/Paris' -- exactement le fuseau que reproduit dateEditionAujourdhui() cote client. Un
+// seul filtre de date est donc juste pour tout le monde. SI UN PAYS CHANGEAIT DE FUSEAU, ce
+// guichet cesserait de montrer ses parutions du jour a la bonne heure : c'est le point a reprendre
+// ici, et nulle part ailleurs.
+async function sbGetKiosqueDuJour(dateEdition) {
+  return await sbGet('journal_editions',
+    'select=id,journal_id,date_edition,journaux(nom,slug,pays)' +
+    '&date_edition=eq.' + encodeURIComponent(dateEdition) +
+    '&' + _pressefiltreVisible() +
+    '&order=journal_id.asc');
+}
+
+// ARCHIVES, niveau 1 : tous les titres, tous pays, ayant au moins UN numero lisible.
+// On interroge les editions (et non `journaux`) precisement parce que la visibilite derive du
+// contenu publie : un titre cree mais n'ayant jamais paru -- ou n'ayant que des editions v1 ou en
+// echec -- n'apparait pas, sans qu'aucun drapeau n'ait a etre maintenu. Le dedoublonnage se fait
+// ici, sur des lignes de quelques octets.
+async function sbGetPresseTitresArchives() {
+  const rows = await sbGet('journal_editions',
+    'select=journal_id,date_edition,journaux(nom,slug,pays)' +
+    '&' + _pressefiltreVisible() +
+    '&order=date_edition.desc');
+  if (rows === null) return null; // panne : surtout pas « aucun titre »
+  const parTitre = new Map();
+  rows.forEach(r => {
+    const t = parTitre.get(r.journal_id);
+    if (t) { t.nb_editions++; return; }
+    parTitre.set(r.journal_id, {
+      journal_id: r.journal_id,
+      nom: (r.journaux && r.journaux.nom) || r.journal_id,
+      slug: (r.journaux && r.journaux.slug) || '',
+      pays: (r.journaux && r.journaux.pays) || '',
+      derniere_parution: r.date_edition, // rows est trie par date desc : la 1re vue est la plus recente
+      nb_editions: 1
+    });
+  });
+  // Groupes par pays, titres alphabetiques a l'interieur : une collection internationale se
+  // parcourt par origine, pas dans un ordre alphabetique global qui melangerait les empires.
+  return Array.from(parTitre.values()).sort((a, b) =>
+    a.pays.localeCompare(b.pays, 'fr') || a.nom.localeCompare(b.nom, 'fr'));
+}
+
+// ARCHIVES, niveau 2 : les numeros d'UN titre, du plus recent au plus ancien, page par page.
+// Metadonnees seules, comme le kiosque. On demande `limite + 1` lignes pour savoir s'il existe
+// une page suivante sans avoir a compter la collection entiere.
+async function sbGetPresseEditionsArchives(journalId, limite, decalage) {
+  const n = Math.max(1, limite | 0);
+  const rows = await sbGet('journal_editions',
+    'select=id,date_edition' +
+    '&journal_id=eq.' + encodeURIComponent(journalId) +
+    '&' + _pressefiltreVisible() +
+    '&order=date_edition.desc' +
+    '&limit=' + (n + 1) +
+    '&offset=' + Math.max(0, decalage | 0));
+  if (rows === null) return null;
+  return { editions: rows.slice(0, n), encore: rows.length > n };
+}
+
+// LECTURE D'UN NUMERO. Passe par la RPC journal_edition_lire (migration
+// presse_lot2_kiosque_lecture_edition) plutot que par PostgREST, pour UNE raison : l'index
+// d'images. Le renderer resout `image.ref_id` en cherchant le fait cite dans faits_sources et
+// n'en lit que `photo_url` ou `club_image` ; PostgREST ne sait pas projeter deux champs des
+// elements d'un tableau JSON, la RPC si. Elle renvoie donc le contenu, le nom du titre, et un
+// `faits_sources` reduit aux seuls faits reellement cites par une image -- dans la forme exacte
+// qu'attend construireIndexFaitsJournal(), qui n'a pas eu a changer.
+// Mesure sur les 24 editions v2 publiees : 112 ko en moyenne avant, 12 ko apres (-89 %), sans
+// qu'aucune image affichee aujourd'hui ne disparaisse.
+// La RPC applique elle-meme le filtre de visibilite : une edition v1 ou en echec renvoie null,
+// meme si son identifiant est connu.
+async function sbLirePresseEdition(editionId) {
+  const res = await sbRpc('journal_edition_lire', { p_edition_id: editionId });
+  if (res === null || res === undefined) return null;
+  return Array.isArray(res) ? (res[0] || null) : res;
+}
+
+
+// =====================
 // ASSEMBLEE NATIONALE (chantier du 10 septembre 2026)
 // =====================
 // TOUTES les ecritures parlementaires passent par une RPC transactionnelle. AUCUNE ecriture REST
