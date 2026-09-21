@@ -49,6 +49,10 @@
   </div>
 
   <div class="hg-panneau">
+    <!-- RETOUR DE CONFIRMATION D'ADRESSE (Lot 3b comptes PJ, 22 septembre 2026).
+         Rempli par rpRetourConfirmation() dans creation.js quand Supabase renvoie le joueur ici
+         apres un clic dans le courriel. Vide et invisible le reste du temps. -->
+    <div id="retour-confirmation" style="display:none"></div>
     <button class="hg-btn hg-btn-primaire" onclick="goTo(1)">
       <span data-i18n="home.createCharacter">Creer mon personnage</span>
     </button>
@@ -199,9 +203,9 @@
 <script src="i18n/i18n-init.js"></script>
 <script src="data.js"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
-<script src="auth.js?v=4"></script>
+<script src="auth.js?v=5"></script>
 <script src="supabase.js?v=228"></script>
-<script src="creation.js?v=5"></script>
+<script src="creation.js?v=6"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

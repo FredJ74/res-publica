@@ -108,6 +108,75 @@ async function connecterAvecMotDePasse() {
   setTimeout(() => { window.location.href = 'plateau.html'; }, 700);
 }
 
+// =====================================================================
+// RETOUR DE CONFIRMATION D'ADRESSE (Lot 3b comptes PJ, 22 septembre 2026)
+// =====================================================================
+// Supabase renvoie le joueur sur la Site URL -- donc ICI -- apres le clic dans le courriel de
+// confirmation, en deposant le resultat dans le FRAGMENT de l'URL (#access_token=...&type=... ou
+// #error=...). Deux choses sont a faire, et une troisieme est deliberement NON faite.
+//
+// 1. EFFACER LE FRAGMENT IMMEDIATEMENT. Il contient un access_token et un refresh_token en clair.
+//    Tant qu'ils restent dans la barre d'adresse, ils partent dans l'historique du navigateur,
+//    dans un partage d'ecran, dans un copier-coller d'URL. On les retire de l'URL des la premiere
+//    instruction utile, avec history.replaceState pour ne pas ajouter d'entree d'historique.
+//
+// 2. DIRE AU JOUEUR OU IL EN EST, et le mener au seul chemin qui marche : « Me connecter a mon
+//    compte », le formulaire du Lot 2. Sans ce message il arriverait sur un accueil muet, en
+//    croyant que le clic a echoue.
+//
+// 3. CE QU'ON NE FAIT PAS : adopter la session portee par le fragment. Ce point est mis en
+//    attente d'arbitrage, et l'abstention est ici le choix SUR. Adopter cette session ecraserait
+//    RP_AUTH_SESSION dans le localStorage de CET appareil. Si un autre joueur y a un personnage
+//    ouvert sur un compte ANONYME -- appareil familial, tablette partagee --, son jeton anonyme
+//    n'existe nulle part ailleurs : l'ecraser rend son personnage definitivement irrecuperable.
+//    Le confort d'un joueur ne peut pas se payer de la perte seche du personnage d'un autre.
+//    Se connecter avec l'adresse et le mot de passe qu'il vient justement de confirmer coute au
+//    joueur dix secondes, et ne detruit rien.
+function rpRetourConfirmation() {
+  let frag = '';
+  try { frag = (window.location.hash || '').replace(/^#/, ''); } catch (e) { return; }
+  if (!frag) return;
+
+  let p;
+  try { p = new URLSearchParams(frag); } catch (e) { return; }
+  const type   = p.get('type');
+  const erreur = p.get('error_code') || p.get('error');
+  const jeton  = p.get('access_token');
+  // Fragment etranger au parcours Auth (ancre de page, etc.) : on n'y touche pas.
+  if (!erreur && !jeton && !type) return;
+
+  // Effacement du fragment AVANT tout affichage. replaceState ne recharge pas la page et ne
+  // laisse pas l'URL porteuse de jetons dans l'historique.
+  try {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  } catch (e) { try { window.location.hash = ''; } catch (e2) {} }
+
+  const zone = document.getElementById('retour-confirmation');
+  if (!zone) return;
+
+  const cadre = 'padding:.8rem .9rem;margin-bottom:.9rem;border-left:3px solid ';
+  if (erreur) {
+    // otp_expired, access_denied... On ne montre jamais le code technique.
+    zone.innerHTML = '<div style="' + cadre + '#8a4a38;background:rgba(138,74,56,.12)">'
+      + '<div style="font-weight:600;margin-bottom:.2rem">Ce lien de confirmation n\'est plus valable.</div>'
+      + '<div style="font-size:.9rem;line-height:1.5">Il a expiré, ou une adresse plus récente l\'a remplacé. '
+      + 'Rouvrez votre personnage sur l\'appareil où vous jouez et demandez un nouveau courriel.</div></div>';
+    zone.style.display = 'block';
+    return;
+  }
+
+  zone.innerHTML = '<div style="' + cadre + '#4a8a4a;background:rgba(74,138,74,.12)">'
+    + '<div style="font-weight:600;margin-bottom:.2rem">Votre adresse e-mail est confirmée.</div>'
+    + '<div style="font-size:.9rem;line-height:1.5">Votre personnage est désormais rattaché à votre compte. '
+    + 'Connectez-vous ci-dessous avec cette adresse et votre mot de passe pour le retrouver, '
+    + 'sur cet appareil ou sur n\'importe quel autre.</div></div>';
+  zone.style.display = 'block';
+  // ouvrirConnexionCompte est une BASCULE : l'appeler sur un panneau deja ouvert (arrivee avec
+  // ?connexion=1) le refermerait. On ne l'appelle donc que s'il est ferme.
+  const panel = document.getElementById('connexion-panel');
+  if (panel && panel.style.display === 'none') ouvrirConnexionCompte();
+}
+
 // Ouverture directe depuis le bandeau de rupture d'identite du plateau, qui renvoie ici avec
 // ?connexion=1 plutot que de dupliquer le formulaire. Le joueur arrive donc sur l'ecran deja
 // deplie, sans avoir a chercher le bouton.
@@ -117,6 +186,7 @@ window.addEventListener('DOMContentLoaded', () => {
       ouvrirConnexionCompte();
     }
   } catch (e) {}
+  try { rpRetourConfirmation(); } catch (e) {}
 });
 
 function retrouverPersonnage() {

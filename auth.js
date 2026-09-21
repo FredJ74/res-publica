@@ -207,8 +207,11 @@ async function rpAuthSecuriserCompte(email, motDePasse) {
   // 1. L'ETAT VENAIT D'UNE SUPPOSITION. On posait est_anonyme = false sans jamais regarder la
   //    reponse : si le serveur n'avait pas reellement converti le compte (confirmation en
   //    attente selon la configuration), l'interface aurait affiche « securise » a tort. On lit
-  //    desormais ce que le serveur repond. Mesure sur ce projet : mailer_autoconfirm valant
-  //    true, la conversion est immediate et is_anonymous retombe a false dans la reponse meme.
+  //    desormais ce que le serveur repond.
+  //    MISE A JOUR DU 22 septembre 2026 (lot 3b) : mailer_autoconfirm vaut desormais FALSE. La
+  //    conversion n'est donc PLUS immediate -- le serveur repond is_anonymous:true et new_email
+  //    renseigne. C'est l'etat normal, pas un echec : l'appelant doit annoncer « en attente de
+  //    confirmation », jamais « personnage securise ». On rend enAttente pour qu'il le puisse.
   //
   // 2. L'IDENTIFIANT EST VERIFIE, PAS SUPPOSE. PUT /user agit sur l'utilisateur porte par le
   //    jeton : il ne peut pas changer d'identifiant, c'est structurel. Mais cette garantie est
@@ -223,12 +226,84 @@ async function rpAuthSecuriserCompte(email, motDePasse) {
   // Le jeton courant reste valable (meme `sub`) ; on rafraichit l'etat local pour que l'IHM
   // cesse d'afficher l'avertissement "personnage non securise".
   if (RP_AUTH_SESSION && RP_AUTH_SESSION.user) {
-    RP_AUTH_SESSION.user.email = (compte && compte.email) || email;
+    RP_AUTH_SESSION.user.email = (compte && compte.email) || null;
     RP_AUTH_SESSION.user.est_anonyme = compte ? (compte.is_anonymous === true) : false;
     rpAuthEcrireStockage(RP_AUTH_SESSION);
   }
-  return { ok: true, email: (compte && compte.email) || email,
+  return { ok: true, email: (compte && compte.email) || null,
+           enAttente: (compte && compte.new_email) || email,
            encore_anonyme: compte ? (compte.is_anonymous === true) : null };
+}
+
+/* --- ETAT REEL DU COMPTE, LU AU SERVEUR (Lot 3b, 21 septembre 2026) ------
+   L'interface ne doit JAMAIS deduire « compte securise » du fait qu'un formulaire a ete envoye :
+   entre la saisie et la confirmation, le compte reste anonyme et l'adresse n'est qu'EN ATTENTE.
+   Seul le serveur sait ou l'on en est, et c'est lui qu'on interroge.
+
+   Comportement REEL de notre instance, mesure et non suppose (banc du 21 septembre) :
+     - avant confirmation : email vide, new_email renseigne, is_anonymous true, mot de passe DEJA
+       pose, connexion par mot de passe refusee ;
+     - apres confirmation : email renseigne, new_email vide, is_anonymous false, identite 'email'
+       creee, connexion possible -- et auth.users.id inchange de bout en bout.
+   La documentation officielle affirme le contraire sur le mot de passe : elle a tort ici. */
+async function rpAuthEtatCompte() {
+  const jeton = rpAuthJeton();
+  if (!jeton) return { ok: false, raison: 'aucune_session' };
+  let res;
+  try {
+    res = await fetch(RP_AUTH_URL + '/user', {
+      headers: { 'apikey': rpAuthCleAnon(), 'Authorization': 'Bearer ' + jeton }
+    });
+  } catch (e) { return { ok: false, raison: 'reseau' }; }
+  if (!res.ok) return { ok: false, raison: 'http_' + res.status };
+  const u = await res.json().catch(() => null);
+  if (!u || !u.id) return { ok: false, raison: 'reponse_illisible' };
+
+  // On rafraichit l'etat local au passage : rpAuthEstAnonyme/rpAuthEmail cessent ainsi de
+  // repondre d'apres un souvenir, y compris apres une confirmation faite sur un autre appareil.
+  if (RP_AUTH_SESSION && RP_AUTH_SESSION.user) {
+    RP_AUTH_SESSION.user.est_anonyme = (u.is_anonymous === true);
+    RP_AUTH_SESSION.user.email = u.email || null;
+    rpAuthEcrireStockage(RP_AUTH_SESSION);
+  }
+  return {
+    ok: true,
+    anonyme:   u.is_anonymous === true,
+    email:     u.email || null,        // adresse EFFECTIVE, donc confirmee
+    enAttente: u.new_email || null,    // adresse saisie, pas encore prouvee
+    confirmee: !!u.email_confirmed_at
+  };
+}
+
+/* --- (RE)DEMANDER LA CONFIRMATION D'UNE ADRESSE -------------------------
+   Sert aux DEUX besoins du lot : renvoyer le courriel (meme adresse) et corriger une adresse
+   mal saisie (adresse differente). C'est le meme appel -- verifie au banc : une nouvelle adresse
+   remplace celle en attente ET revoque le jeton precedent, si bien qu'il n'existe jamais qu'un
+   seul lien valide. Une adresse erronee ne peut donc pas prendre le compte plus tard.
+   Secure email change est desactive : aucun lien n'est envoye a l'ancienne adresse -- ce qui est
+   indispensable, le joueur ne controlant precisement pas l'adresse qu'il vient de mal saisir. */
+async function rpAuthDemanderConfirmationAdresse(email) {
+  const jeton = rpAuthJeton();
+  if (!jeton) return { ok: false, raison: 'aucune_session' };
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, raison: 'email_invalide' };
+  let res;
+  try {
+    res = await fetch(RP_AUTH_URL + '/user', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'apikey': rpAuthCleAnon(),
+                 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ email: email })
+    });
+  } catch (e) { return { ok: false, raison: 'reseau' }; }
+  const texte = await res.text();
+  let d = null; try { d = texte ? JSON.parse(texte) : null; } catch (e) {}
+  if (!res.ok) {
+    // 429 over_email_send_rate_limit : fenetre mesuree a ~86 s sur notre instance. On ne la
+    // contourne pas, on l'annonce.
+    return { ok: false, raison: (d && (d.error_code || d.msg)) || ('http_' + res.status) };
+  }
+  const u = (d && (d.id ? d : d.user)) || null;
+  return { ok: true, enAttente: (u && u.new_email) || email };
 }
 
 /** Reconnexion explicite d'un compte deja securise (autre appareil, session perdue).

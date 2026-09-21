@@ -708,33 +708,209 @@ function _compteEstProprietaireDuPersonnage() {
   return state.personnageChargeDepuisServeur === true && typeof state.liquide === 'number';
 }
 
+// TEMPORISATION DES ENVOIS. Le serveur plafonne les courriels de confirmation : mesure reelle au
+// banc du 21 septembre, `429 over_email_send_rate_limit` avec une fenetre d'environ 86 secondes.
+// On prend 90 s de marge et on DESACTIVE le bouton pendant ce temps, plutot que de laisser le
+// joueur cliquer dans le vide et recevoir un refus. L'instant du dernier envoi est persiste :
+// un rechargement de page ne doit pas rouvrir la vanne.
+const SECU_DELAI_RENVOI_MS = 90000;
+const SECU_CLE_DERNIER_ENVOI = 'respublica_confirmation_envoyee_a';
+
+function _secuNoterEnvoi() {
+  try { localStorage.setItem(SECU_CLE_DERNIER_ENVOI, String(Date.now())); } catch (e) {}
+}
+function _secuSecondesRestantes() {
+  let t = 0;
+  try { t = parseInt(localStorage.getItem(SECU_CLE_DERNIER_ENVOI) || '0', 10) || 0; } catch (e) {}
+  return Math.max(0, Math.ceil((t + SECU_DELAI_RENVOI_MS - Date.now()) / 1000));
+}
+
+const SECU_CADRE = 'margin-top:1.4rem;padding:.8rem .9rem;background:#0f0d05;border:1px solid #2a2010';
+const SECU_TITRE = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;'
+                 + 'color:#6a5a30">SÉCURITÉ DU COMPTE</div>';
+const SECU_BOUTON = 'font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;'
+                  + 'padding:.45rem .9rem;border:1px solid #8a6a20;background:transparent;'
+                  + 'color:#C9A84C;cursor:pointer';
+
+// Rendu SYNCHRONE : un conteneur vide, rempli juste apres par l'etat REEL du serveur. L'onglet
+// Identite reste instantane, et l'on n'affiche jamais un etat devine.
 function htmlSecuriteDuCompte() {
-  if (typeof rpAuthEstAnonyme !== 'function' || typeof rpAuthSecuriserCompte !== 'function') return '';
-  if (!_compteEstProprietaireDuPersonnage()) return '';
+  if (typeof rpAuthEtatCompte !== 'function' || !_compteEstProprietaireDuPersonnage()) return '';
+  setTimeout(rafraichirSecuriteDuCompte, 0);
+  return '<div id="bloc-securite-compte" style="' + SECU_CADRE + '">' + SECU_TITRE
+       + '<div style="font-size:.78rem;color:#6a6050;margin-top:.3rem;font-style:italic">Vérification…</div></div>';
+}
 
-  const cadre = 'margin-top:1.4rem;padding:.8rem .9rem;background:#0f0d05;border:1px solid #2a2010';
-  const titre = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#6a5a30">SÉCURITÉ DU COMPTE</div>';
+// LES TROIS ETATS VIENNENT DU SERVEUR, JAMAIS D'UNE DEDUCTION LOCALE. C'est la regle du lot :
+// entre la saisie du formulaire et le clic dans le courriel, le compte n'est PAS securise, et
+// l'affirmer serait exactement l'illusion que ce chantier existe pour supprimer.
+async function rafraichirSecuriteDuCompte() {
+  const bloc = document.getElementById('bloc-securite-compte');
+  if (!bloc) return;
+  const etat = await rpAuthEtatCompte().catch(() => null);
 
-  if (!rpAuthEstAnonyme()) {
-    const adresse = (typeof rpAuthEmail === 'function' && rpAuthEmail()) || '';
-    return '<div style="' + cadre + '">' + titre
-      + '<div style="font-size:.82rem;color:#8ab88a;margin-top:.3rem"><i class="ti ti-shield-check"></i> '
-      + 'Votre personnage est sécurisé.</div>'
-      + (adresse ? '<div style="font-size:.74rem;color:#7a7060;margin-top:.2rem">Compte : '
-                   + escapeHtmlText(adresse) + '</div>' : '')
-      + '</div>';
+  if (!etat || !etat.ok) {
+    bloc.innerHTML = SECU_TITRE
+      + '<div style="font-size:.8rem;color:#8a8060;margin-top:.3rem">État du compte indisponible '
+      + 'pour le moment.</div>'
+      + '<div style="margin-top:.6rem"><button onclick="rafraichirSecuriteDuCompte()" style="' + SECU_BOUTON + '">Réessayer</button></div>';
+    return;
   }
 
-  return '<div style="' + cadre + '">' + titre
+  // ETAT C — confirme. Seul cas ou l'on annonce « securise ».
+  if (!etat.anonyme && etat.confirmee && etat.email) {
+    bloc.innerHTML = SECU_TITRE
+      + '<div style="font-size:.82rem;color:#8ab88a;margin-top:.3rem"><i class="ti ti-shield-check"></i> '
+      + '<strong>Compte sécurisé.</strong> Vous pouvez retrouver ce personnage depuis n\'importe quel appareil.</div>'
+      + '<div style="font-size:.74rem;color:#7a7060;margin-top:.25rem">Adresse confirmée : '
+      + escapeHtmlText(etat.email) + '</div>';
+    return;
+  }
+
+  // ETAT B — adresse saisie mais pas encore prouvee.
+  if (etat.enAttente) {
+    const reste = _secuSecondesRestantes();
+    bloc.innerHTML = SECU_TITRE
+      + '<div style="font-size:.82rem;color:#d8c088;margin-top:.3rem"><i class="ti ti-mail-forward"></i> '
+      + '<strong>Adresse e-mail en attente de confirmation</strong></div>'
+      + '<div style="font-size:.78rem;color:#c0b090;margin-top:.2rem">'
+      + escapeHtmlText(etat.enAttente) + '</div>'
+      + '<div style="font-size:.78rem;color:#8a8060;margin-top:.5rem;line-height:1.6">'
+      + 'Votre personnage reste parfaitement jouable sur cette session. La sécurisation ne sera '
+      + 'complète qu\'après avoir cliqué le lien reçu par courriel — et tant que ce n\'est pas fait, '
+      + 'la connexion depuis un autre appareil ne fonctionnera pas.</div>'
+      + '<div style="margin-top:.7rem;display:flex;gap:.5rem;flex-wrap:wrap">'
+      + '<button id="secu-renvoyer" onclick="renvoyerConfirmationAdresse()" style="' + SECU_BOUTON + '"'
+      + (reste > 0 ? ' disabled' : '') + '>'
+      + (reste > 0 ? 'Renvoyer dans ' + reste + ' s' : '<i class="ti ti-refresh"></i> Renvoyer le courriel')
+      + '</button>'
+      + '<button onclick="ouvrirModalCorrigerAdresse()" style="' + SECU_BOUTON + ';border-color:#3a2a10;color:#9a8a68">'
+      + '<i class="ti ti-pencil"></i> Corriger l\'adresse</button></div>'
+      + '<div id="secu-bloc-message" style="font-size:.78rem;margin-top:.5rem;min-height:1rem"></div>';
+    if (reste > 0) _secuArmerCompteARebours();
+    return;
+  }
+
+  // ETAT A — compte anonyme, rien n'a encore ete tente.
+  bloc.innerHTML = SECU_TITRE
     + '<div style="font-size:.82rem;color:#c0b090;margin-top:.3rem;line-height:1.6">'
     + 'Votre personnage n\'est lié qu\'à <strong>ce navigateur</strong>. Si vous effacez vos '
     + 'données de navigation, ou si vous changez d\'appareil, il deviendrait irrécupérable.</div>'
-    + '<div style="margin-top:.7rem">'
-    + '<button onclick="ouvrirModalSecuriserCompte()" style="font-family:Bebas Neue,sans-serif;'
-    + 'font-size:.7rem;letter-spacing:.08em;padding:.45rem .9rem;border:1px solid #8a6a20;'
-    + 'background:transparent;color:#C9A84C;cursor:pointer">'
-    + '<i class="ti ti-shield-lock"></i> Sécuriser mon personnage</button></div>'
+    + '<div style="margin-top:.7rem"><button onclick="ouvrirModalSecuriserCompte()" style="' + SECU_BOUTON + '">'
+    + '<i class="ti ti-shield-lock"></i> Sécuriser mon personnage</button></div>';
+}
+
+// Compte a rebours du bouton de renvoi. Un seul minuteur, jamais empile.
+let _secuMinuteur = null;
+function _secuArmerCompteARebours() {
+  if (_secuMinuteur) clearInterval(_secuMinuteur);
+  _secuMinuteur = setInterval(() => {
+    const b = document.getElementById('secu-renvoyer');
+    if (!b) { clearInterval(_secuMinuteur); _secuMinuteur = null; return; }
+    const reste = _secuSecondesRestantes();
+    if (reste > 0) { b.disabled = true; b.textContent = 'Renvoyer dans ' + reste + ' s'; return; }
+    clearInterval(_secuMinuteur); _secuMinuteur = null;
+    b.disabled = false;
+    b.innerHTML = '<i class="ti ti-refresh"></i> Renvoyer le courriel';
+  }, 1000);
+}
+
+function _secuBlocMessage(texte, erreur) {
+  const z = document.getElementById('secu-bloc-message');
+  if (z) { z.textContent = texte || ''; z.style.color = erreur ? '#c88a7a' : '#8ab88a'; }
+}
+
+// Traduction des refus serveur. On ne montre JAMAIS le code technique de GoTrue, et l'on reste
+// general sur l'adresse deja prise -- le repeter permettrait de tester quelles adresses ont un
+// compte.
+function _secuMotifLisible(raison) {
+  return ({
+    over_email_send_rate_limit: 'Un courriel vient d\'être envoyé. Patientez un instant avant de réessayer.',
+    email_exists:              'Cette adresse ne peut pas être utilisée. Essayez-en une autre.',
+    validation_failed:         'Cette adresse n\'est pas valide.',
+    email_invalide:            'Cette adresse n\'est pas valide.',
+    weak_password:             'Ce mot de passe est trop faible. Choisissez-en un plus long.',
+    mot_de_passe_trop_court:   'Le mot de passe doit faire au moins 8 caractères.',
+    aucune_session:            'Votre session n\'a pas pu être établie. Rechargez la page.',
+    reseau:                    'Connexion impossible. Vérifiez votre réseau et réessayez.',
+    otp_expired:               'Ce lien de confirmation a expiré. Demandez-en un nouveau.',
+    identifiant_de_compte_modifie: 'Opération interrompue : le compte a changé d\'identifiant. Rien n\'a été modifié.'
+  })[raison] || 'L\'opération a échoué. Réessayez dans un instant.';
+}
+
+async function renvoyerConfirmationAdresse() {
+  const reste = _secuSecondesRestantes();
+  if (reste > 0) { _secuBlocMessage('Patientez encore ' + reste + ' s.', true); return; }
+  const etat = await rpAuthEtatCompte().catch(() => null);
+  if (!etat || !etat.ok || !etat.enAttente) { rafraichirSecuriteDuCompte(); return; }
+
+  const b = document.getElementById('secu-renvoyer');
+  if (b) { b.disabled = true; b.textContent = 'Envoi…'; }
+  const r = await rpAuthDemanderConfirmationAdresse(etat.enAttente).catch(() => null);
+  // Le re-rendu REMPLACE le contenu du bloc, message compris : on le fait donc AVANT d'ecrire le
+  // message, jamais apres, sous peine d'un texte qui s'efface de lui-meme.
+  if (!r || r.ok !== true) {
+    // Un 429 signifie qu'un envoi est bien parti recemment : on referme la vanne plutot que de
+    // laisser le joueur marteler le bouton.
+    if (r && r.raison === 'over_email_send_rate_limit') _secuNoterEnvoi();
+    await rafraichirSecuriteDuCompte();
+    _secuBlocMessage(_secuMotifLisible(r && r.raison), true);
+    return;
+  }
+  _secuNoterEnvoi();
+  await rafraichirSecuriteDuCompte();
+  _secuBlocMessage('Courriel de confirmation renvoyé.', false);
+}
+
+// CORRECTION D'ADRESSE. Scenario critique du lot : le joueur s'est trompe en saisissant son
+// adresse et ne recevra donc jamais rien. Verifie au banc -- la nouvelle adresse remplace celle
+// en attente ET revoque le jeton precedent ; il n'existe jamais qu'un seul lien valide, et
+// l'adresse erronee ne peut plus rien prendre. Aucune confirmation n'est demandee sur l'ancienne
+// adresse (Secure email change desactive), ce qui est indispensable : le joueur ne la controle pas.
+function ouvrirModalCorrigerAdresse() {
+  const champ = 'width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+              + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box';
+  document.getElementById('postes-modal-title').textContent = 'Corriger l\'adresse e-mail';
+  document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;max-width:32rem">'
+    + '<div style="font-size:.85rem;color:#c0b090;line-height:1.7">'
+    + 'Saisissez l\'adresse correcte. Un nouveau courriel de confirmation y sera envoyé, et '
+    + '<strong>le lien précédent cessera immédiatement de fonctionner</strong>.</div>'
+    + '<div style="font-size:.8rem;color:#8a8060;margin-top:.5rem">Votre personnage et votre '
+    + 'session ne sont pas affectés.</div>'
+    + '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;'
+    + 'color:#8a6a20;margin:.9rem 0 .25rem">NOUVELLE ADRESSE E-MAIL</div>'
+    + '<input type="email" id="secu-nouvelle-adresse" autocomplete="email" placeholder="vous@exemple.fr" style="' + champ + '">'
+    + '<div id="secu-message" style="font-size:.8rem;margin-top:.8rem;min-height:1.1rem"></div>'
+    + '<div style="margin-top:.4rem;display:flex;gap:.5rem;flex-wrap:wrap">'
+    + '<button id="secu-valider" onclick="confirmerCorrectionAdresse()" style="' + SECU_BOUTON + '">Envoyer le courriel</button>'
+    + '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="'
+    + SECU_BOUTON + ';border-color:#3a2a10;color:#9a8a68">Annuler</button></div>'
     + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCorrectionAdresse() {
+  const email = (document.getElementById('secu-nouvelle-adresse')?.value || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _secuMessage('Cette adresse n\'est pas valide.', true); return; }
+  const reste = _secuSecondesRestantes();
+  if (reste > 0) { _secuMessage('Un courriel vient d\'être envoyé. Patientez ' + reste + ' s.', true); return; }
+
+  const b = document.getElementById('secu-valider');
+  if (b) { b.disabled = true; b.style.opacity = '.5'; }
+  _secuMessage('Envoi en cours…', false);
+
+  const r = await rpAuthDemanderConfirmationAdresse(email).catch(() => null);
+  if (!r || r.ok !== true) {
+    _secuMessage(_secuMotifLisible(r && r.raison), true);
+    if (r && r.raison === 'over_email_send_rate_limit') _secuNoterEnvoi();
+    if (b) { b.disabled = false; b.style.opacity = '1'; }
+    return;
+  }
+  _secuNoterEnvoi();
+  showToast('Nouvelle adresse enregistrée', 'Un courriel de confirmation vient d\'y être envoyé.', true);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  rafraichirSecuriteDuCompte();
 }
 
 function ouvrirModalSecuriserCompte() {
@@ -765,9 +941,9 @@ function ouvrirModalSecuriserCompte() {
     // enfermerait le joueur -- on le lui dit franchement, plutot que de le decouvrir plus tard.
     + '<div style="margin-top:.9rem;padding:.6rem .7rem;background:#17120a;border-left:3px solid #8a6a20">'
     + '<div style="font-size:.78rem;color:#d8c088;line-height:1.6">'
-    + '<i class="ti ti-alert-triangle"></i> <strong>Relisez bien votre adresse avant de valider.</strong> '
-    + 'Aucun courriel de confirmation n\'est envoyé pour le moment : une adresse mal saisie ne '
-    + 'pourrait pas servir à vous dépanner.</div></div>'
+    + '<i class="ti ti-mail"></i> <strong>Un courriel de confirmation vous sera envoyé.</strong> '
+    + 'Vous continuerez à jouer normalement en attendant, et vous pourrez corriger l\'adresse si '
+    + 'vous vous êtes trompé.</div></div>'
     + '<div style="' + etiq + '">ADRESSE E-MAIL</div>'
     + '<input type="email" id="secu-email" autocomplete="email" placeholder="vous@exemple.fr" style="' + champ + '">'
     + '<div style="' + etiq + '">MOT DE PASSE</div>'
@@ -822,19 +998,29 @@ async function confirmerSecurisationCompte() {
     return;
   }
 
-  // Garde-fou d'affichage : on n'annonce « securise » que si le serveur a REELLEMENT converti le
-  // compte. rpAuthSecuriserCompte rend encore_anonyme d'apres sa reponse, jamais d'apres un espoir.
-  if (r.encore_anonyme === true) {
-    _secuMessage('Le compte n\'a pas encore été confirmé. Réessayez plus tard.', true);
-    if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
-    return;
-  }
-
-  showToast('Personnage sécurisé',
-            'Vous pourrez désormais le retrouver depuis un autre appareil.', true);
-  addJournalEntry('🔐 Votre personnage est désormais sécurisé : ' + escapeHtmlText(r.email || email) + '.', 'event-good');
+  // GARDE-FOU D'AFFICHAGE (revu le 22 septembre 2026, lot 3b).
+  //
+  // Depuis que mailer_autoconfirm vaut false, le serveur repond is_anonymous:true et pose
+  // l'adresse en new_email : c'est l'etat NORMAL, pas un echec. On n'annonce donc « securise »
+  // que si le serveur a reellement converti le compte -- ce qui, en configuration courante,
+  // n'arrivera qu'apres le clic dans le courriel. Le cas encore_anonyme === false est conserve :
+  // il redeviendrait vrai si la confirmation etait un jour desactivee, et l'interface doit alors
+  // dire la verite dans l'autre sens aussi.
+  _secuNoterEnvoi();
   document.getElementById('modal-postes')?.classList.remove('open');
-  // Re-rendu de l'onglet pour que le bloc passe a l'etat « securise ».
+
+  if (r.encore_anonyme === false) {
+    showToast('Personnage sécurisé',
+              'Vous pourrez désormais le retrouver depuis un autre appareil.', true);
+    addJournalEntry('🔐 Votre personnage est désormais sécurisé : ' + escapeHtmlText(r.email || email) + '.', 'event-good');
+  } else {
+    showToast('Courriel de confirmation envoyé',
+              'Ouvrez le message envoyé à ' + (r.enAttente || email) + ' pour terminer.', true);
+    addJournalEntry('✉️ Un courriel de confirmation a été envoyé à ' + escapeHtmlText(r.enAttente || email)
+                    + '. Votre personnage sera récupérable depuis un autre appareil une fois l\'adresse confirmée.',
+                    'event-info');
+  }
+  // Re-rendu de l'onglet : le bloc relit l'etat au serveur et se place de lui-meme en B ou en C.
   if (typeof switchSelfTab === 'function') switchSelfTab('identite', null);
 }
 
