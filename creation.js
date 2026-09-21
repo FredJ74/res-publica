@@ -2,6 +2,123 @@
 // =====================
 // RETROUVER MON PERSONNAGE
 // =====================
+// =====================================================================
+// ME CONNECTER A MON COMPTE (Lot 2, 21 septembre 2026)
+// =====================================================================
+// Parcours inverse du Lot 1. Un joueur qui a securise son personnage doit pouvoir le retrouver
+// depuis n'importe quel navigateur -- y compris un navigateur vierge, qui aura deja recu
+// automatiquement une session ANONYME avant qu'il ne pense a se connecter.
+//
+// LA DIFFERENCE DE FOND AVEC « RETROUVER MON PERSONNAGE ». Celui-ci part d'un NOM, public, et
+// doit donc interroger le serveur pour savoir si l'appelant a le droit d'y toucher. Ici on part
+// d'un COMPTE : on s'authentifie, puis on DEMANDE au serveur quel personnage ce compte possede.
+// Le joueur ne designe jamais de personnage. Aucune revendication par le nom n'est possible.
+//
+// LE PERSONNAGE N'EST JAMAIS DEPLACE. Rien n'ecrit personnages_donnees.user_id : on ne transfere
+// pas la fiche vers la session anonyme courante, on ABANDONNE cette session au profit de celle
+// qui possede deja la fiche.
+function ouvrirConnexionCompte() {
+  const panel = document.getElementById('connexion-panel');
+  if (!panel) return;
+  const ouvert = panel.style.display !== 'none';
+  panel.style.display = ouvert ? 'none' : 'block';
+  // Le panneau « Retrouver mon personnage » se referme : deux formulaires ouverts cote a cote
+  // pretent a confusion, d'autant qu'ils repondent a la meme question par deux chemins.
+  const autre = document.getElementById('retrouver-panel');
+  if (autre && !ouvert) autre.style.display = 'none';
+  if (!ouvert) document.getElementById('connexion-email')?.focus();
+}
+
+async function connecterAvecMotDePasse() {
+  const msg = document.getElementById('connexion-msg');
+  const email = (document.getElementById('connexion-email')?.value || '').trim();
+  const mdp = document.getElementById('connexion-mdp')?.value || '';
+  const dire = (texte, erreur) => { if (msg) { msg.textContent = texte; msg.style.color = erreur ? '#8a3a2a' : '#4a8a4a'; } };
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { dire('Cette adresse n\'est pas valide.', true); return; }
+  if (!mdp) { dire('Saisissez votre mot de passe.', true); return; }
+  if (typeof rpAuthSeConnecter !== 'function' || typeof sbRpc !== 'function') {
+    dire('Service momentanément indisponible.', true); return;
+  }
+
+  const bouton = document.getElementById('connexion-valider');
+  if (bouton) { bouton.disabled = true; bouton.style.opacity = '.5'; }
+  dire('Connexion…', false);
+
+  const r = await rpAuthSeConnecter(email, mdp).catch(() => null);
+  if (!r || r.ok !== true) {
+    // MESSAGE UNIFORME. Le serveur distingue « adresse inconnue » et « mot de passe faux » ;
+    // le repeter permettrait de tester quelles adresses possedent un compte. On ne renvoie donc
+    // qu'une seule formulation pour ces deux cas, et on ne montre jamais la reponse technique.
+    const motifs = {
+      validation_failed: 'Cette adresse n\'est pas valide.',
+      over_request_rate_limit: 'Trop de tentatives. Réessayez dans un instant.'
+    };
+    dire((r && motifs[r.raison]) || 'Adresse ou mot de passe incorrect.', true);
+    if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
+    return;
+  }
+
+  // C'EST LE SERVEUR QUI NOMME LE PERSONNAGE, jamais le joueur. mon_personnage() est fondee sur
+  // auth.uid() : elle ne peut rendre que la fiche du compte qui vient de s'authentifier.
+  let nom = null;
+  try {
+    const rep = await sbRpc('mon_personnage', {});
+    nom = (rep === null || rep === undefined) ? null : (Array.isArray(rep) ? rep[0] : rep);
+    if (nom && typeof nom === 'object') nom = nom.mon_personnage ?? null;
+  } catch (e) { nom = null; }
+
+  if (!nom) {
+    dire('Connexion réussie, mais ce compte ne porte aucun personnage. Vous pouvez en créer un.', true);
+    if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
+    return;
+  }
+
+  const sbState = await sbLoadPersonnage(nom).catch(() => null);
+  if (!sbState) { dire('Personnage introuvable sur le serveur.', true);
+                  if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; } return; }
+
+  // Hydratation du cache local, a l'identique de chargerPersonnageParNom ci-dessous : meme
+  // format, memes cles. On ecrase aussi la cle generique `respublica_char`, sans quoi
+  // loadCharacter() retomberait dessus -- et afficherait le personnage d'AVANT la connexion --
+  // quand ce navigateur n'a pas encore de cache au nom du proprietaire.
+  const charData = {
+    ...sbState.char,
+    country: sbState.country,
+    currentCity: sbState.currentCity,
+    arg: sbState.arg,
+    resources: { inf: sbState.inf, pop: sbState.pop, dis: sbState.dis }
+  };
+  try {
+    localStorage.setItem('respublica_char_' + charData.name, JSON.stringify(charData));
+    localStorage.setItem('respublica_char', JSON.stringify(charData));
+    localStorage.setItem('respublica_last_char', charData.name);
+    if (sbState.char?.photoUrl) {
+      localStorage.setItem('respublica_photo_' + charData.name, sbState.char.photoUrl);
+      localStorage.setItem('respublica_photo', sbState.char.photoUrl);
+    }
+  } catch (e) { console.warn('Cache local non ecrit (quota) :', e); }
+
+  dire('Bienvenue, ' + charData.name + '. Chargement…', false);
+  // REDIRECTION PLUTOT QUE RECHARGEMENT EN PLACE. loadCharacter() ne s'execute qu'au
+  // DOMContentLoaded et porte toute la reconciliation -- position, journal, portillon
+  // d'identite, interface. La rejouer a chaud demanderait de la reimplementer, sur un etat qui
+  // appartient encore au personnage precedent. Entrer par la porte normale est plus sur, et le
+  // joueur n'a rien a recharger lui-meme.
+  setTimeout(() => { window.location.href = 'plateau.html'; }, 700);
+}
+
+// Ouverture directe depuis le bandeau de rupture d'identite du plateau, qui renvoie ici avec
+// ?connexion=1 plutot que de dupliquer le formulaire. Le joueur arrive donc sur l'ecran deja
+// deplie, sans avoir a chercher le bouton.
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    if (new URLSearchParams(window.location.search).get('connexion') === '1') {
+      ouvrirConnexionCompte();
+    }
+  } catch (e) {}
+});
+
 function retrouverPersonnage() {
   const panel = document.getElementById('retrouver-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';

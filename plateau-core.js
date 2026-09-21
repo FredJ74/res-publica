@@ -2165,8 +2165,11 @@ function signalerPersonnageFantome(nom, resultat) {
       + 'du cache de votre navigateur : rien n\'est enregistré, et toutes vos actions sont refusées.',
     autre: 'Ce navigateur affiche <strong>' + nom + '</strong>, mais votre compte possède un autre '
       + 'personnage (<strong>' + (resultat && resultat.nomServeur) + '</strong>). Le cache local est périmé.',
+    // Message reformule au Lot 2 : il pointait vers « l'appareil d'origine », seule issue quand
+    // aucune connexion n'existait. Elle existe desormais.
     appartient_a_autrui: 'Le personnage <strong>' + nom + '</strong> existe, mais il n\'appartient pas '
-      + 'à ce navigateur. Reconnectez-vous depuis l\'appareil où vous l\'avez créé.'
+      + 'à ce navigateur. Si ce personnage est le vôtre et que vous avez sécurisé votre compte, '
+      + 'connectez-vous avec votre adresse e-mail. Sinon, reprenez le navigateur où vous l\'avez créé.'
   };
   const div = document.createElement('div');
   div.id = 'bandeau-personnage-fantome';
@@ -2177,23 +2180,65 @@ function signalerPersonnageFantome(nom, resultat) {
     + 'margin-bottom:.9rem">PERSONNAGE INTROUVABLE</div>'
     + '<div style="font-size:.86rem;color:#c0b090;line-height:1.75;font-family:Crimson Pro,serif">'
     + (messages[etat] || messages.orphelin) + '</div>'
+    // ACTIONS DEPENDANTES DE L'ETAT (Lot 2 comptes PJ, 21 septembre 2026).
+    //
+    // « Creer un personnage » efface le cache local de ce navigateur. C'est la bonne issue pour
+    // un personnage DISPARU du serveur ('orphelin') : il n'y a plus rien a retrouver. C'en est
+    // une mauvaise, et meme dangereuse, quand la fiche EXISTE et appartient a un autre compte --
+    // le joueur cherche son personnage, et on lui propose au premier rang d'en fabriquer un
+    // second, laissant l'original inaccessible. Ce cas recoit donc desormais la seule action qui
+    // le denoue vraiment : se connecter au compte qui possede la fiche.
+    //
+    // La connexion n'est pas dupliquee ici : elle vit sur la page d'accueil, a cote de
+    // « Retrouver mon personnage », et s'ouvre deja depliee via ?connexion=1. Une seule
+    // implementation, un seul endroit a auditer.
     + '<div style="margin-top:1.3rem;display:flex;gap:.6rem;flex-wrap:wrap">'
-    + '<button id="btn-fantome-recreer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
-    + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
-    + 'color:#C9A84C;cursor:pointer">Créer un personnage</button>'
+    + (etat === 'appartient_a_autrui'
+        ? '<button id="btn-fantome-connexion" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+          + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
+          + 'color:#C9A84C;cursor:pointer">Me connecter à mon compte</button>'
+        : '<button id="btn-fantome-recreer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+          + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;'
+          + 'color:#C9A84C;cursor:pointer">Créer un personnage</button>')
     + '<button id="btn-fantome-ignorer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
     + 'letter-spacing:.1em;padding:.55rem 1.3rem;border:1px solid #3a2a10;background:transparent;'
     + 'color:#9a8a68;cursor:pointer">Rester sur cet écran</button>'
+    // Repartir avec un AUTRE personnage reste possible, mais devient une action distincte,
+    // formulee sans ambiguite et confirmee : jamais la voie principale d'un joueur qui cherche
+    // la sienne.
+    + (etat === 'appartient_a_autrui'
+        ? '<button id="btn-fantome-autre" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;'
+          + 'letter-spacing:.08em;padding:.55rem 1.1rem;border:1px solid #3a2a10;background:transparent;'
+          + 'color:#6a5a40;cursor:pointer">Ce n\'est pas mon personnage</button>'
+        : '')
     + '</div></div>';
   document.body.appendChild(div);
-  document.getElementById('btn-fantome-recreer').addEventListener('click', () => {
-    // Le cache de CE navigateur uniquement, et seulement sur demande explicite.
+
+  // Efface le cache de CE navigateur uniquement, et seulement sur demande explicite. Partage par
+  // « Créer un personnage » (personnage disparu) et « Ce n'est pas mon personnage » (fiche
+  // appartenant a autrui) -- deux libelles, un seul geste.
+  const repartirDeZero = () => {
     try {
       localStorage.removeItem('respublica_char');
       localStorage.removeItem('respublica_last_char');
       if (nom) localStorage.removeItem('respublica_char_' + nom);
     } catch (e) {}
     window.location.href = 'index.html';
+  };
+
+  document.getElementById('btn-fantome-recreer')?.addEventListener('click', repartirDeZero);
+  // Ouvre l'ecran de connexion de la page d'accueil, deja deplie. Le cache local n'est PAS
+  // efface : si le joueur renonce a se connecter, il retrouve l'etat ou il etait.
+  document.getElementById('btn-fantome-connexion')?.addEventListener('click', () => {
+    window.location.href = 'index.html?connexion=1';
+  });
+  // Action destructrice : jamais sans confirmation explicite, et jamais au premier rang.
+  document.getElementById('btn-fantome-autre')?.addEventListener('click', () => {
+    if (window.confirm('Ce personnage sera retiré de ce navigateur et vous repartirez sur la '
+                     + 'création d\'un nouveau personnage.\n\nLa fiche existante n\'est pas '
+                     + 'supprimée : elle reste sur le compte qui la possède.\n\nContinuer ?')) {
+      repartirDeZero();
+    }
   });
   document.getElementById('btn-fantome-ignorer').addEventListener('click', () => div.remove());
 }

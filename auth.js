@@ -231,7 +231,17 @@ async function rpAuthSecuriserCompte(email, motDePasse) {
            encore_anonyme: compte ? (compte.is_anonymous === true) : null };
 }
 
-/** Reconnexion explicite d'un compte deja securise (autre appareil, session perdue). */
+/** Reconnexion explicite d'un compte deja securise (autre appareil, session perdue).
+ *
+ *  CE QU'ELLE NE FAIT PAS, et c'est l'essentiel : elle ne nomme aucun personnage. On ne
+ *  RECLAME pas une fiche, on s'authentifie sur un COMPTE -- et le serveur dira ensuite, seul,
+ *  quel personnage ce compte possede. Aucun nom saisi par le joueur n'entre dans cette chaine,
+ *  donc aucune prise de controle par la connaissance d'un nom (qui est public) n'est possible.
+ *
+ *  Elle n'envoie pas non plus le jeton anonyme courant : c'est une authentification neuve, pas
+ *  une modification de l'utilisateur en place. La session obtenue REMPLACE entierement la
+ *  precedente, en memoire et dans le stockage.
+ */
 async function rpAuthSeConnecter(email, motDePasse) {
   const res = await fetch(RP_AUTH_URL + '/token?grant_type=password', {
     method: 'POST',
@@ -244,6 +254,13 @@ async function rpAuthSeConnecter(email, motDePasse) {
   }
   const session = rpAuthNormaliser(await res.json().catch(() => null));
   if (!session) return { ok: false, raison: 'reponse_illisible' };
+  // DURCISSEMENT DU 21 septembre 2026. Une promesse d'ouverture de session pouvait etre EN VOL
+  // au moment de la connexion (rpAuthAssurerSession est dedupliquee et survit a l'appel qui l'a
+  // lancee). En se resolvant apres nous, elle reassignait RP_AUTH_SESSION avec le compte ANONYME
+  // -- et le joueur repartait sous l'identite qu'il venait precisement de quitter. On l'abandonne
+  // explicitement : la session nominative fait desormais autorite.
+  RP_AUTH_PROMESSE = null;
+  RP_AUTH_INDISPONIBLE = false;
   RP_AUTH_SESSION = session; rpAuthEcrireStockage(session);
   return { ok: true, uid: session.user && session.user.id };
 }
