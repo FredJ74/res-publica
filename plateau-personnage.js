@@ -650,6 +650,19 @@ function switchSelfTab(tab, el) {
       html += '</div>';
     }
 
+    // SECURITE DU COMPTE (lot « Securiser mon personnage », 21 septembre 2026).
+    //
+    // Place dans l'onglet Identite, au niveau « compte » -- pas a l'arrivee dans le jeu :
+    // l'entree anonyme reste sans formulaire, et ce bloc n'apparait que pour qui vient
+    // volontairement consulter sa fiche. Aucun rappel permanent, aucune interruption.
+    //
+    // TROIS CONDITIONS, toutes verifiees avant d'afficher quoi que ce soit d'actionnable :
+    // une session existe, elle possede REELLEMENT le personnage affiche (portillon d'identite,
+    // meme critere que loadCharacter), et le compte est encore anonyme. Une session etrangere
+    // ne voit donc jamais ce bouton -- et ne pourrait de toute facon securiser que SON PROPRE
+    // compte, PUT /user n'agissant que sur le porteur du jeton.
+    html += htmlSecuriteDuCompte();
+
     html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #2a1a10">';
     html += '<button onclick="ouvrirModalDetruirePersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#8a4a3a;cursor:pointer"><i class="ti ti-skull"></i> Détruire mon personnage</button>';
     html += '</div>';
@@ -664,6 +677,167 @@ function switchSelfTab(tab, el) {
 // =====================
 // CHANGEMENT DE PHOTO DE PROFIL
 // =====================
+// =====================================================================
+// SECURISER MON PERSONNAGE (21 septembre 2026)
+// =====================================================================
+// CE QUE CE LOT REPARE. Jusqu'ici, tout ce qui reliait un joueur a son personnage tenait dans
+// UNE entree de localStorage : le couple de jetons d'un compte ANONYME. Un compte anonyme n'a,
+// par definition, aucun facteur d'authentification -- ni identifiant que le joueur connaisse, ni
+// secret qu'il puisse retaper. Cookies effaces, autre navigateur, autre appareil : il ne restait
+// plus aucun moyen, meme theorique, de prouver la propriete. C'est ce qui est arrive en
+// production.
+//
+// CE QUE FAIT LA CONVERSION. Elle attache une adresse et un mot de passe au compte EXISTANT.
+// `auth.users.id` ne change pas -- verifie sur compte jetable, empreinte identique avant et
+// apres -- donc `personnages_donnees.user_id` non plus : aucune migration, aucune
+// reattribution, aucun transfert de personnage. Le joueur peut ensuite se reconnecter depuis
+// n'importe quel appareil, et y retrouver exactement le meme personnage.
+//
+// CE QU'ELLE NE FAIT PAS. Elle ne permet a personne de RECLAMER un personnage. PUT /auth/v1/user
+// n'agit que sur le compte porteur du jeton : on ne peut securiser que le sien. C'est la
+// difference essentielle avec une recuperation, qui viendra plus tard et par un autre chemin.
+
+// Le compte courant possede-t-il REELLEMENT le personnage affiche ? Meme critere que le portillon
+// d'identite de loadCharacter() : si le serveur nous avait masque les donnees privees, la fiche ne
+// serait pas la notre. On s'appuie ici sur l'etat deja reconcilie, sans aucun appel reseau.
+function _compteEstProprietaireDuPersonnage() {
+  if (!state.char || !state.char.name) return false;
+  if (typeof rpAuthJeton === 'function' && !rpAuthJeton()) return false;
+  // state.liquide est NULL tant que la fiche est masquee ; le portillon aurait alors refuse la
+  // fusion et laisse la valeur du cache local. On exige donc une reconciliation reussie.
+  return state.personnageChargeDepuisServeur === true && typeof state.liquide === 'number';
+}
+
+function htmlSecuriteDuCompte() {
+  if (typeof rpAuthEstAnonyme !== 'function' || typeof rpAuthSecuriserCompte !== 'function') return '';
+  if (!_compteEstProprietaireDuPersonnage()) return '';
+
+  const cadre = 'margin-top:1.4rem;padding:.8rem .9rem;background:#0f0d05;border:1px solid #2a2010';
+  const titre = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#6a5a30">SÉCURITÉ DU COMPTE</div>';
+
+  if (!rpAuthEstAnonyme()) {
+    const adresse = (typeof rpAuthEmail === 'function' && rpAuthEmail()) || '';
+    return '<div style="' + cadre + '">' + titre
+      + '<div style="font-size:.82rem;color:#8ab88a;margin-top:.3rem"><i class="ti ti-shield-check"></i> '
+      + 'Votre personnage est sécurisé.</div>'
+      + (adresse ? '<div style="font-size:.74rem;color:#7a7060;margin-top:.2rem">Compte : '
+                   + escapeHtmlText(adresse) + '</div>' : '')
+      + '</div>';
+  }
+
+  return '<div style="' + cadre + '">' + titre
+    + '<div style="font-size:.82rem;color:#c0b090;margin-top:.3rem;line-height:1.6">'
+    + 'Votre personnage n\'est lié qu\'à <strong>ce navigateur</strong>. Si vous effacez vos '
+    + 'données de navigation, ou si vous changez d\'appareil, il deviendrait irrécupérable.</div>'
+    + '<div style="margin-top:.7rem">'
+    + '<button onclick="ouvrirModalSecuriserCompte()" style="font-family:Bebas Neue,sans-serif;'
+    + 'font-size:.7rem;letter-spacing:.08em;padding:.45rem .9rem;border:1px solid #8a6a20;'
+    + 'background:transparent;color:#C9A84C;cursor:pointer">'
+    + '<i class="ti ti-shield-lock"></i> Sécuriser mon personnage</button></div>'
+    + '</div>';
+}
+
+function ouvrirModalSecuriserCompte() {
+  // Re-verification a l'ouverture : l'etat a pu changer depuis le rendu de l'onglet.
+  if (!_compteEstProprietaireDuPersonnage()) {
+    showToast('Indisponible', 'Votre personnage n\'est pas rattaché à cette session.', false); return;
+  }
+  if (typeof rpAuthEstAnonyme === 'function' && !rpAuthEstAnonyme()) {
+    showToast('Déjà sécurisé', 'Ce compte possède déjà une adresse et un mot de passe.', false); return;
+  }
+  const champ = 'width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+              + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box';
+  const etiq  = 'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;'
+              + 'margin-bottom:.25rem;margin-top:.8rem';
+
+  document.getElementById('postes-modal-title').textContent = 'Sécuriser mon personnage';
+  document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;max-width:34rem">'
+    + '<div style="font-size:.85rem;color:#c0b090;line-height:1.7">'
+    + 'Votre personnage est aujourd\'hui lié à <strong>ce seul navigateur</strong>. En ajoutant une '
+    + 'adresse et un mot de passe, vous pourrez le retrouver depuis un autre appareil, ou après '
+    + 'avoir perdu les données de ce navigateur.</div>'
+    + '<div style="font-size:.8rem;color:#8a8060;line-height:1.6;margin-top:.5rem">'
+    + 'Vous gardez le même personnage, le même patrimoine et la même progression : rien n\'est '
+    + 'recréé, rien n\'est transféré.</div>'
+    // AVERTISSEMENT EXIGE PAR LE LOT : la configuration du projet est en autoconfirmation, donc
+    // aucun courriel n'est envoye et l'adresse n'est jamais verifiee. Une faute de frappe
+    // enfermerait le joueur -- on le lui dit franchement, plutot que de le decouvrir plus tard.
+    + '<div style="margin-top:.9rem;padding:.6rem .7rem;background:#17120a;border-left:3px solid #8a6a20">'
+    + '<div style="font-size:.78rem;color:#d8c088;line-height:1.6">'
+    + '<i class="ti ti-alert-triangle"></i> <strong>Relisez bien votre adresse avant de valider.</strong> '
+    + 'Aucun courriel de confirmation n\'est envoyé pour le moment : une adresse mal saisie ne '
+    + 'pourrait pas servir à vous dépanner.</div></div>'
+    + '<div style="' + etiq + '">ADRESSE E-MAIL</div>'
+    + '<input type="email" id="secu-email" autocomplete="email" placeholder="vous@exemple.fr" style="' + champ + '">'
+    + '<div style="' + etiq + '">MOT DE PASSE</div>'
+    + '<input type="password" id="secu-mdp" autocomplete="new-password" style="' + champ + '">'
+    + '<div style="font-size:.72rem;color:#6a6050;margin-top:.25rem">8 caractères au minimum.</div>'
+    + '<div style="' + etiq + '">CONFIRMER LE MOT DE PASSE</div>'
+    + '<input type="password" id="secu-mdp2" autocomplete="new-password" style="' + champ + '">'
+    + '<div id="secu-message" style="font-size:.8rem;margin-top:.8rem;min-height:1.1rem"></div>'
+    + '<div style="margin-top:.4rem">'
+    + '<button id="secu-valider" onclick="confirmerSecurisationCompte()" style="font-family:Bebas Neue,sans-serif;'
+    + 'font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;'
+    + 'background:transparent;color:#C9A84C;cursor:pointer">Sécuriser mon personnage</button></div>'
+    + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function _secuMessage(texte, erreur) {
+  const z = document.getElementById('secu-message');
+  if (z) { z.textContent = texte || ''; z.style.color = erreur ? '#c88a7a' : '#8ab88a'; }
+}
+
+async function confirmerSecurisationCompte() {
+  const email = (document.getElementById('secu-email')?.value || '').trim();
+  const mdp   = document.getElementById('secu-mdp')?.value || '';
+  const mdp2  = document.getElementById('secu-mdp2')?.value || '';
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _secuMessage('Cette adresse n\'est pas valide.', true); return; }
+  if (mdp.length < 8) { _secuMessage('Le mot de passe doit faire au moins 8 caractères.', true); return; }
+  if (mdp !== mdp2)   { _secuMessage('Les deux mots de passe ne sont pas identiques.', true); return; }
+
+  const bouton = document.getElementById('secu-valider');
+  if (bouton) { bouton.disabled = true; bouton.style.opacity = '.5'; }
+  _secuMessage('Sécurisation en cours…', false);
+
+  const r = await rpAuthSecuriserCompte(email, mdp).catch(() => null);
+
+  if (!r || r.ok !== true) {
+    // MESSAGES VOLONTAIREMENT SOBRES SUR L'EXISTENCE D'UN COMPTE. « email_exists » est renvoye
+    // par le serveur, mais le repeter tel quel permettrait de tester si une adresse donnee est
+    // inscrite. On reste donc general sur ce cas precis.
+    const motifs = {
+      email_exists: 'Cette adresse ne peut pas être utilisée. Essayez-en une autre.',
+      validation_failed: 'Cette adresse n\'est pas valide.',
+      weak_password: 'Ce mot de passe est trop faible. Choisissez-en un plus long.',
+      email_invalide: 'Cette adresse n\'est pas valide.',
+      mot_de_passe_trop_court: 'Le mot de passe doit faire au moins 8 caractères.',
+      aucune_session: 'Votre session n\'a pas pu être établie. Rechargez la page.',
+      identifiant_de_compte_modifie: 'Sécurisation interrompue : le compte a changé d\'identifiant. Rien n\'a été modifié.'
+    };
+    _secuMessage((r && motifs[r.raison]) || 'La sécurisation a échoué. Réessayez dans un instant.', true);
+    if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
+    return;
+  }
+
+  // Garde-fou d'affichage : on n'annonce « securise » que si le serveur a REELLEMENT converti le
+  // compte. rpAuthSecuriserCompte rend encore_anonyme d'apres sa reponse, jamais d'apres un espoir.
+  if (r.encore_anonyme === true) {
+    _secuMessage('Le compte n\'a pas encore été confirmé. Réessayez plus tard.', true);
+    if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
+    return;
+  }
+
+  showToast('Personnage sécurisé',
+            'Vous pourrez désormais le retrouver depuis un autre appareil.', true);
+  addJournalEntry('🔐 Votre personnage est désormais sécurisé : ' + escapeHtmlText(r.email || email) + '.', 'event-good');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  // Re-rendu de l'onglet pour que le bloc passe a l'etat « securise ».
+  if (typeof switchSelfTab === 'function') switchSelfTab('identite', null);
+}
+
 function ouvrirModalChangerPhoto() {
   document.getElementById('postes-modal-title').textContent = 'Modifier la photo de profil';
   let html = '<div style="padding:1rem">';

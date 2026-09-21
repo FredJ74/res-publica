@@ -202,14 +202,33 @@ async function rpAuthSecuriserCompte(email, motDePasse) {
   if (!res.ok) {
     return { ok: false, raison: (donnees && (donnees.error_code || donnees.msg)) || ('http_' + res.status) };
   }
-  // Le jeton courant reste valable ; on rafraichit l'etat local pour que l'IHM
+  // DURCISSEMENT DU 21 septembre 2026 (lot « Securiser mon personnage »).
+  //
+  // 1. L'ETAT VENAIT D'UNE SUPPOSITION. On posait est_anonyme = false sans jamais regarder la
+  //    reponse : si le serveur n'avait pas reellement converti le compte (confirmation en
+  //    attente selon la configuration), l'interface aurait affiche « securise » a tort. On lit
+  //    desormais ce que le serveur repond. Mesure sur ce projet : mailer_autoconfirm valant
+  //    true, la conversion est immediate et is_anonymous retombe a false dans la reponse meme.
+  //
+  // 2. L'IDENTIFIANT EST VERIFIE, PAS SUPPOSE. PUT /user agit sur l'utilisateur porte par le
+  //    jeton : il ne peut pas changer d'identifiant, c'est structurel. Mais cette garantie est
+  //    ce qui protege le personnage -- si elle tombait un jour, tout le rattachement tomberait
+  //    avec elle, en silence. On la rend donc OBSERVABLE : un identifiant qui aurait bouge fait
+  //    echouer l'operation au lieu de passer inapercu.
+  const compte = (donnees && (donnees.id ? donnees : donnees.user)) || null;
+  const uidAvant = (RP_AUTH_SESSION && RP_AUTH_SESSION.user) ? RP_AUTH_SESSION.user.id : null;
+  if (compte && compte.id && uidAvant && compte.id !== uidAvant) {
+    return { ok: false, raison: 'identifiant_de_compte_modifie' };
+  }
+  // Le jeton courant reste valable (meme `sub`) ; on rafraichit l'etat local pour que l'IHM
   // cesse d'afficher l'avertissement "personnage non securise".
   if (RP_AUTH_SESSION && RP_AUTH_SESSION.user) {
-    RP_AUTH_SESSION.user.email = email;
-    RP_AUTH_SESSION.user.est_anonyme = false;
+    RP_AUTH_SESSION.user.email = (compte && compte.email) || email;
+    RP_AUTH_SESSION.user.est_anonyme = compte ? (compte.is_anonymous === true) : false;
     rpAuthEcrireStockage(RP_AUTH_SESSION);
   }
-  return { ok: true, email: email };
+  return { ok: true, email: (compte && compte.email) || email,
+           encore_anonyme: compte ? (compte.is_anonymous === true) : null };
 }
 
 /** Reconnexion explicite d'un compte deja securise (autre appareil, session perdue). */
