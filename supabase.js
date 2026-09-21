@@ -526,6 +526,13 @@ async function sbLoadPersonnage(name) {
   const r = rows[0];
   return {
     updatedAt: r.updated_at || null,
+    // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
+    // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
+    // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
+    // .user_id est NOT NULL, et la vue `personnages` l'expose BRUTE -- seuls arg, liquide, banque
+    // et inventory sont masques pour un non-proprietaire. Consommee par le portillon d'identite
+    // de loadCharacter() (plateau-core.js), qui refuse de fusionner une fiche etrangere.
+    userId: r.user_id || null,
     char: { name: r.name, archetype: r.archetype, career: r.career,
              origin: r.origin || null, school: r.school || null, freePtsRestants: r.free_pts_restants || 0,
              stats: r.stats,

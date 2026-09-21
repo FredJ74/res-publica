@@ -914,6 +914,24 @@ function batimentEstFerme(buildingId) {
   return ferme || null;
 }
 
+// Detecteur d'identite, factorise le 21 septembre 2026 : il est desormais appele depuis DEUX
+// endroits de loadCharacter() -- apres une reconciliation normale, et lorsque le portillon a
+// refuse la fusion. SES REGLES SONT INCHANGEES, seul son emplacement l'est : 'ok' et
+// 'indetermine' restent silencieux (une panne reseau ne doit jamais produire de fausse alerte),
+// tous les autres etats montrent le bandeau. Il reste la SEULE source du message vu par le
+// joueur -- le portillon, lui, ne decide que de fusionner ou non.
+function diagnostiquerIdentite(nom) {
+  if (typeof sbEtatIdentitePersonnage !== 'function') return;
+  return sbEtatIdentitePersonnage(nom)
+    .then(r => {
+      rpDiagId('etatIdentite', r && r.etat);
+      const actionnable = !!(r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine');
+      rpDiagId('bandeau', actionnable ? 'affiche' : 'non affiche (etat non actionnable)');
+      if (actionnable) signalerPersonnageFantome(nom, r);
+    })
+    .catch(e => { rpDiagId('etatIdentite', 'EXCEPTION : ' + (e && e.message)); });
+}
+
 function loadCharacter() {
   try {
     // Lire le dernier personnage actif, puis sa clé propre
@@ -967,6 +985,62 @@ function loadCharacter() {
           // sbLoadPersonnage -- seul des trois a n'avoir pas son propre .catch -- le sauterait).
           rpDiagId('reconciliation', 'entree');
           rpDiagId('ficheServeur', sbState ? 'trouvee' : 'absente');
+
+          // =====================================================================
+          // PORTILLON D'IDENTITE (21 septembre 2026) — PREMIERE OPERATION DU BLOC
+          // =====================================================================
+          // Une fiche qui n'appartient pas a la session courante revient MASQUEE : la vue
+          // `personnages` met arg, liquide, banque et inventory a NULL pour tout autre que son
+          // proprietaire. La fusionner revenait a prendre pour siennes les donnees d'un autre,
+          // puis -- applyCharToState faisant `char.arg || 4250` -- a INVENTER une fortune de
+          // remplacement, a la reecrire dans le cache local, et enfin a mourir sur
+          // `state.liquide.toLocaleString()` (updateUI). Cette exception avalait le detecteur
+          // d'identite place plus bas : le joueur ne voyait donc jamais l'explication.
+          //
+          // ON NE FUSIONNE QUE SI LA PROPRIETE EST POSITIVEMENT ETABLIE, par l'un de deux
+          // signaux INDEPENDANTS -- aucun des deux ne coute le moindre appel reseau :
+          //
+          //   1. L'IDENTIFIANT. sbState.userId (NOT NULL, jamais masque) compare a rpAuthUid().
+          //      L'ordonnancement est garanti, pas probable : sbGet() appelle rpAuthJeton() --
+          //      qui peuple RP_AUTH_SESSION depuis localStorage -- et, s'il n'y a pas de jeton
+          //      valide, attend rpAuthAssurerSession(), dont TOUTES les branches de succes
+          //      assignent RP_AUTH_SESSION avant de resoudre. Au moment ou ce .then s'execute,
+          //      la session est donc dans son etat definitif.
+          //
+          //   2. L'ABSENCE DE MASQUAGE. Si le serveur nous a montre les donnees privees, c'est
+          //      qu'il nous a reconnus comme proprietaire : son CASE ne les revele qu'a
+          //      `user_id = auth.uid()`. C'est une preuve emise par le SERVEUR, plus forte
+          //      qu'une comparaison cliente.
+          //
+          // POURQUOI DEUX SIGNAUX ET NON UN SEUL. rpAuthUid() peut rendre null alors que la
+          // session est parfaitement valide : rpAuthNormaliser stocke `user: null` si la reponse
+          // d'authentification n'a pas porte de bloc `user`. Se fier au seul identifiant
+          // BLOQUERAIT alors un joueur sain -- exactement la regression a ne pas introduire.
+          // Le second signal ferme ce trou : une fiche non masquee est, par construction, la
+          // notre. Inversement, une fiche masquee n'est jamais la notre, meme si l'identifiant
+          // est indisponible (session impossible a ouvrir).
+          const uidSession   = (typeof rpAuthUid === 'function') ? rpAuthUid() : null;
+          const ficheMasquee = !!(sbState && sbState.arg === null
+                                          && sbState.liquide === null
+                                          && sbState.banque === null);
+          const uidDiscordant = !!(sbState && uidSession && sbState.userId && sbState.userId !== uidSession);
+          const ficheEtrangere = !!(sbState && (ficheMasquee || uidDiscordant));
+
+          rpDiagId('proprietaire', !sbState ? 'fiche absente' : (ficheEtrangere ? 'non' : 'oui'));
+          if (ficheEtrangere) {
+            rpDiagId('portillon', 'ferme — fusion refusee'
+              + (ficheMasquee ? ' [fiche masquee]' : '') + (uidDiscordant ? ' [uid discordant]' : ''));
+            // On ne conclut RIEN ici sur la NATURE de la rupture : le detecteur ci-dessous
+            // reste seul juge du message montre au joueur (appartient_a_autrui, autre,
+            // orphelin, ou indetermine si le reseau ne permet pas de trancher). Une seule
+            // source de verite, aucune regle dupliquee.
+            //
+            // state reste donc exactement tel que le cache local l'a pose : aucun montant
+            // etranger, aucun 4250 invente, aucun 0, et aucune reecriture de localStorage.
+            state.personnageChargeDepuisServeur = true; // ne jamais bloquer indefiniment
+            return diagnostiquerIdentite(char.name);
+          }
+
           // Applique quel que soit l'issue de sbState (rare, sbState absent) : ne jamais perdre
           // une donnee bancaire reellement recuperee.
           state.comptesBancaires = construireMapComptesBancaires(comptesRows);
@@ -1104,16 +1178,7 @@ function loadCharacter() {
           // figure, c'est qu'une exception a ete avalee dans les 124 lignes precedentes.
           rpDiagId('avantTest', 'atteint');
           rpDiagId('detecteur', typeof sbEtatIdentitePersonnage);
-          if (typeof sbEtatIdentitePersonnage === 'function') {
-            sbEtatIdentitePersonnage(char.name)
-              .then(r => {
-                rpDiagId('etatIdentite', r && r.etat);
-                const actionnable = !!(r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine');
-                rpDiagId('bandeau', actionnable ? 'affiche' : 'non affiche (etat non actionnable)');
-                if (r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine') {
-                signalerPersonnageFantome(char.name, r); } })
-              .catch(e => { rpDiagId('etatIdentite', 'EXCEPTION : ' + (e && e.message)); });
-          }
+          return diagnostiquerIdentite(char.name);
           // Ce .catch etait muet : c'est lui qui masquait un rejet de sbLoadPersonnage ou une
           // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
         }).catch(e => {
