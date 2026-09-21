@@ -588,7 +588,30 @@ window.addEventListener('DOMContentLoaded', () => {
         let nom = null;
         try { nom = localStorage.getItem('respublica_last_char'); } catch (e) {}
         if (nom && typeof rpAuthRattacherPersonnage === 'function') {
-          rpAuthRattacherPersonnage(nom).catch(() => {});
+          // VERDICT CONSIGNE, PLUS JETE (21 septembre 2026). Ce `.catch(() => {})` seul faisait
+          // disparaitre la seule information qui NOMME une rupture d'identite. La RPC distingue
+          // trois refus que rien d'autre ne distingue :
+          //   aucune_session          aucun jeton -- on agit sous la cle anon partagee ;
+          //   personnage_deja_possede la fiche appartient a un AUTRE compte ;
+          //   compte_deja_pourvu      ce compte porte deja un autre personnage.
+          // Diagnostiquer une candidature refusee « votre identite n'a pas pu etre etablie »
+          // demandait jusqu'ici d'inspecter la base ; le journal du navigateur suffit desormais.
+          //
+          // AUCUN DE CES VERDICTS N'AUTORISE QUOI QUE CE SOIT. On les consigne, on n'en deduit
+          // rien : le rattachement reste refuse par le serveur, et c'est cette protection qui
+          // empeche une session quelconque de s'approprier le personnage d'un autre joueur.
+          // Le bandeau d'alerte, lui, vient de sbEtatIdentitePersonnage (voir loadCharacter).
+          rpAuthRattacherPersonnage(nom)
+            .then(v => {
+              if (!v) { console.warn('[identite] rattachement : reponse illisible'); return; }
+              if (v.ok) {
+                if (!v.deja_rattache) console.log('[identite] personnage rattache a ce compte :', nom);
+                return; // deja rattache : cas nominal, rien a dire
+              }
+              console.warn('[identite] rattachement refuse (' + (v.raison || 'inconnu') + ') pour', nom,
+                           '— les actions serveur seront refusees tant que la session ne correspond pas.');
+            })
+            .catch(() => { console.warn('[identite] rattachement : appel injoignable'); });
         }
       })
       .catch(() => {});
@@ -959,7 +982,28 @@ function loadCharacter() {
           // echouaient alors en silence, et leurs refus etaient presentes comme un manque
           // d'argent. On verifie desormais explicitement -- et on ne conclut a une absence que
           // lorsqu'on en a la preuve, jamais sur une panne reseau.
-          if (!sbState && typeof sbEtatIdentitePersonnage === 'function') {
+          //
+          // GARDE `!sbState` RETIREE LE 21 SEPTEMBRE 2026. Elle ne couvrait qu'une moitie du
+          // probleme : le personnage DISPARU. Elle laissait passer l'autre, decouverte en
+          // production sur une candidature ministerielle refusee « votre identite n'a pas pu etre
+          // etablie » -- le personnage EXISTE, mais appartient a un autre compte que celui de la
+          // session courante.
+          //
+          // Pourquoi la garde l'aveuglait exactement : sbLoadPersonnage() interroge `personnages`
+          // PAR LE NOM, jamais par le proprietaire. Des que la ligne existe, elle repond -- quel
+          // que soit le compte auquel elle appartient. sbState etait donc non vide, la condition
+          // etait fausse, et la verification ne tournait jamais. L'etat 'appartient_a_autrui',
+          // pourtant prevu et redige par sbEtatIdentitePersonnage et par signalerPersonnageFantome,
+          // etait en pratique INATTEIGNABLE.
+          //
+          // Le cout est d'un appel RPC (mon_personnage) par chargement de page -- loadCharacter()
+          // n'est appelee qu'au DOMContentLoaded, jamais a la navigation interne.
+          //
+          // CE CORRECTIF N'AUTORISE RIEN. Il rend la rupture VISIBLE ; le serveur continue de
+          // refuser exactement comme avant, et c'est voulu : son refus protege le personnage d'un
+          // joueur contre l'appropriation par une autre session. Les etats 'ok' et 'indetermine'
+          // restent silencieux -- une panne reseau ne doit jamais produire de fausse alerte.
+          if (typeof sbEtatIdentitePersonnage === 'function') {
             sbEtatIdentitePersonnage(char.name)
               .then(r => { if (r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine') {
                 signalerPersonnageFantome(char.name, r); } })
