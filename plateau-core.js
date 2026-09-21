@@ -571,6 +571,86 @@ function afficherBandeauNouvelleVersion() {
   document.getElementById('bandeau-nouvelle-version-btn').addEventListener('click', () => { window.location.reload(); });
 }
 
+// =====================================================================
+// INSTRUMENTATION TEMPORAIRE — RUPTURE D'IDENTITE (21 septembre 2026)
+// =====================================================================
+// A RETIRER une fois la cause etablie. Ce bloc n'existe que pour repondre a une question
+// precise : un joueur voit sa candidature refusee « votre identite n'a pas pu etre etablie »,
+// mais le bandeau d'alerte cense signaler cette rupture n'apparait pas -- alors que le code
+// corrige (commit 6062a23) s'execute bien dans son navigateur (verifie : plateau.html est servi
+// en max-age=0/must-revalidate, et l'ancienne URL versionnee sert deja le nouveau fichier).
+//
+// Cinq points de la chaine sont aujourd'hui SILENCIEUX : un rejet de sbLoadPersonnage, une
+// exception dans les 124 premieres lignes du .then de reconciliation, un etat 'ok', un etat
+// 'indetermine', ou un .then jamais atteint. Aucun n'est distinguable depuis le depot.
+//
+// CE QU'ELLE NE FAIT PAS. Aucun appel serveur supplementaire : elle consigne uniquement ce que
+// le chargement effectue DEJA. Aucune identite modifiee, aucune reconciliation, aucune regle
+// d'autorite touchee. Hors ?diag=identite, le seul changement de comportement est l'ecriture de
+// lignes dans le journal du navigateur.
+//
+// CE QU'ELLE N'ENREGISTRE JAMAIS : aucun jeton, aucun identifiant de compte -- pas meme
+// partiel. De la session, on ne retient que « ouverte » ou « absente ».
+window.__rpDiagId = { etapes: [] };
+function rpDiagId(cle, valeur) {
+  const v = (valeur === undefined || valeur === null) ? '(aucun)' : String(valeur);
+  window.__rpDiagId[cle] = v;
+  window.__rpDiagId.etapes.push(cle + ' = ' + v);
+  console.info('[diag-identite]', cle, '=', v);
+}
+
+// Panneau lisible, STRICTEMENT sur ?diag=identite -- meme convention que ?footballPreview=1,
+// deja en place dans le depot. Sans ce parametre, rien n'est cree ni affiche : le jeu se comporte
+// exactement comme avant. Le but est qu'un joueur puisse nous transmettre le chemin d'execution
+// sans ouvrir de console ni comprendre la technique : il ajoute le parametre, il clique Copier.
+window.addEventListener('load', () => {
+  if (new URLSearchParams(window.location.search).get('diag') !== 'identite') return;
+  // 4 s : laisse la reconciliation asynchrone se terminer avant de dresser l'etat.
+  setTimeout(() => {
+    const d = window.__rpDiagId || { etapes: [] };
+    const texte = 'RES PUBLICA — diagnostic identite\n'
+      + 'bandeau present a l\'ecran : ' + (document.getElementById('bandeau-personnage-fantome') ? 'oui' : 'non') + '\n'
+      + (d.etapes.length ? d.etapes.join('\n') : '(aucune etape consignee)');
+    const boite = document.createElement('div');
+    boite.id = 'panneau-diag-identite';
+    boite.style.cssText = 'position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:99998;'
+      + 'background:#12100a;border:1px solid #6a5a20;padding:1rem;max-height:60vh;overflow:auto';
+    boite.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;'
+      + 'color:#C9A84C;margin-bottom:.6rem">DIAGNOSTIC IDENTITE (temporaire)</div>'
+      + '<pre id="diag-identite-texte" style="white-space:pre-wrap;color:#c0b090;font-size:.78rem;'
+      + 'margin:0;font-family:ui-monospace,monospace"></pre>'
+      + '<div style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap">'
+      + '<button id="diag-identite-copier" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+      + 'letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;'
+      + 'color:#C9A84C;cursor:pointer">Copier</button>'
+      + '<button id="diag-identite-fermer" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;'
+      + 'letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;'
+      + 'color:#9a8a68;cursor:pointer">Fermer</button></div>';
+    document.body.appendChild(boite);
+    // textContent, jamais innerHTML : le nom du personnage vient du cache local et ne doit
+    // jamais pouvoir etre interprete comme du HTML.
+    document.getElementById('diag-identite-texte').textContent = texte;
+    document.getElementById('diag-identite-copier').addEventListener('click', () => {
+      const btn = document.getElementById('diag-identite-copier');
+      const ok = () => { btn.textContent = 'Copié'; };
+      // Repli si le presse-papiers est refuse (contexte non securise, permission) : on
+      // selectionne le texte pour que le joueur puisse le copier a la main.
+      const repli = () => {
+        btn.textContent = 'Sélectionnez le texte';
+        try {
+          const plage = document.createRange();
+          plage.selectNodeContents(document.getElementById('diag-identite-texte'));
+          const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(plage);
+        } catch (e) {}
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texte).then(ok, repli);
+      } else { repli(); }
+    });
+    document.getElementById('diag-identite-fermer').addEventListener('click', () => boite.remove());
+  }, 4000);
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   // IDENTITE AVANT TOUT (chantier B, 14 septembre 2026). On ouvre la session -- anonyme et
   // silencieuse -- AVANT la premiere requete, pour que toutes les lectures et ecritures de la
@@ -580,6 +660,8 @@ window.addEventListener('DOMContentLoaded', () => {
   if (typeof rpAuthAssurerSession === 'function') {
     rpAuthAssurerSession()
       .then(session => {
+        // Presence seule : jamais le jeton, jamais l'identifiant de compte (instrumentation).
+        rpDiagId('session', session ? 'ouverte' : 'absente');
         if (!session) return;
         // Personnage cree AVANT l'authentification : il n'appartient encore a personne. On le
         // rattache au compte de ce navigateur. Fenetre transitoire, fermee a la
@@ -603,6 +685,11 @@ window.addEventListener('DOMContentLoaded', () => {
           // Le bandeau d'alerte, lui, vient de sbEtatIdentitePersonnage (voir loadCharacter).
           rpAuthRattacherPersonnage(nom)
             .then(v => {
+              // Instrumentation : on MEMORISE le verdict de l'appel deja effectue ci-dessus --
+              // on n'en declenche aucun second.
+              rpDiagId('rattachement', !v ? 'reponse illisible'
+                : (v.ok ? ('ok' + (v.deja_rattache ? ' (deja rattache)' : ''))
+                        : ('refus : ' + (v.raison || 'inconnu'))));
               if (!v) { console.warn('[identite] rattachement : reponse illisible'); return; }
               if (v.ok) {
                 if (!v.deja_rattache) console.log('[identite] personnage rattache a ce compte :', nom);
@@ -611,10 +698,13 @@ window.addEventListener('DOMContentLoaded', () => {
               console.warn('[identite] rattachement refuse (' + (v.raison || 'inconnu') + ') pour', nom,
                            '— les actions serveur seront refusees tant que la session ne correspond pas.');
             })
-            .catch(() => { console.warn('[identite] rattachement : appel injoignable'); });
+            .catch(() => {
+              rpDiagId('rattachement', 'appel injoignable');
+              console.warn('[identite] rattachement : appel injoignable');
+            });
         }
       })
-      .catch(() => {});
+      .catch(e => { rpDiagId('session', 'EXCEPTION : ' + (e && e.message)); });
   }
   loadCharacter();
   // Restaurer dernierDormir depuis localStorage
@@ -831,8 +921,11 @@ function loadCharacter() {
     const saved = lastName
       ? (localStorage.getItem('respublica_char_' + lastName) || localStorage.getItem('respublica_char'))
       : localStorage.getItem('respublica_char');
+    rpDiagId('cacheLocal', saved ? 'present' : 'absent');
     if (saved) {
       const char = JSON.parse(saved);
+      // Instrumentation : le nom REELLEMENT passe au detecteur plus bas, pas celui de state.
+      rpDiagId('nomLocal', char && char.name);
       applyCharToState(char);
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
       // Precharge le cache des indices de ville de Republia (chantier "refonte des ordres") --
@@ -870,6 +963,10 @@ function loadCharacter() {
           (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => []) : Promise.resolve([])),
           (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => []) : Promise.resolve([]))
         ]).then(([sbState, comptesRows, placementsRows]) => {
+          // Instrumentation : prouve que le .then a bien ete atteint (un rejet de
+          // sbLoadPersonnage -- seul des trois a n'avoir pas son propre .catch -- le sauterait).
+          rpDiagId('reconciliation', 'entree');
+          rpDiagId('ficheServeur', sbState ? 'trouvee' : 'absente');
           // Applique quel que soit l'issue de sbState (rare, sbState absent) : ne jamais perdre
           // une donnee bancaire reellement recuperee.
           state.comptesBancaires = construireMapComptesBancaires(comptesRows);
@@ -1003,13 +1100,26 @@ function loadCharacter() {
           // refuser exactement comme avant, et c'est voulu : son refus protege le personnage d'un
           // joueur contre l'appropriation par une autre session. Les etats 'ok' et 'indetermine'
           // restent silencieux -- une panne reseau ne doit jamais produire de fausse alerte.
+          // Instrumentation : si 'avantTest' manque au rapport alors que 'reconciliation' y
+          // figure, c'est qu'une exception a ete avalee dans les 124 lignes precedentes.
+          rpDiagId('avantTest', 'atteint');
+          rpDiagId('detecteur', typeof sbEtatIdentitePersonnage);
           if (typeof sbEtatIdentitePersonnage === 'function') {
             sbEtatIdentitePersonnage(char.name)
-              .then(r => { if (r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine') {
+              .then(r => {
+                rpDiagId('etatIdentite', r && r.etat);
+                const actionnable = !!(r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine');
+                rpDiagId('bandeau', actionnable ? 'affiche' : 'non affiche (etat non actionnable)');
+                if (r && r.etat && r.etat !== 'ok' && r.etat !== 'indetermine') {
                 signalerPersonnageFantome(char.name, r); } })
-              .catch(() => {});
+              .catch(e => { rpDiagId('etatIdentite', 'EXCEPTION : ' + (e && e.message)); });
           }
-        }).catch(() => { state.personnageChargeDepuisServeur = true; }); // echec reseau : ne jamais bloquer les sauvegardes indefiniment
+          // Ce .catch etait muet : c'est lui qui masquait un rejet de sbLoadPersonnage ou une
+          // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
+        }).catch(e => {
+          rpDiagId('reconciliation', 'EXCEPTION : ' + (e && e.message));
+          state.personnageChargeDepuisServeur = true; // echec reseau : ne jamais bloquer les sauvegardes indefiniment
+        });
       } else {
         // Pas de nom ou sbLoadPersonnage indisponible : aucune reconciliation ne viendra jamais,
         // rien a attendre -- autoriser les sauvegardes immediatement (comportement inchange par
