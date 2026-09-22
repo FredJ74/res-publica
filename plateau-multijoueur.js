@@ -619,6 +619,7 @@ async function confierAgentA(agentId, destinataire) {
   await rafraichirAgentsPortes();
   showToast('Confiée', destinataire + ' l\'accompagne désormais.', true);
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  rafraichirPresenceAgents();
 }
 
 
@@ -1456,7 +1457,43 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
   const iciGroupe = employes.filter(e => e.inGroupe);
   const iciFaction = employes.filter(e => !e.inGroupe && e.buildingId === buildingId && e.roomId === roomId);
 
-  if (iciGroupe.length === 0 && iciFaction.length === 0) return '';
+  // AGENTS DE RENSEIGNEMENT PORTES (correctif du 22 septembre 2026). C'est ICI que la chaine
+  // se rompait : cette fonction est le SEUL point qui injecte les accompagnants dans la liste
+  // « personnes presentes » (renderPersonsList compose selfCard + groupeHtml + ...), et elle
+  // ne lisait que getEmployes(). Les agents etaient donc bien dans le groupe cote serveur
+  // (leader_courant), bien renvoyes par agents_couverture_de_mon_groupe(), bien presents dans
+  // getMonGroupePNJ() -- mais getMonGroupePNJ() n'alimente que la presence multijoueur
+  // diffusee aux AUTRES joueurs. Leur porteur, lui, ne les voyait nulle part.
+  //
+  // Ils sont toujours avec le PJ, comme un employe inGroupe : aucune condition de piece.
+  // Un agent POSE n'apparait jamais ici -- agents_couverture_ici() ne rend que ceux dont
+  // leader_courant est nul, et ils rejoignent room.persons. Jamais les deux a la fois.
+  const agents = RP_AGENTS_PORTES || [];
+
+  if (iciGroupe.length === 0 && iciFaction.length === 0 && agents.length === 0) return '';
+
+  const htmlAgentsPiece = agents.map(a => {
+    const id = String(a.id).replace(/'/g, '');
+    // Identite de COUVERTURE uniquement, pour tout le monde -- le ministre compris. Son
+    // ecran « Suivre une operation » reste le seul a nommer les agents pour de vrai.
+    const av = a.portrait
+      ? '<div class="person-avatar" style="overflow:hidden;border-color:#C9A84C">' +
+        '<img src="' + a.portrait + '" style="width:100%;height:100%;object-fit:cover;object-position:50% 15%"/></div>'
+      : '<div class="person-avatar" style="border-color:#C9A84C"><i class="ti ti-user" style="font-size:.75rem;color:#8a6a20"></i></div>';
+    return '<div class="person-card" style="border-left:2px solid #C9A84C">' + av +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="person-name" style="color:#C9A84C">' + escapeHtmlText(a.nom) + '</div>' +
+        '<div class="person-role">Connaissance</div>' +
+        '<div style="font-size:.78rem;color:#4a6a20">🟢 Dans votre groupe</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:.25rem;align-items:center">' +
+        '<button onclick="event.stopPropagation();laisserAgentEnPlace(\'' + id + '\')" title="Laisser dans cette pièce" ' +
+        'style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📍</button>' +
+        '<button onclick="event.stopPropagation();ouvrirConfierAgent(\'' + id + '\')" title="Confier à un joueur présent" ' +
+        'style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">👤</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 
   const renderEmpCard = (emp, inGroupe) => {
     const borderCol = inGroupe ? '#C9A84C' : '#3a2a10';
@@ -1477,7 +1514,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
     '</div>';
   };
 
-  let html = '';
+  let html = htmlAgentsPiece;
   if (iciGroupe.length > 0) {
     html += iciGroupe.map(e => renderEmpCard(e, true)).join('');
   }
@@ -1485,6 +1522,23 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
     html += iciFaction.map(e => renderEmpCard(e, false)).join('');
   }
   return html;
+}
+
+// Re-rendu de la liste « personnes presentes » de la piece courante. Les accompagnants
+// arrivent par une reponse serveur asynchrone : sans ce rappel, la liste reste celle
+// dessinee avant la reponse, et les agents n'apparaissent qu'au changement de piece.
+// Redessine la liste des presents, puis relaie a chargerAgentsSousCouverture() -- le
+// composant qui affichait DEJA les agents POSES dans la piece, sous leur seule couverture.
+// On ne double pas son travail : les agents portes viennent de getGroupeHtmlPourPiece, les
+// agents poses de lui, et un agent est dans l'un ou dans l'autre, jamais dans les deux.
+// (agents_couverture_ici() reste en place cote serveur, sans appelant : agents_renseignement_ici
+// couvre deja ce besoin, et en plus large puisqu'elle voit aussi ceux qu'un AUTRE joueur porte.)
+function rafraichirPresenceAgents() {
+  if (typeof renderPersonsList !== 'function' || !state.currentBuilding || !state.currentRoom) return;
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[state.currentBuilding];
+  renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
+  if (typeof chargerAgentsSousCouverture === 'function') chargerAgentsSousCouverture();
 }
 
 // =====================

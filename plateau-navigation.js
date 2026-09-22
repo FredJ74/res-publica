@@ -645,10 +645,13 @@ function enterRoom(buildingId, roomId, tabEl) {
   // impossible de balayer la carte a la recherche d'agents.
   if (typeof chargerAgentsSousCouverture === 'function') chargerAgentsSousCouverture();
 
-  // Agents de renseignement que CE joueur convoie : ils le suivent de piece en
-  // piece et c'est ici qu'il peut les deposer, puisque le depot se fait a la
-  // position reelle du chef (agent_deposer).
-  if (typeof chargerAgentsConvoyes === 'function') chargerAgentsConvoyes();
+  // chargerAgentsConvoyes() N'EST PLUS APPELEE (22 septembre 2026). Elle injectait ses
+  // propres cartes « Sous votre conduite · <role> » dans cette meme liste, avec son bouton
+  // « Deposer ici » : depuis que les agents portes entrent dans le groupe general
+  // (getGroupeHtmlPourPiece), chaque agent serait apparu DEUX FOIS, dans deux systemes
+  // concurrents. Elle exposait en outre le ROLE DE RENSEIGNEMENT au porteur, ce qu'un simple
+  // transporteur ne doit jamais apprendre. La fonction et sa RPC agents_de_mon_groupe restent
+  // en place, sans appelant.
 
   // CONTINUITE INSTITUTIONNELLE DE MARTIAL BOUTERIN (19 septembre 2026).
   // Le ministere n'a qu'UN SEUL PNJ, et il ne disparait jamais. Tant que le poste de Ministre de
@@ -664,41 +667,21 @@ function enterRoom(buildingId, roomId, tabEl) {
   // convoque ne collecte PAS encore : la regle est la meme cote serveur (agent_au_bureau_min_def),
   // et les deux doivent donc designer exactement la meme piece. Le batiment est
   // 'palais-gouvernement', jamais 'gouvernement'.
-  // AGENTS DE RENSEIGNEMENT LAISSES ICI (22 septembre 2026). Meme patron que les militants
-  // ci-dessous : aucune liste visuelle parallele, on ajoute des entrees au tableau
-  // room.persons existant et renderPersonsList les affiche comme n'importe quel present.
+  // AGENTS DE RENSEIGNEMENT (22 septembre 2026). Deux moities, un seul point d'entree :
+  // rafraichirAgentsPortes() relit ceux qui m'accompagnent (ils iront dans la liste des
+  // presents via getGroupeHtmlPourPiece, comme un employe du groupe), puis
+  // rafraichirPresenceAgents() relit ceux qui sont POSES dans cette piece et redessine la
+  // liste. Un agent est dans l'une ou dans l'autre, jamais dans les deux : la RPC des poses
+  // exclut ceux qui ont un porteur.
   //
-  // CE QUE CE CROCHET NE FAIT PAS : afficher les agents PORTES. Un agent qui accompagne un
-  // joueur est deja dans son groupe -- getMonGroupePNJ le publie a la presence multijoueur
-  // comme une escorte ou un employe. L'afficher une seconde fois ici le dedoublerait.
-  // Ne sont donc injectes que les agents POSES dans cette piece precise.
-  //
-  // IDENTITE DE COUVERTURE UNIQUEMENT. agents_couverture_ici ne rend ni vrai nom ni role de
-  // renseignement : la liste des presents est publique, le ministre retrouve les vrais noms
-  // dans « Suivre une operation ». La source est serveur, donc un agent disparait de
-  // lui-meme des que sa cellule se termine ou qu'un joueur le reprend.
-  if (typeof sbRpc === 'function' && state.char?.name) {
-    if (typeof rafraichirAgentsPortes === 'function') {
-      rafraichirAgentsPortes().then(() => {
-        if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-      }).catch(() => {});
-    }
-    sbRpc('agents_couverture_ici', {}).then(rep => {
-      const res = Array.isArray(rep) ? rep[0] : rep;
-      if (!res || res.ok !== true) return;
+  // IDENTITE DE COUVERTURE UNIQUEMENT de part et d'autre : aucune de ces deux RPC ne rend
+  // le vrai nom ni le role de renseignement. Le ministre les retrouve dans « Suivre une
+  // operation », et nulle part ailleurs.
+  if (typeof rafraichirAgentsPortes === 'function') {
+    rafraichirAgentsPortes().then(() => {
       if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
-      const roomActuelle = BUILDINGS[buildingId]?.rooms?.[roomId];
-      if (!roomActuelle) return;
-      // PURGE AVANT AJOUT. BUILDINGS est un objet vivant en memoire : sans ce retrait, un
-      // agent injecte une fois resterait affiche pour le reste de la session, meme apres
-      // avoir ete repris. On repart systematiquement de la reponse serveur.
-      if (!roomActuelle.persons) roomActuelle.persons = [];
-      roomActuelle.persons = roomActuelle.persons.filter(x => x.job !== 'agent_renseignement');
-      (res.agents || []).forEach(a => roomActuelle.persons.unshift({
-        name: a.nom, role: 'Connaissance de passage', rel: 'neutral',
-        job: 'agent_renseignement', photoUrl: a.portrait || null
-      }));
-      if (typeof renderPersonsList === 'function') renderPersonsList(roomActuelle.persons);
+      if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+      if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
     }).catch(() => {});
   }
 

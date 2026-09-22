@@ -7744,6 +7744,7 @@ async function confirmerCelluleRenseignement(empireCible) {
   // Ils sont encore dans le Bureau : le compteur de l'operation court, la collecte non.
   if (typeof rafraichirAgentsPortes === 'function') await rafraichirAgentsPortes();
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
   showToast('Équipe convoquée', 'Quatre agents vous accompagnent, sous couverture ' + nom
             + '. Ils ne travailleront qu\'une fois sortis du ministère.', true, true);
   addJournalEntry('Convocation d\'une équipe de renseignement sous couverture ' + nom + '.', 'event-info');
