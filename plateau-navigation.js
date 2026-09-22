@@ -610,6 +610,20 @@ function enterRoom(buildingId, roomId, tabEl) {
   // se superpose a celui de la prochaine salle visitee.
   if (typeof arreterAudioguide === 'function') arreterAudioguide();
 
+  // ---------------------------------------------------------------------------------------
+  // INSTRUMENTATION TEMPORAIRE [RP-AGENT-DIAG] — 22 septembre 2026. A RETIRER.
+  // Elle n'ecrit rien, ne change aucun comportement et ne journalise ni jeton, ni cle, ni
+  // donnee d'authentification : uniquement des noms de couverture, deja visibles a l'ecran.
+  // ---------------------------------------------------------------------------------------
+  window.__rpAgentSeq = (window.__rpAgentSeq || 0) + 1;
+  const diagSeq = window.__rpAgentSeq;
+  const diag = (etape, detail) => {
+    try { console.log('[RP-AGENT-DIAG] #' + diagSeq + ' ' + etape,
+                      detail === undefined ? '' : detail); } catch (e) {}
+  };
+  diag('enterRoom', { batiment: buildingId, piece: roomId,
+                      avant: { batiment: state.currentBuilding, piece: state.currentRoom } });
+
   // Promesse de l'ecriture serveur de la nouvelle position. Resolue d'emblee lorsqu'il n'y a
   // rien a ecrire (pas de personnage) : le crochet des agents, plus bas, l'attend dans tous
   // les cas et ne doit jamais rester suspendu.
@@ -639,7 +653,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     // Un rechargement complet fonctionnait parce que la position avait alors eu le temps d'etre
     // ecrite. Le crochet des agents, plus bas, attend maintenant cette promesse.
     if (typeof sbSavePersonnage === 'function') {
-      positionEcriteSurLeServeur = Promise.resolve(sbSavePersonnage(state)).catch(() => null);
+      diag('sbSavePersonnage:debut');
+      positionEcriteSurLeServeur = Promise.resolve(sbSavePersonnage(state))
+        .then(r => { diag('sbSavePersonnage:fin', { resultat: (r === null || r === undefined) ? 'ECHEC (null)' : 'succes' }); return r; })
+        .catch(e => { diag('sbSavePersonnage:EXCEPTION', String(e && e.message)); return null; });
+    } else {
+      diag('sbSavePersonnage:absente');
     }
   }
 
@@ -703,12 +722,20 @@ function enterRoom(buildingId, roomId, tabEl) {
   // suivant ; on ne construit surtout pas ici un repli fonde sur la position cliente.
   if (typeof rafraichirAgentsPortes === 'function') {
     positionEcriteSurLeServeur
-      .then(() => rafraichirAgentsPortes())
+      .then(() => { diag('positionEcrite:resolue -> rafraichirAgentsPortes'); return rafraichirAgentsPortes(); })
       .then(() => {
-        if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+        if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) {
+          diag('GARDE: piece changee entre-temps, on ne rafraichit pas',
+               { attendu: { batiment: buildingId, piece: roomId },
+                 actuel: { batiment: state.currentBuilding, piece: state.currentRoom } });
+          return;
+        }
+        diag('garde franchie -> rafraichirPresenceAgents');
         if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
         if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
-      }).catch(() => {});
+      }).catch(e => diag('chaine:EXCEPTION', String(e && e.message)));
+  } else {
+    diag('rafraichirAgentsPortes:ABSENTE');
   }
 
   // Charger les militants deja recrutes par CE joueur (sessions precedentes), pour qu'ils
