@@ -640,10 +640,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
-  // Agents etrangers sous couverture presents ici. Le serveur ne renvoie que
-  // leur identite de couverture, et relit lui-meme la position de l'appelant :
-  // impossible de balayer la carte a la recherche d'agents.
-  if (typeof chargerAgentsSousCouverture === 'function') chargerAgentsSousCouverture();
+  // chargerAgentsSousCouverture() N'EST PLUS APPELEE (22 septembre 2026). Elle inserait ses
+  // cartes dans #persons-list APRES un aller-retour reseau : au retour dans une piece,
+  // renderPersonsList() les effacait ensuite, et seul un rechargement complet les faisait
+  // reapparaitre. Elle ne disposait en outre ni du portrait ni de l'identifiant de l'agent.
+  // Les agents poses passent desormais par rafraichirPresenceAgents(), plus bas, qui lit
+  // agents_couverture_ici() et rend la liste UNE fois, sans ecriture DOM concurrente.
 
   // chargerAgentsConvoyes() N'EST PLUS APPELEE (22 septembre 2026). Elle injectait ses
   // propres cartes « Sous votre conduite · <role> » dans cette meme liste, avec son bouton

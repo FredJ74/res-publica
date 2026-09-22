@@ -552,6 +552,10 @@ async function contacterPnjAutreJoueur() {
 // cellule -- elle est appelee par n'importe quel porteur, y compris un PJ qui ignore
 // totalement ce qu'il transporte.
 let RP_AGENTS_PORTES = [];
+// Agents POSES dans la piece courante. Meme nature que RP_AGENTS_PORTES : un reflet du
+// serveur, jamais un etat local. Deux listes parce qu'il y a deux situations physiques
+// distinctes, pas deux systemes : un agent est porte OU pose, jamais les deux.
+let RP_AGENTS_ICI = [];
 
 async function rafraichirAgentsPortes() {
   if (typeof sbRpc !== 'function') return RP_AGENTS_PORTES;
@@ -559,6 +563,45 @@ async function rafraichirAgentsPortes() {
   const res = Array.isArray(r) ? r[0] : r;
   RP_AGENTS_PORTES = (res && res.ok === true && Array.isArray(res.agents)) ? res.agents : [];
   return RP_AGENTS_PORTES;
+}
+
+// POURQUOI agents_couverture_ici() ET PLUS chargerAgentsSousCouverture() (22 septembre 2026).
+// Les deux affichaient les agents poses, mais par deux chemins concurrents, et j'avais garde
+// le plus pauvre. agents_renseignement_ici() ne rend QUE le nom de couverture -- ni
+// identifiant, ni portrait --, d'ou deux defauts constates en jeu : l'agent pose perdait son
+// portrait, et aucune reprise n'etait possible faute d'identifiant. Pire, cette fonction
+// inserait ses cartes dans le DOM APRES un aller-retour reseau (insertAdjacentHTML), donc
+// apres le rendu : au retour dans une piece, renderPersonsList() les effacait, et seul un
+// rechargement complet les faisait reapparaitre.
+// agents_couverture_ici() rend id + nom + portrait, et l'on passe par room.persons, que
+// renderPersonsList lit deja. Une seule source, plus aucune ecriture DOM concurrente.
+async function rafraichirAgentsIci() {
+  if (typeof sbRpc !== 'function') return RP_AGENTS_ICI;
+  const r = await sbRpc('agents_couverture_ici', {}).catch(() => null);
+  const res = Array.isArray(r) ? r[0] : r;
+  RP_AGENTS_ICI = (res && res.ok === true && Array.isArray(res.agents)) ? res.agents : [];
+  return RP_AGENTS_ICI;
+}
+
+// REPRENDRE UN AGENT LAISSE SUR PLACE. Primitive serveur existante (agent_prendre), qui
+// verifie elle-meme la co-presence complete et l'autorite -- on ne re-implemente aucune regle.
+async function reprendreAgentIci(agentId) {
+  const r = typeof sbRpc === 'function' ? await sbRpc('agent_prendre', { p_agent_id: agentId }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const motifs = {
+      pas_au_meme_endroit: 'Il faut se trouver exactement là où vous l\'avez laissée.',
+      deja_en_groupe:      'Quelqu\'un l\'accompagne déjà.',
+      pas_mon_empire:      'Vous n\'avez pas autorité sur cette personne.',
+      cellule_inactive:    'Cette mission est terminée.'
+    };
+    showToast('Impossible', (res && motifs[res.raison]) || 'Le serveur a refusé.', false);
+    return;
+  }
+  await rafraichirAgentsPortes();
+  showToast('Elle vous accompagne', 'Vous pouvez repartir avec elle.', true);
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  rafraichirPresenceAgents();
 }
 
 // LE CHEMIN DU PORTRAIT NE TRAHIT RIEN. Il est bati sur le ROLE TECHNIQUE (garde,
@@ -1469,8 +1512,43 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
   // Un agent POSE n'apparait jamais ici -- agents_couverture_ici() ne rend que ceux dont
   // leader_courant est nul, et ils rejoignent room.persons. Jamais les deux a la fois.
   const agents = RP_AGENTS_PORTES || [];
+  const poses  = RP_AGENTS_ICI || [];
 
-  if (iciGroupe.length === 0 && iciFaction.length === 0 && agents.length === 0) return '';
+  if (iciGroupe.length === 0 && iciFaction.length === 0 && agents.length === 0 && poses.length === 0) return '';
+
+  // Agents LAISSES dans cette piece. Meme carte, meme identite de couverture, meme portrait
+  // que lorsqu'ils accompagnent -- seule l'action change : reprendre au lieu de laisser.
+  //
+  // LE BOUTON N'APPARAIT QU'AU MINISTRE DE LA DEFENSE. Un joueur ordinaire qui croise l'un
+  // d'eux voit une simple connaissance de passage : lui proposer « reprendre » reviendrait a
+  // lui apprendre que ce n'est pas un PNJ comme un autre. Le serveur revalide de toute facon
+  // l'autorite dans agent_prendre -- cette condition est du confort, jamais la securite.
+  const peutReprendre = (state.poste?.id === 'min_def');
+  const htmlAgentsPoses = poses.map(a => {
+    const id = String(a.id).replace(/'/g, '');
+    const av = a.portrait
+      ? '<div class="person-avatar" style="overflow:hidden;border-color:#8a6a20">' +
+        '<img src="' + a.portrait + '" style="width:100%;height:100%;object-fit:cover;object-position:50% 15%"/></div>'
+      : '<div class="person-avatar" style="border-color:#8a6a20"><i class="ti ti-user" style="font-size:.75rem;color:#8a6a20"></i></div>';
+    const encPose = encodePnjSafe({
+      name: a.nom, role: 'Connaissance de passage', job: 'agent_renseignement',
+      photoUrl: a.portrait || null, photoPos: '50% 15%', rel: 'neutral'
+    });
+    return '<div class="person-card" style="border-left:2px solid #8a6a20;cursor:pointer" ' +
+      'onclick="openPnjModal(this.dataset.enc)" data-enc="' + encPose + '">' + av +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="person-name" style="color:#a09060">' + escapeHtmlText(a.nom) + '</div>' +
+        '<div class="person-role">Connaissance de passage</div>' +
+        '<div style="font-size:.78rem;color:#4a4030">📍 Sur place</div>' +
+      '</div>' +
+      (peutReprendre
+        ? '<div style="display:flex;align-items:center">' +
+          '<button onclick="event.stopPropagation();reprendreAgentIci(\'' + id + '\')" title="Repartir avec elle" ' +
+          'style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>' +
+          '</div>'
+        : '') +
+    '</div>';
+  }).join('');
 
   const htmlAgentsPiece = agents.map(a => {
     const id = String(a.id).replace(/'/g, '');
@@ -1529,7 +1607,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
     '</div>';
   };
 
-  let html = htmlAgentsPiece;
+  let html = htmlAgentsPiece + htmlAgentsPoses;
   if (iciGroupe.length > 0) {
     html += iciGroupe.map(e => renderEmpCard(e, true)).join('');
   }
@@ -1542,18 +1620,23 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
 // Re-rendu de la liste « personnes presentes » de la piece courante. Les accompagnants
 // arrivent par une reponse serveur asynchrone : sans ce rappel, la liste reste celle
 // dessinee avant la reponse, et les agents n'apparaissent qu'au changement de piece.
-// Redessine la liste des presents, puis relaie a chargerAgentsSousCouverture() -- le
-// composant qui affichait DEJA les agents POSES dans la piece, sous leur seule couverture.
-// On ne double pas son travail : les agents portes viennent de getGroupeHtmlPourPiece, les
-// agents poses de lui, et un agent est dans l'un ou dans l'autre, jamais dans les deux.
-// (agents_couverture_ici() reste en place cote serveur, sans appelant : agents_renseignement_ici
-// couvre deja ce besoin, et en plus large puisqu'elle voit aussi ceux qu'un AUTRE joueur porte.)
-function rafraichirPresenceAgents() {
+// Relit les agents POSES dans la piece courante, puis redessine la liste des presents. Les
+// deux situations passent par getGroupeHtmlPourPiece : portes (RP_AGENTS_PORTES) et poses
+// ici (RP_AGENTS_ICI). Un agent est dans l'une ou dans l'autre, jamais dans les deux --
+// agents_couverture_ici() ne rend que ceux dont leader_courant est nul.
+//
+// Le rendu se fait APRES la reponse serveur, en une seule ecriture : c'est ce qui corrige la
+// disparition des agents poses au retour dans une piece. L'ancien chemin inserait ses cartes
+// dans le DOM apres coup, et le rendu suivant les effacait.
+async function rafraichirPresenceAgents() {
   if (typeof renderPersonsList !== 'function' || !state.currentBuilding || !state.currentRoom) return;
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[state.currentBuilding];
+  const bat = state.currentBuilding, piece = state.currentRoom;
+  await rafraichirAgentsIci();
+  // Le joueur a pu changer de piece pendant l'aller-retour : on ne redessine alors rien.
+  if (state.currentBuilding !== bat || state.currentRoom !== piece) return;
+  const room = BUILDINGS[bat]?.rooms?.[piece];
+  const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[bat];
   renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
-  if (typeof chargerAgentsSousCouverture === 'function') chargerAgentsSousCouverture();
 }
 
 // =====================
