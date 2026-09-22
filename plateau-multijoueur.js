@@ -1480,7 +1480,22 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
       ? '<div class="person-avatar" style="overflow:hidden;border-color:#C9A84C">' +
         '<img src="' + a.portrait + '" style="width:100%;height:100%;object-fit:cover;object-position:50% 15%"/></div>'
       : '<div class="person-avatar" style="border-color:#C9A84C"><i class="ti ti-user" style="font-size:.75rem;color:#8a6a20"></i></div>';
-    return '<div class="person-card" style="border-left:2px solid #C9A84C">' + av +
+    // FICHE PNJ NORMALE (correctif du 22 septembre 2026). Cette carte n'avait aucun onclick :
+    // un agent etait le seul present de la piece sur lequel cliquer ne faisait rien. On
+    // reutilise openPnjModal comme pour tout autre PNJ -- aucune fiche parallele.
+    //
+    // L'OBJET ENCODE NE PORTE QUE LA COUVERTURE : nom de couverture, portrait de couverture,
+    // role generique « Connaissance ». Ni vrai nom, ni role de renseignement, ni identifiant
+    // d'agent, ni cellule, ni pays observe -- l'encodage part dans le DOM, lisible par
+    // n'importe qui. La fiche n'affichera donc rien d'autre : openPnjModal lit name, role,
+    // photoUrl, et cherche un trait dans PNJ_PERSONALITIES, ou les noms de couverture ne
+    // figurent pas (verifie). Le ministre garde ses informations dans « Suivre une operation ».
+    const encAgent = encodePnjSafe({
+      name: a.nom, role: 'Connaissance', job: 'agent_renseignement',
+      photoUrl: a.portrait || null, photoPos: '50% 15%', rel: 'neutral'
+    });
+    return '<div class="person-card" style="border-left:2px solid #C9A84C;cursor:pointer" ' +
+      'onclick="openPnjModal(this.dataset.enc)" data-enc="' + encAgent + '">' + av +
       '<div style="flex:1;min-width:0">' +
         '<div class="person-name" style="color:#C9A84C">' + escapeHtmlText(a.nom) + '</div>' +
         '<div class="person-role">Connaissance</div>' +

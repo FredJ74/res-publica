@@ -114,8 +114,13 @@ GRANT EXECUTE ON FUNCTION public.agent_au_bureau_min_def(text, text) TO authenti
 -- Migration renseignement_portraits_par_role. Le chemin etait bati sur le vrai nom de
 -- l'agent : un joueur qui transporte l'equipe sans rien savoir d'elle pouvait lire
 -- « raymond-hialiste-khalija.png » dans les outils de son navigateur et percer la
--- couverture. agent_portrait_chemin(role, pays) ne nomme plus personne.
--- 16 fichiers attendus dans images/renseignement/ :
---   garde|traducteur|conseiller|coordinateur  x  republic|narco|soviet|khalija  (.png)
--- republic sert d'apparence neutre avant tout choix de couverture. Tant qu'ils manquent,
--- l'attribut onerror du client retombe sur l'avatar generique du job.
+-- couverture.
+--
+-- SECONDE PASSE, meme jour (renseignement_portraits_chemins_opaques). Nommer par ROLE avait
+-- seulement deplace la fuite : « images/renseignement/traducteur-soviet.png » revelait encore
+-- que la personne releve du renseignement (le dossier) et quelle est sa specialite (le
+-- fichier). Les seize images sont donc servies depuis « images/personnages/ » sous des noms
+-- opaques « p-<10 hex>.png », et la correspondance role x couverture -> fichier ne vit que
+-- dans agent_portrait_chemin. Memes images, aucune retouche graphique.
+-- republic reste l'apparence neutre montree avant tout choix de couverture ; tant qu'un
+-- fichier manque, l'attribut onerror du client retombe sur l'avatar generique du job.
