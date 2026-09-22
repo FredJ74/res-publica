@@ -610,6 +610,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   // se superpose a celui de la prochaine salle visitee.
   if (typeof arreterAudioguide === 'function') arreterAudioguide();
 
+  // Promesse de l'ecriture serveur de la nouvelle position. Resolue d'emblee lorsqu'il n'y a
+  // rien a ecrire (pas de personnage) : le crochet des agents, plus bas, l'attend dans tous
+  // les cas et ne doit jamais rester suspendu.
+  let positionEcriteSurLeServeur = Promise.resolve();
+
   state.currentRoom = roomId;
   deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
@@ -624,8 +629,17 @@ function enterRoom(buildingId, roomId, tabEl) {
       console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
     }
     // Pousser aussi vers Supabase pour que la position survive a un rafraichissement avant la prochaine sauvegarde periodique
+    //
+    // LA PROMESSE EST DESORMAIS CONSERVEE (22 septembre 2026). Elle etait jetee, et c'etait la
+    // cause de la disparition des agents poses au retour dans une piece : l'ecriture de la
+    // position passe par une FILE (sbEnfilerEcriturePersonnage), donc elle est differee, tandis
+    // que agents_couverture_ici() relit personnages_donnees.current_building/current_room --
+    // la position SERVEUR. Le rafraichissement partait avant cette ecriture et interrogeait donc
+    // le serveur avec l'ANCIENNE piece : reponse vide, RP_AGENTS_ICI vide, agent invisible.
+    // Un rechargement complet fonctionnait parce que la position avait alors eu le temps d'etre
+    // ecrite. Le crochet des agents, plus bas, attend maintenant cette promesse.
     if (typeof sbSavePersonnage === 'function') {
-      sbSavePersonnage(state).catch(() => {});
+      positionEcriteSurLeServeur = Promise.resolve(sbSavePersonnage(state)).catch(() => null);
     }
   }
 
@@ -679,12 +693,22 @@ function enterRoom(buildingId, roomId, tabEl) {
   // IDENTITE DE COUVERTURE UNIQUEMENT de part et d'autre : aucune de ces deux RPC ne rend
   // le vrai nom ni le role de renseignement. Le ministre les retrouve dans « Suivre une
   // operation », et nulle part ailleurs.
+  //
+  // L'ATTENTE DE positionEcriteSurLeServeur EST LE CORRECTIF. agents_couverture_ici() relit la
+  // position SERVEUR du joueur ; tant que la nouvelle piece n'est pas ecrite, elle repond sur
+  // l'ancienne. On attend donc l'ecriture avant d'interroger. Elle ne rejette jamais (capturee
+  // par un .catch qui rend null a la sauvegarde) : un echec d'ecriture -- session perdue, 401 --
+  // laisse simplement la RPC repondre sur l'ancienne position, exactement comme avant ce
+  // correctif, sans erreur JS ni blocage. Le traitement des pertes de session est le chantier
+  // suivant ; on ne construit surtout pas ici un repli fonde sur la position cliente.
   if (typeof rafraichirAgentsPortes === 'function') {
-    rafraichirAgentsPortes().then(() => {
-      if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
-      if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-      if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
-    }).catch(() => {});
+    positionEcriteSurLeServeur
+      .then(() => rafraichirAgentsPortes())
+      .then(() => {
+        if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+        if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+        if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
+      }).catch(() => {});
   }
 
   // Charger les militants deja recrutes par CE joueur (sessions precedentes), pour qu'ils
@@ -805,7 +829,11 @@ function enterRoom(buildingId, roomId, tabEl) {
       if (el) el.textContent = displayDesc + ' — Caisse : ' + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
     }).catch(() => {});
   }
-  let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));
+  // REGLE UNIQUE (22 septembre 2026). Cette expression etait recopiee, en version simplifiee,
+  // dans rafraichirPresenceAgents() : elle y ignorait roomOverride et la condition isFirstRoom,
+  // si bien que les deux chemins auraient diverge dans une piece secondaire d'un batiment dote
+  // d'un contexte de ville. Une seule definition desormais, partagee (plateau-multijoueur.js).
+  let displayPersons = personnesNormalesDeLaPiece(buildingId, roomId);
 
   // Injecter PNJ terrain si applicable — jamais dans une piece de lot (Lot 1.1) : un cadavre ou
   // des squatteurs se trouvent sur le terrain lui-meme, pas dans chacun des locaux du batiment

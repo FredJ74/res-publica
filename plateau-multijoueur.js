@@ -1620,6 +1620,25 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
 // Re-rendu de la liste « personnes presentes » de la piece courante. Les accompagnants
 // arrivent par une reponse serveur asynchrone : sans ce rappel, la liste reste celle
 // dessinee avant la reponse, et les agents n'apparaissent qu'au changement de piece.
+// LES PERSONNES « NORMALES » D'UNE PIECE — REGLE UNIQUE (22 septembre 2026).
+// Trois sources, dans cet ordre de priorite, telles qu'elles etaient deja ecrites dans
+// enterRoom : un roomOverride propre a la ville, puis le contexte de batiment mais SEULEMENT
+// pour la premiere piece, puis les PNJ statiques de la piece. Cette expression etait recopiee
+// en version simplifiee dans rafraichirPresenceAgents(), qui ignorait roomOverride et la
+// condition isFirstRoom : les deux chemins auraient rendu des listes differentes dans une
+// piece secondaire d'un batiment dote d'un contexte de ville. Une seule definition desormais.
+function personnesNormalesDeLaPiece(buildingId, roomId) {
+  const b = (typeof BUILDINGS !== 'undefined') ? BUILDINGS[buildingId] : null;
+  const ctxRoomsExtra = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId)?.roomsExtra : null;
+  const room = b?.rooms?.[roomId] || ctxRoomsExtra?.[roomId];
+  const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
+  const isFirstRoom = Object.keys(b?.rooms || {})[0] === roomId;
+  const roomOverride = ctx?.roomOverrides?.[roomId];
+  if (roomOverride?.persons?.length > 0) return roomOverride.persons;
+  if (isFirstRoom && ctx?.persons?.length > 0) return ctx.persons;
+  return room?.persons || [];
+}
+
 // Relit les agents POSES dans la piece courante, puis redessine la liste des presents. Les
 // deux situations passent par getGroupeHtmlPourPiece : portes (RP_AGENTS_PORTES) et poses
 // ici (RP_AGENTS_ICI). Un agent est dans l'une ou dans l'autre, jamais dans les deux --
@@ -1634,9 +1653,7 @@ async function rafraichirPresenceAgents() {
   await rafraichirAgentsIci();
   // Le joueur a pu changer de piece pendant l'aller-retour : on ne redessine alors rien.
   if (state.currentBuilding !== bat || state.currentRoom !== piece) return;
-  const room = BUILDINGS[bat]?.rooms?.[piece];
-  const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[bat];
-  renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
+  renderPersonsList(personnesNormalesDeLaPiece(bat, piece));
 }
 
 // =====================
