@@ -94,9 +94,66 @@ const MAILS_STORAGE_KEY = 'respublica_mails';
 function getMails() {
   try { return JSON.parse(localStorage.getItem(MAILS_STORAGE_KEY) || '[]'); } catch { return []; }
 }
+// ECRITURE NON FATALE (22 septembre 2026). setItem levait sans filet : un quota localStorage
+// depasse -- ce cache cotoie les photos de personnages, le journal et les fiches, tous en
+// base64 -- faisait echouer TOUTE la synchronisation depuis loadMailsFromSB(), dont le
+// catch se contente d'un console.warn. Le cache restait alors fige sur un etat ancien,
+// pendant que le badge exterieur, lui, continuait d'annoncer les nouveaux mails : il est
+// alimente par verifierNouveauxMails(), qui interroge le SERVEUR en direct. Deux sources,
+// deux verites. On rend l'echec visible et non bloquant ; l'appelant sait desormais si le
+// cache a reellement ete ecrit.
 function saveMails(mails) {
-  localStorage.setItem(MAILS_STORAGE_KEY, JSON.stringify(mails));
+  try {
+    localStorage.setItem(MAILS_STORAGE_KEY, JSON.stringify(mails));
+    return true;
+  } catch (e) {
+    console.warn('[MAIL] cache local non ecrit (quota ?) :', e && e.name, e && e.message);
+    return false;
+  }
 }
+// LES MAILS RECUS QUE LE JOUEUR PEUT REELLEMENT OUVRIR. Une seule definition, partagee par le
+// compteur de la barre laterale et par la liste « Messages recus » -- c'est l'ecart entre les
+// deux qui produisait un voyant rouge pointant vers une boite vide.
+function mailsRecusVisibles() {
+  const name = state.char?.name;
+  if (!name) return [];
+  return getMyMails().filter(m => m && !m.archived && m.to === name);
+}
+
+// INSTANT D'UN MAIL, pour un tri REELLEMENT chronologique.
+//
+// LE TRI PAR IDENTIFIANT ETAIT FAUX, et pas seulement fragile. Deux familles d'identifiants
+// coexistent : « mail-<epoch> » pour les messages ordinaires, « ce-<epoch>-<hex> » pour les
+// rapports de cellule. Un tri lexical decroissant place donc TOUS les « mail- » avant TOUS
+// les « ce- » ('m' > 'c'), quelle que soit la date : un rapport du 22/09 se retrouvait sous
+// un message du 18/09. Constate en production.
+//
+// Trois sources, de la plus fiable a la moins fiable :
+//   1. creeLe  -- created_at recopie de Supabase (c'est deja la colonne sur laquelle le
+//      serveur trie dans sbGetMailsFor) ;
+//   2. time    -- la chaine d'affichage francaise « JJ/MM/AAAA HH:MM », seule disponible
+//      pour les mails deja presents dans un cache ancien ;
+//   3. l'epoch contenu dans l'identifiant, en dernier recours.
+// Une valeur illisible rend 0 : le mail part en fin de liste sans jamais faire lever le tri.
+function instantMail(m) {
+  if (!m) return 0;
+  const t = Date.parse(m.creeLe || '');
+  if (!Number.isNaN(t)) return t;
+  const fr = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2})[:h](\d{2})/.exec(String(m.time || ''));
+  if (fr) return Date.UTC(+fr[3], +fr[2] - 1, +fr[1], +fr[4], +fr[5]);
+  const ep = /(\d{10,})/.exec(String(m.id || ''));
+  return ep ? Number(ep[1]) : 0;
+}
+
+// Plus recent d'abord. Robuste : un mail ancien ou mal forme (id absent, null ou numerique)
+// ne fait plus lever le tri. b.id.localeCompare(a.id) levait un TypeError des qu'un tel objet
+// n'etait pas en derniere position -- verifie au banc -- et cette exception remontait jusqu'a
+// renderForumModal(), dont le template literal n'etait alors jamais affecte : la fenetre
+// entiere restait vide.
+function trierMailsRecents(liste) {
+  return [...liste].sort((a, b) => instantMail(b) - instantMail(a));
+}
+
 function getMyMails() {
   const name = state.char?.name;
   if (!name) return [];
@@ -180,7 +237,9 @@ function markMailRead(mailId) {
 function rafraichirVoyantMailLocal() {
   const nom = state.char?.name;
   if (!nom) return;
-  const nonLus = getMyMails().filter(m => !m.read && m.to === nom).length;
+  // Meme definition que la barre laterale et que la liste : un mail archive non lu ne doit
+  // pas allumer un voyant qui renvoie vers une boite ou il n'apparait pas.
+  const nonLus = mailsRecusVisibles().filter(m => !m.read).length;
   const badge = document.getElementById('mail-badge');
   if (badge) { badge.textContent = nonLus; badge.style.display = nonLus > 0 ? 'inline' : 'none'; }
   document.title = nonLus > 0 ? '(' + nonLus + ') Res Publica' : 'Res Publica';
@@ -625,7 +684,11 @@ function renderCategorieHeader(cat, icon, label) {
 // d'activite, chargements Supabase differes -- qui ne doivent JAMAIS toucher #forum-main, car
 // c'est la que vit le compositeur en cours, voir plus bas).
 function renderForumSidebar() {
-  const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
+  // MEME DEFINITION QUE LA LISTE (22 septembre 2026). Le compteur ignorait `archived` alors
+  // que « Messages recus » l'exclut : un mail archive non lu maintenait donc un voyant rouge
+  // pointant vers une boite ou il n'apparaissait jamais. Les deux passent desormais par
+  // mailsRecusVisibles(), seule definition de « ce que le joueur peut reellement ouvrir ».
+  const unreadCount = mailsRecusVisibles().filter(m => !m.read).length;
   return `
     <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
       <i class="ti ti-mail" style="font-size:.85rem"></i>
@@ -2200,10 +2263,10 @@ function renderMailView() {
 
 function renderMailInbox() {
   const myName = state.char?.name || '';
-  const allMails = getMyMails().sort((a,b) => b.id.localeCompare(a.id));
+  const allMails = trierMailsRecents(getMyMails());
   const mails = allMails.filter(m => !m.archived);
   const archives = allMails.filter(m => m.archived);
-  const received = mails.filter(m => m.to === myName);
+  const received = trierMailsRecents(mailsRecusVisibles());
   // m.fromReal (17 aout 2026) : un mail organisationnel a m.from = nom de l'organisation, pas
   // le personnage reel -- sans ce critere, l'expediteur reel ne verrait jamais son propre envoi
   // dans "Envoyes".
@@ -2216,6 +2279,13 @@ function renderMailInbox() {
         <i class="ti ti-pencil-plus"></i> Nouveau mail
       </button>
     </div>
+    <!-- LE SCROLL MANQUAIT ICI (22 septembre 2026). .forum-main porte overflow:hidden, et
+         c'est .forum-topics-list -- deja utilisee par les listes de sujets -- qui porte le
+         defilement (flex:1;overflow-y:auto). La boite aux lettres n'en avait aucune : tout ce
+         qui depassait la hauteur du panneau etait purement coupe, sans barre de defilement, et
+         les derniers messages devenaient inatteignables. On reutilise la classe existante,
+         aucune regle CSS nouvelle, aucune autre rubrique touchee. -->
+    <div class="forum-topics-list">
     <div style="margin-bottom:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
         MESSAGES REÇUS (${received.length})
@@ -2262,6 +2332,7 @@ function renderMailInbox() {
           <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
         </div>`).join('')}
     </div>` : ''}
+    </div>
   `;
 }
 
@@ -2325,7 +2396,10 @@ async function loadMailsFromSB() {
   if (!name) return;
   try {
     const rows = await sbGetMailsFor(name);
-    if (!rows) return;
+    // Lecture refusee ou en panne : le cache reste sur son etat precedent, et c'est voulu --
+    // mieux vaut une boite figee qu'une boite videe. Le 401 observe en production vient d'une
+    // session absente (role anon), pas de la messagerie : voir le rapport du 22 septembre.
+    if (!rows) { console.warn('[MAIL] lecture refusee ou indisponible, cache local inchange.'); return; }
     // Fusionner avec localStorage
     const local = getMails();
     const localById = new Map(local.map(m => [m.id, m]));
@@ -2340,6 +2414,11 @@ async function loadMailsFromSB() {
         }
         return { id: r.id, from: r.from_player, to: r.to_player,
           subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false,
+          // created_at (22 septembre 2026) : n'etait PAS recopie, alors que c'est la colonne
+          // sur laquelle sbGetMailsFor fait deja trier le serveur. Sans elle, le client ne
+          // disposait d'aucune date exploitable -- seulement `time`, une chaine d'affichage --
+          // et se rabattait sur l'ordre lexical des identifiants, qui n'est pas chronologique.
+          creeLe: r.created_at || null,
           // Mapping explicite (17 aout 2026) : le meme oubli venait d'etre trouve et corrige sur
           // le forum (loadForumTopicsFromSB/loadForumPostsFromSB, colonnes jamais recopiees sur
           // les objets locaux) -- verifie ici des la premiere version, pas apres coup.
