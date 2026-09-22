@@ -159,25 +159,8 @@ async function rafraichirTitulairesPostesElectifs() {
   } catch(e) {}
 }
 
-// INSTRUMENTATION TEMPORAIRE [RP-AGENT-DIAG] — 22 septembre 2026. A RETIRER.
-// Uniquement des console.log : aucun comportement modifie, aucun jeton ni secret journalise.
-function rpAgentDiag(etape, detail) {
-  try { console.log('[RP-AGENT-DIAG] #' + (window.__rpAgentSeq || 0) + ' ' + etape,
-                    detail === undefined ? '' : detail); } catch (e) {}
-}
-
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
-  try {
-    const pile = (new Error()).stack || '';
-    const appelant = pile.split('\n')[2] || '?';
-    rpAgentDiag('renderPersonsList', {
-      cible: targetId,
-      agentsPortes: (RP_AGENTS_PORTES || []).map(a => a && a.nom),
-      agentsPoses: (RP_AGENTS_ICI || []).map(a => a && a.nom),
-      appelePar: appelant.trim().slice(0, 90)
-    });
-  } catch (e) {}
   persons = [...(persons || [])]; // mutable copy
   persons = appliquerRemplacantesEscort(persons);
   persons = appliquerRemplacantCodetenu(persons);
@@ -283,12 +266,6 @@ function renderPersonsList(persons, targetId) {
   const finalContent = selfCard + groupeHtml + simuleCards + personCards;
   document.getElementById(targetId).innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
-  try {
-    rpAgentDiag('DOM apres rendu', {
-      guennadiPresent: (document.getElementById(targetId).textContent || '').indexOf('Guennadi') >= 0,
-      nbCartes: document.getElementById(targetId).querySelectorAll('.person-card').length
-    });
-  } catch (e) {}
 
   // Charger les VRAIS joueurs présents dans cette pièce (Supabase) — async, ajouté après coup
   chargerVraisJoueursPresents();
@@ -598,15 +575,21 @@ async function rafraichirAgentsPortes() {
 // rechargement complet les faisait reapparaitre.
 // agents_couverture_ici() rend id + nom + portrait, et l'on passe par room.persons, que
 // renderPersonsList lit deja. Une seule source, plus aucune ecriture DOM concurrente.
+// OUBLIER LES AGENTS POSES DE LA PIECE QU'ON VIENT DE QUITTER (22 septembre 2026).
+// RP_AGENTS_ICI n'etait ecrit qu'a un seul endroit -- rafraichirAgentsIci(), joignable
+// uniquement depuis rafraichirPresenceAgents(), elle-meme appelee a l'ENTREE d'une piece.
+// Aucune sortie ne la vidait : en quittant le batiment, la liste survivait, et tout rendu
+// ulterieur -- la rue comprise -- reaffichait l'agent laisse derriere soi. L'agent n'avait
+// pourtant pas bouge d'un pouce cote serveur : c'etait une presence fantome, purement cliente.
+function viderAgentsIci() {
+  RP_AGENTS_ICI = [];
+}
+
 async function rafraichirAgentsIci() {
-  if (typeof sbRpc !== 'function') { rpAgentDiag('rafraichirAgentsIci: sbRpc ABSENTE'); return RP_AGENTS_ICI; }
-  rpAgentDiag('rafraichirAgentsIci: appel RPC agents_couverture_ici', {
-    positionCliente: { batiment: state.currentBuilding, piece: state.currentRoom } });
+  if (typeof sbRpc !== 'function') return RP_AGENTS_ICI;
   const r = await sbRpc('agents_couverture_ici', {}).catch(() => null);
   const res = Array.isArray(r) ? r[0] : r;
-  rpAgentDiag('rafraichirAgentsIci: reponse BRUTE', r === null ? 'NULL (erreur HTTP, voir sbRpc error ci-dessus)' : r);
   RP_AGENTS_ICI = (res && res.ok === true && Array.isArray(res.agents)) ? res.agents : [];
-  rpAgentDiag('rafraichirAgentsIci: RP_AGENTS_ICI =', RP_AGENTS_ICI.map(a => a && a.nom));
   return RP_AGENTS_ICI;
 }
 
@@ -626,7 +609,7 @@ async function reprendreAgentIci(agentId) {
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Elle vous accompagne', 'Vous pouvez repartir avec elle.', true);
+  showToast('Reprise en charge', 'Vous pouvez repartir ensemble.', true);
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   rafraichirPresenceAgents();
 }
@@ -664,7 +647,7 @@ async function laisserAgentEnPlace(agentId) {
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Resté sur place', 'Cette personne reste dans cette pièce.', false);
+  showToast('Reste sur place', 'Cette personne reste dans cette pièce.', false);
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
 }
@@ -687,7 +670,7 @@ async function confierAgentA(agentId, destinataire) {
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Confiée', destinataire + ' l\'accompagne désormais.', true);
+  showToast('Transfert effectué', destinataire + ' prend le relais.', true);
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   rafraichirPresenceAgents();
 }
@@ -1570,7 +1553,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
       '</div>' +
       (peutReprendre
         ? '<div style="display:flex;align-items:center">' +
-          '<button onclick="event.stopPropagation();reprendreAgentIci(\'' + id + '\')" title="Repartir avec elle" ' +
+          '<button onclick="event.stopPropagation();reprendreAgentIci(\'' + id + '\')" title="Reprendre avec vous" ' +
           'style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>' +
           '</div>'
         : '') +
@@ -1675,21 +1658,11 @@ function personnesNormalesDeLaPiece(buildingId, roomId) {
 // disparition des agents poses au retour dans une piece. L'ancien chemin inserait ses cartes
 // dans le DOM apres coup, et le rendu suivant les effacait.
 async function rafraichirPresenceAgents() {
-  if (typeof renderPersonsList !== 'function' || !state.currentBuilding || !state.currentRoom) {
-    rpAgentDiag('rafraichirPresenceAgents: ABANDON (pas de position ou pas de rendu)');
-    return;
-  }
+  if (typeof renderPersonsList !== 'function' || !state.currentBuilding || !state.currentRoom) return;
   const bat = state.currentBuilding, piece = state.currentRoom;
-  rpAgentDiag('rafraichirPresenceAgents: debut', { batiment: bat, piece: piece });
   await rafraichirAgentsIci();
   // Le joueur a pu changer de piece pendant l'aller-retour : on ne redessine alors rien.
-  if (state.currentBuilding !== bat || state.currentRoom !== piece) {
-    rpAgentDiag('rafraichirPresenceAgents: GARDE, piece changee pendant la RPC',
-      { attendu: { batiment: bat, piece: piece },
-        actuel: { batiment: state.currentBuilding, piece: state.currentRoom } });
-    return;
-  }
-  rpAgentDiag('rafraichirPresenceAgents: -> renderPersonsList');
+  if (state.currentBuilding !== bat || state.currentRoom !== piece) return;
   renderPersonsList(personnesNormalesDeLaPiece(bat, piece));
 }
 
