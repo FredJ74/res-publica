@@ -7596,6 +7596,104 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
 // ATTESTE, debite elle-meme les 3 PA et les 500 FR de la caisse du ministere,
 // tire les couvertures et cree les quatre agents -- le tout dans une seule
 // transaction. Un refus ne laisse donc aucun debit derriere lui.
+// =====================================================================================
+// RENSEIGNEMENT MILITAIRE — POINT D'ENTREE UNIQUE (22 septembre 2026)
+// =====================================================================================
+// Deux fonctions, et c'est tout : on convoque une equipe, ou on suit celles qui tournent.
+// « Mettre fin a l'operation » a quitte l'ancien ecran pour rejoindre le suivi, ou il a sa
+// place. Aucun parcours concurrent ne reste expose.
+function ouvrirRenseignementMilitaire() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  ouvrirPanneauFonction('Renseignement militaire', [
+    { label: 'Lancer une opération de renseignement', pa: 3,
+      desc: 'Convoquer les quatre agents sous une couverture de votre choix. 3 PA et 500 FR prélevés sur la caisse du Ministère.',
+      onclick: 'ouvrirConvocationRenseignement()' },
+    { label: 'Suivre une opération', pa: 0,
+      desc: 'Où sont vos agents, sous quelle couverture, combien de temps reste-t-il, et y mettre fin.',
+      onclick: 'ouvrirPanneauCellules()' }
+  ]);
+}
+
+// ECRAN DE CONVOCATION. Les quatre agents s'y presentent sous leur VRAI nom et leur
+// specialite -- c'est le seul ecran du jeu ou cela apparait, et il est reserve au ministre
+// (la RPC le revalide). Leur portrait est l'apparence NEUTRE de Republia : la couverture
+// n'est pas encore choisie.
+//
+// LE PAYS N'EST PAS UNE DESTINATION. On choisit une COUVERTURE -- tenue, faux nom, identite
+// fictive. Elle n'a aucun effet mecanique : le ministre reste libre d'emmener ses agents
+// n'importe ou, y compris dans l'empire dont ils portent les habits, y compris chez lui.
+// C'est pourquoi Republia figure dans la liste, ce que l'ancien ecran interdisait.
+let RP_COUVERTURE_CHOISIE = null;
+
+async function ouvrirConvocationRenseignement() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  RP_COUVERTURE_CHOISIE = null;
+  document.getElementById('postes-modal-title').textContent = 'Lancer une opération de renseignement';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const r = typeof sbRpc === 'function' ? await sbRpc('renseignement_agents_disponibles', {}).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;color:#cc4444">' + (CELLULE_REFUS[res?.raison] || 'Indisponible.') + '</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.9rem">'
+       +  'Quatre agents, une opération de <strong>10 jours</strong>. Ils vous accompagneront dès la convocation : '
+       +  'c\'est vous qui les emmenez, et vous les laissez où bon vous semble.</div>';
+
+  (res.agents || []).forEach(a => {
+    const spec = SPECIALITES_RENSEIGNEMENT[a.role] || a.role;
+    html += '<div style="display:flex;gap:.7rem;align-items:center;padding:.6rem 0;border-bottom:1px solid #1a1810">'
+         +  '<img src="' + a.portrait + '" alt="" onerror="this.style.display=\'none\'" '
+         +  'style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:1px solid #8a6a20;flex-shrink:0">'
+         +  '<div style="min-width:0">'
+         +  '<div style="font-size:.9rem;color:#C9A84C">' + escapeHtmlText(a.vrai_nom) + '</div>'
+         +  '<div style="font-size:.78rem;color:#9a8a68">' + spec + '</div>'
+         +  '</div></div>';
+  });
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;color:#8a6a20;margin:1rem 0 .4rem">CHOISIR UNE COUVERTURE</div>'
+       +  '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.5rem;line-height:1.5">'
+       +  'Tenue, faux nom et identité fictive de vos agents. Rien d\'autre : vous resterez libre de les emmener '
+       +  'dans n\'importe quel empire, quelle que soit la couverture retenue.</div>';
+  Object.entries(COUNTRIES).forEach(([k, co]) => {
+    html += '<button id="couv-' + k + '" onclick="choisirCouvertureRenseignement(\'' + k + '\')" '
+         +  'style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;'
+         +  'background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">'
+         +  '<i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
+  });
+
+  html += '<button id="btn-convoquer" onclick="confirmerCelluleRenseignement(RP_COUVERTURE_CHOISIE)" disabled '
+       +  'style="width:100%;margin-top:.8rem;padding:.55rem;border:1px solid #3a2a10;background:transparent;color:#6a6050;'
+       +  'cursor:not-allowed;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em">CONVOQUER</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Specialites : lecture des roles serveur existants, aucun moteur de competences nouveau.
+const SPECIALITES_RENSEIGNEMENT = {
+  garde:        'Garde rapprochée — protection',
+  traducteur:   'Traducteur — écoute et rumeurs locales',
+  conseiller:   'Conseillère diplomatique — entourage du pouvoir',
+  coordinateur: 'Coordinateur — flux, ports et centres multimodaux'
+};
+
+function choisirCouvertureRenseignement(pays) {
+  RP_COUVERTURE_CHOISIE = pays;
+  Object.keys(COUNTRIES).forEach(k => {
+    const b = document.getElementById('couv-' + k);
+    if (b) { b.style.borderColor = (k === pays) ? '#C9A84C' : '#2a2010';
+             b.style.background   = (k === pays) ? '#1a1408' : '#0f0d05'; }
+  });
+  const btn = document.getElementById('btn-convoquer');
+  if (btn) { btn.disabled = false; btn.style.cursor = 'pointer';
+             btn.style.borderColor = '#8a6a20'; btn.style.color = '#C9A84C'; }
+}
+
 function ouvrirModalRenseignement(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
@@ -7628,6 +7726,7 @@ const CELLULE_REFUS = {
 };
 
 async function confirmerCelluleRenseignement(empireCible) {
+  if (!empireCible) { showToast('Couverture non choisie', 'Sélectionnez d\'abord une couverture.', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = typeof sbRpc === 'function'
     ? await sbRpc('cellule_renseignement_creer', { p_pays_cible: empireCible }).catch(() => null) : null;
@@ -7640,16 +7739,29 @@ async function confirmerCelluleRenseignement(empireCible) {
   // une soustraction locale.
   if (typeof res.pa_restants === 'number') { state.pa = res.pa_restants; if (typeof updateUI === 'function') updateUI(); }
   const nom = COUNTRIES[empireCible]?.n || empireCible;
-  showToast('Cellule ouverte', 'Quatre agents sont en route pour ' + nom + '. −' + res.cout + ' FR.', true, true);
-  addJournalEntry('Ouverture d\'une cellule de renseignement visant ' + nom + '.', 'event-info');
+  // Les agents naissent DANS LE GROUPE du ministre (leader_courant pose par la RPC) : on
+  // rafraichit donc le groupe, et le panneau d'accompagnants les montre immediatement.
+  // Ils sont encore dans le Bureau : le compteur de l'operation court, la collecte non.
+  if (typeof rafraichirAgentsPortes === 'function') await rafraichirAgentsPortes();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  showToast('Équipe convoquée', 'Quatre agents vous accompagnent, sous couverture ' + nom
+            + '. Ils ne travailleront qu\'une fois sortis du ministère.', true, true);
+  addJournalEntry('Convocation d\'une équipe de renseignement sous couverture ' + nom + '.', 'event-info');
   ouvrirPanneauCellules();
 }
 
 // Panneau du ministre : ses cellules, leurs agents, leur vraie identite.
 // Toutes ces donnees viennent d'une RPC reservee au min_def du pays -- aucune
 // n'est lisible par un autre joueur, meme en appelant la RPC directement.
+// SUIVRE UNE OPERATION. Le seul ecran du jeu qui montre les VRAIS noms et les specialites
+// reelles -- la RPC le reserve au ministre proprietaire, et personne d'autre ne peut
+// l'appeler utilement, pas meme le PJ qui transporte les agents.
+//
+// LA SITUATION AFFICHEE EST PHYSIQUE, jamais deduite de la couverture : elle vient de la
+// position effective serveur, donc celle du porteur quand l'agent en a un. « Mettre fin a
+// l'operation » vit desormais ici -- c'est l'endroit ou l'on decide en connaissance de cause.
 async function ouvrirPanneauCellules() {
-  document.getElementById('postes-modal-title').textContent = 'Mes cellules de renseignement';
+  document.getElementById('postes-modal-title').textContent = 'Suivre une opération';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
   const r = typeof sbRpc === 'function' ? await sbRpc('cellule_renseignement_mes_cellules', {}).catch(() => null) : null;
@@ -7658,51 +7770,57 @@ async function ouvrirPanneauCellules() {
     document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#cc4444">' + (CELLULE_REFUS[res?.raison] || 'Indisponible.') + '</div>';
     return;
   }
-  const cellules = res.cellules || [];
+  const cellules = (res.cellules || []).filter(c => c.statut === 'active');
   let html = '<div style="padding:1rem">';
   if (cellules.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune cellule.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune opération en cours.</div>';
   }
   cellules.forEach(c => {
     const restant = Math.max(0, Math.ceil((new Date(c.echeance) - Date.now()) / 86400000));
-    const actif = c.statut === 'active';
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.6rem">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center">'
-         +  '<span style="font-size:.85rem;color:#C9A84C">' + (COUNTRIES[c.pays_cible]?.n || c.pays_cible) + '</span>'
-         +  '<span style="font-size:.7rem;color:' + (actif ? '#6a9a6a' : '#8a8060') + '">'
-         +  (actif ? (restant + ' jour(s) restant(s)') : (c.statut + (c.mode_fin ? ' — ' + c.mode_fin : ''))) + '</span></div>';
+    const couv = COUNTRIES[c.pays_couverture]?.n || c.pays_couverture;
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem .8rem;margin-bottom:.7rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem">'
+         +  '<span style="font-size:.85rem;color:#C9A84C">Couverture : ' + escapeHtmlText(couv) + '</span>'
+         +  '<span style="font-size:.72rem;color:#6a9a6a">' + restant + ' jour(s) restant(s)</span></div>';
+    html += '<div style="font-size:.72rem;color:#6a6050;font-style:italic;margin-top:.15rem">'
+         +  'Une couverture n\'est pas une destination : vos agents travaillent là où ils se trouvent.</div>';
+
     (c.agents || []).forEach(a => {
-      const pos = a.leader ? ('convoyé par ' + escapeHtmlText(a.leader))
-                : (a.ville ? (escapeHtmlText(a.ville) + (a.batiment ? ' / ' + escapeHtmlText(a.batiment) : '')) : 'non déployé');
-      html += '<div style="font-size:.74rem;color:#a09060;margin-top:.35rem;border-top:1px solid #1a1810;padding-top:.3rem">'
-           +  '<strong>' + escapeHtmlText(a.vrai_nom) + '</strong> (' + a.role + ') — sous couverture : <em>'
-           +  escapeHtmlText(a.couverture) + '</em><br>'
-           +  '<span style="color:#8a8060">' + a.statut + ' · ' + pos + '</span>';
-      // LE CONVOI, ENFIN CLIQUABLE (21 septembre 2026). Le modal annonce depuis
-      // l'origine « Vous devrez les convoyer vous-meme et les deposer sur place »,
-      // mais AUCUN bouton n'appelait agent_prendre / agent_deposer : les deux RPC
-      // etaient du code mort, et la chaine s'arretait a la creation de la cellule.
-      // On ne cree pas de seconde mecanique : ces boutons appellent les RPC
-      // existantes, qui tranchent seules (empire, co-presence, pays de depot).
-      const idAgent = String(a.id || '').replace(/'/g, "\\'");
-      const moi = state.char?.name;
-      if (a.statut === 'actif' && a.id) {
-        if (!a.leader && !a.ville) {
-          html += '<button onclick="prendreAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Prendre en charge</button>';
-        } else if (a.leader && a.leader === moi) {
-          html += '<button onclick="deposerAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #6a8a20;background:transparent;color:#9ac04c;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Déposer ici</button>';
-        } else if (!a.leader && a.ville === state.currentCity
-                   && a.batiment === state.currentBuilding && a.piece === state.currentRoom) {
-          html += '<button onclick="prendreAgentRenseignement(\'' + idAgent + '\')" style="margin-top:.3rem;width:100%;padding:.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em">Reprendre</button>';
-        }
+      // Quatre situations physiques, dans l'ordre ou le ministre se les pose.
+      let situation;
+      if (a.statut !== 'actif') {
+        situation = a.statut;
+      } else if (a.leader && a.leader === state.char?.name) {
+        situation = a.au_bureau ? 'avec vous, au ministère — n\'a pas encore commencé'
+                                : 'avec vous, en déplacement';
+      } else if (a.leader) {
+        situation = 'accompagne ' + escapeHtmlText(a.leader);
+      } else if (a.ville) {
+        situation = 'laissé à ' + escapeHtmlText(a.ville)
+                  + (a.batiment ? ' — ' + escapeHtmlText(a.batiment) : '')
+                  + (a.pays ? ' (' + escapeHtmlText(COUNTRIES[a.pays]?.n || a.pays) + ')' : '');
+      } else {
+        situation = 'pas encore déployé';
       }
-      html += '</div>';
+      const spec = SPECIALITES_RENSEIGNEMENT[a.role] || a.role;
+      html += '<div style="display:flex;gap:.6rem;align-items:center;margin-top:.5rem;border-top:1px solid #1a1810;padding-top:.45rem">'
+           +  '<img src="' + a.portrait + '" alt="" onerror="this.style.display=\'none\'" '
+           +  'style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #3a2a10;flex-shrink:0">'
+           +  '<div style="min-width:0;font-size:.76rem;color:#a09060">'
+           +  '<strong style="color:#c0b090">' + escapeHtmlText(a.vrai_nom) + '</strong> — ' + spec + '<br>'
+           +  'sous l\'identité de <em>' + escapeHtmlText(a.couverture) + '</em><br>'
+           +  '<span style="color:#8a8060">' + situation + '</span>'
+           +  '</div></div>';
     });
-    if (actif) {
-      html += '<button onclick="terminerCelluleRenseignement(\'' + c.cellule + '\')" style="margin-top:.5rem;width:100%;padding:.35rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">Mettre fin à la mission</button>';
-    }
+
+    html += '<button onclick="terminerCelluleRenseignement(\'' + c.cellule + '\')" '
+         +  'style="margin-top:.7rem;width:100%;padding:.4rem;border:1px solid #8a2020;background:transparent;color:#cc4444;'
+         +  'cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Mettre fin à l\'opération</button>';
     html += '</div>';
   });
+  html += '<button onclick="ouvrirRapportsCellules()" style="width:100%;padding:.45rem;border:1px solid #8a6a20;'
+       +  'background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem;'
+       +  'letter-spacing:.08em">Rapports reçus</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
@@ -7726,6 +7844,14 @@ const AGENT_REFUS = {
   pas_mon_agent:                  'Vous ne convoyez pas cet agent.'
 };
 
+// PLUS AUCUN BOUTON N'APPELLE CES DEUX FONCTIONS depuis le 22 septembre 2026. « Prendre en
+// charge » et « Deposer ici » etaient un second systeme de groupe, visible par le joueur a
+// cote du groupe general : le parcours est desormais « convoquer -> le groupe -> laisser
+// ici », et laisserAgentEnPlace (plateau-multijoueur.js) appelle directement la primitive
+// serveur agent_deposer. Les deux RPC restent en place -- elles sont les primitives sur
+// lesquelles tout le reste s'appuie -- et ces deux enveloppes clientes sont conservees sans
+// appelant, a la fois comme documentation du parcours precedent et pour ne rien casser si
+// un ecran non identifie les referencait encore.
 async function prendreAgentRenseignement(agentId) {
   const r = typeof sbRpc === 'function'
     ? await sbRpc('agent_prendre', { p_agent_id: agentId }).catch(() => null) : null;

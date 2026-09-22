@@ -236,7 +236,15 @@ const PNJ_PROFILS = {
   // la grande majorite des PNJ n'ont pas d'entree ici — c'est attendu
 };
 
+// LE BUREAU DU MINISTRE DE LA DEFENSE, nomme une seule fois pour tout le client. Un agent de
+// renseignement qui s'y trouve encore ne collecte RIEN (regle de game design du 22 septembre
+// 2026) ; le serveur applique la meme regle dans agent_au_bureau_min_def, et les deux doivent
+// designer exactement la meme piece. Le batiment est 'palais-gouvernement'.
+const BATIMENT_BUREAU_MIN_DEF = 'palais-gouvernement';
+const PIECE_BUREAU_MIN_DEF    = 'bureau_min_def';
+
 const PNJ_AVATAR = {
+  agent_renseignement: { icon: 'ti-spy',         color: '#6a7a5a' },
   commissaire:   { icon: 'ti-shield-lock',       color: '#4a6aaa' },
   inspecteur:    { icon: 'ti-search',             color: '#4a6aaa' },
   policier:      { icon: 'ti-shield',             color: '#4a6aaa' },

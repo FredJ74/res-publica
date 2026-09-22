@@ -123,11 +123,21 @@ const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','
 // gerer_effectifs_douane) -- Pascal Paguevite doit donc disparaitre de l'affichage des lors
 // qu'un vrai titulaire (PJ ou PNJ via la cascade) est enregistre, comme les ministres.
 
+// resteApresPourvoi (22 septembre 2026). Un PNJ peut porter le `job` d'un poste SANS etre
+// interchangeable avec son titulaire : Martial Bouterin est le referent militaire permanent du
+// ministere de la Defense, et doit rester dans le bureau quand un joueur devient ministre --
+// comme aide de camp, jamais comme ministre. C'etait deja l'intention du code
+// (ajusterAttacheMinisteriel, plateau-navigation.js, le renomme « Attaché ministériel »), mais ce
+// filtre le supprimait AVANT l'affichage : le renommage etait du code mort.
+//
+// Le drapeau est DECLARATIF et porte par le PNJ lui-meme dans data.js : aucun nom en dur ici,
+// aucune liste parallele, et le comportement vaut pour tout futur ministre.
 function filtrerPnjPostesPourvus(persons) {
   const cache = window._titulairesPostes || {};
   return persons.filter(p => {
     if (!p.job || !POSTES_UNIQUES_A_MASQUER.includes(p.job)) return true;
     if (!p.name || !p.name.includes('(PNJ)')) return true;
+    if (p.resteApresPourvoi === true) return true;
     const titulaire = cache[p.job + '_' + state.currentCity] || cache[p.job];
     return !titulaire;
   });
@@ -524,11 +534,91 @@ async function contacterPnjAutreJoueur() {
   }
 }
 
+// =====================================================================================
+// AGENTS DE RENSEIGNEMENT DANS LE GROUPE (22 septembre 2026)
+// =====================================================================================
+// UN SEUL MODELE MENTAL : « ce PNJ est avec moi, ou je le laisse ici ». Les agents ne sont
+// plus un second groupe invisible pilote par des boutons a part -- ils entrent dans le
+// groupe general, au meme titre qu'une escorte ou un employe.
+//
+// POURQUOI UN CACHE ET PAS state.employes. L'appartenance d'un agent a un groupe vit cote
+// SERVEUR (agents_renseignement.leader_courant), et c'est indispensable : un agent change
+// de porteur entre deux PJ, ce que state.employes -- colonne privee de chaque fiche -- ne
+// peut pas exprimer. On ne duplique donc pas cet etat : on le RELIT, et getMonGroupePNJ()
+// se contente de le refleter. Une seule verite, cote serveur.
+//
+// CE QUE CE CACHE CONTIENT : uniquement l'identite de COUVERTURE. La RPC
+// agents_couverture_de_mon_groupe ne rend ni vrai nom, ni role de renseignement, ni
+// cellule -- elle est appelee par n'importe quel porteur, y compris un PJ qui ignore
+// totalement ce qu'il transporte.
+let RP_AGENTS_PORTES = [];
+
+async function rafraichirAgentsPortes() {
+  if (typeof sbRpc !== 'function') return RP_AGENTS_PORTES;
+  const r = await sbRpc('agents_couverture_de_mon_groupe', {}).catch(() => null);
+  const res = Array.isArray(r) ? r[0] : r;
+  RP_AGENTS_PORTES = (res && res.ok === true && Array.isArray(res.agents)) ? res.agents : [];
+  return RP_AGENTS_PORTES;
+}
+
+// LE CHEMIN DU PORTRAIT NE TRAHIT RIEN. Il est bati sur le ROLE TECHNIQUE (garde,
+// traducteur, conseiller, coordinateur), jamais sur le vrai nom : un joueur qui transporte
+// l'equipe sans rien savoir d'elle ne peut donc rien apprendre en lisant l'URL de l'image
+// dans les outils de son navigateur. Il est calcule cote serveur, pour qu'aucune table de
+// correspondance ne circule dans le navigateur.
+// Les 16 fichiers (4 roles x 4 apparences) ne sont pas encore decoupes dans le depot : tant
+// qu'ils manquent, le navigateur echoue silencieusement sur l'image et l'avatar generique du
+// job prend le relais, comme pour tout PNJ sans photo. Rien a retirer quand ils arriveront.
 function getMonGroupePNJ() {
   const liste = [];
   (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort', photoUrl: e.photoUrl || null, job: 'escort' }));
   (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null, job: e.job || 'default' }));
+  // Sous leur seule identite de couverture, y compris pour le ministre : son ecran
+  // « Suivre une operation » est le seul endroit ou les vrais noms apparaissent.
+  RP_AGENTS_PORTES.forEach(a => liste.push({
+    nom: a.nom, role: 'Connaissance', job: 'agent_renseignement',
+    photoUrl: a.portrait || null, agentId: a.id
+  }));
   return liste;
+}
+
+// « Laisser ici » pour un agent : c'est l'action generale du groupe, branchee sur la
+// primitive serveur qui enregistre pays + ville + batiment + piece et retire le porteur.
+// Le rattachement a l'operation n'est pas touche, et l'agent continue a collecter depuis
+// cet endroit.
+async function laisserAgentEnPlace(agentId) {
+  const r = typeof sbRpc === 'function' ? await sbRpc('agent_deposer', { p_agent_id: agentId }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    showToast('Impossible', 'Cette personne ne peut pas rester ici pour le moment.', false);
+    return;
+  }
+  await rafraichirAgentsPortes();
+  showToast('Resté sur place', 'Cette personne reste dans cette pièce.', false);
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
+}
+
+// « Confier a un autre joueur ». Aucune acceptation n'est demandee : c'est la regle generale
+// du jeu pour tous les PNJ. Le destinataire pourra simplement le laisser sur place s'il n'en
+// veut pas. Il ne recoit strictement aucune information sur ce qu'il transporte.
+async function confierAgentA(agentId, destinataire) {
+  const r = typeof sbRpc === 'function'
+    ? await sbRpc('agent_transferer', { p_agent_id: agentId, p_destinataire: destinataire }).catch(() => null) : null;
+  const res = Array.isArray(r) ? r[0] : r;
+  if (!res || res.ok !== true) {
+    const motifs = {
+      pas_au_meme_endroit: 'Cette personne doit se trouver dans la même pièce que vous.',
+      destinataire_introuvable: 'Ce joueur est introuvable.',
+      destinataire_est_moi: 'Vous l\'accompagnez déjà.',
+      pas_mon_agent: 'Cette personne ne vous accompagne pas.'
+    };
+    showToast('Impossible', (res && motifs[res.raison]) || 'Le serveur a refusé.', false);
+    return;
+  }
+  await rafraichirAgentsPortes();
+  showToast('Confiée', destinataire + ' l\'accompagne désormais.', true);
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
 }
 
 
@@ -1108,10 +1198,30 @@ function renderEmployesPanel() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   const panel = document.getElementById('employes-panel');
-  if (employes.length === 0) {
+  // Les agents de renseignement portes s'affichent DANS CE MEME PANNEAU, sous leur identite
+  // de couverture : pour le joueur, ce sont des accompagnants comme les autres. Le ministre
+  // ne dispose ici d'aucune information de plus qu'un transporteur quelconque.
+  const htmlAgents = (RP_AGENTS_PORTES || []).map(a => {
+    const id = String(a.id).replace(/'/g, '');
+    const avatar = a.portrait
+      ? '<img src="' + a.portrait + '" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid #C9A84C;flex-shrink:0"/>'
+      : '<div style="width:28px;height:28px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center;border:1px solid #C9A84C;flex-shrink:0"><i class="ti ti-user" style="font-size:.7rem;color:#8a6a20"></i></div>';
+    return '<div style="display:flex;align-items:center;gap:.4rem;padding:.3rem 0;border-bottom:1px solid #1a1208">' + avatar +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:.72rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtmlText(a.nom) + '</div>' +
+        '<div style="font-size:.8rem;color:#9a8a68">🟢 En groupe</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:.2rem">' +
+        '<button onclick="laisserAgentEnPlace(\'' + id + '\')" title="Laisser dans cette piece" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📍</button>' +
+        '<button onclick="ouvrirConfierAgent(\'' + id + '\')" title="Confier a un joueur present" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">👤</button>' +
+      '</div></div>';
+  }).join('');
+
+  if (employes.length === 0 && !htmlAgents) {
     el.innerHTML = '<div style="font-size:.72rem;color:#9a8a68;font-style:italic;padding:.3rem 0">Aucun employé</div>';
     return;
   }
+  if (employes.length === 0) { el.innerHTML = htmlAgents; if (panel) panel.style.display = 'block'; return; }
   // Ouvrir le panel automatiquement si employés présents
   if (panel && panel.style.display === 'none') {
     panel.style.display = 'block';
@@ -1140,7 +1250,37 @@ function renderEmployesPanel() {
         '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire. Ce qu\'il porte est perdu." style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">✕</button>' +
       '</div>' +
     '</div>';
-  }).join('');
+  }).join('') + htmlAgents;
+}
+
+// Confier un accompagnant a un autre joueur PRESENT. La liste vient de la presence
+// multijoueur deja affichee dans la piece -- aucun annuaire nouveau, et le serveur revalide
+// de toute facon la co-presence.
+async function ouvrirConfierAgent(agentId) {
+  let presents = [];
+  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
+    try {
+      const tous = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+      presents = (tous || []).map(p => p.name).filter(n => n && n !== state.char?.name);
+    } catch (e) {}
+  }
+  document.getElementById('postes-modal-title').textContent = 'Confier un accompagnant';
+  const id = String(agentId).replace(/'/g, '');
+  let html = '<div style="padding:1rem">';
+  if (presents.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun autre joueur n\'est présent dans cette pièce.</div>';
+  } else {
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.7rem">Cette personne accompagnera le joueur choisi. '
+         +  'Il n\'a rien à accepter, et pourra la laisser où il voudra.</div>';
+    presents.forEach(n => {
+      html += '<button onclick="confierAgentA(\'' + id + '\',\'' + String(n).replace(/'/g, '') + '\');document.getElementById(\'modal-postes\').classList.remove(\'open\')" '
+           +  'style="display:block;width:100%;text-align:left;padding:.5rem .7rem;margin-bottom:.3rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
+           +  escapeHtmlText(n) + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================

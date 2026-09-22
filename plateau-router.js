@@ -558,6 +558,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gestion_manifestations')      { ouvrirGestionManifestations(); return; }
   if (fn === 'gerer_juges')                 { ouvrirGestionJuges(pa, cost); return; }
   if (fn === 'gerer_commandement')          { ouvrirGestionCommandement(); return; }
+  if (fn === 'gestion_caserne')             { ouvrirGestionCaserne(); return; }
   if (fn === 'demobiliser')                 { doDemobiliser(); return; }
   if (fn === 'pilotage_fiscal_budgetaire')  { ouvrirPilotageFiscalBudgetaire(pa, cost); return; }
   if (fn === 'gestion_industrielle_portuaire') { ouvrirGestionIndustriellePortuaire(pa, cost); return; }
@@ -619,6 +620,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(pa, cost); return; }
   if (fn === 'traiter_manifestations') { doTraiterManifestations(pa, cost); return; }
   if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }
+  if (fn === 'renseignement_militaire') { ouvrirRenseignementMilitaire(); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
   if (fn === 'mobiliser') { doMobiliserPolice(fn); return; }
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(pa, cost); return; }

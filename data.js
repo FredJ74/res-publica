@@ -2150,7 +2150,13 @@ const BUILDINGS = {
         // devient Martial Bouterin. Son titre affiche est recalcule a l'entree dans la piece
         // (ajusterAttacheMinisteriel, plateau-navigation.js) : Ministre tant que le poste est
         // tenu par le PNJ, Attaché ministériel des qu'un joueur l'occupe. Jamais deux PNJ.
+        // resteApresPourvoi (22 septembre 2026) : Martial est le referent militaire PERMANENT du
+        // ministere, pas un bouche-trou. Sans ce drapeau, filtrerPnjPostesPourvus le supprimait
+        // de la liste des presents des qu'un PJ prenait min_def -- et le renommage en attache
+        // ministeriel fait juste au-dessus par ajusterAttacheMinisteriel ne s'affichait jamais.
+        // Le drapeau ne dit PAS qu'il detient le poste : son titre reste recalcule a l'entree.
         persons: [{name:'Martial Bouterin (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def',
+                   resteApresPourvoi: true,
                    photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/martial-bouterin.png',
                    photoPos:'50% 25%'}],
         orders: [
@@ -2161,8 +2167,27 @@ const BUILDINGS = {
           // payer_ordre refusait les trois en 'cout_non_declare' (corrige le 21 septembre 2026).
           {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee (4 PA), requisitionner des civils (3 PA), demobiliser (2 PA).'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
-          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'},
-          {fn:'gerer_commandement',  label:'Gérer le commandement',      pa:1, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'min_def', desc:'Commandant en fonction, candidatures reçues, nomination et révocation.'}
+          // REGROUPEMENT (22 septembre 2026). Remplace le BOUTON `renseignement` : un seul
+          // point d'entree, qui mene a « Lancer une operation » et « Suivre une operation ».
+          // La route `renseignement` reste en place dans plateau-router.js.
+          //
+          // POURQUOI 0 PA / 0 FR ICI, alors que l'operation coute toujours 3 PA et 500 FR.
+          // Ce n'est pas une baisse de cout : c'est la fin d'un DOUBLE prelevement. L'ordre
+          // etait declare 3 PA / 500 FR au miroir, donc payer_ordre les prenait AU JOUEUR a
+          // la simple ouverture de la fenetre -- puis cellule_renseignement_creer prelevait
+          // a nouveau 3 PA et 500 FR, ces derniers sur la caisse du Ministere. Le joueur
+          // payait donc 6 PA et 500 FR de sa poche pour une operation censee couter 3 PA et
+          // 500 FR institutionnels. La RPC reste seule payeuse, comme son en-tete l'annonce
+          // depuis le 19 septembre : « le client ne paie plus et ne tire plus rien ».
+          // L'entree ordres_couts de `renseignement` n'est pas touchee.
+          {fn:'renseignement_militaire', label:'Renseignement militaire', pa:0, cost:0, type:'grey', icon:'ti-spy', successRate:100, requiresPost:'min_def', desc:'Convoquer une equipe sous couverture, ou suivre une operation en cours.'},
+          // REGROUPEMENT (22 septembre 2026). Meme patron que gestion_premier_ministre : cette
+          // entree n'ouvre qu'un panneau, ne coute rien et n'a aucun effet. Elle remplace le
+          // BOUTON « Gérer le commandement » dans ce bureau -- la route gerer_commandement reste
+          // en place dans plateau-router.js et son cout de 1 PA continue d'etre preleve, par le
+          // panneau, exactement comme avant. Le ministre trouve desormais au meme endroit le
+          // commandement ET le budget de la caserne, sans avoir a traverser la ville.
+          {fn:'gestion_caserne', label:'Gestion de la caserne', pa:0, cost:0, type:'legal', icon:'ti-building-fortress', successRate:100, requiresPost:'min_def', desc:'Commandement de la caserne (candidatures, nomination, révocation) et budget militaire.'}
         ]
       },
       bureau_min_info: {

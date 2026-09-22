@@ -255,6 +255,48 @@ async function ouvrirGestionCommandement() {
   ouvrirPanneauFonction('Gérer le commandement', entrees, entete);
 }
 
+// --- GESTION DE LA CASERNE, DEPUIS LE BUREAU DU MINISTRE (22 septembre 2026) ---------------
+// Regroupement, pas nouveau moteur. Les deux entrees appellent les fonctions DEJA en service :
+// ouvrirGestionCommandement (candidatures, nomination, revocation) et ouvrirGererBudgetMilitaire
+// (virement journalier, virement ponctuel Ministere -> caserne, financement de la recherche).
+// Aucune donnee, aucune RPC et aucune regle d'autorite ne sont dupliquees.
+//
+// LE COUT DE 1 PA N'EST PAS PERDU. L'ordre gerer_commandement le facturait a l'ouverture ; son
+// bouton disparait du bureau, donc c'est ce panneau qui le preleve, par le meme chemin serveur
+// (deduireCoutOrdre -> payer_ordre, avec fn='gerer_commandement', deja declare dans le miroir des
+// couts). L'equilibrage est donc strictement inchange, et le miroir n'a pas a etre regenere : la
+// facade elle-meme est a 0 PA / 0 FR, et deduireCoutOrdre ne consulte le serveur que si l'un des
+// deux est strictement positif.
+const COUT_PA_OUVERTURE_COMMANDEMENT = 1;
+
+async function ouvrirGestionCaserne() {
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  const entete = await enteteTitulaire('commandant', null);
+  ouvrirPanneauFonction('Gestion de la caserne', [
+    { label: 'Gestion des commandants', pa: COUT_PA_OUVERTURE_COMMANDEMENT,
+      desc: 'Commandant en fonction, candidatures reçues, nomination et révocation.',
+      onclick: 'ouvrirCommandementDepuisCaserne()' },
+    { label: 'Budget de la caserne', pa: 0,
+      desc: 'Virement ponctuel ou journalier de la caisse du Ministère vers celle de la caserne, et financement de la recherche militaire.',
+      onclick: 'ouvrirGererBudgetMilitaire()' }
+  ], entete);
+}
+
+// Le cout d'ouverture du commandement passe par le chemin de paiement normal. En cas de refus
+// serveur (PA insuffisants, cout non declare), le panneau ne s'ouvre pas -- meme invariant que
+// partout ailleurs : paiement reussi -> effet, paiement refuse -> aucun effet.
+async function ouvrirCommandementDepuisCaserne() {
+  if (typeof deduireCoutOrdre === 'function') {
+    const r = await deduireCoutOrdre({ pa: COUT_PA_OUVERTURE_COMMANDEMENT, cost: 0, fn: 'gerer_commandement' });
+    if (!r || r.ok !== true) {
+      if (typeof signalerRefusCout === 'function') signalerRefusCout(r);
+      else showToast('Action impossible', 'Le paiement a été refusé.', false);
+      return;
+    }
+  }
+  await ouvrirGestionCommandement();
+}
+
 // --- FINANCES : Fiscalite et budget ------------------------------------------
 // Trois boutons pour une seule fonction de pilotage financier : le taux national, le redressement et
 // la repartition. Aucune regle, aucun cout, aucun historique ne change -- seul le chemin change.

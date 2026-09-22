@@ -660,6 +660,48 @@ function enterRoom(buildingId, roomId, tabEl) {
     ajusterAttacheMinisteriel(buildingId, roomId);
   }
 
+  // LE BUREAU DU MINISTRE DE LA DEFENSE, nomme une seule fois. C'est le lieu ou un agent
+  // convoque ne collecte PAS encore : la regle est la meme cote serveur (agent_au_bureau_min_def),
+  // et les deux doivent donc designer exactement la meme piece. Le batiment est
+  // 'palais-gouvernement', jamais 'gouvernement'.
+  // AGENTS DE RENSEIGNEMENT LAISSES ICI (22 septembre 2026). Meme patron que les militants
+  // ci-dessous : aucune liste visuelle parallele, on ajoute des entrees au tableau
+  // room.persons existant et renderPersonsList les affiche comme n'importe quel present.
+  //
+  // CE QUE CE CROCHET NE FAIT PAS : afficher les agents PORTES. Un agent qui accompagne un
+  // joueur est deja dans son groupe -- getMonGroupePNJ le publie a la presence multijoueur
+  // comme une escorte ou un employe. L'afficher une seconde fois ici le dedoublerait.
+  // Ne sont donc injectes que les agents POSES dans cette piece precise.
+  //
+  // IDENTITE DE COUVERTURE UNIQUEMENT. agents_couverture_ici ne rend ni vrai nom ni role de
+  // renseignement : la liste des presents est publique, le ministre retrouve les vrais noms
+  // dans « Suivre une operation ». La source est serveur, donc un agent disparait de
+  // lui-meme des que sa cellule se termine ou qu'un joueur le reprend.
+  if (typeof sbRpc === 'function' && state.char?.name) {
+    if (typeof rafraichirAgentsPortes === 'function') {
+      rafraichirAgentsPortes().then(() => {
+        if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+      }).catch(() => {});
+    }
+    sbRpc('agents_couverture_ici', {}).then(rep => {
+      const res = Array.isArray(rep) ? rep[0] : rep;
+      if (!res || res.ok !== true) return;
+      if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+      const roomActuelle = BUILDINGS[buildingId]?.rooms?.[roomId];
+      if (!roomActuelle) return;
+      // PURGE AVANT AJOUT. BUILDINGS est un objet vivant en memoire : sans ce retrait, un
+      // agent injecte une fois resterait affiche pour le reste de la session, meme apres
+      // avoir ete repris. On repart systematiquement de la reponse serveur.
+      if (!roomActuelle.persons) roomActuelle.persons = [];
+      roomActuelle.persons = roomActuelle.persons.filter(x => x.job !== 'agent_renseignement');
+      (res.agents || []).forEach(a => roomActuelle.persons.unshift({
+        name: a.nom, role: 'Connaissance de passage', rel: 'neutral',
+        job: 'agent_renseignement', photoUrl: a.portrait || null
+      }));
+      if (typeof renderPersonsList === 'function') renderPersonsList(roomActuelle.persons);
+    }).catch(() => {});
+  }
+
   // Charger les militants deja recrutes par CE joueur (sessions precedentes), pour qu'ils
   // reapparaissent dans la liste des personnes presentes a l'universite.
   if (buildingId === 'universite' && typeof sbGetMesMilitants === 'function' && state.char?.name) {
