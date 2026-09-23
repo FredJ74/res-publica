@@ -33,9 +33,14 @@ const RP_AUTH_CLE_SESSION = 'respublica_auth_session';
 // un jeton perime au milieu d'une sauvegarde.
 const RP_AUTH_MARGE_MS = 60 * 1000;
 
+// Adresse du dernier compte AUTHENTIFIE connu de ce navigateur. Ni jeton ni mot de passe :
+// juste de quoi savoir qu'il ne faut pas fabriquer d'anonyme a la place (voir rpAuthAssurerSession).
+const RP_AUTH_CLE_IDENTITE = 'respublica_auth_identite';
+
 let RP_AUTH_SESSION = null;
 let RP_AUTH_PROMESSE = null;      // deduplique les appels concurrents
-let RP_AUTH_INDISPONIBLE = false; // vrai si le fournisseur refuse : on cesse d'insister
+let RP_AUTH_INDISPONIBLE = false; // vrai si le fournisseur REFUSE STRUCTURELLEMENT l'anonyme (422)
+let RP_AUTH_ETAT = null;          // 'ok' | 'reconnexion_requise' | 'reseau' | 'indisponible'
 
 function rpAuthCleAnon() {
   return (typeof SUPABASE_ANON === 'string') ? SUPABASE_ANON : '';
@@ -87,26 +92,53 @@ async function rpAuthAppel(chemin, corps, jeton) {
 async function rpAuthOuvrirAnonyme() {
   const r = await rpAuthAppel('/signup', {});
   if (!r.ok) {
-    // 422 anonymous_provider_disabled : le reglage n'est pas encore active cote
-    // Supabase. Ce n'est pas une panne du jeu -- on repli sur la cle anon et on
-    // n'insiste plus de la session.
-    RP_AUTH_INDISPONIBLE = true;
-    console.warn('[auth] compte anonyme indisponible (' + r.statut + ') :',
-                 r.donnees && (r.donnees.msg || r.donnees.error_code));
+    // VERROU RESERRE (24 septembre 2026). RP_AUTH_INDISPONIBLE etait pose sur N'IMPORTE quel
+    // echec -- un 500 passager, un 429, une coupure -- et n'etait jamais relache de toute la vie
+    // de la page. Une seconde de reseau capricieux condamnait donc la session entiere : le jeu
+    // basculait sur la cle anon partagee, et toutes les fonctions liees a l'identite (presence,
+    // paiements, sauvegarde) echouaient jusqu'au rechargement, sans que rien ne l'explique.
+    // Seul le refus STRUCTUREL du fournisseur justifie de cesser d'insister : le provider anonyme
+    // desactive cote Supabase (422). Tout le reste est passager et doit pouvoir etre retente.
+    const code = (r.donnees && (r.donnees.error_code || r.donnees.msg)) || '';
+    const structurel = (r.statut === 422) || String(code).indexOf('anonymous_provider_disabled') !== -1;
+    if (structurel) RP_AUTH_INDISPONIBLE = true;
+    console.warn('[auth] ouverture de compte anonyme refusee (' + r.statut + ') : ' + code
+                 + (structurel ? ' — refus structurel, on cesse d\'insister' : ' — passager, retentable'));
     return null;
   }
   return rpAuthNormaliser(r.donnees);
 }
 
-/* --- Renouvellement ------------------------------------------------------ */
+/* --- Renouvellement ------------------------------------------------------
+   REND DESORMAIS UN VERDICT, PAS UN SIMPLE null (24 septembre 2026).
+   L'ancienne version renvoyait null aussi bien pour « ce jeton est mort » que pour « le wifi a
+   saute ». L'appelant, incapable de distinguer les deux, effacait la session et OUVRAIT UN
+   NOUVEAU COMPTE ANONYME dans les deux cas : une coupure passagere suffisait donc a faire perdre
+   son personnage a un joueur. C'est le risque majeur de ce chantier.
+     { ok:true, session }            -> renouvele
+     { ok:false, definitif:true }    -> le serveur a REFUSE le jeton : il est mort
+     { ok:false, definitif:false }   -> reseau ou panne serveur : on ne conclut RIEN            */
 async function rpAuthRenouveler(refreshToken) {
-  const res = await fetch(RP_AUTH_URL + '/token?grant_type=refresh_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': rpAuthCleAnon() },
-    body: JSON.stringify({ refresh_token: refreshToken })
-  });
-  if (!res.ok) return null;
-  return rpAuthNormaliser(await res.json().catch(() => null));
+  let res;
+  try {
+    res = await fetch(RP_AUTH_URL + '/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': rpAuthCleAnon() },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+  } catch (e) {
+    return { ok: false, definitif: false, raison: 'reseau' };
+  }
+  if (!res.ok) {
+    // 400/401 = le jeton est refuse (revoque, deja consomme, compte supprime) : definitif.
+    // 429 = on nous demande d'attendre. 5xx = panne serveur. Ni l'un ni l'autre ne prouve quoi
+    // que ce soit sur la validite du jeton.
+    const definitif = (res.status === 400 || res.status === 401 || res.status === 403);
+    return { ok: false, definitif: definitif, raison: 'http_' + res.status };
+  }
+  const session = rpAuthNormaliser(await res.json().catch(() => null));
+  if (!session) return { ok: false, definitif: false, raison: 'reponse_illisible' };
+  return { ok: true, session: session };
 }
 
 /* --- LE POINT D'ENTREE. Idempotent, deduplique, ne leve jamais. ---------- */
@@ -117,21 +149,53 @@ async function rpAuthAssurerSession() {
   RP_AUTH_PROMESSE = (async function () {
     try {
       if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
-      if (rpAuthSessionValide(RP_AUTH_SESSION)) return RP_AUTH_SESSION;
+      if (rpAuthSessionValide(RP_AUTH_SESSION)) { RP_AUTH_ETAT = 'ok'; return RP_AUTH_SESSION; }
 
       // Session connue mais perimee : on la renouvelle -- surtout ne pas ouvrir
       // un nouveau compte, ce serait abandonner le personnage du joueur.
       if (RP_AUTH_SESSION && RP_AUTH_SESSION.refresh_token) {
-        const renouvelee = await rpAuthRenouveler(RP_AUTH_SESSION.refresh_token).catch(() => null);
-        if (renouvelee) { RP_AUTH_SESSION = renouvelee; rpAuthEcrireStockage(renouvelee); return renouvelee; }
-        // Renouvellement refuse : le compte n'existe plus (base reinitialisee,
-        // jeton revoque). On repart a zero, ce qui est le comportement attendu.
+        const r = await rpAuthRenouveler(RP_AUTH_SESSION.refresh_token)
+                          .catch(() => ({ ok: false, definitif: false, raison: 'exception' }));
+        if (r.ok) {
+          RP_AUTH_SESSION = r.session; rpAuthEcrireStockage(r.session);
+          rpAuthMemoriserIdentite(r.session);
+          RP_AUTH_ETAT = 'ok';
+          return r.session;
+        }
+        // ECHEC PASSAGER : ON NE CONCLUT RIEN, ET SURTOUT ON N'EFFACE RIEN. Le refresh token
+        // reste en place et la prochaine tentative reussira. Ouvrir un compte anonyme ici, ou
+        // jeter la session, reviendrait a perdre le personnage du joueur sur une coupure.
+        if (!r.definitif) {
+          RP_AUTH_ETAT = 'reseau';
+          console.warn('[auth] renouvellement impossible pour le moment (' + r.raison
+                       + ') — session conservee, aucune identite creee.');
+          return null;
+        }
+        // ECHEC DEFINITIF : le serveur a refuse le jeton.
         RP_AUTH_SESSION = null; rpAuthEcrireStockage(null);
       }
 
-      if (RP_AUTH_INDISPONIBLE) return null;
+      // LE COEUR DU DURCISSEMENT. Un joueur qui a DEJA pose une adresse et un mot de passe ne
+      // doit JAMAIS etre transforme en nouvel anonyme : son personnage appartient a un compte
+      // qui existe toujours, et lui fabriquer une identite neuve le lui ferait croire disparu.
+      // On demande une reconnexion explicite, ce qui est reparable ; un compte anonyme
+      // accidentel, lui, ne l'est pas.
+      const identite = rpAuthIdentiteMemorisee();
+      if (identite && identite.email) {
+        RP_AUTH_ETAT = 'reconnexion_requise';
+        console.warn('[auth] session perdue pour ' + identite.email
+                     + ' — reconnexion demandee, aucun compte anonyme cree.');
+        return null;
+      }
+
+      if (RP_AUTH_INDISPONIBLE) { RP_AUTH_ETAT = 'indisponible'; return null; }
       const nouvelle = await rpAuthOuvrirAnonyme().catch(() => null);
-      if (nouvelle) { RP_AUTH_SESSION = nouvelle; rpAuthEcrireStockage(nouvelle); }
+      if (nouvelle) {
+        RP_AUTH_SESSION = nouvelle; rpAuthEcrireStockage(nouvelle);
+        RP_AUTH_ETAT = 'ok';
+      } else {
+        RP_AUTH_ETAT = RP_AUTH_INDISPONIBLE ? 'indisponible' : 'reseau';
+      }
       return nouvelle;
     } finally {
       RP_AUTH_PROMESSE = null;
@@ -139,6 +203,37 @@ async function rpAuthAssurerSession() {
   })();
   return RP_AUTH_PROMESSE;
 }
+
+/* --- MEMOIRE D'IDENTITE (24 septembre 2026) ------------------------------
+   Une trace MINUSCULE et non secrete -- une adresse, rien d'autre, aucun jeton, aucun mot de
+   passe. Elle sert a une seule chose, mais essentielle : savoir qu'un compte porte des
+   identifiants, donc qu'il ne faut JAMAIS lui substituer une identite anonyme, et pouvoir
+   proposer « reconnectez-vous » en nommant l'adresse plutot qu'un formulaire nu.
+   Elle survit volontairement a l'effacement de la session : c'est precisement quand la session
+   est perdue qu'elle sert.                                                                    */
+function rpAuthMemoriserIdentite(session) {
+  const u = session && session.user;
+  const email = u && (u.email || null);
+  if (!email) return;
+  try {
+    localStorage.setItem(RP_AUTH_CLE_IDENTITE, JSON.stringify({ email: email, uid: u.id || null }));
+  } catch (e) {}
+}
+
+function rpAuthIdentiteMemorisee() {
+  try {
+    const brut = localStorage.getItem(RP_AUTH_CLE_IDENTITE);
+    return brut ? JSON.parse(brut) : null;
+  } catch (e) { return null; }
+}
+
+function rpAuthOublierIdentite() {
+  try { localStorage.removeItem(RP_AUTH_CLE_IDENTITE); } catch (e) {}
+}
+
+/** Etat courant de l'authentification, pour que l'interface puisse en parler au joueur.
+ *  'ok' | 'reconnexion_requise' | 'reseau' | 'indisponible' | null (pas encore sollicitee) */
+function rpAuthEtat() { return RP_AUTH_ETAT; }
 
 /* --- Repartir de zero (14 septembre 2026) --------------------------------
    Un jeton peut rester valide DANS LE TEMPS alors que son compte n'existe plus : c'est le cas
@@ -230,6 +325,17 @@ async function rpAuthSecuriserCompte(email, motDePasse) {
     RP_AUTH_SESSION.user.est_anonyme = compte ? (compte.is_anonymous === true) : false;
     rpAuthEcrireStockage(RP_AUTH_SESSION);
   }
+  // ON MEMORISE L'ADRESSE MEME NON CONFIRMEE. C'est le cas le plus exposé : le compte porte
+  // deja un mot de passe mais reste `is_anonymous` tant que le lien n'est pas clique. Sans cette
+  // trace, une perte de session entre la saisie et la confirmation relancerait la fabrique
+  // d'anonymes -- et le joueur se retrouverait devant un jeu vierge avec un personnage bien
+  // vivant dans la base, sous un compte qu'il ne porte plus.
+  try {
+    localStorage.setItem(RP_AUTH_CLE_IDENTITE, JSON.stringify({
+      email: (compte && (compte.email || compte.new_email)) || email,
+      uid: (compte && compte.id) || uidAvant || null
+    }));
+  } catch (e) {}
   return { ok: true, email: (compte && compte.email) || null,
            enAttente: (compte && compte.new_email) || email,
            encore_anonyme: compte ? (compte.is_anonymous === true) : null };
@@ -337,6 +443,11 @@ async function rpAuthSeConnecter(email, motDePasse) {
   RP_AUTH_PROMESSE = null;
   RP_AUTH_INDISPONIBLE = false;
   RP_AUTH_SESSION = session; rpAuthEcrireStockage(session);
+  // On retient l'adresse : ce navigateur sait desormais qu'il porte un compte a identifiants,
+  // et ne se laissera plus remplacer par un anonyme si la session vient a se perdre.
+  if (session.user && !session.user.email) session.user.email = email;
+  rpAuthMemoriserIdentite(session);
+  RP_AUTH_ETAT = 'ok';
   return { ok: true, uid: session.user && session.user.id };
 }
 

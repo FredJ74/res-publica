@@ -683,6 +683,135 @@ function renderReview(){
 // concurrents produisent une ligne et une erreur, et c'est l'erreur que le joueur voit.
 let CREATION_EN_COURS = false;
 
+// =================================================================================================
+// LE COMPTE AVANT LE PERSONNAGE (24 septembre 2026)
+// =================================================================================================
+// POURQUOI CE DETOUR PAR UNE SESSION ANONYME, alors que la consigne demande un compte authentifie
+// d'emblee. Mesure faite sur notre instance, pas supposee : POST /signup avec adresse et mot de
+// passe renvoie HTTP 200 mais AUCUN jeton -- ni access_token, ni refresh_token -- parce que
+// mailer_autoconfirm vaut false ; et /token?grant_type=password repond alors email_not_confirmed.
+// Creer le compte "proprement" d'abord rendrait donc la suite IMPOSSIBLE : sans session, le
+// joueur ne peut rien ecrire, et il faudrait l'envoyer relever ses courriels avant meme d'avoir
+// choisi son empire. C'est exactement le piege que le cahier des charges interdit.
+//
+// CE QUE FAIT LA VOIE RETENUE, verifiee au banc : on ouvre une session (instantanee, invisible),
+// puis on POSE IMMEDIATEMENT l'adresse et le mot de passe sur CE MEME compte (PUT /user). Le
+// user_id ne bouge pas -- verifie -- le mot de passe est deja enregistre, la session reste
+// valide, et le personnage cree juste apres nait donc sous un identifiant definitif qui porte
+// deja les identifiants du joueur. Seule la CONFIRMATION reste differee : c'est elle qui ouvre
+// la connexion depuis un autre appareil, et c'est une politique Supabase, pas un choix de code.
+//
+// Autrement dit : le compte du joueur existe bien avant son personnage. L'anonymat n'est plus un
+// etat dans lequel on le laisse -- c'est une amorce de quelques millisecondes.
+let IDENTIFIANTS_EN_COURS = false;
+
+function commencerCreation() {
+  // Ce navigateur porte-t-il deja un compte a identifiants ? Alors ne redemandons pas ce que le
+  // joueur a deja donne : il enchaine directement sur la creation du personnage.
+  const dejaIdentifie = (typeof rpAuthEmail === 'function' && rpAuthEmail())
+                     || (typeof rpAuthIdentiteMemorisee === 'function'
+                         && rpAuthIdentiteMemorisee() && rpAuthIdentiteMemorisee().email);
+  if (dejaIdentifie) { goTo(1); return; }
+  ouvrirEcranIdentifiants();
+}
+
+function ouvrirEcranIdentifiants() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const ecran = document.getElementById('sauth');
+  if (!ecran) { goTo(1); return; }   // filet : jamais bloquer l'entree dans le jeu
+  ecran.classList.add('active');
+  window.scrollTo(0, 0);
+  const msg = document.getElementById('auth-msg');
+  if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+}
+
+function rpMessageIdentifiants(cle, secours) {
+  const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle) : null;
+  return (t && t !== cle) ? t : secours;
+}
+
+function afficherMessageIdentifiants(texte) {
+  const zone = document.getElementById('auth-msg');
+  if (!zone) return;
+  zone.style.display = '';
+  zone.style.cssText = 'display:block;margin:.2rem 0 .4rem;padding:.6rem .8rem;border:1px solid #8a3a2a;'
+    + 'background:#2a1410;color:#e8b4a0;font-size:.85rem;line-height:1.45;border-radius:4px';
+  zone.textContent = texte;
+}
+
+async function validerIdentifiants() {
+  // MEME DISCIPLINE QUE LA CREATION DU PERSONNAGE : verrou logique d'abord, etat visible ensuite.
+  // Poser une adresse est un aller-retour reseau ; sans verrou, deux clics rapides lancent deux
+  // conversions concurrentes.
+  if (IDENTIFIANTS_EN_COURS) {
+    console.warn('[auth] second appel a validerIdentifiants() ignore : operation deja en cours.');
+    return;
+  }
+  const email = (document.getElementById('auth-email')?.value || '').trim();
+  const mdp = document.getElementById('auth-mdp')?.value || '';
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    afficherMessageIdentifiants(rpMessageIdentifiants('auth.errEmail',
+      "Cette adresse e-mail ne semble pas valide. Vérifiez-la."));
+    return;
+  }
+  if (mdp.length < 8) {
+    afficherMessageIdentifiants(rpMessageIdentifiants('auth.errPassword',
+      "Choisissez un mot de passe d'au moins huit caractères."));
+    return;
+  }
+
+  IDENTIFIANTS_EN_COURS = true;
+  const bouton = document.getElementById('auth-valider');
+  const libelle = bouton ? bouton.textContent : null;
+  if (bouton) {
+    bouton.disabled = true;
+    bouton.textContent = rpMessageIdentifiants('auth.working', 'Création du compte en cours...');
+  }
+  const rendreLaMain = function () {
+    IDENTIFIANTS_EN_COURS = false;
+    if (bouton) { bouton.disabled = false; if (libelle !== null) bouton.textContent = libelle; }
+  };
+
+  try {
+    if (typeof rpAuthAssurerSession !== 'function' || typeof rpAuthSecuriserCompte !== 'function') {
+      afficherMessageIdentifiants(rpMessageIdentifiants('auth.errUnavailable',
+        "La création de compte est momentanément indisponible. Réessayez dans un instant."));
+      rendreLaMain(); return;
+    }
+    const session = await rpAuthAssurerSession().catch(() => null);
+    if (!session) {
+      afficherMessageIdentifiants(rpMessageIdentifiants('auth.errSession',
+        "Impossible d'ouvrir une session pour le moment. Vérifiez votre connexion et réessayez."));
+      rendreLaMain(); return;
+    }
+
+    const r = await rpAuthSecuriserCompte(email, mdp).catch(() => null);
+    if (!r || r.ok !== true) {
+      const raison = (r && r.raison) || 'inconnue';
+      // Une adresse deja prise est le seul cas ou le joueur doit changer quelque chose ; on le
+      // dit clairement et on lui rappelle qu'il peut simplement se connecter.
+      const dejaPrise = String(raison).indexOf('email_exists') !== -1
+                     || String(raison).indexOf('already') !== -1
+                     || String(raison).indexOf('registered') !== -1;
+      afficherMessageIdentifiants(dejaPrise
+        ? rpMessageIdentifiants('auth.errEmailTaken',
+            "Cette adresse est déjà utilisée. Retournez à l'accueil et choisissez « Me connecter à mon compte ».")
+        : rpMessageIdentifiants('auth.errGeneric',
+            "Votre compte n'a pas pu être créé (" + raison + "). Réessayez dans un instant."));
+      rendreLaMain(); return;
+    }
+
+    // Compte pret : user_id definitif, identifiants poses. Le personnage peut naitre.
+    rendreLaMain();
+    goTo(1);
+  } catch (e) {
+    afficherMessageIdentifiants(rpMessageIdentifiants('auth.errGeneric',
+      "Votre compte n'a pas pu être créé. Réessayez dans un instant."));
+    rendreLaMain();
+  }
+}
+
 async function validateChar(){
   // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
   // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin

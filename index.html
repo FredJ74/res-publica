@@ -53,7 +53,9 @@
          Rempli par rpRetourConfirmation() dans creation.js quand Supabase renvoie le joueur ici
          apres un clic dans le courriel. Vide et invisible le reste du temps. -->
     <div id="retour-confirmation" style="display:none"></div>
-    <button class="hg-btn hg-btn-primaire" onclick="goTo(1)">
+    <!-- Passe desormais par commencerCreation() : l'ecran d'identifiants s'intercale avant le
+         choix de l'empire, sauf si ce navigateur porte deja un compte a identifiants. -->
+    <button class="hg-btn hg-btn-primaire" onclick="commencerCreation()">
       <span data-i18n="home.createCharacter">Creer mon personnage</span>
     </button>
     <button class="hg-btn hg-btn-secondaire" onclick="retrouverPersonnage()">
@@ -95,6 +97,46 @@
       <button onclick="ouvrirConnexionCompte()" class="hg-btn hg-btn-secondaire">Annuler</button>
       <div id="connexion-msg"></div>
     </div>
+  </div>
+</div>
+
+<!-- =====================================================================================
+     ECRAN D'IDENTIFIANTS — AVANT TOUTE CREATION DE PERSONNAGE (24 septembre 2026)
+     =====================================================================================
+     Il vient AVANT #s1 : le compte qui portera le personnage existe donc avant lui, et le
+     personnage nait sous un user_id definitif. C'est ce qui manquait quand un joueur perdait
+     son cache et se retrouvait devant un jeu vierge alors que sa fiche vivait toujours en base.
+
+     Volontairement PEDAGOGIQUE plutot qu'administratif : on dit d'abord a quoi ca sert -- ne pas
+     perdre son personnage, jouer depuis n'importe quel appareil -- et seulement ensuite on
+     demande les deux champs. Aucun numero d'etape, aucun "dots" : ce n'est pas une etape de
+     creation du personnage, c'est ce qui le protege.
+     ===================================================================================== -->
+<div id="sauth" class="screen">
+  <div class="sh">
+    <div class="st playfair" data-i18n="auth.title">Avant de créer votre personnage</div>
+    <div class="sd" data-i18n="auth.intro">Indiquez une adresse e-mail et choisissez un mot de passe. Ils vous permettront de retrouver votre personnage et de vous connecter à Res Publica depuis n'importe quel ordinateur, téléphone ou tablette.</div>
+  </div>
+
+  <div style="max-width:460px;width:100%;display:flex;flex-direction:column;gap:.55rem">
+    <div class="sd" style="text-align:center;font-style:italic;margin-bottom:.2rem" data-i18n="auth.promise">Votre personnage vous suivra partout.</div>
+
+    <input id="auth-email" type="email" autocomplete="email" class="hg-champ"
+           placeholder="Votre adresse e-mail..." data-i18n-placeholder="auth.emailPlaceholder"/>
+    <div class="sd" style="font-size:.74rem;margin:-.2rem 0 .3rem" data-i18n="auth.emailHint">Cette adresse sécurise votre compte et permet de le retrouver. Elle ne sert à rien d'autre.</div>
+
+    <input id="auth-mdp" type="password" autocomplete="new-password" class="hg-champ"
+           placeholder="Choisissez un mot de passe..." data-i18n-placeholder="auth.passwordPlaceholder"/>
+    <div class="sd" style="font-size:.74rem;margin:-.2rem 0 .3rem" data-i18n="auth.passwordHint">Huit caractères au minimum.</div>
+
+    <div id="auth-msg" style="display:none"></div>
+
+    <button id="auth-valider" class="hg-btn hg-btn-charger" onclick="validerIdentifiants()"
+            data-i18n="auth.submit">Créer mon compte et continuer</button>
+
+    <button class="hg-btn hg-btn-secondaire" onclick="goTo(0)" data-i18n="auth.alreadyHaveAccount">
+      J'ai déjà un compte — retour à l'accueil
+    </button>
   </div>
 </div>
 
@@ -203,9 +245,9 @@
 <script src="i18n/i18n-init.js"></script>
 <script src="data.js"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
-<script src="auth.js?v=5"></script>
+<script src="auth.js?v=6"></script>
 <script src="supabase.js?v=229"></script>
-<script src="creation.js?v=7"></script>
+<script src="creation.js?v=8"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

@@ -1267,6 +1267,55 @@ function loadCharacter() {
   } catch(e) { console.warn('Erreur chargement personnage', e); }
 }
 
+// BANDEAU DE RECONNEXION (24 septembre 2026).
+// Il ne s'affiche que dans UN cas, et c'est ce qui le rend lisible : ce navigateur a porte un
+// compte a identifiants, sa session est definitivement perdue, et aucune identite anonyme n'a ete
+// fabriquee a la place -- c'est precisement le comportement que ce chantier a mis en place.
+// Le message dit l'essentiel : le personnage est intact, il manque seulement la preuve.
+// La connexion elle-meme n'est PAS dupliquee ici : elle vit sur la page d'accueil, ou elle est
+// deja implementee et auditee, et s'ouvre depliee via ?connexion=1.
+function afficherBandeauReconnexion() {
+  if (document.getElementById('bandeau-reconnexion')) return;
+  const trad = (cle, secours) => {
+    const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle) : null;
+    return (t && t !== cle) ? t : secours;
+  };
+  const identite = (typeof rpAuthIdentiteMemorisee === 'function') ? rpAuthIdentiteMemorisee() : null;
+  const adresse = (identite && identite.email) || '';
+
+  const div = document.createElement('div');
+  div.id = 'bandeau-reconnexion';
+  div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(8,6,3,.94);'
+    + 'display:flex;align-items:center;justify-content:center;padding:1.5rem';
+  const boite = document.createElement('div');
+  boite.style.cssText = 'max-width:34rem;border:1px solid #6a5a20;background:#12100a;padding:1.6rem';
+
+  const titre = document.createElement('div');
+  titre.style.cssText = 'font-family:Bebas Neue,sans-serif;letter-spacing:.12em;font-size:1.1rem;'
+    + 'color:#C9A84C;margin-bottom:.9rem';
+  titre.textContent = trad('auth.reconnectTitle', 'Reconnectez-vous');
+
+  const corps = document.createElement('div');
+  corps.style.cssText = 'font-size:.86rem;color:#c0b090;line-height:1.75;font-family:Crimson Pro,serif';
+  // textContent : l'adresse vient du stockage local, elle ne doit jamais etre interpretee.
+  corps.textContent = trad('auth.reconnectBody',
+    "Votre session a expiré. Reconnectez-vous avec votre adresse e-mail et votre mot de passe "
+    + "pour retrouver votre personnage : il est intact.") + (adresse ? ' (' + adresse + ')' : '');
+
+  const actions = document.createElement('div');
+  actions.style.cssText = 'margin-top:1.3rem;display:flex;gap:.6rem;flex-wrap:wrap';
+  const bouton = document.createElement('button');
+  bouton.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;'
+    + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
+  bouton.textContent = trad('auth.reconnectButton', 'Me reconnecter');
+  bouton.addEventListener('click', () => { window.location.href = 'index.html?connexion=1'; });
+  actions.appendChild(bouton);
+
+  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(actions);
+  div.appendChild(boite);
+  document.body.appendChild(div);
+}
+
 // Repli serveur de loadCharacter(). Volontairement separe : asynchrone, sans effet tant que le
 // serveur n'a pas repondu, et sans rien changer au chemin nominal.
 //
@@ -1283,7 +1332,12 @@ async function recupererPersonnageDuCompte() {
     if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
     const uid = (typeof rpAuthUid === 'function') ? rpAuthUid() : null;
     if (!uid || typeof sbRpc !== 'function' || typeof sbLoadPersonnage !== 'function') {
-      rpDiagId('repliCompte', 'impossible (pas de session)');
+      const etatAuth = (typeof rpAuthEtat === 'function') ? rpAuthEtat() : null;
+      rpDiagId('repliCompte', 'impossible (pas de session, etat=' + etatAuth + ')');
+      // SESSION PERDUE POUR UN COMPTE A IDENTIFIANTS. Le joueur n'a rien perdu -- son personnage
+      // est intact en base -- mais ce navigateur ne peut plus le prouver. On le DIT, au lieu de
+      // laisser un plateau vide qui donne l'impression que tout a disparu.
+      if (etatAuth === 'reconnexion_requise') afficherBandeauReconnexion();
       return;
     }
 
@@ -1989,6 +2043,22 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null
   // Le chemin institutionnel (payeur.type === 'institution') n'est pas concerne :
   // il passe deja par debiterCaisseBatimentAtomique, atomique cote serveur.
   const ordre = fn || state._ordreEnCours || null;
+
+  // =============================================================================================
+  // AUCUNE ACTION PAYANTE SANS PERSONNAGE CHARGE (24 septembre 2026)
+  // =============================================================================================
+  // C'est le garde-fou generique que l'incident Marsault reclamait. Jusqu'ici, quand state.char
+  // etait absent, la condition ci-dessous etait simplement FAUSSE : on sautait l'autorite serveur
+  // et on tombait dans le chemin local, qui debitait des PA imaginaires et rendait {ok:true}.
+  // L'appelant, croyant avoir paye, executait son effet -- et c'est ainsi qu'une candidature est
+  // partie sous le nom « Anonyme ». Un paiement qui n'atteint pas le serveur n'est pas un
+  // paiement : on refuse, franchement, avec un motif que l'interface peut nommer.
+  // Ce point unique couvre les 268 sites d'action du jeu, sans en toucher un seul.
+  if (payeur === 'joueur' && (pa > 0 || cost > 0) && !state.char?.name) {
+    console.warn('[identite] ordre refuse (' + (ordre || 'sans nom') + ') : aucun personnage charge.');
+    return { ok: false, raison: 'personnage_non_charge', pa, cost };
+  }
+
   if (payeur === 'joueur' && (pa > 0 || cost > 0)
       && typeof sbRpc === 'function' && state.char?.name) {
     const rows = await sbRpc('payer_ordre', {
@@ -2419,6 +2489,15 @@ function signalerRefusCout(resultat) {
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   const fmt = (n) => Number(n || 0).toLocaleString('fr-FR');
 
+  // Nouveau motif (24 septembre 2026) : l'action a ete refusee parce qu'aucun personnage n'est
+  // charge. Le dire franchement, et donner la seule issue utile -- recharger la page, ce qui
+  // declenche la recuperation par le compte. Sans cette branche, ce refus se serait affiche
+  // « Fonds insuffisants » comme tous les autres, et aurait masque la vraie cause une fois de plus.
+  if (r.raison === 'personnage_non_charge') {
+    showToast('Personnage non chargé',
+      "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.", false);
+    return;
+  }
   if (r.raison === 'fonds_insuffisants') {
     const dispo = (typeof r.fondsDisponibles === 'number') ? r.fondsDisponibles
       : (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0));

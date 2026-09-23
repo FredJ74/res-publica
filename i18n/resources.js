@@ -95,6 +95,30 @@ window.RP_I18N_RESOURCES = {
         findCharacterFound: "Personnage \"{{name}}\" trouve ! Redirection...",
         findCharacterConnectionError: "Erreur de connexion. Reessayez."
       },
+      // ECRAN D'IDENTIFIANTS (24 septembre 2026) — intercale entre l'accueil et le choix de
+      // l'empire. Registre volontairement rassurant : on explique a quoi servent ces deux champs
+      // AVANT de les demander, et on ne cache pas qu'un compte est reellement cree.
+      auth: {
+        title: "Avant de créer votre personnage",
+        intro: "Indiquez une adresse e-mail et choisissez un mot de passe. Ils vous permettront de retrouver votre personnage et de vous connecter à Res Publica depuis n'importe quel ordinateur, téléphone ou tablette.",
+        promise: "Votre personnage vous suivra partout.",
+        emailPlaceholder: "Votre adresse e-mail...",
+        emailHint: "Cette adresse sécurise votre compte et permet de le retrouver. Elle ne sert à rien d'autre.",
+        passwordPlaceholder: "Choisissez un mot de passe...",
+        passwordHint: "Huit caractères au minimum.",
+        submit: "Créer mon compte et continuer",
+        working: "Création du compte en cours...",
+        alreadyHaveAccount: "J'ai déjà un compte — retour à l'accueil",
+        errEmail: "Cette adresse e-mail ne semble pas valide. Vérifiez-la.",
+        errPassword: "Choisissez un mot de passe d'au moins huit caractères.",
+        errEmailTaken: "Cette adresse est déjà utilisée. Retournez à l'accueil et choisissez « Me connecter à mon compte ».",
+        errSession: "Impossible d'ouvrir une session pour le moment. Vérifiez votre connexion et réessayez.",
+        errUnavailable: "La création de compte est momentanément indisponible. Réessayez dans un instant.",
+        errGeneric: "Votre compte n'a pas pu être créé. Réessayez dans un instant.",
+        reconnectTitle: "Reconnectez-vous",
+        reconnectBody: "Votre session a expiré. Reconnectez-vous avec votre adresse e-mail et votre mot de passe pour retrouver votre personnage : il est intact.",
+        reconnectButton: "Me reconnecter"
+      },
       creation: {
         steps: {
           country: {
@@ -295,6 +319,30 @@ window.RP_I18N_RESOURCES = {
         findCharacterNotFound: "Character not found. Check the spelling.",
         findCharacterFound: "Character \"{{name}}\" found! Redirecting...",
         findCharacterConnectionError: "Connection error. Please try again."
+      },
+      // CREDENTIALS SCREEN (24 September 2026) — sits between the home screen and the empire
+      // choice. Deliberately reassuring: explain what the two fields are for BEFORE asking for
+      // them, without hiding that an account is really being created.
+      auth: {
+        title: "Before you create your character",
+        intro: "Enter an email address and choose a password. They will let you find your character again and sign in to Res Publica from any computer, phone or tablet.",
+        promise: "Your character goes wherever you do.",
+        emailPlaceholder: "Your email address...",
+        emailHint: "This address secures your account and lets you recover it. It is used for nothing else.",
+        passwordPlaceholder: "Choose a password...",
+        passwordHint: "Eight characters minimum.",
+        submit: "Create my account and continue",
+        working: "Creating your account...",
+        alreadyHaveAccount: "I already have an account — back to the home screen",
+        errEmail: "That email address doesn't look valid. Please check it.",
+        errPassword: "Choose a password of at least eight characters.",
+        errEmailTaken: "That address is already in use. Go back to the home screen and choose \"Sign in to my account\".",
+        errSession: "We couldn't open a session right now. Check your connection and try again.",
+        errUnavailable: "Account creation is temporarily unavailable. Please try again shortly.",
+        errGeneric: "Your account could not be created. Please try again shortly.",
+        reconnectTitle: "Please sign in again",
+        reconnectBody: "Your session has expired. Sign in with your email address and password to get your character back — it is safe and unchanged.",
+        reconnectButton: "Sign in again"
       },
       creation: {
         steps: {

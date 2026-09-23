@@ -117,6 +117,15 @@ function fermerComposeMail() {
 }
 
 async function envoyerComposeMail() {
+  // AUCUN COURRIER SOUS UNE IDENTITE DE REPLI (24 septembre 2026). Le repli « Anonyme » quelques
+  // lignes plus bas a deja produit, en production, un message recu par un ministre et signe d'un
+  // expediteur qui n'existe pas. Un courrier engage son expediteur : sans personnage charge, il
+  // n'y a personne pour l'engager.
+  if (!state.char?.name) {
+    showToast('Personnage non chargé',
+      "Votre personnage n'est pas chargé : rechargez la page avant d'envoyer un message.", false);
+    return;
+  }
   const to = document.getElementById('compose-mail-to').value.trim();
   const subject = document.getElementById('compose-mail-subject').value.trim();
   const body = document.getElementById('compose-mail-body').value.trim();

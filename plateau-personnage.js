@@ -365,7 +365,16 @@ ARMOIRE À SOUVENIRS
 // =====================
 // FICHE PERSONNAGE CENTRALE
 // =====================
-function openSelfView() {
+// UNE SEULE FICHE PERSONNELLE (24 septembre 2026).
+// Il en existait deux : celle-ci, complete (Actions / Inventaire / Organisations / Identite --
+// dont la securite du compte -- / Statistiques), atteinte en cliquant sur soi dans « Personnes
+// presentes » ; et un raccourci « Mes Statistiques » a gauche qui ouvrait une simple modale ne
+// contenant que le tableau des caracteristiques. Deux portes, deux experiences, et la seconde ne
+// menait jamais a la securisation du compte -- precisement ce qu'un joueur doit pouvoir trouver.
+// Le raccourci ouvre desormais CETTE fiche, directement sur l'onglet qu'il promet.
+const SELF_ONGLETS = ['actions', 'inventaire', 'orgas', 'identite', 'stats'];
+
+function openSelfView(ongletInitial) {
   if (typeof state !== 'undefined' && state.char?.queteAccueil?.etape === 'attente_fiche_personnage' && typeof queteAccueilSurbrillance === 'function') {
     queteAccueilSurbrillance('.sortir-btn', 15000);
   }
@@ -376,7 +385,11 @@ function openSelfView() {
     document.getElementById('self-view-name').textContent = char.name || 'Mon Personnage';
     document.getElementById('self-view-role').textContent = state.poste?.name || 'Citoyen';
   }
-  switchSelfTab('actions', document.querySelector('#vue-self .piece-tab'));
+  const onglet = SELF_ONGLETS.indexOf(ongletInitial) !== -1 ? ongletInitial : 'actions';
+  // L'onglet visuellement actif est designe par son RANG, pas devine : c'est ce qui manquait
+  // ailleurs dans ce fichier, ou l'onglet Identite etait ouvert en surlignant Organisations.
+  const tabs = document.querySelectorAll('#vue-self .piece-tab');
+  switchSelfTab(onglet, tabs[SELF_ONGLETS.indexOf(onglet)] || tabs[0] || null);
 }
 
 function closeSelfView() {
@@ -1072,7 +1085,7 @@ async function confirmerChangementPhoto() {
   _photoTemp = null;
   showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true);
   // Rafraîchir l'affichage de la fiche
-  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[2] || null);
+  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[3] || null);
 }
 
 // =====================
