@@ -585,6 +585,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   if (fn === 'voir_ma_section') { doVoirMaSection(); return; }
   if (fn === 'entrainer_section') { doEntrainerSection(pa, cost); return; }
+  if (fn === 'reposer_section') { doReposerSection(); return; }
   if (fn === 'equiper_section') { doEquiperSection(pa, cost); return; }
   if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(pa, cost); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }

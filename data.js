@@ -4653,6 +4653,12 @@ const BUILDINGS = {
           {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
           {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:0, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Combat rapproche, Tir, Reconnaissance ou Secourisme. 12 soldats max par seance. 6 PA pour vous et 6 PA par soldat, preleves par le serveur.'},
+          // REPOS QUOTIDIEN (23 septembre 2026). Place juste apres l'entrainement, parce que c'est
+          // sa contrepartie : l'entrainement coute 6 PA a chaque soldat, le repos les lui rend.
+          // 0 PA et 0 FR pour le Lieutenant -- le cout strategique est l'usage du repos du jour,
+          // qui n'est utilisable qu'une fois par soldat. Declare 0/0, donc payer_ordre n'est jamais
+          // consulte et le miroir des couts n'a pas a etre regenere.
+          {fn:'reposer_section',     label:'Faire reposer la section',   pa:0, cost:0,    type:'legal',   icon:'ti-zzz',           successRate:100, requiresPost:'lieutenant', desc:'Repos quotidien de toute la section, ou qu\'elle soit. A la caserne : retour a 12 PA. Sur le terrain : +8 PA, ou +10 sous la tente du chef de groupe. Une seule fois par jour et par soldat.'},
           {fn:'equiper_section',     label:'Gerer l\'equipement de ma section', pa:1, cost:0, type:'legal', icon:'ti-sword', successRate:100, requiresPost:'lieutenant', desc:'Equiper ou desequiper individuellement les soldats de sa section, selon le stock d\'armes attribue par le Capitaine.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
           // COUT REEL RETABLI (21 septembre 2026). L'ordre etait declare pa:0 alors que ses deux

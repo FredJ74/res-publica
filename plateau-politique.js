@@ -11157,6 +11157,55 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
   addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + nbProgresses + ' soldats).', 'event-good');
 }
 
+// ---- REPOS QUOTIDIEN DE LA SECTION (23 septembre 2026) ----
+// CONTREPARTIE DE L'ENTRAINEMENT. Une seance coute 6 PA a chaque soldat sur 12, et les PA d'un
+// soldat sont aussi ses points de vie au combat. Le repos quotidien empeche que cette fatigue
+// dure artificiellement plusieurs jours, sans pour autant rendre l'entrainement de derniere
+// minute gratuit : chaque soldat n'a qu'UN repos par jour, et le depenser est le vrai choix
+// tactique du Lieutenant.
+//
+// AUCUNE SELECTION, AUCUNE MICROGESTION. Le joueur ne choisit ni les soldats, ni les
+// beneficiaires de la tente : le serveur traite toute la section, soldat par soldat, selon la
+// situation de chacun au moment du clic. Le client ne fait qu'afficher le compte rendu.
+//
+// PAS DE deduireCoutOrdre : l'ordre est declare 0 PA / 0 FR, et la RPC ne preleve rien.
+async function doReposerSection() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  if (typeof sbMilitaireReposerSection !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => []))
+    .find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  if (!section) { showToast('Section introuvable', 'Vous ne commandez aucune section.', false); return; }
+
+  const r = await sbMilitaireReposerSection(compagnie.id, section.id);
+  if (!r || r.ok !== true) {
+    const m = r && r.raison;
+    showToast('Repos impossible',
+      m === 'pas_lieutenant_de_cette_section' ? 'Vous ne commandez pas cette section.'
+      : m === 'compagnie_introuvable' ? 'Cette compagnie n\'existe plus.'
+      : m === 'section_introuvable' ? 'Cette section n\'existe plus.'
+      : m === 'hors_juridiction' ? 'Cette compagnie ne relève pas de votre empire.'
+      : 'Repos refusé (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+
+  // COMPTE RENDU SYNTHETIQUE : une ligne par categorie REELLEMENT concernee, jamais 24 lignes,
+  // jamais une categorie a zero.
+  const lignes = [];
+  if (r.caserne > 0) lignes.push(r.caserne + ' soldat(s) reposé(s) à la caserne.');
+  if (r.tente > 0)   lignes.push(r.tente + ' soldat(s) reposé(s) sur le terrain, sous la tente.');
+  if (r.terrain > 0) lignes.push(r.terrain + ' soldat(s) reposé(s) sur le terrain.');
+  if (r.deja_reposes > 0) lignes.push(r.deja_reposes + ' soldat(s) avaient déjà bénéficié de leur repos aujourd\'hui.');
+
+  if (Number(r.reposes || 0) === 0) {
+    showToast('Aucun repos à prendre',
+      lignes.length ? lignes.join(' ') : 'Aucun soldat de votre section ne peut se reposer maintenant.', false);
+    return;
+  }
+  showToast('Repos de la section effectué', lignes.join(' '), true, true);
+  addJournalEntry('Repos de la section "' + section.lieutenantNom + '" : ' + r.reposes + ' soldat(s) reposé(s).', 'event-good');
+}
+
 // ---- EQUIPEMENT INDIVIDUEL (revu 27 aout 2026, chantier logistique armement) ----
 // Remplace l'ancienne assignation groupee/gratuite/illimitee (limitee aux soldats presents
 // dans la piece) par une gestion homme par homme, contrainte par le stock reel de la section

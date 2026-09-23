@@ -2176,6 +2176,18 @@ async function doDormir() {
     if (vRepos.bonus_consomme) {
       addJournalEntry('Bonus de repas applique : +' + vRepos.bonus_consomme + ' PA.', 'event-good');
     }
+    // SOMMEIL DU PJ MILITAIRE (23 septembre 2026). Le gain depend de la situation : +12 a la
+    // caserne, +8 sur le terrain, +10 sous sa propre tente. Le joueur doit comprendre pourquoi il
+    // recupere moins en campagne -- sans cela, la regle passe pour un bug. Le PJ civil ne voit
+    // rien de nouveau, et le montant affiche est celui arrete par le serveur, jamais un calcul
+    // local. Le plafond general des joueurs (30 PA) est inchange, et le plafond de 12 PA des
+    // soldats PNJ ne s'applique pas a un PJ.
+    if (vRepos.grade_militaire && typeof vRepos.gain === 'number') {
+      addJournalEntry(
+        vRepos.caserne ? 'Repos a la caserne : +' + vRepos.gain + ' PA.'
+        : vRepos.tente ? 'Repos en campagne, sous votre tente : +' + vRepos.gain + ' PA.'
+        : 'Repos en campagne, sans abri : +' + vRepos.gain + ' PA.', 'event-info');
+    }
   }
   state.bonusPaProchainDormir = 0;   // le compteur de bonus differe vit desormais cote serveur
 

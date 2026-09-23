@@ -4522,6 +4522,16 @@ async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_stat: stat });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
+// REPOS QUOTIDIEN DE LA SECTION (23 septembre 2026). Contrairement a militaire_ordre_collectif,
+// qui ne connait que les soldats MENES par un chef, cette RPC porte sur TOUTE la section : les
+// hommes deposes quelque part sans chef en beneficient aussi, sans quoi ils resteraient epuises
+// indefiniment. Autorite, limitation journaliere et bareme sont entierement serveur.
+// Rend {ok, caserne, tente, terrain, deja_reposes, effectif, reposes}.
+async function sbMilitaireReposerSection(compagnieId, sectionId) {
+  const rows = await sbRpc('militaire_reposer_section',
+    { p_compagnie_id: compagnieId, p_section_id: sectionId });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
 async function sbMilitaireEquiperSoldat(compagnieId, sectionId, matricule, categorie) {
   const rows = await sbRpc('militaire_equiper_soldat',
     { p_compagnie_id: compagnieId, p_section_id: sectionId, p_matricule: matricule, p_categorie: categorie });
