@@ -4719,7 +4719,15 @@ const BUILDINGS = {
         desc: "Longues tables, bancs de bois, odeur de soupe. Les rations sortent de la cuisine par lots de dix. Ici, le grade ne donne droit a rien de plus qu'une gamelle.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-refectoire.png",
         persons: [
-          {name:'Cuistot Marmiton (PNJ)', role:'PNJ - Cuisinier de compagnie', rel:'friendly', job:'cuistot_mil'}
+          // CAPORAL ALOUCHE (23 septembre 2026, ex-« Cuistot Marmiton »). Portrait photographique :
+          // meme motif que Marc Hantile -- photoUrl + photoPos suffisent, getPnjAvatar prend seul la
+          // branche photo. Le nom ne porte pas le suffixe « (PNJ) » et le role pas le prefixe
+          // « PNJ - », comme Marc Hantile : ce sont les deux seuls PNJ a portrait reel.
+          // job:'cuistot_mil' est CONSERVE -- l'avatar de repli et les eventuels filtres par metier
+          // continuent de fonctionner si la photo venait a manquer.
+          {name:'Caporal Alouche', role:'Cuisinier de compagnie', rel:'friendly', job:'cuistot_mil',
+           photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/refectoire-pnj-caporal-alouche.png',
+           photoPos:'47% 22%'}
         ],
         orders: [
           {fn:'manger_ration', label:'Manger sa ration', pa:0, cost:0, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour. Gratuit. +2 PA. Puise dans le stock de rations de la caserne, alimente par le ravitaillement de l\'Effort de guerre.'},

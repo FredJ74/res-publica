@@ -1085,7 +1085,12 @@ function envoyerQuestion(enc) {
 // QUELS PNJ passent par le serveur. La table est volontairement explicite : tout PNJ absent d'ici
 // conserve exactement son comportement d'avant. On bascule profil par profil, jamais en bloc.
 const PNJ_PROFILS_SERVEUR = {
-  'Martial Bouterin': 'martial_bouterin'
+  'Martial Bouterin': 'martial_bouterin',
+  // Les deux referents metier de la caserne (23 septembre 2026). La cle est le nom AFFICHE prive
+  // du suffixe « (PNJ) » -- profilServeurDuPnj le retire avant de chercher. Alouche n'en a pas,
+  // Eve si ; les deux formes tombent donc sur la bonne entree.
+  'Caporal Alouche': 'caporal_alouche',
+  'Ève Toahémarch': 'eve_toahemarch'
 };
 
 function profilServeurDuPnj(pnj) {
