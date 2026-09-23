@@ -1079,6 +1079,56 @@ function envoyerQuestion(enc) {
   if (encToUse) talkToPnj(encToUse, q);
 }
 
+// =====================
+// PNJ A PROFIL SERVEUR (23 septembre 2026)
+// =====================
+// QUELS PNJ passent par le serveur. La table est volontairement explicite : tout PNJ absent d'ici
+// conserve exactement son comportement d'avant. On bascule profil par profil, jamais en bloc.
+const PNJ_PROFILS_SERVEUR = {
+  'Martial Bouterin': 'martial_bouterin'
+};
+
+function profilServeurDuPnj(pnj) {
+  const nom = (pnj?.name || '').replace(' (PNJ)', '').trim();
+  return PNJ_PROFILS_SERVEUR[nom] || null;
+}
+
+// LA LANGUE EST CELLE DU JEU, jamais celle du PNJ, du pays ou du texte tape par le joueur.
+// i18next porte le choix reel de l'interface ; on n'en transmet que le code court.
+function langueDuJeu() {
+  const brut = (typeof i18next !== 'undefined' && i18next.language) ? i18next.language : 'fr';
+  return String(brut).toLowerCase().slice(0, 2);
+}
+
+// Le jeton d'authentification du joueur accompagne la requete : le serveur le verifie reellement
+// aupres de Supabase avant d'engager le moindre appel paye. Sans session, on n'appelle meme pas.
+async function reponsePnjServeur(profil, message, historique) {
+  if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  if (!jeton) throw new Error('session absente');
+
+  const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+    body: JSON.stringify({
+      profil,
+      lang: langueDuJeu(),
+      message: String(message || '').slice(0, 1000),
+      historique: (historique || []).slice(-6)
+        .map(h => ({ role: h.role, content: String(h.content || '').slice(0, 1500) }))
+        .filter(h => (h.role === 'user' || h.role === 'assistant') && h.content.length > 0)
+    })
+  });
+  if (!resp.ok) {
+    let raison = 'HTTP ' + resp.status;
+    try { const e = await resp.clone().json(); if (e?.error) raison += ' — ' + e.error; } catch (x) {}
+    console.warn('[PNJ] dialogue serveur indisponible (' + raison + ')');
+    throw new Error(raison);
+  }
+  const data = await resp.json();
+  return data?.reponse || null;
+}
+
 async function talkToPnj(encodedPnj, action) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
@@ -1579,7 +1629,23 @@ RÈGLES ABSOLUES :
       recentHistory.map(h => (h.role === 'user' ? 'Joueur: ' : pnjKey2 + ': ') + h.content).join('\n');
   }
 
+  // DIALOGUE SERVEUR (23 septembre 2026). Pour les PNJ dotes d'un profil serveur, on n'envoie
+  // PLUS le prompt : le navigateur ne transmet qu'un identifiant de profil, la langue choisie
+  // dans le jeu et le message du joueur. La personnalite et les connaissances sont construites
+  // cote serveur, ou le client ne peut pas les alterer. Les autres PNJ empruntent toujours la
+  // voie historique, inchangee.
+  const profilServeur = profilServeurDuPnj(pnj);
+
   try {
+    if (profilServeur) {
+      const texteServeur = await reponsePnjServeur(profilServeur, action, recentHistory);
+      if (!texteServeur) throw new Error('no text');
+      speech.textContent = texteServeur;
+      history.push({ role: 'user', content: action });
+      history.push({ role: 'assistant', content: texteServeur });
+      state.pnjConversations[convKey] = history;
+      return;
+    }
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
