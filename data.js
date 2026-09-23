@@ -4696,6 +4696,11 @@ const BUILDINGS = {
           // ete supprimes : le stock ne se reconstitue plus que par l'Effort de guerre.
           {fn:'retirer_armes_militaires',     label:'Retirer des armes',        pa:0, cost:0, type:'legal',   icon:'ti-shield',  successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Retrait sur le stock reel de l\'armurerie. Inscrit au registre.'},
           {fn:'retirer_explosifs_militaires', label:'Retirer des explosifs',    pa:0, cost:0, type:'legal',   icon:'ti-bomb',    successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Retrait sur le stock reel. Inscrit au registre (lot, quantite, jour, responsable).'},
+          // EQUIPEMENT NON LETAL (23 septembre 2026). Meme ecran, meme RPC et meme registre que
+          // les deux ordres ci-dessus : militaire_retrait accepte deja les huit produits du
+          // catalogue, seul l'appelant client manquait. Sans lui, la tente du repos, les jumelles
+          // de la detection et les radios de commandement restaient dans l'armurerie.
+          {fn:'retirer_equipement_militaire', label:'Retirer de l\'équipement',  pa:0, cost:0, type:'legal',   icon:'ti-backpack', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Gilets, radios, tentes, jumelles et tenues de camouflage, sur le stock reel de l\'armurerie. Inscrit au registre.'},
           {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l\'ISN et la reputation criminelle. Echec detecte : QHS.'}
         ]
       },

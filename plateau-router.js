@@ -175,6 +175,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'tableau_effort_guerre') { ouvrirTableauEffortMinistre(); return; }
   if (fn === 'retirer_armes_militaires') { doRetirerArmesMilitaires(); return; }
   if (fn === 'retirer_explosifs_militaires') { doRetirerExplosifsMilitaires(); return; }
+  if (fn === 'retirer_equipement_militaire') { doRetirerEquipementsMilitaires(); return; }
   if (fn === 'manger_ration') { doMangerRation(); return; }
   if (fn === 'repartir_armement') { ouvrirRepartirArmement(); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }

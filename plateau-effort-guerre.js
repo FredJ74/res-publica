@@ -730,6 +730,27 @@ async function sectionDuJoueurLieutenant() {
 function doRetirerArmesMilitaires() { ouvrirRetraitMilitaire(['arme_de_poing', 'mitraillette'], 'Retirer des armes'); }
 function doRetirerExplosifsMilitaires() { ouvrirRetraitMilitaire(['explosif_militaire'], 'Retirer des explosifs'); }
 
+// EQUIPEMENT NON LETAL (23 septembre 2026). ouvrirRetraitMilitaire etait generique depuis
+// toujours, et militaire_retrait accepte cote serveur les HUIT produits du catalogue -- mais
+// seules les armes et les explosifs avaient un appelant. Gilet, radio, tente, jumelles et tenue
+// de camouflage dormaient donc dans l'armurerie sans qu'aucun bouton ne permette de les en
+// sortir : le bonus de tente du repos, le bonus de jumelles de la detection et le commandement
+// par radio etaient inatteignables faute d'interface, pas faute de moteur.
+//
+// LA LISTE EST DERIVEE DU CATALOGUE, PAS RECOPIEE. RECETTES_MILITAIRES porte deja typeObjet sur
+// chaque produit ; filtrer sur 'equipement' exclut les armes et les explosifs par construction,
+// et un futur equipement ajoute au catalogue apparaitra ici sans nouvelle modification. Recopier
+// cinq identifiants a la main aurait cree une seconde liste a tenir a jour -- exactement ce que
+// militaire_retrait evite deja cote serveur en faisant de sa table de formes SA liste blanche.
+function produitsEquipementMilitaire() {
+  return PRODUITS_MILITAIRES.filter(function (id) {
+    return (RECETTES_MILITAIRES[id] || {}).typeObjet === 'equipement';
+  });
+}
+function doRetirerEquipementsMilitaires() {
+  ouvrirRetraitMilitaire(produitsEquipementMilitaire(), 'Retirer de l\'équipement');
+}
+
 async function ouvrirRetraitMilitaire(produits, titre) {
   if (state.poste?.id !== 'lieutenant') {
     showToast('Accès refusé', 'Le retrait de matériel est réservé au Lieutenant chef de section.', false);
