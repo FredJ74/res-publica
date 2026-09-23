@@ -188,6 +188,25 @@ async function rafraichirMutins() {
   return RP_MUTINS;
 }
 
+// Fiche d'information d'un detachement, pour qui n'en est pas le chef. Strictement en lecture :
+// ce que la carte affiche deja, et rien de plus -- ni effectif detaille, ni compagnie, ni section,
+// et surtout aucune action. Un joueur qui croise des soldats en faction voit des soldats en
+// faction, pas un PNJ a recruter.
+function ouvrirInfoDetachement(nomEncode, roleEncode) {
+  const nom = decodeURIComponent(nomEncode || '');
+  const role = decodeURIComponent(roleEncode || '');
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : t;
+  document.getElementById('postes-modal-title').textContent = 'Détachement militaire';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.9rem;color:#e0d5b8;margin-bottom:.3rem">' + ech(nom) + '</div>' +
+    '<div style="font-size:.8rem;color:#8ac05a;margin-bottom:.8rem">' + ech(role) + '</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;line-height:1.6">' +
+      'Ces hommes sont en service. Seul l\'officier qui commande leur section peut leur donner des ordres.' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
@@ -242,6 +261,34 @@ function renderPersonsList(persons, targetId) {
         '<div class="person-name">' + p.name + '</div>' +
         '<div class="person-role">' + p.role + '</div>' +
         '<div class="person-rel" style="color:#8a3a2a;font-size:.78rem">⚠ Décédé</div>' +
+        '</div></div>';
+    }
+
+    // DETACHEMENT MILITAIRE : PAS UN PNJ (23 septembre 2026). Cette carte agrege plusieurs
+    // soldats en une ligne. Envoyee a openPnjModal comme les autres, elle etait lue comme un PNJ
+    // recrutable de l'archetype civil « militaire » (data.js) : le Lieutenant se voyait proposer
+    // de RECRUTER ses propres soldats a 500 FR/jour, avec les 10 places du groupe de compagnons
+    // et les caracteristiques d'un militaire generique. On intercepte donc AVANT l'onclick
+    // generique, exactement comme le fait deja le cadavre juste au-dessus.
+    //
+    // Le chef de la section est renvoye vers sa vraie mecanique ; tout autre joueur n'obtient
+    // qu'une fiche d'information. Ce n'est pas la securite -- les RPC militaires revalident
+    // l'autorite -- c'est la coherence de l'interface.
+    if (p.detachement === true) {
+      const estSonChef = state.poste?.id === 'lieutenant' && p.lieutenantNom
+                      && p.lieutenantNom === state.char?.name;
+      // Les deux libelles contiennent des guillemets doubles (« Soldats section "X" ») : ils sont
+      // encodes avant d'entrer dans l'attribut onclick, sinon ils le fermeraient prematurement.
+      const action = estSonChef ? 'doGererDetachement()'
+        : "ouvrirInfoDetachement('" + encodeURIComponent(p.name) + "','" + encodeURIComponent(p.role) + "')";
+      const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : t;
+      return '<div class="person-card" style="border-left:2px solid #6a8a4a;cursor:pointer" onclick="' + action + '">' +
+        avatarHtml +
+        '<div>' +
+        '<div class="person-name">' + ech(p.name) + '</div>' +
+        '<div class="person-role">' + ech(p.role) + '</div>' +
+        '<div class="person-rel" style="color:#8ac05a;font-size:.78rem">' +
+          (estSonChef ? 'Votre section — cliquez pour la gérer' : 'Détachement militaire') + '</div>' +
         '</div></div>';
     }
 

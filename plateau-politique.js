@@ -10454,7 +10454,17 @@ async function carteDetachementPiece(pays, ville, buildingId, roomId) {
   return {
     name: det.nom,
     role: det.nombre + ' soldats — ' + (LIBELLES_MISSION_DETACHEMENT[det.mission] || 'Sans consigne'),
-    rel: 'neutral', job: 'militaire'
+    rel: 'neutral', job: 'militaire',
+    // CETTE CARTE N'EST PAS UN PNJ (23 septembre 2026). C'est un agregat : plusieurs soldats
+    // resumes en une ligne. Sans ce drapeau, renderPersonsList lui appliquait l'onclick generique
+    // openPnjModal, qui la lisait comme un PNJ recrutable de l'archetype civil « militaire » --
+    // et proposait au Lieutenant de RECRUTER ses propres soldats a 500 FR/jour.
+    //
+    // lieutenantNom est deja public : il figure en toutes lettres dans le nom affiche de la carte.
+    // On ne transmet NI compagnieId NI sectionId : le routage n'en a pas besoin (doGererDetachement
+    // les relit sur la fiche du joueur), et les mettre dans le DOM les exposerait sans raison.
+    detachement: true,
+    lieutenantNom: det.lieutenantNom || null
   };
 }
 
