@@ -10417,6 +10417,43 @@ async function getAffichageDetachementPiece(pays, ville, buildingId, roomId) {
   return null;
 }
 
+// CARTE « PERSONNES PRESENTES » D'UN DETACHEMENT — POINT UNIQUE (23 septembre 2026).
+//
+// LE BUG QU'ELLE FERME. Cette composition vivait en dur dans enterRoom (plateau-navigation.js),
+// seul endroit du jeu qui injectait le detachement dans la liste des presents. Or enterRoom
+// enchaine ensuite rafraichirPresenceAgents(), qui redessine la liste a partir des seules
+// personnes normales -- et cette seconde ecriture, plus tardive d'une ecriture serveur et de deux
+// RPC, effacait systematiquement la ligne des soldats. Ils restaient pourtant bien poses en base :
+// c'etait un defaut d'affichage, jamais de donnee.
+//
+// Une seule definition desormais, appelee par les DEUX rendus. Aucun cache militaire n'est
+// introduit : chaque appel relit l'etat serveur par getAffichageDetachementPiece (sbGetCompagnies),
+// exactement comme le premier rendu le faisait deja. Un detachement recupere ou deplace disparait
+// donc de lui-meme au rafraichissement suivant, sans invalidation a ecrire.
+//
+// LE NIVEAU D'INFORMATION EST STRICTEMENT CELUI D'AVANT : le nom de la section, l'effectif et la
+// consigne, rien de plus. Ni compagnie, ni identifiant de section, ni troupe etrangere -- raison
+// pour laquelle cette fonction n'utilise PAS la RPC militaire_detachement_ici(), qui en revele
+// davantage.
+const LIBELLES_MISSION_DETACHEMENT = {
+  bloquer_acces: 'Bloque l\'accès',
+  securiser: 'Sécurise la pièce',
+  assassiner: 'Ordre : neutraliser les intrus',
+  arreter: 'Ordre : arrêter les intrus',
+  surveiller: 'En surveillance'
+};
+
+async function carteDetachementPiece(pays, ville, buildingId, roomId) {
+  if (typeof getAffichageDetachementPiece !== 'function') return null;
+  const det = await getAffichageDetachementPiece(pays, ville, buildingId, roomId).catch(() => null);
+  if (!det) return null;
+  return {
+    name: det.nom,
+    role: det.nombre + ' soldats — ' + (LIBELLES_MISSION_DETACHEMENT[det.mission] || 'Sans consigne'),
+    rel: 'neutral', job: 'militaire'
+  };
+}
+
 // ---- MISSIONS DES DETACHEMENTS ----
 const MISSIONS_DETACHEMENT = [
   { id: 'bloquer_acces', label: 'Bloquer l\'accès au bâtiment' },

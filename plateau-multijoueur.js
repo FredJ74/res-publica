@@ -1657,13 +1657,32 @@ function personnesNormalesDeLaPiece(buildingId, roomId) {
 // Le rendu se fait APRES la reponse serveur, en une seule ecriture : c'est ce qui corrige la
 // disparition des agents poses au retour dans une piece. L'ancien chemin inserait ses cartes
 // dans le DOM apres coup, et le rendu suivant les effacait.
+// LE DETACHEMENT MILITAIRE EST RELU ICI AUSSI (23 septembre 2026). Ce rendu ne connaissait que
+// les personnes normales : il effacait donc la ligne des soldats deposes, posee par enterRoom
+// quelques dizaines de millisecondes plus tot. Comme il survient apres une ecriture serveur et
+// deux RPC, il arrivait toujours en dernier -- les soldats disparaissaient a chaque entree de
+// piece alors qu'ils etaient correctement poses en base.
+//
+// Les deux lectures partent ENSEMBLE : le detachement n'ajoute pas un aller-retour en serie.
+// Aucun cache n'est introduit -- carteDetachementPiece relit l'etat serveur a chaque appel, si
+// bien qu'un detachement recupere ou deplace cesse de lui-meme d'etre affiche.
+//
+// C'est une architecture DISTINCTE de celle des agents de renseignement : les soldats vivent dans
+// le blob de la compagnie et n'ont aucune variable de module, la ou RP_AGENTS_ICI en est une. Rien
+// ici ne touche a leur cycle de vie.
 async function rafraichirPresenceAgents() {
   if (typeof renderPersonsList !== 'function' || !state.currentBuilding || !state.currentRoom) return;
-  const bat = state.currentBuilding, piece = state.currentRoom;
-  await rafraichirAgentsIci();
+  const bat = state.currentBuilding, piece = state.currentRoom, ville = state.currentCity;
+  const [, detachement] = await Promise.all([
+    rafraichirAgentsIci(),
+    (typeof carteDetachementPiece === 'function')
+      ? carteDetachementPiece(state.country || 'republic', ville, bat, piece).catch(() => null)
+      : Promise.resolve(null)
+  ]);
   // Le joueur a pu changer de piece pendant l'aller-retour : on ne redessine alors rien.
-  if (state.currentBuilding !== bat || state.currentRoom !== piece) return;
-  renderPersonsList(personnesNormalesDeLaPiece(bat, piece));
+  if (state.currentBuilding !== bat || state.currentRoom !== piece || state.currentCity !== ville) return;
+  const normales = personnesNormalesDeLaPiece(bat, piece);
+  renderPersonsList(detachement ? [...normales, detachement] : normales);
 }
 
 // =====================

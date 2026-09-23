@@ -871,18 +871,18 @@ function enterRoom(buildingId, roomId, tabEl) {
   // repartant chacun de displayPersons se seraient ecrases mutuellement si plusieurs de ces
   // presences coexistaient dans la meme piece (correctif introduit avec l'ajout
   // militaire/police, etendu ici aux detenus reels pour la meme raison).
-  if (typeof getAffichageDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function' || estSalleGeoles) {
+  if (typeof carteDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function' || estSalleGeoles) {
     Promise.all([
-      typeof getAffichageDetachementPiece === 'function' ? getAffichageDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
+      typeof carteDetachementPiece === 'function' ? carteDetachementPiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
       typeof getAffichagePolicePiece === 'function' ? getAffichagePolicePiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
       (estSalleGeoles && typeof sbGetDetenusActifs === 'function') ? sbGetDetenusActifs(state.country || 'republic', state.currentCity).catch(() => []) : null
     ]).then(([det, pol, detenus]) => {
       if (!(det || pol || (detenus && detenus.length > 0)) || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
       const extras = [];
-      if (det) {
-        const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance' }[det.mission] || 'Sans consigne';
-        extras.push({ name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' });
-      }
+      // La carte est desormais composee par carteDetachementPiece (plateau-politique.js), point
+      // unique partage avec rafraichirPresenceAgents : c'est ce partage qui empeche le second
+      // rendu d'effacer les soldats. Meme libelle, meme niveau d'information qu'avant.
+      if (det) extras.push(det);
       if (pol) {
         extras.push({ name: 'Patrouille de police', role: pol.nombre + ' policier(s) en faction', rel: 'neutral', job: 'policier' });
         // Rencontre policiere reelle (lot "condamne recherche croisant la police", 26 aout
