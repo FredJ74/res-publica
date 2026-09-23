@@ -1679,6 +1679,15 @@ async function sbMilitaireTrousseUtiliser(cible) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// RATION DE COMBAT — CONSOMMATION PAR SON PROPRIETAIRE (23 septembre 2026). militaire_ordre_collectif
+// ne nourrit que les soldats PNJ menes ; cette RPC est le pendant pour le PJ lui-meme. Elle verifie
+// la possession, retire la ration et credite le PA dans la meme transaction : le client ne supprime
+// jamais l'objet et ne calcule jamais le gain. Rend {ok, pa_avant, pa_apres, gain_reel, rations_restantes}.
+async function sbMilitaireRationConsommer() {
+  const rows = await sbRpc('militaire_ration_consommer', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // ---- SOLDES MILITAIRES (phase 2, 18 septembre 2026) ----
 // Le payeur est la CAISSE DE LA CASERNE, plus jamais une creation monetaire cliente. Registre
 // quotidien a cle unique « nom:jour » qui sert d'anti-rejeu, debit PLAFONNE par la caisse, et la

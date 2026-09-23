@@ -3686,6 +3686,12 @@ function ouvrirDetailObjet(idx) {
   if (item.produitMilitaire === 'jumelles') {
     html += '<button onclick="doObserverJumelles();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a4a6a;background:transparent;color:#5a8ac0;cursor:pointer">Observer (1 PA)</button>';
   }
+  // RATION DE COMBAT (23 septembre 2026). Meme motif que la trousse et le medicament : un bouton
+  // dans le detail de l'objet, pas un systeme parallele. Le joueur pouvait emporter des rations du
+  // refectoire sans pouvoir les manger -- militaire_ordre_collectif ne nourrit que les soldats PNJ.
+  if (item.produitMilitaire === 'ration_combat') {
+    html += '<button onclick="doConsommerRationCombat();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Consommer (+1 PA)</button>';
+  }
   if (item.produitMilitaire === 'trousse_secours') {
     html += '<button onclick="ouvrirSoinTrousse();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Soigner</button>';
   }
@@ -3851,6 +3857,43 @@ async function confirmerSoinTrousse(cibleEncodee) {
   showToast('Premiers secours', (pourMoi ? 'Vous récupérez ' : (cible + ' récupère ')) + gain + ' PA'
     + (gain < theo ? ' (plafond atteint, ' + theo + ' possibles).' : '.'), true, true);
   addJournalEntry('Trousse de premiers secours utilisée' + (pourMoi ? '' : ' sur ' + cible) + ' : +' + gain + ' PA.', 'event-good');
+}
+
+// CONSOMMATION D'UNE RATION DE COMBAT PAR SON PROPRIETAIRE (23 septembre 2026).
+// Aucune confirmation intermediaire : contrairement a la trousse, il n'y a ni cible a choisir ni
+// efficacite variable a expliquer. Le serveur verifie la possession, retire la ration et credite
+// le PA dans la meme transaction ; on RELIT ensuite l'inventaire qu'il a arrete, on ne le
+// recalcule pas -- le recalculer ici ferait diverger l'ecran de la base.
+async function doConsommerRationCombat() {
+  if (typeof sbMilitaireRationConsommer !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  const r = await sbMilitaireRationConsommer();
+  if (!r || r.ok !== true) {
+    // LES DEUX REFUS CI-DESSOUS CONSERVENT LA RATION : le serveur n'ecrit rien dans ces cas,
+    // il ne faut donc surtout pas relire ni retoucher l'inventaire ici.
+    showToast('Impossible',
+      r?.raison === 'aucune_ration' ? 'Vous n\'avez aucune ration de combat.'
+      : r?.raison === 'pa_maximum' ? 'Vous êtes déjà au maximum de PA (' + (r.plafond || 30) + '). Votre ration est conservée.'
+      : r?.raison === 'maximum_quotidien' ? 'Vous avez déjà consommé vos ' + (r.maximum || 2) + ' rations de combat aujourd\'hui. Votre ration est conservée.'
+      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  if (typeof r.pa_apres === 'number') state.pa = r.pa_apres;
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+    if (l && l[0] && Array.isArray(l[0].inventory)) {
+      state.inventory = l[0].inventory;
+      if (state.char) state.char.inventory = state.inventory;
+      if (typeof renderInventory === 'function') renderInventory();
+    }
+  }
+  updateUI();
+  const gain = Number(r.gain_reel || 0);
+  const reste = Number(r.rations_restantes || 0);
+  const restantesAujourdhui = Math.max(0, Number(r.maximum || 2) - Number(r.consommees_aujourdhui || 0));
+  showToast('Ration consommée',
+    'Vous récupérez ' + gain + ' PA. Il vous reste ' + reste + ' ration(s), et '
+    + restantesAujourdhui + ' consommation(s) possible(s) aujourd\'hui.', true, true);
+  addJournalEntry('Ration de combat consommée : +' + gain + ' PA.', 'event-good');
 }
 
 // Retrait d'une trousse a l'Infirmerie. La fabrication est faite A LA DEMANDE par le serveur, sur
