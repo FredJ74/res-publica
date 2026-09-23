@@ -65,9 +65,13 @@ async function ouvrirEcranPostes() {
     } else {
       actionHtml = '<button class="poste-btn" onclick="demanderNominationPoste(\'' + p.id + '\',\'' + p.label.replace(/'/g,'') + '\')">Postuler</button>';
     }
+    // ORGANIGRAMME : un titulaire passe a la mutinerie doit se voir d'un coup d'oeil. RP_MUTINS
+    // est relu a chaque entree de piece ; il ne porte que des noms, jamais une position.
+    const mutinIci = (titulaire && typeof estMutin === 'function' && estMutin(titulaire.nom))
+      ? ' <b style="color:#cc4444">— MUTIN</b>' : '';
     html += '<div class="poste-item"><div>' +
       '<div class="poste-name">' + p.label + (villeDeCePoste ? ' (' + villeNom + ')' : '') + '</div>' +
-      '<div class="poste-holder">' + (titulaire ? ('Occupé par ' + titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)')) : 'Poste vacant') + '</div>' +
+      '<div class="poste-holder">' + (titulaire ? ('Occupé par ' + titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)')) : 'Poste vacant') + mutinIci + '</div>' +
       '</div>' + actionHtml + '</div>';
   }
 
@@ -11125,7 +11129,10 @@ async function doVoirMaSection() {
     html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
     html += '<div style="color:#a89870">' + libelleFormationSoldat(s)
           + (s.pj === true ? '' : ' · PA ' + (s.pa || 0) + '/' + PA_MAX_SOLDAT)
-          + ' · ' + localisation + '</div>';
+          + ' · ' + localisation
+          // Un soldat rallie a une mutinerie porte son camp dans le blob : le Lieutenant doit
+          // voir immediatement lesquels de ses hommes ne lui obeissent plus.
+          + (s.mutin ? ' · <b style="color:#cc4444">MUTIN</b>' : '') + '</div>';
     html += '<div style="color:#8a8060">Équipement : ' + (armesLabels[s.arme] || 'Aucun') + '</div>';
     html += '</div>';
   });
@@ -11241,6 +11248,57 @@ async function doReposerSection() {
   }
   showToast('Repos de la section effectué', lignes.join(' '), true, true);
   addJournalEntry('Repos de la section "' + section.lieutenantNom + '" : ' + r.reposes + ' soldat(s) reposé(s).', 'event-good');
+}
+
+// ---- MUTINERIE — DECLENCHEMENT (23 septembre 2026) ----
+// CONFIRMATION EXPLICITE OBLIGATOIRE. C'est le seul acte du jeu qui fasse basculer un joueur hors
+// de l'armee reguliere sans retour possible, et dont l'echec se paie en prison. Le joueur doit
+// lire ce qu'il engage avant de cliquer -- pas un toast apres coup.
+//
+// Le client ne calcule RIEN : ni le nombre de rallies, ni qui suit. Il demande, le serveur
+// tranche, et il rapporte le resultat reel.
+async function doDeclencherMutinerie() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', 'Seul un chef de section peut retourner ses hommes.', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Déclencher une mutinerie';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="border:1px solid #6a2a20;background:#140a08;padding:.8rem;margin-bottom:.9rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.95rem;letter-spacing:.1em;color:#cc4444;margin-bottom:.5rem">ACTE GRAVE ET IRRÉVERSIBLE</div>';
+  html += '<div style="font-size:.82rem;color:#c0b090;line-height:1.6">Vous vous apprêtez à retourner votre section contre l\'armée régulière de votre pays. '
+        + '<b>Cette décision ne peut pas être annulée.</b></div>';
+  html += '<ul style="font-size:.8rem;color:#a09070;line-height:1.7;margin:.6rem 0 0 1rem;padding:0">';
+  html += '<li>Une partie seulement de vos hommes vous suivra — votre charisme et l\'état du pays décideront combien.</li>';
+  html += '<li>Ceux qui refusent restent loyalistes et pourront vous combattre.</li>';
+  html += '<li>Vous perdez votre place dans l\'armée régulière.</li>';
+  html += '<li><b style="color:#cc4444">Si vous êtes capturé, vous serez emprisonné 7 jours pour mutinerie.</b></li>';
+  html += '</ul></div>';
+  html += '<button onclick="confirmerMutinerie()" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a2a20;background:transparent;color:#cc4444;cursor:pointer">Je me soulève</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Renoncer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerMutinerie() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbMutinerieDeclencher !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  const r = await sbMutinerieDeclencher();
+  if (!r || r.ok !== true) {
+    const m = r && r.raison;
+    showToast('Mutinerie impossible',
+      m === 'pas_lieutenant' ? 'Seul un chef de section peut se soulever.'
+      : m === 'deja_mutin' ? 'Vous êtes déjà en rébellion.'
+      : m === 'pas_lieutenant_de_cette_section' ? 'Vous ne commandez pas cette section.'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+  // On recopie le resultat ARRETE PAR LE SERVEUR, jamais un calcul local.
+  const suivi = Number(r.soldats_rallies || 0);
+  const restes = Number(r.soldats_restes_loyalistes || 0);
+  if (typeof rafraichirMutins === 'function') await rafraichirMutins().catch(() => {});
+  if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
+  showToast('Mutinerie déclenchée',
+    suivi + ' soldat(s) vous ont suivi' + (restes > 0 ? ', ' + restes + ' sont restés loyalistes.' : '.'), true, true);
+  addJournalEntry('Vous avez déclenché une mutinerie : ' + suivi + ' soldat(s) vous ont suivi.', 'event-bad');
 }
 
 // ---- EQUIPEMENT INDIVIDUEL (revu 27 aout 2026, chantier logistique armement) ----

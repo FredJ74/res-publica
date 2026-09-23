@@ -4660,6 +4660,11 @@ const BUILDINGS = {
           // consulte et le miroir des couts n'a pas a etre regenere.
           {fn:'reposer_section',     label:'Faire reposer la section',   pa:0, cost:0,    type:'legal',   icon:'ti-zzz',           successRate:100, requiresPost:'lieutenant', desc:'Repos quotidien de toute la section, ou qu\'elle soit. A la caserne : retour a 12 PA. Sur le terrain : +8 PA, ou +10 sous la tente du chef de groupe. Une seule fois par jour et par soldat.'},
           {fn:'equiper_section',     label:'Gerer l\'equipement de ma section', pa:1, cost:0, type:'legal', icon:'ti-sword', successRate:100, requiresPost:'lieutenant', desc:'Equiper ou desequiper individuellement les soldats de sa section, selon le stock d\'armes attribue par le Capitaine.'},
+          // MUTINERIE (23 septembre 2026). Type 'illegal' : ce n'est pas un ordre de service, c'est
+          // une trahison. Seul un Lieutenant peut la declencher, et seulement sur SA section --
+          // le serveur lit lui-meme laquelle, l'ordre ne transmet rien. 0 PA : le cout n'est pas
+          // une depense d'action, c'est le risque penal encouru.
+          {fn:'declencher_mutinerie', label:'Declencher une mutinerie',   pa:0, cost:0,    type:'illegal', icon:'ti-flame',        successRate:100, requiresPost:'lieutenant', desc:'Retourner votre section contre l\'armee reguliere. Acte grave et irreversible : la capture vaut 7 jours de prison.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
           // COUT REEL RETABLI (21 septembre 2026). L'ordre etait declare pa:0 alors que ses deux
           // niveaux facturent 1 PA (revue) et 2 PA (detaillee) : le miroir des couts ne connaissait

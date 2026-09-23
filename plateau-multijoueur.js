@@ -159,6 +159,35 @@ async function rafraichirTitulairesPostesElectifs() {
   } catch(e) {}
 }
 
+// MUTINERIE — IDENTIFICATION VISUELLE (23 septembre 2026).
+// Un mutin doit etre reconnaissable immediatement, partout ou son identite s'affiche dans le
+// monde. Le point d'injection est donc renderPersonsList, seul composeur des cartes de personnes
+// presentes : un seul endroit a enrichir, aucune interface de renseignement artificielle.
+//
+// RP_MUTINS ne porte QUE des noms, jamais une position : un cache perime ne peut donc pas
+// faire apparaitre quelqu'un au mauvais endroit -- ce n'est pas la famille de bug des agents
+// poses. Il est relu a chaque entree de piece, en meme temps que le reste de la presence.
+let RP_MUTINS = [];
+
+function estMutin(nom) {
+  return !!nom && RP_MUTINS.indexOf(nom) !== -1;
+}
+
+function marqueurMutinHtml(nom) {
+  return estMutin(nom)
+    ? '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:#cc4444">MUTIN</div>'
+    : '';
+}
+
+async function rafraichirMutins() {
+  if (typeof sbMutineriesMembres !== 'function') return RP_MUTINS;
+  const membres = await sbMutineriesMembres().catch(() => null);
+  RP_MUTINS = Array.isArray(membres)
+    ? membres.filter(m => m && m.statut === 'actif').map(m => m.personnage)
+    : [];
+  return RP_MUTINS;
+}
+
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
@@ -187,6 +216,7 @@ function renderPersonsList(persons, targetId) {
     '<div class="person-avatar" style="border-color:#C9A84C">' + photoHtml + '</div>' +
     '<div>' +
     '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.8rem;color:#6a5a20">(Vous)</span></div>' +
+    marqueurMutinHtml(char.name) +
     (state.recherche?.length > 0 ? '<div style="font-size:.82rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
     '</div></div>' : '';
@@ -220,6 +250,7 @@ function renderPersonsList(persons, targetId) {
       avatarHtml +
       '<div>' +
       '<div class="person-name">' + p.name + '</div>' +
+      marqueurMutinHtml(p.name) +
       '<div class="person-role">' + p.role + '</div>' +
       '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.78rem">' + relTxt(p.rel) + '</div>' +
       '</div></div>';
@@ -1677,7 +1708,9 @@ async function rafraichirPresenceAgents() {
     rafraichirAgentsIci(),
     (typeof carteDetachementPiece === 'function')
       ? carteDetachementPiece(state.country || 'republic', ville, bat, piece).catch(() => null)
-      : Promise.resolve(null)
+      : Promise.resolve(null),
+    // Liste des mutins, relue ici pour que le marqueur « MUTIN » soit a jour au meme rendu.
+    rafraichirMutins().catch(() => null)
   ]);
   // Le joueur a pu changer de piece pendant l'aller-retour : on ne redessine alors rien.
   if (state.currentBuilding !== bat || state.currentRoom !== piece || state.currentCity !== ville) return;

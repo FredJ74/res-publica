@@ -4536,6 +4536,20 @@ async function sbMilitaireEntrainerSection(compagnieId, sectionId, stat) {
 // hommes deposes quelque part sans chef en beneficient aussi, sans quoi ils resteraient epuises
 // indefiniment. Autorite, limitation journaliere et bareme sont entierement serveur.
 // Rend {ok, caserne, tente, terrain, deja_reposes, effectif, reposes}.
+// MUTINERIE (23 septembre 2026). Le declenchement ne prend AUCUN argument : la section retournee
+// est celle que l'appelant commande reellement, lue sur sa fiche par le serveur. Un navigateur ne
+// peut donc pas retourner la section d'un autre.
+async function sbMutinerieDeclencher() {
+  const rows = await sbRpc('militaire_mutinerie_declencher', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Lecture seule des mutins de son propre pays (RLS). Sert uniquement a afficher le marqueur :
+// les tables de mutinerie n'accordent AUCUNE ecriture au client.
+async function sbMutineriesMembres() {
+  return await sbGet('mutineries_membres', 'select=camp,personnage,statut');
+}
+
 async function sbMilitaireReposerSection(compagnieId, sectionId) {
   const rows = await sbRpc('militaire_reposer_section',
     { p_compagnie_id: compagnieId, p_section_id: sectionId });
