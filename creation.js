@@ -678,6 +678,11 @@ function renderReview(){
     </div>`;
 }
 
+// Verrou de creation, porte par le module et non par le DOM (23 septembre 2026). Une creation
+// est une operation longue (envoi de la photo) et STRICTEMENT non repetable : deux appels
+// concurrents produisent une ligne et une erreur, et c'est l'erreur que le joueur voit.
+let CREATION_EN_COURS = false;
+
 async function validateChar(){
   // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
   // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin
@@ -685,7 +690,36 @@ async function validateChar(){
   // REMPLACAIT sa fiche entiere, silencieusement, et l'ecran de succes s'affichait quand meme.
   // Desormais : on ouvre d'abord la session (pour que la base rattache le personnage au
   // compte), on INSERE, ON ATTEND, et on ne quitte cet ecran qu'en cas de reussite.
-  const boutonValider = document.querySelector('#screen-8 .btn-primary, #btn-valider-perso');
+  // VERROU LOGIQUE, INDEPENDANT DU DOM (23 septembre 2026). Le garde-fou ci-dessous ne suffit
+  // pas a lui seul : si le bouton change un jour de classe, la protection retomberait en panne
+  // exactement comme elle l'a fait ici. Ce drapeau, lui, ne depend d'aucun selecteur.
+  if (CREATION_EN_COURS) {
+    console.warn('[creation] second appel a validateChar() ignore : une creation est deja en cours.');
+    return;
+  }
+  CREATION_EN_COURS = true;
+
+  // LE SELECTEUR VISAIT UN ECRAN QUI N'EXISTE PAS (diagnostic du 23 septembre 2026).
+  // Les ecrans de creation s'appellent s1..s9 -- il n'y a jamais eu de '#screen-8', ni de
+  // '.btn-primary', ni de '#btn-valider-perso' dans index.html. querySelector renvoyait donc
+  // null, et TOUT ce qui suit etait inerte : le bouton n'etait jamais desactive, ne disait
+  // jamais que la creation etait en cours, et les erreurs s'affichaient en haut du <body>.
+  // Pendant les ~26 secondes que dure l'envoi d'une photo de 3 Mo, rien ne bougeait a l'ecran :
+  // un second clic etait non seulement possible, mais previsible. C'est ce second envoi qui
+  // echouait sur le nom que le premier venait d'inscrire.
+  const ecranCreation = document.getElementById('s8');
+  const boutonValider = (ecranCreation && ecranCreation.querySelector('.nnext'))
+                     || document.querySelector('#s8 .nnext');
+  // Le libelle est pose par i18n : on le memorise pour le restaurer a l'identique, plutot que
+  // d'ecrire un « Valider » en dur qui ecraserait la traduction.
+  const libelleInitial = boutonValider ? boutonValider.textContent : null;
+  const rendreLaMain = function () {
+    CREATION_EN_COURS = false;
+    if (boutonValider) {
+      boutonValider.disabled = false;
+      if (libelleInitial !== null) boutonValider.textContent = libelleInitial;
+    }
+  };
   const afficherErreurCreation = function (titre, message) {
     let zone = document.getElementById('creation-erreur');
     if (!zone) {
@@ -693,12 +727,13 @@ async function validateChar(){
       zone.id = 'creation-erreur';
       zone.style.cssText = 'margin:1rem 0;padding:.8rem 1rem;border:1px solid #8a3a2a;' +
         'background:#2a1410;color:#e8b4a0;font-size:.9rem;line-height:1.5;border-radius:4px';
-      const hote = document.getElementById('screen-8') || document.body;
+      const hote = ecranCreation || document.body;
       hote.insertBefore(zone, hote.firstChild);
     }
     zone.innerHTML = '<strong>' + titre + '</strong><br>' + message;
     zone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (boutonValider) { boutonValider.disabled = false; boutonValider.textContent = 'Valider'; }
+    // LA MAIN N'EST RENDUE QU'ICI : sur un echec reel, ou le joueur doit corriger et recommencer.
+    rendreLaMain();
   };
   if (boutonValider) { boutonValider.disabled = true; boutonValider.textContent = 'Creation en cours...'; }
 
@@ -761,6 +796,58 @@ async function validateChar(){
       });
 
       if (!creation.ok) {
+        // ===================================================================================
+        // AVANT TOUT : CE COMPTE POSSEDE-T-IL DEJA UN PERSONNAGE ? (23 septembre 2026)
+        // ===================================================================================
+        // C'est la question qui manquait, et elle a coute son personnage a un joueur. Un echec
+        // ici ne prouve PAS que rien n'a ete ecrit : quand deux envois partent en concurrence,
+        // le second echoue precisement PARCE QUE le premier a reussi. Le nettoyage ci-dessous,
+        // ecrit pour le cas « rien n'a ete ecrit », effacait alors les pointeurs d'un personnage
+        // parfaitement valide -- et loadCharacter(), qui ne lit que le localStorage, ne pouvait
+        // plus le retrouver.
+        //
+        // mon_personnage() tranche sans ambiguite : SECURITY DEFINER, elle resout uniquement par
+        // auth.uid(). Elle ne peut donc jamais designer le personnage de quelqu'un d'autre.
+        const personnageDuCompte = (typeof sbRpc === 'function')
+          ? await sbRpc('mon_personnage').then(function (r) {
+              const v = Array.isArray(r) ? r[0] : r;
+              return (typeof v === 'string') ? v : (v && (v.mon_personnage || v.name)) || null;
+            }).catch(function () { return null; })
+          : null;
+
+        if (personnageDuCompte === char.name) {
+          // NOTRE PROPRE ENVOI CONCURRENT A REUSSI. Il n'y a rien a signaler au joueur : son
+          // personnage existe, il porte le nom demande, et il lui appartient. On reecrit les
+          // pointeurs (l'autre appel a pu les effacer) et on continue vers l'ecran de succes,
+          // exactement comme si cet envoi-ci avait abouti.
+          console.warn('[creation] envoi concurrent : le personnage « ' + char.name +
+                       ' » a bien ete cree pour ce compte. Poursuite normale.');
+          try {
+            localStorage.setItem('respublica_char_' + char.name, JSON.stringify(char));
+            localStorage.setItem('respublica_char', JSON.stringify(char));
+            localStorage.setItem('respublica_last_char', char.name);
+          } catch (e) {}
+          goTo(9);
+          return;
+        }
+
+        if (personnageDuCompte) {
+          // Le compte porte deja un AUTRE personnage. On ne touche a aucun pointeur : ceux du
+          // personnage reel doivent survivre. On corrige meme le pointeur si le cache ecrit plus
+          // haut a ecrase le sien.
+          try {
+            localStorage.setItem('respublica_last_char', personnageDuCompte);
+            localStorage.removeItem('respublica_char_' + char.name);
+          } catch (e) {}
+          afficherErreurCreation('Vous avez deja un personnage',
+            'Ce compte possede deja « ' + personnageDuCompte + ' » : Republia n\'en autorise ' +
+            'qu\'un seul par compte. Changer de nom n\'y changera rien.<br><br>' +
+            '<em>Retournez a l\'accueil pour le reprendre.</em>');
+          return;
+        }
+
+        // A partir d'ici, le serveur confirme qu'aucun personnage n'appartient a ce compte :
+        // le nettoyage des pointeurs locaux est alors legitime, et seulement alors.
         // CORRECTIF DU 14 septembre 2026. Un seul message couvrait trois causes differentes :
         // un joueur dont le COMPTE avait disparu se voyait repondre « ce nom est deja porte »
         // pour n'importe quel nom, et etait renvoye vers « Retrouver mon personnage », qui ne

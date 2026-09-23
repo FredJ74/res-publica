@@ -1221,8 +1221,104 @@ function loadCharacter() {
         // rapport a avant ce correctif dans ce cas precis).
         state.personnageChargeDepuisServeur = true;
       }
+    } else {
+      // ===================================================================================
+      // FILET DE SECURITE : RECUPERATION PAR LE COMPTE (23 septembre 2026)
+      // ===================================================================================
+      // Jusqu'ici, l'absence de cache local etait un point de non-retour : cette fonction ne
+      // lit QUE le localStorage, et le serveur n'etait jamais interroge. Un joueur dont les
+      // pointeurs avaient disparu -- cache vide, navigation privee, changement d'appareil, ou
+      // le nettoyage errone de la branche d'echec de creation -- se retrouvait avec
+      // state.char = null, donc avec les valeurs litterales de `state` : 999 PA, 4250 FR et le
+      // libelle de repli « Mon Personnage ». Sa fiche serveur, elle, etait intacte.
+      //
+      // L'IDENTITE SERVEUR FAIT AUTORITE, ET ELLE SEULE. On ne devine aucun nom, on n'en lit
+      // aucun dans le navigateur : mon_personnage() est SECURITY DEFINER et resout uniquement
+      // par auth.uid(). Elle ne peut donc jamais designer la fiche d'un autre compte. Le
+      // controle userId ci-dessous est une seconde barriere, pas la premiere.
+      recupererPersonnageDuCompte();
     }
   } catch(e) { console.warn('Erreur chargement personnage', e); }
+}
+
+// Repli serveur de loadCharacter(). Volontairement separe : asynchrone, sans effet tant que le
+// serveur n'a pas repondu, et sans rien changer au chemin nominal.
+//
+// GARDE ANTI-BOUCLE. Ce repli se termine par un appel a loadCharacter(), qui rappellerait ce
+// repli si le cache n'avait pas pu etre reecrit (quota depasse, stockage refuse en navigation
+// privee). Une seule tentative par chargement de page, donc -- un echec doit rester un echec
+// visible, jamais une boucle.
+let REPLI_COMPTE_TENTE = false;
+
+async function recupererPersonnageDuCompte() {
+  if (REPLI_COMPTE_TENTE) return;
+  REPLI_COMPTE_TENTE = true;
+  try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+    const uid = (typeof rpAuthUid === 'function') ? rpAuthUid() : null;
+    if (!uid || typeof sbRpc !== 'function' || typeof sbLoadPersonnage !== 'function') {
+      rpDiagId('repliCompte', 'impossible (pas de session)');
+      return;
+    }
+
+    const nom = await sbRpc('mon_personnage').then(function (r) {
+      const v = Array.isArray(r) ? r[0] : r;
+      return (typeof v === 'string') ? v : (v && (v.mon_personnage || v.name)) || null;
+    }).catch(function () { return null; });
+    if (!nom) { rpDiagId('repliCompte', 'aucun personnage pour ce compte'); return; }
+
+    const fiche = await sbLoadPersonnage(nom).catch(function () { return null; });
+    if (!fiche || !fiche.char || !fiche.char.name) {
+      rpDiagId('repliCompte', 'fiche introuvable pour ' + nom);
+      return;
+    }
+    // SECONDE BARRIERE. La vue expose user_id brut : on verifie que la fiche recue appartient
+    // bien au compte connecte. Un ecart ne devrait jamais se produire -- s'il se produit, on
+    // n'en charge rien plutot que de deviner.
+    if (fiche.userId && fiche.userId !== uid) {
+      rpDiagId('repliCompte', 'REFUS : fiche d\'un autre compte');
+      console.warn('[identite] repli refuse : la fiche de ' + nom + ' n\'appartient pas a ce compte.');
+      return;
+    }
+
+    // PA / ARGENT / LIQUIDE VIVENT A LA RACINE de ce que renvoie sbLoadPersonnage, pas dans son
+    // sous-objet `char`. Les recopier ici n'est pas un detail : applyCharToState lit char.pa et
+    // char.arg, et sans eux elle retomberait sur ses valeurs de repli -- 4250 FR notamment, l'un
+    // des symptomes qu'on corrige. Le cache normal du jeu porte deja `arg` (voir la sauvegarde
+    // de position plus haut) : on reconstruit donc un cache de meme forme, pas un cache appauvri.
+    const charComplet = Object.assign({}, fiche.char, {
+      pa: fiche.pa, arg: fiche.arg, liquide: fiche.liquide,
+      poste: fiche.poste || fiche.char.poste || null,
+      currentCity: fiche.currentCity || fiche.char.currentCity,
+      currentBuilding: fiche.currentBuilding || fiche.char.currentBuilding || null,
+      currentRoom: fiche.currentRoom || fiche.char.currentRoom || null,
+      resources: { inf: fiche.inf, pop: fiche.pop, dis: fiche.dis }
+    });
+
+    // Reconstruction des pointeurs, puis relance du chemin NOMINAL : loadCharacter() refait
+    // alors tout ce qu'il sait faire (applyCharToState, restauration de position, journal, et
+    // surtout la reconciliation serveur complete). Aucune logique n'est dupliquee ici.
+    try {
+      localStorage.setItem('respublica_char_' + charComplet.name, JSON.stringify(charComplet));
+      localStorage.setItem('respublica_char', JSON.stringify(charComplet));
+      localStorage.setItem('respublica_last_char', charComplet.name);
+    } catch (e) {
+      console.warn('Cache local non reconstruit (quota) :', e);
+    }
+    rpDiagId('repliCompte', 'personnage recupere : ' + charComplet.name);
+    console.log('[identite] personnage recupere depuis le compte :', fiche.char.name);
+
+    loadCharacter();
+
+    // L'interface a deja ete peinte avec les valeurs par defaut : on la repeint.
+    if (typeof applyEmpireTheme === 'function') applyEmpireTheme(state.country);
+    if (typeof buildCityTabs === 'function') buildCityTabs();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof updateLocationDisplay === 'function') updateLocationDisplay();
+  } catch (e) {
+    rpDiagId('repliCompte', 'EXCEPTION : ' + (e && e.message));
+    console.warn('Repli par compte impossible', e);
+  }
 }
 
 // Si le joueur etait dans un batiment/piece avant de rafraichir, on l'y replace directement.

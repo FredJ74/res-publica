@@ -201,9 +201,21 @@ async function sbEcrirePersonnage(data) {
 // Le troisieme cas est rattrapable sans intervention : on rouvre une session et on rejoue UNE
 // fois. Une seule reprise, jamais de boucle.
 async function sbCreerPersonnageUnique(data, dejaRejoue) {
+  // RETOUR MINIMAL (23 septembre 2026). On demandait ici `return=representation` : le serveur
+  // RENVOYAIT donc la ligne entiere, photo comprise -- soit plus de 3 Mo de base64 a redescendre
+  // pour une information que PERSONNE ne lit. Les appelants ne consultent que `ok` et `raison`
+  // (audit : `creation.ligne` n'est reference nulle part). Ces 3 Mo representaient l'essentiel
+  // des ~26 secondes pendant lesquelles l'ecran de creation restait muet -- le temps meme qui
+  // poussait le joueur a recliquer, et qui a coute son personnage a Marsault.
+  //
+  // La detection succes/echec est INCHANGEE : elle repose sur res.ok (code HTTP), jamais sur le
+  // corps. En 201 sans corps, res.json() rejette et le .catch() existant ramene null : `ligne`
+  // vaut alors null au lieu d'un objet, ce qui ne change rien puisque nul ne la lit. Le corps
+  // d'ERREUR, lui, continue d'etre renvoye par PostgREST : les codes 23505/23503 et le nom de la
+  // contrainte restent lisibles plus bas, et c'est d'eux que depend tout l'aiguillage.
   const res = await fetch(`${SUPABASE_URL}/rest/v1/personnages`, {
     method: 'POST',
-    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
+    headers: { ...sbEnTetes(), 'Prefer': 'return=minimal' },
     body: JSON.stringify(data)
   });
   if (res.ok) {
