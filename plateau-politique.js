@@ -260,6 +260,21 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
 
 async function demanderNominationPoste(posteId, posteName) {
   document.getElementById('modal-postes')?.classList.remove('open');
+
+  // AUCUNE CANDIDATURE SANS PERSONNAGE CHARGE (24 septembre 2026).
+  // Trace reelle : un mail « Anonyme postule au poste de Commandant de la Caserne » est parti
+  // vers le ministre de la Defense, et le dossier a ete PERSISTE sous ce nom. Il ne venait
+  // d'aucun anonyme : il venait d'un joueur dont le personnage n'etait pas charge (state.char
+  // null), et dont le nom est donc tombe sur le repli `|| 'Anonyme'` quelques lignes plus bas.
+  // Une candidature engage une identite : faute de personnage charge, il n'y a rien a engager,
+  // et le dossier cree serait inexploitable -- personne ne peut nommer « Anonyme ».
+  // On refuse donc l'action et on dit au joueur quoi faire, plutot que d'ecrire une trace fausse.
+  if (!state.char?.name) {
+    showToast('Personnage non chargé',
+      "Votre personnage n'est pas encore chargé : rechargez la page avant de postuler.", false);
+    return;
+  }
+
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
 

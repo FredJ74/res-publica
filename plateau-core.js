@@ -969,9 +969,35 @@ function loadCharacter() {
     const saved = lastName
       ? (localStorage.getItem('respublica_char_' + lastName) || localStorage.getItem('respublica_char'))
       : localStorage.getItem('respublica_char');
-    rpDiagId('cacheLocal', saved ? 'present' : 'absent');
+    // ===================================================================================
+    // PARSE DEFENSIF (24 septembre 2026) — LE TROU PAR LEQUEL 999 PA REVENAIT
+    // ===================================================================================
+    // `JSON.parse(saved)` etait nu, en tete d'un `if (saved)`. Un cache present mais ILLISIBLE
+    // -- tronque par un quota localStorage depasse (la photo d'un personnage pese plusieurs Mo
+    // et partage le meme stockage), ecrit a moitie, ou laisse par une version anterieure --
+    // levait donc une exception AVANT tout le reste. Elle etait avalee par le catch en bas de
+    // fonction, et surtout : on etait ENTRE dans la branche `if (saved)`, donc le repli serveur
+    // du `else` n'avait aucune chance de s'executer. state.char restait null, et l'ecran
+    // affichait les litteraux de `state` -- 999 PA, 4250 FR, « Mon Personnage ».
+    //
+    // Un cache illisible vaut desormais un cache ABSENT : on le purge et on laisse le repli
+    // serveur faire son travail. Un cache sans `name` est traite pareil -- il ne permettrait
+    // aucune reconciliation et laisserait les memes valeurs factices a l'ecran.
+    let char = null;
     if (saved) {
-      const char = JSON.parse(saved);
+      try { char = JSON.parse(saved); } catch (e) { char = null; }
+      if (char && !char.name) char = null;
+      if (!char) {
+        console.warn('[identite] cache local illisible ou sans nom : purge, puis repli serveur.');
+        try {
+          localStorage.removeItem('respublica_char');
+          if (lastName) localStorage.removeItem('respublica_char_' + lastName);
+          localStorage.removeItem('respublica_last_char');
+        } catch (e2) {}
+      }
+    }
+    rpDiagId('cacheLocal', char ? 'present' : (saved ? 'present mais ILLISIBLE (purge)' : 'absent'));
+    if (char) {
       // Instrumentation : le nom REELLEMENT passe au detecteur plus bas, pas celui de state.
       rpDiagId('nomLocal', char && char.name);
       applyCharToState(char);
@@ -1315,6 +1341,25 @@ async function recupererPersonnageDuCompte() {
     if (typeof buildCityTabs === 'function') buildCityTabs();
     if (typeof updateUI === 'function') updateUI();
     if (typeof updateLocationDisplay === 'function') updateLocationDisplay();
+
+    // ===================================================================================
+    // REPUBLIER LA PRESENCE (24 septembre 2026)
+    // ===================================================================================
+    // Recuperer l'identite ne suffit pas a redevenir VISIBLE. Les trois ecritures de presence
+    // du jeu sont gardees par `state.char?.name` : tant qu'il etait null, aucune n'a eu lieu,
+    // et les autres joueurs ne voyaient personne -- alors meme que le joueur, lui, se voyait
+    // quelque part. La rue a deja ete peinte AVANT que ce repli n'aboutisse, donc sans nom.
+    //
+    // Deux situations, deux mecanismes DEJA existants, aucun nouveau :
+    //   - dans un batiment : restaurerPositionApresChargement(), appele par le loadCharacter()
+    //     ci-dessus, rejoue enterBuilding/enterRoom -- qui publient la presence.
+    //   - dans la rue (currentBuilding null, le cas d'un personnage neuf) : cette restauration
+    //     renonce des sa premiere ligne. On rejoue donc l'entree de rue standard, qui publie la
+    //     presence sous 'rue-centrale' et relit au passage le noeud memorise sous le BON nom
+    //     (la cle de memoire du noeud est suffixee par le nom du personnage).
+    if (!state.currentBuilding || !state.currentRoom) {
+      if (typeof showVueRue === 'function') showVueRue();
+    }
   } catch (e) {
     rpDiagId('repliCompte', 'EXCEPTION : ' + (e && e.message));
     console.warn('Repli par compte impossible', e);
