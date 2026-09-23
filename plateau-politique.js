@@ -12199,7 +12199,14 @@ async function ouvrirTraiterEngagements(pa, cost) {
 // ATTESTE (phase 2). Le Commandant reel est exige serveur, la juridiction verifiee, et l'ETAT
 // PRECEDENT de la candidature controle -- on ne saute pas une etape et on ne rejoue pas.
 async function confirmerAffectationCompagnie(engagementId, pa, cost) {
-  const compagnieId = document.getElementById('cie-' + engagementId)?.value;
+  // IDENTIFIANT REACCORDE (23 septembre 2026). Cette ligne lisait 'cie-<id>' alors que
+  // ouvrirTraiterEngagements emet 'compagnie-<id>' : getElementById rendait toujours null, le
+  // garde ci-dessous sortait EN SILENCE, et le bouton « Affecter a cette compagnie » etait
+  // totalement inerte -- sans message, sans erreur, sans trace. Le format retenu est celui qui
+  // est emis, et qui est aussi celui du meme ecran voisin ('section-<id>' dans
+  // ouvrirAffecterEngage / confirmerAffectationSection) : le nom du champ en toutes lettres.
+  // 'cie-' n'existait nulle part ailleurs dans le depot.
+  const compagnieId = document.getElementById('compagnie-' + engagementId)?.value;
   if (!compagnieId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof sbMilitaireEngagementAffecterCompagnie !== 'function') { showToast('Indisponible', '', false); return; }
