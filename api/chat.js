@@ -112,8 +112,13 @@ async function joueurAuthentifie(req) {
   const jeton = brut.startsWith('Bearer ') ? brut.slice(7).trim() : '';
   if (!jeton) return null;
 
-  const url = process.env.SUPABASE_URL;
-  const anon = process.env.SUPABASE_ANON_KEY;
+  // MEME REPLI QUE TOUT LE RESTE DU DOSSIER api/ (voir _journal-collecte, upload-org-avatar,
+  // cron-minuit...) : ces deux valeurs ne sont PAS configurees dans l'environnement Vercel, et
+  // elles n'ont rien de secret -- l'URL du projet et la cle anon sont publiques et voyagent deja
+  // dans le bundle servi a chaque navigateur. Sans ce repli, la verification du jeton echouait
+  // silencieusement et TOUT appel authentifie etait refuse.
+  const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
+  const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
   if (!url || !anon) return null;
 
   // La cle anon est la cle PUBLIQUE du projet : la presenter ici n'expose rien. C'est le jeton du
