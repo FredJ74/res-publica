@@ -1,0 +1,45 @@
+-- =============================================================================================
+-- CHANTIER SECURITE — LOT 7 : LA GRACE PRESIDENTIELLE (24-25 septembre 2026)
+-- =============================================================================================
+-- La grace est un acte a deux mains, et le JEU LE DIT DEJA :
+--   data.js:2138  {fn:'proposer_grace', requiresPost:'min_just'}
+--   data.js:1970  {fn:'gracier',        requiresPost:'president'}
+-- La table, elle, etait ouverte a tout le monde, sans meme un compte : lire les recommandations,
+-- en fabriquer au nom du Ministre de la Justice, ou gracier a la place du President.
+--
+-- REGLE RENDUE AUTORITAIRE (aucune invention) :
+--   SELECT  le President du pays concerne, et le Ministre qui a signe la recommandation
+--   INSERT  le Ministre de la Justice du pays, en son propre nom
+--   UPDATE  le President du pays, seul
+--   DELETE  personne : le jeu ne supprime pas une demande, il en change le statut
+--
+-- Le pays borne tout : un President de Republia n'a rien a voir dans les graces d'Helvetia.
+--
+-- DEUX HELPERS NOUVEAUX, reutilisables : mon_poste_est(p_poste) et mon_poste_est_dans(p_poste,
+-- p_pays). Meme source d'autorite que affaire_autorite_de() -- la colonne `poste` de
+-- personnages_donnees, tenue par le trigger d'attestation, jamais une declaration du client.
+--
+-- ============================ LE PIEGE, ET IL EST GENERAL ====================================
+-- Premier passage du banc : TOUT passait. Le tiers lisait, le President s'auto-recommandait, le
+-- Ministre ecrivait au nom d'un autre. Cause : la table portait TROIS policies « publiques »
+-- (USING(true) / WITH CHECK(true)) ecrites il y a longtemps mais INERTES, faute de
+-- ENABLE ROW LEVEL SECURITY. En activant la RLS, je les ai REVEILLEES -- et comme les policies
+-- permissives se combinent par OU, un seul `true` annule toutes les regles d'autorite ecrites
+-- a cote. La table avait l'air fermee et etait grande ouverte.
+--
+-- 12 AUTRES TABLES SONT EXACTEMENT DANS CET ETAT : ambassades_ouvertes, batiments_fermes,
+-- budgets_clubs, budgets_municipaux, budgets_nationaux, demandes_manifestation,
+-- militants_recrutes, propositions_diplomatiques, registre_ventes_armes,
+-- reservations_salle_reception, rumeurs_actives, transferts_clubs. Sur chacune, activer la RLS
+-- sans retirer d'abord ces policies dormantes ne fermerait RIEN, tout en en donnant l'apparence.
+-- Les trois de demandes_grace sont supprimees ici.
+--
+-- EPROUVE sur banc isole (pays fictif 'zzpays', trois comptes supprimes apres coup), en
+-- contournant l'interface -- 10 verifications sur 10 :
+--   ministre : recommande en son nom OK ; au nom d'autrui REFUSE ; ne peut pas gracier (0 ligne)
+--   tiers    : ne voit rien (0 ligne), ne peut ni recommander ni gracier
+--   president: voit la recommandation, l'accorde (1 ligne), ne peut pas se la recommander
+--   ministre : relit bien sa propre recommandation apres decision
+--   anon     : « permission denied for table demandes_grace »
+--
+-- AUCUN CODE CLIENT MODIFIE. Applique en production par le workflow habituel.
