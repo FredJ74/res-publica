@@ -1,0 +1,40 @@
+-- =============================================================================================
+-- CHANTIER SECURITE — LOT 5 : LES INVITATIONS SOCIALES DEVIENNENT UNE AFFAIRE A DEUX (24/09/2026)
+-- =============================================================================================
+-- Un diner d'affaires, un verre offert, une tournee : ce sont des echanges entre DEUX
+-- personnages, avec un message libre ecrit par l'inviteur et une reponse libre ecrite par
+-- l'invite. Les tables etaient integralement ouvertes -- SELECT, INSERT, UPDATE et meme DELETE
+-- pour le role `anon`, sans RLS et sans la moindre policy.
+--
+-- CE QU'ON POUVAIT FAIRE, SANS COMPTE : lire qui invite qui, ou, a quel prix, et le texte des
+-- messages et des reponses ; inviter n'importe qui au nom de n'importe qui ; accepter ou refuser
+-- a la place de l'invite ; effacer les invitations des autres ; forcer la resolution d'une
+-- tournee.
+--
+-- LA REGLE N'EST PAS INVENTEE : elle est deja ecrite dans le client, et les policies ne font que
+-- la rendre autoritaire.
+--   invitations_diner
+--     SELECT  les deux parties      -- l'inviteur releve la reponse, l'invite voit ce qu'il recoit
+--     INSERT  l'inviteur seulement  -- on n'invite qu'en son propre nom
+--     UPDATE  l'invite seulement    -- repondre, c'est son geste ; l'inviteur n'y retouche jamais
+--     DELETE  les deux parties      -- menage apres consommation (le client ne le fait que cote
+--                                      inviteur ; un invite qui efface la sienne ne prive que lui)
+--   tournees
+--     SELECT  l'offreur et ses invites -- l'invite doit lire ce qu'on lui offre
+--     INSERT/UPDATE l'offreur seul     -- claim de resolution, pa_debite, statut
+--     DELETE  personne                 -- le jeu ne supprime jamais une tournee, il la resout
+--
+-- La sous-requete de lecture des tournees traverse elle-meme la RLS des invitations : elle ne
+-- voit que les invitations du lecteur, donc elle ne peut pas servir d'oracle.
+--
+-- EPROUVE sur banc isole (trois comptes zztest, supprimes apres coup), en contournant l'interface :
+--   un TIERS voit 0 invitation et 0 tournee, ne peut ni repondre a la place de l'invite (0 ligne),
+--   ni supprimer (0 ligne), ni forcer la resolution (0 ligne), et son insertion au nom d'un autre
+--   est refusee ; `anon` recoit « permission denied » sur les deux tables ;
+--   les cinq gestes nominaux des deux parties passent tous (2 invitations recues, tournee lisible,
+--   acceptation, releve de la reponse, claim, menage).
+--
+-- AUCUN CODE CLIENT MODIFIE : les requetes existantes portaient deja les bons filtres.
+-- Les deux tables etaient vides au moment du lot : aucune donnee reelle en jeu.
+--
+-- Applique en production le 24 septembre 2026 par le workflow habituel.
