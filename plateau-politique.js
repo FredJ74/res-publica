@@ -61,21 +61,46 @@ async function ouvrirEcranPostes() {
   });
 
   html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">POSTES NOMMÉS</div>';
-  // LES 17 TITULAIRES SONT RESOLUS EN PARALLELE (24 septembre 2026, apres recette navigateur).
-  // La boucle faisait un `await getTitulaireActuel(...)` PAR POSTE, en serie. Chaque resolution
-  // coute environ deux a trois secondes de reseau : l'ecran restait donc sur « Chargement... »
-  // pendant 36 SECONDES mesurees en production avant d'afficher quoi que ce soit. Personne
-  // n'attend trente-six secondes devant une modale -- ce n'etait pas un ecran lent, c'etait un
-  // ecran casse. Promise.all fait les memes appels, d'un coup, et ramene l'ouverture a la duree
-  // du plus lent. Le .catch(() => null) garde la semantique d'avant : un titulaire qu'on ne sait
-  // pas resoudre vaut « poste vacant », il ne doit pas emporter tout l'ecran.
-  // La liste des compagnies est demandee en meme temps, pour la meme raison.
-  const [titulaires, compagnies] = await Promise.all([
-    Promise.all(postesNommes.map(p => (typeof getTitulaireActuel === 'function'
-      ? getTitulaireActuel(p.id, p.scope === 'ville' ? villeCourante : null).catch(() => null)
-      : Promise.resolve(null)))),
+  // DEUX LECTURES AU LIEU DE TRENTE-QUATRE (24 septembre 2026, apres recette navigateur).
+  //
+  // CE QUI N'ALLAIT PAS. La boucle appelait getTitulaireActuel() une fois PAR POSTE NOMME, soit
+  // dix-sept fois. Or cette fonction, pour un poste nomme, telecharge LA LISTE COMPLETE DES
+  // PERSONNAGES puis interroge titulaires_pnj : dix-sept telechargements de la meme liste et
+  // dix-sept lookups. L'ecran restait sur « Chargement... » pendant 36 SECONDES mesurees en
+  // production. Ce n'etait pas un ecran lent, c'etait un ecran casse -- personne n'attend.
+  //
+  // POURQUOI Promise.all NE SUFFISAIT PAS. Premiere tentative : lancer les dix-sept appels
+  // ensemble. Mesure : 39 s au lieu de 36. Paralleliser dix-sept telechargements de la meme
+  // liste ne fait pas disparaitre les dix-sept telechargements -- il fallait supprimer la
+  // repetition, pas la reordonner.
+  //
+  // CE QUI EST FAIT. On lit UNE fois les personnages, UNE fois les titulaires PNJ, une fois les
+  // compagnies, puis on resout les dix-sept postes en memoire. La semantique est celle de
+  // getTitulaireActuel et n'est pas touchee : joueur d'abord (meme pays, meme poste, meme ville
+  // si le poste est local), PNJ en repli, null si vraiment vacant. getTitulaireActuel reste en
+  // place pour ses autres appelants, qui n'en demandent qu'un a la fois.
+  const [joueursTous, pnjTous, compagnies] = await Promise.all([
+    (typeof sbListPersonnages === 'function' ? sbListPersonnages().catch(() => []) : Promise.resolve([])),
+    (typeof sbGet === 'function' ? sbGet('titulaires_pnj', 'select=id,nom_pnj').catch(() => []) : Promise.resolve([])),
     (typeof sbGetCompagnies === 'function' ? sbGetCompagnies(country).catch(() => []) : Promise.resolve([]))
   ]);
+  const pnjParId = {};
+  (pnjTous || []).forEach(r => { if (r && r.id) pnjParId[r.id] = r.nom_pnj; });
+  const resoudreTitulaire = (posteId, ville) => {
+    let posteMatch = null;
+    const match = (joueursTous || []).find(j => {
+      let poste = j.poste;
+      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch (e) { poste = null; } }
+      if (j.country !== country || !poste || poste.id !== posteId) return false;
+      if (ville && poste.city !== ville) return false;
+      posteMatch = poste;
+      return true;
+    });
+    if (match) return { nom: match.name, estPJ: true, posteComplet: posteMatch };
+    const nomPnj = pnjParId[country + '_' + posteId + '_' + (ville || 'national')];
+    return nomPnj ? { nom: nomPnj, estPJ: false } : null;
+  };
+  const titulaires = postesNommes.map(p => resoudreTitulaire(p.id, p.scope === 'ville' ? villeCourante : null));
 
   for (let iPoste = 0; iPoste < postesNommes.length; iPoste++) {
     const p = postesNommes[iPoste];
