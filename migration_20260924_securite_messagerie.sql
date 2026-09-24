@@ -1,0 +1,38 @@
+-- =============================================================================================
+-- CHANTIER SECURITE PRE-BETA — LOT 3 : LA MESSAGERIE PRIVEE REDEVIENT PRIVEE (24 sept. 2026)
+-- =============================================================================================
+-- messages_chat, salons_chat, salons_membres et lectures_chat n'avaient AUCUNE RLS et un GRANT
+-- nominatif a `anon` : n'importe qui, sans le moindre jeton, pouvait lire toutes les
+-- conversations privees, en ecrire au nom d'autrui, et expulser des membres d'un salon.
+--
+-- ON N'A PAS REVOQUE LES DROITS, ON A POSE LA REGLE. Le client ecrit directement dans ces tables
+-- (sbEnvoyerMessageChat, sbCreerSalon, sbRejoindreSalon, sbMarquerConversationLue). Revoquer
+-- aurait casse le chat et exige autant de RPC. Une policy adossee a mon_personnage() laisse
+-- passer le joueur authentifie et exclut `anon` AUTOMATIQUEMENT, puisque mon_personnage() rend
+-- NULL sans jeton. C'est le patron deja employe par la table `mails`, exemplaire sur ce point.
+--
+-- LE MODELE, releve dans supabase.js et non suppose : une conversation privee est identifiee par
+-- les DEUX NOMS TRIES joints par '__' (getConversationId) ; un salon est identifie par son propre
+-- id, et la ligne porte alors salon = true.
+--
+-- Deux helpers SECURITY DEFINER (chat_est_membre_salon, chat_participe) : une policy sur
+-- salons_membres qui interrogerait salons_membres se re-declencherait elle-meme. Ils contournent
+-- la RLS -- c'est precisement leur role -- et ne rendent qu'un booleen sur le joueur courant.
+--
+-- POLICIES POSEES :
+--   messages_chat   SELECT  participant de la conversation
+--                   INSERT  auteur = soi ET participant
+--   salons_chat     SELECT  membre du salon, ou createur
+--                   INSERT  createur = soi
+--   salons_membres  SELECT  soi, ou membre du meme salon
+--                   INSERT  membre = soi         (on ne s'inscrit que soi-meme)
+--                   DELETE  membre = soi         (on ne retire que soi-meme)
+--   lectures_chat   SELECT/INSERT/UPDATE  membre = soi
+--
+-- EPROUVE EN CONTOURNANT L'INTERFACE, pas seulement par l'ecran : Alice ecrit a Bob, Bob lit ;
+-- un tiers authentifie lit 0 message, y compris en interrogeant toute la table ; `anon` lit 0 ;
+-- ecrire au nom d'Alice est refuse ; s'inviter dans la conversation sous son vrai nom est refuse ;
+-- un non-membre ne voit ni le salon ni ses messages ; expulser un membre est sans effet ; quitter
+-- un salon soi-meme fonctionne.
+--
+-- Applique en production le 24 septembre 2026 par le workflow habituel.
