@@ -1299,7 +1299,17 @@ function verifierSuccesMaxence(cle) {
   // l'autre. Ces repliques sont DETERMINISTES a dessein : l'aide de camp est le PNJ auquel on
   // renvoie un joueur perdu, il doit donc repondre meme quand l'IA est indisponible. Il n'a
   // aucune autorite et n'en prend aucune : il explique, il n'engage pas.
-  if (nomCourtEnigme === 'Adjudant Gaspard Ferrière') {
+  // GARDE AJOUTEE LE 24 SEPTEMBRE 2026. Ces repliques ont ete ecrites le 18 septembre, quand
+  // l'aide de camp etait sur la voie Anthropic -- morte -- et qu'il fallait bien qu'il reponde
+  // quelque chose. Depuis qu'il porte un profil serveur et un corpus complet, elles ne le
+  // secourent plus : elles le BAILLONNENT. Leurs expressions sont tres larges (« section »,
+  // « ration », « tente », « pa »), si bien qu'une question comme « comment je prepare ma section
+  // pour partir plusieurs jours » tombait sur l'organigramme au lieu de la marche a suivre --
+  // constate en recette. L'une d'elles etait meme devenue fausse : elle invitait a reclamer un
+  // arriere de solde, alors qu'aucun ecran ne permet de le faire.
+  // On les conserve donc EXACTEMENT pour ce qu'elles sont : un filet pour un PNJ sans profil
+  // serveur. Des qu'un profil existe, c'est lui qui parle.
+  if (nomCourtEnigme === 'Adjudant Gaspard Ferrière' && !profilServeurDuPnj(pnj)) {
     if (/blessure|soin|infirm|sant(é|e)|trousse|secourisme|mort|tu(é|e)|pa\b|point d'action/i.test(action)) {
       speech.textContent = "Tout ce qui saigne, c'est l'infirmerie. Voyez Toahémarch. Prévenez-moi seulement si elle vous rend en état de reprendre le service.";
       return;
@@ -1321,7 +1331,7 @@ function verifierSuccesMaxence(cle) {
       return;
     }
     if (/solde|paie|salaire|arri(é|e)r|dette/i.test(action)) {
-      speech.textContent = "La caisse de la caserne paie. Quand elle ne peut pas, la différence devient une dette à votre nom — elle vous suit au changement de grade, à la démission, et jusqu'à la porte. Réclamez-la, c'est votre droit.";
+      speech.textContent = "La caisse de la caserne paie. Quand elle ne peut pas, la différence devient une dette à votre nom — elle vous suit au changement de grade, à la démission, et jusqu'à la porte. Inscrite, oui ; réglable, pas aujourd'hui.";
       return;
     }
     if (/entra(î|i)n|comp(é|e)tence|tir|reconnaissance/i.test(action)) {
