@@ -15,7 +15,7 @@ DECLARE
   v_moi text; v_bat text; v_pays text; v_c record; v_data jsonb; v_sec jsonb;
   v_sols jsonb; v_total integer; v_pnj_pos integer; v_pnj jsonb; v_reserve jsonb;
   v_deja integer; v_tire integer; v_pris jsonb; v_reste jsonb; v_secs jsonb;
-  v_chef text; v_effectif integer;
+  v_chef text; v_effectif integer; v_sec_nom text;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
@@ -36,6 +36,15 @@ BEGIN
 
   SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = v_c.compagnie_id FOR UPDATE;
   IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'compagnie_introuvable'); END IF;
+
+  -- Le NOM lisible de la section, lu AVANT toute reecriture du blob. Sans lui, la scene de
+  -- decouverte affichait l'identifiant de base de donnees au joueur (recette navigateur).
+  IF v_c.section_id IS NOT NULL THEN
+    SELECT coalesce(s->>'nom', 'section ' || coalesce(s->>'numero', s->>'id'))
+      INTO v_sec_nom
+      FROM jsonb_array_elements(coalesce(v_data->'sections','[]'::jsonb)) s
+     WHERE s->>'id' = v_c.section_id;
+  END IF;
 
   IF v_c.grade_vise = 'capitaine' THEN
     IF coalesce(v_data->>'capitaineNom','') <> '' THEN
@@ -122,7 +131,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'grade', v_c.grade_vise,
     'compagnie_id', v_c.compagnie_id, 'compagnie_nom', coalesce(v_data->>'nom', v_c.compagnie_id),
-    'section_id', v_c.section_id, 'recruteur', v_c.accepte_par,
+    'section_id', v_c.section_id, 'section_nom', v_sec_nom, 'recruteur', v_c.accepte_par,
     'chef', v_chef, 'effectif', v_effectif,
     'pnj_rendu_reserve', (v_pnj IS NOT NULL), 'matricule_rendu', v_pnj->>'matricule');
 END;
@@ -146,7 +155,7 @@ BEGIN
   LOOP
     INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
     VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
-            'Armée de Républia', r.candidat,
+            'État-major', r.candidat,
             'Votre candidature est toujours à l''étude',
             'Votre candidature au grade de ' || r.grade_vise || ', déposée le ' ||
             to_char(r.cree_le AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY') ||
@@ -175,7 +184,7 @@ BEGIN
     UPDATE public.candidatures_militaires SET statut = 'expiree' WHERE id = r.id;
     INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
     VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
-            'Armée de Républia', r.candidat,
+            'État-major', r.candidat,
             'Engagement caduc — délai dépassé',
             'Vous ne vous êtes pas présenté(e) à la Caserne Militaire dans les 48 heures. ' ||
             'Votre engagement au grade de ' || r.grade_vise || ' est caduc et la place a été rendue. ' ||

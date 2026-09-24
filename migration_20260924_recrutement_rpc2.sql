@@ -195,7 +195,7 @@ BEGIN
   -- caserne, en personne. C'est tout l'interet de la scene.
   INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
   VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
-          'Armée de Républia', v.candidat,
+          'État-major', v.candidat,
           'Votre engagement est accepté',
           'Votre candidature au grade de ' || v.grade_vise || ' a été retenue. ' ||
           'Présentez-vous à la Caserne Militaire dans les 48 heures pour découvrir votre affectation. ' ||

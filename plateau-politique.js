@@ -61,9 +61,26 @@ async function ouvrirEcranPostes() {
   });
 
   html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">POSTES NOMMÉS</div>';
-  for (const p of postesNommes) {
+  // LES 17 TITULAIRES SONT RESOLUS EN PARALLELE (24 septembre 2026, apres recette navigateur).
+  // La boucle faisait un `await getTitulaireActuel(...)` PAR POSTE, en serie. Chaque resolution
+  // coute environ deux a trois secondes de reseau : l'ecran restait donc sur « Chargement... »
+  // pendant 36 SECONDES mesurees en production avant d'afficher quoi que ce soit. Personne
+  // n'attend trente-six secondes devant une modale -- ce n'etait pas un ecran lent, c'etait un
+  // ecran casse. Promise.all fait les memes appels, d'un coup, et ramene l'ouverture a la duree
+  // du plus lent. Le .catch(() => null) garde la semantique d'avant : un titulaire qu'on ne sait
+  // pas resoudre vaut « poste vacant », il ne doit pas emporter tout l'ecran.
+  // La liste des compagnies est demandee en meme temps, pour la meme raison.
+  const [titulaires, compagnies] = await Promise.all([
+    Promise.all(postesNommes.map(p => (typeof getTitulaireActuel === 'function'
+      ? getTitulaireActuel(p.id, p.scope === 'ville' ? villeCourante : null).catch(() => null)
+      : Promise.resolve(null)))),
+    (typeof sbGetCompagnies === 'function' ? sbGetCompagnies(country).catch(() => []) : Promise.resolve([]))
+  ]);
+
+  for (let iPoste = 0; iPoste < postesNommes.length; iPoste++) {
+    const p = postesNommes[iPoste];
     const villeDeCePoste = p.scope === 'ville' ? villeCourante : null;
-    const titulaire = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(p.id, villeDeCePoste) : null;
+    const titulaire = titulaires[iPoste];
     let actionHtml;
     if (titulaire && titulaire.estPJ && titulaire.nom === state.char?.name) {
       actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>';
@@ -87,8 +104,6 @@ async function ouvrirEcranPostes() {
   // exception du Commandant, qui est bien une fonction nommee) : Capitaines et Lieutenants sont
   // portes par le blob de leur compagnie. Il faut donc aller la lire pour montrer les vacances.
   // ------------------------------------------------------------------------------------------
-  const compagnies = typeof sbGetCompagnies === 'function'
-    ? await sbGetCompagnies(country).catch(() => []) : [];
   html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">CHAÎNE DE COMMANDEMENT MILITAIRE</div>';
   if (!compagnies.length) {
     html += '<div class="poste-item"><div><div class="poste-holder">Aucune compagnie n\'a encore été levée.</div></div></div>';
@@ -9802,11 +9817,11 @@ async function trouverMaSectionSoldat() {
 
 const GRADES_ENGAGEMENT = [
   { id: 'capitaine',  label: 'Capitaine',
-    desc: 'Commande une compagnie entiere et ses quatre sections. Recrute par le Commandant de la Caserne.' },
+    desc: 'Commande une compagnie entière et ses quatre sections. Recruté par le Commandant de la Caserne.' },
   { id: 'lieutenant', label: 'Lieutenant',
-    desc: 'Chef d\'une section de 24 hommes. Recrute par le Capitaine de la compagnie.' },
+    desc: 'Chef d\'une section de 24 hommes. Recruté par le Capitaine de la compagnie.' },
   { id: 'soldat',     label: 'Soldat',
-    desc: 'Sert dans une section. Aucun diplome requis. Recrute par le Lieutenant de la section.' }
+    desc: 'Sert dans une section. Aucun diplôme requis. Recruté par le Lieutenant de la section.' }
 ];
 
 function libelleGradeEngagement(id) {
@@ -10065,7 +10080,13 @@ async function doDecouvrirAffectation() {
   updateUI();
 
   document.getElementById('postes-modal-title').textContent = 'Votre affectation';
-  const unite = r.section_id ? (r.compagnie_nom + ' — section ' + r.section_id) : r.compagnie_nom;
+  // LE NOM DE LA SECTION, PAS SON IDENTIFIANT (correctif du 24 septembre 2026, recette
+  // navigateur). La scene affichait « section zztest-sov-s2 » : un identifiant de base de
+  // donnees jete a la figure du joueur au moment le plus solennel de son engagement. La RPC
+  // renvoie desormais `section_nom` ; l'identifiant ne sert plus qu'au repli, si une compagnie
+  // ancienne n'avait pas de nom de section.
+  const nomSection = r.section_nom || r.section_id;
+  const unite = r.section_id ? (r.compagnie_nom + ' — ' + nomSection) : r.compagnie_nom;
   let html = '<div style="padding:1.2rem;text-align:center">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;letter-spacing:.12em;color:#C9A84C">'
         + escapeHtmlText(libelleGradeEngagement(r.grade).toUpperCase()) + '</div>';
@@ -10074,7 +10095,9 @@ async function doDecouvrirAffectation() {
     html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.4rem">Sous les ordres de <b>'
           + escapeHtmlText(r.chef) + '</b>.</div>';
   }
-  if (r.recruteur) {
+  // « Engagé par » n'apparait que s'il apporte une information : quand le recruteur EST le chef
+  // — le cas le plus frequent pour un soldat — la ligne repetait mot pour mot la precedente.
+  if (r.recruteur && r.recruteur !== r.chef) {
     html += '<div style="font-size:.74rem;color:#6a6050;margin-top:.3rem;font-style:italic">Engagé par '
           + escapeHtmlText(r.recruteur) + '.</div>';
   }
