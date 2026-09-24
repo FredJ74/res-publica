@@ -1090,7 +1090,11 @@ const PNJ_PROFILS_SERVEUR = {
   // du suffixe « (PNJ) » -- profilServeurDuPnj le retire avant de chercher. Alouche n'en a pas,
   // Eve si ; les deux formes tombent donc sur la bonne entree.
   'Caporal Alouche': 'caporal_alouche',
-  'Ève Toahémarch': 'eve_toahemarch'
+  'Ève Toahémarch': 'eve_toahemarch',
+  // L'aide de camp du corps de garde (24 septembre 2026). Il existait depuis longtemps dans
+  // data.js et portait deja une fiche, mais sur la voie Anthropic -- donc muet. Il rejoint la
+  // voie serveur avec son propre corpus, centre sur la gestion quotidienne de la troupe.
+  'Adjudant Gaspard Ferrière': 'gaspard_ferriere'
 };
 
 function profilServeurDuPnj(pnj) {

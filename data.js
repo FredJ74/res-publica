@@ -4568,7 +4568,13 @@ const BUILDINGS = {
           // qu'un joueur croise en arrivant a la caserne, et c'est le seul qui sache expliquer
           // comment l'armee fonctionne. Sans lui, l'orientation d'Eve Toahemarch tombait dans
           // le vide. Il n'a aucune autorite : il explique, il n'engage pas.
-          {name:'Adjudant Gaspard Ferrière (PNJ)', role:'PNJ - Aide de camp', rel:'friendly', job:'aide_de_camp'}
+          // PORTRAIT AJOUTE LE 24 SEPTEMBRE 2026. Meme motif que Marc Hantile et le Caporal
+          // Alouche : photoUrl + photoPos suffisent, getPnjAvatar prend seul la branche photo et
+          // l'avatar de repli du metier reste disponible si l'image manque. job:'aide_de_camp'
+          // est conserve. Le decor de l'image EST le corps de garde ou il se tient.
+          {name:'Adjudant Gaspard Ferrière (PNJ)', role:'PNJ - Aide de camp', rel:'friendly', job:'aide_de_camp',
+           photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/corps-garde-pnj-adjudant-ferriere.png',
+           photoPos:'50% 28%'}
         ],
         orders: [
           {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
