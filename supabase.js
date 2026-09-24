@@ -1169,6 +1169,15 @@ async function sbGetBudgetNational(pays) {
   return rows[0].data;
 }
 
+// MOBILISATION NATIONALE — CHEMIN SERVEUR (24 septembre 2026).
+// Remplace deux reecritures du blob budgetaire entier depuis le navigateur. La RPC ecrit CETTE
+// CLE ET ELLE SEULE, sous exiger_poste('min_def'), et deduit le pays de l'acteur : le client ne
+// transmet donc plus ni le pays, ni le reste du budget qu'il aurait pu ecraser au passage.
+async function sbMobilisationFixer(actif) {
+  const rows = await sbRpc('militaire_mobilisation_fixer', { p_actif: !!actif });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 async function sbSaveBudgetNational(pays, data) {
   const existing = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
   if (existing && existing.length > 0) {
@@ -1711,20 +1720,10 @@ async function sbMilitaireSoldePercevoir() {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-// Reglement des arrieres, les plus anciens d'abord, dans la limite de ce que la caisse contient.
-async function sbMilitaireArrieresRegler() {
-  const rows = await sbRpc('militaire_arrieres_regler', {});
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
-// Arrieres d'un militaire, ou dettes totales d'une caserne. Table en lecture publique : un PJ doit
-// voir ce qu'on lui doit, et l'autorite de la caserne ce qu'elle doit.
-async function sbMilitaireSoldesImpayees(nom, pays) {
-  const filtre = nom ? ('personnage=eq.' + encodeURIComponent(nom))
-                     : ('pays=eq.' + encodeURIComponent(pays || 'republic'));
-  const rows = await sbGet('soldes_militaires', filtre + '&select=personnage,grade,jour,du,verse&order=jour');
-  return (rows || []).filter(r => Number(r.verse) < Number(r.du));
-}
+// Les arrieres de solde ont ete supprimes le 24 septembre 2026 (arbitrage). Deux wrappers
+// vivaient ici sans aucun appelant -- sbMilitaireArrieresRegler et sbMilitaireSoldesImpayees --
+// et la RPC militaire_arrieres_regler a ete supprimee cote base. La solde des PJ, elle, reste
+// entiere : voir sbMilitaireSoldePercevoir ci-dessus.
 
 // CREATION D'UNE COMPAGNIE, attestee (17 septembre 2026). Remplace l'ecriture cliente du blob.
 // Le Commandant reel est exige serveur, les 3 PA sont valides contre le miroir des couts (la

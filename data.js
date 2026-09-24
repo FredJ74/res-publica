@@ -4582,7 +4582,7 @@ const BUILDINGS = {
           {fn:'engager_officier',   label:'S\'engager comme officier',  pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
           // Consultation pure, ouverte a tous : un civil qui n'a jamais servi obtient un calepin
           // vide, pas un refus. Ne pas avoir servi est une reponse.
-          {fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires et soldes restant dues.'},
+          {fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires.'},
           // Ordre ouvert a tous : c'est la RPC qui reconnait l'autorite, et elle seule. Le niveau
           // decoule de la fonction du decernant, il ne se choisit pas. Aucun catalogue de
           // medailles : l'intitule est ecrit par celui qui decore.
@@ -4647,7 +4647,7 @@ const BUILDINGS = {
           {fn:'traiter_engagements', label:'Traiter les engagements',   pa:0, cost:0,    type:'legal',   icon:'ti-clipboard-list', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Affecter les demandes d\'engagement a une compagnie.'},
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'repartir_armement', label:'Doter ma section en armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Transferer des armes entre le stock de l\'Armurerie Militaire et sa propre section. Le Capitaine ne retire plus du magasin (arbitrage du 17 septembre 2026).'},
-          {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'100 soldats (4 sections). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
+          {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'96 soldats (4 sections de 24). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
           // ORDRE SUPPRIME (21 septembre 2026). « Recompléter une section » (recruter_section)
           // achetait 24 recrues neuves a la piece : modele ABANDONNE par le GD le 17 septembre
           // (contingent unique et non renouvelable, les pertes sont definitives, la reserve de la

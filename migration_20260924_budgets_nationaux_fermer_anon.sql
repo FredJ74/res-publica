@@ -1,0 +1,22 @@
+-- =============================================================================================
+-- BUDGETS NATIONAUX : FERMER LE ROLE ANONYME (24 septembre 2026)
+-- =============================================================================================
+-- CONSTAT D'AUDIT. La table porte les finances des quatre empires -- tresor national, stocks de
+-- l'armurerie, effort de guerre, taux d'imposition -- avec RLS DESACTIVEE et INSERT + UPDATE
+-- accordes a `anon` comme a `authenticated`, sur la ligne entiere. Seul un trigger d'epinglage
+-- arbitre une vingtaine de cles nommees ; les autres, dont `reserveJour`, ne sont protegees par
+-- rien.
+--
+-- CE QUE CETTE MIGRATION FAIT, ET CE QU'ELLE NE FAIT PAS. Elle ferme `anon`, et elle seule.
+-- Aucun chemin legitime n'en a besoin : les dix-neuf sites d'ecriture du navigateur exigent tous
+-- un joueur connecte, le cron travaille en service_role, et les RPC SECURITY DEFINER
+-- s'executent sous leur proprietaire sans dependre des droits de table.
+--
+-- ELLE NE FERME PAS ENCORE `authenticated`. Le faire aujourd'hui casserait huit mecaniques qui
+-- n'ont aucun equivalent serveur -- taux national, repartition budgetaire, couvre-feu, recherche
+-- militaire, virement QHS, preemption, effort de guerre, et la taxe nationale prelevee sur chaque
+-- vente. Les remplacer demande des arbitrages economiques qui ne relevent pas de ce lot : le
+-- point est documente dans le rapport, avec le detail des dix-neuf sites.
+-- =============================================================================================
+
+REVOKE INSERT, UPDATE ON public.budgets_nationaux FROM anon;

@@ -9170,7 +9170,7 @@ async function confirmerRepartitionBudget(pa, cost) {
 // SYSTEME MILITAIRE — guerre partagee, chaine de commandement, compagnies, detachements
 // =====================
 const EFFECTIF_SECTION = 24; // + 1 lieutenant = 25 par section
-const NB_SECTIONS_COMPAGNIE = 4; // 100 hommes par compagnie
+const NB_SECTIONS_COMPAGNIE = 4; // 4 x 24 = 96 hommes au contingent (le serveur fait foi)
 const COUT_COMPAGNIE = 20000; // preleve sur la caisse de la caserne
 // Contingent achete par les 20 000 FR : 4 sections x 24 places. Miroir de la constante
 // serveur de militaire_compagnie_creer, qui seule fait autorite.
@@ -9943,10 +9943,100 @@ async function doGererDetachement() {
   html += '<button onclick="recupererSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Récupérer</button>';
   html += '<div style="border-top:1px solid #2a2010;margin:.9rem 0 .7rem"></div>';
   html += '<button onclick="ouvrirOrdresCollectifs(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Ordres collectifs (ration, bivouac)</button>';
-  html += '<button onclick="ouvrirEquipementSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Équiper les soldats</button>';
+  html += '<button onclick="ouvrirEquipementSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Équiper les soldats</button>';
+  // CONFIER LA CONDUITE (24 septembre 2026). La RPC existait depuis des semaines sans aucun
+  // ecran pour l'appeler. Le bouton n'apparait que si le Lieutenant mene effectivement des
+  // hommes : confier zero soldat n'a pas de sens, et un bouton inerte non plus.
+  if (avecMoi > 0) {
+    html += '<button onclick="ouvrirConfierConduite(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #6a5a8a;background:transparent;color:#9a8ac0;cursor:pointer">Confier la conduite d\'un groupe</button>';
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// =================================================================================================
+// CONFIER LA CONDUITE D'UN GROUPE A UN SOLDAT JOUEUR DE SA SECTION (24 septembre 2026)
+// =================================================================================================
+// CE QUE C'EST, ET CE QUE CE N'EST PAS. On confie la CONDUITE : les soldats designes suivront
+// desormais ce joueur au lieu de suivre le Lieutenant. L'autorite structurelle ne bouge pas d'un
+// pouce -- le Lieutenant reste le seul chef de la section, le seul a pouvoir reprendre ses hommes,
+// le seul a pouvoir leur donner un ordre collectif. Ce n'est ni une promotion, ni un transfert.
+//
+// QUI PEUT RECEVOIR : un autre JOUEUR appartenant a cette meme section, et present dans la piece.
+// Ni un civil, ni un militaire d'une autre section. La liste ci-dessous ne propose que des
+// candidats valides, mais c'est le SERVEUR qui tranche : militaire_affecter_leader revalide
+// l'appartenance (leader_hors_section), la co-presence (leader_absent) et la juridiction.
+async function ouvrirConfierConduite(compagnieId, sectionId) {
+  document.getElementById('postes-modal-title').textContent = 'Confier la conduite';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = (compagnie?.sections || []).find(s => s.id === sectionId);
+  const avecMoi = (section?.soldats || []).filter(s => soldatSuitCePJ(s, state.char?.name)).length;
+
+  // Les soldats JOUEURS de la section, moi excepte.
+  const camarades = (section?.soldats || [])
+    .filter(s => s.pj === true && s.nom && s.nom !== state.char?.name)
+    .map(s => s.nom);
+
+  // Ils doivent etre physiquement ici : on lit les presences de la piece, meme source que le don.
+  let presents = [];
+  if (typeof sbGetPresencesInRoom === 'function') {
+    presents = (await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom)
+                 .catch(() => [])).map(p => p.name || p.nom).filter(Boolean);
+  }
+  const candidats = camarades.filter(n => presents.indexOf(n) !== -1);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem;line-height:1.6">'
+       +  'Les hommes que vous confiez suivront ce joueur au lieu de vous suivre. '
+       +  'Vous restez leur Lieutenant : vous pouvez les reprendre quand vous voulez, et vous seul '
+       +  'leur donnez des ordres collectifs.</div>';
+  html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.6rem">Vous menez actuellement ' + avecMoi + ' soldat(s).</div>';
+
+  if (candidats.length === 0) {
+    html += '<div style="font-size:.78rem;color:#8a6a4a;font-style:italic">Aucun soldat de votre section n\'est présent ici. '
+         +  'On ne confie ses hommes qu\'à un camarade de la même section, et en face à face.</div>';
+  } else {
+    html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre de soldats à confier</label>';
+    html += '<input id="nb-confier" type="number" min="1" max="' + avecMoi + '" value="' + avecMoi + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.7rem"/>';
+    candidats.forEach(function (nom) {
+      html += '<button onclick="confirmerConfierConduite(\'' + compagnieId + '\',\'' + sectionId + '\',\'' + encodeURIComponent(nom) + '\')" '
+           +  'style="width:100%;margin-bottom:.4rem;padding:.5rem;border:1px solid #6a5a8a;background:transparent;color:#9a8ac0;cursor:pointer;font-family:Crimson Pro,serif;font-size:.84rem;text-align:left">'
+           +  'Confier à ' + escapeHtmlText(nom) + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+const CONFIER_REFUS = {
+  leader_hors_section:             'Ce joueur n\'appartient pas à votre section.',
+  leader_absent:                   'Ce joueur n\'est pas ici avec vous.',
+  leader_introuvable:              'Ce joueur est introuvable.',
+  leader_hors_juridiction:         'Ce joueur ne sert pas votre empire.',
+  leader_invalide:                 'Choisissez quelqu\'un d\'autre que vous-même.',
+  pas_assez_avec_vous:             'Vous ne menez pas autant d\'hommes.',
+  nombre_invalide:                 'Nombre invalide.',
+  pas_lieutenant_de_cette_section: 'Vous n\'êtes pas le chef de cette section.',
+  hors_juridiction:                'Cette compagnie n\'est pas la vôtre.'
+};
+
+async function confirmerConfierConduite(compagnieId, sectionId, nomEncode) {
+  const nom = decodeURIComponent(nomEncode || '');
+  const nb = parseInt(document.getElementById('nb-confier')?.value || '0', 10);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!(nb > 0)) { showToast('Nombre invalide', 'Indiquez au moins un soldat.', false); return; }
+  if (typeof sbMilitaireAffecterLeader !== 'function') { showToast('Indisponible', '', false); return; }
+
+  const r = await sbMilitaireAffecterLeader(compagnieId, sectionId, nb, nom).catch(() => null);
+  if (!r || r.ok !== true) {
+    showToast('Impossible', CONFIER_REFUS[r?.raison] || ('Refus du serveur (' + (r?.raison || 'indisponible') + ').'), false);
+    return;
+  }
+  showToast('Conduite confiée', r.affectes + ' soldat(s) suivent désormais ' + nom + '.', true, true);
+  addJournalEntry('Conduite de ' + r.affectes + ' soldat(s) confiée à ' + nom + '.', 'event-info');
 }
 
 async function deposerSoldats(compagnieId, sectionId) {
@@ -10207,12 +10297,6 @@ async function ouvrirCalepinCampagne() {
           (c.en_service ? 'En service — ' + (LIBELLES_GRADES_MILITAIRES[c.grade_courant] || c.grade_courant)
                         : 'Pas en service actuellement') +
           ' · ' + (c.jours_total || 0) + ' jour(s) sous les drapeaux au total</div>';
-
-  if (c.arrieres_dus > 0) {
-    html += '<div style="border:1px solid #8a3a20;background:#150c06;padding:.5rem;margin-bottom:.8rem;font-size:.76rem;color:#cc6a44">'
-         + 'Soldes restant dues : <strong>' + Number(c.arrieres_dus).toLocaleString('fr-FR') + ' FR</strong>. '
-         + 'Cette dette est nominative : elle vous suit même après un changement de grade ou un départ.</div>';
-  }
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">COMPÉTENCES MILITAIRES</div>';
   const comp = c.competences || {};
@@ -10584,9 +10668,14 @@ async function confirmerMobilisation(pa, cost) {
   updateUI();
 
   if (empireCible === pays) {
-    const budgetNat = await chargerBudgetNational(pays);
-    budgetNat.mobilisationNationaleActive = true;
-    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+    // CHEMIN SERVEUR (24 septembre 2026). On ecrivait ici le blob budgetaire ENTIER depuis le
+    // navigateur pour poser un seul booleen -- avec le risque d'ecraser au passage toute
+    // modification concurrente. La RPC n'ecrit que cette cle, et c'est elle qui verifie le poste.
+    const rMobil = await sbMobilisationFixer(true).catch(() => null);
+    if (!rMobil || rMobil.ok !== true) {
+      showToast('Mobilisation non enregistrée',
+        'Le serveur a refusé (' + ((rMobil && rMobil.raison) || 'indisponible') + ').', false);
+    }
   }
 
   const commandantInfoMobil = await getTitulaireActuel('commandant');
@@ -11307,7 +11396,12 @@ async function doDeclencherMutinerie() {
   html += '<ul style="font-size:.8rem;color:#a09070;line-height:1.7;margin:.6rem 0 0 1rem;padding:0">';
   html += '<li>Une partie seulement de vos hommes vous suivra — votre charisme et l\'état du pays décideront combien.</li>';
   html += '<li>Ceux qui refusent restent loyalistes et pourront vous combattre.</li>';
-  html += '<li>Vous perdez votre place dans l\'armée régulière.</li>';
+  // CORRIGE LE 24 SEPTEMBRE 2026. Cette ligne annoncait la perte du poste. Le serveur ne la fait
+  // pas : militaire_mutinerie_declencher n'ecrit ni services_militaires ni personnages_donnees.poste
+  // -- et il ne le PEUT pas, puisque le mutin doit rester Lieutenant en service pour que
+  // militaire_bataille_recruter l'enrole avec sa section. La promesse etait donc fausse, et elle
+  // aurait ete la premiere chose que le joueur aurait verifiee. On dit ce qui se passe vraiment.
+  html += '<li>Vous restez officiellement Lieutenant : l\'armée ne vous a pas encore radié, mais vous êtes désormais en rébellion.</li>';
   html += '<li><b style="color:#cc4444">Si vous êtes capturé, vous serez emprisonné 7 jours pour mutinerie.</b></li>';
   html += '</ul></div>';
   html += '<button onclick="confirmerMutinerie()" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a2a20;background:transparent;color:#cc4444;cursor:pointer">Je me soulève</button>';
@@ -11554,8 +11648,13 @@ async function doDemobiliser() {
   const r = await deduireCoutOrdre({ pa: paDemobiliser, cost: 0, fn: 'mobilisation_nationale' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  budgetNat.mobilisationNationaleActive = false;
-  await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+  // CHEMIN SERVEUR (24 septembre 2026), pendant exact de la mobilisation.
+  const rDemob = await sbMobilisationFixer(false).catch(() => null);
+  if (!rDemob || rDemob.ok !== true) {
+    showToast('Démobilisation non enregistrée',
+      'Le serveur a refusé (' + ((rDemob && rDemob.raison) || 'indisponible') + ').', false);
+    return;
+  }
   state.mobilisationNationaleCache = false;
 
   // EXTINCTION DES POURSUITES POUR DESERTION (13 septembre 2026) — et de celles-la SEULEMENT.

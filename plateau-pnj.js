@@ -1339,7 +1339,7 @@ function verifierSuccesMaxence(cle) {
       return;
     }
     if (/calepin|(é|e)tat de service|d(é|e)coration|m(é|e)daille/i.test(action)) {
-      speech.textContent = "Votre calepin de campagne est consultable ici. Il porte votre temps de service, vos compétences, ce qu'on vous doit et ce qu'on vous a décerné. Une décoration ne se mérite pas au barème : quelqu'un décide de vous la donner, ou personne ne le fait.";
+      speech.textContent = "Votre calepin de campagne est consultable ici. Il porte votre temps de service, vos compétences et ce qu'on vous a décerné. Une décoration ne se mérite pas au barème : quelqu'un décide de vous la donner, ou personne ne le fait.";
       return;
     }
   }

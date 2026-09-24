@@ -2110,11 +2110,13 @@ async function doDormir() {
       if (verse >= du) {
         addJournalEntry('Solde militaire perçue : ' + verse + ' FR (' + rSolde.grade + ').', 'event-good');
       } else if (verse > 0) {
+        // La caserne ne « doit » plus rien : les arrieres ont ete supprimes le 24 septembre 2026.
+        // Elle verse ce qu'elle a, et on le dit sans promettre un rattrapage qui n'existe pas.
         addJournalEntry('Solde militaire versée en partie : ' + verse + ' FR sur ' + du
-          + '. La caserne vous doit ' + (du - verse) + ' FR.', 'event-bad');
+          + ' — la caisse de la caserne était à sec.', 'event-bad');
       } else {
         addJournalEntry('Solde militaire NON versée : la caisse de la caserne est vide. '
-          + 'Elle vous doit ' + du + ' FR.', 'event-bad');
+          + 'La caisse de la caserne est vide.', 'event-bad');
       }
     } else if (rSolde && rSolde.raison === 'deja_percue_aujourdhui') {
       state.gradeMilitaire = 'soldat';   // suffisant pour bloquer le double paiement civil
