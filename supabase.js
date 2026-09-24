@@ -1009,6 +1009,28 @@ async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
   return sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { blessure_sportive: blessure, hp: nouveauHp });
 }
 
+// =============================================================================================
+// ENTRAINEMENT DE FOOTBALL — LA LIMITE DE 2/JOUR EST SERVEUR (24 septembre 2026)
+// =============================================================================================
+// Le compteur `entrainementsJour` ne vivait que dans state.char, donc dans le localStorage :
+// aucune colonne ne le portait. Vider son cache remettait la limite a zero. Ces deux RPC la
+// rendent au serveur, qui compte les entrainements REELLEMENT enregistres pour le jour de jeu
+// courant du personnage (personnages_donnees.day, la notion de jour deja utilisee partout).
+//
+// `football_entrainement_consommer` fait la verification, le paiement des 2 PA et
+// l'enregistrement dans UNE SEULE transaction, sous verrou par joueur : deux clics rapides ne
+// peuvent plus passer la limite tous les deux, ni payer deux fois.
+async function sbFootballEntrainementConsommer(stat) {
+  const rows = await sbRpc('football_entrainement_consommer', { p_stat: stat });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Affichage seul ; ne rend que le compte du joueur courant.
+async function sbFootballEntrainementsDuJour() {
+  const rows = await sbRpc('football_entrainements_du_jour', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 async function sbGetPresidentClub(clubId) {
   const rows = await sbGet('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`);
   if (!rows || rows.length === 0) return null;
@@ -3931,11 +3953,29 @@ async function sbRpc(fn, params) {
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
     await rpAuthAssurerSession().catch(() => null);
   }
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
-    method: 'POST',
-    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
-    body: JSON.stringify(params || {})
-  });
+  // COUPURE RESEAU (24 septembre 2026). `fetch` ne rejette pas sur un 4xx/5xx -- ceux-la sont
+  // deja traites juste en dessous -- mais il REJETTE sur une panne de transport : hors ligne,
+  // DNS, TLS, requete bloquee. Ce rejet n'etait capture nulle part : il traversait sbRpc, puis
+  // deduireCoutOrdre, puis l'appelant, et finissait en rejet non gere. Le joueur ne voyait alors
+  // AUCUN message -- pire que le message generique, puisque rien ne lui disait que son action
+  // n'avait pas eu lieu.
+  //
+  // On rend `null`, exactement comme pour un refus HTTP : les appelants savent deja lire ce cas
+  // (deduireCoutOrdre en fait `paiement_indisponible`, desormais nomme a l'ecran). Aucun debit
+  // n'a pu avoir lieu puisque la requete n'est jamais partie, et surtout AUCUNE session anonyme
+  // n'est ouverte ici pour « reparer » la panne : une coupure reseau ne doit jamais couter son
+  // identite au joueur.
+  let res;
+  try {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
+      body: JSON.stringify(params || {})
+    });
+  } catch (e) {
+    console.error('sbRpc reseau (' + fn + ')', e && e.message);
+    return null;
+  }
   if (!res.ok) { console.error('sbRpc error (' + fn + ')', await res.text()); return null; }
   return res.json();
 }

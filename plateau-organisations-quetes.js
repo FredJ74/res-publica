@@ -3912,9 +3912,22 @@ async function doTenueEntrainement(pa, cost) {
     showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir vous entraîner.', false);
     return;
   }
-  verifierEtResetEntrainementsJour();
+  // LE COMPTE VIENT DU SERVEUR (24 septembre 2026). Il ne sert plus qu'a AFFICHER : c'est la RPC
+  // football_entrainement_consommer qui autorise ou refuse. Si le serveur ne repond pas, on
+  // n'invente aucun chiffre et on n'ouvre pas l'ecran -- mieux vaut dire franchement qu'on ne
+  // sait pas que laisser croire a un quota qu'on n'a pas verifie.
+  const etatJour = (typeof sbFootballEntrainementsDuJour === 'function')
+    ? await sbFootballEntrainementsDuJour().catch(() => null) : null;
+  if (!etatJour || etatJour.ok !== true) {
+    showToast('Indisponible',
+      "Le nombre d'entraînements du jour n'a pas pu être vérifié. Réessayez dans un instant.", false);
+    return;
+  }
   const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
-  const nb = state.char.entrainementsJour?.nb || 0;
+  const nb = Number(etatJour.nb) || 0;
+  // Le cache local est realigne sur le serveur : il ne decide plus rien, mais il reste lu
+  // ailleurs (affichage), autant qu'il ne mente pas.
+  state.char.entrainementsJour = { jour: state.day || 1, nb };
 
   document.getElementById('postes-modal-title').textContent = "Tenue d'entraînement";
   let html = '<div style="padding:1rem">';
@@ -3931,11 +3944,32 @@ async function doTenueEntrainement(pa, cost) {
 }
 
 async function confirmerEntrainement(stat, pa, cost) {
-  verifierEtResetEntrainementsJour();
-  if ((state.char.entrainementsJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.char.entrainementsJour.nb = (state.char.entrainementsJour.nb || 0) + 1;
+  // AUTORITE SERVEUR (24 septembre 2026). Une seule RPC verifie la limite du jour, preleve les
+  // 2 PA et enregistre l'entrainement, dans la meme transaction et sous verrou par joueur. Le
+  // client ne decide plus rien : il ne peut plus s'accorder un troisieme entrainement en vidant
+  // son localStorage, et deux clics rapides ne peuvent plus payer deux fois.
+  // Le cout reste celui declare par l'ordre (`tenue_entrainement`, 2 PA) et verifie par
+  // payer_ordre contre le miroir : aucune regle ni aucun montant n'est modifie ici.
+  if (typeof sbFootballEntrainementConsommer !== 'function') {
+    showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
+  }
+  const r = await sbFootballEntrainementConsommer(stat);
+  if (!r || r.ok !== true) {
+    const motif = r && r.raison;
+    if (motif === 'limite_quotidienne_atteinte') {
+      showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false);
+      doTenueEntrainement(pa, cost);   // on rouvre sur le compte reel du serveur
+      return;
+    }
+    // Tous les autres motifs sont ceux de payer_ordre : on les fait nommer par l'aiguilleur
+    // existant, qui sait deja dire « PA insuffisants », « personnage non reconnu », etc.
+    // `null` (echec de transport) devient paiement_indisponible, desormais nomme lui aussi.
+    signalerRefusCout(r ? { raison: motif, pa, cost } : { raison: 'paiement_indisponible', pa, cost });
+    return;
+  }
+  // On recopie ce que le SERVEUR a arrete, jamais un calcul local.
+  if (typeof r.pa === 'number') state.pa = r.pa;
+  state.char.entrainementsJour = { jour: state.day || 1, nb: Number(r.nb) || 0 };
 
   const blesse = Math.random() < 0.05;
   if (blesse) {

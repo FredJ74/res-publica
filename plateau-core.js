@@ -2646,6 +2646,24 @@ function signalerRefusCout(resultat) {
     console.error('Refus de cout serveur :', r.raison, r);
     return;
   }
+  // L'APPEL N'A PAS ABOUTI (24 septembre 2026). C'etait la SEULE raison rendue par
+  // deduireCoutOrdre que cette fonction ne nommait pas : elle tombait donc dans le repli muet
+  // ci-dessous, et un echec de transport -- jeton de session perime, coupure reseau, refus HTTP
+  // -- s'affichait « Action impossible » sans rien dire d'exploitable. C'est ce qu'a vu Fred sur
+  // l'entrainement de football : rien n'etait casse dans le football, l'appel n'etait simplement
+  // jamais arrive au serveur.
+  //
+  // Ce que le message peut affirmer sans rien inventer : le serveur n'a pas enregistre l'action,
+  // et donc rien n'a ete preleve -- deduireCoutOrdre est fail closed, aucun effet n'est accorde
+  // sans paiement confirme. On ne nomme PAS la cause (session ? reseau ?), qui n'est pas connue
+  // ici, et on donne la seule manoeuvre utile.
+  if (r.raison === 'paiement_indisponible') {
+    showToast('Action non enregistrée',
+      "Le serveur n'a pas pu enregistrer cette action : rien ne vous a été prélevé. "
+      + 'Réessayez dans un instant ; si cela persiste, rechargez la page.', false, true);
+    console.warn('[cout] appel au serveur non abouti — action refusee, aucun prelevement.');
+    return;
+  }
   // Raison absente/inconnue : on ne fabrique aucun chiffre.
   showToast('Action impossible', 'Cette action n\'a pas pu être effectuée.', false);
 }
