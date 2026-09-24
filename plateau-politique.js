@@ -7939,10 +7939,12 @@ async function ouvrirRapportsCellules() {
   let html = '<div style="padding:1rem">';
   if (rapports.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun rapport pour l\'instant.</div>';
   rapports.forEach(rap => {
+    // Accord calcule, comme dans la notification : « 0 fait », « 1 fait », « 2 faits ».
+    const nb = rap.nb_faits || 0;
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.6rem">'
          +  '<div style="font-size:.78rem;color:#C9A84C">' + escapeHtmlText(rap.jour || '') + ' — '
          +  (COUNTRIES[rap.pays_cible]?.n || rap.pays_cible) + ' <span style="color:#8a8060">('
-         +  (rap.nb_faits || 0) + ' fait(s))</span></div>';
+         +  nb + (nb > 1 ? ' faits' : ' fait') + ')</span></div>';
     (rap.faits || []).forEach(f => {
       html += '<div style="font-size:.74rem;color:#a09060;margin-top:.3rem">• ' + escapeHtmlText(f.fait) + '</div>';
     });
