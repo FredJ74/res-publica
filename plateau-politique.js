@@ -7618,9 +7618,18 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
 // =====================================================================================
 // RENSEIGNEMENT MILITAIRE — POINT D'ENTREE UNIQUE (22 septembre 2026)
 // =====================================================================================
-// Deux fonctions, et c'est tout : on convoque une equipe, ou on suit celles qui tournent.
-// « Mettre fin a l'operation » a quitte l'ancien ecran pour rejoindre le suivi, ou il a sa
-// place. Aucun parcours concurrent ne reste expose.
+// Trois fonctions : on convoque une equipe, on suit celles qui tournent, on lit ce qu'elles
+// rapportent. « Mettre fin a l'operation » a quitte l'ancien ecran pour rejoindre le suivi, ou il
+// a sa place. Aucun parcours concurrent ne reste expose.
+//
+// « LIRE LES RAPPORTS » AJOUTE LE 24 SEPTEMBRE 2026. Les rapports existaient, la modale aussi, la
+// RPC repondait correctement -- mais le seul chemin pour y arriver passait par « Suivre une
+// operation », dont l'intitule annonce le suivi des agents, pas la lecture. Le rapport se
+// trouvait donc au TROISIEME niveau, et le courrier qui l'annoncait parlait d'un « panneau » qui
+// n'existe nulle part a l'ecran. Un ministre a cherche dans le journal d'evenements.
+// Rien de nouveau n'est construit ici : ce bouton appelle la MEME fonction que celui du suivi,
+// qui interroge la MEME RPC. Seule la profondeur change. L'acces depuis « Suivre une operation »
+// est conserve : il est legitime a cet endroit, et le supprimer ne rendrait service a personne.
 function ouvrirRenseignementMilitaire() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   ouvrirPanneauFonction('Renseignement militaire', [
@@ -7629,7 +7638,10 @@ function ouvrirRenseignementMilitaire() {
       onclick: 'ouvrirConvocationRenseignement()' },
     { label: 'Suivre une opération', pa: 0,
       desc: 'Où sont vos agents, sous quelle couverture, combien de temps reste-t-il, et y mettre fin.',
-      onclick: 'ouvrirPanneauCellules()' }
+      onclick: 'ouvrirPanneauCellules()' },
+    { label: 'Lire les rapports', pa: 0,
+      desc: 'Les rapports quotidiens de vos cellules, jour par jour, avec les faits consignés par vos agents.',
+      onclick: 'ouvrirRapportsCellules()' }
   ]);
 }
 
