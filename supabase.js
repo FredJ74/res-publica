@@ -1436,9 +1436,20 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
   } catch(e) { return null; }
 }
 
+// FILATURE : LE RAPPORT VIENT DU SERVEUR (24 septembre 2026, chantier securite).
+// Cette fonction lisait `historique_deplacements` en direct. La table etait lisible par
+// n'importe qui, sans jeton : le poste de commissaire, les 150 FR, le jet de reussite et la
+// fenetre de 24 h etaient donc purement decoratifs -- n'importe quel joueur obtenait
+// l'historique INTEGRAL de n'importe qui, gratuitement.
+// La RPC relit le poste EN BASE (exiger_poste('commissaire')) et ne rend que les dernieres
+// 24 heures, les deux regles etant celles ecrites dans l'ordre `organiser_filature` lui-meme.
+// Le jet et le paiement restent ou ils sont, cote appelant : les deplacer changerait la
+// mecanique, ce qui n'est pas l'objet de ce chantier. `depuisJour` n'est plus transmis -- le
+// serveur calcule la fenetre depuis le jour du commissaire, et n'accepterait pas qu'on l'elargisse.
 async function sbGetHistoriqueDeplacements(name, depuisJour) {
-  const filtre = `name=eq.${encodeURIComponent(name)}&jour=gte.${depuisJour}&order=created_at.desc&limit=50`;
-  return sbGet('historique_deplacements', filtre) || [];
+  const rows = await sbRpc('filature_deplacements', { p_cible: name });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return (r && r.ok === true && Array.isArray(r.deplacements)) ? r.deplacements : [];
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {

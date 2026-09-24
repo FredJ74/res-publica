@@ -1,0 +1,37 @@
+-- =============================================================================================
+-- CHANTIER SECURITE — LOT 4 : L'HISTORIQUE DES DEPLACEMENTS CESSE D'ETRE PUBLIC (24 sept. 2026)
+-- =============================================================================================
+-- 9 911 lignes nominatives -- ou se trouve chaque personnage, jour et heure -- etaient lisibles
+-- par n'importe qui SANS JETON (policy « deplacements lecture » USING(true) pour anon).
+--
+-- IL EXISTE POURTANT UNE VRAIE MECANIQUE. L'ordre `organiser_filature` (data.js:2824) est
+-- reserve au commissaire, coute 2 PA et 150 FR, comporte un jet de reussite, et se decrit
+-- lui-meme comme « obtenir un rapport des deplacements d'un PJ sur les dernieres 24h ».
+-- Le probleme n'etait donc pas la filature, c'est que le client lisait la TABLE en direct : le
+-- poste, le cout, le jet et la fenetre de 24 h etaient purement decoratifs, et n'importe quel
+-- joueur -- ou n'importe quel visiteur anonyme -- obtenait l'historique INTEGRAL de n'importe
+-- qui, gratuitement et sans jet.
+--
+-- ON NE TOUCHE PAS AU GAME DESIGN. Les deux seules regles rendues autoritaires sont ECRITES DANS
+-- L'ORDRE LUI-MEME : reserve au commissaire, fenetre de 24 heures. Le jet de reussite et le
+-- paiement restent ou ils sont, cote client, exactement comme aujourd'hui -- les deplacer serait
+-- changer la mecanique, ce qui n'etait pas demande.
+--
+-- La fenetre suit la notion de jour du jeu (personnages_donnees.day du COMMISSAIRE), comme le
+-- faisait deja le client (jourMin = state.day - 1). Aucune fenetre de 24 heures glissantes
+-- inventee.
+--
+-- CREE : filature_deplacements(p_cible) -- SECURITY DEFINER, exiger_poste('commissaire'),
+--        fenetre jour >= max(1, jour_du_commissaire - 1), reservee a `authenticated`.
+-- RETIRE : la policy de lecture publique et le SELECT de anon/authenticated sur la table.
+-- INCHANGE : l'ecriture, qui passait deja par la RPC `deplacement_enregistrer`.
+--
+-- EPROUVE : lecture directe de la table refusee a anon, a un joueur ordinaire ET au commissaire
+-- lui-meme ; la filature rend 2 deplacements sur 3 (celui hors fenetre est exclu) ; un joueur
+-- sans le poste recoit « autorite_insuffisante ».
+--
+-- RETENTION : non traitee dans ce lot. Le seul consommateur n'a besoin que des dernieres 24 h,
+-- ce qui rend une purge possible -- mais `jour` est un compteur PROPRE A CHAQUE PERSONNAGE, donc
+-- une regle de purge doit s'appuyer sur `created_at`. A trancher dans un lot dedie.
+--
+-- Applique en production le 24 septembre 2026 par le workflow habituel.
