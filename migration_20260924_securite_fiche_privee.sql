@@ -1,0 +1,38 @@
+-- =============================================================================================
+-- CHANTIER SECURITE PRE-BETA — LOT 2 : LA FICHE CESSE D'ETRE PUBLIQUE (24 septembre 2026)
+-- =============================================================================================
+-- La vue `personnages` ne masquait que arg/liquide/banque/inventory. Tout le reste etait lisible
+-- par n'importe qui, y compris SANS JETON (la policy de personnages_donnees vaut USING(true) pour
+-- anon, et la vue, dont security_invoker n'est pas defini, s'execute avec les droits de son
+-- proprietaire). Etaient donc publics : le journal intime, le casier, les enquetes en cours, le
+-- carnet de contacts, les informateurs, la reputation criminelle et le placement au QHS.
+--
+-- SEPT COLONNES REJOIGNENT LE MASQUAGE, sur la base de regles explicitement validees :
+--   journal, detention_qhs, historique_crimes, enquetes_en_cours, contacts, informateurs,
+--   reputation_criminelle.
+--
+-- DEUX COLONNES RESTENT VOLONTAIREMENT PUBLIQUES :
+--   * `recherche` : un avis de recherche est public par nature, et plateau-justice-economie.js
+--     (~ligne 10803) le lit legitimement SUR AUTRUI lors d'un controle de police. Le masquer
+--     casserait une mecanique reelle.
+--   * `est_emprisonne` : le public peut savoir qu'un personnage est detenu. C'est le QHS, et lui
+--     seul, qui reste secret -- pendant la detention comme apres.
+--
+-- AUCUNE DONNEE N'EST DETRUITE. Le masquage est un CASE a la lecture : le proprietaire et les
+-- appels serveur (est_appel_serveur : postgres/service_role) voient tout. Les archives internes
+-- du QHS restent donc intactes et exploitables cote serveur, comme demande.
+--
+-- VERIFIE AVANT D'AGIR : aucun appel client ne lit ces sept colonnes sur un AUTRE personnage.
+-- Seul le cron (service_role) lit `journal` et `detention_qhs`, et le masquage ne le concerne pas.
+--
+-- CREATE OR REPLACE VIEW conserve les triggers INSTEAD OF et les GRANT : la liste et l'ordre des
+-- colonnes sont strictement inchanges, seules sept expressions le sont.
+--
+-- LE PLAFOND DU JOURNAL (500 entrees) est pose dans le trigger personnages_vue_modifier, applique
+-- a TOUTE ecriture, serveur comprise : c'est un plafond de retention, pas un controle d'autorite.
+-- Le journal est empile par la tete (unshift cote client), on garde donc les 500 PREMIERES, les
+-- plus recentes. Aucune fiche reelle n'etait concernee (120 entrees au maximum) : cette migration
+-- ne transforme aucune donnee existante.
+--
+-- Le detail exact des deux objets est en base ; ce fichier documente l'intention et la portee.
+-- Applique en production le 24 septembre 2026 par le workflow habituel.
