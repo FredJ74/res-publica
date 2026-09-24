@@ -1008,16 +1008,29 @@ function rpPurgerCachePersonnage(raison) {
   return nom;
 }
 
+/** Lacher l'identite courante EN MEMOIRE, avant d'en charger une autre.
+    LA POSITION EN FAIT PARTIE, et ce n'est pas evident : applyCharToState repose bien
+    state.country et state.currentCity a chaque hydratation, mais PAS currentBuilding ni
+    currentRoom -- ceux-la sont restaures par restaurerPositionApresChargement, qui ne s'applique
+    que si la position est vide (« si le joueur etait quelque part avant de rafraichir, on l'y
+    replace »). Laisser la piece du compte precedent en place faisait donc apparaitre le nouveau
+    personnage LA OU SE TROUVAIT L'ANCIEN : l'identite basculait, la presence non. */
+function rpOublierIdentiteCourante() {
+  state.char = null;
+  state.currentBuilding = null;
+  state.currentRoom = null;
+  // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
+  // quoi la bascule vers le nouveau compte ne se ferait pas.
+  REPLI_COMPTE_TENTE = false;
+}
+
 /** Le compte a REELLEMENT change : on oublie le personnage precedent et on recharge celui du
     compte courant. Appelee depuis auth.js sur un changement d'uid AVERE -- jamais sur un simple
     clic « Se connecter », jamais sur un echec d'authentification. */
 async function rpIdentiteChangementDeCompte(ancienUid, nouvelUid) {
   if (!nouvelUid || ancienUid === nouvelUid) return;   // securiser un anonyme garde le meme uid
   rpPurgerCachePersonnage('changement de compte');
-  state.char = null;
-  // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
-  // quoi la bascule vers le nouveau compte ne se ferait pas.
-  REPLI_COMPTE_TENTE = false;
+  rpOublierIdentiteCourante();
   if (typeof recupererPersonnageDuCompte === 'function') {
     await recupererPersonnageDuCompte().catch(() => {});
   }
@@ -1184,8 +1197,7 @@ function loadCharacter() {
             // seul signal effacerait le personnage d'un joueur legitime.
             if (uidDiscordant) {
               rpPurgerCachePersonnage('fiche appartenant a un autre compte');
-              state.char = null;
-              REPLI_COMPTE_TENTE = false;
+              rpOublierIdentiteCourante();
               state.personnageChargeDepuisServeur = true;
               return recupererPersonnageDuCompte().catch(() => {});
             }
