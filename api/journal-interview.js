@@ -47,7 +47,17 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.s
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 
-const SB_HEADERS_ANON = {
+// LECTURES DU JEU (chantier securite pre-beta, 24 septembre 2026). Elles se faisaient avec la cle
+// anon -- celle qui est committee dans supabase.js. Tant qu'un traitement serveur lit ainsi, les
+// tables qu'il consulte (mariages, detentions, jugements, candidatures, organisations, forum,
+// personnages) doivent rester ouvertes au public pour ne pas le casser. Meme patron que
+// api/cron-minuit.js : service_role quand la variable d'environnement existe, repli sur anon
+// sinon. Le nom de la constante dit ce qu'elle fait, pas quelle cle elle porte.
+const SB_HEADERS_LECTURE = SUPABASE_SERVICE_ROLE ? {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_SERVICE_ROLE,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+} : {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON,
   'Authorization': `Bearer ${SUPABASE_ANON}`
@@ -112,13 +122,13 @@ async function construireDossierPublicPJ(nom) {
   const lignes = [];
 
   const [mariagesA, mariagesB, detentions, jugements, candidatures, orgas, topics] = await Promise.all([
-    sbGet('mariages', `conjoint1=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_ANON).catch(() => []),
-    sbGet('mariages', `conjoint2=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_ANON).catch(() => []),
-    sbGet('detentions', `nom=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_ANON).catch(() => []),
-    sbGet('jugements', `accuse=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_ANON).catch(() => []),
-    sbGet('candidatures', `nom=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_ANON).catch(() => []),
-    sbGet('organisations', 'select=*', SB_HEADERS_ANON).catch(() => []),
-    sbGet('forum_topics', `author=eq.${enc}&order=created_at.desc&limit=${LIMITE}&select=forum_id,title`, SB_HEADERS_ANON).catch(() => [])
+    sbGet('mariages', `conjoint1=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('mariages', `conjoint2=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('detentions', `nom=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('jugements', `accuse=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('candidatures', `nom=eq.${enc}&order=created_at.desc&limit=${LIMITE}`, SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('organisations', 'select=*', SB_HEADERS_LECTURE).catch(() => []),
+    sbGet('forum_topics', `author=eq.${enc}&order=created_at.desc&limit=${LIMITE}&select=forum_id,title`, SB_HEADERS_LECTURE).catch(() => [])
   ]);
 
   [...(mariagesA || []), ...(mariagesB || [])].forEach(r => {
@@ -335,7 +345,7 @@ async function handleLancer(body) {
   const joursRestants = calculerCooldownRestant(rows && rows[0]);
   if (joursRestants > 0) return { status: 409, json: { error: 'cooldown', joursRestants } };
 
-  const persos = await sbGet('personnages', `name=eq.${encodeURIComponent(personnage)}&select=country`, SB_HEADERS_ANON);
+  const persos = await sbGet('personnages', `name=eq.${encodeURIComponent(personnage)}&select=country`, SB_HEADERS_LECTURE);
   const perso = persos && persos[0];
   if (!perso || !perso.country) return { status: 404, json: { error: 'Personnage introuvable.' } };
 
@@ -429,7 +439,7 @@ async function handlePublier(body) {
     return relacherEtEchouer(409, "L'entretien n'est pas complet.");
   }
 
-  const persos = await sbGet('personnages', `name=eq.${encodeURIComponent(personnage)}&select=country,current_city,photo_url`, SB_HEADERS_ANON);
+  const persos = await sbGet('personnages', `name=eq.${encodeURIComponent(personnage)}&select=country,current_city,photo_url`, SB_HEADERS_LECTURE);
   const perso = persos && persos[0];
   if (!perso || !perso.country) return relacherEtEchouer(404, 'Personnage introuvable.');
   const pays = perso.country;

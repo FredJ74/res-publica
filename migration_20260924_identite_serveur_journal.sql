@@ -1,0 +1,34 @@
+-- =============================================================================================
+-- CHANTIER SECURITE — LOT 6 : LES TRAITEMENTS SERVEUR CESSENT D'ECRIRE AVEC LA CLE ANON
+-- =============================================================================================
+-- AUCUNE MODIFICATION DE BASE DANS CE LOT. Ce fichier documente un changement de code serveur qui
+-- est le PREALABLE indispensable aux fermetures suivantes.
+--
+-- CONSTAT. La cle anon est publique : elle est committee dans supabase.js et lisible par
+-- n'importe quel navigateur. Or quatre traitements serveur s'en servaient encore :
+--   api/_journal-collecte.js     toutes ses lectures (le Journal lit ~15 tables du jeu)
+--   api/_journal-generation.js   toutes ses lectures et une partie de ses ecritures
+--   api/journal-interview.js     le dossier public du PJ (mariages, detentions, jugements,
+--                                candidatures, organisations, forum, personnages)
+--   api/cron-assemblee.js        toutes ses lectures et ecritures sauf deux RPC systeme
+--   api/upload-org-avatar.js     la relecture de l'organisation
+--
+-- CONSEQUENCE, ET C'EST LE POINT. Tant qu'un traitement serveur lit avec la cle anon, chaque table
+-- qu'il consulte doit RESTER OUVERTE AU PUBLIC, sans quoi le traitement tombe en meme temps que la
+-- fermeture. L'ouverture de detentions, jugements, mariages, candidatures, organisations,
+-- petites_annonces, etat_civil_*, greves_generales, terrains_historique_ventes n'etait donc pas un
+-- oubli isole : c'etait la condition de survie du Journal. On ne pouvait pas les fermer avant.
+--
+-- CORRECTION. Le patron est celui deja en place dans api/cron-minuit.js depuis le 14 septembre
+-- 2026, repris a l'identique : service_role quand SUPABASE_SERVICE_ROLE_KEY existe, repli sur la
+-- cle anon sinon, pour que le module reste chargeable. service_role traverse RLS par construction,
+-- donc AUCUN traitement ne perd un acces : il cesse seulement de dependre de l'ouverture publique.
+--
+-- VERIFICATION PREALABLE. La variable d'environnement est bien configuree en production : l'appel
+-- POST /api/renseignements avec une action invalide repond 400 « action invalide » et non le 503
+-- « configuration serveur incomplete » que ce endpoint rend quand la cle manque.
+--
+-- A CONSTATER. La prochaine passe reelle du cron de minuit et la prochaine edition du Journal :
+-- ces traitements ne sont jamais declenches a la main.
+--
+-- Deploye en production le 24 septembre 2026.

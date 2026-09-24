@@ -45,15 +45,22 @@ const SUPABASE_URL = 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SUPABASE_ANON,
-  'Authorization': `Bearer ${SUPABASE_ANON}`
-};
 const HEADERS_SERVICE = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_SERVICE_ROLE,
   'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+};
+
+// IDENTITE SERVEUR (chantier securite pre-beta, 24 septembre 2026). Seules les deux RPC systeme de
+// l'Assemblee passaient par HEADERS_SERVICE ; le reste du cron lisait et ecrivait avec la cle
+// anon, celle qui est committee dans supabase.js. Un cron qui ecrit en anon serait ferme en meme
+// temps que le public : l'identite serveur est le prealable a toute fermeture, jamais une option.
+// Repli sur anon si la variable d'environnement manque, pour garder le module chargeable.
+// Meme patron que api/cron-minuit.js (14 septembre 2026).
+const HEADERS = SUPABASE_SERVICE_ROLE ? HEADERS_SERVICE : {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_ANON,
+  'Authorization': `Bearer ${SUPABASE_ANON}`
 };
 
 async function sbGet(table, filters = '') {

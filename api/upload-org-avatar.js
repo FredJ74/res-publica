@@ -67,9 +67,14 @@ function lireCorpsLimite(req, maxBytes) {
   });
 }
 
+// Lecture faite sous identite serveur (chantier securite pre-beta, 24 septembre 2026) : elle se
+// faisait avec la cle anon, ce qui liait ce endpoint a l'ouverture publique de `organisations`.
+// Le reste du fichier ecrit deja avec SUPABASE_SERVICE_ROLE ; la lecture s'aligne. Repli sur anon
+// si la variable d'environnement manque -- le handler refuse alors de demarrer de toute facon.
 async function getOrganisationFraiche(orgaId) {
+  const cle = SUPABASE_SERVICE_ROLE || SUPABASE_ANON;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/organisations?id=eq.${encodeURIComponent(orgaId)}`, {
-    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+    headers: { 'apikey': cle, 'Authorization': `Bearer ${cle}` }
   });
   if (!res.ok) return null;
   const rows = await res.json();

@@ -40,7 +40,24 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 
-const HEADERS = {
+// IDENTITE SERVEUR (chantier securite pre-beta, 24 septembre 2026). La collecte du Journal lisait
+// TOUT avec la cle anon -- celle qui est committee dans supabase.js et que n'importe quel
+// navigateur peut lire. Consequence : chaque table que le Journal consulte (detentions, jugements,
+// mariages, candidatures, organisations, forum) devait rester ouverte au public pour que le
+// Journal continue de paraitre. L'identite serveur est donc le PREALABLE a la fermeture de ces
+// tables, exactement comme pour api/cron-minuit.js (14 septembre 2026), dont ceci reprend le
+// patron a l'identique.
+//
+// service_role traverse RLS par construction : ce basculement n'enleve aucun acces au Journal, il
+// lui en donne. Repli sur la cle anon UNIQUEMENT si la variable d'environnement manque, pour que
+// le module reste chargeable.
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+
+const HEADERS = SUPABASE_SERVICE_ROLE ? {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_SERVICE_ROLE,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+} : {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON,
   'Authorization': `Bearer ${SUPABASE_ANON}`

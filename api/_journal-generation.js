@@ -41,7 +41,16 @@ import {
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
-const SB_HEADERS = {
+// IDENTITE SERVEUR PAR DEFAUT (chantier securite pre-beta, 24 septembre 2026). Les ecritures sur
+// journal_editions passaient deja par SB_HEADERS_SERVICE ci-dessous ; tout le RESTE (les lectures
+// du jeu) restait sur la cle anon, ce qui obligeait a laisser ces tables ouvertes au public.
+// service_role traverse RLS : le Journal ne perd aucun acces, il cesse seulement d'en dependre.
+// Repli sur anon si la variable d'environnement manque.
+const SB_HEADERS = process.env.SUPABASE_SERVICE_ROLE_KEY ? {
+  'Content-Type': 'application/json',
+  'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+  'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+} : {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_ANON,
   'Authorization': `Bearer ${SUPABASE_ANON}`
