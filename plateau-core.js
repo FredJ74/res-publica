@@ -767,6 +767,7 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
       localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
       localStorage.setItem('respublica_char', JSON.stringify(state.char));
+      rpMarquerProprietaireCache();
     } catch (e) {
       console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
     }
@@ -962,6 +963,66 @@ function diagnostiquerIdentite(nom) {
     .catch(e => { rpDiagId('etatIdentite', 'EXCEPTION : ' + (e && e.message)); });
 }
 
+// ===================================================================================
+// A QUEL COMPTE APPARTIENT LE CACHE PERSONNAGE ? (24 septembre 2026)
+// ===================================================================================
+// Le cache local etait indexe par NOM DE PERSONNAGE -- `respublica_char`,
+// `respublica_char_<nom>`, `respublica_last_char` -- et par rien d'autre. Aucune de ces cles
+// ne dit A QUI le personnage appartient. Tant que le navigateur ne sert qu'un compte, cela ne
+// se voit pas ; des que le compte change sous le cache, l'interface presente l'identite du
+// compte precedent.
+//
+// CE N'EST PAS THEORIQUE. sbCreerPersonnageUnique appelle rpAuthRepartirDeZero() quand le
+// serveur prouve que le compte n'existe plus (violation de personnages_user_id_fkey) : une
+// session NEUVE est ouverte, donc un uid neuf, et le cache personnage, lui, n'a pas bouge.
+// L'ecran continue alors d'afficher un personnage que le compte courant ne possede pas.
+//
+// LA REGLE, ET ELLE TIENT EN UNE PHRASE : un cache personnage n'est valide que s'il appartient
+// au auth.uid() actuellement authentifie. Le proprietaire est stocke a cote du cache, dans sa
+// propre cle -- surtout PAS dans state.char, qui est renvoye au serveur par sbSavePersonnage et
+// n'a aucune raison de porter un identifiant de compte. Les deux accesseurs
+// (rpMarquerProprietaireCache / rpProprietaireCache) vivent dans auth.js : l'ecran de connexion
+// reecrit ce cache et ne charge pas ce fichier.
+
+/** Purge CHIRURGICALE des seules donnees locales portant une identite de personnage.
+    Ce qui n'est PAS touche, et c'est deliberе : la session et la memoire d'identite (auth.js,
+    qui vient d'etre fiabilise), les preferences, la langue, et tout ce qui ne designe pas un
+    personnage. Un localStorage.clear() aurait aussi deconnecte le joueur et jete des reglages
+    sans le moindre rapport avec le probleme. */
+function rpPurgerCachePersonnage(raison) {
+  let nom = null;
+  try {
+    nom = localStorage.getItem('respublica_last_char');
+    localStorage.removeItem('respublica_char');
+    localStorage.removeItem('respublica_last_char');
+    localStorage.removeItem(RP_CLE_CHAR_UID);
+    localStorage.removeItem('respublica_photo');
+    if (nom) {
+      localStorage.removeItem('respublica_char_' + nom);
+      localStorage.removeItem('respublica_photo_' + nom);
+      localStorage.removeItem('respublica_dormir_' + nom);
+    }
+  } catch (e) {}
+  console.warn('[identite] cache personnage invalide (' + (raison || 'inconnu') + ')'
+               + (nom ? ' — ' + nom : '') + ' : purge, rechargement depuis le compte connecte.');
+  return nom;
+}
+
+/** Le compte a REELLEMENT change : on oublie le personnage precedent et on recharge celui du
+    compte courant. Appelee depuis auth.js sur un changement d'uid AVERE -- jamais sur un simple
+    clic « Se connecter », jamais sur un echec d'authentification. */
+async function rpIdentiteChangementDeCompte(ancienUid, nouvelUid) {
+  if (!nouvelUid || ancienUid === nouvelUid) return;   // securiser un anonyme garde le meme uid
+  rpPurgerCachePersonnage('changement de compte');
+  state.char = null;
+  // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
+  // quoi la bascule vers le nouveau compte ne se ferait pas.
+  REPLI_COMPTE_TENTE = false;
+  if (typeof recupererPersonnageDuCompte === 'function') {
+    await recupererPersonnageDuCompte().catch(() => {});
+  }
+}
+
 function loadCharacter() {
   try {
     // Lire le dernier personnage actif, puis sa clé propre
@@ -994,6 +1055,26 @@ function loadCharacter() {
           if (lastName) localStorage.removeItem('respublica_char_' + lastName);
           localStorage.removeItem('respublica_last_char');
         } catch (e2) {}
+      }
+    }
+    // ===================================================================================
+    // PORTILLON D'IDENTITE LOCAL — AVANT MEME D'AFFICHER QUOI QUE CE SOIT
+    // ===================================================================================
+    // Il existait deja un portillon, mais SERVEUR, dans la reconciliation plus bas : le temps
+    // qu'il se prononce, applyCharToState avait deja peint le personnage a l'ecran. Ce
+    // controle-ci ne coute aucun appel reseau -- rpAuthUid() lit la session deja presente dans
+    // localStorage -- et se prononce donc AVANT le premier pixel.
+    //
+    // On n'agit que si les DEUX identifiants sont connus. Un cache sans proprietaire (ecrit par
+    // une version anterieure a ce lot) ou une session dont l'uid n'est pas lisible ne prouvent
+    // rien : on laisse alors le cache s'afficher et c'est la reconciliation serveur qui
+    // tranchera. Rejeter sur un doute reviendrait a effacer le personnage d'un joueur sain.
+    if (char) {
+      const uidCourant = (typeof rpAuthUid === 'function') ? rpAuthUid() : null;
+      const uidCache   = rpProprietaireCache();
+      if (uidCourant && uidCache && uidCache !== uidCourant) {
+        rpPurgerCachePersonnage('cache appartenant a un autre compte');
+        char = null;
       }
     }
     rpDiagId('cacheLocal', char ? 'present' : (saved ? 'present mais ILLISIBLE (purge)' : 'absent'));
@@ -1091,6 +1172,23 @@ function loadCharacter() {
             // orphelin, ou indetermine si le reseau ne permet pas de trancher). Une seule
             // source de verite, aucune regle dupliquee.
             //
+            // UID DISCORDANT = CHANGEMENT DE COMPTE AVERE (24 septembre 2026).
+            // Jusqu'ici ce bloc se contentait de REFUSER LA FUSION puis laissait state tel que
+            // le cache l'avait pose -- c'est-a-dire l'interface figee sur le personnage du
+            // compte precedent, indefiniment. Refuser de melanger deux identites etait juste ;
+            // continuer d'en afficher une qui n'est pas la notre ne l'est pas.
+            //
+            // On ne bascule que sur la preuve FORTE : deux identifiants lus, et differents.
+            // Le cas `ficheMasquee` seul reste traite comme avant -- il survient aussi quand
+            // rpAuthUid() est indisponible sur une session pourtant saine, et purger sur ce
+            // seul signal effacerait le personnage d'un joueur legitime.
+            if (uidDiscordant) {
+              rpPurgerCachePersonnage('fiche appartenant a un autre compte');
+              state.char = null;
+              REPLI_COMPTE_TENTE = false;
+              state.personnageChargeDepuisServeur = true;
+              return recupererPersonnageDuCompte().catch(() => {});
+            }
             // state reste donc exactement tel que le cache local l'a pose : aucun montant
             // etranger, aucun 4250 invente, aucun 0, et aucune reecriture de localStorage.
             state.personnageChargeDepuisServeur = true; // ne jamais bloquer indefiniment
@@ -1382,6 +1480,7 @@ async function recupererPersonnageDuCompte() {
       localStorage.setItem('respublica_char_' + charComplet.name, JSON.stringify(charComplet));
       localStorage.setItem('respublica_char', JSON.stringify(charComplet));
       localStorage.setItem('respublica_last_char', charComplet.name);
+      rpMarquerProprietaireCache();
     } catch (e) {
       console.warn('Cache local non reconstruit (quota) :', e);
     }
@@ -2267,6 +2366,7 @@ function updateUI() {
     try {
       localStorage.setItem('respublica_char_' + state.char.name, JSON.stringify(state.char));
       localStorage.setItem('respublica_char', JSON.stringify(state.char));
+      rpMarquerProprietaireCache();
     } catch(e) {}
   }
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;

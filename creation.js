@@ -93,6 +93,7 @@ async function connecterAvecMotDePasse() {
     localStorage.setItem('respublica_char_' + charData.name, JSON.stringify(charData));
     localStorage.setItem('respublica_char', JSON.stringify(charData));
     localStorage.setItem('respublica_last_char', charData.name);
+    rpMarquerProprietaireCache();
     if (sbState.char?.photoUrl) {
       localStorage.setItem('respublica_photo_' + charData.name, sbState.char.photoUrl);
       localStorage.setItem('respublica_photo', sbState.char.photoUrl);
@@ -269,6 +270,7 @@ async function chargerPersonnageParNom() {
       console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
     }
     localStorage.setItem('respublica_last_char', charData.name);
+    rpMarquerProprietaireCache();
     if (sbState.char?.photoUrl) {
       localStorage.setItem('respublica_photo_' + sbState.char.name, sbState.char.photoUrl);
       localStorage.setItem('respublica_photo', sbState.char.photoUrl);
@@ -886,6 +888,7 @@ async function validateChar(){
       // Clé générique = pointeur vers le dernier personnage actif
       localStorage.setItem('respublica_char', JSON.stringify(char));
       localStorage.setItem('respublica_last_char', char.name);
+      rpMarquerProprietaireCache();
     } catch (e) {
       console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
     }
@@ -955,6 +958,7 @@ async function validateChar(){
             localStorage.setItem('respublica_char_' + char.name, JSON.stringify(char));
             localStorage.setItem('respublica_char', JSON.stringify(char));
             localStorage.setItem('respublica_last_char', char.name);
+            rpMarquerProprietaireCache();
           } catch (e) {}
           goTo(9);
           return;
@@ -966,6 +970,7 @@ async function validateChar(){
           // haut a ecrase le sien.
           try {
             localStorage.setItem('respublica_last_char', personnageDuCompte);
+            rpMarquerProprietaireCache();
             localStorage.removeItem('respublica_char_' + char.name);
           } catch (e) {}
           afficherErreurCreation('Vous avez deja un personnage',

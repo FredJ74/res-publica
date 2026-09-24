@@ -235,6 +235,33 @@ function rpAuthOublierIdentite() {
  *  'ok' | 'reconnexion_requise' | 'reseau' | 'indisponible' | null (pas encore sollicitee) */
 function rpAuthEtat() { return RP_AUTH_ETAT; }
 
+/* --- A QUEL COMPTE APPARTIENT LE CACHE PERSONNAGE ? (24 septembre 2026) ---
+   Le cache local du personnage (respublica_char*, dans plateau-core.js) est indexe par NOM et
+   par rien d'autre : aucune de ses cles ne dit a QUI le personnage appartient. Tant qu'un
+   navigateur ne sert qu'un compte cela ne se voit pas ; des que le compte change sous le cache
+   -- rpAuthRepartirDeZero() le fait, par exemple, quand le serveur prouve que le compte n'existe
+   plus -- l'interface continue de presenter l'identite du compte precedent.
+   Ces deux accesseurs vivent ICI et non dans plateau-core.js pour une raison mecanique :
+   l'ecran de connexion (index.html) ne charge pas plateau-core.js, et c'est precisement lui qui
+   reecrit le cache apres une connexion. auth.js, lui, est charge par les deux pages.
+   La cle est separee a dessein : jamais dans state.char, que sbSavePersonnage renvoie au
+   serveur et qui n'a aucune raison de porter un identifiant de compte.                        */
+const RP_CLE_CHAR_UID = 'respublica_char_uid';
+
+/** Estampille le cache personnage au nom du compte connecte. A appeler a CHAQUE ecriture. */
+function rpMarquerProprietaireCache() {
+  try {
+    const uid = rpAuthUid();
+    if (uid) localStorage.setItem(RP_CLE_CHAR_UID, uid);
+  } catch (e) {}
+}
+
+/** Le compte auquel appartient le cache local, ou null si on ne sait pas (cache ecrit par une
+    version anterieure a ce lot). Ne JAMAIS conclure d'un null : on ne rejette que sur preuve. */
+function rpProprietaireCache() {
+  try { return localStorage.getItem(RP_CLE_CHAR_UID) || null; } catch (e) { return null; }
+}
+
 /* --- Repartir de zero (14 septembre 2026) --------------------------------
    Un jeton peut rester valide DANS LE TEMPS alors que son compte n'existe plus : c'est le cas
    apres une purge de comptes anonymes cote base. rpAuthAssurerSession ne le voit pas -- elle ne
@@ -244,10 +271,21 @@ function rpAuthEtat() { return RP_AUTH_ETAT; }
    preuve : jamais sur un simple echec reseau, sinon on abandonnerait le compte d'un joueur --
    et donc son personnage -- pour une coupure passagere. */
 async function rpAuthRepartirDeZero() {
+  const ancienUid = rpAuthUid();
   RP_AUTH_SESSION = null;
   rpAuthEcrireStockage(null);
   RP_AUTH_PROMESSE = null;
-  return await rpAuthAssurerSession();
+  const session = await rpAuthAssurerSession();
+  // C'EST LE CHEMIN QUI FAISAIT REELLEMENT DIVERGER L'ECRAN ET LE COMPTE. Cette fonction ouvre
+  // une session NEUVE -- donc un uid neuf -- pendant que le cache personnage, lui, ne bouge pas.
+  // L'interface continuait ensuite d'afficher un personnage que le nouveau compte ne possede
+  // pas. On previent desormais le plateau, qui rechargera le personnage du compte courant.
+  const nouvelUid = (session && session.user) ? session.user.id : null;
+  if (nouvelUid && ancienUid && nouvelUid !== ancienUid
+      && typeof rpIdentiteChangementDeCompte === 'function') {
+    await rpIdentiteChangementDeCompte(ancienUid, nouvelUid).catch(() => {});
+  }
+  return session;
 }
 
 /* --- Lecture synchrone, utilisee par supabase.js a chaque requete -------- */
@@ -424,6 +462,9 @@ async function rpAuthDemanderConfirmationAdresse(email) {
  *  precedente, en memoire et dans le stockage.
  */
 async function rpAuthSeConnecter(email, motDePasse) {
+  // Qui etions-nous AVANT de tenter ? Lu maintenant, parce que la reponse va ecraser la session.
+  // Rien n'est purge a ce stade : un echec ne doit rien detruire (voir plus bas).
+  const ancienUid = rpAuthUid();
   const res = await fetch(RP_AUTH_URL + '/token?grant_type=password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': rpAuthCleAnon() },
@@ -448,7 +489,19 @@ async function rpAuthSeConnecter(email, motDePasse) {
   if (session.user && !session.user.email) session.user.email = email;
   rpAuthMemoriserIdentite(session);
   RP_AUTH_ETAT = 'ok';
-  return { ok: true, uid: session.user && session.user.id };
+
+  // LE COMPTE A CHANGE : ON OUBLIE LE PERSONNAGE DU PRECEDENT (24 septembre 2026).
+  // La purge est accrochee ICI, au succes AVERE de l'authentification -- jamais au clic sur
+  // « Se connecter ». Un mot de passe refuse laisse donc intacts la session et le personnage
+  // du joueur deja connecte : on sort bien avant ce point, par le `if (!res.ok)` du dessus.
+  // Et securiser un ancien compte anonyme conserve le meme auth.uid() : la comparaison est
+  // alors egale, rien n'est purge, le personnage reste.
+  const nouvelUid = session.user && session.user.id;
+  if (nouvelUid && ancienUid && nouvelUid !== ancienUid
+      && typeof rpIdentiteChangementDeCompte === 'function') {
+    await rpIdentiteChangementDeCompte(ancienUid, nouvelUid).catch(() => {});
+  }
+  return { ok: true, uid: nouvelUid };
 }
 
 /** Rattache au compte connecte un personnage cree AVANT l'authentification.
