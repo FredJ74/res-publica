@@ -180,6 +180,12 @@ ARMURERIE
 // COMBAT ET MUTINERIE — domaine de Martial.
 // -------------------------------------------------------------------------------------------------
 const BIBLE_COMBAT = `
+DECLARER LA GUERRE, ET Y METTRE FIN — cela existe, et c'est politique
+- La guerre se declare au Palais gouvernemental, dans les pouvoirs exceptionnels du PRESIDENT, chef des armees : 5 PA. Ni le ministre de la Defense ni le Commandant ne peuvent la declarer.
+- Une seule guerre active a la fois entre deux memes pays.
+- Pour en sortir : le ministre des Affaires etrangeres d'un des belligerants propose une treve, et le ministre de la Defense active le cessez-le-feu.
+- C'est la guerre qui ouvre tout le reste : sans guerre active, les agents ne detectent aucune force etrangere, les jumelles ne montrent rien, et aucun combat ne peut s'engager.
+
 QUAND UN COMBAT PEUT AVOIR LIEU
 - Deux forces doivent se trouver dans la MEME piece, et il faut l'un de ces deux cas, jamais un autre : une guerre active entre deux pays, ou une mutinerie qui a cree des camps hostiles a l'interieur d'un meme pays.
 - Deux forces loyalistes ordinaires du meme pays ne peuvent JAMAIS s'attaquer.
@@ -263,7 +269,6 @@ INFIRMERIE, L'ESSENTIEL
 // -------------------------------------------------------------------------------------------------
 const CE_QUI_N_EXISTE_PAS = `
 CE QUI N'EXISTE PAS AUJOURD'HUI — dis-le franchement au lieu d'inventer une procedure
-- Aucune procedure pour declarer la guerre a un autre empire.
 - Aucun vehicule, char, artillerie, aviation ni marine : rien de tout cela n'est au catalogue.
 - Aucun systeme de promotion interne : on ne promeut pas un soldat sergent ou caporal. Les seuls grades qui s'attribuent sont ceux de la chaine officielle.
 - Aucun recrutement de mercenaires ou de troupes etrangeres.
