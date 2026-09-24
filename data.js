@@ -4578,8 +4578,23 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
-          {fn:'affecter_engage',    label:'Affecter un engagé à une section', pa:0, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Installer un engage valide par le Commandant comme lieutenant d\'une section.'},
-          {fn:'engager_officier',   label:'S\'engager comme officier',  pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Envoyer une demande d\'engagement au Commandant de la Caserne.'},
+          // ------------------------------------------------------------------------------------
+          // L'ENGAGEMENT, REFONDU LE 24 SEPTEMBRE 2026. Un seul ordre remplace les quatre qui
+          // existaient ici (engager_officier, engager_soldat, affecter_engage,
+          // candidatures_section) plus traiter_engagements en salle de commandement. Les laisser
+          // cote a cote aurait fait deux chemins concurrents vers le meme grade, avec deux
+          // modeles de donnees incompatibles -- l'ancien fait CHOISIR sa section au candidat et
+          // n'accepte qu'un seul decideur a la fois ; le nouveau diffuse la candidature a tous
+          // les recruteurs eligibles et laisse le premier qui accepte l'emporter.
+          // Les RPC de l'ancienne filiere ne sont pas supprimees : elles n'ont simplement plus
+          // de porte d'entree. L'engagement de Vince Kubrick et sa section restent intacts.
+          //
+          // 2 PA, et c'est le SERVEUR qui les prend (militaire_candidature_deposer), apres avoir
+          // verifie l'identite reelle, la presence a la caserne et l'absence de grade. Un refus
+          // ne coute rien : le paiement est la derniere chose qui arrive.
+          {fn:'s_engager_armee',    label:'S\'engager dans l\'armée',  pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Candidater comme Capitaine, Lieutenant ou simple soldat. Plusieurs candidatures simultanees sont permises ; la premiere acceptee annule les autres.'},
+          {fn:'traiter_candidatures', label:'Candidatures à l\'engagement', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, requiresPost:['commandant','capitaine','lieutenant'], desc:'Reserve a la chaine de commandement. Examiner les candidatures que l\'on a le pouvoir d\'accepter.'},
+          {fn:'decouvrir_affectation', label:'Découvrir mon affectation', pa:0, cost:0, type:'legal', icon:'ti-map-pin', successRate:100, desc:'Engagement accepte : se presenter a la caserne dans les 48 heures pour apprendre sa compagnie, sa section et son chef.'},
           // Consultation pure, ouverte a tous : un civil qui n'a jamais servi obtient un calepin
           // vide, pas un refus. Ne pas avoir servi est une reponse.
           {fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires.'},
@@ -4590,13 +4605,6 @@ const BUILDINGS = {
           // non preleve afficherait un prix mensonger. Le cout en PA d'une decoration est un
           // arbitrage GD qui n'a pas ete rendu -- a fixer, pas a deviner.
           {fn:'decorer_militaire',  label:'Decerner une decoration', pa:0, cost:0, type:'legal', icon:'ti-medal', successRate:100, desc:'Reserve au Commandant de la Caserne, au Ministre de la Defense et au chef de l\'Etat.'},
-          // FILIERE SOLDAT (18 septembre 2026). Aucune qualification militaire requise pour
-          // devenir simple soldat. Ces trois ordres sont declares a 0 PA : ce sont des actes
-          // purement administratifs et declaratifs, et cela evite toute dependance au miroir des
-          // couts (payer_ordre n'est consulte que si pa ou cost sont non nuls). La symetrie avec
-          // les 2 PA de engager_officier reste un point de game design a arbitrer.
-          {fn:'engager_soldat',     label:'S\'engager comme soldat',    pa:0, cost:0, type:'legal', icon:'ti-shield', successRate:100, desc:'Candidater comme simple soldat aupres du Lieutenant d\'une section. Aucun diplome requis.'},
-          {fn:'candidatures_section', label:'Candidatures de ma section', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, requiresPost:'lieutenant', desc:'Reserve au Lieutenant. Accepter ou refuser les candidatures de soldats adressees a sa section.'},
           {fn:'quitter_armee',      label:'Quitter l\'armée',            pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Demissionner de son poste de soldat. Le depart est administratif : aucune perte humaine.'},
           {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'},
           {fn:'se_presenter_affectation', label:'Se présenter à mon affectation', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Civils requisitionnes avant expiration du delai — et deserteurs, a tout moment : se rendre eteint les poursuites pour desertion.'},
@@ -4644,7 +4652,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:0, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
-          {fn:'traiter_engagements', label:'Traiter les engagements',   pa:0, cost:0,    type:'legal',   icon:'ti-clipboard-list', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Affecter les demandes d\'engagement a une compagnie.'},
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'repartir_armement', label:'Doter ma section en armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Transferer des armes entre le stock de l\'Armurerie Militaire et sa propre section. Le Capitaine ne retire plus du magasin (arbitrage du 17 septembre 2026).'},
           {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'96 soldats (4 sections de 24). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},

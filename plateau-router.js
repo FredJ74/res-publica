@@ -594,17 +594,24 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // 'recruter_section' : route SUPPRIMEE le 21 septembre 2026 avec l'ordre lui-meme (modele de
   // recompletement a la piece abandonne par le GD le 17 septembre). Plus aucune declaration dans
   // data.js, plus de handler, plus de ligne dans le miroir des couts.
-  if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
-  // FILIERE SOLDAT (18 septembre 2026)
-  if (fn === 'engager_soldat') { ouvrirEngagementSoldat(); return; }
+  // RECRUTEMENT MILITAIRE, FILIERE UNIQUE (24 septembre 2026). Ces trois routes remplacent les
+  // cinq precedentes -- engager_officier, engager_soldat, candidatures_section,
+  // traiter_engagements, affecter_engage -- retirees en meme temps que leurs ordres dans data.js
+  // et que leurs lignes du miroir des couts. Les deux anciens chemins d'engagement coexistaient
+  // avec des modeles de donnees incompatibles ; les laisser cote a cote aurait donne deux portes
+  // vers le meme grade.
+  //
+  // Les 2 PA de s_engager_armee ne sont PAS preleves ici : militaire_candidature_deposer les
+  // prend elle-meme, en dernier, apres avoir verifie l'identite, la presence et le grade. C'est
+  // ce qui garantit qu'un refus ne coute jamais un point d'action.
+  if (fn === 's_engager_armee') { ouvrirSEngagerArmee(); return; }
+  if (fn === 'traiter_candidatures') { ouvrirTraiterCandidatures(); return; }
+  if (fn === 'decouvrir_affectation') { doDecouvrirAffectation(); return; }
   if (fn === 'retirer_trousse') { doRetirerTrousse(); return; }
   if (fn === 'retirer_rations') { ouvrirRetraitRations(); return; }
   if (fn === 'calepin_campagne') { ouvrirCalepinCampagne(); return; }
   if (fn === 'decorer_militaire') { ouvrirDecorerMilitaire(); return; }
-  if (fn === 'candidatures_section') { ouvrirCandidaturesSection(); return; }
   if (fn === 'quitter_armee') { ouvrirQuitterArmee(); return; }
-  if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }
-  if (fn === 'affecter_engage') { ouvrirAffecterEngage(pa, cost); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }

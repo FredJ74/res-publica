@@ -1588,6 +1588,70 @@ async function sbMilitaireSoldatRetirer(compagnieId, sectionId, nom) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// =============================================================================================
+// RECRUTEMENT MILITAIRE — LA FILIERE UNIQUE (24 septembre 2026)
+// =============================================================================================
+// Elle remplace engager_officier / engager_soldat / affecter_engage / candidatures_section /
+// traiter_engagements. Difference de fond : le candidat ne choisit PLUS sa destination. Il vise
+// un GRADE, sa candidature est vue par tous les recruteurs eligibles, et le premier qui accepte
+// l'emporte -- ce que l'ancien modele, a decideur unique et statut lineaire, ne pouvait pas
+// exprimer.
+//
+// AUCUNE DE CES FONCTIONS NE LIT LA TABLE EN DIRECT, et ce n'est pas un detail de style :
+// candidatures_militaires est FERMEE a `authenticated`, meme en lecture. Elle porte la colonne
+// `refus` -- la liste nominative des recruteurs qui ont ecarte un candidat -- et l'affectation
+// que le joueur doit decouvrir en personne a la caserne. Tout passe donc par des RPC qui
+// projettent exactement ce que chaque camp a le droit de voir.
+//
+// Le grade de Commandant n'est PAS ici : c'est un poste nomme, candidate par l'ordre `postuler`
+// du Palais du Gouvernement et arbitre par le Ministre de la Defense.
+
+// 2 PA, preleves par le SERVEUR et en dernier : un refus ne coute jamais un point d'action.
+async function sbMilitaireCandidatureDeposer(grade) {
+  const rows = await sbRpc('militaire_candidature_deposer', { p_grade: grade });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Ce que le CANDIDAT a le droit de savoir : ses candidatures vivantes et, s'il en a une
+// d'acceptee, l'echeance. Jamais le lieu, jamais le recruteur, jamais les refus.
+async function sbMilitaireMesCandidatures() {
+  const rows = await sbRpc('militaire_mes_candidatures', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+async function sbMilitaireCandidatureRetirer(id) {
+  const rows = await sbRpc('militaire_candidature_retirer', { p_id: id });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Ce que le RECRUTEUR a le droit de savoir : le grade qu'il peut recruter, les places qu'il a
+// reellement a offrir, et les candidats qu'il n'a pas lui-meme ecartes.
+async function sbMilitaireCandidaturesATraiter() {
+  const rows = await sbRpc('militaire_candidatures_a_traiter', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Refus INDIVIDUEL : la candidature reste vivante pour les autres recruteurs, et aucun courrier
+// n'est emis. Le candidat ne doit jamais apprendre qui l'a ecarte.
+async function sbMilitaireCandidatureRefuser(id) {
+  const rows = await sbRpc('militaire_candidature_refuser', { p_id: id });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// Acceptation : reserve la place, fixe l'affectation, ouvre 48 h et annule les autres
+// candidatures du meme joueur. Le serveur revalide la cible -- le client propose, il ne decide pas.
+async function sbMilitaireCandidatureAccepter(id, compagnieId, sectionId) {
+  const rows = await sbRpc('militaire_candidature_accepter',
+    { p_id: id, p_compagnie_id: compagnieId, p_section_id: sectionId || null });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
+// La scene de decouverte. C'est le SEUL moment ou la compagnie est reellement modifiee.
+async function sbMilitaireAffectationDecouvrir() {
+  const rows = await sbRpc('militaire_affectation_decouvrir', {});
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Jours cumules de service effectif, source canonique services_militaires (periodes
 // interruptibles et additionnables). Base de la regle des 63 jours.
 async function sbMilitaireServiceJours(nom, grade) {

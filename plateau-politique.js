@@ -30,8 +30,15 @@
 // joueurs. Desormais base uniquement sur POSTES_ELECTIFS (calendrier electoral, deja
 // fonctionnel) et POSTES_NOMMES_EXCLUSIFS (nomination par l'autorite competente).
 // =====================
+// RENOMME « ORGANIGRAMME » LE 24 SEPTEMBRE 2026, et complete de la chaine militaire.
+// L'ecran s'appelait « Postes disponibles », ce qui decrivait mal ce qu'il montre : il liste
+// autant les fonctions OCCUPEES que les vacantes, avec leur titulaire. C'est un organigramme.
+// Il lui manquait toute la hierarchie de la caserne -- Commandant, Capitaines, Lieutenants,
+// sections -- alors que c'est precisement la ou un candidat a besoin de voir les trous avant
+// d'aller s'engager. Le bloc militaire ajoute plus bas est en LECTURE SEULE : on ne s'engage
+// pas depuis le Palais, il faut etre physiquement a la caserne et cela coute 2 PA.
 async function ouvrirEcranPostes() {
-  document.getElementById('postes-modal-title').textContent = 'Postes disponibles';
+  document.getElementById('postes-modal-title').textContent = 'Organigramme';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -74,6 +81,37 @@ async function ouvrirEcranPostes() {
       '<div class="poste-holder">' + (titulaire ? ('Occupé par ' + titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)')) : 'Poste vacant') + mutinIci + '</div>' +
       '</div>' + actionHtml + '</div>';
   }
+
+  // ------------------------------------------------------------------------------------------
+  // CHAINE DE COMMANDEMENT MILITAIRE. Elle ne vit pas dans POSTES_NOMMES_EXCLUSIFS (a la seule
+  // exception du Commandant, qui est bien une fonction nommee) : Capitaines et Lieutenants sont
+  // portes par le blob de leur compagnie. Il faut donc aller la lire pour montrer les vacances.
+  // ------------------------------------------------------------------------------------------
+  const compagnies = typeof sbGetCompagnies === 'function'
+    ? await sbGetCompagnies(country).catch(() => []) : [];
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">CHAÎNE DE COMMANDEMENT MILITAIRE</div>';
+  if (!compagnies.length) {
+    html += '<div class="poste-item"><div><div class="poste-holder">Aucune compagnie n\'a encore été levée.</div></div></div>';
+  } else {
+    compagnies.forEach(c => {
+      const cap = c.capitaineNom;
+      html += '<div class="poste-item"><div>' +
+        '<div class="poste-name">' + escapeHtmlText(c.nom || c.id) + ' — Capitaine</div>' +
+        '<div class="poste-holder">' + (cap ? ('Occupé par ' + escapeHtmlText(cap)) : 'Poste vacant') + '</div>' +
+        '</div></div>';
+      (c.sections || []).forEach(sec => {
+        const eff = (sec.soldats || []).length;
+        html += '<div class="poste-item" style="padding-left:1.6rem"><div>' +
+          '<div class="poste-name">Section ' + escapeHtmlText(String(sec.numero || sec.id)) + ' — Lieutenant</div>' +
+          '<div class="poste-holder">' + (sec.lieutenantNom ? ('Occupé par ' + escapeHtmlText(sec.lieutenantNom)) : 'Poste vacant')
+          + ' — effectif ' + eff + '/' + EFFECTIF_SECTION + '</div>' +
+          '</div></div>';
+      });
+    });
+  }
+  html += '<div style="padding:.5rem 1rem .8rem;font-size:.72rem;color:#6a5a30;font-style:italic">'
+        + 'Capitaine, Lieutenant et soldat se candidatent à la Caserne Militaire, en personne, '
+        + 'par l\'ordre « S\'engager dans l\'armée » (2 PA).</div>';
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -9748,137 +9786,312 @@ async function trouverMaSectionSoldat() {
   return null;
 }
 
-async function ouvrirEngagementSoldat() {
-  const pays = state.country || 'republic';
-  if (['lieutenant', 'capitaine', 'commandant'].includes(state.poste?.id)) {
-    showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return;
-  }
-  const deja = await trouverMaSectionSoldat();
-  if (deja) { showToast('Déjà soldat', 'Vous servez déjà dans la section ' + (deja.section.numero || '?') + '.', false); return; }
+// =============================================================================================
+// RECRUTEMENT MILITAIRE — LES TROIS ECRANS (24 septembre 2026)
+// =============================================================================================
+// Ils remplacent ouvrirEngagementSoldat / confirmerEngagementSoldat / ouvrirCandidaturesSection /
+// confirmerCandidatureSoldat, ainsi que doEngagerOfficier / ouvrirTraiterEngagements /
+// ouvrirAffecterEngage, retires plus bas dans ce fichier le meme jour.
+// Le changement de fond : le candidat ne choisit plus sa destination,
+// il vise un GRADE ; sa candidature est vue par TOUS les recruteurs de rang competent ; le
+// premier qui accepte l'emporte ; et un refus individuel ne detruit pas la candidature.
+//
+// AUCUN DE CES ECRANS NE LIT LA TABLE. candidatures_militaires est fermee a `authenticated`,
+// meme en lecture, parce qu'elle contient la liste nominative des refus et l'affectation que le
+// joueur doit decouvrir en personne. Les trois RPC projettent ce que chacun a le droit de voir.
 
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-  document.getElementById('postes-modal-title').textContent = 'S\'engager comme soldat';
+const GRADES_ENGAGEMENT = [
+  { id: 'capitaine',  label: 'Capitaine',
+    desc: 'Commande une compagnie entiere et ses quatre sections. Recrute par le Commandant de la Caserne.' },
+  { id: 'lieutenant', label: 'Lieutenant',
+    desc: 'Chef d\'une section de 24 hommes. Recrute par le Capitaine de la compagnie.' },
+  { id: 'soldat',     label: 'Soldat',
+    desc: 'Sert dans une section. Aucun diplome requis. Recrute par le Lieutenant de la section.' }
+];
+
+function libelleGradeEngagement(id) {
+  const g = GRADES_ENGAGEMENT.find(x => x.id === id);
+  return g ? g.label : (id || '?');
+}
+
+// Delai reel accorde pour se presenter apres une acceptation. Le serveur en est l'autorite
+// (militaire_candidature_accepter pose echeance = now() + 48 h) ; cette constante n'est la que
+// pour l'affichage, et ne doit jamais servir a decider quoi que ce soit.
+function resteAvantEcheance(echeance) {
+  const t = new Date(echeance).getTime();
+  if (!isFinite(t)) return '';
+  const ms = t - Date.now();
+  if (ms <= 0) return 'délai expiré';
+  const h = Math.floor(ms / 3600000);
+  return h >= 1 ? ('il reste ' + h + ' h') : ('il reste moins d\'une heure');
+}
+
+// ---------------------------------------------------------------------------------------------
+// ECRAN 1 — S'ENGAGER DANS L'ARMEE (ordre s_engager_armee, 2 PA preleves par le serveur)
+// ---------------------------------------------------------------------------------------------
+async function ouvrirSEngagerArmee() {
+  const etat = typeof sbMilitaireMesCandidatures === 'function'
+    ? await sbMilitaireMesCandidatures().catch(() => null) : null;
+  if (!etat || etat.ok !== true) {
+    showToast('Indisponible', 'Le bureau de recrutement ne répond pas.', false); return;
+  }
+  const miennes = etat.candidatures || [];
+  const deja = g => miennes.find(c => c.grade === g);
+
+  document.getElementById('postes-modal-title').textContent = 'S\'engager dans l\'armée';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Aucun diplôme n\'est requis pour servir comme soldat. Votre candidature sera adressée au Lieutenant de la section choisie, qui reste libre de l\'accepter ou non.</div>';
-  let sectionsOffertes = 0;
-  compagnies.forEach(c => {
-    (c.sections || []).forEach(sec => {
-      if (!sec.lieutenantNom) return;   // une section sans Lieutenant n'a personne pour decider
-      sectionsOffertes++;
-      const eff = (sec.soldats || []).length;
-      const pnj = (sec.soldats || []).filter(x => x && x.pj !== true).length;
-      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.82rem;color:#c0b090">Section ' + (sec.numero || '?') + ' — Lieutenant <b>' + escapeHtmlText(sec.lieutenantNom) + '</b></div>';
-      html += '<div style="font-size:.72rem;color:#8a8060;margin:.25rem 0">Effectif ' + eff + '/' + EFFECTIF_SECTION
-            + (eff >= EFFECTIF_SECTION
-                ? (pnj > 0 ? ' — complète, mais un soldat PNJ peut vous céder sa place.' : ' — complète, uniquement des joueurs : liste d\'attente.')
-                : ' — ' + (EFFECTIF_SECTION - eff) + ' place(s) libre(s).') + '</div>';
-      html += '<button onclick="confirmerEngagementSoldat(\'' + c.id + '\',\'' + sec.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Candidater à cette section</button>';
+
+  if (etat.affectation_a_decouvrir) {
+    html += '<div style="border:1px solid #8a6a20;background:rgba(138,106,32,.08);padding:.6rem;margin-bottom:.8rem">'
+          + '<div style="font-size:.82rem;color:#C9A84C">Votre engagement a été accepté.</div>'
+          + '<div style="font-size:.74rem;color:#8a8060;margin-top:.25rem">Utilisez l\'ordre '
+          + '« Découvrir mon affectation » au Corps de Garde pour apprendre où vous servirez.</div></div>';
+  }
+
+  if (miennes.length) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MES CANDIDATURES</div>';
+    miennes.forEach(c => {
+      html += '<div style="border:1px solid #2a2010;padding:.5rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">';
+      html += '<div style="flex:1"><div style="font-size:.82rem;color:#c0b090">' + escapeHtmlText(libelleGradeEngagement(c.grade)) + '</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060">'
+            + (c.statut === 'acceptee'
+                ? 'Acceptée — présentez-vous à la caserne (' + escapeHtmlText(resteAvantEcheance(c.echeance)) + ').'
+                : 'En attente d\'un recruteur.') + '</div></div>';
+      if (c.statut === 'active') {
+        html += '<button onclick="confirmerRetraitCandidature(\'' + c.id + '\')" style="padding:.3rem .5rem;border:1px solid #8a4a4a;background:transparent;color:#c07070;cursor:pointer;font-size:.7rem">Retirer</button>';
+      }
       html += '</div>';
     });
-  });
-  if (!sectionsOffertes) {
-    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune section ne dispose actuellement d\'un Lieutenant en mesure de recevoir votre candidature.</div>';
+    html += '<div style="height:.8rem"></div>';
   }
+
+  html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">'
+        + 'Vous pouvez candidater à plusieurs grades en même temps. La première candidature acceptée '
+        + 'annule automatiquement les autres. Chaque dépôt coûte 2 PA et n\'est jamais remboursé.</div>';
+
+  GRADES_ENGAGEMENT.forEach(g => {
+    const mienne = deja(g.id);
+    html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
+    html += '<div style="font-size:.85rem;color:#c0b090"><b>' + g.label + '</b></div>';
+    html += '<div style="font-size:.72rem;color:#8a8060;margin:.25rem 0 .45rem">' + g.desc + '</div>';
+    if (mienne) {
+      html += '<div style="font-size:.74rem;color:#6a6050;font-style:italic">Candidature déjà déposée.</div>';
+    } else {
+      html += '<button onclick="confirmerCandidatureEngagement(\'' + g.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Candidater — 2 PA</button>';
+    }
+    html += '</div>';
+  });
+
+  // LE COMMANDANT N'EST PAS RECRUTE ICI, et le dire vaut mieux que le taire : sans cette ligne,
+  // un joueur chercherait indefiniment a la caserne une porte qui se trouve au Palais.
+  html += '<div style="border-top:1px solid #2a2010;margin-top:.8rem;padding-top:.7rem;font-size:.74rem;color:#8a8060">'
+        + '<b style="color:#a09070">Commandant de la Caserne</b> — ce poste ne se demande pas ici. '
+        + 'C\'est une fonction nommée : elle se postule au Palais du Gouvernement, et c\'est le '
+        + 'Ministre de la Défense qui tranche.</div>';
+
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEngagementSoldat(compagnieId, sectionId) {
+async function confirmerCandidatureEngagement(grade) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbMilitaireCandidaterSoldat !== 'function') { showToast('Indisponible', '', false); return; }
-  const r = await sbMilitaireCandidaterSoldat(compagnieId, sectionId);
+  if (typeof sbMilitaireCandidatureDeposer !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireCandidatureDeposer(grade);
   if (!r || r.ok !== true) {
     const m = r?.raison;
     showToast('Candidature refusée',
-      m === 'pas_sur_place' ? 'Vous devez être à la caserne pour vous engager.'
-      : m === 'deja_officier' ? 'Vous occupez déjà un poste militaire.'
-      : m === 'deja_soldat' ? 'Vous servez déjà dans une section.'
-      : m === 'candidature_en_cours' ? 'Votre candidature précédente est encore en cours de traitement.'
-      : m === 'section_sans_lieutenant' ? 'Cette section n\'a aucun Lieutenant pour décider.'
-      : m === 'hors_juridiction' ? 'Cette compagnie ne relève pas de votre empire.'
+      m === 'pas_sur_place' ? 'Vous devez être à la Caserne Militaire pour vous engager.'
+      : m === 'deja_militaire' ? 'Vous servez déjà dans l\'armée.'
+      : m === 'candidature_deja_active' ? 'Vous avez déjà une candidature en cours pour ce grade.'
+      : m === 'pa_insuffisants' ? 'Il vous faut 2 PA pour déposer une candidature.'
+      : m === 'grade_invalide' ? 'Ce grade ne se candidate pas à la caserne.'
       : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
     return;
   }
-  if (r.lieutenant && typeof sbSendMail === 'function') {
-    await sbSendMail(state.char?.name || 'Un citoyen', r.lieutenant, 'Candidature d\'engagement',
-      (state.char?.name || 'Un citoyen') + ' souhaite servir comme soldat dans votre section. '
-      + 'Rendez-vous au Corps de Garde pour traiter les candidatures.',
-      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-  }
-  showToast('Candidature transmise', 'Le Lieutenant ' + (r.lieutenant || '') + ' examinera votre engagement.', true, true);
-  addJournalEntry('Candidature déposée pour servir comme soldat.', 'event-info');
+  // Les PA affiches viennent du SERVEUR, jamais d'une soustraction cliente -- meme convention
+  // que doSePresenterAffectation, qui recopie l'etat arrete par la RPC puis rafraichit l'ecran.
+  if (typeof r.pa === 'number') { state.pa = r.pa; updateUI(); }
+  showToast('Candidature déposée',
+    'Votre candidature au grade de ' + libelleGradeEngagement(grade)
+    + ' est transmise à toute la chaîne de commandement.', true, true);
+  addJournalEntry('Candidature déposée pour le grade de ' + libelleGradeEngagement(grade) + '. (−2 PA)', 'event-info');
 }
 
-async function ouvrirCandidaturesSection() {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au Lieutenant', '', false); return; }
-  const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => []))
-    .find(c => c.id === state.poste.compagnieId);
-  const section = getSectionDuLieutenant(compagnie);
-  if (!section) { showToast('Section introuvable', '', false); return; }
-  const cands = typeof sbMilitaireCandidaturesSoldats === 'function'
-    ? await sbMilitaireCandidaturesSoldats(section.id).catch(() => []) : [];
+async function confirmerRetraitCandidature(id) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await sbMilitaireCandidatureRetirer(id);
+  if (!r || r.ok !== true) {
+    showToast('Impossible',
+      r?.raison === 'candidature_non_retirable'
+        ? 'Cette candidature a déjà été acceptée : présentez-vous à la caserne ou laissez le délai expirer.'
+        : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
+    return;
+  }
+  showToast('Candidature retirée', 'Les 2 PA dépensés ne sont pas remboursés.', true);
+  addJournalEntry('Candidature militaire retirée.', 'event-info');
+}
 
-  document.getElementById('postes-modal-title').textContent = 'Candidatures de ma section';
+// ---------------------------------------------------------------------------------------------
+// ECRAN 2 — CANDIDATURES A L'ENGAGEMENT (ordre traiter_candidatures, reserve a la hierarchie)
+// ---------------------------------------------------------------------------------------------
+async function ouvrirTraiterCandidatures() {
+  const etat = typeof sbMilitaireCandidaturesATraiter === 'function'
+    ? await sbMilitaireCandidaturesATraiter().catch(() => null) : null;
+  if (!etat || etat.ok !== true) {
+    showToast(etat?.raison === 'pas_recruteur' ? 'Aucune autorité de recrutement' : 'Indisponible',
+      etat?.raison === 'pas_recruteur'
+        ? 'Seuls le Commandant, les Capitaines et les Lieutenants recrutent.'
+        : 'Le bureau de recrutement ne répond pas.', false);
+    return;
+  }
+  const places = etat.places || [];
+  const cands = etat.candidatures || [];
+  const grade = etat.grade_recrute;
+
+  document.getElementById('postes-modal-title').textContent = 'Candidatures à l\'engagement';
   let html = '<div style="padding:1rem">';
-  const eff = (section.soldats || []).length;
-  const pnj = (section.soldats || []).filter(x => x && x.pj !== true).length;
-  html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem">Effectif ' + eff + '/' + EFFECTIF_SECTION
-        + ' — dont ' + pnj + ' soldat(s) PNJ. Accepter un joueur alors que la section est complète fait revenir un PNJ en réserve de compagnie, avec son matricule et son entraînement.</div>';
-  if (!cands.length) {
+  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.7rem">Vous recrutez des <b style="color:#c0b090">'
+        + escapeHtmlText(libelleGradeEngagement(grade)) + 's</b>. Refuser un candidat ne l\'écarte que de '
+        + 'vous : sa candidature reste ouverte aux autres recruteurs, et il n\'en sera pas informé.</div>';
+
+  const placesLibres = places.filter(p => Number(p.libre) > 0);
+  if (!placesLibres.length) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Vous n\'avez aucune place à offrir '
+          + 'pour l\'instant. Les places déjà promises à un candidat restent réservées 48 heures.</div>';
+  } else if (!cands.length) {
     html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
   } else {
-    cands.forEach(e => {
+    // Le choix de la place n'apparait que s'il y en a plusieurs : proposer un menu a une seule
+    // entree serait une question dont la reponse est deja connue.
+    const multiple = placesLibres.length > 1;
+    cands.forEach(c => {
+      const sel = 'place-' + c.id;
       html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.85rem;color:#c0b090"><b>' + escapeHtmlText(e.nom || '?') + '</b>'
-            + (e.statut === 'soldat_liste_attente' ? ' <span style="font-size:.68rem;color:#8a6a20">(liste d\'attente)</span>' : '') + '</div>';
+      html += '<div style="font-size:.85rem;color:#c0b090"><b>' + escapeHtmlText(c.candidat) + '</b></div>';
+      if (multiple) {
+        html += '<select id="' + sel + '" style="width:100%;margin:.4rem 0;padding:.3rem;background:#0d0a06;border:1px solid #2a2010;color:#c0b090;font-size:.74rem">';
+        placesLibres.forEach((p, i) => {
+          const nom = p.section_id ? (p.section_nom || p.section_id) : (p.compagnie_nom || p.compagnie_id);
+          html += '<option value="' + i + '">' + escapeHtmlText(nom)
+                + ' — ' + p.libre + ' place(s)</option>';
+        });
+        html += '</select>';
+      } else {
+        const p = placesLibres[0];
+        const nom = p.section_id ? (p.section_nom || p.section_id) : (p.compagnie_nom || p.compagnie_id);
+        html += '<div style="font-size:.72rem;color:#8a8060;margin:.3rem 0">Affectation : ' + escapeHtmlText(nom) + '</div>';
+      }
       html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-      html += '<button onclick="confirmerCandidatureSoldat(\'' + e.id + '\',true,\'' + encodeURIComponent(e.nom || '') + '\')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.74rem">Accepter</button>';
-      html += '<button onclick="confirmerCandidatureSoldat(\'' + e.id + '\',false,\'' + encodeURIComponent(e.nom || '') + '\')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#c07070;cursor:pointer;font-size:.74rem">Refuser</button>';
+      html += '<button onclick="confirmerAcceptationCandidature(\'' + c.id + '\',\'' + sel + '\')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.74rem">Accepter</button>';
+      html += '<button onclick="confirmerRefusCandidature(\'' + c.id + '\',\'' + encodeURIComponent(c.candidat) + '\')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#c07070;cursor:pointer;font-size:.74rem">Refuser</button>';
       html += '</div></div>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  // Les places retenues sont gardees en memoire d'ecran : l'index choisi dans le menu doit
+  // pouvoir etre retraduit en compagnie/section au moment du clic.
+  window.__placesRecrutement = placesLibres;
 }
 
-async function confirmerCandidatureSoldat(engagementId, accepter, nomEncode) {
+async function confirmerAcceptationCandidature(id, selectId) {
+  const places = window.__placesRecrutement || [];
+  const el = document.getElementById(selectId);
+  const p = places[el ? Number(el.value) : 0];
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (!p) { showToast('Aucune place', 'Plus aucune place à offrir.', false); return; }
+  const r = await sbMilitaireCandidatureAccepter(id, p.compagnie_id, p.section_id || null);
+  if (!r || r.ok !== true) {
+    const m = r?.raison;
+    showToast('Impossible',
+      m === 'candidature_non_active' ? 'Un autre recruteur a été plus rapide : ce candidat n\'est plus disponible.'
+      : m === 'plus_de_place' ? 'Cette place vient d\'être prise.'
+      : m === 'candidat_deja_militaire' ? 'Ce candidat a déjà rejoint l\'armée.'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
+  }
+  showToast('Engagement accepté',
+    escapeHtmlText(r.candidat) + ' a 48 heures pour se présenter à la caserne.'
+    + (Number(r.autres_annulees) > 0 ? ' Ses autres candidatures sont annulées.' : ''), true, true);
+  addJournalEntry('Engagement de ' + r.candidat + ' accepté au grade de ' + libelleGradeEngagement(r.grade) + '.', 'event-good');
+}
+
+async function confirmerRefusCandidature(id, nomEncode) {
   const nom = decodeURIComponent(nomEncode || '');
-  if (typeof sbMilitaireCandidatureTraiter !== 'function') { showToast('Indisponible', '', false); return; }
-  const r = await sbMilitaireCandidatureTraiter(engagementId, accepter);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await sbMilitaireCandidatureRefuser(id);
   if (!r || r.ok !== true) {
     showToast('Impossible', 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false); return;
   }
-  const envoyer = (sujet, corps) => {
-    if (nom && typeof sbSendMail === 'function') {
-      sbSendMail('Lieutenant ' + (state.char?.name || ''), nom, sujet, corps,
-        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    }
-  };
-  if (r.resultat === 'refuse') {
-    showToast('Candidature refusée', nom + ' reste civil.', true);
-    envoyer('Candidature refusée', 'Votre candidature pour servir dans la section n\'a pas été retenue.');
-    addJournalEntry('Candidature de ' + nom + ' refusée.', 'event-info');
-  } else if (r.resultat === 'liste_attente') {
-    showToast('Liste d\'attente', 'Les 24 places sont tenues par des joueurs : ' + nom + ' attend qu\'une place se libère.', true, true);
-    // Texte voulu par le game design. C'est une plaisanterie d'interface : aucune mecanique de
-    // balayage n'existe et il n'en faut pas.
-    envoyer('Candidature en liste d\'attente',
-      'Votre candidature a été placée sur liste d\'attente. Les effectifs de la section sont '
-      + 'actuellement complets. En attendant qu\'une place se libère, la cour de la caserne ne va '
-      + 'pas se balayer toute seule.');
-  } else if (r.resultat === 'deja_present') {
-    showToast('Déjà dans la section', nom + ' y sert déjà.', true);
-  } else {
-    const rendu = r.pnj_rendu_reserve
-      ? ' Le soldat ' + (r.matricule_rendu || 'PNJ') + ' retourne en réserve de compagnie.' : '';
-    showToast('Engagement accepté', nom + ' rejoint la section (' + (r.effectif || '?') + '/' + EFFECTIF_SECTION + ').' + rendu, true, true);
-    envoyer('Engagement accepté', 'Votre candidature a été acceptée. Vous servez désormais comme soldat.');
-    addJournalEntry('Engagement de ' + nom + ' accepté.' + rendu, 'event-good');
+  // AUCUN COURRIER N'EST ENVOYE ICI, et ce silence est la regle elle-meme : le candidat ne doit
+  // jamais apprendre qu'un recruteur donne l'a ecarte. Sa candidature continue sa route ailleurs.
+  showToast('Candidature écartée',
+    nom + ' ne vous sera plus proposé. Il n\'en est pas informé, et un autre recruteur peut encore le prendre.', true);
+  addJournalEntry('Candidature de ' + nom + ' écartée.', 'event-info');
+}
+
+// ---------------------------------------------------------------------------------------------
+// ECRAN 3 — DECOUVRIR MON AFFECTATION (ordre decouvrir_affectation)
+// C'est le seul moment ou le joueur apprend ou il sert, et le seul ou la compagnie est ecrite.
+// ---------------------------------------------------------------------------------------------
+async function doDecouvrirAffectation() {
+  if (typeof sbMilitaireAffectationDecouvrir !== 'function') { showToast('Indisponible', '', false); return; }
+  const r = await sbMilitaireAffectationDecouvrir();
+  if (!r || r.ok !== true) {
+    const m = r?.raison;
+    showToast('Rien à découvrir',
+      m === 'pas_sur_place' ? 'Présentez-vous à la Caserne Militaire.'
+      : m === 'aucune_affectation' ? 'Aucun engagement accepté en attente. Si le délai de 48 heures est passé, votre engagement est caduc.'
+      : m === 'plus_de_place' || m === 'section_pleine' ? 'La place qui vous était promise n\'est plus disponible.'
+      : m === 'compagnie_deja_commandee' ? 'Cette compagnie a déjà un Capitaine.'
+      : m === 'section_indisponible' ? 'Cette section a déjà un Lieutenant.'
+      : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
+    return;
   }
+
+  // Le serveur vient d'ecrire la fiche (poste) et la compagnie. On recopie l'etat qu'IL a
+  // arrete, sans rien recalculer. Un soldat n'a pas de `poste` : il existe comme entree
+  // { pj:true, nom } dans sections[].soldats, et state.poste doit donc rester vide -- lui en
+  // inventer un ferait croire a toute l'interface qu'il est officier.
+  if (r.grade === 'soldat') {
+    state.poste = null;
+  } else {
+    state.poste = { id: r.grade, compagnieId: r.compagnie_id };
+    if (r.section_id) state.poste.sectionId = r.section_id;
+  }
+  if (state.char) state.char.poste = state.poste;
+  updateUI();
+
+  document.getElementById('postes-modal-title').textContent = 'Votre affectation';
+  const unite = r.section_id ? (r.compagnie_nom + ' — section ' + r.section_id) : r.compagnie_nom;
+  let html = '<div style="padding:1.2rem;text-align:center">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;letter-spacing:.12em;color:#C9A84C">'
+        + escapeHtmlText(libelleGradeEngagement(r.grade).toUpperCase()) + '</div>';
+  html += '<div style="font-size:.84rem;color:#c0b090;margin-top:.5rem">' + escapeHtmlText(unite) + '</div>';
+  if (r.chef) {
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.4rem">Sous les ordres de <b>'
+          + escapeHtmlText(r.chef) + '</b>.</div>';
+  }
+  if (r.recruteur) {
+    html += '<div style="font-size:.74rem;color:#6a6050;margin-top:.3rem;font-style:italic">Engagé par '
+          + escapeHtmlText(r.recruteur) + '.</div>';
+  }
+  if (r.effectif !== undefined && r.effectif !== null) {
+    html += '<div style="font-size:.74rem;color:#8a8060;margin-top:.6rem">Effectif de l\'unité : '
+          + r.effectif + '.</div>';
+  }
+  if (r.pnj_rendu_reserve) {
+    html += '<div style="font-size:.72rem;color:#8a6a20;margin-top:.5rem">Le soldat '
+          + escapeHtmlText(r.matricule_rendu || 'PNJ') + ' vous cède sa place et retourne en réserve de compagnie.</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+
+  showToast('Vous voilà soldat de Républia', 'Affectation : ' + unite + '.', true, true);
+  addJournalEntry('Engagé comme ' + libelleGradeEngagement(r.grade) + ' — ' + unite + '.', 'event-good');
 }
 
 async function ouvrirQuitterArmee() {
@@ -12322,175 +12535,13 @@ async function confirmerRemonteeRenseignement(rapportId, pa, cost) {
 // =====================
 // ENGAGEMENT VOLONTAIRE COMME OFFICIER — PJ -> validation Commandant (compagnie) -> affectation Capitaine (section)
 // =====================
-async function doEngagerOfficier(pa, cost) {
-  if (['lieutenant','capitaine','commandant'].includes(state.poste?.id)) { showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return; }
-  const pays = state.country || 'republic';
-
-  // Empeche les candidatures multiples : une candidature est "active" tant qu'elle n'a pas
-  // atteint le statut final 'affecte' (voir sbCreerEngagement/sbMajEngagement).
-  const [enAttenteCommandant, enAttenteCapitaine] = await Promise.all([
-    sbGetEngagementsPays(pays, 'attente_commandant').catch(() => []),
-    sbGetEngagementsPays(pays, 'attente_capitaine').catch(() => [])
-  ]);
-  const dejaCandidat = [...enAttenteCommandant, ...enAttenteCapitaine].some(e => e.nom === state.char?.name);
-  if (dejaCandidat) { showToast('Candidature déjà en cours', 'Votre demande d\'engagement précédente est toujours en cours de traitement.', false); return; }
-
-  // PA preleves au vrai point de commit, juste avant la creation reelle de la candidature --
-  // si insuffisants, rien n'est cree (deduireCoutOrdre est atomique, verification+prelevement).
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // ATTESTE (phase 2, 18 septembre 2026). L'INSERT client dans engagements_militaires est
-  // remplace par une RPC qui verifie l'identite, l'absence de poste d'officier et l'absence de
-  // candidature deja en cours. La table n'accepte plus d'ecriture directe.
-  const rCreer = (typeof sbMilitaireEngagementCreer === 'function') ? await sbMilitaireEngagementCreer() : null;
-  if (!rCreer || rCreer.ok !== true) {
-    showToast('Candidature impossible',
-      rCreer?.raison === 'deja_officier' ? 'Vous occupez déjà un poste militaire.'
-      : rCreer?.raison === 'candidature_en_cours' ? 'Votre candidature précédente est encore en cours.'
-      : 'Refus du serveur (' + (rCreer?.raison || 'indisponible') + ').', false);
-    return;
-  }
-  const id = rCreer.engagement;
-  const commandantInfoEng = await getTitulaireActuel('commandant', null, pays);
-  const commandantNom = commandantInfoEng?.estPJ ? commandantInfoEng.nom : null;
-  if (commandantNom && typeof sbSendMail === 'function') {
-    await sbSendMail(state.char?.name || 'Un citoyen', commandantNom, 'Demande d\'engagement comme officier',
-      state.char?.name + ' souhaite s\'engager comme officier. Rendez-vous à la Salle de Commandement pour traiter les engagements en attente.',
-      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-  showToast('Demande envoyée', commandantNom ? 'Le Commandant a été notifié.' : 'Aucun Commandant en poste actuellement — votre demande reste en attente.', true, true);
-  addJournalEntry('Demande d\'engagement comme officier envoyée.', 'event-info');
-}
-
-// Le Commandant traite les demandes d'engagement : choisit la compagnie d'affectation
-async function ouvrirTraiterEngagements(pa, cost) {
-  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
-  const pays = state.country || 'republic';
-  const engagements = await sbGetEngagementsPays(pays, 'attente_commandant').catch(() => []);
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
-
-  document.getElementById('postes-modal-title').textContent = 'Engagements en attente';
-  let html = '<div style="padding:1rem">';
-  if (engagements.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune demande d\'engagement en attente.</div>';
-  } else if (compagnies.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune compagnie existante pour affecter ces engagements.</div>';
-  } else {
-    engagements.forEach(e => {
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.4rem">' + e.nom + '</div>';
-      html += '<select id="compagnie-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
-      compagnies.forEach(c => html += '<option value="' + c.id + '">' + c.id + (c.capitaineNom ? ' (Cap. ' + c.capitaineNom + ')' : ' (sans capitaine)') + '</option>');
-      html += '</select>';
-      html += '<button onclick="confirmerAffectationCompagnie(\'' + e.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter à cette compagnie</button>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// ATTESTE (phase 2). Le Commandant reel est exige serveur, la juridiction verifiee, et l'ETAT
-// PRECEDENT de la candidature controle -- on ne saute pas une etape et on ne rejoue pas.
-async function confirmerAffectationCompagnie(engagementId, pa, cost) {
-  // IDENTIFIANT REACCORDE (23 septembre 2026). Cette ligne lisait 'cie-<id>' alors que
-  // ouvrirTraiterEngagements emet 'compagnie-<id>' : getElementById rendait toujours null, le
-  // garde ci-dessous sortait EN SILENCE, et le bouton « Affecter a cette compagnie » etait
-  // totalement inerte -- sans message, sans erreur, sans trace. Le format retenu est celui qui
-  // est emis, et qui est aussi celui du meme ecran voisin ('section-<id>' dans
-  // ouvrirAffecterEngage / confirmerAffectationSection) : le nom du champ en toutes lettres.
-  // 'cie-' n'existait nulle part ailleurs dans le depot.
-  const compagnieId = document.getElementById('compagnie-' + engagementId)?.value;
-  if (!compagnieId) return;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbMilitaireEngagementAffecterCompagnie !== 'function') { showToast('Indisponible', '', false); return; }
-  const r = await sbMilitaireEngagementAffecterCompagnie(engagementId, compagnieId);
-  if (!r || r.ok !== true) {
-    showToast('Affectation impossible',
-      r?.raison === 'autorite_insuffisante' ? 'Réservé au Commandant en exercice.'
-      : r?.raison === 'etape_invalide' ? 'Cette candidature n\'est plus en attente du Commandant.'
-      : r?.raison === 'hors_juridiction' ? 'Hors de votre empire.'
-      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
-    return;
-  }
-  const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => [])).find(c => c.id === compagnieId);
-  if (compagnie?.capitaineNom && typeof sbSendMail === 'function') {
-    await sbSendMail('Commandement', compagnie.capitaineNom, 'Nouvel engagé à affecter',
-      'Un engagé vous est affecté par le Commandant. Rendez-vous au Corps de Garde pour l\'installer dans une section.',
-      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-  showToast('Engagé affecté à la compagnie', compagnie?.capitaineNom ? 'Le Capitaine a été notifié.' : 'Cette compagnie n\'a pas encore de Capitaine — en attente.', true, true);
-  addJournalEntry('Engagé affecté à la compagnie ' + compagnieId + '.', 'event-info');
-}
-
-// Le Capitaine installe un engage affecte a sa compagnie comme lieutenant d'une section
-async function ouvrirAffecterEngage(pa, cost) {
-  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
-  const pays = state.country || 'republic';
-  const engagements = await sbGetEngagementsPays(pays, 'attente_capitaine').catch(() => []);
-  const mesEngagements = engagements.filter(e => e.compagnieId === state.poste.compagnieId);
-  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === state.poste.compagnieId);
-  const sectionsVacantes = (compagnie?.sections || []).filter(s => !s.lieutenantNom);
-
-  document.getElementById('postes-modal-title').textContent = 'Affecter un engagé';
-  let html = '<div style="padding:1rem">';
-  if (mesEngagements.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun engagé en attente pour votre compagnie.</div>';
-  } else if (sectionsVacantes.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Toutes vos sections ont déjà un lieutenant.</div>';
-  } else {
-    mesEngagements.forEach(e => {
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.4rem">' + e.nom + '</div>';
-      html += '<select id="section-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
-      sectionsVacantes.forEach(s => html += '<option value="' + s.id + '">' + s.id + '</option>');
-      html += '</select>';
-      html += '<button onclick="confirmerAffectationSection(\'' + e.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer Lieutenant de cette section</button>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// ATTESTE (phase 2, 18 septembre 2026). CE CHEMIN ETAIT CASSE : il ecrivait personnages.poste DU
-// CANDIDAT par sbUpdate, ce que la RLS refuse depuis le chantier B -- et sbUpdate ne leve pas. Le
-// candidat n'obtenait donc jamais son poste de Lieutenant, exactement la « promotion fantome » que
-// le code disait avoir corrigee. Les trois ecritures (lieutenantNom, poste du candidat, statut de
-// la candidature) sont desormais faites dans UNE transaction serveur, qui peuple aussi la section
-// depuis la reserve de contingent.
-async function confirmerAffectationSection(engagementId, pa, cost) {
-  const sectionId = document.getElementById('section-' + engagementId)?.value;
-  if (!sectionId) return;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbMilitaireEngagementAffecterSection !== 'function') { showToast('Indisponible', '', false); return; }
-  const r = await sbMilitaireEngagementAffecterSection(engagementId, sectionId);
-  if (!r || r.ok !== true) {
-    showToast('Installation impossible',
-      r?.raison === 'pas_capitaine_de_cette_compagnie' ? 'Vous ne commandez pas cette compagnie.'
-      : r?.raison === 'etape_invalide' ? 'Cette candidature n\'est plus en attente du Capitaine.'
-      : r?.raison === 'section_indisponible' ? 'Cette section a déjà un Lieutenant.'
-      : r?.raison === 'hors_juridiction' ? 'Hors de votre empire.'
-      : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
-    return;
-  }
-  if (typeof sbSendMail === 'function' && r.nom) {
-    await sbSendMail('Commandement', r.nom, 'Vous êtes nommé Lieutenant',
-      'Vous prenez le commandement d\'une section. ' + (r.hommes || 0) + ' homme(s) du contingent vous sont affectés'
-      + (r.incomplete ? ' — la section est incomplète.' : '.'),
-      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-  }
-  if (r.nom === state.char?.name) {
-    state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId: r.compagnie, sectionId };
-    if (state.char) state.char.poste = state.poste;
-    updateUI();
-  }
-  showToast('Lieutenant installé', (r.nom || '') + ' prend la tête de la section avec ' + (r.hommes || 0) + ' homme(s).', true, true);
-  addJournalEntry((r.nom || '') + ' installé comme Lieutenant de section.', 'event-good');
-}
+// La filiere officier en trois etapes (doEngagerOfficier -> ouvrirTraiterEngagements ->
+// ouvrirAffecterEngage) a ete retiree le 24 septembre 2026. Elle imposait un pipeline a
+// decideur unique -- le Commandant rangeait le candidat dans une compagnie, PUIS le Capitaine
+// l'installait dans une section -- incompatible avec une candidature diffusee a tous les
+// recruteurs eligibles. Elle est remplacee par ouvrirSEngagerArmee / ouvrirTraiterCandidatures
+// / doDecouvrirAffectation, plus haut dans ce fichier. Les RPC militaire_engagement_* restent
+// en base : l'engagement deja affecte de Vince Kubrick n'est pas touche.
 
 async function ouvrirRechercheMilitaireDepuisMinistere() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }

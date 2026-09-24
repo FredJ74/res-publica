@@ -51,7 +51,8 @@ DEUX JAUGES A NE JAMAIS CONFONDRE
 const BIBLE_INSTITUTION = `
 HIERARCHIE ET AUTORITES
 - Le ministre de la Defense nomme le Commandant de la caserne, alimente la caisse de la caserne, et dirige le renseignement militaire.
-- Le Commandant cree les compagnies, nomme les Capitaines et traite les demandes d'engagement. C'est sa prerogative, jamais celle du ministre.
+- Le Commandant cree les compagnies et recrute les Capitaines. C'est sa prerogative, jamais celle du ministre.
+- Le poste de Commandant lui-meme ne se demande PAS a la caserne : c'est une fonction nommee, qui se postule au Palais du Gouvernement et que le ministre de la Defense attribue. Si le ministre laisse trainer, le poste est attribue au sort entre les candidats au bout de 48 heures.
 - Le Capitaine commande une compagnie et installe les Lieutenants dans les sections.
 - Le Lieutenant est la seule autorite structurelle de sa section. Il commande au maximum 24 soldats.
 - Mener n'est pas commander : celui qui emmene des hommes avec lui les MENE, mais l'autorite structurelle reste au Lieutenant de la section. Aujourd'hui, seul le Lieutenant peut mener ses propres soldats.
@@ -63,10 +64,18 @@ COMPAGNIES ET SECTIONS
 - Le contingent ne se reconstitue JAMAIS. Un soldat tue est perdu definitivement. Une section peut rester incomplete.
 - Un soldat joueur occupe une place dans les 24 exactement comme un soldat ordinaire.
 
-S'ENGAGER
-- « S'engager comme officier », au corps de garde : la demande va au Commandant, qui affecte le candidat a une compagnie ; le Capitaine l'installe ensuite comme Lieutenant d'une section vacante.
-- « S'engager comme soldat » : la candidature va au Lieutenant de la section visee, seul a pouvoir l'accepter. Aucun diplome requis.
-- Si la section est complete mais compte des soldats ordinaires, l'un d'eux retourne en reserve avec son matricule et son entrainement pour laisser la place. Si les 24 places sont tenues par des joueurs, le candidat est mis en liste d'attente.
+S'ENGAGER — UN SEUL ORDRE, « S'ENGAGER DANS L'ARMEE »
+- Il se trouve au corps de garde de la caserne, et il faut y etre PHYSIQUEMENT. On ne s'engage pas de chez soi.
+- Chaque candidature coute 2 PA. Ils sont preleves seulement si la candidature part reellement : un refus ne coute rien. Ils ne sont jamais rembourses, meme si l'on retire sa candidature ensuite.
+- Trois grades se candidatent ainsi : Capitaine, Lieutenant, simple soldat. Aucun diplome n'est requis pour etre soldat.
+- On ne CHOISIT PAS sa compagnie ni sa section : on vise un grade. La candidature est vue par tous ceux qui ont le pouvoir de recruter a ce grade — le Commandant pour les Capitaines, les Capitaines pour les Lieutenants, les Lieutenants pour les soldats. Le premier qui accepte emporte le candidat.
+- On peut candidater a plusieurs grades EN MEME TEMPS. Des qu'une candidature est acceptee, toutes les autres sont annulees automatiquement.
+- Un refus n'est jamais annonce au candidat, et il ne tue pas la candidature : le recruteur qui refuse ne fait que se retirer de la liste, et un autre peut encore prendre le candidat.
+- Qui sert deja dans l'armee ne peut pas candidater. Il n'existe aucune promotion interne : pour changer de grade, il faut d'abord quitter l'armee.
+- Une candidature qui n'aboutit pas reste vivante indefiniment ; un rappel est envoye tous les 7 jours. On peut la retirer quand on veut.
+- ACCEPTATION : le candidat recoit un courrier qui lui dit seulement que son engagement est accepte. Ni le lieu, ni le nom du recruteur. Il a 48 HEURES REELLES pour se rendre a la caserne et utiliser l'ordre « Decouvrir mon affectation » : c'est la, et la seulement, qu'il apprend sa compagnie, sa section et le nom de son chef.
+- Passe 48 heures, l'engagement est caduc, la place est rendue, et il faut recandidater. La place reste reservee pendant tout le delai : personne d'autre ne peut la prendre.
+- Si la section est complete mais compte des soldats ordinaires, l'un d'eux retourne en reserve avec son matricule et son entrainement pour laisser la place. Si les 24 places sont tenues par des joueurs, la section est reellement pleine et aucune candidature n'y est acceptee.
 - On quitte l'armee de deux facons seulement : le soldat demissionne lui-meme, ou son Lieutenant le renvoie.
 - Le Capitaine peut demettre un Lieutenant. Les hommes de la section restent en place : ils ne retournent pas en reserve, la section attend simplement un nouveau chef.
 - Rien ne limite le nombre de compagnies d'un pays, sinon l'argent de la caisse.
@@ -114,6 +123,18 @@ OU SE FONT LES CHOSES, A LA CASERNE
 - ARMURERIE : retirer armes, explosifs, equipement.
 - REFECTOIRE : manger, emporter des rations.
 - INFIRMERIE : retirer une trousse de premiers secours.
+- CORPS DE GARDE : c'est ici qu'on s'engage, qu'on traite les candidatures et qu'on decouvre son affectation.
+
+S'ENGAGER — CE QU'UN CIVIL VIENT TE DEMANDER
+- Un seul ordre, au corps de garde : « S'engager dans l'armee ». Il faut etre sur place, physiquement.
+- 2 PA par candidature, preleves seulement si elle part. Jamais rembourses, meme en cas de retrait.
+- Trois grades possibles : Capitaine, Lieutenant, simple soldat. Aucun diplome requis pour etre soldat.
+- On ne choisit ni sa compagnie ni sa section : on vise un grade, et tous les chefs habilites voient la candidature. Le premier qui accepte l'emporte.
+- On peut candidater a plusieurs grades a la fois ; la premiere acceptation annule les autres.
+- On peut retirer sa candidature a tout moment, par le meme ordre.
+- Une fois accepte, le candidat recoit un courrier qui ne dit ni ou ni par qui. Il a 48 heures pour revenir a la caserne et utiliser « Decouvrir mon affectation » : c'est la qu'il apprend sa compagnie, sa section et son chef. Passe ce delai, tout est a refaire.
+- Le poste de Commandant de la caserne ne se demande pas ici : c'est une fonction nommee, a postuler au Palais du Gouvernement aupres du ministre de la Defense.
+- Un refus ne t'est jamais notifie et ne clot rien : la candidature continue sa route chez les autres recruteurs.
 
 RECUPERER ET DEPOSER SES HOMMES
 - Ordre « Gerer mon detachement », Salle de Commandement, reserve au Lieutenant, gratuit. On peut aussi cliquer directement sur la carte de sa section quand elle est visible dans une piece.
@@ -281,7 +302,9 @@ CE QUI N'EXISTE PAS AUJOURD'HUI — dis-le franchement au lieu d'inventer une pr
 - Aucun moyen de revoquer un Capitaine : il n'existe pas d'ordre pour cela.
 - Aucune duree de service donnant droit a quoi que ce soit : on cite parfois soixante-trois jours, cela ne correspond a rien dans le jeu.
 - Aucun arriere de solde : ce qui n'a pas pu etre verse n'est pas reporte.
-- On ne peut pas confier ses hommes a un autre joueur : seul le Lieutenant de la section mene ses soldats. La mecanique existe cote serveur mais aucun ecran ne l'ouvre.
+- Aucune liste d'attente a l'engagement : si une section est tenue par 24 joueurs, elle est pleine et la candidature n'y est pas acceptee, point. Le candidat reste libre d'etre pris ailleurs.
+- Aucune promotion par anciennete ni examen : le seul chemin vers un grade est une candidature acceptee par un recruteur.
+- Confier la conduite d'un groupe EXISTE (ordre « Voir ma section », reserve au Lieutenant), mais seulement au profit d'un soldat JOUEUR de sa propre section, present dans la meme piece. Un civil, un PNJ ou un militaire d'une autre section ne peuvent pas la recevoir. Celui qui recoit la conduite MENE les hommes, il ne les commande pas : l'autorite structurelle reste au Lieutenant, qui peut les reprendre.
 - Un soldat joueur qui mene un groupe ne peut pas lui donner d'ordre collectif : ration et bivouac passent par le Lieutenant.
 Quand on t'interroge sur l'un de ces points, reponds que ce n'est pas prevu pour le moment. N'invente jamais un bouton, un ecran, un cout en PA ou en FR, ni une capacite.
 `.trim();

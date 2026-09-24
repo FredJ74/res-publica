@@ -5950,6 +5950,27 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // RECRUTEMENT MILITAIRE (24 septembre 2026). Deux passes, dans cet ordre et pour une raison
+    // precise : on EXPIRE d'abord les engagements dont les 48 h sont ecoulees, on RELANCE
+    // ensuite. Une candidature dont l'acceptation vient d'expirer ne doit pas recevoir, la meme
+    // nuit, une relance qui la dirait « toujours a l'etude » -- elle est redevenue rien du tout.
+    //
+    // Les deux sont idempotentes par construction : l'expiration ne voit que les lignes encore
+    // `acceptee`, et la relance se cale sur derniere_relance. Un cron saute ne produit donc
+    // jamais deux courriers, et un cron rejoue n'en produit aucun de trop.
+    //
+    // Ces taches ne rendent AUCUNE place : la capacite est calculee, et une echeance passee
+    // cesse de reserver toute seule, a la seconde pres. Elles ne font que ranger les lignes et
+    // prevenir les joueurs.
+    const affectationsExpirees = await tacheQuotidienne('affectations_militaires_expirer', async function () {
+      const r = await sbRpc('militaire_affectations_expirer', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+    const candidaturesRelancees = await tacheQuotidienne('candidatures_militaires_relancer', async function () {
+      const r = await sbRpc('militaire_candidatures_relancer', {});
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // Collecte des quatre agents, PUIS rapport quotidien par cellule. Dans cet
     // ordre, et AVANT le balayage : une cellule qui s'eteint aujourd'hui doit
     // recevoir son dernier rapport. Les deux sont idempotents -- la collecte
@@ -6064,7 +6085,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',
