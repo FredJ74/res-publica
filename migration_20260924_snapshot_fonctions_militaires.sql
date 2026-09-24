@@ -22,10 +22,16 @@
 --
 -- POURQUOI IL EXISTE
 -- ------------------
--- Le dépôt ne versionnait le corps que de 4 RPC militaires sur ~105 :
--- l'essentiel de la logique militaire n'existait qu'en base, sans trace
--- dans Git. Une perte ou un écrasement accidentel aurait été
--- irrécupérable. Ce snapshot referme ce trou.
+-- Avant ce fichier, le corps de ces fonctions n'existait dans Git que
+-- dispersé à travers une vingtaine de migrations datées, et seulement
+-- en partie : 51 des 105 fonctions apparaissaient dans au moins une
+-- migration versionnée — et rien ne garantissait que la version qui s'y
+-- trouvait soit encore celle qui tournait. Les 54 autres n'avaient
+-- AUCUN corps dans le dépôt : elles n'existaient qu'en base. Une perte
+-- ou un écrasement aurait été irrécupérable.
+--
+-- Ce fichier est le premier endroit du dépôt où l'état déployé se lit
+-- d'un seul tenant, à une date connue.
 --
 -- PÉRIMÈTRE
 -- ---------
@@ -37,8 +43,20 @@
 --                  'exiger_poste', 'detentions_pnj_liberer_echues')
 --
 -- NOMBRE EXACT DE FONCTIONS INCLUSES : 105
--- (105 fonctions au sens strict, prokind = 'f' ; aucune procédure,
---  aucune fonction d'agrégat ou de fenêtrage dans le périmètre)
+-- Ces 105 signatures correspondent EXACTEMENT au périmètre tel qu'il
+-- était déployé à la fin du relevé — vérifié par comparaison terme à
+-- terme des signatures avec pg_proc. Toutes sont des fonctions au sens
+-- strict (prokind = 'f') : aucune procédure, aucune fonction d'agrégat
+-- ou de fenêtrage.
+--
+-- UNE FONCTION A DISPARU PENDANT LE RELEVÉ
+-- ----------------------------------------
+-- militaire_arrieres_regler() existait encore au début du relevé et
+-- n'existait plus à la fin : le commit a7e3ca1 du 24/09/2026 l'a
+-- supprimée volontairement (DROP FUNCTION IF EXISTS). Elle est donc
+-- ABSENTE de ce snapshot, à dessein — l'y laisser aurait fait de ce
+-- fichier un moyen de la ressusciter par mégarde. Son corps reste
+-- lisible dans l'historique Git (migrations de septembre).
 --
 -- ORDRE : alphabétique par nom de fonction, puis par oid en cas de
 --         surcharge. Chaque fonction est précédée d'un séparateur
@@ -790,43 +808,6 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'sens', p_sens, 'produit', p_produit, 'quantite', p_qte,
     'stock_armurerie', v_mvt->'stock', 'stock_section', v_stock->p_produit,
     'pa', v_paye->'pa', 'pa_preleves', c_pa);
-END; $function$
-
-
--- ========== militaire_arrieres_regler() ==========
-CREATE OR REPLACE FUNCTION public.militaire_arrieres_regler()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_moi text; v_pays text; v_l record; v_mvt jsonb; v_manque integer;
-  v_verse integer; v_total integer := 0; v_lignes integer := 0;
-BEGIN
-  PERFORM set_config('rp.caisse_interne', 'on', true);
-  v_moi := public.mon_personnage();
-  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
-  SELECT coalesce(country, 'republic') INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
-
-  FOR v_l IN SELECT id, du, verse FROM public.soldes_militaires
-              WHERE personnage = v_moi AND pays = v_pays AND verse < du
-              ORDER BY jour FOR UPDATE LOOP
-    v_manque := v_l.du - v_l.verse;
-    v_mvt := public.caisse_institution_mouvement_plafonne(v_pays || '_caserne-militaire', v_manque);
-    v_verse := greatest(0, coalesce((v_mvt->>'verse')::integer, 0));
-    EXIT WHEN v_verse = 0;                 -- caisse vide : on s'arrete, rien n'est invente
-    PERFORM public.assemblee_crediter_joueur(v_moi, v_verse);
-    UPDATE public.soldes_militaires
-       SET verse = v_l.verse + v_verse,
-           regle_le = CASE WHEN v_l.verse + v_verse >= v_l.du THEN now() END
-     WHERE id = v_l.id;
-    v_total := v_total + v_verse; v_lignes := v_lignes + 1;
-  END LOOP;
-
-  RETURN jsonb_build_object('ok', true, 'verse', v_total, 'lignes', v_lignes,
-    'reste_du', (SELECT coalesce(sum(du - verse), 0) FROM public.soldes_militaires
-                  WHERE personnage = v_moi AND pays = v_pays AND verse < du));
 END; $function$
 
 
@@ -1656,6 +1637,96 @@ BEGIN
   ON CONFLICT DO NOTHING;
 END;
 $function$
+
+-- ========== militaire_bataille_round(bigint) ==========
+CREATE OR REPLACE FUNCTION public.militaire_bataille_round(p_bataille_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  b record; v_round integer; v_camps text[]; v_camp text; v_surprise text;
+  v_actions jsonb := '[]'::jsonb; v_autres jsonb := '[]'::jsonb;
+  v_reste integer; v_debout integer; v_issue text; v_attente integer;
+BEGIN
+  SELECT * INTO b FROM public.batailles WHERE id = p_bataille_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'bataille_introuvable'); END IF;
+  IF b.statut <> 'en_cours' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'bataille_terminee', 'issue', b.issue);
+  END IF;
+
+  v_round := b.round_courant + 1;
+  IF v_round > 200 THEN
+    UPDATE public.batailles SET statut = 'terminee', fin_ts = now(),
+           termine_raison = 'borne_technique_atteinte', issue = NULL WHERE id = p_bataille_id;
+    RETURN jsonb_build_object('ok', false, 'raison', 'borne_technique_atteinte', 'round', v_round);
+  END IF;
+
+  SELECT coalesce(array_agg(DISTINCT camp), '{}') INTO v_camps
+    FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND sorti_round IS NULL;
+
+  -- SURPRISE : premier round, et seulement si l'engageant avait l'initiative.
+  v_surprise := CASE WHEN v_round = 1 AND b.initiative = 'a' THEN b.camp_a ELSE NULL END;
+
+  IF v_surprise IS NOT NULL THEN
+    -- La passe du camp surprenant est calculee ET appliquee avant que les
+    -- autres ne soient photographies : c'est cela, l'initiative.
+    v_actions := public.militaire_bataille_actions(p_bataille_id, v_surprise, v_round, true);
+    v_actions := public.militaire_bataille_appliquer(p_bataille_id, v_actions, v_round);
+    FOREACH v_camp IN ARRAY v_camps LOOP
+      CONTINUE WHEN v_camp = v_surprise;
+      v_autres := v_autres || public.militaire_bataille_actions(p_bataille_id, v_camp, v_round, false);
+    END LOOP;
+    v_autres  := public.militaire_bataille_appliquer(p_bataille_id, v_autres, v_round);
+    v_actions := v_actions || v_autres;
+  ELSE
+    -- Hors surprise, toutes les passes sont calculees AVANT toute
+    -- application : c'est cela, la simultaneite.
+    FOREACH v_camp IN ARRAY v_camps LOOP
+      v_actions := v_actions || public.militaire_bataille_actions(p_bataille_id, v_camp, v_round, false);
+    END LOOP;
+    v_actions := public.militaire_bataille_appliquer(p_bataille_id, v_actions, v_round);
+  END IF;
+
+  -- Un rapport par camp encore present.
+  FOREACH v_camp IN ARRAY v_camps LOOP
+    SELECT count(*) INTO v_reste FROM public.batailles_engagements
+     WHERE bataille_id = p_bataille_id AND camp = v_camp AND sorti_round IS NULL;
+    INSERT INTO public.batailles_rounds (bataille_id, numero, camp, rapport)
+    VALUES (p_bataille_id, v_round, v_camp,
+            public.militaire_bataille_rapport(p_bataille_id, v_camp,
+              coalesce((public.militaire_camps_hostiles(p_bataille_id, v_camp))[1], v_camp),
+              v_round, v_actions, v_reste,
+              (SELECT count(*)::integer FROM public.batailles_engagements
+                WHERE bataille_id = p_bataille_id AND camp <> v_camp AND sorti_round IS NULL)))
+    ON CONFLICT (bataille_id, numero, camp) DO NOTHING;
+  END LOOP;
+
+  UPDATE public.batailles SET round_courant = v_round WHERE id = p_bataille_id;
+
+  -- Seuil de 50 %, fenetre de 90 s, replis automatiques.
+  v_attente := public.militaire_bataille_arbitrer_groupes(p_bataille_id, v_round);
+
+  -- Fin : il ne reste qu'un camp debout, ou aucun.
+  SELECT count(DISTINCT camp) INTO v_debout FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND sorti_round IS NULL;
+  IF v_debout <= 1 THEN
+    SELECT CASE WHEN v_debout = 0 THEN 'aneantissement_mutuel'
+                ELSE 'victoire_' || (SELECT DISTINCT camp FROM public.batailles_engagements
+                                      WHERE bataille_id = p_bataille_id AND sorti_round IS NULL) END
+      INTO v_issue;
+    UPDATE public.batailles SET statut = 'terminee', fin_ts = now(), issue = v_issue,
+           termine_raison = 'camp_hors_combat' WHERE id = p_bataille_id;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'round', v_round, 'surprise', v_surprise,
+    'camps', v_camps, 'camps_debout', v_debout, 'groupes_en_attente', v_attente,
+    'issue', v_issue, 'terminee', (v_debout <= 1));
+END;
+$function$
+
 
 -- ========== militaire_bonus_arme(text,text) ==========
 CREATE OR REPLACE FUNCTION public.militaire_bonus_arme(p_cle text, p_mode text)
