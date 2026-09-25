@@ -1,0 +1,39 @@
+-- =============================================================================================
+-- INCIDENT REEL DU 25 SEPTEMBRE — DEUX REFUS MUETS NOMMES (26 septembre 2026)
+-- =============================================================================================
+-- AUCUNE MODIFICATION DE BASE. Correctifs client, consignes ici avec le diagnostic.
+--
+-- SYMPTOME 2 : « Fonds insuffisants » avec 3 396 FR disponibles pour une chambre a 80 FR.
+-- CAUSE : l'ecran affichait « PA insuffisants » pour un seul motif et « Fonds insuffisants » pour
+-- TOUS LES AUTRES. Les trois chemins de paiement de cette action peuvent refuser pour DIX-HUIT
+-- motifs distincts (commerce_vendre_produit : 11, vente_structure_encaisser : 4, payer_ordre : 6,
+-- plus `introuvable` et `indisponible`). Dix-sept etaient traduits par le meme mensonge.
+-- EPROUVE : la RPC appelee avec les parametres EXACTS de l'incident repond `ok`, debite bien 80 FR
+-- du liquide. Le refus venait donc d'un autre motif, impossible a identifier tant que l'ecran les
+-- confondait. A noter : `caisse_hors_empire` et `vente_non_declaree` se declenchent precisement
+-- quand le lieu envoye n'est pas celui ou le serveur croit le joueur -- nommer le motif rendra
+-- donc aussi visible la divergence de position.
+--
+-- SYMPTOME 3 : un Ministre de la Defense dort et ne recoit pas ses 2 800 FR, sans aucun message.
+-- VERIFIE EN BASE, point par point : il occupe bien le poste (`poste->>'id' = 'min_def'`) ; le
+-- bareme est declare a 2 800 FR dans salaires_civils_declares ; la caisse
+-- `republic_gouvernement-min_def` contient 46 316 FR ; le routage est declare
+-- (`{pays}_gouvernement-min_def`, par_ville = false) ; `militaire_grade_effectif` rend NULL, donc
+-- pas de refus `paye_par_la_caserne` ; et `salaires_civils_verses` ne contient AUCUNE ligne a son
+-- nom, donc ce n'etait pas l'anti-rejeu non plus. Tout est en ordre cote serveur : le salaire n'a
+-- jamais ete verse et personne ne l'a dit.
+-- CAUSE DU SILENCE : des six motifs de refus de salaire_civil_percevoir, UN SEUL etait teste. Les
+-- cinq autres tombaient dans le vide, et le `.catch(() => null)` confondait un appel non abouti
+-- (session expiree, 403, panne) avec un salaire nul. L'ecran annoncait « Salaire verse : +0 FR ».
+--
+-- MEME CLASSE DE DEFAUT QUE L'ENTRAINEMENT DE FOOTBALL DU 24 SEPTEMBRE, et meme remede : nommer la
+-- cause, et afficher BRUT un motif inconnu plutot que le traduire a tort. Le fail-closed est
+-- conserve : aucun credit local n'est invente, on dit seulement pourquoi.
+--
+-- EPROUVE : 21/21 sur les motifs de la chambre, 7/7 sur ceux du salaire, tables extraites du
+-- fichier reel. Plus aucun refus n'est muet, et plus aucun n'est traduit en « fonds insuffisants »
+-- a tort.
+--
+-- CE QUI N'EST PAS CORRIGE ICI, DELIBEREMENT : la divergence de position (symptome 1). Sa cause
+-- est demontree ligne par ligne dans le rapport, mais elle se corrige dans le chemin de chargement
+-- du personnage -- le code le plus sensible de l'application. Je ne l'ai pas modifie sans accord.

@@ -2026,6 +2026,34 @@ function declencherHospitalisation(palier) {
   if (typeof enterRoom === 'function') enterRoom(batimentCible, pieceCible, null);
 }
 
+// Motifs de refus de salaire_civil_percevoir, nommes. Un salaire qui ne tombe pas doit dire
+// pourquoi : sans cela, un joueur ne peut pas distinguer une regle de jeu d'une panne.
+// `null` = l'appel n'a pas abouti (session expiree, refus HTTP, reseau) -- ce n'est PAS un refus
+// metier, et c'est le cas que l'ancien code confondait avec un salaire de zero.
+const MOTIFS_REFUS_SALAIRE = {
+  acteur_non_authentifie: ['Session non reconnue', "Votre session n'est plus reconnue par le serveur. Rechargez la page : rien n'a été perdu."],
+  paye_par_la_caserne: ['Solde militaire', 'Votre solde est versée par la caserne, pas par un salaire civil.'],
+  bareme_absent: ['Aucun salaire prévu', "Aucun barème n'est déclaré pour votre fonction actuelle."],
+  caisse_payeuse_non_declaree: ['Caisse introuvable', "La caisse qui doit vous payer n'est pas déclarée. Signalez-le : ce n'est pas normal."],
+  caisse_insuffisante: ['Caisse vide', "L'institution qui vous emploie n'a pas les fonds pour vous payer aujourd'hui."]
+};
+
+function signalerRefusSalaire(r) {
+  if (!r) {
+    showToast('Salaire non versé', "L'appel au serveur n'a pas abouti : votre salaire n'a pas été traité. "
+      + 'Rien ne vous a été prélevé. Réessayez demain, ou rechargez la page si cela persiste.', false);
+    console.warn('[salaire] appel a salaire_civil_percevoir non abouti — aucun versement, aucun prelevement.');
+    return;
+  }
+  const connu = MOTIFS_REFUS_SALAIRE[r.raison];
+  if (connu) {
+    showToast(connu[0], connu[1], false);
+  } else {
+    showToast('Salaire non versé', 'Le serveur a répondu : « ' + (r.raison || '?') + ' ».', false);
+  }
+  console.warn('[salaire] refus serveur :', r.raison, r);
+}
+
 async function doDormir() {
   const today = state.day || 1;
   if (state.dernierDormir === today) {
@@ -2136,6 +2164,22 @@ async function doDormir() {
   //
   // FAIL-CLOSED : si l'appel n'aboutit pas, rien n'est credite -- on n'invente pas un repli
   // local, ce serait rouvrir la porte qu'on vient de fermer.
+  // NOMMER LE REFUS DE SALAIRE (26 septembre 2026) — incident reel reproduit en production.
+  //
+  // CE QUI S'EST PASSE. Un Ministre de la Defense a dormi et n'a pas recu ses 2 800 FR. Verifie en
+  // base : il occupe bien le poste, le bareme est declare a 2 800, la caisse du ministere contient
+  // 46 316 FR, il n'est pas militaire, et `salaires_civils_verses` ne contient AUCUNE ligne a son
+  // nom -- donc ce n'etait pas l'anti-rejeu. Le salaire n'a tout simplement jamais ete verse, et
+  // l'ecran a annonce « Salaire verse : +0 FR » sans le moindre message.
+  //
+  // POURQUOI C'ETAIT MUET. Des six motifs de refus de salaire_civil_percevoir, UN SEUL etait
+  // teste (`deja_percu_aujourdhui`). Les cinq autres -- acteur_non_authentifie, paye_par_la_caserne,
+  // bareme_absent, caisse_payeuse_non_declaree, caisse_insuffisante -- tombaient dans le vide, et
+  // le `.catch(() => null)` confondait en plus un appel non abouti (session expiree, 403, panne)
+  // avec un salaire nul. Le joueur ne pouvait pas distinguer « je n'ai droit a rien » de
+  // « le serveur ne m'a pas repondu ».
+  //
+  // Le fail-closed est conserve : on n'invente jamais un credit local. On dit seulement POURQUOI.
   let salaire = 0;
   if (typeof sbRpc === 'function' && state.char?.name) {
     const rSal = await sbRpc('salaire_civil_percevoir', {}).catch(() => null);
@@ -2150,6 +2194,8 @@ async function doDormir() {
       if (typeof r.arg === 'number') state.arg = r.arg;
       if (typeof r.liquide === 'number') state.liquide = r.liquide;
       if (state.char) state.char.arg = state.arg;
+    } else {
+      signalerRefusSalaire(r);
     }
   }
 
@@ -2820,6 +2866,67 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
   doOuvrirVendreRessourceMedicale(buildingId, 0, 0);
 }
 
+// NOMMER LE REFUS (26 septembre 2026) — incident reel reproduit en production.
+//
+// CE QUI S'EST PASSE. Un joueur possedant 3 396 FR disponibles s'est vu refuser une chambre a
+// 80 FR avec « Fonds insuffisants ». Le message etait FAUX : l'ancien code affichait
+// « PA insuffisants » pour la seule raison `pa_insuffisants`, et « Fonds insuffisants » pour
+// TOUTES LES AUTRES -- dix-sept motifs distincts confondus en un seul mensonge.
+//
+// Les trois chemins de paiement de cette action peuvent refuser pour :
+//   commerce_vendre_produit ... articles_invalides, fonds_insuffisants, introuvable,
+//                              mode_invalide, ordre_requis, paiement_refuse, prix_non_defini,
+//                              produit_non_propose, regle_pa_inconnue, stock_insuffisant
+//   vente_structure_encaisser  acteur_non_authentifie, caisse_hors_empire, personnage_introuvable,
+//                              vente_non_declaree
+//   payer_ordre .............. cout_non_declare, montant_negatif, ordre_inconnu,
+//                              personnage_introuvable
+//   plus `introuvable` (commerce du lieu absent) et `indisponible` (appel serveur non abouti).
+//
+// La RPC a ete eprouvee sur banc avec les parametres EXACTS de l'incident : elle repond ok, debite
+// bien 80 FR du liquide. Le refus venait donc d'un de ces autres motifs -- impossible a identifier
+// tant que l'ecran les confond. Meme remede que pour l'entrainement de football le 24 septembre :
+// on nomme la cause, et un motif inconnu est affiche tel quel plutot que traduit a tort.
+//
+// A NOTER : `caisse_hors_empire` et `vente_non_declaree` se declenchent precisement quand le
+// client envoie un lieu qui n'est pas celui ou le serveur croit le joueur. Nommer le motif rendra
+// donc aussi visible la divergence de position, si c'est elle qui a frappe.
+const MOTIFS_REFUS_CHAMBRE = {
+  pa_insuffisants: ['PA insuffisants', 'Vous n\'avez pas assez de points d\'action.'],
+  fonds_insuffisants: ['Fonds insuffisants', 'Le montant requis dépasse vos fonds disponibles.'],
+  introuvable: ['Hôtel indisponible', 'Le commerce de cet établissement est introuvable côté serveur.'],
+  indisponible: ['Action non enregistrée', "L'appel au serveur n'a pas abouti : rien ne vous a été prélevé. Réessayez dans un instant."],
+  stock_insuffisant: ['Complet', 'L\'établissement n\'a plus de chambre disponible.'],
+  produit_non_propose: ['Service non proposé', 'Cet établissement ne propose pas ce service.'],
+  prix_non_defini: ['Prix non défini', 'Le tarif de cette chambre n\'est pas renseigné.'],
+  cout_non_declare: ['Tarif non reconnu', 'Le serveur ne reconnaît pas ce tarif pour cette action.'],
+  ordre_inconnu: ['Action non reconnue', 'Le serveur ne connaît pas cette action.'],
+  ordre_requis: ['Action non reconnue', 'Le serveur attend une action nommée.'],
+  mode_invalide: ['Refus du serveur', 'Mode de vente invalide pour cet établissement.'],
+  articles_invalides: ['Refus du serveur', 'La demande envoyée n\'est pas valide.'],
+  regle_pa_inconnue: ['Refus du serveur', 'Règle de points d\'action inconnue pour cette action.'],
+  paiement_refuse: ['Paiement refusé', 'Le prélèvement a été refusé par le serveur.'],
+  caisse_hors_empire: ['Lieu incohérent', "La caisse visée n'appartient pas à cet empire : votre position enregistrée ne correspond peut-être pas à l'écran. Rechargez la page."],
+  vente_non_declaree: ['Vente non déclarée', "Cette vente n'est pas déclarée pour ce lieu : votre position enregistrée ne correspond peut-être pas à l'écran. Rechargez la page."],
+  acteur_non_authentifie: ['Session non reconnue', 'Votre session n\'est plus reconnue. Rechargez la page.'],
+  personnage_introuvable: ['Personnage introuvable', 'Le serveur ne retrouve pas votre personnage.'],
+  montant_negatif: ['Montant invalide', 'Le serveur a reçu un montant négatif.']
+};
+
+function signalerRefusReservationChambre(r, cout) {
+  const raison = (r && r.raison) || 'indisponible';
+  const connu = MOTIFS_REFUS_CHAMBRE[raison];
+  if (connu) {
+    showToast(connu[0], connu[1], false);
+  } else {
+    // Motif inattendu : on l'affiche BRUT plutot que de le traduire a tort. C'est ce que
+    // l'ancien code ne faisait pas, et c'est ce qui a coute une heure de diagnostic.
+    showToast('Réservation refusée', 'Le serveur a répondu : « ' + raison + ' ». '
+              + cout + ' FR étaient requis. Rien ne vous a été prélevé.', false);
+  }
+  console.warn('[chambre] reservation refusee — raison serveur :', raison, r);
+}
+
 async function doReserverChambreHotel(pa) {
   const confortMap = {
     'hotel-republica': { moral: 3, paBonus: 2 },
@@ -2863,8 +2970,7 @@ async function doReserverChambreHotel(pa) {
     r = await deduireCoutOrdre({ pa, cost: cout });
   }
   if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants',
-              cout + ' FR requis.', false);
+    signalerRefusReservationChambre(r, cout);
     return;
   }
 
