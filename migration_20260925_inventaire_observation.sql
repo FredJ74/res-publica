@@ -1,0 +1,51 @@
+-- =============================================================================================
+-- L'INVENTAIRE ET L'ARGENT SONT OUVERTS — OBSERVATION AVANT FERMETURE (25 septembre 2026)
+-- =============================================================================================
+-- DEMONTRE SUR BANC, 7 CAPACITES SUR 7. Un joueur authentifie, par un simple PATCH sur la vue
+-- `personnages`, peut :
+--   ajouter un objet arbitraire ............................ REUSSI
+--   porter une quantite a 99 999 ........................... REUSSI
+--   fabriquer une arme illegale a bonus 50 ................. REUSSI
+--   forger du materiel militaire (radio, rations, tente,
+--     jumelles -- la radio conditionne le commandement
+--     a distance d'un detachement) ......................... REUSSI (4 pieces)
+--   vider entierement son inventaire ....................... REUSSI
+--   se donner 999 999 FR ................................... REUSSI
+--   se donner 500 000 en liquide ........................... REUSSI
+--
+-- JE CORRIGE ICI UNE ERREUR DE MON PROPRE RAPPORT PRECEDENT : j'y ecrivais que `arg` et `liquide`
+-- etaient re-epingles. C'est FAUX. Le trigger ne les re-epingle que si
+-- `rp_transition_active('argent_verrou')` est vrai -- et ce drapeau vaut aujourd'hui **false**.
+-- L'argent n'est donc qu'OBSERVE, pas protege.
+--
+-- POURQUOI LE VERROU EST A FALSE, ET POURQUOI JE NE LE BASCULE PAS.
+-- `fiche_hausses_observees` tourne depuis le 20 septembre. Sur de VRAIS joueurs, elle a
+-- enregistre cinq hausses d'argent cliente parfaitement plausibles : +150 (Arnie, 20/09),
+-- +150 (Vince, 20/09), +1062 et +208 (Arnie, 21/09). Des mecaniques creditent donc encore
+-- l'argent depuis le navigateur, sans equivalent serveur. Activer le verrou aujourd'hui
+-- casserait ces parcours -- c'est precisement pour cela qu'il a ete laisse ouvert, en attendant
+-- que les mecaniques concernees passent cote serveur.
+--
+-- CE QUE JE LIVRE : le meme dispositif, pour l'inventaire. `fiche_inventaire_observe` +
+-- trg_personnages_observer_inventaire. Il ne bloque RIEN et ne change aucun parcours. Il produit
+-- la preuve qui manque : quelles mecaniques ajoutent reellement des objets, depuis quel role,
+-- avec quelle requete. C'est exactement ce qui a permis de raisonner sur l'argent, et sans quoi
+-- toute fermeture serait un pari.
+--
+-- Volume maitrise : seules les CROISSANCES sont notees, jamais les retraits ni les remplacements,
+-- et seuls les appels venant d'un navigateur. Le detail consigne se limite a id/name/type/
+-- produitMilitaire -- les images base64 n'ont rien a faire dans une table de diagnostic.
+--
+-- Table fermee a anon et authenticated : un joueur n'a pas a savoir qu'il est observe.
+--
+-- EPROUVE 5/5 : un ajout est consigne avec le detail de l'objet ; un retrait ne fait aucun bruit ;
+-- l'ecriture n'est pas bloquee ; une ecriture serveur n'est pas observee.
+--
+-- PLAN DE FERMETURE, dans l'ordre :
+--   1. laisser tourner l'observation quelques jours de jeu reel ;
+--   2. lister les mecaniques clientes qui ajoutent des objets, et les porter une a une sur des
+--      RPC (patron deja eprouve : entrainements_football, militaire_retrait, objets_recus) ;
+--   3. quand plus aucune ecriture cliente legitime n'apparait dans la table, re-epingler
+--      `inventory` exactement comme `stats` l'est aujourd'hui ;
+--   4. faire de meme pour l'argent en basculant `argent_verrou`.
+-- L'etape 3 est un `NEW.inventory := v_canon.inventory;` d'une ligne. Tout le travail est en 2.
