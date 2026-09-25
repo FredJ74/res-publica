@@ -1,0 +1,70 @@
+-- =============================================================================================
+-- CHANTIER SECURITE PRE-BETA — PASSE 2 (25 septembre 2026)
+-- =============================================================================================
+-- Principe directeur applique : « ce qui n'est pas accessible IG ne doit pas l'etre de facon
+-- detournee ». L'interface n'est pas la barriere, mais elle dit ce que le game design a voulu.
+-- Chaque regle ci-dessous est LUE dans le jeu existant, aucune n'est inventee.
+--
+-- Migrations appliquees, dans l'ordre :
+--   securite_anon_perd_toute_ecriture          K-1 : plus une seule ecriture sans compte
+--   securite_qhs_secret                        le registre du QHS devient secret
+--   securite_qhs_colonne_detentions            le drapeau QHS sort des archives publiques
+--   securite_plaintes_confidentialite          confidentialite judiciaire par phase
+--   securite_testaments                        un testament n'appartient qu'a son testateur
+--   securite_policies_dormantes_lot1           six des douze tables a policies dormantes
+--
+-- ------------------------------------------------------------------------------------------
+-- K-1 : `anon` PERD TOUTE ECRITURE (98 tables)
+-- ------------------------------------------------------------------------------------------
+-- Aucun ecrivain legitime ne subsistait : un joueur connecte porte `authenticated` (auth anonyme
+-- Supabase comprise), la page d'accueil ne touche aucune table, les traitements serveur sont
+-- passes sous service_role le 24 septembre, et api/chat.js porte le JETON DU JOUEUR.
+-- ALTER DEFAULT PRIVILEGES empeche le trou de se rouvrir au prochain CREATE TABLE.
+-- Eprouve en REST reel avec la cle publique : INSERT, UPDATE et DELETE renvoient 42501.
+-- Eprouve a l'envers avec une vraie session de joueur : creation de personnage, lecture de sa
+-- fiche, PATCH de sa fiche, payer_ordre, presence, journal -- tout passe.
+--
+-- ------------------------------------------------------------------------------------------
+-- LE QHS EST SECRET
+-- ------------------------------------------------------------------------------------------
+-- Trois fuites fermees : le registre `prisonniers_qhs` lisible sans compte ; le drapeau
+-- `detentions.qhs` affiche « (QHS) » en rouge dans des archives qui se declarent « consultables
+-- par tous » ; `geoles_detenus()` rendant ce drapeau a tout joueur present dans les geoles.
+-- Habilites : min_just, min_int, et le detenu lui-meme. « Personnel du QHS » est reconnu par la
+-- regle mais SANS PORTEUR : directeur_qhs et gardien_qhs ne sont que des `job:` de PNJ.
+--
+-- PIEGE POSTGRESQL RENCONTRE : `REVOKE SELECT (colonne)` est inoperant tant que le role detient
+-- un GRANT SELECT de TABLE. Il faut retirer le droit de table puis accorder la liste des colonnes.
+-- Le banc l'a montre -- la colonne restait lue apres le premier REVOKE.
+--
+-- ------------------------------------------------------------------------------------------
+-- CONFIDENTIALITE JUDICIAIRE
+-- ------------------------------------------------------------------------------------------
+-- Phase 1 (pending/enquete/classee/annulee) : parties et autorites. Phase 2 (transmise/deposee) :
+-- idem -- la personne mise en cause voit donc l'affaire qui la vise. Phase 4 (jugee) : publique,
+-- acquittement compris. Phase 3 n'a aucun statut : le moteur de proces reste a ecrire, je ne
+-- l'invente pas.
+-- LES RUMEURS NE SONT PAS TOUCHEES : verifie, le depot de plainte n'ecrit rien dans
+-- actions_tracables ni rumeurs_actives. La couche rumeur vit a cote et reste entiere.
+--
+-- ------------------------------------------------------------------------------------------
+-- TESTAMENTS
+-- ------------------------------------------------------------------------------------------
+-- Aucun ecran ne montre le testament d'autrui. Le notaire N'A AUCUN TITULAIRE JOUEUR -- ni dans
+-- POSTES_ELECTIFS, ni dans POSTES_NOMMES_EXCLUSIFS, ni au BNE : c'est un PNJ dont le role est
+-- fiscal (10 % des droits). L'arbitrage « le notaire connait l'existence, pas le contenu » est
+-- donc note sans porteur a ce jour.
+-- `successions` : seul l'acces sans compte est ferme ici. La fuite cote joueur est reelle mais
+-- son predicat suit la chaine de convocation ; la consigne demande de ne pas toucher encore a
+-- cette mecanique.
+--
+-- ------------------------------------------------------------------------------------------
+-- POLICIES DORMANTES : six traitees, cinq en attente
+-- ------------------------------------------------------------------------------------------
+-- Traitees : militants_recrutes, propositions_diplomatiques, batiments_fermes, rumeurs_actives,
+-- ambassades_ouvertes, reservations_salle_reception.
+-- En attente (l'interface ne suffit pas a trancher) : budgets_nationaux, budgets_municipaux,
+-- budgets_clubs, registre_ventes_armes, transferts_clubs. Raisons dans le rapport.
+--
+-- La lecture des rumeurs reste large A DESSEIN : une rumeur qu'on ne peut pas entendre ne sert a
+-- rien. Elle est seulement reservee aux joueurs -- un visiteur sans compte n'entend rien.

@@ -1855,7 +1855,7 @@ function enigme1LancerRechercheArchivesPolice() {
     const annee = d.created_at ? new Date(d.created_at).getFullYear() : '?';
     const duree = (d.jour_fin && d.jour_debut) ? (d.jour_fin - d.jour_debut) + ' jour(s)' : 'en cours';
     html += '<div onclick="ouvrirDetailDetention(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
-    html += '<div style="display:flex;justify-content:space-between"><span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + d.nom + (d.qhs ? ' <span style="color:#8a3a2a">(QHS)</span>' : '') + '</span><span style="font-size:.7rem;color:#5a4030">' + annee + ' · ' + duree + '</span></div>';
+    html += '<div style="display:flex;justify-content:space-between"><span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + d.nom + '</span><span style="font-size:.7rem;color:#5a4030">' + annee + ' · ' + duree + '</span></div>';
     html += '<div style="font-size:.72rem;color:#6a5a30">' + d.raison + '</div>';
     html += '</div>';
   });
@@ -2039,7 +2039,9 @@ function ouvrirDetailDetention(idx) {
     html += '<div style="font-size:.78rem;color:' + statutCouleur + '">' + libelleFin + ' : ' + dateFinEffective + '</div>';
   }
 
-  if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a;margin-top:.3rem">Détention en QHS (haute sécurité)</div>';
+  // SECRET DU QHS (25 septembre 2026, arbitrage GD) : ces archives sont publiques -- l'ordre
+  // archives_police se decrit comme « consultables par tous » -- et le placement au QHS ne doit
+  // jamais y figurer. La colonne `qhs` n'est d'ailleurs plus lisible par le role du joueur.
   html += '</div>';
 
   if (d.detention_precedente_id) {

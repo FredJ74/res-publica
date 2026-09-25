@@ -2471,9 +2471,22 @@ async function sbCreerDetention(data) {
 
 // Le registre du commissariat est local : city obligatoire des que connue (le repli sans city
 // existe uniquement pour ne pas casser un appelant qui l'ignorerait encore).
+// SECRET DU QHS (25 septembre 2026). Les archives judiciaires restent publiques -- l'ordre
+// archives_police se decrit lui-meme comme « consultables par tous » -- mais le caractere QHS
+// d'une detention n'en fait plus partie : il est reserve au Ministre de la Justice, au Ministre
+// de l'Interieur et au personnel du QHS. La colonne `qhs` est donc retiree du GRANT de anon et
+// authenticated ; les colonnes sont nommees ici parce qu'un `select=*` echouerait desormais.
+const DETENTIONS_COLONNES_PUBLIQUES = [
+  'id', 'country', 'city', 'nom', 'raison', 'jour_debut', 'jour_fin', 'created_at', 'motifs',
+  'jour_affaire', 'issue_judiciaire', 'autorite', 'ville_condamnation', 'jour_fin_effective',
+  'mode_fin', 'reduction_jours', 'detention_precedente_id', 'reliquat_jours',
+  'date_fin_effective', 'provenance'
+].join(',');
+
 async function sbLoadDetentions(country, city) {
   const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '';
-  return sbGet('detentions', `country=eq.${encodeURIComponent(country)}${filtreCity}&order=jour_debut.desc`);
+  return sbGet('detentions', `country=eq.${encodeURIComponent(country)}${filtreCity}`
+    + `&select=${DETENTIONS_COLONNES_PUBLIQUES}&order=jour_debut.desc`);
 }
 
 // Salle des geoles : personnages REELLEMENT detenus en ce moment dans CETTE prison.
