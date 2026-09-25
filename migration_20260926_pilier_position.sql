@@ -1,0 +1,54 @@
+-- =============================================================================================
+-- PILIER POSITION / DEPLACEMENT — LE SERVEUR FAIT AUTORITE (26 septembre 2026)
+-- =============================================================================================
+-- AUCUNE MODIFICATION DE BASE. Correctif client, consigne ici parce qu'il touche un pilier du
+-- moteur commun a tous les empires.
+--
+-- L'INCIDENT. Un joueur marche du Stade jusqu'a l'Hotel-Restaurant, entre, rafraichit : il est
+-- replace AU STADE. Il sort : il est devant l'Hotel-Restaurant. Deux verites concurrentes.
+--
+-- LES DEUX DEFAUTS STRUCTURELS, demontres ligne par ligne :
+--
+--  1. DOUBLE RESTAURATION EN COURSE. restaurerPositionApresChargement etait appelee DEUX fois :
+--     une premiere sur le CACHE, avant toute reponse serveur, et une seconde sur la valeur
+--     arbitree. Toutes deux via un setTimeout(300) arme a des instants differents : le vainqueur
+--     dependait de la latence reseau. Pire, le minuteur vainqueur rejouait enterBuilding/enterRoom,
+--     et enterRoom REPUBLIE la position sur le serveur -- une valeur perimee ecrasait donc une
+--     valeur plus recente.
+--     Aggravant : plateau-core.js:764-765 efface currentBuilding/currentRoom du cache (memoire ET
+--     disque) a chaque chargement, parce que applyCharToState ne les restaure jamais. Le garde-fou
+--     « garder la position locale » lisait donc null et etait mort, tandis que le minuteur, lui,
+--     avait capture la valeur AVANT cet effacement.
+--
+--  2. DEUX MEMOIRES INDEPENDANTES. Le noeud de rue vivait dans `respublica_ruecentrale_<nom>`,
+--     purement local, ecrit a chaque pas, jamais reconcilie avec current_building, sans aucune
+--     colonne serveur. D'ou : cache batiment = Stade, noeud de rue = Hotel-Restaurant.
+--
+-- CE QUI EST APPLIQUE :
+--
+--  A. La restauration de position n'a plus lieu QU'UNE FOIS, apres la reponse du serveur, sur la
+--     valeur du serveur. L'appel premature est supprime. Plus de course, plus de republication
+--     d'une position perimee.
+--  B. La reimposition de la position LOCALE sur batiment/piece est supprimee : le serveur seul
+--     fait autorite. Elle visait un vrai probleme -- un rafraichissement plus rapide que la
+--     sauvegarde -- mais le traitait par un `if (truthy)` : un cache fige gagnait TOUJOURS. Le
+--     probleme d'origine ne se pose plus, enterRoom appelant sbSavePersonnage immediatement.
+--     PAYS et VILLE gardent leur garde-fou : ils ne sont jamais mis a null, leur temoin local est
+--     donc fiable, et c'est ce qui protege un voyage inter-villes. Ce cas n'a jamais dysfonctionne.
+--  C. Le noeud exterieur d'un batiment est desormais DERIVE DE LA CARTE, pas stocke : chaque noeud
+--     declare ses zones avec leur buildingId, donc le trottoir d'un batiment se deduit. Une
+--     derivation ne peut pas etre perimee. Eprouve sur la carte reelle : hotel-republica ->
+--     luthecia-hotel-de-ville, mairie-capitale et banque-nationale -> le meme noeud, commissariat
+--     -> luthecia-loge. Aucune exception de ville n'est codee : la fonction lit
+--     RUE_CENTRALE_NOEUDS[pays] et vaudra pour tout empire declarant ses scenes.
+--     La memoire locale ne sert plus que la ou la carte ne peut rien deduire : une marche en rue
+--     sans batiment de depart, ou un buildingId partage entre plusieurs villes (hotel-mineur).
+--
+-- CONSEQUENCE SUR LE QUOTA LOCALSTORAGE : elle est structurelle, sans code nouveau. Plus aucune
+-- composante metier de position ne se lit dans le cache. Un localStorage plein, indisponible ou
+-- corrompu n'a donc plus aucun effet sur la position : le reload restaure depuis le serveur, et
+-- une vieille position locale ne peut plus ressusciter.
+--
+-- CONSEQUENCE ASSUMEE : si le reseau est lent, le joueur voit brievement la rue avant d'etre
+-- replace. C'est preferable a une teleportation dans un ancien batiment, et conforme a la regle :
+-- on retrouve la position du dernier deplacement REELLEMENT VALIDE.

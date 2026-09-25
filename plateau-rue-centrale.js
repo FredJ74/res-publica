@@ -980,6 +980,46 @@ let rueCentraleDerniersNoeuds = {};
 // showVueRue() perdait systematiquement la provenance en sortant d'un batiment, ce qui
 // reinitialisait silencieusement la scene sur son cas par defaut a chaque fois — visible
 // sur tout noeud multi-entrees ayant au moins un batiment cliquable, ex: psm-carrefour-musee).
+// NOEUD EXTERIEUR D'UN BATIMENT — DERIVATION CANONIQUE (26 septembre 2026)
+// =========================================================================
+// Sortir d'un batiment doit conduire DEVANT CE BATIMENT. Jusqu'ici cette information venait d'une
+// seconde memoire purement locale (`respublica_ruecentrale_<nom>`), independante de la position
+// metier : c'est ce qui a produit l'incident du 25 septembre -- cache batiment = Stade, noeud de
+// rue = Hotel-Restaurant, deux verites sans rapport.
+//
+// Il n'y a aucune raison de STOCKER cette information : la carte la porte deja. Chaque noeud
+// declare ses zones avec leur `buildingId`. Le noeud exterieur d'un batiment est donc DERIVABLE,
+// et une derivation ne peut jamais etre perimee.
+//
+// Generique par construction : aucune mention de Luthecia ni d'aucune ville. La fonction lit
+// RUE_CENTRALE_NOEUDS[pays], donc elle vaut pour tous les empires au fur et a mesure qu'ils
+// declarent leurs scenes.
+//
+// Prudence sur l'ambiguite : quelques buildingId sont partages entre plusieurs villes d'un meme
+// empire (hotel-mineur, par exemple). Si plusieurs noeuds referencent le batiment, on ne devine
+// pas -- on rend null et l'appelant retombe sur le noeud memorise, comportement d'avant.
+function noeudRueDuBatiment(pays, buildingId) {
+  if (!pays || !buildingId) return null;
+  const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined') ? RUE_CENTRALE_NOEUDS[pays] : null;
+  if (!noeuds) return null;
+  const trouves = [];
+  for (const noeudId in noeuds) {
+    const zones = noeuds[noeudId]?.zones;
+    if (!Array.isArray(zones)) continue;
+    if (zones.some(z => z && z.buildingId === buildingId)) trouves.push(noeudId);
+    // Variantes par provenance : un meme noeud peut proposer d'autres batiments selon l'arrivee.
+    const parArrivee = noeuds[noeudId]?.zonesParArrivee;
+    if (parArrivee && typeof parArrivee === 'object') {
+      for (const depuis in parArrivee) {
+        const zs = parArrivee[depuis];
+        if (Array.isArray(zs) && zs.some(z => z && z.buildingId === buildingId)
+            && !trouves.includes(noeudId)) trouves.push(noeudId);
+      }
+    }
+  }
+  return trouves.length === 1 ? trouves[0] : null;
+}
+
 function obtenirNoeudRueCentraleMemorise(pays, ville, noeudDepartParDefaut) {
   // Priorite 1 : memoire de la session en cours (evite une lecture localStorage inutile)
   if (rueCentraleDerniersNoeuds[pays + '|' + ville]) return rueCentraleDerniersNoeuds[pays + '|' + ville];

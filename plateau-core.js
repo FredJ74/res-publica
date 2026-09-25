@@ -1113,8 +1113,28 @@ function loadCharacter() {
       // repondre -- bug de concurrence confirme en production (licence sportive ecrasee malgre
       // une correction serveur directe, aucun rapport avec le football en soi).
       state.personnageChargeDepuisServeur = false;
-      // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
-      restaurerPositionApresChargement(char);
+      // PILIER POSITION — LE SERVEUR FAIT AUTORITE (26 septembre 2026).
+      //
+      // L'APPEL A restaurerPositionApresChargement(char) QUI SE TROUVAIT ICI EST SUPPRIME.
+      // C'est lui qui a ramene un joueur au Stade alors qu'il etait a l'Hotel-Restaurant, incident
+      // reproduit en production le 25 septembre. Le mecanisme exact, demontre ligne par ligne :
+      //   - il capturait la position du CACHE dans un setTimeout(300) ;
+      //   - les lignes 764-765 effacaient ensuite cette position du cache, en memoire et sur
+      //     disque, parce que applyCharToState ne restaure jamais currentBuilding/currentRoom ;
+      //   - le garde-fou « garder la position locale » (plus bas) lisait donc null et devenait
+      //     inoperant ;
+      //   - puis le minuteur tirait, rejouait enterBuilding/enterRoom sur la valeur d'AVANT
+      //     l'effacement, et enterRoom REPUBLIAIT cette position perimee sur le serveur.
+      // Deux minuteurs concurrents existaient (celui-ci et celui d'apres la reponse serveur) :
+      // le vainqueur dependait de la latence reseau. C'etait une course, pas une regle.
+      //
+      // Desormais la position n'est restauree QU'UNE FOIS, apres la reponse du serveur, sur la
+      // valeur que le serveur a arretee. Une donnee locale perimee ne peut donc plus devenir
+      // autoritaire, et aucune restauration d'affichage ne peut plus reecrire le serveur.
+      //
+      // Consequence assumee : si le reseau est lent, le joueur voit brievement la rue avant d'etre
+      // replace. C'est preferable a etre teleporte dans un ancien batiment -- et conforme a la
+      // regle : on retrouve la position du dernier deplacement REELLEMENT VALIDE.
       // Reinjecter le journal personnel persiste (rapide, depuis le cache local)
       restaurerJournal(char);
       // Synchroniser depuis Supabase en arrière-plan
@@ -1220,8 +1240,7 @@ function loadCharacter() {
             // correctif (20 aout 2026) : ce garde-fou ne couvrait jusqu'ici que currentBuilding/
             // currentRoom, jamais country/currentCity, laissant un voyage inter-villes revenir a
             // l'ancienne ville/pays sur un refresh rapide malgre une position batiment/piece correcte.
-            const positionLocaleBuilding = state.char?.currentBuilding;
-            const positionLocaleRoom = state.char?.currentRoom;
+            // Batiment et piece ne sont plus captures : le serveur en est seul maitre (voir plus bas).
             const positionLocaleCountry = state.char?.country;
             const positionLocaleVille = state.char?.currentCity;
             // Pont de migration (chantier C, 14 septembre 2026) : queteCarriere n'a JAMAIS ete
@@ -1270,14 +1289,25 @@ function loadCharacter() {
               state.char.pa = state.pa;
             }
 
-            if (positionLocaleBuilding) {
-              state.currentBuilding = positionLocaleBuilding;
-              if (state.char) state.char.currentBuilding = positionLocaleBuilding;
-            }
-            if (positionLocaleRoom) {
-              state.currentRoom = positionLocaleRoom;
-              if (state.char) state.char.currentRoom = positionLocaleRoom;
-            }
+            // BATIMENT ET PIECE : LE SERVEUR SEUL FAIT AUTORITE (26 septembre 2026).
+            //
+            // La reimposition de la position LOCALE sur batiment/piece est supprimee. Elle visait
+            // un vrai probleme -- un rafraichissement plus rapide que la sauvegarde asynchrone --
+            // mais elle le traitait par un `if (truthy)` : une position locale non nulle gagnait
+            // TOUJOURS, quelle que fut son anciennete. Un cache fige (quota localStorage plein,
+            // echec silencieux) ramenait donc indefiniment le joueur dans un ancien batiment, et
+            // la restauration qui suivait republiait cette valeur sur le serveur.
+            //
+            // Le probleme d'origine ne se pose plus : enterRoom appelle sbSavePersonnage
+            // IMMEDIATEMENT (plateau-navigation.js), pas via le minuteur de 3 s. Une entree dans
+            // une piece est donc deja persistee quand le joueur rafraichit. Et si elle ne l'est
+            // pas, c'est qu'elle n'a pas ete validee : retrouver la rue est alors la bonne
+            // reponse, pas une regression.
+            //
+            // PAYS ET VILLE gardent leur garde-fou ci-dessous : ils ne sont JAMAIS mis a null par
+            // le chargement (contrairement a batiment/piece, cf. lignes 764-765), donc leur valeur
+            // locale reste un temoin fiable -- c'est ce qui protege un voyage inter-villes d'un
+            // rafraichissement rapide, et ce cas-la n'a jamais dysfonctionne.
             if (positionLocaleCountry) {
               state.country = positionLocaleCountry;
               if (state.char) state.char.country = positionLocaleCountry;
@@ -1544,9 +1574,12 @@ async function recupererPersonnageDuCompte() {
 function restaurerPositionApresChargement(char) {
   if (!char.currentBuilding || !char.currentRoom) return;
   if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) {
-    // Piece dynamique de lot (Lot 1.1) : elle n'existe pas encore a cet instant -- cette fonction
-    // s'execute a partir du SEUL localStorage, avant tout chargement Supabase, donc avant que
-    // l'etat du terrain (et ses subdivisions) ne soit connu. On ne conclut donc pas a une piece
+    // Piece dynamique de lot (Lot 1.1) : elle n'existe pas encore a cet instant.
+    // MISE A JOUR DU 26 SEPTEMBRE 2026 : cette fonction ne s'execute PLUS a partir du localStorage.
+    // Elle est desormais appelee une seule fois, apres la reponse de Supabase, sur la position que
+    // le SERVEUR a arretee -- c'est tout l'objet du correctif du pilier position. Le raisonnement
+    // ci-dessous reste valable pour une autre raison : l'etat des terrains (et donc leurs
+    // subdivisions) est charge separement et peut arriver apres. On ne conclut donc pas a une piece
     // invalide : une UNIQUE tentative differee est lancee apres chargement reel de l'etat du
     // terrain (restaurerPieceDynamiqueDifferee, plateau-immobilier.js, protegee contre tout
     // rejeu). Si elle echoue, la navigation normale reprend la main sans insister.

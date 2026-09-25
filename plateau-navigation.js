@@ -142,7 +142,9 @@ function hideBuildingTooltip() {
 // =====================
 // NAVIGATION BATIMENTS
 // =====================
-function showVueRue() {
+// `batimentQuitte` (optionnel) : le batiment dont on vient de sortir. Il permet de DEDUIRE de la
+// carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
+function showVueRue(batimentQuitte) {
   document.getElementById('vue-rue').classList.add('active');
   document.getElementById('vue-batiment').classList.remove('active');
   state.currentBuilding = null;
@@ -200,9 +202,23 @@ function showVueRue() {
     // sur le noeud de depart. Sans depuisNoeudId, imagesParArrivee/zonesParArrivee/liensParArrivee
     // ne peuvent jamais se declencher apres une visite de batiment (bug remonte le 9 aout 2026,
     // ex: psm-carrefour-musee qui a 3 batiments cliquables).
-    const reprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
-      ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
-      : { noeudId: noeudDepart, depuisNoeudId: null };
+    // NOEUD EXTERIEUR : LA CARTE D'ABORD, LA MEMOIRE ENSUITE (26 septembre 2026).
+    //
+    // Quand on sait de quel batiment on sort, le bon trottoir se DEDUIT de la carte : c'est le
+    // noeud dont une zone porte ce buildingId. Cette derivation ne peut pas etre perimee, alors
+    // que le noeud memorise, lui, est une seconde memoire purement locale -- c'est elle qui, le
+    // 25 septembre, affichait l'Hotel-Restaurant pendant que le cache batiment disait Stade.
+    //
+    // La memoire reste utilisee pour le seul cas ou la carte ne peut rien deduire : une marche en
+    // rue sans batiment de depart (on reprend le trottoir ou l'on etait), ou un buildingId partage
+    // par plusieurs villes. Aucune exception de ville n'est codee ici.
+    const noeudDerive = (batimentQuitte && typeof noeudRueDuBatiment === 'function')
+      ? noeudRueDuBatiment(state.country, batimentQuitte) : null;
+    const reprise = noeudDerive
+      ? { noeudId: noeudDerive, depuisNoeudId: null }
+      : (typeof obtenirNoeudRueCentraleMemorise === 'function'
+          ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
+          : { noeudId: noeudDepart, depuisNoeudId: null });
     initialiserRueCentrale(state.country, reprise.noeudId, reprise.depuisNoeudId);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
@@ -1214,7 +1230,7 @@ function sortirBatiment() {
       sbSavePersonnage(state).catch(() => {});
     }
   }
-  showVueRue();
+  showVueRue(batimentQuitte);
   if (retourVersTerrainsMontrouge && typeof ouvrirTerrainsMontrouge === 'function') ouvrirTerrainsMontrouge();
   addJournalEntry(`Vous sortez du batiment.`, '');
 }
