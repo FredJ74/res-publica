@@ -1,0 +1,54 @@
+-- =============================================================================================
+-- PRESENCE EFFECTIVE D'UNE UNITE ACCOMPAGNANTE (25 septembre 2026) — ARBITRAGE GD APPLIQUE
+-- =============================================================================================
+-- LA REGLE, tranchee ce jour : dans « Personnes presentes », personne de physiquement present
+-- n'est cache -- PJ, PNJ, agents, militaires, soldats accompagnant un officier. Une unite qui
+-- accompagne un personnage est presente LA OU EST CE PERSONNAGE. Il n'existe pas de furtivite
+-- implicite des detachements accompagnants.
+--
+-- LE SIGNALEMENT. Un Lieutenant recupere ses 24 soldats ; ils disparaissent de l'affichage. Les
+-- donnees etaient pourtant intactes : 24/24 rattaches, dans l'etat canonique pose par
+-- militaire_recuperer_soldats (leaderCourant = l'officier, ville/buildingId/roomId = NULL).
+-- Rien n'etait perdu, rien n'a eu besoin d'etre repare.
+--
+-- LA CAUSE. Tout ce qui enumerait les occupants d'une piece exigeait `leaderCourant IS NULL` ET
+-- l'egalite des trois champs de position. Un detachement recupere etait donc exclu DEUX FOIS --
+-- par la position (NULL n'egale rien) et par la condition de chef. Dans aucune piece, y compris
+-- celle de son propre officier, y compris pour lui.
+--
+-- MEME FAMILLE QUE LES AGENTS DE RENSEIGNEMENT (22 septembre 2026). Meme forme exactement : unite
+-- correctement rattachee cote serveur par un champ `leader_courant`, et invisible parce que
+-- l'affichage reclamait une position propre qu'elle n'a plus. Les agents avaient ete corriges des
+-- deux cotes -- agent_position_effective() resout deja `pays/ville/building/room` sur la fiche du
+-- leader, RP_AGENTS_PORTES s'injecte sans condition de piece, et getMonGroupePNJ() les diffuse aux
+-- autres joueurs. Le militaire n'avait recu NI l'un NI l'autre.
+--
+-- LA CORRECTION, cote base : militaire_detachement_ici() resout desormais la position --
+--   soldat STATIONNE    -> sa propre position fait foi ;
+--   soldat ACCOMPAGNANT -> il est la ou est son chef (EXISTS sur personnages_donnees du leader).
+-- Ce n'est pas une invention : c'est la forme deja employee par militaire_bataille_recruter et
+-- mutinerie_camps_presents, et celle d'agent_position_effective().
+--
+-- AUCUNE RECOPIE DE POSITION. Rien n'est reecrit sur les soldats quand leur chef se deplace : la
+-- resolution est dynamique, a la lecture. Eprouve : trois deplacements consecutifs du Lieutenant
+-- (piece, batiment, ville) laissent l'empreinte md5 du blob de compagnie STRICTEMENT identique,
+-- et les 24 soldats sont neanmoins vus dans la nouvelle ville.
+--
+-- PAS DE DOUBLE COMPTE : les deux branches sont mutuellement exclusives, la premiere exigeant
+-- `leaderCourant IS NULL`, la seconde son contraire.
+--
+-- NIVEAU D'INFORMATION INCHANGE : troupe etrangere toujours degradee par militaire_degrader ;
+-- effectif exact et mission reserves a ses propres troupes.
+--
+-- RECETTE SUR BANC JETABLE (pays fictif 'zzpays', compagnie et comptes supprimes apres coup) --
+-- 20 verifications sur 20 : stationnes vus par l'officier et par un autre PJ ; recuperation ;
+-- toujours vus, desormais comme accompagnants, par les deux ; changement de piece (ils suivent,
+-- et disparaissent de l'ancienne ou le temoin est reste) ; changement de batiment ; depot (ils
+-- restent sur place) ; l'officier repart seul (plus rien avec lui, tout est reste a l'endroit du
+-- depot) ; reprise ulterieure (ils recommencent a suivre) ; effectif 24, matricules distincts 24,
+-- rattachement de section inchange, aucune duplication.
+--
+-- Le predicat client a ete eprouve separement, extrait du fichier reel : 9 cas sur 9, dont le
+-- refus de reveler un detachement dont le chef n'est PAS present.
+--
+-- Applique en production le 25 septembre 2026 par le workflow habituel.

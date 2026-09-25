@@ -9690,6 +9690,68 @@ function soldatEstIci(sol, ville, buildingId, roomId) {
 }
 
 // ===========================================================================================
+// PRESENCE EFFECTIVE D'UN SOLDAT (25 septembre 2026, arbitrage GD)
+// ===========================================================================================
+// LA REGLE : dans « Personnes presentes », personne de physiquement present n'est cache. Une
+// unite qui accompagne un personnage est presente LA OU EST CE PERSONNAGE. Il n'existe pas de
+// furtivite implicite des detachements accompagnants.
+//
+// POURQUOI UN SECOND PREDICAT PLUTOT QU'UNE MODIFICATION DE soldatEstIci. Les deux questions
+// sont differentes et le restent :
+//   soldatEstIci        = « stationne dans cette piece », donc RECUPERABLE ici ;
+//   soldatEstVisibleIci = « physiquement present dans cette piece », donc AFFICHABLE ici.
+// Elargir soldatEstIci ferait compter les soldats deja avec le Lieutenant dans le champ
+// « Nombre a recuperer ici » de doGererDetachement -- qui proposerait de recuperer des hommes
+// qu'il tient deja, et que militaire_recuperer_soldats refuserait aussitot par
+// « effectif_insuffisant_ici ». C'est une regression demontrable, pas une preference de style.
+//
+// AUCUNE RECOPIE DE POSITION. Le modele leaderCourant permet une resolution DYNAMIQUE : on ne
+// reecrit jamais ville/buildingId/roomId sur les soldats quand leur chef se deplace. Un
+// deplacement de Lieutenant, ce sont zero ecriture sur la compagnie, et le detachement suit tout
+// seul parce que la question est posee au moment de l'affichage. C'est exactement la forme que la
+// base applique deja ailleurs : agent_position_effective() rend `pays/ville/building/room` du
+// LEADER des que leader_courant est renseigne, et militaire_bataille_recruter comme
+// mutinerie_camps_presents resolvent la co-presence par jointure sur la fiche du chef.
+//
+// `leadersIci` est l'ensemble des noms de personnages presents dans la piece consideree ; c'est
+// l'appelant qui l'etablit, a partir des presences reelles. Un chef absent (ou deconnecte depuis
+// plus de cinq minutes, seuil deja applique par sbGetPresencesInRoom) n'y figure pas, et son
+// detachement n'est donc pas revele.
+//
+// Les deux branches sont MUTUELLEMENT EXCLUSIVES par construction -- la premiere exige un
+// leaderCourant, la seconde son absence. Un soldat ne peut donc jamais etre compte deux fois.
+//
+// `lieutenantNom` ne sert qu'au sentinel historique '__avec_lieutenant__', qui n'a jamais voulu
+// dire autre chose que « suit le Lieutenant de sa section ». Plus aucune donnee ne le porte
+// aujourd'hui (verifie en base : 0 sur 24), mais il reste lu tant qu'il n'est pas supprime.
+function soldatEstVisibleIci(sol, ville, buildingId, roomId, leadersIci, lieutenantNom) {
+  if (!sol) return false;
+  if (sol.leaderCourant) return !!leadersIci && leadersIci.has(sol.leaderCourant);
+  if (sol.roomId === '__avec_lieutenant__') {
+    return !!lieutenantNom && !!leadersIci && leadersIci.has(lieutenantNom);
+  }
+  return soldatEstIci(sol, ville, buildingId, roomId);
+}
+
+// Noms des personnages effectivement presents dans une piece : les autres joueurs d'apres la
+// table des presences, plus MOI si la piece interrogee est celle ou je me trouve. Ce dernier
+// point n'est pas une commodite : ma propre ligne de presence peut etre plus ancienne que le
+// seuil de cinq minutes si je suis reste immobile, et un Lieutenant doit toujours voir ses
+// propres hommes.
+async function leadersPresentsDansPiece(pays, ville, buildingId, roomId) {
+  const noms = new Set();
+  if (state.currentCity === ville && state.currentBuilding === buildingId
+      && state.currentRoom === roomId && state.char?.name) {
+    noms.add(state.char.name);
+  }
+  if (typeof sbGetPresencesInRoom === 'function') {
+    const rows = await sbGetPresencesInRoom(pays, ville, buildingId, roomId).catch(() => []);
+    (rows || []).forEach(p => { const n = p.name || p.nom; if (n) noms.add(n); });
+  }
+  return noms;
+}
+
+// ===========================================================================================
 // LEADER OPERATIONNEL COURANT (17 septembre 2026)
 // ===========================================================================================
 // Le sentinel historique '__avec_lieutenant__' cachait un leader implicite dans un identifiant de
@@ -10321,6 +10383,20 @@ async function deposerSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
+  rafraichirDetachementAffiche();
+}
+
+// RAFRAICHISSEMENT APRES UN MOUVEMENT DE DETACHEMENT (25 septembre 2026). Deposer ou recuperer
+// change ce que contient la piece : la liste des presents doit etre redessinee tout de suite.
+// Elle ne l'etait pas -- les deux fonctions s'arretaient sur leur showToast, et l'affichage
+// restait faux jusqu'au rafraichissement suivant, quel qu'il soit. doDeclencherMutinerie, action
+// comparable, appelle bien rafraichirPresenceAgents() ; c'est ce meme point d'entree qui est
+// utilise ici, parce qu'il partage carteDetachementPiece avec enterRoom -- donc un seul rendu
+// final, jamais deux qui s'effacent.
+function rafraichirDetachementAffiche() {
+  if (typeof rafraichirPresenceAgents === 'function') {
+    Promise.resolve(rafraichirPresenceAgents()).catch(() => {});
+  }
 }
 
 async function recupererSoldats(compagnieId, sectionId) {
@@ -10339,6 +10415,7 @@ async function recupererSoldats(compagnieId, sectionId) {
     return;
   }
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
+  rafraichirDetachementAffiche();
 }
 
 // ==========================================================================================
@@ -10783,12 +10860,21 @@ async function equiperSoldat(compagnieId, sectionId, matricule, objetId, sens) {
   ouvrirEquipementSoldats(compagnieId, sectionId);
 }
 
-// Retourne le libelle a afficher dans une piece pour un detachement present, ou null
+// Retourne le libelle a afficher dans une piece pour un detachement present, ou null.
+//
+// PRESENCE EFFECTIVE (25 septembre 2026). Cette fonction ne comptait que les soldats STATIONNES,
+// ce qui rendait invisible tout detachement accompagnant un officier -- y compris dans la piece
+// ou se tenait cet officier, et y compris pour lui. Elle compte desormais les deux, via
+// soldatEstVisibleIci : position propre quand le soldat est pose, position de son chef quand il
+// l'accompagne. Les presences de la piece sont lues UNE fois, pas une fois par section.
 async function getAffichageDetachementPiece(pays, ville, buildingId, roomId) {
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  if (!compagnies || compagnies.length === 0) return null;
+  const leadersIci = await leadersPresentsDansPiece(pays, ville, buildingId, roomId);
   for (const c of compagnies) {
     for (const s of (c.sections || [])) {
-      const presents = s.soldats.filter(sol => soldatEstIci(sol, ville, buildingId, roomId));
+      const presents = (s.soldats || []).filter(
+        sol => soldatEstVisibleIci(sol, ville, buildingId, roomId, leadersIci, s.lieutenantNom));
       if (presents.length > 0) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', lieutenantNom: s.lieutenantNom, nombre: presents.length, mission: s.mission, sectionId: s.id, compagnieId: c.id, pays: c.pays };
     }
   }
