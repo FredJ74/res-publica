@@ -1508,9 +1508,21 @@ function sbAutoSave() {
 //     sous la limite de charge utile des requetes keepalive.
 // Aucune transaction metier rejouee ici : uniquement une ecriture de l'etat personnage deja
 // mute en memoire, jamais un nouvel achat/deduction.
+// PILIER POSITION -- CE CHEMIN OBEIT AUSSI AU VERROU D'HYDRATATION (26 septembre 2026).
+// C'etait la DERNIERE porte par laquelle un vieux cache navigateur pouvait encore remonter sur
+// le serveur : ce PATCH est direct, il ne passe pas par sbSavePersonnage() et ne testait donc pas
+// personnageChargeDepuisServeur. Un onglet ferme (ou une navigation) pendant que la reponse du
+// serveur n'etait pas encore arrivee publiait l'etat tel qu'il etait en RAM -- c'est-a-dire l'etat
+// RESTAURE DU CACHE, position perimee comprise. Constate en banc reseau bride : le serveur a bien
+// ete ecrase au dechargement. Et le degat depassait la position, car les valeurs par defaut de ce
+// corps de requete (arg/liquide a 0, inventory a [], pa a 10) ne sont PAS toutes re-epinglees par
+// les declencheurs de la vue tant que argent_verrou est faux.
+// Ne rien envoyer avant l'hydratation est sans perte : il n'y a alors, par construction, aucune
+// mutation joueur a sauver -- seulement une copie du cache.
 function sbSauvegardeUrgenceDechargement() {
   if (sbSaveTimer) { clearTimeout(sbSaveTimer); sbSaveTimer = null; }
   if (!state?.char?.name) return;
+  if (state.personnageChargeDepuisServeur === false) return;
   const body = JSON.stringify({
     inventory: state.inventory || [],
     arg: state.arg || 0,
