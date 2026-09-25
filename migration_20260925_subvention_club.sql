@@ -1,0 +1,38 @@
+-- =============================================================================================
+-- SUBVENTION MUNICIPALE AUX CLUBS : LE DERNIER MARQUEUR PARTAGE SUR COMPTEUR PRIVE (25/09/2026)
+-- =============================================================================================
+-- AUCUNE MODIFICATION DE BASE. Correctif client, consigne ici avec ses trois predecesseurs.
+--
+-- LE MOTIF, corrige pour la quatrieme et derniere fois :
+--   solde des effectifs de police .......... corrige (jourPartageISO)
+--   distribution fiscale nationale ......... corrige (jourPartageISO)
+--   distribution du budget municipal ....... corrige le 25/09 (jourPartageISO)
+--   subvention municipale aux clubs ........ CORRIGE ICI
+--
+-- ICI C'ETAIT PIRE QU'UN DOUBLON, parce que le montant depend de l'ecart de jours. Le marqueur
+-- `derniereSubventionJour` vit dans budgets_clubs -- ligne PARTAGEE -- et etait compare a
+-- `state.day`, compteur PROPRE A CHAQUE PERSONNAGE. Un habitant au jour 47 croisant un marqueur
+-- pose par un joueur au jour 3 calculait 44 jours ecoules, plafonnes a 14 : QUATORZE jours de
+-- subvention verses d'un coup, sur la seule foi de son calendrier. Le joueur au jour 3 passant
+-- ensuite trouvait un ecart negatif et ne versait rien. Le montant reellement verse a un club ne
+-- dependait donc pas du temps ecoule, mais de QUI passait devant le stade.
+--
+-- Rappel du declencheur : `verifierSubventionMairie` est appelee depuis `doConsulterBudgetClub`,
+-- un ordre a 0 PA sans aucun poste requis. N'importe quel visiteur du stade la declenche.
+--
+-- CORRECTION : jourPartageISO(), la date reelle Europe/Paris, commune a tous les joueurs et au
+-- cron. L'ecart se calcule en JOURS REELS -- exactement ce qu'une subvention quotidienne veut
+-- dire. Ni le montant par jour, ni le plafond de rattrapage de 14 jours ne changent.
+--
+-- MARQUEURS ANCIENS : les valeurs deja en base sont des entiers, pas des dates. Elles sont
+-- traitees comme « deja verse aujourd'hui » -- zero franc -- et le premier versement au nouveau
+-- regime a lieu le lendemain reel. C'est le choix qui ne cree pas un centime ; les lire comme
+-- « jamais verse » aurait declenche un rattrapage immediat de 14 jours par club.
+--
+-- EPROUVE 9/9 sur la fonction d'ecart extraite du fichier reel : veille = 1, jour meme = 0,
+-- 40 jours = 40, date future = 0, ancien marqueur numerique (3 comme 47) = 0, marqueur absent,
+-- nul ou parasite = 0.
+--
+-- CE QUI RESTE, et qui n'est PAS corrige ici : ce marqueur est lu et ecrit par le navigateur.
+-- Deux visiteurs simultanes passent tous deux la garde. La fermer demande un compare-and-swap
+-- serveur sur la caisse du club -- une brique economique, hors perimetre.

@@ -8217,13 +8217,47 @@ async function crediterBudgetClub(clubId, montant, motif) {
 }
 
 // Reverse une partie de l'allocation "associatif" du budget municipal vers la caisse du club local, une fois par jour
+//
+// IDENTITE PARTAGEE DE LA JOURNEE (25 septembre 2026). Dernier survivant d'un motif deja corrige
+// trois fois ailleurs -- solde des effectifs de police, distribution fiscale nationale,
+// distribution du budget municipal. Le marqueur `derniereSubventionJour` vit dans une ligne
+// PARTAGEE (budgets_clubs) et etait compare a `state.day`, compteur PROPRE A CHAQUE PERSONNAGE.
+//
+// ICI C'ETAIT PIRE QU'UN SIMPLE DOUBLON, parce que le montant depend de l'ecart : un habitant au
+// jour 47 croisant un marqueur pose par un joueur au jour 3 calculait 44 jours ecoules, plafonnes
+// a 14 -- soit QUATORZE jours de subvention verses d'un coup, sur la seule foi de son propre
+// calendrier. Et le joueur au jour 3 passant ensuite trouvait un ecart negatif et ne versait rien.
+// Le montant reellement verse a un club ne dependait donc pas du temps, mais de qui passait.
+//
+// jourPartageISO() rend la date reelle Europe/Paris, la meme pour tous et pour le cron. L'ecart
+// se calcule desormais en JOURS REELS, ce qui est exactement ce qu'une subvention municipale
+// quotidienne veut dire. Ni le montant par jour, ni le plafond de 14 jours ne changent.
+//
+// MARQUEURS ANCIENS : les valeurs deja en base sont des entiers (issus de state.day) et ne sont
+// pas des dates. On les traite comme « deja verse aujourd'hui » -- zero franc -- et le premier
+// versement au nouveau regime a lieu le lendemain reel. C'est le choix qui ne cree pas un
+// centime : l'alternative (les lire comme « jamais verse ») declencherait un rattrapage immediat.
+function joursEcoulesDepuisMarqueurISO(marqueur, aujourdhuiISO) {
+  if (typeof marqueur !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(marqueur)) return 0;
+  const ecart = (Date.parse(aujourdhuiISO + 'T00:00:00Z') - Date.parse(marqueur + 'T00:00:00Z')) / 86400000;
+  return Number.isFinite(ecart) ? Math.max(0, Math.round(ecart)) : 0;
+}
+
 async function verifierSubventionMairie(club) {
   const budgetMairie = await chargerBudgetMunicipal().catch(() => null);
   if (!budgetMairie) return;
   const budgetClub = await chargerBudgetClub(club.id);
-  const jour = state.day || 1;
-  const joursEcoules = jour - (budgetClub.derniereSubventionJour || jour);
-  if (joursEcoules <= 0) return;
+  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
+  if (!jour) return;
+  const joursEcoules = joursEcoulesDepuisMarqueurISO(budgetClub.derniereSubventionJour, jour);
+  if (joursEcoules <= 0) {
+    // Marqueur absent ou herite de l'ancien regime : on l'aligne sans rien verser.
+    if (budgetClub.derniereSubventionJour !== jour) {
+      budgetClub.derniereSubventionJour = jour;
+      if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(club.id, budgetClub).catch(() => {});
+    }
+    return;
+  }
 
   const dailyRevenue = (typeof CITY_POPULATION !== 'undefined' && CITY_POPULATION[club.country]?.[club.city]?.dailyTaxRevenue) || 2000;
   const montantParJour = Math.round(dailyRevenue * ((budgetMairie.allocation.associatif || 0) / 100) * 0.1); // 10% de la ligne associative, par jour
