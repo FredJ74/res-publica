@@ -91,24 +91,49 @@ function genererStatsHtml() {
 // Attribution point par point, définitive, sans coût en PA (le reliquat lui-même est la
 // ressource rare, pas besoin d'en ajouter une seconde) -- même plafond et même barème de coût
 // que la création (adjStat, creation.js), puisque ce sont les mêmes points.
-function attribuerPointReliquat(stat) {
-  const char = state.char;
-  if (!char || !(char.freePtsRestants > 0)) return;
-  if (!char.stats) char.stats = {};
-  const cur = char.stats[stat] ?? 8;
-  if (cur >= 16) {
-    if (typeof showToast === 'function') showToast('Plafond atteint', 'Cette caractéristique a atteint son maximum (16) par ce biais -- les niveaux 17-20 se débloquent uniquement en jeu.', false);
+// SERVEUR AUTORITAIRE (25 septembre 2026). Cette fonction appliquait la bonne regle mais ecrivait
+// depuis le navigateur, via la vue `personnages` -- dont le trigger re-epingle `stats` ET
+// `free_pts_restants`. Le joueur lisait « +1 INT (definitif) » et RIEN n'etait ecrit : ni le point
+// attribue, ni le point depense. La seule mecanique legitime de repartition differee etait
+// entierement inoperante.
+//
+// Desormais le navigateur ne fait que NOMMER la caracteristique. Le serveur relit le reliquat et
+// la valeur courante, applique le bareme de la repartition initiale -- plafond 16, deux points a
+// partir de 12, exactement adjStat (creation.js:572) -- et ecrit les deux champs dans la meme
+// transaction sous FOR UPDATE. Eprouve : six appels simultanes avec un seul point restant donnent
+// exactement un succes.
+//
+// Ce n'est ni un gain, ni une progression : c'est la finalisation differee de la dotation initiale.
+// A reliquat epuise, les caracteristiques de base sont definitivement figees.
+async function attribuerPointReliquat(stat) {
+  if (typeof sbDotationAttribuerPoint !== 'function') return;
+  const r = await sbDotationAttribuerPoint(stat);
+
+  if (!r || r.ok !== true) {
+    const motifs = {
+      dotation_epuisee: 'Vous avez distribué toute votre dotation initiale.',
+      plafond_atteint: 'Cette caractéristique a atteint son maximum (16) par ce biais -- les niveaux 17-20 se débloquent uniquement en jeu.',
+      points_insuffisants: 'Il vous reste ' + (r?.restants ?? 0) + ' point(s), ce palier en coûte ' + (r?.requis ?? 2) + '.',
+      caracteristique_inconnue: 'Caractéristique inconnue.',
+      acteur_non_authentifie: 'Votre session n\'est pas reconnue. Rechargez la page.',
+      personnage_introuvable: 'Personnage introuvable.'
+    };
+    const titre = r?.raison === 'plafond_atteint' ? 'Plafond atteint'
+                : r?.raison === 'points_insuffisants' ? 'Points insuffisants' : 'Attribution impossible';
+    if (typeof showToast === 'function') {
+      showToast(titre, (r && motifs[r.raison]) || 'Le serveur n\'a pas enregistré cette attribution : rien ne vous a été prélevé.', false);
+    }
     return;
   }
-  const cost = cur >= 12 ? 2 : 1;
-  if (char.freePtsRestants < cost) {
-    if (typeof showToast === 'function') showToast('Points insuffisants', 'Il vous reste ' + char.freePtsRestants + ' point(s), ce palier en coûte ' + cost + '.', false);
-    return;
+
+  // On adopte ce que le serveur a REELLEMENT ecrit, jamais un calcul local.
+  if (state.char) {
+    if (!state.char.stats) state.char.stats = {};
+    state.char.stats[r.stat] = r.valeur;
+    state.char.freePtsRestants = r.restants;
   }
-  char.stats[stat] = cur + 1;
-  char.freePtsRestants -= cost;
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  if (typeof showToast === 'function') showToast('Point attribué', '+1 ' + stat + ' (définitif).', true);
+  if (typeof showToast === 'function') showToast('Point attribué', '+1 ' + r.stat + ' (définitif).', true);
+  if (typeof updateUI === 'function') updateUI();
   if (typeof ouvrirStatsPerso === 'function') ouvrirStatsPerso();
 }
 

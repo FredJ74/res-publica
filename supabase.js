@@ -1020,6 +1020,16 @@ async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
 // `football_entrainement_consommer` fait la verification, le paiement des 2 PA et
 // l'enregistrement dans UNE SEULE transaction, sous verrou par joueur : deux clics rapides ne
 // peuvent plus passer la limite tous les deux, ni payer deux fois.
+// RELIQUAT DE LA DOTATION INITIALE (25 septembre 2026). Le serveur relit `free_pts_restants` et la
+// valeur courante de la caracteristique, applique le bareme de la repartition initiale (plafond 16,
+// 2 points a partir de 12) et ecrit les deux champs dans la meme transaction, sous FOR UPDATE.
+// Le navigateur ne fait plus que nommer la caracteristique : il ne decide ni le cout, ni le
+// plafond, ni le resultat.
+async function sbDotationAttribuerPoint(stat) {
+  const rows = await sbRpc('dotation_attribuer_point', { p_stat: stat });
+  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 async function sbFootballEntrainementConsommer(stat) {
   const rows = await sbRpc('football_entrainement_consommer', { p_stat: stat });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);

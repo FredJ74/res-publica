@@ -1,0 +1,35 @@
+-- =============================================================================================
+-- RELIQUAT DE LA DOTATION INITIALE : ATTRIBUTION AUTORITAIRE (25 septembre 2026)
+-- =============================================================================================
+-- CE QUE C'EST. A la creation, un personnage recoit 30 points a repartir entre ses six
+-- caracteristiques. Il peut n'en depenser qu'une partie ; le reliquat vit dans
+-- `free_pts_restants` et reste distribuable plus tard. Ce n'est NI un gain, NI une progression,
+-- NI une recompense : c'est la finalisation differee de la repartition initiale. Reliquat epuise,
+-- les caracteristiques de base sont definitivement figees.
+--
+-- CE QUI ETAIT CASSE. attribuerPointReliquat appliquait la bonne regle mais ecrivait depuis le
+-- navigateur, via la VUE `personnages` -- dont le trigger re-epingle `stats` ET
+-- `free_pts_restants`. Le joueur lisait « +1 INT (definitif) » et RIEN n'etait ecrit : ni le point
+-- attribue, ni le point depense. Un joueur reel est concerne : Vince Kubrick n'a jamais distribue
+-- ses 30 points.
+--
+-- LES REGLES SONT REPRISES A L'IDENTIQUE, PAS REINVENTEES. Source : adjStat (creation.js:572-581)
+--     caracteristiques admissibles .. les six de STAT_DEFS : INT, CHA, VOL, PER, DUP, ENT
+--     plafond ....................... 16 par ce biais (les niveaux 17-20 se debloquent en jeu)
+--     cout d'un point ............... 2 a partir de 12, sinon 1
+--     defaut si la cle est absente .. 8, comme le client
+-- Aucun bareme, aucun plafond, aucune liste n'est modifie.
+--
+-- POURQUOI L'UPDATE PORTE SUR personnages_donnees ET NON SUR LA VUE. Le re-epinglage vit dans le
+-- trigger INSTEAD OF de la vue. Une RPC SECURITY DEFINER appelee par PostgREST garde
+-- `role = authenticated`, donc `est_appel_serveur()` y est FAUX : passer par la vue se ferait
+-- re-epingler comme n'importe quelle ecriture cliente. On ecrit donc la table de base, ou seuls
+-- les triggers d'attestation de poste, de proprietaire, de bornage du jour et d'observation de
+-- l'inventaire s'appliquent -- aucun ne touche aux caracteristiques.
+--
+-- LE PLAFOND NE SE CONTOURNE PAS EN GARDANT SES POINTS : le controle porte sur la valeur COURANTE
+-- de la caracteristique, jamais sur ce qui a deja ete depense.
+--
+-- EPROUVE 8/8 sur banc, puis EN CONCURRENCE HTTP REELLE : six appels REST simultanes avec un seul
+-- point restant donnent exactement UN succes et cinq `dotation_epuisee`. Payloads falsifies
+-- (`arg`, injection SQL) refuses en `caracteristique_inconnue` ; `anon` n'a pas l'EXECUTE.
