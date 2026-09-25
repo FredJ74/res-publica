@@ -1,0 +1,45 @@
+-- =============================================================================================
+-- LE JOUR DE JEU (25 septembre 2026) — priorite 1
+-- =============================================================================================
+-- DEUX CONSTATS DE MON PROPRE RAPPORT DE NUIT SONT FAUX, ET C'EST LE BANC QUI L'A MONTRE.
+--
+-- 1. « Vider le cache permet de rejouer le passage de minuit, avec REALIMENTATION DES BUDGETS. »
+--    FAUX. La cartographie de runMidnightUpdate est sans ambiguite : mettreAJourBudgets() et
+--    alimenterBudgets() ne touchent que `state.budgetsActuels` et `state.budgets`, objets de la
+--    racine de `state`, jamais serialises ni en base ni en localStorage. AUCUN budget partage
+--    n'est realimente a minuit. La vraie distribution fiscale a ete retiree du client le
+--    20 septembre : seul le cron l'execute.
+--
+-- 2. « Les points d'ENT gagnes sont persistes en base. » FAUX AUSSI. personnages_vue_modifier
+--    contient `NEW.stats := v_canon.stats;` : la colonne `stats` est INTEGRALEMENT re-epinglee a
+--    chaque ecriture venant d'un navigateur. Eprouve : un joueur portant son ENT de 3 a 20 par
+--    PATCH obtient {"ENT": 3}. Le verrou dernierGainENTJour garde donc un effet purement client.
+--
+-- CE QUI EST VRAI, EN REVANCHE, ET QUI N'ETAIT PAS DANS LE RAPPORT :
+--
+--   a) `day` etait librement inscriptible. Sur banc, un joueur authentifie l'a porte de 5 a 99
+--      par un simple PATCH. Le trigger OBSERVAIT la hausse (fiche_hausses_observees) sans la
+--      borner, contrairement a arg, liquide, pa, stats, free_pts_restants et banque.
+--      `day` indexe les peines, les detentions, l'expiration des crimes et tous les cooldowns
+--      personnels : un bond a 99 purge une peine et efface des crimes.
+--      FERME : trigger trg_personnages_borner_jour -- un cran maximum par ecriture cliente,
+--      jamais de retour en arriere, le serveur gardant sa liberte de rattrapage. Les deux seuls
+--      avanceurs legitimes (runMidnightUpdate et doDormir) font +1 : rien ne change pour eux.
+--
+--   b) distribuerBudgetMunicipalVersBatiments comparait un marqueur vivant dans une ligne
+--      PARTAGEE (budgets_municipaux.derniereDistribJour) au compteur PRIVE `state.day`. Deux
+--      habitants de la meme ville, aux compteurs differents, vidaient donc chacun la caisse
+--      municipale vers les batiments le meme soir reel. Corrige par jourPartageISO(), exactement
+--      comme la distribution fiscale nationale et le paiement des effectifs de police l'avaient
+--      ete. Aucune regle ne change : une distribution par jour, mais « le meme jour » devient
+--      commun a tous.
+--
+-- CE QUE JE NE TRANCHE PAS : un client obstine peut encore envoyer plusieurs PATCH de +1. Le
+-- fermer exige de decider combien d'avancements de jour une journee reelle peut contenir -- or le
+-- jeu en autorise deux aujourd'hui (minuit, puis le sommeil que minuit deverrouille). Arbitrage
+-- de game design, consigne au rapport, intact.
+--
+-- AUTRE POINT RELEVE, NON TRAITE : runMidnightUpdate s'execute dans le navigateur de CHAQUE
+-- joueur connecte entre 00h00 et 00h02 Paris. Ses effets de classe C sont donc N fois
+-- concurrents. Les deux plus exposes (expulsions d'ambassadeurs, -2 POP sur les huit titulaires
+-- gouvernementaux) sont idempotents ou deja gardes par jourPartageISO.

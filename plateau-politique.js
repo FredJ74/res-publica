@@ -9140,10 +9140,28 @@ async function chargerBudgetMunicipalPourVille(pays, ville) {
   return data;
 }
 
+// IDENTITE PARTAGEE DE LA JOURNEE (25 septembre 2026). Ce marqueur vit dans une ligne PARTAGEE
+// (budgets_municipaux) et etait compare a `state.day`, qui est un compteur PROPRE A CHAQUE
+// PERSONNAGE : un joueur est au jour 3, un autre au jour 47. Deux habitants de la meme ville
+// vidaient donc chacun la caisse municipale vers les batiments le meme soir reel, puisque leurs
+// deux compteurs differaient. La caisse etait distribuee deux fois, puis remise a zero.
+//
+// jourPartageISO() rend la date reelle Europe/Paris, la meme pour tous les joueurs ET pour le
+// cron (jourParisISO, api/cron-minuit.js). C'est exactement le correctif deja applique a la
+// distribution fiscale nationale et au paiement des effectifs de police -- voir le commentaire
+// canonique de plateau-core.js:2010-2045. Aucune regle de jeu ne change : une distribution par
+// jour, comme avant. Seule la definition de « le meme jour » devient commune.
+//
+// Les anciens marqueurs numeriques (issus de state.day) ne correspondent a aucune date ISO : la
+// premiere distribution apres ce correctif a donc lieu normalement, et une seule fois.
+//
+// LIMITE ASSUMEE, consignee au rapport : deux navigateurs qui declencheraient la distribution
+// dans la meme seconde passeraient tous deux la garde. La fermer exige un compare-and-swap
+// serveur sur la caisse municipale -- une brique economique, hors perimetre de cette passe.
 async function distribuerBudgetMunicipalVersBatiments(pays, ville) {
   const data = await chargerBudgetMunicipal();
   if (!data) return;
-  const jour = state.day || 1;
+  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
   if (data.derniereDistribJour === jour) return;
 
   const montantAReparter = data.caisse || 0;
