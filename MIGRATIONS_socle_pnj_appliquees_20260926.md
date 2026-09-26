@@ -135,3 +135,61 @@ divergences 0, manquants 0, surnumeraires 0
 Huit enveloppes ajoutées en fin de `supabase.js`, purement additives :
 `sbPnjMembresIci`, `sbPnjPositionEffective`, `sbPnjQuitterGroupe`, `sbPnjTransferer`,
 `sbPnjPrendre`, `sbPnjArgentTransferer`, `sbPnjObjetTransferer`, `sbPnjEvenementsLire`.
+
+## Popup générique et garde de phase miroir
+
+Migrations `socle_pnj_garde_phase_miroir_soldats`, `socle_pnj_lire_possessions`,
+`socle_pnj_corriger_lecture_possessions`.
+
+**La garde est en base, pas en convention cliente.** `pnj_quitter_groupe`, `pnj_transferer`,
+`pnj_prendre` et `pnj_pa_debiter` refusent la famille `soldat` tant que le drapeau
+`pnj_transitions.soldats_blob_autoritaire` est vrai. Sans elle, une action UI aurait paru
+réussir puis se serait défaite seule au déclenchement suivant du miroir.
+
+**Ce qui reste ouvert, et pourquoi c'est sûr** : DONNER et RETIRER de l'argent et des objets.
+Ces deux axes **n'existent pas dans le blob** — un soldat n'avait ni bourse ni inventaire avant
+le socle. Aucune divergence n'est possible, et le comparateur le confirme.
+
+**Contrainte réelle rencontrée, non contournée** : les RPC militaires prennent un NOMBRE
+(`p_nb integer`), jamais un soldat désigné. « Faire quitter le groupe à CE soldat » n'est donc
+pas exprimable côté blob pendant la phase miroir. L'écran CONDUITE d'un soldat le dit en clair
+et renvoie vers l'ordre de section.
+
+### Deux anomalies rencontrées, du même piège PL/pgSQL
+
+1. `ROW_COUNT_PLACEHOLDER_NON_UTILISE` laissé dans `pnj_miroir_compagnie` — corrigé avant tout
+   usage.
+2. `jsonb_agg` contenant `row_number() OVER (...)` dans `pnj_possessions_lire` — SQL invalide,
+   **accepté à la création** et découvert à l'appel réel :
+   `42803 aggregate function calls cannot contain window function calls`.
+
+Les deux illustrent la même leçon : **PL/pgSQL ne valide le corps des requêtes qu'à
+l'exécution**. Une migration qui « réussit » ne prouve rien ; seule une exécution réelle le fait.
+
+### Recette navigateur — compte jetable, jamais celui de Vince
+
+```
+1.  chargement, personnage de banc                              OK
+2.  lecture du socle : 3 PNJ, 3 miens, familles employe,employe,soldat  OK
+3.  popup : titre « Groupe PNJ », 3 cartes, bourse 40 affichee   OK
+4.  possessions chargees : « Matraque de banc », 2 « aucune »    OK
+5.  ecran DONNER : inventaire REEL du joueur (Cle a molette, Pain), liquide 500  OK
+6.  DONNER un objet                                             ok
+7.  DONNER 25                                                   ok
+8.  RETIRER 25                                                  ok
+9.  RETIRER l'objet                                             ok
+10. RETIRER plus que la bourse            -> refus fonds_insuffisants
+11. quitter le groupe sur un SOLDAT       -> refus soldat_axe_blob_autoritaire
+12. quitter le groupe sur un EMPLOYE      -> ok, detache
+13. entrainement d'un VRAI soldat : 24 matricules lus, formation resolue  OK
+14. F5 : position stable, 2 cartes = 2 miens, aucune duplication  OK
+```
+
+État après recette, avant nettoyage : le joueur de banc retrouve `liquide 500`, `arg 500` et
+ses 2 objets — **aller-retour parfaitement réversible**, invariant `arg = liquide` tenu. Le PNJ
+détaché est **matérialisé sur place, sans leader**, à `stade/terrain`.
+
+Comparateur après la recette : **96 / 96 / 96, 0 divergence.**
+
+Banc entièrement supprimé : 96 PNJ (tous soldats), 0 possession, 0 événement, quatre PJ réels
+seulement, blob `md5 = a107192a…` et `updated_at = 2026-09-22 22:29:35` inchangés.
