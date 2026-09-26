@@ -2200,6 +2200,13 @@ async function pnjGroupeMetierSoldats(pays) {
     (c.sections || []).forEach(s => (s.soldats || []).forEach(sol => {
       if (sol && sol.matricule) parMatricule[sol.matricule] = {
         formation: sol.formation || {}, arme: sol.arme || null,
+        // LES ACCESSOIRES D'UN SOLDAT SONT SES POSSESSIONS, et ils vivent encore dans le blob
+        // (cle `accessoires`). Le socle ne les a pas : pnj_possessions est vide pour les
+        // soldats. Sans cette lecture, la popup afficherait « possessions : aucune » a un
+        // Lieutenant dont un homme porte une trousse de secours -- un mensonge d'interface.
+        // On les lit donc a la source, comme l'entrainement, tant que la copie du metier
+        // militaire vers pnj_possessions n'a pas ete faite.
+        accessoires: Array.isArray(sol.accessoires) ? sol.accessoires : [],
         section: s.id, lieutenant: s.lieutenantNom || null
       };
     }));
@@ -2287,13 +2294,19 @@ async function ouvrirGroupePnj() {
   corps.innerHTML = html;
 
   // Les possessions sont chargees apres coup : la liste s'affiche sans attendre.
+  // Pour un SOLDAT, deux sources aujourd'hui : pnj_possessions (socle, ce que le joueur lui a
+  // donne depuis la bascule) ET la cle `accessoires` du blob (equipement militaire d'origine,
+  // pas encore migre). On additionne les deux plutot que d'en taire une.
   miens.forEach((m, i) => {
     sbPnjPossessions(m.id).then(liste => {
       const el = document.getElementById('grp-poss-' + i);
       if (!el) return;
-      const n = Array.isArray(liste) ? liste.length : 0;
-      el.textContent = 'possessions : ' + (n === 0 ? 'aucune'
-        : liste.map(o => (o.objet?.nom || '?')).join(', '));
+      const duSocle = (Array.isArray(liste) ? liste : []).map(o => (o.objet?.nom || '?'));
+      const met = metier[m.nom];
+      const duBlob = (met && Array.isArray(met.accessoires))
+        ? met.accessoires.map(a => (a?.name || a?.nom || '?')) : [];
+      const tout = duSocle.concat(duBlob);
+      el.textContent = 'possessions : ' + (tout.length === 0 ? 'aucune' : tout.join(', '));
     }).catch(() => {});
   });
 }

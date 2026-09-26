@@ -193,3 +193,54 @@ Comparateur après la recette : **96 / 96 / 96, 0 divergence.**
 
 Banc entièrement supprimé : 96 PNJ (tous soldats), 0 possession, 0 événement, quatre PJ réels
 seulement, blob `md5 = a107192a…` et `updated_at = 2026-09-22 22:29:35` inchangés.
+
+## Bascule des lectures — 3 sur 8, puis ARRÊT motivé
+
+Migrations `socle_pnj_metier_mutin`, `socle_pnj_bascule_lecture_mutinerie_camps`,
+`socle_pnj_bascule_lecture_bataille_recruter`.
+
+### Le champ `mutin` manquait
+
+Trois des sept lectures restantes le lisent (`mutinerie_camps_presents`,
+`militaire_bataille_engager`, `militaire_bataille_recruter`) et je ne l'avais pas copié.
+Aucun soldat ne le porte aujourd'hui — mais une équivalence vraie aujourd'hui et fausse au
+premier soulèvement n'est pas une équivalence. Ajouté à `pnj_soldats_metier` (métier, pas
+socle : « mutin » est le camp d'un révolté), porté par le miroir, **et désormais comparé** —
+sans quoi une divergence sur ce champ serait passée inaperçue.
+
+### Deux lectures basculées et prouvées
+
+`mutinerie_camps_presents` — équivalence sur **5 positions** (position de Vince, autre pièce de
+la caserne, stade, hôtel, pays étranger) : identiques partout.
+
+`militaire_bataille_recruter` — elle lit le blob mais écrit `batailles_engagements`, jamais le
+blob : basculer sa lecture ne peut créer aucune divergence. Équivalence des ensembles
+sélectionnés : 24 = 24, `EXCEPT` vide dans les deux sens.
+
+Le filtre réserve est **actif et discriminant**, mesuré : `24` avec, `96` sans.
+
+### ARRÊT sur les 5 autres — un champ non copié les invalide
+
+En lisant `militaire_bataille_combattants`, j'ai découvert une clé que je n'avais pas vue :
+**`accessoires`**. Un soldat en porte un en production — une trousse de premiers secours,
+objet complet avec `produitMilitaire`, `usageUnique`, image. **Ce sont ses possessions**, et le
+socle ne les a pas : `pnj_possessions` est vide pour les soldats.
+
+Conséquences, toutes deux réelles :
+
+1. **Cinq fonctions lisent `accessoires`**, dont **trois des cinq lectures restantes** :
+   `agent_garde_observer`, `militaire_entree_zone`, `militaire_observer`. Les basculer sans
+   porter ce champ aurait été une régression sémantique silencieuse — exactement le piège
+   `en_reserve`, une seconde fois.
+2. **Ma popup mentait** : elle affichait « possessions : aucune » pour le soldat qui porte la
+   trousse, parce qu'elle ne lisait que `pnj_possessions`. Corrigé : pour un soldat, elle
+   additionne les deux sources — le socle (ce que le joueur lui a donné) et `accessoires` du
+   blob (équipement militaire d'origine, pas encore migré) — plutôt que d'en taire une.
+
+Autre constat, noté sans le « corriger » : les soldats n'ont **aucune clé `nom`**.
+`militaire_bataille_combattants` fait `sol->>'nom'`, qui vaut donc toujours NULL. Basculer cette
+lecture sur le socle changerait cette valeur en matricule — un changement de comportement,
+même s'il paraît meilleur. Je ne l'ai pas fait.
+
+Le comparateur ne compare pas les possessions : il est resté vert pendant tout ce temps alors
+que ce trou existait. C'est une limite du comparateur à corriger avant la bascule d'autorité.
