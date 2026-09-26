@@ -4751,3 +4751,71 @@ async function sbFretDedouaner(caisseId) {
   const rows = await sbRpc('fret_dedouaner', { p_caisse_id: caisseId });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
+
+// =====================================================================
+// SOCLE GENERIQUE DES PNJ EMPLOYABLES (26 septembre 2026)
+// =====================================================================
+// Toutes ces primitives sont SERVEUR : l'identite de l'acteur est resolue par
+// mon_personnage(), jamais transmise par le client, et l'autorite est verifiee par
+// pnj_peut_commander (etre l'administrateur du PNJ ou son leader courant).
+// Le client ne possede AUCUN droit direct sur les tables du socle : RLS activee, zero policy,
+// aucun GRANT. Il n'y a donc pas de chemin d'ecriture parallele possible.
+//
+// PA : le socle les stocke et expose un debit APPELE PAR LE METIER. Aucune de ces fonctions
+// ne debite de PA -- suivre son leader, se deplacer, changer de groupe ne coutent rien.
+
+// Qui est present ici, toutes familles confondues. Remplace a terme militaire_detachement_ici,
+// agents_couverture_ici et les predicats clients de la police.
+async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
+  return await sbRpc('pnj_membres_ici', {
+    p_pays: pays, p_ville: ville, p_building: building, p_room: room,
+    p_rue_noeud: rueNoeud || null
+  });
+}
+
+// Position effective d'un PNJ : derivee de son leader s'il suit quelqu'un, propre sinon.
+async function sbPnjPositionEffective(pnjId) {
+  const r = await sbRpc('pnj_position_effective', { p_id: pnjId });
+  return Array.isArray(r) ? (r[0] || null) : r;
+}
+
+// Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
+// reste exactement la ou il etait. La propriete ne change pas.
+async function sbPnjQuitterGroupe(pnjIds) {
+  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
+}
+
+// Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
+// acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
+async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
+  return await sbRpc('pnj_transferer', {
+    p_ids: pnjIds, p_dest: destinataire, p_dest_est_pnj: !!destinataireEstPnj
+  });
+}
+
+// Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).
+async function sbPnjPrendre(pnjIds) {
+  return await sbRpc('pnj_prendre', { p_ids: pnjIds });
+}
+
+// DONNER / RETIRER de l'argent. 'donner' va du PJ vers le PNJ. Atomique cote serveur.
+async function sbPnjArgentTransferer(pnjId, montant, sens) {
+  return await sbRpc('pnj_argent_transferer', {
+    p_pnj: pnjId, p_montant: montant, p_sens: sens
+  });
+}
+
+// DONNER / RETIRER un objet. L'objet est designe par son INDEX dans l'inventaire source,
+// jamais par son contenu : le client ne peut donc pas en fabriquer un.
+async function sbPnjObjetTransferer(pnjId, index, sens) {
+  return await sbRpc('pnj_objet_transferer', {
+    p_pnj: pnjId, p_index: index, p_sens: sens
+  });
+}
+
+// Ce que le proprietaire doit savoir -- notamment la mort de ses PNJ. L'evenement est adresse
+// a la FORME DE PROPRIETE (un PJ, ou un couple poste+pays+ville), jamais a une personne : il
+// survit donc a une vacance de poste, et le titulaire suivant le lit en arrivant.
+async function sbPnjEvenementsLire(limite) {
+  return await sbRpc('pnj_evenements_lire', { p_limite: limite || 30 });
+}

@@ -73,3 +73,65 @@ UPDATE compagnies_militaires c SET data = s.data, updated_at = s.updated_at
 
 **Point de non-retour : aucun à ce stade.** Le blob n'a pas été modifié et reste l'autorité.
 Il n'apparaîtra qu'au basculement d'autorité des 14 écritures.
+
+## Bascule des lectures — `militaire_detachement_ici`
+
+Migration `socle_pnj_bascule_lecture_detachement_ici`. La duplication OR/EXISTS qui résolvait
+la présence à la main (soldat stationné par sa triade, soldat accompagnant par un `EXISTS` sur
+la fiche de son chef) est remplacée par une jointure latérale sur `pnj_position_effective()`.
+
+**Le piège évité, et il était grave.** L'ancienne version ne balayait que `data->'sections'`,
+jamais `data->'reserve'`. Le socle, lui, contient les 96. Or Vince est à
+`caserne / caserne-militaire / corps_garde` — **exactement là où sont les 72 réservistes**.
+Sans le filtre explicite `sm.en_reserve = false`, la fonction aurait annoncé **96 soldats au
+lieu de 24** dans « Personnes présentes ». Le filtre est donc posé, et l'équivalence prouvée :
+
+```
+ancienne logique : 1 ligne, effectif 24
+nouvelle logique : 1 ligne, effectif 24
+EXCEPT dans les deux sens : 0 | 0
+```
+
+Le partage socle/métier est net : le socle répond « qui est ici », le blob garde le nom du
+Lieutenant de la section et sa mission — données purement militaires, qui n'ont rien à faire
+dans `pnj_membres`.
+
+## Double écriture — par déclencheur, non par retouche des 14 fonctions
+
+Migration `socle_pnj_miroir_par_declencheur`. Retoucher 14 fonctions à la main laisse
+exactement le risque que le brief interdit : qu'une quinzième apparaisse, ou qu'un chemin
+m'échappe, et le socle dérive en silence. Un déclencheur `AFTER INSERT OR UPDATE` sur
+`compagnies_militaires` est **exhaustif par construction** : toute écriture du blob, par
+n'importe quelle fonction, présente ou future, resynchronise le socle dans **la même
+transaction**. Un échec du miroir annule donc l'écriture métier — le fail-closed est gratuit.
+
+Coût O(n) sur 96 lignes, sans conséquence : les fonctions militaires réécrivent déjà le tableau
+entier à chaque mutation, elles sont déjà O(n).
+
+**Anomalie rencontrée et corrigée.** J'avais laissé un identifiant fictif
+(`ROW_COUNT_PLACEHOLDER_NON_UTILISE`) dans le corps de `pnj_miroir_compagnie`. PL/pgSQL ne
+valide pas les identifiants à la création : la fonction a été acceptée et aurait échoué au
+premier déclenchement. Remplacé par `GET DIAGNOSTICS v_sup = ROW_COUNT;` et vérifié.
+
+**Miroir testé dans les deux sens, par une écriture réelle strictement réversible** :
+
+```
+blob reserve[0].pa 12 -> 11   =>  socle 202609-025 pa = 11   (miroir automatique)
+restauration depuis le snapshot
+  md5 du blob  = a107192a41d5cd1153808c302d60d0a9  (identique a l'origine)
+  updated_at   = 2026-09-22 22:29:35.196405+00     (identique a l'origine)
+  socle PA     = 12-12, 96 soldats
+```
+
+## Checkpoint 2
+
+```
+nb_blob 96, nb_socle 96, correspondances 96,
+divergences 0, manquants 0, surnumeraires 0
+```
+
+## Appels client
+
+Huit enveloppes ajoutées en fin de `supabase.js`, purement additives :
+`sbPnjMembresIci`, `sbPnjPositionEffective`, `sbPnjQuitterGroupe`, `sbPnjTransferer`,
+`sbPnjPrendre`, `sbPnjArgentTransferer`, `sbPnjObjetTransferer`, `sbPnjEvenementsLire`.
