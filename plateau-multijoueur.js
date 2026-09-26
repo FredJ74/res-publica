@@ -2161,3 +2161,359 @@ function demarrerPollingNotificationChat() {
   verifierNotificationChat();
   _chatNotifInterval = setInterval(verifierNotificationChat, 15000);
 }
+
+// =====================================================================
+// POPUP GENERIQUE « GROUPE PNJ » (26 septembre 2026)
+// =====================================================================
+// Elle est GENERIQUE : elle affiche le groupe de PNJ que le joueur mene, quelle que soit la
+// famille (soldat, employe, agent, policier, douanier, militant). Elle lit le socle par
+// pnj_membres_ici, qui resout la presence par position effective -- un PNJ qui suit son chef
+// n'a pas de position propre, il est la ou est son chef.
+//
+// PHASE MIROIR -- CE QUI EST OUVERT ET CE QUI NE L'EST PAS.
+// Tant que compagnies_militaires reste l'autorite d'ecriture des soldats :
+//   OUVERT  : DONNER / RETIRER de l'argent et des objets. Ces deux axes N'EXISTENT PAS dans le
+//             blob -- un soldat n'avait ni bourse ni inventaire avant le socle. Aucune
+//             divergence blob/socle n'est donc possible, et le comparateur le confirme.
+//   FERME   : faire quitter le groupe ou transferer UN soldat DESIGNE. Non par prudence, mais
+//             parce que le modele militaire ne sait pas le faire : militaire_deposer_soldats et
+//             militaire_recuperer_soldats prennent un NOMBRE (p_nb integer), jamais un soldat
+//             precis. L'action individuelle arrivera avec la bascule d'autorite, quand la
+//             primitive generique du socle deviendra l'ecrivain. En attendant, la popup renvoie
+//             vers l'ordre militaire existant, qui opere par nombre.
+// Les primitives generiques du socle refusent d'elles-memes la famille soldat sur ces axes
+// (garde pnj_axe_partage_verrouille) : il n'y a donc aucun chemin par lequel l'interface
+// pourrait creer une divergence, meme par erreur de ma part.
+
+let RP_GROUPE_COURANT = [];
+
+function pnjGroupeLibelleFamille(f) {
+  return ({ soldat: 'Soldat', employe: 'Employé', agent: 'Agent',
+            policier: 'Policier', douanier: 'Douanier', militant: 'Militant' })[f] || 'PNJ';
+}
+
+// Entrainement militaire : donnee METIER, lue a part et jamais remontee dans le socle.
+async function pnjGroupeMetierSoldats(pays) {
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const parMatricule = {};
+  (compagnies || []).forEach(c => {
+    (c.sections || []).forEach(s => (s.soldats || []).forEach(sol => {
+      if (sol && sol.matricule) parMatricule[sol.matricule] = {
+        formation: sol.formation || {}, arme: sol.arme || null,
+        section: s.id, lieutenant: s.lieutenantNom || null
+      };
+    }));
+  });
+  return parMatricule;
+}
+
+function pnjGroupeNiveauEntrainement(formation) {
+  const f = formation || {};
+  const total = (f.combat_rapproche || 0) + (f.tir || 0)
+              + (f.reconnaissance || 0) + (f.secourisme || 0);
+  if (total === 0) return 'Aucun entraînement';
+  const axes = [];
+  if (f.combat_rapproche) axes.push('corps à corps ' + f.combat_rapproche);
+  if (f.tir) axes.push('tir ' + f.tir);
+  if (f.reconnaissance) axes.push('reconnaissance ' + f.reconnaissance);
+  if (f.secourisme) axes.push('secourisme ' + f.secourisme);
+  return axes.join(' · ');
+}
+
+async function ouvrirGroupePnj() {
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
+  const pays = state.country || 'republic';
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  if (titre) titre.textContent = 'Groupe PNJ';
+  if (corps) corps.innerHTML = '<div style="padding:1rem;color:#8a8060;font-size:.85rem">Lecture du groupe…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const res = await sbPnjMembresIci(pays, state.currentCity, state.currentBuilding, state.currentRoom)
+                    .catch(() => null);
+  if (res === null || res === undefined) {
+    corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
+      + 'Lecture du groupe impossible — l\'appel au serveur n\'a pas abouti. Réessayez.</div>';
+    return;
+  }
+  // Uniquement CEUX QUE JE MENE : le socle sait aussi qui appartient a d'autres.
+  const miens = (Array.isArray(res) ? res : []).filter(m => m.leader_pj === state.char?.name);
+  RP_GROUPE_COURANT = miens;
+
+  if (miens.length === 0) {
+    corps.innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">'
+      + 'Aucun PNJ ne vous accompagne ici.</div>';
+    return;
+  }
+
+  const metier = miens.some(m => m.famille === 'soldat')
+    ? await pnjGroupeMetierSoldats(pays) : {};
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.12em;'
+       +  'color:#C9A84C;margin-bottom:.2rem">GROUPE PNJ — ' + ech(state.char?.name || '') + '</div>';
+  html += '<div style="font-size:.74rem;color:#6a6050;font-style:italic;margin-bottom:.8rem">'
+       +  miens.length + ' PNJ vous accompagnent. Leur position est celle du leader : ils vous '
+       +  'suivent sans ordre et sans frais.</div>';
+
+  miens.forEach((m, i) => {
+    const met = metier[m.nom] || null;
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.55rem .7rem;margin-bottom:.45rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem">'
+         +  '<span style="font-size:.84rem;color:#e0d5b8">' + ech(pnjGroupeLibelleFamille(m.famille))
+         +  ' ' + ech(m.nom) + '</span>'
+         +  '<span style="font-size:.7rem;color:#8a8060">' + (m.pa ?? '?') + ' PA</span></div>';
+    if (met) {
+      html += '<div style="font-size:.72rem;color:#8a9a6a;margin-top:.15rem">'
+           +  ech(pnjGroupeNiveauEntrainement(met.formation)) + '</div>';
+    }
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.15rem">'
+         +  'Bourse : ' + ech(m.liquide ?? 0) + ' · '
+         +  '<span id="grp-poss-' + i + '">possessions : …</span></div>';
+    html += '<div style="display:flex;gap:.35rem;margin-top:.45rem;flex-wrap:wrap">'
+         +  '<button onclick="ouvrirGroupePnjDonner(' + i + ')" style="padding:.25rem .55rem;'
+         +  'border:1px solid #4a6a3a;background:transparent;color:#8ac05a;cursor:pointer;'
+         +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">DONNER</button>'
+         +  '<button onclick="ouvrirGroupePnjRetirer(' + i + ')" style="padding:.25rem .55rem;'
+         +  'border:1px solid #6a5a2a;background:transparent;color:#C9A84C;cursor:pointer;'
+         +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">RETIRER</button>'
+         +  '<button onclick="ouvrirGroupePnjConduite(' + i + ')" style="padding:.25rem .55rem;'
+         +  'border:1px solid #3a3a4a;background:transparent;color:#8a8aa0;cursor:pointer;'
+         +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">CONDUITE</button>'
+         +  '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  corps.innerHTML = html;
+
+  // Les possessions sont chargees apres coup : la liste s'affiche sans attendre.
+  miens.forEach((m, i) => {
+    sbPnjPossessions(m.id).then(liste => {
+      const el = document.getElementById('grp-poss-' + i);
+      if (!el) return;
+      const n = Array.isArray(liste) ? liste.length : 0;
+      el.textContent = 'possessions : ' + (n === 0 ? 'aucune'
+        : liste.map(o => (o.objet?.nom || '?')).join(', '));
+    }).catch(() => {});
+  });
+}
+
+// ---- DONNER : du PJ vers le PNJ. Le serveur dit ce que le PJ possede ; le client ne devine
+// rien et ne peut donc pas proposer un objet inexistant. L'objet part par son INDEX.
+async function ouvrirGroupePnjDonner(i) {
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
+  const m = RP_GROUPE_COURANT[i];
+  if (!m) return;
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = '<div style="padding:1rem;color:#8a8060;font-size:.85rem">Lecture de votre inventaire…</div>';
+  const inv = await sbPnjMonInventaire().catch(() => null);
+  if (!inv || inv.ok !== true) {
+    corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
+      + 'Lecture de votre inventaire impossible — l\'appel n\'a pas abouti.'
+      + '</div><div style="padding:0 1rem 1rem"><button onclick="ouvrirGroupePnj()" '
+      + 'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;color:#C9A84C;'
+      + 'cursor:pointer;font-size:.75rem">Retour</button></div>';
+    return;
+  }
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.1rem">Donner à '
+       +  ech(m.nom) + '</div>';
+  html += '<div style="font-size:.74rem;color:#6a6050;margin-bottom:.7rem">Vous avez '
+       +  ech(inv.liquide ?? 0) + ' en liquide.</div>';
+  html += '<div style="display:flex;gap:.35rem;align-items:center;margin-bottom:.8rem">'
+       +  '<input id="grp-don-montant" type="number" min="1" step="1" placeholder="montant" '
+       +  'style="width:100px;padding:.3rem;background:#0a0906;border:1px solid #2a2010;color:#e0d5b8">'
+       +  '<button onclick="confirmerGroupePnjDonnerArgent(' + i + ')" style="padding:.3rem .7rem;'
+       +  'border:1px solid #4a6a3a;background:transparent;color:#8ac05a;cursor:pointer;'
+       +  'font-size:.75rem">Donner cet argent</button></div>';
+  const objets = inv.inventaire || [];
+  if (objets.length === 0) {
+    html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic">Vous ne portez aucun objet.</div>';
+  } else {
+    html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.3rem">Vos objets :</div>';
+    objets.forEach(o => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;'
+           +  'border-top:1px solid #1a1810;padding:.3rem 0">'
+           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || '?')
+           +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>'
+           +  '<button onclick="confirmerGroupePnjDonnerObjet(' + i + ',' + o.index + ')" '
+           +  'style="padding:.2rem .5rem;border:1px solid #4a6a3a;background:transparent;'
+           +  'color:#8ac05a;cursor:pointer;font-size:.7rem">Donner</button></div>';
+    });
+  }
+  html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
+       +  'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;'
+       +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
+  corps.innerHTML = html;
+}
+
+async function confirmerGroupePnjDonnerArgent(i) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const v = parseInt(document.getElementById('grp-don-montant')?.value, 10);
+  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); return; }
+  const r = await sbPnjArgentTransferer(m.id, v, 'donner').catch(() => null);
+  signalerResultatGroupePnj(r, 'Argent remis', v + ' remis à ' + m.nom + '.');
+  await ouvrirGroupePnj();
+}
+async function confirmerGroupePnjDonnerObjet(i, index) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const r = await sbPnjObjetTransferer(m.id, index, 'donner').catch(() => null);
+  signalerResultatGroupePnj(r, 'Objet remis', (r?.objet?.nom || 'Objet') + ' remis à ' + m.nom + '.');
+  await ouvrirGroupePnj();
+}
+
+// ---- RETIRER : du PNJ vers le PJ.
+async function ouvrirGroupePnjRetirer(i) {
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = '<div style="padding:1rem;color:#8a8060;font-size:.85rem">Lecture de ses possessions…</div>';
+  const p = await sbPnjPossessionsEtBourse(m.id).catch(() => null);
+  if (!p || p.ok !== true) {
+    corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
+      + 'Lecture impossible — ' + ech(p?.raison || 'l\'appel n\'a pas abouti') + '.'
+      + '</div><div style="padding:0 1rem 1rem"><button onclick="ouvrirGroupePnj()" '
+      + 'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;color:#C9A84C;'
+      + 'cursor:pointer;font-size:.75rem">Retour</button></div>';
+    return;
+  }
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.1rem">Retirer à ' + ech(m.nom) + '</div>';
+  html += '<div style="font-size:.74rem;color:#6a6050;margin-bottom:.7rem">Il porte '
+       +  ech(p.liquide ?? 0) + ' en liquide.</div>';
+  html += '<div style="display:flex;gap:.35rem;align-items:center;margin-bottom:.8rem">'
+       +  '<input id="grp-ret-montant" type="number" min="1" step="1" placeholder="montant" '
+       +  'style="width:100px;padding:.3rem;background:#0a0906;border:1px solid #2a2010;color:#e0d5b8">'
+       +  '<button onclick="confirmerGroupePnjRetirerArgent(' + i + ')" style="padding:.3rem .7rem;'
+       +  'border:1px solid #6a5a2a;background:transparent;color:#C9A84C;cursor:pointer;'
+       +  'font-size:.75rem">Retirer cet argent</button></div>';
+  const objets = p.possessions || [];
+  if (objets.length === 0) {
+    html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic">Il ne porte aucun objet.</div>';
+  } else {
+    objets.forEach(o => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;'
+           +  'border-top:1px solid #1a1810;padding:.3rem 0">'
+           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || '?')
+           +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>'
+           +  '<button onclick="confirmerGroupePnjRetirerObjet(' + i + ',' + o.index + ')" '
+           +  'style="padding:.2rem .5rem;border:1px solid #6a5a2a;background:transparent;'
+           +  'color:#C9A84C;cursor:pointer;font-size:.7rem">Retirer</button></div>';
+    });
+  }
+  html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
+       +  'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;'
+       +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
+  corps.innerHTML = html;
+}
+
+async function confirmerGroupePnjRetirerArgent(i) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const v = parseInt(document.getElementById('grp-ret-montant')?.value, 10);
+  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); return; }
+  const r = await sbPnjArgentTransferer(m.id, v, 'retirer').catch(() => null);
+  signalerResultatGroupePnj(r, 'Argent récupéré', v + ' récupéré sur ' + m.nom + '.');
+  await ouvrirGroupePnj();
+}
+async function confirmerGroupePnjRetirerObjet(i, index) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const r = await sbPnjObjetTransferer(m.id, index, 'retirer').catch(() => null);
+  signalerResultatGroupePnj(r, 'Objet récupéré', (r?.objet?.nom || 'Objet') + ' récupéré sur ' + m.nom + '.');
+  await ouvrirGroupePnj();
+}
+
+// Les refus du serveur sont NOMMES, jamais collapses en un message invente -- et un appel qui
+// n'aboutit pas se distingue d'un refus metier.
+const MOTIFS_REFUS_GROUPE_PNJ = {
+  acteur_non_authentifie: 'Votre personnage n\'est pas reconnu par le serveur.',
+  autorite_insuffisante: 'Vous ne commandez pas ce PNJ.',
+  fonds_insuffisants: 'Fonds insuffisants.',
+  montant_invalide: 'Montant invalide.',
+  index_invalide: 'Cet objet n\'existe plus.',
+  introuvable: 'PNJ introuvable.',
+  sens_invalide: 'Sens de transfert invalide.',
+  pas_co_presents: 'Le destinataire n\'est pas dans cette pièce.',
+  destinataire_introuvable: 'Destinataire introuvable.',
+  soldat_axe_blob_autoritaire: 'Action individuelle indisponible pour les soldats : '
+    + 'le modèle militaire opère par nombre. Passez par l\'ordre de section.'
+};
+function signalerResultatGroupePnj(r, titreOk, messageOk) {
+  if (r === null || r === undefined) {
+    showToast('Action impossible', 'L\'appel au serveur n\'a pas abouti. Réessayez.', false);
+    return false;
+  }
+  if (r.ok !== true) {
+    showToast('Refusé', MOTIFS_REFUS_GROUPE_PNJ[r.raison] || ('Refus du serveur : ' + (r.raison || '?')), false);
+    return false;
+  }
+  showToast(titreOk, messageOk, true);
+  return true;
+}
+
+// ---- CONDUITE : quitter le groupe / rejoindre un leader.
+// Pour un SOLDAT en phase miroir, l'action individuelle n'est pas exprimable : les RPC
+// militaires (militaire_deposer_soldats, militaire_recuperer_soldats) prennent un NOMBRE, pas
+// un soldat designe. On le dit, et on renvoie vers l'ordre de section. Ce n'est pas une
+// limitation du socle -- la primitive generique existe et fonctionne -- c'est le modele
+// militaire qui reste l'autorite pendant cette phase.
+async function ouvrirGroupePnjConduite(i) {
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const corps = document.getElementById('postes-body');
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.7rem">Conduite de '
+       +  ech(m.nom) + '</div>';
+  if (m.famille === 'soldat') {
+    html += '<div style="border:1px solid #2a2010;background:#0b0a06;padding:.6rem .8rem;'
+         +  'font-size:.76rem;color:#8a8060;line-height:1.55">'
+         +  'Les mouvements de soldats passent encore par les ordres de section, qui opèrent '
+         +  '<em>par nombre</em> et non soldat par soldat. Utilisez « Gérer la section » pour '
+         +  'laisser sur place ou reprendre des hommes.<br><br>'
+         +  'L\'action individuelle — faire quitter le groupe à ce soldat précis, ou le confier '
+         +  'à un autre chef présent — arrivera avec la bascule finale du moteur.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.4rem">'
+         +  '<button onclick="confirmerGroupePnjQuitter(' + i + ')" style="padding:.35rem .7rem;'
+         +  'border:1px solid #6a4a2a;background:transparent;color:#c08a5a;cursor:pointer;'
+         +  'text-align:left;font-size:.78rem">Le faire quitter le groupe — il reste ici</button>'
+         +  '</div>';
+    html += '<div id="grp-leaders" style="margin-top:.7rem;font-size:.74rem;color:#8a8060">'
+         +  'Leaders présents : lecture…</div>';
+  }
+  html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
+       +  'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;'
+       +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
+  corps.innerHTML = html;
+
+  if (m.famille !== 'soldat') {
+    // Le menu de destination ne contient que des leaders REELLEMENT presents dans la piece.
+    const autres = await leadersPresentsDansPiece(state.country || 'republic', state.currentCity,
+      state.currentBuilding, state.currentRoom).catch(() => []);
+    const el = document.getElementById('grp-leaders');
+    if (!el) return;
+    const cibles = (autres || []).filter(n => n && n !== state.char?.name);
+    if (cibles.length === 0) {
+      el.textContent = 'Aucun autre leader présent dans cette pièce.';
+      return;
+    }
+    el.innerHTML = 'Confier à un leader présent :<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem">'
+      + cibles.map(n => '<button onclick="confirmerGroupePnjTransferer(' + i + ',\''
+          + encodeURIComponent(n) + '\')" style="padding:.25rem .55rem;border:1px solid #3a3a4a;'
+          + 'background:transparent;color:#8a8aa0;cursor:pointer;font-size:.72rem">'
+          + ech(n) + '</button>').join('') + '</div>';
+  }
+}
+
+async function confirmerGroupePnjQuitter(i) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const r = await sbPnjQuitterGroupe([m.id]).catch(() => null);
+  signalerResultatGroupePnj(r, 'Détaché', m.nom + ' quitte votre groupe et reste ici.');
+  await ouvrirGroupePnj();
+}
+async function confirmerGroupePnjTransferer(i, destEncode) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const dest = decodeURIComponent(destEncode || '');
+  const r = await sbPnjTransferer([m.id], dest, false).catch(() => null);
+  signalerResultatGroupePnj(r, 'Confié', m.nom + ' suit désormais ' + dest + '.');
+  await ouvrirGroupePnj();
+}

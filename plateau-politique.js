@@ -10320,6 +10320,14 @@ async function doGererDetachement() {
   document.getElementById('postes-modal-title').textContent = 'Gérer mon détachement';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Ici : ' + ici + ' · Avec vous (en déplacement) : ' + avecMoi + ' · Ailleurs : ' + ailleurs + ' soldats.</div>';
+  // SOCLE PNJ (26 septembre 2026) : acces a la liste individuelle. Les ordres de section
+  // ci-dessous operent PAR NOMBRE et restent le chemin autoritaire pendant la phase miroir ;
+  // la popup generique, elle, montre les hommes un par un et permet de leur donner ou de leur
+  // retirer argent et objets -- deux axes que le socle apporte et que le blob n'a jamais eus.
+  html += '<button onclick="ouvrirGroupePnj()" style="width:100%;margin-bottom:.8rem;'
+       +  'font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;'
+       +  'border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">'
+       +  'Voir et gérer les hommes un par un</button>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à déposer ici (depuis votre groupe)</label>';
   html += '<input id="nb-deposer" type="number" min="0" max="' + avecMoi + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<button onclick="deposerSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.8rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer</button>';

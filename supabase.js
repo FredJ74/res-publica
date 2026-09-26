@@ -4819,3 +4819,17 @@ async function sbPnjObjetTransferer(pnjId, index, sens) {
 async function sbPnjEvenementsLire(limite) {
   return await sbRpc('pnj_evenements_lire', { p_limite: limite || 30 });
 }
+
+// Possessions et bourse d'un PNJ, pour l'ecran RETIRER. Reserve a qui peut le commander.
+async function sbPnjPossessions(pnjId) {
+  const r = await sbRpc('pnj_possessions_lire', { p_pnj: pnjId });
+  return (r && r.ok) ? (r.possessions || []) : [];
+}
+async function sbPnjPossessionsEtBourse(pnjId) {
+  return await sbRpc('pnj_possessions_lire', { p_pnj: pnjId });
+}
+// Inventaire et liquide de l'acteur, pour l'ecran DONNER. Le serveur dit ce qu'il possede :
+// le client ne devine pas, et ne peut donc pas proposer un objet qu'il n'a pas.
+async function sbPnjMonInventaire() {
+  return await sbRpc('pnj_mon_inventaire', {});
+}
