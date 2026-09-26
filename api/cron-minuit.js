@@ -5995,6 +5995,25 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // PAYE DES DOUANIERS DU PORT -- SORTIE DU SOMMEIL D'UN JOUEUR (26 septembre 2026).
+    // Elle etait declenchee depuis doDormir() de N'IMPORTE QUEL joueur, ce qui est contraire
+    // au pilier temporel : un traitement institutionnel quotidien ne peut pas dependre du fait
+    // qu'un joueur particulier clique sur Dormir. Et elle echouait de toute facon depuis le
+    // 12 septembre, parce que le Chef des Douanes declenchait un debit sur une caisse dont
+    // l'autorite exige le poste min_int -- deux postes mutuellement exclusifs.
+    // La RPC metier douane_payer_effectifs calcule elle-meme l'effectif, le montant et la
+    // caisse, est idempotente par journee mondiale ecoulee, et fonctionne meme si le poste
+    // chef_douanes est vacant : c'est le Ministere de l'Interieur qui paie, le Chef ne fait
+    // que gerer les effectifs. Aucune horloge nouvelle : la temporalite est celle de cette passe.
+    const payeDouane = await tacheQuotidienne('paye_douane', async function () {
+      const parPays = {};
+      for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+        const r = await sbRpc('douane_payer_effectifs', { p_pays: pays });
+        parPays[pays] = r || { ok: false, raison: 'rpc_indisponible' };
+      }
+      return { ok: true, parPays };
+    });
+
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)
     const livraisons = await tacheQuotidienne('livraisons_entrepots', livrerEntrepotsQuotidien);
@@ -6085,7 +6104,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

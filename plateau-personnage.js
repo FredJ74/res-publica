@@ -2291,9 +2291,14 @@ async function doDormir() {
     if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
     // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
     if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
-    // Entretien quotidien des douaniers PNJ du port, debite sur la caisse du Ministere de
-    // l'Interieur -- service national unique, pas de parametre ville (lot du 24 aout 2026)
-    if (typeof payerEffectifsDouaneQuotidien === 'function') payerEffectifsDouaneQuotidien(state.country).catch(() => {});
+    // L'ENTRETIEN DES DOUANIERS N'EST PLUS DECLENCHE ICI (26 septembre 2026).
+    // Il l'etait depuis le sommeil de N'IMPORTE QUEL joueur, ce qui est contraire au pilier
+    // temporel : un traitement institutionnel quotidien ne peut pas dependre du fait qu'un
+    // joueur particulier clique sur Dormir. Il echouait de surcroit depuis le 12 septembre
+    // (le Chef des Douanes debitait une caisse dont l'autorite exige le poste min_int).
+    // Il est desormais dans api/cron-minuit.js, tache 'paye_douane', via la RPC metier
+    // douane_payer_effectifs. Voir migration_20260926_douane_payer_effectifs.sql.
+    // La paye de la police et celle des employes/escorts ont le meme defaut et suivront.
     // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
     if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
     // Decroissance lente de la reputation criminelle si inactif

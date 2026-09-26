@@ -8693,7 +8693,25 @@ async function ouvrirConsulterEffectifsDouane() {
 // Service national unique (un seul port dans tout le jeu), donc pas de parametre ville
 // contrairement a la police -- appele une seule fois par jour et par pays, quelle que soit la
 // ville ou se trouve le joueur qui declenche doDormir().
+// NEUTRALISEE LE 26 SEPTEMBRE 2026 -- LA PAYE EST DESORMAIS SERVEUR.
+// Deux defauts la condamnaient :
+//   1) elle etait declenchee depuis doDormir() de n'importe quel joueur, contraire au pilier
+//      temporel (un traitement institutionnel quotidien ne depend pas d'un clic de joueur) ;
+//   2) elle echouait TOUJOURS depuis le 12 septembre : le Chef des Douanes declenchait un
+//      debit sur gouvernement-min_int, dont l'autorite exige le poste min_int -- deux postes
+//      mutuellement exclusifs. Telemetrie : 3 refus autorite_insuffisante sur 3 tentatives,
+//      et c'etait la SEULE caisse du jeu a echouer.
+// Remplacee par la RPC metier douane_payer_effectifs(p_pays), appelee par la tache
+// quotidienne 'paye_douane' de api/cron-minuit.js. Le serveur calcule lui-meme l'effectif, le
+// montant et la caisse ; la fonction est idempotente par journee mondiale ecoulee et
+// fonctionne meme si le poste chef_douanes est vacant.
+// Le corps est conserve en dessous, inatteignable, comme trace de la regle economique exacte
+// que la RPC reproduit (50 FR standard / 100 FR cynophile, derniers recrutes partis d'abord).
+// Consequence assumee du passage au serveur : plus de toast ni de ligne de journal au joueur
+// quand un douanier part faute de paiement -- comme pour tous les autres effets de cron.
 async function payerEffectifsDouaneQuotidien(pays) {
+  return; // voir le commentaire ci-dessus
+  /* eslint-disable no-unreachable */
   const effectifs = await chargerEffectifsDouane(pays);
   if (!effectifs.douaniers.length) return;
   // Meme correctif que payerEffectifsPoliceQuotidien : marqueur partage compare a un compteur prive.
@@ -8722,6 +8740,7 @@ async function payerEffectifsDouaneQuotidien(pays) {
     showToast('Effectifs réduits', nbPartis + ' douanier(s) n\'ont pas pu être payés et ont quitté le service.', false, true);
     addJournalEntry(nbPartis + ' douanier(s) du port quittent le service faute de paiement (caisse du Ministère de l\'Intérieur insuffisante).', 'event-bad');
   }
+  /* eslint-enable no-unreachable */
 }
 
 // =====================
