@@ -308,3 +308,63 @@ tenues pour équivalentes finissent toujours par diverger.
 Détail attrapé au passage : les objets du jeu nomment leur libellé tantôt `nom` (inventaire des
 joueurs) tantôt `name` (équipement militaire). L'affichage accepte les deux ; rien n'est réécrit
 en base.
+
+## Les 8 lectures militaires sont basculées
+
+| lecture | source | filtre réserve | équivalence |
+|---|---|---|---|
+| `militaire_detachement_ici` | socle | oui | prouvée (1 ligne, effectif 24, `EXCEPT` vide) |
+| `mutinerie_camps_presents` | socle | oui | prouvée sur **5 positions** |
+| `militaire_bataille_recruter` | socle | oui | prouvée, ensembles 24 = 24 |
+| `militaire_observer` | socle | oui | prouvée sur **banc camouflage** |
+| `agent_garde_observer` | socle | oui | prouvée sur **banc camouflage** |
+| `militaire_entree_zone` | socle | oui | prouvée, **ses deux blocs** |
+| `militaire_bataille_engager` | socle | oui | par construction (même motif, 3× prouvé) |
+| `militaire_bataille_combattants` | socle | **non, et c'est correct** | par construction |
+
+`militaire_bataille_combattants` n'a **pas** de filtre réserve, volontairement : ce n'est pas une
+lecture de présence mais une recherche **par identité** de soldats déjà engagés. Y ajouter le
+filtre aurait été inventer une règle.
+
+Deux références au blob subsistent, **délibérées** : `militaire_bataille_recruter` et
+`militaire_detachement_ici` joignent `compagnies_militaires` pour l'identifiant de compagnie et
+pour le Lieutenant/mission de la section — du métier pur, qui n'a pas sa place dans le socle.
+
+### Une subtilité qui allait à l'encontre du réflexe
+
+`militaire_observer`, `militaire_entree_zone` et `militaire_bataille_engager` ne veulent **pas**
+la position effective : elles exigent une position **propre** (`ville <> ''`, ou
+`leaderCourant IS NULL`). Un soldat qui suit son chef est donc volontairement **invisible** — on
+ne repère pas une troupe en mouvement derrière son officier comme un campement. Utiliser
+`pnj_position_effective` y aurait **ajouté des cibles** : un changement de gameplay. Ces
+lectures lisent donc les colonnes propres, sans passer par la primitive.
+
+### Le banc camouflage
+
+Les données de production ne permettaient pas de prouver l'équivalence : aucun soldat ne porte de
+tenue de camouflage, et les 24 suivent Vince (donc sans position propre). Banc construit par
+écriture réelle du blob, strictement réversible :
+
+```
+4 soldats de section stationnes a capitale/stade, dont 1 en tenue de camouflage
+  militaire_observer      : 1 groupe des deux cotes, republic/capitale/stade n=4 camo=1
+                            reco identique, EXCEPT vide dans les deux sens
+  agent_garde_observer    : 1 = 1, capitale/soviet -> republic/capitale/stade n=4 camo=1
+                            et correctement VIDE pour capitale/republic et pour caserne
+  militaire_entree_zone   : bloc « mes soldats » 20 = 20 camo 0 = 0
+                            bloc « ennemi »      4 = 4  camo 1 = 1
+restauration depuis le snapshot :
+  md5 a107192a... et updated_at 2026-09-22 identiques, 24 sous Vince, 72 en reserve,
+  1 possession (la trousse), 0 residu de banc, PA 12-12
+```
+
+Le camouflage est compté sur `origine = 'blob_accessoires'` uniquement, volontairement :
+l'ancienne lecture ne voyait que `accessoires`, et compter une tenue **donnée par un joueur**
+ferait entrer dans le calcul de détection un objet que le code historique ignorait. La
+restriction tombera d'elle-même à la bascule.
+
+### `nom` reste NULL
+
+Consigne respectée à la lettre dans `militaire_bataille_combattants` : les soldats du blob n'ont
+aucune clé `nom`, l'ancienne lecture rendait donc toujours NULL, et la nouvelle rend
+explicitement `NULL::text` — et non le matricule, dont le socle disposerait.
