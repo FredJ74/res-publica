@@ -7880,10 +7880,20 @@ async function ouvrirPanneauCellules() {
     document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#cc4444">' + (CELLULE_REFUS[res?.raison] || 'Indisponible.') + '</div>';
     return;
   }
-  const cellules = (res.cellules || []).filter(c => c.statut === 'active');
+  // UNE OPERATION ARRETEE NE DOIT PAS DISPARAITRE (26 septembre 2026).
+  // Ce filtre EFFACAIT les cellules closes au lieu de les marquer : une operation terminee,
+  // quelle qu'en fut la cause, s'evaporait de l'ecran, et s'il n'en restait aucune le joueur
+  // lisait « Aucune opération en cours » -- texte identique a celui d'un ministre qui n'a
+  // jamais rien lance. La RPC renvoie pourtant statut, mode_fin et terminee_le : le client
+  // les jetait. On les exploite, sans fabriquer aucun faux rapport.
+  const toutes  = (res.cellules || []);
+  const cellules = toutes.filter(c => c.statut === 'active');
+  const closes   = toutes.filter(c => c.statut !== 'active');
   let html = '<div style="padding:1rem">';
   if (cellules.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune opération en cours.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">'
+         +  (closes.length ? 'Aucune opération en cours.' : 'Aucune opération, en cours ou passée.')
+         +  '</div>';
   }
   cellules.forEach(c => {
     const restant = Math.max(0, Math.ceil((new Date(c.echeance) - Date.now()) / 86400000));
@@ -7928,6 +7938,31 @@ async function ouvrirPanneauCellules() {
          +  'cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em">Mettre fin à l\'opération</button>';
     html += '</div>';
   });
+  // OPERATIONS ARRETEES : presentes, datees, avec leur cause. Aucun faux rapport n'est
+  // fabrique -- une operation close ne produit plus rien, et c'est justement ce qu'on dit.
+  if (closes.length) {
+    const MOTIF_FIN = {
+      volontaire:   'arrêtée sur votre ordre',
+      naturelle:    'arrivée à son terme',
+      echec_agents: 'perdue — tous les agents sont tombés'
+    };
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;'
+         +  'color:#6a6050;margin:.9rem 0 .45rem">OPÉRATIONS PASSÉES</div>';
+    closes.forEach(c => {
+      const couv = COUNTRIES[c.pays_couverture]?.n || c.pays_couverture || '?';
+      const fin  = MOTIF_FIN[c.mode_fin] || 'arrêtée';
+      const le   = c.terminee_le ? String(c.terminee_le).slice(0, 10) : '';
+      html += '<div style="border:1px solid #1e1a12;background:#0b0a06;padding:.5rem .8rem;'
+           +  'margin-bottom:.45rem;opacity:.75">'
+           +  '<div style="font-size:.8rem;color:#8a8060">Couverture : '
+           +  escapeHtmlText(couv) + '</div>'
+           +  '<div style="font-size:.72rem;color:#6a6050;font-style:italic;margin-top:.15rem">'
+           +  'Pas de rapport — opération arrêtée' + (le ? ' le ' + escapeHtmlText(le) : '')
+           +  ' · ' + fin + '.</div>'
+           +  '<div style="font-size:.7rem;color:#5a5348;margin-top:.15rem">'
+           +  'Les rapports déjà reçus restent consultables.</div></div>';
+    });
+  }
   html += '<button onclick="ouvrirRapportsCellules()" style="width:100%;padding:.45rem;border:1px solid #8a6a20;'
        +  'background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem;'
        +  'letter-spacing:.08em">Rapports reçus</button>';
@@ -8020,9 +8055,18 @@ async function ouvrirRapportsCellules() {
     // Accord calcule, comme dans la notification : « 0 fait », « 1 fait », « 2 faits ».
     const nb = rap.nb_faits || 0;
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.6rem">'
-         +  '<div style="font-size:.78rem;color:#C9A84C">' + escapeHtmlText(rap.jour || '') + ' — '
-         +  (COUNTRIES[rap.pays_cible]?.n || rap.pays_cible) + ' <span style="color:#8a8060">('
-         +  nb + (nb > 1 ? ' faits' : ' fait') + ')</span></div>';
+         // LE PAYS N'EST PAS UN LIEU (26 septembre 2026). rap.pays_cible contient la
+         // COUVERTURE choisie a la convocation -- une fiction narrative, jamais une
+         // destination : une cellule de couverture soviet peut tres bien observer un fait a
+         // Luthecia, et c'est exactement ce qui s'est produit. L'en-tete affichait cette
+         // valeur nue, ce qui la faisait lire comme le lieu de l'operation.
+         // Le libelle dit desormais ce que la valeur est. Le lieu reel du fait n'est pas
+         // encore une donnee structuree (colonnes preparees, non remplies) : on ne le
+         // fabrique donc pas ici.
+         +  '<div style="font-size:.78rem;color:#C9A84C">' + escapeHtmlText(rap.jour || '')
+         +  ' <span style="color:#8a8060">· couverture '
+         +  escapeHtmlText(COUNTRIES[rap.pays_cible]?.n || rap.pays_cible || '?')
+         +  ' · ' + nb + (nb > 1 ? ' faits' : ' fait') + '</span></div>';
     (rap.faits || []).forEach(f => {
       html += '<div style="font-size:.74rem;color:#a09060;margin-top:.3rem">• ' + escapeHtmlText(f.fait) + '</div>';
     });
