@@ -2200,13 +2200,9 @@ async function pnjGroupeMetierSoldats(pays) {
     (c.sections || []).forEach(s => (s.soldats || []).forEach(sol => {
       if (sol && sol.matricule) parMatricule[sol.matricule] = {
         formation: sol.formation || {}, arme: sol.arme || null,
-        // LES ACCESSOIRES D'UN SOLDAT SONT SES POSSESSIONS, et ils vivent encore dans le blob
-        // (cle `accessoires`). Le socle ne les a pas : pnj_possessions est vide pour les
-        // soldats. Sans cette lecture, la popup afficherait « possessions : aucune » a un
-        // Lieutenant dont un homme porte une trousse de secours -- un mensonge d'interface.
-        // On les lit donc a la source, comme l'entrainement, tant que la copie du metier
-        // militaire vers pnj_possessions n'a pas ete faite.
-        accessoires: Array.isArray(sol.accessoires) ? sol.accessoires : [],
+        // Les accessoires ne sont PLUS lus ici : ils ont ete migres dans pnj_possessions et y
+        // sont maintenus par le miroir. pnj_possessions est desormais la source UNIQUE des
+        // possessions d'un PNJ, toutes familles confondues.
         section: s.id, lieutenant: s.lieutenantNom || null
       };
     }));
@@ -2294,19 +2290,19 @@ async function ouvrirGroupePnj() {
   corps.innerHTML = html;
 
   // Les possessions sont chargees apres coup : la liste s'affiche sans attendre.
-  // Pour un SOLDAT, deux sources aujourd'hui : pnj_possessions (socle, ce que le joueur lui a
-  // donne depuis la bascule) ET la cle `accessoires` du blob (equipement militaire d'origine,
-  // pas encore migre). On additionne les deux plutot que d'en taire une.
+  // UNE SEULE SOURCE (26 septembre 2026) : pnj_possessions. Les accessoires militaires y ont
+  // ete migres objet complet, et le miroir les y maintient tant que le blob reste autoritaire.
+  // L'addition de deux sources qui existait ici est donc supprimee : deux sources tenues pour
+  // equivalentes finissent toujours par divergier.
+  // Les objets du jeu nomment leur libelle tantot `nom` (inventaire des joueurs) tantot `name`
+  // (equipement militaire) : on accepte les deux a l'affichage, sans rien reecrire en base.
   miens.forEach((m, i) => {
     sbPnjPossessions(m.id).then(liste => {
       const el = document.getElementById('grp-poss-' + i);
       if (!el) return;
-      const duSocle = (Array.isArray(liste) ? liste : []).map(o => (o.objet?.nom || '?'));
-      const met = metier[m.nom];
-      const duBlob = (met && Array.isArray(met.accessoires))
-        ? met.accessoires.map(a => (a?.name || a?.nom || '?')) : [];
-      const tout = duSocle.concat(duBlob);
-      el.textContent = 'possessions : ' + (tout.length === 0 ? 'aucune' : tout.join(', '));
+      const noms = (Array.isArray(liste) ? liste : [])
+        .map(o => (o.objet?.nom || o.objet?.name || '?'));
+      el.textContent = 'possessions : ' + (noms.length === 0 ? 'aucune' : noms.join(', '));
     }).catch(() => {});
   });
 }
@@ -2347,7 +2343,7 @@ async function ouvrirGroupePnjDonner(i) {
     objets.forEach(o => {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;'
            +  'border-top:1px solid #1a1810;padding:.3rem 0">'
-           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || '?')
+           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || o.objet?.name || '?')
            +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>'
            +  '<button onclick="confirmerGroupePnjDonnerObjet(' + i + ',' + o.index + ')" '
            +  'style="padding:.2rem .5rem;border:1px solid #4a6a3a;background:transparent;'
@@ -2407,7 +2403,7 @@ async function ouvrirGroupePnjRetirer(i) {
     objets.forEach(o => {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;'
            +  'border-top:1px solid #1a1810;padding:.3rem 0">'
-           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || '?')
+           +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || o.objet?.name || '?')
            +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>'
            +  '<button onclick="confirmerGroupePnjRetirerObjet(' + i + ',' + o.index + ')" '
            +  'style="padding:.2rem .5rem;border:1px solid #6a5a2a;background:transparent;'

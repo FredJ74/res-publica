@@ -244,3 +244,67 @@ même s'il paraît meilleur. Je ne l'ai pas fait.
 
 Le comparateur ne compare pas les possessions : il est resté vert pendant tout ce temps alors
 que ce trou existait. C'est une limite du comparateur à corriger avant la bascule d'autorité.
+
+## Checkpoint possessions
+
+Migrations `socle_pnj_comparateur_possessions`, `socle_pnj_miroir_possessions`.
+
+### Cartographie exhaustive de `accessoires`
+
+**Un seul porteur** : le soldat `202609-001`, section `…-s1` (celle de Vince). **Un seul objet** :
+une trousse de premiers secours, `id = mil-39fe0df67eb54489968d1feccec29d46`, 11 clés
+(`desc, icon, id, imageUrl, legal, name, origineMilitaire, produitMilitaire, sousType, type,
+usageUnique`), `usageUnique: true`, **sans champ `quantite`**. Aucun réserviste n'en porte.
+
+Surface de code, complète :
+- **3 lectures** — `agent_garde_observer`, `militaire_entree_zone`, `militaire_observer` —
+  toutes cherchant `produitMilitaire = 'tenue_camouflage'` pour le calcul de détection ;
+- **2 écritures**, toutes deux réécrivant le blob : `militaire_equiper_accessoire` (client) et
+  `militaire_gilet_absorber` (serveur). **Le déclencheur miroir les couvre donc déjà** : je n'ai
+  eu à toucher ni l'une ni l'autre ;
+- **1 lecture cliente** : `plateau-politique.js:10870`.
+
+### Le comparateur étendu, et la preuve qu'il voyait le trou
+
+Étendu **avant** la migration, exprès. Il compare les possessions par **objet entier** et par
+rang d'occurrence — un attribut modifié ou un exemplaire en double est donc une divergence.
+
+Avant migration, il a bien détecté :
+```
+ok: false, possessions_blob: 1, possessions_socle: 0
+detail: { matricule 202609-001, objet « Trousse de premiers secours »,
+          divergence possession_absente_du_socle }
+```
+
+Une distinction a été nécessaire, et ce n'est pas une règle inventée : `pnj_possessions.origine`
+vaut `blob_accessoires` ou `socle`. Le comparateur ne confronte au blob que le premier
+sous-ensemble — sinon tout objet légitimement **donné par un joueur** serait déclaré
+surnuméraire, le blob ne le connaissant pas. Colonne destinée à disparaître à la bascule.
+
+### Migration : le miroir *est* la migration
+
+Le miroir a été étendu aux possessions, en **différentiel** et non en destruction-reconstruction.
+Ce n'est pas une coquetterie : `pnj_possessions_lire` numérote par ordre d'id et
+`pnj_objet_transferer('retirer')` désigne par cet index. Un miroir qui recréerait tout ferait
+glisser les index entre la lecture et l'écriture.
+
+L'appeler une fois a donc réalisé la migration, objet complet, **11 clés préservées**,
+`exemplaire_unique` dérivé de `usageUnique`. Trois passes de plus : toujours **1 possession,
+id inchangé (6)** — idempotent et sans churn.
+
+Miroir éprouvé **dans les deux sens** par une écriture réelle strictement réversible :
+```
+ajout d'un accessoire dans le blob   -> possessions_blob 2, possessions_socle 2, 0 divergence
+restauration depuis le snapshot      -> retour a 1, objet de banc retire automatiquement
+                                        md5 du blob et updated_at identiques, id 6 intact
+```
+
+### Une seule source pour la popup
+
+L'addition de deux sources est supprimée : la popup lit uniquement `pnj_possessions`. **Aucun
+repli sur `accessoires` n'a été conservé** — le miroir garantit la complétude, et deux sources
+tenues pour équivalentes finissent toujours par diverger.
+
+Détail attrapé au passage : les objets du jeu nomment leur libellé tantôt `nom` (inventaire des
+joueurs) tantôt `name` (équipement militaire). L'affichage accepte les deux ; rien n'est réécrit
+en base.
