@@ -703,7 +703,14 @@ async function reprendreAgentIci(agentId) {
 function getMonGroupePNJ() {
   const liste = [];
   (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort', photoUrl: e.photoUrl || null, job: 'escort' }));
-  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null, job: e.job || 'default' }));
+  // DOUBLON D'AFFICHAGE (26 septembre 2026). Une escort recrutee vit a la fois dans
+  // state.escortActive et dans state.employes (avec job 'escort') : elle etait poussee deux fois
+  // dans presences.groupe_pnj, donc affichee en DEUX cartes chez les autres joueurs.
+  // On ne retient ici que les employes deja absents de la liste, par nom -- ce qui couvre aussi
+  // l'escort debauchee, qui n'existe au contraire que dans escortActive.
+  const dejaListes = new Set(liste.map(x => x.nom));
+  (state.employes || []).filter(e => e.inGroupe && !dejaListes.has(e.nom))
+    .forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null, job: e.job || 'default' }));
   // Sous leur seule identite de couverture, y compris pour le ministre : son ecran
   // « Suivre une operation » est le seul endroit ou les vrais noms apparaissent.
   RP_AGENTS_PORTES.forEach(a => liste.push({
@@ -927,7 +934,16 @@ function payerEscorts() {
     }
   });
 
+  // RETRAIT SYMETRIQUE (26 septembre 2026). Une escort vit dans TROIS structures a la fois
+  // (escortActive, employes, group.members). Le non-paiement ne la retirait que des deux
+  // premieres : elle restait dans state.employes, donc toujours affichee comme accompagnante
+  // dans « Personnes presentes » alors qu'elle venait de porter plainte et de partir.
+  // Seuls confirmerRenvoyerEscort et licencierPnj nettoyaient les trois ; on le fait ici aussi.
+  const partantes = toRemove.map(i => state.escortActive[i]?.nom).filter(Boolean);
   toRemove.reverse().forEach(i => state.escortActive.splice(i, 1));
+  if (partantes.length && Array.isArray(state.employes)) {
+    state.employes = state.employes.filter(e => !(e.job === 'escort' && partantes.includes(e.nom)));
+  }
 }
 
 
@@ -1125,6 +1141,15 @@ function payerEmployes() {
   const toFire = [];
 
   employes.forEach((emp, i) => {
+    // DOUBLE FACTURATION DES ESCORTS (26 septembre 2026).
+    // Une escort recrutee est poussee a la fois dans state.escortActive (avec `tarif`) et dans
+    // state.employes (avec `cout: tarif`) -- cf. confirmerRecrutementEscort. Or payerEscorts() et
+    // payerEmployes() sont appelees coup sur coup au reveil : la meme escort etait payee DEUX FOIS,
+    // et le journal affichait deux lignes pour un seul service.
+    // payerEscorts() reste le payeur de reference : c'est elle qui porte les consequences propres
+    // au metier (plainte au tribunal, -20 POP, -15 DIS, article de presse) que payerEmployes()
+    // n'a pas. On saute donc les escorts ici, sans toucher a l'alignement des index de toFire.
+    if (emp.job === 'escort') return;
     if (state.arg >= emp.cout) {
       state.arg -= emp.cout;
       addJournalEntry('Salaire ' + emp.nom + '. -' + emp.cout + ' ' + cur + '.', 'event-info');
@@ -1915,8 +1940,17 @@ function getGroupSize() {
   // Fix 9 aout 2026 : lisait state.employees (jamais rempli nulle part, typo au pluriel)
   // au lieu de state.employes - le bonus de taille de groupe (organiser_blocus, etc.) ne
   // comptait donc quasiment jamais les employes recrutes, seulement le joueur seul.
-  if (!state.group) return 1 + (state.employes ? state.employes.filter(e => e.inGroupe).length : 0);
-  return state.group.members.length;
+  // Le correctif du 9 aout n'a traite QUE la branche sans state.group. Des qu'une escort etait
+  // recrutee (ou que le joueur rejoignait un autre PJ), state.group existait et la fonction
+  // renvoyait la seule longueur de group.members : les employes accompagnants disparaissaient du
+  // compte, et le bonus de blocus BAISSAIT en recrutant. Les deux structures decrivent deux choses
+  // differentes -- group.members = les PJ/PNJ rejoints, employes inGroupe = les accompagnants --
+  // et la taille du groupe est leur union, le joueur compte une seule fois. (26 septembre 2026)
+  const noms = new Set();
+  if (state.char?.name) noms.add(state.char.name);
+  (state.employes || []).forEach(e => { if (e.inGroupe && e.nom) noms.add(e.nom); });
+  (state.group?.members || []).forEach(n => { if (n) noms.add(n); });
+  return Math.max(1, noms.size);
 }
 
 function isGroupLeader() {

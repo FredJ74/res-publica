@@ -1408,8 +1408,19 @@ async function sbGetEvenementsRecents(country, city) {
 // =====================
 // PRÉSENCE EN PIÈCE (multijoueur temps réel)
 // =====================
+// GROUPE DE PNJ : NE JAMAIS L'EFFACER PAR OMISSION (26 septembre 2026).
+// Des trois appelants, un seul passait le 6e argument (le battement de 30 s de plateau-core.js) ;
+// enterRoom et la marche en rue centrale l'omettaient. L'upsert ecrivait donc groupe_pnj: [] a
+// chaque changement de piece : aux yeux des AUTRES joueurs, les PNJ accompagnants disparaissaient
+// et ne revenaient qu'au battement suivant, jusqu'a 30 s plus tard.
+// Un appelant qui ne se prononce pas sur le groupe (argument absent) ne doit rien effacer : on
+// resout alors le groupe courant nous-memes. Passer explicitement [] reste possible et signifie
+// bien « aucun accompagnant ».
 async function sbUpdatePresence(name, country, city, buildingId, roomId, groupePnj) {
   if (!name) return;
+  if (typeof groupePnj === 'undefined') {
+    groupePnj = (typeof getMonGroupePNJ === 'function') ? getMonGroupePNJ() : [];
+  }
   // Upsert — name est cle primaire, on remplace la ligne existante (sinon conflit silencieux)
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/presences`, {
