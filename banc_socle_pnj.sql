@@ -202,12 +202,22 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'touches', v_touches, 'morts', v_morts);
 END; $$;
 
--- DEPLACEMENT D'UN GROUPE : le leader paie l'argent, chacun paie ses PA.
+-- DEPLACEMENT D'UN GROUPE.
+--
+-- CORRECTION DU 26 SEPTEMBRE 2026 -- LE SOCLE NE DECIDE JAMAIS CE QUI CONSOMME DES PA.
+-- La premiere version de ce banc debitait les PA de chaque membre au deplacement. C'etait une
+-- extrapolation, et elle etait FAUSSE comme regle generique : suivre son leader ne coute rien
+-- par construction. Le socle fournit la VALEUR des PA, leur valeur initiale de 12, la
+-- primitive securisee de debit et les invariants (dont 0 PA = mort). Il ne decide ni la
+-- perte, ni l'usage, ni la regeneration : cela appartient EXCLUSIVEMENT au metier.
+-- Consequence : pnj_suivre_leader() ne signifie jamais pnj_perdre_pa().
+-- Le leader, lui, paie ses propres PA (c'est SON ordre de deplacement) et le cout monetaire
+-- du transport pour tout le groupe.
 CREATE OR REPLACE FUNCTION banc_pnj.groupe_deplacer(
   p_leader text, p_ville text, p_building text, p_room text,
   p_pa integer, p_cout_argent numeric)
 RETURNS jsonb LANGUAGE plpgsql AS $$
-DECLARE v_ids text[]; v_r jsonb; v_pa_leader integer; v_liquide numeric;
+DECLARE v_ids text[]; v_pa_leader integer; v_liquide numeric;
 BEGIN
   SELECT pa, liquide INTO v_pa_leader, v_liquide FROM banc_pnj.pj
    WHERE name = p_leader FOR UPDATE;
@@ -228,10 +238,10 @@ BEGIN
                          current_room = p_room
    WHERE name = p_leader;
 
-  -- Les membres : PA individuels. Aucune ecriture de position : elle est DERIVEE.
-  v_r := banc_pnj.pa_debiter(v_ids, p_pa);
+  -- Les membres : RIEN. Aucune ecriture de position (elle est DERIVEE), et AUCUN debit de PA
+  -- (le socle n'en decide pas). Le groupe suit, point.
   RETURN jsonb_build_object('ok', true, 'membres', coalesce(array_length(v_ids,1),0),
-                            'pa', v_r);
+                            'pa_membres_debites', 0);
 END; $$;
 
 -- TRANSFERT DE CONDUITE : co-presence exigee, aucune acceptation, propriete inchangee.
@@ -325,7 +335,26 @@ CREATE OR REPLACE FUNCTION banc_pnj.verifier(p_cas text, p_intitule text,
 $$;
 
 -- =====================================================================================
--- RESULTATS -- execution du 26 septembre 2026 : 24 cas joues, 24 reussis, 0 echec.
+-- RESULTATS -- 2e execution du 26 septembre 2026, APRES correction du modele PA :
+-- 34 cas joues, 34 reussis, 0 echec.
+--
+-- LA CORRECTION QUI COMPTE : le cas F disait auparavant « leader 30->28, chaque PNJ 12->10 ».
+-- C'etait une extrapolation, et une FAUSSE regle generique. Le socle ne decide jamais ce qui
+-- consomme des PA. Le cas F verifie donc maintenant l'inverse :
+--   F   suivre son leader ne coute AUCUN PA aux membres (leader 28, membres 12|12|12|12, 0 debite)
+--   F2  trois deplacements consecutifs : membres toujours a 12, inertes
+--   F3  agent de renseignement : 12 PA inertes, aucun cout implicite
+--   H2  un transfert de conduite ne coute aucun PA
+--   L2  perdre son leader ne coute aucun PA
+-- Et le debit existe bel et bien, mais APPELE PAR LE METIER :
+--   W   debit volontaire de 5 : 12 -> 7
+--   W2  cout negatif refuse : aucun PA fabrique
+--   W3  debit superieur au solde : borne a 0, jamais negatif, et la mort generique se declenche
+--   T   debit et mort rejoues : aucune double mort, aucun double depot
+--   T2  un mort n'est plus jamais touche par un debit
+--   X   metier militaire hors socle : l'entrainement reste dans sa table
+--
+-- ANCIENNE execution (modele PA errone) : 24 cas, 24 reussis.
 --
 --  A  PNJ personnel stationne : position propre, non porte ................... OK
 --  B  PNJ institutionnel, poste vacant : aucun administrateur ................ OK
