@@ -2408,14 +2408,24 @@ async function ouvrirGroupePnjRetirer(i) {
   if (objets.length === 0) {
     html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic">Il ne porte aucun objet.</div>';
   } else {
+    // Un objet dont `cessible` est faux est le MIROIR d'une possession que le métier détient
+    // encore : le reprendre le dupliquerait, et le serveur le refuse. On n'offre donc pas le
+    // bouton, et on dit pourquoi -- plutôt que de laisser le joueur buter sur un refus.
+    // Le client ne DÉCIDE rien ici : il reflète ce que le serveur a déjà tranché.
     objets.forEach(o => {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;'
            +  'border-top:1px solid #1a1810;padding:.3rem 0">'
            +  '<span style="font-size:.78rem;color:#a09060">' + ech(o.objet?.nom || o.objet?.name || '?')
-           +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>'
-           +  '<button onclick="confirmerGroupePnjRetirerObjet(' + i + ',' + o.index + ')" '
-           +  'style="padding:.2rem .5rem;border:1px solid #6a5a2a;background:transparent;'
-           +  'color:#C9A84C;cursor:pointer;font-size:.7rem">Retirer</button></div>';
+           +  (o.objet?.quantite ? ' ×' + ech(o.objet.quantite) : '') + '</span>';
+      if (o.cessible === false) {
+        html += '<span style="font-size:.68rem;color:#6a6050;font-style:italic;text-align:right;'
+             +  'max-width:11rem">Équipement militaire : se reprend par l\'ordre de section.</span>';
+      } else {
+        html += '<button onclick="confirmerGroupePnjRetirerObjet(' + i + ',' + o.index + ')" '
+             +  'style="padding:.2rem .5rem;border:1px solid #6a5a2a;background:transparent;'
+             +  'color:#C9A84C;cursor:pointer;font-size:.7rem">Retirer</button>';
+      }
+      html += '</div>';
     });
   }
   html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
@@ -2443,13 +2453,18 @@ async function confirmerGroupePnjRetirerObjet(i, index) {
 // n'aboutit pas se distingue d'un refus metier.
 const MOTIFS_REFUS_GROUPE_PNJ = {
   acteur_non_authentifie: 'Votre personnage n\'est pas reconnu par le serveur.',
-  autorite_insuffisante: 'Vous ne commandez pas ce PNJ.',
+  autorite_insuffisante: 'Vous n\'avez pas autorité sur ce PNJ.',
+  objet_non_cessible: 'Cet équipement appartient au matériel militaire : il se reprend par '
+    + 'l\'ordre de section, pas à la main.',
   fonds_insuffisants: 'Fonds insuffisants.',
   montant_invalide: 'Montant invalide.',
   index_invalide: 'Cet objet n\'existe plus.',
   introuvable: 'PNJ introuvable.',
   sens_invalide: 'Sens de transfert invalide.',
-  pas_co_presents: 'Le destinataire n\'est pas dans cette pièce.',
+  // Ce refus couvre désormais deux situations : le destinataire d'un transfert absent, et le PNJ
+  // lui-même absent (consulter, donner, retirer exigent la co-présence physique). Le libellé ne
+  // doit donc plus désigner le seul destinataire.
+  pas_co_presents: 'Il faut être physiquement au même endroit pour cela.',
   destinataire_introuvable: 'Destinataire introuvable.',
   soldat_axe_blob_autoritaire: 'Action individuelle indisponible pour les soldats : '
     + 'le modèle militaire opère par nombre. Passez par l\'ordre de section.'

@@ -4756,10 +4756,19 @@ async function sbFretDedouaner(caisseId) {
 // SOCLE GENERIQUE DES PNJ EMPLOYABLES (26 septembre 2026)
 // =====================================================================
 // Toutes ces primitives sont SERVEUR : l'identite de l'acteur est resolue par
-// mon_personnage(), jamais transmise par le client, et l'autorite est verifiee par
-// pnj_peut_commander (etre l'administrateur du PNJ ou son leader courant).
+// mon_personnage(), jamais transmise par le client.
 // Le client ne possede AUCUN droit direct sur les tables du socle : RLS activee, zero policy,
 // aucun GRANT. Il n'y a donc pas de chemin d'ecriture parallele possible.
+//
+// DEUX DROITS DISTINCTS, JAMAIS CONFONDUS (27 septembre 2026). L'ancien predicat unique
+// pnj_peut_commander melangeait le patrimoine et le mouvement ; il est supprime.
+//   pnj_peut_administrer -- proprietaire, ou detenteur de l'autorite institutionnelle. Seul droit
+//                           qui ouvre l'inventaire, l'argent et la propriete. Exige en plus la
+//                           CO-PRESENCE PHYSIQUE : consulter, donner, retirer se font en personne.
+//   pnj_peut_conduire    -- les precedents, PLUS le leader courant. Mouvement et composition du
+//                           groupe seulement. Un leader transporte ; il n'acquiert rien.
+// L'autorite institutionnelle est resolue par la couche METIER (registre pnj_institutions) : le
+// socle ignore ce qu'est un Lieutenant, et « personne n'a l'autorite » est un etat valide.
 //
 // PA : le socle les stocke et expose un debit APPELE PAR LE METIER. Aucune de ces fonctions
 // ne debite de PA -- suivre son leader, se deplacer, changer de groupe ne coutent rien.
