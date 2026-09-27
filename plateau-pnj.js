@@ -948,16 +948,29 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalInterrogatoireSujet(\'' + pnjSafeName + '\',\'' + (pnj.job || 'default').replace(/'/g,'') + '\')"><i class="ti ti-message-question" style="font-size:.85rem"></i> Interroger sur un sujet</button>';
   }
 
-  // Recruter comme employé (tous PNJ sauf escort qui a son propre bouton)
-  // §2 : les neuf députés PNJ ne doivent JAMAIS être recrutables. Ils portent nonRecrutable,
-  // posé par appliquerDeputesAssemblee (plateau-assemblee.js). Le drapeau est générique : tout
-  // PNJ institutionnel futur peut le réutiliser sans toucher à cette condition.
+  // =====================================================================
+  // PNJ DU DECOR : PLUS AUCUN BOUTON DE RECRUTEMENT GENERIQUE (27 septembre 2026)
+  // =====================================================================
+  // Le bouton « Recruter comme employé » s'affichait sur TOUT PNJ non-PJ portant un job quelconque.
+  // C'etait un contresens de classe : les PNJ poses dans le decor sont des GAMMA -- un juge, un
+  // garde, un docker, un grand pretre n'ont pas de proprietaire et ne s'emploient pas. Le job
+  // decrit leur FONCTION, il ne les rend pas employables. Le bouton menait de toute facon a
+  // confirmerRecrutPnj, mure depuis le 16 juillet 2026 et qui reste ferme : il ne promettait donc
+  // qu'une deception.
+  //
+  // Les vrais chemins Beta ne passent pas par ici et ne sont pas touches :
+  //   * escort      -> son propre bouton, plus bas dans cette meme fonction ;
+  //   * informateur -> un ORDRE de salle (recruter_informateur_pnj), dans deux bars ;
+  //   * militant    -> un ORDRE de salle (recruter_etud), a l'universite.
+  // Le registre serveur pnj_fonctions dit lesquelles de ces fonctions sont recrutables : une seule,
+  // escort. `ouvrirModalRecrutPnj` et `confirmerRecrutPnj` sont conservees comme dette historique
+  // documentee, mais plus rien ne les expose.
+  //
+  // Ce bloc ne sert donc plus qu'aux PNJ DEJA employes : les reprendre, les laisser, lire leur fiche.
   if (!isPJ && !pnj.nonRecrutable && pnj.job !== 'escort' && pnj.job !== 'codetenu') {
     const nomCourt = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const dejEmploye = (state.employes || []).some(e => e.nom === nomCourt);
-    if (!dejEmploye) {
-      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalRecrutPnj(\'' + enc + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Recruter comme employé</button>';
-    } else {
+    if (dejEmploye) {
       const empData = (state.employes || []).find(e => e.nom === nomCourt);
       if (empData && !empData.inGroupe && empData.buildingId === state.currentBuilding && empData.roomId === state.currentRoom) {
         actionBtns += '<button class="pnj-action-btn" onclick="recupererPnjDansGroupe(\'' + nomCourt + '\')"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre le groupe</button>';

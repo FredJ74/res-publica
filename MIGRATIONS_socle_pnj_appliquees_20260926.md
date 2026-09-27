@@ -1371,3 +1371,188 @@ les huit fonctions réécrites.
    désactivée, dont `budgets_municipaux`, `budgets_nationaux`, `prets`, `etats_urgence`,
    `fraudes_electorales`. **Rien appliqué** : activer la RLS sans policy bloquerait tout accès —
    c'est le piège des « policies dormantes ». À arbitrer séparément.
+
+---
+
+# FERMETURE BÊTA / GAMMA (27 septembre 2026)
+
+## A0 — La classe se sépare de la fonction
+
+C'est la correction dont tout le reste dépend. `pnj_classe_de` **déduisait la classe de la famille**,
+par jointure. Or le jeu fournit le contre-exemple : **Prosper Tampon exerce la fonction de douanier
+en étant un Gamma fixe du décor**, au passage en douane, tandis que les **quatre effectifs du service
+des Douanes sont des Bêta employés**. Même mot de métier, nature opposée. Un modèle qui dérive la
+classe du métier aurait déclaré Prosper bêta — donc consommateur de PA, assassinable, employable.
+
+Le modèle corrigé :
+
+| | Porte quoi | Exemple |
+| --- | --- | --- |
+| `pnj_membres.classe` | la **nature** : alpha / bêta / gamma | Prosper = `gamma` |
+| `pnj_membres.famille` | la **fonction**, le métier, le job | Prosper = `douanier` |
+| `pnj_familles_classes` | un **défaut** par famille, plus une vérité | douanier → bêta *par défaut* |
+
+Le schéma ne pouvait pas non plus **exprimer** un Gamma : `pnj_propriete_exclusive` exigeait un
+propriétaire, PJ ou institution. Or un Gamma n'appartient à personne. La contrainte devient
+conditionnelle, et `IS DISTINCT FROM` la rend totale :
+
+```sql
+CHECK ( (classe = 'gamma' AND les trois champs de propriété sont NULL)
+     OR (classe IS DISTINCT FROM 'gamma' AND l'exclusivité d'avant) )
+```
+
+Conséquence voulue : pour inscrire un Gamma, il faut déclarer `classe = 'gamma'` **explicitement**.
+Le défaut de famille ne dispense pas de propriétaire — on n'obtient pas l'exemption par omission.
+
+**Preuve, 5/5** : Prosper (famille douanier, classe gamma) et un effectif des Douanes (famille
+douanier, classe bêta) **coexistent** ; les PA de Prosper sont refusés ; un gamma *avec* propriétaire
+est refusé ; un bêta *sans* propriétaire reste refusé ; comparateurs verts.
+
+## A1 — Les caractéristiques sont fixes et appartiennent au métier
+
+Nouveau référentiel `pnj_metiers_profils`, **indexé par métier et non par famille** — parce qu'escort,
+informateur et codétenu sont trois **métiers d'une seule famille** (`employe`). Les sept profils
+arbitrés y sont, avec leurs coûts relevés du code existant (jamais choisis) :
+
+| Métier | INT | CHA | VOL | PER | DUP | ENT | PA init. | Coût init. | Coût/jour |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| soldat | 9 | 8 | 12 | 10 | 8 | 12 | 0 | — | — |
+| escort | 10 | **15** | 10 | 10 | 12 | 10 | 0 | 800 | 800 |
+| informateur | 10 | 10 | 8 | **15** | 12 | 8 | 1 | 150 | 150 |
+| codétenu | 10 | 10 | 10 | 12 | 12 | 10 | 0 | 100 | 100 |
+| militant | 9 | 12 | **15** | 9 | 8 | 12 | 2 | 0 | gratuit |
+| douanier | 10 | 8 | 12 | 12 | 8 | 10 | 0 | — | institutionnel |
+| policier | 10 | 8 | 12 | 12 | 8 | 10 | 0 | — | institutionnel |
+
+**Les 96 soldats reçoivent enfin leurs six caractéristiques**, vides depuis le lot 1. Vérifié avant
+d'écrire : aucune fonction du schéma ne les **lit** pour décider (seuls les miroirs douane/police les
+écrivent, et leurs comparateurs les comparent) — donc aucun effet de jeu. `douane_caracteristiques_metier`
+et `police_caracteristiques_metier` délaissent leurs valeurs en dur et lisent le référentiel, à
+valeurs rigoureusement identiques.
+
+## A2 — La famille `employe` entre au socle, directement autoritaire
+
+**Sans phase miroir, et c'est un constat qui l'autorise** : la production ne contenait **aucun**
+employé, aucune escorte, aucun informateur. Rien à importer, aucune divergence à couvrir. Construire
+un miroir pour zéro donnée n'aurait rien prouvé.
+
+`employe_recruter` fait tout dans **une seule transaction** — quota, plafond, paiement, création —
+de sorte qu'un refus de fonds ne laisse aucun employé et qu'un échec de création ne laisse aucun
+débit. Le paiement passe par `payer_ordre` quand un ordre déclaré existe (l'informateur : le coût
+reste revalidé contre le miroir de `data.js`) et par `debiter_fonds_ordinaires` sinon (l'escort, dont
+le bouton n'est pas un ordre). **Plus aucun `state.arg -=`.**
+
+`employe_liberer` prononce le départ — renvoi, licenciement, impayé — en marquant **disparu** et en
+déliant. **Jamais un DELETE** : la garde de suppression refuserait un PNJ actif, et un employé qui
+s'en va n'est pas mort.
+
+**Aucune écriture dans `room.persons`**, jamais : c'est la stratégie de l'informateur, la seule qui
+n'a jamais produit de duplication. Un PNJ existe une fois ; sa présence vient de son état.
+
+**Preuve, 10/10** : profils fixes servis par le serveur ; débits exacts (800 + 800 + 150 = 1750 et
+1 PA) ; quota escort par genre ; quota informateur ; `codetenu` refusé (`metier_non_recrutable`) ;
+libération → `disparu` avec ligne conservée. Puis après bascule des axes, **7/7** : le refus de PA
+vient désormais de la **classe** et non de l'axe, et les primitives génériques laisser/reprendre
+fonctionnent sur un employé.
+
+Une précaution qui a servi : `deduireCoutOrdre` recopiait **cinq** champs après paiement, dont le
+solde national. Les réécrire à la main ailleurs, c'était garantir d'en oublier un. Extraits en
+`appliquerPaiementServeur`, une définition, deux appelants.
+
+## B — Le Militant raccordé, le Codétenu laissé dormant
+
+Le militant est raccordé **parce que son chemin est réellement vivant et défini** : membre d'une
+organisation syndicale, deux au maximum, un par jour, 2 PA, gratuit à vie. Il entre au socle avec son
+profil fixe, **position propre et aucun leader** — un militant reste sur son lieu de militance.
+
+Deux défauts refermés au passage, **sans changer aucune règle** :
+
+- le plafond de deux était vérifié **dans le navigateur**, et `militants_recrutes` recevait un INSERT
+  direct du client : rien n'empêchait d'en recruter trente. Il est désormais compté au serveur. La
+  valeur reste deux.
+- la création était un best-effort dont le résultat **n'était jamais lu** : un échec passait inaperçu
+  après que le joueur avait payé ses 2 PA.
+
+**Reste volontairement client** : la garde « un seul par jour » s'appuie sur `state.day`, et le jeu
+n'a **aucune source serveur du jour de jeu**. La déplacer aurait exigé d'en inventer une.
+
+**Reste volontairement dormant** : le blocus syndical (mort en amont), et le **codétenu** — aucun PNJ
+du jeu ne porte `job:'codetenu'`, il reste hors des métiers recrutables, profil conservé.
+
+**Preuve, 9/9**, dont le plafond refusé au troisième militant et 2 PA × 2 prélevés.
+
+## C — Registre des fonctions, et classe des PNJ du décor
+
+`pnj_fonctions` ne contient **aucun PNJ** : le décor vit dans `data.js`, qui *est* le monde commun,
+statique et identique pour tous. Les recopier dans `pnj_membres` créerait exactement la « copie
+parallèle uniquement pour l'affichage » que la règle de présence interdit. Le socle n'a pas besoin de
+les porter — il a besoin de **savoir ce qui est universel** à leur sujet.
+
+**Trois colonnes indépendantes, parce qu'une seule serait fausse :**
+
+- `classe_decor` — la classe des PNJ **posés dans le décor** portant cette fonction : gamma partout ;
+- `metier_beta` — existe-t-il, **par ailleurs**, un métier Bêta de ce nom ? Vrai pour cinq :
+  escort, informateur, codetenu, douanier, policier ;
+- `recrutable` — un joueur peut-il recruter un PNJ **du décor** de cette fonction ? **Une seule :
+  escort.**
+
+38 fonctions déclarées. `role_fonctionnel` distingue décor / dialogue / accès / **référent** /
+institutionnel / mécanique — « référent » est une **propriété fonctionnelle, pas une classe**, rangée
+au même niveau qu'« accès ».
+
+**Un défaut que le test a attrapé** : j'avais écrit `soldat.recrutable = true` alors que la note de la
+même ligne disait le contraire. La valeur, pas la note, est ce que le code lit — le bouton de
+recrutement se serait ouvert sur les soldats du décor de la caserne. Corrigé : **une seule** fonction
+recrutable.
+
+## D — La présence conditionnelle des députés
+
+**Constat avant d'écrire : la règle existait déjà, et exactement comme demandée.** `assemblee_sieges`
+porte en permanence l'identité du député Gamma et n'est jamais vidée ;
+`assemblee_occupation_sieges` fait un LEFT JOIN sur les PJ portant `poste_depute` pour la ville et le
+rang, et rend `est_pnj = (aucun PJ trouvé)`. La présence est donc **dérivée, jamais stockée** — ce qui
+la rend réversible par construction. Ajouter un drapeau `present` en dur aurait créé un état à
+maintenir, donc un état capable de se désynchroniser.
+
+`depute_presence(pays)` **nomme** la règle, avec présence 1/0 explicite.
+
+**Preuve du cycle complet :**
+
+```
+AVANT   presents=9 absents=0   capitale rang 1 = Étienne Vauclerc (dep_vauclerc)
+PJ ÉLU  presents=8 absents=1   present:0, occupe_par_pj:"Vince Kubrick"
+                               ligne conservée en base : 1 (jamais supprimée)
+APRÈS   presents=9 absents=0   capitale rang 1 = Étienne Vauclerc (dep_vauclerc)
+                               MÊME identité qu'au départ : true
+```
+
+**Ne pas généraliser.** La disparition conditionnelle est propre aux **députés**. Un Commissaire, un
+Juge, un Grand Prêtre Gamma **reste présent** quand un PJ reprend sa fonction : le Commissaire
+Touffaud ne s'évapore pas parce que le maire a nommé un Commissaire PJ, il cesse seulement d'en être
+le titulaire. **Existence et titularité sont deux choses.** C'est écrit dans `pnj_fonctions`.
+
+L'**endormissement** d'un député est une entrave **métier**, distincte de l'absence : un député
+endormi est **présent** mais empêché de voter.
+
+## E — Plus aucun bouton de recrutement générique
+
+Le bouton « Recruter comme employé » s'affichait sur **tout** PNJ non-PJ portant un job quelconque.
+Contresens de classe : un juge, un garde, un docker, un grand prêtre sont des **Gamma** — le job
+décrit leur fonction, il ne les rend pas employables. Et il menait de toute façon au mur de
+`confirmerRecrutPnj`, fermé depuis le 16 juillet 2026 : il ne promettait qu'une déception.
+
+Les trois vrais chemins Bêta ne passent pas par là et sont intacts : **escort** par son propre
+bouton, **informateur** et **militant** par des ordres de salle.
+
+`ouvrirModalRecrutPnj` et `confirmerRecrutPnj` sont **conservées** comme dette historique documentée —
+plus rien ne les expose. `PNJ_STATS_PAR_JOB` reste en place : six lecteurs vivants en dépendent
+(loyauté du débauchage, CHA du grand prêtre, moyennes de groupe, fiche PNJ, confidences serveur).
+
+## Ce qui reste volontairement dormant
+
+`combatBonus` par métier — et `calculerBonusCombatGroupe` n'a d'ailleurs **aucun appelant** ·
+le métier **codétenu** et son bonus de rébellion · le **blocus syndical** · la fusion des deux
+systèmes d'informateurs · la transformation du mail « Tribunal » en vraie plainte judiciaire ·
+`doEscortInfos`, routée sans ordre · le vieux recrutement générique.
+
+**Migration n'est pas l'occasion d'activer du code mort.**
