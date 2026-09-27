@@ -4766,18 +4766,25 @@ async function sbFretDedouaner(caisseId) {
 
 // Qui est present ici, toutes familles confondues. Remplace a terme militaire_detachement_ici,
 // agents_couverture_ici et les predicats clients de la police.
+// Depuis le 27 septembre 2026 elle rend { ok, membres } et non plus un tableau nu, et le
+// SERVEUR decide de ce que l'appelant voit : detail complet pour les PNJ qu'il mene ou
+// administre, simple presence pour les autres, rien du tout pour un autre pays, et jamais la
+// reserve. Le filtre qui etait ici, cote client, n'etait pas une securite.
 async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
-  return await sbRpc('pnj_membres_ici', {
+  const r = await sbRpc('pnj_membres_ici', {
     p_pays: pays, p_ville: ville, p_building: building, p_room: room,
     p_rue_noeud: rueNoeud || null
   });
+  if (r === null || r === undefined) return null;      // transport : a distinguer d'un refus
+  if (r.ok !== true) return { refus: r.raison || 'inconnu' };
+  return { membres: r.membres || [] };
 }
 
-// Position effective d'un PNJ : derivee de son leader s'il suit quelqu'un, propre sinon.
-async function sbPnjPositionEffective(pnjId) {
-  const r = await sbRpc('pnj_position_effective', { p_id: pnjId });
-  return Array.isArray(r) ? (r[0] || null) : r;
-}
+// sbPnjPositionEffective A ETE RETIREE le 27 septembre 2026. pnj_position_effective rendait la
+// position exacte de n'importe quel PNJ sur simple identifiant -- or les identifiants de soldats
+// sont previsibles (<compagnie>-<matricule>). C'etait une fuite de l'ordre de bataille, du meme
+// genre que celle fermee le 21 septembre sur compagnies_militaires. La fonction est desormais
+// reservee au serveur ; le client n'a jamais eu besoin de la position d'un PNJ isole.
 
 // Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
 // reste exactement la ou il etait. La propriete ne change pas.

@@ -2239,8 +2239,16 @@ async function ouvrirGroupePnj() {
       + 'Lecture du groupe impossible — l\'appel au serveur n\'a pas abouti. Réessayez.</div>';
     return;
   }
-  // Uniquement CEUX QUE JE MENE : le socle sait aussi qui appartient a d'autres.
-  const miens = (Array.isArray(res) ? res : []).filter(m => m.leader_pj === state.char?.name);
+  if (res.refus) {
+    corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
+      + 'Refusé par le serveur : ' + ech(MOTIFS_REFUS_GROUPE_PNJ[res.refus] || res.refus) + '</div>';
+    return;
+  }
+  // C'est le SERVEUR qui decide desormais de ce que je vois : il marque `mien` les PNJ que je
+  // mene ou que j'administre, et ne livre des autres qu'une presence nue. Le filtre client qui
+  // se trouvait ici n'etait pas une securite -- la primitive rendait les 96 soldats a qui la
+  // demandait. On ne garde donc que les miens, mais sans plus rien filtrer d'important.
+  const miens = (res.membres || []).filter(m => m.mien === true);
   RP_GROUPE_COURANT = miens;
 
   if (miens.length === 0) {
