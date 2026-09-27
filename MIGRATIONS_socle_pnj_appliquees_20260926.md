@@ -368,3 +368,152 @@ restriction tombera d'elle-même à la bascule.
 Consigne respectée à la lettre dans `militaire_bataille_combattants` : les soldats du blob n'ont
 aucune clé `nom`, l'ancienne lecture rendait donc toujours NULL, et la nouvelle rend
 explicitement `NULL::text` — et non le matricule, dont le socle disposerait.
+
+---
+
+# 27 septembre 2026 — Propriété / autorité / leader, puis la mort
+
+Ce qui suit corrige les défauts que l'audit hostile avait nommés. Chaque correction est vérifiée
+par exécution, jamais par relecture : **PL/pgSQL ne valide le corps d'une requête qu'à
+l'exécution**, une migration qui « réussit » ne prouve donc rien.
+
+## Le modèle, et ce que le socle refuse de savoir
+
+| Concept | Où il vit | Qui le résout |
+|---|---|---|
+| **Propriété** personnelle | `pnj_membres.proprietaire_pj` | le socle |
+| **Propriété** institutionnelle | `proprietaire_institution` + `proprietaire_perimetre`, deux chaînes **opaques** | le socle les stocke, ne les interprète jamais |
+| **Autorité** | registre `pnj_institutions` → fonction fournie par le métier | **le métier**, jamais le socle |
+| **Leader** | `leader_pj` / `leader_pnj_id` | le socle |
+
+`militaire_autorite_de_perimetre` est **le seul endroit** où le mot « lieutenant » a le droit
+d'exister. Elle reproduit la porte historique `militaire_section_de_moi` — pays de la compagnie
+et `section.lieutenantNom` — **sans la durcir** : pas de contrôle du poste porté, parce que la
+porte historique ne le fait pas et que l'ajouter serait inventer une règle.
+
+**Propriété institutionnelle n'implique pas autorité humaine.** Les 72 réservistes appartiennent
+à l'institution militaire ; **personne** ne les administre. C'est un état valide, pas une erreur,
+et aucune fonction ne désigne de dépositaire par défaut.
+
+## Les défauts fermés
+
+**L'autorité était fausse.** `pnj_administrateur` résolvait `proprietaire_poste='lieutenant'`
+par un `LIMIT 1` **sans `ORDER BY`** : avec deux Lieutenants le propriétaire d'un soldat devenait
+non déterministe, et vérifié en base, `pnj_peut_commander('Vince Kubrick', <réserviste>)`
+renvoyait `TRUE`. Le socle avait perdu le lien périmètre ↔ autorité que le blob tient.
+
+**Le prédicat unique mélangeait deux droits.** `pnj_peut_commander` est supprimée, remplacée par
+`pnj_peut_administrer` (patrimoine : inventaire, argent, cession — **plus la co-présence
+physique**) et `pnj_peut_conduire` (mouvement et groupe, leader courant inclus). Aucun des trois
+verbes de conduite ne touche `proprietaire_*` : un leader transporte, il n'acquiert rien.
+
+**Défaut trouvé par les tests, pas par relecture.** Les prédicats rendaient `NULL` — et non
+`false` — quand l'autorité est à personne. Or `NOT NULL` vaut `NULL`, la branche de refus n'était
+donc pas prise et **la garde s'ouvrait précisément dans le cas qu'elle devait fermer**. Les
+prédicats sont rendus totaux (`IS TRUE`). C'est la correction du défaut précédent qui a armé
+celui-ci : avant, la résolution renvoyait toujours un nom.
+
+**Le comparateur testait une constante.** `s.proprietaire_poste IS DISTINCT FROM 'lieutenant'`
+était faux pour les 96 soldats, réservistes compris : le test ne pouvait rien détecter. Il compare
+désormais le périmètre réel, et sa sensibilité est **prouvée** (déplacer un soldat en `-s2` produit
+`divergence: perimetre`).
+
+**La duplication d'objets (B1).** Reprendre une possession d'`origine='blob_accessoires'` la
+copiait dans l'inventaire du joueur tandis que le blob la gardait, puis le déclencheur recréait la
+ligne miroir : deux objets pour un. Ces objets ne sont plus cessibles (`objet_non_cessible`), et
+l'interface n'en propose plus le bouton.
+
+**Le miroir ne rattrapait ni le périmètre ni le statut.** Son `ON CONFLICT` ignorait la propriété :
+un réserviste versé dans une section neuve restait administré par personne. Et `statut` était
+absent : un soldat marqué mort dans le socle y restait mort contre l'avis du blob.
+
+**`pnj_membres_ici` croyait le client.** Elle filtrait sur les coordonnées transmises par le
+navigateur. Elle emploie la position serveur et **le même prédicat de co-présence que les verbes**,
+de sorte que *listé ⟺ actionnable*. Des coordonnées mensongères renvoient la même liste.
+
+## Les quatre compteurs anti-rejeu
+
+`dernier_ration`, `nb_ration`, `dernier_bivouac`, `dernier_sommeil` entrent dans
+`pnj_soldats_metier` — pas dans `pnj_membres` : « ne pas rejouer un ordre militaire le même jour »
+n'a aucun sens générique. **Aucun des 96 soldats ne les portait**, ce qui rendait le trou
+invisible : la copie paraissait fidèle parce qu'il n'y avait rien à perdre. Au premier ordre de
+ration le socle aurait divergé en silence, et un soldat aurait pu manger deux fois.
+
+Stockés en **texte**, pas en `date` : le socle miroite, il ne réinterprète pas. La comparaison
+reste exacte et totale, sans cast susceptible d'échouer. `nb_ration` reste **séparé** de son
+marqueur, parce que le métier applique « ancien marqueur sans compteur vaut 1 ».
+
+Vérifié par exécution : écriture du blob → le déclencheur porte les quatre valeurs → comparateur
+vert ; puis en cassant `nb_ration` et `dernier_sommeil`, le comparateur les **nomme**.
+
+## La mort générique, et le combat qui la contournait
+
+À 0 PA, `militaire_bataille_appliquer` appelait `militaire_soldat_supprimer`, qui retire l'homme
+du blob ; le déclencheur constatait son absence et supprimait la ligne du socle en cascade. Donc :
+`pnj_mourir` **jamais appelé**, aucun avis au propriétaire, rien au sol, et les `accessoires` du
+soldat **détruits sans trace** — la trousse de premiers secours d'un des 96 hommes de Vince
+disparaissait purement et simplement.
+
+Le chemin passe désormais par le cycle : `pnj_mourir(id, 'degats')` **d'abord**, retrait du blob
+**ensuite**. Dans cet ordre seulement — après le retrait il n'y aurait plus ni possessions à poser
+ni propriétaire à prévenir. L'avis est **inconditionnel** : aucune radio, aucune co-présence.
+`pnj_evenements` n'a aucune clé étrangère, l'avis survit donc à la suppression de la ligne.
+
+Prouvé de bout en bout : la trousse atterrit à `caserne/caserne-militaire/corps_garde`, l'avis
+porte `objets_deposes=1` et `argent_du_defunt=37`, l'effectif passe à 23, et le comparateur reste
+vert à 95/95 avec 0/0 possessions — ni duplication ni perte.
+
+### L'argent au sol : une lacune que je ne comble pas seul
+
+La règle dit « objets **et argent** déposés au sol ». Or le jeu n'a **aucune** mécanique d'argent
+au sol : `objets_abandonnes` ne transporte que des objets, et le vol transfère l'argent de main à
+main sans jamais le poser. Fabriquer un objet « bourse » créerait un objet ramassable qu'aucun
+chemin ne sait reconvertir en liquide — une mécanique nouvelle, donc une décision de game design.
+Le montant est donc **inscrit dans l'avis de mort** (`argent_du_defunt`), visible du propriétaire :
+rien n'est inventé, rien ne disparaît sans trace. Les 96 soldats portent 0 aujourd'hui.
+
+## Deux gardes fail-closed — après preuve métier, pas avant
+
+J'ai d'abord recensé tous les chemins qui retirent un soldat PNJ du blob. Il y en a **exactement
+un** : `militaire_soldat_supprimer`, appelée uniquement par la bataille, uniquement à 0 PA. Les
+trois suspects sont innocents — `militaire_desertions_verifier` et
+`militaire_presentation_affectation` ne touchent que `civilsRequisitionnes`,
+`militaire_soldat_retirer` que les soldats **PJ** que le miroir ignore déjà. **Sans cette
+vérification, une garde stricte aurait cassé la désertion.**
+
+- `trg_pnj_garde_suppression` (BEFORE DELETE sur `pnj_membres`) refuse de supprimer un PNJ
+  `actif` : le cycle de mort n'a pas eu lieu.
+- `trg_pnj_garde_dissolution_compagnie` (BEFORE DELETE sur `compagnies_militaires`) refuse tant
+  que des PNJ du socle en dépendent — sinon leur périmètre désignerait une compagnie disparue et
+  l'autorité se résoudrait à personne pour toujours, dégradation sans danger mais **silencieuse**.
+
+Ce sont des gardes, pas des règles de dissolution : elles n'inventent aucun comportement, elles
+exigent seulement qu'on passe par celui qui existe.
+
+## Les quatre tests obligatoires, et les autres
+
+Exécutés sous identité réelle (`request.jwt.claims`), écritures de mise en situation **annulées** :
+aucune donnée de Vince modifiée, blob `md5 a107192a41d5cd1153808c302d60d0a9` et `updated_at` du
+22/09 inchangés.
+
+```
+Vince + soldat de SA section       administrer = t     <- exigé OUI
+Vince + réserviste                 administrer = f     <- exigé NON
+Vince + soldat d'une autre section administrer = f     <- exigé NON
+second Lieutenant + section Vince  administrer = f     <- exigé NON
+Arnie (min_def) + soldat de Vince  administrer = f        le socle ignore « min_def »
+autorité(section s1) = Vince Kubrick ; autorité(réserve) = NULL = PERSONNE
+leader non propriétaire : conduire = t, administrer = f, argent refusé, consultation refusée
+RPC réelles : consultation d'un réserviste refusée (autorite_insuffisante), la sienne acceptée
+duplication : cessible=false, retrait refusé (objet_non_cessible), inventaire de Vince intact
+gardes : suppression d'un vivant refusée, dissolution refusée (96 PNJ)
+```
+
+## Ce qui reste ouvert
+
+- **Argent au sol** : mécanique inexistante, arbitrage nécessaire (objet ramassable ? crédit au
+  propriétaire ? perte ?).
+- `banc_socle_pnj.sql` encode encore l'ancien modèle (`proprietaire_poste`) : à refaire avec le
+  banc de bataille.
+- Deux PNJ de banc (`zzaut-mien`, `zzaut-autre`) et le personnage `zzAut` restent en production,
+  volontairement : ils servent aux recettes navigateur à venir. À retirer à la clôture.
