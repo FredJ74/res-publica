@@ -3462,22 +3462,47 @@ async function doRecruterMilitants(pa, cost) {
     showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
   const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
 
+  // ===========================================================================
+  // RECRUTEMENT AU SOCLE (27 septembre 2026)
+  // ===========================================================================
+  // Le paiement et la creation etaient en deux temps, et la creation etait un INSERT direct du
+  // navigateur en best-effort (`.catch(() => {})`) : un echec passait inapercu, le joueur avait paye
+  // ses 2 PA et croyait avoir un militant. La RPC fait les deux dans UNE transaction -- plafond
+  // compte au serveur, 2 PA preleves par payer_ordre, PNJ cree avec son profil FIXE -- et son
+  // resultat est desormais LU. Fail closed : pas de confirmation, aucun effet.
+  //
+  // Le nom reste tire au sort ici : un nom n'est pas une caracteristique.
+  if (!state.char?.name) { showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); return; }
+  const r = (typeof sbRecruterMilitant === 'function')
+    ? await sbRecruterMilitant(state.country, state.char.name, nomPnj, syndicat.id,
+                               state.currentCity, state.currentBuilding, state.currentRoom)
+    : null;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      plafond_militants: 'Vous avez déjà 2 militants recrutés (maximum).',
+      paiement_refuse: pa + ' PA requis.',
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.'
+    };
+    showToast('Recrutement impossible',
+      motifs[r && r.raison] || 'Personne n\'a voulu s\'engager.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+
   state.char.dernierRecrutementMilitant = state.day;
   sauvegarderPersonnageImmediat();
-  if (typeof sbRecruterMilitant === 'function') {
-    await sbRecruterMilitant(state.country, state.char?.name, nomPnj).catch(() => {});
-  }
   // Comptabiliser le militant comme adherent du syndicat
   if (!syndicat.membres) syndicat.membres = [];
   syndicat.membres.push({ nom: nomPnj, grade: 'Militant (PNJ)', rejointLe: state.day || 1, estPnj: true, recruteur: state.char?.name });
   sauvegarderOrga(syndicat);
   updateUI();
-  showToast('Militant recruté !', nomPnj + ' rejoint votre réseau (' + (mesMilitants.length + 1) + '/2).', true);
+  // Compteur pris sur la reponse du SERVEUR, qui vient de compter le plafond, plutot que sur la
+  // lecture cliente faite avant l'appel : c'est lui qui fait autorite.
+  showToast('Militant recruté !', nomPnj + ' rejoint votre réseau ('
+    + (r.militants ?? (mesMilitants.length + 1)) + '/' + (r.plafond ?? 2) + ').', true);
   addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
 
   // Retour visuel immediat, SANS muter l'objet BUILDINGS global (partage par tous les

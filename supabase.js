@@ -2880,9 +2880,21 @@ async function sbGetArchivesLois(country) {
 // =====================
 // MILITANTS RECRUTES (Universite, amphi) — plafond 2 par joueur, prepare les manifestations
 // =====================
-async function sbRecruterMilitant(country, recruteur, nomPnj) {
-  const id = 'militant-' + Date.now();
-  return sbInsert('militants_recrutes', { id, country, recruteur, data: { nom: nomPnj, jour: Date.now() } });
+// RECRUTEMENT AU SOCLE (27 septembre 2026). Cette fonction faisait un INSERT DIRECT dans
+// militants_recrutes depuis le navigateur, et le plafond de deux etait verifie en amont, cote
+// client : rien n'empechait d'en recruter trente. La RPC militant_recruter compte le plafond AU
+// SERVEUR sur le socle, preleve les 2 PA par payer_ordre, cree le PNJ avec son profil FIXE
+// (INT 9 / CHA 12 / VOL 15 / PER 9 / DUP 8 / ENT 12) et alimente toujours militants_recrutes --
+// registre conserve, car sbGetMesMilitants le lit encore.
+//
+// La garde « un seul recrutement par jour » RESTE CLIENTE : elle s'appuie sur state.day, et le jeu
+// n'a aucune source serveur du jour de jeu. La deplacer aurait exige d'en inventer une.
+async function sbRecruterMilitant(country, recruteur, nomPnj, orgaId, ville, batiment, piece) {
+  return await sbRpc('militant_recruter', {
+    p_nom: nomPnj, p_organisation_id: orgaId || null,
+    p_ville: ville || null, p_batiment: batiment || null, p_piece: piece || null,
+    p_fn: 'recruter_etud'
+  });
 }
 
 async function sbGetMesMilitants(country, recruteur) {
