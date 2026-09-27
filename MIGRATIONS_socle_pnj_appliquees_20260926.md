@@ -517,3 +517,74 @@ gardes : suppression d'un vivant refusée, dissolution refusée (96 PNJ)
   banc de bataille.
 - Deux PNJ de banc (`zzaut-mien`, `zzaut-autre`) et le personnage `zzAut` restent en production,
   volontairement : ils servent aux recettes navigateur à venir. À retirer à la clôture.
+
+## Compagnie explicite, et deux arbitrages ration / bivouac
+
+**Le rattachement à la compagnie était une convention de chaîne.** `m.id LIKE p_compagnie || '-%'`,
+employé par le miroir, le comparateur, l'outil de copie et les gardes. `pnj_soldats_metier` porte
+désormais `compagnie_id` — **donnée métier**, pas générique : le socle n'a pas à savoir ce qu'est
+une compagnie. Écrite à la source (le miroir la reçoit déjà en paramètre, il n'a rien à déduire) et
+surveillée par le comparateur. Les `LIKE` existants restent en place : les changer en même temps
+que le modèle d'autorité aurait mêlé deux risques.
+
+**Ration : la ration du soldat passait après celle du chef, en fait jamais.**
+`militaire_ordre_collectif` ne regardait que l'inventaire du leader. Un soldat portant sa propre
+ration — de l'armurerie (blob `accessoires`) ou de la main d'un joueur (`pnj_possessions`) — ne la
+mangeait jamais. Ordre appliqué : la sienne d'abord, celle du chef ensuite. Le chef ne complète que
+le reste.
+
+**Bivouac : la tente comptait 13 soldats au lieu de 13 personnes.** La règle est « 1 tente =
+13 PERSONNES, le leader compte » : 1 leader + 12 PNJ. Pour 13 soldats il faut désormais 2 tentes.
+
+**J'ai étendu l'arbitrage à l'ordre DORMIR**, où la capacité était écrite une seconde fois
+(`militaire_reposer_section`). N'en corriger qu'une laisserait la même tente abriter 13 dormeurs et
+12 bivouaqueurs, le même soir, sur le même objet. Pour révoquer : remettre 13 dans
+`c_pnj_par_tente` de cette fonction, rien d'autre n'a changé.
+
+**Le prédicat d'éligibilité était écrit deux fois** dans `militaire_ordre_collectif` — une fois pour
+compter, une fois pour appliquer, « à l'identique » disait le commentaire. Deux copies d'une même
+règle finissent toujours par divergier. Il est désormais évalué une seule fois, en passe 1, et
+mémorisé.
+
+**L'ordre individuel n'est pas une seconde fonction.** Servir un homme désigné obéit aux mêmes
+règles que servir le groupe : on ajoute un simple filtre de bénéficiaires (`p_matricules`, NULL =
+tout le groupe, comportement historique inchangé). `militaire_ordre_pnj(pnj_id, action)` traduit un
+identifiant de PNJ en compagnie/section — premier usage concret de `compagnie_id` — et délègue. Le
+client n'envoie ni compagnie, ni section, ni leader.
+
+### Bancs exécutés, tous en transaction annulée
+
+```
+BANC DE BATAILLE (compagnie jetable, jamais celle de Vince)
+  declencheur           : 3 PNJ + 1 possession, perimetre et compagnie corrects
+  autorite              : Marsault t / Vince f / Arnie f
+  degats partielle_1    : 12 PA -> 3 PA, comparateur vert
+  degats critique       : 0 PA -> cycle de mort, gourde au sol a capitale/stade/terrain,
+                          avis objets=1 argent=19, comparateur vert 2/2 poss 0/0
+  dissolution           : refusee (2 PNJ en dependent)
+  compagnie de Vince    : md5 et comparateur inchanges
+
+BANC RATION / BIVOUAC
+  bivouac 13 PNJ / 1 tente  : refus tentes_insuffisantes requis=2 pnj_par_tente=12
+                              capacite_personnes=13, AUCUN PA touche (tous a 5)
+  bivouac 13 PNJ / 2 tentes : 13 servis, PA 5->6, 2 tentes toujours la
+  bivouac rejoue            : aucun_soldat_concerne
+  ration 13 / 1 au chef     : refus, requis=11 (13 - 2 qui ont la leur), propres=2
+  ration 13 / 11 au chef    : 13 servis, propres=2 du_chef=11, PA 6->7,
+                              ration blob consommee, ration socle consommee, chef a 0
+  plafond 2/jour            : 1re et 2e servies (nb_ration 1 puis 2), 3e refusee,
+                              exactement 4 rations consommees, compteurs miroites
+
+ORDRE INDIVIDUEL
+  E-002 seul servi (E-001 et E-003 inchanges a 4 PA), 1 ration du chef
+  bivouac individuel : 1 tente requise
+  sur un reserviste  : soldat_en_reserve
+  par un autre officier : autorite_insuffisante
+```
+
+### Recette navigateur (compte jetable zzAut, aucune donnée de joueur touchée)
+
+Premier passage **contre le site déployé**, donc l'ancien client : il a prouvé les refus serveur
+(`autorite_insuffisante` en lecture ET en retrait d'argent sur le PNJ d'Arnie) et **aucune écriture
+hors RPC** — 8 appels réseau, 0 `POST/PATCH/DELETE` sur une table. Il a aussi montré que l'ancien
+client offrait encore « Retirer » sur un objet non cessible : c'est ce que le nouveau corrige.

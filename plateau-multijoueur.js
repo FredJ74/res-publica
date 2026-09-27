@@ -2290,8 +2290,20 @@ async function ouvrirGroupePnj() {
          +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">RETIRER</button>'
          +  '<button onclick="ouvrirGroupePnjConduite(' + i + ')" style="padding:.25rem .55rem;'
          +  'border:1px solid #3a3a4a;background:transparent;color:#8a8aa0;cursor:pointer;'
-         +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">CONDUITE</button>'
-         +  '</div>';
+         +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">CONDUITE</button>';
+    // RATION et BIVOUAC sont des ordres MILITAIRES, pas des verbes du socle : ils n'apparaissent
+    // donc que pour un soldat. Le client n'envoie que l'identifiant du PNJ -- ni compagnie, ni
+    // section, ni leader : le serveur les resout, et c'est lui qui refuse un reserviste ou une
+    // unite qui n'est pas la votre.
+    if (m.famille === 'soldat') {
+      html += '<button onclick="ordonnerGroupePnj(' + i + ',\'ration\')" style="padding:.25rem .55rem;'
+           +  'border:1px solid #6a4a2a;background:transparent;color:#c08a4a;cursor:pointer;'
+           +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">RATION</button>'
+           +  '<button onclick="ordonnerGroupePnj(' + i + ',\'bivouac\')" style="padding:.25rem .55rem;'
+           +  'border:1px solid #4a5a6a;background:transparent;color:#7aa0c0;cursor:pointer;'
+           +  'font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em">BIVOUAC</button>';
+    }
+    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -2442,6 +2454,22 @@ async function confirmerGroupePnjRetirerArgent(i) {
   signalerResultatGroupePnj(r, 'Argent récupéré', v + ' récupéré sur ' + m.nom + '.');
   await ouvrirGroupePnj();
 }
+// ---- ORDRES MILITAIRES INDIVIDUELS. Le serveur applique EXACTEMENT les mêmes règles que
+// l'ordre de section -- c'est le même code, avec un filtre de bénéficiaires -- donc la ration
+// propre du soldat passe avant celle du chef, une tente abrite 12 PNJ, le refus est global et
+// rien n'est consommé partiellement. Le client ne recalcule aucune de ces règles : il affiche
+// ce que le serveur répond.
+async function ordonnerGroupePnj(i, action) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const r = await sbMilitaireOrdrePnj(m.id, action).catch(() => null);
+  if (signalerResultatGroupePnj(r, action === 'ration' ? 'Ration distribuée' : 'Bivouac monté',
+        action === 'ration'
+          ? (m.nom + ' a mangé' + (r?.rations_propres > 0 ? ' sa propre ration' : '') + ' : +1 PA.')
+          : (m.nom + ' a bivouaqué : +1 PA.'))) {
+    await ouvrirGroupePnj();
+  }
+}
+
 async function confirmerGroupePnjRetirerObjet(i, index) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
   const r = await sbPnjObjetTransferer(m.id, index, 'retirer').catch(() => null);
@@ -2467,7 +2495,21 @@ const MOTIFS_REFUS_GROUPE_PNJ = {
   pas_co_presents: 'Il faut être physiquement au même endroit pour cela.',
   destinataire_introuvable: 'Destinataire introuvable.',
   soldat_axe_blob_autoritaire: 'Action individuelle indisponible pour les soldats : '
-    + 'le modèle militaire opère par nombre. Passez par l\'ordre de section.'
+    + 'le modèle militaire opère par nombre. Passez par l\'ordre de section.',
+  // Refus des ordres militaires individuels (ration / bivouac).
+  action_invalide: 'Ordre inconnu.',
+  aucun_soldat_concerne: 'Rien à faire : il est déjà au maximum de PA, ou il a déjà été servi '
+    + 'aujourd\'hui.',
+  rations_insuffisantes: 'Pas assez de rations de combat — ni sur lui, ni sur vous.',
+  tentes_insuffisantes: 'Pas assez de tentes. Une tente abrite 13 personnes, le leader compris '
+    + '— donc 12 PNJ au maximum.',
+  radio_manquante: 'Commander à distance exige une radio de chaque côté.',
+  soldat_en_reserve: 'Un réserviste ne dépend d\'aucune section : aucun ordre de section ne peut '
+    + 'le viser.',
+  pnj_introuvable: 'PNJ introuvable.',
+  pnj_inactif: 'Ce PNJ n\'est plus en service.',
+  compagnie_introuvable: 'Compagnie introuvable.',
+  section_introuvable: 'Section introuvable.'
 };
 function signalerResultatGroupePnj(r, titreOk, messageOk) {
   if (r === null || r === undefined) {

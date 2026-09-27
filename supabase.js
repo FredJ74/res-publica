@@ -4821,6 +4821,18 @@ async function sbPnjArgentTransferer(pnjId, montant, sens) {
   });
 }
 
+// RATION / BIVOUAC pour UN soldat designe. Ce n'est PAS une primitive du socle : nourrir et
+// abriter sont des ordres MILITAIRES, et cette RPC appartient au metier.
+// Le client n'envoie que l'identifiant du PNJ. Ni compagnie, ni section, ni leader : le serveur
+// les resout depuis pnj_soldats_metier, applique l'autorite militaire historique (Lieutenant de
+// la section, ou leader operationnel de son propre groupe) et refuse un reserviste -- qui ne
+// depend d'aucune section. Les regles (sa ration avant celle du chef, 12 PNJ par tente, 2 rations
+// par jour, refus global sans consommation partielle) sont celles de l'ordre de section : c'est
+// litteralement le meme code, avec un filtre de beneficiaires.
+async function sbMilitaireOrdrePnj(pnjId, action) {
+  return await sbRpc('militaire_ordre_pnj', { p_pnj_id: pnjId, p_action: action });
+}
+
 // DONNER / RETIRER un objet. L'objet est designe par son INDEX dans l'inventaire source,
 // jamais par son contenu : le client ne peut donc pas en fabriquer un.
 async function sbPnjObjetTransferer(pnjId, index, sens) {
