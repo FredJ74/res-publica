@@ -2170,20 +2170,19 @@ function demarrerPollingNotificationChat() {
 // pnj_membres_ici, qui resout la presence par position effective -- un PNJ qui suit son chef
 // n'a pas de position propre, il est la ou est son chef.
 //
-// PHASE MIROIR -- CE QUI EST OUVERT ET CE QUI NE L'EST PAS.
-// Tant que compagnies_militaires reste l'autorite d'ecriture des soldats :
-//   OUVERT  : DONNER / RETIRER de l'argent et des objets. Ces deux axes N'EXISTENT PAS dans le
-//             blob -- un soldat n'avait ni bourse ni inventaire avant le socle. Aucune
-//             divergence blob/socle n'est donc possible, et le comparateur le confirme.
-//   FERME   : faire quitter le groupe ou transferer UN soldat DESIGNE. Non par prudence, mais
-//             parce que le modele militaire ne sait pas le faire : militaire_deposer_soldats et
-//             militaire_recuperer_soldats prennent un NOMBRE (p_nb integer), jamais un soldat
-//             precis. L'action individuelle arrivera avec la bascule d'autorite, quand la
-//             primitive generique du socle deviendra l'ecrivain. En attendant, la popup renvoie
-//             vers l'ordre militaire existant, qui opere par nombre.
-// Les primitives generiques du socle refusent d'elles-memes la famille soldat sur ces axes
-// (garde pnj_axe_partage_verrouille) : il n'y a donc aucun chemin par lequel l'interface
-// pourrait creer une divergence, meme par erreur de ma part.
+// CE QUI EST OUVERT ET CE QUI NE L'EST PAS (mis a jour le 27 septembre 2026).
+//   OUVERT  : DONNER / RETIRER de l'argent et des objets. Le socle fait autorite sur ces axes.
+//   FERME   : faire quitter le groupe ou transferer UN soldat DESIGNE.
+//
+// ATTENTION AU CONTRESENS. Depuis la bascule d'autorite, la position, le leader et les PA des
+// soldats font autorite au socle, et compagnies_militaires n'en est plus qu'une projection. On
+// pourrait donc croire que l'action individuelle est desormais possible. ELLE NE L'EST PAS, et la
+// raison a change de nature : ce n'est plus un etat de migration, c'est une REGLE DE JEU. Un soldat
+// appartient a une section ; on ne l'extrait pas un par un de son groupe. La table
+// pnj_mouvement_individuel porte cette regle (soldat = false), et pnj_prendre, pnj_quitter_groupe
+// et pnj_transferer la font respecter cote serveur. La popup renvoie donc vers l'ordre militaire,
+// qui opere par NOMBRE (militaire_deposer_soldats / militaire_recuperer_soldats, p_nb integer).
+// Ne pas « corriger » ce refus en croyant lever un vestige de migration : il n'en est pas un.
 
 let RP_GROUPE_COURANT = [];
 

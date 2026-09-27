@@ -998,3 +998,195 @@ l'écran d'équipement dans sa lecture d'origine — le blob n'a pas été modif
 l'état d'avant la bascule.
 
 **Le lot 5 portera sur l'axe PA. Le lot 6 sur position/leader.**
+
+---
+
+# CHECKPOINT A — POSITION, LEADER ET PA AU SOCLE (27 septembre 2026)
+
+Le lot 4 avait montré que ces trois axes étaient **couplés** : on ne peut pas déplacer un soldat
+sans savoir qui il suit, ni le faire dormir sans savoir où son chef se trouve. Ils sont donc
+traités ensemble. Objectif atteint : **position et leader font autorité au socle**, et la
+consommation de PA devient un **mécanisme générique Alpha**. Le métier Soldat ne décide plus que
+d'une chose — quel ordre coûte combien, et selon quelles règles militaires.
+
+## Le blob n'est pas supprimé : il devient une projection
+
+`compagnies_militaires` reste le magasin métier (armes, stockArmes, formation, sections, réserve,
+missions, mutinerie, compteurs de ration et de bivouac). Il cesse seulement d'être **autoritaire**
+sur les axes génériques. `militaire_blob_projeter(compagnie)` réécrit `leaderCourant`, `ville`,
+`buildingId`, `roomId` et `pa` depuis `pnj_membres`, en laissant intactes les entrées `pj:true`.
+
+**Preuve que la projection est l'identité sur les données existantes** : appelée sur les 96 soldats,
+elle laisse le blob au `md5 a107192a41d5cd1153808c302d60d0a9`, à l'octet près.
+
+C'est ce choix qui a permis de ne toucher **aucune** des 18 lectures clientes de `leaderCourant`
+ni aucun affichage de PA. L'interface lit toujours le blob ; le blob dit maintenant ce que le
+socle a décidé.
+
+## Le miroir devient conditionnel, axe par axe
+
+`pnj_miroir_compagnie` importait tout du blob. Ses clauses `ON CONFLICT` sont désormais gardées :
+
+```sql
+leader_pj = CASE WHEN v_pos_blob THEN EXCLUDED.leader_pj ELSE pnj_membres.leader_pj END
+pa        = CASE WHEN v_pa_blob  THEN EXCLUDED.pa        ELSE pnj_membres.pa        END
+```
+
+**Preuve par corruption volontaire.** J'ai écrit dans le blob `pa = 1`,
+`leaderCourant = 'IMPOSTEUR'` et `arme = 'fusil-de-test'` sur un soldat, puis laissé le déclencheur
+tourner. Résultat : le socle a **ignoré** les PA (12 conservés) et le leader (Vince conservé), et
+a **importé** l'arme — qui est un axe métier. Le comparateur a signalé l'écart sous le nom
+`projection_leader`, et la projection a remis le blob d'accord sans perdre l'arme.
+
+C'est la démonstration que l'autorité a réellement changé de côté, et non pas seulement que les
+deux copies se ressemblent.
+
+## Les neuf écrivains réécrits
+
+| Fonction | Écrit maintenant | Garde le blob pour |
+| --- | --- | --- |
+| `militaire_deposer_soldats` | `pnj_membres` puis projection | — |
+| `militaire_recuperer_soldats` | `pnj_membres` puis projection | — |
+| `militaire_affecter_leader` | `pnj_membres` puis projection | appartenance PJ à la section |
+| `militaire_lien_operationnel_rompre` | `pnj_membres` puis projection | — |
+| `militaire_bataille_decrocher_groupe` | `pnj_membres` puis projection | — |
+| `militaire_soldat_pa_fixer` | `pnj_pa_fixer` puis projection | — |
+| `militaire_entrainer_section` | `pnj_pa_debiter` puis projection | `formation` |
+| `militaire_ordre_collectif` | `pnj_pa_crediter` puis projection | compteurs ration / bivouac |
+| `militaire_reposer_section` | `pnj_pa_fixer` / `pnj_pa_crediter` | `dernier_sommeil` |
+
+La sélection par position dans le tableau JSON est devenue `ORDER BY sm.matricule LIMIT p_nb` —
+même ensemble, puisque le tableau du blob est ordonné par matricule.
+
+## Les quatre fonctions qui ne sont PAS des écrivains
+
+`militaire_accepter_lieutenant`, `militaire_affectation_decouvrir`, `militaire_candidature_traiter`
+et `militaire_engagement_affecter_section` **déplacent** un objet soldat entier entre section et
+réserve. Elles ne touchent ni `leaderCourant` ni `pa` : ces champs voyagent avec l'objet. Le miroir
+continue d'importer les axes métier (`section_id`, `en_reserve`) qu'elles modifient réellement, et
+les deux côtés restent d'accord sans intervention. Vérifié ligne à ligne **avant** la bascule,
+plutôt que constaté après.
+
+## Le défaut que j'avais introduit : la mort dans l'arithmétique
+
+Les primitives `pnj_pa_debiter` et `pnj_pa_fixer` déclenchaient `pnj_mourir` à 0 PA. En branchant
+le métier dessus, deux régressions apparaissaient — de la **même cause** :
+
+1. **Entraînement.** La sélection retient les soldats à `pa >= 6` et le coût est de 6. Un homme à
+   exactement 6 PA tombait à 0 et **mourait à l'entraînement**. L'ancien code écrivait
+   `greatest(0, pa - 6)` sans tuer personne.
+2. **Bataille.** `militaire_bataille_appliquer` fixe d'abord les PA de la cible (ligne 50), puis
+   appelle `militaire_soldat_supprimer` si elle est à 0 (ligne 85) — qui appelle `pnj_mourir`. Une
+   mort déclenchée par la primitive aurait donc tué **deux fois** le même homme, et **posé ses
+   possessions au sol deux fois**. Exactement la duplication que le cycle de mort générique avait
+   été écrit pour empêcher.
+
+**La règle, désormais explicite : atteindre 0 PA n'est pas un événement du socle.** Le socle
+constate l'épuisement et le rapporte (`epuises`) ; le **métier** décide de ce que l'épuisement
+signifie chez lui — mort au combat, simple immobilité à l'entraînement. Le seul chemin de mort
+reste `pnj_mourir`, appelé par le métier.
+
+Aucun comportement vivant n'a changé en le corrigeant : avant ce lot, **aucune** fonction métier
+n'appelait ces primitives.
+
+## Le comparateur dit maintenant dans quel sens il vérifie
+
+Tant qu'un axe était au blob, l'égalité blob = socle prouvait que le **miroir** avait importé.
+Maintenant, la même égalité prouve que la **projection** a exporté. L'arithmétique est identique ;
+ce qu'elle démontre a changé. Un comparateur qui ne le dirait pas laisserait croire à une
+vérification qu'il ne fait plus — il porte donc un champ `sens` et nomme les écarts
+`projection_*` sur les axes basculés, `miroir` ailleurs.
+
+Ajout d'une **observation, pas d'un critère** : position propre et leader s'excluent dans les
+données réelles (24 suiveurs sans position, 72 autonomes sans leader). Je la compte sans en faire
+une règle, faute de mandat pour décider qu'un PNJ ne peut jamais avoir les deux.
+
+## La batterie de preuves — 9 blocs, tous en transaction annulée
+
+```
+BLOC 1  primitives PA          9 cas : coût ordinaire · 6−6=0 VIVANT · crédit plafonné à 12 ·
+                               Bêta refusée en débit ET en crédit · lot mixte alpha+bêta refusé
+                               GLOBALEMENT sans rien consommer · coût négatif refusé
+BLOC 2  position / leader      déposer 5 → socle 19 suiveurs + 5 au corps de garde, blob idem ;
+                               récupérer 5 → retour au md5 EXACT a107192a…
+BLOC 3  leader tiers           affecter 6 à un autre PJ → 6/18, projection conforme ;
+                               pnj_position_effective rend la position du chef, marquée dérivée ;
+                               rompre le lien → 0 suiveurs, 6 sur place sans leader
+BLOC 4  ordre collectif        0 ration → refus global, somme PA 192 inchangée, 0 marqueur ;
+                               10 rations pour 24 → refus global, 10 rations intactes ;
+                               24 rations → +1 PA au socle (216), projeté, 0 ration restante ;
+                               2e ration du jour acceptée, 3e refusée (plafond 2)
+BLOC 5  repos                  caserne → 12 PA · 2e repos du jour → 0 reposé, 24 déjà ·
+                               terrain sans tente → +8 · 1 tente pour 24 → 12 à +10 et 12 à +8 ·
+                               2 tentes → 24 à +10 · 3 déposés à la caserne dorment à 12 pendant
+                               que 21 suiveurs dorment sous les tentes du chef en ville
+BLOC 6  entraînement           12 hommes amenés à EXACTEMENT 0 PA : actifs=24, morts=0 ·
+                               formation +3 · 12 élus maximum · coût chef 6 · chef sans PA refusé ·
+                               soldats à 5 PA → refus global, PA du chef intacts · domaine invalide
+BLOC 7  mort au combat         pa_fixer(0) → statut actif (le socle ne tue pas) ;
+                               puis soldat_supprimer → 1 seul événement, objets_deposes=2 pour
+                               2 possessions réelles, argent_du_defunt=37, effectif 23/23
+BLOC 8  autorité réelle        blob corrompu sur pa/leader/arme → socle ignore pa et leader,
+                               importe l'arme ; comparateur nomme projection_leader ;
+                               projection restaure le blob en conservant l'arme
+BLOC 9  transversal            soldats 96/96 · douane 4/4 · police 1/1 · réserve 72/72 ·
+                               96 alpha + 5 bêta · mouvement individuel interdit aux 3 familles
+```
+
+Un seul échec pendant la campagne, et c'était **mon test** qui était faux : j'avais mis les soldats
+à 0 PA avant un repos, alors que `pa > 0` est une condition d'éligibilité préexistante.
+
+## Le drapeau de transition est périmé
+
+`pnj_transitions.soldats_blob_autoritaire` n'est plus lu par **aucune** fonction du schéma
+(0 occurrence dans `pg_proc.prosrc`) ni par aucun fichier client. Il confondait deux choses que le
+lot 4 a séparées :
+
+- `pnj_axes_autorite` → quel magasin fait autorité. **État de migration.**
+- `pnj_mouvement_individuel` → peut-on extraire un membre de son groupe. **Règle de jeu permanente.**
+
+La ligne est passée à `actif = false` et sa note dit où regarder. Elle n'est **pas** supprimée :
+la supprimer ferait disparaître l'explication avec elle.
+
+## Une fenêtre refermée dans le cron
+
+`traiterDesertionsServeur` fait un read-modify-write du blob **entier** pour ne changer qu'un statut
+de réquisition. Depuis la bascule, une réécriture globale à partir d'une copie lue plus tôt pourrait
+y remettre des valeurs périmées. La donnée autoritaire ne risque rien — le miroir n'importe plus ces
+axes — mais l'affichage pouvait mentir jusqu'à l'écriture suivante. Le cron reprojette donc après
+son écriture. Il ne décide rien de plus.
+
+## Ce que je n'ai pas fait
+
+- **Les caractéristiques du Soldat restent vides** (INT/CHA/VOL/PER/DUP/ENT tous `NULL`). Le
+  conteneur existe depuis le lot 1, aucun mécanisme ne le lit, et la clôture de l'Alpha ne les
+  exige pas. **Je n'en invente aucune** : elles demandent un arbitrage.
+- `militaire_demettre_lieutenant` ne rompt pas le lien opérationnel : les soldats gardent pour chef
+  un officier démis. **Dette préexistante**, hors mandat.
+- `militaire_lien_operationnel_rompre` n'a **aucun appelant vivant** (ni SQL, ni JS). Conservée,
+  consignée comme dette de ménage militaire.
+- Un PNJ rendu à la réserve garde le `leaderCourant` qu'il avait en section. **Comportement
+  préexistant**, identique avant et après ; question métier, pas de migration.
+
+## Fermeture au client
+
+Toutes les primitives techniques sont fermées à `authenticated` et ouvertes à `service_role` seul :
+`pnj_pa_max`, `pnj_pa_garde`, `pnj_pa_debiter`, `pnj_pa_crediter`, `pnj_pa_fixer`,
+`pnj_axe_verrouille`, `militaire_blob_projeter`, `pnj_miroir_compagnie`, `pnj_comparer_soldats`.
+Seules les RPC d'action joueur restent ouvertes. `pnj_membres` est fermée **même en lecture** —
+constaté en essayant de l'interroger sous le rôle `authenticated` pendant les tests.
+
+## Rollback
+
+Repasser `pnj_axes_autorite` à `blob` pour `position_leader` et/ou `pa` suffit à réactiver le
+miroir sur cet axe. Les neuf écrivains continueraient d'écrire le socle, mais `pnj_pa_garde` les
+refuserait — il faudrait donc aussi rétablir leurs versions blob. Snapshots conservés :
+`zz_snap_ckA_blob`, `zz_snap_ckA_membres`, `zz_snap_ckA_metier`.
+
+## État à la clôture du checkpoint A
+
+96 soldats · 24 sous Vince, 72 en réserve · PA tous à 12 · 1 possession · 0 FR ·
+comparateur soldats **96/96** · douane **4/4** · police **1/1** ·
+axes soldat : `position_leader = socle`, `pa = socle`, `possessions = socle`, `argent = socle`,
+`propriete = socle` — **la famille Alpha est entièrement au socle** ·
+blob `md5 a107192a41d5cd1153808c302d60d0a9` **inchangé**.

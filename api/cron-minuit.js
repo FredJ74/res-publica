@@ -3916,6 +3916,13 @@ async function traiterDesertionsServeur(pays) {
     if (modifie) {
       await sbUpdate('compagnies_militaires', `id=eq.${encodeURIComponent(r.id)}`,
         { data: c }).catch(() => {});
+      // Cette fonction fait un read-modify-write du blob ENTIER pour ne changer qu'un statut de
+      // requisition. Depuis que la position, le leader et les PA des soldats font autorite au socle
+      // (27 septembre 2026), le blob n'en est qu'une projection : une reecriture globale a partir
+      // d'une copie lue plus tot pourrait donc y remettre des valeurs perimees. La donnee
+      // autoritaire, elle, ne risque rien -- le miroir n'importe plus ces axes. On se contente donc
+      // de reprojeter, ce qui remet la copie d'affichage d'accord avec le socle sans rien decider.
+      await sbRpc('militaire_blob_projeter', { p_compagnie: r.id }).catch(() => {});
     }
   }
 }
