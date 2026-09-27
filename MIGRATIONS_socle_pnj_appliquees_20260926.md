@@ -1602,3 +1602,109 @@ et le contre-espionnage. Basculer son axe est une refonte, pas une bascule.
    que l'architecture combat. Une convergence honnête *remplacerait* ces colonnes, sans les doubler.
 3. l'**identité de couverture** — vrai nom et nom de couverture, le client ne recevant jamais le vrai —
    n'a aucun équivalent au socle. Lui en donner un est une décision d'architecture.
+
+---
+
+# CONVERGENCE RENSEIGNEMENT (27 septembre 2026)
+
+## Le modèle corrigé
+
+Il n'y a pas douze agents. `renseignement_identites_reelles` a **`role` pour clé primaire** : il existe
+**quatre identités réelles permanentes**, une par rôle. Les douze lignes de `agents_renseignement`
+sont **4 identités × 3 cellules** — des **occurrences de mission**, pas des personnes.
+
+| Identité réelle | Rôle | Au socle |
+| --- | --- | --- |
+| Gladys Crête | conseiller | `agent-conseiller` |
+| Yannick Helle | coordinateur | `agent-coordinateur` |
+| Boris Ketou | garde | `agent-garde` |
+| Raymond Hialiste | traducteur | `agent-traducteur` |
+
+Le socle porte l'**identité**, le métier garde la **mission**. `agents_renseignement.pnj_id` lie les
+deux — les douze lignes historiques comprises.
+
+## Ce qui est fait
+
+**Institution `renseignement`**, périmètre = le pays, autorité = le PJ portant `min_def` de ce pays —
+exactement la garde que `cellule_renseignement_creer` applique déjà. Les quatre identités
+appartiennent au **service**, pas au ministre : un ministre passe, l'agent reste.
+
+**Profil unique 13/12/12/13/13/10.** La variation de DUP par rôle (garde 10, coordinateur 12,
+conseiller 13, traducteur 15) cesse d'être autoritaire. **Conséquence assumée, et c'est la seule que
+ce lot produise sur le jeu** : le risque de trace `max(5, 30 − DUP)` devient **uniforme à 17 %** au
+lieu de 15 à 20 % selon le rôle, et le modificateur de contre-espionnage cesse de dépendre du rôle.
+**Les formules sont intactes** — seule leur entrée est unifiée, ce que l'arbitrage demande.
+
+**Les deux lecteurs mécaniques basculent sur le socle** : `agent_trace_deposer` et
+`contre_espionnage_resoudre` lisent `COALESCE(pnj_membres.car_dup, ag.dup)`. Le COALESCE rend la
+bascule sans régression possible : une ligne non raccordée se comporte comme avant.
+
+**Un trigger plutôt qu'une réécriture.** `renseignement_mission_raccorder` remplit `pnj_id` et aligne
+la DUP à chaque nouvelle mission. `cellule_renseignement_creer` fait 110 lignes et porte tout le
+tirage de couverture que l'arbitrage demande de préserver au mot : la toucher pour deux champs aurait
+été un risque sans contrepartie. Le trigger tient l'invariant même pour un écrivain futur.
+
+**Une incohérence que ma propre migration créait, corrigée** : le trigger alignait la DUP en base,
+mais `cellule_renseignement_creer` construit son JSON **avant** — le ministre recevait 10/12/15 alors
+que la base portait 13. La table métier est donc alignée sur le socle ; elle n'en redevient pas la
+source.
+
+## Ce qui n'est PAS fait, et pourquoi
+
+**La position et le leader restent au métier.** Deux bloquants, tous deux mesurés.
+
+**1. Les missions simultanées.** `cellule_renseignement_creer` ne porte **aucune garde de quota**, et
+le pool compte **6 couvertures par sexe et par pays cible** pour 3 H + 1 F par cellule : **2 cellules
+par pays cible**, quatre pays cibles, donc **jusqu'à 8 cellules actives en même temps**. L'historique
+en porte la trace : deux cellules ont coexisté treize heures les 21-22 septembre, et **Gladys Crête y
+était engagée deux fois, sous deux couvertures et à deux positions**. Une identité unique au socle ne
+peut avoir qu'**une** position. Basculer exigerait soit d'interdire les missions simultanées — ce qui
+retire au Ministre la capacité d'espionner deux pays à la fois — soit de laisser la position au
+métier. C'est un arbitrage de game design.
+
+**2. La confidentialité.** Découvert en le testant : les quatre identités socle n'ont ni position ni
+leader, donc `pnj_position_effective` rend tout nul et **`pnj_membres_ici` ne les liste jamais** —
+vérifié pour le ministre comme pour un autre joueur. Mais `pnj_membres_ici` est **ouverte au
+client** : si la position était basculée, **« Gladys Crête » apparaîtrait à tout joueur présent dans
+la pièce**. La bascule exige donc de traiter d'abord l'identité double au socle.
+
+## Tests
+
+```
+comparateur agents        ok=true · 4/4 identités · profil 13/12/12/13/13/10
+                          12 occurrences · 0 non raccordée · 0 DUP désalignée
+classe / PA               beta, 12 PA, refus = classe_sans_consommation_de_pa (les 4)
+nouvelle cellule khalija  ok · LES MÊMES 4 identités réelles reprennent mission
+                          nouvelles couvertures : Samira Al-Zahiri, Slimane Al-Faridi,
+                          Nabil Ben Azzouz, Tarek Ben Hazem
+                          DUP 13 partout, en base ET dans le retour client
+                          leader initial = Arnie (le ministre), position dérivée :
+                          capitale/palais-gouvernement/bureau_min_def, porte=true
+                          échéance = 10 jours
+déposer / reprendre       position propre acquise, puis leader restauré et position nulle
+capacités                 garde→observer ok · garde→écouter/observer_personne/port refusés
+                          (agent_introuvable : le filtre de rôle mord)
+coordinateur              port = pas_dans_un_port · multimodal = ok (conditions de lieu)
+trace DUP 13              risque = 17  (= 30 − 13)
+contre-espionnage DUP 13  modificateur = −15  (= 3 × (8 − 13))
+détention                 chemin métier intact, agent rendu avec sa position
+clôture                   missions → disparu · LES 4 IDENTITÉS RESTENT ACTIVES au socle
+historique                16 occurrences conservées, aucune supprimée
+CONFIDENTIALITÉ           vrai nom dans pnj_membres_ici : FAUX (ministre et autre joueur)
+                          dans agents_couverture_ici : FAUX · renseignement_ici : FAUX
+                          dans mes_cellules : VRAI — mais la fonction exige le poste min_def
+                          ET filtre sur son propre pays. Le ministre voit ses agents :
+                          légitime, préexistant, inchangé.
+comparateurs              agents=true soldats=true douane=true police=true
+```
+
+## Dettes
+
+- `agents_renseignement.ville / building_id / room_id / leader_courant / detention_id` restent la
+  source de la position : **volontaire**, tant que l'arbitrage ci-dessus n'est pas rendu.
+- `renseignement_identites_reelles.dup` est **alignée mais périmée comme source** : conservée parce
+  que `cellule_renseignement_creer` la lit encore. À déclasser quand cet écrivain basculera.
+- Les quatre identités sont inscrites avec `pays = 'republic'` et le périmètre `republic`, parce que
+  c'est le seul empire ayant créé des cellules. La table `renseignement_identites_reelles` est
+  pourtant **globale** : un ministre d'un autre empire utiliserait les mêmes quatre personnes.
+  Incohérence **préexistante**, hors périmètre, signalée.
