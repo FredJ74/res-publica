@@ -21,8 +21,10 @@ justification ligne à ligne sont dans `PROPOSITION_socle_pnj_groupes.sql` et
 
 **Écarts entre la proposition et ce qui a été appliqué**, pour que la lecture des deux ne
 trompe personne :
-- `pnj_membres` a reçu `liquide numeric` et les six colonnes `car_for/cha/dup/int/per/vol`
-  (l'ensemble fermé des caractéristiques PNJ), absentes de la première esquisse ;
+- `pnj_membres` a reçu `liquide numeric` et les six colonnes de caractéristiques, absentes de la
+  première esquisse. **Elles s'appellent depuis le 27/09 `car_int/cha/vol/per/dup/ent`** : la
+  première version portait `car_for`, qui ne correspondait à aucun référentiel réel (cf. lot 1
+  plus bas) ;
 - `pnj_soldats_metier` a été ajoutée (matricule, section, réserve, arme, formation) — c'est
   elle qui garde l'entraînement **hors** du socle ;
 - les primitives de mutation résolvent l'acteur par `mon_personnage()` et vérifient
@@ -588,3 +590,79 @@ Premier passage **contre le site déployé**, donc l'ancien client : il a prouv�
 (`autorite_insuffisante` en lecture ET en retrait d'argent sur le PNJ d'Arnie) et **aucune écriture
 hors RPC** — 8 appels réseau, 0 `POST/PATCH/DELETE` sur une table. Il a aussi montré que l'ancien
 client offrait encore « Retirer » sur un objet non cessible : c'est ce que le nouveau corrige.
+
+---
+
+# LOT 1 — Le contenant générique des six caractéristiques (27 septembre 2026)
+
+Premier lot du plan de convergence. **Portée strictement limitée au contenant** : aucune valeur
+métier n'est posée, aucun gameplay n'est touché, et rien n'est introduit qui créerait une
+dépendance vers les objets ou les effets — ceux-ci appartiennent au lot 10.
+
+## Ce qui était faux
+
+Le socle portait `car_for` (Force) et n'avait pas `car_ent` (Entregent). Or les six
+caractéristiques du jeu sont **INT, CHA, VOL, PER, DUP, ENT** : `FOR` n'est la caractéristique
+d'aucun personnage joueur — elle ne venait que d'une table de PNJ héritée. Le socle décrivait donc
+un référentiel qui n'était celui de personne.
+
+## Pourquoi maintenant, et pas plus tard
+
+Recensement exhaustif fait **avant** d'écrire la migration : aucune fonction, aucune vue, aucun
+index, aucune valeur par défaut, aucune policy et aucun déclencheur ne lisait `car_for` ; la seule
+référence était la contrainte de bornes ; et les 96 lignes avaient leurs six colonnes à NULL. Le
+renommage ne pouvait donc casser aucun comportement.
+
+Dès qu'une valeur métier y sera écrite — lots 2 et 5 — ce ne sera plus vrai. **C'est précisément
+pour cela que le référentiel est corrigé avant la première valeur**, et non après.
+
+## Ce qui a été appliqué
+
+- `car_for` renommée en `car_ent`, avec un commentaire sur chacune des six colonnes ;
+- contrainte `pnj_car_bornes` reprise à l'identique sur les six noms cibles — mêmes bornes, même
+  sémantique : NULL reste autorisé (caractéristique non encore posée), toute valeur présente reste
+  dans 0..100 ;
+- trois primitives de lecture de la **valeur de base uniquement**, fermées au client :
+  - `pnj_caracteristiques_cles()` — le référentiel écrit une seule fois, pour que rien ne recopie
+    six noms à la main ;
+  - `pnj_caracteristiques_base(pnj_id)` — les six valeurs écrites dans la ligne ;
+  - `pnj_caracteristique_base(pnj_id, cle)` — une valeur ; **une clé inconnue lève** au lieu de
+    rendre NULL en silence, pour qu'une faute de frappe dans une formule se voie tout de suite.
+
+Ces primitives ne composent rien. Le jour où une valeur **effective** existera, ce sera une
+fonction distincte construite par-dessus celles-ci — jamais une modification de celles-ci, pour
+qu'on puisse toujours lire la base sans composition.
+
+## Preuves, toutes par exécution
+
+```
+colonnes                    car_ent, car_cha, car_dup, car_int, car_per, car_vol
+référentiel                 INT, CHA, VOL, PER, DUP, ENT
+lecture base d'un soldat    les six clés, toutes à NULL
+PNJ inexistant              NULL (et non une erreur)
+clé « FOR »                 REFUSÉE, message nommant le référentiel
+clé « per » en minuscules   REFUSÉE (sensible à la casse)
+bornes 0 et 100             acceptées
+borne 101                   refusée par pnj_car_bornes
+borne -1                    refusée par pnj_car_bornes
+```
+
+État après migration : **96 soldats actifs**, PA 12, 1 possession, **0 ligne renseignée**,
+comparateur **96/96 et 1/1, 0 divergence**, blob `md5 a107192a41d5cd1153808c302d60d0a9` et
+`updated_at` du 22/09 **inchangés**. Aucune fonction ne lit plus `car_for`. Les trois primitives
+sont fermées à `authenticated`.
+
+Les essais de bornes ont été faits en **transaction annulée** : aucune caractéristique n'est
+restée écrite.
+
+## Rollback
+
+Aucune donnée à restaurer, les colonnes sont vides. L'inverse exact est consigné en tête de la
+migration `socle_pnj_caracteristiques_referentiel_cible` : supprimer les trois primitives,
+renommer `car_ent` en `car_for`, restaurer la contrainte d'origine.
+
+## Ce que ce lot ne fait pas
+
+Il ne renseigne aucune valeur, ne touche à aucun métier, n'introduit ni objet ni effet, et ne
+modifie aucun comportement de jeu. **Le lot 2 (première famille Bêta, les douaniers) nécessite un
+arbitrage de game design : les quatre caractéristiques manquantes du douanier.**

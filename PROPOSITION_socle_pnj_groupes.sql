@@ -205,6 +205,9 @@ CREATE TABLE public.pnj_employes_metier (
   genre       text    NULL,
   photo_url   text    NULL,
   photo_pos   text    NULL,
+  -- PERIME depuis le 27/09/2026 : le referentiel cible est INT, CHA, VOL, PER, DUP, ENT.
+  -- `car_for` n'existe plus -- FOR n'est la caracteristique d'aucun personnage joueur. Ne pas
+  -- recopier ces deux lignes telles quelles : voir `car_ent` dans pnj_membres.
   car_for     integer NULL, car_cha integer NULL, car_dup integer NULL,
   car_int     integer NULL, car_per integer NULL, car_vol integer NULL,
   loyaute     integer NULL,
