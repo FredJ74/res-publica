@@ -2507,6 +2507,7 @@ const MOTIFS_REFUS_GROUPE_PNJ = {
   soldat_en_reserve: 'Un réserviste ne dépend d\'aucune section : aucun ordre de section ne peut '
     + 'le viser.',
   pnj_introuvable: 'PNJ introuvable.',
+  pas_un_soldat: 'Nourrir et abriter sont des ordres militaires : ce PNJ n\'est pas un soldat.',
   pnj_inactif: 'Ce PNJ n\'est plus en service.',
   compagnie_introuvable: 'Compagnie introuvable.',
   section_introuvable: 'Section introuvable.'
