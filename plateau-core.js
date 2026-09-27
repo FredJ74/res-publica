@@ -2164,6 +2164,32 @@ function advanceTime(pa) {
 //     honnete refletant ce qui a reellement ete preleve, pas la valeur declarative de l'ordre)
 //   echec  : { ok: false, raison: 'pa_insuffisants' | 'fonds_insuffisants' | 'caisse_institution_insuffisante' }
 //     aucune ressource n'est modifiee en cas d'echec.
+// =============================================================================================
+// RECOPIE D'UN PAIEMENT SERVEUR DANS L'ETAT LOCAL (27 septembre 2026)
+// =============================================================================================
+// Ces cinq lignes vivaient uniquement dans deduireCoutOrdre. Des qu'une RPC autre que payer_ordre
+// preleve elle-meme -- c'est le cas d'employe_recruter, qui paie et cree l'employe dans la MEME
+// transaction -- il faut les rejouer a l'identique, sinon l'interface affiche un solde perime et
+// la sauvegarde suivante republie une valeur fausse. Les ecrire une seconde fois a la main, c'etait
+// garantir d'en oublier une (le solde national, typiquement). Une seule definition, deux appelants.
+//
+// Tolerante par construction : chaque champ n'est recopie que si le serveur l'a renvoye. Les RPC
+// n'exposent pas toutes les memes cles -- payer_ordre rend `pa`, debiter_fonds_ordinaires non.
+function appliquerPaiementServeur(r) {
+  if (!r || typeof r !== 'object') return false;
+  if (typeof r.pa === 'number') state.pa = r.pa;
+  if (typeof r.liquide === 'number') state.liquide = r.liquide;
+  if (typeof r.arg === 'number') {
+    state.arg = r.arg;
+    if (state.char) state.char.arg = state.arg;
+  }
+  if (state.comptesBancaires?.nationale && typeof r.solde_national === 'number') {
+    state.comptesBancaires.nationale.solde = r.solde_national;
+  }
+  if (typeof updateUI === 'function') updateUI();
+  return true;
+}
+
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
   // ===========================================================================
   // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)
@@ -2216,14 +2242,7 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null
     }
     // On recopie l'etat que le SERVEUR a arrete, jamais un calcul local : la
     // prochaine sauvegarde complete republiera donc exactement ses valeurs.
-    state.pa = r.pa;
-    state.liquide = r.liquide;
-    state.arg = r.arg;
-    if (state.char) state.char.arg = state.arg;
-    if (state.comptesBancaires?.nationale && typeof r.solde_national === 'number') {
-      state.comptesBancaires.nationale.solde = r.solde_national;
-    }
-    if (typeof updateUI === 'function') updateUI();
+    appliquerPaiementServeur(r);
     return { ok: true, paPreleves: r.pa_preleves, montantPreleve: r.montant_preleve };
   }
 

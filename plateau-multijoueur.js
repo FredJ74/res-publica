@@ -783,9 +783,20 @@ function ouvrirRecrutementEscort(nomEscort, genre, photoUrl) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerRenvoyerEscort(nomEscort) {
+async function confirmerRenvoyerEscort(nomEscort) {
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (!state.escortActive) state.escortActive = [];
+  // LIBERATION AU SOCLE D'ABORD. L'escort est un PNJ du socle depuis le 27 septembre 2026 : la
+  // retirer des structures clientes sans le dire au serveur laisserait un PNJ actif appartenant a
+  // un joueur qui ne le voit plus -- et le quota le lui reprocherait au recrutement suivant.
+  // best-effort : un echec de transport ne doit pas bloquer le renvoi cote joueur, mais il est
+  // trace, car c'est exactement le cas ou les deux cotes divergeraient.
+  const ref = state.escortActive.find(e => e.nom === nomEscort)
+           || (state.employes || []).find(e => e.nom === nomEscort);
+  if (ref?.pnjId && typeof sbEmployeLiberer === 'function') {
+    const r = await sbEmployeLiberer(ref.pnjId, 'renvoi').catch(() => null);
+    if (!r || r.ok !== true) console.warn('[escort] liberation socle non confirmee', ref.pnjId, r);
+  }
   state.escortActive = state.escortActive.filter(e => e.nom !== nomEscort);
   if (state.employes) state.employes = state.employes.filter(e => e.nom !== nomEscort);
   if (state.group?.members) state.group.members = state.group.members.filter(n => n !== nomEscort);
@@ -799,32 +810,54 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if ((state.employes || []).some(e => e.job === 'escort' && e.genre === genre)) {
-    showToast('Déjà recrutée', 'Vous avez déjà une escort de ce type dans votre groupe.', false);
+  // ===========================================================================
+  // RECRUTEMENT AU SOCLE (27 septembre 2026)
+  // ===========================================================================
+  // Les trois gardes, le prelevement et le tirage de caracteristiques etaient tous ici, dans le
+  // navigateur : c'est lui qui verifiait le quota, se debitait lui-meme et decidait des stats de
+  // l'escort. La RPC employe_recruter fait les trois AU SERVEUR et dans UNE SEULE transaction --
+  // quota par genre, plafond de 10 employes, prelevement des 800 FR, creation du PNJ -- de sorte
+  // qu'un refus de fonds ne laisse aucune escort derriere lui.
+  //
+  // LES CARACTERISTIQUES NE SONT PLUS TIREES AU HASARD. Elles viennent du referentiel serveur et
+  // valent desormais, pour TOUTE escort : INT 10 / CHA 15 / VOL 10 / PER 10 / DUP 12 / ENT 10.
+  // Le navigateur recopie ce que le serveur a retenu, il ne le choisit plus.
+  //
+  // FAIL CLOSED : pas de reponse ou reponse negative => aucun effet, aucune escort, aucun debit.
+  // Meme garde-fou que deduireCoutOrdre : aucune action payante sans personnage charge, sinon on
+  // paierait sous une identite que le serveur ne reconnaitra pas.
+  if (!state.char?.name) {
+    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false);
     return;
   }
-  if ((state.employes || []).length >= MAX_EMPLOYES) {
-    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employés.', false);
+  const resEmp = (typeof sbEmployeRecruter === 'function')
+    ? await sbEmployeRecruter('escort', nomEscort, genre) : null;
+  if (!resEmp || resEmp.ok !== true) {
+    const motifs = {
+      quota_metier_atteint: 'Vous avez déjà une escort de ce type dans votre groupe.',
+      plafond_employes: 'Maximum ' + MAX_EMPLOYES + ' employés.',
+      paiement_refuse: tarif + ' ' + cur + ' requis pour la première journée.',
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.'
+    };
+    showToast('Recrutement impossible',
+      motifs[resEmp && resEmp.raison] || 'L\'agence n\'a pas donné suite.', false);
     return;
   }
-  if (state.arg < tarif) {
-    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la première journée.', false);
-    return;
-  }
-  state.arg -= tarif;
-
-  // Stats aleatoires (personnage "cheate", d'ou le salaire eleve)
-  const statsEscort = {
-    CHA: Math.floor(Math.random() * 7) + 12, // 12-18
-    DUP: Math.floor(Math.random() * 7) + 10, // 10-16
-    INT: Math.floor(Math.random() * 7) + 8   // 8-14
-  };
+  // Le serveur a preleve : on recopie l'etat qu'il a arrete, par la meme fonction que
+  // deduireCoutOrdre, pour ne pas oublier un champ (PA, liquide, arg, solde national).
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(resEmp.paiement);
+  const statsEscort = resEmp.caracteristiques || {};
+  const pnjIdEscort = resEmp.pnj_id;
 
   if (!state.group) state.group = { leader: state.char?.name, members: [state.char?.name] };
   if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
 
   if (!state.escortActive) state.escortActive = [];
-  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre, palier: 0, photoUrl: window._photoEscortEnAttente || null });
+  // `pnjId` est l'identifiant de l'escort AU SOCLE. C'est lui qui permettra de la liberer, de la
+  // payer et de la retrouver sans dependre de l'unicite de son nom. Les trois structures clientes
+  // restent alimentees tant que des chemins vivants les lisent (payerEscorts, actions de la fiche,
+  // affichage du groupe) : elles deviennent des PROJECTIONS du socle, pas une seconde verite.
+  state.escortActive.push({ nom: nomEscort, pnjId: pnjIdEscort, tarif, depuis: state.day || 1, genre, palier: 0, photoUrl: window._photoEscortEnAttente || null });
 
   // Phase 5B memoire commerciale (22 aout 2026) : embauche reellement effectuee (toutes les
   // verifications precedentes ont deja reussi, l'argent est deja deduit) -- best-effort,
@@ -851,7 +884,8 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
 
   if (!state.employes) state.employes = [];
   state.employes.push({
-    nom: nomEscort, role: 'Escort — Agence Roxane Velours', job: 'escort', genre,
+    nom: nomEscort, pnjId: pnjIdEscort,
+    role: 'Escort — Agence Roxane Velours', job: 'escort', genre,
     photoUrl: photoChoisie, photoPos: '50% 15%',
     cout: tarif, inGroupe: true,
     buildingId: state.currentBuilding,
@@ -927,6 +961,15 @@ function payerEscorts() {
         escort.nom + ' a déposé une plainte pour non-paiement de services. -20 POP -15 DIS. La presse a été informée.');
       addExternalEvent('📰 SCANDALE : ' + (state.char?.name||'Anonyme') + ' accusé(e) de non-paiement par ' + escort.nom + ' !');
       addJournalEntry('Non-paiement escort. Plainte + article presse. -20 POP -15 DIS.', 'event-bad');
+      // DEPART PRONONCE AU SOCLE (27 septembre 2026). Les consequences ci-dessus sont INCHANGEES --
+      // -20 POP, -15 DIS, mail Tribunal, scandale diffuse : c'est le comportement historique et il
+      // reste tel quel. Seul s'ajoute le fait de dire au serveur que ce PNJ n'est plus employe,
+      // sans quoi le socle garderait une escort active appartenant a un joueur qui l'a perdue.
+      // Volontairement sans await : cette fonction est appelee dans la sequence du reveil, et
+      // l'effet local ne doit pas attendre le reseau.
+      if (escort.pnjId && typeof sbEmployeLiberer === 'function') {
+        sbEmployeLiberer(escort.pnjId, 'impaye').catch(() => {});
+      }
       // Retirer du groupe
       if (state.group?.members) {
         state.group.members = state.group.members.filter(m => m !== escort.nom);
@@ -977,23 +1020,57 @@ async function doRecruterInformateurPNJ(pa) {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'recruter_informateur_pnj');
   const cout = ordre?.cost || 150;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis pour la première journée.', false); return; }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   const infoChoisi = INFORMATEURS_CATALOGUE[Math.floor(Math.random() * INFORMATEURS_CATALOGUE.length)];
   const nomPnj = infoChoisi.nom + ' (PNJ)';
-  const perInformateur = Math.floor(Math.random() * 7) + 12; // 12 a 18
+
+  // ===========================================================================
+  // RECRUTEMENT AU SOCLE (27 septembre 2026)
+  // ===========================================================================
+  // Le paiement passait par deduireCoutOrdre puis le PNJ etait cree ici, en deux temps : un echec
+  // apres le debit laissait le joueur paye sans informateur. employe_recruter fait les deux dans
+  // UNE transaction, et continue de passer par payer_ordre -- le cout 1 PA / 150 FR reste donc
+  // revalide contre le miroir de data.js, comme avant.
+  //
+  // LE PER N'EST PLUS TIRE ENTRE 12 ET 18. Le profil fixe du metier informateur vaut
+  // INT 10 / CHA 10 / VOL 8 / PER 15 / DUP 12 / ENT 8, et il est COMPLET : les cinq autres
+  // caracteristiques existent desormais aussi, alors que seule PER etait renseignee avant. Elles
+  // entrent donc a leur tour dans les moyennes de groupe -- c'est la consequence assumee d'un
+  // profil complet, pas un effet de bord.
+  //
+  // Le NOM reste tire au sort dans le catalogue : un nom n'est pas une caracteristique.
+  if (!state.char?.name) {
+    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false);
+    return;
+  }
+  const resEmp = (typeof sbEmployeRecruter === 'function')
+    ? await sbEmployeRecruter('informateur', nomPnj, infoChoisi.genre,
+                              'recruter_informateur_pnj', pa, cout) : null;
+  if (!resEmp || resEmp.ok !== true) {
+    const motifs = {
+      quota_metier_atteint: 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.',
+      plafond_employes: 'Vous employez déjà trop de monde.',
+      paiement_refuse: cout + ' ' + cur + ' et ' + pa + ' PA requis.',
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.'
+    };
+    showToast('Recrutement impossible',
+      motifs[resEmp && resEmp.raison] || 'Personne n\'a donné suite.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(resEmp.paiement);
+  const carInfo = resEmp.caracteristiques || {};
+  const perInformateur = carInfo.PER;
 
   state.employes.push({
-    nom: nomPnj, role: 'Informateur', job: 'informateur',
+    nom: nomPnj, pnjId: resEmp.pnj_id, role: 'Informateur', job: 'informateur',
     genre: infoChoisi.genre, photoUrl: infoChoisi.photoUrl, photoPos: '50% 15%',
     cout, inGroupe: true,
     buildingId: state.currentBuilding,
     roomId: state.currentRoom,
     city: state.currentCity,
     depuis: state.day || 1,
-    stats: { PER: perInformateur }
+    stats: carInfo
   });
 
   updateUI();
@@ -1159,6 +1236,10 @@ function payerEmployes() {
         emp.nom + ' n\'a pas été payé(e). Il/elle quitte votre groupe immédiatement.');
       addJournalEntry(emp.nom + ' non payé(e). Départ.', 'event-bad');
       showToast('Départ de ' + emp.nom, 'Fonds insuffisants. -1 employé.', false);
+      // Depart prononce au socle, meme raison que pour l'escort. Effets historiques inchanges.
+      if (emp.pnjId && typeof sbEmployeLiberer === 'function') {
+        sbEmployeLiberer(emp.pnjId, 'impaye').catch(() => {});
+      }
     }
   });
 
@@ -1215,10 +1296,17 @@ function recupererPnjDansGroupe(nomPnj) {
   }
 }
 
-function licencierPnj(nomPnj) {
+async function licencierPnj(nomPnj) {
   const idx = state.employes?.findIndex(e => e.nom === nomPnj);
-  if (idx < 0) return;
+  if (idx === undefined || idx === null || idx < 0) return;
   const emp = state.employes[idx];
+  // Meme raison que pour le renvoi d'une escort : le PNJ vit au socle, son depart doit y etre
+  // prononce. `employe_liberer` le marque disparu et le delie -- jamais une suppression, que la
+  // garde refuserait sur un PNJ actif.
+  if (emp?.pnjId && typeof sbEmployeLiberer === 'function') {
+    const r = await sbEmployeLiberer(emp.pnjId, 'licenciement').catch(() => null);
+    if (!r || r.ok !== true) console.warn('[employe] liberation socle non confirmee', emp.pnjId, r);
+  }
   state.employes.splice(idx, 1);
 
   // Retirer une eventuelle entree fantome dans la piece d'origine (anciens recrutements

@@ -4812,6 +4812,55 @@ async function sbPnjQuitterGroupe(pnjIds) {
   return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
 }
 
+// =====================================================================
+// FAMILLE BETA `employe` — ESCORT ET INFORMATEUR (27 septembre 2026)
+// =====================================================================
+// Un employe recrute est desormais un PNJ du socle, pas une entree de state. Consequences :
+//
+// LES CARACTERISTIQUES NE SONT PLUS TIREES AU HASARD. Elles viennent du referentiel serveur
+// (pnj_metiers_profils), fixes et attachees au METIER : escort CHA 15 / DUP 12, informateur
+// PER 15, etc. Le navigateur ne les invente plus et ne les choisit plus -- il recopie ce que la
+// RPC lui rend dans `caracteristiques`. C'etait la seule facon d'avoir des valeurs connues
+// d'avance sans les dupliquer a deux endroits.
+//
+// LE PAIEMENT EST SERVEUR ET ATOMIQUE. Le cout initial est preleve DANS la meme transaction que
+// la creation : un refus de fonds ne laisse aucun employe derriere lui, et un echec de creation
+// ne laisse aucun debit. Pour l'informateur, qui possede un ordre declare, la RPC passe par
+// payer_ordre et le cout est revalide contre le miroir de data.js ; pour l'escort, dont le
+// bouton n'est pas un ordre, elle passe par debiter_fonds_ordinaires. Plus aucun `state.arg -=`.
+//
+// CLASSE ET METIER SONT SEPARES. La famille socle est `employe` pour les trois metiers (escort,
+// informateur, et codetenu qui reste non recrutable) ; la classe est beta ; le metier vit dans
+// pnj_employes_metier.job. Un meme mot de metier peut exister dans une autre classe -- Prosper
+// Tampon exerce la fonction de douanier en restant un Gamma du decor.
+//
+// AUCUNE ECRITURE DANS room.persons, jamais : c'est la strategie de l'informateur, la seule qui
+// n'a pas produit de duplication. Un PNJ existe une fois ; sa presence vient de son etat.
+async function sbEmployeRecruter(metier, nom, genre, fnOrdre, pa, cost) {
+  return await sbRpc('employe_recruter', {
+    p_metier: metier, p_nom: nom, p_genre: genre || null,
+    p_fn: fnOrdre || null,
+    p_pa: (typeof pa === 'number') ? pa : null,
+    p_cost: (typeof cost === 'number') ? cost : null
+  });
+}
+
+// Depart d'un employe : licenciement, renvoi, ou impaye. JAMAIS une suppression -- la garde de
+// suppression refuserait un PNJ actif, et un employe qui s'en va n'est pas mort. Il est delie et
+// marque disparu, comme un agent de la force publique retire faute de budget.
+async function sbEmployeLiberer(pnjId, motif) {
+  return await sbRpc('employe_liberer', { p_pnj_id: pnjId, p_motif: motif || 'licenciement' });
+}
+
+// Mes employes, tels que le socle les connait : metier, cout, caracteristiques fixes, et s'ils
+// me suivent. Sert a reconstruire l'affichage sans que le navigateur soit la source de verite.
+async function sbEmployeMesEmployes() {
+  const r = await sbRpc('employe_mes_employes', {});
+  if (r === null || r === undefined) return null;        // transport : a distinguer d'un refus
+  if (r.ok !== true) return { refus: r.raison || 'inconnu' };
+  return { employes: r.employes || [] };
+}
+
 // Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
 // acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
 async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
