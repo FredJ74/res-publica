@@ -1190,3 +1190,184 @@ comparateur soldats **96/96** · douane **4/4** · police **1/1** ·
 axes soldat : `position_leader = socle`, `pa = socle`, `possessions = socle`, `argent = socle`,
 `propriete = socle` — **la famille Alpha est entièrement au socle** ·
 blob `md5 a107192a41d5cd1153808c302d60d0a9` **inchangé**.
+
+---
+
+# CHECKPOINTS B, C ET D — LES FAMILLES RESTANTES (27 septembre 2026)
+
+## Ce que la cartographie a corrigé dans mon plan
+
+Trois choses que je croyais, et qui étaient fausses :
+
+**1. Escort, Informateur et Codétenu ne sont pas des familles.** Ce sont des **métiers** de la
+famille `employe` : tous trois vivent dans `state.employes` avec un champ `job`, et la coquille
+socle `pnj_employes_metier` porte déjà ce `job`. Il n'y avait donc pas trois familles à migrer mais
+une, et l'architecture SOCLE → CLASSE → MÉTIER les range au bon niveau.
+
+**2. L'Agent de renseignement n'est pas une famille cliente à rapatrier : c'est la famille la plus
+aboutie du jeu, déjà 100 % serveur, et pleinement active** — 12 agents, 3 cellules, convoqués par
+quatre par le Ministre de la Défense. Elle porte **déjà** sa position (`pays/ville/building_id/
+room_id`), son leader (`leader_courant`), son transfert entre joueurs et sa détention. C'est-à-dire
+exactement les axes que `pnj_axes_autorite` gère — réimplémentés en parallèle. Converger cette
+famille demanderait de déplacer 33 fonctions, le cron de collecte, le contre-espionnage et le cycle
+carcéral. C'est une refonte, pas une bascule : **hors mandat**.
+
+**3. Aucune de ces familles n'a ses six caractéristiques**, et les valeurs existantes sont souvent
+**tirées au hasard à l'embauche** :
+
+| Famille | Caractéristiques | Nature |
+| --- | --- | --- |
+| employé (job générique) | CHA, INT, DUP | fixes par job ; VOL, PER, ENT manquent |
+| employé · escort | CHA 12-18, DUP 10-16, INT 8-14 | **aléatoires** à l'embauche |
+| employé · informateur | PER 12-18 | **aléatoire** |
+| employé · codétenu | DUP 8-12 (+ une FOR hors référentiel) | **aléatoires** |
+| militant | aucune | 0 sur 6 |
+| agent de renseignement | DUP 10/12/13/15 selon le rôle | **fixes**, 1 sur 6 |
+| soldat | aucune | 0 sur 6 |
+
+Les figer demanderait de décider si l'aléatoire disparaît. **Je n'invente aucune valeur.**
+
+## Le blocage de chaque famille, motivé
+
+| Famille | Classe | Pourquoi elle n'est pas migrée |
+| --- | --- | --- |
+| **employe** | bêta | Recrutement **muré volontairement** (`return` « Temporairement indisponible », tout le code dessous est mort) ; caractéristiques aléatoires ; le métier **codétenu est mort-né** — aucun PNJ ne porte `job:'codetenu'` ; déplacer le salaire du navigateur au serveur changerait des conséquences réelles (plainte au tribunal, −20 POP, article de presse). |
+| **militant** | bêta | 0 caractéristique sur 6, et sa **seule utilité est morte en amont** : `getMonSyndicatEtGrade` lit `chargerOrgas` et `state.orgas`, qui n'existent ni l'un ni l'autre — la vraie liste est `state.organisations`. 0 ligne en production : la famille n'a jamais servi. |
+| **agent** | bêta | Bloquée **pour refonte, pas pour indécision**. Système serveur parallèle complet. |
+| **depute** | gamma | 9 sièges. Pas inscrit au socle : sa position physique n'est définie nulle part. |
+| **titulaire_poste** | gamma | 16 titulaires. Même raison. |
+
+## La classe Gamma, déclarée sur ses deux familles réelles
+
+- **Titulaire PNJ de poste** — 16 lignes : Premier Ministre, 5 ministres, 3 juges de ville + le juge
+  national, Commandant, Chef des Douanes, Capitaine du Port, 3 directeurs d'industrie. `pnj_institutions`
+  disait déjà l'essentiel : **un titulaire PNJ n'est pas une autorité**.
+- **Député PNJ** — 9 sièges, 3 par ville. Il vote, son intention se marchande, et un joueur peut
+  l'**endormir** jusqu'au réveil de minuit. Vérifié : cette neutralisation ne le tue pas, ne le
+  déplace pas, ne l'approprie pas — elle empêche son **métier**. Elle est donc compatible avec Gamma,
+  qui interdit la mort et la propriété, pas l'entrave politique. Vérifié aussi : **aucune** fonction
+  de l'Assemblée ne touche les PA d'un député ; `assemblee_debiter_joueur` débite le **joueur**.
+
+Ces déclarations sont **préventives** : elles ne créent aucune donnée, et arment les gardes par
+avance. On ne peut plus transformer un PNJ institutionnel en employé par accident.
+
+## Une valeur d'autorité manquait : `institution`
+
+La position d'un douanier ou d'un policier n'est pas « dans un blob ». Elle est **dérivée de son
+périmètre institutionnel** : le miroir écrit `ville = p_ville` et `building_id = p_batiment`,
+c'est-à-dire le poste lui-même. Aucune RPC ne déplace un douanier, et le socle n'a donc rien à
+décider. L'appeler `blob` laissait croire à un magasin concurrent qu'il suffirait de basculer ; la
+vérité est qu'**il n'y a personne à qui prendre l'autorité**. Rendre le socle autoritaire ici
+n'ajouterait aucune capacité et lui ferait seulement cesser de suivre son institution.
+
+## Deux pièges fermés avant d'ajouter cette valeur
+
+**Le premier, symétrique du piège de logique ternaire.** `pnj_axe_verrouille` verrouillait l'axe
+quand l'autorité valait **exactement** `'blob'`. Toute valeur nouvelle aurait donc **ouvert** la
+garde — elle se serait ouverte précisément dans le cas qu'elle n'avait pas prévu. La garde dit
+maintenant l'inverse, par une fonction unique et totale :
+
+```sql
+CREATE FUNCTION pnj_axe_au_socle(p_famille, p_axe) RETURNS boolean AS $$
+  SELECT COALESCE((SELECT a.autorite = 'socle' FROM pnj_axes_autorite a
+                    WHERE a.famille = p_famille AND a.axe = p_axe), false);
+$$;
+```
+
+Plus **aucun** endroit du schéma ne compare l'autorité à un littéral — vérifié par requête sur
+`pg_proc.prosrc` : 0 occurrence de `= 'blob'`. `pnj_miroir_compagnie` et `pnj_comparer_soldats` sont
+passés par la fonction.
+
+Preuve : `pnj_axe_au_socle('licorne','pa')` et `pnj_axe_au_socle('soldat','humeur')` rendent `false`,
+jamais `NULL`, et `pnj_axe_verrouille(..., 'humeur')` **verrouille**.
+
+**Le second, une fuite d'autorité exposée par la migration.** `pnj_prendre`, `pnj_quitter_groupe` et
+`pnj_transferer` écrivent `leader_pj`, `ville`, `building_id`, `room_id` : c'est exactement l'axe
+`position_leader`. Or elles ne consultaient que `pnj_mouvement_individuel_refus`, c'est-à-dire la
+**règle de jeu** — et cette règle est **fail-open** : elle joint sur la table, donc une famille
+**sans ligne** ne refuse rien. Une famille entrant au socle avec `position_leader = 'blob'` et sans
+ligne de règle aurait vu sa position écrite par le socle alors que le socle n'en est pas autoritaire.
+
+Les trois primitives consultent désormais les deux gardes, qui disent deux choses différentes :
+
+- l'**axe** dit **qui décide**. Si ce n'est pas le socle, le socle n'écrit pas. *État de migration.*
+- la **règle de jeu** dit **si c'est permis**. Un soldat ne s'extrait pas de sa section, même quand
+  le socle fait autorité sur sa position. *Règle permanente.*
+
+Preuve de leur indépendance, en transaction annulée :
+
+```
+soldat    axe=ouvert                     regle=mouvement_individuel_interdit
+          pnj_prendre -> mouvement_individuel_interdit
+douanier  axe=axe_position_hors_socle     regle=affectation_par_le_service
+          pnj_prendre -> axe_position_hors_socle
+douanier SANS sa règle de jeu :  regle=ouvert (fail-open)  axe=axe_position_hors_socle
+          pnj_prendre -> axe_position_hors_socle   <<< l'axe tient SEUL
+          position du douanier inchangée : ville_a / port-sainte-marie
+```
+
+## L'architecture, lisible en une requête
+
+| Famille | Classe | position/leader | pa | possessions | argent | propriété | mvt indiv. | au socle |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| soldat | alpha | socle | socle | socle | socle | socle | non | **96** |
+| douanier | bêta | institution | socle | socle | socle | socle | non | **4** |
+| policier | bêta | institution | socle | socle | socle | socle | non | **1** |
+| employe | bêta | blob | blob | blob | blob | blob | oui | 0 |
+| militant | bêta | blob | blob | blob | blob | blob | non | 0 |
+| agent | bêta | blob | blob | blob | blob | blob | oui | 0 |
+| depute | gamma | institution | institution | institution | institution | institution | non | 0 |
+| titulaire_poste | gamma | institution | institution | institution | institution | institution | non | 0 |
+
+Noter la ligne `employe` : la **règle de jeu est ouverte** (le jeu permet déjà de laisser un employé
+en place et de le reprendre, et même de le débaucher), et c'est l'**axe** qui l'empêche. Les deux
+colonnes ne se recopient pas : c'est le signe que la séparation est réelle.
+
+## Audit de clôture
+
+**La règle spatiale — un seul monde, prouvé.** Vince au corps de garde : ses 24 soldats y sont vus.
+Vince déplacé au hall du palais gouvernemental : les **mêmes 24** y sont vus, `position_serveur`
+**relue en base** et non transmise par le navigateur, la réserve restant à la caserne. Et surtout :
+**aucune écriture PNJ au déplacement** (`max(maj_le)` inchangé), **0 suiveur avec position stockée**.
+La position est dérivée, pas dupliquée. Il n'y a pas de seconde géographie PNJ. Les règles de
+détection n'ont pas été touchées.
+
+**Balayage des RPC.** Les 80 RPC PNJ/militaire/douane/police/agent appelées côté client existent
+toutes dans le schéma — aucun 404 PostgREST en attente. Quatre sont fermées au client, et chacune
+pour la bonne raison : `militaire_affectations_expirer` et `militaire_candidatures_relancer` sont
+appelées par le cron avec `service_role` ; `militaire_blob_projeter` de même ; `militaire_subtiliser`
+est une fonction **morte** depuis le 18 septembre, révoquée volontairement et sans appelant vivant.
+
+**Usurpation d'identité à l'Assemblée : porte fermée, vérifiée par exécution.** Onze RPC de
+l'Assemblée portent `EXECUTE` pour `anon` **et** prennent le nom du joueur en paramètre, ce qui a
+l'air d'une faille. Elles passent toutes par `exiger_acteur()` → `est_mon_personnage()`. Testé sous
+le rôle `anon` sans aucune session : `assemblee_neutraliser_depute` et `assemblee_voter` au nom de
+Vince Kubrick sont refusées en `42501`, « n'appartient pas au compte connecté ». Le droit `EXECUTE`
+est sans effet. **Pas de faille** — et c'est vérifié par l'exécution, pas par la lecture.
+
+**Fermeture au client.** Toutes les primitives techniques du socle sont ouvertes à `service_role`
+seul : `pnj_pa_max`, `pnj_pa_garde`, `pnj_pa_debiter`, `pnj_pa_crediter`, `pnj_pa_fixer`,
+`pnj_axe_au_socle`, `pnj_axe_verrouille`, `pnj_axe_position_refus`, `militaire_blob_projeter`,
+`pnj_miroir_compagnie`, `pnj_comparer_soldats`. `pnj_membres` est fermée **même en lecture** —
+constaté en la requêtant sous le rôle `authenticated`. Aucune surcharge parasite créée : vérifié sur
+les huit fonctions réécrites.
+
+## Dettes consignées, non traitées
+
+1. `militaire_demettre_lieutenant` **ne rompt pas le lien opérationnel** : les soldats gardent pour
+   chef un officier démis. Préexistant.
+2. `militaire_lien_operationnel_rompre` n'a **aucun appelant vivant**, ni SQL ni JS. Conservée.
+3. Un PNJ rendu à la réserve **garde le `leaderCourant`** qu'il avait en section. Préexistant,
+   identique avant et après. Question métier.
+4. **Les caractéristiques du Soldat sont vides** (6 sur 6 absentes). Le conteneur existe, rien ne le
+   lit. Arbitrage à demander.
+5. Le métier **codétenu est mort-né** : aucun PNJ du jeu ne porte `job:'codetenu'`. Le réparer tient
+   à une ligne, mais c'est du gameplay nouveau.
+6. Le **blocus syndical** est mort en amont (`chargerOrgas` / `state.orgas` inexistants) — la seule
+   utilité du militant.
+7. **Deux systèmes d'informateurs concurrents** (`state.employes` avec `job:'informateur'` et
+   `state.informateurs` par niveaux), avec des bugs connus et documentés.
+8. **Signalé par l'advisory Supabase pendant l'audit, hors périmètre** : 30 tables ont la RLS
+   désactivée, dont `budgets_municipaux`, `budgets_nationaux`, `prets`, `etats_urgence`,
+   `fraudes_electorales`. **Rien appliqué** : activer la RLS sans policy bloquerait tout accès —
+   c'est le piège des « policies dormantes ». À arbitrer séparément.
