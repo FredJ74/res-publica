@@ -771,3 +771,112 @@ Le blob `effectifsDouane` n'a pas été modifié. Pour revenir : rétablir l'anc
 
 **Le lot 3 (police) nécessitera un arbitrage : ses quatre caractéristiques manquantes, et le
 déplacement de sa paye du navigateur vers le cron.**
+
+---
+
+# LOT 3 — Policier, deuxième famille Bêta (27 septembre 2026)
+
+Valeurs métier arbitrées : **INT 10, CHA 8, VOL 12, PER 12, DUP 8, ENT 10**. PER et VOL reprennent
+exactement les valeurs historiques des fiches.
+
+## La différence de fond avec le douanier : la police est multi-ville
+
+Le périmètre porte donc la ville — `<ville>:<batiment>` — et l'autorité est le Commissaire **de
+cette ville**, pas n'importe quel Commissaire du pays. C'est ce que la garde d'écriture des
+effectifs exigeait déjà ; c'est l'autorité de **caisse** qui ne le vérifiait pas.
+
+Vérifié : un Commissaire de la capitale n'a **aucune** autorité sur un policier de `zztest-ville`
+(autorité `NULL`, `administrer = f`).
+
+## La fuite financière, et sa double correction
+
+La paye était prélevée par le `doDormir()` de **n'importe quel joueur présent dans la ville**. Or
+le débit de la caisse du commissariat n'exige que le **poste** (`{commissaire, min_int}`), jamais
+la **ville**, alors que l'écriture des effectifs exige le commissaire de cette ville. Un
+commissaire d'une autre ville, ou le ministre de l'Intérieur, qui dormait là : le débit passait,
+l'écriture était refusée. **Argent sorti de la caisse, `dernierPaiementJour` non avancé, aucun
+policier payé ni retiré.**
+
+Deux corrections complémentaires :
+
+1. **La paye devient une tâche de cron** (`paye_police`), comme la douane. Le chemin client
+   disparaît, donc la fuite n'a plus d'occasion de se produire.
+2. **L'autorité de caisse apprend la ville**, pour que la même fuite ne revienne pas par une autre
+   porte. Les caisses locales s'appellent `<pays>_<catégorie>_<ville>` : la ville était déjà dans
+   l'identifiant, il suffisait de la lire. Règle volontairement minimale — un poste **national**
+   (sans ville) conserve son accès, un poste **de ville** ne peut agir que sur la sienne. Un
+   séparateur `_` désigne une ville, un `-` n'en désigne pas une : `commissariat-local` reste un
+   bâtiment.
+
+Le refus est journalisé sous un motif distinct, `autorite_insuffisante_hors_ville`, pour qu'on
+puisse le distinguer d'un simple défaut de poste.
+
+**Portée de cette correction, et ce qui reste.** Elle est appliquée à
+`caisse_institution_mouvement_plafonne`, la porte qu'emprunte la paye et que l'audit avait
+exercée. Les deux fonctions sœurs — `caisse_institution_mouvement` et `caisse_client_mouvement` —
+partagent le même défaut et servent la mairie, le tribunal, l'entrepôt : les corriger mérite un
+lot de sécurité dédié, avec ses propres tests. C'est consigné, pas fait ici.
+
+## Preuves, toutes par exécution
+
+```
+AUTORITÉ DE CAISSE PAR VILLE   (sous SET ROLE authenticated -- sinon la branche cliente
+                                n'est pas empruntée et le test ne prouve rien)
+  contexte                          est_appel_serveur = f, mon_personnage = zzAut
+  commissaire de capitale → caisse de ville_a     REFUSÉ
+  motif journalisé                  autorite_insuffisante_hors_ville
+  commissaire de capitale → sa caisse             accepté, 10 versés
+  min_int (poste national) → ville_a et capitale  accepté  (aucune régression)
+
+SOCLE ET CLASSE
+  caractéristiques    {INT 10, CHA 8, VOL 12, PER 12, DUP 8, ENT 10}
+  classe beta, PA 12, institution police, périmètre zztest-ville:commissariat-local
+  débit de PA                       REFUSÉ  classe_sans_consommation_de_pa, PA reste 12
+
+AUTORITÉ
+  aujourd'hui                       NULL (aucun PJ commissaire)
+  commissaire DE la ville           autorité résolue, administrer = t
+  commissaire d'UNE AUTRE ville     autorité NULL, administrer = f
+
+LES TROIS FORMES DE POSITION
+  non affecté        bâtiment NULL, pièce NULL, rue NULL
+  affecté à une pièce  commissariat-local / accueil          comparateur vert
+  affecté à la rue     rue-n3                                comparateur vert
+
+PAYE
+  caisse approvisionnée   50 FR pour 1 agent standard, caisse 200 → 150, comparateur vert
+  second appel le même jour   versé 0, caisse inchangée      un seul prélèvement
+  caisse vide                 1 agent parti, blob 0, socle 0 actif + 1 disparu,
+                              LE MIROIR NE LÈVE PAS, comparateur vert
+
+AUCUNE RÉGRESSION
+  douane 4/4 · soldats 96/96 · blob militaire md5 a107192a inchangé
+```
+
+Tous les essais de paye et d'autorité ont tourné **en transaction annulée** : aucune caisse
+débitée, aucun poste réellement attribué, aucun policier réellement retiré. Seule la copie du
+policier dans le socle est réelle.
+
+## État après lot
+
+**101 PNJ au socle : 96 soldats (alpha) + 4 douaniers (bêta) + 1 policier (bêta).** Trois
+institutions enregistrées, trois classes déclarées.
+
+## Un point qui demande votre décision
+
+Le **seul** effectif policier de la production est **1 agent dans `zztest-ville`**, une ville de
+test — et la caisse `republic_commissariat_zztest-ville` **n'existe pas**. Au premier passage du
+cron, la règle d'impayé s'appliquera donc : versé 0, l'agent quitte le service, le miroir le marque
+`disparu`. Ce n'est pas une régression, c'est la règle qui s'applique enfin — le chemin client ne
+s'était jamais déclenché faute de joueur dormant dans cette ville. Si vous préférez conserver cet
+agent de test, il faut créer sa caisse ; sinon, laisser faire, ou supprimer la ville de test.
+
+## Rollback
+
+Les blobs `effectifsPolice` n'ont pas été modifiés. Pour revenir : retirer la tâche `paye_police`
+du cron, rétablir l'appel client dans `doDormir` et retirer le `return;` de
+`payerEffectifsPoliceQuotidien`, supprimer le déclencheur `trg_pnj_miroir_police`, puis passer les
+policiers du socle en `disparu` avant de les supprimer. La correction d'autorité de caisse se
+défait en retirant la clause de ville de `caisse_institution_mouvement_plafonne`.
+
+**Le lot 4 portera sur la bascule par axe de la famille soldat.**

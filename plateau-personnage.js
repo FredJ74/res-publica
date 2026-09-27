@@ -2289,8 +2289,15 @@ async function doDormir() {
     // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
     // caisse du commissariat, s'arrete des que le budget est insuffisant)
     if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
-    // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
-    if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
+    // L'ENTRETIEN DES POLICIERS N'EST PLUS DECLENCHE ICI (27 septembre 2026, lot 3).
+    // Meme raison que les douaniers ci-dessous, plus une fuite propre a la police : le debit
+    // partait du sommeil de N'IMPORTE QUEL joueur present dans la ville, alors que l'ECRITURE
+    // des effectifs exige le commissaire DE CETTE VILLE. Un commissaire d'une autre ville, ou le
+    // ministre de l'Interieur, qui dormait la : l'argent sortait de la caisse, le marqueur du
+    // jour n'avancait pas, et aucun policier n'etait paye ni retire.
+    // Il est desormais dans api/cron-minuit.js, tache 'paye_police', via la RPC metier
+    // police_payer_effectifs -- qui boucle sur toutes les villes du pays, la police etant
+    // multi-ville contrairement au service unique des douanes.
     // L'ENTRETIEN DES DOUANIERS N'EST PLUS DECLENCHE ICI (26 septembre 2026).
     // Il l'etait depuis le sommeil de N'IMPORTE QUEL joueur, ce qui est contraire au pilier
     // temporel : un traitement institutionnel quotidien ne peut pas dependre du fait qu'un

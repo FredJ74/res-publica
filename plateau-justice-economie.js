@@ -8459,7 +8459,20 @@ async function getAffichagePoliceRue(pays, ville, rueNoeudId) {
 // recrutes (fin de tableau) sont ceux qui partent en premier faute de budget ; leur affectation
 // (buildingId/roomId/rueNoeudId) disparait naturellement avec eux puisque l'objet entier est
 // retire du tableau.
+// NEUTRALISEE LE 27 SEPTEMBRE 2026 (lot 3). Le prelevement est passe au cron serveur, tache
+// 'paye_police', via la RPC metier police_payer_effectifs. Deux raisons :
+//  - le pilier temporel : un traitement institutionnel quotidien ne peut pas dependre du fait
+//    qu'un joueur particulier clique sur Dormir ;
+//  - une fuite reelle : ce debit partait du sommeil de N'IMPORTE QUEL joueur present dans la
+//    ville, alors que l'ecriture des effectifs exige le commissaire DE CETTE VILLE. L'argent
+//    sortait de la caisse sans que personne ne soit paye ni retire.
+// Le corps est CONSERVE inaccessible : c'est le releve exact de la regle economique que la RPC
+// reproduit (cout par type, debit plafonne, accumulation gloutonne du plus ancien au plus
+// recent, les derniers recrutes partent d'abord, aucune dette).
+// Consequence assumee : le toast et l'entree de journal qui signalaient les departs ne sont plus
+// emis -- le cron ne parle a aucun navigateur. Meme choix que pour les douaniers.
 async function payerEffectifsPoliceQuotidien(pays, ville) {
+  return;
   const effectifs = await chargerEffectifsPolice(pays, ville);
   if (!effectifs.policiers.length) return;
   // JOURNEE PARTAGEE, PAS state.day. dernierPaiementJour est ecrit dans l'etat PARTAGE des
