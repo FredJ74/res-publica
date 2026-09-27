@@ -880,3 +880,121 @@ policiers du socle en `disparu` avant de les supprimer. La correction d'autorit�
 défait en retirant la clause de ville de `caisse_institution_mouvement_plafonne`.
 
 **Le lot 4 portera sur la bascule par axe de la famille soldat.**
+
+---
+
+# LOT 4 — Bascule par axes de la famille Soldat (27 septembre 2026)
+
+## Le vrai contenu du lot : séparer deux choses qu'un seul verrou disait à la fois
+
+`pnj_axe_partage_verrouille` mélangeait :
+
+- **(a) un état de MIGRATION** — « le blob fait encore autorité pour cette donnée », temporaire ;
+- **(b) une règle de JEU** — « on ne déplace pas un soldat un par un », permanente : le modèle
+  militaire opère par **nombre**, pas par soldat désigné.
+
+Les confondre rendait la bascule tout-ou-rien : libérer (a) aurait libéré (b), c'est-à-dire changé
+le gameplay. Deux tables les séparent désormais — `pnj_axes_autorite` pour (a),
+`pnj_mouvement_individuel` pour (b) — et c'est ce qui rend l'incrémental possible. L'ancien verrou
+est supprimé plutôt que laissé dormant.
+
+## Défaut fermé au passage, introduit par le lot 2
+
+Depuis que les douaniers ont une ligne au socle, **un Chef des Douanes co-présent au port les
+voyait dans le popup de groupe et pouvait les PRENDRE** : il en est l'administrateur, donc
+`pnj_peut_conduire` disait oui. Rien dans le jeu n'a jamais permis d'embarquer un douanier dans son
+groupe. L'ancien verrou ne couvrait que la famille soldat et ne pouvait pas l'attraper ; la règle
+de jeu, elle, couvre les trois familles.
+
+## La matrice des axes, à la clôture
+
+```
+soldat    argent=socle   propriete=socle   possessions=socle   position_leader=blob   pa=blob
+douanier  argent=socle   propriete=socle   possessions=socle   position_leader=blob   pa=socle
+policier  argent=socle   propriete=socle   possessions=socle   position_leader=blob   pa=socle
+```
+
+### Axes déclarés au socle sans migration — ils y étaient déjà
+
+- **argent** : le blob militaire n'a **aucune** notion d'argent. Cet axe n'a jamais eu de
+  concurrent. Vérifié : 0 FR sur les 96, aucun écrivain concurrent.
+- **propriété / autorité** : résolues par le socle et le registre des institutions depuis le
+  27/09. Le blob ne décide que le **périmètre** — section ou réserve — qui est une donnée métier
+  et le reste.
+
+### Axe basculé : possessions
+
+Les **lectures** étaient au socle depuis le 26/09. Seules les **écritures** restaient dans
+`soldat.accessoires`. Recensement avant d'écrire : trois écrivains, et trois seulement —
+`militaire_equiper_accessoire`, `militaire_gilet_absorber`, `militaire_ordre_collectif`.
+
+**Le point le plus dangereux, traité explicitement.** Sans arrêter le miroir de cet axe, la
+prochaine écriture du blob pour une toute autre raison — une ration, un entraînement — aurait
+rappelé `pnj_miroir_possessions` et **écrasé le socle avec un tableau périmé**. Le miroir est donc
+devenu conditionnel **avant** que l'axe ne bascule ; tant que l'axe disait « blob », le
+comportement restait strictement celui d'avant.
+
+Le dernier lecteur client — l'écran « Équiper les soldats » — a été basculé et **déployé avant**
+la bascule de l'axe, dans cet ordre précis : tant que le socle est le miroir exact du blob, la
+nouvelle lecture rend le même résultat. Vérifié identique au caractère près.
+
+La valeur `origine = 'blob_accessoires'` est **conservée à dessein** : trois lectures de détection
+s'en servent pour distinguer l'équipement réglementaire d'un objet donné par un joueur. La
+renommer obligerait à réécrire ces trois fonctions volumineuses pour un gain cosmétique, au prix
+d'un risque de transcription. Le nom est historique, son sens est fixé par un commentaire de
+colonne, et la dette est consignée.
+
+### Axe laissé sous autorité historique : position / leader
+
+**Position et leader sont indivisibles.** Trois des cinq écrivains les posent dans la **même**
+écriture (`militaire_deposer_soldats`, `militaire_recuperer_soldats`), et la contrainte
+`pnj_position_deux_etats` porte sur les deux à la fois : les séparer créerait un état
+intermédiaire invalide.
+
+Et surtout, **cet axe est couplé à celui que ce lot doit laisser tranquille**. Les lecteurs de
+`leaderCourant` hors écrivains sont `militaire_ordre_collectif` et `militaire_reposer_section` —
+c'est-à-dire **les deux fonctions qui écrivent les PA**. Basculer le leader oblige donc à les
+modifier, alors que le lot interdit explicitement de toucher à l'axe PA. La bascule
+position/leader est un lot à part entière, avec son propre banc : cinq écrivains, deux lecteurs
+PA, le miroir et le comparateur — neuf fonctions.
+
+## Preuves, toutes par exécution
+
+```
+SÉPARATION DES DEUX PRÉOCCUPATIONS
+  prendre un soldat        REFUSÉ  mouvement_individuel_interdit
+  prendre un douanier      REFUSÉ  affectation_par_le_service   (défaut du lot 2, fermé)
+  prendre un policier      REFUSÉ  affectation_par_le_service
+  détacher / transférer    REFUSÉS de même
+  débit PA d'un soldat     REFUSÉ  axe_pa_hors_socle            (état de migration)
+  débit PA d'un douanier   REFUSÉ  classe_sans_consommation_de_pa (classe)
+  PA inchangés : 12 partout
+
+BASCULE DE L'AXE POSSESSIONS
+  équiper                  objet retiré de l'inventaire, posé au socle
+  LE BLOB N'A PAS BOUGÉ pendant l'équipement        md5 identique
+  écriture du blob pour une autre raison            possessions INCHANGÉES
+  déséquiper               objet rendu à l'inventaire
+  gilet                    se fragilise dans le socle
+  ration propre            consommée dans le socle
+  écran d'équipement       lecture identique au caractère près, refus hors autorité conservé
+```
+
+Toutes les mises en situation ont tourné **en transaction annulée**. Seule la bascule de l'axe est
+réelle.
+
+## État à la clôture
+
+96 soldats · **24 sous Vince, 72 en réserve** · PA tous à 12 · 1 possession · 0 FR ·
+comparateur soldats **96/96 sans divergence** · douane **4/4** · police **verte** ·
+blob militaire `md5 a107192a41d5cd1153808c302d60d0a9` et `updated_at` du 22/09 **inchangés** ·
+`soldats_blob_autoritaire` toujours en place.
+
+## Rollback, indépendant par axe
+
+Remettre `pnj_axes_autorite` à `blob` pour l'axe concerné suffit à réactiver le miroir. Pour
+l'axe possessions il faut en outre rétablir les trois écrivains dans leurs versions blob et
+l'écran d'équipement dans sa lecture d'origine — le blob n'a pas été modifié, il porte donc encore
+l'état d'avant la bascule.
+
+**Le lot 5 portera sur l'axe PA. Le lot 6 sur position/leader.**
