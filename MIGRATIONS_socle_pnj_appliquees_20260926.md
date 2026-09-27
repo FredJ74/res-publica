@@ -1556,3 +1556,49 @@ systèmes d'informateurs · la transformation du mail « Tribunal » en vraie pl
 `doEscortInfos`, routée sans ordre · le vieux recrutement générique.
 
 **Migration n'est pas l'occasion d'activer du code mort.**
+
+## F — Audit final
+
+| Question | Réponse mesurée |
+| --- | --- |
+| Tous les PNJ vivants ont-ils une classe identifiable ? | **Oui.** 101 au socle (96 alpha + 5 bêta), **0 sans classe résolue**. 38 fonctions du décor déclarées, **0 sans classe**. |
+| Les Gamma décor peuvent-ils encore être pris pour des Bêta ? | **Non.** Une seule fonction du décor est recrutable (`escort`) ; une fonction inconnue rend `false` (fail-closed) ; le bouton générique n'est plus exposé. |
+| Fonction et classe sont-elles séparées ? | **Oui.** Cinq fonctions ont un homonyme Bêta. Démonstration : `douanier` → Prosper Tampon `classe_decor=gamma, recrutable=false` **et** effectif `famille=douanier, classe=beta, metier=douanier`. |
+| Les députés disparaissent-ils sans perdre leur identité ? | **Oui.** 9 présents → PJ élu → 8 présents, `present:0`, ligne conservée → PJ parti → **`dep_vauclerc` revient à l'identique**. |
+| Un Commissaire / Juge / Grand Prêtre Gamma reste-t-il présent quand un PJ reprend sa fonction ? | **Oui.** Vérifié : **aucun** mécanisme ne retire un PNJ du décor selon la titularité. Seuls les députés ont un traitement spécial. |
+| Les Bêta consomment-ils des PA ? | **Non.** Tous rendent `classe_sans_consommation_de_pa`, et le motif vient de la **classe**, plus de l'axe. |
+| Les Alpha consomment-ils les leurs ? | **Oui.** Garde ouverte, 12 PA. |
+| Position et présence : même monde ? | **Oui.** Employé et escort : `leader_pj` posé, position propre nulle. Militant : position propre, aucun leader. Aucune écriture dans `room.persons`. |
+| Reste-t-il des duplications clientes ? | **Oui, assumées comme projections** : `escortActive` (24 lectures), `employes` (49), `group.members` (11), `escortRemplacante` (8). Le mandat interdit de les retirer sans migrer leurs lecteurs. |
+| Fermeture au client | **45 primitives fermées, 15 ouvertes** — toutes réellement appelées par un chemin client. |
+| Comparateurs | soldats **96/96**, douane **4/4**, police **1/1**, blob `md5 a107192a…` **inchangé**. |
+
+### Un piège de ma propre doctrine, dans lequel je suis retombé
+
+Mes `REVOKE … FROM authenticated, anon` laissaient EXECUTE à **PUBLIC**, dont `authenticated`
+hérite : huit primitives techniques étaient restées grandes ouvertes. C'est la règle 2 de la doctrine
+de contrôle, écrite après une erreur identique. Corrigé en nommant PUBLIC.
+
+### Un écart signalé, non tranché
+
+La règle demande qu'un député Gamma soit **absent** quand un PJ occupe son siège. Le serveur le dit
+(`present: 0`). Mais le client, lui, ne retire pas la carte : il la transforme en **« Assistant
+parlementaire de [PJ] »** (`plateau-assemblee.js:452`). Le député n'est donc plus député —
+`assembleeEstDepute: false` — mais une carte portant son nom reste affichée. C'est une mécanique
+existante, et la supprimer serait un changement de gameplay : **je ne l'ai pas touchée.**
+
+### Le Renseignement : chantier chiffré, famille intacte
+
+24 fonctions touchent `agents_renseignement`, dont **13 écrivent ou lisent sa position et son
+`leader_courant`** — les trois actions joueur (`agent_prendre`, `agent_deposer`, `agent_transferer`),
+six lectures de présence, les cinq observations par rôle, le cron de collecte, **le cycle carcéral**
+et le contre-espionnage. Basculer son axe est une refonte, pas une bascule.
+
+**Trois bloquants, consignés en base** dans la note de `pnj_familles_classes` :
+
+1. **aucun profil de caractéristiques arbitré** — seule `DUP` existe, fixée par rôle (garde 10,
+   coordinateur 12, conseillère 13, traducteur 15). Les cinq autres manquent, et je ne les invente pas.
+2. sa table porte **déjà** position, leader et détention : un miroir créerait ici la duplication même
+   que l'architecture combat. Une convergence honnête *remplacerait* ces colonnes, sans les doubler.
+3. l'**identité de couverture** — vrai nom et nom de couverture, le client ne recevant jamais le vrai —
+   n'a aucun équivalent au socle. Lui en donner un est une décision d'architecture.
