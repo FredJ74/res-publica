@@ -666,3 +666,108 @@ renommer `car_ent` en `car_for`, restaurer la contrainte d'origine.
 Il ne renseigne aucune valeur, ne touche à aucun métier, n'introduit ni objet ni effet, et ne
 modifie aucun comportement de jeu. **Le lot 2 (première famille Bêta, les douaniers) nécessite un
 arbitrage de game design : les quatre caractéristiques manquantes du douanier.**
+
+---
+
+# LOT 2 — Douanier, première famille Bêta raccordée (27 septembre 2026)
+
+Valeurs métier arbitrées par le concepteur : **INT 10, CHA 8, VOL 12, PER 12, DUP 8, ENT 10**.
+PER et VOL reprennent exactement les valeurs historiques des fiches.
+
+## La couche CLASSE, qui manquait
+
+L'architecture est SOCLE → CLASSE → MÉTIER, mais rien en base ne distinguait un PNJ qui consomme
+ses PA d'un PNJ qui n'en consomme pas. « Bêta ne consomme pas de PA » n'était qu'une intention.
+
+**Une table, pas une colonne.** Une colonne `classe` sur `pnj_membres` aurait obligé à retoucher
+tous les chemins d'écriture des soldats — le déclencheur miroir, l'outil de copie — alors que ce
+lot doit les laisser strictement intacts. Or la classe n'est pas une propriété de l'individu :
+c'est une propriété de sa **famille**. `pnj_familles_classes` dit exactement cela et ne touche
+aucun chemin existant. Une famille **absente** de la table n'a pas de classe et les gardes la
+refusent — on ne peut donc pas oublier de la déclarer.
+
+`pnj_pa_debiter` contrôle désormais la classe **avant toute écriture** : seule `alpha` dépense ses
+PA. Un lot mixte est refusé **en entier**, jamais appliqué à moitié.
+
+## L'institution Douanes
+
+`douane_autorite_de_perimetre` reproduit la porte historique sans la durcir : l'autorité est le PJ
+portant le poste `chef_douanes` dans ce pays. Un périmètre inconnu n'ouvre aucune autorité. Et
+**un titulaire PNJ du poste n'est pas une autorité** — tant qu'aucun PJ ne le porte, l'autorité est
+à personne, même doctrine que la réserve militaire.
+
+La liste blanche serveur des caractéristiques s'élargit aux six **pour les douaniers seulement** ;
+la branche police reste strictement inchangée.
+
+## Le piège évité, et il aurait cassé la paye chaque nuit
+
+Le miroir des soldats **supprime** les lignes absentes du blob. Impossible ici :
+`trg_pnj_garde_suppression` refuse de supprimer un PNJ `actif`, et un douanier retiré faute de
+budget **n'est pas mort** — il quitte le service. Copier le patron militaire aurait fait échouer la
+tâche de paye nocturne à chaque nuit où la caisse est vide.
+
+Le miroir ne supprime donc pas : il marque `disparu`. C'est aussi plus juste, et cela garde une
+trace. Le comparateur ne regarde que les lignes `actif`.
+
+## Première bascule de lecture
+
+L'équivalence prouvée, une lecture bascule — délibérément la **moins conséquente** : la
+consultation publique des effectifs, un pur affichage ouvert à tous, sans effet de jeu. Même
+démarche que `militaire_detachement_ici` pour les soldats.
+
+Ne basculent **pas** : la paye, le recrutement, le licenciement et le contrôle de fret continuent
+de lire et d'écrire `effectifsDouane`. Le blob reste l'autorité.
+
+Effet de bord assumé et bénéfique : la consultation ne déclenche plus l'amorçage éphémère de
+4 douaniers que l'audit avait relevé. En production la clé existe, la liste est donc identique.
+
+## Preuves, toutes par exécution
+
+```
+CLASSE ET PA
+  classe du douanier                     beta      PA 12
+  débit de PA sur un Bêta                REFUSÉ    classe_sans_consommation_de_pa
+  PA après la tentative                  12
+  lot mixte Bêta + soldat                REFUSÉ en entier
+
+LES SIX CARACTÉRISTIQUES
+  {INT 10, CHA 8, VOL 12, PER 12, DUP 8, ENT 10}      4 lignes complètes sur 4
+
+AUTORITÉ
+  aujourd'hui                            NULL (aucun PJ ne porte le poste)
+  avec un PJ Chef des Douanes            résolue vers lui
+  administrer : Chef t · Vince f · Arnie f
+  consultation par le Chef à distance    pas_co_presents
+  périmètre inconnu                      NULL
+
+PAYE ET MIROIR
+  paye normale                           200 FR = 4 × 50, caisse 68740 → 68540
+                                         comparateur 4/4
+  caisse insuffisante (120 FR)           versé 120, 2 agents partis,
+                                         LE MIROIR NE LÈVE PAS
+                                         socle 2 actifs + 2 disparus, comparateur vert
+  lecture basculée                       IDENTIQUE au blob, au caractère près
+
+AUCUNE RÉGRESSION
+  soldats 96/96, comparateur vert, blob md5 a107192a inchangé, updated_at du 22/09
+```
+
+Les essais de paye ont tourné en **transaction annulée** : aucune caisse n'a été débitée, aucun
+douanier n'a réellement quitté le service, aucun poste n'a été attribué. Seule la copie initiale
+des 4 douaniers est réelle.
+
+## État après lot
+
+100 PNJ au socle : **96 soldats (alpha) + 4 douaniers (bêta)**. Deux institutions enregistrées,
+deux classes déclarées. Toutes les fonctions techniques fermées au client ; seule
+`douane_effectifs_publics` est ouverte, et c'est une lecture publique.
+
+## Rollback
+
+Le blob `effectifsDouane` n'a pas été modifié. Pour revenir : rétablir l'ancienne
+`ouvrirConsulterEffectifsDouane`, supprimer le déclencheur `trg_pnj_miroir_douane`, puis
+`DELETE FROM pnj_membres WHERE famille='douanier'` après avoir passé leur `statut` à `disparu`
+(la garde refuse la suppression d'un PNJ actif — c'est son rôle).
+
+**Le lot 3 (police) nécessitera un arbitrage : ses quatre caractéristiques manquantes, et le
+déplacement de sa paye du navigateur vers le cron.**

@@ -4833,6 +4833,16 @@ async function sbMilitaireOrdrePnj(pnjId, action) {
   return await sbRpc('militaire_ordre_pnj', { p_pnj_id: pnjId, p_action: action });
 }
 
+// CONSULTATION PUBLIQUE DES EFFECTIFS DOUANIERS — lue dans le SOCLE PNJ (lot 2).
+// Premiere lecture basculee de cette famille, et deliberement la moins consequente : un pur
+// affichage, ouvert a tout joueur, sans effet de jeu. La paye, le recrutement, le licenciement
+// et le controle de fret continuent de lire `effectifsDouane` -- le blob reste l'autorite.
+// AUCUN ARGUMENT : le pays vient de `mon_personnage()` cote serveur, jamais du client. Meme
+// doctrine que sbPnjMembresIci, pour la meme raison -- il n'y a rien a falsifier.
+async function sbDouaneEffectifsPublics() {
+  return await sbRpc('douane_effectifs_publics', {});
+}
+
 // DONNER / RETIRER un objet. L'objet est designe par son INDEX dans l'inventaire source,
 // jamais par son contenu : le client ne peut donc pas en fabriquer un.
 async function sbPnjObjetTransferer(pnjId, index, sens) {

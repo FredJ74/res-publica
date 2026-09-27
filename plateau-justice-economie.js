@@ -8663,17 +8663,31 @@ async function doLicencierDouanier(matricule) {
 // ---- CONSULTATION PUBLIQUE (visible/accessible a tout PJ, 0 PA/0 FR — n'affiche jamais PER/VOL,
 // info non administrative, seul le Chef des Douanes les voit dans ouvrirGererEffectifsDouane
 // ci-dessus) ----
+// LECTURE BASCULÉE VERS LE SOCLE PNJ (lot 2, 27 septembre 2026). Elle ne lit plus
+// `effectifsDouane` mais les lignes `douanier` du socle, par `sbDouaneEffectifsPublics()`.
+// Équivalence prouvée avant bascule : même liste, même ordre, mêmes libellés, au caractère près.
+// Le pays n'est plus transmis — le serveur le résout depuis l'identité de l'appelant.
+// Un appel qui n'aboutit pas est DIT, jamais remplacé par une liste vide silencieuse : une
+// consultation muette ferait croire que le service n'a plus personne.
 async function ouvrirConsulterEffectifsDouane() {
-  const pays = state.country || 'republic';
-  const effectifs = await chargerEffectifsDouane(pays);
+  const r = await sbDouaneEffectifsPublics().catch(() => null);
 
   document.getElementById('postes-modal-title').textContent = 'Effectifs des douanes';
   let html = '<div style="padding:1rem">';
-  if (effectifs.douaniers.length === 0) {
+  if (!r || r.ok !== true) {
+    html += '<div style="font-size:.85rem;color:#cc4444">Consultation impossible — '
+         + ((typeof escapeHtmlText === 'function' ? escapeHtmlText(String(r?.raison || '')) : (r?.raison || ''))
+            || 'l\'appel n\'a pas abouti') + '.</div></div>';
+    document.getElementById('postes-body').innerHTML = html;
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  const douaniers = r.douaniers || [];
+  if (douaniers.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier en service pour l\'instant.</div>';
   } else {
-    html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.6rem">' + effectifs.douaniers.length + ' douanier(s) en service, rattachés au service des douanes du port.</div>';
-    effectifs.douaniers.forEach(d => {
+    html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.6rem">' + douaniers.length + ' douanier(s) en service, rattachés au service des douanes du port.</div>';
+    douaniers.forEach(d => {
       const label = d.type === 'cynophile' ? (d.matricule + ' — Unité cynophile (' + d.maitreNom + ' & ' + d.chienNom + ')') : d.matricule;
       html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.2rem">' + label + '</div>';
     });
