@@ -1769,6 +1769,17 @@ async function sbMilitaireEngagementAffecterSection(engagementId, sectionId) {
 //
 // GENERIQUE : la fonction ne connait aucun accessoire en particulier. Radio, tente, jumelles,
 // tenue, gilet, ration et trousse passent par le meme chemin.
+// CE QUE PORTENT LES SOLDATS D'UNE SECTION, lu dans le SOCLE PNJ (lot 4, 27 septembre 2026).
+// Remplace la lecture de `sol.accessoires` dans le blob, gelé depuis la bascule de l'axe
+// possessions. Même autorité que l'équipement lui-même : le Lieutenant de CETTE section. Pas
+// d'exigence de co-présence, contrairement à pnj_possessions_lire : on consulte le paquetage de
+// sa section depuis la salle de commandement, comme avant.
+async function sbMilitaireAccessoiresSection(compagnieId, sectionId) {
+  return await sbRpc('militaire_accessoires_section', {
+    p_compagnie_id: compagnieId, p_section_id: sectionId
+  });
+}
+
 async function sbMilitaireEquiperAccessoire(compagnieId, sectionId, matricule, objetId, sens) {
   const rows = await sbRpc('militaire_equiper_accessoire', {
     p_compagnie_id: compagnieId, p_section_id: sectionId,

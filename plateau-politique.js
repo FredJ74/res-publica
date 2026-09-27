@@ -10858,6 +10858,23 @@ async function ouvrirEquipementSoldats(compagnieId, sectionId) {
   const pnj = (section.soldats || []).filter(s => !s.pj && s.matricule);
   const dispo = (state.inventory || state.char?.inventory || []).filter(o => o && o.produitMilitaire && o.id);
 
+  // CE QUE PORTENT LES SOLDATS VIENT DU SOCLE (lot 4, 27 septembre 2026). Le tableau
+  // `sol.accessoires` du blob est un vestige gelé depuis la bascule de l'axe possessions :
+  // l'afficher montrerait l'équipement d'avant la bascule, et « Reprendre » viserait des objets
+  // qui ne sont plus là. Même autorité qu'auparavant — le Lieutenant de cette section — et pas
+  // d'exigence de co-présence : on consulte le paquetage de sa section depuis le commandement.
+  // Un appel qui n'aboutit pas est DIT : un écran vide ferait croire que personne n'a rien.
+  const rPortes = await sbMilitaireAccessoiresSection(compagnieId, sectionId).catch(() => null);
+  if (!rPortes || rPortes.ok !== true) {
+    document.getElementById('postes-modal-title').textContent = 'Équiper les soldats';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;font-size:.85rem;color:#cc4444">Lecture impossible — '
+      + escapeHtmlText(String(rPortes?.raison || 'l\'appel n\'a pas abouti')) + '.</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  const portes = rPortes.portes || {};
+
   document.getElementById('postes-modal-title').textContent = 'Équiper les soldats';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Votre inventaire : ' +
@@ -10867,7 +10884,7 @@ async function ouvrirEquipementSoldats(compagnieId, sectionId) {
     html += '<div style="font-size:.8rem;color:#8a8060">Aucun soldat PNJ dans cette section.</div>';
   }
   for (const sol of pnj) {
-    const acc = Array.isArray(sol.accessoires) ? sol.accessoires : [];
+    const acc = Array.isArray(portes[sol.matricule]) ? portes[sol.matricule] : [];
     html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#C9A84C">' + escapeHtmlText(sol.nom || sol.matricule) + ' <span style="color:#8a8060;font-size:.7rem">' + escapeHtmlText(sol.matricule) + '</span></div>';
     if (acc.length) {
