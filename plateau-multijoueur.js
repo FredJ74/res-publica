@@ -240,7 +240,11 @@ function renderPersonsList(persons, targetId) {
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
     '</div></div>' : '';
 
-  const personCards = persons.length === 0 ? '' : persons.map(p => {
+  // UNE SEULE FABRIQUE DE CARTE, deux usages (29 septembre 2026). La meme fonction sert aux
+  // presences autonomes et aux accompagnants : seule leur PLACE dans la liste differe, jamais
+  // leur apparence ni leur comportement au clic. Extraire ce corps du .map() est ce qui permet
+  // de composer la hierarchie sans dupliquer une ligne de rendu.
+  const carteDePersonne = (p) => {
     const av = PNJ_AVATAR[p.job] || PNJ_AVATAR.default;
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const avatarHtml = p.photoUrl
@@ -301,21 +305,18 @@ function renderPersonsList(persons, targetId) {
       '<div class="person-role">' + p.role + '</div>' +
       '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.78rem">' + relTxt(p.rel) + '</div>' +
       '</div></div>';
-  }).join('');
+  };
+
+  // PRESENCE AUTONOME ou ACCOMPAGNANTE : le tri se fait sur une propriete portee par la donnee
+  // elle-meme, jamais sur une liste de familles ecrite ici. Une mecanique qui declarera demain
+  // un accompagnant sera rattachee sans qu'une ligne de ce fichier change.
+  const accompagnants = persons.filter(p => p && p.estAccompagnement === true);
+  const autonomes     = persons.filter(p => !p || p.estAccompagnement !== true);
+  const personCards   = autonomes.map(carteDePersonne).join('');
 
   // Ajouter PNJ terrain si on est sur un terrain
-  if (state.currentBuilding?.startsWith('terrain-a-batir')) {
-    const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
-    if (stored) {
-      try {
-        const pnjTerrain = JSON.parse(stored);
-        if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
-          persons = [...persons, pnjTerrain];
-        }
-      } catch(e) {}
-    }
-  }
-  // Ajouter PNJ terrain si on est sur un terrain
+  // (ce bloc etait ecrit DEUX FOIS a l'identique ; le doublon est retire le 29 septembre 2026.
+  //  Il etait sans effet -- le garde par nom dedoublonnait -- mais restait du code mort.)
   if (state.currentBuilding?.startsWith('terrain-a-batir')) {
     const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
     if (stored) {
@@ -341,7 +342,48 @@ function renderPersonsList(persons, targetId) {
   // Ajouter les employés du groupe présents dans cette pièce
   const groupeHtml = getGroupeHtmlPourPiece(state.currentBuilding, state.currentRoom);
 
-  const finalContent = selfCard + groupeHtml + simuleCards + personCards;
+  // UN GROUPE APPARTIENT A SON CHEF (29 septembre 2026).
+  //
+  // Jusqu'ici tout arrivait au meme niveau : le joueur, ses employes, ses agents portes, et --
+  // perdue au milieu des PNJ du lieu -- la carte de sa section de 24 soldats. Rien ne disait a
+  // l'oeil que ces gens l'accompagnent. La regle est desormais explicite : une presence est
+  // AUTONOME (elle se tient la) ou ACCOMPAGNANTE (elle suit quelqu'un), et une accompagnante
+  // s'affiche en retrait sous son chef.
+  //
+  // Le tri se fait sur une propriete portee par la donnee, `estAccompagnement`, pas sur une
+  // liste de familles ecrite ici : une mecanique qui declarera demain un accompagnant sera
+  // rattachee sans qu'une ligne de ce fichier change. C'est la seule facon d'eviter le « si
+  // soldats alors ceci, si employes alors cela » que nous refusons.
+  const moiNom = state.char?.name || null;
+  // Accompagnants du JOUEUR COURANT : ils rejoignent son propre bloc, sous sa carte. Un
+  // accompagnant sans chef nomme est rattache au joueur par defaut -- c'est le seul chef que
+  // cette liste connaisse avec certitude.
+  const miensHtml = accompagnants
+    .filter(p => !p.leader || (moiNom && p.leader === moiNom))
+    .map(carteDePersonne).join('');
+  // Accompagnants d'un AUTRE chef. La carte de ce chef n'existe pas encore : elle est posee
+  // plus tard par chargerVraisJoueursPresents, apres deux allers-retours reseau. On ne peut
+  // donc pas la rattacher ici -- mais on ne va pas non plus l'abandonner au milieu des
+  // presences autonomes.
+  //
+  // On fait les deux : on la DEPOSE a plat, dans un conteneur qui porte le nom de son chef,
+  // ET on la memorise par chef. Quand la carte du chef arrivera, elle reprendra ce contenu et
+  // retirera le conteneur : le groupe est DEPLACE, jamais duplique. Si ce second rendu
+  // n'arrive jamais -- reseau coupe --, le conteneur reste et rien n'est perdu.
+  const parLeader = {};
+  accompagnants.filter(p => p.leader && moiNom && p.leader !== moiNom)
+    .forEach(p => { (parLeader[p.leader] = parLeader[p.leader] || []).push(p); });
+  RP_ACCOMPAGNANTS_AUTRES = {};
+  const autresAccompagnantsHtml = Object.keys(parLeader).map(nom => {
+    const html = parLeader[nom].map(carteDePersonne).join('');
+    RP_ACCOMPAGNANTS_AUTRES[nom] = html;
+    return '<div class="presence-groupe" data-accompagnant-de="' + attrHtml(nom) + '">' + html + '</div>';
+  }).join('');
+
+  const monGroupeHtml = (groupeHtml + miensHtml)
+    ? '<div class="presence-groupe">' + groupeHtml + miensHtml + '</div>' : '';
+
+  const finalContent = selfCard + monGroupeHtml + autresAccompagnantsHtml + simuleCards + personCards;
   document.getElementById(targetId).innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
 
@@ -385,6 +427,20 @@ function getAvatarHtmlPourNom(nom, taille, bordColor) {
   return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;background:#1a1508;border:1px solid ' + c + ';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user" style="font-size:' + (t*0.45) + 'px;color:' + c + '"></i></div>';
 }
 
+// ACCOMPAGNANTS DES AUTRES JOUEURS, EN ATTENTE DE LEUR CHEF (29 septembre 2026).
+// Rempli par renderPersonsList, consomme par chargerVraisJoueursPresents. C'est un relais entre
+// deux rendus decales, pas une source de verite : la position reste resolue par le serveur, et
+// cette table est reecrite entierement a chaque composition de liste.
+let RP_ACCOMPAGNANTS_AUTRES = {};
+
+// Echappement pour une valeur d'ATTRIBUT HTML. escapeHtmlText suffit pour du texte, mais un nom
+// place dans un attribut doit aussi voir ses guillemets neutralises, sinon il le referme.
+function attrHtml(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Affiche les autres PJ réellement présents dans la pièce courante (rafraîchi périodiquement)
 async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetId) {
   if (typeof sbGetPresencesInRoom !== 'function') return;
@@ -412,7 +468,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     }));
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
-    const html = window._vraisJoueursPresents.map(p => {
+    const cartePlayer = (p) => {
       const enc = encodePnjSafe(p);
       const avatarHtml = p.photoUrl
         ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
@@ -421,35 +477,64 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
       '<div class="person-role">Présent ici</div></div></div>';
-    }).join('');
+    };
 
     // PNJ voyageant avec les autres joueurs presents (escorts, employes recrutes) --
     // simple affichage, non interactifs, pour rendre visible ce qui ne l'etait pas.
+    // RATTACHES A LEUR CHEF depuis le 29 septembre 2026 : ils etaient jusqu'ici entasses a la
+    // suite de TOUTES les cartes joueur, si bien qu'avec deux joueurs accompagnes on ne savait
+    // plus qui menait qui. Ils sont desormais groupes par porteur, comme le groupe du joueur
+    // courant l'est sous sa propre carte.
+    const pnjParPorteur = {};
     const pnjDesAutres = [];
     autres.forEach(p => {
       (p.groupe_pnj || []).forEach(pnjInfo => {
+        pnjParPorteur[p.name] = pnjParPorteur[p.name] || [];
+        pnjParPorteur[p.name].push(pnjDesAutres.length);
         pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name, photoUrl: pnjInfo.photoUrl || null, job: pnjInfo.job || 'default', proprietaire: p.name });
       });
     });
     window._pnjDesAutresJoueurs = pnjDesAutres;
-    const htmlPnjAutres = pnjDesAutres.map((p, idx) => {
+    const carteMembreAutre = (idx) => {
+      const p = pnjDesAutres[idx];
       const avatarHtmlAutre = p.photoUrl
-        ? '<div class="person-avatar" style="overflow:hidden;border-color:#6a5a30"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
+        ? '<div class="person-avatar" style="overflow:hidden;border-color:#6a5a30"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"></div>'
         : '<div class="person-avatar" style="border-color:#6a5a30"><i class="ti ti-user" style="font-size:.75rem;color:#6a5a30"></i></div>';
-      return '<div class="person-card autre-groupe-card" onclick="ouvrirFichePnjAutreJoueur(' + idx + ')" style="border-left:2px solid #6a5a30" title="' + p.role + '">' +
+      return '<div class="person-card autre-groupe-card" onclick="ouvrirFichePnjAutreJoueur(' + idx + ')" style="border-left:2px solid #6a5a30" title="Fiche du PNJ">' +
         avatarHtmlAutre +
         '<div><div class="person-name" style="color:#c0b090">' + p.nom + '</div>' +
         '<div class="person-role">' + p.role + '</div></div></div>';
+    };
+
+    // CHAQUE JOUEUR EMPORTE SON GROUPE. Meme regle que pour le joueur courant : la carte du
+    // chef, puis ses accompagnants en retrait sous elle. Les deux sources se rejoignent ici --
+    // les PNJ publies dans sa ligne de presence, et les accompagnants deposes a plat par
+    // renderPersonsList en attendant que cette carte existe.
+    const html = window._vraisJoueursPresents.map(p => {
+      const membres = (pnjParPorteur[p.name] || []).map(carteMembreAutre).join('');
+      const enAttente = RP_ACCOMPAGNANTS_AUTRES[p.name] || '';
+      const bloc = (membres + enAttente)
+        ? '<div class="presence-groupe">' + membres + enAttente + '</div>' : '';
+      return '<div class="bloc-joueur-autre">' + cartePlayer(p) + bloc + '</div>';
     }).join('');
 
     // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
     const list0 = document.getElementById(targetId);
     if (list0) {
+      list0.querySelectorAll('.bloc-joueur-autre').forEach(el => el.remove());
       list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
       list0.querySelectorAll('.autre-groupe-card').forEach(el => el.remove());
+      // Le groupe depose a plat par renderPersonsList est REPRIS, pas duplique : on retire son
+      // conteneur des lors que la carte de son chef est sur le point d'etre posee. Celui dont le
+      // chef n'est pas la reste en place -- on ne cache jamais un groupe.
+      Object.keys(RP_ACCOMPAGNANTS_AUTRES).forEach(nom => {
+        if (!window._vraisJoueursPresents.some(j => j.name === nom)) return;
+        const orphelin = list0.querySelector('[data-accompagnant-de="' + attrHtml(nom) + '"]');
+        if (orphelin) orphelin.remove();
+      });
     }
 
-    const htmlTotal = html + htmlPnjAutres;
+    const htmlTotal = html;
     if (htmlTotal) {
       const list = document.getElementById(targetId);
       const empty = list.querySelector('.person-empty');

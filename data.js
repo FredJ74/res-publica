@@ -4572,8 +4572,13 @@ const BUILDINGS = {
         desc: "L'entree de la caserne. Militaires en faction. Verification des acces.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-corps-de-garde.png",
         persons: [
-          {name:'Sergent Dubois (PNJ)', role:'PNJ - Sous-officier de garde', rel:'neutral', job:'militaire'},
-          {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'},
+          // SERGENT DUBOIS ET SOLDAT MARTIN RETIRES (29 septembre 2026). Deux figurants poses le
+          // 2 juin avec la caserne, jamais branches : aucune fiche de dialogue dans les cinq tables
+          // de personnalite, aucun ordre, aucune quete, aucune ligne en base, aucun acces par
+          // indice a persons[]. Le registre serveur pnj_fonctions les classait lui-meme en
+          // role_fonctionnel='decor'. Leur seule presence effective etait d'occuper, muets, les
+          // deux premieres places de la liste -- devant l'Adjudant Ferriere, dont le commentaire
+          // ci-dessous affirme pourtant qu'il est le premier PNJ qu'un joueur croise ici.
           // AIDE DE CAMP : place a l'ENTREE, pas dans un bureau du fond. C'est le premier PNJ
           // qu'un joueur croise en arrivant a la caserne, et c'est le seul qui sache expliquer
           // comment l'armee fonctionne. Sans lui, l'orientation d'Eve Toahemarch tombait dans

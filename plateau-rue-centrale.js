@@ -1133,14 +1133,34 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   if (typeof chargerVraisJoueursPresents === 'function') {
     chargerVraisJoueursPresents('rue-centrale', noeudId, 'persons-list-rue');
   }
-  // Patrouille de police eventuellement affectee a cette rue (lot policiers PNJ, 24 aout 2026) --
-  // aucun equivalent n'existait ici pour les detachements militaires (jamais deployables sur une
-  // rue, buildingId/roomId toujours nuls hors batiment), donc pas de risque de collision de
-  // rendu comme dans enterRoom.
-  if (typeof getAffichagePoliceRue === 'function') {
-    getAffichagePoliceRue(pays, state.currentCity, noeudId).then(pol => {
-      if (pol && rueCentraleNoeudActuel === noeudId) {
-        renderPersonsList([...(noeud.persons || []), { name: 'Patrouille de police', role: pol.nombre + ' policier(s) en patrouille', rel: 'neutral', job: 'policier' }], 'persons-list-rue');
+  // PATROUILLE DE POLICE ET DETACHEMENT MILITAIRE, EN UN SEUL RENDU.
+  //
+  // La note precedente disait qu'aucun equivalent militaire n'etait necessaire ici, « les
+  // detachements n'etant jamais deployables sur une rue, buildingId/roomId toujours nuls hors
+  // batiment ». C'etait vrai du soldat POSE, dont la position est ses propres champs. C'est faux
+  // du soldat ACCOMPAGNANT : sa position est celle de son chef, et un chef se tient tres bien
+  // dans la rue. Le serveur les considerait deja co-presents ; seul l'affichage les ignorait.
+  //
+  // Les deux lectures partent ENSEMBLE et ne produisent qu'un seul rendu : deux rendus successifs
+  // se seraient effaces mutuellement, exactement le defaut corrige le 23 septembre dans enterRoom.
+  // Et les cartes des autres joueurs, posees par une insertion asynchrone, sont reinjectees
+  // apres ce rendu -- sans quoi ce dernier les effacerait.
+  if (typeof getAffichagePoliceRue === 'function' || typeof carteDetachementPiece === 'function') {
+    Promise.all([
+      typeof getAffichagePoliceRue === 'function'
+        ? getAffichagePoliceRue(pays, state.currentCity, noeudId).catch(() => null) : null,
+      typeof carteDetachementPiece === 'function'
+        ? carteDetachementPiece(pays, state.currentCity, null, null).catch(() => null) : null
+    ]).then(([pol, det]) => {
+      if (rueCentraleNoeudActuel !== noeudId) return;
+      if (!pol && !det) return;
+      const extras = [];
+      if (pol) extras.push({ name: 'Patrouille de police',
+                             role: pol.nombre + ' policier(s) en patrouille', rel: 'neutral', job: 'policier' });
+      if (det) extras.push(det);
+      renderPersonsList([...(noeud.persons || []), ...extras], 'persons-list-rue');
+      if (typeof chargerVraisJoueursPresents === 'function') {
+        chargerVraisJoueursPresents('rue-centrale', noeudId, 'persons-list-rue');
       }
     }).catch(() => {});
   }

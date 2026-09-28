@@ -11027,7 +11027,13 @@ async function carteDetachementPiece(pays, ville, buildingId, roomId) {
     // On ne transmet NI compagnieId NI sectionId : le routage n'en a pas besoin (doGererDetachement
     // les relit sur la fiche du joueur), et les mettre dans le DOM les exposerait sans raison.
     detachement: true,
-    lieutenantNom: det.lieutenantNom || null
+    lieutenantNom: det.lieutenantNom || null,
+    // ACCOMPAGNEMENT, PAS UNE PRESENCE AUTONOME (29 septembre 2026). Une section suit son chef :
+    // elle n'est pas « dans la piece » au meme titre qu'un PNJ qui s'y tient. Ces deux champs
+    // disent a renderPersonsList sous QUI la rattacher visuellement. Ils ne changent aucune
+    // mecanique : la position reste resolue par leaderCourant, cote serveur, comme avant.
+    estAccompagnement: true,
+    leader: det.lieutenantNom || null
   };
 }
 

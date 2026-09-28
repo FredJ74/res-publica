@@ -710,6 +710,12 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rel-neutral{color:#6a6040}
 .rel-enemy{color:var(--red)}
 .person-empty{font-size:.82rem;color:#6a6050;font-style:italic;text-align:center;padding:.6rem}
+/* GROUPE RATTACHE A SON CHEF (29 septembre 2026). Meme vocabulaire visuel que .forum-sousgroupe :
+   un retrait et un filet vertical suffisent a dire « ceci appartient a ce qui precede ». On ne
+   cree pas un composant de plus la ou le jeu en a deja un qui signifie exactement cela. */
+.presence-groupe{margin-left:.55rem;border-left:1px solid #2a2010}
+.presence-groupe .person-card{padding-left:.5rem}
+.presence-groupe .person-card:last-child{border-bottom:none}
 
 /* ACTION BARS */
 #actionbar,#actionbar-batiment{background:var(--bg2);border-top:1px solid var(--border);padding:.4rem .8rem;flex-shrink:0}
