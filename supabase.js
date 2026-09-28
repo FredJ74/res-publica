@@ -5219,3 +5219,54 @@ async function sbPnjPossessionsEtBourse(pnjId) {
 async function sbPnjMonInventaire() {
   return await sbRpc('pnj_mon_inventaire', {});
 }
+
+// =====================================================================
+// CAMION MILITAIRE (29 septembre 2026)
+// =====================================================================
+// Cinq portes, et rien d'autre. La position du vehicule, la liste de ceux qui
+// sont dedans, le cout en PA et le droit de commander sont DECIDES PAR LE
+// SERVEUR : ces fonctions ne transportent qu'une intention.
+//
+// Aucune n'est publique : monter dans un camion, en descendre ou savoir qui s'y
+// trouve suppose de savoir QUI demande. Elles ne figurent donc pas dans
+// RP_RPC_PUBLIQUES, et un appel sous la cle anon sera refuse -- pas retente.
+
+// Cle d'idempotence, fabriquee AVANT l'action : rejouer le meme ordre (double
+// clic, reprise reseau) rend le meme resultat sans second debit ni second
+// deplacement. Meme forme que nouvelleCleApport (C6).
+function nouvelleCleCamion() {
+  return 'camion-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+// Camions REELLEMENT stationnes dans ce lieu. Aucun camion fantome : la liste
+// vient de la position unique du vehicule, jamais d'un cache de navigateur.
+async function sbCamionsIci(pays, ville, building, room) {
+  return sbRpcVerdict('camions_ici', {
+    p_pays: pays, p_ville: ville, p_building: building, p_room: room
+  });
+}
+
+// Etat complet pour l'appelant : ou est le camion, ou suis-je, ai-je le droit de
+// commander, quelles destinations. C'est aussi le mecanisme de
+// RESYNCHRONISATION -- il n'y a pas de temps reel dans ce jeu, il y a cette
+// reponse et un client qui la redemande tant qu'il est a bord.
+async function sbCamionEtat(camionId) {
+  return sbRpcVerdict('camion_etat', { p_camion_id: camionId });
+}
+
+async function sbCamionMonter(camionId, cle) {
+  return sbRpcVerdict('camion_monter', { p_camion_id: camionId, p_cle: cle });
+}
+
+async function sbCamionDescendre(camionId) {
+  return sbRpcVerdict('camion_descendre', { p_camion_id: camionId });
+}
+
+// p_avec_officier = false : l'officier donne l'ordre et NE VOYAGE PAS. Cela ne
+// vide pas le camion -- les autres occupants restent a bord et sont transportes.
+async function sbCamionDeplacer(camionId, destinationCle, avecOfficier, cle) {
+  return sbRpcVerdict('camion_deplacer', {
+    p_camion_id: camionId, p_destination_cle: destinationCle,
+    p_avec_officier: !!avecOfficier, p_cle: cle
+  });
+}

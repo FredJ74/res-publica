@@ -937,6 +937,15 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Ordres
   renderRoomActions(room, buildingId, roomId);
 
+  // CAMION MILITAIRE (29 septembre 2026). Un camion stationne ici ? Suis-je
+  // dedans ? Le serveur seul le sait, et la reponse arrive apres ce rendu. Meme
+  // dispositif differe que le syndicat des dockers ci-dessus et que l'etat des
+  // terrains ci-dessous : la fonction redessine elle-meme les ordres, et
+  // seulement si quelque chose a change. No-op total partout ailleurs.
+  if (typeof camionRafraichirContexte === 'function') {
+    camionRafraichirContexte().catch(function () {});
+  }
+
   if (typeof queteAccueilVerifierEtapeBatiment === 'function') {
     queteAccueilVerifierEtapeBatiment(buildingId, roomId);
   }
@@ -1209,6 +1218,31 @@ function sortirBatiment() {
   // ville_b, plateau-justice-economie.js) que ouvrirTerrainsMontrouge() -- jamais dupliquee.
   // Tous les autres batiments du jeu gardent leur comportement inchange (retour direct a la rue).
   const batimentQuitte = state.currentBuilding;
+
+  // SORTIE DECLAREE PAR LA PIECE (29 septembre 2026). Une piece MOBILE ne donne
+  // pas sur la rue : l'interieur d'un camion rend au lieu ou ce camion stationne.
+  // La regle est portee par la DONNEE (`room.sortieVers`), pas par une condition
+  // sur un identifiant de batiment : toute piece mobile future en heritera sans
+  // qu'une ligne d'ici change. Absente partout ailleurs -- zero changement de
+  // comportement pour les autres batiments du jeu.
+  // Une piece peut nommer un `handler` : quand sortir suppose de PREVENIR LE
+  // SERVEUR (descendre d'un vehicule change ma position officielle), la piece
+  // delegue. Sinon, la sortie est une navigation ordinaire.
+  const roomQuittee = BUILDINGS[batimentQuitte]?.rooms?.[state.currentRoom];
+  if (roomQuittee?.sortieVers) {
+    const s = roomQuittee.sortieVers;
+    if (s.handler && typeof window !== 'undefined' && typeof window[s.handler] === 'function') {
+      window[s.handler]();
+      return;
+    }
+    if (s.buildingId && s.roomId) {
+      if (s.city && state.currentCity !== s.city) state.currentCity = s.city;
+      enterBuilding(s.buildingId, true);
+      enterRoom(s.buildingId, s.roomId, null);
+      return;
+    }
+  }
+
   const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
 
   state.douanePassee = false;

@@ -3960,8 +3960,26 @@ function renderRoomActions(room, buildingId, roomId) {
   // n'existe pas ou ne sait rien, elle rend une liste vide et absolument rien
   // ne change. Quand elle sait, son ordre REMPLACE l'ordre statique de meme
   // `fn` -- jamais de doublon a l'ecran.
-  const dynOrders = (typeof ordresCommerceDuLocal === 'function')
-    ? (ordresCommerceDuLocal(buildingId, roomId, state.currentCity) || []) : [];
+  // UN REGISTRE, PAS UNE LISTE DE CAS (29 septembre 2026). La quatrieme source
+  // etait un appel nomme a ordresCommerceDuLocal ; le camion militaire en
+  // aurait ajoute un cinquieme, puis la mecanique suivante un sixieme. Chaque
+  // mecanique DEPOSE desormais sa fonction dans RP_ORDRES_DYNAMIQUES, et ce
+  // fichier ne connait plus aucune d'entre elles par son nom.
+  //
+  // Le repli sur l'appel direct est conserve : si le registre n'existe pas
+  // (fichier non charge, ordre de chargement inattendu), le commerce continue
+  // exactement comme avant.
+  const sourcesDyn = (typeof window !== 'undefined' && Array.isArray(window.RP_ORDRES_DYNAMIQUES))
+    ? window.RP_ORDRES_DYNAMIQUES : [];
+  let dynOrders = [];
+  if (sourcesDyn.length > 0) {
+    sourcesDyn.forEach(f => {
+      try { dynOrders = dynOrders.concat(f(buildingId, roomId, state.currentCity) || []); }
+      catch (e) { /* une source defaillante n'emporte jamais les autres */ }
+    });
+  } else if (typeof ordresCommerceDuLocal === 'function') {
+    dynOrders = ordresCommerceDuLocal(buildingId, roomId, state.currentCity) || [];
+  }
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders]

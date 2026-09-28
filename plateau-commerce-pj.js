@@ -496,6 +496,16 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
   })];
 }
 
+// Inscription au REGISTRE des sources d'ordres dynamiques (29 septembre 2026).
+// renderRoomActions n'appelle plus cette fonction par son nom : elle s'y inscrit,
+// comme toute mecanique qui derive des ordres de l'etat plutot que de data.js.
+if (typeof window !== 'undefined') {
+  window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresCommerceDuLocal)) {
+    window.RP_ORDRES_DYNAMIQUES.push(ordresCommerceDuLocal);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // FACE PROPRIETAIRE — UN MENU, DEUX SOUS-MENUS
 // ---------------------------------------------------------------------------

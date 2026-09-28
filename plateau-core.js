@@ -860,6 +860,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof rafraichirAssembleeInterdictions === 'function') {
       rafraichirAssembleeInterdictions().catch(() => {});
     }
+    // Camion militaire : un camion arrive ou reparti change ce que ce lieu
+    // propose. On relit ici, avec la presence, plutot que d'ouvrir une seconde
+    // boucle -- la veille dediee de 10 s n'existe QUE lorsqu'on est a bord.
+    if (typeof camionRafraichirContexte === 'function') {
+      camionRafraichirContexte().catch(() => {});
+    }
     // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
     // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
     // Correctif du 25 aout 2026 (bug production confirme par instrumentation : un onglet
@@ -1587,6 +1593,14 @@ function restaurerPositionApresChargement(char) {
         && typeof restaurerPieceDynamiqueDifferee === 'function') {
       const bDiff = char.currentBuilding, rDiff = char.currentRoom;
       setTimeout(() => { restaurerPieceDynamiqueDifferee(bDiff, rDiff).catch(() => {}); }, 300);
+    }
+    // PIECE MOBILE : l'interieur d'un camion (29 septembre 2026). Meme raison
+    // exactement que les pieces de lot ci-dessus -- elle n'existe pas encore a
+    // cet instant, elle est injectee a l'entree. UNE seule tentative differee,
+    // sur l'etat que le serveur arrete, sans jamais insister.
+    if (char.currentBuilding === 'camion-militaire' && typeof camionRestaurerDifferee === 'function') {
+      const rCam = char.currentRoom;
+      setTimeout(() => { camionRestaurerDifferee(rCam).catch(() => {}); }, 300);
     }
     return;
   }

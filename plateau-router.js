@@ -337,6 +337,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
   // lui-meme s'il montre la gestion, la boutique ou l'installation.
   if (fn === 'commerce_pj')              { ouvrirCommercePJ(); return; }
+  // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
+  // monter, descendre, conduire, envoyer a vide. Le seul cout du systeme -- 2 PA
+  // par occupant reellement transporte -- est calcule et preleve PAR LE SERVEUR,
+  // occupant par occupant, et ne peut donc pas passer par payer_ordre, qui ne
+  // sait debiter que l'appelant. Sortie immediate ici, avant tout debit generique.
+  if (fn === 'camion_militaire')         { doCamionMilitaire(); return; }
+  if (fn === 'camion_descendre')         { doCamionDescendre().catch(function () {}); return; }
+  if (fn === 'camion_conduire')          { doCamionConduire(); return; }
+  if (fn === 'camion_a_vide')            { doCamionAVide(); return; }
   if (fn === 'louer_box')                { ouvrirModalLouerBox(pa, cost); return; }
   if (fn === 'gerer_box')                { ouvrirModalGererBox(); return; }
   if (fn === 'marchandises_non_reclamees') { ouvrirMarchandisesNonReclamees(); return; }
