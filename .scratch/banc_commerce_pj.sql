@@ -1,5 +1,5 @@
 -- =====================================================================
--- BANC DU MOTEUR COMMERCIAL PJ — C0, C1, C2, C3
+-- BANC DU MOTEUR COMMERCIAL PJ — C0, C1, C2, C3, C4 (+ CMUP produit fini)
 -- =====================================================================
 -- Un bloc par lot, chacun independant. Les lots suivants ajoutent leur bloc a la
 -- suite ; le nom du fichier ne suit deliberement pas les numeros de lot.
@@ -21,6 +21,25 @@
 --       T7  generique_regime_indetermine  T8  variante_incoherente
 --       T9  requete_invalide             T10  quantite_invalide
 --      T11  fonds_absent                 T12  quantite bornee par les fonds
+--   CMUP PRODUIT FINI (correctif du 28 septembre 2026)
+--       T1-T3   1re production, lot plus cher, lot moins cher -> moyennes exactes
+--       T4-T6   plafond Republia, prix au plafond, plafond+1
+--       T7      LE POINT CENTRAL : baisse du cout MATIERE sans produire ->
+--               cout du produit fini et plafond INCHANGES, vente toujours possible
+--       T8      vente : la quantite baisse, le CMUP ne bouge pas
+--       T9      stock a zero : la cle de cout est retiree
+--       T10     production apres stock zero : le nouveau lot seul
+--       T11     verification de l'exemple du cahier des charges (12 -> plafond 48)
+--   C4  T1-T3   achat nominal : conservation monetaire, objet serveur, snapshot
+--       T4-T5   rejeu meme cle (rien ne bouge) ; 2e cle, 2 unites
+--       T6-T7   UPDATE et DELETE du snapshot REFUSES (append-only)
+--       T8-T9   reference renommee et desactivee : le snapshot ne bouge pas
+--       T10     nom trompeur « +50 ENT » : aucun effet, fiche figee aucun_effet
+--       T11     prix devenu hors plafond apres baisse du CMUP -> refus
+--       T12-T19 refus : quantites, fonds, PNJ, reference, cle, generique retire
+--       T20     acheteur insolvable    T21-T22  stock=1, deux cles -> une vente
+--       T23     proprietaire achete chez lui (comportement existant)
+--       T24     droits : RLS active, 0 policy, aucun privilege client
 --   C3  recettes systeme du generique souvenir (3, toutes {metal:1} pa=1 rendement=6)
 --       T1-T2   creation avec recette, deux recettes du MEME generique
 --       T3-T6   recette omise (obligatoire), hors generique, inexistante,
@@ -244,13 +263,19 @@ BEGIN
   rap := rap || 'T12 modif par un tiers           : ' || public.fonds_reference_modifier('Arnie','zztest-c2',v_ref1,'Vol','x')::text || E'\n';
 
   v_c := public.fonds_cout_revient_reference('zztest-c2',v_ref1);
-  rap := rap || E'\nT13 cout indisponible (matiere)  : ' || v_c::text || E'\n';
+  rap := rap || E'\nT13 cout indisponible (rien produit) : ' || v_c::text || E'\n';
   rap := rap || 'T14 prix refuse faute de cout    : ' || public.fonds_reference_prix('zzAut','zztest-c2',v_ref1,30)::text || E'\n';
   rap := rap || 'T15 activation sans prix         : ' || public.fonds_reference_activer('zzAut','zztest-c2',v_ref1,true)::text || E'\n';
 
-  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',15)) WHERE id='zztest-c2';
+  -- Le cout de reference est celui du STOCK DE PRODUITS FINIS : il faut donc
+  -- produire avant de pouvoir tarifer. C'est le correctif du 28 septembre 2026.
+  UPDATE public.entreprises SET data = data
+    || jsonb_build_object('stockMatieres', jsonb_build_object('metal',20))
+    || jsonb_build_object('coutMoyenMatieres', jsonb_build_object('metal',15)) WHERE id='zztest-c2';
+  UPDATE public.personnages_donnees SET pa = 10 WHERE name='zzAut';
+  PERFORM public.fonds_reference_produire('prod-c2bloc-001','zzAut','zztest-c2',v_ref1);
   v_c := public.fonds_cout_revient_reference('zztest-c2',v_ref1);
-  rap := rap || E'\nT16 cout calculable (metal 15)   : ' || v_c::text || E'\n'
+  rap := rap || E'\nT16 cout apres production        : ' || v_c::text || E'\n'
              || '    controle : (1x15 + 1x50)/6 = ' || round((15+50)::numeric/6, 4)
              || '   ceil(x4) = ' || ceil((15+50)::numeric/6*4) || E'\n';
   rap := rap || 'T17 prix AU plafond              : ' || public.fonds_reference_prix('zzAut','zztest-c2',v_ref1, (v_c->>'prixMaximum')::int)::text || E'\n';
@@ -328,7 +353,7 @@ BEGIN
   rap := rap || 'T6  generique sans recette       : ' || public.fonds_reference_creer('zzAut','zztest-c3','article-de-supporter','porte_cle_palais_luthecia','X','y')::text || E'\n';
 
   c := public.fonds_cout_revient_reference('zztest-c3', refA);
-  rap := rap || E'\nT7  cout de revient              : ' || c::text || E'\n'
+  rap := rap || E'\nT7  cout AVANT production        : ' || c::text || E'\n'
              || '    controle (1x15 + 1x50)/6 = ' || round((15+50)::numeric/6,4)
              || '  plafond ceil(x4) = ' || ceil((15+50)::numeric/6*4) || E'\n';
 
@@ -379,7 +404,8 @@ BEGIN
   UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',15)) WHERE id='zztest-c3';
 
   c := public.fonds_cout_revient_reference('zztest-c3', refA);
-  rap := rap || E'\nT19 prix AU plafond              : ' || public.fonds_reference_prix('zzAut','zztest-c3',refA,(c->>'prixMaximum')::int)::text || E'\n';
+  rap := rap || E'\n    cout de reference = CMUP du produit fini = ' || (c->>'coutUnitaire') || E'\n';
+  rap := rap || 'T19 prix AU plafond              : ' || public.fonds_reference_prix('zzAut','zztest-c3',refA,(c->>'prixMaximum')::int)::text || E'\n';
   rap := rap || 'T20 prix plafond + 1             : ' || public.fonds_reference_prix('zzAut','zztest-c3',refA,(c->>'prixMaximum')::int + 1)::text || E'\n';
   rap := rap || 'T21 activation                   : ' || public.fonds_reference_activer('zzAut','zztest-c3',refA,true)::text || E'\n';
 
@@ -397,4 +423,276 @@ BEGIN
              || ' lot(s), couts unitaires ' || (SELECT string_agg(round(cout_unitaire,4)::text, ' / ') FROM public.productions_references WHERE fonds_id='zztest-c3') || E'\n';
 
   RAISE EXCEPTION 'BANC C3 -- transaction annulee, aucun residu %', rap;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- BLOC 5 — C4 : ACHAT REEL ET PREUVE IMMUABLE  (partie 1)
+-- ---------------------------------------------------------------------------
+-- Vendeur zzAut, acheteur Arnie. Verticale Souvenir complete.
+DO $$
+DECLARE
+  r jsonb; rap text := E'\n'; d jsonb; ref text; brut text; snap record;
+  argA0 numeric; argA1 numeric; caisse0 numeric; caisse1 numeric; msg text;
+BEGIN
+  INSERT INTO public.locations_actives (id, country, data) VALUES (
+    'republic:centre-commercial:vitrine_principale:capitale','republic',
+    jsonb_build_object('buildingId','centre-commercial','roomId','vitrine_principale',
+      'locataire','zzAut','country','republic','city','capitale','lotId',null,'prix',800));
+  PERFORM public.creer_fonds_commerce('zzAut','republic:centre-commercial:vitrine_principale:capitale','zztest-c4',0,'Souvenirs Marcel');
+  PERFORM public.fonds_definir_types('zzAut','zztest-c4', ARRAY['commerce-non-alimentaire']);
+  UPDATE public.entreprises SET data = data
+    || jsonb_build_object('stockMatieres', jsonb_build_object('metal',10))
+    || jsonb_build_object('coutMoyenMatieres', jsonb_build_object('metal',15))
+    WHERE id='zztest-c4';
+  UPDATE public.personnages_donnees SET pa = 10 WHERE name='zzAut';
+
+  r := public.fonds_reference_creer('zzAut','zztest-c4','souvenir','porte_cle_palais_luthecia','Porte-clé présidentiel Collector 2026','Édition limitée, numérotée.');
+  ref := r->>'referenceId';
+  PERFORM public.fonds_reference_produire('prod-c4test-001','zzAut','zztest-c4',ref);
+  PERFORM public.fonds_reference_prix('zzAut','zztest-c4',ref,44);
+  PERFORM public.fonds_reference_activer('zzAut','zztest-c4',ref,true);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  SELECT arg INTO argA0 FROM public.personnages_donnees WHERE name='Arnie';
+  caisse0 := (d->>'caisse')::numeric;
+  rap := rap || 'ETAT INITIAL : stock=' || (d->'stockReferences'->>ref) || '  prix=44  caisse=' || caisse0
+             || '  argent Arnie=' || argA0 || E'\n';
+
+  r := public.acheter_produit_commerce('achat-c4test-001','Arnie','zztest-c4',ref,1);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  SELECT arg INTO argA1 FROM public.personnages_donnees WHERE name='Arnie';
+  caisse1 := (d->>'caisse')::numeric;
+  rap := rap || E'\nT1  ACHAT NOMINAL : ' || r::text || E'\n'
+             || '    Arnie ' || argA0 || ' -> ' || argA1 || '   caisse ' || caisse0 || ' -> ' || caisse1
+             || '   stock ' || (d->'stockReferences'->>ref)
+             || '   conservation monetaire : ' || ((argA0-argA1) = (caisse1-caisse0)) || E'\n';
+
+  SELECT data#>>'{}' INTO brut FROM public.objets_recus WHERE id='achat-c4test-001-1';
+  rap := rap || 'T2  OBJET LIVRE   : name=' || (brut::jsonb->>'name')
+             || '  generique_id=' || (brut::jsonb->>'generique_id')
+             || '  recette_id=' || (brut::jsonb->>'recette_id')
+             || '  reference=' || (brut::jsonb->>'type') || '  qty=' || (brut::jsonb->>'qty')
+             || '  lignes=' || (SELECT count(*) FROM public.objets_recus WHERE id LIKE 'achat-c4test-001%') || E'\n';
+
+  SELECT * INTO snap FROM public.ventes_snapshots WHERE requete='achat-c4test-001';
+  rap := rap || 'T3  SNAPSHOT      : nom="' || snap.nom_commercial || '"  generique=' || snap.generique_id
+             || '  recette=' || snap.recette_id || '  qte=' || snap.quantite || '  pu=' || snap.prix_unitaire
+             || '  total=' || snap.montant_total || '  vendeur=' || snap.vendeur || '  acheteur=' || snap.acheteur
+             || '  famille=' || snap.famille || '  types=' || snap.types::text || E'\n'
+             || '    fiche figee : generique=' || (snap.fiche_officielle->>'generique')
+             || ' aucun_effet=' || (snap.fiche_officielle->>'aucun_effet') || E'\n';
+
+  r := public.acheter_produit_commerce('achat-c4test-001','Arnie','zztest-c4',ref,1);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  rap := rap || E'\nT4  REJEU meme cle : ' || r::text || E'\n'
+             || '    argent inchange=' || ((SELECT arg FROM public.personnages_donnees WHERE name='Arnie')=argA1)
+             || '  caisse inchangee=' || ((d->>'caisse')::numeric = caisse1)
+             || '  stock inchange=' || ((d->'stockReferences'->>ref)='5')
+             || '  1 snapshot=' || ((SELECT count(*) FROM public.ventes_snapshots)=1)
+             || '  1 livraison=' || ((SELECT count(*) FROM public.objets_recus WHERE id LIKE 'achat-c4test-001%')=1) || E'\n';
+
+  r := public.acheter_produit_commerce('achat-c4test-002','Arnie','zztest-c4',ref,2);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  rap := rap || 'T5  2e cle, 2 unites : ok=' || (r->>'ok') || ' montant=' || (r->>'montant')
+             || ' stock=' || (d->'stockReferences'->>ref)
+             || ' snapshots=' || (SELECT count(*) FROM public.ventes_snapshots) || E'\n';
+
+  BEGIN
+    UPDATE public.ventes_snapshots SET nom_commercial = 'Falsifie' WHERE requete='achat-c4test-001';
+    rap := rap || 'T6  UPDATE snapshot : ACCEPTE -- ANOMALIE' || E'\n';
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS msg = MESSAGE_TEXT;
+    rap := rap || E'\nT6  UPDATE snapshot : REFUSE (' || left(msg,60) || ')' || E'\n';
+  END;
+  BEGIN
+    DELETE FROM public.ventes_snapshots WHERE requete='achat-c4test-001';
+    rap := rap || 'T7  DELETE snapshot : ACCEPTE -- ANOMALIE' || E'\n';
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS msg = MESSAGE_TEXT;
+    rap := rap || 'T7  DELETE snapshot : REFUSE (' || left(msg,60) || ')' || E'\n';
+  END;
+
+  PERFORM public.fonds_reference_modifier('zzAut','zztest-c4',ref,'Jus de betterave parfaitement ordinaire','Rien de special.');
+  PERFORM public.fonds_reference_activer('zzAut','zztest-c4',ref,false);
+  SELECT * INTO snap FROM public.ventes_snapshots WHERE requete='achat-c4test-001';
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  rap := rap || E'\nT8  APRES RENOMMAGE ET DESACTIVATION' || E'\n'
+             || '    la reference dit : "' || (d->'references'->ref->>'nom') || '" active=' || (d->'references'->ref->>'active') || E'\n'
+             || '    le SNAPSHOT dit  : "' || snap.nom_commercial || '"  desc="' || coalesce(snap.description_commerciale,'') || '"' || E'\n'
+             || '    objet livre toujours present : ' || ((SELECT count(*) FROM public.objets_recus WHERE id LIKE 'achat-c4test-001%')=1) || E'\n';
+  rap := rap || 'T9  achat sur reference desactivee : ' || public.acheter_produit_commerce('achat-c4test-009','Arnie','zztest-c4',ref,1)::text || E'\n';
+
+  RAISE EXCEPTION 'BANC C4 partie 1 -- transaction annulee, aucun residu %', rap;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- BLOC 6 — C4 : REFUS, NOM TROMPEUR, CONCURRENCE, DROITS  (partie 2)
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  r jsonb; rap text := E'\n'; d jsonb; refT text; brut text; snap record;
+  argA numeric; caisse numeric;
+BEGIN
+  INSERT INTO public.locations_actives (id, country, data) VALUES (
+    'republic:centre-commercial:vitrine_principale:capitale','republic',
+    jsonb_build_object('buildingId','centre-commercial','roomId','vitrine_principale',
+      'locataire','zzAut','country','republic','city','capitale','lotId',null,'prix',800));
+  PERFORM public.creer_fonds_commerce('zzAut','republic:centre-commercial:vitrine_principale:capitale','zztest-c4',0,'Souvenirs Marcel');
+  PERFORM public.fonds_definir_types('zzAut','zztest-c4', ARRAY['commerce-non-alimentaire']);
+  UPDATE public.entreprises SET data = data
+    || jsonb_build_object('stockMatieres', jsonb_build_object('metal',10))
+    || jsonb_build_object('coutMoyenMatieres', jsonb_build_object('metal',15))
+    WHERE id='zztest-c4';
+  UPDATE public.personnages_donnees SET pa = 10 WHERE name='zzAut';
+
+  r := public.fonds_reference_creer('zzAut','zztest-c4','souvenir','porte_cle_palais_luthecia','Souvenir Collector +50 ENT','Procure un immense charisme.');
+  refT := r->>'referenceId';
+  PERFORM public.fonds_reference_produire('prod-c4t-001','zzAut','zztest-c4',refT);
+  PERFORM public.fonds_reference_prix('zzAut','zztest-c4',refT,44);
+  PERFORM public.fonds_reference_activer('zzAut','zztest-c4',refT,true);
+  PERFORM public.acheter_produit_commerce('achat-c4t-001','Arnie','zztest-c4',refT,1);
+  SELECT data#>>'{}' INTO brut FROM public.objets_recus WHERE id='achat-c4t-001-1';
+  SELECT * INTO snap FROM public.ventes_snapshots WHERE requete='achat-c4t-001';
+  rap := rap || 'T10 NOM TROMPEUR « Souvenir Collector +50 ENT »' || E'\n'
+             || '    objet : generique=' || (brut::jsonb->>'generique_id')
+             || '  champ effets present ? ' || (brut::jsonb ? 'effets') || E'\n'
+             || '    fiche figee : generique=' || (snap.fiche_officielle->>'generique')
+             || '  aucun_effet=' || (snap.fiche_officielle->>'aucun_effet')
+             || '  effets=' || coalesce((snap.fiche_officielle->'effets')::text,'absents') || E'\n'
+             || '    nom fige : "' || snap.nom_commercial || '"' || E'\n';
+
+  -- CORRECTIF DU 28 SEPTEMBRE 2026 : une baisse du cout des MATIERES ne reecrit
+  -- plus le cout d'un produit DEJA fabrique. Le stock reste vendable.
+  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',1)) WHERE id='zztest-c4';
+  rap := rap || E'\nT11 metal 15 -> 1 SANS produire  : ok='
+             || (public.acheter_produit_commerce('achat-c4t-011','Arnie','zztest-c4',refT,1)->>'ok')
+             || '  [le stock deja produit reste vendable]' || E'\n';
+  -- En revanche une NOUVELLE production moins chere abaisse legitimement le plafond.
+  UPDATE public.entreprises SET data = data || jsonb_build_object('stockMatieres', jsonb_build_object('metal',20)) WHERE id='zztest-c4';
+  PERFORM public.fonds_reference_produire('prod-c4t-002','zzAut','zztest-c4',refT);
+  rap := rap || 'T11b nouvelle production a 1     : ' || public.acheter_produit_commerce('achat-c4t-011b','Arnie','zztest-c4',refT,1)::text || E'\n';
+  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',15)) WHERE id='zztest-c4';
+  PERFORM public.fonds_reference_prix('zzAut','zztest-c4',refT,
+    (public.fonds_cout_revient_reference('zztest-c4',refT)->>'prixMaximum')::int);
+
+  rap := rap || E'\nT12 quantite 0                   : ' || public.acheter_produit_commerce('achat-c4t-012','Arnie','zztest-c4',refT,0)::text || E'\n';
+  rap := rap || 'T13 quantite negative            : ' || public.acheter_produit_commerce('achat-c4t-013','Arnie','zztest-c4',refT,-3)::text || E'\n';
+  rap := rap || 'T14 quantite > stock             : ' || public.acheter_produit_commerce('achat-c4t-014','Arnie','zztest-c4',refT,99)::text || E'\n';
+  rap := rap || 'T15 fonds inexistant             : ' || public.acheter_produit_commerce('achat-c4t-015','Arnie','zztest-absent',refT,1)::text || E'\n';
+  rap := rap || 'T16 etablissement PNJ            : ' || public.acheter_produit_commerce('achat-c4t-016','Arnie','armurerie-republic-capitale',refT,1)::text || E'\n';
+  rap := rap || 'T17 reference inconnue           : ' || public.acheter_produit_commerce('achat-c4t-017','Arnie','zztest-c4','ref-inexistante',1)::text || E'\n';
+  rap := rap || 'T18 cle mal formee               : ' || public.acheter_produit_commerce('pas-une-cle','Arnie','zztest-c4',refT,1)::text || E'\n';
+
+  PERFORM public.fonds_definir_types('zzAut','zztest-c4', ARRAY['pharmacie']);
+  rap := rap || 'T19 generique retire des types   : ' || public.acheter_produit_commerce('achat-c4t-019','Arnie','zztest-c4',refT,1)::text || E'\n';
+  PERFORM public.fonds_definir_types('zzAut','zztest-c4', ARRAY['commerce-non-alimentaire']);
+
+  UPDATE public.personnages_donnees SET arg = 10 WHERE name='Arnie';
+  rap := rap || E'\nT20 acheteur insolvable          : ' || public.acheter_produit_commerce('achat-c4t-020','Arnie','zztest-c4',refT,1)::text || E'\n';
+  UPDATE public.personnages_donnees SET arg = 6970 WHERE name='Arnie';
+
+  UPDATE public.entreprises SET data = jsonb_set(data, ARRAY['stockReferences',refT], to_jsonb(1)) WHERE id='zztest-c4';
+  r := public.acheter_produit_commerce('achat-c4t-021','Arnie','zztest-c4',refT,1);
+  rap := rap || E'\nT21 stock=1, 1er achat           : ok=' || (r->>'ok') || ' stockRestant=' || (r->>'stockRestant') || E'\n';
+  r := public.acheter_produit_commerce('achat-c4t-022','Arnie','zztest-c4',refT,1);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-c4';
+  rap := rap || 'T22 stock=1, 2e achat (2e cle)   : ' || r::text || E'\n'
+             || '    stock final = ' || (d->'stockReferences'->>refT) || ' (jamais negatif)' || E'\n';
+
+  UPDATE public.entreprises SET data = jsonb_set(data, ARRAY['stockReferences',refT], to_jsonb(3)) WHERE id='zztest-c4';
+  SELECT arg INTO argA FROM public.personnages_donnees WHERE name='zzAut';
+  r := public.acheter_produit_commerce('achat-c4t-023','zzAut','zztest-c4',refT,1);
+  rap := rap || E'\nT23 PROPRIETAIRE achete chez lui : ok=' || (r->>'ok')
+             || '  argent ' || argA || ' -> ' || (SELECT arg FROM public.personnages_donnees WHERE name='zzAut')
+             || '  (comportement existant, aucune regle ne l interdit)' || E'\n';
+
+  rap := rap || E'\nT24 DROITS ventes_snapshots : rls=' || (SELECT rowsecurity FROM pg_tables WHERE schemaname='public' AND tablename='ventes_snapshots')
+             || '  policies=' || (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename='ventes_snapshots')
+             || '  anon select=' || has_table_privilege('anon','public.ventes_snapshots','select')
+             || '  auth select=' || has_table_privilege('authenticated','public.ventes_snapshots','select')
+             || '  auth insert=' || has_table_privilege('authenticated','public.ventes_snapshots','insert')
+             || '  auth update=' || has_table_privilege('authenticated','public.ventes_snapshots','update')
+             || '  auth delete=' || has_table_privilege('authenticated','public.ventes_snapshots','delete') || E'\n';
+
+  RAISE EXCEPTION 'BANC C4 partie 2 -- transaction annulee, aucun residu %', rap;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- BLOC 7 — CMUP DU PRODUIT FINI  (correctif du 28 septembre 2026)
+-- ---------------------------------------------------------------------------
+-- Le plafond commercial s'appuie sur le cout moyen pondere du STOCK DE PRODUITS
+-- FINIS, jamais sur le cout courant des matieres. Une baisse ulterieure du prix
+-- d'une matiere ne reecrit donc pas le cout d'un produit deja fabrique.
+DO $$
+DECLARE
+  r jsonb; rap text := E'\n'; d jsonb; ref text; c jsonb; cmup numeric; plafond numeric;
+BEGIN
+  INSERT INTO public.locations_actives (id, country, data) VALUES (
+    'republic:centre-commercial:vitrine_principale:capitale','republic',
+    jsonb_build_object('buildingId','centre-commercial','roomId','vitrine_principale',
+      'locataire','zzAut','country','republic','city','capitale','lotId',null,'prix',800));
+  PERFORM public.creer_fonds_commerce('zzAut','republic:centre-commercial:vitrine_principale:capitale','zztest-cmup',0,'Souvenirs Marcel');
+  PERFORM public.fonds_definir_types('zzAut','zztest-cmup', ARRAY['commerce-non-alimentaire']);
+  UPDATE public.personnages_donnees SET pa = 10 WHERE name='zzAut';
+  r := public.fonds_reference_creer('zzAut','zztest-cmup','souvenir','porte_cle_palais_luthecia','Porte-clé Collector','x');
+  ref := r->>'referenceId';
+
+  UPDATE public.entreprises SET data = data || jsonb_build_object(
+    'stockMatieres', jsonb_build_object('metal',20), 'coutMoyenMatieres', jsonb_build_object('metal',10)) WHERE id='zztest-cmup';
+  r := public.fonds_reference_produire('prod-cmup-001','zzAut','zztest-cmup',ref);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-cmup';
+  rap := rap || 'T1 1re production (metal 10)     : coutLot=' || (r->>'coutLot') || ' unitaire=' || (r->>'coutUnitaireLot')
+             || '  stock=' || (d->'stockReferences'->>ref) || '  CMUP=' || (d->'coutMoyenReferences'->>ref) || '  [10]' || E'\n';
+
+  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',70)) WHERE id='zztest-cmup';
+  r := public.fonds_reference_produire('prod-cmup-002','zzAut','zztest-cmup',ref);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-cmup';
+  rap := rap || 'T2 2e production PLUS CHERE (70) : unitaireLot=' || (r->>'coutUnitaireLot')
+             || '  cmup ' || (r->>'cmupAvant') || ' -> ' || (r->>'cmupApres')
+             || '  stock=' || (d->'stockReferences'->>ref) || '  [(6x10+120)/12 = 15]' || E'\n';
+
+  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',10)) WHERE id='zztest-cmup';
+  r := public.fonds_reference_produire('prod-cmup-003','zzAut','zztest-cmup',ref);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-cmup';
+  cmup := (d->'coutMoyenReferences'->>ref)::numeric;
+  rap := rap || 'T3 3e production MOINS CHERE (10): cmup -> ' || (r->>'cmupApres')
+             || '  stock=' || (d->'stockReferences'->>ref) || '  [(12x15+60)/18 = 13,3333]' || E'\n';
+
+  c := public.fonds_cout_revient_reference('zztest-cmup', ref);
+  plafond := (c->>'prixMaximum')::numeric;
+  rap := rap || E'\nT4 plafond Republia             : ' || (c->>'coutUnitaire') || ' x' || (c->>'coefficient')
+             || ' -> ceil = ' || plafond || '  [ceil(53,33) = 54]' || E'\n';
+  rap := rap || 'T5 prix AU plafond              : ok=' || (public.fonds_reference_prix('zzAut','zztest-cmup',ref,plafond::int)->>'ok') || E'\n';
+  rap := rap || 'T6 plafond + 1                  : ' || (public.fonds_reference_prix('zzAut','zztest-cmup',ref,plafond::int+1)->>'raison') || E'\n';
+
+  UPDATE public.entreprises SET data = jsonb_set(data,'{coutMoyenMatieres}', jsonb_build_object('metal',1)) WHERE id='zztest-cmup';
+  c := public.fonds_cout_revient_reference('zztest-cmup', ref);
+  PERFORM public.fonds_reference_activer('zzAut','zztest-cmup',ref,true);
+  rap := rap || E'\nT7 METAL 10 -> 1 SANS PRODUIRE  : cout=' || (c->>'coutUnitaire')
+             || '  plafond=' || (c->>'prixMaximum') || '  INCHANGE=' || ((c->>'prixMaximum')::numeric = plafond) || E'\n'
+             || '   vente au prix du plafond toujours possible : '
+             || (public.acheter_produit_commerce('achat-cmup-001','Arnie','zztest-cmup',ref,1)->>'ok') || E'\n';
+
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-cmup';
+  rap := rap || 'T8 apres vente de 1             : stock=' || (d->'stockReferences'->>ref)
+             || '  CMUP=' || (d->'coutMoyenReferences'->>ref)
+             || '  inchange=' || (((d->'coutMoyenReferences'->>ref)::numeric) = cmup) || E'\n';
+
+  UPDATE public.entreprises SET data = jsonb_set(data, ARRAY['stockReferences',ref], to_jsonb(1)) WHERE id='zztest-cmup';
+  PERFORM public.acheter_produit_commerce('achat-cmup-002','Arnie','zztest-cmup',ref,1);
+  SELECT data INTO d FROM public.entreprises WHERE id='zztest-cmup';
+  rap := rap || 'T9 stock ramene a 0             : stock=' || (d->'stockReferences'->>ref)
+             || '  cle de cout retiree=' || (NOT (d->'coutMoyenReferences' ? ref)) || E'\n'
+             || '   cout de revient : ' || public.fonds_cout_revient_reference('zztest-cmup',ref)::text || E'\n';
+
+  r := public.fonds_reference_produire('prod-cmup-004','zzAut','zztest-cmup',ref);
+  c := public.fonds_cout_revient_reference('zztest-cmup', ref);
+  rap := rap || 'T10 production apres stock 0    : unitaireLot=' || (r->>'coutUnitaireLot')
+             || '  cmupAvant=' || coalesce(r->>'cmupAvant','(aucun)') || ' -> ' || (r->>'cmupApres')
+             || '  plafond=' || (c->>'prixMaximum') || '  [(1+50)/6 = 8,5 ; ceil(34)]' || E'\n';
+
+  rap := rap || E'\nT11 exemple du cahier des charges : (100x10 + 50x16)/150 = '
+             || round((100*10 + 50*16)::numeric/150, 4)
+             || '   plafond Republia = ceil(12 x 4) = ' || ceil((100*10+50*16)::numeric/150*4) || E'\n';
+
+  RAISE EXCEPTION 'BANC CMUP PRODUIT FINI -- transaction annulee, aucun residu %', rap;
 END $$;
