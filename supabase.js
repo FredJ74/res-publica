@@ -2420,6 +2420,101 @@ async function sbGetOeuvre(id) {
   return (rows && rows[0]) || null;
 }
 
+// =====================================================================
+// COMMERCE PJ — C1 a C4 (28 septembre 2026)
+// =====================================================================
+// Le navigateur n'est ici qu'un porte-voix : il recueille une intention et la
+// transmet. AUCUNE de ces enveloppes n'envoie une propriete mecanique -- ni
+// generique, ni recette, ni matiere, ni PA, ni rendement, ni cout, ni montant.
+// Le serveur relit tout depuis ses propres donnees, sous verrou.
+//
+// FAIL-CLOSED : sbRpc rend null si la fonction n'existe pas ; l'action est alors
+// refusee et rien n'a ete ecrit nulle part.
+
+// Le bail est le seul lien entre un LOCAL et un FONDS. Le local ne porte jamais
+// les donnees du commerce : il pointe vers lui, et c'est tout.
+function sbBailIdDeLocal(pays, batiment, piece, ville) {
+  return [pays, batiment, piece, ville].join(':');
+}
+
+async function sbGetBail(bailId) {
+  const rows = await sbGet('locations_actives', `id=eq.${encodeURIComponent(bailId)}`);
+  return (rows && rows[0]) ? rows[0].data : null;
+}
+
+async function sbGetCatalogueTypes() {
+  return (await sbGet('catalogue_types', 'order=ordre.asc')) || [];
+}
+
+// Generiques qu'un fonds peut exploiter : DERIVES par le serveur de ses types L2.
+// Le navigateur ne compose jamais cette liste lui-meme -- et meme s'il la
+// falsifiait, fonds_reference_creer la recalcule avant d'accepter.
+async function sbFondsGeneriquesAccessibles(fondsId) {
+  const rows = await sbRpc('fonds_generiques_accessibles', { p_fonds_id: fondsId });
+  return Array.isArray(rows) ? rows : [];
+}
+
+async function sbGeneriqueRecettesSysteme(generiqueId) {
+  const rows = await sbRpc('generique_recettes_systeme', { p_generique_id: generiqueId });
+  return Array.isArray(rows) ? rows : [];
+}
+
+// Cout moyen du STOCK DE PRODUITS FINIS et plafond de prix qui en decoule. Le
+// plafond vient du serveur, jamais d'un calcul du navigateur : le coefficient est
+// une politique de pays, et l'interface doit pouvoir servir n'importe quel empire
+// sans connaitre sa regle.
+async function sbFondsCoutRevientReference(fondsId, referenceId) {
+  return verdictRpc(await sbRpc('fonds_cout_revient_reference', {
+    p_fonds_id: fondsId, p_reference_id: referenceId
+  }));
+}
+
+async function sbFondsDefinirTypes(acteurRef, fondsId, types) {
+  return verdictRpc(await sbRpc('fonds_definir_types', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_types: types || []
+  }));
+}
+
+async function sbFondsReferenceCreer(acteurRef, fondsId, generiqueId, recetteId, nom, description) {
+  return verdictRpc(await sbRpc('fonds_reference_creer', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_generique_id: generiqueId,
+    p_recette_id: recetteId || null, p_nom: nom, p_description: description || null
+  }));
+}
+
+async function sbFondsReferenceModifier(acteurRef, fondsId, referenceId, nom, description) {
+  return verdictRpc(await sbRpc('fonds_reference_modifier', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId,
+    p_nom: nom === undefined ? null : nom,
+    p_description: description === undefined ? null : description
+  }));
+}
+
+async function sbFondsReferencePrix(acteurRef, fondsId, referenceId, prix) {
+  return verdictRpc(await sbRpc('fonds_reference_prix', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId, p_prix: prix
+  }));
+}
+
+async function sbFondsReferenceActiver(acteurRef, fondsId, referenceId, active) {
+  return verdictRpc(await sbRpc('fonds_reference_activer', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId, p_active: active === true
+  }));
+}
+
+// Production. La cle de requete rend l'appel idempotent : un double clic ne
+// produit qu'un seul lot. Elle doit etre STABLE pour une intention donnee --
+// fabriquee a l'ouverture de la confirmation, jamais a chaque envoi.
+function nouvelleCleProduction() {
+  return 'prod-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId) {
+  return verdictRpc(await sbRpc('fonds_reference_produire', {
+    p_requete: requete, p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId
+  }));
+}
+
 async function sbGetObjetsRecus(nom) {
   const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}`);
   if (!rows) return [];

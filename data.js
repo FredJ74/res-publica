@@ -3340,6 +3340,7 @@ const BUILDINGS = {
         locationData: { prix: 800, bonusPOP: 10, bonusINF: 5, bonusDIS: 0, label: 'Vitrine Principale', tier: 1 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (800 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Emplacement premium. +10 POP +5 INF à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Gérer votre location.'}
         ]
@@ -3353,6 +3354,7 @@ const BUILDINGS = {
         locationData: { prix: 400, bonusPOP: 5, bonusINF: 3, bonusDIS: 0, label: 'Boutique Milieu', tier: 2 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (400 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 POP +3 INF à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3366,6 +3368,7 @@ const BUILDINGS = {
         locationData: { prix: 150, bonusPOP: 2, bonusINF: 1, bonusDIS: 0, label: 'Arrière-Boutique', tier: 3 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (150 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3379,6 +3382,7 @@ const BUILDINGS = {
         locationData: { prix: 80, bonusPOP: 0, bonusINF: 1, bonusDIS: 5, label: 'Cave / Réserve', tier: 4 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (80 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 DIS à votre organisation. Très discret.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3418,6 +3422,7 @@ const BUILDINGS = {
         locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 POP +2 INF. Fort ancrage populaire.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3431,6 +3436,7 @@ const BUILDINGS = {
         locationData: { prix: 300, bonusPOP: 6, bonusINF: 2, bonusDIS: 0, label: 'Atelier Central', tier: 2 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (300 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 POP +2 INF.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3444,6 +3450,7 @@ const BUILDINGS = {
         locationData: { prix: 100, bonusPOP: 2, bonusINF: 1, bonusDIS: 2, label: 'Réserve Arrière', tier: 3 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (100 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF +2 DIS.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3483,6 +3490,7 @@ const BUILDINGS = {
         locationData: { prix: 1000, bonusPOP: 3, bonusINF: 12, bonusDIS: 8, label: 'Bureau Prestige', tier: 1 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (1000 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 INF +8 DIS +3 POP. Le bureau qui impressionne.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3496,6 +3504,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 1, bonusINF: 6, bonusDIS: 5, label: 'Bureau Standard', tier: 2 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 INF +5 DIS +1 POP.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
@@ -3509,6 +3518,7 @@ const BUILDINGS = {
         locationData: { prix: 200, bonusPOP: 2, bonusINF: 3, bonusDIS: 1, label: 'Open Space', tier: 3 },
         persons: [],
         orders: [
+          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]

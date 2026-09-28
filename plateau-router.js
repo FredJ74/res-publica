@@ -334,6 +334,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
+  // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
+  // lui-meme s'il montre la gestion, la boutique ou l'installation.
+  if (fn === 'commerce_pj')              { ouvrirCommercePJ(); return; }
   if (fn === 'louer_box')                { ouvrirModalLouerBox(pa, cost); return; }
   if (fn === 'gerer_box')                { ouvrirModalGererBox(); return; }
   if (fn === 'marchandises_non_reclamees') { ouvrirMarchandisesNonReclamees(); return; }
