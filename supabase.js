@@ -2522,6 +2522,22 @@ async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId
 // des recettes systeme des references du fonds. Le navigateur ne fait que
 // l'afficher. Ajouter demain une reference qui consomme du textile fera
 // apparaitre le textile sans qu'une ligne de ce fichier change.
+// MATIERES ACCESSIBLES — DERIVEES DES ACTIVITES DU COMMERCE (29 septembre 2026).
+//
+// C'est la liste LARGE : tout ce que les activites du fonds rendent fabricable,
+// donc tout ce que son proprietaire peut decider d'acheter -- meme s'il n'a pas
+// encore cree la reference qui le consommera. Elle remplace
+// sbFondsMatieresRecherchees dans l'ecran de gestion et dans la face publique.
+//
+// `acceptee` est SA decision, jamais une deduction : une matiere accessible
+// reste fermee aux apports tant qu'il ne l'ouvre pas.
+async function sbFondsMatieresAccessibles(fondsId) {
+  const rows = await sbRpc('fonds_matieres_accessibles', { p_fonds_id: fondsId });
+  return Array.isArray(rows) ? rows : [];
+}
+
+// Ce que les references du commerce consomment REELLEMENT. Conservee : elle
+// repond a une autre question que la precedente, et n'est plus un gardien.
 async function sbFondsMatieresRecherchees(fondsId) {
   const rows = await sbRpc('fonds_matieres_recherchees', { p_fonds_id: fondsId });
   return Array.isArray(rows) ? rows : [];
@@ -2529,10 +2545,15 @@ async function sbFondsMatieresRecherchees(fondsId) {
 
 // Prix de rachat LIBRE (le proprietaire decide) et maximum par matiere, borne
 // par la politique du pays. Le serveur revalide les deux.
-async function sbFondsMatiereParametres(acteurRef, fondsId, matiere, prixAchat, maximum) {
+// TROIS REGLAGES, PAS DEUX (29 septembre 2026). `acceptee` a ete ajoute parce que
+// « maximum = 0 » portait deux sens contradictoires : illimite, et refuse. Il ne
+// veut plus dire qu'une chose -- illimite -- et le refus se dit explicitement.
+// L'ancienne signature a 5 arguments a ete SUPPRIMEE cote serveur : deux
+// fonctions de meme nom auraient fait repondre PostgREST par une ambiguite.
+async function sbFondsMatiereParametres(acteurRef, fondsId, matiere, prixAchat, maximum, acceptee) {
   return sbRpcVerdict('fonds_matiere_parametres', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_matiere: matiere,
-    p_prix_achat: prixAchat, p_maximum: maximum
+    p_prix_achat: prixAchat, p_maximum: maximum, p_acceptee: !!acceptee
   });
 }
 

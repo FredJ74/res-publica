@@ -121,7 +121,7 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.ordre.gerer':          "Gestion de ce commerce",
   'commercepj.ordre.gererAide':      "Gérer votre commerce : identité, caisse, matières et articles.",
   'commercepj.ordre.visiter':        "Entrer dans le commerce",
-  'commercepj.ordre.visiterAide':    "Acheter les produits proposés, ou vendre des matières au commerçant.",
+  'commercepj.ordre.visiterAide':    "Acheter, fabriquer pour ce commerce, ou lui vendre des matières premières.",
   'commercepj.ordre.installer':      "Installer un commerce",
   'commercepj.ordre.installerAide':  "Créer un fonds de commerce dans ce local dont vous êtes titulaire.",
   // --- C6 : deux sous-menus, matieres premieres, apport public ---
@@ -130,18 +130,18 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.menu.articles':        "Gestion des articles",
   'commercepj.menu.articlesAide':    "Vos produits : production, prix, mise en vente.",
   'commercepj.menu.boutique':        "Voir ma boutique",
-  'commercepj.menu.boutiqueAide':    "Votre commerce tel que le voient vos clients.",
+  'commercepj.menu.boutiqueAide':    "Votre commerce tel que le voient vos clients : boutique, atelier, matières.",
   'commercepj.global.titre':         "Gestion globale",
   'commercepj.global.identite':      "Identité",
   'commercepj.global.matieres':      "Matières premières",
-  'commercepj.global.matieresAide':  "Déduites des recettes de vos produits. Fixez ce que vous acceptez d'en stocker et à quel prix vous les rachetez.",
-  'commercepj.global.aucuneMatiere': "Aucune matière tant qu'aucun produit n'a été créé : ce sont les recettes de vos produits qui les déterminent.",
-  'commercepj.global.regler':        "Régler",
+  'commercepj.global.matieresAide':  "Matières premières compatibles avec les activités de votre commerce. Acceptez celles que vous voulez racheter, et fixez leur prix et leur stock maximum.",
+  'commercepj.global.aucuneMatiere': "Aucune matière : les activités déclarées par votre commerce n'ouvrent encore aucune fabrication.",
+  'commercepj.global.regler':        "Paramétrer",
   'commercepj.matiere.titre':        "Rachat de matière",
   'commercepj.matiere.prix':         "Prix de rachat",
   'commercepj.matiere.prixAide':     "Vous fixez librement ce prix. Payer plus cher que les autres attire les fournisseurs.",
   'commercepj.matiere.maximum':      "Stock maximum souhaité",
-  'commercepj.matiere.maximumAide':  "Entre 0 et {plafond}. Au-delà, votre commerce cesse d'acheter cette matière.",
+  'commercepj.matiere.maximumAide':  "Entre 0 et {plafond}. 0 signifie « sans limite ». Pour refuser une matière, répondez Non ci-dessus.",
   'commercepj.matiere.enregistrer':  "Enregistrer",
   'commercepj.matiere.enregistre':   "Réglage enregistré",
   'commercepj.appro.titre':          "Vendre ou donner des matières",
@@ -157,9 +157,42 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.appro.partiel':        "Seules {faites} unités sur {voulues} ont pu être prises.",
   'commercepj.ref.stockMax':         "Stock maximum",
   'commercepj.ref.definirMax':       "Stock maximum",
-  'commercepj.ref.maxAide':          "Repère de gestion. Il n'empêche pas encore une production de le dépasser.",
+  'commercepj.ref.maxAide':          "0 signifie « sans limite ». Un lot dont le rendement dépasserait ce maximum est refusé en entier : le rendement d'une recette ne se coupe pas.",
   'commercepj.ref.sansMax':          "non défini",
+  // --- C6 bis : acceptation des matieres, sommaire public, production visiteur ---
+  'commercepj.matiere.acceptee':     "Accepter cette matière",
+  'commercepj.matiere.accepteeAide': "Tant que vous répondez Non, personne ne peut vous en vendre ni vous en donner.",
+  'commercepj.matiere.oui':          "Oui",
+  'commercepj.matiere.non':          "Non",
+  'commercepj.matiere.refusee':      "Refusée",
+  'commercepj.matiere.illimite':     "Illimité",
+  'commercepj.matiere.utilisee':     "Utilisée par vos produits",
+  'commercepj.public.titre':         "Entrer dans le commerce",
+  'commercepj.public.boutique':      "Boutique",
+  'commercepj.public.boutiqueAide':  "Acheter les produits proposés à la vente.",
+  'commercepj.public.produire':      "Produire",
+  'commercepj.public.produireAide':  "Fabriquer pour ce commerce, avec ses matières premières.",
+  'commercepj.public.matieres':      "Matières premières",
+  'commercepj.public.matieresAide':  "Vendre ou donner des matières à ce commerce.",
+  'commercepj.public.retour':        "← Retour à l'entrée",
+  'commercepj.travail.titre':        "Travailler ici",
+  'commercepj.travail.aide':         "Ce commerce fournit ses matières premières et paie votre travail. Le produit fini rejoint son stock, pas votre inventaire.",
+  'commercepj.travail.aucun':        "Ce commerce n'a encore aucun produit fabricable.",
+  'commercepj.travail.fabrication':  "Fabrication",
+  'commercepj.travail.rendement':    "Rendement du lot",
+  'commercepj.travail.salaire':      "Votre salaire",
+  'commercepj.travail.stockCommerce':"Stock du commerce",
+  'commercepj.travail.maximum':      "Maximum",
+  'commercepj.travail.produire':     "Produire ce lot",
+  'commercepj.travail.matieresDispo':"Matières disponibles ici",
+  'commercepj.nouvelle.choisirForme': "Choisir cette fabrication",
+  'commercepj.nouvelle.formeRetenue': "Fabrication retenue",
+  'commercepj.nouvelle.generiqueRetenu': "Type de produit",
   'commercepj.refus.defaut':                      "L'opération n'a pas abouti. Rien n'a été modifié.",
+  'commercepj.refus.matiere_hors_activites':      "Les activités de ce commerce ne permettent pas d'utiliser cette matière.",
+  'commercepj.refus.matiere_non_acceptee':        "Ce commerce n'accepte pas cette matière pour le moment.",
+  'commercepj.refus.caisse_insuffisante':         "La caisse du commerce ne peut pas payer ce travail. Rien n'a été prélevé.",
+  'commercepj.refus.pas_sur_place':               "Il faut être sur place, dans ce commerce.",
   'commercepj.refus.pas_proprietaire':            "Ce commerce n'est pas le vôtre.",
   'commercepj.refus.pas_un_fonds_pj':             "Ce n'est pas un commerce de joueur.",
   'commercepj.refus.fonds_absent':                "Ce commerce n'existe pas.",
@@ -319,6 +352,14 @@ function commercePjBouton(onclick, libelle, primaire, desactive) {
     'cursor:' + (desactive ? 'default' : 'pointer') + '">' + commercePjEchapper(libelle) + '</button>';
 }
 
+// UN MAXIMUM NUL SE LIT « ILLIMITE ». Le chiffre 0 est exact mais illisible : il
+// ressemble a une interdiction, alors qu'il en est l'inverse exact. Une seule
+// fonction le traduit, pour que les six ecrans qui l'affichent ne divergent pas.
+function commercePjMaximumLisible(maxi) {
+  const n = Math.max(0, Number(maxi) || 0);
+  return n === 0 ? tCommercePJ('commercepj.matiere.illimite') : String(n);
+}
+
 function commercePjLigne(label, valeur) {
   return '<div style="display:flex;justify-content:space-between;gap:1rem;padding:.2rem 0;font-size:.84rem">' +
     '<span style="color:#8a8060">' + commercePjEchapper(label) + '</span>' +
@@ -357,7 +398,7 @@ async function ouvrirCommercePJ() {
   commercePjChargement(tCommercePJ('commercepj.titre.boutique'));
   const ctx = await commercePjContexte();
   if (ctx.fonds && ctx.jeSuisProprietaire) return commercePjEcranGestion(ctx);
-  if (ctx.fonds)                           return commercePjEcranBoutique(ctx);
+  if (ctx.fonds)                           return commercePjEcranPublic(ctx);
   if (ctx.jeLoue)                          return commercePjEcranInstaller(ctx);
 
   let html = '<div style="padding:1.1rem">';
@@ -523,7 +564,7 @@ async function commercePjEcranGestion(ctx) {
 
   [['commercePjEcranGlobal()',   'commercepj.menu.global',   'commercepj.menu.globalAide',   'ti-building-store'],
    ['commercePjEcranArticles()', 'commercepj.menu.articles', 'commercepj.menu.articlesAide', 'ti-package'],
-   ['commercePjEcranBoutique()', 'commercepj.menu.boutique', 'commercepj.menu.boutiqueAide', 'ti-eye']
+   ['commercePjEcranPublic()',   'commercepj.menu.boutique', 'commercepj.menu.boutiqueAide', 'ti-eye']
   ].forEach(function (e) {
     html += '<div onclick="' + e[0] + '" style="border:1px solid #2a2620;padding:.8rem .9rem;margin-bottom:.6rem;cursor:pointer">' +
       '<div style="color:#e0d8c0;font-size:.95rem;margin-bottom:.2rem">' +
@@ -550,7 +591,11 @@ async function commercePjEcranGlobal(ctx) {
   const libelleType = {};
   types.forEach(function (t) { libelleType[t.id] = t.libelle; });
   const mesTypes = (f.typesAutorises || []).map(function (id) { return libelleType[id] || id; });
-  const matieres = await sbFondsMatieresRecherchees(ctx.fondsId);
+  // LISTE LARGE, DERIVEE DES ACTIVITES (29 septembre 2026). C'etait la liste
+  // deduite des references DEJA creees : un proprietaire ne pouvait donc pas
+  // preparer son approvisionnement avant d'avoir cree ses produits. L'ordre exact
+  // inverse de celui dans lequel on monte un commerce.
+  const matieres = await sbFondsMatieresAccessibles(ctx.fondsId);
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A;margin-bottom:.6rem">' +
@@ -580,16 +625,27 @@ async function commercePjEcranGlobal(ctx) {
   }
   matieres.forEach(function (m) {
     const stock = Math.max(0, Number(m.stock) || 0), maxi = Number(m.maximum) || 0;
-    html += '<div style="border:1px solid #2a2620;padding:.6rem .8rem;margin-bottom:.5rem">';
+    const acceptee = m.acceptee === true;
+    html += '<div style="border:1px solid ' + (acceptee ? '#2a2620' : '#241f18') +
+      ';padding:.6rem .8rem;margin-bottom:.5rem' + (acceptee ? '' : ';opacity:.72') + '">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin-bottom:.35rem">' +
       '<b style="color:#e0d8c0;font-size:.92rem">' + commercePjEchapper(commercePjLibelleMatiere(m.matiere)) + '</b>' +
-      '<span style="color:' + (stock >= maxi ? '#8c6a3a' : '#6fa07a') + ';white-space:nowrap">' +
-        stock + ' / ' + maxi + '</span></div>';
+      '<span style="white-space:nowrap;color:' + (acceptee ? '#6fa07a' : '#8c6a3a') + '">' +
+        commercePjEchapper(acceptee ? tCommercePJ('commercepj.matiere.oui')
+                                   : tCommercePJ('commercepj.matiere.refusee')) + '</span></div>';
+    // Le stock reste visible meme sur une matiere refusee : refuser les apports
+    // n'efface pas ce qu'on detient deja.
+    html += commercePjLigne(tCommercePJ('commercepj.ref.stock'),
+      stock + ' / ' + commercePjEchapper(commercePjMaximumLisible(maxi)));
     html += commercePjLigne(tCommercePJ('commercepj.matiere.prix'),
       commercePjMontant(m.prix_achat) + ' ' + cur + ' / ' + tCommercePJ('commercepj.ref.unite'));
+    if (m.utilisee === true) {
+      html += '<div style="font-size:.74rem;color:#6a6050;margin-top:.2rem">' +
+        commercePjEchapper(tCommercePJ('commercepj.matiere.utilisee')) + '</div>';
+    }
     html += '<div style="margin-top:.45rem">' +
       commercePjBouton("commercePjEcranMatiere('" + commercePjEchapper(m.matiere) + "')",
-        tCommercePJ('commercepj.global.regler')) + '</div>';
+        tCommercePJ('commercepj.global.regler'), acceptee === false) + '</div>';
     html += '</div>';
   });
 
@@ -604,15 +660,28 @@ async function commercePjEcranGlobal(ctx) {
 async function commercePjEcranMatiere(matiere) {
   commercePjChargement(tCommercePJ('commercepj.matiere.titre'));
   const ctx = await commercePjContexte();
-  const matieres = await sbFondsMatieresRecherchees(ctx.fondsId);
+  const matieres = await sbFondsMatieresAccessibles(ctx.fondsId);
   const m = matieres.filter(function (x) { return x.matiere === matiere; })[0];
-  if (!m) { showToast('—', commercePjRefus({ raison: 'matiere_non_recherchee' }), false); return; }
+  if (!m) { showToast('—', commercePjRefus({ raison: 'matiere_hors_activites' }), false); return; }
   const cur = commercePjDevise();
 
   let html = '<div style="padding:1.1rem">';
   html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.6rem">' +
     commercePjEchapper(commercePjLibelleMatiere(matiere)) + '</div>';
   html += commercePjLigne(tCommercePJ('commercepj.ref.stock'), Math.max(0, Number(m.stock) || 0));
+
+  // ACCEPTATION : la question passe AVANT le prix et le maximum, parce qu'elle
+  // les commande. Repondre Non ferme les apports sans toucher au stock detenu.
+  html += '<div style="margin-top:.9rem;font-size:.82rem;color:#a09070">' +
+    commercePjEchapper(tCommercePJ('commercepj.matiere.acceptee')) + '</div>';
+  html += '<p style="color:#8a8060;font-size:.78rem;margin:.15rem 0 .35rem">' +
+    commercePjEchapper(tCommercePJ('commercepj.matiere.accepteeAide')) + '</p>';
+  html += '<select id="cpj-mat-ok" style="width:100%;box-sizing:border-box;background:#0d0b05;' +
+    'border:1px solid #2a2620;color:#e0d8c0;padding:.45rem .6rem">' +
+    '<option value="1"' + (m.acceptee === true ? ' selected' : '') + '>' +
+      commercePjEchapper(tCommercePJ('commercepj.matiere.oui')) + '</option>' +
+    '<option value="0"' + (m.acceptee === true ? '' : ' selected') + '>' +
+      commercePjEchapper(tCommercePJ('commercepj.matiere.non')) + '</option></select>';
 
   html += '<div style="margin-top:.8rem;font-size:.82rem;color:#a09070">' +
     commercePjEchapper(tCommercePJ('commercepj.matiere.prix')) + ' (' + cur + ')</div>';
@@ -641,11 +710,14 @@ async function commercePjEnregistrerMatiere(matiere) {
   const ctx = await commercePjContexte();
   const prix = Number((document.getElementById('cpj-mat-prix') || {}).value);
   const maxi = Math.floor(Number((document.getElementById('cpj-mat-max') || {}).value));
-  const r = await sbFondsMatiereParametres(state.char.name, ctx.fondsId, matiere, prix, maxi);
+  const ok   = String((document.getElementById('cpj-mat-ok') || {}).value) === '1';
+  const r = await sbFondsMatiereParametres(state.char.name, ctx.fondsId, matiere, prix, maxi, ok);
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
   showToast(tCommercePJ('commercepj.matiere.enregistre'),
-    commercePjLibelleMatiere(matiere) + ' — ' + commercePjMontant(r.prixAchat) + ' ' +
-    commercePjDevise() + ', max ' + r.maximum, true);
+    commercePjLibelleMatiere(matiere) + ' — ' +
+    (r.acceptee ? (commercePjMontant(r.prixAchat) + ' ' + commercePjDevise() + ', max ' +
+                   commercePjMaximumLisible(r.maximum))
+                : tCommercePJ('commercepj.matiere.refusee')), true);
   commercePjEcranGlobal();
 }
 
@@ -788,7 +860,9 @@ async function commercePjNouvelleReference() {
       commercePjEchapper(tCommercePJ('commercepj.nouvelle.aucunGenerique')) + '</p>';
   }
   let familleCourante = null;
+  RP_CPJ_GENERIQUES = {};
   gens.forEach(function (g) {
+    RP_CPJ_GENERIQUES[g.generique_id] = g.libelle;
     if (g.famille !== familleCourante) {
       familleCourante = g.famille;
       html += '<div style="font-size:.72rem;letter-spacing:.09em;color:#6a6050;margin:.7rem 0 .3rem">' +
@@ -819,7 +893,18 @@ function commercePjRecetteLisible(rec) {
   return h + '</div>';
 }
 
+// FORMES PROPOSEES AU DERNIER ECRAN. Un relais entre deux ecrans, pas une source
+// de verite : le serveur revalide la recette et son generique a la creation. On
+// evite ainsi de faire passer des libelles -- avec leurs apostrophes et leurs
+// tirets longs -- dans un attribut onclick.
+let RP_CPJ_FORMES = {};
+
+// Libelles des generiques, memorises par l'ecran qui les liste. Meme role de
+// relais que RP_CPJ_FORMES, et meme absence d'autorite.
+let RP_CPJ_GENERIQUES = {};
+
 async function commercePjChoisirGenerique(generiqueId) {
+  RP_CPJ_FORMES = {};
   commercePjChargement(tCommercePJ('commercepj.titre.reference'));
   const recs = await sbGeneriqueRecettesSysteme(generiqueId);
   let html = '<div style="padding:1.1rem">';
@@ -828,12 +913,23 @@ async function commercePjChoisirGenerique(generiqueId) {
       commercePjEchapper(tCommercePJ('commercepj.nouvelle.recette')) + '</div>';
     html += '<p style="color:#8a8060;font-size:.82rem;margin-bottom:.9rem">' +
       commercePjEchapper(tCommercePJ('commercepj.nouvelle.recetteAide')) + '</p>';
+    // UNE ACTION EXPLICITE (29 septembre 2026). La carte ETAIT cliquable, mais rien
+    // ne le disait : ni bouton, ni libelle d'action. Le test humain s'est arrete la,
+    // le joueur croyant l'ecran terminal. On prefere un bouton comprehensible a une
+    // carte mysterieusement cliquable -- la carte reste cliquable pour qui l'a
+    // devine, le bouton le dit pour tous les autres.
     recs.forEach(function (rec) {
+      RP_CPJ_FORMES[rec.recette_id] = { generiqueId: generiqueId, rec: rec };
       html += '<div onclick="commercePjEcranHabillage(\'' + commercePjEchapper(generiqueId) + '\',\'' +
         commercePjEchapper(rec.recette_id) + '\')" ' +
         'style="border:1px solid #2a2620;padding:.6rem .7rem;margin-bottom:.4rem;cursor:pointer">' +
         '<div style="color:#e0d8c0;font-size:.9rem;margin-bottom:.25rem">' + commercePjEchapper(rec.label) + '</div>' +
-        commercePjRecetteLisible(rec) + '</div>';
+        commercePjRecetteLisible(rec) +
+        '<div style="margin-top:.5rem">' +
+          commercePjBouton("commercePjEcranHabillage('" + commercePjEchapper(generiqueId) + "','" +
+            commercePjEchapper(rec.recette_id) + "')",
+            tCommercePJ('commercepj.nouvelle.choisirForme'), true) +
+        '</div></div>';
     });
   } else {
     html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic;margin-bottom:.8rem">' +
@@ -850,11 +946,26 @@ async function commercePjChoisirGenerique(generiqueId) {
 // L'habillage est visuellement separe : le joueur voit qu'il personnalise le
 // texte, et rien d'autre. Formule sans reproche, seulement claire.
 function commercePjEcranHabillage(generiqueId, recetteId) {
+  const choix = RP_CPJ_FORMES[recetteId] || null;
   let html = '<div style="padding:1.1rem">';
   html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.3rem">' +
     commercePjEchapper(tCommercePJ('commercepj.nouvelle.habillage')) + '</div>';
   html += '<p style="color:#8a8060;font-size:.82rem;margin-bottom:.9rem">' +
     commercePjEchapper(tCommercePJ('commercepj.nouvelle.habillageAide')) + '</p>';
+
+  // TROIS NIVEAUX, TROIS LIGNES (29 septembre 2026). Le joueur confondait le type
+  // de produit, la fabrication et le nom de SA reference : il croyait devoir
+  // vendre un « T-shirt de Port-Sainte-Marie ». On les nomme separement, et ce
+  // qu'il saisit est visiblement la troisieme chose.
+  if (choix) {
+    html += '<div style="border:1px solid #2a2620;padding:.55rem .75rem;margin-bottom:.9rem">';
+    html += commercePjLigne(tCommercePJ('commercepj.nouvelle.generiqueRetenu'),
+      commercePjEchapper(RP_CPJ_GENERIQUES[generiqueId] || generiqueId));
+    html += commercePjLigne(tCommercePJ('commercepj.nouvelle.formeRetenue'),
+      commercePjEchapper(choix.rec.label));
+    html += commercePjRecetteLisible(choix.rec);
+    html += '</div>';
+  }
   html += '<label style="display:block;font-size:.78rem;color:#8a8060;margin-bottom:.3rem">' +
     commercePjEchapper(tCommercePJ('commercepj.nouvelle.nom')) + '</label>';
   html += '<input id="cpj-nom" type="text" maxlength="80" placeholder="' +
@@ -893,7 +1004,12 @@ async function commercePjEcranProduire(referenceId) {
   if (!ref) { showToast('—', commercePjRefus({ raison: 'reference_absente' }), false); return; }
   const recs = await sbGeneriqueRecettesSysteme(ref.generique_id);
   const rec = recs.filter(function (x) { return x.recette_id === ref.recette_id; })[0];
-  const stocks = (ctx.fonds || {}).stockMatieres || {};
+  const f = ctx.fonds || {};
+  const stocks = f.stockMatieres || {};
+  const cur = commercePjDevise();
+  const stockRef = Math.max(0, Number((f.stockReferences || {})[referenceId]) || 0);
+  const maxiRef  = Math.max(0, Number(((f.parametres || {}).stockMaxReferences || {})[referenceId]) || 0);
+  const salaireParPa = commercePjValeurPa();
 
   let html = '<div style="padding:1.1rem">';
   html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.6rem">' +
@@ -905,6 +1021,18 @@ async function commercePjEcranProduire(referenceId) {
     html += '<div style="border:1px solid #2a2620;padding:.6rem .8rem;margin-bottom:.8rem">' +
       '<div style="color:#c0b090;font-size:.88rem;margin-bottom:.35rem">' + commercePjEchapper(rec.label) + '</div>' +
       commercePjRecetteLisible(rec) + '</div>';
+    const salaire = (salaireParPa === null) ? null
+      : Math.max(0, Number(rec.pa) || 0) * salaireParPa;
+    html += '<div style="border:1px solid #2a2620;padding:.55rem .75rem;margin-bottom:.8rem">';
+    html += commercePjLigne(tCommercePJ('commercepj.travail.rendement'),
+      rec.portions + ' ' + tCommercePJ('commercepj.recette.unites'));
+    if (salaire !== null) {
+      html += commercePjLigne(tCommercePJ('commercepj.travail.salaire'),
+        commercePjMontant(salaire) + ' ' + cur);
+    }
+    html += commercePjLigne(tCommercePJ('commercepj.travail.stockCommerce'),
+      stockRef + ' / ' + commercePjEchapper(commercePjMaximumLisible(maxiRef)));
+    html += '</div>';
     html += '<div style="font-size:.78rem;letter-spacing:.08em;color:#6a6050;margin-bottom:.3rem">' +
       commercePjEchapper(tCommercePJ('commercepj.produire.vosStocks')) + '</div>';
     Object.keys(rec.materiaux || {}).forEach(function (m) {
@@ -912,9 +1040,15 @@ async function commercePjEcranProduire(referenceId) {
       html += commercePjLigne(commercePjLibelleMatiere(m),
         '<span style="color:' + (a >= b ? '#6fa07a' : '#a05a4a') + '">' + a + ' / ' + b + '</span>');
     });
+    const lotTient = (maxiRef === 0) || (stockRef + Number(rec.portions) <= maxiRef);
+    if (!lotTient) {
+      html += '<div style="font-size:.78rem;color:#8c6a3a;margin-top:.5rem">' +
+        commercePjEchapper(tCommercePJ('commercepj.refus.stock_max_reference_depasse',
+          { rendement: rec.portions, maximum: maxiRef, stock: stockRef })) + '</div>';
+    }
     html += '<div style="margin-top:.9rem">' +
-      commercePjBouton("commercePjProduire('" + referenceId + "','" + nouvelleCleProduction() + "')",
-        tCommercePJ('commercepj.produire.confirmer'), true) + '</div>';
+      commercePjBouton("commercePjProduire('" + referenceId + "','" + nouvelleCleProduction() + "','gestion')",
+        tCommercePJ('commercepj.produire.confirmer'), true, !lotTient) + '</div>';
   }
   html += '<div style="margin-top:.9rem">' +
     commercePjBouton('commercePjEcranArticles()', tCommercePJ('commercepj.retour.gestion')) + '</div>';
@@ -924,17 +1058,35 @@ async function commercePjEcranProduire(referenceId) {
 
 // La cle de requete est fabriquee A L'OUVERTURE de l'ecran et passee telle quelle :
 // un double clic rejoue la meme cle et ne produit donc qu'un seul lot.
-async function commercePjProduire(referenceId, requete) {
+// UNE SEULE RPC, DEUX PORTES. Le proprietaire produit depuis sa gestion, le
+// visiteur depuis la face publique : aucune logique economique n'est dupliquee,
+// seul le retour differe. `origine` ne sert QU'A CA.
+async function commercePjProduire(referenceId, requete, origine) {
   const ctx = await commercePjContexte();
   const r = await sbFondsReferenceProduire(requete, state.char.name, ctx.fondsId, referenceId);
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
   if (r.rejeu !== true && typeof addJournalEntry === 'function') {
-    addJournalEntry('Fabrication : ' + r.quantite + ' unité(s).', 'event-good');
+    addJournalEntry('Fabrication : ' + r.quantite + ' unité(s)'
+      + (r.salaire > 0 ? (' — salaire ' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : '')
+      + '.', 'event-good');
   }
+  // Le salaire vient du SERVEUR, jamais d'un calcul refait ici.
   showToast(tCommercePJ('commercepj.produire.fait'),
-    r.quantite + ' ' + tCommercePJ('commercepj.recette.unites'), true);
+    r.quantite + ' ' + tCommercePJ('commercepj.recette.unites') +
+    (r.salaire > 0 ? (' · +' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : ''), true);
+  // L'ECRAN SUIT CE QUE LE SERVEUR A DEJA ECRIT. On ne recalcule rien : `paRestants`
+  // et `salaire` viennent de la transaction elle-meme. Un rejeu ne rend pas ces
+  // champs et ne touche donc a rien -- c'est voulu, il n'a rien preleve ni verse.
+  if (r.rejeu !== true && typeof state !== 'undefined') {
+    if (typeof r.paRestants === 'number') state.pa = r.paRestants;
+    if (r.salaire > 0) {
+      state.arg     = (Number(state.arg) || 0)     + Number(r.salaire);
+      state.liquide = (Number(state.liquide) || 0) + Number(r.salaire);
+    }
+  }
   if (typeof updateUI === 'function') updateUI();
-  commercePjEcranArticles();
+  if (origine === 'publique') commercePjEcranTravail();
+  else commercePjEcranArticles();
 }
 
 // ---------------------------------------------------------------------------
@@ -992,7 +1144,48 @@ async function commercePjActiver(referenceId, actif) {
 }
 
 // ---------------------------------------------------------------------------
-// BOUTIQUE PUBLIQUE
+// FACE PUBLIQUE — TROIS USAGES, TROIS PORTES
+// ---------------------------------------------------------------------------
+// Le test humain a montre que l'ancien ecran unique ne disait qu'une chose :
+// « achetez ». Or un commerce PJ est trois lieux a la fois -- une boutique, un
+// atelier, et un acheteur de matieres. Un sommaire les nomme, sur la meme forme
+// que le menu de gestion : le joueur reconnait le motif et comprend d'emblee ce
+// qu'il peut faire ici.
+async function commercePjEcranPublic(ctx) {
+  commercePjChargement(tCommercePJ('commercepj.public.titre'));
+  if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
+  const f = ctx.fonds || {};
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A">' +
+    commercePjEchapper(f.enseigne || '—') + '</div>';
+  html += '<div style="font-size:.76rem;color:#6a6050;margin-bottom:.9rem">' +
+    commercePjEchapper(tCommercePJ('commercepj.boutique.tenu')) + ' ' +
+    commercePjEchapper(String(f.proprietaire || '').replace(/^pj:/, '')) + '</div>';
+
+  [['commercePjEcranBoutique()',           'commercepj.public.boutique', 'commercepj.public.boutiqueAide', 'ti-shopping-cart'],
+   ['commercePjEcranTravail()',            'commercepj.public.produire', 'commercepj.public.produireAide', 'ti-hammer'],
+   ['commercePjEcranMatieresPubliques()',  'commercepj.public.matieres', 'commercepj.public.matieresAide', 'ti-package']
+  ].forEach(function (e) {
+    html += '<div onclick="' + e[0] + '" style="border:1px solid #2a2620;padding:.8rem .9rem;margin-bottom:.6rem;cursor:pointer">' +
+      '<div style="color:#e0d8c0;font-size:.95rem;margin-bottom:.2rem">' +
+        commercePjEchapper(tCommercePJ(e[1])) + '</div>' +
+      '<div style="font-size:.8rem;color:#8a8060">' +
+        commercePjEchapper(tCommercePJ(e[2])) + '</div></div>';
+  });
+
+  // Le proprietaire present chez lui utilise les fonctions publiques comme tout
+  // le monde ; sa gestion reste une porte separee, jamais melangee a celle-ci.
+  if (ctx.jeSuisProprietaire) {
+    html += '<div style="margin-top:.9rem">' +
+      commercePjBouton('commercePjEcranGestion()', tCommercePJ('commercepj.retour.gestion')) + '</div>';
+  }
+  html += '</div>';
+  commercePjModale(tCommercePJ('commercepj.public.titre'), html);
+}
+
+// ---------------------------------------------------------------------------
+// BOUTIQUE — CE QUI EST REELLEMENT EN VENTE, ET RIEN D'AUTRE
 // ---------------------------------------------------------------------------
 async function commercePjEcranBoutique(ctx) {
   commercePjChargement(tCommercePJ('commercepj.titre.boutique'));
@@ -1002,11 +1195,8 @@ async function commercePjEcranBoutique(ctx) {
   const actives = Object.keys(refs).filter(function (id) { return refs[id] && refs[id].active === true; });
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A">' +
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A;margin-bottom:.9rem">' +
     commercePjEchapper(f.enseigne || '—') + '</div>';
-  html += '<div style="font-size:.76rem;color:#6a6050;margin-bottom:.9rem">' +
-    commercePjEchapper(tCommercePJ('commercepj.boutique.tenu')) + ' ' +
-    commercePjEchapper(String(f.proprietaire || '').replace(/^pj:/, '')) + '</div>';
 
   if (!actives.length) {
     html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
@@ -1018,46 +1208,185 @@ async function commercePjEcranBoutique(ctx) {
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
       '<b style="color:#e0d8c0;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
       '<span style="color:#E8C97A;white-space:nowrap">' + commercePjMontant(r.prixVente) + ' ' + cur + '</span></div>';
+    html += commercePjLigne(tCommercePJ('commercepj.ref.stock'), stock);
     if (stock <= 0) {
       html += '<div style="font-size:.76rem;color:#8c6a3a;margin-top:.25rem">' +
         commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
     }
     html += '<div style="margin-top:.5rem">' +
-      commercePjBouton("commercePjFicheProduit('" + id + "')", tCommercePJ('commercepj.boutique.voir'), true) + '</div>';
+      commercePjBouton("commercePjFicheProduit('" + id + "')",
+        tCommercePJ('commercepj.boutique.acheter'), true, stock <= 0) + '</div>';
     html += '</div>';
   });
 
-  // CE QUE LE COMMERCE RACHETE. C'est la moitie publique qui manquait : un
-  // commerce n'est pas seulement un endroit ou l'on achete, c'est aussi un
-  // acheteur. Les matieres affichees viennent du serveur, deduites des recettes
-  // du commerce ; le prix est celui que son proprietaire a choisi.
-  const matieres = await sbFondsMatieresRecherchees(ctx.fondsId);
-  const aPrendre = matieres.filter(function (m) { return Number(m.place_restante) > 0; });
-  html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#a09070;font-size:.85rem;margin:1.1rem 0 .4rem">' +
+  html += '<div style="margin-top:.9rem">' +
+    commercePjBouton('commercePjEcranPublic()', tCommercePJ('commercepj.public.retour')) + '</div>';
+  html += '</div>';
+  commercePjModale(tCommercePJ('commercepj.titre.boutique'), html);
+}
+
+// ---------------------------------------------------------------------------
+// PRODUIRE — LE COMMERCE EST AUSSI UN LIEU DE TRAVAIL
+// ---------------------------------------------------------------------------
+// LE PERIMETRE EST CELUI DU COMMERCE, PAS CELUI DE SES ACTIVITES : on ne fabrique
+// que les references que CE commerce a decide de referencer, et seulement celles
+// qui ont une recette systeme. C'est la difference entre « ce qu'on pourrait
+// vendre ici » et « ce qu'on y fabrique ».
+//
+// Le visiteur apporte ses PA. Le commerce fournit ses matieres et paie le
+// travail. Le produit fini rejoint le stock du commerce -- jamais l'inventaire du
+// producteur. C'est exactement la boucle des 13 commerces PNJ du jeu.
+async function commercePjEcranTravail(ctx) {
+  commercePjChargement(tCommercePJ('commercepj.travail.titre'));
+  if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
+  const f = ctx.fonds || {}, cur = commercePjDevise();
+  const refs = f.references || {}, stocks = f.stockReferences || {};
+  const maxis = (f.parametres || {}).stockMaxReferences || {};
+  const stockMat = f.stockMatieres || {};
+  const salaireParPa = commercePjValeurPa();
+
+  // Une reference n'est fabricable que si elle porte une recette. On interroge le
+  // serveur generique par generique, puis on retient la recette exacte.
+  const ids = Object.keys(refs).filter(function (id) { return refs[id] && refs[id].recette_id; });
+  const parGenerique = {};
+  ids.forEach(function (id) { parGenerique[refs[id].generique_id] = true; });
+  const recettes = {};
+  const gens = Object.keys(parGenerique);
+  for (let i = 0; i < gens.length; i++) {
+    const liste = await sbGeneriqueRecettesSysteme(gens[i]);
+    liste.forEach(function (rec) { recettes[rec.recette_id] = rec; });
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A;margin-bottom:.3rem">' +
+    commercePjEchapper(f.enseigne || '—') + '</div>';
+  html += '<p style="color:#8a8060;font-size:.8rem;margin:0 0 .9rem">' +
+    commercePjEchapper(tCommercePJ('commercepj.travail.aide')) + '</p>';
+
+  const fabricables = ids.filter(function (id) { return recettes[refs[id].recette_id]; });
+  if (!fabricables.length) {
+    html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
+      commercePjEchapper(tCommercePJ('commercepj.travail.aucun')) + '</p>';
+  }
+  fabricables.forEach(function (id) {
+    const r = refs[id], rec = recettes[r.recette_id];
+    const stock = Math.max(0, Number(stocks[id]) || 0);
+    const maxi  = Math.max(0, Number(maxis[id]) || 0);
+    const salaire = (salaireParPa === null) ? null
+      : Math.max(0, Number(rec.pa) || 0) * salaireParPa;
+    // Le lot est INDIVISIBLE : on annonce donc le refus avant le clic plutot que
+    // de laisser le joueur decouvrir qu'un maximum trop bas l'interdit a jamais.
+    const lotTient = (maxi === 0) || (stock + Number(rec.portions) <= maxi);
+    let matieresOk = true;
+    Object.keys(rec.materiaux || {}).forEach(function (m) {
+      if ((Number(stockMat[m]) || 0) < (Number(rec.materiaux[m]) || 0)) matieresOk = false;
+    });
+
+    html += '<div style="border:1px solid #2a2620;padding:.7rem .8rem;margin-bottom:.6rem">';
+    html += '<div style="color:#e0d8c0;font-size:.95rem;margin-bottom:.1rem">' +
+      commercePjEchapper(r.nom || '—') + '</div>';
+    html += '<div style="font-size:.76rem;color:#6a6050;margin-bottom:.45rem">' +
+      commercePjEchapper(tCommercePJ('commercepj.travail.fabrication')) + ' : ' +
+      commercePjEchapper(rec.label) + '</div>';
+    html += commercePjRecetteLisible(rec);
+    html += '<div style="margin-top:.45rem">';
+    html += commercePjLigne(tCommercePJ('commercepj.travail.rendement'),
+      rec.portions + ' ' + tCommercePJ('commercepj.recette.unites'));
+    if (salaire !== null) {
+      html += commercePjLigne(tCommercePJ('commercepj.travail.salaire'),
+        '<b style="color:#6fa07a">' + commercePjMontant(salaire) + ' ' + cur + '</b>');
+    }
+    html += commercePjLigne(tCommercePJ('commercepj.travail.stockCommerce'),
+      stock + ' / ' + commercePjEchapper(commercePjMaximumLisible(maxi)));
+    html += '</div>';
+
+    html += '<div style="font-size:.74rem;letter-spacing:.06em;color:#6a6050;margin:.5rem 0 .2rem">' +
+      commercePjEchapper(tCommercePJ('commercepj.travail.matieresDispo')) + '</div>';
+    Object.keys(rec.materiaux || {}).forEach(function (m) {
+      const a = Math.max(0, Number(stockMat[m]) || 0), b = Number(rec.materiaux[m]) || 0;
+      html += commercePjLigne(commercePjLibelleMatiere(m),
+        '<span style="color:' + (a >= b ? '#6fa07a' : '#a05a4a') + '">' + a + ' / ' + b + '</span>');
+    });
+
+    if (!lotTient) {
+      html += '<div style="font-size:.76rem;color:#8c6a3a;margin-top:.4rem">' +
+        commercePjEchapper(tCommercePJ('commercepj.refus.stock_max_reference_depasse',
+          { rendement: rec.portions, maximum: maxi, stock: stock })) + '</div>';
+    }
+    html += '<div style="margin-top:.55rem">' +
+      commercePjBouton("commercePjProduire('" + id + "','" + nouvelleCleProduction() + "','publique')",
+        tCommercePJ('commercepj.travail.produire'), true, !lotTient || !matieresOk) + '</div>';
+    html += '</div>';
+  });
+
+  html += '<div style="margin-top:.9rem">' +
+    commercePjBouton('commercePjEcranPublic()', tCommercePJ('commercepj.public.retour')) + '</div>';
+  html += '</div>';
+  commercePjModale(tCommercePJ('commercepj.travail.titre'), html);
+}
+
+// VALEUR D'UN PA DE TRAVAIL — AUCUN NOMBRE N'EST ECRIT ICI.
+//
+// Le socle du jeu possede deja ce chiffre a deux endroits qui se font face : la
+// constante serveur `cout_main_oeuvre_pa_alimentaire`, seule autorite, et son
+// miroir client `COUT_MAIN_OEUVRE_PA_ALIMENTAIRE` (plateau-actions-illegales-
+// rumeurs.js), que les 13 commerces PNJ affichent depuis toujours. On lit le
+// miroir, comme eux : c'est la forme la plus coherente avec l'existant, et cela
+// n'ajoute pas une troisieme copie du meme nombre. Deduplicaer les deux serait une
+// refonte du socle, explicitement hors de ce lot.
+//
+// FAIL-CLOSED : si le miroir manque, on n'affiche PAS de salaire plutot que d'en
+// inventer un. Le serveur reste de toute facon le seul a le calculer et a le
+// verser -- cet ecran ne fait qu'annoncer.
+function commercePjValeurPa() {
+  return (typeof COUT_MAIN_OEUVRE_PA_ALIMENTAIRE === 'number')
+    ? COUT_MAIN_OEUVRE_PA_ALIMENTAIRE : null;
+}
+
+// ---------------------------------------------------------------------------
+// MATIERES PREMIERES — CE QUE LE COMMERCE ACCEPTE D'ACHETER
+// ---------------------------------------------------------------------------
+// On n'affiche que les matieres que le proprietaire a explicitement ACCEPTEES.
+// Le serveur refuse de toute facon les autres : cet ecran ne fait que ne pas
+// proposer ce qui serait refuse.
+async function commercePjEcranMatieresPubliques(ctx) {
+  commercePjChargement(tCommercePJ('commercepj.public.matieres'));
+  if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
+  const cur = commercePjDevise();
+  const matieres = (await sbFondsMatieresAccessibles(ctx.fondsId))
+    .filter(function (m) { return m.acceptee === true; });
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#a09070;font-size:.85rem;margin-bottom:.5rem">' +
     commercePjEchapper(tCommercePJ('commercepj.appro.recherche')) + '</div>';
-  if (!aPrendre.length) {
+  if (!matieres.length) {
     html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
       commercePjEchapper(tCommercePJ('commercepj.appro.aucune')) + '</p>';
   }
-  aPrendre.forEach(function (m) {
+  matieres.forEach(function (m) {
+    const stock = Math.max(0, Number(m.stock) || 0), maxi = Math.max(0, Number(m.maximum) || 0);
+    const jai = commercePjQuantiteInventaire(m.matiere);
+    const reste = Math.max(0, Number(m.place_restante) || 0);
     html += '<div style="border:1px solid #2a2620;padding:.6rem .8rem;margin-bottom:.5rem">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
       '<b style="color:#e0d8c0;font-size:.92rem">' + commercePjEchapper(commercePjLibelleMatiere(m.matiere)) + '</b>' +
       '<span style="color:#E8C97A;white-space:nowrap">' + commercePjMontant(m.prix_achat) + ' ' + cur +
       ' / ' + commercePjEchapper(tCommercePJ('commercepj.ref.unite')) + '</span></div>';
-    html += commercePjLigne(tCommercePJ('commercepj.appro.besoin'), m.place_restante);
+    html += commercePjLigne(tCommercePJ('commercepj.travail.stockCommerce'),
+      stock + ' / ' + commercePjEchapper(commercePjMaximumLisible(maxi)));
+    html += commercePjLigne(tCommercePJ('commercepj.appro.besoin'), reste);
+    html += commercePjLigne(tCommercePJ('commercepj.appro.vous'),
+      '<span style="color:' + (jai > 0 ? '#6fa07a' : '#8a8060') + '">' + jai + '</span>');
     html += '<div style="margin-top:.45rem">' +
       commercePjBouton("commercePjEcranApporter('" + commercePjEchapper(m.matiere) + "')",
-        tCommercePJ('commercepj.appro.titre'), true) + '</div>';
+        tCommercePJ('commercepj.appro.titre'), true, jai <= 0 || reste <= 0) + '</div>';
     html += '</div>';
   });
 
-  if (ctx.jeSuisProprietaire) {
-    html += '<div style="margin-top:.9rem">' +
-      commercePjBouton('commercePjEcranGestion()', tCommercePJ('commercepj.retour.gestion')) + '</div>';
-  }
+  html += '<div style="margin-top:.9rem">' +
+    commercePjBouton('commercePjEcranPublic()', tCommercePJ('commercepj.public.retour')) + '</div>';
   html += '</div>';
-  commercePjModale(tCommercePJ('commercepj.titre.boutique'), html);
+  commercePjModale(tCommercePJ('commercepj.public.matieres'), html);
 }
 
 // ---------------------------------------------------------------------------
@@ -1069,9 +1398,13 @@ async function commercePjEcranBoutique(ctx) {
 async function commercePjEcranApporter(matiere) {
   commercePjChargement(tCommercePJ('commercepj.appro.titre'));
   const ctx = await commercePjContexte();
-  const matieres = await sbFondsMatieresRecherchees(ctx.fondsId);
+  const matieres = await sbFondsMatieresAccessibles(ctx.fondsId);
   const m = matieres.filter(function (x) { return x.matiere === matiere; })[0];
-  if (!m) { showToast('—', commercePjRefus({ raison: 'matiere_non_recherchee' }), false); return; }
+  if (!m) { showToast('—', commercePjRefus({ raison: 'matiere_hors_activites' }), false); return; }
+  // Le serveur refuse de toute facon une matiere non acceptee : on ne propose
+  // simplement pas un ecran dont l'issue serait un refus.
+  if (m.acceptee !== true) {
+    showToast('—', commercePjRefus({ raison: 'matiere_non_acceptee' }), false); return; }
   const cur = commercePjDevise();
   const jai = commercePjQuantiteInventaire(matiere);
   const cle = nouvelleCleApport();
@@ -1095,7 +1428,7 @@ async function commercePjEcranApporter(matiere) {
     tCommercePJ('commercepj.appro.vendre'), true, jai <= 0);
   html += commercePjBouton("commercePjApporter('" + commercePjEchapper(matiere) + "','" + cle + "-d','don')",
     tCommercePJ('commercepj.appro.donner'), false, jai <= 0);
-  html += commercePjBouton('commercePjEcranBoutique()', tCommercePJ('commercepj.retour.boutique'));
+  html += commercePjBouton('commercePjEcranMatieresPubliques()', tCommercePJ('commercepj.public.retour'));
   html += '</div></div>';
   commercePjModale(tCommercePJ('commercepj.appro.titre'), html);
 }
@@ -1127,7 +1460,7 @@ async function commercePjApporter(matiere, requete, mode) {
   }
   showToast(titre, sous, true);
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + sous);
-  commercePjEcranBoutique();
+  commercePjEcranMatieresPubliques();
 }
 
 // ---------------------------------------------------------------------------
