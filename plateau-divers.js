@@ -1260,6 +1260,12 @@ function messageRefusSortieInventaire(raison) {
   if (raison === 'destinataire_invalide') return 'Destinataire invalide.';
   if (raison === 'lieu_invalide') return 'Vous ne pouvez rien déposer ici.';
   if (raison === 'acteur_non_authentifie') return 'Session expirée. Rechargez la page.';
+  // ECHECS DE TRANSPORT nommes par sbRpcVerdict (28 septembre 2026) : la session du joueur n'est
+  // plus exploitable, ou le service n'a pas repondu. L'inventaire reste intact dans les deux cas,
+  // mais le joueur doit savoir laquelle des deux causes le bloque.
+  if (raison === 'session_perdue') return 'Votre session a expiré. Reconnectez-vous puis réessayez.';
+  if (raison === 'transport_indisponible') return "Le service n'a pas répondu. Rien n'a été modifié — réessayez.";
+  if (raison === 'reseau_indisponible') return 'Connexion interrompue. Rien n’a été modifié — réessayez.';
   return "L'opération a été refusée. Rien n'a été modifié.";
 }
 

@@ -2204,48 +2204,48 @@ async function sbObjetSasDeposer(motif, destinataire, objet, reference) {
 // L'index transmis n'est qu'un INDICE : le serveur ne le retient que si l'objet qui s'y trouve
 // correspond a la signature annoncee. Voir inventaire_localiser (migration_inventaire_sortie.sql).
 async function sbInventaireDetruire(acteur, index, signature, qte) {
-  return verdictRpc(await sbRpc('inventaire_detruire', {
+  return sbRpcVerdict('inventaire_detruire', {
     p_acteur: acteur, p_index: index, p_signature: signature, p_qte: qte || 1
-  }));
+  });
 }
 
 async function sbInventaireAbandonner(acteur, index, signature, country, city, building, room) {
-  return verdictRpc(await sbRpc('inventaire_abandonner', {
+  return sbRpcVerdict('inventaire_abandonner', {
     p_acteur: acteur, p_index: index, p_signature: signature,
     p_country: country, p_city: city, p_building: building, p_room: room
-  }));
+  });
 }
 
 // p_mutations : transformations de PRESENTATION appliquees a l'exemplaire qui part (la carte
 // postale ecrite est le seul cas du jeu). Le serveur en retire d'office quantite, empilement,
 // type, legalite, encombrement et identifiant -- le navigateur ne decore que l'apparence.
 async function sbInventaireDonner(acteur, destinataire, index, signature, qte, mutations) {
-  return verdictRpc(await sbRpc('inventaire_donner', {
+  return sbRpcVerdict('inventaire_donner', {
     p_acteur: acteur, p_destinataire: destinataire, p_index: index,
     p_signature: signature, p_qte: qte || 1, p_mutations: mutations || null
-  }));
+  });
 }
 
 // Remise a un PNJ designe : le destinataire n'a pas d'inventaire, l'objet quitte le jeu. C'est
 // aussi le seul chemin par lequel un objet protege peut legitimement sortir (remettre le colis
 // secret a sa destinataire est la facon de terminer la quete).
 async function sbInventaireRemettre(acteur, index, signature, destinataire) {
-  return verdictRpc(await sbRpc('inventaire_remettre', {
+  return sbRpcVerdict('inventaire_remettre', {
     p_acteur: acteur, p_index: index, p_signature: signature, p_destinataire: destinataire
-  }));
+  });
 }
 
 async function sbInventaireConsommer(acteur, index, signature) {
-  return verdictRpc(await sbRpc('inventaire_consommer', {
+  return sbRpcVerdict('inventaire_consommer', {
     p_acteur: acteur, p_index: index, p_signature: signature
-  }));
+  });
 }
 
 // Confiscation EN MASSE : le perimetre n'est pas choisi par le joueur, il est calcule par la
 // regle (objet illegal, ou vise par une loi mecanique en vigueur, moins les objets de quete
 // proteges). Le navigateur ne decide plus de ce qu'il rend.
 async function sbInventaireConfisquer(acteur) {
-  return verdictRpc(await sbRpc('inventaire_confisquer', { p_acteur: acteur }));
+  return sbRpcVerdict('inventaire_confisquer', { p_acteur: acteur });
 }
 
 // =====================================================================
@@ -2262,24 +2262,24 @@ function verdictRpc(rows) {
 }
 
 async function sbCreerFondsCommerce(proprietaireRef, bailId, fondsId, apport, enseigne) {
-  return verdictRpc(await sbRpc('creer_fonds_commerce', {
+  return sbRpcVerdict('creer_fonds_commerce', {
     p_proprietaire: proprietaireRef, p_bail_id: bailId, p_fonds_id: fondsId,
     p_apport: apport, p_enseigne: enseigne
-  }));
+  });
 }
 
 async function sbAlimenterCaisseFonds(acteurRef, fondsId, montant) {
-  return verdictRpc(await sbRpc('alimenter_caisse_fonds', {
+  return sbRpcVerdict('alimenter_caisse_fonds', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_montant: montant
-  }));
+  });
 }
 
 // Retrait : symetrique de l'alimentation. Ce n'est pas un revenu, c'est le proprietaire qui
 // reprend son argent -- la RPC rejette au-dela de la caisse reelle, relue sous verrou.
 async function sbRetirerCaisseFonds(acteurRef, fondsId, montant) {
-  return verdictRpc(await sbRpc('retirer_caisse_fonds', {
+  return sbRpcVerdict('retirer_caisse_fonds', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_montant: montant
-  }));
+  });
 }
 
 // NON APPELABLE AUJOURD'HUI, et c'est voulu. vendre_fonds_commerce est reservee au service_role :
@@ -2288,9 +2288,9 @@ async function sbRetirerCaisseFonds(acteurRef, fondsId, montant) {
 // pas, cet appel recoit un 403 et sbRpc renvoie null -- fail-closed, aucun transfert non consenti.
 // Le helper est conserve pret a l'emploi pour le jour ou cette preuve d'acceptation existera.
 async function sbVendreFondsCommerce(vendeurRef, acheteurRef, fondsId, prix) {
-  return verdictRpc(await sbRpc('vendre_fonds_commerce', {
+  return sbRpcVerdict('vendre_fonds_commerce', {
     p_vendeur: vendeurRef, p_acheteur: acheteurRef, p_fonds_id: fondsId, p_prix: prix
-  }));
+  });
 }
 
 // SEULE FIN DE BAIL ACCESSIBLE AU NAVIGATEUR. La primitive generique terminer_bail accepte quatre
@@ -2300,9 +2300,9 @@ async function sbVendreFondsCommerce(vendeurRef, acheteurRef, fondsId, prix) {
 // Elle est donc reservee au service_role, et cette porte-ci est la seule ouverte : elle FIGE la
 // cause et l'indemnite, et la RPC exige que le demandeur soit le titulaire reel du bail.
 async function sbResilierBailVolontaire(bailId, acteurRef) {
-  return verdictRpc(await sbRpc('resilier_bail_volontaire', {
+  return sbRpcVerdict('resilier_bail_volontaire', {
     p_bail_id: bailId, p_acteur: acteurRef
-  }));
+  });
 }
 
 async function sbGetArchivesBaux(filtre) {
@@ -2352,21 +2352,21 @@ function nouvelleCleAchat() {
 }
 
 async function sbAcheterProduitCommerce(requete, acheteurRef, fondsId, referenceId, quantite) {
-  return verdictRpc(await sbRpc('acheter_produit_commerce', {
+  return sbRpcVerdict('acheter_produit_commerce', {
     p_requete: requete, p_acheteur: acheteurRef, p_fonds_id: fondsId,
     p_reference_id: referenceId, p_quantite: quantite
-  }));
+  });
 }
 
 // Embauche, changement de contrat ou fin de contrat : une seule porte, reservee au proprietaire
 // du fonds. Aucun argent ne bouge -- l'embauche cree un contrat, la remuneration sortira de la
 // caisse au moment ou le travail sera reellement effectue.
 async function sbEmployerFonds(employeurRef, fondsId, salarieRef, role, tauxHoraire, actif) {
-  return verdictRpc(await sbRpc('employer_fonds', {
+  return sbRpcVerdict('employer_fonds', {
     p_employeur: employeurRef, p_fonds_id: fondsId, p_salarie: salarieRef,
     p_role: role || null, p_taux: Math.max(0, Math.floor(Number(tauxHoraire) || 0)),
     p_actif: actif !== false
-  }));
+  });
 }
 
 // Creation d'une offre. SEULE VOIE : les tables offres et oeuvres sont en ecriture fermee pour
@@ -2382,31 +2382,31 @@ async function sbEmployerFonds(employeurRef, fondsId, salarieRef, role, tauxHora
 // au bail. Inutile donc de pre-filtrer ici : verdictCreationOffre ne sert qu'a eviter un
 // aller-retour sur une saisie manifestement incomplete.
 async function sbCreerOffre(emetteurRef, destinataireRef, type, actif, montant, dureeMs, termes) {
-  return verdictRpc(await sbRpc('creer_offre', {
+  return sbRpcVerdict('creer_offre', {
     p_emetteur: emetteurRef, p_destinataire: destinataireRef, p_type: type,
     p_actif: actif || null, p_montant: Math.max(0, Math.floor(Number(montant) || 0)),
     p_duree_ms: Math.max(0, Math.floor(Number(dureeMs) || 0)), p_data: termes || {}
-  }));
+  });
 }
 
 // Publication d'une oeuvre. Meme doctrine : ecriture fermee, id et horodatages poses par le
 // serveur, et un auteur declare doit exister -- on ne signe pas du nom d'un fantome. Republier a
 // l'identique rend l'oeuvre existante plutot que d'en creer une seconde (doublon: true).
 async function sbCreerOeuvre(auteurRef, type, titre, country, jour, contenu, extra) {
-  return verdictRpc(await sbRpc('creer_oeuvre', {
+  return sbRpcVerdict('creer_oeuvre', {
     p_auteur: auteurRef || null, p_type: type, p_titre: titre,
     p_country: country || null, p_jour: (jour === null || jour === undefined) ? null : Math.floor(Number(jour) || 0),
     p_contenu: contenu || null, p_data: extra || {}
-  }));
+  });
 }
 
 // Reponse a une offre. L'acceptation cote serveur est la PREUVE de consentement qui manquait au
 // jeu : c'est elle qui pourra ouvrir la vente de fonds et l'accord amiable, restes hors de portee
 // du navigateur faute de pouvoir etablir l'accord de l'autre partie.
 async function sbRepondreOffre(offreId, acteurRef, acceptee) {
-  return verdictRpc(await sbRpc('repondre_offre', {
+  return sbRpcVerdict('repondre_offre', {
     p_offre_id: offreId, p_acteur: acteurRef, p_acceptee: acceptee === true
-  }));
+  });
 }
 
 async function sbGetOffresPour(refDestinataire) {
@@ -2464,42 +2464,42 @@ async function sbGeneriqueRecettesSysteme(generiqueId) {
 // une politique de pays, et l'interface doit pouvoir servir n'importe quel empire
 // sans connaitre sa regle.
 async function sbFondsCoutRevientReference(fondsId, referenceId) {
-  return verdictRpc(await sbRpc('fonds_cout_revient_reference', {
+  return sbRpcVerdict('fonds_cout_revient_reference', {
     p_fonds_id: fondsId, p_reference_id: referenceId
-  }));
+  });
 }
 
 async function sbFondsDefinirTypes(acteurRef, fondsId, types) {
-  return verdictRpc(await sbRpc('fonds_definir_types', {
+  return sbRpcVerdict('fonds_definir_types', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_types: types || []
-  }));
+  });
 }
 
 async function sbFondsReferenceCreer(acteurRef, fondsId, generiqueId, recetteId, nom, description) {
-  return verdictRpc(await sbRpc('fonds_reference_creer', {
+  return sbRpcVerdict('fonds_reference_creer', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_generique_id: generiqueId,
     p_recette_id: recetteId || null, p_nom: nom, p_description: description || null
-  }));
+  });
 }
 
 async function sbFondsReferenceModifier(acteurRef, fondsId, referenceId, nom, description) {
-  return verdictRpc(await sbRpc('fonds_reference_modifier', {
+  return sbRpcVerdict('fonds_reference_modifier', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId,
     p_nom: nom === undefined ? null : nom,
     p_description: description === undefined ? null : description
-  }));
+  });
 }
 
 async function sbFondsReferencePrix(acteurRef, fondsId, referenceId, prix) {
-  return verdictRpc(await sbRpc('fonds_reference_prix', {
+  return sbRpcVerdict('fonds_reference_prix', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId, p_prix: prix
-  }));
+  });
 }
 
 async function sbFondsReferenceActiver(acteurRef, fondsId, referenceId, active) {
-  return verdictRpc(await sbRpc('fonds_reference_activer', {
+  return sbRpcVerdict('fonds_reference_activer', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId, p_active: active === true
-  }));
+  });
 }
 
 // Production. La cle de requete rend l'appel idempotent : un double clic ne
@@ -2510,9 +2510,9 @@ function nouvelleCleProduction() {
 }
 
 async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId) {
-  return verdictRpc(await sbRpc('fonds_reference_produire', {
+  return sbRpcVerdict('fonds_reference_produire', {
     p_requete: requete, p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId
-  }));
+  });
 }
 
 async function sbGetObjetsRecus(nom) {
@@ -4157,16 +4157,74 @@ async function sbMajCompteBancaire(id) {
 // placement Banque nationale (creer_placement_national/resoudre_placement_national sont des
 // transactions Postgres, seule facon de garantir qu'un debit de compte ne peut jamais avoir lieu
 // sans creer/resoudre le placement correspondant, et inversement).
-async function sbRpc(fn, params) {
+// LECTURES REELLEMENT PUBLIQUES (28 septembre 2026). Liste FERMEE, etablie depuis la base et
+// non par intuition : ce sont les seules fonctions publiques qui (1) ont EXECUTE pour le role
+// `anon` et (2) ne referencent aucun ressort d'identite (exiger_acteur, mon_personnage,
+// est_mon_personnage, auth.uid(), acteur_poste_courant, mon_poste_est, mouvement_titulaire).
+// Elles repondent donc la meme chose a un joueur et a un visiteur, et peuvent legitimement
+// partir sous la seule cle anon. Toute autre RPC est traitee comme une ACTION JOUEUR.
+//
+// Pour ajouter un nom ici il faut le PROUVER en base, pas le supposer : une fonction qui
+// depend de l'identite et qu'on declarerait publique repartirait en silence sous la cle anon,
+// c'est-a-dire exactement le defaut que ce bloc corrige.
+const RP_RPC_PUBLIQUES = new Set([
+  'assemblee_verifier_vente',
+  'corruption_presse_affaires',
+  'embargo_actif',
+  'fonds_cout_revient_reference',
+  'fonds_generiques_accessibles',
+  'fournisseurs_etrangers',
+  'generique_recettes_systeme',
+  'journal_edition_lire',
+  'objet_fiche_officielle'
+]);
+
+// TRANSPORT UNIQUE DES RPC (28 septembre 2026). Il n'existe qu'une porte vers le reseau, et
+// elle rend une information STRUCTUREE. Le defaut qu'elle corrige a ete constate en production
+// le 28 septembre : le jeton du joueur avait expire, son renouvellement n'avait pas abouti, et
+// sbEnTetes() retombait alors -- silencieusement -- sur la cle anon. Les RPC de lecture ouvertes
+// a `anon` continuaient de repondre, ce qui masquait entierement la perte de session ; la
+// premiere ecriture protegee, elle, recevait un 401 42501 que sbRpc aplatissait sur `null`.
+// Le joueur lisait « Rien n'a ete modifie » alors que son commerce etait parfaitement valide.
+//
+// Cinq etats, et un seul endroit qui les nomme :
+//   'ok'             -> 2xx, `donnees` porte le corps analyse (le refus METIER est dedans,
+//                       sous la forme habituelle { ok:false, raison } rendue par la RPC) ;
+//   'session_perdue' -> aucune identite exploitable : requete NON envoyee, ou 401 du serveur ;
+//   'http'           -> le serveur a repondu autre chose qu'un 2xx ;
+//   'reseau'         -> `fetch` a rejete : hors ligne, DNS, TLS, requete bloquee.
+// Le statut HTTP et le code PostgREST/PostgreSQL sont conserves pour le diagnostic, jamais
+// pour l'affichage : c'est l'appelant qui choisit une phrase pour le joueur.
+async function sbTransportRpc(fn, params, options) {
+  const opts = options || {};
+  const publique = (opts.publique === true) || RP_RPC_PUBLIQUES.has(fn);
+
   // IDENTITE GARANTIE AVANT L'APPEL (chantier B, 14 septembre 2026). Les RPC verifient
   // desormais que l'acteur declare est bien le personnage du compte connecte (exiger_acteur).
   // Sans jeton, elles refuseraient tout. L'ouverture de session est lancee au chargement de la
   // page, mais une action tres precoce pourrait la devancer : on l'attend donc ici, une fois --
   // rpAuthAssurerSession est idempotente et deduplique les appels concurrents, donc ce n'est un
   // aller-retour reseau qu'a la toute premiere invocation.
-  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+  const jetonnable = (typeof rpAuthJeton === 'function');
+  let jeton = jetonnable ? rpAuthJeton() : null;
+  if (!jeton && jetonnable && typeof rpAuthAssurerSession === 'function') {
+    // C'EST ICI QUE LE RENOUVELLEMENT A LIEU. rpAuthJeton() rend null des que le jeton entre
+    // dans sa marge d'expiration, donc un jeton « bientot perime » passe par ce chemin et
+    // repart renouvele. On relit le jeton APRES : c'est la seule preuve que la restauration a
+    // reellement abouti, l'etat de retour de rpAuthAssurerSession ne suffit pas.
     await rpAuthAssurerSession().catch(() => null);
+    jeton = rpAuthJeton();
   }
+
+  // FAIL-CLOSED. Une action qui a besoin de l'identite du joueur ne part JAMAIS sous la cle
+  // anon : on ne l'envoie pas du tout. Cote serveur le resultat serait identique (401), mais
+  // ici le joueur apprend la verite -- sa session -- au lieu d'un « rien n'a ete modifie ».
+  if (!jeton && !publique) {
+    console.error('sbRpc session (' + fn + ') : aucun jeton joueur exploitable, requete NON '
+      + 'envoyee (etat auth = ' + ((typeof RP_AUTH_ETAT !== 'undefined') ? RP_AUTH_ETAT : 'inconnu') + ')');
+    return { etat: 'session_perdue', raison: 'session_perdue', http: null, code: null, envoyee: false };
+  }
+
   // COUPURE RESEAU (24 septembre 2026). `fetch` ne rejette pas sur un 4xx/5xx -- ceux-la sont
   // deja traites juste en dessous -- mais il REJETTE sur une panne de transport : hors ligne,
   // DNS, TLS, requete bloquee. Ce rejet n'etait capture nulle part : il traversait sbRpc, puis
@@ -4174,11 +4232,8 @@ async function sbRpc(fn, params) {
   // AUCUN message -- pire que le message generique, puisque rien ne lui disait que son action
   // n'avait pas eu lieu.
   //
-  // On rend `null`, exactement comme pour un refus HTTP : les appelants savent deja lire ce cas
-  // (deduireCoutOrdre en fait `paiement_indisponible`, desormais nomme a l'ecran). Aucun debit
-  // n'a pu avoir lieu puisque la requete n'est jamais partie, et surtout AUCUNE session anonyme
-  // n'est ouverte ici pour « reparer » la panne : une coupure reseau ne doit jamais couter son
-  // identite au joueur.
+  // Aucune session anonyme n'est ouverte ici pour « reparer » la panne : une coupure reseau ne
+  // doit jamais couter son identite au joueur.
   let res;
   try {
     res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
@@ -4188,10 +4243,51 @@ async function sbRpc(fn, params) {
     });
   } catch (e) {
     console.error('sbRpc reseau (' + fn + ')', e && e.message);
-    return null;
+    return { etat: 'reseau', raison: 'reseau_indisponible', http: null, code: null,
+             message: (e && e.message) || null, envoyee: true };
   }
-  if (!res.ok) { console.error('sbRpc error (' + fn + ')', await res.text()); return null; }
-  return res.json();
+
+  if (!res.ok) {
+    const texte = await res.text().catch(() => '');
+    let code = null;
+    try { code = (JSON.parse(texte) || {}).code || null; } catch (e) {}
+    console.error('sbRpc error (' + fn + ') http ' + res.status, texte);
+    // 401 = le serveur a refuse l'IDENTITE, pas la regle du jeu : jeton expire pendant le vol,
+    // ou fonction non accordee au porteur de la requete. Le joueur doit se reconnecter, et
+    // surtout ne pas lire que « rien n'a ete modifie » -- ce qui est vrai mais n'explique rien.
+    if (res.status === 401) {
+      return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code: code,
+               message: texte, envoyee: true };
+    }
+    return { etat: 'http', raison: 'transport_indisponible', http: res.status, code: code,
+             message: texte, envoyee: true };
+  }
+
+  return { etat: 'ok', donnees: await res.json(), http: res.status, code: null, envoyee: true };
+}
+
+// CONTRAT HISTORIQUE, INCHANGE. 300 sites d'appel lisent sbRpc depuis trois ans : 2xx -> corps
+// analyse, tout echec -> `null`. On ne touche pas a cette convention, sinon chaque `if (!r)` du
+// jeu changerait de sens en silence. La seule difference observable est qu'une action joueur
+// sans jeton n'est plus EMISE -- la ou elle recevait de toute facon un 401 puis `null`.
+// Les appelants qui veulent savoir POURQUOI passent par sbRpcVerdict ou sbTransportRpc.
+async function sbRpc(fn, params, options) {
+  const env = await sbTransportRpc(fn, params, options);
+  return env.etat === 'ok' ? env.donnees : null;
+}
+
+// VERDICT STRUCTURE. Meme forme que ce que rendent les RPC metier -- { ok, raison, ... } -- de
+// sorte qu'un appelant ait UN seul motif a lire, qu'il vienne de la regle du jeu ou du
+// transport. `transport` n'est present que sur un echec technique : c'est la matiere du
+// diagnostic (statut HTTP, code PostgREST/PostgreSQL), jamais du texte a montrer au joueur.
+async function sbRpcVerdict(fn, params, options) {
+  const env = await sbTransportRpc(fn, params, options);
+  if (env.etat === 'ok') return verdictRpc(env.donnees);
+  return {
+    ok: false,
+    raison: env.raison,
+    transport: { etat: env.etat, http: env.http || null, code: env.code || null, envoyee: !!env.envoyee }
+  };
 }
 
 // Creation atomique d'un placement Banque nationale : verifie le solde reel du compte national,

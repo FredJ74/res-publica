@@ -148,7 +148,18 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.refus.bail_absent':                 "Vous ne louez pas ce local.",
   'commercepj.refus.pas_titulaire':               "Ce bail n'est pas le vôtre.",
   'commercepj.refus.generique_regime_indetermine':"Ce produit ne peut pas encore être vendu à emporter.",
-  'commercepj.refus.generique_est_un_service':    "Ce produit est un service : sa vente n'est pas encore ouverte."
+  'commercepj.refus.generique_est_un_service':    "Ce produit est un service : sa vente n'est pas encore ouverte.",
+  // Motifs metier reels que la table ne couvrait pas : ils retombaient donc sur la phrase
+  // generique, ce qui rendait un vrai refus du serveur indiscernable d'une panne (28/09/2026).
+  'commercepj.refus.parametres_invalides':        "Cette demande est incomplète. Rouvrez l'écran et recommencez.",
+  'commercepj.refus.generique_sans_recette':      "Ce produit ne se fabrique pas : il n'a aucun mode de fabrication.",
+  'commercepj.refus.recette_inexistante':         "Ce mode de fabrication n'existe pas.",
+  // Echecs de TRANSPORT, nommes par sbRpcVerdict. Ce ne sont pas des regles du jeu : le dire
+  // franchement evite de faire croire au joueur que son commerce ou son produit est en faute.
+  'commercepj.refus.session_perdue':              "Votre session a expiré. Reconnectez-vous puis réessayez.",
+  'commercepj.refus.transport_indisponible':      "Le service n'a pas répondu. Rien n'a été modifié — réessayez.",
+  'commercepj.refus.reseau_indisponible':         "Connexion interrompue. Rien n'a été modifié — réessayez.",
+  'commercepj.refus.inconnu':                     "Refusé par le serveur ({motif}). Rien n'a été modifié."
 };
 
 // Accesseur unique. Aucune chaine visible n'est ecrite ailleurs dans ce fichier.
@@ -185,6 +196,15 @@ function commercePjRefus(v) {
     }
     if (r === 'pa_insuffisants' && v.requis != null) return texte + ' (' + v.requis + ' requis)';
     return texte;
+  }
+  // MOTIF NON TRADUIT (28 septembre 2026). Il retombait jusqu'ici sur « Rien n'a ete modifie »,
+  // qui masquait entierement l'information : c'est ainsi qu'un 401 de transport et un vrai refus
+  // metier devenaient indiscernables a l'ecran. On nomme desormais le motif -- c'est un code
+  // interne court, jamais un message SQL ni une donnee d'autrui -- et on pousse le detail
+  // technique en console, la ou il sert au diagnostic sans encombrer le joueur.
+  if (r) {
+    console.error('[commerce PJ] motif de refus non traduit : ' + r, v);
+    return tCommercePJ('commercepj.refus.inconnu', { motif: String(r) });
   }
   return tCommercePJ('commercepj.refus.defaut');
 }

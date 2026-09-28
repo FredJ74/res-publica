@@ -2916,7 +2916,9 @@ async function confirmerResiliation(idx) {
     showToast('Résiliation impossible',
       (verdict && verdict.raison === 'pas_titulaire')
         ? "Ce bail n'est pas le vôtre."
-        : "Le service des baux n'a pas pu enregistrer la résiliation. Rien n'a été modifié — réessayez.", false);
+        : (verdict && verdict.raison === 'session_perdue')
+          ? 'Votre session a expiré. Reconnectez-vous puis réessayez.'
+          : "Le service des baux n'a pas pu enregistrer la résiliation. Rien n'a été modifié — réessayez.", false);
     return;
   }
 
@@ -7361,6 +7363,12 @@ function messageRefusFonds(v) {
        : r === 'type_inconnu'         ? "Cette activité ne figure pas au catalogue officiel des commerces."
        : r === 'trop_de_types'        ? "Vous avez choisi trop d'activités pour ce commerce" + (v.maximum ? ' (maximum ' + v.maximum + ').' : '.')
        : r === 'montant_invalide'     ? 'Montant invalide.'
+       // ECHECS DE TRANSPORT, nommes par sbRpcVerdict (28 septembre 2026). Ce ne sont pas des
+       // regles du jeu : dire « rien n'a ete modifie » sans dire POURQUOI laissait le joueur
+       // chercher une faute dans son fonds alors que seule sa session etait en cause.
+       : r === 'session_perdue'       ? 'Votre session a expiré. Reconnectez-vous puis réessayez.'
+       : r === 'transport_indisponible' ? "Le service n'a pas répondu. Rien n'a été modifié — réessayez."
+       : r === 'reseau_indisponible'  ? 'Connexion interrompue. Rien n’a été modifié — réessayez.'
        : "L'opération n'a pas pu aboutir. Rien n'a été modifié.";
 }
 
