@@ -3950,8 +3950,24 @@ function renderRoomActions(room, buildingId, roomId) {
   // comportement pour tout le reste du jeu.
   const ctxExcludeOrders = (ctx?.roomOverrides?.[roomId]?.excludeOrders || []);
 
+  // QUATRIEME SOURCE (C6, 29 septembre 2026) : des ordres DERIVES DE L'ETAT, et
+  // non plus seulement declares dans data.js. Un local ne sait pas ce qu'il
+  // abrite -- c'est le bail qui designe le fonds de commerce -- et dix copies
+  // d'un meme ordre dans data.js ne sauront jamais dire « Gestion de ce
+  // commerce » au proprietaire et « Entrer dans le commerce » au visiteur.
+  //
+  // ADDITIVE ET PRUDENTE, sur le modele de ctxRoomOrders : quand la fonction
+  // n'existe pas ou ne sait rien, elle rend une liste vide et absolument rien
+  // ne change. Quand elle sait, son ordre REMPLACE l'ordre statique de meme
+  // `fn` -- jamais de doublon a l'ecran.
+  const dynOrders = (typeof ordresCommerceDuLocal === 'function')
+    ? (ordresCommerceDuLocal(buildingId, roomId, state.currentCity) || []) : [];
+
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
-  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders].filter(o => !ctxExcludeOrders.includes(o.fn));
+  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders]
+    .filter(o => !ctxExcludeOrders.includes(o.fn))
+    .filter(o => !dynOrders.some(d => d.fn === o.fn))
+    .concat(dynOrders);
 
   const buttons = allOrders.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique

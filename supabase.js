@@ -2515,6 +2515,51 @@ async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId
   });
 }
 
+// ---------------------------------------------------------------------------
+// C6 — APPROVISIONNEMENT EN MATIERES PREMIERES
+// ---------------------------------------------------------------------------
+// La liste des matieres n'est PAS composee ici : elle est deduite cote serveur
+// des recettes systeme des references du fonds. Le navigateur ne fait que
+// l'afficher. Ajouter demain une reference qui consomme du textile fera
+// apparaitre le textile sans qu'une ligne de ce fichier change.
+async function sbFondsMatieresRecherchees(fondsId) {
+  const rows = await sbRpc('fonds_matieres_recherchees', { p_fonds_id: fondsId });
+  return Array.isArray(rows) ? rows : [];
+}
+
+// Prix de rachat LIBRE (le proprietaire decide) et maximum par matiere, borne
+// par la politique du pays. Le serveur revalide les deux.
+async function sbFondsMatiereParametres(acteurRef, fondsId, matiere, prixAchat, maximum) {
+  return sbRpcVerdict('fonds_matiere_parametres', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_matiere: matiere,
+    p_prix_achat: prixAchat, p_maximum: maximum
+  });
+}
+
+// Maximum de stock d'un ARTICLE. Grandeur distincte du maximum des matieres :
+// les confondre est precisement le defaut du moteur legacy.
+async function sbFondsReferenceStockMax(acteurRef, fondsId, referenceId, maximum) {
+  return sbRpcVerdict('fonds_reference_stock_max', {
+    p_acteur: acteurRef, p_fonds_id: fondsId, p_reference_id: referenceId, p_maximum: maximum
+  });
+}
+
+// Cle d'apport : fabriquee A L'OUVERTURE de l'ecran, jamais a chaque envoi.
+// C'est elle qui rend un double clic inoffensif.
+function nouvelleCleApport() {
+  return 'appro-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+// VENTE ou DON, une seule porte. Le serveur borne la quantite par ce que le
+// joueur possede vraiment, la place restante et la caisse du commerce : le
+// navigateur peut proposer 700, il en passera ce qui est possible et le dira.
+async function sbFondsMatiereApporter(requete, acteurRef, fondsId, matiere, quantite, mode) {
+  return sbRpcVerdict('fonds_matiere_apporter', {
+    p_requete: requete, p_acteur: acteurRef, p_fonds_id: fondsId,
+    p_matiere: matiere, p_qte: quantite, p_mode: mode || 'vente'
+  });
+}
+
 async function sbGetObjetsRecus(nom) {
   const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}`);
   if (!rows) return [];
@@ -4173,6 +4218,7 @@ const RP_RPC_PUBLIQUES = new Set([
   'embargo_actif',
   'fonds_cout_revient_reference',
   'fonds_generiques_accessibles',
+  'fonds_matieres_recherchees',
   'fournisseurs_etrangers',
   'generique_recettes_systeme',
   'journal_edition_lire',
