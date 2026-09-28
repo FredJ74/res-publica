@@ -7351,6 +7351,15 @@ function messageRefusFonds(v) {
        : r === 'fonds_inactif'        ? "Ce fonds n'est plus exploitable."
        : r === 'fonds_deja_present'   ? 'Un fonds est déjà exploité dans ce local.'
        : r === 'local_incompatible'   ? "Ce local n'est pas à destination commerciale."
+       // C1 (28 septembre 2026) : le serveur verifie desormais que le local peut heberger une
+       // activite. Seuls les locaux des trois centres -- commercial, artisanal, affaires -- le
+       // peuvent ; un appartement, une suite d'hotel, un coffre de banque ou une salle de reunion
+       // ne sont pas des lieux d'activite. Aucune contrainte de TYPE de commerce n'est opposee
+       // ici : la compatibilite fine entre un type et un centre n'est pas arbitree.
+       : r === 'local_non_commercial' ? "On ne peut pas installer un commerce dans ce local. Il faut un local du centre commercial, du centre artisanal ou du centre d'affaires."
+       : r === 'pas_un_fonds_pj'      ? "Ce commerce n'est pas un fonds de joueur."
+       : r === 'type_inconnu'         ? "Cette activité ne figure pas au catalogue officiel des commerces."
+       : r === 'trop_de_types'        ? "Vous avez choisi trop d'activités pour ce commerce" + (v.maximum ? ' (maximum ' + v.maximum + ').' : '.')
        : r === 'montant_invalide'     ? 'Montant invalide.'
        : "L'opération n'a pas pu aboutir. Rien n'a été modifié.";
 }

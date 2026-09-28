@@ -2332,10 +2332,29 @@ async function sbGetFonds(fondsId) {
 // ACHETER N'EST PAS UTILISER : cette transaction deplace un objet du commerce vers l'inventaire
 // et ne declenche aucun effet. Ni le prix ni la quantite envoyes ne sont crus -- la RPC les relit
 // dans le catalogue sous verrou et recalcule ce qui est reellement transferable.
-async function sbAcheterProduitCommerce(acheteurRef, fondsId, referenceId, quantite, objet) {
+//
+// C0 (28 septembre 2026) — DEUX CHANGEMENTS DE CONTRAT, ET ILS SONT VOLONTAIRES :
+//
+// 1. LE CLIENT NE DECRIT PLUS L'OBJET. L'ancien parametre `objet` a ete RETIRE de la RPC :
+//    il permettait a un navigateur modifie d'acheter une reference a 10 FR et de se faire
+//    livrer autre chose. Le serveur construit desormais l'objet depuis le referentiel L2,
+//    via le generique declare par la reference. Une reference sans generique ne vend rien.
+//
+// 2. UNE CLE DE REQUETE EST OBLIGATOIRE. L'identifiant de livraison en derive, au lieu d'etre
+//    granule a la seconde -- defaut qui faisait payer deux fois et livrer une fois sur un
+//    double clic. Rejouer la meme cle ne debite rien et rend { ok:true, rejeu:true }.
+//    Format impose par le serveur : ^achat-[A-Za-z0-9-]{6,80}$.
+//
+// La cle doit etre STABLE pour un achat donne : c'est ce qui rend le double clic inoffensif.
+// L'appelant la fabrique une fois, a l'ouverture de sa confirmation, jamais a chaque envoi.
+function nouvelleCleAchat() {
+  return 'achat-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+async function sbAcheterProduitCommerce(requete, acheteurRef, fondsId, referenceId, quantite) {
   return verdictRpc(await sbRpc('acheter_produit_commerce', {
-    p_acheteur: acheteurRef, p_fonds_id: fondsId, p_reference_id: referenceId,
-    p_quantite: quantite, p_objet: objet || {}
+    p_requete: requete, p_acheteur: acheteurRef, p_fonds_id: fondsId,
+    p_reference_id: referenceId, p_quantite: quantite
   }));
 }
 
