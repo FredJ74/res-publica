@@ -3201,9 +3201,21 @@ async function ouvrirDetailObjetInventaire(idx) {
     } catch(e) {}
   }
 
+  // FICHE OFFICIELLE (referentiel L2). Bloc en LECTURE SEULE insere entre la
+  // presentation RP (nom + description, au-dessus) et les boutons d'action (en
+  // dessous) : aucun clic existant n'est deplace ni detourne.
+  // En cas d'echec d'appel, sbObjetFicheOfficielle rend null et l'on n'affiche RIEN
+  // plutot qu'une fiche devinee -- un echec de transport n'est pas un refus metier.
+  let ficheHtml = '';
+  if (typeof sbObjetFicheOfficielle === 'function' && typeof ficheOfficielleHtml === 'function') {
+    const fiche = await sbObjetFicheOfficielle(item);
+    if (fiche) ficheHtml = ficheOfficielleHtml(fiche);
+  }
+
   let html = '<div style="padding:1rem">';
   html += imageHtml;
   html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + (item.desc || '') + legal + '</div>';
+  if (ficheHtml) html += ficheHtml + '<div style="height:.8rem"></div>';
 
   html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
 

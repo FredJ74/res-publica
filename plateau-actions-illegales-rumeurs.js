@@ -4843,9 +4843,16 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     // commanderProduitCommerce() (logique metier intacte, seul l'intitule change). Absent partout
     // sauf sur 'sandwich' -- comportement inchange pour tous les autres commerces/recettes.
     const libelleAction = recette.labelAction || 'Commander';
+    // Zone d'action : le bouton historique est CONSERVE A L'IDENTIQUE (meme handler,
+    // meme libelle, meme comportement), et la fiche officielle s'ajoute A COTE dans une
+    // colonne. Aucun clic existant n'est deplace ni detourne -- la ligne produit
+    // elle-meme n'a jamais eu de onclick, il n'y a donc rien a recouvrir.
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">';
     html += enRupture
-      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">' + libelleAction + '</button>';
+      ? '<span style="font-size:.8rem;color:#5a5040;text-align:center">Rupture</span>'
+      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">' + libelleAction + '</button>';
+    html += '<button onclick="ouvrirFicheProduitCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" title="Fiche officielle" style="padding:.25rem .6rem;border:1px solid #3a3a5a;background:transparent;color:#8a8aca;cursor:pointer;font-size:.72rem"><i class="ti ti-certificate" style="font-size:.78rem"></i> Fiche</button>';
+    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -4870,6 +4877,55 @@ async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, re
   addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
   // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
+}
+
+// FICHE OFFICIELLE D'UN PRODUIT EN VENTE (referentiel L2) — protection de l'acheteur.
+// GRATUITE : aucun deduireCoutOrdre ici, consulter une fiche n'est pas un ordre. Le
+// retour a la carte reutilise doConsulterCarteCommerce avec pa=0/cost=0, exactement
+// comme le fait deja doCommanderProduitCommerceUI apres une commande -- donc aucun PA
+// n'est preleve deux fois.
+// La fiche remplace le contenu de la modale existante plutot que d'ouvrir une seconde
+// fenetre : c'est l'idiome deja utilise partout dans ce fichier.
+async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const recette = resoudreProduitCommerce(recetteId);
+  if (!recette) { showToast('Produit introuvable', '', false); return; }
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = 'Fiche du produit';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  // Un produit de marche pousse en inventaire un objet dont `type` vaut l'identifiant de
+  // recette : c'est exactement la cle que le resolveur sait lire. On n'invente donc
+  // aucune structure, on presente l'objet tel que le jeu le produirait.
+  const objet = { type: recetteId };
+  if (recette.familleProduitMarche) objet.familleProduitMarche = recette.familleProduitMarche;
+  const fiche = typeof sbObjetFicheOfficielle === 'function' ? await sbObjetFicheOfficielle(objet) : null;
+
+  const nomLieu = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId])
+    ? (BUILDINGS[buildingId].shortName || BUILDINGS[buildingId].name) : buildingId;
+
+  let html = '<div style="padding:1rem">';
+  if (recette.image) html += '<img src="' + recette.image + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:200px;object-fit:cover"/>';
+  html += typeof ficheCommercialeHtml === 'function'
+    ? ficheCommercialeHtml({
+        nom: recette.label,
+        description: recette.desc || null,
+        prix: (data && data.parametres && data.parametres.prixVente) ? data.parametres.prixVente[recetteId] : null,
+        devise: cur,
+        vendeur: nomLieu,
+        stock: (data && data.stockProduits) ? (data.stockProduits[recetteId] || 0) : null
+      })
+    : '';
+  html += fiche && typeof ficheOfficielleHtml === 'function'
+    ? ficheOfficielleHtml(fiche)
+    : '<div style="margin-top:.7rem;font-size:.8rem;color:#8a8060;font-style:italic">Fiche officielle momentanément indisponible.</div>';
+  html += '<button onclick="doConsulterCarteCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',0,0)" style="width:100%;margin-top:.9rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.45rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-left"></i> Retour à la carte</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 // =====================

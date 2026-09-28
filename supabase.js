@@ -3831,6 +3831,26 @@ async function sbMarquerImpactTraite(impactId) {
 }
 
 // =====================
+// FICHE OFFICIELLE D'UN OBJET (referentiel L2)
+// =====================
+// PARTIE OFFICIELLE ARRETEE PAR LE SERVEUR. Le navigateur n'annonce jamais un effet :
+// il envoie l'objet tel qu'il le detient, et recopie la verite mecanique que la RPC
+// renvoie. Aucun effet n'est calcule, deduit ou complete cote client.
+//
+// La RPC est en LECTURE SEULE et n'expose ni les notes d'audit internes, ni les
+// chemins:lignes du depot, ni le motif de resolution.
+//
+// Rend { resolu: false } pour un objet hors catalogue -- jamais un generique de repli.
+// Rend null si l'appel n'a pas abouti : l'appelant doit alors s'abstenir d'afficher une
+// fiche plutot que d'en inventer une (echec de transport n'est pas un refus metier).
+async function sbObjetFicheOfficielle(objet) {
+  if (!objet || typeof objet !== 'object') return null;
+  const rows = await sbRpc('objet_fiche_officielle', { p_objet: objet }).catch(() => null);
+  if (rows === null || rows === undefined) return null;
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+// =====================
 // QUETES ACTIVES (animation plateau)
 // =====================
 async function sbGetQueteActive(country) {
