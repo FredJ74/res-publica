@@ -1149,6 +1149,29 @@ function slugPnj(nom) {
 // identifiant arbitre ne doit jamais changer parce qu'un nom affiche a bouge. Tout PNJ
 // qui n'y figure pas tombe sur son identifiant normalise ; si le serveur ne le connait
 // pas, il refuse, et le repli hors IA s'applique comme avant.
+// TRAITS : DEUX FORMES COEXISTENT DANS PNJ_PROFILS, ET C'EST CE QUI A CASSE LE
+// DIALOGUE DE TROIS PNJ (constate le 29 septembre 2026).
+//
+// Les six fiches anciennes portent `traits: ['bourru', 'fier de son port', ...]`,
+// un TABLEAU. Les trois fiches de la caserne -- Eve Toahemarch, Adjudant Ferriere,
+// Caporal Alouche -- portent `traits: "Infirmiere militaire de la caserne. Seche,
+// precise..."`, une PHRASE. Les deux formes sont legitimes : la phrase se lit comme
+// une phrase, et la reecrire en liste changerait le texte de personnalite.
+//
+// LE PIEGE : le garde s'ecrivait `profil?.traits?.length`. Une chaine a une
+// `length`, donc le garde passait -- puis `.join(', ')` levait une TypeError. Elle
+// etait levee AVANT le try/catch du dialogue, dans un bloc de prompt qui n'est
+// meme plus envoye : le joueur restait donc bloque sur « En train de repondre... »
+// pour toujours, sans qu'aucune requete reseau ne parte.
+//
+// On accepte donc les deux formes, sans toucher aux donnees.
+function traitsLisibles(profil) {
+  const t = profil && profil.traits;
+  if (Array.isArray(t)) return t.filter(Boolean).join(', ');
+  if (typeof t === 'string') return t.trim();
+  return '';
+}
+
 function profilServeurDuPnj(pnj) {
   const nom = (pnj?.name || '').replace(' (PNJ)', '').trim();
   if (!nom) return null;
@@ -1626,14 +1649,25 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
-  const prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
+  // LA CONSTRUCTION DE CE PROMPT NE DOIT PLUS POUVOIR CASSER LE DIALOGUE.
+  // Il n'est plus envoye nulle part depuis le passage au dialogue serveur (voir plus
+  // bas) : c'est du texte de reference. Or il s'execute encore, et il est long. Une
+  // seule erreur dedans -- une fiche a la forme inattendue, une constante renommee --
+  // etait levee AVANT le try/catch du dialogue et laissait le joueur bloque sur
+  // « En train de repondre... », sans message et sans requete reseau. C'est exactement
+  // ce qui est arrive aux trois PNJ de la caserne le 29 septembre 2026.
+  // On isole donc la construction : si elle echoue, on le dit en console et la
+  // conversation continue normalement. Aucune autre ligne ne lit `prompt`.
+  let prompt = '';
+  try {
+  prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
 L'empire est ${co?.n} (${empireStyle.tone}).
 La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireStyle.leader}.
 
 Ton personnage : ${pnj.name?.replace(' (PNJ)', '')}, ${pnj.role}.
 ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n}.`}
 ${perso ? `Ton style : ${perso.style}` : ''}
-${profil?.traits?.length ? `Traits de caractère : ${profil.traits.join(', ')}.` : ''}
+${traitsLisibles(profil) ? `Traits de caractère : ${traitsLisibles(profil)}.` : ''}
 ${profil?.savoirs ? `Ce que tu sais réellement : ${profil.savoirs}` : ''}
 ${profil?.fonctionPedagogique ? `Tu es chargé d'expliquer au joueur : ${profil.fonctionPedagogique}` : ''}
 ${profil?.secrets ? `Tu connais ceci mais ne le révèle JAMAIS spontanément, seulement si on insiste beaucoup ou qu'on te corrompt : ${profil.secrets}` : ''}
@@ -1682,6 +1716,11 @@ RÈGLES ABSOLUES :
 - La seule monnaie existante dans cet univers est désignée par le code ${empireStyle.currency} ; n'utilise JAMAIS l'Euro, le Dollar, ni aucune devise du monde réel
 - Jamais de vrais noms de dieux ou religions réelles
 - Réponds UNIQUEMENT avec ta réplique, sans guillemets ni introduction`;
+  } catch (ePrompt) {
+    console.warn('[PNJ] prompt de reference non construit pour '
+      + (pnj.name || '?') + ' : ' + (ePrompt && ePrompt.message)
+      + ' — le dialogue serveur continue.');
+  }
 
   // Récupérer l'historique de la conversation du jour
   const pnjKey2 = pnj.name?.replace(' (PNJ)', '').trim();
