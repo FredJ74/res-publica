@@ -1824,7 +1824,6 @@ export {
   mettreEnAttenteSujetsDifferes,
   marquerReportsIntegres,
   solliciterInterviewsProactives,
-  appelAnthropic,
   // Exportes pour api/journal-interview.js : le controle des citations directes d'une
   // interview doit appliquer EXACTEMENT la meme logique guillemets/parole que le Journal.
   // Une seule definition, jamais deux regles divergentes.
