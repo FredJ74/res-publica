@@ -89,9 +89,6 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.recette.unites':       "unité(s)",
   'commercepj.recette.aucune':       "Ce produit ne se fabrique pas.",
 
-  'commercepj.produire.titre':       "Lancer une fabrication",
-  'commercepj.produire.vosStocks':   "Vos matières",
-  'commercepj.produire.confirmer':   "Lancer la fabrication",
   'commercepj.produire.fait':        "Fabrication terminée",
 
 
@@ -148,6 +145,7 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.tab.produits':         "Produits vendus",
   'commercepj.tab.matieres':         "Matières premières",
   'commercepj.caisse.solde':         "Solde",
+  'commercepj.caisse.vosPa':         "Vos PA",
   'commercepj.caisse.montant':       "Montant",
   'commercepj.caisse.apport':        "Apport",
   'commercepj.caisse.prelever':      "Prélever",
@@ -160,6 +158,19 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.col.prixVente':        "Prix de vente",
   'commercepj.col.rachat':           "Prix de rachat",
   'commercepj.ref.sansCoutCourt':    "coût de revient non établi",
+
+  // --- C8 : fabrication et apport depuis la ligne ---
+  'commercepj.prod.lots':            "Lots",
+  'commercepj.prod.pa':              "PA",
+  'commercepj.prod.verses':          "versés",
+  'commercepj.prod.enCours':         "…",
+  'commercepj.refus.lots_invalides':              "Ce nombre de lots n'est pas autorisé (1 à {maximum}).",
+  'commercepj.refus.quantite_invalide':           "Cette quantité n'est pas valide.",
+  'commercepj.refus.stock_personnel_insuffisant': "Vous n'en avez pas autant sur vous.",
+  'commercepj.refus.personnage_introuvable':      "Votre personnage est introuvable.",
+  'commercepj.refus.reference_sans_recette':      "Ce produit ne se fabrique pas.",
+  'commercepj.refus.rendement_non_declare':       "Le rendement de cette fabrication n'est pas déclaré.",
+  'commercepj.refus.valeur_pa_non_declaree':      "Le salaire horaire n'est pas défini dans cet empire.",
   'commercepj.matiere.refusCourt':   "vous n'en voulez pas",
   'commercepj.matiere.maxAide':      "Fixez le stock maximum de chaque matière : 0 signifie que votre commerce n'en veut pas, et personne ne pourra vous en vendre. Maximum autorisé : {plafond}.",
   'commercepj.public.titre':         "Entrer dans le commerce",
@@ -287,6 +298,14 @@ function commercePjRefus(v) {
     if (r === 'stock_max_reference_depasse') {
       return tCommercePJ('commercepj.refus.stock_max_reference_depasse',
         { rendement: v.rendement, maximum: v.maximum, stock: v.stock });
+    }
+    // C8 : les deux motifs de la commande multi-lots portent leurs bornes.
+    if (r === 'lots_invalides' && v.maximum != null) {
+      return tCommercePJ('commercepj.refus.lots_invalides', { maximum: v.maximum });
+    }
+    if (r === 'caisse_insuffisante' && v.salaire != null) {
+      return texte + ' ' + commercePjMontant(v.salaire) + ' ' + commercePjDevise() +
+             ' / ' + commercePjMontant(v.caisse) + ' ' + commercePjDevise() + '.';
     }
     return texte;
   }
@@ -624,22 +643,75 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// RECETTES DES PRODUITS, MEMORISEES POUR L'ECRAN. Meme role de relais que
+// RP_CPJ_FORMES, et la meme absence d'autorite : ces chiffres servent a ANNONCER
+// au proprietaire ce que sa commande va couter. Ce qu'on envoie au serveur reste
+// le seul nombre de lots voulus, et c'est lui qui recalcule tout.
+let RP_CPJ_RECETTES = {};
+
+// MESSAGES A REAFFICHER APRES UN RENDU. Une action reussie change le stock, les
+// matieres, les PA et la caisse : l'ecran est donc redessine en entier. Sans ce
+// relais, le compte rendu de l'action disparaitrait avec l'ancien HTML -- et le
+// proprietaire ne saurait pas ce qui vient de se passer.
+let RP_CPJ_MESSAGES = {};
+
+// Ecrit un message SOUS la ligne concernee. Aucune modale : un refus se lit la
+// ou l'on vient de cliquer, c'est tout l'objet de ce lot.
+function commercePjMessage(cleLigne, texte, ok) {
+  const e = document.getElementById('cpj-msg-' + cleLigne);
+  if (!e) return;
+  e.textContent = texte || '';
+  e.className = 'cpj-msg' + (texte ? (ok ? ' cpj-msg-ok' : ' cpj-msg-ko') : '');
+}
+
+// Les recettes des references du commerce, en UN seul temps d'attente. On
+// interroge le serveur generique par generique -- jamais reference par
+// reference -- puis on retient la recette exacte de chacune.
+async function commercePjRecettesDesReferences(refs) {
+  const generiques = {};
+  Object.keys(refs).forEach(function (id) {
+    if (refs[id] && refs[id].recette_id) generiques[refs[id].generique_id] = true;
+  });
+  const listes = await Promise.all(Object.keys(generiques).map(function (g) {
+    return sbGeneriqueRecettesSysteme(g).catch(function () { return []; });
+  }));
+  const parId = {};
+  listes.forEach(function (l) { l.forEach(function (rec) { parId[rec.recette_id] = rec; }); });
+  const parReference = {};
+  Object.keys(refs).forEach(function (id) {
+    const rec = refs[id] && parId[refs[id].recette_id];
+    if (rec) parReference[id] = rec;
+  });
+  return parReference;
+}
+
 // ---------------------------------------------------------------------------
 // FACE PROPRIETAIRE — UN SEUL ECRAN, TROIS SECTIONS
 // ---------------------------------------------------------------------------
 // CE QUE CET ECRAN REMPLACE. Il y avait un sommaire, deux sous-menus, et quatre
 // formulaires de reglage en sous-fenetre (« Parametrer » d'une matiere, « Fixer
-// le prix », « Stock maximum »). Le proprietaire ne voyait donc jamais son
-// commerce : il naviguait dedans. Tout tient maintenant sur un ecran -- caisse,
-// produits, matieres -- et chaque valeur modifiable est un champ DANS le
-// tableau. Un champ quitte, une ligne enregistree.
+// le prix », « Stock maximum »), puis une cinquieme pour lancer une fabrication.
+// Le proprietaire ne voyait donc jamais son commerce : il naviguait dedans. Tout
+// tient maintenant sur un ecran -- caisse, produits, matieres -- et chaque geste
+// se fait DANS la ligne : un champ quitte, une ligne enregistree ; un bouton
+// cliqué, une commande partie. Aucun refus n'ouvre de fenetre : il s'ecrit sous
+// la ligne qui l'a provoque.
 //
-// AUCUNE MECANIQUE NE CHANGE ICI. Les primitives appelees sont exactement les
-// memes qu'avant, avec les memes arguments : le serveur reste seul juge du prix
-// maximal, du plafond de stock, de la caisse et de l'identite. Cet ecran ne
-// calcule rien -- il affiche, il recueille, il envoie.
+// AUCUNE MECANIQUE NE CHANGE ICI. Les primitives appelees sont celles qui
+// existaient, aux memes arguments : le serveur reste seul juge du prix maximal,
+// du plafond de stock, des PA, de la caisse et de l'identite. Cet ecran ne
+// calcule rien qui fasse autorite -- il affiche, il recueille, il envoie.
 async function commercePjEcranGestion(ctx) {
-  commercePjChargement(tCommercePJ('commercepj.titre.gestion'));
+  // LA MACHINE NE CLIGNOTE PAS. commercePjChargement peint la modale ORDINAIRE,
+  // donc il retire la coque : acceptable a la premiere ouverture, insupportable
+  // ensuite, puisque chaque geste de cet ecran le redessine (produire, vendre,
+  // donner, prelever). Quand le terminal est deja allume, on ne touche donc a
+  // rien pendant le rechargement -- l'ancien ecran reste lisible et les valeurs
+  // se remplacent d'un coup, sans passage par un carre noir.
+  const boite = document.querySelector('#modal-postes .modal-box');
+  if (!boite || !boite.classList.contains('cpj-machine')) {
+    commercePjChargement(tCommercePJ('commercepj.titre.gestion'));
+  }
   if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
   const f = ctx.fonds || {}, cur = commercePjDevise();
   const refs   = f.references || {};
@@ -659,10 +731,12 @@ async function commercePjEcranGestion(ctx) {
 
   const matieres = await sbFondsMatieresAccessibles(ctx.fondsId);
   const types = await sbGetCatalogueTypes();
+  RP_CPJ_RECETTES = await commercePjRecettesDesReferences(refs);
   const libelleType = {};
   types.forEach(function (t) { libelleType[t.id] = t.libelle; });
   const mesTypes = (f.typesAutorises || []).map(function (id) { return libelleType[id] || id; });
   const plafondMat = matieres.length ? Number(matieres[0].plafond_pays) || 0 : 0;
+  const mesPa = (typeof state !== 'undefined' && typeof state.pa === 'number') ? state.pa : null;
 
   let h = '';
 
@@ -674,11 +748,18 @@ async function commercePjEcranGestion(ctx) {
     commercePjEchapper(mesTypes.length ? mesTypes.join(', ') : '—') + '</div>';
 
   // --- CAISSE -------------------------------------------------------------
+  // LES PA SONT AFFICHES ICI parce qu'ils sont devenus une ressource de cet
+  // ecran : produire depuis la ligne les consomme. Sans ce chiffre, « PA
+  // insuffisants » serait un refus qu'on ne peut pas anticiper.
   h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.caisse')) + '</div>';
   h += '<div class="cpj-caisse">';
   h += '<div class="cpj-solde"><small>' +
     commercePjEchapper(tCommercePJ('commercepj.caisse.solde')) + '</small>' +
     commercePjMontant(f.caisse || 0) + ' ' + cur + '</div>';
+  if (mesPa !== null) {
+    h += '<div class="cpj-solde"><small>' +
+      commercePjEchapper(tCommercePJ('commercepj.caisse.vosPa')) + '</small>' + mesPa + '</div>';
+  }
   h += '<div class="cpj-caisse-actions">';
   h += '<input id="cpj-caisse-montant" class="cpj-champ" type="number" min="1" step="1" value="100" ' +
     'aria-label="' + commercePjEchapper(tCommercePJ('commercepj.caisse.montant')) + '"><em>' + cur + '</em>';
@@ -687,6 +768,7 @@ async function commercePjEcranGestion(ctx) {
   h += commercePjTouche("commercePjCaisseMouvement('prelevement')",
     tCommercePJ('commercepj.caisse.prelever'));
   h += '</div></div>';
+  h += '<div class="cpj-msg" id="cpj-msg-caisse"></div>';
 
   // --- PRODUITS VENDUS ----------------------------------------------------
   h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.produits')) + '</div>';
@@ -704,6 +786,7 @@ async function commercePjEcranGestion(ctx) {
       const maxi  = Math.max(0, Number(maxis[id]) || 0);
       const c = couts[id];
       const dispo = c && c.disponible === true;
+      const rec = RP_CPJ_RECETTES[id] || null;
 
       let etat;
       if (r.active !== true)   etat = tCommercePJ('commercepj.ref.retire');
@@ -726,14 +809,28 @@ async function commercePjEcranGestion(ctx) {
       h += commercePjPicto(r.icon);
       h += '<div class="cpj-nom"><span class="cpj-nom-t">' +
              commercePjEchapper(r.nom || '—') + '</span>' +
-           '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' +
-           '<span class="cpj-actions">' +
-             commercePjTouche("commercePjEcranProduire('" + id + "')",
-               tCommercePJ('commercepj.ref.produire')) +
-             commercePjTouche("commercePjActiver('" + id + "'," + (r.active === true ? 'false' : 'true') + ")",
-               r.active === true ? tCommercePJ('commercepj.ref.retirer')
-                                 : tCommercePJ('commercepj.ref.mettreEnVente')) +
-           '</span></div>';
+           '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>';
+      h += '<span class="cpj-actions">';
+      // FABRICATION EN PLACE. Un produit sans recette ne se fabrique pas : on ne
+      // propose alors ni nombre de lots ni bouton, et on le dit.
+      if (rec) {
+        h += '<em class="cpj-etiq">' + commercePjEchapper(tCommercePJ('commercepj.prod.lots')) + '</em>' +
+          '<input id="cpj-lots-' + id + '" class="cpj-champ cpj-mini" type="number" min="1" max="99" ' +
+            'step="1" value="1" oninput="commercePjResumeLots(\'' + id + '\')" aria-label="' +
+            commercePjEchapper(tCommercePJ('commercepj.prod.lots')) + '">' +
+          commercePjTouche("commercePjProduireLots('" + id + "')",
+            tCommercePJ('commercepj.ref.produire'), true);
+      } else {
+        h += '<em class="cpj-etiq">' +
+          commercePjEchapper(tCommercePJ('commercepj.recette.aucune')) + '</em>';
+      }
+      h += commercePjTouche("commercePjActiver('" + id + "'," + (r.active === true ? 'false' : 'true') + ")",
+             r.active === true ? tCommercePJ('commercepj.ref.retirer')
+                               : tCommercePJ('commercepj.ref.mettreEnVente'));
+      h += '</span>';
+      if (rec) h += '<span class="cpj-resume" id="cpj-resume-' + id + '"></span>';
+      h += '<span class="cpj-msg" id="cpj-msg-' + id + '"></span>';
+      h += '</div>';
       h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-l="' +
              commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
       h += '<span class="cpj-cell" data-l="' +
@@ -761,6 +858,11 @@ async function commercePjEcranGestion(ctx) {
   // UNE SEULE GRANDEUR DEPUIS C7 : le stock maximum. A 0, le commerce n'en veut
   // pas -- et c'est tout ce que le proprietaire a a dire. Il n'y a plus de
   // question « acceptee oui/non » a l'ecran, et le serveur la deduit du chiffre.
+  //
+  // C8 AJOUTE SON INVENTAIRE PERSONNEL. Le proprietaire est un fournisseur comme
+  // un autre : il vend ou donne a son commerce par la MEME primitive que
+  // n'importe quel client, sans aucun raccourci -- memes controles de capacite,
+  // de caisse, de presence et de possession reelle.
   h += '<div class="cpj-titre">' + commercePjEchapper(tCommercePJ('commercepj.tab.matieres')) + '</div>';
   if (!matieres.length) {
     h += '<div class="cpj-vide">' +
@@ -772,6 +874,8 @@ async function commercePjEcranGestion(ctx) {
       const stock = Math.max(0, Number(m.stock) || 0);
       const maxi  = Math.max(0, Number(m.maximum) || 0);
       const prix  = Number(m.prix_achat) || 0;
+      const reste = Math.max(0, Number(m.place_restante) || 0);
+      const jai   = commercePjQuantiteInventaire(cle);
       const sous  = (maxi <= 0) ? tCommercePJ('commercepj.matiere.refusCourt')
                   : (m.utilisee === true ? tCommercePJ('commercepj.matiere.utilisee') : '');
 
@@ -779,8 +883,28 @@ async function commercePjEcranGestion(ctx) {
       h += commercePjPictoMatiere(cle);
       h += '<div class="cpj-nom"><span class="cpj-nom-t">' +
              commercePjEchapper(commercePjLibelleMatiere(cle)) + '</span>' +
-           (sous ? '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' : '') +
-           '</div>';
+           (sous ? '<span class="cpj-sous">' + commercePjEchapper(sous) + '</span>' : '');
+      // APPORT EN PLACE. Les deux touches sont fermees quand l'issue serait un
+      // refus certain : rien en poche, ou plus de place. Le serveur refuserait de
+      // toute facon -- on ne propose simplement pas un geste sans issue.
+      const bloque = (jai <= 0) || (reste <= 0) || (maxi <= 0);
+      h += '<span class="cpj-actions">';
+      h += '<em class="cpj-etiq">' +
+        commercePjEchapper(tCommercePJ('commercepj.appro.vous')) + ' ' +
+        '<b class="' + (jai > 0 ? 'cpj-jai' : '') + '">' + jai + '</b></em>';
+      h += '<em class="cpj-etiq">' + commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '</em>' +
+        '<input id="cpj-appro-' + cle + '" class="cpj-champ cpj-mini" type="number" min="1" step="1" ' +
+          'value="' + Math.max(1, Math.min(jai || 1, reste || 1)) + '" ' +
+          'oninput="commercePjApercuMatiere(\'' + cle + '\')" aria-label="' +
+          commercePjEchapper(tCommercePJ('commercepj.appro.quantite')) + '">';
+      h += commercePjTouche("commercePjApporterDepuisTerminal('" + cle + "','vente')",
+        tCommercePJ('commercepj.appro.vendre'), true, bloque);
+      h += commercePjTouche("commercePjApporterDepuisTerminal('" + cle + "','don')",
+        tCommercePJ('commercepj.appro.donner'), false, bloque);
+      h += '</span>';
+      h += '<span class="cpj-resume" id="cpj-resume-mat-' + cle + '"></span>';
+      h += '<span class="cpj-msg" id="cpj-msg-mat-' + cle + '"></span>';
+      h += '</div>';
       h += '<span class="cpj-num' + (stock <= 0 ? ' cpj-zero' : '') + '" data-l="' +
              commercePjEchapper(tCommercePJ('commercepj.col.stock')) + '">' + stock + '</span>';
       h += '<span class="cpj-cell" data-l="' +
@@ -812,6 +936,18 @@ async function commercePjEcranGestion(ctx) {
   h += '</div>';
 
   commercePjMachine(tCommercePJ('commercepj.titre.gestion'), f.enseigne, h);
+
+  // LES RESUMES SONT CALCULES APRES LE RENDU, par les memes fonctions que les
+  // saisies suivantes : un seul chemin, donc aucun risque que l'affichage initial
+  // et l'affichage apres frappe divergent.
+  cles.forEach(function (id) { if (RP_CPJ_RECETTES[id]) commercePjResumeLots(id); });
+  matieres.forEach(function (m) { commercePjApercuMatiere(m.matiere); });
+
+  // Et on rend au proprietaire le compte rendu de l'action qui a provoque ce rendu.
+  Object.keys(RP_CPJ_MESSAGES).forEach(function (k) {
+    commercePjMessage(k, RP_CPJ_MESSAGES[k].texte, RP_CPJ_MESSAGES[k].ok);
+  });
+  RP_CPJ_MESSAGES = {};
 }
 
 // Les deux sous-menus d'hier sont devenus des SECTIONS du meme ecran. On garde
@@ -912,12 +1048,16 @@ async function commercePjSauverPrixRef(referenceId) {
 async function commercePjCaisseMouvement(sens) {
   const champ = document.getElementById('cpj-caisse-montant');
   const montant = Math.max(0, Math.floor(Number(champ && champ.value) || 0));
-  if (montant <= 0) { showToast('—', commercePjRefus({ raison: 'montant_invalide' }), false); return; }
+  if (montant <= 0) {
+    commercePjMessage('caisse', commercePjRefus({ raison: 'montant_invalide' }), false); return; }
   const ctx = await commercePjContexte();
   const r = (sens === 'apport')
     ? await sbAlimenterCaisseFonds(state.char.name, ctx.fondsId, montant)
     : await sbRetirerCaisseFonds(state.char.name, ctx.fondsId, montant);
-  if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  // UN REFUS RESTE DANS LE TERMINAL, comme tous les autres depuis C8 : il s'ecrit
+  // sous la caisse, et l'ecran n'a pas besoin d'etre redessine puisque rien n'a
+  // bouge -- le montant saisi reste donc a l'ecran, corrigeable.
+  if (!r || !r.ok) { commercePjMessage('caisse', commercePjRefus(r), false); return; }
 
   // LE PATRIMOINE SUIT LE MOUVEMENT, il ne se recalcule pas. Le serveur a deja
   // ecrit `arg` et `liquide` : on applique le meme delta au miroir local, comme
@@ -935,7 +1075,135 @@ async function commercePjCaisseMouvement(sens) {
                commercePjMontant(r.caisse) + ' ' + commercePjDevise();
   showToast(titre, sous, true);
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + sous, 'event-good');
-  commercePjEcranGestion();
+  RP_CPJ_MESSAGES.caisse = { texte: '✓ ' + sous, ok: true };
+  await commercePjEcranGestion();
+}
+
+// ---------------------------------------------------------------------------
+// PRODUIRE DEPUIS LA LIGNE — PLUSIEURS LOTS, UNE SEULE COMMANDE
+// ---------------------------------------------------------------------------
+// L'ancien detour par « Lancer une fabrication » disparait : le proprietaire
+// choisit un nombre de lots dans la ligne du produit, voit ce que cela coute, et
+// produit. L'ecran intermediaire n'avait pas d'autre appelant que celui-ci -- il
+// est donc supprime plutot que laisse mort (voir plus bas, section PRODUIRE).
+// La face publique n'est pas touchee : un visiteur fabrique toujours un lot a la
+// fois depuis commercePjEcranTravail, par commercePjProduire.
+//
+// LE RESUME N'EST QU'UN AFFICHAGE. Il multiplie les chiffres de la recette pour
+// annoncer la commande ; il ne decide rien, n'interdit rien, et n'est jamais
+// renvoye au serveur. C'est le serveur qui recalcule matieres, PA, salaire,
+// capacite et caisse, et qui refuse -- avec ses propres nombres.
+function commercePjResumeLots(referenceId) {
+  const zone = document.getElementById('cpj-resume-' + referenceId);
+  const rec  = RP_CPJ_RECETTES[referenceId];
+  if (!zone || !rec) return;
+  const champ = document.getElementById('cpj-lots-' + referenceId);
+  const lots  = Math.max(1, Math.min(99, Math.floor(Number(champ && champ.value) || 1)));
+  const parts = [];
+  parts.push((Number(rec.portions) || 0) * lots + ' ' + tCommercePJ('commercepj.recette.unites'));
+  Object.keys(rec.materiaux || {}).forEach(function (m) {
+    parts.push(((Number(rec.materiaux[m]) || 0) * lots) + ' ' + commercePjLibelleMatiere(m));
+  });
+  const pa = (Number(rec.pa) || 0) * lots;
+  if (pa > 0) parts.push(pa + ' ' + tCommercePJ('commercepj.prod.pa'));
+  const valeurPa = commercePjValeurPa();
+  if (valeurPa !== null && pa > 0) {
+    parts.push(tCommercePJ('commercepj.travail.salaire') + ' ' +
+               commercePjMontant(pa * valeurPa) + ' ' + commercePjDevise());
+  }
+  zone.textContent = '→ ' + parts.join(' · ');
+}
+
+async function commercePjProduireLots(referenceId) {
+  const champ = document.getElementById('cpj-lots-' + referenceId);
+  const lots  = Math.max(1, Math.min(99, Math.floor(Number(champ && champ.value) || 1)));
+  commercePjMessage(referenceId, tCommercePJ('commercepj.prod.enCours'), true);
+  const ctx = await commercePjContexte();
+  // UNE SEULE CLE POUR TOUTE LA COMMANDE : un double clic rejoue la meme cle et ne
+  // produit donc pas une seconde fois les memes lots.
+  const r = await sbFondsReferenceProduireLots(nouvelleCleProduction(), state.char.name,
+                                               ctx.fondsId, referenceId, lots);
+  // PAS DE MODALE SUR UN REFUS. Le motif s'ecrit sous la ligne, avec les chiffres
+  // que le serveur a opposes -- matiere manquante, capacite, PA, caisse.
+  if (!r || !r.ok) { commercePjMessage(referenceId, commercePjRefus(r), false); return; }
+  if (r.rejeu === true) { await commercePjEcranGestion(); return; }
+
+  // L'ECRAN SUIT CE QUE LE SERVEUR A DEJA ECRIT : ni PA ni salaire ne sont
+  // recalcules ici, on applique ce que la transaction rend.
+  if (typeof state !== 'undefined') {
+    if (typeof r.paRestants === 'number') state.pa = r.paRestants;
+    if (Number(r.salaire) > 0) {
+      state.arg     = (Number(state.arg) || 0)     + Number(r.salaire);
+      state.liquide = (Number(state.liquide) || 0) + Number(r.salaire);
+    }
+  }
+  if (typeof updateUI === 'function') updateUI();
+  const compte = r.quantite + ' ' + tCommercePJ('commercepj.recette.unites') +
+    (Number(r.salaire) > 0
+      ? (' · ' + commercePjMontant(r.salaire) + ' ' + commercePjDevise() + ' ' +
+         tCommercePJ('commercepj.prod.verses'))
+      : '');
+  if (typeof addJournalEntry === 'function') {
+    addJournalEntry(tCommercePJ('commercepj.produire.fait') + ' : ' + compte, 'event-good');
+  }
+  RP_CPJ_MESSAGES[referenceId] = { texte: '✓ ' + compte, ok: true };
+  await commercePjEcranGestion();
+}
+
+// ---------------------------------------------------------------------------
+// VENDRE OU DONNER SES PROPRES MATIERES, DEPUIS LE TERMINAL
+// ---------------------------------------------------------------------------
+// AUCUN RACCOURCI PARCE QU'IL EST PROPRIETAIRE. C'est la primitive d'apport de
+// C6, celle qu'utilise n'importe quel client : possession reelle relue en base,
+// presence physique, capacite restante, caisse du commerce, prix de rachat
+// configure, idempotence par cle. Le proprietaire est un fournisseur comme un
+// autre -- et il l'etait deja par la face publique, qui coutait deux ecrans.
+function commercePjApercuMatiere(matiere) {
+  const zone = document.getElementById('cpj-resume-mat-' + matiere);
+  if (!zone) return;
+  const champ = document.getElementById('cpj-appro-' + matiere);
+  const qte   = Math.max(0, Math.floor(Number(champ && champ.value) || 0));
+  const prix  = Number((document.getElementById('cpj-m-prix-' + matiere) || {}).value) || 0;
+  if (qte <= 0) { zone.textContent = ''; return; }
+  zone.textContent = qte + ' ' + commercePjLibelleMatiere(matiere) + ' → ' +
+    commercePjMontant(qte * prix) + ' ' + commercePjDevise();
+}
+
+async function commercePjApporterDepuisTerminal(matiere, mode) {
+  const champ = document.getElementById('cpj-appro-' + matiere);
+  const qte   = Math.max(0, Math.floor(Number(champ && champ.value) || 0));
+  if (qte <= 0) {
+    commercePjMessage('mat-' + matiere, commercePjRefus({ raison: 'quantite_invalide' }), false); return; }
+  commercePjMessage('mat-' + matiere, tCommercePJ('commercepj.prod.enCours'), true);
+  const ctx = await commercePjContexte();
+  const r = await sbFondsMatiereApporter(nouvelleCleApport(), state.char.name,
+                                         ctx.fondsId, matiere, qte, mode);
+  if (!r || !r.ok) { commercePjMessage('mat-' + matiere, commercePjRefus(r), false); return; }
+
+  // L'inventaire rendu par la transaction fait autorite : on ne le recalcule pas.
+  if (r.inventory && typeof state !== 'undefined') {
+    state.inventory = r.inventory;
+    if (typeof renderInventory === 'function') renderInventory();
+  }
+  if (Number(r.montant) > 0 && typeof state !== 'undefined') {
+    state.arg     = (Number(state.arg) || 0)     + Number(r.montant);
+    state.liquide = (Number(state.liquide) || 0) + Number(r.montant);
+  }
+  if (typeof updateUI === 'function') updateUI();
+
+  let compte = commercePjLibelleMatiere(matiere) + ' × ' + r.quantite;
+  if (Number(r.montant) > 0) compte += ' · ' + commercePjMontant(r.montant) + ' ' + commercePjDevise();
+  // LE SERVEUR BORNE LA QUANTITE et le dit : une commande partiellement honoree
+  // n'est pas un echec, mais le proprietaire doit le savoir.
+  if (Number(r.quantite) < Number(r.demandee)) {
+    compte += ' · ' + tCommercePJ('commercepj.appro.partiel',
+      { faites: r.quantite, voulues: r.demandee });
+  }
+  const titre = (mode === 'don') ? tCommercePJ('commercepj.appro.donne')
+                                 : tCommercePJ('commercepj.appro.vendu');
+  if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + compte);
+  RP_CPJ_MESSAGES['mat-' + matiere] = { texte: '✓ ' + compte, ok: true };
+  await commercePjEcranGestion();
 }
 
 // ---------------------------------------------------------------------------
@@ -1090,74 +1358,29 @@ async function commercePjCreerReference(generiqueId, recetteId) {
 }
 
 // ---------------------------------------------------------------------------
-// PRODUIRE
+// PRODUIRE — L'ECRAN INTERMEDIAIRE A DISPARU
 // ---------------------------------------------------------------------------
-// L'ecran montre ce que la recette demande et ce que le commerce possede. Le
-// client n'envoie ensuite QUE l'identifiant de la reference.
-async function commercePjEcranProduire(referenceId) {
-  commercePjChargement(tCommercePJ('commercepj.produire.titre'));
-  const ctx = await commercePjContexte();
-  const ref = ((ctx.fonds || {}).references || {})[referenceId];
-  if (!ref) { showToast('—', commercePjRefus({ raison: 'reference_absente' }), false); return; }
-  const recs = await sbGeneriqueRecettesSysteme(ref.generique_id);
-  const rec = recs.filter(function (x) { return x.recette_id === ref.recette_id; })[0];
-  const f = ctx.fonds || {};
-  const stocks = f.stockMatieres || {};
-  const cur = commercePjDevise();
-  const stockRef = Math.max(0, Number((f.stockReferences || {})[referenceId]) || 0);
-  const maxiRef  = Math.max(0, Number(((f.parametres || {}).stockMaxReferences || {})[referenceId]) || 0);
-  const salaireParPa = commercePjValeurPa();
+// commercePjEcranProduire est SUPPRIMEE apres audit (29 septembre 2026). C'etait
+// l'ecran « Lancer une fabrication », et il n'etait atteint que depuis la gestion
+// du proprietaire, qui fabrique maintenant dans la ligne du produit. Recherche
+// faite sur tout le depot avant de la retirer : plus aucun appelant, ni dans les
+// .js, ni dans plateau.html, ni dans un onclick construit -- la face publique,
+// elle, appelle commercePjProduire directement depuis commercePjEcranTravail.
+//
+// On ne garde donc pas un module mort : dans ce fichier, un export orphelin a
+// deja fait tomber le cron de minuit, et une fonction sans appelant est la meme
+// dette a retardement.
 
-  let html = '<div style="padding:1.1rem">';
-  html += '<div style="font-family:Playfair Display,serif;color:#E8C97A;margin-bottom:.6rem">' +
-    commercePjEchapper(ref.nom || '—') + '</div>';
-  if (!rec) {
-    html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
-      commercePjEchapper(tCommercePJ('commercepj.recette.aucune')) + '</p>';
-  } else {
-    html += '<div style="border:1px solid #2a2620;padding:.6rem .8rem;margin-bottom:.8rem">' +
-      '<div style="color:#c0b090;font-size:.88rem;margin-bottom:.35rem">' + commercePjEchapper(rec.label) + '</div>' +
-      commercePjRecetteLisible(rec) + '</div>';
-    const salaire = (salaireParPa === null) ? null
-      : Math.max(0, Number(rec.pa) || 0) * salaireParPa;
-    html += '<div style="border:1px solid #2a2620;padding:.55rem .75rem;margin-bottom:.8rem">';
-    html += commercePjLigne(tCommercePJ('commercepj.travail.rendement'),
-      rec.portions + ' ' + tCommercePJ('commercepj.recette.unites'));
-    if (salaire !== null) {
-      html += commercePjLigne(tCommercePJ('commercepj.travail.salaire'),
-        commercePjMontant(salaire) + ' ' + cur);
-    }
-    html += commercePjLigne(tCommercePJ('commercepj.travail.stockCommerce'),
-      stockRef + ' / ' + commercePjEchapper(commercePjMaximumLisible(maxiRef)));
-    html += '</div>';
-    html += '<div style="font-size:.78rem;letter-spacing:.08em;color:#6a6050;margin-bottom:.3rem">' +
-      commercePjEchapper(tCommercePJ('commercepj.produire.vosStocks')) + '</div>';
-    Object.keys(rec.materiaux || {}).forEach(function (m) {
-      const a = Math.max(0, Number(stocks[m]) || 0), b = Number(rec.materiaux[m]) || 0;
-      html += commercePjLigne(commercePjLibelleMatiere(m),
-        '<span style="color:' + (a >= b ? '#6fa07a' : '#a05a4a') + '">' + a + ' / ' + b + '</span>');
-    });
-    const lotTient = (maxiRef === 0) || (stockRef + Number(rec.portions) <= maxiRef);
-    if (!lotTient) {
-      html += '<div style="font-size:.78rem;color:#8c6a3a;margin-top:.5rem">' +
-        commercePjEchapper(tCommercePJ('commercepj.refus.stock_max_reference_depasse',
-          { rendement: rec.portions, maximum: maxiRef, stock: stockRef })) + '</div>';
-    }
-    html += '<div style="margin-top:.9rem">' +
-      commercePjBouton("commercePjProduire('" + referenceId + "','" + nouvelleCleProduction() + "','gestion')",
-        tCommercePJ('commercepj.produire.confirmer'), true, !lotTient) + '</div>';
-  }
-  html += '<div style="margin-top:.9rem">' +
-    commercePjBouton('commercePjEcranArticles()', tCommercePJ('commercepj.retour.gestion')) + '</div>';
-  html += '</div>';
-  commercePjModale(tCommercePJ('commercepj.produire.titre'), html);
-}
 
 // La cle de requete est fabriquee A L'OUVERTURE de l'ecran et passee telle quelle :
 // un double clic rejoue la meme cle et ne produit donc qu'un seul lot.
-// UNE SEULE RPC, DEUX PORTES. Le proprietaire produit depuis sa gestion, le
-// visiteur depuis la face publique : aucune logique economique n'est dupliquee,
-// seul le retour differe. `origine` ne sert QU'A CA.
+//
+// LE CHEMIN DU VISITEUR, ET LUI SEUL depuis C8. Le proprietaire ne passe plus par
+// ici : il commande ses lots depuis son terminal (commercePjProduireLots), qui
+// appelle la porte multi-lots. Les deux chemins tombent sur la MEME economie
+// serveur -- fonds_reference_produire n'est plus qu'un relais vers elle avec
+// 1 lot. `origine` ne sert toujours qu'a choisir l'ecran de retour, et seule la
+// valeur 'publique' est encore emise ; l'autre branche reste un repli inoffensif.
 async function commercePjProduire(referenceId, requete, origine) {
   const ctx = await commercePjContexte();
   const r = await sbFondsReferenceProduire(requete, state.char.name, ctx.fondsId, referenceId);

@@ -1678,3 +1678,25 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   .cpj-caisse-actions{margin-left:0;width:100%}
 }
 @media(prefers-reduced-motion:reduce){.cpj-led{animation:none}}
+
+/* --- C8 : agir DANS la ligne (nombre de lots, quantite, resume, messages) ---
+   Aucun element du terminal n'est redessine : on ajoute trois briques dans la
+   cellule du nom, la seule qui s'etire. Les colonnes de chiffres, la coque et
+   l'ecran restent exactement ce qu'ils etaient. */
+.cpj-champ.cpj-mini{width:40px;padding:.18rem .22rem}
+.cpj-etiq{font-style:normal;color:#a08a5a;font-size:.7rem;letter-spacing:.09em;
+  text-transform:uppercase;white-space:nowrap}
+.cpj-etiq .cpj-jai{color:#f0c46a}
+/* Le resume de la commande : ce que les lots choisis vont reellement couter. */
+.cpj-resume{display:block;color:#c9a862;font-size:.75rem;margin-top:.22rem;
+  line-height:1.4}
+/* Le compte rendu, a la place exacte du geste. Un refus ne quitte plus le
+   terminal : il s'ecrit ici, avec les chiffres opposes par le serveur. */
+.cpj-msg{display:block;font-size:.76rem;margin-top:.18rem;line-height:1.4}
+.cpj-msg:empty{display:none}
+.cpj-msg-ok{color:#7fc894}
+.cpj-msg-ko{color:#e0954f}
+@media(max-width:720px){
+  .cpj-resume,.cpj-msg{flex:1 1 100%}
+  .cpj-etiq{font-size:.66rem}
+}

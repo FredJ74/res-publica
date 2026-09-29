@@ -2515,6 +2515,27 @@ async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId
   });
 }
 
+// PLUSIEURS LOTS EN UNE COMMANDE (C8, 29 septembre 2026). Ce n'est PAS la boucle
+// que le navigateur pourrait faire tout seul : N appels seraient N transactions,
+// et une commande de 4 lots dont le 4e manque de matiere laisserait au joueur
+// une demi-production qu'il n'a pas demandee -- PA depenses, caisse entamee,
+// rien a annuler. La commande entiere est donc une seule transaction serveur,
+// qui refuse tout ou fait tout.
+//
+// AUCUNE VALEUR MECANIQUE N'EST ENVOYEE, la regle du fichier tient : on transmet
+// le nombre de lots VOULUS, et rien d'autre. Matieres, PA, salaire, capacite et
+// caisse sont recalcules et opposes par le serveur.
+//
+// fonds_reference_produire reste une porte distincte -- meme nom, memes quatre
+// arguments -- et relaie vers celle-ci avec 1 lot : le parcours visiteur ne
+// change pas d'un caractere, et PostgREST ne voit aucune surcharge.
+async function sbFondsReferenceProduireLots(requete, acteurRef, fondsId, referenceId, lots) {
+  return sbRpcVerdict('fonds_reference_produire_lots', {
+    p_requete: requete, p_acteur: acteurRef, p_fonds_id: fondsId,
+    p_reference_id: referenceId, p_lots: lots
+  });
+}
+
 // ---------------------------------------------------------------------------
 // C6 — APPROVISIONNEMENT EN MATIERES PREMIERES
 // ---------------------------------------------------------------------------
