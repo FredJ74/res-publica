@@ -1525,3 +1525,156 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 @keyframes resBadgePop{0%{opacity:0;transform:translateX(-50%) scale(.3)}70%{opacity:1;transform:translateX(-50%) scale(1.15)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
 
 @keyframes resFadeIn{to{opacity:1}}
+
+/* ===========================================================================
+   ORDINATEUR DE GESTION D'UN COMMERCE PJ  (C7, 29 septembre 2026)
+   ---------------------------------------------------------------------------
+   La FENETRE est la machine. Le boitier beige, l'ecran encastre et la plaque
+   sont dessines en CSS -- aucune image de fond, aucun asset : le decor doit
+   couter un telechargement de zero octet et rester net a toutes les tailles.
+
+   TROIS REGLES QUE CE BLOC NE DOIT JAMAIS TRAHIR :
+   1. La nostalgie ne prime pas sur la lisibilite. Les scanlines sont a .03
+      d'opacite, il n'y a AUCUN scintillement du texte, et la seule animation
+      est la LED de fonctionnement -- desactivee sous prefers-reduced-motion.
+   2. Le decor ne mange pas la surface utile. Sur mobile le boitier se reduit a
+      un lisere, l'ecran prend tout, et le tableau passe en deux lignes.
+   3. Tout est prefixe .cpj- et porte par la classe .cpj-machine, posee et
+      retiree par plateau-commerce-pj.js : les autres usages de #modal-postes
+      (organigramme, journal, Helvetia) ne voient jamais ce style.
+   =========================================================================== */
+#modal-postes .modal-box.cpj-machine{
+  max-width:1180px;width:90%;max-height:90vh;
+  background:linear-gradient(168deg,#d4c9ae 0%,#c3b79a 42%,#ab9f83 100%);
+  border:1px solid #6f6449;border-radius:9px;padding:0;overflow:hidden;
+  box-shadow:0 26px 60px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,255,255,.55),
+             inset 0 -2px 0 rgba(0,0,0,.22);
+  display:flex;flex-direction:column;
+}
+/* L'en-tete standard de la modale n'a pas sa place sur une coque beige : la
+   machine porte sa propre plaque et sa propre touche de fermeture. */
+#modal-postes .modal-box.cpj-machine .modal-header{display:none}
+
+/* --- Coque : plaque gravee, LED de fonctionnement, rainures d'aeration --- */
+.cpj-fronton{display:flex;align-items:center;gap:.75rem;padding:.6rem .95rem .55rem;
+  border-bottom:1px solid rgba(0,0,0,.2)}
+.cpj-plaque{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.17em;
+  font-size:.74rem;color:#4a4130;text-shadow:0 1px 0 rgba(255,255,255,.5);
+  padding:.2rem .5rem;border:1px solid rgba(0,0,0,.24);border-radius:2px;
+  background:linear-gradient(#c8bda1,#b3a789);white-space:nowrap}
+.cpj-led{width:7px;height:7px;border-radius:50%;flex:0 0 auto;
+  background:#57d07a;box-shadow:0 0 5px 1px rgba(87,208,122,.85),inset 0 0 2px rgba(0,0,0,.3);
+  animation:cpjLed 3.2s ease-in-out infinite}
+@keyframes cpjLed{0%,100%{opacity:1}50%{opacity:.55}}
+.cpj-grilles{flex:1 1 auto;height:9px;min-width:22px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.17) 0 2px,transparent 2px 5px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.cpj-enseigne{font-family:Playfair Display,Georgia,serif;font-size:.9rem;color:#3d3526;
+  text-shadow:0 1px 0 rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:38%}
+.cpj-eteindre{flex:0 0 auto;width:26px;height:22px;border-radius:3px;cursor:pointer;
+  border:1px solid rgba(0,0,0,.3);background:linear-gradient(#cfc4a7,#a89c80);
+  color:#3d3526;font-size:.8rem;line-height:1;display:flex;align-items:center;
+  justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.cpj-eteindre:active{background:linear-gradient(#a89c80,#cfc4a7)}
+.cpj-socle{height:11px;flex:0 0 auto;border-top:1px solid rgba(0,0,0,.2);
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.1) 0 3px,transparent 3px 9px)}
+
+/* --- Ecran encastre : phosphore ambre, monospace, contraste confortable --- */
+.cpj-ecran{position:relative;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;
+  margin:0 .8rem;padding:1rem 1.1rem 1.2rem;
+  background:radial-gradient(120% 130% at 50% 0%,#1b150c 0%,#0f0c07 70%,#0a0805 100%);
+  border:1px solid #2d2618;border-radius:4px;
+  box-shadow:inset 0 0 26px rgba(0,0,0,.95),inset 0 0 2px rgba(242,198,109,.14);
+  font-family:"Courier New",Consolas,monospace;color:#f0c46a;
+  font-size:.95rem;line-height:1.55}
+/* Scanlines : decoratives et non interactives. A .03 elles se devinent sans
+   jamais brouiller un chiffre -- c'est la limite a ne pas franchir. */
+.cpj-ecran::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+.cpj-ecran > *{position:relative;z-index:1}
+
+.cpj-titre{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.16em;
+  font-size:.92rem;color:#ffd98a;margin:1.15rem 0 .4rem;
+  border-bottom:1px solid rgba(240,196,106,.28);padding-bottom:.2rem}
+.cpj-titre:first-child{margin-top:0}
+.cpj-note{color:#a08a5a;font-size:.8rem;margin:.1rem 0 .45rem;line-height:1.5}
+.cpj-vide{color:#8d7a52;font-size:.85rem;font-style:italic;padding:.3rem 0}
+
+/* --- Caisse --- */
+.cpj-caisse{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem .85rem;
+  padding:.55rem 0 .2rem}
+.cpj-solde{font-size:1.5rem;color:#ffd98a;letter-spacing:.04em}
+.cpj-solde small{font-size:.8rem;color:#a08a5a;letter-spacing:.14em;
+  display:block;margin-bottom:.05rem}
+.cpj-caisse-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;
+  margin-left:auto}
+
+/* --- Tableaux : une grille, la meme pour l'en-tete et les lignes --- */
+.cpj-grille{display:grid;grid-template-columns:26px minmax(0,1fr) 62px 92px 116px;
+  align-items:center;gap:.3rem .6rem;padding:.3rem 0;
+  border-bottom:1px dotted rgba(240,196,106,.14)}
+.cpj-grille.cpj-entetes{border-bottom:1px solid rgba(240,196,106,.3);
+  color:#a08a5a;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase}
+.cpj-grille:last-child{border-bottom:0}
+.cpj-chip{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(240,196,106,.3);border-radius:2px;color:#e8bf72;font-size:.85rem;
+  background:rgba(240,196,106,.07)}
+/* La cellule du nom porte aussi l'etat du produit et ses deux commandes : c'est
+   elle qui s'etire, jamais les colonnes de chiffres. */
+.cpj-nom{color:#f4d491;min-width:0}
+.cpj-nom-t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cpj-sous{display:block;color:#8d7a52;font-size:.72rem;letter-spacing:.03em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpj-actions{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.28rem}
+.cpj-actions .cpj-touche{font-size:.68rem;padding:.16rem .45rem;letter-spacing:.07em}
+.cpj-num{text-align:right;color:#f0c46a;font-variant-numeric:tabular-nums}
+.cpj-num.cpj-zero{color:#8d7a52}
+.cpj-cell{display:flex;align-items:center;gap:.3rem;justify-content:flex-end}
+.cpj-cell em{font-style:normal;color:#a08a5a;font-size:.76rem}
+.cpj-champ{width:62px;padding:.24rem .3rem;text-align:right;
+  font-family:inherit;font-size:.9rem;color:#ffd98a;background:#070503;
+  border:1px solid rgba(240,196,106,.35);border-radius:2px;
+  font-variant-numeric:tabular-nums}
+.cpj-champ:focus{outline:0;border-color:#ffd98a;background:#0d0a05;
+  box-shadow:0 0 0 1px rgba(255,217,138,.35)}
+.cpj-champ:disabled{color:#8d7a52;border-color:rgba(240,196,106,.15);cursor:not-allowed}
+/* Une matiere que le commerce refuse (maximum 0) reste visible et reste
+   modifiable : elle s'efface seulement, elle ne disparait jamais. */
+.cpj-grille.cpj-refuse .cpj-nom,
+.cpj-grille.cpj-refuse .cpj-chip{opacity:.5}
+
+/* --- Touches --- */
+.cpj-touche{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.1em;
+  font-size:.78rem;padding:.35rem .75rem;cursor:pointer;border-radius:2px;
+  color:#f0c46a;background:rgba(240,196,106,.06);
+  border:1px solid rgba(240,196,106,.35)}
+.cpj-touche:hover:not(:disabled){background:rgba(240,196,106,.16);color:#ffd98a}
+.cpj-touche:disabled{color:#6f6040;border-color:rgba(240,196,106,.14);cursor:default}
+.cpj-touche.cpj-primaire{border-color:#ffd98a;color:#ffd98a}
+.cpj-barre{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.3rem;
+  padding-top:.8rem;border-top:1px solid rgba(240,196,106,.2)}
+
+/* --- Mobile : l'identite reste, le decor s'efface devant la surface utile --- */
+@media(max-width:720px){
+  #modal-postes .modal-box.cpj-machine{width:97%;max-height:94vh;border-radius:6px}
+  .cpj-fronton{padding:.4rem .5rem .35rem;gap:.45rem}
+  .cpj-plaque{font-size:.6rem;letter-spacing:.1em;padding:.15rem .3rem}
+  .cpj-enseigne{font-size:.78rem;max-width:32%}
+  .cpj-grilles{display:none}
+  .cpj-socle{height:6px}
+  .cpj-ecran{margin:0 .3rem;padding:.7rem .6rem 1rem;font-size:.88rem}
+  /* La grille en colonnes ne tient pas sur 400 px sans rendre les champs
+     inutilisables. On passe donc en lignes qui se replient, et chaque chiffre
+     porte son propre intitule : AUCUNE colonne n'est supprimee -- le
+     proprietaire doit tout voir et tout modifier sur telephone aussi. */
+  .cpj-grille{display:flex;flex-wrap:wrap;gap:.3rem .7rem;padding:.5rem 0}
+  .cpj-grille.cpj-entetes{display:none}
+  .cpj-nom{flex:1 1 55%;white-space:normal}
+  .cpj-num{margin-left:auto}
+  .cpj-cell::before,.cpj-num::before{content:attr(data-l) " ";color:#8d7a52;
+    font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+  .cpj-solde{font-size:1.25rem}
+  .cpj-caisse-actions{margin-left:0;width:100%}
+}
+@media(prefers-reduced-motion:reduce){.cpj-led{animation:none}}

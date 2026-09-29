@@ -2529,8 +2529,11 @@ async function sbFondsReferenceProduire(requete, acteurRef, fondsId, referenceId
 // encore cree la reference qui le consommera. Elle remplace
 // sbFondsMatieresRecherchees dans l'ecran de gestion et dans la face publique.
 //
-// `acceptee` est SA decision, jamais une deduction : une matiere accessible
-// reste fermee aux apports tant qu'il ne l'ouvre pas.
+// UNE SEULE GRANDEUR DEPUIS C7 (29 septembre 2026) : le stock maximum. Il vaut 2
+// par defaut, et 0 veut dire que le commerce ne veut pas de cette matiere. La
+// colonne `acceptee` est desormais CALCULEE par le serveur (maximum > 0) : elle
+// reste dans le contrat -- c'est la garde que lit fonds_matiere_apporter -- mais
+// elle n'est plus un reglage separe, ni cote joueur ni en base.
 async function sbFondsMatieresAccessibles(fondsId) {
   const rows = await sbRpc('fonds_matieres_accessibles', { p_fonds_id: fondsId });
   return Array.isArray(rows) ? rows : [];
@@ -2545,11 +2548,14 @@ async function sbFondsMatieresRecherchees(fondsId) {
 
 // Prix de rachat LIBRE (le proprietaire decide) et maximum par matiere, borne
 // par la politique du pays. Le serveur revalide les deux.
-// TROIS REGLAGES, PAS DEUX (29 septembre 2026). `acceptee` a ete ajoute parce que
-// « maximum = 0 » portait deux sens contradictoires : illimite, et refuse. Il ne
-// veut plus dire qu'une chose -- illimite -- et le refus se dit explicitement.
-// L'ancienne signature a 5 arguments a ete SUPPRIMEE cote serveur : deux
-// fonctions de meme nom auraient fait repondre PostgREST par une ambiguite.
+// DEUX REGLAGES (C7, 29 septembre 2026). L'histoire de cette signature tient en
+// deux temps : « maximum = 0 » a d'abord porte deux sens contradictoires --
+// illimite et refuse --, ce qui a fait ajouter `acceptee` ; puis 0 a ete fixe sur
+// le seul sens de « refuse », et l'acceptation s'en deduit. `acceptee` est donc
+// encore ENVOYE mais IGNORE du serveur : on garde la signature parce que deux
+// fonctions de meme nom feraient repondre PostgREST par une ambiguite (300), et
+// qu'un client pas encore deploye ne doit pas tomber. On lui passe (maximum > 0)
+// pour qu'un appel reste lisible.
 async function sbFondsMatiereParametres(acteurRef, fondsId, matiere, prixAchat, maximum, acceptee) {
   return sbRpcVerdict('fonds_matiere_parametres', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_matiere: matiere,
