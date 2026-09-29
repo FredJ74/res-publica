@@ -1850,6 +1850,67 @@ async function sbMilitaireRationConsommer() {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// =====================================================================
+// TERMINAL DE SECTION DU LIEUTENANT (lot T, 29 septembre 2026)
+// =====================================================================
+// CINQ PORTES, ET AUCUN IDENTIFIANT DE SECTION TRANSMIS. Le serveur resout
+// lui-meme la section dont l'appelant est le Lieutenant : le navigateur n'a donc
+// plus besoin de lire compagnies_militaires pour savoir quoi demander. C'est ce
+// qui permet a ce terminal de ne PAS s'appuyer sur la policy de lecture, qui
+// ouvre aujourd'hui l'ordre de bataille complet a tout joueur du pays.
+//
+// Un joueur qui n'est pas Lieutenant d'une section recoit le meme refus sur les
+// cinq portes -- Capitaine, Commandant et Ministre de la Defense compris.
+
+// Cle d'idempotence, fabriquee AVANT le geste. Meme forme que nouvelleCleApport
+// (C6) et nouvelleCleCamion : rejouer la meme cle rend le meme resultat sans
+// second transfert ni second ordre.
+function nouvelleCleMilitaire() {
+  return 'mil-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+// Tout l'ecran en UN appel : soldats, PA, arme deduite, position reduite a la
+// VILLE, possessions et inventaire du Lieutenant regroupes par signature,
+// capacite reelle sous tente.
+async function sbMilitaireTerminalSection() {
+  return sbRpcVerdict('militaire_terminal_section', {});
+}
+
+// N unites d'une SIGNATURE, dans les deux sens. Aucune liste blanche d'objets :
+// le filtre `produitMilitaire` de l'ancien ecran d'equipement disparait, et un
+// objet qui n'existe pas encore passera par la meme porte.
+async function sbMilitaireTerminalTransferer(requete, matricule, signature, quantite, sens) {
+  return sbRpcVerdict('militaire_terminal_transferer', {
+    p_requete: requete, p_matricule: matricule, p_signature: signature,
+    p_qte: quantite, p_sens: sens
+  });
+}
+
+// La ration est un BONUS, pas une condition : un soldat qui n'en a pas execute
+// l'ordre sans gain, et la ration du Lieutenant n'est jamais prelevee pour lui.
+async function sbMilitaireTerminalManger(requete, matricules) {
+  return sbRpcVerdict('militaire_terminal_manger', {
+    p_requete: requete, p_matricules: matricules
+  });
+}
+
+// Le second tableau designe ceux qui ont une place sous la tente. Le serveur
+// refuse l'ordre ENTIER si la selection depasse la capacite : attribuer les
+// places a la place du joueur serait decider pour lui.
+async function sbMilitaireTerminalDormir(requete, matricules, sousTente) {
+  return sbRpcVerdict('militaire_terminal_dormir', {
+    p_requete: requete, p_matricules: matricules, p_tentes: sousTente
+  });
+}
+
+// Rappel aupres du Lieutenant, a l'echelle de la VILLE. Une autre ville est
+// refusee nommement : le transport reste le camion militaire existant.
+async function sbMilitaireTerminalRejoindre(requete, matricules) {
+  return sbRpcVerdict('militaire_terminal_rejoindre', {
+    p_requete: requete, p_matricules: matricules
+  });
+}
+
 // ---- SOLDES MILITAIRES (phase 2, 18 septembre 2026) ----
 // Le payeur est la CAISSE DE LA CASERNE, plus jamais une creation monetaire cliente. Registre
 // quotidien a cle unique « nom:jour » qui sert d'anti-rejeu, debit PLAFONNE par la caisse, et la

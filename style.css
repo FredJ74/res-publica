@@ -1581,7 +1581,11 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   background:repeating-linear-gradient(90deg,rgba(0,0,0,.1) 0 3px,transparent 3px 9px)}
 
 /* --- Ecran encastre : phosphore ambre, monospace, contraste confortable --- */
-.cpj-ecran{position:relative;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;
+/* min-height:0 N'EST PAS UNE PRECAUTION : sans elle, un enfant de flex ne se
+   reduit jamais sous la taille de son contenu, et cette zone -- pourtant en
+   overflow-y:auto -- ne defile pas. C'est ce qui a rendu inaccessibles les
+   dernieres lignes de ce terminal (constate le 29 septembre 2026). */
+.cpj-ecran{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   margin:0 .8rem;padding:1rem 1.1rem 1.2rem;
   background:radial-gradient(120% 130% at 50% 0%,#1b150c 0%,#0f0c07 70%,#0a0805 100%);
   border:1px solid #2d2618;border-radius:4px;
@@ -1699,4 +1703,164 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 @media(max-width:720px){
   .cpj-resume,.cpj-msg{flex:1 1 100%}
   .cpj-etiq{font-size:.66rem}
+}
+
+/* ===========================================================================
+   TERMINAL DE SECTION DU LIEUTENANT  (lot T, 29 septembre 2026)
+   ---------------------------------------------------------------------------
+   1987 dans l'apparence, 2026 dans l'ergonomie. Coque gris militaire, ecran a
+   phosphore VERT -- identite distincte du terminal de commerce, qui est ambre :
+   on ne doit pas confondre une boutique et un poste de commandement.
+
+   LE DEFAUT QUE CE BLOC NE REPRODUIT PAS. Un enfant de conteneur flex ne se
+   reduit JAMAIS sous la taille de son contenu sans `min-height:0` : c'est ce qui
+   rend une zone `overflow-y:auto` non defilable, et c'est exactement ce qui est
+   arrive au terminal de commerce. `.mil-ecran` porte donc `min-height:0`, et
+   c'est lui qui defile -- jamais la coque, jamais la modale.
+
+   Pas de scanlines, pas de flou CRT, pas de police minuscule : la nostalgie
+   s'arrete ou commence la lisibilite.
+   =========================================================================== */
+#modal-postes .modal-box.mil-machine{
+  max-width:1320px;width:94%;max-height:92vh;
+  background:linear-gradient(168deg,#8f938c 0%,#7c8079 45%,#63665f 100%);
+  border:1px solid #3e423c;border-radius:7px;padding:0;overflow:hidden;
+  box-shadow:0 26px 60px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.35),
+             inset 0 -2px 0 rgba(0,0,0,.3);
+  display:flex;flex-direction:column;
+}
+#modal-postes .modal-box.mil-machine .modal-header{display:none}
+
+/* --- Coque --- */
+.mil-fronton{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem .5rem;
+  border-bottom:1px solid rgba(0,0,0,.32);flex:0 0 auto}
+.mil-plaque{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.16em;
+  font-size:.74rem;color:#22261f;text-shadow:0 1px 0 rgba(255,255,255,.28);
+  padding:.2rem .55rem;border:1px solid rgba(0,0,0,.35);border-radius:2px;
+  background:linear-gradient(#9aa093,#848a7d);white-space:nowrap}
+.mil-armee{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.14em;
+  font-size:.72rem;color:#1d211a;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:32%}
+.mil-led{width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:#7ce08a;
+  box-shadow:0 0 5px 1px rgba(124,224,138,.8),inset 0 0 2px rgba(0,0,0,.35)}
+.mil-led-veille{background:#d8b24a;box-shadow:0 0 4px 1px rgba(216,178,74,.7);
+  animation:milLed 3.4s ease-in-out infinite}
+@keyframes milLed{0%,100%{opacity:1}50%{opacity:.45}}
+.mil-grilles{flex:1 1 auto;height:9px;min-width:20px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,transparent 2px 5px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.mil-eteindre{flex:0 0 auto;width:26px;height:22px;border-radius:3px;cursor:pointer;
+  border:1px solid rgba(0,0,0,.4);background:linear-gradient(#949a8d,#767c6f);
+  color:#1d211a;font-size:.8rem;line-height:1;display:flex;align-items:center;
+  justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.mil-eteindre:active{background:linear-gradient(#767c6f,#949a8d)}
+.mil-socle{height:11px;flex:0 0 auto;border-top:1px solid rgba(0,0,0,.3);
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.14) 0 3px,transparent 3px 9px)}
+
+/* --- Ecran : phosphore vert, et C'EST LUI QUI DEFILE --- */
+.mil-ecran{
+  flex:1 1 auto;min-height:0;                 /* <= la ligne qui rend le defilement possible */
+  overflow-y:auto;overflow-x:hidden;
+  margin:0 .7rem;padding:.9rem 1rem 1.1rem;
+  background:radial-gradient(120% 130% at 50% 0%,#0d1610 0%,#080e0a 70%,#050806 100%);
+  border:1px solid #1e2a21;border-radius:4px;
+  box-shadow:inset 0 0 26px rgba(0,0,0,.95),inset 0 0 2px rgba(126,240,160,.12);
+  font-family:"Courier New",Consolas,monospace;color:#8ef0aa;
+  font-size:.95rem;line-height:1.5}
+
+/* --- Bandeau d'etat --- */
+.mil-bandeau{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;align-items:baseline;
+  padding-bottom:.6rem;border-bottom:1px solid rgba(142,240,170,.22)}
+.mil-chiffre{font-size:1.25rem;color:#c8ffd8;letter-spacing:.03em}
+.mil-chiffre small{display:block;font-size:.68rem;color:#6fa882;letter-spacing:.13em;
+  text-transform:uppercase;margin-bottom:.05rem}
+.mil-chiffre em{font-style:normal;font-size:.9rem}
+.mil-oui{color:#8ef0aa}
+.mil-non{color:#e0954f}
+
+.mil-msg{display:block;font-size:.8rem;margin:.4rem 0;line-height:1.45}
+.mil-msg:empty{display:none}
+.mil-msg-ok{color:#8ef0aa}
+.mil-msg-ko{color:#e0954f}
+.mil-vide{color:#6fa882;font-style:italic;padding:.8rem 0}
+.mil-note{font-style:normal;color:#5f8f70;font-size:.74rem}
+
+/* --- Barre des ordres collectifs --- */
+.mil-barre{display:flex;flex-wrap:wrap;gap:.45rem;margin:.6rem 0;padding:.5rem 0;
+  border-top:1px solid rgba(142,240,170,.16);border-bottom:1px solid rgba(142,240,170,.16)}
+.mil-touche{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.09em;
+  font-size:.76rem;padding:.3rem .7rem;cursor:pointer;border-radius:2px;
+  color:#8ef0aa;background:rgba(142,240,170,.06);border:1px solid rgba(142,240,170,.34)}
+.mil-touche:hover:not(:disabled){background:rgba(142,240,170,.17);color:#c8ffd8}
+.mil-touche:disabled{color:#4d7359;border-color:rgba(142,240,170,.13);cursor:not-allowed}
+.mil-touche.mil-primaire{border-color:#c8ffd8;color:#c8ffd8}
+
+/* --- La grille des soldats. Six colonnes, l'inventaire est celle qui s'etire. --- */
+.mil-grille{display:grid;
+  grid-template-columns:96px 120px 62px minmax(96px,150px) minmax(0,1fr) 250px;
+  align-items:start;gap:.3rem .7rem;padding:.42rem 0;
+  border-bottom:1px dotted rgba(142,240,170,.13)}
+.mil-grille.mil-entetes{border-bottom:1px solid rgba(142,240,170,.3);
+  color:#6fa882;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  position:sticky;top:0;background:#080e0a;z-index:2;padding-top:.5rem}
+.mil-grille.mil-loin{background:rgba(142,240,170,.03)}
+.mil-mat{color:#c8ffd8;font-weight:bold;letter-spacing:.04em}
+.mil-mat .mil-note{display:block;font-size:.68rem}
+.mil-pos{color:#8ef0aa;font-size:.84rem}
+.mil-pos.mil-ici{color:#c8ffd8;letter-spacing:.06em}
+.mil-pa{color:#8ef0aa;font-variant-numeric:tabular-nums;text-align:right}
+.mil-arme{color:#8ef0aa;font-size:.84rem;display:flex;align-items:center;gap:.25rem}
+.mil-arme i{font-size:.8rem;opacity:.8}
+.mil-zero{color:#5f8f70}
+
+/* --- L'inventaire complet, lisible d'un coup d'oeil --- */
+.mil-inv{display:flex;flex-wrap:wrap;gap:.25rem}
+.mil-obj{display:inline-flex;align-items:center;gap:.22rem;font-size:.74rem;
+  color:#b6e8c4;border:1px solid rgba(142,240,170,.24);border-radius:2px;
+  padding:.06rem .3rem;background:rgba(142,240,170,.05);white-space:nowrap;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.mil-obj i{font-size:.8rem;opacity:.85;flex:0 0 auto}
+.mil-obj b{color:#c8ffd8}
+
+/* --- Ordres de la ligne --- */
+.mil-ordres{display:flex;flex-wrap:wrap;gap:.25rem .4rem;align-items:center}
+.mil-ordres .mil-touche{font-size:.68rem;padding:.14rem .45rem}
+.mil-case{display:inline-flex;align-items:center;gap:.2rem;font-size:.68rem;
+  letter-spacing:.06em;text-transform:uppercase;color:#8ef0aa;cursor:pointer;
+  white-space:nowrap}
+.mil-case input{accent-color:#8ef0aa;width:13px;height:13px;cursor:pointer}
+.mil-case-off{color:#4d7359;cursor:not-allowed}
+.mil-case-off input{cursor:not-allowed}
+
+/* --- Panneau de gestion, DANS la ligne : on ne quitte pas le terminal --- */
+.mil-panneau{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;
+  gap:.5rem 1.2rem;margin:.5rem 0 .2rem;padding:.6rem .7rem;
+  border:1px solid rgba(142,240,170,.26);border-radius:3px;
+  background:rgba(142,240,170,.04)}
+.mil-sstitre{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.12em;
+  font-size:.74rem;color:#6fa882;margin-bottom:.3rem}
+.mil-transfert{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;
+  padding:.15rem 0}
+.mil-qte{width:46px;padding:.16rem .22rem;text-align:right;font-family:inherit;
+  font-size:.82rem;color:#c8ffd8;background:#050806;border-radius:2px;
+  border:1px solid rgba(142,240,170,.3);font-variant-numeric:tabular-nums}
+.mil-qte:focus{outline:0;border-color:#c8ffd8;box-shadow:0 0 0 1px rgba(200,255,216,.3)}
+
+/* --- Mobile : on garde TOUT, en repliant les lignes --- */
+@media(max-width:860px){
+  #modal-postes .modal-box.mil-machine{width:97%;max-height:95vh;border-radius:5px}
+  .mil-fronton{padding:.4rem .5rem .35rem;gap:.4rem}
+  .mil-plaque{font-size:.58rem;letter-spacing:.08em;padding:.14rem .3rem}
+  .mil-armee{font-size:.6rem;max-width:28%}
+  .mil-grilles{display:none}
+  .mil-ecran{margin:0 .3rem;padding:.6rem .55rem .9rem;font-size:.9rem}
+  .mil-grille{display:flex;flex-wrap:wrap;gap:.3rem .7rem;padding:.55rem 0}
+  .mil-grille.mil-entetes{display:none}
+  .mil-pos::before,.mil-pa::before,.mil-arme::before,.mil-inv::before{
+    content:attr(data-l) " ";color:#5f8f70;font-size:.66rem;letter-spacing:.06em;
+    text-transform:uppercase}
+  .mil-inv{flex:1 1 100%}
+  .mil-ordres{flex:1 1 100%;padding-top:.2rem}
+  .mil-panneau{grid-template-columns:1fr;flex:1 1 100%}
+  .mil-chiffre{font-size:1.05rem}
 }
