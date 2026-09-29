@@ -750,13 +750,8 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
     // Modele corrige le 21 aout 2026 : 'claude-sonnet-4-20250514' (mai 2025) est desormais
     // retire par Anthropic (confirme en production, HTTP 404 not_found_error) -- remplace par
     // 'claude-haiku-4-5-20251001', deja utilise et fonctionnel ailleurs dans le jeu (plateau-pnj.js).
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    if (data.content && data.content[0] && data.content[0].text) reply = data.content[0].text;
+    const r = await rpRedaction('quete_accueil_jeremy', prompt);
+    if (r.texte) reply = r.texte;
   } catch (e) { /* on garde la reponse de secours */ }
 
   const sujetReponse = 'Re: ' + subjectRecu;

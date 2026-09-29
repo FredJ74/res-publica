@@ -5291,3 +5291,75 @@ async function sbCamionDeplacer(camionId, destinationCle, avecOfficier, cle) {
     p_avec_officier: !!avecOfficier, p_cle: cle
   });
 }
+
+// =====================================================================
+// REDACTION DE TEXTES DE JEU (29 septembre 2026)
+// =====================================================================
+// Les seize fonctions qui font ecrire un texte par l'IA -- meteo, sondage, fuite,
+// decret, recit d'escort, reponse de stagiaire... -- passaient par la voie Anthropic
+// de /api/chat : sans authentification, avec un modele et un nombre de jetons choisis
+// par le navigateur. Elles passent desormais par /api/redaction, ou l'USAGE est
+// declare contre une table fermee et ou le serveur impose le modele et la longueur.
+//
+// UNE SEULE PORTE POUR LES SEIZE. Le jeton du joueur est joint a chaque appel, comme
+// pour le dialogue des PNJ : le serveur le verifie reellement avant tout appel paye.
+//
+// Rend { ok, texte, tronque }. `tronque` dit que le fournisseur a coupe faute de
+// place -- un seul appelant s'en sert, pour abandonner une phrase amputee.
+async function rpRedaction(usage, texte, palier) {
+  const echec = { ok: false, texte: null, tronque: false };
+  if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  if (!jeton) { console.warn('[IA] redaction sans session (' + usage + ')'); return echec; }
+
+  const corps = { usage: usage, texte: String(texte == null ? '' : texte) };
+  if (Number.isInteger(palier)) corps.palier = palier;
+
+  try {
+    const resp = await fetch('/api/redaction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify(corps)
+    });
+    if (!resp.ok) {
+      let raison = 'HTTP ' + resp.status;
+      try { const e = await resp.clone().json(); if (e && e.error) raison += ' — ' + e.error; } catch (x) {}
+      console.warn('[IA] redaction indisponible (' + usage + ') : ' + raison);
+      return echec;
+    }
+    const data = await resp.json();
+    if (!data || typeof data.reponse !== 'string') return echec;
+    return { ok: true, texte: data.reponse, tronque: !!data.tronque };
+  } catch (e) {
+    console.warn('[IA] redaction injoignable (' + usage + ')');
+    return echec;
+  }
+}
+
+// =====================================================================
+// PNJ SOCIAUX — RELATION PAR COUPLE PNJ / JOUEUR (29 septembre 2026)
+// =====================================================================
+// Trois portes, et rien d'autre. La relation elle-meme n'est JAMAIS lue ni ecrite
+// par le navigateur : la table est fermee, et le contexte injecte dans le prompt
+// est relu cote serveur par api/chat.js. Un client ne peut donc pas s'inventer une
+// familiarite avec un PNJ.
+
+// Note l'arrivee du joueur chez un PNJ social et rend le jalon a jouer, DEJA marque
+// cote serveur : un rafraichissement de page entre la reponse et l'affichage ne le
+// rejouera pas. Rend { ok, social, rencontres, conversations, familiarite, jalon }.
+// `social: false` pour les 175 PNJ qui ne tiennent aucune memoire -- aucun effet.
+async function sbPnjSocialEntrer(pnjId) {
+  return await sbRpc('pnj_social_entrer', { p_pnj_id: pnjId });
+}
+
+// Une conversation reellement engagee. Fait monter la familiarite par paliers
+// bornes ; ne touche jamais la confiance.
+async function sbPnjSocialNoter(pnjId, evenement) {
+  return await sbRpc('pnj_social_noter', { p_pnj_id: pnjId, p_evenement: evenement || 'conversation' });
+}
+
+// Lecture de la relation, pour l'affichage cote client uniquement. Le prompt, lui,
+// ne passe jamais par ici : api/chat.js relit la meme RPC sous le jeton du joueur.
+async function sbPnjSocialContexte(pnjId) {
+  return await sbRpc('pnj_social_contexte', { p_pnj_id: pnjId });
+}

@@ -686,12 +686,8 @@ async function contacterPnjAutreJoueur() {
   const co = COUNTRIES[state.country];
   const prompt = 'Tu joues ' + p.nom + ', ' + (p.role || 'un personnage') + ' au service de ' + (p.proprietaire || 'quelqu\'un') + ', dans Res Publica (jeu politique parodique, empire ' + (co?.n || '') + '). Un autre personnage t\'aborde brievement. Reponds en 1-2 phrases, dans ton personnage, avec une pointe de loyaute envers ton employeur actuel mais sans etre hostile. Texte brut uniquement.';
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{ role:'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    if (speech) speech.textContent = data.content?.[0]?.text?.trim() || ('Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.');
+    const r = await rpRedaction('pnj_autre_joueur', prompt);
+    if (speech) speech.textContent = (r.texte || '').trim() || ('Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.');
   } catch(e) {
     if (speech) speech.textContent = 'Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.';
   }

@@ -20,6 +20,12 @@ import {
   SOCLE_MILITAIRE, BIBLE_INSTITUTION, BIBLE_TROUPE, BIBLE_EQUIPEMENT, BIBLE_COMBAT,
   BIBLE_RENSEIGNEMENT, BIBLE_INTENDANCE_RESUME, BIBLE_SANTE_RESUME, CE_QUI_N_EXISTE_PAS
 } from './_bible-militaire.js';
+// LES 173 AUTRES PNJ (29 septembre 2026). Portage mecanique de data.js et de
+// PNJ_PERSONALITIES/PNJ_PROFILS : ils etaient muets depuis que la voie Anthropic
+// n'est plus creditee. Fichier separe pour ne pas noyer le corpus militaire, qui
+// est d'une tout autre nature -- mais une seule table a l'arrivee, un seul
+// constructeur de prompt, aucune architecture parallele.
+import { profilsPersonnalites } from './_pnj-personnalites.js';
 
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
@@ -180,11 +186,44 @@ SECRETS — tu ne donnes jamais de chiffre de combat, tu ne commentes pas la hie
   }
 };
 
+// TABLE UNIQUE. Les quatre referents militaires priment sur tout homonyme porte :
+// leur corpus est arbitre, celui du portage est mecanique. L'ordre de fusion est
+// donc PORTAGE d'abord, MILITAIRES ensuite -- jamais l'inverse.
+const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS);
+
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.
-function construirePromptSysteme(profilId, lang) {
-  const p = PROFILS[profilId];
+// `relation` vient du SERVEUR, jamais du navigateur : c'est pnj_social_contexte qui
+// la lit, sous le jeton du joueur. Un client ne peut donc pas s'inventer une
+// familiarite. Absente pour les PNJ sans memoire sociale -- la quasi-totalite --,
+// auquel cas le prompt est rigoureusement celui d'avant.
+function blocRelation(relation) {
+  if (!relation || typeof relation !== 'object') return null;
+  const n = Math.max(0, parseInt(relation.rencontres, 10) || 0);
+  const c = Math.max(0, parseInt(relation.conversations, 10) || 0);
+  const fam = Math.max(0, parseInt(relation.familiarite, 10) || 0);
+  if (n <= 0 && c <= 0) {
+    return "VOTRE RELATION : vous ne vous etes jamais parle. Tu ne connais pas cette personne.";
+  }
+  const parts = ["VOTRE RELATION : vous vous etes deja croises " + n + " fois."];
+  if (c > 0) parts.push("Vous avez deja parle ensemble " + c + " fois, tu le reconnais.");
+  else parts.push("Vous ne vous etes encore jamais parle, mais tu l'as deja vu passer.");
+  // La familiarite n'est JAMAIS un chiffre montre au joueur : elle ne sert qu'a
+  // regler le registre. Le seuil est volontairement bas pour Jean-Lou, qui devient
+  // familier vite ; Marine, elle, garde le vouvoiement -- c'est son caractere qui
+  // le dit, et il prime.
+  if (fam >= 2) parts.push("Vous etes familiers : adapte ton registre en consequence, et ne reviens pas en arriere.");
+  if (relation.memoire && typeof relation.memoire === 'object') {
+    const m = relation.memoire;
+    if (m.nom) parts.push("Tu sais qu'il s'appelle " + String(m.nom).slice(0, 60) + ".");
+  }
+  return parts.join(' ');
+}
+
+function construirePromptSysteme(profilId, lang, relation) {
+  const p = TOUS_PROFILS[profilId];
   if (!p) return null;
+  const rel = blocRelation(relation);
   return [
     p.identite,
     '',
@@ -195,6 +234,7 @@ function construirePromptSysteme(profilId, lang) {
     '',
     'LIMITES : ' + p.limites,
     '',
+    ...(rel ? [rel, ''] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique
@@ -210,11 +250,11 @@ function construirePromptSysteme(profilId, lang) {
 }
 
 function profilExiste(profilId) {
-  return Object.prototype.hasOwnProperty.call(PROFILS, profilId);
+  return Object.prototype.hasOwnProperty.call(TOUS_PROFILS, profilId);
 }
 
 function maxTokensProfil(profilId) {
-  return (PROFILS[profilId] && PROFILS[profilId].maxTokens) || 300;
+  return (TOUS_PROFILS[profilId] && TOUS_PROFILS[profilId].maxTokens) || 300;
 }
 
-export { PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil, LANGUES, LANGUE_DEFAUT };
+export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil, LANGUES, LANGUE_DEFAUT };

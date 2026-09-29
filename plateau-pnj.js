@@ -1135,9 +1135,24 @@ const PNJ_PROFILS_SERVEUR = {
   'Adjudant Gaspard Ferrière': 'gaspard_ferriere'
 };
 
+// IDENTIFIANT NORMALISE (29 septembre 2026). Minuscules, accents retires, tout ce qui
+// n'est ni lettre ni chiffre devient un souligne. Le MEME calcul vaut cote serveur, et
+// il a ete verifie sans collision sur les 175 PNJ du jeu. C'est ce qui permet de porter
+// tout le monde sans tenir a la main une table de 175 correspondances.
+function slugPnj(nom) {
+  return String(nom || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+// DEUX ETAGES, ET LE PREMIER PRIME. La table nommee porte les alias historiques -- un
+// identifiant arbitre ne doit jamais changer parce qu'un nom affiche a bouge. Tout PNJ
+// qui n'y figure pas tombe sur son identifiant normalise ; si le serveur ne le connait
+// pas, il refuse, et le repli hors IA s'applique comme avant.
 function profilServeurDuPnj(pnj) {
   const nom = (pnj?.name || '').replace(' (PNJ)', '').trim();
-  return PNJ_PROFILS_SERVEUR[nom] || null;
+  if (!nom) return null;
+  return PNJ_PROFILS_SERVEUR[nom] || slugPnj(nom) || null;
 }
 
 // LA LANGUE EST CELLE DU JEU, jamais celle du PNJ, du pays ou du texte tape par le joueur.
@@ -1675,68 +1690,33 @@ RÈGLES ABSOLUES :
   if (!state.pnjConversations[convKey]) state.pnjConversations[convKey] = [];
   const history = state.pnjConversations[convKey];
 
-  // Construire les messages avec historique
-  const messages = [
-    { role: 'user', content: prompt }
-  ];
-  // Ajouter les échanges précédents (max 6 pour rester léger)
+  // Les six derniers echanges, transmis tels quels : le serveur les replace dans la
+  // conversation, il n'a pas besoin qu'on les lui recopie dans une phrase.
   const recentHistory = history.slice(-6);
-  if (recentHistory.length > 0) {
-    messages[0].content = prompt + '\n\nHistorique du jour :\n' +
-      recentHistory.map(h => (h.role === 'user' ? 'Joueur: ' : pnjKey2 + ': ') + h.content).join('\n');
-  }
 
-  // DIALOGUE SERVEUR (23 septembre 2026). Pour les PNJ dotes d'un profil serveur, on n'envoie
-  // PLUS le prompt : le navigateur ne transmet qu'un identifiant de profil, la langue choisie
-  // dans le jeu et le message du joueur. La personnalite et les connaissances sont construites
-  // cote serveur, ou le client ne peut pas les alterer. Les autres PNJ empruntent toujours la
-  // voie historique, inchangee.
+  // DIALOGUE ENTIEREMENT SERVEUR (29 septembre 2026). Le navigateur ne construit PLUS
+  // aucun prompt -- ni pour les quatre referents militaires, ni pour les 173 autres.
+  // Il ne transmet qu'un identifiant de profil, la langue du jeu et le message du
+  // joueur ; la personnalite, les connaissances et les limites sont assemblees cote
+  // serveur, hors de portee du client. Le `prompt` construit plus haut n'est donc
+  // plus envoye nulle part : il reste pour l'instant comme reference lisible du
+  // perimetre de chaque PNJ, exactement comme les fiches de PNJ_PROFILS.
   const profilServeur = profilServeurDuPnj(pnj);
 
   try {
-    if (profilServeur) {
-      const texteServeur = await reponsePnjServeur(profilServeur, action, recentHistory);
-      if (!texteServeur) throw new Error('no text');
-      speech.textContent = texteServeur;
-      history.push({ role: 'user', content: action });
-      history.push({ role: 'assistant', content: texteServeur });
-      state.pnjConversations[convKey] = history;
-      return;
+    const texteServeur = await reponsePnjServeur(profilServeur, action, recentHistory);
+    if (!texteServeur) throw new Error('no text');
+    speech.textContent = texteServeur;
+    history.push({ role: 'user', content: action });
+    history.push({ role: 'assistant', content: texteServeur });
+    state.pnjConversations[convKey] = history;
+    // LA CONVERSATION COMPTE POUR LA RELATION. Un PNJ social retient qu'on lui a
+    // parle -- c'est ce qui empeche, par exemple, Jean-Lou d'aborder a la deuxieme
+    // visite quelqu'un a qui il a deja parle. No-op pour les autres PNJ.
+    if (typeof pnjSocialNoterConversation === 'function') {
+      pnjSocialNoterConversation(profilServeur);
     }
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 150,
-        messages
-      })
-    });
-    // PANNE RENDUE VISIBLE (audit du 14 septembre 2026). Jusqu'ici, un echec de /api/chat
-    // -- credit Anthropic epuise, quota, modele retire -- etait AVALE en silence : tous les PNJ
-    // se mettaient a repondre trois phrases generiques, sans le moindre signal ni au joueur ni
-    // au developpeur. C'est ce qui a ete remonte comme « les reponses de Jeremy n'ont pas de
-    // pertinence ». On journalise desormais la raison exacte ; le comportement joueur, lui, ne
-    // change pas (aucun message technique affiche en jeu).
-    if (!resp.ok) {
-      let raison = 'HTTP ' + resp.status;
-      try {
-        const err = await resp.clone().json();
-        if (err?.error?.message) raison += ' — ' + err.error.message;
-        else if (err?.error) raison += ' — ' + err.error;
-      } catch (eLecture) {}
-      console.warn('[PNJ] /api/chat indisponible (' + raison + ') — repli hors IA pour ' + (pnj.name || '?'));
-      throw new Error(raison);
-    }
-    const data = await resp.json();
-    const text = data.content?.[0]?.text;
-    if (text) {
-      speech.textContent = text;
-      // Sauvegarder dans l'historique
-      history.push({ role: 'user', content: action });
-      history.push({ role: 'assistant', content: text });
-      state.pnjConversations[convKey] = history;
-    } else { throw new Error('no text'); }
+    return;
   } catch(e) {
     // REPLI UTILE POUR JEREMY. Les trois phrases generiques ci-dessous n'ont aucun sens pour un
     // guide dont c'est le seul role : quand l'IA est indisponible, il vaut mieux redire l'etape
@@ -1748,13 +1728,14 @@ RÈGLES ABSOLUES :
       speech.textContent = 'Je vous remontre où nous en sommes.';
       return;
     }
-    const fallbacks = {
-      enemy:   ['Circulez, il n\'y a rien a vous dire.', 'Votre presence m\'importune.', 'Je n\'ai rien a declarer.'],
-      ally:    ['Ah, vous voila ! On a des choses a discuter.', 'Je vous attendais justement.', 'Entrons dans le vif du sujet.'],
-      neutral: ['Bonjour. Que puis-je faire pour vous ?', 'Oui ? J\'ecoute.', 'En quoi puis-je vous aider ?']
-    };
-    const list = fallbacks[pnj.rel] || fallbacks.neutral;
-    speech.textContent = list[Math.floor(Math.random() * list.length)];
+    // LA PANNE SE DIT, ET ELLE NE SE DEGUISE PAS EN PNJ (29 septembre 2026).
+    //
+    // Les trois phrases generiques d'avant faisaient croire que le PNJ avait repondu
+    // -- « Oui ? J'ecoute. » -- alors que rien n'avait abouti. Le joueur pensait avoir
+    // mal clique, ou que le PNJ n'avait rien a dire. On affiche desormais un message
+    // clair, qui ne nomme AUCUN detail technique : ni fournisseur, ni HTTP, ni quota.
+    console.warn('[PNJ] dialogue indisponible pour ' + (pnj.name || '?') + ' : ' + (e && e.message));
+    speech.textContent = 'Discussion impossible momentanément. Veuillez réessayer dans quelques instants.';
   }
 }
 
@@ -1820,18 +1801,9 @@ Style parodique et satirique. Intègre les éléments de l'empire naturellement.
 PAS de vrais dieux ou religions. Réponds UNIQUEMENT avec ta réaction, sans introduction.`;
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 150,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    return { journaliste, texte: data.content?.[0]?.text };
+    const r = await rpRedaction('reaction_journaliste', prompt);
+    if (!r.ok) return null;
+    return { journaliste, texte: r.texte };
   } catch(e) { return null; }
 }
 
@@ -1895,13 +1867,8 @@ Une escort de luxe (${state.country === 'republic' ? 'Roxane Velours' : state.co
 Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles.`;
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const info = data.content?.[0]?.text?.trim() || 'Information confidentielle obtenue.';
+    const r = await rpRedaction('escort_infos', prompt);
+    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
 
     // Créer un kompromat dans l'inventaire
     addToInventory({
@@ -2964,13 +2931,8 @@ ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'
 Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **, pas de titre).`;
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const info = data.content?.[0]?.text?.trim() || 'Information confidentielle obtenue.';
+    const r = await rpRedaction('kompromat', prompt);
+    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
 
     addToInventory({
       id: 'kompromat-' + Date.now(),
@@ -3165,20 +3127,18 @@ async function confirmerFaireLAmour(nomEscort) {
   const petitNomActuel = petitsNoms[palierActuel];
   const longueurParPalier = ['2-3 phrases', '3-4 phrases', '4-5 phrases', '5-6 phrases, ton plus passionne et intime'];
   const longueurVisee = longueurParPalier[palierActuel];
-  const maxTokensParPalier = [250, 320, 400, 480];
-  const maxTokensVise = maxTokensParPalier[palierActuel];
+  // BAREME DE LONGUEUR PAR PALIER : [250, 320, 400, 480] jetons. Il vit desormais
+  // cote serveur (usage `escort_amour` de api/redaction.js), ou le navigateur ne
+  // transmet plus que le palier. Les valeurs n'ont pas change.
 
   const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou le petit nom \"" + petitNomActuel + '" est desormais utilise. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
 
   let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokensVise, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    recit = data.content?.[0]?.text?.trim() || recit;
+    // Le navigateur ne choisit plus le nombre de jetons : il declare le PALIER, et le
+    // serveur applique le meme bareme qu'avant (250 / 320 / 400 / 480).
+    const r = await rpRedaction('escort_amour', prompt, palierActuel);
+    recit = (r.texte || '').trim() || recit;
   } catch(e) {}
 
   updateUI();
@@ -3352,13 +3312,8 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
     const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
     let scandale = nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.';
     try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
-      });
-      const data = await resp.json();
-      scandale = data.content?.[0]?.text?.trim() || scandale;
+      const r = await rpRedaction('escort_piege', prompt);
+      scandale = (r.texte || '').trim() || scandale;
     } catch(e) {}
 
     // Effets sur commanditaire

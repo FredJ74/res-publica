@@ -1080,6 +1080,19 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
       }
     } catch (err) { /* un panneau qui echoue ne bloque jamais la navigation */ }
   }
+
+  // 4. PNJ SOCIAUX (29 septembre 2026). Un PNJ qui se souvient du joueur peut avoir
+  // quelque chose a lui dire en le voyant entrer. Quatrieme consommateur du MEME
+  // evenement d'entree -- on ne pose pas un crochet de plus, on se branche sur celui
+  // qui existe, exactement comme sa doctrine le prevoit.
+  //
+  // No-op immediat hors des deux lieux concernes : deux comparaisons de chaines,
+  // aucun appel reseau. Et comme les trois consommateurs ci-dessus, un echec ne
+  // bloque jamais la navigation.
+  if (typeof pnjSocialEntreeZone === 'function') {
+    try { await pnjSocialEntreeZone(buildingId, roomId); }
+    catch (e) { /* un PNJ qui n'a rien pu dire ne doit jamais retenir le joueur */ }
+  }
 }
 
 // Le serveur n'envoie que ce qui a ete reellement vu, deja degrade. L'affichage se contente donc

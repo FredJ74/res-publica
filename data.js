@@ -3776,7 +3776,13 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-salle.png",
         persons: [
           {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-marin-dulac.png', photoPos:'50% 20%'},
-          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-rene-seigne.png', photoPos:'55% 20%'}
+          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-rene-seigne.png', photoPos:'55% 20%'},
+          // JEAN-LOU DEMER (29 septembre 2026) — premier PNJ SOCIAL du jeu. Il s'AJOUTE a
+          // Marin Dulac et a Rene Seigne, il n'en remplace aucun : le patron tient le bar,
+          // Rene renseigne, Jean-Lou est la parce qu'il y est toujours.
+          // A NE PAS CONFONDRE avec Jean-Lou Zeure, referent de la branche politique au
+          // Bureau National de l'Emploi : deux personnes, deux portraits, deux memoires.
+          {name:'Jean-Lou Demer (PNJ)', role:'Vieux marin, habitué du bar', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.png', photoPos:'50% 15%'}
         ],
         // Raccordement au moteur bar generique (audit dedie) : reutilise a l'identique les
         // ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/

@@ -790,15 +790,8 @@ function texteFactuelFuite(cible, faits) {
 async function redigerFuite(cible, faits) {
   const repli = texteFactuelFuite(cible, faits);
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 220,
-        messages: [{
-          role: 'user',
-          content: 'Tu es la cellule enquête d\'un journal satirique dans un jeu politique fictif. '
+    const r = await rpRedaction('fuite_presse',
+          'Tu es la cellule enquête d\'un journal satirique dans un jeu politique fictif. '
             + 'Rédige une brève de presse de 3 phrases maximum, à partir des SEULS faits ci-dessous. '
             + 'INTERDICTION ABSOLUE d\'ajouter un fait, un chiffre, une citation, un nom, un mobile ou '
             + 'une accusation qui ne figure pas dans ces données. N\'invente aucune conséquence. '
@@ -812,11 +805,8 @@ async function redigerFuite(cible, faits) {
             + (faits.loi ? '- loi concernée : ' + faits.loi + '\n' : '')
             + (faits.quantite ? '- quantité : ' + faits.quantite + '\n' : '')
             + '- la justice a-t-elle déjà connaissance du dossier : ' + (faits.decouverte_justice === true ? 'oui' : 'non') + '\n'
-        }]
-      })
-    });
-    const data = await resp.json();
-    const texte = (data?.content?.[0]?.text || '').trim();
+    );
+    const texte = (r.texte || '').trim();
     return texte || repli;
   } catch (e) {
     return repli;
@@ -1077,15 +1067,8 @@ async function redigerScandale(auteur, cible, accusation) {
   const repli = 'Selon ' + auteur + ', ' + cible + ' serait mis(e) en cause : « ' + accusation
     + ' » La Tribune publie cette accusation sans avoir pu la verifier.';
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 220,
-        messages: [{
-          role: 'user',
-          content: 'Tu es la redaction d\'un journal satirique dans un jeu politique fictif. Mets en forme, '
+    const r = await rpRedaction('scandale_presse',
+          'Tu es la redaction d\'un journal satirique dans un jeu politique fictif. Mets en forme, '
             + 'en 3 phrases maximum, l\'accusation ci-dessous portee publiquement par une personne nommee. '
             + 'INTERDICTION d\'ajouter une accusation, un fait, un chiffre, un temoin ou une preuve qui ne '
             + 'figure pas dans le texte fourni. Presente-la comme une accusation NON VERIFIEE, en citant '
@@ -1093,11 +1076,8 @@ async function redigerScandale(auteur, cible, accusation) {
             + 'AUTEUR PUBLIC DE L\'ACCUSATION : ' + auteur + '\n'
             + 'PERSONNE MISE EN CAUSE : ' + cible + '\n'
             + 'ACCUSATION, MOT POUR MOT : ' + accusation + '\n'
-        }]
-      })
-    });
-    const data = await resp.json();
-    const texte = (data?.content?.[0]?.text || '').trim();
+    );
+    const texte = (r.texte || '').trim();
     return texte || repli;
   } catch (e) {
     return repli;

@@ -210,16 +210,9 @@ async function lancerNouvelleQuete() {
   const co = COUNTRIES[state.country];
   let titre = 'Une affaire mystérieuse', description = 'Une étrange rumeur circule dans la ville.';
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5', max_tokens: 150,
-        messages: [{ role: 'user', content: 'Jeu politique parodique dans ' + (co?.n||'un empire') + '. Genere un TITRE court (5 mots max) et une DESCRIPTION (2 phrases) pour une quete/enquete mysterieuse que les joueurs peuvent resoudre. Format : TITRE: ... DESCRIPTION: ...' }]
-      })
-    });
-    const data = await resp.json();
-    const texte = data.content?.[0]?.text || '';
+    const r = await rpRedaction('quete_nouvelle',
+      'Jeu politique parodique dans ' + (co?.n||'un empire') + '. Genere un TITRE court (5 mots max) et une DESCRIPTION (2 phrases) pour une quete/enquete mysterieuse que les joueurs peuvent resoudre. Format : TITRE: ... DESCRIPTION: ...');
+    const texte = r.texte || '';
     const mTitre = texte.match(/TITRE:\\s*(.+)/);
     const mDesc = texte.match(/DESCRIPTION:\\s*(.+)/);
     if (mTitre) titre = mTitre[1].trim();
@@ -299,16 +292,9 @@ async function progresserQuete(queteId) {
 
   let indice = 'La piste continue ailleurs...';
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5', max_tokens: 100,
-        messages: [{ role: 'user', content: 'Jeu politique parodique. Quete en cours : "' + quete.titre + '" (' + quete.description + '). Le joueur vient de progresser. Donne UNE phrase courte d\'indice narratif sur la suite (sans reveler le lieu exact), ton mysterieux et parodique.' }]
-      })
-    });
-    const data = await resp.json();
-    indice = data.content?.[0]?.text || indice;
+    const r = await rpRedaction('quete_progression',
+      'Jeu politique parodique. Quete en cours : "' + quete.titre + '" (' + quete.description + '). Le joueur vient de progresser. Donne UNE phrase courte d\'indice narratif sur la suite (sans reveler le lieu exact), ton mysterieux et parodique.');
+    indice = r.texte || indice;
   } catch(e) {}
 
   if (typeof sbMettreAJourQuete === 'function') {

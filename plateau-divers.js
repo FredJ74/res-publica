@@ -46,21 +46,14 @@ async function genererEvenementAleatoire() {
   const emojis = { scandale: '🔥', greve: '✊', visite: '🤝', panne: '⚠️', bonne_nouvelle: '🎉', rumeur: '👂' };
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      // max_tokens releve de 100 a 220 (18 aout 2026, correctif troncature) : la limite precedente
-      // coupait parfois la phrase avant sa fin malgre la consigne "1 phrase". La marge combinee
-      // au filtre stop_reason ci-dessous elimine l'affichage d'une phrase amputee.
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 220, messages: [{ role: 'user', content: prompts[type.id] }] })
-    });
-    const data = await resp.json();
-    const texte = data.content?.[0]?.text;
-    // Ne jamais afficher une phrase tronquee par la limite de tokens : stop_reason:'max_tokens'
-    // signale une coupure brute du modele (deja expose par api/chat.js, simple relais de la
-    // reponse Anthropic). Dans ce cas l'evenement de ce cycle est abandonne, comme s'il n'avait
-    // pas eu lieu -- jamais affiche a moitie.
-    if (texte && data.stop_reason !== 'max_tokens') {
+    // 220 jetons : valeur inchangee depuis le correctif de troncature du 18 aout 2026,
+    // desormais imposee par le serveur (usage `evenement_aleatoire`).
+    const r = await rpRedaction('evenement_aleatoire', prompts[type.id]);
+    const texte = r.texte;
+    // Ne jamais afficher une phrase tronquee par la limite de jetons : le fournisseur
+    // signale une coupure brute, et l'evenement de ce cycle est alors abandonne comme
+    // s'il n'avait pas eu lieu -- jamais affiche a moitie.
+    if (texte && !r.tronque) {
       const emoji = emojis[type.id] || '📢';
       addJournalEntry(emoji + ' ' + type.label.toUpperCase() + ' : ' + texte, 'event-' + (type.id === 'bonne_nouvelle' ? 'good' : type.id === 'scandale' ? 'bad' : 'info'));
       addExternalEvent(emoji + ' ' + texte);
@@ -109,13 +102,8 @@ async function commanderSondage() {
   document.getElementById('modal-postes').classList.add('open');
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 250, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const resultat = data.content?.[0]?.text || 'Sondage indisponible.';
+    const r = await rpRedaction('sondage', prompt);
+    const resultat = r.texte || 'Sondage indisponible.';
 
     document.getElementById('postes-modal-title').textContent = '📊 Sondage Officiel';
     document.getElementById('postes-body').innerHTML =
@@ -1362,13 +1350,8 @@ async function genererMeteoPolitique() {
     'Pas de vrais dieux. Répondre UNIQUEMENT avec le bulletin, sans introduction.';
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const meteo = data.content?.[0]?.text;
+    const r = await rpRedaction('meteo_politique', prompt);
+    const meteo = r.texte;
     if (meteo) {
       addJournalEntry('🌦 MÉTÉO POLITIQUE — Jour ' + (state.day || 1) + ' : ' + meteo, 'event-info');
       sessionStorage.setItem('meteo_done_' + (state.day || 1), '1');

@@ -2303,14 +2303,9 @@ async function jodiePortraitGenererApercu() {
     // Modele corrige le 21 aout 2026 : 'claude-sonnet-4-20250514' (mai 2025) est desormais
     // retire par Anthropic (confirme en production, HTTP 404 not_found_error) -- remplace par
     // 'claude-haiku-4-5-20251001', deja utilise et fonctionnel ailleurs dans le jeu (plateau-pnj.js).
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    texte = data.content?.[0]?.text || null;
+    const r = await rpRedaction('jodie_portrait', prompt);
+    if (!r.ok) throw new Error('redaction indisponible');
+    texte = r.texte || null;
   } catch (e) { texte = null; }
 
   if (!texte) {

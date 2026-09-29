@@ -40,6 +40,7 @@
 // citations directes d'une interview doit appliquer exactement la meme logique guillemets/parole,
 // sous peine d'avoir deux definitions divergentes de ce qu'est une parole rapportee.
 import { extraireCitations, normaliserPourCitation } from './_journal-generation.js';
+import { appelDeepSeek } from './_deepseek.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 
@@ -216,35 +217,16 @@ function nettoyerMarkdown(texte) {
     .trim();
 }
 
-async function appelAnthropic(prompt, maxTokens, timeoutMs) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: maxTokens,
-        messages: [{ role: 'user', content: prompt }]
-      }),
-      signal: controller.signal
-    });
-    if (!res.ok) return { ok: false, erreur: `Anthropic HTTP ${res.status}` };
-    const data = await res.json();
-    const texte = data.content && data.content[0] && data.content[0].text;
-    if (!texte) return { ok: false, erreur: 'Réponse Anthropic sans contenu texte' };
-    return { ok: true, texte };
-  } catch (e) {
-    if (e.name === 'AbortError') return { ok: false, erreur: 'Timeout Anthropic dépassé' };
-    return { ok: false, erreur: 'Erreur réseau Anthropic : ' + e.message };
-  } finally {
-    clearTimeout(timer);
-  }
+// Migration du 29 septembre 2026 : meme contrat d'entree et de sortie, meme nombre de
+// jetons, meme gestion du delai. Seul le fournisseur change.
+async function appelIA(prompt, maxTokens, timeoutMs) {
+  const r = await appelDeepSeek({
+    messages: [{ role: 'user', content: prompt }],
+    maxTokens: maxTokens,
+    timeoutMs: timeoutMs
+  });
+  if (!r.ok) return { ok: false, erreur: r.erreur || 'Fournisseur indisponible' };
+  return { ok: true, texte: r.texte };
 }
 
 function extraireTitreCorps(texteBrut, nom) {
@@ -390,7 +372,7 @@ async function handleQuestion(body) {
   const dossierTexte = await construireDossierPublicPJ(personnage).catch(() => "Aucune information publique notable n'est disponible sur cette personne pour l'instant.");
   const prompt = construirePromptQuestion(personnage, row.country, dossierTexte, transcript, dejaPosees);
 
-  const appel = await appelAnthropic(prompt, 300, 20000);
+  const appel = await appelIA(prompt, 300, 20000);
   if (!appel.ok) return { status: 502, json: { error: appel.erreur } };
 
   const nettoye = nettoyerMarkdown(appel.texte).trim();
@@ -449,7 +431,7 @@ async function handlePublier(body) {
   const reponses = complet.map(t => t.reponse);
   const prompt = construirePromptArticle(personnage, pays, dossierTexte, questions, reponses);
 
-  const appel = await appelAnthropic(prompt, 700, 30000);
+  const appel = await appelIA(prompt, 700, 30000);
   if (!appel.ok) return relacherEtEchouer(502, appel.erreur);
 
   const { titre, corps } = extraireTitreCorps(appel.texte, personnage);

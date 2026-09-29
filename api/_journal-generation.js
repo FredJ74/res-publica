@@ -1,3 +1,4 @@
+import { appelDeepSeek } from './_deepseek.js';
 // =====================
 // LA TRIBUNE DE RÉPUBLIA — LOT B : GÉNÉRATION IA + VALIDATION DÉTERMINISTE + PUBLICATION
 // =====================
@@ -122,7 +123,8 @@ const NOMS_PAYS = {
 
 // Budget interne par appel Anthropic (indépendant du maxDuration global du cron, 120s).
 const ANTHROPIC_TIMEOUT_MS = 60000;
-const ANTHROPIC_MODEL = 'claude-sonnet-4-5'; // cohérent avec tous les appels IA existants du projet
+// Le modele n'est plus choisi ici : il est impose par api/_deepseek.js, seul endroit du
+// projet qui connaisse le fournisseur (migration du 29 septembre 2026).
 
 function dateEditionPourPays(pays, momentDate) {
   const tz = TIMEZONE_PAR_PAYS[pays] || 'Europe/Paris';
@@ -361,52 +363,41 @@ Chaque article est vérifié séparément : un article qui viole une de ces règ
 // nomme le probleme dans validation_erreurs au lieu de laisser un 400 illisible. La valeur est
 // posee au-dessus de tout paquet plausible : 600 000 caracteres, soit environ 150 000 tokens,
 // sous la limite de 200 000 du modele avec une marge pour le prompt systeme.
-const TAILLE_MAX_PAQUET_CARACTERES = 600000;
+// PLAFOND ABAISSE A LA MIGRATION (29 septembre 2026). La valeur de 600 000 caracteres
+// etait calibree sur la fenetre de 200 000 jetons de l'ancien fournisseur. DeepSeek en
+// accepte 64 000 : le meme paquet serait refuse par le fournisseur, avec une erreur HTTP
+// opaque -- exactement ce que ce plafond existe pour eviter. On le ramene a 200 000
+// caracteres, soit environ 50 000 jetons, sous la limite avec une marge confortable pour
+// le prompt systeme. C'est le SEUL ajustement fonctionnel qu'impose le changement de
+// fournisseur, et il ne change ni le schema, ni les rubriques, ni la validation : un
+// paquet trop gros est refuse par son nom, comme avant, et l'edition de secours parait.
+const TAILLE_MAX_PAQUET_CARACTERES = 200000;
 
-async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
+// LE PREFILL N'EXISTE PLUS, LE JSON EST GARANTI AUTREMENT. L'ancien fournisseur acceptait
+// qu'on amorce sa reponse par « { » pour la forcer a etre un objet JSON. DeepSeek ne le
+// permet pas, mais offre l'equivalent standard : response_format json_object, qui garantit
+// un objet JSON valide et complet. La reponse n'a donc plus a etre recollee a un « { »
+// manquant. Le schema, le prompt et la validation deterministe sont inchanges.
+async function appelIA(systemPrompt, paquetFactuel, timeoutMs) {
   const corpsPaquet = JSON.stringify(paquetFactuel);
   if (corpsPaquet.length > TAILLE_MAX_PAQUET_CARACTERES) {
     return { ok: false, erreur: 'Paquet factuel trop volumineux : ' + corpsPaquet.length +
       ' caracteres (plafond ' + TAILLE_MAX_PAQUET_CARACTERES + '). Requete NON envoyee -- ' +
       'un champ non borne a probablement enfle (photo, extrait, faits differes accumules).' };
   }
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 4000,
-        system: systemPrompt,
-        messages: [
-          { role: 'user', content: JSON.stringify(paquetFactuel) },
-          { role: 'assistant', content: '{' }
-        ]
-      }),
-      signal: controller.signal
-    });
-    if (!res.ok) {
-      const detail = await res.text().catch(() => '');
-      return { ok: false, erreur: `Anthropic HTTP ${res.status} : ${detail.slice(0, 300)}` };
-    }
-    const data = await res.json();
-    const texte = data.content && data.content[0] && data.content[0].text;
-    if (!texte) return { ok: false, erreur: 'Réponse Anthropic sans contenu texte' };
-    let brut = ('{' + texte).trim();
-    brut = brut.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
-    return { ok: true, texte: brut };
-  } catch (e) {
-    if (e.name === 'AbortError') return { ok: false, erreur: `Timeout Anthropic dépassé (${timeoutMs}ms)` };
-    return { ok: false, erreur: 'Erreur réseau Anthropic : ' + e.message };
-  } finally {
-    clearTimeout(timer);
-  }
+  const r = await appelDeepSeek({
+    systeme: systemPrompt,
+    messages: [{ role: 'user', content: corpsPaquet }],
+    maxTokens: 4000,
+    json: true,
+    timeoutMs: timeoutMs
+  });
+  if (!r.ok) return { ok: false, erreur: r.erreur || 'Fournisseur indisponible' };
+  // Repli defensif conserve : si le fournisseur enrobait malgre tout la reponse dans des
+  // balises de code, on les retire avant analyse.
+  const brut = r.texte.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
+  if (!brut) return { ok: false, erreur: 'Réponse sans contenu texte' };
+  return { ok: true, texte: brut };
 }
 
 // =====================
@@ -1680,7 +1671,7 @@ async function genererEditionPays(pays) {
     const faitsSourcesArchive = { ...paquet };
 
     const systemPrompt = construirePromptSysteme(pays, dateEdition, hasPJMaterial(aiInput));
-    const appel = await appelAnthropic(systemPrompt, retirerPhotosPourAppelIA(aiInput), ANTHROPIC_TIMEOUT_MS);
+    const appel = await appelIA(systemPrompt, retirerPhotosPourAppelIA(aiInput), ANTHROPIC_TIMEOUT_MS);
 
     // ----------------------------------------------------------------- IA -> FALLBACK
     // L'édition déterministe est TOUJOURS construite, avant même de savoir si l'IA a répondu :

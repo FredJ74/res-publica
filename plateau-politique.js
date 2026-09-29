@@ -4352,13 +4352,8 @@ async function signerDecretInutile(pa, cost) {
     'Max 6 lignes. Très drôle. Pas de vrais dieux ni religions réelles.';
 
   try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 250, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const decret = data.content?.[0]?.text || 'Décret indisponible.';
+    const r = await rpRedaction('decret', prompt);
+    const decret = r.texte || 'Décret indisponible.';
 
     // Effets gameplay pré-calculés pour l'aperçu, appliqués uniquement au clic "Publier"
     // (publierDecret) -- ne jamais les appliquer ici, avant toute confirmation du joueur.
