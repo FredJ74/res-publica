@@ -108,9 +108,18 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.retour.boutique':      "← Retour à la boutique",
 
   // --- C6 : libelles de l'ordre du local, derives du fonds ---
-  'commercepj.ordre.gerer':          "Gestion de ce commerce",
+  'commercepj.ordre.gerer':          "Gérer mon commerce",
   'commercepj.ordre.gererAide':      "Gérer votre commerce : identité, caisse, matières et articles.",
   'commercepj.ordre.visiter':        "Entrer dans le commerce",
+  // Libelles du parcours commercant unifie (30 septembre 2026). Le vocabulaire est
+  // celui d'une boutique ; un restaurant dit « Consulter la carte » pour la MEME
+  // primitive, et c'est voulu : le libelle appartient au metier, la primitive au socle.
+  'commercepj.ordre.produits':       "Voir les produits",
+  'commercepj.ordre.produitsAide':   "Les articles proposés à la vente, avec leur prix et leur stock.",
+  'commercepj.ordre.produire':       "Produire",
+  'commercepj.ordre.produireAide':   "Fabriquer pour ce commerce, avec ses matières premières. Le travail est payé.",
+  'commercepj.ordre.matieres':       "Vendre ou donner des matières",
+  'commercepj.ordre.matieresAide':   "Céder des matières premières de votre inventaire à ce commerce.",
   'commercepj.ordre.visiterAide':    "Acheter, fabriquer pour ce commerce, ou lui vendre des matières premières.",
   'commercepj.ordre.installer':      "Installer un commerce",
   'commercepj.ordre.installerAide':  "Créer un fonds de commerce dans ce local dont vous êtes titulaire.",
@@ -602,14 +611,49 @@ async function commercePjValiderTypes() {
 //
 // Tout est synchrone et sans reseau : getLocationPourRoom lit state.locationsActives,
 // deja charge, et le serveur a inscrit fondsId dans le bail (migration C1).
+// LE FONDS EXPLOITE ICI, LU SANS RESEAU. getLocationPourRoom lit state.locationsActives,
+// deja charge, et le serveur a inscrit fondsId dans le bail (C1). Cette fonction est le
+// point de bascule entre les deux moteurs de commerce du jeu : quand elle rend un
+// identifiant, le local est exploite par un FONDS PJ et ce sont les primitives C6 qui
+// parlent ; quand elle rend null, le lieu releve du moteur historique (restaurant,
+// armurerie, bar, marche) et rien ne change pour lui.
+function commercePjFondsIci() {
+  if (typeof getLocationPourRoom !== 'function') return null;
+  if (typeof state === 'undefined') return null;
+  let bail = null;
+  try { bail = getLocationPourRoom(state.currentBuilding, state.currentRoom, state.currentCity); }
+  catch (e) { return null; }
+  return (bail && bail.fondsId) ? bail.fondsId : null;
+}
+
+// ---------------------------------------------------------------------------
+// LES ORDRES D'UN LOCAL EXPLOITE — MEME VOCABULAIRE QUE LES AUTRES COMMERCES
+// ---------------------------------------------------------------------------
+// LE DEFAUT CORRIGE (30 septembre 2026). Un local reellement exploite -- Aux
+// Souvenirs d'Arnie, avec sa caisse, ses trois references, ses recettes et ses
+// matieres -- n'offrait au visiteur qu'UN ordre, « Entrer dans le commerce », qui
+// ouvrait un sommaire de trois entrees. A cote, le joueur lisait encore « Louer ce
+// local (800 FR/jour) » : un parcours de local vacant devant un commerce actif.
+//
+// LE VOCABULAIRE EST DESORMAIS CELUI DU RESTAURANT LA REPUBLIA, qui est la
+// reference UX : `consulter_carte_commerce`, `produire_commerce` et
+// `vendre_matiere_commerce`. CE SONT LES MEMES `fn`, pas des jumeaux : le routeur
+// les dirige vers le moteur qui tient ce lieu (voir plateau-router.js). Un
+// libelle peut differer -- « Voir les produits » pour une boutique, « Consulter
+// la carte » pour un restaurant -- la primitive, elle, est unique.
+//
+// TROIS ETATS, TROIS PARCOURS, tous derives du bail et d'aucun drapeau :
+//   pas de bail            -> rien ici, « Louer ce local » de data.js s'applique ;
+//   bail sans fonds        -> le titulaire seul peut installer un commerce ;
+//   bail avec fonds        -> le parcours commercant complet, et « Louer ce local »
+//                             est MASQUE : il est loue, et exploite.
 function ordresCommerceDuLocal(buildingId, roomId, ville) {
   if (typeof getLocationPourRoom !== 'function') return [];
   let bail = null;
   try { bail = getLocationPourRoom(buildingId, roomId, ville); } catch (e) { return []; }
   if (!bail) return [];
 
-  const base = { fn: 'commerce_pj', pa: 0, cost: 0, type: 'legal',
-                 icon: 'ti-building-store', successRate: 100 };
+  const base = { pa: 0, cost: 0, type: 'legal', successRate: 100 };
   const moi = (typeof state !== 'undefined' && state.char && state.char.name) || '';
   const titulaire = String(bail.locataire || '').replace(/^pj:/, '');
 
@@ -617,20 +661,54 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
     // Local loue mais sans fonds : seul le titulaire peut en installer un.
     if (!moi || titulaire !== moi) return [];
     return [Object.assign({}, base, {
+      fn: 'commerce_pj', icon: 'ti-building-store',
       label: tCommercePJ('commercepj.ordre.installer'),
       desc:  tCommercePJ('commercepj.ordre.installerAide')
     })];
   }
+
+  // COMMERCE ACTIF. Le socle economique d'abord, dans l'ordre ou on s'en sert :
+  // on regarde ce qui est vendu, on fabrique, on approvisionne.
+  const ordres = [
+    Object.assign({}, base, {
+      fn: 'consulter_carte_commerce', icon: 'ti-shopping-bag',
+      label: tCommercePJ('commercepj.ordre.produits'),
+      desc:  tCommercePJ('commercepj.ordre.produitsAide'),
+      // LE MASQUE PORTE SUR LES ORDRES QUE L'ETAT CONTREDIT, ET SUR EUX SEULS.
+      //  - `louer_local` : le local est loue et exploite, il n'est plus a louer.
+      //    C'etait le defaut visible chez Aux Souvenirs d'Arnie -- « Louer ce
+      //    local » s'affichait a cote de la boutique en activite.
+      //  - `commerce_pj` STATIQUE : data.js declare un « Ce commerce » a tout
+      //    faire, qui menait tantot a la gestion tantot au menu public. Les trois
+      //    primitives ci-dessus SONT ce menu ; le laisser afficherait deux portes
+      //    pour la meme chose. Le masque ne retire que l'ordre DECLARE : celui que
+      //    cette fonction ajoute plus bas pour le proprietaire est concatene apres
+      //    le filtrage, et survit donc intact.
+      // « Gerer mon local » n'est PAS masque : gerer un BAIL et gerer un COMMERCE
+      // sont deux choses distinctes, et le titulaire a besoin des deux.
+      masque: ['louer_local', 'commerce_pj']
+    }),
+    Object.assign({}, base, {
+      fn: 'produire_commerce', icon: 'ti-hammer',
+      label: tCommercePJ('commercepj.ordre.produire'),
+      desc:  tCommercePJ('commercepj.ordre.produireAide')
+    }),
+    Object.assign({}, base, {
+      fn: 'vendre_matiere_commerce', icon: 'ti-package-export',
+      label: tCommercePJ('commercepj.ordre.matieres'),
+      desc:  tCommercePJ('commercepj.ordre.matieresAide')
+    })
+  ];
+
+  // Le proprietaire garde SA porte, distincte de celle du client : le terminal.
   if (moi && titulaire === moi) {
-    return [Object.assign({}, base, {
+    ordres.push(Object.assign({}, base, {
+      fn: 'commerce_pj', icon: 'ti-device-desktop-analytics',
       label: tCommercePJ('commercepj.ordre.gerer'),
       desc:  tCommercePJ('commercepj.ordre.gererAide')
-    })];
+    }));
   }
-  return [Object.assign({}, base, {
-    label: tCommercePJ('commercepj.ordre.visiter'),
-    desc:  tCommercePJ('commercepj.ordre.visiterAide')
-  })];
+  return ordres;
 }
 
 // Inscription au REGISTRE des sources d'ordres dynamiques (29 septembre 2026).

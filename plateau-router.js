@@ -321,6 +321,28 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(pa, cost); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(pa, cost); return; }
+  // AIGUILLAGE DES TROIS PRIMITIVES COMMERCANTES (30 septembre 2026).
+  // Meme vocabulaire d'ordres pour les deux moteurs : voir les produits, produire,
+  // ceder des matieres. Ce qui change, c'est QUI tient le commerce. Un local
+  // exploite par un fonds PJ est servi par les ecrans du fonds ; partout ailleurs
+  // -- les 13 commerces PNJ, les marches, le Republia -- les handlers historiques
+  // restent seuls maitres. On teste le fonds AVANT, jamais le metier : c'est
+  // precisement pour ne pas ecrire « si armurerie... si boutique Arnie... ».
+  //
+  // commercePjFondsIci() lit state.locationsActives, deja en memoire : pas d'attente,
+  // donc pas de fenetre pendant laquelle le clic resterait sans effet. Elle n'est
+  // interrogee que pour ces cinq ordres : doOrder est le passage oblige des 268
+  // ordres du jeu, et aucun des 263 autres n'a de raison de payer ce parcours.
+  const ORDRES_COMMERCANTS = ['consulter_carte_commerce', 'faire_achats_marche',
+                              'produire_commerce', 'vendre_matiere_commerce', 'gerer_commerce'];
+  const fondsIci = (ORDRES_COMMERCANTS.indexOf(fn) !== -1 && typeof commercePjFondsIci === 'function')
+    ? commercePjFondsIci() : null;
+  if (fondsIci) {
+    if (fn === 'consulter_carte_commerce' || fn === 'faire_achats_marche') { commercePjEcranBoutique(); return; }
+    if (fn === 'produire_commerce')        { commercePjEcranTravail(); return; }
+    if (fn === 'vendre_matiere_commerce')  { commercePjEcranMatieresPubliques(); return; }
+    if (fn === 'gerer_commerce')           { ouvrirCommercePJ(); return; }
+  }
   if (fn === 'produire_commerce') { doProduireCommerceGenerique(pa, cost); return; }
   if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }
   if (fn === 'faire_achats_marche') { doFaireAchatsCommerceGenerique(pa, cost); return; }

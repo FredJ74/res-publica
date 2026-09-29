@@ -4814,11 +4814,31 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost, fn: 'acheter_ressources_entrepot' });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const rows = await sbRpc('acheter_a_entrepot', {
+  // « ACHAT REFUSE (INDISPONIBLE) » ETAIT UN ECHEC DE SESSION DEGUISE EN REGLE DU JEU.
+  // Diagnostic du 30 septembre 2026, sur un cas reel : l'ecran annonçait 73 cereales
+  // en stock, le joueur en demandait 2, et l'achat etait refuse « indisponible » --
+  // puis reussissait apres un simple rafraichissement de la page.
+  //
+  // La preuve est par exhaustion : acheter_a_entrepot nomme TOUTES ses sorties
+  // negatives (achats_absents, entrepot_introuvable, personnage_introuvable,
+  // ressource_inconnue, stock_insuffisant, rien_a_acheter, fonds_insuffisants,
+  // inventaire_plein). Aucune ne vaut « indisponible ». Ce mot ne pouvait donc venir
+  // que du repli `(v && v.raison) || 'indisponible'`, c'est-a-dire d'un `v` NUL.
+  //
+  // Et `sbRpc` rend precisement `null` sur TOUT echec de transport, en effaçant la
+  // distinction que la couche de transport avait pourtant etablie : session perdue
+  // (requete jamais envoyee), 401 en vol, coupure reseau. Un jeton expire -- ou entre
+  // dans sa marge d'expiration sans renouvellement abouti -- produisait donc un refus
+  // qui ressemblait a une regle economique. Le rafraichissement de la page restaurait
+  // la session, d'ou la guerison apparente.
+  //
+  // On passe donc a sbRpcVerdict, qui conserve le motif reel, et on nomme les trois
+  // etats de transport. Le stock, le prix et les regles d'achat ne changent pas d'une
+  // ligne : c'est l'HONNETETE du message qui est corrigee, pas l'economie.
+  const v = await sbRpcVerdict('acheter_a_entrepot', {
     p_acteur: state.char?.name, p_pays: state.country, p_ville: state.currentCity,
     p_batiment: buildingId, p_achats: quantites
   });
-  const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
@@ -4829,8 +4849,18 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
       inventaire_plein: 'Votre inventaire est plein (plafond de 100 objets).',
       ressource_inconnue: 'Ressource inconnue.',
       entrepot_introuvable: 'Cet entrepôt n\'existe pas.',
-      rien_a_acheter: 'Indiquez au moins une quantité.'
+      rien_a_acheter: 'Indiquez au moins une quantité.',
+      achats_absents: 'Indiquez au moins une quantité.',
+      personnage_introuvable: 'Votre personnage est introuvable.',
+      // Les trois etats de TRANSPORT, que le message generique masquait.
+      session_perdue: 'Votre session a expiré. Reconnectez-vous, puis réessayez : '
+        + 'rien n\'a été acheté ni débité.',
+      transport_indisponible: 'Le service n\'a pas répondu. Rien n\'a été acheté — réessayez.',
+      reseau_indisponible: 'Connexion interrompue. Rien n\'a été acheté — réessayez.'
     };
+    if (v && v.transport) {
+      console.error('[entrepot] achat non abouti (transport) : ' + JSON.stringify(v.transport));
+    }
     showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }

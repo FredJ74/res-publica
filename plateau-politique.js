@@ -3981,9 +3981,23 @@ function renderRoomActions(room, buildingId, roomId) {
     dynOrders = ordresCommerceDuLocal(buildingId, roomId, state.currentCity) || [];
   }
 
+  // MASQUAGE DERIVE DE L'ETAT (30 septembre 2026). Une source dynamique pouvait
+  // deja REMPLACER un ordre statique de meme `fn` ; elle ne pouvait pas en faire
+  // DISPARAITRE un autre. C'etait le defaut visible d'Aux Souvenirs d'Arnie : le
+  // local est reellement exploite comme commerce, et le joueur lisait pourtant
+  // encore « Louer ce local (800 FR/jour) » a cote de la boutique. Un ordre
+  // contradictoire avec l'etat reel n'est pas un choix, c'est une fausse piste.
+  //
+  // Meme forme que ctxExcludeOrders, et strictement additive : une source qui ne
+  // declare pas `masque` ne masque rien, donc rien ne change pour le camion
+  // militaire ni pour aucune autre source existante.
+  const dynMasque = [];
+  dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
+
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders]
     .filter(o => !ctxExcludeOrders.includes(o.fn))
+    .filter(o => !dynMasque.includes(o.fn))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
 

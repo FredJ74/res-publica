@@ -1,0 +1,105 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc ordres commerce</title></head><body>
+<!-- BANC DE LA COUCHE D'ORDRES COMMERCANTS (30 septembre 2026).
+     Chrome sans interface. data.js et plateau-commerce-pj.js sont charges tels
+     quels ; le bloc de composition d'ordres est EXTRAIT du texte de
+     plateau-politique.js par le script du banc, jamais retape ici. -->
+<pre id="verdict"></pre>
+<script src="../data.js"></script>
+<script>
+// Socle minimal : le module commerce ne touche au DOM qu'a l'affichage.
+function escapeHtmlText(s){return String(s);}
+function showToast(){} function addJournalEntry(){} function updateUI(){}
+var i18next={language:'fr',isInitialized:false,exists:function(){return false;},t:function(k){return k;}};
+var state={country:'republic',currentCity:'capitale',
+  currentBuilding:'centre-commercial',currentRoom:'boutique_milieu',
+  inventory:[],char:{name:'Arnie',country:'republic'}};
+// LE BAIL REEL, releve en base le 30 septembre 2026 (locations_actives).
+var BAIL_ARNIE={buildingId:'centre-commercial',roomId:'boutique_milieu',city:'capitale',
+  locataire:'Arnie',fondsId:'fonds-republic-1790594742432-237945'};
+var BAIL_NU={buildingId:'centre-commercial',roomId:'vitrine_principale',city:'capitale',
+  locataire:'Arnie',fondsId:null};
+var BAIL_COURANT=BAIL_ARNIE;
+function getLocationsActives(){return BAIL_COURANT?[BAIL_COURANT]:[];}
+function getLocationPourRoom(b,r,v){return getLocationsActives().filter(function(l){
+  return l.buildingId===b&&l.roomId===r&&l.city===v;})[0];}
+</script>
+<script src="../plateau-commerce-pj.js"></script>
+<script>
+var R=[];function essai(n,ok,d){R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:''));}
+
+// Le bloc de composition, extrait du texte de plateau-politique.js.
+var SOURCE_BLOC="  const sourcesDyn = (typeof window !== 'undefined' && Array.isArray(window.RP_ORDRES_DYNAMIQUES))\n    ? window.RP_ORDRES_DYNAMIQUES : [];\n  let dynOrders = [];\n  if (sourcesDyn.length > 0) {\n    sourcesDyn.forEach(f => {\n      try { dynOrders = dynOrders.concat(f(buildingId, roomId, state.currentCity) || []); }\n      catch (e) { /* une source defaillante n'emporte jamais les autres */ }\n    });\n  } else if (typeof ordresCommerceDuLocal === 'function') {\n    dynOrders = ordresCommerceDuLocal(buildingId, roomId, state.currentCity) || [];\n  }\n\n  // MASQUAGE DERIVE DE L'ETAT (30 septembre 2026). Une source dynamique pouvait\n  // deja REMPLACER un ordre statique de meme `fn` ; elle ne pouvait pas en faire\n  // DISPARAITRE un autre. C'etait le defaut visible d'Aux Souvenirs d'Arnie : le\n  // local est reellement exploite comme commerce, et le joueur lisait pourtant\n  // encore \u00ab Louer ce local (800 FR/jour) \u00bb a cote de la boutique. Un ordre\n  // contradictoire avec l'etat reel n'est pas un choix, c'est une fausse piste.\n  //\n  // Meme forme que ctxExcludeOrders, et strictement additive : une source qui ne\n  // declare pas `masque` ne masque rien, donc rien ne change pour le camion\n  // militaire ni pour aucune autre source existante.\n  const dynMasque = [];\n  dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });\n\n  // Plus d'ordres communs ici \u2014 se_cacher/blocus/incendier sont dans la fiche personnage\n  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders]\n    .filter(o => !ctxExcludeOrders.includes(o.fn))\n    .filter(o => !dynMasque.includes(o.fn))\n    .filter(o => !dynOrders.some(d => d.fn === o.fn))\n    .concat(dynOrders);";
+function composer(orders, buildingId, roomId){
+  var ctxOrders=[],ctxRoomOrders=[],ctxExcludeOrders=[];
+  var f=new Function('orders','ctxOrders','ctxRoomOrders','ctxExcludeOrders',
+    'buildingId','roomId','state','window','ordresCommerceDuLocal',
+    SOURCE_BLOC+'\n return {allOrders:allOrders, dynMasque:dynMasque, dynOrders:dynOrders};');
+  return f(orders,ctxOrders,ctxRoomOrders,ctxExcludeOrders,buildingId,roomId,state,window,ordresCommerceDuLocal);
+}
+
+// Le catalogue partage des batiments : c'est bien cette piece que le bail designe.
+var piece=BUILDINGS['centre-commercial'].rooms.boutique_milieu;
+essai('la piece reelle est bien celle du bail', !!piece && !!piece.orders,
+  piece?piece.orders.map(function(o){return o.fn;}).join(', '):'introuvable');
+
+// --- CAS 1 : Arnie, proprietaire, dans SON commerce -----------------------
+state.char.name='Arnie'; BAIL_COURANT=BAIL_ARNIE;
+var r1=composer(piece.orders,'centre-commercial','boutique_milieu');
+var fns1=r1.allOrders.map(function(o){return o.fn;});
+essai('proprietaire / les trois primitives communes sont la',
+  ['consulter_carte_commerce','produire_commerce','vendre_matiere_commerce']
+    .every(function(f){return fns1.indexOf(f)!==-1;}), fns1.join(', '));
+essai('proprietaire / « Gerer mon commerce » est propose',
+  r1.allOrders.filter(function(o){return o.fn==='commerce_pj';})
+    .some(function(o){return /[Gg]érer mon commerce/.test(o.label);}),
+  JSON.stringify(r1.allOrders.filter(function(o){return o.fn==='commerce_pj';}).map(function(o){return o.label;})));
+essai('proprietaire / « Louer ce local » a DISPARU (le local est exploite)',
+  fns1.indexOf('louer_local')===-1, fns1.join(', '));
+essai('proprietaire / « Gerer mon local » reste (le bail n\'est pas le commerce)',
+  fns1.indexOf('gerer_local')!==-1, fns1.join(', '));
+essai('proprietaire / aucun fn en double',
+  fns1.length===fns1.filter(function(f,i){return fns1.indexOf(f)===i;}).length, fns1.join(', '));
+essai('proprietaire / aucun ordre ne coute de PA a l\'ouverture',
+  r1.dynOrders.every(function(o){return o.pa===0&&o.cost===0;}),
+  JSON.stringify(r1.dynOrders.map(function(o){return o.fn+':'+o.pa+'/'+o.cost;})));
+
+// --- CAS 2 : un visiteur quelconque ---------------------------------------
+state.char.name='Vince Kubrick';
+var r2=composer(piece.orders,'centre-commercial','boutique_milieu');
+var fns2=r2.allOrders.map(function(o){return o.fn;});
+essai('visiteur / les trois primitives communes sont la',
+  ['consulter_carte_commerce','produire_commerce','vendre_matiere_commerce']
+    .every(function(f){return fns2.indexOf(f)!==-1;}), fns2.join(', '));
+essai('visiteur / aucune porte de gestion',
+  fns2.indexOf('commerce_pj')===-1, fns2.join(', '));
+essai('visiteur / « Louer ce local » a disparu aussi',
+  fns2.indexOf('louer_local')===-1, fns2.join(', '));
+
+// --- CAS 3 : local loue SANS fonds : rien n'est masque --------------------
+state.char.name='Arnie'; BAIL_COURANT=BAIL_NU;
+var r3=composer(piece.orders,'centre-commercial','vitrine_principale');
+var fns3=r3.allOrders.map(function(o){return o.fn;});
+essai('local sans commerce / « Louer ce local » REVIENT',
+  fns3.indexOf('louer_local')!==-1, fns3.join(', '));
+essai('local sans commerce / seule l\'installation est proposee',
+  r3.dynOrders.length===1&&/[Ii]nstaller/.test(r3.dynOrders[0].label||''),
+  JSON.stringify(r3.dynOrders.map(function(o){return o.label;})));
+
+// --- CAS 4 : aucun bail du tout : la couche est inerte --------------------
+BAIL_COURANT=null;
+var r4=composer(piece.orders,'centre-commercial','boutique_milieu');
+essai('aucun bail / la couche n\'ajoute et ne masque rien',
+  r4.dynOrders.length===0&&r4.dynMasque.length===0&&
+  r4.allOrders.map(function(o){return o.fn;}).join(',')===piece.orders.map(function(o){return o.fn;}).join(','),
+  r4.allOrders.map(function(o){return o.fn;}).join(', '));
+
+// --- CAS 5 : les libelles existent vraiment ------------------------------
+var manquants=['commercepj.ordre.produits','commercepj.ordre.produitsAide','commercepj.ordre.produire',
+ 'commercepj.ordre.produireAide','commercepj.ordre.matieres','commercepj.ordre.matieresAide',
+ 'commercepj.ordre.gerer','commercepj.ordre.installer']
+ .filter(function(k){var v=tCommercePJ(k);return !v||v===k;});
+essai('tous les libelles utilises sont traduits', manquants.length===0, manquants.join(', '));
+
+document.getElementById('verdict').textContent=R.join('\n')+
+  '\nBILAN '+R.filter(function(l){return l.indexOf('ECHEC')===0;}).length+' echec(s)';
+</script></body></html>

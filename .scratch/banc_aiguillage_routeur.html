@@ -1,0 +1,95 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc aiguillage</title></head><body>
+<!-- BANC DE L'AIGUILLAGE DES TROIS PRIMITIVES (30 septembre 2026).
+     On ne verifie pas qu'une ligne existe dans le routeur : on APPELLE doOrder et
+     on regarde quelle fonction a ete atteinte. Les deux moteurs sont eprouves :
+     un local avec fonds PJ, et les commerces historiques (Republia, armurerie,
+     marche) qui doivent continuer a passer par leurs propres ecrans. -->
+<pre id="verdict"></pre>
+<script>
+// --- socle minimal ---------------------------------------------------------
+var ATTEINT=null;
+function trace(n){return function(){ATTEINT=n;};}
+var state={country:'republic',currentCity:'capitale',pa:10,arg:1000,liquide:1000,
+  inventory:[],char:{name:'Arnie',country:'republic'},_ordreEnCours:null};
+var COUNTRIES={republic:{cur:'FR',name:'Republia'}};
+var TEST_MODE=false, ACTES_ILLEGAUX={}, ORDER_EFFECTS={}, WORLD={republic:{capitale:{}}};
+function showToast(){} function addJournalEntry(){} function updateUI(){} function advanceTime(){}
+function buildResultMsg(){return '';} function buildResultLabel(){return '';}
+function getMalusISN(){return 0;} function checkDetection(){} function getGroupSize(){return 1;}
+function queteAccueilNotifierOrdre(){}
+// Le paiement generique ne doit JAMAIS etre atteint par ces trois ordres.
+function deduireCoutOrdre(){ATTEINT='PAIEMENT GENERIQUE';return Promise.resolve({ok:true});}
+function signalerRefusCout(){}
+// Les sondes des ecrans du fonds sont posees APRES le chargement du module :
+// plateau-commerce-pj.js declare ces memes noms et ecraserait des sondes posees
+// avant lui. C'etait la cause d'un premier verdict entierement faux.
+var doProduireCommerceGenerique=trace('historique:produire');
+var doConsulterCarteCommerceGenerique=trace('historique:carte');
+var doFaireAchatsCommerceGenerique=trace('historique:achats');
+var doGererCommerceGenerique=trace('historique:gerer');
+var doVendreMatiereCommerceGenerique=trace('historique:matieres');
+// --- le bail, pilotable ----------------------------------------------------
+var BAIL=null;
+function getLocationsActives(){return BAIL?[BAIL]:[];}
+function getLocationPourRoom(b,r,v){return getLocationsActives().filter(function(l){
+  return l.buildingId===b&&l.roomId===r&&l.city===v;})[0];}
+var i18next={language:'fr',isInitialized:false,exists:function(){return false;},t:function(k){return k;}};
+function escapeHtmlText(s){return String(s);}
+</script>
+<script src="../plateau-commerce-pj.js"></script>
+<script src="../plateau-router.js"></script>
+<script>
+// commercePjFondsIci reste LA VRAIE fonction : c'est elle qu'on eprouve. Seuls
+// les quatre ecrans d'arrivee sont remplaces par des sondes.
+window.commercePjEcranBoutique=trace('fonds:boutique');
+window.commercePjEcranTravail=trace('fonds:travail');
+window.commercePjEcranMatieresPubliques=trace('fonds:matieres');
+window.ouvrirCommercePJ=trace('fonds:terminal');
+var R=[];function essai(n,ok,d){R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:''));}
+function appeler(fn){ATTEINT=null;doOrder(fn,0,0,fn,'',100);return ATTEINT;}
+
+// --- CAS A : un local exploite par un fonds PJ (Aux Souvenirs d'Arnie) -----
+state.currentBuilding='centre-commercial'; state.currentRoom='boutique_milieu';
+BAIL={buildingId:'centre-commercial',roomId:'boutique_milieu',city:'capitale',
+  locataire:'Arnie',fondsId:'fonds-republic-1790594742432-237945'};
+[['consulter_carte_commerce','fonds:boutique'],
+ ['faire_achats_marche','fonds:boutique'],
+ ['produire_commerce','fonds:travail'],
+ ['vendre_matiere_commerce','fonds:matieres'],
+ ['gerer_commerce','fonds:terminal']].forEach(function(c){
+  var a=appeler(c[0]);
+  essai('fonds PJ / ' + c[0] + ' -> ecrans du fonds', a===c[1], 'atteint ' + a);
+});
+
+// --- CAS B : les commerces historiques, sans fonds -------------------------
+// Aucun bail du tout : c'est le cas de La Republia, de l'armurerie et du marche.
+BAIL=null; state.currentBuilding='hotel-republica'; state.currentRoom='restaurant';
+[['consulter_carte_commerce','historique:carte'],
+ ['faire_achats_marche','historique:achats'],
+ ['produire_commerce','historique:produire'],
+ ['vendre_matiere_commerce','historique:matieres'],
+ ['gerer_commerce','historique:gerer']].forEach(function(c){
+  var a=appeler(c[0]);
+  essai('historique / ' + c[0] + ' -> ecrans historiques', a===c[1], 'atteint ' + a);
+});
+
+// --- CAS C : un local LOUE mais sans commerce installe --------------------
+// Un bail nu ne doit pas detourner les ordres : le local n'exploite rien.
+BAIL={buildingId:'centre-commercial',roomId:'vitrine_principale',city:'capitale',
+  locataire:'Arnie',fondsId:null};
+state.currentBuilding='centre-commercial'; state.currentRoom='vitrine_principale';
+essai('bail sans fonds / produire_commerce reste historique',
+  appeler('produire_commerce')==='historique:produire', 'atteint '+ATTEINT);
+
+// --- CAS D : aucun des cinq ordres ne passe par le paiement generique ------
+var fuite=[];
+BAIL={buildingId:'centre-commercial',roomId:'boutique_milieu',city:'capitale',
+  locataire:'Arnie',fondsId:'f'};
+state.currentBuilding='centre-commercial'; state.currentRoom='boutique_milieu';
+['consulter_carte_commerce','produire_commerce','vendre_matiere_commerce','gerer_commerce','faire_achats_marche']
+ .forEach(function(f){ if(appeler(f)==='PAIEMENT GENERIQUE') fuite.push(f); });
+essai('aucun de ces ordres ne tombe dans le debit generique', fuite.length===0, fuite.join(', '));
+
+document.getElementById('verdict').textContent=R.join('\n')+
+  '\nBILAN '+R.filter(function(l){return l.indexOf('ECHEC')===0;}).length+' echec(s)';
+</script></body></html>

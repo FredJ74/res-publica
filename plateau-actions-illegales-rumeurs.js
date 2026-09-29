@@ -3165,11 +3165,23 @@ async function commerceProduire(entrepriseId, recetteId, ordre) {
   return v;
 }
 
+// ECHEC DE TRANSPORT N'EST PAS REFUS METIER (30 septembre 2026). sbRpc aplatit
+// toute panne d'appel -- session perdue, 401, reseau coupe, PostgREST muet -- sur
+// la meme valeur `null`, que ce code traduisait en « indisponible ». Le joueur
+// lisait donc un refus du commerce la ou le commerce n'avait rien refuse du tout,
+// et n'avait aucun moyen de savoir qu'il suffisait de se reconnecter. C'est la
+// meme confusion que celle relevee a l'Entrepot au meme lot.
+// sbRpcVerdict conserve la nature de l'echec dans `raison` (session_perdue,
+// transport_indisponible, reseau_indisponible) : le refus metier garde son propre
+// vocabulaire, et les deux ne se ressemblent plus.
 async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
-  const v = await sbRpc('commerce_acheter_matiere', {
+  const v = await sbRpcVerdict('commerce_acheter_matiere', {
     p_acteur: state.char?.name, p_entreprise: entrepriseId, p_matiere: matiere, p_qte: qte
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  });
   if (!v || v.ok !== true) {
+    if (v && v.transport) {
+      console.error('[commerce] achat de matiere non abouti (transport)', v.raison, v.transport);
+    }
     return { ok: false, raison: (v && v.raison) || 'indisponible',
              placeRestante: v && v.placeRestante, detenu: v && v.detenu };
   }
@@ -4103,7 +4115,10 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
 
 function doVendreMatiereCommerceGenerique(pa, cost) {
   const c = resoudreCommerceActuel();
-  if (!c) { showToast('Indisponible', '', false); return; }
+  // Un bandeau vide ne dit rien. Ici la cause est toujours la meme et elle est
+  // connue : la piece ou se trouve le joueur n'abrite aucun commerce identifie.
+  if (!c) { showToast('Aucun commerce ici',
+    "Cette pièce n'abrite pas de commerce pouvant acheter des matières premières.", false); return; }
   doVendreMatiereCommerce(c.type, c.buildingId, c.roomId, pa, cost);
 }
 
@@ -4111,7 +4126,10 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  if (!data) { showToast('Indisponible', '', false); return; }
+  // chargerCommerce passe par entreprise_assurer_existence : un `null` ici n'est
+  // pas « le commerce n'existe pas », c'est « le serveur n'a pas repondu ».
+  if (!data) { showToast('Commerce injoignable',
+    "Les informations de ce commerce n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
 
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const matieres = matieresAccepteesParCommerce(data);
@@ -4150,20 +4168,41 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
   const roomIdReel = roomId || null;
   const qte = parseInt(document.getElementById('vendre-commerce-qte-' + matiere)?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+  if (!qte || qte <= 0) { showToast('Quantité invalide',
+    'Indiquez un nombre entier d\'unités supérieur à zéro.', false); return; }
 
   const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte);
   const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
   if (!res.ok) {
+    // AUCUN REFUS SANS PHRASE. Trois entrees de cette table etaient des chaines
+    // vides : le joueur voyait un bandeau muet et ne pouvait pas savoir si le
+    // commerce refusait, si sa saisie etait fautive, ou si l'appel avait echoue.
+    // Les trois etats de transport de sbRpcVerdict sont nommes ici pour la meme
+    // raison -- ce ne sont pas des refus du commerce.
     const messages = {
-      introuvable: '',
+      introuvable: 'Ce commerce est introuvable.',
       matiere_non_acceptee: 'Ce commerce n\'achète pas cette matière.',
-      quantite_invalide: '',
+      quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
+      ressource_inconnue: 'Cette matière n\'a pas de prix de référence.',
+      session_perdue: 'Votre session a expiré. Reconnectez-vous : la vente n\'a pas eu lieu.',
+      transport_indisponible: 'Le serveur n\'a pas répondu. La vente n\'a pas eu lieu.',
+      reseau_indisponible: 'Connexion interrompue. La vente n\'a pas eu lieu.',
       stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
       stock_plein: 'Le stock maximum de cette matière est atteint pour ce commerce.',
       caisse_insuffisante: 'Le commerce ne peut pas acheter cette quantité actuellement.'
     };
-    if (!res.dejaSignale) showToast('Vente refusée', messages[res.raison] || '', false);
+    // Un appel qui n'a pas abouti ne s'annonce pas comme un refus du commerce :
+    // le titre change, parce que le geste a faire n'est pas le meme (se
+    // reconnecter ou reessayer, plutot que revoir sa demande).
+    const transport = ['session_perdue', 'transport_indisponible', 'reseau_indisponible'];
+    const estTransport = transport.indexOf(res.raison) !== -1;
+    if (estTransport) console.error('[commerce] vente de matiere non aboutie (transport)', res.raison);
+    if (!res.dejaSignale) {
+      showToast(estTransport ? 'Vente non aboutie' : 'Vente refusée',
+        messages[res.raison] || ('Le commerce a refusé cette vente (' + (res.raison || 'motif inconnu') + ').'),
+        false);
+    }
     return;
   }
   updateUI();

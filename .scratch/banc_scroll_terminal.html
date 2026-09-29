@@ -1,0 +1,103 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<!-- BANC DE MISE EN PAGE REELLE (30 septembre 2026).
+     Chrome sans interface, la VRAIE style.css, la VRAIE structure de plateau.html
+     et le VRAI balisage emis par commercePjMachine/milRendre. On ne verifie pas
+     qu'une regle CSS existe : on MESURE si la partie basse est atteignable.
+     ?sans=1 desactive la regle ajoutee -- si le banc passe aussi dans ce mode,
+     il ne mesure rien et doit etre jete. -->
+<link rel="stylesheet" href="../style.css">
+<style>html,body{margin:0}</style>
+</head><body>
+<div id="modal-postes" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title" id="postes-modal-title">T</div>
+      <button class="modal-close">x</button></div>
+    <div id="postes-body"></div>
+  </div>
+</div>
+<pre id="verdict"></pre>
+<script>
+var SANS = location.search.indexOf('sans=1') !== -1;
+if (SANS) {
+  // Neutralise la regle du correctif, et uniquement elle.
+  var s = document.createElement('style');
+  s.textContent = '#modal-postes .modal-box.cpj-machine > #postes-body,' +
+                  '#modal-postes .modal-box.mil-machine > #postes-body{' +
+                  'flex:0 1 auto;min-height:auto;display:block}';
+  document.head.appendChild(s);
+}
+// Reproduit le balisage REEL de commercePjMachine et de milMachine : meme
+// fronton, meme ecran, meme socle, avec les prefixes propres a chaque terminal.
+function machine(classe, contenuHtml, ecranClasse) {
+  var p = (classe === 'mil-machine') ? 'mil' : 'cpj';
+  var b = document.getElementById('postes-body');
+  b.innerHTML = '<div class="' + p + '-fronton"><span class="' + p + '-led"></span>' +
+    '<span class="' + p + '-plaque">TERMINAL</span><span class="' + p + '-grilles"></span>' +
+    '<span class="' + p + (p === 'mil' ? '-armee' : '-enseigne') + '">La Republia</span>' +
+    '<button class="' + p + '-eteindre">o</button></div>' +
+    '<div class="' + ecranClasse + '">' + contenuHtml + '</div>' +
+    '<div class="' + p + '-socle"></div>';
+  var boite = document.querySelector('#modal-postes .modal-box');
+  boite.className = 'modal-box ' + classe;
+  document.getElementById('modal-postes').classList.add('open');
+}
+function lignes(n, marque) {
+  var h = '';
+  for (var i = 1; i <= n; i++) {
+    h += '<div style="padding:.5rem 0;border-bottom:1px solid #333"' +
+         (i === n ? ' id="' + marque + '"' : '') + '>Ligne ' + i + ' du terminal</div>';
+  }
+  return h;
+}
+var R = [];
+function essai(nom, ok, detail) { R.push((ok ? 'OK   ' : 'ECHEC') + ' ' + nom + (detail ? ' :: ' + detail : '')); }
+
+function mesurer(etiquette, classe, ecranClasse, selEcran) {
+  var boite = document.querySelector('#modal-postes .modal-box');
+  var ecran = document.querySelector(selEcran);
+  var corps = document.getElementById('postes-body');
+  var dernier = document.getElementById('derniere-' + etiquette);
+  var hBoite = boite.getBoundingClientRect().height;
+  var plafond = window.innerHeight * 0.95 + 2;
+
+  essai(etiquette + ' / la coque reste dans la fenetre',
+    hBoite <= plafond, 'coque ' + Math.round(hBoite) + 'px, plafond ' + Math.round(plafond) + 'px');
+  essai(etiquette + ' / le corps de modale ne deborde pas de la coque',
+    corps.getBoundingClientRect().height <= hBoite + 1,
+    'corps ' + Math.round(corps.getBoundingClientRect().height) + 'px pour coque ' + Math.round(hBoite) + 'px');
+  essai(etiquette + " / l'ecran a bien du contenu en trop",
+    ecran.scrollHeight > ecran.clientHeight + 1,
+    'contenu ' + ecran.scrollHeight + 'px dans ' + ecran.clientHeight + 'px');
+
+  ecran.scrollTop = ecran.scrollHeight;
+  essai(etiquette + " / l'ecran DEFILE reellement", ecran.scrollTop > 0,
+    'scrollTop apres demande de fin = ' + Math.round(ecran.scrollTop));
+
+  // Atteignable veut dire VISIBLE DANS LA FENETRE, pas « dans les limites d'un
+  // ecran qui deborde lui-meme » : mesuree contre l'ecran seul, cette ligne
+  // passait aussi quand le terminal etait casse -- elle ne prouvait rien.
+  var rd = dernier.getBoundingClientRect(), re = ecran.getBoundingClientRect();
+  essai(etiquette + ' / la DERNIERE ligne est atteignable',
+    rd.bottom <= re.bottom + 2 && rd.top >= re.top - 2 && rd.bottom <= window.innerHeight + 2,
+    'derniere ligne a ' + Math.round(rd.bottom) + ', bas de l\'ecran a ' + Math.round(re.bottom) +
+    ', fenetre ' + window.innerHeight);
+
+  var socle = ecran.parentNode.querySelector('.cpj-socle,.mil-socle').getBoundingClientRect();
+  essai(etiquette + ' / le socle de la machine reste visible',
+    socle.bottom <= window.innerHeight + 2,
+    'socle a ' + Math.round(socle.bottom) + ', fenetre ' + window.innerHeight);
+}
+
+machine('cpj-machine', lignes(60, 'derniere-commerce'), 'cpj-ecran');
+mesurer('commerce', 'cpj-machine', 'cpj-ecran', '.cpj-ecran');
+
+// LE TERMINAL MILITAIRE EST SUR LA MEME CHAINE. 24 soldats, c'est la charge
+// annoncee du lot T ; on la mesure plutot que de la supposer heritee.
+machine('mil-machine', lignes(24, 'derniere-militaire'), 'mil-ecran');
+mesurer('militaire', 'mil-machine', 'mil-ecran', '.mil-ecran');
+
+document.getElementById('verdict').textContent =
+  'MODE=' + (SANS ? 'SANS LE CORRECTIF' : 'AVEC LE CORRECTIF') +
+  ' hauteur fenetre=' + window.innerHeight + '\n' + R.join('\n') +
+  '\nBILAN ' + R.filter(function (l) { return l.indexOf('ECHEC') === 0; }).length + ' echec(s)';
+</script></body></html>

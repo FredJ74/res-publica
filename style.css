@@ -1581,10 +1581,36 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   background:repeating-linear-gradient(90deg,rgba(0,0,0,.1) 0 3px,transparent 3px 9px)}
 
 /* --- Ecran encastre : phosphore ambre, monospace, contraste confortable --- */
-/* min-height:0 N'EST PAS UNE PRECAUTION : sans elle, un enfant de flex ne se
-   reduit jamais sous la taille de son contenu, et cette zone -- pourtant en
-   overflow-y:auto -- ne defile pas. C'est ce qui a rendu inaccessibles les
-   dernieres lignes de ce terminal (constate le 29 septembre 2026). */
+/* ===========================================================================
+   LE MAILLON MANQUANT DE LA CHAINE DE DEFILEMENT (30 septembre 2026)
+   ---------------------------------------------------------------------------
+   Premiere tentative le 29 : `min-height:0` pose sur .cpj-ecran. Insuffisant, et
+   verifie en production par Fred -- le terminal ne defilait toujours pas.
+   La raison est un etage plus haut.
+
+   La structure reelle est :
+     .modal-box.cpj-machine   display:flex, column, overflow:hidden, max-height:90vh
+       .modal-header          display:none
+       #postes-body           <== AUCUN style dans toute la feuille
+         .cpj-fronton / .cpj-ecran / .cpj-socle
+
+   #postes-body est un bloc ORDINAIRE. Les enfants de flex de .modal-box sont donc
+   .modal-header et #postes-body -- PAS .cpj-ecran. Ses `flex:1 1 auto` et
+   `min-height:0` etaient inertes : elle prenait la hauteur de son contenu,
+   #postes-body depassait les 90vh, et l'`overflow:hidden` de la coque DECOUPAIT
+   le bas. D'ou « la partie basse reste inaccessible ».
+
+   On raccorde donc la chaine au niveau qui manquait. Portee strictement aux deux
+   classes de terminal : #postes-body est partage par l'organigramme, le journal,
+   Helvetia et des dizaines d'autres ecrans, qui doivent rester des blocs. */
+#modal-postes .modal-box.cpj-machine > #postes-body,
+#modal-postes .modal-box.mil-machine > #postes-body{
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+}
+
+/* min-height:0 reste indispensable ICI aussi : maintenant que le parent est un
+   conteneur flex, c'est cette regle qui autorise la zone a se reduire sous la
+   taille de son contenu -- donc a defiler. Les deux sont necessaires. */
 .cpj-ecran{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   margin:0 .8rem;padding:1rem 1.1rem 1.2rem;
   background:radial-gradient(120% 130% at 50% 0%,#1b150c 0%,#0f0c07 70%,#0a0805 100%);
