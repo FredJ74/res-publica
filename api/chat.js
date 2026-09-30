@@ -68,18 +68,19 @@ function validerPayload(body) {
 //
 // Elle echoue en silence : un PNJ sans memoire sociale -- la quasi-totalite -- rend
 // simplement `null`, et son prompt est alors rigoureusement celui d'avant.
-async function relationSociale(profilId, jeton) {
+// Une seule porte de lecture, deux usages. Les deux memoires passent par la meme
+// mecanique -- RPC sous le JETON DU JOUEUR, jamais sous une cle de service -- et
+// echouent en silence : un PNJ qui n'a ni l'une ni l'autre rend `null`, et son
+// prompt reste rigoureusement celui d'avant.
+async function lireMemoire(rpc, profilId, jeton) {
   const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
   const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
   try {
-    const r = await fetch(url.replace(/\/$/, '') + '/rest/v1/rpc/pnj_social_contexte', {
+    const r = await fetch(url.replace(/\/$/, '') + '/rest/v1/rpc/' + rpc, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': anon,
-        'Authorization': 'Bearer ' + jeton
-      },
-      body: JSON.stringify({ p_pnj_id: profilId })
+      headers: { 'Content-Type': 'application/json', 'apikey': anon, 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify(rpc === 'pnj_social_contexte'
+        ? { p_pnj_id: profilId } : { p_referent_id: profilId })
     });
     if (!r.ok) return null;
     const d = await r.json();
@@ -88,6 +89,13 @@ async function relationSociale(profilId, jeton) {
     return null;
   }
 }
+
+// La relation d'un PNJ SOCIAL : rencontres, conversations, familiarite.
+const relationSociale = (profilId, jeton) => lireMemoire('pnj_social_contexte', profilId, jeton);
+
+// La memoire d'un REFERENT : combien de fois il a deja explique des choses a ce
+// joueur. Rien d'autre -- ni familiarite, ni confiance. Un referent n'est pas un ami.
+const memoirePedagogique = (profilId, jeton) => lireMemoire('referent_pedagogie_contexte', profilId, jeton);
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -107,8 +115,14 @@ export default async function handler(req, res) {
   const utilisateur = await joueurAuthentifie(req);
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  const relation = await relationSociale(req.body.profil, utilisateur.jeton);
-  const systeme = construirePromptSysteme(req.body.profil, req.body.lang, relation);
+  // Les deux lectures partent ENSEMBLE : elles sont independantes, et les enchainer
+  // ajouterait un aller-retour reseau a chaque replique. Un PNJ n'a jamais les deux --
+  // un social n'est pas referent, un referent ne se lie pas.
+  const [relation, pedagogie] = await Promise.all([
+    relationSociale(req.body.profil, utilisateur.jeton),
+    memoirePedagogique(req.body.profil, utilisateur.jeton)
+  ]);
+  const systeme = construirePromptSysteme(req.body.profil, req.body.lang, relation, pedagogie);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

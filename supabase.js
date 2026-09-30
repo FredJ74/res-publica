@@ -5541,3 +5541,13 @@ async function sbEscortSocialeChoisir(escortId) {
 async function sbEscortSocialeActuelle() {
   return await sbRpc('escort_sociale_actuelle', {});
 }
+
+// =====================================================================
+// MEMOIRE PEDAGOGIQUE DES REFERENTS (1er octobre 2026)
+// =====================================================================
+// Un referent se souvient de ce qu'il a EXPLIQUE, pas de qui vous etes : cette
+// RPC ne touche ni familiarite, ni confiance, ni jalon. Sans effet pour un PNJ
+// qui n'est pas dans la liste fermee du serveur -- aucune ligne n'est creee.
+async function sbReferentPedagogieNoter(referentId) {
+  return await sbRpc('referent_pedagogie_noter', { p_referent_id: referentId });
+}

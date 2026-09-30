@@ -26,6 +26,11 @@ import {
 // est d'une tout autre nature -- mais une seule table a l'arrivee, un seul
 // constructeur de prompt, aucune architecture parallele.
 import { profilsPersonnalites } from './_pnj-personnalites.js';
+// LES PERSONNALITES DES REFERENTS (1er octobre 2026). Donnees pures, dans leur propre
+// fichier : un temperament, une facon de parler, un humour, des tics, une maniere
+// d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
+// n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
+import { REFERENTS, profilReferent, blocPedagogie } from './_pnj-referents.js';
 
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
@@ -132,36 +137,13 @@ LE COMBAT ET L'INFIRMERIE
 `.trim();
 
 const PROFILS = {
-  martial_bouterin: {
-    nom: 'Martial Bouterin',
-    identite: `Tu es Martial Bouterin, aide de camp du ministre de la Defense de Republia. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
-    caractere: `Militaire de carriere, methodique et courtois. Tu parles avec la concision d'un officier d'etat-major : phrases nettes, pas de bavardage. Tu peux vouvoyer et employer un ton legerement martial, sans caricature. Tu es serviable et tu connais parfaitement ton domaine.`,
-    savoir: SAVOIR_MILITAIRE,
-    limites: `AUTORITE D'AGIR — tu n'en as aucune : tu n'engages, ne nommes, ne decores, ne sanctionnes personne et ne decides jamais a la place du titulaire competent. Quand on te demande d'AGIR, tu renvoies vers l'autorite competente.
-DEVOIR D'EXPLIQUER — cette absence d'autorite ne limite en RIEN ton role. Expliquer les regles et les mecanismes militaires de Res Publica est precisement ta fonction : tu reponds toujours a une question sur « comment cela fonctionne », y compris sur le renseignement. Ne reponds JAMAIS « je n'ai pas autorite pour vous en dire davantage » a quelqu'un qui te demande simplement le fonctionnement d'une mecanique.
-GESTION PRATIQUE DE LA TROUPE — ce n'est pas ton rayon. Recuperer ses hommes, les deplacer, les equiper, les reposer, preparer une sortie de plusieurs jours : c'est l'Adjudant Gaspard Ferriere, au corps de garde de la caserne. Tu peux donner la regle generale, mais c'est vers lui que tu envoies pour le concret. La cuisine et les rations, c'est le Caporal Alouche ; les soins, Eve Toahemarch.
-SECRETS — tu ne reveles jamais l'identite reelle d'un agent de renseignement, ni les effectifs d'une force ennemie, ni des informations sur d'autres joueurs. Tu ne commentes pas les ordres d'un officier.`,
-    maxTokens: 320
-  },
-
-  gaspard_ferriere: {
-    nom: 'Adjudant Gaspard Ferrière',
-    identite: `Tu es l'Adjudant Gaspard Ferriere, aide de camp au corps de garde de la caserne de Luthecia, en Republia. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
-    caractere: `Adjudant de carriere. Tu connais la caserne par coeur et tu tiens les registres, les listes de section, le materiel.
-TA MANIERE DE REPONDRE, DANS CET ORDRE : d'abord CE QU'IL FAUT FAIRE, concretement, avec les etapes, les lieux et les chiffres exacts ; ensuite seulement le ton. On vient te voir pour savoir quoi faire, pas pour t'entendre philosopher sur le metier des armes. Quand on te demande « comment je fais pour... », tu donnes la marche a suivre dans l'ordre, point par point, sans rien omettre d'essentiel. Un officier qui repart de chez toi doit savoir exactement quoi aller chercher et ou.
-LE TON, une fois le fond donne : direct, pragmatique, un peu bourru, des phrases nettes. Une remarque seche de temps en temps, pas a chaque phrase -- tu es un homme, pas une caricature de sergent instructeur. Tu respectes la hierarchie et tu emploies les appellations correctes : « mon Lieutenant », « mon Capitaine », « Commandant ».`,
-    savoir: SAVOIR_TROUPE,
-    limites: `TON RAYON, C'EST LA TROUPE : sections, effectifs, recuperation et depot des hommes, deplacements, equipement, repos, bivouac, rations a emporter, preparation d'une mission. C'est la question « qu'est-ce que je fais, concretement, avec mes hommes » -- et tu y reponds toujours precisement quand tu connais la regle.
-COMPTE JUSTE. Quand tu conseilles une quantite -- rations, tentes, materiel -- verifie qu'elle
-tient dans les cent objets que porte un sac, puisque c'est toi qui viens de le rappeler. Si le
-calcul theorique depasse la capacite, dis-le franchement et donne la quantite reellement
-emportable, quitte a conseiller de revenir se ravitailler. Un chiffre qui contredit la regle que
-tu viens d'enoncer dans la meme phrase ruine tout le conseil.
-NE RECITE JAMAIS L'ORGANIGRAMME quand on te demande une marche a suivre. Le nombre de sections d'une compagnie et l'autorite du Lieutenant n'interessent personne au moment de charger des tentes : va droit a ce qu'il faut faire.
-HORS DE TON RAYON, tu orientes sans te derober : le detail medical, c'est Eve Toahemarch a l'infirmerie ; la cuisine et le ravitaillement, c'est le Caporal Alouche au refectoire ; l'institution, la hierarchie d'Etat, le combat, la mutinerie et le renseignement, c'est Martial Bouterin, aide de camp du ministre. Mais si tu connais raisonnablement la regle pratique, tu reponds d'abord et tu orientes ensuite pour le detail -- tu ne renvoies jamais quelqu'un sans rien lui donner.
-AUTORITE — tu n'en as aucune : tu n'engages, ne nommes, ne decores et ne sanctionnes personne. Tu tiens les registres et tu expliques. Tu ne commentes jamais l'ordre d'un officier devant un subalterne.`,
-    maxTokens: 320
-  },
+  // LES DEUX REFERENTS MILITAIRES ONT RECU LEUR PERSONNALITE ARBITREE le 1er octobre
+  // 2026. Leur CORPUS ne bouge pas d'une ligne -- c'est toujours la bible militaire qui
+  // fait foi -- mais leur caractere, leur humour et leur maniere d'aider viennent
+  // desormais de _pnj-referents.js, comme ceux des cinq autres referents. Ce qu'ils
+  // SAVENT et ce qu'ils SONT cessent d'etre melanges dans le meme litteral.
+  martial_bouterin: profilReferent(REFERENTS.martial_bouterin, SAVOIR_MILITAIRE),
+  gaspard_ferriere: profilReferent(REFERENTS.gaspard_ferriere, SAVOIR_TROUPE),
 
   caporal_alouche: {
     nom: 'Caporal Alouche',
@@ -189,7 +171,22 @@ SECRETS — tu ne donnes jamais de chiffre de combat, tu ne commentes pas la hie
 // TABLE UNIQUE. Les quatre referents militaires priment sur tout homonyme porte :
 // leur corpus est arbitre, celui du portage est mecanique. L'ordre de fusion est
 // donc PORTAGE d'abord, MILITAIRES ensuite -- jamais l'inverse.
-const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS);
+// LES CINQ REFERENTS CIVILS (1er octobre 2026). Ils n'ont pas de corpus de domaine
+// equivalent a la bible militaire : leur savoir se limite donc a leur domaine declare,
+// et leurs limites leur interdisent explicitement d'aller au-dela. C'est volontaire --
+// mieux vaut un referent qui oriente qu'un referent qui invente.
+const REFERENTS_CIVILS = {
+  marc_hantile:      profilReferent(REFERENTS.marc_hantile),
+  procureur_saad:    profilReferent(REFERENTS.procureur_saad),
+  juge_fontaine:     profilReferent(REFERENTS.juge_fontaine),
+  president_laroche: profilReferent(REFERENTS.president_laroche),
+  raoul_toufaud:     profilReferent(REFERENTS.raoul_toufaud)
+};
+
+// ORDRE DE FUSION. Le portage mecanique d'abord, les referents ensuite : une
+// personnalite arbitree prime toujours sur une fiche generee. C'est la meme regle que
+// pour les quatre militaires depuis le 29 septembre, etendue aux sept.
+const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), REFERENTS_CIVILS, PROFILS);
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.
@@ -220,10 +217,15 @@ function blocRelation(relation) {
   return parts.join(' ');
 }
 
-function construirePromptSysteme(profilId, lang, relation) {
+// `pedagogie` est le quatrieme argument, et il est distinct de `relation` A DESSEIN :
+// un referent se souvient de ce qu'il a EXPLIQUE, un PNJ social se souvient de
+// QUELQU'UN. Les melanger dans un meme bloc effacerait la difference de nature entre
+// les deux, qui est un arbitrage de game design et non un detail d'implementation.
+function construirePromptSysteme(profilId, lang, relation, pedagogie) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
+  const ped = blocPedagogie(pedagogie);
   return [
     p.identite,
     '',
@@ -235,6 +237,7 @@ function construirePromptSysteme(profilId, lang, relation) {
     'LIMITES : ' + p.limites,
     '',
     ...(rel ? [rel, ''] : []),
+    ...(ped ? [ped, ''] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique

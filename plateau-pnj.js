@@ -1144,6 +1144,25 @@ function envoyerQuestion(enc) {
 // =====================
 // QUELS PNJ passent par le serveur. La table est volontairement explicite : tout PNJ absent d'ici
 // conserve exactement son comportement d'avant. On bascule profil par profil, jamais en bloc.
+// LES SEPT REFERENTS (1er octobre 2026). Liste tenue ici pour EVITER un aller-retour
+// reseau inutile apres chacune des repliques des 180 autres PNJ : le serveur refuse
+// de toute facon d'ouvrir une memoire pour qui n'est pas referent, cette liste ne fait
+// qu'eviter de le lui demander pour rien.
+//
+// TROIS LISTES DOIVENT RESTER ALIGNEES : celle-ci, REFERENTS dans
+// api/_pnj-referents.js, et la table pnj_referents en base. Le banc
+// .scratch/banc_referents_personnalites.py les compare et echoue si l'une diverge.
+const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
+                       'procureur_saad', 'juge_fontaine', 'president_laroche',
+                       'raoul_toufaud'];
+
+// Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.
+function referentNoterConsultation(profilId) {
+  if (!profilId || PNJ_REFERENTS.indexOf(profilId) === -1) return;
+  if (typeof sbReferentPedagogieNoter !== 'function') return;
+  sbReferentPedagogieNoter(profilId).catch(function () {});
+}
+
 const PNJ_PROFILS_SERVEUR = {
   'Martial Bouterin': 'martial_bouterin',
   // Les deux referents metier de la caserne (23 septembre 2026). La cle est le nom AFFICHE prive
@@ -1782,6 +1801,10 @@ RÈGLES ABSOLUES :
     if (typeof pnjSocialNoterConversation === 'function') {
       pnjSocialNoterConversation(profilServeur);
     }
+    // ET LA MEMOIRE PEDAGOGIQUE D'UN REFERENT. Les deux notations sont distinctes :
+    // un PNJ social retient qu'on lui a parle, un referent retient qu'il a explique.
+    // Aucun PNJ n'a les deux -- c'est la difference de nature entre eux.
+    referentNoterConsultation(profilServeur);
     return;
   } catch(e) {
     // REPLI UTILE POUR JEREMY. Les trois phrases generiques ci-dessous n'ont aucun sens pour un
