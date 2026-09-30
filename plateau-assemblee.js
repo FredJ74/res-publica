@@ -674,108 +674,445 @@ function assembleeIssueAction(r, messagePanne) {
 
 const ASSEMBLEE_FORUM_ID = 'assemblee';
 
+// =====================
+// SEB LEX — LE JURISTE DE L'ASSEMBLEE (chantier du 30 septembre 2026)
+// =====================
+// Le deposant ne remplit plus un formulaire technique : il consulte un legiste.
+// Seb Lex l'interroge, puis lui presente un projet redige et sa portee. Le
+// joueur valide, et c'est SEULEMENT a cet instant que le depot a lieu et que le
+// PA est debite -- la consultation est gratuite.
+//
+// SEB NE DECIDE RIEN QUI COMPTE. La categorie et la portee qu'il propose sont
+// revalidees par le serveur au depot (assemblee_deposer_projet), contre la meme
+// liste fermee que celle qui lui a ete donnee. Son texte n'est jamais reinterprete.
+
+const SEBLEX_PORTRAIT = 'images/assemblee-juriste-seb-lex.png';
+
+// LES TROIS SEULES QUALIFICATIONS que ce client sait traduire en depot. Liste
+// FERMEE, jumelle de celle que le serveur applique : le navigateur ne fabrique
+// jamais un projet a partir d'une nature qu'il ne sait pas deposer.
+const SEBLEX_NATURES = ['interdiction', 'declarative', 'abrogation'];
+
+// Etat de la consultation en cours. Volontairement en memoire : une consultation
+// est un moment, pas un dossier. Rien n'est ecrit tant que le joueur ne valide pas.
+let SEBLEX = null;
+
+function sebLexReinitialiser() {
+  SEBLEX = {
+    historique: [],                     // [{role, content}] transmis au serveur
+    echanges: [{ qui: 'seb', texte: 'Je vous écoute. Quelle est cette loi ?' }],
+    projet: null,                       // { nature, titre, synthese, ... }
+    attente: false,
+    // LE TEXTE SAISI SURVIT A UNE PANNE. Si le juriste ne repond pas, on le remet
+    // dans le champ : le joueur n'a pas a retaper son idee parce que le
+    // fournisseur a hoquete.
+    brouillon: '',
+    pa: 1, cost: 0
+  };
+}
+
 function ouvrirDeposerProposition(pa, cost) {
   if (!assembleePeutDeposer()) {
     showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false);
     return;
   }
+  sebLexReinitialiser();
+  SEBLEX.pa = (pa || 1); SEBLEX.cost = (cost || 0);
+  sebLexRendre();
+}
 
-  const optionsCat = Object.entries(CATEGORIES_INTERDICTION)
-    .map(([id, c]) => '<option value="' + id + '">' + c.label + '</option>').join('');
+function sebLexEchapper(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.9rem">Le projet sera publié au forum de l\'Assemblée et débattu au moins une semaine avant de pouvoir entrer en session.</div>';
+function sebLexRendre() {
+  if (!SEBLEX) return;
+  let h = '<div class="seblex">';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">TITRE</div>';
-  html += '<input id="prop-titre" type="text" maxlength="120" placeholder="Ex : Loi sur la transparence des marchés publics" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.55rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem"/>';
+  // L'EN-TETE : un homme, un nom, une fonction. Pas une fenetre d'assistant.
+  h += '<div class="seblex-tete">';
+  h += '<img class="seblex-portrait" src="' + SEBLEX_PORTRAIT + '" alt="Seb Lex">';
+  h += '<div><div class="seblex-nom">SEB LEX</div>';
+  h += '<div class="seblex-fonction">Juriste de l\'Assemblée nationale</div></div>';
+  h += '</div>';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">NATURE DU PROJET</div>';
-  html += '<select id="prop-type" onchange="assembleeMajFormulaireDepot()" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.7rem">';
-  html += '<option value="rp">Loi déclarative (RP) — aucun effet mécanique automatique</option>';
-  html += '<option value="mecanique">Loi d\'interdiction — effet mécanique réel</option>';
-  html += '</select>';
+  // LE FIL DE LA CONSULTATION.
+  h += '<div class="seblex-fil" id="seblex-fil">';
+  SEBLEX.echanges.forEach(function (e) {
+    if (e.qui === 'seb') {
+      h += '<div class="seblex-dit">' + sebLexEchapper(e.texte) + '</div>';
+    } else {
+      h += '<div class="seblex-moi">' + sebLexEchapper(e.texte) + '</div>';
+    }
+  });
+  if (SEBLEX.attente) {
+    h += '<div class="seblex-attente">Seb Lex consulte le code…</div>';
+  }
+  h += '</div>';
 
-  // Zone categorie, masquee tant que le type n'est pas 'mecanique'.
-  html += '<div id="prop-zone-cat" style="display:none;margin-bottom:.7rem">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">CATÉGORIE TECHNIQUE INTERDITE</div>';
-  html += '<select id="prop-categorie" onchange="assembleeMajApercuCategorie()" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem">' + optionsCat + '</select>';
-  // §9 : l'avertissement doit etre clair et permanent, pas un detail.
-  html += '<div style="margin-top:.5rem;padding:.55rem;border:1px solid #6a2010;background:#1a0a05;font-size:.75rem;color:#cc8866;line-height:1.5">';
-  html += '<strong style="color:#cc4444">Attention.</strong> L\'effet mécanique dépend <em>uniquement</em> de la catégorie choisie ici, jamais du texte que vous rédigez. <strong>Toute la catégorie sera concernée.</strong> Elle est verrouillée dès le dépôt : pour en changer, il faudra retirer ce projet et en déposer un nouveau.';
-  html += '</div>';
-  html += '<div id="prop-apercu-cat" style="margin-top:.5rem;font-size:.75rem;color:#8a8060"></div>';
-  html += '</div>';
+  if (SEBLEX.projet) {
+    // LA SYNTHESE. C'est ce que les deputes liront et voteront. La nature est dite
+    // en francais : le joueur n'a jamais vu ni `rp`, ni `mecanique`, ni
+    // `abrogation`, et il ne les verra pas ici non plus.
+    const p = SEBLEX.projet;
+    const nature = (p.nature === 'abrogation')
+      ? ('Abrogation de « ' + sebLexEchapper(p.loi_cible_titre || '?') + ' »')
+      : (p.nature === 'declarative' ? 'Déclaration de l\'Assemblée' : 'Loi d\'interdiction');
+    h += '<div class="seblex-projet">';
+    h += '<div class="seblex-projet-titre">PROJET DE LOI</div>';
+    h += '<div class="seblex-projet-nom">' + sebLexEchapper(p.titre) + '</div>';
+    h += '<div class="seblex-projet-nature">' + nature + '</div>';
+    h += '<div class="seblex-projet-texte">' + sebLexEchapper(p.synthese) + '</div>';
+    h += '</div>';
+    h += '<div class="seblex-boutons">';
+    h += '<button class="seblex-bouton" onclick="sebLexReformuler()">Modifier le projet</button>';
+    h += '<button class="seblex-bouton seblex-primaire" onclick="sebLexValiderProjet()">'
+      +  'Valider le projet de loi (' + SEBLEX.pa + ' PA)</button>';
+    h += '</div>';
+  } else {
+    // LA PAROLE EST AU DEPOSANT.
+    h += '<textarea id="seblex-saisie" class="seblex-saisie" rows="3" ' +
+         (SEBLEX.attente ? 'disabled ' : '') +
+         'placeholder="Décrivez votre projet…" onkeydown="sebLexTouche(event)">'
+      +  sebLexEchapper(SEBLEX.brouillon || '') + '</textarea>';
+    h += '<div class="seblex-boutons">';
+    h += '<button class="seblex-bouton seblex-primaire" ' + (SEBLEX.attente ? 'disabled' : 'onclick="sebLexEnvoyer()"') + '>'
+      +  'Exposer à Seb Lex</button>';
+    h += '</div>';
+    h += '<div class="seblex-pied">La consultation est gratuite. Le dépôt ne coûtera ' + SEBLEX.pa
+      +  ' PA qu\'au moment où vous validerez le projet.<br>'
+      +  'Seb Lex qualifie lui-même votre proposition : loi d\'interdiction, simple déclaration, ou abrogation d\'une loi en vigueur.</div>';
+  }
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">TEXTE DU PROJET</div>';
-  html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.3rem;font-style:italic">Ce texte est définitif : les amendements viendront s\'ajouter dessous, sans jamais le remplacer.</div>';
-  html += '<textarea id="prop-texte" rows="7" placeholder="Exposé des motifs et dispositions..." style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.55rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.8rem"></textarea>';
-
-  html += '<button onclick="confirmerDeposerProposition(' + (pa || 1) + ',' + (cost || 0) + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer le projet (' + (pa || 1) + ' PA)</button>';
-  html += '</div>';
-
-  document.getElementById('postes-modal-title').textContent = 'Déposer un projet de loi';
-  document.getElementById('postes-body').innerHTML = html;
+  h += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Consulter le juriste de l\'Assemblée';
+  document.getElementById('postes-body').innerHTML = h;
   document.getElementById('modal-postes').classList.add('open');
-  assembleeMajFormulaireDepot();
+  const fil = document.getElementById('seblex-fil');
+  if (fil) fil.scrollTop = fil.scrollHeight;
+  const saisie = document.getElementById('seblex-saisie');
+  if (saisie && !SEBLEX.attente) saisie.focus();
 }
 
-function assembleeMajFormulaireDepot() {
-  const type = document.getElementById('prop-type')?.value;
-  const zone = document.getElementById('prop-zone-cat');
-  if (zone) zone.style.display = (type === 'mecanique') ? 'block' : 'none';
-  if (type === 'mecanique') assembleeMajApercuCategorie();
+function sebLexTouche(ev) {
+  if (ev && ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); sebLexEnvoyer(); }
 }
 
-function assembleeMajApercuCategorie() {
-  const cle = document.getElementById('prop-categorie')?.value;
-  const zone = document.getElementById('prop-apercu-cat');
-  if (!zone) return;
-  const contenu = assembleeContenuCategorie(cle);
-  zone.innerHTML = contenu.length
-    ? 'Concernerait actuellement : <span style="color:#c0b090">' + contenu.join(' · ') + '</span>'
-    : '';
+function sebLexReformuler() {
+  if (!SEBLEX) return;
+  SEBLEX.projet = null;
+  SEBLEX.echanges.push({ qui: 'seb', texte: 'Je vous en prie. Que faut-il changer ?' });
+  sebLexRendre();
 }
 
-async function confirmerDeposerProposition(pa, cost) {
-  // §52 : on revalide tout ici, l'etat des champs de l'UI ne fait foi de rien.
-  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); return; }
-  if (typeof sbAssembleeDeposer !== 'function') { assembleeIndisponible(); return; }
+async function sebLexEnvoyer() {
+  if (!SEBLEX || SEBLEX.attente) return;
+  const champ = document.getElementById('seblex-saisie');
+  const texte = (champ && champ.value ? champ.value : '').trim();
+  if (!texte) return;
 
-  const titre = document.getElementById('prop-titre')?.value?.trim();
-  const texte = document.getElementById('prop-texte')?.value?.trim();
-  const type  = document.getElementById('prop-type')?.value || 'rp';
-  const categorie = (type === 'mecanique') ? (document.getElementById('prop-categorie')?.value || null) : null;
+  SEBLEX.echanges.push({ qui: 'moi', texte: texte });
+  SEBLEX.attente = true;
+  SEBLEX.brouillon = '';
+  sebLexRendre();
 
-  if (!titre || !texte) { showToast('Champs requis', ASSEMBLEE_RAISONS.champs_requis, false); return; }
-  if (type === 'mecanique' && !CATEGORIES_INTERDICTION[categorie]) {
-    showToast('Catégorie invalide', 'Choisissez une catégorie technique existante.', false);
+  const r = await sebLexConsulter(texte);
+  SEBLEX.attente = false;
+
+  // PANNE : on rend son texte au joueur et on le dit sobrement. Aucun PA n'a ete
+  // engage -- la conversation n'en coute aucun -- et aucune proposition n'existe.
+  if (!r || r.etat === 'indisponible') {
+    SEBLEX.echanges.pop();                 // sa phrase n'a pas ete entendue
+    SEBLEX.brouillon = texte;              // ... mais elle n'est pas perdue
+    SEBLEX.echanges.push({ qui: 'seb', texte: (r && r.message)
+      ? r.message
+      : 'Seb Lex est momentanément indisponible. Réessayez dans un instant.' });
+    sebLexRendre();
     return;
   }
 
-  // 1 PA debite par le serveur, dans la transaction du depot. L'identifiant est genere par le
-  // serveur : on lit celui de la proposition renvoyee.
-  const r = await assembleeActionServeur(rq =>
-    sbAssembleeDeposer(state.char?.name, titre, type, texte, categorie, null, rq));
-  if (!assembleeIssueAction(r, 'Le dépôt n\'a pas pu être enregistré. Aucun projet n\'a été créé, rien n\'a été débité.')) return;
-  const id = r.res.proposition?.id;
+  // L'historique transmis au serveur reste minimal : la demande du deposant et la
+  // reponse du juriste, rien de plus.
+  SEBLEX.historique.push({ role: 'user', content: texte });
 
-  document.getElementById('modal-postes').classList.remove('open');
+  if (r.etat === 'question') {
+    SEBLEX.historique.push({ role: 'assistant', content: r.question });
+    SEBLEX.echanges.push({ qui: 'seb', texte: r.question });
+  } else if (r.etat === 'synthese' && SEBLEX_NATURES.indexOf(r.nature) !== -1) {
+    // LE MOT DU JURISTE accompagne la synthese : « je ne vois rien a ajouter », ou
+    // bien « cette disposition n'aura pas d'effet automatique ». C'est lui qui
+    // rend la qualification comprehensible sans jamais nommer de type interne.
+    const mot = r.mot || 'Voici ce que je propose de soumettre à l\'Assemblée.';
+    SEBLEX.historique.push({ role: 'assistant', content: r.titre + ' — ' + r.synthese });
+    SEBLEX.echanges.push({ qui: 'seb', texte: mot });
+    SEBLEX.projet = {
+      nature: r.nature, titre: r.titre, synthese: r.synthese,
+      categorie: r.categorie || null, label_categorie: r.label_categorie || null,
+      portee: r.portee || null,
+      loi_cible: r.loi_cible || null, loi_cible_titre: r.loi_cible_titre || null
+    };
+  } else {
+    // NATURE INCONNUE. Le serveur valide deja la sortie du juriste contre cette
+    // meme liste fermee, mais le navigateur ne doit pas se reposer sur lui : une
+    // qualification qu'on ne sait pas traduire en type de depot ne fabrique
+    // AUCUN projet. On demande simplement a reformuler.
+    console.warn('[seblex] qualification non reconnue : ' + (r.nature || r.etat));
+    SEBLEX.echanges.push({ qui: 'seb', texte:
+      'Je n\'arrive pas à mettre cela en forme. Pouvez-vous me le redire autrement ?' });
+  }
+  // L'historique ne grossit pas indefiniment : Seb doit conclure, pas discuter.
+  if (SEBLEX.historique.length > 8) SEBLEX.historique = SEBLEX.historique.slice(-8);
+  sebLexRendre();
+}
 
-  // Publication du sujet au forum de l'Assemblee (§10). Non bloquant : un projet valablement
-  // depose existe meme si le forum echoue -- le registre officiel reste la source institutionnelle.
-  // Le lien est pose par RPC : l'ancienne ecriture REST etait refusee silencieusement par la RLS.
-  const topicId = id ? await assembleePublierTopic(id, titre, type, categorie, texte).catch(() => null) : null;
-  if (topicId && typeof sbAssembleeLierTopic === 'function') {
-    await sbAssembleeLierTopic(state.char?.name, id, topicId).catch(() => null);
+// L'APPEL. Meme forme que les autres voies IA du projet : jeton du joueur,
+// endpoint dedie, aucune cle cote navigateur.
+async function sebLexConsulter(message) {
+  try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(function () { return null; });
+    const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+    if (!jeton) { console.warn('[seblex] session absente'); return null; }
+    const resp = await fetch('/api/assemblee-seblex', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ message: String(message).slice(0, 1200), historique: SEBLEX.historique })
+    });
+    if (!resp.ok) { console.warn('[seblex] HTTP ' + resp.status); return null; }
+    const d = await resp.json();
+    return (d && typeof d.etat === 'string') ? d : null;
+  } catch (e) {
+    console.warn('[seblex] consultation impossible : ' + (e && e.message));
+    return null;
+  }
+}
+
+// LE DEPOT. C'est ici, et seulement ici, que le PA est engage. Une conversation
+// abandonnee, une panne du fournisseur ou une modification ne coutent rien.
+//
+// C'EST LA QUE LA NATURE DEVIENT UN TYPE. Le joueur n'a jamais choisi `rp`,
+// `mecanique` ni `abrogation` : Seb a qualifie, et on traduit ici sa
+// qualification pour le circuit parlementaire existant -- qui, lui, ne change pas.
+async function sebLexValiderProjet() {
+  if (!SEBLEX || !SEBLEX.projet) return;
+  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); return; }
+  if (typeof sbAssembleeDeposerProjet !== 'function') { assembleeIndisponible(); return; }
+  const p = SEBLEX.projet;
+
+  let type, titre, categorie, portee, cible;
+  if (p.nature === 'abrogation') {
+    // Le serveur forge lui-meme le titre « Abrogation — <loi cible> » : on ne le
+    // lui dicte pas.
+    type = 'abrogation'; titre = null; categorie = null; portee = null; cible = p.loi_cible;
+    if (!cible) { showToast('Loi introuvable', 'La loi à abroger n\'a pas été identifiée.', false); return; }
+  } else if (p.nature === 'declarative') {
+    type = 'rp'; titre = p.titre; categorie = null; portee = null; cible = null;
+  } else {
+    type = 'mecanique'; titre = p.titre; categorie = p.categorie; portee = p.portee; cible = null;
+    if (!categorie) { showToast('Projet incomplet', 'L\'objet de cette interdiction n\'a pas été fixé. Reprenez la consultation.', false); return; }
   }
 
-  showToast('Projet déposé', titre + ' — débat ouvert pour une semaine.', true, true);
-  addJournalEntry('Projet de loi déposé à l\'Assemblée : ' + titre + '.', 'event-good');
+  const r = await assembleeActionServeur(function (rq) {
+    return sbAssembleeDeposerProjet(rq, state.char?.name, titre, type, p.synthese, categorie, cible, portee);
+  });
+  if (!assembleeIssueAction(r, 'Le dépôt n\'a pas pu être enregistré. Aucun projet n\'a été créé, rien n\'a été débité.')) return;
+  const prop = r.res.proposition || {};
+  const id = prop.id;
+  const titreReel = prop.titre || p.titre;
+
+  document.getElementById('modal-postes').classList.remove('open');
+  SEBLEX = null;
+
+  const topicId = id ? await assembleePublierTopic(id, titreReel, type, categorie, p.synthese).catch(function () { return null; }) : null;
+  if (topicId && typeof sbAssembleeLierTopic === 'function') {
+    await sbAssembleeLierTopic(state.char?.name, id, topicId).catch(function () { return null; });
+  }
+
+  showToast('Projet déposé', titreReel + ' — débat ouvert pour une semaine.', true, true);
+  addJournalEntry('Projet de loi déposé à l\'Assemblée : ' + titreReel + '.', 'event-good');
   if (typeof addExternalEvent === 'function') {
-    addExternalEvent('ASSEMBLÉE NATIONALE : ' + (state.char?.name || 'Un parlementaire') + ' dépose le projet « ' + titre + ' ».');
+    addExternalEvent('ASSEMBLÉE NATIONALE : ' + (state.char?.name || 'Un parlementaire') + ' dépose le projet « ' + titreReel + ' ».');
   }
   updateUI();
 }
+
+// =====================
+// LOIS VOTEES PAR L'AN — LE REGISTRE D'EXECUTION DU MINISTRE DE L'INTERIEUR
+// =====================
+// Le ministre ne decide QUE du moment. Il ne choisit ni la matiere, ni le niveau,
+// ni les exceptions : tout cela a ete vote. Son ecran n'offre donc qu'un seul
+// geste par loi -- METTRE EN APPLICATION -- et aucun bouton « Abroger » : une
+// abrogation est une loi, elle passe par l'Assemblee et revient ici comme les
+// autres.
+//
+// LE TEMPS VIENT DU SERVEUR. Chaque ligne du registre porte son echeance et
+// l'instant serveur (`maintenant`) : l'ecran calcule le temps restant a partir de
+// ces deux valeurs, jamais de l'horloge du navigateur -- qui est reglable.
+
+let LOIS_AN = null;
+
+function loisANEchapper(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// « a appliquer avant le JJ/MM a HH:MM », d'apres les timestamps SERVEUR.
+function loisANEcheanceLisible(l) {
+  try {
+    const d = new Date(l.echeance_ts);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+         + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return ''; }
+}
+
+async function ouvrirLoisVoteesAN() {
+  // Le grisage cote client n'est qu'une politesse : la RPC revalide le poste.
+  if (state.poste?.id !== 'min_int') {
+    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false);
+    return;
+  }
+  if (typeof sbAssembleeRegistreExecution !== 'function') { assembleeIndisponible(); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Lois votées par l\'AN';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem;color:#8a8060;font-style:italic">Consultation du registre…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  LOIS_AN = await sbAssembleeRegistreExecution(state.country || 'republic').catch(function () { return null; });
+  if (!LOIS_AN) { assembleeIndisponible('Le registre des lois votées n\'a pas pu être consulté.'); return; }
+  loisANRendre();
+}
+
+function loisANRendre() {
+  const lignes = Array.isArray(LOIS_AN) ? LOIS_AN : [];
+  let h = '<div style="padding:1rem">';
+  h += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;line-height:1.6;margin-bottom:.9rem">';
+  h += 'L\'Assemblée a voté le contenu de ces lois. Vous n\'en changez ni la portée ni les exceptions : vous les mettez en application. Passé 36 heures, le gouvernement est sanctionné tant qu\'une loi reste sans application.';
+  h += '</div>';
+
+  const attente = lignes.filter(function (l) { return l && l.etat !== 'appliquee'; });
+  const faites  = lignes.filter(function (l) { return l && l.etat === 'appliquee'; });
+
+  if (lignes.length === 0) {
+    h += '<div style="padding:.8rem;color:#6a5a30;font-style:italic;font-size:.85rem">Aucune loi votée n\'attend d\'être appliquée, et aucune ne l\'a encore été.</div>';
+  }
+
+  if (attente.length) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.2rem 0 .45rem">À METTRE EN APPLICATION</div>';
+    attente.forEach(function (l) { h += loisANCarte(l); });
+  }
+  if (faites.length) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#4a6a3a;margin:.9rem 0 .45rem">DÉJÀ APPLIQUÉES</div>';
+    faites.forEach(function (l) { h += loisANCarte(l); });
+  }
+  h += '</div>';
+  document.getElementById('postes-body').innerHTML = h;
+}
+
+function loisANCarte(l) {
+  const enRetard = (l.etat === 'en_retard');
+  const faite    = (l.etat === 'appliquee');
+  const bord = faite ? '#4a6a3a' : (enRetard ? '#8a2020' : '#6a5a20');
+
+  let h = '<div style="border:1px solid ' + bord + ';background:#12100a;padding:.7rem .8rem;margin-bottom:.6rem">';
+  h += '<div style="font-family:Playfair Display,Georgia,serif;font-size:.95rem;color:#C9A84C;line-height:1.4">'
+    +  loisANEchapper(l.titre) + '</div>';
+
+  // La nature, en clair. Pas de « type=mecanique » ni de nom de colonne.
+  const nature = (l.type === 'abrogation')
+    ? ('Abrogation' + (l.loi_cible && l.loi_cible.titre ? ' de « ' + loisANEchapper(l.loi_cible.titre) + ' »' : ''))
+    : 'Loi d\'interdiction';
+  h += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">' + nature + '</div>';
+
+  // LA PORTEE VOTEE, dite en francais. Le joueur ne lit jamais un booleen.
+  if (l.type !== 'abrogation') {
+    const transfo = !!(l.portee && l.portee.transformation_stock_interdite === true);
+    h += '<div style="font-size:.78rem;color:#a09878;margin-top:.35rem;line-height:1.55">'
+      +  (transfo
+            ? 'Interdit la production, l\'achat, la vente et l\'importation — et interdit aussi de transformer les stocks existants.'
+            : 'Interdit la production, l\'achat, la vente et l\'importation. Les stocks existants restent transformables.')
+      +  '</div>';
+  }
+
+  // L'ETAT, et le temps qui reste.
+  const adoptee = (function () {
+    try { return new Date(l.adoptee_ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+         + ' à ' + new Date(l.adoptee_ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+    catch (e) { return '?'; }
+  })();
+  h += '<div style="font-size:.74rem;color:#6a5a30;margin-top:.4rem">Adoptée le ' + adoptee + '</div>';
+
+  if (faite) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;color:#6ab858;margin-top:.45rem">APPLIQUÉE'
+      +  (l.appliquee_par ? ' — par ' + loisANEchapper(l.appliquee_par) : '') + '</div>';
+  } else if (enRetard) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;color:#cc4444;margin-top:.45rem">'
+      +  'NON APPLIQUÉE — SANCTIONS GOUVERNEMENTALES EN COURS</div>';
+    h += '<div style="font-size:.74rem;color:#cc8866;margin-top:.2rem">Le délai est dépassé depuis le ' + loisANEcheanceLisible(l) + '.</div>';
+  } else {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;color:#C9A84C;margin-top:.45rem">'
+      +  'ADOPTÉE — EN ATTENTE D\'APPLICATION</div>';
+    h += '<div style="font-size:.74rem;color:#8a8060;margin-top:.2rem">À appliquer avant le ' + loisANEcheanceLisible(l) + '.</div>';
+  }
+
+  if (!faite) {
+    h += '<div style="margin-top:.6rem"><button onclick="loisANAppliquer(\'' + loisANEchapper(l.id) + '\')" '
+      +  'style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.55rem;'
+      +  'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Mettre en application</button></div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// LE SEUL GESTE. On n'envoie QUE l'identifiant : ni matiere, ni portee, ni niveau.
+// Le serveur verifie le poste, l'adoption, la non-application, puis relit lui-meme
+// ce qui a ete vote.
+async function loisANAppliquer(loiId) {
+  if (!loiId) return;
+  if (typeof sbAssembleeMettreEnApplication !== 'function') { assembleeIndisponible(); return; }
+
+  const r = await assembleeActionServeur(function (rq) {
+    return sbAssembleeMettreEnApplication(rq, state.char?.name, loiId);
+  });
+  if (!assembleeIssueAction(r, 'La mise en application n\'a pas pu être enregistrée. La loi n\'a pas changé d\'état.')) return;
+
+  const loi = r.res.loi || {};
+  const eteinte = r.res.cible_eteinte;
+  showToast('Loi mise en application',
+    (loi.titre || 'La loi') + ' produit désormais ses effets.'
+    + (eteinte && eteinte.titre ? ' « ' + eteinte.titre + ' » cesse les siens.' : ''), true, true);
+  addJournalEntry('Mise en application : ' + (loi.titre || '?') + '.', 'event-good');
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('MINISTÈRE DE L\'INTÉRIEUR : ' + (loi.titre || 'une loi votée') + ' entre en application.');
+  }
+  // On relit le registre au serveur plutot que de le corriger de memoire.
+  LOIS_AN = await sbAssembleeRegistreExecution(state.country || 'republic').catch(function () { return LOIS_AN; });
+  loisANRendre();
+  updateUI();
+}
+
+// =====================
+// L'ANCIEN FORMULAIRE TECHNIQUE A ETE SUPPRIME (30 septembre 2026)
+// =====================
+// Il n'existe plus qu'UNE porte pour deposer : le juriste de l'Assemblee. Six
+// fonctions ont donc disparu d'ici -- ouvrirDeposerDeclaration,
+// assembleeMajFormulaireDepot, assembleeMajApercuCategorie,
+// confirmerDeposerProposition, ouvrirProposerAbrogation et
+// confirmerProposerAbrogation.
+//
+// ELLES SONT SUPPRIMEES, PAS SEULEMENT DELIEES. Un formulaire qu'on se contente
+// de ne plus afficher reste atteignable par un onclick oublie ou une console : le
+// joueur pourrait alors choisir lui-meme `rp`, `mecanique`, `abrogation`, une
+// categorie interne. Ces notions doivent rester au moteur.
+//
+// Le circuit parlementaire, lui, est intact : assemblee_deposer_projet recoit
+// toujours les trois types, c'est Seb qui les qualifie a la place du joueur.
+
+
+
 
 // Corps du sujet forum. Contient tout ce que §10 exige, et rien de plus : le forum est une
 // vitrine, le registre officiel (§31) reste la source de verite.
@@ -916,63 +1253,7 @@ async function confirmerRetraitProposition(propId) {
 // Meme circuit qu'un depot normal, meme cout (1 PA), meme eligibilite. La cible doit etre une loi
 // REELLEMENT en vigueur -- verifie cote serveur.
 
-async function ouvrirProposerAbrogation(pa, cost) {
-  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); return; }
-  if (typeof sbGetAssembleePropositions !== 'function') { assembleeIndisponible(); return; }
 
-  const lois = await sbGetAssembleePropositions(state.country || 'republic', ['adoptee']).catch(() => null);
-  if (!lois) { assembleeIndisponible(); return; }
-
-  let html = '<div style="padding:1rem">';
-  if (!lois.length) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi n\'est actuellement en vigueur.</div>';
-  } else {
-    html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">L\'abrogation suit exactement le même circuit qu\'un projet ordinaire : forum, une semaine de débat, session, vote.</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">LOI À ABROGER</div>';
-    html += '<select id="abr-cible" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.7rem">';
-    lois.forEach(l => {
-      const marque = l.type === 'mecanique' ? ' [mécanique]' : '';
-      html += '<option value="' + l.id + '">' + l.titre + marque + '</option>';
-    });
-    html += '</select>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">EXPOSÉ DES MOTIFS</div>';
-    html += '<textarea id="abr-texte" rows="6" placeholder="Pourquoi cette loi doit-elle être abrogée ?" style="width:100%;box-sizing:border-box;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.55rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.8rem"></textarea>';
-    html += '<button onclick="confirmerProposerAbrogation(' + (pa || 1) + ',' + (cost || 0) + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la proposition d\'abrogation (' + (pa || 1) + ' PA)</button>';
-  }
-  html += '</div>';
-  document.getElementById('postes-modal-title').textContent = 'Proposer une abrogation';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerProposerAbrogation(pa, cost) {
-  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); return; }
-  if (typeof sbAssembleeDeposer !== 'function') { assembleeIndisponible(); return; }
-
-  const cibleId = document.getElementById('abr-cible')?.value;
-  const texte   = document.getElementById('abr-texte')?.value?.trim();
-  if (!cibleId || !texte) { showToast('Champs requis', ASSEMBLEE_RAISONS.champs_requis, false); return; }
-
-  const cible = await sbGetAssembleeProposition(cibleId).catch(() => null);
-  if (!cible) { assembleeIndisponible(); return; }
-
-  // Le titre d'une abrogation est construit par le serveur a partir de la loi visee.
-  const r = await assembleeActionServeur(rq =>
-    sbAssembleeDeposer(state.char?.name, null, 'abrogation', texte, null, cibleId, rq));
-  if (!assembleeIssueAction(r, 'Le dépôt n\'a pas pu être enregistré. Rien n\'a été débité.')) return;
-  const id = r.res.proposition?.id;
-  const titre = r.res.proposition?.titre || ('Abrogation — ' + cible.titre);
-
-  document.getElementById('modal-postes').classList.remove('open');
-  const topicId = id ? await assembleePublierTopic(id, titre, 'abrogation', null, texte).catch(() => null) : null;
-  if (topicId && typeof sbAssembleeLierTopic === 'function') {
-    await sbAssembleeLierTopic(state.char?.name, id, topicId).catch(() => null);
-  }
-
-  showToast('Abrogation proposée', titre, true, true);
-  addJournalEntry('Proposition d\'abrogation déposée : ' + cible.titre + '.', 'event-good');
-  updateUI();
-}
 
 
 // =====================

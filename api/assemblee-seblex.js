@@ -1,0 +1,359 @@
+// ===========================================================================
+// SEB LEX — LE JURISTE DE L'ASSEMBLEE NATIONALE
+// ---------------------------------------------------------------------------
+// Seb Lex met en forme l'intention d'un deposant. Il n'est ni conseiller
+// politique, ni militant, ni depute, ni juge de l'opportunite d'une loi : c'est
+// un legiste. Il transforme « je veux interdire le bois » en un projet clair,
+// accompagne d'une portee mecanique que le moteur sait REELLEMENT appliquer.
+//
+// IL N'EST JAMAIS LA SOURCE DE VERITE JURIDIQUE. Deux garanties, et la seconde
+// est la seule qui compte vraiment :
+//   1. sa vision du monde vient du CATALOGUE lu en base
+//      (assemblee_catalogue_legislatif) : il ne connait ni matiere, ni categorie,
+//      ni effet qui n'existe pas dans le jeu ;
+//   2. tout ce qu'il repond est REVALIDE ici contre ce meme catalogue, puis une
+//      troisieme fois au depot par assemblee_deposer_projet. Le texte naturel
+//      qu'il redige ne sera JAMAIS reinterprete pour determiner un effet : seule
+//      la portee structuree compte, et elle passe par une liste fermee.
+//
+// CE QU'IL NE FAIT PAS : il ne depose rien, ne debite aucun PA, ne touche a
+// aucune table. La conversation est gratuite ; le cout du depot (1 PA) est
+// preleve par la RPC de depot, et par elle seule.
+//
+// REUTILISATION, PAS SECONDE ARCHITECTURE : le fournisseur est celui de tout le
+// projet (api/_deepseek.js), avec son mode json_object -- exactement comme le
+// Journal. L'authentification est celle de /api/chat et /api/redaction.
+//
+// FRAGILITE EVITEE, celle du 29 septembre : aucune construction de prompt hors
+// try/catch, et aucun champ au type variable. Tout ce qui vient de l'IA est lu
+// avec un type verifie avant usage.
+// ===========================================================================
+
+import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
+
+const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
+
+// Bornes de la conversation. Courtes volontairement : Seb doit conclure, pas
+// bavarder, et chaque tour est un appel paye.
+const MAX_MESSAGE      = 1200;
+const MAX_HISTORIQUE   = 8;     // 4 echanges : au-dela, Seb doit avoir conclu
+const MAX_CONTENU_TOUR = 1200;
+const MAX_TOKENS       = 700;   // une synthese + une portee, pas un memoire
+const TIMEOUT_MS       = 25000;
+
+const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
+const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
+
+// ---------------------------------------------------------------------------
+// LE CATALOGUE — LU EN BASE, SOUS L'IDENTITE DU JOUEUR
+// ---------------------------------------------------------------------------
+async function catalogueLegislatif(jeton) {
+  try {
+    const r = await fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/assemblee_catalogue_legislatif', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + jeton
+      },
+      body: '{}'
+    });
+    if (!r.ok) return null;
+    const c = await r.json();
+    if (!c || typeof c !== 'object') return null;
+    if (!Array.isArray(c.categories) || !Array.isArray(c.matieres)) return null;
+    if (c.categories.length === 0) return null;
+    return c;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LES LOIS QU'ON PEUT ABROGER
+// ---------------------------------------------------------------------------
+// Le joueur dit « je veux supprimer la loi sur le bois » ; c'est Seb qui doit
+// retrouver DE QUELLE loi il parle, et demander si plusieurs peuvent
+// correspondre. Il lui faut donc la liste -- lue en base, jamais inventee. Simple
+// lecture REST : la table porte une policy de SELECT pour tout joueur, aucune RPC
+// nouvelle n'est necessaire.
+async function loisAbrogeables(jeton) {
+  try {
+    const q = '?statut=eq.adoptee&select=id,titre,type,categorie,adoptee_ts,appliquee_ts'
+            + '&order=adoptee_ts.desc&limit=60';
+    const r = await fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/assemblee_propositions' + q, {
+      method: 'GET',
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + jeton }
+    });
+    if (!r.ok) return [];
+    const l = await r.json();
+    return Array.isArray(l) ? l : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LE PROMPT SYSTEME — BORNE, COURT, SANS CONNAISSANCE INUTILE
+// ---------------------------------------------------------------------------
+// Il ne contient AUCUNE regle de jeu au-dela de ce que Seb doit formaliser, et
+// aucune personnalite bavarde : chaque phrase inutile est un cout a chaque tour.
+function construirePrompt(catalogue, lois) {
+  const lignesCat = catalogue.categories.map(c => {
+    const cibles = [];
+    if (Array.isArray(c.matieres) && c.matieres.length) cibles.push(c.matieres.join(', '));
+    if (Array.isArray(c.types_objet) && c.types_objet.length) {
+      const st = (Array.isArray(c.sous_types) && c.sous_types.length) ? ' (' + c.sous_types.join(', ') + ')' : '';
+      cibles.push('objets de type ' + c.types_objet.join(', ') + st);
+    }
+    const dims = [];
+    if (c.transformation_pertinente === true) dims.push('transformation possible');
+    if (c.production_pertinente === true) dims.push('production possible');
+    return '- ' + c.categorie + ' « ' + c.label + ' » : ' + cibles.join(' ; ')
+         + (dims.length ? ' [' + dims.join(', ') + ']' : ' [ni production ni transformation dans le jeu]');
+  }).join('\n');
+
+  const lignesLois = (lois && lois.length)
+    ? lois.map(l => '- ' + l.id + ' : « ' + String(l.titre || '').slice(0, 110) + ' »').join('\n')
+    : '(aucune loi en vigueur : rien ne peut etre abroge pour l\'instant)';
+
+  return [
+    "Tu es Seb Lex, juriste de l'Assemblee nationale de Republia. Tu mets en forme les projets de loi des deposants.",
+    "",
+    "TON ROLE, ET RIEN D'AUTRE : rendre une proposition claire, concise et non ambigue, puis la qualifier.",
+    "Tu n'es ni conseiller politique, ni militant, ni depute. Tu ne juges JAMAIS si une loi est bonne, juste,",
+    "utile ou opportune, et tu ne refuses jamais un SUJET. Tu ne donnes aucun avis, aucune statistique.",
+    "",
+    "TU NE FAIS PAS SUBIR D'INTERROGATOIRE. Tu ne poses une question que si une information MECANIQUE",
+    "necessaire manque vraiment. Si le deposant l'a deja donnee, tu n'y reviens pas. Jamais deux questions",
+    "a la fois. Des que tu sais, tu conclus.",
+    "",
+    "TROIS NATURES DE PROPOSITION, et c'est TOI qui tranches -- le deposant ne les connait pas :",
+    "",
+    "1. INTERDICTION (effet mecanique reel). Le moteur ne sait interdire QUE l'une de ces categories :",
+    lignesCat,
+    "   Une seule nuance est votable en plus de la categorie : la loi interdit-elle AUSSI de transformer un",
+    "   stock deja possede (fabriquer des produits avec) ? Dans les deux cas elle interdit deja de produire,",
+    "   d'acheter, de vendre et d'importer legalement. Ne pose cette question QUE si la categorie porte la",
+    "   mention « transformation possible ». N'invente aucune autre nuance : elle serait refusee.",
+    "   Restent TOUJOURS permis, quoi qu'on te demande : posseder un stock, le consommer, le DONNER.",
+    "",
+    "2. DECLARATIVE. Une proposition parfaitement legitime que le moteur ne sait pas rendre automatique.",
+    "   C'EST LE CAS LE PLUS FREQUENT ET IL N'A RIEN DE DEGRADANT : conges, salaires, ceremonies, morale",
+    "   publique, diplomatie... Le jeu n'a pas de mecanique pour tout. Tu l'annonces sans detour -- cette",
+    "   disposition n'aura pas d'effet automatique -- et tu proposes de la deposer comme loi declarative.",
+    "   Tu n'inventes JAMAIS un effet pour faire entrer une idee dans une categorie qui ne lui correspond pas.",
+    "",
+    "3. ABROGATION. Le deposant veut supprimer une loi en vigueur. Lois abrogeables (identifiant : titre) :",
+    lignesLois,
+    "   Tu dois designer UNE loi, par son identifiant exact. Si plusieurs peuvent correspondre, demande",
+    "   laquelle en citant leurs titres. N'invente jamais un identifiant.",
+    "",
+    "SI LA PROPOSITION EST DEJA CLAIRE, ne demande rien. Une declarative limpide se traite en une reponse :",
+    "tu dis brievement que tu n'as rien a ajouter et que la demande est recevable, puis tu synthetises.",
+    "",
+    "FORMAT — reponds UNIQUEMENT par un objet JSON valide, sans texte autour, selon l'un de ces cas :",
+    'A) il te manque un element : {"etat":"question","question":"<une seule question, 1 a 2 phrases>"}',
+    'B) interdiction : {"etat":"synthese","nature":"interdiction","titre":"<80 car. max>",',
+    '   "synthese":"<le projet en 1 a 3 phrases, francais clair>","categorie":"<identifiant EXACT>",',
+    '   "transformation_interdite":<true|false>,"mot":"<ta phrase d\'accompagnement, 1 phrase>"}',
+    'C) declarative : {"etat":"synthese","nature":"declarative","titre":"<80 car. max>",',
+    '   "synthese":"<le projet en 1 a 3 phrases>","mot":"<ta phrase : rien a ajouter, ou bien qu\'elle',
+    '   n\'aura pas d\'effet automatique>"}',
+    'D) abrogation : {"etat":"synthese","nature":"abrogation","loi_cible":"<identifiant EXACT de la liste>",',
+    '   "synthese":"<ce qui est abroge, 1 a 2 phrases>","mot":"<ta phrase>"}',
+    "",
+    "Dans la synthese et dans ton mot, ecris comme un legiste : pas de JSON, pas de nom de categorie",
+    "technique, pas de « niveau », pas de booleen, pas d'identifiant. Le deposant lit une loi."
+  ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// VALIDATION DE LA SORTIE — FERMEE, ET FAIL CLOSED
+// ---------------------------------------------------------------------------
+// On ne fait JAMAIS confiance au JSON de l'IA. Tout ce qui n'est pas exactement
+// conforme est rejete : mieux vaut demander au deposant de reformuler qu'ecrire
+// en base une portee que le moteur n'honorera pas.
+function texteCourt(v, max) {
+  return (typeof v === 'string' && v.trim().length > 0) ? v.trim().slice(0, max) : null;
+}
+
+function validerReponse(brut, catalogue, lois) {
+  let j;
+  try {
+    j = JSON.parse(brut);
+  } catch (e) {
+    return { ok: false, motif: 'json_invalide' };
+  }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return { ok: false, motif: 'racine_invalide' };
+
+  const etat = (typeof j.etat === 'string') ? j.etat.trim() : '';
+
+  if (etat === 'question') {
+    const q = texteCourt(j.question, 400);
+    if (!q) return { ok: false, motif: 'question_vide' };
+    return { ok: true, etat: 'question', question: q };
+  }
+
+  if (etat !== 'synthese') return { ok: false, motif: 'etat_inconnu' };
+
+  const nature   = texteCourt(j.nature, 20);
+  const synthese = texteCourt(j.synthese, 900);
+  const mot      = texteCourt(j.mot, 400);
+  if (!synthese) return { ok: false, motif: 'synthese_vide' };
+
+  // --- ABROGATION : la cible doit exister, telle quelle. -------------------
+  if (nature === 'abrogation') {
+    const cible = texteCourt(j.loi_cible, 80);
+    if (!cible) return { ok: false, motif: 'cible_absente' };
+    const fiche = (lois || []).find(l => l && l.id === cible);
+    if (!fiche) return { ok: false, motif: 'cible_inconnue' };   // aucune cible inventee
+    return {
+      ok: true, etat: 'synthese', nature: 'abrogation',
+      titre: 'Abrogation — ' + String(fiche.titre || '').slice(0, 100),
+      synthese, mot: mot || null,
+      loi_cible: fiche.id, loi_cible_titre: texteCourt(fiche.titre, 120)
+    };
+  }
+
+  // --- DECLARATIVE : aucune mecanique, et c'est legitime. ------------------
+  if (nature === 'declarative') {
+    const titre = texteCourt(j.titre, 110);
+    if (!titre) return { ok: false, motif: 'titre_absent' };
+    return { ok: true, etat: 'synthese', nature: 'declarative', titre, synthese, mot: mot || null };
+  }
+
+  // --- INTERDICTION : categorie fermee, portee bornee. ---------------------
+  if (nature === 'interdiction') {
+    const titre = texteCourt(j.titre, 110);
+    const cat   = texteCourt(j.categorie, 60);
+    if (!titre || !cat) return { ok: false, motif: 'synthese_incomplete' };
+
+    // LA CATEGORIE DOIT EXISTER. Garde-fou central : l'IA ne peut pas inventer
+    // une cible.
+    const fiche = catalogue.categories.find(c => c && c.categorie === cat);
+    if (!fiche) return { ok: false, motif: 'categorie_inconnue' };
+
+    // LA PORTEE : booleen strict, ramene a false si la transformation n'a aucun
+    // sens pour cette categorie. Un effet que le moteur n'appliquerait pas ne doit
+    // jamais etre annonce au deposant.
+    let transfo = (j.transformation_interdite === true);
+    if (fiche.transformation_pertinente !== true) transfo = false;
+
+    return {
+      ok: true, etat: 'synthese', nature: 'interdiction', titre, synthese, mot: mot || null,
+      categorie: cat,
+      label_categorie: texteCourt(fiche.label, 60) || cat,
+      portee: { transformation_stock_interdite: transfo }
+    };
+  }
+
+  return { ok: false, motif: 'nature_inconnue' };
+}
+
+// ---------------------------------------------------------------------------
+function validerPayload(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corps de requête invalide.';
+  const clesAutorisees = ['message', 'historique'];
+  if (Object.keys(body).some(k => !clesAutorisees.includes(k))) return 'Champ non autorisé.';
+  if (typeof body.message !== 'string' || body.message.trim().length === 0) return 'Message invalide.';
+  if (body.message.length > MAX_MESSAGE) return 'Message trop long.';
+  if (body.historique !== undefined) {
+    if (!Array.isArray(body.historique)) return 'Historique invalide.';
+    if (body.historique.length > MAX_HISTORIQUE) return 'Historique trop long.';
+    for (const t of body.historique) {
+      if (!t || typeof t !== 'object') return 'Historique invalide.';
+      if (t.role !== 'user' && t.role !== 'assistant') return 'Rôle non autorisé.';
+      if (typeof t.content !== 'string' || t.content.length > MAX_CONTENU_TOUR) return 'Tour trop long.';
+    }
+  }
+  return null;
+}
+
+export default async function handler(req, res) {
+  const origin = req.headers.origin;
+  if (origin === ALLOWED_ORIGIN) res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const erreur = validerPayload(req.body);
+  if (erreur) return res.status(400).json({ error: erreur });
+
+  const utilisateur = await joueurAuthentifie(req);
+  if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
+
+  const catalogue = await catalogueLegislatif(utilisateur.jeton);
+  if (!catalogue) {
+    return res.status(502).json({ error: "Le juriste n'a pas pu consulter le code en vigueur." });
+  }
+  // La liste des lois abrogeables n'est pas bloquante : sans elle, Seb ne pourra
+  // simplement pas qualifier une abrogation, et la validation la refusera.
+  const lois = await loisAbrogeables(utilisateur.jeton);
+
+  // TOUTE la construction du prompt est ici, dans le try : c'est la lecon du
+  // 29 septembre, ou un prompt construit hors try/catch laissait le joueur sur
+  // une attente sans fin.
+  let systeme, messages;
+  try {
+    systeme = construirePrompt(catalogue, lois);
+    messages = [];
+    for (const t of (req.body.historique || [])) {
+      messages.push({ role: t.role, content: String(t.content).slice(0, MAX_CONTENU_TOUR) });
+    }
+    messages.push({ role: 'user', content: req.body.message.trim().slice(0, MAX_MESSAGE) });
+  } catch (e) {
+    console.error('[seblex] construction du prompt impossible', e && e.message);
+    return res.status(500).json({ error: "Le juriste n'a pas pu préparer la consultation." });
+  }
+
+  const r = await appelDeepSeek({ systeme, messages, maxTokens: MAX_TOKENS, json: true, timeoutMs: TIMEOUT_MS });
+  if (!r.ok) {
+    // ON NOMME LA PANNE DANS LE JOURNAL SERVEUR, et seulement la. Le joueur lit une
+    // phrase sobre ; ni la cle, ni le code HTTP, ni un mot de facturation ne sortent
+    // d'ici. Le marqueur est volontairement greppable dans les journaux Vercel.
+    const c = classerEchecFournisseur(r) || { cause: 'autre', critique: false, journal: 'inconnu' };
+    console.error('[seblex][IA_INDISPONIBLE] cause=' + c.cause
+                  + (c.critique ? ' CRITIQUE' : '') + ' :: ' + c.journal);
+    if (c.cause === 'credits_epuises' || c.cause === 'authentification' || c.cause === 'cle_absente') {
+      // La ligne que Fred cherchera : une intervention humaine est necessaire,
+      // aucune attente ne reparera cela.
+      console.error('[ALERTE][IA] Seb Lex est HORS SERVICE et le restera : ' + c.journal
+                    + '. Aucun joueur ne peut deposer de projet de loi tant que ce point n\'est pas regle.');
+    }
+    // 200 et non 502 : ce n'est pas une erreur de la requete du joueur, et l'ecran
+    // doit pouvoir afficher le message sans perdre ce qu'il a saisi.
+    return res.status(200).json({
+      etat: 'indisponible',
+      // `attendre` distingue « reessayez dans un instant » de « cela ne se reparera
+      // pas tout seul » -- sans jamais dire pourquoi au joueur.
+      attendre: !c.critique,
+      message: c.critique
+        ? 'Seb Lex est indisponible. Le bureau du juriste est fermé pour le moment ; réessayez plus tard.'
+        : 'Seb Lex est momentanément indisponible. Réessayez dans un instant.'
+    });
+  }
+
+  // Repli defensif, comme le Journal : si le fournisseur enrobait la reponse.
+  const brut = String(r.texte || '').trim()
+    .replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
+
+  const v = validerReponse(brut, catalogue, lois);
+  if (!v.ok) {
+    // FAIL CLOSED. On ne devine pas ce que l'IA voulait dire : on le dit au
+    // joueur et on lui demande de reformuler. Le motif reste en journal serveur.
+    console.error('[seblex] sortie non conforme : ' + v.motif);
+    // FAIL CLOSED, mais jamais un refus de sujet : on renvoie une QUESTION, pour que
+    // le deposant reformule sans perdre son idee. Aucun projet n'est fabrique.
+    return res.status(200).json({
+      etat: 'question',
+      question: (v.motif === 'cible_inconnue' || v.motif === 'cible_absente')
+        ? "Je ne vois pas clairement de quelle loi en vigueur vous parlez. Pouvez-vous me la nommer ?"
+        : "Je n'ai pas réussi à mettre cela en forme. Pouvez-vous me le redire autrement ?"
+    });
+  }
+
+  return res.status(200).json(v);
+}

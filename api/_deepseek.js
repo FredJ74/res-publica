@@ -92,6 +92,82 @@ async function appelDeepSeek({ systeme, messages, maxTokens, json, timeoutMs }) 
   }
 }
 
+// ---------------------------------------------------------------------------
+// CLASSER UN ECHEC DU FOURNISSEUR (30 septembre 2026)
+// ---------------------------------------------------------------------------
+// Purement additif : appelDeepSeek ne change pas, et ses quatre consommateurs
+// actuels l'ignorent. Il s'agit de nommer la panne, parce que « le juriste est
+// indisponible » ne dit pas s'il faut attendre cinq minutes ou recharger le
+// compte.
+//
+// ON NE DEVINE JAMAIS « CREDITS EPUISES ». DeepSeek suit les codes de l'API
+// OpenAI et distingue explicitement le solde insuffisant (402) de
+// l'authentification (401), du debit limite (429) et de ses propres pannes
+// (500/503). Seul un code EXPLICITE fait conclure a un probleme de facturation ;
+// une erreur generique reste une erreur generique. Le libelle du fournisseur
+// ('Insufficient Balance') n'est utilise qu'en confirmation, jamais seul, et il
+// n'est JAMAIS montre au joueur.
+//
+// `critique` distingue ce qui se resoudra tout seul (debit limite, panne
+// passagere) de ce qui exige une intervention humaine : sans credit ni cle
+// valide, aucune attente ne repare rien.
+function classerEchecFournisseur(r) {
+  if (!r || r.ok) return null;
+
+  const http = (typeof r.http === 'number') ? r.http : null;
+  const detail = String(r.detail || '');
+  const erreur = String(r.erreur || '');
+  const mentionneSolde = /insufficient\s*balance|quota|billing|payment/i.test(detail);
+
+  if (/non configur/i.test(erreur)) {
+    return { cause: 'cle_absente', critique: true,
+             journal: 'DEEPSEEK_API_KEY absente de l\'environnement' };
+  }
+  if (/D[ée]lai d[ée]pass/i.test(erreur)) {
+    return { cause: 'delai_depasse', critique: false, journal: 'delai depasse' };
+  }
+  if (/R[ée]ponse vide/i.test(erreur)) {
+    return { cause: 'reponse_vide', critique: false, journal: 'reponse vide du fournisseur' };
+  }
+
+  switch (http) {
+    case 401:
+    case 403:
+      return { cause: 'authentification', critique: true,
+               journal: 'cle refusee par le fournisseur (HTTP ' + http + ')' };
+    case 402:
+      // LE SEUL CODE QUI SIGNIFIE « PLUS DE CREDIT ». C'est celui que Fred doit voir.
+      return { cause: 'credits_epuises', critique: true,
+               journal: 'SOLDE INSUFFISANT chez le fournisseur (HTTP 402'
+                        + (mentionneSolde ? ', confirme par le libelle' : '') + ')' };
+    case 429:
+      return { cause: 'debit_limite', critique: false,
+               journal: 'debit limite (HTTP 429)' };
+    case 400:
+    case 422:
+      // Notre requete est fautive : c'est un bug de chez nous, pas une panne.
+      return { cause: 'requete_invalide', critique: true,
+               journal: 'requete refusee comme invalide (HTTP ' + http + ')' };
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return { cause: 'panne_fournisseur', critique: false,
+               journal: 'panne du fournisseur (HTTP ' + http + ')' };
+  }
+
+  if (http !== null) {
+    // Un code inattendu qui parle de solde reste un probleme de facturation ; sinon
+    // on ne conclut rien.
+    if (mentionneSolde) {
+      return { cause: 'credits_epuises', critique: true,
+               journal: 'libelle de solde insuffisant sur HTTP ' + http };
+    }
+    return { cause: 'autre', critique: false, journal: 'HTTP ' + http + ' inattendu' };
+  }
+  return { cause: 'reseau', critique: false, journal: 'fournisseur injoignable' };
+}
+
 // AUTHENTIFICATION REELLE, partagee par tous les endpoints IA. On ne croit pas le
 // client sur parole : le jeton porte par l'en-tete Authorization est presente a
 // Supabase, qui seul peut dire s'il est valide et a qui il appartient. Un jeton
@@ -124,6 +200,6 @@ async function joueurAuthentifie(req) {
 }
 
 export {
-  appelDeepSeek, joueurAuthentifie, cleConfiguree,
+  appelDeepSeek, joueurAuthentifie, cleConfiguree, classerEchecFournisseur,
   DEEPSEEK_MODELE, DEEPSEEK_FENETRE_TOKENS, CARACTERES_PAR_TOKEN
 };

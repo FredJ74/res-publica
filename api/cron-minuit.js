@@ -7,6 +7,12 @@
 // handler, dans son propre try/catch (voir plus bas) — jamais mélangée aux tâches critiques
 // existantes ci-dessous, qui restent strictement inchangées.
 import { genererToutesLesEditions } from './_journal-generation.js';
+// SONDE DE SANTE DU FOURNISSEUR IA (30 septembre 2026). Seb Lex, le juriste de
+// l'Assemblee, et les dialogues PNJ vivent de ce fournisseur. Quand son solde
+// s'epuise, ils meurent SILENCIEUSEMENT : chaque joueur voit « momentanement
+// indisponible » et personne ne previent Fred. La sonde ci-dessous rend cette
+// mort visible la ou Fred regarde deja -- voir la section 0 quater.
+import { appelDeepSeek, cleConfiguree, classerEchecFournisseur } from './_deepseek.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
@@ -5620,6 +5626,98 @@ export default async function handler(req, res) {
         }).catch(() => {});
       }
     } catch (e) { console.error('assemblee_reveil_minuit', e); }
+
+    // 0 ter. LOIS ADOPTEES ET NON MISES EN APPLICATION — SANCTION DU GOUVERNEMENT
+    //
+    // Depuis le chantier du 30 septembre 2026, une loi adoptee par l'Assemblee n'entre en vigueur
+    // que lorsque le Ministre de l'Interieur la met en application. Passe 36 h, le gouvernement en
+    // repond : -20 POP au premier palier, puis -10 toutes les 24 h tant que la loi dort.
+    //
+    // CE FICHIER NE CALCULE RIEN, comme pour le reveil ci-dessus. Toute la logique est dans
+    // assemblee_sanctionner_lois_non_appliquees : elle trouve les paliers echus, RATTRAPE ceux
+    // qu'une passe manquee aurait laisses, debite par la primitive canonique de POP, et inscrit
+    // chaque palier dans un registre dont la cle primaire <loi>:<palier> rend tout second debit
+    // impossible -- rejeu, crons concurrents ou appel manuel compris. Rejouer ce cron ne coute donc
+    // jamais un franc de popularite de plus.
+    //
+    // CADENCE : cette passe est quotidienne, les paliers sont a 36 h puis toutes les 24 h. Un palier
+    // est donc debite lors de la premiere passe qui suit son echeance -- jamais deux fois, jamais
+    // saute, mais avec un retard pouvant aller jusqu'a 24 h. C'est un choix : reutiliser
+    // l'ordonnanceur existant plutot qu'en ajouter un troisieme.
+    try {
+      if (!SUPABASE_SERVICE_ROLE) {
+        console.error('assemblee_sanctions : SUPABASE_SERVICE_ROLE_KEY absente, aucune sanction');
+      } else {
+        const brut = await sbRpc('assemblee_sanctionner_lois_non_appliquees',
+                                 { p_country: 'republic' }, HEADERS_SERVICE);
+        const r = Array.isArray(brut) ? brut[0] : brut;
+        const nb = (r && typeof r.paliers_appliques === 'number') ? r.paliers_appliques : 0;
+        if (nb > 0) {
+          results.push({ tache: 'assemblee_sanctions_lois', paliers: nb, detail: r.detail });
+          await sbInsert('evenements_globaux', {
+            country: 'republic', city: null,
+            texte: '🏛 Des lois votees par l\'Assemblee nationale restent sans application : la popularite du gouvernement en souffre.',
+            jour: null
+          }).catch(() => {});
+        }
+      }
+    } catch (e) { console.error('assemblee_sanctions_lois', e); }
+
+    // 0 quater. SANTE DU FOURNISSEUR IA — RENDRE VISIBLE LA MORT DE SEB LEX
+    //
+    // LE PROBLEME. Seb Lex echoue POLIMENT : le joueur lit « Seb Lex est indisponible », l'endpoint
+    // journalise la cause exacte (cle absente, solde epuise, authentification, panne passagere),
+    // et... c'est tout. Pour lire ce journal il faut savoir qu'il existe et aller le chercher dans
+    // les logs de la fonction. Un solde epuise peut donc tuer le juriste de l'Assemblee pendant des
+    // jours sans que personne ne le sache.
+    //
+    // CE QU'ON NE FAIT PAS. On n'invente pas ici de canal d'alerte -- pas de courriel, pas de
+    // webhook, pas de table de notifications : il n'en existe aucun dans le projet, et ce lot n'est
+    // pas le bon endroit pour en batir un.
+    //
+    // CE QU'ON FAIT. On reutilise les DEUX mecanismes de signalement que cette passe possede deja :
+    //   - cron_journal, qui garde une ligne durable et datee, consultable apres coup ;
+    //   - ECHECS_PASSE, qui fait rendre un HTTP 500 a la passe -- et un cron rouge est precisement
+    //     ce que le tableau de bord de l'ordonnanceur affiche sans qu'on le lui demande.
+    //
+    // LE SEUIL EST CHOISI. Seules les pannes DEFINITIVES (solde epuise, cle absente ou refusee)
+    // font rougir la passe : elles ne se repareront pas d'elles-memes et exigent une action humaine.
+    // Un debit limite, un delai depasse ou un 503 passager sont journalises et rien de plus -- faire
+    // rougir la passe chaque nuit pour un hoquet rendrait le signal inutile, ce qui est la maniere
+    // la plus sure de ne plus le voir du tout.
+    try {
+      const jourSonde = jourParisISO();
+      if (!cleConfiguree()) {
+        signalerEchec('sonde_ia', 'DEEPSEEK_API_KEY absente : Seb Lex et les dialogues PNJ sont hors service.');
+        await journaliserCron('sonde_ia', jourSonde, 'echec', 'cle absente').catch(() => {});
+      } else {
+        // L'appel le plus petit possible : une reponse d'un mot. Il coute une fraction de centime
+        // par nuit, et ne coute rien du tout dans le cas qui nous interesse -- un solde epuise est
+        // refuse avant d'etre facture.
+        const sonde = await appelDeepSeek({
+          messages: [{ role: 'user', content: 'Reponds exactement : ok' }],
+          maxTokens: 4, timeoutMs: 15000
+        });
+        if (sonde && sonde.ok) {
+          await journaliserCron('sonde_ia', jourSonde, 'ok', null, { fournisseur: 'joignable' }).catch(() => {});
+        } else {
+          const c = classerEchecFournisseur(sonde) || { cause: 'autre', critique: false, journal: 'inconnu' };
+          if (c.critique) {
+            // PANNE DEFINITIVE. La passe rendra 500 : Fred le verra dans le tableau de bord des
+            // crons, et la ligne de cron_journal lui dira laquelle des trois causes c'etait.
+            signalerEchec('sonde_ia', 'IA HORS SERVICE (' + c.cause + ') : ' + c.journal
+                          + ' -- Seb Lex et les dialogues PNJ ne repondent plus.');
+            await journaliserCron('sonde_ia', jourSonde, 'echec', c.cause + ' :: ' + c.journal).catch(() => {});
+          } else {
+            console.error('[cron-minuit] sonde_ia : panne passagere (' + c.cause + ') :: ' + c.journal);
+            await journaliserCron('sonde_ia', jourSonde, 'ignoree', c.cause + ' :: ' + c.journal).catch(() => {});
+          }
+        }
+      }
+    } catch (e) {
+      // La sonde est un capteur : si elle se casse elle-meme, elle ne doit pas emporter la passe.
+      console.error('sonde_ia', e);
+    }
 
     // 0 bis. CONVOCATIONS ECHUES — AUTORITE SERVEUR (§41, chantier du 10 septembre 2026)
     //

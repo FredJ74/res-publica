@@ -2108,7 +2108,14 @@ const BUILDINGS = {
           // plateau-router.js, mais AUCUN ordre ne le portait : la route etait orpheline. C'est
           // aussi l'endroit ou le ministre voit le solde des commissariats de son empire, depuis
           // son ministere -- la consultation depuis le commissariat lui-meme reste au commissaire.
-          {fn:'subvention_min_int',   label:'Financer la police',         pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Solde des commissariats de l\'empire et du QHS, et virement depuis la caisse du Ministere.'}
+          {fn:'subvention_min_int',   label:'Financer la police',         pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Solde des commissariats de l\'empire et du QHS, et virement depuis la caisse du Ministere.'},
+          // MISE EN APPLICATION DES LOIS (chantier du 30 septembre 2026). Une loi
+          // adoptee par l'Assemblee n'entre en vigueur que lorsque le Ministre de
+          // l'Interieur la prononce. Il ne choisit ni la matiere, ni le niveau, ni
+          // les exceptions : seulement le moment. Ordre permanent, 0 PA -- consulter
+          // le registre ne coute rien, et l'application est un acte d'autorite,
+          // pas un effort.
+          {fn:'lois_votees_an',       label:'Lois votées par l\'AN',      pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'min_int', desc:'Lois adoptées par l\'Assemblée en attente de mise en application, et lois déjà appliquées. Délai de 36 h avant sanctions gouvernementales.'}
         ]
       },
       bureau_min_fin: {
@@ -2264,7 +2271,11 @@ const BUILDINGS = {
           {fn:'voter_loi',           label:'Voter une loi',            pa:0, cost:0,   type:'legal', icon:'ti-check',           successRate:100, requiresPost:'depute', desc:'Gratuit. Modifiable autant de fois que voulu jusqu\'à la clôture du mercredi 22h.'},
           {fn:'projet_loi',          label:'Déposer un projet de loi', pa:1, cost:0,   type:'legal', icon:'ti-file-text',       successRate:100, desc:'Députés, Premier ministre et ministres. Une semaine de débat avant la session.'},
           {fn:'amender_projet',      label:'Amender mon projet',       pa:0, cost:0,   type:'legal', icon:'ti-edit',            successRate:100, desc:'Gratuit. L\'amendement s\'ajoute sous le texte original, sans jamais le remplacer.'},
-          {fn:'proposer_abrogation', label:'Proposer une abrogation',  pa:1, cost:0,   type:'legal', icon:'ti-file-off',        successRate:100, desc:'Abroger une loi en vigueur. Même circuit qu\'un projet ordinaire.'},
+          // 'proposer_abrogation' RETIRE le 30 septembre 2026. Le joueur ne choisit
+          // plus lui-meme la nature de sa proposition : il explique au juriste de
+          // l'Assemblee qu'il veut supprimer une loi, et c'est Seb Lex qui qualifie
+          // l'abrogation et identifie la loi visee. Une seule porte : 'projet_loi'.
+          // Le mecanisme d'abrogation cote serveur est inchange.
           {fn:'marchander_vote',     label:'Marchander un vote',       pa:1, cost:100, type:'grey',  icon:'ti-arrows-exchange', successRate:50,  desc:'Convaincre un député PNJ. Chance 50% + (CHA+ENT)/2. 1 PA + 100 FR, même en cas d\'échec. Légal à Républia.'},
           {fn:'reveiller_depute',    label:'Réveiller un député',      pa:1, cost:0,   type:'legal', icon:'ti-alarm',           successRate:100, desc:'Ranime un député endormi avec des sels d\'ammoniaque. 1 PA + 1 flacon.'}
         ]

@@ -4972,6 +4972,40 @@ async function sbGetAssembleeInterdictions(country) {
 // de la base APRES l'operation : le client les recopie, il ne recalcule rien.
 
 // 1 PA. Identifiant genere par le serveur ; titre d'une abrogation construit par le serveur.
+// ---------------------------------------------------------------------------
+// ASSEMBLEE : PORTEE VOTEE, MISE EN APPLICATION, REGISTRE D'EXECUTION
+// (chantier Seb Lex, 30 septembre 2026)
+// ---------------------------------------------------------------------------
+// LE DEPOT AVEC PORTEE. La portee mecanique fait partie de la loi : elle est
+// verrouillee des le depot et revalidee par le serveur contre une liste fermee.
+// Le navigateur ne fait que transmettre ce que le deposant a valide.
+async function sbAssembleeDeposerProjet(requete, nom, titre, type, texte, categorie, loiCibleId, portee) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_deposer_projet', {
+    p_requete: requete, p_nom: nom, p_titre: titre || null, p_type: type,
+    p_texte: texte, p_categorie: categorie || null,
+    p_loi_cible_id: loiCibleId || null, p_portee: portee || null
+  }));
+}
+
+// LA MISE EN APPLICATION. On n'envoie QUE l'identifiant de la loi : ni matiere,
+// ni niveau, ni portee. Le serveur verifie le poste et relit lui-meme ce qui a
+// ete vote. C'est la seule decision du Ministre de l'Interieur.
+async function sbAssembleeMettreEnApplication(requete, acteur, loiId) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_mettre_en_application', {
+    p_requete: requete, p_acteur: acteur, p_loi_id: loiId
+  }));
+}
+
+// LE REGISTRE D'EXECUTION. Les lois adoptees qui attendent une mise en
+// application, puis celles qui l'ont recue. Chaque ligne porte l'instant SERVEUR
+// (`maintenant`) : l'ecran ne calcule jamais une echeance avec l'horloge du
+// navigateur.
+async function sbAssembleeRegistreExecution(country) {
+  const rows = await sbRpc('assemblee_registre_execution', { p_country: country || 'republic' });
+  const v = Array.isArray(rows) ? rows[0] : rows;
+  return Array.isArray(v) ? v : [];
+}
+
 async function sbAssembleeDeposer(nom, titre, type, texte, categorie, loiCibleId, requete) {
   return _assembleeResultatRpc(await sbRpc('assemblee_deposer', {
     p_nom: nom, p_titre: titre || null, p_type: type, p_texte: texte,

@@ -1,0 +1,350 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc AN Seb Lex</title>
+<link rel="stylesheet" href="../style.css"></head><body>
+<!-- BANC CLIENT DU CHANTIER ASSEMBLEE (30 septembre 2026). Chrome sans interface,
+     vraie style.css, vrais fichiers de jeu. On stube UNIQUEMENT la frontiere
+     reseau (fetch vers /api, wrappers RPC) : tout le reste est le code reel. -->
+<div id="postes-modal-title"></div><div id="postes-body"></div><div id="modal-postes"></div>
+<pre id="verdict"></pre>
+<script>
+var TOASTS=[], JOURNAL=[], APPELS_SEB=[], APPELS_RPC=[];
+var REPONSE_SEB=null, REPONSE_RPC=null;
+var state={country:'republic',currentCity:'capitale',currentBuilding:'assemblee',
+  currentRoom:'hemicycle',pa:10,arg:1000,liquide:1000,day:5,
+  char:{name:'zzAut',country:'republic'},poste:null,posteDepute:null};
+function showToast(t,m,ok){TOASTS.push({titre:t,message:m,ok:!!ok});}
+function addJournalEntry(t){JOURNAL.push(t);}
+function addExternalEvent(){} function updateUI(){}
+function escapeHtmlText(s){return String(s);}
+var i18next={language:'fr',isInitialized:false,exists:function(){return false;},t:function(k){return k;}};
+function rpAuthAssurerSession(){return Promise.resolve();}
+function rpAuthJeton(){return 'jeton-de-test';}
+// La frontiere reseau de Seb Lex : on note ce qui part, on repond ce qu'on veut.
+function fetch(url,opts){
+  APPELS_SEB.push({url:url,corps:JSON.parse(opts.body)});
+  return Promise.resolve({ok:true,status:200,json:function(){return Promise.resolve(REPONSE_SEB);}});
+}
+// Les RPC de l'Assemblee.
+function sbAssembleeDeposerProjet(rq,nom,titre,type,texte,cat,cible,portee){
+  APPELS_RPC.push({rpc:'deposer_projet',requete:rq,nom:nom,titre:titre,type:type,
+                   texte:texte,categorie:cat,cible:cible,portee:portee});
+  return Promise.resolve(REPONSE_RPC||{ok:true,proposition:{id:'prop-test'}});
+}
+function sbAssembleeMettreEnApplication(rq,acteur,loiId){
+  APPELS_RPC.push({rpc:'mettre_en_application',requete:rq,acteur:acteur,loiId:loiId,
+                   nbArguments:arguments.length});
+  return Promise.resolve(REPONSE_RPC||{ok:true,loi:{id:loiId,titre:'Loi de test'}});
+}
+var REGISTRE=[];
+function sbAssembleeRegistreExecution(){return Promise.resolve(REGISTRE);}
+function sbAssembleeDeposer(){return Promise.resolve({ok:true,proposition:{id:'prop-rp'}});}
+function sbAssembleeLierTopic(){return Promise.resolve(null);}
+function sbGetAssembleePropositions(){return Promise.resolve([]);}
+function sbRpc(){return Promise.resolve(null);}
+</script>
+<script src="../data.js"></script>
+<script src="../plateau-assemblee.js"></script>
+<script>
+var R=[];function essai(n,ok,d){R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:''));}
+function corps(){return document.getElementById('postes-body').innerHTML;}
+
+essai('data.js et plateau-assemblee.js charges',
+  typeof CATEGORIES_INTERDICTION !== 'undefined' && typeof ouvrirDeposerProposition === 'function'
+  && typeof ouvrirLoisVoteesAN === 'function');
+
+(async function(){
+  // ===== A1 : UN ACTEUR NON AUTORISE NE PEUT PAS DEPOSER ==================
+  state.poste=null; state.posteDepute=null; TOASTS=[];
+  ouvrirDeposerProposition(1,0);
+  essai('A1. citoyen sans mandat : depot refuse',
+    TOASTS.length===1 && /Accès refusé/.test(TOASTS[0].titre), JSON.stringify(TOASTS));
+
+  // Le Ministre de l'Interieur, lui, peut deposer (il est dans la liste).
+  state.poste={id:'min_int'}; TOASTS=[];
+  ouvrirDeposerProposition(1,0);
+  essai('A1. min_int : la consultation s\'ouvre',
+    TOASTS.length===0 && /SEB LEX/.test(corps()), TOASTS.length ? JSON.stringify(TOASTS) : '');
+  essai('A1. le portrait de Seb Lex est affiche',
+    /images\/assemblee-juriste-seb-lex\.png/.test(corps()));
+  essai('A1. sa fonction est affichee',
+    /Juriste de l&#39;Assemblée nationale|Juriste de l'Assemblée nationale/.test(corps()));
+  essai('A1. il parle le premier',
+    /Je vous écoute\. Quelle est cette loi \?/.test(corps()));
+  essai('A1. aucun jargon technique a l\'ecran',
+    !/JSON|boolean|transformation_stock_interdite|categorie=|niveau 1/.test(corps()));
+
+  // ===== A2 : LA CONVERSATION NE CONSOMME AUCUN PA ========================
+  APPELS_RPC=[]; APPELS_SEB=[];
+  REPONSE_SEB={etat:'question',question:'Souhaitez-vous aussi interdire la transformation des stocks existants ?'};
+  document.getElementById('seblex-saisie').value='Je veux interdire le commerce du bois.';
+  await sebLexEnvoyer();
+  essai('A2. la conversation n\'appelle aucune RPC de depot',
+    APPELS_RPC.length===0, JSON.stringify(APPELS_RPC));
+  essai('A2. un seul appel a l\'endpoint du juriste',
+    APPELS_SEB.length===1 && APPELS_SEB[0].url==='/api/assemblee-seblex', JSON.stringify(APPELS_SEB.map(function(a){return a.url;})));
+  essai('A4. la question de Seb est affichee',
+    /interdire la transformation des stocks/.test(corps()));
+
+  // ===== A5 : LE PROJET DEJA PRECIS -> SYNTHESE, PAS DE QUESTION ==========
+  REPONSE_SEB={etat:'synthese',nature:'interdiction',titre:'Interdiction du bois',
+    mot:'Votre demande est claire ; je la mets en forme telle quelle.',
+    synthese:'La production et le commerce du bois sont interdits en Républia. Les stocks existants peuvent être conservés mais ne peuvent plus servir à fabriquer de nouveaux produits. Les dons restent autorisés.',
+    categorie:'bois_et_forets',label_categorie:'Bois',
+    portee:{transformation_stock_interdite:true}};
+  document.getElementById('seblex-saisie').value='Oui, interdisez aussi la transformation.';
+  await sebLexEnvoyer();
+  essai('A5. la synthese est presentee comme un projet de loi',
+    /PROJET DE LOI/.test(corps()) && /Interdiction du bois/.test(corps()));
+  essai('A5. deux boutons : modifier et valider',
+    /Modifier le projet/.test(corps()) && /Valider le projet de loi/.test(corps()));
+  essai('A5. le cout en PA est annonce sur le bouton de validation',
+    /Valider le projet de loi \(1 PA\)/.test(corps()));
+  essai('A5. la portee est dite en francais, pas en booleen',
+    !/transformation_stock_interdite|true|false/.test(corps()));
+  essai('N5. le mot du juriste accompagne la synthese',
+    /je la mets en forme telle quelle/.test(corps()));
+  essai('N6. la nature est dite en francais, jamais un type interne',
+    /Loi d&#39;interdiction|Loi d'interdiction/.test(corps())
+    && !/\bmecanique\b|\babrogation\b|(^|[^a-z])rp([^a-z]|$)/.test(corps()));
+  essai('A2. toujours aucune RPC de depot avant validation',
+    APPELS_RPC.length===0, JSON.stringify(APPELS_RPC));
+
+  // ===== A9 : LA STRUCTURE DEPOSEE CORRESPOND A LA SYNTHESE VALIDEE =======
+  TOASTS=[]; JOURNAL=[];
+  await sebLexValiderProjet();
+  var d=APPELS_RPC.filter(function(a){return a.rpc==='deposer_projet';})[0];
+  essai('A3/A9. la validation depose, et une seule fois',
+    APPELS_RPC.length===1 && !!d, JSON.stringify(APPELS_RPC.map(function(a){return a.rpc;})));
+  essai('A9. la categorie deposee est celle de la synthese',
+    d && d.categorie==='bois_et_forets', d?d.categorie:'-');
+  essai('A9. la portee deposee est celle de la synthese',
+    d && d.portee && d.portee.transformation_stock_interdite===true, JSON.stringify(d?d.portee:null));
+  essai('A9. le type deposé est bien une loi mecanique',
+    d && d.type==='mecanique', d?d.type:'-');
+  essai('A9. le texte depose est la synthese lue par le joueur',
+    d && /stocks existants peuvent être conservés/.test(d.texte));
+  essai('A9. une cle d\'idempotence accompagne le depot',
+    !!(d && typeof d.requete==='string' && d.requete.length>5), d?d.requete:'-');
+
+  // ===== A8 : SORTIE IA MALFORMEE -> FAIL CLOSED ==========================
+  // Le serveur refuse lui-meme les sorties non conformes et renvoie une QUESTION.
+  // Cote client, on verifie qu'aucun projet n'est fabrique a partir d'une nature
+  // inconnue : un projet sans qualification ne doit jamais atteindre le depot.
+  ouvrirDeposerProposition(1,0);
+  REPONSE_SEB={etat:'synthese',nature:'confiscation_generale',titre:'Saisie',synthese:'Tout est saisi.'};
+  document.getElementById('seblex-saisie').value='Interdire les licornes.';
+  await sebLexEnvoyer();
+  essai('A8. nature inconnue : aucun projet n\'est fabrique',
+    SEBLEX && SEBLEX.projet===null, JSON.stringify(SEBLEX?SEBLEX.projet:null));
+
+  // ===== N7/N8/N9 : LA PANNE DU FOURNISSEUR ===============================
+  // Le joueur ne doit ni rester sur « Seb reflechit… », ni lire un detail
+  // technique, ni perdre ce qu'il vient d'ecrire, ni payer quoi que ce soit.
+  ouvrirDeposerProposition(1,0);
+  APPELS_RPC=[];
+  REPONSE_SEB={etat:'indisponible',attendre:false,
+    message:'Seb Lex est indisponible. Le bureau du juriste est fermé pour aujourd\'hui.'};
+  var TEXTE_DU_JOUEUR = 'Je veux interdire le commerce du bois en Républia.';
+  document.getElementById('seblex-saisie').value=TEXTE_DU_JOUEUR;
+  await sebLexEnvoyer();
+  var cp=corps();
+  essai('N7. panne definitive : le message du serveur est affiche tel quel',
+    /Le bureau du juriste est fermé/.test(cp));
+  essai('N7. aucune attente sans fin', !/consulte le code…/.test(cp));
+  essai('N7. aucun detail technique ni cle a l\'ecran',
+    !/402|HTTP|API|solde|balance|DEEPSEEK|Bearer|facturation/i.test(cp), cp.slice(0,200));
+  essai('N8. le texte saisi est conserve dans le champ',
+    document.getElementById('seblex-saisie').value===TEXTE_DU_JOUEUR,
+    document.getElementById('seblex-saisie').value);
+  essai('N9. la panne ne depose rien et ne coute aucun PA',
+    APPELS_RPC.length===0 && SEBLEX.projet===null && state.pa===10,
+    'rpc='+APPELS_RPC.length+' pa='+state.pa);
+  essai('N8. rien n\'est ajoute a l\'historique transmis au serveur',
+    SEBLEX.historique.length===0, JSON.stringify(SEBLEX.historique));
+
+  // Une panne PASSAGERE se lit autrement, mais protege le texte de la meme facon.
+  REPONSE_SEB=null;                       // reseau coupe : le client n'a rien du tout
+  document.getElementById('seblex-saisie').value='Encore une fois.';
+  await sebLexEnvoyer();
+  essai('N7. panne reseau : message sobre par defaut',
+    /momentanément indisponible/.test(corps()));
+  essai('N8. et le texte est la aussi conserve',
+    document.getElementById('seblex-saisie').value==='Encore une fois.');
+
+  // ===== N3 : LA LOI DECLARATIVE — LA LIBERTE POLITIQUE N'EST PAS REFUSEE ==
+  // Le moteur ne sait pas rendre automatique « l'ecole est gratuite ». Seb ne
+  // refuse pas pour autant : il qualifie en declaration, et l'Assemblee vote.
+  ouvrirDeposerProposition(1,0);
+  APPELS_RPC=[];
+  REPONSE_SEB={etat:'synthese',nature:'declarative',
+    titre:'Gratuité de l\'instruction publique',
+    synthese:'L\'Assemblée nationale proclame la gratuité de l\'instruction publique sur tout le territoire de la Républia.',
+    mot:'Je ne vois rien à ajouter. La demande est conforme juridiquement.'};
+  document.getElementById('seblex-saisie').value='L\'ecole doit etre gratuite.';
+  await sebLexEnvoyer();
+  essai('N3. une demande sans mecanique n\'est pas refusee',
+    !!SEBLEX.projet && SEBLEX.projet.nature==='declarative', JSON.stringify(SEBLEX.projet));
+  essai('N3. la nature est dite « Déclaration de l\'Assemblée »',
+    /Déclaration de l&#39;Assemblée|Déclaration de l'Assemblée/.test(corps()));
+  essai('N3. le mot du juriste est affiche',
+    /Je ne vois rien à ajouter/.test(corps()));
+  await sebLexValiderProjet();
+  var dd=APPELS_RPC.filter(function(a){return a.rpc==='deposer_projet';})[0];
+  essai('N3. le depot est une loi RP, sans categorie ni portee',
+    !!dd && dd.type==='rp' && !dd.categorie && !dd.portee,
+    dd?('type='+dd.type+' cat='+dd.categorie+' portee='+JSON.stringify(dd.portee)):'-');
+  essai('N3. son titre et son texte sont ceux de la synthese',
+    !!dd && dd.titre==='Gratuité de l\'instruction publique' && /gratuité de l&#39;instruction|gratuité de l'instruction/.test(dd.texte),
+    dd?dd.titre:'-');
+
+  // ===== N4 : L'ABROGATION PASSE PAR SEB, ET SEULEMENT PAR LUI ============
+  ouvrirDeposerProposition(1,0);
+  APPELS_RPC=[];
+  REPONSE_SEB={etat:'synthese',nature:'abrogation',
+    loi_cible:'loi-42',loi_cible_titre:'Interdiction du textile',
+    synthese:'L\'interdiction du textile est abrogée. Les circuits légaux du textile rouvrent dès la mise en application.',
+    mot:'Une abrogation est elle-même une loi : elle doit être votée, puis appliquée.'};
+  document.getElementById('seblex-saisie').value='Je veux abroger l\'interdiction du textile.';
+  await sebLexEnvoyer();
+  essai('N4. l\'abrogation est reconnue et sa cible nommee',
+    !!SEBLEX.projet && SEBLEX.projet.nature==='abrogation' && SEBLEX.projet.loi_cible==='loi-42');
+  essai('N4. la cible est affichee par son titre, pas par son identifiant',
+    /Abrogation de « Interdiction du textile »/.test(corps()) && corps().indexOf('loi-42')===-1);
+  await sebLexValiderProjet();
+  var da=APPELS_RPC.filter(function(a){return a.rpc==='deposer_projet';})[0];
+  essai('N4. le depot est de type abrogation et porte la loi cible',
+    !!da && da.type==='abrogation' && da.cible==='loi-42',
+    da?('type='+da.type+' cible='+da.cible):'-');
+  essai('N4. le titre est laisse au serveur, le client ne le forge pas',
+    !!da && da.titre===null, da?String(da.titre):'-');
+
+  // ===== N10 : UNE INTERDICTION SANS CATEGORIE NE PART PAS ================
+  // Le serveur la refuserait de toute facon ; le client ne doit pas non plus
+  // engager le PA du joueur pour un projet qu'il sait incomplet.
+  ouvrirDeposerProposition(1,0);
+  APPELS_RPC=[]; TOASTS=[];
+  SEBLEX.projet={nature:'interdiction',titre:'Interdiction floue',synthese:'On interdit.',
+                 categorie:null,portee:null};
+  await sebLexValiderProjet();
+  essai('N10. interdiction sans categorie : aucun depot, et le joueur est averti',
+    APPELS_RPC.length===0 && TOASTS.length===1, 'rpc='+APPELS_RPC.length+' toasts='+JSON.stringify(TOASTS));
+
+  // ===== N11 : L'HISTORIQUE TRANSMIS RESTE BORNE =========================
+  ouvrirDeposerProposition(1,0);
+  REPONSE_SEB={etat:'question',question:'Precisez.'};
+  for (var t=0;t<12;t++){
+    document.getElementById('seblex-saisie').value='Tour numero '+t+'.';
+    await sebLexEnvoyer();
+  }
+  essai('N11. l\'historique envoye au juriste ne grossit pas indefiniment',
+    SEBLEX.historique.length<=8, 'longueur='+SEBLEX.historique.length);
+
+  // ===== N1/N2 : IL NE RESTE QU'UNE SEULE PORTE ==========================
+  // On balaie l'arbre reel des batiments : aucun site ne doit plus offrir l'ancienne
+  // porte technique. Et l'ordre du Ministre de l'Interieur, lui, doit bien exister.
+  var TOUS_ORDRES=[];
+  (function balayer(n){
+    if (!n || typeof n!=='object') return;
+    if (Array.isArray(n)) { n.forEach(balayer); return; }
+    if (typeof n.fn==='string') TOUS_ORDRES.push(n.fn);
+    Object.keys(n).forEach(function(k){ balayer(n[k]); });
+  })(BUILDINGS);
+  essai('N1. aucun ordre « Proposer une abrogation » ne subsiste dans le jeu',
+    TOUS_ORDRES.indexOf('proposer_abrogation')===-1,
+    TOUS_ORDRES.filter(function(f){return /abrog/i.test(f);}).join(','));
+  essai('N1. la seule porte de depot subsiste, et l\'ecran du ministre existe',
+    TOUS_ORDRES.indexOf('projet_loi')!==-1 && TOUS_ORDRES.indexOf('lois_votees_an')!==-1,
+    'depot='+(TOUS_ORDRES.indexOf('projet_loi')!==-1)+' ministre='+(TOUS_ORDRES.indexOf('lois_votees_an')!==-1));
+  essai('N2. les six anciennes fonctions de depot n\'existent plus',
+    typeof ouvrirDeposerDeclaration==='undefined'
+    && typeof assembleeMajFormulaireDepot==='undefined'
+    && typeof assembleeMajApercuCategorie==='undefined'
+    && typeof confirmerDeposerProposition==='undefined'
+    && typeof ouvrirProposerAbrogation==='undefined'
+    && typeof confirmerProposerAbrogation==='undefined');
+
+  // ===== B : L'ECRAN DU MINISTRE DE L'INTERIEUR ===========================
+  var MAINTENANT = new Date();
+  var DANS_20H = new Date(MAINTENANT.getTime() + 20*3600*1000);
+  var IL_Y_A_2H = new Date(MAINTENANT.getTime() - 2*3600*1000);
+  REGISTRE = [
+    { id:'loi-1', titre:'Interdiction du bois', type:'mecanique', categorie:'bois_et_forets',
+      auteur:'zzAut', portee:{transformation_stock_interdite:false},
+      adoptee_ts:MAINTENANT.toISOString(), appliquee_ts:null, appliquee_par:null,
+      echeance_ts:DANS_20H.toISOString(), etat:'en_attente', loi_cible:null,
+      maintenant:MAINTENANT.toISOString() },
+    { id:'loi-2', titre:'Interdiction des viandes', type:'mecanique', categorie:'viandes',
+      auteur:'zzAut', portee:{transformation_stock_interdite:true},
+      adoptee_ts:MAINTENANT.toISOString(), appliquee_ts:null, appliquee_par:null,
+      echeance_ts:IL_Y_A_2H.toISOString(), etat:'en_retard', loi_cible:null,
+      maintenant:MAINTENANT.toISOString() },
+    { id:'abr-1', titre:'Abrogation — Interdiction du textile', type:'abrogation', categorie:null,
+      auteur:'zzAut', portee:{}, adoptee_ts:MAINTENANT.toISOString(),
+      appliquee_ts:null, appliquee_par:null, echeance_ts:DANS_20H.toISOString(),
+      etat:'en_attente', loi_cible:{id:'loi-0',titre:'Interdiction du textile',statut:'adoptee'},
+      maintenant:MAINTENANT.toISOString() },
+    { id:'loi-3', titre:'Interdiction des alcools', type:'mecanique', categorie:'alcools',
+      auteur:'zzAut', portee:{transformation_stock_interdite:false},
+      adoptee_ts:MAINTENANT.toISOString(), appliquee_ts:MAINTENANT.toISOString(),
+      appliquee_par:'Vince Kubrick', echeance_ts:DANS_20H.toISOString(),
+      etat:'appliquee', loi_cible:null, maintenant:MAINTENANT.toISOString() }
+  ];
+
+  // B12/B13 : seul le Ministre de l'Interieur ouvre l'ecran.
+  state.poste={id:'min_fin'}; TOASTS=[];
+  await ouvrirLoisVoteesAN();
+  essai('B12. un autre ministre : ecran refuse',
+    TOASTS.length===1 && /Accès refusé/.test(TOASTS[0].titre), JSON.stringify(TOASTS));
+  state.poste=null; TOASTS=[];
+  await ouvrirLoisVoteesAN();
+  essai('B13. un citoyen : ecran refuse', TOASTS.length===1);
+
+  state.poste={id:'min_int'}; TOASTS=[];
+  await ouvrirLoisVoteesAN();
+  var c=corps();
+  essai('B11. le ministre voit les lois en attente',
+    /À METTRE EN APPLICATION/.test(c) && /Interdiction du bois/.test(c));
+  essai('B11. et celles deja appliquees, separement',
+    /DÉJÀ APPLIQUÉES/.test(c) && /Interdiction des alcools/.test(c));
+  essai('B21. l\'echeance est affichee pour une loi en attente',
+    /À appliquer avant le \d\d\/\d\d à \d\d:\d\d/.test(c), (c.match(/À appliquer avant[^<]*/)||['-'])[0]);
+  essai('B21. le retard est annonce sans ambiguite',
+    /NON APPLIQUÉE — SANCTIONS GOUVERNEMENTALES EN COURS/.test(c));
+  essai('B21. une loi appliquee est marquee, avec son auteur',
+    /APPLIQUÉE — par Vince Kubrick/.test(c));
+  essai('B26. AUCUN bouton ministeriel « Abroger »',
+    !/>Abroger</.test(c) && c.indexOf('Abroger')===-1);
+  essai('B26. l\'abrogation apparait comme une loi a appliquer',
+    /Abrogation de « Interdiction du textile »/.test(c));
+  essai('C17/C18. la portee est dite en clair, cas A et cas B distingues',
+    /Les stocks existants restent transformables/.test(c)
+    && /interdit aussi de transformer les stocks existants/.test(c));
+  essai('B. aucun jargon technique dans le registre',
+    !/transformation_stock_interdite|mecanique|jsonb|appliquee_ts/.test(c));
+
+  // B14/B16 : l'application n'envoie QUE l'identifiant.
+  APPELS_RPC=[]; TOASTS=[];
+  REPONSE_RPC={ok:true,loi:{id:'loi-1',titre:'Interdiction du bois'},cible_eteinte:null};
+  await loisANAppliquer('loi-1');
+  var a=APPELS_RPC.filter(function(x){return x.rpc==='mettre_en_application';})[0];
+  essai('B16. le client n\'envoie que requete, acteur et identifiant',
+    !!a && a.loiId==='loi-1' && a.nbArguments===3, a?('args='+a.nbArguments+' loi='+a.loiId):'-');
+  essai('B16. aucun parametre economique n\'est transmis',
+    !!a && a.portee===undefined && a.categorie===undefined && a.niveau===undefined);
+  essai('B14. le ministre est informe de l\'effet',
+    TOASTS.length===1 && /produit désormais ses effets/.test(TOASTS[0].message), JSON.stringify(TOASTS));
+
+  // L'application d'une abrogation annonce l'extinction de sa cible.
+  APPELS_RPC=[]; TOASTS=[];
+  REPONSE_RPC={ok:true,loi:{id:'abr-1',titre:'Abrogation — Interdiction du textile'},
+               cible_eteinte:{id:'loi-0',titre:'Interdiction du textile'}};
+  await loisANAppliquer('abr-1');
+  essai('B25. l\'extinction de la loi cible est annoncee',
+    TOASTS.length===1 && /cesse les siens/.test(TOASTS[0].message), JSON.stringify(TOASTS));
+
+  document.getElementById('verdict').textContent=R.join('\n')+
+    '\nBILAN '+R.filter(function(l){return l.indexOf('ECHEC')===0;}).length+' echec(s)';
+})().catch(function(e){
+  document.getElementById('verdict').textContent=R.join('\n')+
+    '\n!!! BANC INTERROMPU : '+e.message+'\n'+(e.stack||'');
+});
+</script></body></html>

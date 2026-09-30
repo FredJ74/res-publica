@@ -1890,3 +1890,74 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   .mil-panneau{grid-template-columns:1fr;flex:1 1 100%}
   .mil-chiffre{font-size:1.05rem}
 }
+
+/* ===========================================================================
+   SEB LEX — LA CONSULTATION CHEZ LE JURISTE (30 septembre 2026)
+   ---------------------------------------------------------------------------
+   Un cabinet, pas une fenetre de chatbot. Trois partis pris :
+     1. le portrait et la plaque sont en haut, comme sur une porte de bureau ;
+     2. les repliques du juriste sont sur parchemin, celles du deposant en
+        retrait a droite -- on lit un entretien, pas une messagerie ;
+     3. la palette est celle de l'Assemblee (or #C9A84C sur fond #121005), sans
+        une seule couleur nouvelle.
+   Le fil DEFILE : une consultation de quatre echanges ne doit pas pousser les
+   boutons hors de l'ecran -- c'est le defaut qu'on a paye deux fois ce mois-ci.
+   =========================================================================== */
+.seblex{padding:1rem;display:flex;flex-direction:column;gap:.7rem}
+.seblex-tete{display:flex;align-items:center;gap:.8rem;
+  border-bottom:1px solid #2a2010;padding-bottom:.7rem}
+.seblex-portrait{width:64px;height:64px;flex:0 0 auto;object-fit:cover;
+  object-position:50% 20%;border:1px solid #6a5a20;border-radius:2px;
+  box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.seblex-nom{font-family:Bebas Neue,Arial Narrow,sans-serif;letter-spacing:.14em;
+  font-size:1.05rem;color:#C9A84C}
+.seblex-fonction{font-family:Crimson Pro,Georgia,serif;font-style:italic;
+  font-size:.8rem;color:#8a8060}
+
+.seblex-fil{display:flex;flex-direction:column;gap:.5rem;
+  max-height:38vh;overflow-y:auto;padding-right:.2rem}
+.seblex-dit{align-self:flex-start;max-width:88%;
+  background:#171307;border:1px solid #2a2010;border-left:2px solid #6a5a20;
+  padding:.55rem .7rem;font-family:Crimson Pro,Georgia,serif;font-size:.88rem;
+  line-height:1.6;color:#e0d8c0}
+.seblex-moi{align-self:flex-end;max-width:88%;
+  background:#0f0d05;border:1px solid #2a2010;
+  padding:.5rem .7rem;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;
+  line-height:1.55;color:#a09878;font-style:italic}
+.seblex-attente{align-self:flex-start;font-size:.8rem;color:#8a6a20;
+  font-style:italic;padding:.3rem 0}
+
+/* Le projet arrete : un document, cadre, qu'on lit avant de signer. */
+.seblex-projet{border:1px solid #6a5a20;background:#12100a;padding:.8rem .9rem}
+.seblex-projet-titre{font-family:Bebas Neue,Arial Narrow,sans-serif;
+  letter-spacing:.16em;font-size:.72rem;color:#8a6a20;margin-bottom:.4rem}
+.seblex-projet-nom{font-family:Playfair Display,Georgia,serif;font-size:1rem;
+  color:#C9A84C;margin-bottom:.45rem;line-height:1.4}
+/* LA NATURE DU PROJET, dite en francais. Discrete : ce que les deputes lisent
+   reste le titre et le texte ; la nature n'est qu'un reperage. */
+.seblex-projet-nature{font-family:Bebas Neue,Arial Narrow,sans-serif;font-size:.72rem;
+  letter-spacing:.06em;color:#C9A84C;opacity:.7;margin:.15rem 0 .35rem}
+.seblex-projet-texte{font-family:Crimson Pro,Georgia,serif;font-size:.9rem;
+  line-height:1.65;color:#e0d8c0;white-space:pre-line}
+
+.seblex-saisie{width:100%;box-sizing:border-box;background:#121005;
+  border:1px solid #2a2010;color:#f0ead6;padding:.55rem;
+  font-family:Crimson Pro,Georgia,serif;font-size:.88rem;outline:none;resize:vertical}
+.seblex-saisie:focus{border-color:#6a5a20}
+.seblex-boutons{display:flex;flex-wrap:wrap;gap:.5rem}
+.seblex-bouton{flex:1 1 auto;min-width:9rem;font-family:Bebas Neue,Arial Narrow,sans-serif;
+  font-size:.78rem;letter-spacing:.1em;padding:.6rem;cursor:pointer;
+  border:1px solid #2a2010;background:transparent;color:#a09878}
+.seblex-bouton:hover:not(:disabled){border-color:#6a5a20;color:#c0b090}
+.seblex-primaire{border-color:#8a6a20;color:#C9A84C}
+.seblex-bouton:disabled{opacity:.45;cursor:default}
+.seblex-pied{font-size:.74rem;color:#6a5a30;font-style:italic;line-height:1.55}
+.seblex-lien{color:#8a6a20;cursor:pointer;text-decoration:underline}
+.seblex-lien:hover{color:#C9A84C}
+
+@media (max-width:520px){
+  .seblex{padding:.7rem}
+  .seblex-portrait{width:48px;height:48px}
+  .seblex-fil{max-height:32vh}
+  .seblex-bouton{min-width:100%}
+}

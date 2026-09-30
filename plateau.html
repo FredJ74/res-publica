@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=155">
+<link rel="stylesheet" href="style.css?v=157">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -651,12 +651,12 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=300"></script>
+<script src="data.js?v=302"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=7"></script>
-<script src="supabase.js?v=244"></script>
+<script src="supabase.js?v=245"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -792,7 +792,7 @@
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
      qui resout ses handlers. -->
-<script src="plateau-assemblee.js?v=2"></script>
+<script src="plateau-assemblee.js?v=4"></script>
 <!-- Camion militaire : APRES plateau-commerce-pj.js (les deux deposent leur source d'ordres
      dans le meme registre RP_ORDRES_DYNAMIQUES) et AVANT le routeur, qui resout ses handlers. -->
 <!-- PNJ sociaux : APRES plateau-pnj.js (talkToPnj y note les conversations) et APRES
@@ -802,7 +802,7 @@
 <!-- Terminal de section du Lieutenant (lot T) : APRES supabase.js, dont il appelle les cinq
      portes, et AVANT le routeur, qui resout ouvrirTerminalSection pour l'ordre voir_ma_section. -->
 <script src="plateau-militaire-terminal.js?v=1"></script>
-<script src="plateau-router.js?v=236"></script>
+<script src="plateau-router.js?v=238"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>

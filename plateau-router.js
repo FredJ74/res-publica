@@ -466,7 +466,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voter_loi')              { ouvrirVoterLoi(pa, cost); return; }
   if (fn === 'projet_loi')             { ouvrirDeposerProposition(pa, cost); return; }
   if (fn === 'amender_projet')         { ouvrirAmenderProposition(); return; }
-  if (fn === 'proposer_abrogation')    { ouvrirProposerAbrogation(pa, cost); return; }
+  // 'proposer_abrogation' n'existe plus comme ordre (30 septembre 2026) : une
+  // abrogation se demande au juriste de l'Assemblee, comme toute autre loi. Aucune
+  // route de compatibilite n'est laissee -- un ordre retire de data.js ne doit plus
+  // pouvoir etre declenche, et le formulaire qu'il ouvrait a ete supprime.
   if (fn === 'registre_assemblee')     { ouvrirRegistreAssemblee(); return; }
   // 'deposer_projet' : ancien fn du bureau presidentiel, sans bouton depuis longtemps (0 appelant
   // constate a l'audit du 9 septembre). Redirige vers le nouveau depot plutot que de laisser une
@@ -494,6 +497,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(pa, cost); return; }
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(pa, cost); return; }
   if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(pa, cost); return; }
+  // Registre d'execution des lois votees (30 septembre 2026). Le poste est
+  // reverifie par la RPC : ce routage n'est qu'une porte.
+  if (fn === 'lois_votees_an')     { ouvrirLoisVoteesAN(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
