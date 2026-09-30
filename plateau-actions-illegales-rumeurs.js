@@ -3188,7 +3188,10 @@ async function commerceApporterMatiere(entrepriseId, matiere, qte, mode) {
       console.error('[commerce] apport de matiere non abouti (transport)', v.raison, v.transport);
     }
     return { ok: false, raison: (v && v.raison) || 'indisponible',
-             placeRestante: v && v.placeRestante, detenu: v && v.detenu };
+             placeRestante: v && v.placeRestante, detenu: v && v.detenu,
+             // La loi qui s'oppose a l'apport voyage avec le refus : sans elle,
+             // l'ecran ne pourrait que dire « interdit » sans dire par quoi.
+             loi: v && v.loi };
   }
   state.inventory = v.inventory || state.inventory;
   state.arg = v.arg; state.liquide = v.liquide;
@@ -4217,6 +4220,12 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
       // Le serveur lit la position reelle, pas l'ecran affiche -- ce message
       // apparait donc aussi quand l'ecran est reste ouvert apres un deplacement.
       pas_sur_place: 'Il faut être dans ce commerce pour lui remettre des matières. Retournez-y et réessayez.',
+      // INTERDICTION DE L'ASSEMBLEE, tranchee par le serveur. Le controle en amont
+      // (assembleeControlerVenteLegale) evite d'arriver ici en jeu normal ; ce
+      // message est la garantie, pas la politesse.
+      matiere_interdite: 'Cette matière est interdite par la loi'
+        + (res.loi && res.loi.titre ? ' « ' + res.loi.titre + ' »' : '')
+        + ' : elle ne peut être ni vendue ni donnée.',
       mode_invalide: 'Cette opération n\'est pas reconnue par le serveur.',
       requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
       parametres_invalides: 'Il manque une information pour identifier ce commerce.',
@@ -5841,6 +5850,9 @@ async function confirmerVenteMatiere(matiere, mode) {
                                 : 'Cette armurerie n\'achète pas ' + nom + '.',
       quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
       pas_sur_place: 'Il faut être dans l\'armurerie pour lui remettre des matières. Retournez-y et réessayez.',
+      matiere_interdite: 'Cette matière est interdite par la loi'
+        + (r.loi && r.loi.titre ? ' « ' + r.loi.titre + ' »' : '')
+        + ' : elle ne peut être ni vendue ni donnée.',
       requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
       personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
       session_perdue: 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.',

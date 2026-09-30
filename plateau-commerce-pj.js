@@ -208,6 +208,7 @@ const I18N_COMMERCE_PJ_FR = {
   'commercepj.refus.matiere_non_acceptee':        "Ce commerce n'accepte pas cette matière pour le moment.",
   'commercepj.refus.caisse_insuffisante':         "La caisse du commerce ne peut pas payer ce travail. Rien n'a été prélevé.",
   'commercepj.refus.pas_sur_place':               "Il faut être sur place, dans ce commerce.",
+  'commercepj.refus.matiere_interdite':           "Cette matière est interdite par la loi « {loi} » : elle ne peut être ni vendue ni donnée.",
   'commercepj.refus.pas_proprietaire':            "Ce commerce n'est pas le vôtre.",
   'commercepj.refus.pas_un_fonds_pj':             "Ce n'est pas un commerce de joueur.",
   'commercepj.refus.fonds_absent':                "Ce commerce n'existe pas.",
@@ -248,6 +249,7 @@ const I18N_COMMERCE_PJ_FR = {
   // franchement evite de faire croire au joueur que son commerce ou son produit est en faute.
   // C6 : motifs de l'approvisionnement et de la presence physique.
   'commercepj.refus.pas_sur_place':               "Vous devez être dans ce commerce pour cela.",
+  'commercepj.refus.matiere_interdite':           "Cette matière est interdite par la loi « {loi} » : elle ne peut être ni vendue ni donnée.",
   'commercepj.refus.matiere_non_recherchee':      "Ce commerce n'a aucun usage de cette matière.",
   'commercepj.refus.stock_plein':                 "Ce commerce n'a plus de place pour cette matière.",
   'commercepj.refus.plafond_matiere_non_defini':  "L'approvisionnement n'est pas encore ouvert dans cet empire.",
@@ -302,6 +304,12 @@ function commercePjRefus(v) {
       }).join(' · ');
     }
     if (r === 'pa_insuffisants' && v.requis != null) return texte + ' (' + v.requis + ' requis)';
+    // L'INTERDICTION SE NOMME. Le serveur rend la loi qui s'oppose a l'apport : le
+    // joueur a le droit de savoir laquelle, et cela lui evite de croire a une panne.
+    if (r === 'matiere_interdite') {
+      const titreLoi = (v.loi && v.loi.titre) || (v.detail && v.detail.loi && v.detail.loi.titre);
+      return tCommercePJ('commercepj.refus.matiere_interdite', { loi: titreLoi || '—' });
+    }
     // Le refus du lot complet ne se comprend qu'avec ses trois chiffres : ce que
     // la recette produit, ce que le commerce peut contenir, ce qu'il contient deja.
     if (r === 'stock_max_reference_depasse') {

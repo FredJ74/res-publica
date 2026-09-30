@@ -34,6 +34,7 @@ function sbRpc(){ return Promise.resolve(null); }
 </script>
 <script src="../data.js"></script>
 <script src="../plateau-actions-illegales-rumeurs.js"></script>
+<script src="../plateau-commerce-pj.js"></script>
 <script>
 var R=[]; function essai(n,ok,d){ R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:'')); }
 
@@ -167,6 +168,52 @@ window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true);
     TOASTS.length === 1 && /dans l'armurerie/.test(TOASTS[0].message)
     && TOASTS[0].message.indexOf('pas_sur_place') === -1,
     JSON.stringify(TOASTS));
+
+  // ===== LE REFUS SERVEUR « MATIERE INTERDITE » NOMME LA LOI ==============
+  // Le controle navigateur n'est plus qu'une couche UX : si on le contourne (ici
+  // en le rendant permissif), c'est le SERVEUR qui refuse, et l'ecran doit savoir
+  // dire laquelle des lois s'oppose a l'apport.
+  window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true); };
+  window.sbCommerceApporterMatiere = function(){
+    return Promise.resolve({ ok:false, raison:'matiere_interdite', matiere:'cereales',
+      loi:{ id:'l1', titre:'Loi de prohibition des céréales', categorie:'cereales' } }); };
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '2';
+  TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','don');
+  essai('DON interdit par le serveur : la loi est nommee',
+    TOASTS.length === 1 && /prohibition des céréales/.test(TOASTS[0].message)
+    && /ni vendue ni donnée/.test(TOASTS[0].message)
+    && TOASTS[0].message.indexOf('matiere_interdite') === -1,
+    JSON.stringify(TOASTS));
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '2';
+  TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','vente');
+  essai('VENTE interdite par le serveur : la loi est nommee',
+    TOASTS.length === 1 && /prohibition des céréales/.test(TOASTS[0].message),
+    JSON.stringify(TOASTS));
+  await doVendreMatiereArmurerie();
+  document.getElementById('vendre-qte-metal').value = '1';
+  TOASTS = [];
+  await confirmerVenteMatiere('metal', 'don');
+  essai('armurerie : refus serveur, la loi est nommee',
+    TOASTS.length === 1 && /prohibition des céréales/.test(TOASTS[0].message)
+    && TOASTS[0].message.indexOf('matiere_interdite') === -1,
+    JSON.stringify(TOASTS));
+
+  // Et le refus du moteur des fonds PJ passe par le meme vocabulaire.
+  if (typeof commercePjRefus === 'function') {
+    var m = commercePjRefus({ ok:false, raison:'matiere_interdite',
+      loi:{ titre:'Loi de prohibition du textile' } });
+    // On exige aussi l'ABSENCE d'accolade : la premiere version du libelle utilisait
+    // la syntaxe d'i18next ({{loi}}) la ou le repli local attend {loi}, et le titre
+    // s'affichait entoure d'accolades. L'assertion « le titre apparait » ne l'avait
+    // pas vu.
+    essai('fonds PJ : commercePjRefus nomme la loi, sans accolade parasite',
+      /prohibition du textile/.test(m) && m.indexOf('matiere_interdite') === -1
+      && m.indexOf('{') === -1 && m.indexOf('}') === -1, m);
+  }
 
   document.getElementById('verdict').textContent = R.join('\n') +
     '\nBILAN ' + R.filter(function(l){ return l.indexOf('ECHEC') === 0; }).length + ' echec(s)';
