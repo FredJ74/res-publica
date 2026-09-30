@@ -4213,6 +4213,10 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
       matiere_non_acceptee: don ? 'Ce commerce n\'a pas d\'usage de cette matière.'
                                 : 'Ce commerce n\'achète pas cette matière.',
       quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      // On ne vend ni ne donne a distance : la marchandise se porte sur place.
+      // Le serveur lit la position reelle, pas l'ecran affiche -- ce message
+      // apparait donc aussi quand l'ecran est reste ouvert apres un deplacement.
+      pas_sur_place: 'Il faut être dans ce commerce pour lui remettre des matières. Retournez-y et réessayez.',
       mode_invalide: 'Cette opération n\'est pas reconnue par le serveur.',
       requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
       parametres_invalides: 'Il manque une information pour identifier ce commerce.',
@@ -5836,6 +5840,7 @@ async function confirmerVenteMatiere(matiere, mode) {
       matiere_non_acceptee: don ? 'Cette armurerie n\'a pas d\'usage de ' + nom + '.'
                                 : 'Cette armurerie n\'achète pas ' + nom + '.',
       quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      pas_sur_place: 'Il faut être dans l\'armurerie pour lui remettre des matières. Retournez-y et réessayez.',
       requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
       personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
       session_perdue: 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.',

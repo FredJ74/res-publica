@@ -124,6 +124,50 @@ window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true);
     TOASTS.length === 1 && TOASTS[0].message.indexOf('Métal') !== -1,
     TOASTS.length ? TOASTS[0].message : '-');
 
+  // L'essai de l'armurerie a remplace l'inventaire par du metal : on rend au
+  // personnage ses cereales, sinon l'ecran commun n'affiche plus aucune ligne et
+  // le banc echouerait pour une raison qui n'a rien a voir avec ce qu'il teste.
+  state.inventory = [{stackable:true, stackKey:'cereales', qty:30, name:'Cereales'},
+                     {stackable:true, stackKey:'metal', qty:10, name:'Metal'}];
+
+  // ===== CRITERE 9 : L'INTERDICTION DE L'ASSEMBLEE BLOQUE LES DEUX ========
+  // Une matiere interdite par l'Assemblee est hors economie legale : ni vendue,
+  // ni donnee. Le refus doit tomber AVANT tout appel serveur.
+  window.assembleeControlerVenteLegale = function(){ return Promise.resolve(false); };
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '3';
+  APPELS = []; TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','vente');
+  essai('9. matiere interdite / VENTE : aucun appel serveur', APPELS.length === 0,
+    JSON.stringify(APPELS));
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '3';
+  APPELS = []; TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','don');
+  essai('9. matiere interdite / DON : aucun appel serveur', APPELS.length === 0,
+    JSON.stringify(APPELS));
+  window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true); };
+
+  // ===== LE REFUS « PAS SUR PLACE » EST EXPLIQUE, PAS BRUT =================
+  window.sbCommerceApporterMatiere = function(){
+    return Promise.resolve({ ok:false, raison:'pas_sur_place' }); };
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '1';
+  TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','don');
+  essai('refus a distance : le joueur lit une phrase, pas un code',
+    TOASTS.length === 1 && /dans ce commerce/.test(TOASTS[0].message)
+    && TOASTS[0].message.indexOf('pas_sur_place') === -1,
+    JSON.stringify(TOASTS));
+  await doVendreMatiereArmurerie();
+  document.getElementById('vendre-qte-metal').value = '1';
+  TOASTS = [];
+  await confirmerVenteMatiere('metal', 'don');
+  essai("refus a distance a l'armurerie : phrase dediee",
+    TOASTS.length === 1 && /dans l'armurerie/.test(TOASTS[0].message)
+    && TOASTS[0].message.indexOf('pas_sur_place') === -1,
+    JSON.stringify(TOASTS));
+
   document.getElementById('verdict').textContent = R.join('\n') +
     '\nBILAN ' + R.filter(function(l){ return l.indexOf('ECHEC') === 0; }).length + ' echec(s)';
 })().catch(function(e){

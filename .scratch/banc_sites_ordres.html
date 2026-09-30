@@ -1,0 +1,84 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc sites commerce</title></head><body>
+<!-- L'ORDRE EST-IL PROPOSE LA OU LE COMMERCE SE TROUVE ? (30 septembre 2026)
+     La presence devient obligatoire cote serveur. Si une piece proposait
+     « Vendre des matieres » alors que le commerce est declare ailleurs, le joueur
+     se heurterait a un refus EN JOUANT NORMALEMENT -- on aurait remplace un trou
+     de securite par une panne. On enumere donc toutes les pieces des 4 empires
+     qui portent cet ordre, et on verifie l'invariant qui rend le refus impossible.
+
+     INVARIANT : pour un joueur dans la piece P du batiment B,
+     resoudreCommerceActuel() doit rendre un commerce dont le site est soit B
+     entier (roomId null), soit exactement P. Dans les deux cas le serveur le
+     reconnait present. Un troisieme cas -- un site pointant une AUTRE piece --
+     serait un refus en jeu normal. -->
+<pre id="verdict"></pre>
+<script>
+// Socle minimal, identique a celui du banc du don.
+var state = { country:'republic', currentCity:'capitale', currentBuilding:null, currentRoom:null,
+  arg:1000, liquide:1000, pa:10, inventory:[], char:{ name:'zzAut', country:'republic' } };
+function showToast(){} function addJournalEntry(){} function updateUI(){} function renderInventory(){}
+function escapeHtmlText(s){ return String(s); }
+function nouvelleCleApport(){ return 'appro-banc-sites001'; }
+function sbCommerceApporterMatiere(){ return Promise.resolve({ ok:false, raison:'non_attendu' }); }
+function sbRpcVerdict(){ return Promise.resolve({ ok:false, raison:'non_attendu' }); }
+function sbRpc(){ return Promise.resolve(null); }
+</script>
+<script src="../data.js"></script>
+<script src="../plateau-actions-illegales-rumeurs.js"></script>
+<script>
+var R = [];
+// PREMIER CRITERE : les deux referentiels sont-ils vraiment charges ? Une version
+// precedente de ce banc a rendu « 36 pieces a risque » simplement parce que le
+// miroir n'etait pas la. Un banc qui ne sait pas s'il a ses donnees ne prouve rien.
+var okData = (typeof WORLD !== 'undefined' && typeof BUILDINGS !== 'undefined');
+var okMiroir = (typeof BUILDING_COMMERCE_TYPE !== 'undefined');
+R.push((okData && okMiroir ? 'OK   ' : 'ECHEC') +
+  ' les deux referentiels sont charges :: WORLD=' + okData +
+  ' BUILDING_COMMERCE_TYPE=' + (okMiroir ? Object.keys(BUILDING_COMMERCE_TYPE).length + ' sites' : 'ABSENT'));
+
+var aRisque = [], batEntier = 0, pieceExacte = 0, total = 0;
+if (okData && okMiroir) {
+  function ordresDeLaPiece(piece, ctx, roomId) {
+    var o = [].concat(piece.orders || []);
+    if (ctx && ctx.orders) o = o.concat(ctx.orders);
+    if (ctx && ctx.roomOverrides && ctx.roomOverrides[roomId] && ctx.roomOverrides[roomId].orders)
+      o = o.concat(ctx.roomOverrides[roomId].orders);
+    var excl = (ctx && ctx.roomOverrides && ctx.roomOverrides[roomId]
+                && ctx.roomOverrides[roomId].excludeOrders) || [];
+    return o.filter(function (x) { return excl.indexOf(x.fn) === -1; });
+  }
+  Object.keys(WORLD).forEach(function (pays) {
+    Object.keys(WORLD[pays]).forEach(function (ville) {
+      var v = WORLD[pays][ville];
+      if (!v || !v.buildings) return;
+      v.buildings.forEach(function (batId) {
+        var bat = BUILDINGS[batId];
+        if (!bat || !bat.rooms) return;
+        var ctx = v.buildingContext && v.buildingContext[batId];
+        Object.keys(bat.rooms).forEach(function (roomId) {
+          var ordres = ordresDeLaPiece(bat.rooms[roomId], ctx, roomId);
+          if (!ordres.some(function (o) { return o.fn === 'vendre_matiere_commerce'; })) return;
+          total++;
+          // On se PLACE dans la piece et on demande au vrai resolveur.
+          state.country = pays; state.currentCity = ville;
+          state.currentBuilding = batId; state.currentRoom = roomId;
+          var c = resoudreCommerceActuel();
+          var ou = pays + ' / ' + ville + ' / ' + batId + ' / ' + roomId;
+          if (!c)                        aRisque.push(ou + '  -> AUCUN commerce resolu');
+          else if (c.roomId === null)    batEntier++;
+          else if (c.roomId === roomId)  pieceExacte++;
+          else                           aRisque.push(ou + '  -> site sur la piece ' + c.roomId);
+        });
+      });
+    });
+  });
+  R.push((aRisque.length === 0 ? 'OK   ' : 'ECHEC') +
+    ' aucune piece ne deviendrait injouable :: ' + total + ' pieces portent l\'ordre, ' +
+    batEntier + ' sur un commerce batiment-entier, ' + pieceExacte + ' sur une piece exacte, ' +
+    aRisque.length + ' a risque');
+  if (aRisque.length) R.push('  ' + aRisque.join('\n  '));
+}
+
+document.getElementById('verdict').textContent = R.join('\n') +
+  '\nBILAN ' + R.filter(function (l) { return l.indexOf('ECHEC') === 0; }).length + ' echec(s)';
+</script></body></html>
