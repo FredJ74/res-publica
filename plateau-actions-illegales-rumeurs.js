@@ -4117,13 +4117,21 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
   if (!data) return { ok: false, raison: 'introuvable' };
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
 
-  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un
-  // circuit legal. Regle generale des interdictions (arbitrage du 11 septembre 2026).
-  // LE DON EST SOUMIS A LA MEME INTERDICTION, et c'est deliberé : une matiere que
-  // l'Assemblee a interdit de ceder ne devient pas cessible parce qu'on n'en
-  // demande pas le prix. Laisser passer le don ouvrirait un contournement en une
-  // ligne de toute interdiction votee.
-  if (typeof assembleeControlerVenteLegale === 'function'
+  // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le
+  // guichet un circuit legal. Regle generale des interdictions (arbitrage du
+  // 11 septembre 2026).
+  //
+  // LE DON EN EST EXEMPTE (arbitrage finalise du 30 septembre 2026). L'Assemblee
+  // retire une matiere des CIRCUITS ECONOMIQUES LEGAUX : elle ne la rend pas
+  // intransferable, et un cadeau n'est pas un circuit. C'est meme la porte par
+  // laquelle un marche noir pourra emerger de la rarete plutot que d'un bouton.
+  // Un don de matiere interdite n'est PAS un delit : seulement un fait tracable,
+  // qu'une enquete ou la presse pourront exploiter plus tard.
+  //
+  // Ce controle-ci n'est plus qu'une couche de confort : la garantie est au
+  // serveur (matiere_refus_circuit_legal), qui recoit le mode et tranche seul.
+  if ((mode || 'vente') !== 'don'
+      && typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
     return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
@@ -6852,6 +6860,23 @@ const MATIERE_RECOLTE_VERS_CLE = {
 async function confirmerRecolte(matiere, pa, cost) {
   verifierEtResetRecoltesJour();
   if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
+
+  // PRODUCTION LEGALE D'UNE MATIERE (arbitrage du 30 septembre 2026). La recolte
+  // est le SEUL mecanisme du jeu qui CREE de la matiere premiere : l'Assemblee
+  // empeche la production legale de ce qu'elle interdit, on ne peut donc plus
+  // recolter une matiere prohibee. Quatre des matieres recoltables portent une
+  // cle economique (metal, poisson, charbon, bois) et sont donc susceptibles
+  // d'etre visees ; les autres n'ont aucun equivalent et ne peuvent pas l'etre.
+  //
+  // LIMITE ASSUMEE ET RAPPORTEE : ce controle n'est QU'UNE COUCHE NAVIGATEUR.
+  // Contrairement aux six circuits d'achat/vente, la recolte n'a aucune RPC --
+  // elle ecrit dans state.inventory puis s'appuie sur la sauvegarde generique du
+  // personnage. Il n'existe donc aucun point de passage serveur ou poser la
+  // garantie. La rendre serveur-autoritaire est un chantier a part, hors de ce lot.
+  const cleRecolte = MATIERE_RECOLTE_VERS_CLE[matiere];
+  if (cleRecolte && typeof assembleeControlerVenteLegale === 'function'
+      && !(await assembleeControlerVenteLegale([{ stackKey: cleRecolte }]))) return;
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   state.char.recoltesJour.nb = (state.char.recoltesJour.nb || 0) + 1;

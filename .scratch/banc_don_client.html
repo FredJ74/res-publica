@@ -141,12 +141,17 @@ window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true);
   await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','vente');
   essai('9. matiere interdite / VENTE : aucun appel serveur', APPELS.length === 0,
     JSON.stringify(APPELS));
+  // ARBITRAGE DU 30 SEPTEMBRE 2026 : CE CRITERE EST INVERSE. Le don d'une matiere
+  // interdite doit desormais PASSER -- l'Assemblee ferme les circuits economiques,
+  // elle ne rend pas la matiere intransferable. L'interdiction reste en vigueur
+  // (le controle navigateur repond toujours « non »), et le don doit malgre tout
+  // atteindre le serveur, qui est seul juge et qui exempte le mode 'don'.
   await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
   document.getElementById('vendre-commerce-qte-cereales').value = '3';
   APPELS = []; TOASTS = [];
   await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','don');
-  essai('9. matiere interdite / DON : aucun appel serveur', APPELS.length === 0,
-    JSON.stringify(APPELS));
+  essai('9. matiere interdite / DON : l\'appel serveur a bien lieu', APPELS.length === 1
+    && APPELS[0].mode === 'don', JSON.stringify(APPELS));
   window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true); };
 
   // ===== LE REFUS « PAS SUR PLACE » EST EXPLIQUE, PAS BRUT =================
