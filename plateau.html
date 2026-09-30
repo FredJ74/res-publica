@@ -651,12 +651,12 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=302"></script>
+<script src="data.js?v=303"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=7"></script>
-<script src="supabase.js?v=245"></script>
+<script src="supabase.js?v=246"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -758,7 +758,7 @@
 </script>
 <script src="forum-canvas.js?v=36"></script>
 <script src="forum.js?v=160"></script>
-<script src="plateau-core.js?v=195"></script>
+<script src="plateau-core.js?v=196"></script>
 <script src="plateau-immobilier.js?v=11"></script>
 <script src="plateau-chantiers.js?v=8"></script>
 <script src="plateau-fonds.js?v=1"></script>
@@ -777,8 +777,8 @@
 <script src="plateau-maxence.js?v=1"></script>
 <script src="plateau-navigation.js?v=189"></script>
 <script src="plateau-personnage.js?v=190"></script>
-<script src="plateau-pnj.js?v=197"></script>
-<script src="plateau-multijoueur.js?v=147"></script>
+<script src="plateau-pnj.js?v=198"></script>
+<script src="plateau-multijoueur.js?v=148"></script>
 <script src="plateau-communication.js?v=156"></script>
 <script src="plateau-politique.js?v=249"></script>
 <script src="plateau-gouvernement.js?v=4"></script>
@@ -798,6 +798,7 @@
 <!-- PNJ sociaux : APRES plateau-pnj.js (talkToPnj y note les conversations) et APRES
      plateau-navigation.js, dont declencherEntreeZone appelle son consommateur. -->
 <script src="plateau-social-pnj.js?v=1"></script>
+<script src="plateau-escorts-agence.js?v=1"></script>
 <script src="plateau-camion-militaire.js?v=1"></script>
 <!-- Terminal de section du Lieutenant (lot T) : APRES supabase.js, dont il appelle les cinq
      portes, et AVANT le routeur, qui resout ouvrirTerminalSection pour l'ordre voir_ma_section. -->

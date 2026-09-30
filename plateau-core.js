@@ -295,6 +295,8 @@ const PNJ_AVATAR = {
   hotesse:       { icon: 'ti-user-heart',         color: '#8a4a6a' },
   grand_pretre:  { icon: 'ti-star',               color: '#C9A84C' },
   escort:        { icon: 'ti-heart',              color: '#aa4a6a' },
+  // Le point d'acces a l'agence n'est PERSONNE : une icone, jamais un visage.
+  escort_agence: { icon: 'ti-address-book',      color: '#cc6699' },
   capitaine_port:{ icon: 'ti-anchor',             color: '#4a6aaa' },
   protocole:     { icon: 'ti-crown',              color: '#C9A84C' },
   garde:         { icon: 'ti-shield',             color: '#4a6aaa' },

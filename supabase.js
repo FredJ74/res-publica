@@ -5502,3 +5502,42 @@ async function sbPnjSocialNoter(pnjId, evenement) {
 async function sbPnjSocialContexte(pnjId) {
   return await sbRpc('pnj_social_contexte', { p_pnj_id: pnjId });
 }
+
+// =====================================================================
+// AGENCE D'ESCORTS (1er octobre 2026)
+// =====================================================================
+// L'EMPIRE N'EST JAMAIS TRANSMIS. Les deux RPC ci-dessous le resolvent elles-memes
+// depuis la position du joueur : un client ne peut donc ni consulter le casting
+// d'un empire ou il ne se trouve pas, ni y engager quelqu'un. C'est la meme
+// discipline que pour les RPC de l'Assemblee, dont quatre recevaient jadis leur
+// juridiction du navigateur.
+
+// Le casting de l'empire ou se trouve le joueur, et le nom de son agence.
+// Rend { ok, pays, agence, escorts:[{escort_id, nom, genre, portrait, vignette, cadrage}] }.
+// Un empire dont le casting n'est pas encore ecrit rend une liste vide et une
+// agence nulle : c'est un etat VALIDE, pas une erreur -- les personnages ne se
+// mutualisent jamais entre empires.
+async function sbEscortsAgence() {
+  return await sbRpc('escorts_agence', {});
+}
+
+// Engage une escort par son IDENTITE, jamais par son nom. Aucun quota par genre :
+// seul subsiste le plafond commun de 10 employes, partage avec les informateurs.
+// Rend { ok, pnj_id, escort_id, nom, genre, cout_jour, employes, plafond } ou
+// { ok:false, raison } -- 'plafond_employes', 'deja_employee', 'escort_inconnue',
+// 'paiement_refuse'.
+async function sbEscortRecruter(escortId) {
+  return await sbRpc('escort_recruter', { p_escort_id: escortId });
+}
+
+// LA CONFIDENTE. Une seule par joueur : la RPC remplace la precedente, dont la
+// relation n'est jamais effacee. Independante du recrutement, de la presence et
+// du groupe -- une escort renvoyee reste une confidente.
+async function sbEscortSocialeChoisir(escortId) {
+  return await sbRpc('escort_sociale_choisir', { p_escort_id: escortId });
+}
+
+// Qui est ma confidente. `escort_id` nul = aucune encore choisie, etat normal.
+async function sbEscortSocialeActuelle() {
+  return await sbRpc('escort_sociale_actuelle', {});
+}

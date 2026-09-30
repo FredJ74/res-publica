@@ -104,16 +104,12 @@ async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
   addJournalEntry('Recrutement codetenu : ' + nomCodetenu + '. -' + tarif + ' ' + cur + '/reveil.', 'event-info');
 }
 
-function appliquerRemplacantesEscort(persons) {
-  if (!state.escortRemplacante || !state.currentBuilding || !state.currentRoom) return persons;
-  return persons.map(p => {
-    if (p.job !== 'escort' || !p.genre) return p;
-    const cle = state.currentBuilding + '_' + state.currentRoom + '_' + p.genre;
-    const remp = state.escortRemplacante[cle];
-    if (!remp) return p;
-    return { ...p, name: remp.name, role: remp.role, photoUrl: remp.photoUrl || p.photoUrl, photoPos: remp.photoPos || p.photoPos };
-  });
-}
+// LA SUBSTITUTION ALEATOIRE A ETE SUPPRIMEE LE 1er OCTOBRE 2026.
+// Embaucher une escort en faisait apparaitre une autre, prenom tire dans une
+// liste et portrait tire dans une autre -- un etat qui ne survivait meme pas a un
+// rechargement de page, puisqu'il n'etait persiste nulle part. Le bar de Luthecia
+// ne poste plus personne : il offre un acces a l'agence, dont les sept identites
+// vivent en base. Voir plateau-escorts-agence.js.
 
 const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','directeur_pharma','directeur_tabac_alcools','directeur_raffinerie','directeur_entrepot','chef_douanes'];
 // Note : commissaire/juge/commandant sont volontairement exclus -- ces PNJ restent affiches
@@ -210,7 +206,6 @@ function ouvrirInfoDetachement(nomEncode, roleEncode) {
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
-  persons = appliquerRemplacantesEscort(persons);
   persons = appliquerRemplacantCodetenu(persons);
   persons = filtrerPnjPostesPourvus(persons);
   // Assemblee nationale (chantier du 10 septembre 2026) : les neuf deputes PNJ sont injectes ici
@@ -844,25 +839,21 @@ async function confierAgentA(agentId, destinataire) {
 
 // ROXANNE VELOURS — Recrutement escort
 // =====================
-function ouvrirRecrutementEscort(nomEscort, genre, photoUrl) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const tarifJour = 800;
-  window._photoEscortEnAttente = photoUrl || null;
-
-  document.getElementById('modal-pnj').classList.remove('open');
-  document.getElementById('postes-modal-title').textContent = '💋 ' + nomEscort;
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' +
-      '"Agence Roxane Velours. Mon tarif est de ' + tarifJour + ' ' + cur + '/jour, tout compris."' +
-    '</div>' +
-    '<div style="font-size:.75rem;color:#6a5030;margin-bottom:.8rem">Elle/il rejoint votre groupe. Vous serez débité(e) de <strong style="color:#C9A84C">' + tarifJour + ' ' + cur + '</strong> à chaque réveil. En cas de non-paiement, une plainte sera déposée et la presse informée.</div>' +
-    '<div style="display:flex;gap:.5rem">' +
-      '<button onclick="confirmerRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + tarifJour + ',\'' + (genre||'F') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5030;cursor:pointer">Décliner</button>' +
-    '</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
+// LES DEUX FONCTIONS D'EMBAUCHE HISTORIQUES ONT ETE SUPPRIMEES LE 1er OCTOBRE 2026.
+//
+// `ouvrirRecrutementEscort` et `confirmerRecrutementEscort` engageaient une escort
+// par un NOM LIBRE et un genre, puis fabriquaient sa remplacante : un prenom tire
+// dans poolParEmpireEtGenre, un portrait tire dans PHOTOS_ESCORT, assembles au
+// hasard et sans lien l'un avec l'autre. Les deux viviers disparaissent avec elles.
+//
+// ON SUPPRIME PLUTOT QUE DE DEBRANCHER. Un second chemin d'embauche laisse vivant
+// aurait fini par etre repris, avec son quota d'une escort par genre et ses
+// identites jetables. La porte est fermee des deux cotes : ici, et au serveur, ou
+// `escort` est sorti de employe_metiers_recrutables().
+//
+// Le chemin actuel : escortsAgenceRecruter(escort_id) dans plateau-escorts-agence.js,
+// qui appelle la RPC escort_recruter -- laquelle resout l'empire, le tarif et le
+// plafond elle-meme.
 
 async function confirmerRenvoyerEscort(nomEscort) {
   document.getElementById('modal-pnj')?.classList.remove('open');
@@ -887,142 +878,6 @@ async function confirmerRenvoyerEscort(nomEscort) {
   addJournalEntry(nomEscort + ' a ete renvoyee.', 'event-info');
 }
 
-async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  // ===========================================================================
-  // RECRUTEMENT AU SOCLE (27 septembre 2026)
-  // ===========================================================================
-  // Les trois gardes, le prelevement et le tirage de caracteristiques etaient tous ici, dans le
-  // navigateur : c'est lui qui verifiait le quota, se debitait lui-meme et decidait des stats de
-  // l'escort. La RPC employe_recruter fait les trois AU SERVEUR et dans UNE SEULE transaction --
-  // quota par genre, plafond de 10 employes, prelevement des 800 FR, creation du PNJ -- de sorte
-  // qu'un refus de fonds ne laisse aucune escort derriere lui.
-  //
-  // LES CARACTERISTIQUES NE SONT PLUS TIREES AU HASARD. Elles viennent du referentiel serveur et
-  // valent desormais, pour TOUTE escort : INT 10 / CHA 15 / VOL 10 / PER 10 / DUP 12 / ENT 10.
-  // Le navigateur recopie ce que le serveur a retenu, il ne le choisit plus.
-  //
-  // FAIL CLOSED : pas de reponse ou reponse negative => aucun effet, aucune escort, aucun debit.
-  // Meme garde-fou que deduireCoutOrdre : aucune action payante sans personnage charge, sinon on
-  // paierait sous une identite que le serveur ne reconnaitra pas.
-  if (!state.char?.name) {
-    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false);
-    return;
-  }
-  const resEmp = (typeof sbEmployeRecruter === 'function')
-    ? await sbEmployeRecruter('escort', nomEscort, genre) : null;
-  if (!resEmp || resEmp.ok !== true) {
-    const motifs = {
-      quota_metier_atteint: 'Vous avez déjà une escort de ce type dans votre groupe.',
-      plafond_employes: 'Maximum ' + MAX_EMPLOYES + ' employés.',
-      paiement_refuse: tarif + ' ' + cur + ' requis pour la première journée.',
-      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.'
-    };
-    showToast('Recrutement impossible',
-      motifs[resEmp && resEmp.raison] || 'L\'agence n\'a pas donné suite.', false);
-    return;
-  }
-  // Le serveur a preleve : on recopie l'etat qu'il a arrete, par la meme fonction que
-  // deduireCoutOrdre, pour ne pas oublier un champ (PA, liquide, arg, solde national).
-  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(resEmp.paiement);
-  const statsEscort = resEmp.caracteristiques || {};
-  const pnjIdEscort = resEmp.pnj_id;
-
-  if (!state.group) state.group = { leader: state.char?.name, members: [state.char?.name] };
-  if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
-
-  if (!state.escortActive) state.escortActive = [];
-  // `pnjId` est l'identifiant de l'escort AU SOCLE. C'est lui qui permettra de la liberer, de la
-  // payer et de la retrouver sans dependre de l'unicite de son nom. Les trois structures clientes
-  // restent alimentees tant que des chemins vivants les lisent (payerEscorts, actions de la fiche,
-  // affichage du groupe) : elles deviennent des PROJECTIONS du socle, pas une seconde verite.
-  state.escortActive.push({ nom: nomEscort, pnjId: pnjIdEscort, tarif, depuis: state.day || 1, genre, palier: 0, photoUrl: window._photoEscortEnAttente || null });
-
-  // Phase 5B memoire commerciale (22 aout 2026) : embauche reellement effectuee (toutes les
-  // verifications precedentes ont deja reussi, l'argent est deja deduit) -- best-effort,
-  // fire-and-forget, ne bloque jamais le reste du recrutement. jour calcule cote serveur.
-  if (typeof sbEnregistrerEvenementEscort === 'function') {
-    sbEnregistrerEvenementEscort(state.char?.name || 'Anonyme', nomEscort, 'embauche').catch(() => {});
-  }
-
-  // Banque de photos Agence Roxane Velours (independante du prenom, tiree au hasard par genre)
-  const PHOTOS_ESCORT = {
-    F: [
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-1-robe-verte.png',
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-2-robe-or.png',
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-3-robe-marine.png'
-    ],
-    H: [
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-1-costume-beige.png',
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-2-chemise-noire.png',
-      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-3-chemise-ouverte.png'
-    ]
-  };
-  const poolPhotos = PHOTOS_ESCORT[genre] || PHOTOS_ESCORT.F;
-  const photoChoisie = poolPhotos[Math.floor(Math.random() * poolPhotos.length)];
-
-  if (!state.employes) state.employes = [];
-  state.employes.push({
-    nom: nomEscort, pnjId: pnjIdEscort,
-    role: 'Escort — Agence Roxane Velours', job: 'escort', genre,
-    photoUrl: photoChoisie, photoPos: '50% 15%',
-    cout: tarif, inGroupe: true,
-    buildingId: state.currentBuilding,
-    roomId: state.currentRoom,
-    city: state.currentCity,
-    depuis: state.day || 1,
-    stats: statsEscort
-  });
-  updateUI();
-  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-
-  // Tracage pour les rumeurs vraies — doublee si le PJ est marie(e)
-  if (typeof tracerActionPourRumeur === 'function') {
-    tracerActionPourRumeur('escort', null);
-    try {
-      if (typeof sbGetMariageActif === 'function') {
-        const mariage = await sbGetMariageActif(state.char?.name);
-        if (mariage) tracerActionPourRumeur('escort', null);
-      }
-    } catch(e) {}
-  }
-
-  // Generer une remplacante/remplacant du meme genre, propre a ce slot (piece + genre)
-  const poolParEmpireEtGenre = {
-    republic: { F: ['Natacha', 'Marlène', 'Sabine', 'Camille', 'Laure', 'Nina', 'Clara'], H: ['Julien', 'Antoine', 'Maxime', 'Thibault', 'Victor', 'Hugo', 'Nathan'] },
-    narco:    { F: ['Lola Discreta', 'Carmen Silencio', 'Rosa Secreto', 'Valentina Sombra', 'Isabel Poder'], H: ['Diego Sombra', 'Rafael Secreto', 'Mateo Poder'] },
-    soviet:   { F: ['Natasha Privilège', 'Olga Silence', 'Irina Distinction', 'Vera Konspiratsiya', 'Anya Nuit'], H: ['Boris Silence', 'Igor Distinction', 'Dimitri Nuit'] },
-    khalija:  { F: ['Yasmin Al-Sirr', 'Fatima Al-Layl', 'Noor Al-Khafia', 'Hana Al-Majd', 'Rima Al-Asrar'], H: ['Karim Al-Sirr', 'Malik Al-Layl', 'Samir Al-Khafia'] }
-  };
-  const pool = (poolParEmpireEtGenre[state.country] || poolParEmpireEtGenre.republic)[genre] || poolParEmpireEtGenre.republic.F;
-  const listePossibles = pool.filter(n => n !== nomEscort);
-  const remplacante = listePossibles[Math.floor(Math.random() * listePossibles.length)] || pool[0];
-
-  const photoRemplacante = poolPhotos[Math.floor(Math.random() * poolPhotos.length)];
-  if (!state.escortRemplacante) state.escortRemplacante = {};
-  const cleSlot = state.currentBuilding + '_' + state.currentRoom + '_' + genre;
-  state.escortRemplacante[cleSlot] = {
-    name: remplacante + ' (PNJ)',
-    role: 'Escort — Agence Roxane Velours',
-    job: 'escort',
-    rel: 'neutral',
-    genre,
-    photoUrl: photoRemplacante,
-    photoPos: '50% 15%'
-  };
-
-  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    if (room?.persons) renderPersonsList(room.persons);
-  }
-
-  updateUI();
-  showToast('Escort recrutée !', nomEscort + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/réveil.', true, true);
-  addJournalEntry('Recrutement escort : ' + nomEscort + '. -' + tarif + ' ' + cur + '/réveil.', 'event-info');
-  addExternalEvent('👀 ' + (state.char?.name||'Anonyme') + ' est vu(e) accompagné(e) de ' + nomEscort + '.');
-}
 
 function payerEscorts() {
   if (!state.escortActive?.length) return;
@@ -1301,7 +1156,7 @@ function payerEmployes() {
   employes.forEach((emp, i) => {
     // DOUBLE FACTURATION DES ESCORTS (26 septembre 2026).
     // Une escort recrutee est poussee a la fois dans state.escortActive (avec `tarif`) et dans
-    // state.employes (avec `cout: tarif`) -- cf. confirmerRecrutementEscort. Or payerEscorts() et
+    // state.employes (avec `cout: tarif`) -- cf. escortsAgenceRecruter. Or payerEscorts() et
     // payerEmployes() sont appelees coup sur coup au reveil : la meme escort etait payee DEUX FOIS,
     // et le journal affichait deux lignes pour un seul service.
     // payerEscorts() reste le payeur de reference : c'est elle qui porte les consequences propres
@@ -1972,44 +1827,18 @@ function calculerBonusCombatGroupe() {
   return bonus;
 }
 
+// LE VIVIER DE REMPLACANTS GENERIQUES A ETE SUPPRIME LE 1er OCTOBRE 2026.
+//
+// `PNJ_NOMS_REMPLACEMENT` et `genererPnjRemplacant` fabriquaient un PNJ de
+// substitution quand on recrutait quelqu'un du decor : quatre noms par metier et
+// par empire, tires au hasard. Ils etaient DEJA MORTS -- leur seule lectrice,
+// `confirmerRecrutPnj`, n'avait plus d'appelant depuis le 16 juillet 2026, et
+// `ouvrirModalRecrutPnj` non plus.
+//
+// On les retire plutot que de les laisser dormir : c'est de ce vivier que venaient
+// les quatre prenoms d'escorts de Republia qu'on a longtemps pris pour un casting
+// -- alors qu'aucun n'a jamais designe quelqu'un.
 
-
-// =====================
-// REMPLAÇANT PNJ RECRUTÉ
-// =====================
-const PNJ_NOMS_REMPLACEMENT = {
-  serveur:     { republic: ['Marcel Fricassée','Hervé Couverture','Denis Nappe','Robert Plateau'], narco: ['Carlos Servicio','Miguel Plato','Juan Mesa','Pedro Vino'], soviet: ['Igor Traktir','Boris Bufet','Alexei Stol','Dmitri Stolovaya'], khalija: ['Hamid Khadim','Samir Sofra','Tariq Khidma','Walid Sufra'] },
-  barman:      { republic: ['Gérard Cocktail','Philippe Mojito','Bernard Whisky','Alain Pression'], narco: ['Chuy Tequila','Nacho Mezcal','Beto Cerveza','Lalo Pulque'], soviet: ['Vadim Vodka','Yuri Stakan','Pavel Naliv','Kostya Bochka'], khalija: ['Rashid Chai','Karim Qahwa','Nasser Shay','Ziad Ahwa'] },
-  hotelier:    { republic: ['Édouard Velours','Gaston Parquet','Maurice Couloir','Lucien Clef'], narco: ['Roberto Lujoso','Ernesto Suite','Alfonso Lobby','Gonzalo Hall'], soviet: ['Anatoly Gostinitsa','Viktor Nomer','Semyon Klyuch','Filipp Etazh'], khalija: ['Khalid Funduq','Mazen Ghurfa','Jamal Miftah','Faris Rudha'] },
-  escort:      { republic: ['Sophie Élégance','Camille Velours','Laure Minuit','Clara Prestige'], narco: ['Lola Discreta','Carmen Sombra','Rosa Secreto','Valentina Poder'], soviet: ['Natasha Nuit','Olga Privilege','Irina Tayna','Vera Noch'], khalija: ['Yasmin Sirr','Fatima Layl','Noor Khafia','Hana Majd'] },
-  default:     { republic: ['Jean Quelconque','Pierre Dudule','Henri Tartempion','Louis Machin'], narco: ['José Cualquiera','Manuel Fulano','Diego Mengano','Ramón Perengano'], soviet: ['Ivan Prostoy','Nikita Obychny','Georgy Ryad','Sasha Prosto'], khalija: ['Ali Adi','Omar Aadi','Hassan Adi','Youssef Basit'] },
-};
-
-function genererPnjRemplacant(pnjOriginal, employe) {
-  const job = pnjOriginal.job || 'default';
-  const pays = state.country || 'republic';
-  const nomsDispos = (PNJ_NOMS_REMPLACEMENT[job] || PNJ_NOMS_REMPLACEMENT.default)[pays] || PNJ_NOMS_REMPLACEMENT.default.republic;
-  const nomOriginal = employe.nom;
-  const candidats = nomsDispos.filter(n => n !== nomOriginal);
-  const nouveauNom = candidats[Math.floor(Math.random() * candidats.length)];
-
-  // Mettre à jour le PNJ dans la room ou buildingContext
-  const world = WORLD[pays];
-  const city = world?.[state.currentCity];
-  const ctx = city?.buildingContext?.[state.currentBuilding];
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-
-  const sources = [];
-  if (ctx?.persons) sources.push(ctx.persons);
-  if (room?.persons) sources.push(room.persons);
-
-  sources.forEach(list => {
-    const idx = list.findIndex(p => p.name === pnjOriginal.name);
-    if (idx >= 0) {
-      list[idx] = { ...list[idx], name: nouveauNom + ' (PNJ)' };
-    }
-  });
-}
 
 
 

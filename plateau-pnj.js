@@ -789,6 +789,14 @@ function openPnjModal(encodedPnj) {
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
 
+  // LE COMPTOIR DE L'AGENCE N'EST PERSONNE (1er octobre 2026). Cliquer dessus
+  // n'ouvre pas une fiche : cela ouvre le carnet de l'agence, ou le joueur
+  // choisit une identite. C'est ELLE qui aura ensuite une fiche, et des actions.
+  if (pnj.job === 'escort_agence') {
+    if (typeof escortsAgenceOuvrir === 'function') escortsAgenceOuvrir(pnj.genre || 'F');
+    return;
+  }
+
   // Cadavre — photo plein écran uniquement, pas de dialogue
   if (pnj.terrainPnjId === 'cadavre') {
     ouvrirPhotoCadavre(JSON.stringify({
@@ -1006,7 +1014,21 @@ function openPnjModal(encodedPnj) {
     if (escortActiveInfo) {
       actionBtns += '<button class="pnj-action-btn" onclick="confirmerRenvoyerEscort(\'' + escortNom + '\')"><i class="ti ti-heart-off" style="font-size:.85rem"></i> Renvoyer</button>';
     } else {
-      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\',\'' + (pnj.photoUrl || '') + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
+      // ON ENGAGE UNE IDENTITE, PLUS UN NOM. `escortId` vient du catalogue et
+      // c'est le seul renseignement transmis au serveur : il resout lui-meme
+      // l'empire, le tarif et le plafond. L'ancien chemin, qui envoyait un nom
+      // libre et un genre, est ferme -- au serveur comme ici.
+      actionBtns += '<button class="pnj-action-btn" onclick="escortsAgenceRecruter(\'' + (pnj.escortId || '') + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Engager (800 FR/j)</button>';
+    }
+    // LA CONFIDENTE — une seule par joueur, et le choix est explicite. Elle ne
+    // depend ni de l'emploi, ni de la presence : on peut se confier a quelqu'un
+    // qu'on n'emploie pas, et renvoyer quelqu'un sans rien oublier d'elle.
+    if (pnj.escortId && typeof escortsAgenceConfidente === 'function') {
+      const estConf = (typeof escortsAgenceEstConfidente === 'function')
+        && escortsAgenceEstConfidente(pnj.escortId);
+      actionBtns += estConf
+        ? '<button class="pnj-action-btn" disabled style="opacity:.6"><i class="ti ti-bookmark-filled" style="font-size:.85rem"></i> Votre confidente</button>'
+        : '<button class="pnj-action-btn" onclick="escortsAgenceConfidente(\'' + pnj.escortId + '\')"><i class="ti ti-bookmark" style="font-size:.85rem"></i> Me confier à elle</button>';
     }
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
     actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour</button>';
@@ -1173,6 +1195,11 @@ function traitsLisibles(profil) {
 }
 
 function profilServeurDuPnj(pnj) {
+  // UNE ESCORT EST ADRESSEE PAR SON IDENTITE, jamais par son nom (1er octobre
+  // 2026). C'est le meme identifiant qui porte son contrat et sa memoire : la
+  // renommer ne la rend donc pas muette, et deux homonymes de deux empires ne
+  // partagent ni profil ni souvenirs.
+  if (pnj && pnj.escortId) return pnj.escortId;
   const nom = (pnj?.name || '').replace(' (PNJ)', '').trim();
   if (!nom) return null;
   return PNJ_PROFILS_SERVEUR[nom] || slugPnj(nom) || null;
@@ -3081,7 +3108,7 @@ function ouvrirModalFaireLAmour(nomEscort) {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"' + phraseFn(nomPJ) + '"</div>' +
-      '<button onclick="ouvrirRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',\'F\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
+      '<button onclick="escortsAgenceRecruter(\'' + (escortsAgenceIdParNom(nomEscort) || '') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
     return;

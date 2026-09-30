@@ -163,7 +163,39 @@ const WORLD = {
         },
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
-          desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain."
+          desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
+          // LE BAR DE LUTHECIA APPARTIENT A LUTHECIA (1er octobre 2026).
+          //
+          // REGLE DE SOCLE : les mecaniques se mutualisent entre les empires, les
+          // personnages jamais. Le gabarit BUILDINGS porte la MECANIQUE du bar --
+          // ses pieces, ses ordres, son commerce -- et les quatre empires la
+          // partagent legitimement. Sa distribution, elle, est du CONTENU : elle
+          // descend donc ici, dans la couche de l'empire.
+          //
+          // CETTE SURCHARGE REMPLACE, ELLE NE FUSIONNE PAS. personnesNormalesDeLaPiece
+          // rend `roomOverrides[piece].persons` tel quel des qu'il n'est pas vide :
+          // il faut donc enumerer la distribution COMPLETE. En omettre un ferait
+          // disparaitre Marco ou -- bien pire -- Marc Hantile, referent economie.
+          //
+          // NATACHA ET JULIEN N'Y SONT PLUS. Ce ne sont plus deux personnes postees
+          // au comptoir mais deux des sept identites du catalogue, en base. A leur
+          // place, deux points d'acces a l'agence : ils ne representent personne, et
+          // leur `job` propre les tient a l'ecart de toutes les actions reservees a
+          // une escort -- embauche, kompromat, confidences -- qui appartiennent a la
+          // fiche de l'identite choisie.
+          //
+          // Les trois autres empires gardent le gabarit inchange : leur casting sera
+          // ecrit lors de leur propre developpement.
+          roomOverrides: {
+            bar: {
+              persons: [
+                {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marco-barman.png', photoPos:'50% 20%'},
+                {name:'L\'hôtesse de l\'agence', role:'Agence Roxane Velours', rel:'neutral', job:'escort_agence', genre:'F'},
+                {name:'L\'hôte de l\'agence', role:'Agence Roxane Velours', rel:'neutral', job:'escort_agence', genre:'H'},
+                {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
+              ]
+            }
+          }
         },
         'commissariat': {
           name: "Commissariat Central de Luthecia",

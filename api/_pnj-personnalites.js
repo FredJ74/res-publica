@@ -351,6 +351,32 @@ function profilRiche(p) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// LES SEPT ESCORTS DE REPUBLIA (1er octobre 2026)
+// ---------------------------------------------------------------------------
+// CLEFS PAR IDENTITE, PAS PAR NOM. Les autres PNJ sont adresses par leur nom
+// normalise ; celles-ci le sont par leur `escort_id` du catalogue, celui-la meme
+// qui porte leur contrat et leur memoire. C'est ce qui permet de renommer une
+// escort sans la rendre muette -- un nom d'affichage change, une identite non.
+//
+// PORTAGE MECANIQUE, PAS CREATIF. Chaque entree reprend exactement la forme des
+// fiches de Natacha et de Julien qui existaient deja : nom, role, lieu. Aucune
+// personnalite n'est inventee pour les cinq nouvelles. Le jour ou le game design
+// voudra leur donner un caractere, il s'ecrira ici.
+//
+// LES ENTREES `natacha` ET `julien` PLUS BAS RESTENT EN PLACE : les trois autres
+// empires postent encore ces deux PNJ dans leur bar, et les adressent par leur
+// slug. Leur casting sera ecrit lors de leur propre developpement.
+const ESCORTS_REPUBLIA = {
+  'escort_natacha':       { nom: "Natacha",       role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_roxane':        { nom: "Roxane",        role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_veronique':     { nom: "Véronique",     role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_beatrice':      { nom: "Béatrice",      role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_julien':        { nom: "Julien",        role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_rodolphe':      { nom: "Rodolphe",      role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
+  'escort_jean_philippe': { nom: "Jean-Philippe", role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" }
+};
+
 function profilsPersonnalites() {
   const table = {};
   for (const [id, p] of Object.entries(ORDINAIRES)) table[id] = profilOrdinaire(p);
@@ -358,7 +384,11 @@ function profilsPersonnalites() {
   // Les sociaux sont ecrits a la main et passent tels quels : ils declarent deja
   // identite, caractere, savoir et limites.
   for (const [id, p] of Object.entries(SOCIAUX))    table[id] = p;
+  // Les escorts sont des ORDINAIRES : elles ne connaissent aucune regle du jeu.
+  // Ce qui les distingue n'est pas leur savoir, c'est qu'elles ont une identite
+  // stable -- et donc, pour l'une d'elles, une memoire.
+  for (const [id, p] of Object.entries(ESCORTS_REPUBLIA)) table[id] = profilOrdinaire(p);
   return table;
 }
 
-export { profilsPersonnalites, ORDINAIRES, RICHES, SOCIAUX };
+export { profilsPersonnalites, ORDINAIRES, RICHES, SOCIAUX, ESCORTS_REPUBLIA };

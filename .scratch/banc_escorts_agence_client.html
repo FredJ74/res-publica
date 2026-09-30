@@ -1,0 +1,232 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc agence escorts</title>
+<link rel="stylesheet" href="../style.css"></head><body>
+<!-- BANC CLIENT DE L'AGENCE D'ESCORTS (1er octobre 2026). Chrome sans interface,
+     vrais fichiers du jeu. On ne stube que la frontiere reseau : les deux RPC.
+     Les stubs sont declares APRES les <script src>, sinon le vrai fichier les
+     ecraserait -- piege deja paye dans un lot precedent. -->
+<div id="postes-modal-title"></div><div id="postes-body"></div><div id="modal-postes"></div>
+<div id="modal-pnj"></div><div id="pnj-speech"></div><div id="pnj-actions"></div>
+<pre id="verdict"></pre>
+<script src="../data.js"></script>
+<script src="../plateau-core.js"></script>
+<script src="../plateau-escorts-agence.js"></script>
+<script>
+var TOASTS=[], JOURNAL=[], RPC=[];
+var CATALOGUE = { ok:true, pays:'republic', agence:'Agence Roxane Velours', escorts:[
+  {escort_id:'escort_natacha',  nom:'Natacha',  genre:'F', portrait:'images/escort-f-1-robe-verte.png',  vignette:'images/escort-f-1-robe-verte-vignette.jpg',  cadrage:'50% 15%'},
+  {escort_id:'escort_roxane',   nom:'Roxane',   genre:'F', portrait:'images/escort-republic.png',        vignette:'images/escort-republic-vignette.jpg',        cadrage:'50% 15%'},
+  {escort_id:'escort_veronique',nom:'Véronique',genre:'F', portrait:'images/escort-f-2-robe-or.png',     vignette:'images/escort-f-2-robe-or-vignette.jpg',     cadrage:'50% 15%'},
+  {escort_id:'escort_beatrice', nom:'Béatrice', genre:'F', portrait:'images/escort-f-3-robe-marine.png', vignette:'images/escort-f-3-robe-marine-vignette.jpg', cadrage:'50% 15%'},
+  {escort_id:'escort_julien',   nom:'Julien',   genre:'H', portrait:'images/escort-h-1-costume-beige.png',   vignette:'images/escort-h-1-costume-beige-vignette.jpg',   cadrage:'50% 15%'},
+  {escort_id:'escort_rodolphe', nom:'Rodolphe', genre:'H', portrait:'images/escort-h-2-chemise-noire.png',   vignette:'images/escort-h-2-chemise-noire-vignette.jpg',   cadrage:'50% 15%'},
+  {escort_id:'escort_jean_philippe', nom:'Jean-Philippe', genre:'H', portrait:'images/escort-h-3-chemise-ouverte.png', vignette:'images/escort-h-3-chemise-ouverte-vignette.jpg', cadrage:'50% 15%'}
+]};
+var CAT_REPUBLIA = CATALOGUE.escorts;
+var REPONSE_RECRUT = null;
+// PAS DE `var state` ICI : plateau-core.js le declare en `let`, et une
+// redeclaration tuerait silencieusement tout ce bloc de stubs. On AFFECTE.
+state = { country:'republic', currentCity:'capitale', currentBuilding:'hotel-republica',
+  currentRoom:'bar', day:5, employes:[], escortActive:[], group:{members:[]},
+  char:{name:'zzJoueur', country:'republic'} };
+function showToast(t,m,ok){ TOASTS.push({titre:t,message:m,ok:!!ok}); }
+function addJournalEntry(t){ JOURNAL.push(t); }
+function addExternalEvent(){} function updateUI(){} function sauvegarderPersonnageImmediat(){}
+function escapeHtmlText(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+// La frontiere reseau : les deux seules RPC de l'agence.
+function sbEscortsAgence(){ RPC.push({rpc:'escorts_agence', args:[]});
+  return Promise.resolve(CATALOGUE); }
+function sbEscortRecruter(id){ RPC.push({rpc:'escort_recruter', escort_id:id});
+  return Promise.resolve(REPONSE_RECRUT); }
+var CONFIDENTE = null, REPONSE_CONF = null;
+function sbEscortSocialeActuelle(){ RPC.push({rpc:'escort_sociale_actuelle'});
+  return Promise.resolve({ok:true, escort_id:CONFIDENTE}); }
+function sbEscortSocialeChoisir(id){ RPC.push({rpc:'escort_sociale_choisir', escort_id:id});
+  return Promise.resolve(REPONSE_CONF || {ok:true, escort_id:id, nom:'?'}); }
+// On observe ce que l'agence transmet a la fiche PNJ ordinaire.
+var FICHE=null;
+function encodePnjSafe(p){ return encodeURIComponent(JSON.stringify(p)); }
+function openPnjModal(enc){ FICHE = JSON.parse(decodeURIComponent(enc)); }
+</script>
+<script>
+var R=[];function essai(n,ok,d){R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:''));}
+function corps(){return document.getElementById('postes-body').innerHTML;}
+
+// ---- La distribution reelle du bar, resolue comme le fait le jeu -----------
+function resoudre(pays, ville, bat, piece){
+  var b=BUILDINGS[bat], C=WORLD[pays][ville];
+  var ctx=(C&&C.buildingContext)?C.buildingContext[bat]:null;
+  var room=(b&&b.rooms)?b.rooms[piece]:null;
+  var isFirst=b&&b.rooms&&Object.keys(b.rooms)[0]===piece;
+  var ro=ctx&&ctx.roomOverrides?ctx.roomOverrides[piece]:null;
+  if(ro&&ro.persons&&ro.persons.length>0) return ro.persons;
+  if(isFirst&&ctx&&ctx.persons&&ctx.persons.length>0) return ctx.persons;
+  return (room&&room.persons)||[];
+}
+
+essai('fichiers charges', typeof BUILDINGS!=='undefined'
+  && typeof escortsAgenceOuvrir==='function' && typeof PNJ_AVATAR!=='undefined');
+
+(async function(){
+  // ===== A. LE BAR DE LUTHECIA ============================================
+  var barLu = resoudre('republic','capitale','hotel-republica','bar');
+  var noms = barLu.map(function(p){return p.name;});
+  essai('A1. le bar de Luthecia ne poste plus d\'escort nommee',
+    noms.indexOf('Natacha (PNJ)')===-1 && noms.indexOf('Julien (PNJ)')===-1, noms.join(' | '));
+  essai('A2. deux points d\'acces, un par genre',
+    barLu.filter(function(p){return p.job==='escort_agence';}).length===2);
+  essai('A3. MARC HANTILE EST TOUJOURS LA (le piege de la surcharge)',
+    noms.indexOf('Marc Hantile')!==-1);
+  essai('A3. et le barman aussi', noms.indexOf('Marco (Barman)')!==-1);
+  essai('A4. un point d\'acces n\'a AUCUN portrait de personne',
+    barLu.filter(function(p){return p.job==='escort_agence';})
+         .every(function(p){return !p.photoUrl;}));
+  essai('A5. il a tout de meme un avatar propre a son role',
+    !!PNJ_AVATAR['escort_agence']);
+
+  // ===== B. LES AUTRES EMPIRES SONT INTACTS ================================
+  ['narco','soviet','khalija'].forEach(function(e){
+    var n = resoudre(e,'capitale','hotel-republica','bar').map(function(p){return p.name;});
+    essai('B. '+e+' : bar inchange',
+      n.indexOf('Natacha (PNJ)')!==-1 && n.indexOf('Julien (PNJ)')!==-1
+      && n.indexOf('Marc Hantile')!==-1, n.join(' | '));
+  });
+
+  // ===== C. LE BANDEAU ====================================================
+  await escortsAgenceOuvrir('F');
+  var c=corps();
+  essai('C1. le titre est celui de l\'agence, lu en base',
+    document.getElementById('postes-modal-title').textContent==='Agence Roxane Velours');
+  essai('C2. les quatre femmes sont presentees',
+    ['Natacha','Roxane','Véronique','Béatrice'].every(function(n){return c.indexOf(n)!==-1;}));
+  essai('C3. AUCUN homme dans le bandeau des femmes',
+    c.indexOf('Rodolphe')===-1 && c.indexOf('Jean-Philippe')===-1);
+  essai('C4. chaque fiche porte une VIGNETTE, pas le portrait plein',
+    (c.match(/-vignette\.jpg/g)||[]).length===4 && c.indexOf('.png')===-1);
+  essai('C5. le cadrage du visage est applique',
+    c.indexOf('object-position:50% 15%')!==-1);
+  essai('C6. les places restantes sont annoncees',
+    /place\(s\) restante\(s\)/.test(c));
+  essai('C7. une seule lecture du catalogue', RPC.filter(function(r){return r.rpc==='escorts_agence';}).length===1);
+
+  await escortsAgenceOuvrir('H');
+  var ch=corps();
+  essai('C8. le bandeau des hommes en montre trois',
+    ['Julien','Rodolphe','Jean-Philippe'].every(function(n){return ch.indexOf(n)!==-1;})
+    && ch.indexOf('Natacha')===-1);
+  essai('C9. le catalogue n\'est pas relu a chaque ouverture',
+    RPC.filter(function(r){return r.rpc==='escorts_agence';}).length===1);
+
+  // ===== D. CHOISIR QUELQU'UN ==============================================
+  FICHE=null;
+  escortsAgenceChoisir('escort_beatrice');
+  essai('D1. la fiche ouverte est celle de l\'identite choisie',
+    !!FICHE && FICHE.name==='Béatrice', FICHE?FICHE.name:'(aucune)');
+  essai('D2. elle porte son PORTRAIT PLEIN, pas la vignette',
+    !!FICHE && FICHE.photoUrl==='images/escort-f-3-robe-marine.png', FICHE?FICHE.photoUrl:'-');
+  essai('D3. et son identite, qui seule partira au serveur',
+    !!FICHE && FICHE.escortId==='escort_beatrice');
+  essai('D4. le job reste `escort` : les actions de la fiche s\'appliquent',
+    !!FICHE && FICHE.job==='escort');
+
+  // ===== E. ENGAGER =======================================================
+  RPC=[]; TOASTS=[];
+  REPONSE_RECRUT = { ok:true, pnj_id:'emp-escort-abc', escort_id:'escort_beatrice',
+    nom:'Béatrice', genre:'F', agence:'Agence Roxane Velours', cout_jour:800,
+    employes:1, plafond:10 };
+  await escortsAgenceRecruter('escort_beatrice');
+  var ap = RPC.filter(function(r){return r.rpc==='escort_recruter';})[0];
+  essai('E1. le serveur ne recoit QUE l\'identite',
+    !!ap && ap.escort_id==='escort_beatrice' && Object.keys(ap).length===2, JSON.stringify(ap));
+  essai('E2. elle est payee : escortActive est alimente',
+    state.escortActive.length===1 && state.escortActive[0].tarif===800,
+    JSON.stringify(state.escortActive));
+  essai('E3. et comptee : employes aussi', state.employes.length===1);
+  essai('E4. et presente : group.members aussi',
+    state.group.members.indexOf('Béatrice')!==-1);
+  essai('E5. les deux projections portent l\'identite',
+    state.escortActive[0].escortId==='escort_beatrice'
+    && state.employes[0].escortId==='escort_beatrice');
+  essai('E6. le joueur est informe', TOASTS.length===1 && /Béatrice/.test(TOASTS[0].titre));
+
+  // ===== F. PLUSIEURS ESCORTS DU MEME GENRE ================================
+  REPONSE_RECRUT = { ok:true, pnj_id:'emp-escort-def', escort_id:'escort_roxane',
+    nom:'Roxane', genre:'F', agence:'Agence Roxane Velours', cout_jour:800,
+    employes:2, plafond:10 };
+  await escortsAgenceRecruter('escort_roxane');
+  essai('F1. deux femmes simultanement -- l\'ancien quota a disparu',
+    state.escortActive.length===2 && state.employes.length===2);
+
+  await escortsAgenceOuvrir('F');
+  essai('F2. le bandeau marque celles qui vous accompagnent',
+    (corps().match(/déjà avec vous/g)||[]).length===2);
+  essai('F3. et annonce les places restantes mises a jour',
+    /8 place\(s\) restante\(s\)/.test(corps()));
+
+  // ===== G. LES REFUS DU SERVEUR SONT DITS EN FRANCAIS =====================
+  TOASTS=[];
+  REPONSE_RECRUT = { ok:false, raison:'plafond_employes' };
+  await escortsAgenceRecruter('escort_natacha');
+  essai('G1. plafond : message clair, aucune ecriture',
+    TOASTS.length===1 && /dix personnes/.test(TOASTS[0].message)
+    && state.escortActive.length===2, JSON.stringify(TOASTS));
+  TOASTS=[];
+  REPONSE_RECRUT = { ok:false, raison:'paiement_refuse' };
+  await escortsAgenceRecruter('escort_natacha');
+  essai('G2. fonds insuffisants : dit, et rien n\'a bouge',
+    TOASTS.length===1 && /Fonds insuffisants/.test(TOASTS[0].message)
+    && state.escortActive.length===2);
+
+  // ===== H. UN EMPIRE SANS CASTING ========================================
+  escortsAgenceOublier();
+  state.country='soviet';
+  CATALOGUE = { ok:true, pays:'soviet', agence:null, escorts:[] };
+  await escortsAgenceOuvrir('F');
+  essai('H1. a Novomirsk, l\'agence ne prete personne',
+    /personne à vous présenter/.test(corps()) && corps().indexOf('Natacha')===-1, corps().slice(0,90));
+
+  // ===== I. LA CONFIDENTE =================================================
+  escortsAgenceOublier();
+  state.country='republic';
+  CATALOGUE = { ok:true, pays:'republic', agence:'Agence Roxane Velours', escorts:CAT_REPUBLIA };
+  CONFIDENTE = null; RPC=[];
+  await escortsAgenceOuvrir('F');
+  essai('I1. aucune confidente au depart', corps().indexOf('votre confidente')===-1);
+  essai('I2. la confidente est relue avec le catalogue',
+    RPC.filter(function(r){return r.rpc==='escort_sociale_actuelle';}).length===1);
+
+  TOASTS=[];
+  REPONSE_CONF = { ok:true, escort_id:'escort_veronique', nom:'Veronique' };
+  await escortsAgenceConfidente('escort_veronique');
+  essai('I3. le serveur ne recoit que l\'identite',
+    (RPC.filter(function(r){return r.rpc==='escort_sociale_choisir';})[0]||{}).escort_id==='escort_veronique');
+  essai('I4. le joueur est informe', TOASTS.length===1 && /Veronique/.test(TOASTS[0].titre),
+    JSON.stringify(TOASTS));
+  essai('I5. elle est desormais la confidente', escortsAgenceEstConfidente('escort_veronique'));
+  await escortsAgenceOuvrir('F');
+  essai('I6. et une seule l\'est dans le bandeau',
+    (corps().match(/votre confidente/g)||[]).length===1);
+
+  TOASTS=[];
+  REPONSE_CONF = { ok:true, escort_id:'escort_natacha', nom:'Natacha', precedente_nom:'Veronique' };
+  await escortsAgenceConfidente('escort_natacha');
+  essai('I7. changer de confidente nomme la precedente',
+    TOASTS.length===1 && /Natacha/.test(TOASTS[0].titre) && /Veronique/.test(TOASTS[0].message),
+    JSON.stringify(TOASTS));
+  essai('I8. la confidente a change',
+    escortsAgenceEstConfidente('escort_natacha') && !escortsAgenceEstConfidente('escort_veronique'));
+
+  TOASTS=[];
+  REPONSE_CONF = { ok:true, inchange:true, escort_id:'escort_natacha', nom:'Natacha' };
+  await escortsAgenceConfidente('escort_natacha');
+  essai('I9. redesigner la meme ne dit rien', TOASTS.length===0);
+
+  essai('I10. se confier n\'emploie personne',
+    state.escortActive.filter(function(e){return e.escortId==='escort_natacha';}).length===0);
+
+  document.getElementById('verdict').textContent=R.join('\n')+
+    '\nBILAN '+R.filter(function(l){return l.indexOf('ECHEC')===0;}).length+' echec(s)';
+})().catch(function(e){
+  document.getElementById('verdict').textContent=R.join('\n')+
+    '\n!!! BANC INTERROMPU : '+e.message+'\n'+(e.stack||'');
+});
+</script></body></html>

@@ -425,8 +425,7 @@ function assembleeMonSiege() {
 // =====================
 // RENDU DES NEUF PNJ DANS L'HEMICYCLE (§2)
 // =====================
-// Injecte dans renderPersonsList via le meme pipeline que appliquerRemplacantesEscort /
-// filtrerPnjPostesPourvus. Les neuf PNJ ne sont PAS declares en dur dans data.js : leur role
+// Injecte dans renderPersonsList via le meme pipeline que filtrerPnjPostesPourvus. Les neuf PNJ ne sont PAS declares en dur dans data.js : leur role
 // change selon l'occupation reelle des sieges, ce qu'une liste statique ne peut pas exprimer.
 //
 // Siege libre  -> "Député (PNJ)"          : vote, questionnable, marchandable, neutralisable
