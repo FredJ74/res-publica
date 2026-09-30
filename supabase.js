@@ -2669,6 +2669,23 @@ async function sbFondsMatiereApporter(requete, acteurRef, fondsId, matiere, quan
   });
 }
 
+// MEME GESTE, AUTRE MOTEUR (30 septembre 2026). Les commerces historiques -- les
+// 13 commerces PNJ, les marches, les buvettes, l'armurerie, La Republia -- ont
+// desormais leur propre porte pour le MEME acte : apporter une matiere, par vente
+// ou par don. Deux fonctions serveur et non une seule, parce que la DERIVATION DES
+// MATIERES ACCEPTEES differe reellement entre les deux moteurs (carte + recettes
+// d'un cote, references + generiques de l'autre) ; tout le reste -- transfert,
+// CMUP, historique, idempotence, meme registre -- est mutualise cote serveur.
+//
+// Le don ne verse rien et ne debite rien : il reste donc possible face a un
+// commerce dont la caisse est vide. C'est precisement ce qu'il sert a debloquer.
+async function sbCommerceApporterMatiere(requete, acteurRef, entrepriseId, matiere, quantite, mode) {
+  return sbRpcVerdict('commerce_apporter_matiere', {
+    p_requete: requete, p_acteur: acteurRef, p_entreprise: entrepriseId,
+    p_matiere: matiere, p_qte: quantite, p_mode: mode || 'vente'
+  });
+}
+
 async function sbGetObjetsRecus(nom) {
   const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}`);
   if (!rows) return [];

@@ -1,0 +1,133 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>banc don client</title></head><body>
+<!-- BANC DU DON COTE NAVIGATEUR (30 septembre 2026). On charge le vrai fichier,
+     on ne stube que la frontiere reseau (sbCommerceApporterMatiere) et le
+     chargement du commerce. On verifie ensuite que le mode voyage reellement du
+     bouton jusqu'a la RPC -- pas qu'une chaine 'don' existe dans le source. -->
+<div id="postes-modal-title"></div><div id="postes-body"></div>
+<div id="modal-postes"></div>
+<pre id="verdict"></pre>
+<script>
+var APPELS = [];
+var TOASTS = [];
+var state = { country:'republic', currentCity:'capitale', arg:1000, liquide:1000, pa:10,
+  char:{ name:'zzAut', country:'republic' },
+  inventory:[{stackable:true, stackKey:'cereales', qty:30, name:'Cereales'}] };
+// PAS de COUNTRIES ici : data.js le declare en `const`, et une `var` du meme nom
+// posee avant ferait echouer TOUT data.js en silence -- le banc tournerait alors
+// sur un referentiel vide sans le dire. Verifie explicitement plus bas.
+function showToast(t,m,ok){ TOASTS.push({titre:t, message:m, ok:!!ok}); }
+function addJournalEntry(){} function updateUI(){} function renderInventory(){}
+function escapeHtmlText(s){ return String(s); }
+var i18next={language:'fr',isInitialized:false,exists:function(){return false;},t:function(k){return k;}};
+// La frontiere reseau : on note ce qui part, et on repond comme le serveur.
+function nouvelleCleApport(){ return 'appro-' + Date.now().toString(36) + '-banc001'; }
+function sbCommerceApporterMatiere(requete, acteur, entreprise, matiere, qte, mode){
+  APPELS.push({ requete:requete, acteur:acteur, entreprise:entreprise,
+                matiere:matiere, qte:qte, mode:mode });
+  var prix = (mode === 'don') ? 0 : 9;
+  return Promise.resolve({ ok:true, mode:mode, matiere:matiere, quantite:qte, qte:qte,
+    prixUnitaire:prix, montant:prix*qte, total:prix*qte,
+    arg:state.arg + prix*qte, liquide:state.liquide + prix*qte, inventory:state.inventory });
+}
+function sbRpcVerdict(){ return Promise.resolve({ ok:false, raison:'non_attendu' }); }
+function sbRpc(){ return Promise.resolve(null); }
+</script>
+<script src="../data.js"></script>
+<script src="../plateau-actions-illegales-rumeurs.js"></script>
+<script>
+var R=[]; function essai(n,ok,d){ R.push((ok?'OK   ':'ECHEC')+' '+n+(d?' :: '+d:'')); }
+
+// PREMIER CRITERE : le referentiel du jeu est-il vraiment charge ? Sans lui, les
+// libelles retombent sur les cles brutes et le banc validerait un rendu degrade.
+essai('data.js est reellement charge',
+  typeof RESSOURCES_ECONOMIE !== 'undefined' && !!RESSOURCES_ECONOMIE.cereales
+  && typeof COUNTRIES !== 'undefined',
+  typeof RESSOURCES_ECONOMIE === 'undefined' ? 'RESSOURCES_ECONOMIE absent'
+    : ('libelle cereales = ' + (RESSOURCES_ECONOMIE.cereales||{}).label));
+function rendre(){ return document.getElementById('postes-body').innerHTML; }
+
+// Le commerce, fourni tel que le serveur le renverrait : un cafe a caisse VIDE.
+var COMMERCE = { id:'zztest-cafe-banc', type:'cafe', country:'republic', city:'capitale',
+  caisse:0, carte:['biere_pression'],
+  stockMatieres:{ cereales:0 }, coutMoyenMatieres:{ cereales:0 },
+  parametres:{ prixAchatMatiere:{ cereales:9 }, stockMax:{ cereales:5 } } };
+window.chargerCommerce = function(){ return Promise.resolve(COMMERCE); };
+// Aucune interdiction de l'Assemblee dans ce banc : on teste le don, pas la loi.
+window.assembleeControlerVenteLegale = function(){ return Promise.resolve(true); };
+
+(async function(){
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  var h = rendre();
+  essai('le bouton VENDRE est rendu', /&gt;Vendre&lt;|>Vendre</.test(h));
+  essai('le bouton DONNER est rendu', />Donner</.test(h),
+    h.indexOf('Donner') === -1 ? 'absent du rendu' : '');
+  essai('VENDRE porte le mode vente', /confirmerVendreMatiereCommerceUI\([^)]*'vente'\)/.test(h));
+  essai('DONNER porte le mode don',   /confirmerVendreMatiereCommerceUI\([^)]*'don'\)/.test(h));
+  essai('le commerce a bien une caisse VIDE dans ce banc', COMMERCE.caisse === 0,
+    'caisse = ' + COMMERCE.caisse);
+
+  // --- le mode voyage-t-il jusqu'a la RPC ? -------------------------------
+  document.getElementById('vendre-commerce-qte-cereales').value = '4';
+  APPELS = []; TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','don');
+  essai('DON : un seul appel serveur', APPELS.length === 1, JSON.stringify(APPELS));
+  essai('DON : le serveur recoit mode=don', APPELS[0] && APPELS[0].mode === 'don',
+    APPELS[0] ? APPELS[0].mode : 'aucun appel');
+  essai('DON : la quantite saisie est transmise', APPELS[0] && APPELS[0].qte === 4,
+    APPELS[0] ? String(APPELS[0].qte) : '-');
+  essai('DON : une cle d\'idempotence part', !!(APPELS[0] && /^appro-[A-Za-z0-9-]{6,80}$/.test(APPELS[0].requete)),
+    APPELS[0] ? APPELS[0].requete : '-');
+  essai('DON : le compte rendu ne parle pas de FR',
+    TOASTS.length === 1 && /[Dd]on effectué/.test(TOASTS[0].titre) && TOASTS[0].message.indexOf('FR') === -1,
+    JSON.stringify(TOASTS));
+  essai('DON : le compte rendu nomme la matiere en clair, pas sa cle',
+    TOASTS.length === 1 && TOASTS[0].message.indexOf('Céréales') !== -1,
+    TOASTS.length ? TOASTS[0].message : '-');
+
+  // --- non-regression de la vente ----------------------------------------
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '2';
+  APPELS = []; TOASTS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales','vente');
+  essai('VENTE : le serveur recoit mode=vente', APPELS[0] && APPELS[0].mode === 'vente',
+    APPELS[0] ? APPELS[0].mode : 'aucun appel');
+  essai('VENTE : le compte rendu annonce des FR',
+    TOASTS.length === 1 && /[Vv]ente effectuée/.test(TOASTS[0].titre) && TOASTS[0].message.indexOf('FR') !== -1,
+    JSON.stringify(TOASTS));
+
+  // --- appel historique SANS mode : reste une vente ------------------------
+  await doVendreMatiereCommerce('cafe', 'zzbat', 'zzroom', 0, 0);
+  document.getElementById('vendre-commerce-qte-cereales').value = '1';
+  APPELS = [];
+  await confirmerVendreMatiereCommerceUI('cafe','zzbat','zzroom','cereales');
+  essai('appel sans mode : vente par defaut', APPELS[0] && APPELS[0].mode === 'vente',
+    APPELS[0] ? APPELS[0].mode : 'aucun appel');
+
+  // --- l'ecran de l'armurerie porte les deux boutons ----------------------
+  window.chargerArmurerieLocale = function(){ return Promise.resolve({
+    id:'armurerie-republic-capitale',
+    parametres:{ prixAchatMatiere:{ metal:20, bois:5 } } }); };
+  state.inventory = [{stackable:true, stackKey:'metal', qty:10, name:'Metal'}];
+  await doVendreMatiereArmurerie();
+  var ha = rendre();
+  essai('armurerie : VENDRE et DONNER tous deux rendus',
+    />Vendre</.test(ha) && />Donner</.test(ha));
+  document.getElementById('vendre-qte-metal').value = '5';
+  APPELS = []; TOASTS = [];
+  await confirmerVenteMatiere('metal', 'don');
+  essai('armurerie : le serveur recoit mode=don', APPELS[0] && APPELS[0].mode === 'don',
+    APPELS[0] ? APPELS[0].mode : 'aucun appel');
+  essai('armurerie : compte rendu de don sans FR',
+    TOASTS.length === 1 && /[Dd]on effectué/.test(TOASTS[0].titre) && TOASTS[0].message.indexOf('FR') === -1,
+    JSON.stringify(TOASTS));
+  essai('armurerie : la matiere est nommee en clair',
+    TOASTS.length === 1 && TOASTS[0].message.indexOf('Métal') !== -1,
+    TOASTS.length ? TOASTS[0].message : '-');
+
+  document.getElementById('verdict').textContent = R.join('\n') +
+    '\nBILAN ' + R.filter(function(l){ return l.indexOf('ECHEC') === 0; }).length + ' echec(s)';
+})().catch(function(e){
+  document.getElementById('verdict').textContent = R.join('\n') +
+    '\n!!! BANC INTERROMPU : ' + e.message + '\n' + (e.stack||'');
+});
+</script></body></html>

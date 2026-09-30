@@ -3174,13 +3174,18 @@ async function commerceProduire(entrepriseId, recetteId, ordre) {
 // sbRpcVerdict conserve la nature de l'echec dans `raison` (session_perdue,
 // transport_indisponible, reseau_indisponible) : le refus metier garde son propre
 // vocabulaire, et les deux ne se ressemblent plus.
-async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
-  const v = await sbRpcVerdict('commerce_acheter_matiere', {
-    p_acteur: state.char?.name, p_entreprise: entrepriseId, p_matiere: matiere, p_qte: qte
-  });
+// VENTE OU DON, UNE SEULE PORTE (30 septembre 2026). On appelle desormais
+// commerce_apporter_matiere plutot que commerce_acheter_matiere : c'est la meme
+// economie -- l'ancien nom n'est plus qu'un relais vers elle cote serveur -- mais
+// cette porte-ci accepte un MODE et une CLE DE REQUETE. La cle rend l'appel
+// idempotent : un double clic ou un renvoi reseau ne cede pas la marchandise deux
+// fois. L'ancienne porte n'en recevait pas et ne l'etait donc jamais.
+async function commerceApporterMatiere(entrepriseId, matiere, qte, mode) {
+  const v = await sbCommerceApporterMatiere(
+    nouvelleCleApport(), state.char?.name, entrepriseId, matiere, qte, mode || 'vente');
   if (!v || v.ok !== true) {
     if (v && v.transport) {
-      console.error('[commerce] achat de matiere non abouti (transport)', v.raison, v.transport);
+      console.error('[commerce] apport de matiere non abouti (transport)', v.raison, v.transport);
     }
     return { ok: false, raison: (v && v.raison) || 'indisponible',
              placeRestante: v && v.placeRestante, detenu: v && v.detenu };
@@ -3189,7 +3194,12 @@ async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
   state.arg = v.arg; state.liquide = v.liquide;
   if (state.char) state.char.arg = state.arg;
   if (typeof renderInventory === 'function') renderInventory();
-  return { ok: true, total: v.total, prixUnitaire: v.prixUnitaire, qte: v.qte };
+  return { ok: true, total: v.total, prixUnitaire: v.prixUnitaire, qte: v.qte, mode: v.mode };
+}
+
+// Nom conserve pour les appelants historiques : la vente est le mode par defaut.
+async function commerceAcheterMatiere(entrepriseId, matiere, qte) {
+  return commerceApporterMatiere(entrepriseId, matiere, qte, 'vente');
 }
 
 async function commerceFixerParametres(entrepriseId, prixVente, prixAchatMatiere, stockMax) {
@@ -4099,18 +4109,22 @@ async function confirmerFixerPrixAchatMatiereCommerce(commerceType, pays, ville,
 // vente). Aucune taxe transactionnelle : la vente de matiere premiere a une entreprise n'a
 // jamais ete taxee (confirmerVenteMatiere, armurerie, ne l'a jamais ete non plus) -- seule la
 // vente finale au consommateur l'est (commanderProduitCommerce).
-async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomId, matiere, qte) {
+async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomId, matiere, qte, mode) {
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) return { ok: false, raison: 'introuvable' };
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
 
   // Rachat LEGAL d'une matiere a un joueur : le joueur est ici le fournisseur, le guichet un
   // circuit legal. Regle generale des interdictions (arbitrage du 11 septembre 2026).
+  // LE DON EST SOUMIS A LA MEME INTERDICTION, et c'est deliberé : une matiere que
+  // l'Assemblee a interdit de ceder ne devient pas cessible parce qu'on n'en
+  // demande pas le prix. Laisser passer le don ouvrirait un contournement en une
+  // ligne de toute interdiction votee.
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale([{ stackKey: matiere }]))) {
     return { ok: false, raison: 'vente_interdite', dejaSignale: true };
   }
-  return await commerceAcheterMatiere(data.id, matiere, qte);
+  return await commerceApporterMatiere(data.id, matiere, qte, mode || 'vente');
 }
 
 function doVendreMatiereCommerceGenerique(pa, cost) {
@@ -4154,7 +4168,17 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
     html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
     html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + Math.min(qteDispo, placeRestante) + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
-    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    // VENDRE ET DONNER, COTE A COTE (30 septembre 2026). Le don ne demande rien a
+    // la caisse : il reste donc propose meme quand le commerce n'a pas de quoi
+    // acheter. Seule la place restante les desactive tous les deux -- un commerce
+    // plein ne peut pas plus recevoir un cadeau qu'un achat.
+    const plein = (placeRestante === 0);
+    const styleInactif = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem';
+    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
+      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    html += '<button ' + (plein ? 'disabled style="' + styleInactif + '"'
+      : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem"')
+      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse du commerce est vide.">Donner</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -4162,16 +4186,18 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId, matiere) {
+async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId, matiere, mode) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const roomIdReel = roomId || null;
+  // `don` ou `vente`. Ancien appel sans mode = vente, pour ne rien casser.
+  const don = (mode === 'don');
   const qte = parseInt(document.getElementById('vendre-commerce-qte-' + matiere)?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!qte || qte <= 0) { showToast('Quantité invalide',
     'Indiquez un nombre entier d\'unités supérieur à zéro.', false); return; }
 
-  const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte);
+  const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte, don ? 'don' : 'vente');
   const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
   if (!res.ok) {
     // AUCUN REFUS SANS PHRASE. Trois entrees de cette table etaient des chaines
@@ -4179,15 +4205,22 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
     // commerce refusait, si sa saisie etait fautive, ou si l'appel avait echoue.
     // Les trois etats de transport de sbRpcVerdict sont nommes ici pour la meme
     // raison -- ce ne sont pas des refus du commerce.
+    // Un don refuse ne parle pas de vente : le geste refuse n'est pas le meme, et
+    // « ce commerce n'achète pas cette matière » serait faux pour un cadeau.
+    const acte = don ? 'le don' : 'la vente';
     const messages = {
       introuvable: 'Ce commerce est introuvable.',
-      matiere_non_acceptee: 'Ce commerce n\'achète pas cette matière.',
+      matiere_non_acceptee: don ? 'Ce commerce n\'a pas d\'usage de cette matière.'
+                                : 'Ce commerce n\'achète pas cette matière.',
       quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      mode_invalide: 'Cette opération n\'est pas reconnue par le serveur.',
+      requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
+      parametres_invalides: 'Il manque une information pour identifier ce commerce.',
       personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
       ressource_inconnue: 'Cette matière n\'a pas de prix de référence.',
-      session_perdue: 'Votre session a expiré. Reconnectez-vous : la vente n\'a pas eu lieu.',
-      transport_indisponible: 'Le serveur n\'a pas répondu. La vente n\'a pas eu lieu.',
-      reseau_indisponible: 'Connexion interrompue. La vente n\'a pas eu lieu.',
+      session_perdue: 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.',
+      transport_indisponible: 'Le serveur n\'a pas répondu. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
+      reseau_indisponible: 'Connexion interrompue. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
       stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
       stock_plein: 'Le stock maximum de cette matière est atteint pour ce commerce.',
       caisse_insuffisante: 'Le commerce ne peut pas acheter cette quantité actuellement.'
@@ -4199,15 +4232,22 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
     const estTransport = transport.indexOf(res.raison) !== -1;
     if (estTransport) console.error('[commerce] vente de matiere non aboutie (transport)', res.raison);
     if (!res.dejaSignale) {
-      showToast(estTransport ? 'Vente non aboutie' : 'Vente refusée',
-        messages[res.raison] || ('Le commerce a refusé cette vente (' + (res.raison || 'motif inconnu') + ').'),
+      const titre = estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
+                                 : (don ? 'Don refusé'    : 'Vente refusée');
+      showToast(titre,
+        messages[res.raison] || ('Le commerce a refusé ' + acte + ' (' + (res.raison || 'motif inconnu') + ').'),
         false);
     }
     return;
   }
   updateUI();
-  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
-  addJournalEntry('Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+  if (don) {
+    showToast('Don effectué', res.qte + ' ' + label + ' remis à ce commerce, sans contrepartie.', true, true);
+    addJournalEntry('Don de ' + res.qte + ' ' + label + ' à ce commerce.', 'event-good');
+  } else {
+    showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+    addJournalEntry('Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+  }
   doVendreMatiereCommerce(commerceType, buildingId, roomIdReel, 0, 0); // rafraichit, meme pattern que les autres interfaces de commerce
 }
 
@@ -5733,7 +5773,8 @@ async function confirmerProduction(produitId) {
 // L'ordre etait donc inutilisable en pratique. Meme correctif que vendre_bois_imprimerie.
 async function doVendreMatiereArmurerie() {
   const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Indisponible', '', false); return; }
+  if (!data) { showToast('Armurerie injoignable',
+    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
   let html = '<div style="padding:1rem">';
@@ -5742,9 +5783,20 @@ async function doVendreMatiereArmurerie() {
     const lot = (state.inventory || []).find(i => i.stackKey === m && (i.qty || 0) > 0);
     const qteDispo = lot?.qty || 0;
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + m + ' (' + prix + ' FR/unité) — vous en avez ' + qteDispo + '</span>';
+    const nomM = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m])
+      ? RESSOURCES_ECONOMIE[m].label : m;
+    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + nomM + ' (' + prix + ' FR/unité) — vous en avez ' + qteDispo + '</span>';
     html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + (qteDispo > 0 ? qteDispo : 1) + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    html += '<button onclick="confirmerVenteMatiere(\'' + m + '\')" ' + (qteDispo <= 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    // L'armurerie garde son propre ecran, mais pas son propre vocabulaire : VENDRE
+    // et DONNER y sont proposes comme dans l'interface commune, sur la meme
+    // primitive serveur. Le don ne sollicite pas la caisse et reste donc offert
+    // meme a une armurerie sans le sou.
+    const inactifArm = 'padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem';
+    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
+      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'vente\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    html += '<button ' + (qteDispo <= 0 ? 'disabled style="' + inactifArm + '"'
+      : 'onclick="confirmerVenteMatiere(\'' + m + '\',\'don\')" style="padding:.3rem .6rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem"')
+      + ' title="Céder cette quantité sans contrepartie. Possible même si la caisse est vide.">Donner</button>';
     html += '</div>';
   });
   html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (achetées à l\'Entrepôt Logistique).</div>';
@@ -5753,32 +5805,57 @@ async function doVendreMatiereArmurerie() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerVenteMatiere(matiere) {
+async function confirmerVenteMatiere(matiere, mode) {
+  const don = (mode === 'don');
+  const acte = don ? 'le don' : 'la vente';
+  // Cet ecran affichait la CLE de la matiere (« metal ») la ou l'interface commune
+  // affiche son nom (« Métal »). Meme referentiel pour les deux, desormais.
+  const nom = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere])
+    ? RESSOURCES_ECONOMIE[matiere].label : matiere;
   const qte = parseInt(document.getElementById('vendre-qte-' + matiere)?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+  if (!qte || qte <= 0) { showToast('Quantité invalide',
+    'Indiquez un nombre entier d\'unités supérieur à zéro.', false); return; }
 
   const lot = (state.inventory || []).find(i => i.stackKey === matiere && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.', false); return; }
+  if (!lot || lot.qty < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.', false); return; }
 
   const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Indisponible', '', false); return; }
+  if (!data) { showToast('Armurerie injoignable',
+    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
 
-  // Meme operation metier que vendreMatiereCommerce : une seule RPC pour les deux.
-  const r = await commerceAcheterMatiere(data.id, matiere, qte);
+  // Meme operation metier que vendreMatiereCommerce, et desormais la meme RPC :
+  // commerce_apporter_matiere tranche la vente comme le don.
+  const r = await commerceApporterMatiere(data.id, matiere, qte, don ? 'don' : 'vente');
   if (!r.ok) {
+    const estTransport = ['session_perdue', 'transport_indisponible', 'reseau_indisponible'].indexOf(r.raison) !== -1;
+    if (estTransport) console.error('[armurerie] apport de matiere non abouti (transport)', r.raison);
     const messages = {
       caisse_insuffisante: 'L\'entreprise ne peut pas acheter cette quantité actuellement.',
-      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.',
-      matiere_non_acceptee: 'Cette armurerie n\'achète pas ' + matiere + '.'
+      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.',
+      matiere_non_acceptee: don ? 'Cette armurerie n\'a pas d\'usage de ' + nom + '.'
+                                : 'Cette armurerie n\'achète pas ' + nom + '.',
+      quantite_invalide: 'Indiquez une quantité entière supérieure à zéro.',
+      requete_invalide: 'Cette opération n\'a pas pu être identifiée. Réessayez.',
+      personnage_introuvable: 'Votre personnage n\'a pas pu être identifié. Rechargez la page.',
+      session_perdue: 'Votre session a expiré. Reconnectez-vous : ' + acte + ' n\'a pas eu lieu.',
+      transport_indisponible: 'Le serveur n\'a pas répondu. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
+      reseau_indisponible: 'Connexion interrompue. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.'
     };
-    showToast('Vente refusée', messages[r.raison] || '', false);
+    showToast(estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
+                           : (don ? 'Don refusé'    : 'Vente refusée'),
+      messages[r.raison] || ('L\'armurerie a refusé ' + acte + ' (' + (r.raison || 'motif inconnu') + ').'), false);
     return;
   }
-  const total = r.total;
   updateUI();
-  showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + matiere + '.', true, true);
-  addJournalEntry('Vente de ' + qte + ' ' + matiere + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
+  if (don) {
+    showToast('Don effectué', qte + ' ' + nom + ' remis à l\'armurerie, sans contrepartie.', true, true);
+    addJournalEntry('Don de ' + qte + ' ' + nom + ' à l\'armurerie.', 'event-good');
+  } else {
+    const total = r.total;
+    showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + nom + '.', true, true);
+    addJournalEntry('Vente de ' + qte + ' ' + nom + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
+  }
 }
 
 // =====================
