@@ -205,7 +205,26 @@ const WORLD = {
         'tribunal': {
           name: "Tribunal de Luthecia",
           desc: "Honoré Cozetoujours condamne avant d'écouter.",
-          persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"}]
+          // LES DEUX MAGISTRATS DU GABARIT SONT REINTEGRES ICI (1er octobre 2026).
+          //
+          // POURQUOI ILS AVAIENT DISPARU. `persons` d'un buildingContext REMPLACE la liste de la
+          // PREMIERE piece du batiment (personnesNormalesDeLaPiece, plateau-multijoueur.js:1775),
+          // et salle_audience est la premiere piece du gabarit 'tribunal'. En ajoutant Cozetoujours
+          // et Plaidoyer, cette surcharge retirait donc Juge Fontaine et Procureur Saad, declares
+          // dans le gabarit (data.js, 'tribunal' / salle_audience).
+          //
+          // POURQUOI C'EST UNE ANOMALIE ET NON UN CHOIX. Les onze autres personnes masquees par le
+          // meme mecanisme en Republia sont du personnel GENERIQUE du gabarit (Dr. Vidal,
+          // M. Fischer, Professeur Blanc, Infirmiere Dupre, Fernande/Marcel/Yvonne, les trois de
+          // La Tribune) que chaque empire remplace par son propre casting : c'est la regle de socle
+          // qui fonctionne. Fontaine et Saad, eux, sont des REFERENTS : ils ont une personnalite
+          // arbitree (api/_pnj-referents.js) et une ligne dans la table pnj_referents avec
+          // pays='republic'. Ils sont donc concus pour etre joignables a Luthecia, et ne l'etaient
+          // nulle part.
+          //
+          // Ajoutes EN FIN DE LISTE pour ne pas deplacer les deux personnages locaux a l'ecran, et
+          // avec les champs exacts du gabarit -- aucun contenu nouveau n'est ecrit ici.
+          persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"}, {"name": "Juge Fontaine", "role": "Presidente du Tribunal (PNJ)", "rel": "neutral", "job": "juge"}, {"name": "Procureur Saad", "role": "Ministere public (PNJ)", "rel": "neutral", "job": "procureur"}]
         },
         'banque-privee': {
           name: "Banque Privée Helvetia",

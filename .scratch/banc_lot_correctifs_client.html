@@ -1,0 +1,133 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc — lot de correctifs (navigateur réel)</title>
+<!--
+  BANC DU LOT DE CORRECTIFS, DANS UN VRAI NAVIGATEUR (1er octobre 2026)
+
+  POURQUOI CELUI-LA EN PLUS DU BANC PYTHON. Deux des trois correctifs portent sur des
+  DONNEES dont l'effet depend d'une fonction du jeu : la resolution des personnes d'une
+  piece (personnesNormalesDeLaPiece) et le calcul de l'identifiant d'un PNJ (slugPnj).
+  Les reimplementer en Python, c'est verifier sa propre copie. Ici, le vrai code tourne.
+
+  METHODE : chrome --headless=new --dump-dom, verdict dans <pre id="verdict">.
+  PIEGE DEJA PAYE : les bouchons se declarent APRES les <script src>, et jamais « var state ».
+-->
+<body>
+<div id="modal-pnj"></div>
+<pre id="verdict">(rien)</pre>
+
+<script>window.__err=[];window.onerror=function(m,src,l){__err.push((src||"").split("/").pop()+":"+l+" — "+m);return true;};</script>
+<script src="../data.js"></script>
+<script src="../plateau-multijoueur.js"></script>
+<script src="../plateau-pnj.js"></script>
+<script src="../plateau-navigation.js"></script>
+<script>
+// ---- BOUCHONS, declares APRES les sources ----
+state = (typeof state === 'undefined' || !state) ? {} : state;
+state.char = { name: 'Banc' };
+
+// getBuildingContext depend de la ville courante : on la pilote, comme le jeu le fait.
+let VILLE_COURANTE = null;
+window.getBuildingContext = function (bid) {
+  return VILLE_COURANTE?.buildingContext?.[bid] || null;
+};
+
+const L = []; let echecs = 0;
+function v(cle, libelle, ok, detail) {
+  if (!ok) echecs++;
+  L.push((cle + '     ').slice(0, 6) + (libelle + ' '.repeat(64)).slice(0, 64)
+         + (ok ? 'OK' : 'ECHEC') + (!ok && detail ? '   ' + detail : ''));
+}
+// Qui est REELLEMENT affiche dans une piece, par la fonction du jeu.
+function presents(pays, ville, bid, rid) {
+  VILLE_COURANTE = WORLD[pays][ville];
+  return personnesNormalesDeLaPiece(bid, rid).map(p => p.name);
+}
+
+// =====================================================================
+// C — LES DEUX MAGISTRATS SONT DE NOUVEAU DANS LA SALLE D'AUDIENCE
+// =====================================================================
+const audience = presents('republic', 'capitale', 'tribunal', 'salle_audience');
+v('C1', 'Juge Fontaine est present a Luthecia',
+  audience.includes('Juge Fontaine'), audience.join(', '));
+v('C2', 'Procureur Saad est present a Luthecia',
+  audience.includes('Procureur Saad'), audience.join(', '));
+v('C3', 'les deux personnages locaux sont conserves',
+  audience.includes('Honoré Cozetoujours (PNJ)') && audience.includes('Maître Plaidoyer (PNJ)'),
+  audience.join(', '));
+v('C4', 'la salle compte exactement quatre personnes',
+  audience.length === 4, audience.length + ' : ' + audience.join(', '));
+// Leur identifiant de dialogue doit tomber sur les profils serveur existants.
+v('C5', "l'identifiant du juge est juge_fontaine",
+  profilServeurDuPnj({ name: 'Juge Fontaine' }) === 'juge_fontaine',
+  profilServeurDuPnj({ name: 'Juge Fontaine' }));
+v('C6', "l'identifiant du procureur est procureur_saad",
+  profilServeurDuPnj({ name: 'Procureur Saad' }) === 'procureur_saad',
+  profilServeurDuPnj({ name: 'Procureur Saad' }));
+// Et ils doivent etre reconnus comme REFERENTS : c'est ce qui justifiait le correctif.
+v('C7', 'les deux sont dans la liste des referents',
+  PNJ_REFERENTS.includes('juge_fontaine') && PNJ_REFERENTS.includes('procureur_saad'));
+// La deuxieme piece du tribunal ne doit pas avoir bouge.
+const greffe = presents('republic', 'capitale', 'tribunal', 'greffe');
+v('C8', 'le greffe est inchange', Array.isArray(greffe), greffe.join(', '));
+
+// =====================================================================
+// D — CE QUI DOIT RESTER MASQUE L'EST TOUJOURS
+// =====================================================================
+// Onze personnes du gabarit sont remplacees en Republia par le casting local. Ce
+// remplacement est la regle de socle qui fonctionne, pas un defaut : si le correctif du
+// tribunal avait ete generalise, elles reviendraient toutes et Republia perdrait son
+// casting propre. Chaque ligne verifie que la piece montre le casting LOCAL, et pas le
+// gabarit.
+const REMPLACEMENTS = [
+  ['banque-privee',      'bureau_prive',       'M. Fischer',           'Hans Von Discret (PNJ)'],
+  ['clinique-privee',    'reception_clinique', 'Dr. Vidal',            'Docteur Bistouri (PNJ)'],
+  ['dispensaire-public', 'salle_attente',      'Infirmiere Dupre',     'Docteur Aspirine (PNJ)'],
+  ['universite',         'amphi',              'Professeur Blanc',     'Professeur Charabia (PNJ)'],
+  ['marche',             'marche_ext',         'Fernande (Marchande)', 'Jean-Pierre Bidoche (PNJ)'],
+  ['la-tribune',         'accueil_tribune',    'Camille Édito (PNJ)',  'Gustave Encre (PNJ)']
+];
+for (const [bid, rid, masque, local] of REMPLACEMENTS) {
+  const p = presents('republic', 'capitale', bid, rid);
+  v('D1', 'a ' + bid + ' : « ' + masque + ' » reste remplace',
+    !p.includes(masque) && p.includes(local), p.join(', '));
+}
+
+// =====================================================================
+// B — LE PERE ISCOPE
+// =====================================================================
+// Son identifiant est calcule par le vrai slugPnj, avec le nom exact de data.js —
+// suffixe « (PNJ) » compris, puisque c'est ce que openPnjModal retire avant de slugger.
+const nef = presents('republic', 'ville_a', 'notre-dame-mer', 'nef');
+v('B1', 'le pretre est bien dans la nef', nef.some(n => n.indexOf('Iscope') >= 0),
+  nef.join(', '));
+const nomIscope = nef.find(n => n.indexOf('Iscope') >= 0) || '';
+v('B2', 'son nom affiche porte un accent reel, pas un echappement',
+  nomIscope.indexOf('\\u') === -1 && nomIscope.indexOf('Père') === 0, JSON.stringify(nomIscope));
+v('B3', "l'identifiant envoye au serveur est pere_iscope",
+  profilServeurDuPnj({ name: nomIscope }) === 'pere_iscope',
+  profilServeurDuPnj({ name: nomIscope }));
+v('B4', 'slugPnj est insensible au suffixe (PNJ)',
+  slugPnj('Père Iscope') === 'pere_iscope', slugPnj('Père Iscope'));
+
+// =====================================================================
+// A — LE NOM DE L'ORDRE, TEL QUE LE SERVEUR LE RECEVRA
+// =====================================================================
+// On n'appelle pas le serveur : on verifie que le couple reellement annonce par chaque
+// mode est celui du miroir, releve en base le 1er octobre 2026.
+const MIROIR = { prendre_train:[2,75], prendre_bus_taxi:[1,150],
+                 prendre_avion:[2,300], prendre_bateau:[5,100] };
+for (const mode of Object.keys(TRANSPORT_CONFIG)) {
+  const c = TRANSPORT_CONFIG[mode];
+  const m = MIROIR[c.ordre];
+  v('A1', 'le mode ' + mode + ' annonce un triplet declare',
+    !!m && m[0] === c.pa && m[1] === c.cost,
+    c.ordre + ' ' + c.pa + '/' + c.cost);
+}
+v('A2', 'les quatre modes ont un nom d\'ordre distinct',
+  new Set(Object.values(TRANSPORT_CONFIG).map(c => c.ordre)).size === 4);
+
+document.getElementById('verdict').textContent = (__err.length ? 'ERREURS :\n' + __err.join('\n') + '\n\n' : '') +
+  '===== BANC LOT DE CORRECTIFS (NAVIGATEUR) =====\n' + L.join('\n')
+  + '\n' + '-'.repeat(72) + '\n' + L.length + ' gardes, ' + echecs + ' echec(s)';
+</script>

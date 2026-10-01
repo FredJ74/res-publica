@@ -169,7 +169,6 @@ const ORDINAIRES = {
   'notaire_fontenelle':            { nom: "Notaire Fontenelle", role: "Notaire Officiel", lieu: "Office Notarial" },
   'novice_baklava':                { nom: "Novice Baklava", role: "PNJ - Enfant de chœur en formation", lieu: "La Pâtisserie Sacrée" },
   'ouvrier_typographe':            { nom: "Ouvrier typographe", role: "PNJ - Typographe", lieu: "Imprimerie-Librairie Gutenberg" },
-  'p_u00e8re_iscope':              { nom: "P\\u00e8re Iscope", role: "Pr\\u00eatre de Port-Sainte-Marie", lieu: "Notre-Dame de la Mer & Cimetière Marin" },
   'paco_cargaison':                { nom: "Paco Cargaison", role: "Docker spécialiste", lieu: "Port de Ciudad Roja" },
   'padre_cocaino':                 { nom: "Padre Cocaïno", role: "Grand Prêtre du Cocaïsme", lieu: "Le Laboratoire de Prière" },
   'pascal_paguevite':              { nom: "Pascal Paguevite", role: "Chef des Douanes", lieu: "Port Industriel de Port-Sainte-Marie" },
@@ -177,6 +176,15 @@ const ORDINAIRES = {
   'patrice_lecap':                 { nom: "Patrice Lecap", role: "Chef de la capitainerie", lieu: "Port de Plaisance de Port-Sainte-Marie" },
   'patrick_coule':                 { nom: "Patrick Coule", role: "PNJ - Gardien de couloir", lieu: "Quartier Haute Securite" },
   'pere_ception':                  { nom: "Père Ception", role: "Grand Prêtre du Papyrusisme", lieu: "Le Tabernacle des Impôts", trait: "Grand Prêtre du Papyrusisme, incarnation vivante de la doctrine officielle. Explique chaque geste religieux au premier degré et avec une ferveur absolue : prier nourrit la ferveur du Formulaire Sacré, le don témoigne de la générosité du fidèle envers l'Église, la confession absout le péché de celui qui la fait sincèrement, la bénédiction accorde la faveur du Formulaire à qui la mérite. Ne doute jamais, ne plaisante jamais avec le sacré, ne parle jamais de mécanique ou de bénéfice pratique — pour lui, tout cela EST la religion, un point c'est tout.", style: "Solennel, dévot, légèrement pompeux, cite le Formulaire Sacré à tout propos, jamais ironique sur sa propre foi" },
+  // CLE CORRIGEE LE 1er OCTOBRE 2026. Elle s'ecrivait 'p_u00e8re_iscope', et le nom
+  // "P\\u00e8re Iscope" : l'echappement unicode etait DOUBLE dans la source, donc jamais
+  // interprete, et la cle avait ete calculee sur ces caracteres litteraux. Le client envoie
+  // slugPnj('Père Iscope') = 'pere_iscope' -- qui n'existait pas. Le pretre de Port-Sainte-Marie
+  // repondait donc « Discussion impossible momentanement », message de panne pour un manque
+  // permanent. C'etait le seul echappement unicode du fichier ; les 180 autres entrees ecrivent
+  // leurs accents en clair, et celle-ci le fait desormais aussi. Role, lieu et comportement
+  // inchanges.
+  'pere_iscope':                   { nom: "Père Iscope", role: "Prêtre de Port-Sainte-Marie", lieu: "Notre-Dame de la Mer & Cimetière Marin" },
   'philippe_cognedur':             { nom: "Philippe Cognedur", role: "PNJ - Gardien Chef", lieu: "Quartier Haute Securite" },
   'pierrick_le_roux':              { nom: "Pierrick Le Roux", role: "PNJ - Chef d'entreprise du Chantier Naval", lieu: "Chantier Naval de Port-Sainte-Marie" },
   'porte_parole':                  { nom: "Porte-parole", role: "PNJ - Porte-parole du gouvernement", lieu: "Palais du Gouvernement" },

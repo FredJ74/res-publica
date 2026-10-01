@@ -1707,11 +1707,36 @@ function closeWorldMap() {
 
 
 // =====================
+// CHAQUE MODE PORTE LE NOM DE SON ORDRE (correctif du 1er octobre 2026).
+//
+// LE DEFAUT. payer_ordre valide le couple (pa, cost) contre le miroir des couts, et il a besoin
+// pour cela de SAVOIR QUEL ORDRE il facture. Ce nom n'est pas passe par les 268 appelants de
+// deduireCoutOrdre : il est depose par doOrder dans state._ordreEnCours (plateau-router.js:16).
+// Or les voyages facturent APRES une modale, et l'un de leurs cinq points d'entree ne passe pas
+// par doOrder : le bouton « Prendre un taxi » de la rue de la Caserne et du QHS appelle
+// directement ouvrirModalTransport('bus') (voir showVueRue). Le paiement partait donc sous le nom
+// du DERNIER ordre lance -- ou sans nom du tout.
+//
+// CE QUE CELA PRODUISAIT EN PRODUCTION, et la trace existe : ordres_couts_inconnus porte une
+// ligne « (non transmis) », 1 PA / 150 FR -- exactement le tarif du bus -- et ordres_couts_ecarts
+// une ligne « candidatures_section » au meme tarif, c'est-a-dire un taxi facture sous le nom de
+// l'ordre precedent. Dans les deux cas payer_ordre refuse, et comme ni la Caserne ni le QHS n'ont
+// de Centre Multimodal, ce bouton est la SEULE sortie : le joueur pouvait y rester bloque.
+//
+// LE CORRECTIF. Le nom de l'ordre devient une propriete du mode, et il est passe explicitement a
+// deduireCoutOrdre, qui accepte deja l'option `fn` prevue pour ce cas (plateau-core.js:2209, et
+// doOrder le dit : « les handlers qui facturent apres une confirmation differee (modale) peuvent
+// le passer explicitement »). Les cinq points d'entree -- les quatre ordres routes et ce bouton --
+// annoncent donc desormais le meme nom, quel que soit le chemin emprunte.
+//
+// AUCUN TARIF NE CHANGE. Les quatre couples ci-dessous sont ceux du miroir, verifies en base le
+// 1er octobre 2026 : prendre_train 2/75, prendre_bus_taxi 1/150, prendre_avion 2/300,
+// prendre_bateau 5/100.
 const TRANSPORT_CONFIG = {
-  train:  { pa:2, cost:75,  label:'Train',  icon:'ti-train',  type:'intra',  desc:'Intra-empire uniquement. Plus économique.' },
-  bus:    { pa:1, cost:150, label:'Bus/Taxi',icon:'ti-bus',   type:'intra',  desc:'Intra-empire. Rapide.' },
-  avion:  { pa:2, cost:300, label:'Avion',  icon:'ti-plane', type:'inter',  desc:'Inter-empire. Contrôle douanes obligatoire.' },
-  bateau: { pa:5, cost:100, label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
+  train:  { pa:2, cost:75,  ordre:'prendre_train',    label:'Train',  icon:'ti-train',  type:'intra',  desc:'Intra-empire uniquement. Plus économique.' },
+  bus:    { pa:1, cost:150, ordre:'prendre_bus_taxi', label:'Bus/Taxi',icon:'ti-bus',   type:'intra',  desc:'Intra-empire. Rapide.' },
+  avion:  { pa:2, cost:300, ordre:'prendre_avion',    label:'Avion',  icon:'ti-plane', type:'inter',  desc:'Inter-empire. Contrôle douanes obligatoire.' },
+  bateau: { pa:5, cost:100, ordre:'prendre_bateau',   label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
 };
 
 // Libelles alignes sur la source canonique NOMS_VILLES_PAR_PAYS (plateau-divers.js) le
@@ -1802,7 +1827,10 @@ async function executerVoyage(mode, empireId, villeId) {
   // qu'en amont dans confirmerTransport puis debites sans nouvelle verification, un ecart de
   // temps theorique entre les deux). Un seul appel : jamais de double debit, jamais de solde
   // negatif (deduireCoutOrdre refuse et ne touche a rien si l'un des deux manque).
-  const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost });
+  // `fn` explicite : ce site facture apres une modale, donc hors du passage de doOrder qui pose
+  // state._ordreEnCours. Sans lui, le bouton taxi de la Caserne/du QHS payait sous le nom de
+  // l'ordre precedent -- voir le commentaire de TRANSPORT_CONFIG.
+  const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
   if (!rVoyage.ok) {
     // CORRECTIF DU 14 septembre 2026 : ce site annoncait "Fonds insuffisants" pour TOUTE raison
     // autre qu'un manque de PA -- y compris 'personnage_introuvable', qui n'a rien a voir avec
@@ -1924,7 +1952,8 @@ async function confirmerTransport(mode, empireId, villeId) {
   //      toute validation serveur.
   // Un seul appel couvre desormais les deux composantes, exactement comme le fait deja
   // executerVoyage pour l'avion et le bateau. Memes PA, meme prix : aucune regle ne change.
-  const rTransport = await deduireCoutOrdre({ pa: config.pa, cost: config.cost });
+  // `fn` explicite, meme raison qu'en executerVoyage : facturation differee par une modale.
+  const rTransport = await deduireCoutOrdre({ pa: config.pa, cost: config.cost, fn: config.ordre });
   if (!rTransport.ok) { signalerRefusCout({ ...rTransport, cost: config.cost, pa: config.pa }); return; }
 
   // Changer d'empire et de ville
