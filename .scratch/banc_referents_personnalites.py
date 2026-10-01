@@ -190,7 +190,9 @@ for rid, c in D['corpusRiches'].items():
           "%d/%d extraits retrouves" % (c['presents'], c['attendus']))
 
 # --- Le second lot de personnalites ------------------------------------------
-essai('seize referents declares', D['nbReferents'] == 16, D['nbReferents'])
+# Pas de nombre en dur, ici non plus : c'est l'alignement des trois listes qui fait foi.
+essai('le socle porte au moins les dix-sept referents de Republia',
+      D['nbReferents'] >= 17, '%d referents declares' % D['nbReferents'])
 essai('Alouche : un soldat bien nourri est un soldat efficace',
       'Un soldat bien nourri est un soldat efficace.' in P['caporal_alouche'])
 essai('Alouche : il aurait fait un excellent restaurateur',
@@ -236,6 +238,16 @@ essai('Hamar : son humour de marin, mot pour mot',
       'une plie ou une raie dans la tronche' in P['pascal_hamar'])
 essai('Tenaire : la tribune comme une locomotive',
       'locomotive' in P['lucas_tenaire'] and 'rouage' in P['lucas_tenaire'])
+
+# --- Laurent Barre, arbitre le 18 aout 2026 ----------------------------------
+essai('Barre : il apprecie les gens qui savent ce qu\'ils veulent',
+      "APPRECIES LES GENS QUI SAVENT CE QU'ILS VEULENT" in P['laurent_barre'])
+essai('Barre : reperer la prochaine bonne affaire avant tout le monde',
+      'BONNE AFFAIRE AVANT TOUT LE MONDE' in P['laurent_barre'])
+essai('Barre : il ne revele jamais ses propres investissements',
+      'NE REVELES JAMAIS les details de tes propres investissements' in P['laurent_barre'])
+essai('Barre : aucun humour ne lui a ete invente',
+      "on ne t'en invente pas" in P['laurent_barre'])
 
 # --- C : chaque orientation doit nommer quelqu'un qui existe ------------------
 # Une faute de frappe dans `vers` creerait un referent qui envoie vers personne, et
@@ -283,7 +295,8 @@ cli = re.search(r"const PNJ_REFERENTS = \[(.*?)\];",
 LISTE_CLIENT = set(re.findall(r"'([a-z_]+)'", cli.group(1))) if cli else set()
 sql = ''.join(open(os.path.join(RACINE, f), encoding='utf-8').read() for f in
               ['migration_20261001_referents_memoire_pedagogique.sql',
-               'migration_20261001_referents_lot_deux.sql'])
+               'migration_20261001_referents_lot_deux.sql',
+               'migration_20261001_referent_laurent_barre.sql'])
 LISTE_SQL = set(re.findall(r"\('([a-z_]+)',\s*'", sql))
 essai('la liste des personnalites n\'est pas vide', len(LISTE_JS) >= 7, '%d referents' % len(LISTE_JS))
 essai('la liste cliente est alignee sur le fichier de personnalites',

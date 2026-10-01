@@ -1156,7 +1156,7 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
                        'procureur_saad', 'juge_fontaine', 'president_laroche', 
                        'raoul_toufaud', 'caporal_alouche', 'eve_toahemarch', 
                        'jean_lou_zeure', 'alain_bordage', 'marcel_ancre', 'pat_hounette', 
-                       'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire'];
+                       'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre'];
 
 // Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.
 function referentNoterConsultation(profilId) {

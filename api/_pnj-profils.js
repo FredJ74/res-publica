@@ -181,7 +181,8 @@ const CORPUS_REFERENT = {
   jean_lou_zeure:   corpusRiche('jean_lou_zeure'),
   alain_bordage:    corpusRiche('alain_bordage'),
   marcel_ancre:     corpusRiche('marcel_ancre'),
-  pat_hounette:     corpusRiche('pat_hounette')
+  pat_hounette:     corpusRiche('pat_hounette'),
+  laurent_barre:    corpusRiche('laurent_barre')
 };
 
 const PROFILS_REFERENTS = {};
