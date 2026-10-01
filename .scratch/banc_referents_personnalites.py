@@ -34,8 +34,9 @@ code = '\n'.join(sans_modules(open(os.path.join(RACINE, m), encoding='utf-8').re
 
 SONDE = r"""
 var R = {};
-var SEPT = ['marc_hantile','martial_bouterin','gaspard_ferriere','procureur_saad',
-            'juge_fontaine','president_laroche','raoul_toufaud'];
+// DERIVEE de la source unique : ce banc ne recopie plus les identifiants, donc il ne
+// peut plus rater un referent ajoute.
+var SEPT = Object.keys(REFERENTS);
 R.total = Object.keys(TOUS_PROFILS).length;
 R.presents = SEPT.filter(function(k){ return !!TOUS_PROFILS[k]; });
 R.prompts = {};
@@ -52,6 +53,21 @@ R.pedago = { zero: blocPedagogie({consultations:0}),
              une:  blocPedagogie({consultations:1}),
              sept: blocPedagogie({consultations:7}),
              nul:  blocPedagogie(null) };
+// C : toutes les cibles d'orientation, et tous les noms de PNJ reellement servis.
+R.orientations = [];
+Object.keys(REFERENTS).forEach(function(k){
+  (REFERENTS[k].oriente || []).forEach(function(o){
+    R.orientations.push({ de: k, sujet: o.sujet, vers: o.vers });
+  });
+});
+R.nomsConnus = Object.keys(TOUS_PROFILS).map(function(k){ return TOUS_PROFILS[k].nom; })
+                     .filter(Boolean);
+// B et D : budget de parole et empire, par referent.
+R.budgets = {}; R.pays = {};
+Object.keys(REFERENTS).forEach(function(k){
+  R.budgets[k] = maxTokensProfil(k);
+  R.pays[k] = REFERENTS[k].pays || null;
+});
 JSON.stringify(R);
 """
 
@@ -146,6 +162,41 @@ essai('le prompt d\'un referent porte sa memoire pedagogique',
       '5 fois' in D['avecPedago'] and 'CE QUE TU LUI AS DEJA EXPLIQUE' in D['avecPedago'])
 essai('et reste rigoureusement celui d\'avant sans elle',
       'CE QUE TU LUI AS DEJA EXPLIQUE' not in D['sansPedago'])
+
+# --- C : chaque orientation doit nommer quelqu'un qui existe ------------------
+# Une faute de frappe dans `vers` creerait un referent qui envoie vers personne, et
+# rien ne le signalerait en jeu. On compare apres avoir retire les accents : le
+# fichier ecrit « Gaspard Ferriere », le profil s'appelle « Adjudant Gaspard Ferrière ».
+import unicodedata
+def sansacc(t):
+    return unicodedata.normalize('NFD', t).encode('ascii', 'ignore').decode().lower()
+NOMS = [sansacc(n) for n in D['nomsConnus']]
+orphelines = [o for o in D['orientations']
+              if not any(n and n in sansacc(o['vers']) for n in NOMS)]
+essai('les %d orientations nomment toutes un PNJ qui existe' % len(D['orientations']),
+      len(orphelines) == 0,
+      '; '.join(o['de'] + ' -> ' + o['vers'] for o in orphelines) if orphelines else '')
+essai('chaque referent oriente au moins une fois',
+      all(any(o['de'] == k for o in D['orientations']) for k in D['presents']))
+
+# --- B : le budget de parole suit la personnalite ----------------------------
+essai('Toufaud, qui parle peu, a le budget le plus faible',
+      D['budgets']['raoul_toufaud'] == min(D['budgets'].values()),
+      'Toufaud=%d, min=%d' % (D['budgets']['raoul_toufaud'], min(D['budgets'].values())))
+essai('Ferriere, qui raconte, a le budget le plus eleve',
+      D['budgets']['gaspard_ferriere'] == max(D['budgets'].values()),
+      'Ferriere=%d, max=%d' % (D['budgets']['gaspard_ferriere'], max(D['budgets'].values())))
+essai('Toufaud dispose de nettement moins de souffle que Ferriere',
+      D['budgets']['raoul_toufaud'] * 2 <= D['budgets']['gaspard_ferriere'],
+      '%d contre %d' % (D['budgets']['raoul_toufaud'], D['budgets']['gaspard_ferriere']))
+essai('un referent sans budget declare retombe sur 320',
+      D['budgets']['marc_hantile'] == 320)
+
+# --- D : tout referent appartient a un empire --------------------------------
+sans_pays = [k for k, v in D['pays'].items() if not v]
+essai('les sept referents declarent leur empire', len(sans_pays) == 0, sans_pays)
+essai('ils sont tous de Republia dans ce lot',
+      set(D['pays'].values()) == {'republic'}, sorted(set(D['pays'].values())))
 
 # --- Les TROIS listes de referents doivent rester alignees ------------------
 # Le fichier de personnalites, la liste cliente et la table en base. Trois copies

@@ -147,5 +147,8 @@ DO $garde$
 DECLARE n integer;
 BEGIN
   SELECT count(*) INTO n FROM public.pnj_referents;
-  IF n <> 7 THEN RAISE EXCEPTION 'liste des referents : % entrees, 7 attendues', n; END IF;
+  -- AU MOINS sept, et non exactement sept : cette garde doit rester vraie quand les
+  -- six referents suivants seront ajoutes. Une garde qui vieillit mal est une garde
+  -- qu'on finit par retirer.
+  IF n < 7 THEN RAISE EXCEPTION 'liste des referents : % entrees, au moins 7 attendues', n; END IF;
 END $garde$;

@@ -30,11 +30,21 @@ TU TE SOUVIENS DE CE QUE TU AS EXPLIQUE, pas de ce que la personne t'a confie. S
 // LES SEPT REFERENTS ARBITRES
 // -------------------------------------------------------------------------------------------------
 // Chaque personnalite est transcrite des arbitrages du 1er octobre 2026, sans reinterpretation.
+//
+// `pays` : un referent APPARTIENT A UN EMPIRE. Les mecaniques se mutualisent, les
+// personnages jamais -- Sovarka aura son propre referent economie, qui ne sera pas
+// Marc Hantile. Le champ ne change aucun comportement aujourd'hui ; il aligne ce socle
+// sur la regle avant d'y raccrocher des dizaines de PNJ.
+//
+// `maxTokens` : le BUDGET DE PAROLE fait partie de la personnalite. Toufaud « parle
+// peu, des phrases courtes » : lui laisser le meme souffle qu'a Ferriere, qui raconte
+// des anecdotes, l'inviterait a bavarder contre son caractere. Absent = 320.
 // Les tics et les exemples sont repris mot pour mot : ce sont eux qui rendent un homme
 // reconnaissable des la premiere phrase.
 const REFERENTS = {
 
   marc_hantile: {
+    pays: 'republic',
     nom: 'Marc Hantile',
     role: 'lobbyiste, conseil en affaires et en economie',
     lieu: 'le bar de l\'Hotel-Restaurant La Republia, a Luthecia',
@@ -56,6 +66,7 @@ const REFERENTS = {
   },
 
   martial_bouterin: {
+    pays: 'republic',
     nom: 'Martial Bouterin',
     role: 'aide de camp du ministre de la Defense de Republia',
     lieu: 'le bureau du ministre de la Defense, au Palais du Gouvernement',
@@ -77,6 +88,9 @@ Tu ne reveles jamais l'identite reelle d'un agent de renseignement, ni les effec
   },
 
   gaspard_ferriere: {
+    pays: 'republic',
+    // la marche a suivre dans l'ordre, PUIS l'anecdote : il lui faut de la place
+    maxTokens: 380,
     nom: 'Adjudant Gaspard Ferrière',
     role: 'adjudant, aide de camp au corps de garde de la caserne de Luthecia',
     lieu: 'le corps de garde de la caserne',
@@ -98,6 +112,9 @@ NE RECITE JAMAIS L'ORGANIGRAMME quand on te demande une marche a suivre.`,
   },
 
   procureur_saad: {
+    pays: 'republic',
+    // il enonce, il ne converse pas
+    maxTokens: 280,
     nom: 'Procureur Saad',
     role: 'procureur, representant du ministere public',
     lieu: 'le Tribunal de la Capitale',
@@ -116,6 +133,9 @@ NE RECITE JAMAIS L'ORGANIGRAMME quand on te demande une marche a suivre.`,
   },
 
   juge_fontaine: {
+    pays: 'republic',
+    // il pose les elements avant de conclure, sans se perdre
+    maxTokens: 300,
     nom: 'Juge Fontaine',
     role: 'presidente du Tribunal',
     lieu: 'le Tribunal de la Capitale',
@@ -133,6 +153,9 @@ NE RECITE JAMAIS L'ORGANIGRAMME quand on te demande une marche a suivre.`,
   },
 
   president_laroche: {
+    pays: 'republic',
+    // il instruit de haut, il ne s'epanche pas
+    maxTokens: 300,
     nom: 'President Laroche',
     role: 'President de l\'Assemblee nationale',
     lieu: 'l\'Assemblee nationale',
@@ -152,6 +175,9 @@ NE RECITE JAMAIS L'ORGANIGRAMME quand on te demande une marche a suivre.`,
   },
 
   raoul_toufaud: {
+    pays: 'republic',
+    // il PARLE PEU : des phrases courtes, et il se tait
+    maxTokens: 180,
     nom: 'Raoul Toufaud',
     role: 'commissaire central',
     lieu: 'le Commissariat Central',
@@ -201,7 +227,8 @@ function profilReferent(p, savoir) {
     savoir: [savoir, 'TON DOMAINE : ' + p.domaine].filter(Boolean).join('\n\n'),
     limites: [p.limites, p.aide ? ('TA MANIERE D\'AIDER : ' + p.aide) : '', blocOrientation(p), SOCLE_REFERENT]
                .filter(Boolean).join('\n'),
-    maxTokens: 320
+    // Le budget declare par la personnalite prime ; 320 est le repli.
+    maxTokens: p.maxTokens || 320
   };
 }
 

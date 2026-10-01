@@ -137,14 +137,9 @@ LE COMBAT ET L'INFIRMERIE
 `.trim();
 
 const PROFILS = {
-  // LES DEUX REFERENTS MILITAIRES ONT RECU LEUR PERSONNALITE ARBITREE le 1er octobre
-  // 2026. Leur CORPUS ne bouge pas d'une ligne -- c'est toujours la bible militaire qui
-  // fait foi -- mais leur caractere, leur humour et leur maniere d'aider viennent
-  // desormais de _pnj-referents.js, comme ceux des cinq autres referents. Ce qu'ils
-  // SAVENT et ce qu'ils SONT cessent d'etre melanges dans le meme litteral.
-  martial_bouterin: profilReferent(REFERENTS.martial_bouterin, SAVOIR_MILITAIRE),
-  gaspard_ferriere: profilReferent(REFERENTS.gaspard_ferriere, SAVOIR_TROUPE),
-
+  // PROFILS ne contient plus que les DEUX PNJ militaires qui ne sont pas referents :
+  // le cuisinier et l'infirmiere. Les sept referents, eux, sont derives de la source
+  // unique REFERENTS, juste en dessous.
   caporal_alouche: {
     nom: 'Caporal Alouche',
     identite: `Tu es le Caporal Alouche, cuisinier de compagnie du refectoire de la caserne de Luthecia, en Republia. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
@@ -171,22 +166,30 @@ SECRETS — tu ne donnes jamais de chiffre de combat, tu ne commentes pas la hie
 // TABLE UNIQUE. Les quatre referents militaires priment sur tout homonyme porte :
 // leur corpus est arbitre, celui du portage est mecanique. L'ordre de fusion est
 // donc PORTAGE d'abord, MILITAIRES ensuite -- jamais l'inverse.
-// LES CINQ REFERENTS CIVILS (1er octobre 2026). Ils n'ont pas de corpus de domaine
-// equivalent a la bible militaire : leur savoir se limite donc a leur domaine declare,
-// et leurs limites leur interdisent explicitement d'aller au-dela. C'est volontaire --
-// mieux vaut un referent qui oriente qu'un referent qui invente.
-const REFERENTS_CIVILS = {
-  marc_hantile:      profilReferent(REFERENTS.marc_hantile),
-  procureur_saad:    profilReferent(REFERENTS.procureur_saad),
-  juge_fontaine:     profilReferent(REFERENTS.juge_fontaine),
-  president_laroche: profilReferent(REFERENTS.president_laroche),
-  raoul_toufaud:     profilReferent(REFERENTS.raoul_toufaud)
+// LES PROFILS DES REFERENTS SONT DERIVES, PLUS ENUMERES (1er octobre 2026).
+// Ils l'etaient a la main, ce qui faisait de ce bloc un second endroit a mettre a jour
+// pour chaque nouveau referent -- et un oubli y aurait ete SILENCIEUX : le referent
+// aurait existe dans les donnees sans que personne ne le serve. La source unique est
+// desormais REFERENTS, et ce fichier n'y ajoute qu'une chose : le corpus de domaine
+// de ceux qui en ont un.
+//
+// Un referent sans corpus n'est pas un oubli : son savoir se limite alors a son domaine
+// declare, et ses limites lui interdisent d'aller au-dela. Mieux vaut un referent qui
+// oriente qu'un referent qui invente.
+const CORPUS_REFERENT = {
+  martial_bouterin: SAVOIR_MILITAIRE,
+  gaspard_ferriere: SAVOIR_TROUPE
 };
+
+const PROFILS_REFERENTS = {};
+for (const [id, p] of Object.entries(REFERENTS)) {
+  PROFILS_REFERENTS[id] = profilReferent(p, CORPUS_REFERENT[id]);
+}
 
 // ORDRE DE FUSION. Le portage mecanique d'abord, les referents ensuite : une
 // personnalite arbitree prime toujours sur une fiche generee. C'est la meme regle que
 // pour les quatre militaires depuis le 29 septembre, etendue aux sept.
-const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), REFERENTS_CIVILS, PROFILS);
+const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS);
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.
