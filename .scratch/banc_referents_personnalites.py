@@ -36,10 +36,11 @@ SONDE = r"""
 var R = {};
 // DERIVEE de la source unique : ce banc ne recopie plus les identifiants, donc il ne
 // peut plus rater un referent ajoute.
-var SEPT = Object.keys(REFERENTS);
+var SEPT = Object.keys(REFERENTS);   // tous les referents, quel qu'en soit le nombre
 R.total = Object.keys(TOUS_PROFILS).length;
 R.presents = SEPT.filter(function(k){ return !!TOUS_PROFILS[k]; });
 R.prompts = {};
+R.nbReferents = Object.keys(REFERENTS).length;
 SEPT.forEach(function(k){ R.prompts[k] = construirePromptSysteme(k, 'fr', null); });
 // Temoins : des PNJ qui ne sont pas referents et ne doivent pas avoir bouge.
 R.temoins = {};
@@ -54,6 +55,23 @@ R.pedago = { zero: blocPedagogie({consultations:0}),
              sept: blocPedagogie({consultations:7}),
              nul:  blocPedagogie(null) };
 // C : toutes les cibles d'orientation, et tous les noms de PNJ reellement servis.
+// LA GARDE QUI MANQUAIT. Six PNJ portent une fiche RICHE -- un corpus pedagogique
+// arbitre. Comme un profil de referent ECRASE celui du portage, ce corpus peut
+// disparaitre en silence : c'est arrive a Marc Hantile, qui avait perdu toute son
+// economie en devenant referent. On verifie donc que CHAQUE referent disposant d'une
+// fiche riche en garde la substance.
+R.corpusRiches = {};
+Object.keys(RICHES).forEach(function(id){
+  if (!REFERENTS[id]) return;
+  var r = RICHES[id];
+  var attendu = [r.savoirs, r.pedagogie].filter(Boolean).join(' ');
+  var prompt = construirePromptSysteme(id, 'fr', null) || '';
+  // on echantillonne : les quinze premiers mots significatifs du corpus doivent s'y
+  // retrouver tels quels
+  var mots = attendu.split(/\s+/).filter(function(m){ return m.length > 6; }).slice(0, 15);
+  R.corpusRiches[id] = { attendus: mots.length,
+                         presents: mots.filter(function(m){ return prompt.indexOf(m) !== -1; }).length };
+});
 R.orientations = [];
 Object.keys(REFERENTS).forEach(function(k){
   (REFERENTS[k].oriente || []).forEach(function(o){
@@ -87,8 +105,10 @@ def essai(nom, ok, detail=''):
     RES.append(('OK   ' if ok else 'ECHEC') + ' ' + nom + (' :: ' + str(detail) if detail else ''))
 
 P = D['prompts']
-essai('les sept referents existent dans la table de service',
-      len(D['presents']) == 7, ', '.join(D['presents']))
+# Pas de nombre en dur : le banc doit survivre a l'ajout du dix-septieme referent.
+essai('tous les referents declares sont servis',
+      len(D['presents']) == D['nbReferents'],
+      '%d servis sur %d declares' % (len(D['presents']), D['nbReferents']))
 essai('les 180 autres PNJ sont toujours la', D['total'] >= 180, 'total=%d' % D['total'])
 for t, present in D['temoins'].items():
     essai('temoin intact : ' + t, present)
@@ -163,6 +183,60 @@ essai('le prompt d\'un referent porte sa memoire pedagogique',
 essai('et reste rigoureusement celui d\'avant sans elle',
       'CE QUE TU LUI AS DEJA EXPLIQUE' not in D['sansPedago'])
 
+# --- Le corpus pedagogique survit a la personnalite --------------------------
+for rid, c in D['corpusRiches'].items():
+    essai("corpus pedagogique conserve : " + rid,
+          c['attendus'] > 0 and c['presents'] == c['attendus'],
+          "%d/%d extraits retrouves" % (c['presents'], c['attendus']))
+
+# --- Le second lot de personnalites ------------------------------------------
+essai('seize referents declares', D['nbReferents'] == 16, D['nbReferents'])
+essai('Alouche : un soldat bien nourri est un soldat efficace',
+      'Un soldat bien nourri est un soldat efficace.' in P['caporal_alouche'])
+essai('Alouche : il aurait fait un excellent restaurateur',
+      'restaurant' in P['caporal_alouche'] and 'restaurateur' in P['caporal_alouche'])
+essai('Alouche : il ne se plaint JAMAIS des matieres premieres',
+      'ne t\'en plains JAMAIS' in P['caporal_alouche'])
+essai('Eve : completement dejantee, et ses onomatopees',
+      'dejantee' in P['eve_toahemarch'] and 'Scritch scritch' in P['eve_toahemarch']
+      and 'Pschittt' in P['eve_toahemarch'])
+essai('Eve : elle n\'est PAS sadique',
+      "N'ES PAS SADIQUE" in P['eve_toahemarch'])
+essai('Eve : silencieuse quand un soldat meurt',
+      'tres silencieuse' in P['eve_toahemarch'] and 'echec professionnel' in P['eve_toahemarch'])
+essai('Eve : seduisante, et n\'essaie jamais de seduire',
+      'JAMAIS de seduire' in P['eve_toahemarch'])
+essai('Zeure : il a perdu son mandat par naivete',
+      'PAR NAIVETE' in P['jean_lou_zeure'])
+essai('Zeure : sa famille, jamais dite directement',
+      'TU N\'EN PARLES JAMAIS DIRECTEMENT' in P['jean_lou_zeure'])
+essai('Zeure : il veut EVITER aux autres ses erreurs',
+      'EVITER' in P['jean_lou_zeure'] and 'vie politique' in P['jean_lou_zeure'])
+essai('Bordage : sa phrase, mot pour mot',
+      "Ca passe... faut juste etre tres bon." in P['alain_bordage'])
+essai('Bordage : il normalise le risque sans le minimiser',
+      'SANS JAMAIS LE MINIMISER' in P['alain_bordage'])
+essai('Bordage : le tour du monde sur un Optimist',
+      'Optimist' in P['alain_bordage'])
+essai('Ancre : jamais de faveur, par devoir et non par froideur',
+      'JAMAIS DE FAVEUR' in P['marcel_ancre'] and 'PAR DEVOIR' in P['marcel_ancre'])
+essai('Pat : decontracte, mais sans empathie',
+      'DEPOURVU D\'EMPATHIE' in P['pat_hounette'] and 'decontracte' in P['pat_hounette'])
+essai('Pat : inquietant, et NON violent',
+      "N'ES PAS VIOLENT" in P['pat_hounette'] and 'INQUIETANT' in P['pat_hounette'])
+
+# --- Les trois chefs de supporters -------------------------------------------
+for rid, mot in [('alfredo_mifassole', 'INSTITUTION'), ('pascal_hamar', 'FAMILLE'),
+                 ('lucas_tenaire', 'RESPONSABILITE')]:
+    essai('supporters : ' + rid + ' porte sa culture de ville (' + mot + ')',
+          'LE CLUB EST UNE ' + mot in P[rid])
+    essai('supporters : ' + rid + ' n\'explique PAS les regles du football',
+          'Pas les regles du football' in P[rid] and 'ne commentes PAS les regles' in P[rid])
+essai('Hamar : son humour de marin, mot pour mot',
+      'une plie ou une raie dans la tronche' in P['pascal_hamar'])
+essai('Tenaire : la tribune comme une locomotive',
+      'locomotive' in P['lucas_tenaire'] and 'rouage' in P['lucas_tenaire'])
+
 # --- C : chaque orientation doit nommer quelqu'un qui existe ------------------
 # Une faute de frappe dans `vers` creerait un referent qui envoie vers personne, et
 # rien ne le signalerait en jeu. On compare apres avoir retire les accents : le
@@ -207,9 +281,11 @@ LISTE_JS = set(re.findall(r"^  ([a-z_]+): \{", open(os.path.join(RACINE,'api/_pn
 cli = re.search(r"const PNJ_REFERENTS = \[(.*?)\];",
                 open(os.path.join(RACINE,'plateau-pnj.js'), encoding='utf-8').read(), re.S)
 LISTE_CLIENT = set(re.findall(r"'([a-z_]+)'", cli.group(1))) if cli else set()
-sql = open(os.path.join(RACINE,'migration_20261001_referents_memoire_pedagogique.sql'), encoding='utf-8').read()
+sql = ''.join(open(os.path.join(RACINE, f), encoding='utf-8').read() for f in
+              ['migration_20261001_referents_memoire_pedagogique.sql',
+               'migration_20261001_referents_lot_deux.sql'])
 LISTE_SQL = set(re.findall(r"\('([a-z_]+)',\s*'", sql))
-essai('liste des personnalites : sept referents', len(LISTE_JS) == 7, sorted(LISTE_JS))
+essai('la liste des personnalites n\'est pas vide', len(LISTE_JS) >= 7, '%d referents' % len(LISTE_JS))
 essai('la liste cliente est alignee sur le fichier de personnalites',
       LISTE_CLIENT == LISTE_JS, 'ecart=' + str(sorted(LISTE_CLIENT ^ LISTE_JS)))
 essai('la table en base est alignee sur le fichier de personnalites',

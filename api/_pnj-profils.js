@@ -25,7 +25,7 @@ import {
 // n'est plus creditee. Fichier separe pour ne pas noyer le corpus militaire, qui
 // est d'une tout autre nature -- mais une seule table a l'arrivee, un seul
 // constructeur de prompt, aucune architecture parallele.
-import { profilsPersonnalites } from './_pnj-personnalites.js';
+import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // LES PERSONNALITES DES REFERENTS (1er octobre 2026). Donnees pures, dans leur propre
 // fichier : un temperament, une facon de parler, un humour, des tics, une maniere
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
@@ -136,32 +136,13 @@ LE COMBAT ET L'INFIRMERIE
 - Un soldat PNJ tue, lui, est perdu definitivement : le contingent ne se reconstitue jamais.
 `.trim();
 
-const PROFILS = {
-  // PROFILS ne contient plus que les DEUX PNJ militaires qui ne sont pas referents :
-  // le cuisinier et l'infirmiere. Les sept referents, eux, sont derives de la source
-  // unique REFERENTS, juste en dessous.
-  caporal_alouche: {
-    nom: 'Caporal Alouche',
-    identite: `Tu es le Caporal Alouche, cuisinier de compagnie du refectoire de la caserne de Luthecia, en Republia. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
-    caractere: `Militaire de carriere, jovial et bon vivant, la louche a la main. Tu parles simplement, directement, avec des mots de tous les jours et des images de cuisine -- jamais le jargon du reglement. Tu tutoies volontiers. Tu es fier de nourrir correctement les hommes et tu tiens qu'un soldat mal nourri est un soldat deja battu. Tu rales de bon coeur sur les estomacs que tu dois remplir et sur ceux qui reclament du rab, mais tu renseignes toujours celui qui te demande quelque chose. Quand tu expliques comment marche le refectoire, tu le fais comme un cuistot qui renseigne un type debout devant sa marmite, pas comme un manuel.`,
-    savoir: [SOCLE_MILITAIRE, SAVOIR_REFECTOIRE].join('\n\n'),
-    limites: `TON RAYON, C'EST LA CUISINE ET L'INTENDANCE, et rien d'autre. Tu ne connais ni les grades, ni les sections, ni les soldes, ni les candidatures, ni le renseignement, ni le combat, ni les soins.
-HORS DE TON RAYON — tu le dis franchement, avec tes mots, et tu orientes : l'organisation de l'armee, c'est l'aide de camp ; tout ce qui saigne ou tout ce qui touche aux blessures et aux trousses, c'est l'infirmiere, Eve Toahemarch. Tu n'inventes JAMAIS une regle pour faire plaisir.
-AUTORITE — tu n'en as aucune. Tu nourris les gens, tu ne nommes personne et tu ne commandes personne.`,
-    maxTokens: 280
-  },
+// PROFILS EST DESORMAIS VIDE, et c'est l'aboutissement du socle : les quatre PNJ de
+// la caserne qui y vivaient en litteraux ecrits a la main -- Martial, Ferriere, Alouche
+// et Eve -- sont tous derives de REFERENTS. Plus aucun profil n'echappe a la source
+// unique. On garde l'objet et la fusion pour qu'un cas particulier futur ait une porte,
+// mais il devra se justifier.
+const PROFILS = {};
 
-  eve_toahemarch: {
-    nom: 'Ève Toahémarch',
-    identite: `Tu es Eve Toahemarch, infirmiere militaire de la caserne de Luthecia, en Republia, et seule maitresse a bord de ton infirmerie. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
-    caractere: `Professionnelle, seche, precise, intimidante. Phrases courtes, jamais de familiarite. Humour pince-sans-rire. Tu as recousu plus d'officiers que tu n'en as respecte. Tu expliques une regle medicale une fois, clairement, et tu n'aimes pas la repeter. Tu consideres qu'un soldat qui ne dort pas et ne mange pas est un blesse qui s'ignore, et tu le dis.`,
-    savoir: [SOCLE_MILITAIRE, SAVOIR_INFIRMERIE].join('\n\n'),
-    limites: `TON RAYON, C'EST LA SANTE : blessures, PA, recuperation, trousses, soins, infirmerie.
-HORS DE TON RAYON — tu le dis sans detour, c'est dans ton caractere, et tu orientes : l'organisation de l'armee (hierarchie, sections, contingent, candidatures, equipement, radios), c'est l'aide de camp ; le ravitaillement, les repas et les rations, c'est le Caporal Alouche au refectoire. Tu n'inventes JAMAIS une regle.
-SECRETS — tu ne donnes jamais de chiffre de combat, tu ne commentes pas la hierarchie et tu ne parles pas de l'etat de sante d'un autre joueur.`,
-    maxTokens: 300
-  }
-};
 
 // TABLE UNIQUE. Les quatre referents militaires priment sur tout homonyme porte :
 // leur corpus est arbitre, celui du portage est mecanique. L'ordre de fusion est
@@ -176,9 +157,31 @@ SECRETS — tu ne donnes jamais de chiffre de combat, tu ne commentes pas la hie
 // Un referent sans corpus n'est pas un oubli : son savoir se limite alors a son domaine
 // declare, et ses limites lui interdisent d'aller au-dela. Mieux vaut un referent qui
 // oriente qu'un referent qui invente.
+// LE CORPUS D'UN RICHE NE DOIT PAS SE PERDRE EN DEVENANT REFERENT. Six PNJ portaient
+// deja, dans _pnj-personnalites.js, un savoir pedagogique arbitre -- mecaniques
+// electorales, prix du voyage, flux du port, milieu criminel, economie. Comme un
+// profil de referent ECRASE celui du portage, ce savoir disparaissait silencieusement.
+//
+// C'est exactement ce qui est arrive a Marc Hantile le 1er octobre : devenu referent,
+// il avait perdu son corpus economique -- cout de revient, fiscalite, marche noir,
+// indices des trois villes. Le banc ne verifiait alors que les corpus MILITAIRES ; il
+// verifie desormais que CHAQUE referent disposant d'une fiche riche garde le sien.
+function corpusRiche(id) {
+  const r = RICHES[id];
+  if (!r) return undefined;
+  return [r.savoirs, r.pedagogie].filter(Boolean).join('\n\n') || undefined;
+}
+
 const CORPUS_REFERENT = {
   martial_bouterin: SAVOIR_MILITAIRE,
-  gaspard_ferriere: SAVOIR_TROUPE
+  gaspard_ferriere: SAVOIR_TROUPE,
+  caporal_alouche:  [SOCLE_MILITAIRE, SAVOIR_REFECTOIRE].join('\n\n'),
+  eve_toahemarch:   [SOCLE_MILITAIRE, SAVOIR_INFIRMERIE].join('\n\n'),
+  marc_hantile:     corpusRiche('marc_hantile'),
+  jean_lou_zeure:   corpusRiche('jean_lou_zeure'),
+  alain_bordage:    corpusRiche('alain_bordage'),
+  marcel_ancre:     corpusRiche('marcel_ancre'),
+  pat_hounette:     corpusRiche('pat_hounette')
 };
 
 const PROFILS_REFERENTS = {};

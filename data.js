@@ -533,7 +533,12 @@ const WORLD = {
             },
             buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-mariannaise.png" },
             guichet_paris: { name: "Guichet des Paris — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-mariannaise.jpeg" },
-            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" },
+            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" ,
+              // LE CHEF DES SUPPORTERS DE PORT-SAINTE-MARIE (1er octobre 2026). Le siege existait,
+              // mais n'hebergeait personne : la ville heritait donc du « Meneur des Supporters »
+              // generique du gabarit, partage par toutes les villes et tous les empires.
+              persons: [{name:'Pascal Hamar (PNJ)', role:'Chef des Supporters — Négociant en poisson', rel:'neutral', job:'meneur_supporters'}]
+            },
             bureau_president: { name: "Bureau du Président — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president-mariannaise.png" }
           }
         },
@@ -680,6 +685,12 @@ const WORLD = {
             terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "images/montrouge/montrouge-stade-pelouse-accueil.jpg" },
             vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
               persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-montrouge-bricoleau.png'}]
+            },
+            // LE SIEGE DES SUPPORTERS DE MONTROUGE (1er octobre 2026). Sans cette surcharge, la
+            // ville heritait du meneur generique du gabarit. Chaque ville a sa propre culture de
+            // tribune : ici, un cheminot syndicaliste pour qui le club est une responsabilite.
+            siege_supporters: { name: "Siège des Supporters — Union Cheminote de Montrouge",
+              persons: [{name:'Lucas Ténaire (PNJ)', role:'Chef des Supporters — Cheminot syndicaliste', rel:'neutral', job:'meneur_supporters'}]
             },
             bureau_president: { name: "Bureau du Président — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president-montrouge.png" }
           }
