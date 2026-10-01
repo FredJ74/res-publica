@@ -5551,3 +5551,29 @@ async function sbEscortSocialeActuelle() {
 async function sbReferentPedagogieNoter(referentId) {
   return await sbRpc('referent_pedagogie_noter', { p_referent_id: referentId });
 }
+
+// =====================================================================
+// MISE EN RELATION AVEC UNE ORGANISATION (1er octobre 2026)
+// =====================================================================
+// Ce passeur accepte-t-il une nouvelle demande ? Consultee AU CLIC, avant que le
+// PNJ ne pose ses questions : le game design veut qu'il refuse tout de suite, pas
+// apres avoir demande au joueur ce qu'il voulait. N'autorise rien -- le delai est
+// retranche une seconde fois dans la RPC d'action.
+// Rend { ok, peut_demander, jours_restants, deja_contactees }.
+async function sbContactOrganisationEtat(passeur, typeOrganisation) {
+  return await sbRpc('contact_organisation_etat',
+    { p_passeur: passeur, p_type_organisation: typeOrganisation });
+}
+
+// REGARDEZ CE QUE CET APPEL N'ENVOIE PAS. Le joueur vient de raconter son projet
+// au PNJ ; ce texte n'est pas ici, et il n'y a pas de place pour lui dans la
+// signature de la RPC. C'est la garantie que rien n'en est conserve : pas une
+// regle qu'on pourrait oublier d'appliquer, une porte qui n'existe pas.
+// Rend { ok, rang } -- et jamais le nom de l'organisation sollicitee, que le
+// joueur n'a pas a connaitre -- ou { ok:false, raison } : 'delai_non_ecoule'
+// (+ jours_restants), 'aucune_organisation', 'toutes_contactees',
+// 'passeur_inconnu'.
+async function sbContactOrganisationDemander(passeur, typeOrganisation) {
+  return await sbRpc('contact_organisation_demander',
+    { p_passeur: passeur, p_type_organisation: typeOrganisation });
+}

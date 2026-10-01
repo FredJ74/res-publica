@@ -1,0 +1,260 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc — mise en relation (navigateur réel)</title>
+<!--
+  BANC DE LA MISE EN RELATION, DANS UN VRAI NAVIGATEUR (1er octobre 2026)
+
+  POURQUOI CELUI-LA EN PLUS DU BANC PYTHON. Le banc Python verifie des FORMES :
+  des signatures, des concordances, des absences. Il ne peut pas prouver qu'un
+  bouton apparait, qu'un clic enchaine la bonne replique, ni que le marqueur ecrit
+  par le SERVEUR produit vraiment un bouton cliquable. Ici, le code reel tourne.
+
+  METHODE : chrome --headless=new --dump-dom, verdict dans <pre id="verdict">.
+
+  DEUX PIEGES DEJA PAYES DANS CE DEPOT, ne pas les reintroduire :
+    * les bouchons doivent etre declares APRES les <script src> -- sinon le vrai
+      fichier ecrase le bouchon ;
+    * JAMAIS « var state » : plateau-core.js declare « let state », et une
+      redeclaration tue silencieusement tout le bloc de bouchons.
+-->
+<body>
+<!-- DOM minimal : les identifiants reellement utilises par le code teste. -->
+<div id="modal-pnj"></div>
+<div id="modal-postes"><div id="postes-modal-title"></div><div id="postes-body"></div></div>
+<div id="modal-forum"></div>
+<div id="modal-compose-mail">
+  <input id="compose-mail-to"><input id="compose-mail-subject"><textarea id="compose-mail-body"></textarea>
+</div>
+<pre id="verdict">(rien)</pre>
+
+<script src="../forum.js"></script>
+<script src="../plateau-communication.js"></script>
+<script src="../plateau-contact-organisation.js"></script>
+<script>
+// ---- BOUCHONS, declares APRES les sources ----
+state = (typeof state === 'undefined' || !state) ? {} : state;
+state.char = { name: 'Testeur Un' };
+state.day = 1;
+window.escapeHtmlText = function (t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};
+let toasts = [], journal = [];
+window.showToast = function (t, m) { toasts.push(t + ' | ' + m); };
+window.addJournalEntry = function (t) { journal.push(t); };
+
+// Le serveur, remplace par un bouchon dont on PILOTE les reponses. On note aussi
+// TOUT ce qui lui est envoye : la garde centrale est que le projet du joueur n'y
+// figure jamais.
+let envois = [], repEtat = null, repDemande = null;
+window.sbContactOrganisationEtat = async function (p, t) {
+  envois.push({ rpc: 'etat', args: Array.from(arguments) });
+  return repEtat;
+};
+window.sbContactOrganisationDemander = async function (p, t) {
+  envois.push({ rpc: 'demander', args: Array.from(arguments) });
+  return repDemande;
+};
+
+const L = [];
+let echecs = 0;
+function v(cle, libelle, ok, detail) {
+  if (!ok) echecs++;
+  L.push((cle + '     ').slice(0, 6) + (libelle + ' '.repeat(62)).slice(0, 62)
+         + (ok ? 'OK' : 'ECHEC') + (!ok && detail ? '   ' + detail : ''));
+}
+const texteModale = () => document.getElementById('postes-body').textContent;
+const htmlModale   = () => document.getElementById('postes-body').innerHTML;
+const ouverte      = () => document.getElementById('modal-postes').classList.contains('open');
+
+// Exactement ce que la RPC ecrit en base, recopie du SQL. Si ce litteral et le SQL
+// divergent un jour, le banc Python (G2) le dit ; celui-ci prouve que CE corps-la
+// produit bien un bouton.
+function corpsServeur(nom) {
+  const propre = String(nom).replace(/[|\]\[]/g, '');
+  return "J'ai rencontré quelqu'un qui cherche un service. Contacte "
+       + propre + " de ma part.\n\n[[act:ecrire_a|" + propre + "]]";
+}
+
+(async function () {
+  // =====================================================================
+  // C1 : LE MARQUEUR DU SERVEUR DEVIENT UN VRAI BOUTON
+  // =====================================================================
+  const ex = extraireActionsMail(corpsServeur('Albert Dupont'));
+  v('C1a', 'une action extraite', ex.actions.length === 1,
+    JSON.stringify(ex.actions));
+  v('C1b', 'la cle est ecrire_a', ex.actions[0] && ex.actions[0].cle === 'ecrire_a');
+  v('C1c', 'le nom du joueur est l\'argument',
+    ex.actions[0] && ex.actions[0].args[0] === 'Albert Dupont',
+    ex.actions[0] && ex.actions[0].args.join('|'));
+  v('C1d', 'le marqueur a disparu du corps affiche',
+    ex.corps.indexOf('[[act:') === -1 && ex.corps.indexOf('Albert Dupont') >= 0,
+    JSON.stringify(ex.corps));
+  const btn = boutonsActionMail(ex.actions);
+  v('C1e', 'le bouton appelle composerMailPour avec le nom',
+    btn.indexOf("composerMailPour('Albert Dupont')") >= 0, btn);
+  v('C1f', 'composerMailPour existe vraiment',
+    typeof composerMailPour === 'function');
+
+  // Le bouton est-il CLIQUABLE pour de vrai ? On l'insere et on le clique.
+  const hote = document.createElement('div');
+  hote.innerHTML = btn;
+  document.body.appendChild(hote);
+  hote.querySelector('button').click();
+  v('C1g', 'le clic remplit le destinataire du formulaire',
+    document.getElementById('compose-mail-to').value === 'Albert Dupont',
+    document.getElementById('compose-mail-to').value);
+  v('C1h', 'et ouvre le formulaire de redaction',
+    document.getElementById('modal-compose-mail').classList.contains('open'));
+
+  // Un nom hostile : le serveur retire les separateurs, le bouton reste entier.
+  const ex2 = extraireActionsMail(corpsServeur('Jean|Pierre]Du[pont'));
+  v('C1i', 'un nom portant | [ ] ne casse pas le marqueur',
+    ex2.actions.length === 1 && ex2.actions[0].args[0] === 'JeanPierreDupont',
+    JSON.stringify(ex2.actions));
+
+  // Une cle inconnue ne produit RIEN -- la table blanche tient.
+  const ex3 = extraireActionsMail('Bonjour [[act:ecrire_a_tout_le_monde|X]] fin');
+  v('C1j', 'une cle inconnue est retiree sans produire de bouton',
+    ex3.actions.length === 0 && boutonsActionMail(ex3.actions) === '',
+    JSON.stringify(ex3.actions));
+
+  // =====================================================================
+  // C2 : LE DIALOGUE, DE BOUT EN BOUT
+  // =====================================================================
+  v('C2a', 'Pat est reconnu comme passeur',
+    contactOrgaDuPnj({ name: 'Pat Hounette', job: 'criminel', contactOrga: 'pat_hounette' })
+      === 'pat_hounette');
+  v('C2b', 'un PNJ de decor au meme metier ne l\'est pas',
+    contactOrgaDuPnj({ name: 'Moshe Maychan', job: 'criminel' }) === null);
+  v('C2c', 'un contactOrga inconnu ne l\'est pas non plus',
+    contactOrgaDuPnj({ name: 'X', contactOrga: 'inventé' }) === null);
+
+  // -- premiere demande : il accepte d'en parler --
+  repEtat = { ok: true, peut_demander: true, jours_restants: 0, deja_contactees: 0 };
+  envois = [];
+  await contactOrgaDemarrer('pat_hounette');
+  v('C2d', 'il pose la question arretee',
+    texteModale().indexOf('Tu veux entrer en contact avec une organisation criminelle ?') >= 0,
+    texteModale());
+  v('C2e', 'la fenetre du PNJ est refermee',
+    !document.getElementById('modal-pnj').classList.contains('open'));
+
+  contactOrgaConfirmer('pat_hounette');
+  v('C2f', 'il demande le projet',
+    texteModale().indexOf("C'est quoi ton projet ? T'as besoin de quoi ?") >= 0,
+    texteModale());
+  v('C2g', 'un champ libre est offert au joueur',
+    !!document.getElementById('contact-orga-projet'));
+
+  // LE JOUEUR ECRIT. C'est le coeur du banc : ce texte ne doit atteindre personne.
+  const SECRET = 'Je veux braquer la Banque Nationale avec trois complices';
+  document.getElementById('contact-orga-projet').value = SECRET;
+
+  repDemande = { ok: true, rang: 1 };
+  envois = [];
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C2h', 'il conclut par la phrase arretee',
+    texteModale().indexOf("Ok... j'connais peut-être quelqu'un. J'envoie un message. "
+      + "Si t'as rien dans trois jours, tu reviens me voir.") >= 0, texteModale());
+  v('C2i', 'un seul appel serveur', envois.length === 1, JSON.stringify(envois));
+  v('C2j', 'LE PROJET DU JOUEUR N\'EST PARTI NULLE PART',
+    JSON.stringify(envois).indexOf('braquer') === -1
+    && JSON.stringify(envois).indexOf(SECRET) === -1, JSON.stringify(envois));
+  v('C2k', 'seuls le passeur et le type sont transmis',
+    envois[0] && envois[0].args.length === 2
+    && envois[0].args[0] === 'pat_hounette' && envois[0].args[1] === 'criminelle',
+    JSON.stringify(envois[0] && envois[0].args));
+  v('C2l', 'le journal ne nomme aucune organisation',
+    journal.length === 1 && journal[0] === 'Pat Hounette a transmis un message pour vous.',
+    JSON.stringify(journal));
+
+  // =====================================================================
+  // C3 : LES TROIS JOURS DE REFUS -- avant toute question
+  // =====================================================================
+  repEtat = { ok: true, peut_demander: false, jours_restants: 2, deja_contactees: 1 };
+  envois = [];
+  await contactOrgaDemarrer('pat_hounette');
+  v('C3a', 'il refuse par la phrase arretee',
+    texteModale().indexOf("Je t'ai dit trois jours... t'es sourd ou quoi ?") >= 0,
+    texteModale());
+  v('C3b', 'il ne demande PAS le projet',
+    texteModale().indexOf("C'est quoi ton projet") === -1);
+  v('C3c', 'aucun champ libre n\'est offert',
+    !document.getElementById('contact-orga-projet'));
+  v('C3d', 'un seul appel, et c\'est la lecture',
+    envois.length === 1 && envois[0].rpc === 'etat', JSON.stringify(envois));
+
+  // Le serveur retranche le delai une SECONDE fois : meme si la lecture mentait,
+  // l'action refuse, et le joueur voit la meme replique.
+  repEtat = { ok: true, peut_demander: true, jours_restants: 0, deja_contactees: 1 };
+  await contactOrgaDemarrer('pat_hounette');
+  contactOrgaConfirmer('pat_hounette');
+  repDemande = { ok: false, raison: 'delai_non_ecoule', jours_restants: 2 };
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C3e', 'un refus serveur tardif donne la meme replique',
+    texteModale().indexOf("Je t'ai dit trois jours") >= 0, texteModale());
+
+  // =====================================================================
+  // C4 : PERSONNE A SOLLICITER
+  // =====================================================================
+  repDemande = { ok: false, raison: 'aucune_organisation' };
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C4a', 'il ne promet aucun message quand il n\'a personne',
+    texteModale().indexOf('J\'envoie un message') === -1
+    && texteModale().indexOf("j'ai personne pour toi") >= 0, texteModale());
+  repDemande = { ok: false, raison: 'toutes_contactees' };
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C4b', 'meme replique quand toutes ont ete contactees',
+    texteModale().indexOf("j'ai personne pour toi") >= 0, texteModale());
+
+  // =====================================================================
+  // C5 : UN APPEL QUI N'ABOUTIT PAS N'EST PAS UNE SCENE
+  // =====================================================================
+  toasts = [];
+  repEtat = null;
+  await contactOrgaDemarrer('pat_hounette');
+  v('C5a', 'une panne reseau ne fait rien dire au personnage',
+    !ouverte() && toasts.length === 1 && toasts[0].indexOf('Action impossible') === 0,
+    JSON.stringify(toasts));
+  toasts = [];
+  repEtat = { ok: false, raison: 'passeur_inconnu' };
+  await contactOrgaDemarrer('pat_hounette');
+  v('C5b', 'un passeur refuse par le serveur ne fait rien dire non plus',
+    !ouverte() && toasts.length === 1, JSON.stringify(toasts));
+  toasts = [];
+  repDemande = null;
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C5c', 'idem a l\'envoi', !ouverte() && toasts.length === 1, JSON.stringify(toasts));
+
+  // =====================================================================
+  // C6 : LE TEXTE DU JOUEUR NE SURVIT PAS A LA FENETRE
+  // =====================================================================
+  repEtat = { ok: true, peut_demander: true, jours_restants: 0, deja_contactees: 0 };
+  await contactOrgaDemarrer('pat_hounette');
+  contactOrgaConfirmer('pat_hounette');
+  document.getElementById('contact-orga-projet').value = SECRET;
+  repDemande = { ok: true, rang: 2 };
+  await contactOrgaEnvoyer('pat_hounette');
+  v('C6a', 'le champ a disparu du document',
+    !document.getElementById('contact-orga-projet'));
+  // PIEGE DE BANC, paye le 1er octobre : chercher le texte dans
+  // document.body.innerHTML echoue toujours -- le <script> de ce banc contient le
+  // mot en clair, puisqu'il l'y ecrit lui-meme. On interroge donc ce qui est
+  // reellement en jeu : la fenetre affichee, et tous les champs de saisie du
+  // document.
+  const champs = Array.from(document.querySelectorAll('textarea,input'));
+  v('C6b', 'son texte ne subsiste dans aucun champ ni dans la fenetre',
+    htmlModale().indexOf(SECRET) === -1
+    && champs.every(c => String(c.value || '').indexOf('braquer') === -1),
+    champs.map(c => c.id + '=' + c.value).join(' | '));
+  contactOrgaFermer();
+  v('C6c', 'la fenetre se referme', !ouverte());
+
+  document.getElementById('verdict').textContent =
+    '===== BANC MISE EN RELATION (NAVIGATEUR) =====\n' + L.join('\n')
+    + '\n' + '-'.repeat(70) + '\n'
+    + L.length + ' gardes, ' + echecs + ' echec(s)';
+})();
+</script>

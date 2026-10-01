@@ -5151,7 +5151,12 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/place-formulaire-liberte.png",
         desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
         persons: [
-          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pat-hounette.png', photoPos:'45% 30%'}
+          // `contactOrga` designe le PASSEUR, pas le metier : il met en relation avec une
+          // organisation, et le type sollicite est declare au serveur
+          // (contacts_organisations_passeurs). Le champ est pose ICI et nulle part ailleurs --
+          // `job:'criminel'` est porte par cinq PNJ de decor qui ne mettent personne en relation,
+          // et s'en servir aurait donne ce pouvoir a quatre personnages qui ne l'ont pas.
+          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', contactOrga:'pat_hounette', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pat-hounette.png', photoPos:'45% 30%'}
         ],
         orders: []
       }

@@ -1045,6 +1045,22 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementCodetenu(\'' + codetenuNom + '\')"><i class="ti ti-users" style="font-size:.85rem"></i> Faire alliance (100 FR/j)</button>';
   }
 
+  // METTRE EN RELATION AVEC UNE ORGANISATION (1er octobre 2026). Propose a TOUT
+  // joueur, sans condition : le game design est explicite, le passeur ne filtre
+  // personne. Aucune caracteristique requise, aucune quete prealable, aucun cout.
+  // La condition porte sur le champ `contactOrga` de la fiche, jamais sur le
+  // metier -- quatre PNJ de decor partagent `job:'criminel'` avec Pat sans mettre
+  // personne en relation.
+  if (typeof contactOrgaDuPnj === 'function') {
+    const passeur = contactOrgaDuPnj(pnj);
+    if (passeur) {
+      const defPasseur = contactOrgaPasseur(passeur);
+      actionBtns += '<button class="pnj-action-btn" onclick="contactOrgaDemarrer(\'' + passeur + '\')">'
+        + '<i class="ti ti-user-search" style="font-size:.85rem"></i> '
+        + defPasseur.libelleAction + '</button>';
+    }
+  }
+
   // Interroger l'hotesse des objets trouves sur ses souvenirs
   if (pnj.job === 'hotesse_objets_trouves') {
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalInterrogerAccueil()"><i class="ti ti-message-question" style="font-size:.85rem"></i> Demander des confidences</button>';

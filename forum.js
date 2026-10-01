@@ -2476,7 +2476,14 @@ const ACTIONS_MAIL = {
   greve_oui:        { fn:'repondreAppelGreveGenerale', n:2, apres:['accepte'], label:'✓ Accepter' },
   greve_non:        { fn:'repondreAppelGreveGenerale', n:2, apres:['refuse'],  label:'✗ Refuser', refus:true },
   bne_garder:       { fn:'trancherEmploiBNE', n:2, avant:[true],  label:'Garder mon poste actuel' },
-  bne_prendre:      { fn:'trancherEmploiBNE', n:2, avant:[false], label:'Prendre le nouveau poste' }
+  bne_prendre:      { fn:'trancherEmploiBNE', n:2, avant:[false], label:'Prendre le nouveau poste' },
+  // ECRIRE A QUELQU'UN QU'ON VIENT DE SE VOIR RECOMMANDER (1er octobre 2026). Le
+  // seul marqueur pose par le SERVEUR (contact_organisation_demander) et non par
+  // le navigateur : un passeur transmet un nom, et le destinataire doit pouvoir
+  // s'en servir sans le recopier. Le libelle est volontairement generique -- il
+  // vient de la table, jamais de la donnee, et ne peut donc pas nommer la
+  // personne. Le nom, lui, est l'argument.
+  ecrire_a:         { fn:'composerMailPour', n:1, label:'✉ Écrire à cette personne' }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un
