@@ -1447,6 +1447,130 @@ const PLAN_ICONS = {
   'default': '🏢'
 };
 
+// =====================================================================
+// LE CADASTRE — LA VILLE N'EST PLUS CALCULEE, ELLE EST DECIDEE (2 octobre 2026, lot 1)
+// =====================================================================
+//
+// PLAN_LAYOUTS donnait des pixels absolus, et surtout il etait indexe par CRENEAU de ville
+// (capitale / ville_a / ville_b), donc partage par les quatre empires : les 20 plans du monde
+// etaient dessines depuis 3 tables, et Novomirsk etait litteralement le plan de Luthecia.
+// PLAN_VILLES remplace cela par une table indexee [empire][ville], sans exception.
+//
+// CE LOT NE CONVERTIT QUE LUTHECIA. Toute ville absente de PLAN_VILLES continue de passer par
+// PLAN_LAYOUTS, au pixel pres, sans qu'une ligne de son rendu change.
+//
+// LA GRILLE COUVRE LA VILLE INTRA-MUROS, ET ELLE SEULE (arbitrage de Fred). `cadre` est le
+// perimetre : 20 colonnes de 29,4 px et 20 lignes de 25,9 px s'y inscrivent exactement. Les
+// batiments de la couronne -- Marche, Tabernacle, Multimodal, Entrepot, terrains a batir,
+// Bureau de l'emploi, Ambassades -- vivent HORS de ces bornes, en indices negatifs a l'ouest
+// et au nord, superieurs a 19 a l'est et au sud. Meme case, meme regle, une seule arithmetique.
+//
+// POURQUOI CETTE TAILLE DE CASE TOMBE JUSTE. Les 15 institutions mesurent 31 a 36 px de large,
+// soit 1,05 a 1,22 case : elles etaient deja, sans le savoir, a une case chacune. Et les deux
+// avenues tombaient a 9,80 et 9,77 cases du mur -- a six pixels de la frontiere de la case 10.
+// Le plan de Luthecia etait deja une grille 20x20 ; ce lot ne fait que l'ecrire.
+//
+// CE QUI A BOUGE, ET RIEN D'AUTRE. Chaque batiment est l'arrondi de sa position d'hier (ecart
+// maximal 14 px, soit une demi-case), sauf quatre ajustements, chacun motive en commentaire
+// dans la table. Les cases libres entre institutions sont l'arrondi de leur espacement d'origine,
+// pas un choix nouveau.
+const PLAN_VILLES = {
+  republic: {
+    capitale: {
+      // Le perimetre de Luthecia, inchange : c'est lui qui definit la grille.
+      cadre:   { x: 182, y: 210, largeur: 588, hauteur: 518 },
+      grille:  { colonnes: 20, lignes: 20 },
+      // Les deux avenues, en indices de case. Alignees sur la grille (+6 px par rapport aux
+      // coordonnees ecrites en dur jusqu'ici), elles ne sont plus recopiees a la main a chaque
+      // redimensionnement du plan. Elles restent de simples rubans de 11 px : le vrai calque
+      // de terrain est l'objet du lot 2.
+      avenues: { colonne: 10, ligne: 10, epaisseur: 11 },
+
+      batiments: {
+        // --- Couronne nord et quartier des musees ---
+        'bureau-national-emploi':        { x:-6, y:-3, largeur:5, hauteur:3 },
+        // Ambassades ramenees de 3 a 2 cases de haut : elles recouvraient reellement le parc
+        // botanique de 105 x 28 px (releve d'audit du 2 octobre). La grille rend ce recouvrement
+        // inecrivable ; c'est le batiment du dessus qui cede, le parc ne bouge pas.
+        'quartier-ambassades':           { x: 7, y:-3, largeur:7, hauteur:2 },
+        // Parc et musees ramenes de 4 a 3 cases de large : a 4, ils mordaient sur la colonne de
+        // l'avenue, qu'ils masquaient deja en pixels. Ils sont adjacents, jamais superposes.
+        'parc-botanique-national':       { x: 7, y:-1, largeur:3, hauteur:2 },
+        'musee-ville-luthecia':          { x: 7, y: 1, largeur:3, hauteur:2 },
+        // Seul batiment qui change de cote : le musee national passe a l'est de l'avenue, qui
+        // separe desormais franchement les deux musees au lieu de passer derriere eux.
+        'musee-national-republia':       { x:11, y: 1, largeur:3, hauteur:2 },
+
+        // --- Ceinture des activites, de part et d'autre du carrefour ---
+        'centre-artisanal':              { x:-6, y: 6, largeur:5, hauteur:2 },
+        'centre-affaires':               { x: 1, y: 6, largeur:4, hauteur:2 },
+        'centre-commercial':             { x: 6, y: 6, largeur:4, hauteur:2 },
+        'stade':                         { x:11, y: 6, largeur:4, hauteur:2 },
+        // L'usine reste a cheval sur la ligne de l'avenue est-ouest, exactement comme
+        // aujourd'hui : le batiment est dessine par-dessus et la masque sur sa largeur. Ce
+        // defaut est anterieur a ce lot et le lot 2 le traitera avec le calque de terrain.
+        'usine-pharmaceutique-luthecia': { x:17, y: 7, largeur:3, hauteur:5 },
+        'centre-multinodal-luthecia':    { x:20, y: 7, largeur:3, hauteur:5 },
+        'entrepot-logistique-luthecia':  { x:24, y: 7, largeur:3, hauteur:5 },
+
+        // --- Ouest : terrains a batir (couronne) et armurerie (intra-muros) ---
+        'terrain-a-batir-1':             { x:-6, y:11, largeur:5, hauteur:1 },
+        'terrain-a-batir-2':             { x:-6, y:12, largeur:5, hauteur:1 },
+        'terrain-a-batir-3':             { x:-6, y:14, largeur:5, hauteur:1 },
+        'terrain-a-batir-4':             { x:-6, y:15, largeur:5, hauteur:1 },
+        'terrain-a-batir-5':             { x:-6, y:17, largeur:5, hauteur:1 },
+        'armurerie':                     { x: 0, y:11, largeur:3, hauteur:5 },
+        'place-formulaire-liberte':      { x:13, y:11, largeur:4, hauteur:4 },
+
+        // --- LA RUE DES INSTITUTIONS, sur toute la largeur intra-muros ---
+        // Sept a l'ouest de l'avenue, huit a l'est, une case chacun. Les colonnes 1, 5 et 19
+        // restent libres : c'est l'arrondi de l'espacement d'origine, pas une decision nouvelle.
+        // La moitie est est decalee d'une case vers la droite par rapport a l'arrondi brut, afin
+        // de liberer la colonne 10 : sans cela l'Hotel de Ville recouvrait l'avenue sur toute
+        // sa hauteur, ce qui n'arrivait pas avant.
+        'palais-presidentiel':           { x: 0, y:17, largeur:1, hauteur:2 },
+        'palais-gouvernement':           { x: 2, y:17, largeur:1, hauteur:2 },
+        'assemblee':                     { x: 3, y:17, largeur:1, hauteur:2 },
+        'tribunal':                      { x: 4, y:17, largeur:1, hauteur:2 },
+        'universite':                    { x: 6, y:17, largeur:1, hauteur:2 },
+        'dispensaire-public':            { x: 7, y:17, largeur:1, hauteur:2 },
+        'la-tribune':                    { x: 8, y:17, largeur:1, hauteur:2 },
+        'mairie-capitale':               { x:11, y:17, largeur:1, hauteur:2 },
+        'office-notarial':               { x:12, y:17, largeur:1, hauteur:2 },
+        'hotel-republica':               { x:13, y:17, largeur:1, hauteur:2 },
+        'banque-nationale':              { x:14, y:17, largeur:1, hauteur:2 },
+        'banque-privee':                 { x:15, y:17, largeur:1, hauteur:2 },
+        'clinique-privee':               { x:16, y:17, largeur:1, hauteur:2 },
+        'loge-maconnique':               { x:17, y:17, largeur:1, hauteur:2 },
+        'commissariat':                  { x:18, y:17, largeur:1, hauteur:2 },
+
+        // --- Couronne sud-ouest ---
+        'marche':                        { x:-6, y:19, largeur:5, hauteur:2 },
+        'tabernacle-impots':             { x:-6, y:21, largeur:5, hauteur:2 }
+      }
+    }
+  }
+};
+
+// Le SEUL endroit du cadastre qui connaisse des pixels. Tout le reste -- batiments, avenues,
+// marqueur « vous etes ici », cadre -- passe par ici. Rend un objet de la meme forme que
+// PLAN_LAYOUTS (identifiant -> [x, y, largeur, hauteur]), afin que le rendu existant n'ait
+// pas une ligne a changer.
+function planLayoutDepuisGrille(plan) {
+  const cw = plan.cadre.largeur / plan.grille.colonnes;
+  const ch = plan.cadre.hauteur / plan.grille.lignes;
+  const layout = {};
+  for (const [id, c] of Object.entries(plan.batiments)) {
+    layout[id] = [
+      plan.cadre.x + c.x * cw,
+      plan.cadre.y + c.y * ch,
+      c.largeur * cw,
+      c.hauteur * ch
+    ];
+  }
+  return layout;
+}
+
 function ouvrirPlanVille(countryId, cityId, readOnly) {
   countryId = countryId || state.country;
   cityId = cityId || state.currentCity;
@@ -1461,12 +1585,31 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   if (!city) return;
 
   const empireColor = co?.col || '#C9A84C';
-  const layout = PLAN_LAYOUTS[cityId] || PLAN_LAYOUTS.capitale;
+  // LE CADASTRE D'ABORD, L'ANCIENNE TABLE ENSUITE. Une ville presente dans PLAN_VILLES est
+  // dessinee depuis ses cases ; toutes les autres continuent de passer par PLAN_LAYOUTS, au
+  // pixel pres. `estLuthecia` garde volontairement sa definition d'origine (un test de CRENEAU,
+  // vrai aussi pour Ciudad Roja, Novomirsk et Al-Madina) : tant que ces trois capitales ne sont
+  // pas passees au cadastre, elles doivent continuer d'emprunter le cadre qu'elles empruntent
+  // aujourd'hui. C'est le lot 4 qui mettra fin a cet emprunt.
+  const planGrille = PLAN_VILLES[countryId]?.[cityId] || null;
+  const layout = planGrille ? planLayoutDepuisGrille(planGrille) : (PLAN_LAYOUTS[cityId] || PLAN_LAYOUTS.capitale);
   const buildings = city.buildings || [];
   const estLuthecia = cityId === 'capitale';
 
   let SVG_W, SVG_H, perimX, perimY, perimW, perimH;
-  if (estLuthecia) {
+  if (planGrille) {
+    // Le perimetre EST la grille : il n'est plus une valeur a retenir en double.
+    perimX = planGrille.cadre.x;       perimY = planGrille.cadre.y;
+    perimW = planGrille.cadre.largeur; perimH = planGrille.cadre.hauteur;
+    // Le cadre epouse la couronne, calcule depuis l'etendue reelle des cases plutot qu'ecrit
+    // en dur. C'est ce qui corrige l'entrepot logistique : il s'etendait jusqu'a x = 994 dans
+    // un cadre de 952, et 42 px en etaient coupes hors ecran depuis toujours.
+    const pos = buildings.map(id => layout[id]).filter(Boolean);
+    const maxX = pos.length ? Math.max(...pos.map(p => p[0] + p[2])) : perimX + perimW;
+    const maxY = pos.length ? Math.max(...pos.map(p => p[1] + p[3])) : perimY + perimH;
+    SVG_W = Math.max(952, Math.ceil(maxX) + 20);
+    SVG_H = Math.max(840, Math.ceil(maxY) + 34);   // de quoi loger le titre et la legende
+  } else if (estLuthecia) {
     // Luthecia : cadre agrandi le 5 aout 2026 (facteur x1.4, meilleure lisibilite),
     // disposition relative inchangee et validee avec Fred.
     SVG_W = 952; SVG_H = 840;
@@ -1497,7 +1640,22 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   // Perimetre (perimetrique) — rectangle qui ceinture la ville
   svg += '<rect x="' + perimX + '" y="' + perimY + '" width="' + perimW + '" height="' + perimH + '" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
 
-  if (estLuthecia) {
+  if (planGrille) {
+    // LES AVENUES SONT DES CASES, PLUS DES COORDONNEES A RECOPIER. Memes rubans de 11 px,
+    // memes couleurs et meme pointille qu'avant : seule leur origine change. Elles glissent de
+    // 6 px pour s'aligner sur la frontiere de la case 10 (arbitrage de Fred), et ce faisant
+    // cessent de passer derriere le parc botanique et le musee de la ville, qui les masquaient.
+    const cwA = perimW / planGrille.grille.colonnes;
+    const chA = perimH / planGrille.grille.lignes;
+    const ep  = planGrille.avenues.epaisseur;
+    const avX = perimX + planGrille.avenues.colonne * cwA;
+    const avY = perimY + planGrille.avenues.ligne * chA;
+
+    svg += '<rect x="' + avX + '" y="' + perimY + '" width="' + ep + '" height="' + perimH + '" fill="#1e1c10"/>';
+    svg += '<line x1="' + (avX + ep / 2) + '" y1="' + perimY + '" x2="' + (avX + ep / 2) + '" y2="' + (perimY + perimH) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    svg += '<rect x="' + perimX + '" y="' + avY + '" width="' + perimW + '" height="' + ep + '" fill="#1e1c10"/>';
+    svg += '<line x1="' + perimX + '" y1="' + (avY + ep / 2) + '" x2="' + (perimX + perimW) + '" y2="' + (avY + ep / 2) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  } else if (estLuthecia) {
     // Route nord-sud, strictement a l'interieur du perimetre (coordonnees x1.4, alignees sur
     // le nouveau cadre agrandi du 5 aout 2026)
     svg += '<rect x="470" y="210" width="11" height="518" fill="#1e1c10"/>';
