@@ -1622,6 +1622,87 @@ function planSvgTerrain(plan) {
   return svg;
 }
 
+// =====================================================================
+// LE CALQUE D'ILLUSTRATION (lot 3)
+// =====================================================================
+//
+// LE « OU » ET LE « A QUOI CA RESSEMBLE » SONT DEUX TABLES. PLAN_VILLES dit a quelles cases se
+// tient un batiment ; celle-ci dit avec quelle image on le dessine. Deplacer un batiment, c'est
+// une ligne la-bas ; changer son dessin, c'est une ligne ici. Jamais les deux.
+//
+// LA CHAINE DE REPLI, ET C'EST ELLE QUI REND LE CHANTIER JOUABLE :
+//
+//     1. illustration propre a ce lieu   PLAN_ILLUSTRATIONS[id].parLieu['empire/ville']
+//     2. illustration generique          PLAN_ILLUSTRATIONS[id].image
+//     3. rectangle + icone + nom         le moteur d'origine, inchange
+//
+// Le troisieme repli repond TOUJOURS. Une ville ou aucune illustration n'est declaree s'affiche
+// donc exactement comme avant ce lot, au caractere pres -- et le banc le verifie sur les 20
+// plans. Declarer une image pour le Palais presidentiel remplace le Palais presidentiel, et lui
+// seul : pas de refonte, pas de passe globale, pas de plan a refaire.
+//
+// POURQUOI UNE SURCHARGE PAR LIEU ET NON PAR EMPIRE. Les identifiants de batiments ne sont pas
+// uniques a l'echelle du monde : 'terrain-a-batir-2' est positionne a Luthecia ET a Montrouge,
+// deux villes du MEME empire. Une surcharge indexee par empire seul rendrait ces deux parcelles
+// identiques. La cle est donc 'empire/ville', et `image` reste le repli commun.
+//
+// PLANCHE DE SPRITES — PREVUE, PAS IMPLEMENTEE. Le jour ou tout est illustre, 36 images font 36
+// requetes a chaque ouverture du plan de Luthecia ; la reponse sera une planche unique decoupee
+// par viewBox. Rien dans les tables n'aura a changer : `image` acceptera la forme
+// { planche, x, y, largeur, hauteur } a cote de la chaine actuelle, et c'est
+// planIllustrationResolue ci-dessous -- seul point de lecture -- qui saura la resoudre.
+const PLAN_ILLUSTRATIONS = {
+  // ILLUSTRATION DE DEMONSTRATION, A REMPLACER. Elle n'a aucune valeur artistique : elle existe
+  // pour prouver en production que la chaine entiere fonctionne -- image reellement chargee,
+  // debord vertical, repli, etiquette conservee. Le Palais presidentiel a ete choisi parce que
+  // la case au-dessus de lui est libre : le debord d'une case s'y voit sans rien recouvrir.
+  // Pour revenir au rectangle, il suffit de supprimer cette entree ; rien d'autre ne bouge.
+  //
+  // ELLE EST PORTEE PAR `parLieu` ET NON PAR `image`, ET CE N'EST PAS UN DETAIL. Le banc l'a
+  // releve : `palais-presidentiel` existe dans les QUATRE capitales du monde, et une
+  // illustration generique les aurait toutes repeintes d'un coup -- Ciudad Roja, Novomirsk et
+  // Al-Madina avec un palais republien. C'est le comportement voulu de `image` (une image
+  // commune sert partout), mais ce n'est pas ce qu'on veut d'une demonstration.
+  'palais-presidentiel': {
+    parLieu: { 'republic/capitale': planIllustrationDemo() },
+    hauteurCellules: 3,     // emprise de 2 cases, dessin de 3 : une case de debord VERS LE HAUT
+    ancre: 'bas'            // le bas du dessin reste colle au bas de l'emprise
+  }
+};
+
+// Le dessin de demonstration, ecrit lisiblement puis encode. Une donnee inline plutot qu'un
+// fichier : aucune ressource a deployer, aucun reseau a attendre, et la preuve porte bien sur
+// le mecanisme <image href> et non sur la disponibilite d'un hebergeur.
+function planIllustrationDemo() {
+  return 'data:image/svg+xml,' + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 60'>" +
+      "<g fill='none' stroke='#8a6a20' stroke-width='1.2' stroke-linejoin='round'>" +
+        "<path d='M20 3 L20 13'/>" +
+        "<path d='M20 3 L29 6 L20 9 Z' fill='#C9A84C' stroke='none'/>" +
+        "<path d='M7 25 L20 13 L33 25 Z' fill='#1a1610'/>" +
+        "<rect x='8.5' y='25' width='23' height='29' fill='#141208'/>" +
+        "<path d='M13 29 L13 54 M17.5 29 L17.5 54 M22.5 29 L22.5 54 M27 29 L27 54'/>" +
+        "<rect x='5' y='54' width='30' height='4' fill='#1a1610'/>" +
+      "</g>" +
+    "</svg>");
+}
+
+// LE SEUL POINT DE LECTURE DES ILLUSTRATIONS. Toute evolution -- planche de sprites, variantes
+// d'orientation, versions saisonnieres -- se branche ici et nulle part ailleurs.
+// Rend null quand il n'y a rien a dessiner : l'appelant retombe alors sur le rectangle.
+function planIllustrationResolue(id, empire, ville) {
+  const e = (typeof PLAN_ILLUSTRATIONS !== 'undefined') ? PLAN_ILLUSTRATIONS[id] : null;
+  if (!e) return null;
+  const href = (e.parLieu && e.parLieu[empire + '/' + ville]) || e.image || null;
+  if (!href || typeof href !== 'string') return null;   // la forme planche n'est pas encore lue
+  return {
+    href: href,
+    hauteurCellules: e.hauteurCellules || 0,
+    ancre: e.ancre || 'bas',
+    couche: e.couche || 0
+  };
+}
+
 // Le SEUL endroit du cadastre qui connaisse des pixels pour les BATIMENTS. Tout le reste --
 // marqueur « vous etes ici », cadre -- passe par ici. Rend un objet de la meme forme que
 // PLAN_LAYOUTS (identifiant -> [x, y, largeur, hauteur]), afin que le rendu existant n'ait
@@ -1763,13 +1844,26 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     ? (RUE_CENTRALE_NOEUDS[countryId]?.[rueCentraleNoeudActuel]?.zones || [])
     : [];
 
-  // Bâtiments
+  // Bâtiments — DEUX PASSES DEPUIS LE LOT 3, ET UNE SEULE QUAND RIEN N'EST ILLUSTRE.
+  //
+  // La premiere passe dessine, a l'identique du moteur d'origine, tout batiment SANS
+  // illustration. La seconde ne dessine que les batiments illustres, apres tous les autres et
+  // tries par le bas de leur emprise : c'est ce qui permet au debord vertical d'un batiment de
+  // passer DEVANT celui qui est derriere lui, et jamais l'inverse.
+  //
+  // Quand aucune illustration n'est declaree -- c'est le cas de 19 villes sur 20 -- la seconde
+  // passe n'emet rien du tout, et la sortie reste identique au caractere pres.
+  const aIllustrer = [];
+  const hauteurCase = planGrille ? (perimH / planGrille.grille.lignes) : 0;
+
   buildings.forEach(id => {
     const pos = layout[id];
     if (!pos) return;
     const b = BUILDINGS[id];
     if (!b) return;
     const [bx, by, bw, bh] = pos;
+    const illu = planIllustrationResolue(id, countryId, cityId);
+    if (illu) { aIllustrer.push({ id: id, pos: pos, illu: illu }); return; }
     const ctx = city.buildingContext?.[id];
     const localName = ctx?.name || b.shortName || b.name || id;
     const icon = PLAN_ICONS[id] || PLAN_ICONS.default;
@@ -1801,6 +1895,54 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
 
     svg += '</g>';
   });
+
+  // --- SECONDE PASSE : LES BATIMENTS ILLUSTRES ---
+  // Tries par le bas de leur emprise, puis par `couche` : un batiment plus au sud est dessine
+  // apres, donc son debord recouvre son voisin du nord. C'est le seul usage reel de `couche`,
+  // reserve aux cas ou cet ordre naturel ne suffit pas.
+  aIllustrer
+    .sort((a, bb) => (a.pos[1] + a.pos[3]) - (bb.pos[1] + bb.pos[3]) || a.illu.couche - bb.illu.couche)
+    .forEach(item => {
+      const [bx, by, bw, bh] = item.pos;
+      const b = BUILDINGS[item.id];
+      const ctx = city.buildingContext?.[item.id];
+      const localName = ctx?.name || b.shortName || b.name || item.id;
+      const isHere = item.id === state.currentBuilding && countryId === state.country;
+      const isTerrain = item.id.startsWith('terrain-a-batir');
+      const cx = bx + bw / 2;
+      const borderColor = isHere ? empireColor : (isTerrain ? '#3a3020' : '#2a2818');
+      const borderW = isHere ? 2 : 1;
+      const bgColor = isTerrain ? '#0e0e08' : '#141208';
+      const textColor = isHere ? empireColor : (isTerrain ? '#4a4030' : '#a09060');
+      const dashAttr = isTerrain ? ' stroke-dasharray="5,3"' : '';
+      const clickFn = readOnly ? '' : 'onclick="document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + item.id + '\')"';
+
+      // LE DEBORD MONTE, IL NE DESCEND JAMAIS. Le bas du dessin reste colle au bas de
+      // l'emprise -- c'est la ou le batiment touche le sol -- et la hauteur declaree le fait
+      // monter plus haut. Sans cela, un clocher ou une cheminee seraient ecrases dans
+      // l'empreinte au sol et toute la ville paraitrait aplatie.
+      const hIllu = (hauteurCase > 0 && item.illu.hauteurCellules > 0)
+        ? Math.max(bh, item.illu.hauteurCellules * hauteurCase)
+        : bh;
+      const yIllu = (by + bh) - hIllu;
+
+      svg += '<g class="plan-b" ' + clickFn + ' style="cursor:' + (readOnly ? 'default' : 'pointer') + '">';
+      // LE REPLI EST DESSINE DESSOUS, TOUJOURS. Si l'image ne charge pas -- fichier absent,
+      // reseau coupe, hebergeur en panne -- le rectangle est deja la et le plan reste lisible.
+      // Un trou serait pire qu'un rectangle.
+      svg += '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="3"';
+      svg += ' fill="' + bgColor + '" stroke="' + borderColor + '" stroke-width="' + borderW + '"' + dashAttr + '/>';
+      svg += '<image href="' + item.illu.href + '" x="' + bx + '" y="' + yIllu + '" width="' + bw + '" height="' + hIllu + '" preserveAspectRatio="xMidYMax meet"/>';
+      // Le lisere repasse PAR-DESSUS l'image : sans lui, le surlignage « vous etes ici » du
+      // batiment courant disparaitrait sous le dessin.
+      svg += '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="3"';
+      svg += ' fill="none" stroke="' + borderColor + '" stroke-width="' + borderW + '"' + dashAttr + '/>';
+      // L'icone emoji n'est PAS redessinee : c'est precisement ce que l'illustration remplace.
+      // L'etiquette, elle, est conservee -- le plan reste une carte, et une carte se lit.
+      const name1 = localName.length > 14 && bw < 100 ? localName.substring(0, 13) + '…' : localName;
+      svg += '<text x="' + cx + '" y="' + (by + bh - 10) + '" text-anchor="middle" font-size="8" fill="' + textColor + '" font-family="sans-serif">' + name1 + '</text>';
+      svg += '</g>';
+    });
 
   // Point rouge clignotant unique "vous etes ici" : sur le batiment si on y est entre,
   // sinon centre sur l'ensemble des batiments de la scene de rue actuelle.

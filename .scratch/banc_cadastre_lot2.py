@@ -45,6 +45,11 @@ var state={country:'republic',currentCity:'capitale',currentBuilding:null};
 """
 
 CAPTURE_PLANS = r"""
+// La table d'illustrations est VIDEE : depuis le lot 3, l'empreinte courante est le rendu de
+// reference SANS illustration. Les deux bancs comparent donc la meme chose, et l'ajout d'un
+// dessin ne fait pas echouer le banc du terrain.
+if (typeof PLAN_ILLUSTRATIONS !== 'undefined')
+  Object.keys(PLAN_ILLUSTRATIONS).forEach(function(k){ delete PLAN_ILLUSTRATIONS[k]; });
 var sortie=[];
 Object.keys(WORLD).forEach(function(p){Object.keys(WORLD[p]).forEach(function(v){
   if(!WORLD[p][v]||!WORLD[p][v].buildings) return;

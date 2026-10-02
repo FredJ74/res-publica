@@ -40,6 +40,10 @@ var state={country:'republic',currentCity:'capitale',currentBuilding:null};
 """
 
 CAPTURE_PLANS = r"""
+// Table d'illustrations videe : l'empreinte de reference date d'avant le calque d'illustration,
+// et c'est bien le rendu SANS dessin que ce banc doit comparer.
+if (typeof PLAN_ILLUSTRATIONS !== 'undefined')
+  Object.keys(PLAN_ILLUSTRATIONS).forEach(function(k){ delete PLAN_ILLUSTRATIONS[k]; });
 var sortie = [];
 Object.keys(WORLD).forEach(function(p){
   Object.keys(WORLD[p]).forEach(function(v){
