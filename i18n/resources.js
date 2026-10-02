@@ -73,6 +73,10 @@ window.RP_I18N_RESOURCES = {
   fr: {
     translation: {
       home: {
+        beta: {
+          title: "Human Gambit ouvre sa beta.",
+          body: "Republia est le premier empire a ouvrir ses portes : trois villes, une Assemblee, des tribunaux, un championnat et quelques personnes peu recommandables. D'autres systemes se construisent encore, et les empires voisins attendent leur tour. Ce que vous ferez ici — et ce que vous nous en direz — faconnera la suite."
+        },
         // Accueil Human Gambit : la marque est un nom propre, identique partout ;
         // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
         // de #intro (l'illustration porte deja marque, descripteur et slogan).
@@ -158,6 +162,8 @@ window.RP_I18N_RESOURCES = {
             warning_other: "Il vous reste {{count}} points non distribues. Vous pourrez les repartir plus tard depuis votre fiche de personnage."
           },
           identity: {
+            genderLabel: "Genre du personnage",
+            genderOtherPlaceholder: "Comment votre personnage se definit...",
             step: "Etape 7 / 7",
             title: "Identite du personnage",
             subtitle: "Donnez un visage, un nom et une histoire a votre alter ego.",
@@ -258,6 +264,12 @@ window.RP_I18N_RESOURCES = {
           bourgeois: { name: "Petite bourgeoisie", trait: "Vernis social, ambitions mesurees, pas encore le bon carnet d'adresses" },
           elite: { name: "Haute societe", trait: "Carnet d'adresses ancestral, mais n'a jamais connu la difficulte reelle" }
         },
+        genders: {
+          male: "Homme",
+          female: "Femme",
+          nonbinary: "Non binaire",
+          other: "Autre"
+        },
         schools: {
           none: { name: "Pas d'ecole", blockLabel: "Bloque : justice, affaires, professions intellectuelles" },
           basic: { name: "Ecole basique", blockLabel: "Bloque : justice, affaires" },
@@ -301,6 +313,10 @@ window.RP_I18N_RESOURCES = {
   en: {
     translation: {
       home: {
+        beta: {
+          title: "Human Gambit opens its beta.",
+          body: "Republia is the first empire to open its doors: three cities, an Assembly, courts, a football league and a few disreputable characters. Other systems are still being built, and the neighbouring empires are waiting their turn. What you do here — and what you tell us about it — will shape what comes next."
+        },
         // Accueil Human Gambit : la marque est un nom propre, identique partout ;
         // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
         // de #intro (l'illustration porte deja marque, descripteur et slogan).
@@ -383,6 +399,8 @@ window.RP_I18N_RESOURCES = {
             warning_other: "You have {{count}} points left to distribute. You can allocate them later from your character sheet."
           },
           identity: {
+            genderLabel: "Character gender",
+            genderOtherPlaceholder: "How your character defines themselves...",
             step: "Step 7 / 7",
             title: "Character Identity",
             subtitle: "Give your alter ego a face, a name and a story.",
@@ -479,6 +497,12 @@ window.RP_I18N_RESOURCES = {
           worker: { name: "Working Class", trait: "A sense of solidarity, calloused hands, too honest to lie well" },
           bourgeois: { name: "Lower Middle Class", trait: "A social veneer, modest ambitions, not quite the right address book yet" },
           elite: { name: "High Society", trait: "An ancestral address book, but never known real hardship" }
+        },
+        genders: {
+          male: "Man",
+          female: "Woman",
+          nonbinary: "Non-binary",
+          other: "Other"
         },
         schools: {
           none: { name: "No Schooling", blockLabel: "Blocked: law, business, intellectual professions" },

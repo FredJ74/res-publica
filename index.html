@@ -97,6 +97,17 @@
       <button onclick="ouvrirConnexionCompte()" class="hg-btn hg-btn-secondaire">Annuler</button>
       <div id="connexion-msg"></div>
     </div>
+
+    <!-- ENCART DE BIENVENUE — BETA (2 octobre 2026).
+         Place APRES les boutons, volontairement : il informe sans retarder le geste. Il n'a ni
+         bordure pleine ni fond, seulement un filet dore a gauche, pour rester en retrait du
+         panneau d'action. Une seule classe ajoutee (.hg-bienvenue, style.css), qui ne reprend que
+         des couleurs deja employees par .hg-signature et .hg-descripteur : aucune teinte nouvelle,
+         aucune regle existante modifiee. -->
+    <div class="hg-bienvenue">
+      <p data-i18n="home.beta.title">Human Gambit ouvre sa bêta.</p>
+      <p data-i18n="home.beta.body">Républia est le premier empire à ouvrir ses portes : trois villes, une Assemblée, des tribunaux, un championnat et quelques personnes peu recommandables. D'autres systèmes se construisent encore, et les empires voisins attendent leur tour. Ce que vous ferez ici — et ce que vous nous en direz — façonnera la suite.</p>
+    </div>
   </div>
 </div>
 
@@ -210,6 +221,20 @@
     </div>
     <label class="flbl" data-i18n="creation.steps.identity.nameLabel">Nom du personnage</label>
     <input class="finp" id="cname" type="text" placeholder="Ex: Arnold Governator, Jean-Marie Dupont-Moreau..." data-i18n-placeholder="creation.steps.identity.namePlaceholder" oninput="chkId()"/>
+    <!-- GENRE DU PERSONNAGE (2 octobre 2026).
+         Rendu par renderGenre() (creation.js) avec les memes cartes .oc/.checkmark/.oname que les
+         etapes empire/ecole/archetype : aucun composant nouveau. Le champ libre n'apparait que si
+         « Autre » est choisi. La valeur est rangee dans char.stats.genre -- le seul endroit que le
+         serveur lit deja (pnj_social_entrer : stats->>'genre'). -->
+    <label class="flbl" data-i18n="creation.steps.identity.genderLabel">Genre du personnage</label>
+    <div id="gender-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;width:100%"></div>
+    <div id="gender-autre-wrap" style="display:none;margin-top:.6rem">
+      <input class="finp" id="cgenre-autre" type="text" maxlength="24"
+             placeholder="Comment votre personnage se definit..."
+             data-i18n-placeholder="creation.steps.identity.genderOtherPlaceholder"
+             oninput="chkId()"/>
+    </div>
+
     <label class="flbl" data-i18n="creation.steps.identity.bioLabel">Biographie</label>
     <textarea class="finp" id="cbio" rows="5" placeholder="L'histoire de votre personnage, son passe, ses motivations..." data-i18n-placeholder="creation.steps.identity.bioPlaceholder" oninput="chkId()"></textarea>
     <label class="flbl" data-i18n="creation.steps.identity.mottoLabel">Devise personnelle <span style="color:#3a3020;font-size:.78rem" data-i18n="creation.steps.identity.mottoOptional">(optionnel)</span></label>
@@ -247,7 +272,7 @@
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=7"></script>
 <script src="supabase.js?v=237"></script>
-<script src="creation.js?v=9"></script>
+<script src="creation.js?v=10"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

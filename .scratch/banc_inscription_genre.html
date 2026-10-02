@@ -1,0 +1,197 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc — genre à l'inscription</title>
+<!--
+  BANC DU CHOIX DE GENRE À L'INSCRIPTION (2 octobre 2026)
+
+  CE QU'IL PROUVE. Le genre est choisi à l'étape d'identité, il conditionne le passage à
+  l'étape suivante, et il atterrit à l'endroit EXACT que le jeu lit déjà —
+  `char.stats.genre`, c'est-à-dire `personnages_donnees.stats->>'genre'` côté serveur.
+
+  POURQUOI UN DOM RECOPIÉ PLUTÔT QUE index.html. La page réelle démarre une session
+  d'authentification au chargement. On recopie donc les seuls éléments de l'étape 7 que le
+  code touche, à l'identique du balisage livré, et on fait tourner le VRAI creation.js.
+  Une garde vérifie séparément que ce balisage existe bien dans index.html.
+
+  PIÈGES DÉJÀ PAYÉS DANS CE DÉPÔT : les bouchons se déclarent APRÈS les <script src>, et
+  jamais « var state ».
+-->
+<body>
+<!-- #intro est indispensable : creation.js termine par goTo(0), qui le cherche. Sans lui, le
+     fichier levait au chargement — le banc restait valide (les fonctions sont deja definies)
+     mais signalait une erreur qui n'existe pas dans le produit. -->
+<div id="intro" class="screen"></div>
+<!-- DOM minimal : exactement les identifiants que creation.js manipule à l'étape 7 -->
+<div id="gender-grid"></div>
+<div id="gender-autre-wrap" style="display:none">
+  <input id="cgenre-autre" type="text" maxlength="24"/>
+</div>
+<input id="cname" type="text"/>
+<textarea id="cbio"></textarea>
+<input id="cmotto" type="text"/>
+<button id="n7" disabled></button>
+<pre id="verdict">(rien)</pre>
+
+<script>window.__err=[];window.onerror=function(m,s,l){__err.push((s||'').split('/').pop()+':'+l+' — '+m);return true;};</script>
+<script src="../data.js"></script>
+<script src="../creation.js"></script>
+<script>
+const L=[]; let echecs=0;
+function v(cle, libelle, ok, detail){
+  if(!ok) echecs++;
+  L.push((cle+'     ').slice(0,6)+(libelle+' '.repeat(60)).slice(0,60)+(ok?'OK':'ECHEC')+((!ok&&detail)?'   '+detail:''));
+}
+const btn = () => document.getElementById('n7');
+const champ = () => document.getElementById('cgenre-autre');
+const wrap  = () => document.getElementById('gender-autre-wrap');
+
+try{
+// =====================================================================
+// A — LE VOCABULAIRE EST CELUI QUE LE JEU LIT DÉJÀ
+// =====================================================================
+v('A1','les quatre choix sont proposes', Array.isArray(GENRES) && GENRES.length===4,
+  JSON.stringify((typeof GENRES!=='undefined'?GENRES:[]).map(g=>g.id)));
+v('A2','les deux premieres cles sont H et F',
+  GENRES[0].id==='H' && GENRES[1].id==='F', GENRES.map(g=>g.id).join(','));
+v('A3','les quatre identifiants sont distincts',
+  new Set(GENRES.map(g=>g.id)).size===4);
+
+// =====================================================================
+// B — LA VALEUR ENREGISTRÉE
+// =====================================================================
+G.genre=null; G.genreLibre='';
+v('B1','sans choix, aucune valeur', genreValeur()===null, String(genreValeur()));
+G.genre='H';  v('B2','Homme donne H', genreValeur()==='H', String(genreValeur()));
+G.genre='F';  v('B3','Femme donne F', genreValeur()==='F', String(genreValeur()));
+G.genre='NB'; v('B4','Non binaire donne NB', genreValeur()==='NB', String(genreValeur()));
+
+// « Autre » : c'est le texte du joueur qui est enregistre, jamais la chaine 'autre'.
+G.genre='autre'; G.genreLibre='';
+v('B5','Autre sans texte ne vaut rien', genreValeur()===null, String(genreValeur()));
+G.genreLibre='   ';
+v('B6','Autre avec des blancs seuls ne vaut rien', genreValeur()===null, String(genreValeur()));
+G.genreLibre='  Agenre  ';
+v('B7','le texte est normalise', genreValeur()==='Agenre', JSON.stringify(genreValeur()));
+G.genreLibre='deux   espaces';
+v('B8','les espaces internes sont reduits', genreValeur()==='deux espaces', JSON.stringify(genreValeur()));
+G.genreLibre='x'.repeat(60);
+v('B9','le texte est borne a 24 caracteres', genreValeur().length===24, String(genreValeur().length));
+v('B10','la chaine « autre » n\'est jamais enregistree', genreValeur()!=='autre');
+
+// =====================================================================
+// C — LA GARDE DE L'ÉTAPE
+// =====================================================================
+document.getElementById('cname').value='Testeur Un';
+document.getElementById('cbio').value='Une biographie.';
+G.genre=null; G.genreLibre=''; champ().value='';
+chkId();
+v('C1','nom et bio sans genre : bouton bloque', btn().disabled===true);
+G.genre='F'; chkId();
+v('C2','avec un genre : bouton ouvert', btn().disabled===false);
+G.genre='autre'; G.genreLibre=''; champ().value=''; chkId();
+v('C3','Autre sans texte : bouton bloque', btn().disabled===true);
+champ().value='Fluide'; chkId();
+v('C4','Autre avec texte : bouton ouvert', btn().disabled===false);
+v('C5','chkId relit le champ libre', G.genreLibre==='Fluide', JSON.stringify(G.genreLibre));
+document.getElementById('cname').value=''; chkId();
+v('C6','sans nom, le genre ne suffit pas', btn().disabled===true);
+document.getElementById('cname').value='Testeur Un'; chkId();
+
+// =====================================================================
+// D — LE RENDU ET LE CHAMP CONDITIONNEL
+// =====================================================================
+G.genre=null; renderGenre();
+v('D1','les quatre cartes sont dessinees',
+  document.querySelectorAll('#gender-grid .oc').length===4,
+  String(document.querySelectorAll('#gender-grid .oc').length));
+v('D2','aucune carte selectionnee au depart',
+  document.querySelectorAll('#gender-grid .oc.sel').length===0);
+v('D3','le champ libre est masque', wrap().style.display==='none', wrap().style.display);
+selGenre('NB');
+v('D4','le clic selectionne une seule carte',
+  document.querySelectorAll('#gender-grid .oc.sel').length===1);
+v('D5','et laisse le champ libre masque', wrap().style.display==='none', wrap().style.display);
+selGenre('autre');
+v('D6','« Autre » revele le champ libre', wrap().style.display!=='none', wrap().style.display);
+champ().value='Autre chose'; chkId();
+selGenre('H');
+v('D7','revenir sur un autre choix remasque le champ', wrap().style.display==='none');
+// Le texte libre est CONSERVE : un joueur qui se trompe de carte le retrouve en revenant.
+// Ce qui compte est qu'il ne puisse jamais etre enregistre tant que « Autre » n'est pas choisi.
+v('D8','le texte libre est conserve', G.genreLibre==='Autre chose', JSON.stringify(G.genreLibre));
+v('D8b','mais il n\'est pas enregistre', genreValeur()==='H', String(genreValeur()));
+selGenre('autre');
+v('D8c','et il revient si on rechoisit Autre', genreValeur()==='Autre chose', String(genreValeur()));
+selGenre('H');
+v('D9','les cartes reutilisent le composant existant',
+  document.querySelector('#gender-grid .oc .checkmark') !== null);
+
+// =====================================================================
+// E — L'ENDROIT OÙ LA DONNÉE EST RANGÉE
+// =====================================================================
+// On reproduit la composition de validateChar() : la boucle des caracteristiques,
+// PUIS le genre. L'ordre compte : la boucle ecrit dans le meme objet.
+G.genre='F'; G.genreLibre='';
+const char={ stats:{} };
+STAT_DEFS.forEach(({k})=>{ char.stats[k]=10; });
+const g=genreValeur(); if(g) char.stats.genre=g;
+v('E1','le genre est dans stats', char.stats.genre==='F', JSON.stringify(char.stats.genre));
+v('E2','les six caracteristiques sont intactes',
+  STAT_DEFS.every(({k})=>char.stats[k]===10), JSON.stringify(char.stats));
+v('E3','stats ne porte que les six cles plus genre',
+  Object.keys(char.stats).length===STAT_DEFS.length+1, Object.keys(char.stats).join(','));
+// Sans choix, aucune cle n'est posee : la donnee est absente, jamais vide.
+G.genre=null;
+const char2={ stats:{} }; STAT_DEFS.forEach(({k})=>{ char2.stats[k]=10; });
+const g2=genreValeur(); if(g2) char2.stats.genre=g2;
+v('E4','sans genre, aucune cle parasite', !('genre' in char2.stats), Object.keys(char2.stats).join(','));
+
+// =====================================================================
+// F — CE QUE LE JEU EN FERA
+// =====================================================================
+// Reproduction de socialGenreJoueur (plateau-social-pnj.js) : seuls H et F donnent une
+// civilite, tout le reste tombe sur la formulation neutre — comportement voulu.
+function lecture(stats){ const g = stats?.genre || null; return (g==='H'||g==='F') ? g : null; }
+v('F1','H donne une civilite', lecture({genre:'H'})==='H');
+v('F2','F donne une civilite', lecture({genre:'F'})==='F');
+v('F3','NB tombe sur le neutre', lecture({genre:'NB'})===null);
+v('F4','un genre libre tombe sur le neutre', lecture({genre:'Agenre'})===null);
+v('F5','absence de genre : neutre', lecture({})===null);
+
+// =====================================================================
+// G — LE GENRE FRANCHIT LE PASSAGE VERS LE JEU
+// =====================================================================
+// La creation enregistre le personnage dans localStorage puis redirige vers plateau.html
+// (index.html, ecran 9). On refait ce trajet : composition, serialisation, relecture, puis
+// lecture par la regle du plateau. C'est le dernier maillon du parcours
+// « creation de compte -> creation du personnage -> arrivee dans le jeu ».
+G.genre='F'; G.genreLibre='';
+const charVoyage={ name:'Camille Vertpre', stats:{} };
+STAT_DEFS.forEach(({k})=>{ charVoyage.stats[k]=10; });
+const gv=genreValeur(); if(gv) charVoyage.stats.genre=gv;
+let relu=null;
+try{
+  localStorage.setItem('respublica_char_banc', JSON.stringify(charVoyage));
+  relu=JSON.parse(localStorage.getItem('respublica_char_banc'));
+  localStorage.removeItem('respublica_char_banc');
+}catch(e){ relu=JSON.parse(JSON.stringify(charVoyage)); }
+v('G1','le genre survit a la serialisation', relu?.stats?.genre==='F', JSON.stringify(relu?.stats?.genre));
+v('G2','les caracteristiques aussi', STAT_DEFS.every(({k})=>relu.stats[k]===10));
+// Regle du plateau, recopiee de socialGenreJoueur : stats.genre d'abord.
+const lectureP = c => { const g = c?.stats?.genre || c?.genre || c?.sexe || null;
+                        return (g==='H'||g==='F') ? g : null; };
+v('G3','le plateau le lit a l\'arrivee', lectureP(relu)==='F', String(lectureP(relu)));
+// Et un genre libre arrive intact, sans etre interprete comme une civilite.
+G.genre='autre'; G.genreLibre='Agenre';
+const char2V={ stats:{} }; const g2v=genreValeur(); if(g2v) char2V.stats.genre=g2v;
+const relu2=JSON.parse(JSON.stringify(char2V));
+v('G4','un genre libre arrive intact', relu2.stats.genre==='Agenre', String(relu2.stats.genre));
+v('G5','et reste neutre pour les civilites', lectureP(relu2)===null, String(lectureP(relu2)));
+
+}catch(e){ L.push('EXCEPTION : '+e.message); echecs++; }
+
+document.getElementById('verdict').textContent =
+  (__err.length ? 'ERREURS DE CHARGEMENT :\n'+__err.join('\n')+'\n\n' : '')
+  + '===== BANC — GENRE À L\'INSCRIPTION =====\n' + L.join('\n')
+  + '\n' + '-'.repeat(70) + '\n' + L.length + ' gardes, ' + echecs + ' echec(s)';
+</script>

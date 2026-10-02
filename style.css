@@ -290,6 +290,33 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
   border-radius:4px 4px 0 0;
   box-shadow:0 -18px 50px rgba(0,0,0,.55);
 }
+/* ENCART DE BIENVENUE — BETA (2 octobre 2026).
+   Volontairement EN RETRAIT du panneau d'action : pas de fond, pas de cadre, un seul filet dore
+   a gauche. Il informe le joueur sans concurrencer les deux boutons qui le precedent. Reprend
+   les couleurs deja employees par .hg-signature et .hg-descripteur -- aucune teinte nouvelle. */
+.hg-bienvenue{
+  margin-top:.5rem;
+  padding:.1rem 0 .1rem .85rem;
+  border-left:2px solid rgba(201,168,76,.42);
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
+  text-align:left;
+}
+.hg-bienvenue p{
+  margin:0;
+  font-family:'Crimson Pro',Georgia,serif;
+  font-size:.86rem;
+  line-height:1.6;
+  color:#9a8f72;
+}
+.hg-bienvenue p:first-child{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.92rem;
+  letter-spacing:.09em;
+  color:#C9A84C;
+}
+
 @supports (backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px)){
   .hg-panneau{
     background:rgba(10,9,7,.55);

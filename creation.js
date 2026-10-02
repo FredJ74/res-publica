@@ -303,8 +303,75 @@ function t(key, opts) {
 let G = {
   country:null, origin:null, school:null, archetype:null, career:null,
   freeStats:{INT:0,CHA:0,VOL:0,PER:0,DUP:0,ENT:0}, freePts:30,
-  photoUrl:null, name:'', bio:'', motto:''
+  photoUrl:null, name:'', bio:'', motto:'',
+  // GENRE (2 octobre 2026). `genre` porte la cle choisie ; `genreLibre` le texte saisi quand
+  // cette cle est 'autre'. La valeur finalement enregistree est calculee par genreValeur().
+  genre:null, genreLibre:''
 };
+
+/* ---- Genre du personnage ---- */
+// LES DEUX PREMIERES CLES SONT 'H' ET 'F', ET CE N'EST PAS UN HASARD : c'est le vocabulaire que
+// le jeu lit DEJA. pnj_social_entrer lit stats->>'genre' cote serveur, et socialGenreJoueur()
+// (plateau-social-pnj.js) ne reconnait que 'H' et 'F' pour choisir une civilite -- tout le reste
+// tombe sur la formulation neutre, ce qui est le comportement voulu et documente la-bas. On ne
+// cree donc aucun vocabulaire nouveau : on remplit celui qui attendait.
+const GENRES = [
+  { id:'H',     icon:'ti-user',        cle:'male' },
+  { id:'F',     icon:'ti-user',        cle:'female' },
+  { id:'NB',    icon:'ti-user-circle', cle:'nonbinary' },
+  { id:'autre', icon:'ti-dots',        cle:'other' }
+];
+
+// La valeur REELLEMENT enregistree. Pour 'autre', c'est le texte du joueur, normalise et borne a
+// 24 caracteres ; une saisie vide ou blanche rend null, jamais la chaine 'autre'.
+function genreValeur(){
+  if(G.genre==='autre'){
+    const libre=(G.genreLibre||'').replace(/\s+/g,' ').trim().slice(0,24);
+    return libre || null;
+  }
+  return G.genre || null;
+}
+
+// Libelle a AFFICHER (recapitulatif). Pour « Autre », c'est le texte du joueur : il part dans
+// un innerHTML, il est donc echappe ici. Les trois autres sont des libelles traduits, surs.
+function genreEchappe(txt){
+  return String(txt==null?'':txt)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function genreLibelle(){
+  if(!G.genre) return '';
+  if(G.genre==='autre') return genreEchappe(genreValeur()||'');
+  const g=GENRES.find(x=>x.id===G.genre);
+  return g ? genreEchappe(t('creation.genders.'+g.cle)) : '';
+}
+
+function renderGenre(){
+  const grille=document.getElementById('gender-grid');
+  if(!grille) return;
+  grille.innerHTML=GENRES.map(g=>`
+    <div class="oc ${G.genre===g.id?'sel':''}" style="padding:.7rem .8rem" onclick="selGenre('${g.id}')">
+      <div class="checkmark"><i class="ti ti-check"></i></div>
+      <div class="oname" style="font-size:.9rem;margin-bottom:0"><i class="ti ${g.icon}" style="font-size:.95rem;color:#8a6a20"></i> ${t('creation.genders.'+g.cle)}</div>
+    </div>`).join('');
+  const wrap=document.getElementById('gender-autre-wrap');
+  if(wrap) wrap.style.display = G.genre==='autre' ? '' : 'none';
+}
+
+function selGenre(id){
+  G.genre=id;
+  renderGenre();
+  // LE TEXTE LIBRE N'EST PAS EFFACE quand on quitte « Autre », et c'est volontaire : un joueur
+  // qui se trompe de carte retrouve sa saisie en revenant, au lieu de devoir la retaper. Cela ne
+  // peut rien laisser fuir -- genreValeur() ne lit G.genreLibre QUE si G.genre vaut 'autre'.
+  // (Une premiere version l'effacait ici ; chkId() le relisait aussitot depuis le champ du DOM,
+  // si bien que l'effacement n'avait jamais lieu. Le banc l'a releve.)
+  if(id==='autre'){
+    const inp=document.getElementById('cgenre-autre');
+    if(inp){ G.genreLibre=inp.value; inp.focus(); }
+  }
+  chkId();
+}
 
 /* ---- Navigation ---- */
 // Ecran actuellement affiche (Lot 2 i18n) : suivi uniquement pour permettre le rafraichissement
@@ -324,6 +391,7 @@ function goTo(n){
   if(n===4) renderArch();
   if(n===5) renderCareer();
   if(n===6) renderStatsUI();
+  if(n===7) renderGenre();
   if(n===8) renderReview();
   if(n===9) renderSuccess();
   for(let i=1;i<=7;i++){
@@ -355,6 +423,7 @@ function rafraichirEcranCreationApresChangementLangue(){
   if(n===4) renderArch();
   if(n===5) renderCareer();
   if(n===6) renderStatsUI();
+  if(n===7) renderGenre();
   if(n===8) renderReview();
   if(n===9) renderSuccess();
 }
@@ -593,7 +662,12 @@ function handlePhoto(inp){
 function chkId(){
   G.name=document.getElementById('cname').value.trim();
   G.bio=document.getElementById('cbio').value.trim();
-  document.getElementById('n7').disabled=!G.name||!G.bio;
+  const champLibre=document.getElementById('cgenre-autre');
+  if(champLibre) G.genreLibre=champLibre.value;
+  // Le genre est requis, comme l'empire, l'ecole ou l'archetype : les quatre reponses proposees
+  // couvrent tous les cas, dont « Autre ». Choisir « Autre » sans rien ecrire ne suffit pas --
+  // sinon la donnee enregistree serait vide et la question n'aurait servi a rien.
+  document.getElementById('n7').disabled=!G.name||!G.bio||!genreValeur();
 }
 
 /* ---- Review ---- */
@@ -649,6 +723,7 @@ function renderReview(){
     <div class="rsec">
       <div class="rsectitle">${t('creation.review.lifePath')}</div>
       <div class="rbadge-wrap">
+        ${genreLibelle()?`<div class="rbadge-item"><i class="ti ti-user" style="font-size:.85rem"></i> ${genreLibelle()}</div>`:''}
         ${or?`<div class="rbadge-item"><i class="ti ${or.icon}" style="font-size:.85rem"></i> ${t('creation.origins.'+or.id+'.name')}</div>`:''}
         ${sc?`<div class="rbadge-item"><i class="ti ${sc.icon}" style="font-size:.85rem"></i> ${t('creation.schools.'+sc.id+'.name')}</div>`:''}
         ${ar?`<div class="rbadge-item"><i class="ti ${ar.icon}" style="font-size:.85rem"></i> ${arName}</div>`:''}
@@ -881,6 +956,22 @@ async function validateChar(){
     queteAccueil:{ etape:'non_commencee' }
   };
   STAT_DEFS.forEach(({k})=>{char.stats[k]=Math.min(20,getBase(k)+(G.freeStats[k]||0))});
+
+  // LE GENRE EST RANGE DANS stats, ET NULLE PART AILLEURS (2 octobre 2026).
+  //
+  // POURQUOI LA. C'est le seul endroit que le jeu lit deja : pnj_social_entrer interroge
+  // personnages_donnees.stats->>'genre'. Le dupliquer ailleurs creerait deux verites a tenir
+  // en accord, pour aucun gain.
+  //
+  // POURQUOI CELA SURVIT. personnages_vue_inserer passe NEW.stats tel quel a la creation ; en
+  // modification, le trigger de la vue REMPLACE stats par sa valeur canonique -- la cle est donc
+  // conservee et devient inalterable depuis le navigateur. Et dotation_attribuer_point ecrit
+  // `stats = v_stats || jsonb_build_object(...)`, une FUSION : depenser un point de
+  // caracteristique ne l'efface pas. Verifie en base le 2 octobre 2026.
+  //
+  // Pose APRES la boucle des caracteristiques, jamais avant : celle-ci ecrit dans le meme objet.
+  const genreChoisi = genreValeur();
+  if (genreChoisi) char.stats.genre = genreChoisi;
   try{
     // Clé par nom (évite écrasement entre personnages)
     try {

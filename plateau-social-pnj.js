@@ -66,7 +66,11 @@ const RP_SOCIAL_JALONS = {
 function socialGenreJoueur() {
   const c = (typeof state !== 'undefined' && state.char) ? state.char : null;
   if (!c) return null;
-  const g = c.genre || c.sexe || null;
+  // `stats.genre` EST LA SOURCE (2 octobre 2026) : c'est la ou la creation de personnage l'ecrit,
+  // et la ou le serveur le lit (pnj_social_entrer : stats->>'genre'). Les deux autres lectures
+  // sont conservees pour un personnage qui porterait la donnee autrement -- elles ne couteront
+  // jamais rien et evitent un cas particulier le jour ou une autre porte l'ecrira.
+  const g = c.stats?.genre || c.genre || c.sexe || null;
   return (g === 'H' || g === 'F') ? g : null;
 }
 
