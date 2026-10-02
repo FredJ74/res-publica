@@ -172,9 +172,12 @@ print(JSON.stringify({
 """))
 
     garde('planSvgTerrain existe', m['fonctionTerrain'], 'function')
-    garde('Luthecia declare 2 voies', m['nbTerrain'], 2)
-    garde('et ce sont bien deux avenues', m['types'], ['avenue', 'avenue'])
-    garde('le rendu normal contient les 2 rubans', m['avenuesDansNormal'], 2)
+    # Deux avenues (les axes majeurs) et quatre rues ajoutees par le lot d'orientation : la rue
+    # des institutions, la desserte des musees, l'allee ouest des terrains, la voie industrielle.
+    garde('Luthecia declare 6 voies', m['nbTerrain'], 6)
+    garde('deux avenues et quatre rues', m['types'],
+          ['avenue', 'avenue', 'rue', 'rue', 'rue', 'rue'])
+    garde('le rendu normal contient les 6 rubans', m['avenuesDansNormal'], 6)
     garde('terrain vide => plus aucune voie dessinee', m['avenuesSansTerrain'], 0)
     garde('deplacer l\'avenue la deplace a l\'ecran', m['deplaceeContientX5'], True)
     garde('et elle ne reste pas a son ancienne colonne', m['deplaceeContientX10'], False)
@@ -212,10 +215,16 @@ plan.terrain.forEach(function(v){
                           y0=plan.cadre.y+v.de*ch;    y1=plan.cadre.y+v.a*ch; }
   else                  { y0=plan.cadre.y+v.index*ch; y1=y0+st.epaisseur;
                           x0=plan.cadre.x+v.de*cw;    x1=plan.cadre.x+v.a*cw; }
+  // TOLERANCE GEOMETRIQUE, ET POURQUOI. Une voie posee exactement sur le bord d'un batiment
+  // produit un recouvrement de l'ordre de 1e-14 px : la meme abscisse calculee par deux chemins
+  // differents (origine + x*case + largeur*case d'un cote, origine + index*case de l'autre) ne
+  // donne pas le meme dernier bit. Sans ce seuil, l'allee ouest -- tangente aux batiments de la
+  // couronne, et c'est precisement ce qu'on veut d'une desserte -- serait signalee neuf fois.
+  var EPS = 0.01;
   Object.keys(plan.batiments).forEach(function(b){
     var c=plan.batiments[b];
     var bx0=plan.cadre.x+c.x*cw, by0=plan.cadre.y+c.y*ch, bx1=bx0+c.largeur*cw, by1=by0+c.hauteur*ch;
-    if (Math.min(bx1,x1)>Math.max(bx0,x0) && Math.min(by1,y1)>Math.max(by0,y0))
+    if (Math.min(bx1,x1)-Math.max(bx0,x0) > EPS && Math.min(by1,y1)-Math.max(by0,y0) > EPS)
       croise.push(v.axe+'@'+v.index+' traverse '+b);
   });
 });
@@ -223,12 +232,11 @@ print(JSON.stringify({croise: croise}));
 """))
     for c in t['croise']:
         print('  %s' % c)
-    # DEFAUT ANTERIEUR, VOLONTAIREMENT NON CORRIGE DANS CE LOT : l'usine pharmaceutique etait
-    # deja traversee par l'avenue est-ouest avant le cadastre. La corriger demanderait de
-    # deplacer un batiment ou de raccourcir une avenue -- un arbitrage de game design, pas une
-    # migration. Le banc le fige pour qu'il ne s'en ajoute pas d'autre en silence.
-    garde('une seule voie traverse encore un batiment, et c\'est la connue',
-          t['croise'], ['ligne@10 traverse usine-pharmaceutique-luthecia'])
+    # LA PREUVE ATTENDUE DU LOT 2, ENFIN TENUE. L'usine pharmaceutique etait traversee par
+    # l'avenue est-ouest depuis avant le cadastre ; le lot d'orientation l'a descendue sous
+    # l'avenue. Plus aucune voie ne passe derriere un batiment, et les quatre rues ajoutees
+    # n'en introduisent aucune nouvelle.
+    garde('aucune voie ne traverse un batiment', t['croise'], [])
 
     print()
     print('=' * 74)

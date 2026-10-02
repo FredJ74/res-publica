@@ -1440,6 +1440,13 @@ const PLAN_ICONS = {
   'musee-port-sainte-marie': '🖼',
   'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
   'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋', 'musee-ville-luthecia': '🖼', 'parc-botanique-national': '🌳', 'musee-national-republia': '🏛',
+  // Les huit derniers batiments de Luthecia qui partageaient encore l'icone generique (audit
+  // d'orientation, 2 octobre 2026) : avec des noms tronques par-dessus, c'etaient huit cases
+  // visuellement interchangeables sur le plan.
+  'bureau-national-emploi': '📝', 'usine-pharmaceutique-luthecia': '⚗',
+  'entrepot-logistique-luthecia': '📦',
+  'terrain-a-batir-1': '🚧', 'terrain-a-batir-2': '🚧', 'terrain-a-batir-3': '🚧',
+  'terrain-a-batir-4': '🚧', 'terrain-a-batir-5': '🚧',
   'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
@@ -1499,8 +1506,20 @@ const PLAN_VILLES = {
       //     n'invente aucun lieu. La Place du Formulaire de la Liberte et le Parc Botanique
       //     sont de vrais objets de jeu et restent des batiments.
       terrain: [
-        { type: 'avenue', axe: 'colonne', index: 10, de: 0, a: 20 },
-        { type: 'avenue', axe: 'ligne',   index: 10, de: 0, a: 20 }
+        // Les deux axes majeurs, qui se croisent au centre de la ville.
+        { type: 'avenue', axe: 'colonne', index: 10, de:  0, a: 20 },
+        { type: 'avenue', axe: 'ligne',   index: 10, de:  0, a: 20 },
+
+        // LES RUES QUE LE JOUEUR PARCOURT REELLEMENT (audit d'orientation, 2 octobre 2026).
+        // Jusqu'ici le plan ne portait que la croix centrale : le joueur voyait quinze boites
+        // alignees sans rien qui dise que c'est une rue, alors que c'est precisement celle
+        // qu'il arpente pendant toute la quete d'accueil. Les quatre voies ci-dessous ne sont
+        // pas inventees -- chacune double un enchainement de scenes qui existe deja dans
+        // RUE_CENTRALE_NOEUDS, et aucune ne traverse un batiment (le banc le verifie).
+        { type: 'rue',    axe: 'ligne',   index: 19, de:  0, a: 20 },   // rue des institutions
+        { type: 'rue',    axe: 'ligne',   index:  3, de:  6, a: 15 },   // desserte des musees
+        { type: 'rue',    axe: 'colonne', index: -1, de: -3, a: 23 },   // allee ouest des terrains
+        { type: 'rue',    axe: 'ligne',   index: 12, de: 20, a: 27 }    // voie industrielle
       ],
 
       batiments: {
@@ -1526,7 +1545,7 @@ const PLAN_VILLES = {
         // L'usine reste a cheval sur la ligne de l'avenue est-ouest, exactement comme
         // aujourd'hui : le batiment est dessine par-dessus et la masque sur sa largeur. Ce
         // defaut est anterieur a ce lot et le lot 2 le traitera avec le calque de terrain.
-        'usine-pharmaceutique-luthecia': { x:17, y: 7, largeur:3, hauteur:5 },
+        'usine-pharmaceutique-luthecia': { x:17, y:11, largeur:3, hauteur:5 },
         'centre-multinodal-luthecia':    { x:20, y: 7, largeur:3, hauteur:5 },
         'entrepot-logistique-luthecia':  { x:24, y: 7, largeur:3, hauteur:5 },
 
@@ -1546,9 +1565,9 @@ const PLAN_VILLES = {
         // de liberer la colonne 10 : sans cela l'Hotel de Ville recouvrait l'avenue sur toute
         // sa hauteur, ce qui n'arrivait pas avant.
         'palais-presidentiel':           { x: 0, y:17, largeur:1, hauteur:2 },
-        'palais-gouvernement':           { x: 2, y:17, largeur:1, hauteur:2 },
-        'assemblee':                     { x: 3, y:17, largeur:1, hauteur:2 },
-        'tribunal':                      { x: 4, y:17, largeur:1, hauteur:2 },
+        'palais-gouvernement':           { x: 1, y:17, largeur:1, hauteur:2 },
+        'assemblee':                     { x: 2, y:17, largeur:1, hauteur:2 },
+        'tribunal':                      { x: 3, y:17, largeur:1, hauteur:2 },
         'universite':                    { x: 6, y:17, largeur:1, hauteur:2 },
         'dispensaire-public':            { x: 7, y:17, largeur:1, hauteur:2 },
         'la-tribune':                    { x: 8, y:17, largeur:1, hauteur:2 },
@@ -1556,10 +1575,10 @@ const PLAN_VILLES = {
         'office-notarial':               { x:12, y:17, largeur:1, hauteur:2 },
         'hotel-republica':               { x:13, y:17, largeur:1, hauteur:2 },
         'banque-nationale':              { x:14, y:17, largeur:1, hauteur:2 },
-        'banque-privee':                 { x:15, y:17, largeur:1, hauteur:2 },
-        'clinique-privee':               { x:16, y:17, largeur:1, hauteur:2 },
-        'loge-maconnique':               { x:17, y:17, largeur:1, hauteur:2 },
-        'commissariat':                  { x:18, y:17, largeur:1, hauteur:2 },
+        'banque-privee':                 { x:16, y:17, largeur:1, hauteur:2 },
+        'clinique-privee':               { x:17, y:17, largeur:1, hauteur:2 },
+        'loge-maconnique':               { x:18, y:17, largeur:1, hauteur:2 },
+        'commissariat':                  { x:19, y:17, largeur:1, hauteur:2 },
 
         // --- Couronne sud-ouest ---
         'marche':                        { x:-6, y:19, largeur:5, hauteur:2 },

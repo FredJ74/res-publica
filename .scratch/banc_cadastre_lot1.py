@@ -111,9 +111,14 @@ def main():
 
     nav_apres = lire(os.path.join(RACINE, 'plateau-navigation.js'))
 
-    # Les villes deja passees au cadastre : elles DOIVENT differer de l'empreinte. Chaque lot
-    # suivant ajoutera sa ville ici, et le banc continuera de verifier toutes les autres.
-    AU_CADASTRE = ['republic/capitale']
+    # Les plans que les lots du cadastre ont VOLONTAIREMENT modifies depuis la reference.
+    # Luthecia est passee au cadastre ; les six autres ne different que par une icone -- le lot
+    # d'orientation a donne aux terrains a batir leur propre pictogramme, et PLAN_ICONS est une
+    # table globale indexee par identifiant de batiment. Mesure : ces six plans changent de zero
+    # caractere, seule l'icone differe.
+    AU_CADASTRE = ['republic/capitale',
+                   'narco/capitale', 'soviet/capitale', 'khalija/capitale',
+                   'narco/ville_b', 'soviet/ville_b', 'khalija/ville_b']
 
     print('=' * 74)
     print("1. LES AUTRES PLANS N'ONT PAS BOUGE")
@@ -227,9 +232,14 @@ print(JSON.stringify({
     print("3. CE QUI A BOUGE, ET DE COMBIEN")
     print('=' * 74)
     # Les quatre ajustements motives sont les seuls autorises a depasser la demi-case.
+    # Deplacements motives : ceux du lot 1 (liberer la colonne de l'avenue, separer les musees)
+    # et ceux du lot d'orientation (faire coincider les quatre groupes avec les quatre scenes de
+    # rue, et sortir l'usine de l'avenue qu'elle masquait).
     AJUSTEMENTS = ['musee-national-republia', 'mairie-capitale', 'office-notarial',
                    'hotel-republica', 'banque-nationale', 'banque-privee',
-                   'clinique-privee', 'loge-maconnique', 'commissariat']
+                   'clinique-privee', 'loge-maconnique', 'commissariat',
+                   'palais-gouvernement', 'assemblee', 'tribunal',
+                   'usine-pharmaceutique-luthecia']
     hors = [e for e in m['ecarts'] if e.split(':')[0] not in AJUSTEMENTS]
     print('  batiments deplaces de plus d\'une demi-case : %d' % len(m['ecarts']))
     for e in m['ecarts']:
@@ -241,8 +251,8 @@ print(JSON.stringify({
     print("4. LA RUE DES INSTITUTIONS ET LES AVENUES")
     print('=' * 74)
     garde('15 institutions sur la meme ligne', m['rangee'], 15)
-    garde('elle occupe toute la largeur intra-muros (colonnes 0 a 18)',
-          (m['colonnes'][0], m['colonnes'][-1]), (0, 18))
+    garde('elle occupe toute la largeur intra-muros (colonnes 0 a 19)',
+          (m['colonnes'][0], m['colonnes'][-1]), (0, 19))
     garde('sept batiments a l\'ouest de l\'avenue',
           len([c for c in m['colonnes'] if c < 10]), 7)
     garde('huit batiments a l\'est de l\'avenue',
@@ -258,9 +268,10 @@ print(JSON.stringify({
     print('  masquaient l\'avenue N-S  avant : %s' % (', '.join(m['masqueNSavant']) or 'aucun'))
     print('  masquent  l\'avenue N-S  apres : %s' % (', '.join(m['masqueNSapres']) or 'aucun'))
     garde('plus aucun batiment ne masque l\'avenue N-S', m['masqueNSapres'], [])
-    # L'usine masquait deja l'avenue est-ouest : defaut anterieur, non aggrave, traite au lot 2.
-    garde('l\'avenue E-O n\'est pas plus masquee qu\'avant',
-          sorted(m['masqueEOapres']), sorted(m['masqueEOavant']))
+    # L'usine pharmaceutique masquait l'avenue est-ouest depuis toujours. Le lot d'orientation
+    # l'a descendue sous l'avenue : plus aucun batiment ne la recouvre, et elle atteint enfin le
+    # mur est.
+    garde('plus aucun batiment ne masque l\'avenue E-O', m['masqueEOapres'], [])
 
     print()
     print('=' * 74)
