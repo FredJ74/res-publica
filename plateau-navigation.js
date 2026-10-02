@@ -1480,11 +1480,28 @@ const PLAN_VILLES = {
       // Le perimetre de Luthecia, inchange : c'est lui qui definit la grille.
       cadre:   { x: 182, y: 210, largeur: 588, hauteur: 518 },
       grille:  { colonnes: 20, lignes: 20 },
-      // Les deux avenues, en indices de case. Alignees sur la grille (+6 px par rapport aux
-      // coordonnees ecrites en dur jusqu'ici), elles ne sont plus recopiees a la main a chaque
-      // redimensionnement du plan. Elles restent de simples rubans de 11 px : le vrai calque
-      // de terrain est l'objet du lot 2.
-      avenues: { colonne: 10, ligne: 10, epaisseur: 11 },
+
+      // --- LE CALQUE DE TERRAIN (lot 2) ---
+      //
+      // Les voies ne sont plus une branche de code : ce sont des donnees, dessinees SOUS les
+      // batiments. Jusqu'a ce lot, Luthecia avait ses deux routes ecrites en dur, Port-Sainte-
+      // Marie un chemin SVG transcrit a la main, et toutes les autres villes une croix dont la
+      // position etait CHERCHEE par un balayage de 2 en 2 pixels a chaque ouverture du plan.
+      // C'etait le moteur qui decidait ou passait la rue ; ici, c'est la donnee.
+      //
+      // DEUX FORMES DE TERRAIN, PARCE QUE LA VILLE EN A DEUX.
+      //   - une VOIE est un ruban pose SUR une frontiere de cases, avec une epaisseur propre :
+      //     une avenue de 11 px ne fait pas une case de large, et la forcer a en occuper une
+      //     l'elargirait de 29 px. `axe` dit si elle suit une colonne ou une ligne, `index` la
+      //     frontiere empruntee, `de`/`a` ses deux extremites sur l'autre axe.
+      //   - une SURFACE occupe des cases pleines, comme un batiment : places, parcs, plans
+      //     d'eau. Aucune n'est declaree ici, et c'est voulu : ce lot transcrit l'existant, il
+      //     n'invente aucun lieu. La Place du Formulaire de la Liberte et le Parc Botanique
+      //     sont de vrais objets de jeu et restent des batiments.
+      terrain: [
+        { type: 'avenue', axe: 'colonne', index: 10, de: 0, a: 20 },
+        { type: 'avenue', axe: 'ligne',   index: 10, de: 0, a: 20 }
+      ],
 
       batiments: {
         // --- Couronne nord et quartier des musees ---
@@ -1552,7 +1569,60 @@ const PLAN_VILLES = {
   }
 };
 
-// Le SEUL endroit du cadastre qui connaisse des pixels. Tout le reste -- batiments, avenues,
+// L'APPARENCE D'UN TYPE DE TERRAIN, SEPAREE DE SA GEOMETRIE (lot 2). Le plan dit OU passe une
+// avenue ; cette table dit a quoi ressemble une avenue. Ajouter une ruelle plus etroite ou un
+// plan d'eau, c'est ajouter une ligne ici, sans toucher a une seule ville.
+const PLAN_TERRAIN_STYLES = {
+  // Voies — couleurs et pointilles repris a l'identique des routes ecrites en dur jusqu'ici.
+  avenue: { epaisseur: 11, remplissage: '#1e1c10', mediane: '#2e2a14', pointilles: '16,10' },
+  rue:    { epaisseur:  7, remplissage: '#1e1c10', mediane: '#2e2a14', pointilles: '10,8'  },
+  // Surfaces — aucune n'est utilisee aujourd'hui ; elles attendent que Fred en declare.
+  place:  { surface: true, remplissage: '#17150c', contour: '#2a2616' },
+  parc:   { surface: true, remplissage: '#121508', contour: '#1e2410' },
+  eau:    { surface: true, remplissage: '#0c1218', contour: '#16202c' }
+};
+
+// Dessine le calque de terrain d'un plan. Rendu AVANT les batiments, donc dessous : c'est
+// l'ordre naturel (terrain, puis bati), et c'est aussi celui qu'avait deja l'ancien moteur.
+function planSvgTerrain(plan) {
+  if (!Array.isArray(plan.terrain) || !plan.terrain.length) return '';
+  const cw = plan.cadre.largeur / plan.grille.colonnes;
+  const ch = plan.cadre.hauteur / plan.grille.lignes;
+  let svg = '';
+  for (const t of plan.terrain) {
+    const style = PLAN_TERRAIN_STYLES[t.type];
+    if (!style) continue;
+
+    if (style.surface) {
+      const x = plan.cadre.x + t.x * cw, y = plan.cadre.y + t.y * ch;
+      svg += '<rect x="' + x + '" y="' + y + '" width="' + (t.largeur * cw) + '" height="' + (t.hauteur * ch) + '"' +
+             ' fill="' + style.remplissage + '"' + (style.contour ? ' stroke="' + style.contour + '" stroke-width="1"' : '') + '/>';
+      continue;
+    }
+
+    // Une voie suit une frontiere de cases. Le ruban est pose a partir d'elle, et la mediane
+    // en pointilles court en son milieu -- exactement la geometrie des deux routes d'origine.
+    const ep = style.epaisseur;
+    if (t.axe === 'colonne') {
+      const x = plan.cadre.x + t.index * cw;
+      const y = plan.cadre.y + t.de * ch;
+      const h = (t.a - t.de) * ch;
+      svg += '<rect x="' + x + '" y="' + y + '" width="' + ep + '" height="' + h + '" fill="' + style.remplissage + '"/>';
+      svg += '<line x1="' + (x + ep / 2) + '" y1="' + y + '" x2="' + (x + ep / 2) + '" y2="' + (y + h) + '"' +
+             ' stroke="' + style.mediane + '" stroke-width="1" stroke-dasharray="' + style.pointilles + '"/>';
+    } else {
+      const y = plan.cadre.y + t.index * ch;
+      const x = plan.cadre.x + t.de * cw;
+      const w = (t.a - t.de) * cw;
+      svg += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + ep + '" fill="' + style.remplissage + '"/>';
+      svg += '<line x1="' + x + '" y1="' + (y + ep / 2) + '" x2="' + (x + w) + '" y2="' + (y + ep / 2) + '"' +
+             ' stroke="' + style.mediane + '" stroke-width="1" stroke-dasharray="' + style.pointilles + '"/>';
+    }
+  }
+  return svg;
+}
+
+// Le SEUL endroit du cadastre qui connaisse des pixels pour les BATIMENTS. Tout le reste --
 // marqueur « vous etes ici », cadre -- passe par ici. Rend un objet de la meme forme que
 // PLAN_LAYOUTS (identifiant -> [x, y, largeur, hauteur]), afin que le rendu existant n'ait
 // pas une ligne a changer.
@@ -1641,20 +1711,10 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   svg += '<rect x="' + perimX + '" y="' + perimY + '" width="' + perimW + '" height="' + perimH + '" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
 
   if (planGrille) {
-    // LES AVENUES SONT DES CASES, PLUS DES COORDONNEES A RECOPIER. Memes rubans de 11 px,
-    // memes couleurs et meme pointille qu'avant : seule leur origine change. Elles glissent de
-    // 6 px pour s'aligner sur la frontiere de la case 10 (arbitrage de Fred), et ce faisant
-    // cessent de passer derriere le parc botanique et le musee de la ville, qui les masquaient.
-    const cwA = perimW / planGrille.grille.colonnes;
-    const chA = perimH / planGrille.grille.lignes;
-    const ep  = planGrille.avenues.epaisseur;
-    const avX = perimX + planGrille.avenues.colonne * cwA;
-    const avY = perimY + planGrille.avenues.ligne * chA;
-
-    svg += '<rect x="' + avX + '" y="' + perimY + '" width="' + ep + '" height="' + perimH + '" fill="#1e1c10"/>';
-    svg += '<line x1="' + (avX + ep / 2) + '" y1="' + perimY + '" x2="' + (avX + ep / 2) + '" y2="' + (perimY + perimH) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
-    svg += '<rect x="' + perimX + '" y="' + avY + '" width="' + perimW + '" height="' + ep + '" fill="#1e1c10"/>';
-    svg += '<line x1="' + perimX + '" y1="' + (avY + ep / 2) + '" x2="' + (perimX + perimW) + '" y2="' + (avY + ep / 2) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    // LE TERRAIN EST UNE DONNEE (lot 2). Plus une ligne de voie n'est ecrite ici : tout vient
+    // de plan.terrain, et l'apparence de chaque type vient de PLAN_TERRAIN_STYLES. Le balayage
+    // qui CHERCHAIT ou faire passer la croix ne s'execute plus pour une ville au cadastre.
+    svg += planSvgTerrain(planGrille);
   } else if (estLuthecia) {
     // Route nord-sud, strictement a l'interieur du perimetre (coordonnees x1.4, alignees sur
     // le nouveau cadre agrandi du 5 aout 2026)

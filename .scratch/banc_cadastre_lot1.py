@@ -178,9 +178,13 @@ ids.forEach(function(b){ var c=B[b];
   if (x1 > largeurCadre || y1 > hauteurCadre) debordent.push(b);
 });
 
-// Les avenues, et ce qui les masque.
-var ep = plan.avenues.epaisseur;
-var avX = plan.cadre.x + plan.avenues.colonne*cw, avY = plan.cadre.y + plan.avenues.ligne*ch;
+// Les avenues, et ce qui les masque. Depuis le lot 2 elles vivent dans plan.terrain et non
+// plus dans un champ `avenues` : ce banc lit la meme source que le moteur, afin de ne jamais
+// tester une geometrie que la production n'utiliserait pas.
+var voieNS = plan.terrain.filter(function(t){return t.axe==='colonne';})[0];
+var voieEO = plan.terrain.filter(function(t){return t.axe==='ligne';})[0];
+var ep = PLAN_TERRAIN_STYLES[voieNS.type].epaisseur;
+var avX = plan.cadre.x + voieNS.index*cw, avY = plan.cadre.y + voieEO.index*ch;
 function masque(ax0,ay0,ax1,ay1,table,pix){
   return Object.keys(table).filter(function(b){
     var p = pix ? table[b] : [plan.cadre.x+table[b].x*cw, plan.cadre.y+table[b].y*ch, table[b].largeur*cw, table[b].hauteur*ch];
