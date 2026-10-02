@@ -1517,7 +1517,15 @@ function verifierSuccesMaxence(cle) {
   // Rappel de l'etape en cours de la quete d'accueil, si le joueur se sent perdu (clic trop
   // rapide, popup fermee sans lire...). Rejoue le meme message et la meme surbrillance que
   // ceux affiches au demarrage de l'etape en cours.
-  if (nomCourtPnjJeremy === 'Jérémy' && action !== 'bonjour' && /où en (?:étions|sommes)|rappel|perdu|que dois-je faire|je ne sais plus|c'était quoi déjà/i.test(action)) {
+  //
+  // Les formulations reconnues ont demenage dans plateau-quete-accueil.js
+  // (QUETE_ACCUEIL_PHRASES_PERDU, 2 octobre 2026) : les six d'origine sont conservees telles
+  // quelles, accents et apostrophes y sont desormais indifferents, et une dizaine de tournures
+  // courantes s'y ajoutent. Pas de repli en ligne ici : le rappel lui-meme vit dans ce fichier,
+  // donc s'il manque, il n'y a de toute facon rien a rejouer.
+  if (nomCourtPnjJeremy === 'Jérémy' && action !== 'bonjour'
+      && typeof queteAccueilPhraseDeJoueurPerdu === 'function'
+      && queteAccueilPhraseDeJoueurPerdu(action)) {
     if (typeof queteAccueilRappel === 'function' && queteAccueilRappel()) {
       speech.textContent = "Ah, vous vous êtes un peu perdu ? Pas de souci, je vous remontre.";
       return;
@@ -1540,7 +1548,14 @@ function verifierSuccesMaxence(cle) {
   if (pnj.name === 'Secretaire Municipal Petit'
       && typeof state !== 'undefined' && state.char && state.char.queteAccueil
       && state.char.queteAccueil.etape === 'attente_entree_mairie'
-      && /nouveau|nouvelle|nouvellement/i.test(action)) {
+      // Formulations reconnues : QUETE_ACCUEIL_PHRASES_ARRIVEE (plateau-quete-accueil.js,
+      // 2 octobre 2026). Repli sur l'ancienne expression si ce fichier n'est pas charge -- ce
+      // moment est une charniere obligatoire de la quete, il ne doit jamais devenir infranchissable
+      // a cause d'un ordre de chargement. L'ancienne expression testait nouveau|nouvelle|
+      // nouvellement, que « nouveau|nouvel » couvre entierement.
+      && (typeof queteAccueilPhraseDeNouvelArrivant === 'function'
+            ? queteAccueilPhraseDeNouvelArrivant(action)
+            : /nouveau|nouvel/i.test(action))) {
     speech.textContent = "Ah, un petit nouveau ! Vous allez avoir besoin d'aide pour découvrir la ville, j'imagine. Ça tombe bien, on a un jeune stagiaire ici qu'on ne sait pas comment occuper. En plus il ne sait pas faire un bon café, mais par contre, il est originaire de la ville. En fait... (en parlant tout bas) c'est le neveu du Maire, on n'a pas eu d'autre choix que de le prendre... Jérémy ! Viens par ici, on a une mission pour toi ! Tu vas accompagner " + (state.char.name || 'vous') + " dans la ville. (se tournant vers vous) Enfin si vous êtes d'accord bien sûr. Vous voulez l'aide de Jérémy ?";
     document.getElementById('pnj-actions').innerHTML = `
       <div style="margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.8rem">

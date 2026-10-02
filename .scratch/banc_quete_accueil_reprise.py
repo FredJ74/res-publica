@@ -37,14 +37,21 @@ def lire(f):
 # il est neutralise par le bouchon document plus bas.
 QUETE = lire('plateau-quete-accueil.js')
 
-# La regex de declenchement du rappel vit dans plateau-pnj.js : on l'extrait telle quelle
-# plutot que de la recopier, pour que le banc suive automatiquement toute modification.
+# MISE A JOUR DU 2 OCTOBRE 2026. Le declencheur du rappel n'est plus une expression reguliere
+# ecrite en ligne dans plateau-pnj.js : c'est queteAccueilPhraseDeJoueurPerdu, qui vit dans le
+# fichier de la quete deja charge ci-dessus. Le banc appelle donc directement la vraie fonction
+# (c'etait deja l'intention : ne jamais recopier le motif).
+#
+# Il reste a verifier ce que le chargement du seul fichier de quete ne peut pas prouver : que
+# plateau-pnj.js appelle REELLEMENT ce predicat. Sans cette garde, le banc testerait une
+# fonction que la production n'utilise pas.
 PNJ = lire('plateau-pnj.js')
-m = re.search(r"action !== 'bonjour' && (/[^/]+/i)\.test\(action\)", PNJ)
-if not m:
-    print("Regex de rappel introuvable dans plateau-pnj.js -- le banc doit etre mis a jour.")
+if 'queteAccueilPhraseDeJoueurPerdu(action)' not in PNJ:
+    print("plateau-pnj.js n'appelle plus queteAccueilPhraseDeJoueurPerdu -- le banc doit etre mis a jour.")
     sys.exit(2)
-REGEX_RAPPEL = m.group(1)
+if 'queteAccueilPhraseDeNouvelArrivant(action)' not in PNJ:
+    print("plateau-pnj.js n'appelle plus queteAccueilPhraseDeNouvelArrivant -- le banc doit etre mis a jour.")
+    sys.exit(2)
 
 BANC = r"""
 // ---- Bouchons minimaux : DOM, stockage, sauvegarde ----------------------------
@@ -86,7 +93,6 @@ afficherPopupQueteAccueil = function (opts) {
   if (typeof opts.suivant === 'function') opts.suivant();   // le joueur ferme la popup
 };
 
-var REGEX_RAPPEL = %REGEX%;
 
 // ---- Utilitaires de scenario --------------------------------------------------
 function joueur(etape) {
@@ -211,7 +217,7 @@ var formulations = [
   "je ne sais plus quoi faire", "rappelle-moi", "redis-moi", "on va où ?"
 ];
 R.declencheur = formulations.map(function (f) {
-  return { phrase: f, declenche_le_rappel: REGEX_RAPPEL.test(f) };
+  return { phrase: f, declenche_le_rappel: queteAccueilPhraseDeJoueurPerdu(f) };
 });
 
 print(JSON.stringify(R));
@@ -222,7 +228,7 @@ def main():
     if not os.path.exists(JSC):
         print("JavaScriptCore introuvable : %s" % JSC, file=sys.stderr)
         return 2
-    js = BANC.replace('%QUETE%', QUETE).replace('%REGEX%', REGEX_RAPPEL)
+    js = BANC.replace('%QUETE%', QUETE)
     with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as fh:
         fh.write(js)
         chemin = fh.name

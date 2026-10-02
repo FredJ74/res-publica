@@ -1,0 +1,291 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc — parcours d'arrivee du nouveau joueur</title>
+<!--
+  =====================================================================
+  BANC — LE PARCOURS COMPLET D'UN NOUVEAU JOUEUR (2 octobre 2026)
+  =====================================================================
+
+  Rejoue la chaine de decouverte dans l'ordre reel, avec le code reel :
+
+    inscription -> apparition rue du Marche / Tabernacle -> deplacement vers le Palais
+    -> declenchement de la quete -> dialogue avec le secretaire Petit
+    -> interruption (rechargement) -> reprise -> fin de la quete
+
+  Ce n'est pas une batterie de cas isoles : chaque etape part de l'etat laisse par la
+  precedente, exactement comme un joueur. Si un maillon casse, tout ce qui suit tombe, et c'est
+  precisement ce qu'on veut savoir.
+
+  CE QUE CE BANC N'ECRIT PAS. Aucune requete reseau, aucune ligne en base, aucun personnage de
+  test. sbSavePersonnage est bouchonne et seulement COMPTE : le banc verifie que la quete
+  demande bien une sauvegarde a chaque jalon, sans en executer aucune.
+
+  Usage :
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --dump-dom \
+      --virtual-time-budget=4000 .scratch/banc_parcours_arrivee.html
+-->
+<pre id="verdict">banc non execute</pre>
+
+<script>
+// ---- Bouchons, DECLARES AVANT les <script src> -------------------------------------------
+let state = { char: null, country: null, currentCity: null, currentBuilding: null, currentRoom: null, employes: [] };
+const journal = { popups: [], sauvegardes: 0, guidages: [], etapes: [] };
+
+// Aucun minuteur ne doit se declencher : l'etape du stade en arme deux, qui feraient avancer
+// l'etat tout seuls pendant que le banc mesure autre chose.
+window.setTimeout = function () { return 0; };
+
+function sbSavePersonnage() { journal.sauvegardes++; return Promise.resolve(); }
+function addJournalEntry() {}
+function showToast() {}
+function updateUI() {}
+function openPnjModal() {}
+function rpRedaction() { return Promise.resolve(null); }
+function rejoindreJeremy() { state.employes.push({ nom: 'Jérémy' }); }
+function quitterJeremy() { state.employes = state.employes.filter(e => e.nom !== 'Jérémy'); }
+function afficherGuidageFleche(n, d) { journal.guidages.push('fleche ' + d + ' @ ' + n); }
+function afficherGuidageBatiments(n) { journal.guidages.push('batiments @ ' + n); }
+function afficherGuidageUnBatiment(n, b, t) { journal.guidages.push('batiment ' + b + ' : ' + t); }
+function openForumView() {}
+function showComposeCanvasForm() {}
+function onboardingArmerComposeCanvas() {}
+function escapeHtmlText(t) { return String(t); }
+</script>
+
+<script src="../plateau-quete-accueil.js"></script>
+<script src="../plateau-rue-centrale.js"></script>
+
+<script>
+let ok = 0, ko = 0;
+const lignes = [];
+const echecs = [];
+
+function garde(nom, obtenu, attendu) {
+  const bon = JSON.stringify(obtenu) === JSON.stringify(attendu);
+  if (bon) { ok++; lignes.push('   OK   ' + nom); }
+  else {
+    ko++; lignes.push('   KO   ' + nom);
+    echecs.push(nom + '\n      attendu : ' + JSON.stringify(attendu) + '\n      obtenu  : ' + JSON.stringify(obtenu));
+  }
+}
+function etape(t) { lignes.push(''); lignes.push(t); lignes.push('-'.repeat(t.length)); }
+function etapeCourante() { return state.char && state.char.queteAccueil ? state.char.queteAccueil.etape : null; }
+function dernierePopup() { return journal.popups.length ? journal.popups[journal.popups.length - 1] : null; }
+
+try {
+
+// On observe les fenetres de la quete sans toucher a sa logique : la vraie fonction ecrit dans
+// un DOM qui n'existe pas ici, on la remplace par une capture qui ferme la fenetre aussitot
+// (exactement ce que fait un joueur qui clique la croix -- et qui, dans ce jeu, FAIT AVANCER
+// la chaine, puisque closeBtn.onclick appelle opts.suivant).
+afficherPopupQueteAccueil = function (opts) {
+  // L'etape AU MOMENT ou la fenetre s'ouvre : c'est elle qui raconte le chemin parcouru, et non
+  // l'etape finale. Fermer une fenetre appelle opts.suivant et en ouvre souvent une autre : une
+  // seule action du joueur peut donc traverser plusieurs etapes, et c'est voulu.
+  journal.etapes.push(etapeCourante());
+  journal.popups.push({
+    titre: opts.titre || '',
+    texte: (opts.texte || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    boutons: (opts.actionsHtml || '').match(/>[^<>]{3,}</g) || []
+  });
+  if (typeof opts.suivant === 'function') opts.suivant();
+};
+
+// =========================================================================================
+etape('1. INSCRIPTION — l\'etat que la creation de personnage produit');
+// =========================================================================================
+// Reproduit a l'identique ce que creation.js met dans `char` (lignes 947-974) : la ville, le
+// genre dans stats, et l'etape de quete initiale. Le banc de formulations teste les fonctions ;
+// celui-ci part de l'etat reel d'un personnage tout neuf.
+state.char = {
+  name: 'Camille Zztest',
+  stats: { genre: 'F' },
+  queteAccueil: { etape: 'non_commencee' }
+};
+state.country = 'republic';
+state.currentCity = 'capitale';
+state.currentBuilding = null;   // creation.js n'ecrit NI batiment NI piece : le joueur naît dehors
+state.currentRoom = null;
+
+garde('la quete est initialisee mais pas commencee', etapeCourante(), 'non_commencee');
+garde('le personnage naît dehors (aucun batiment)', state.currentBuilding, null);
+
+// =========================================================================================
+etape('2. APPARITION — rue du Marche / Tabernacle des impots');
+// =========================================================================================
+const noeudApparition = noeudDepartRueCentrale(state.country, state.currentCity);
+garde('apparition au Tabernacle des impots', noeudApparition, 'luthecia-tabernacle-impots');
+
+const scene = RUE_CENTRALE_NOEUDS.republic[noeudApparition];
+garde('le Tabernacle des impots est cliquable sur la scene',
+  scene.zones.some(z => z.buildingId === 'tabernacle-impots'), true);
+garde('le Marche de Luthecia est cliquable sur la scene',
+  scene.zones.some(z => z.buildingId === 'marche'), true);
+
+// LE JOUEUR SAIT OU ALLER. C'est le point que le deplacement du point d'apparition rendait
+// indispensable : avant, il n'y avait aucun objectif a cette etape.
+garde('« Mes Objectifs » indique le Palais',
+  queteAccueilObjectifActuel(), 'Rendez-vous au Palais présidentiel.');
+
+// Et la quete ne demarre PAS ici : la marche doit exister.
+garde('la quete ne demarre pas au point d\'apparition',
+  queteAccueilDoitDemarrer('republic', noeudApparition), false);
+
+// =========================================================================================
+etape('3. DEPLACEMENT — un seul mouvement vers la gauche');
+// =========================================================================================
+const sorties = Object.keys(scene.liens).filter(d => scene.liens[d]);
+lignes.push('        sorties du Tabernacle : ' + sorties.map(d => d + ' -> ' + scene.liens[d]).join(', '));
+garde('la gauche mene au Palais presidentiel', scene.liens.gauche, 'luthecia-palais-presidentiel');
+
+const noeudPalais = scene.liens.gauche;
+garde('le Palais est une scene existante', !!RUE_CENTRALE_NOEUDS.republic[noeudPalais], true);
+
+// Le retour doit exister, sinon le nouveau joueur serait enferme.
+const liensPalais = []
+  .concat(Object.values(RUE_CENTRALE_NOEUDS.republic[noeudPalais].liens || {}))
+  .concat(Object.values(RUE_CENTRALE_NOEUDS.republic[noeudPalais].liensParArrivee || {}).flatMap(o => Object.values(o)));
+garde('et un chemin ramene au Tabernacle', liensPalais.includes(noeudApparition), true);
+
+// =========================================================================================
+etape('4. DECLENCHEMENT — le garde presidentiel interpelle le joueur');
+// =========================================================================================
+garde('la quete doit demarrer au Palais', queteAccueilDoitDemarrer('republic', noeudPalais), true);
+
+const sauvegardesAvant = journal.sauvegardes;
+demarrerQueteAccueil();
+
+garde('l\'etape avance des la premiere fenetre', journal.etapes[0], 'garde_en_cours');
+garde('une sauvegarde a ete demandee', journal.sauvegardes > sauvegardesAvant, true);
+garde('le garde a parle', journal.popups[0].titre, 'Un garde presidentiel');
+garde('il envoie a l\'Hotel de Ville', /Hôtel de Ville/.test(journal.popups[0].texte), true);
+
+// FERMER UNE FENETRE FAIT AVANCER (closeBtn.onclick appelle opts.suivant). Le banc ferme donc
+// chaque fenetre comme un joueur presse : la sequence d'introduction se deroule d'un trait
+// jusqu'au guidage de rue. Aucun cran ne se perd en route -- c'est le contraire d'un blocage.
+lignes.push('        fenetres traversees : ' + journal.popups.map(p => p.titre).join(' > '));
+lignes.push('        etapes traversees   : ' + journal.etapes.join(' > '));
+garde('la sequence d\'introduction se deroule entierement', etapeCourante(), 'guide_carrefour');
+garde('et le joueur garde un objectif a chaque instant',
+  queteAccueilObjectifActuel(), "Rendez-vous à l'Hôtel de Ville.");
+
+// La quete ne doit pas pouvoir se rejouer : l'etape change AVANT l'affichage, donc un F5
+// pendant la lecture de la fenetre ne remet pas le garde en scene.
+garde('elle ne se redeclenche pas', queteAccueilDoitDemarrer('republic', noeudPalais), false);
+
+// =========================================================================================
+etape('5. GUIDAGE jusqu\'a l\'Hotel de Ville');
+// =========================================================================================
+// Le joueur marche : palais -> imprimerie -> hotel de ville. queteAccueilVerifierGuidage est
+// appelee a chaque scene affichee (par afficherNoeudRue).
+garde('le joueur est deja au guidage de rue', etapeCourante(), 'guide_carrefour');
+queteAccueilVerifierGuidage('republic', 'luthecia-imprimerie');
+garde('au carrefour, l\'etape avance', etapeCourante(), 'guide_hdv');
+queteAccueilVerifierGuidage('republic', 'luthecia-hotel-de-ville');
+garde('devant l\'Hotel de Ville, l\'etape avance', etapeCourante(), 'attente_entree_mairie');
+garde('l\'objectif nomme le secretaire Petit',
+  /Petit/.test(queteAccueilObjectifActuel() || ''), true);
+
+// =========================================================================================
+etape('6. DIALOGUE AVEC LE SECRETAIRE PETIT');
+// =========================================================================================
+// La porte est une phrase tapee par le joueur. Jeremy lui a dit de repondre « vous etes
+// nouveau » ; le joueur peut aussi le dire a sa facon.
+garde('« je suis nouveau » (ce que Jeremy a souffle)',
+  queteAccueilPhraseDeNouvelArrivant('je suis nouveau'), true);
+garde('« je viens d\'arriver »',
+  queteAccueilPhraseDeNouvelArrivant("je viens d'arriver"), true);
+garde('« le garde m\'envoie »',
+  queteAccueilPhraseDeNouvelArrivant("le garde m'envoie"), true);
+garde('« nouvel arrivant »',
+  queteAccueilPhraseDeNouvelArrivant('nouvel arrivant'), true);
+garde('mais pas « combien d\'impots dois-je payer ? »',
+  queteAccueilPhraseDeNouvelArrivant("combien d'impôts dois-je payer ?"), false);
+
+// Le joueur accepte l'aide de Jeremy.
+const etapesAvantJeremy = journal.etapes.length;
+queteAccueilAccepterJeremy();
+garde('Jeremy rejoint le groupe', journal.etapes[etapesAvantJeremy], 'jeremy_groupe');
+// Meme enchainement qu'a l'etape 4 : la fenetre fermee mene directement au guidage suivant.
+garde('et le guidage vers la salle des elections suit', etapeCourante(), 'guide_salle_elections');
+garde('l\'objectif suit', queteAccueilObjectifActuel(), 'Rendez-vous dans la salle des élections.');
+
+// =========================================================================================
+etape('7. INTERRUPTION — le joueur ferme son navigateur et revient');
+// =========================================================================================
+// Un rechargement remet toutes les variables JS a zero : seule l'etape persistee en base
+// (colonne quete_accueil) revient. On simule donc une reprise depuis la seule etape.
+const ETAPES_A_REPRENDRE = [
+  'garde_en_cours', 'guide_hdv', 'attente_entree_mairie', 'jeremy_groupe',
+  'attente_fiche_personnage', 'attente_hotel', 'attente_bar', 'attente_offre_verre',
+  'guide_stade', 'stade_attente_action', 'attente_depart_jeremy', 'proposition_carriere'
+];
+ETAPES_A_REPRENDRE.forEach(function (e) {
+  state.char = { name: 'Camille Zztest', stats: { genre: 'F' }, queteAccueil: { etape: e } };
+  const objectif = queteAccueilObjectifActuel();
+  const popupsAvant = journal.popups.length;
+  const rappelDisponible = queteAccueilRappel();
+  const aParle = journal.popups.length > popupsAvant || journal.guidages.length > 0;
+  // Le joueur doit TOUJOURS savoir ou il en est : un objectif ecrit, ou Jeremy qui le redit.
+  garde('reprise a ' + e + ' : le joueur sait ou il en est',
+    !!objectif || (rappelDisponible && aParle), true);
+});
+
+// La sequence de cloture n'affiche pas d'objectif (choix documente) : on verifie alors que le
+// rappel, lui, repond -- sinon le joueur serait vraiment sans repere.
+['carriere_orientation', 'carriere_repertoire', 'carriere_recontact', 'carriere_conclusion'].forEach(function (e) {
+  state.char = { name: 'Camille Zztest', stats: { genre: 'F' },
+                 queteAccueil: { etape: e }, queteCarriere: { ambition: 'politique', etape: 'a_rencontrer' } };
+  garde('reprise a ' + e + ' : Jeremy peut redire l\'etape', queteAccueilRappel(), true);
+});
+
+// =========================================================================================
+etape('8. FIN DE LA QUETE');
+// =========================================================================================
+state.char = { name: 'Camille Zztest', stats: { genre: 'F' }, queteAccueil: { etape: 'proposition_carriere' } };
+state.employes = [{ nom: 'Jérémy' }];
+
+// Le joueur choisit une ambition : la sequence de cloture s'enchaine seule, chaque fenetre
+// fermee appelant la suivante (c'est ce que fait la croix dans ce jeu).
+queteAccueilChoisirAmbition('politique');
+garde('l\'ambition est enregistree', state.char.queteCarriere.ambition, 'politique');
+garde('la quete est terminee', etapeCourante(), 'presentation_en_cours');
+garde('Jeremy a quitte le groupe', state.employes.length, 0);
+garde('le forum local est propose', /forum local/.test(dernierePopup().texte), true);
+garde('et la proposition laisse le choix', dernierePopup().boutons.length, 2);
+
+// Epilogue volontairement non rejoue : documente dans plateau-quete-accueil.js. On le verifie
+// explicitement pour que personne ne le prenne plus tard pour un oubli.
+garde('l\'epilogue forum ne se rejoue pas', (function () {
+  const n = journal.popups.length;
+  queteAccueilProposerPresentationForum();   // l'etape n'est plus carriere_terminee
+  return etapeCourante();
+})(), 'presentation_en_cours');
+
+// La branche criminelle s'arrete plus tot, sans la sequence de cloture generique.
+state.char = { name: 'Camille Zztest', stats: { genre: 'F' }, queteAccueil: { etape: 'proposition_carriere' } };
+state.employes = [{ nom: 'Jérémy' }];
+queteAccueilChoisirAmbition('criminel');
+garde('la branche criminelle termine aussi la quete', etapeCourante(), 'presentation_en_cours');
+garde('Jeremy a quitte le groupe la aussi', state.employes.length, 0);
+
+// Et le refus precoce reste une fin propre.
+state.char = { name: 'Camille Zztest', stats: { genre: 'F' }, queteAccueil: { etape: 'attente_entree_mairie' } };
+queteAccueilRefuserJeremy();
+garde('refuser Jeremy est une fin acceptee', etapeCourante(), 'refusee');
+garde('et plus aucun objectif ne s\'affiche', queteAccueilObjectifActuel(), null);
+
+} catch (e) {
+  ko++;
+  echecs.push('EXCEPTION : ' + (e && e.stack ? e.stack : e));
+}
+
+let sortie = lignes.join('\n') + '\n\n' + '='.repeat(74) + '\n';
+if (ko === 0) sortie += 'VERDICT : parcours complet rejoue, ' + ok + '/' + ok + ' gardes passees.\n';
+else {
+  sortie += 'VERDICT : ' + ko + ' ECHEC(S) sur ' + (ok + ko) + ' gardes.\n\n';
+  echecs.forEach(e => { sortie += '  - ' + e + '\n'; });
+}
+sortie += '='.repeat(74);
+document.getElementById('verdict').textContent = sortie;
+</script>

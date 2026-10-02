@@ -5,6 +5,45 @@ const RUE_CENTRALE_DEPART = {
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
+// =====================================================================
+// LES PREMIERS PAS D'UN PERSONNAGE NEUF (2 octobre 2026)
+// =====================================================================
+//
+// Un personnage dont la quete d'accueil n'a pas encore demarre ouvre les yeux ICI, et non au
+// noeud de depart habituel de sa ville. Au Tabernacle des Impots, une seule fleche part vers
+// la gauche (l'autre est une fleche retour) : son premier deplacement naturel le conduit donc
+// au Palais presidentiel, ou le garde l'interpelle et ou la quete commence. Avant ce jour, le
+// nouveau joueur naissait DEJA au Palais : la quete se declenchait dans sa premiere seconde de
+// jeu, sans qu'il ait rien fait. Ce qui est ajoute ici est une marche, pas un correctif.
+//
+// POURQUOI DEDUIT A L'AFFICHAGE, ET PAS ECRIT A LA CREATION. index.html ne charge pas ce
+// fichier -- la page d'inscription ne peut donc pas amorcer la memoire de rue. Et la deduction
+// est de toute facon plus juste : elle fonctionne meme si le joueur s'inscrit sur un appareil
+// et joue sur un autre, ce qu'une cle localStorage posee a la creation ne saurait pas faire.
+//
+// QUI N'EST PAS CONCERNE, ET C'EST L'ESSENTIEL. Un personnage cree avant l'existence de la
+// quete porte quete_accueil = null ; un personnage en cours ou ayant termine porte une autre
+// etape. Dans les deux cas la condition est fausse et le noeud habituel s'applique, inchange.
+// Aucun joueur existant ne change de position.
+//
+// ET AUCUN NOUVEAU N'EST TELEPORTE NON PLUS. Des le premier affichage d'une scene,
+// afficherNoeudRue memorise le noeud ; obtenirNoeudRueCentraleMemorise le relit ensuite EN
+// PRIORITE sur ce defaut. Un joueur qui se deconnecte au Tabernacle sans etre alle au Palais
+// y revient donc exactement, et non au point d'apparition.
+const RUE_CENTRALE_DEPART_PREMIERS_PAS = {
+  republic: { capitale: 'luthecia-tabernacle-impots' }
+};
+
+// Le noeud de depart d'une ville, pour CE personnage. Seul point de lecture du couple de
+// tables ci-dessus (plateau-navigation.js), afin que la regle vive a un seul endroit.
+function noeudDepartRueCentrale(pays, ville) {
+  const habituel = RUE_CENTRALE_DEPART[pays]?.[ville] || null;
+  const etape = (typeof state !== 'undefined' && state.char && state.char.queteAccueil)
+    ? state.char.queteAccueil.etape : null;
+  if (etape !== 'non_commencee') return habituel;
+  return RUE_CENTRALE_DEPART_PREMIERS_PAS[pays]?.[ville] || habituel;
+}
+
 /* ===========================================================
    RES PUBLICA — PLATEAU-RUE-CENTRALE.JS
    Navigation par scenes de rue (zoom/fondu), en remplacement

@@ -1,0 +1,392 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc — formulations de la quete d'accueil</title>
+<!--
+  =====================================================================
+  BANC — FORMULATIONS RECONNUES PAR LA QUETE D'ACCUEIL (2 octobre 2026)
+  =====================================================================
+
+  Ce banc CHARGE ET EXECUTE le code reel du jeu. Il n'imite aucune expression reguliere et ne
+  cherche aucune chaine dans les fichiers. C'est le piege classique de ce depot : un banc qui
+  grep une chaine trouve la documentation du correctif et passe au vert sans rien prouver. Ici,
+  les fonctions appelees sont exactement celles que le navigateur appellera.
+
+  Il couvre quatre choses :
+    1. les formulations que le secretaire Petit doit comprendre, et celles qu'il doit ignorer ;
+    2. celles qui doivent declencher le rappel de Jeremy, et celles qui doivent continuer de
+       partir vers l'IA ;
+    3. LA NON-REGRESSION : les formulations historiques des deux detections sont testees une par
+       une, explicitement ;
+    4. le point d'apparition du nouveau personnage, et l'objectif de l'etape 'non_commencee'.
+
+  Usage :
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --dump-dom \
+      --virtual-time-budget=4000 .scratch/banc_quete_accueil_formulations.html
+
+  LES STUBS SONT DECLARES AVANT LES <script src> : declares apres, les fichiers charges ne les
+  verraient pas (piege releve sur les bancs precedents). `state` est declare ici en `let` parce
+  que plateau-core.js n'est PAS charge : les deux fichiers testes le lisent comme une globale.
+-->
+<pre id="verdict">banc non execute</pre>
+
+<script>
+  // L'etat du jeu, mute entre les tests.
+  let state = { char: null, country: null, currentCity: null };
+</script>
+
+<script src="../plateau-quete-accueil.js"></script>
+<script src="../plateau-rue-centrale.js"></script>
+
+<script>
+let ok = 0, ko = 0;
+const lignes = [];
+const echecs = [];
+
+function garde(nom, obtenu, attendu) {
+  const bon = JSON.stringify(obtenu) === JSON.stringify(attendu);
+  if (bon) ok++;
+  else { ko++; echecs.push(nom + '\n      attendu : ' + JSON.stringify(attendu) + '\n      obtenu  : ' + JSON.stringify(obtenu)); }
+}
+function titre(t) { lignes.push(''); lignes.push(t); }
+
+try {
+
+// Les fonctions doivent exister : si un renommage les fait disparaitre, le banc doit tomber
+// franchement et non passer au vert faute de pouvoir tester quoi que ce soit.
+garde('queteAccueilNormaliserPhrase existe',    typeof queteAccueilNormaliserPhrase,    'function');
+garde('queteAccueilPhraseDeNouvelArrivant existe', typeof queteAccueilPhraseDeNouvelArrivant, 'function');
+garde('queteAccueilPhraseDeJoueurPerdu existe', typeof queteAccueilPhraseDeJoueurPerdu, 'function');
+garde('noeudDepartRueCentrale existe',          typeof noeudDepartRueCentrale,          'function');
+
+const arrivant = queteAccueilPhraseDeNouvelArrivant;
+const perdu    = queteAccueilPhraseDeJoueurPerdu;
+
+// =====================================================================
+titre('1. Petit — les formulations HISTORIQUES (non-regression du 4 aout 2026)');
+// =====================================================================
+['je suis nouveau', 'je suis nouvelle', 'nouvellement arrivé']
+  .forEach(p => garde('[historique] ' + p, arrivant(p), true));
+
+titre('2. Petit — formulations ACCEPTEES');
+[
+  // Les sept formulations demandees
+  "je viens d'arriver",
+  "je viens d'arriver à Luthécia",
+  "le garde m'envoie",
+  "on m'a demandé de venir",
+  "c'est ma première visite",
+  'nouvel arrivant',                 // ne passait PAS avant : « nouvel » n'est ni nouveau ni nouvelle
+  'nouvelle arrivante',
+  // Variantes evidentes de la meme intention
+  "je viens juste d'arriver",
+  "je viens tout juste d’arriver",   // apostrophe typographique : echouait avant ce jour
+  "le garde du palais m'a envoyé",
+  'envoyé par le garde',
+  'de la part du garde',
+  "on m'a dit de venir vous voir",
+  "c'est la première fois que je viens",
+  'je viens me présenter',
+  'je dois me présenter',
+  "je voudrais m'inscrire",
+  'je viens me faire enregistrer',
+  "je ne suis pas d'ici",
+  'je débarque en ville',
+  'je suis arrivé hier',
+  "je viens m'installer ici",
+  // Casse et ponctuation indifferentes
+  'JE SUIS NOUVEAU',
+  '  je suis nouveau !!  '
+].forEach(p => garde(p, arrivant(p), true));
+
+// TOLERANCE CONNUE, CONSERVEE VOLONTAIREMENT, documentee dans plateau-quete-accueil.js : la
+// restreindre ferait retomber « nouveau » employe seul, precisement ce que le correctif
+// historique avait ouvert. Testee pour que personne ne la prenne plus tard pour un defaut.
+garde('[tolerance connue] quoi de nouveau ?', arrivant('quoi de nouveau ?'), true);
+
+titre('3. Petit — formulations qui doivent rester REFUSEES');
+[
+  'bonjour',
+  'au revoir',
+  'merci',
+  "combien d'impôts dois-je payer ?",
+  'quels sont les impôts à Luthécia ?',
+  'où est le maire ?',
+  'le maire est-il là ?',
+  'je cherche du travail',
+  'je voudrais payer mes impôts',
+  'pouvez-vous me donner un formulaire ?',
+  'qui êtes-vous ?',
+  'vous travaillez ici depuis longtemps ?',
+  ''
+].forEach(p => garde('refus attendu : ' + JSON.stringify(p), arrivant(p), false));
+
+// =====================================================================
+titre('4. Jérémy — les formulations HISTORIQUES (non-regression)');
+// =====================================================================
+[
+  'où en étions-nous ?',
+  'où en sommes-nous ?',
+  'rappel',
+  'je suis perdu',
+  'que dois-je faire ?',
+  'je ne sais plus',
+  "c'était quoi déjà ?"
+].forEach(p => garde('[historique] ' + p, perdu(p), true));
+
+// Les deux ecritures qui echouaient AVANT ce jour, faute de normalisation.
+garde('[piege apostrophe] c’était quoi déjà ?', perdu('c’était quoi déjà ?'), true);
+garde('[piege accents] ou en etions nous',           perdu('ou en etions nous'), true);
+
+titre('5. Jérémy — formulations ACCEPTEES (elargissement)');
+[
+  'je fais quoi ?',
+  'je fais quoi maintenant ?',
+  "qu'est-ce que je dois faire ?",
+  'on fait quoi ?',
+  'je suis bloqué',
+  'je suis coincé',
+  'et maintenant ?',
+  'et ensuite ?',
+  'et après ?',
+  'quelle est la suite ?',
+  'aide-moi',
+  'aidez-moi',
+  "j'ai besoin d'aide",
+  'au secours',
+  'un coup de main ?',
+  'je ne comprends pas',
+  'je comprends pas',
+  "j'ai oublié",
+  'quel est mon objectif ?',
+  'mes objectifs ?',
+  'ma mission ?',
+  'on en est où ?',
+  'où on en est ?',
+  'où dois-je aller ?',
+  'je ne sais pas où aller',
+  'je vais où ?',
+  'répète',
+  'redis-moi ça',
+  'je suis égaré'
+].forEach(p => garde(p, perdu(p), true));
+
+titre('6. Jérémy — formulations qui doivent rester REFUSEES (et partir vers l\'IA)');
+[
+  'qui es-tu ?',
+  'tu connais le maire ?',
+  'parle-moi de Luthécia',
+  'quel temps fait-il ?',
+  'tu aimes le café ?',
+  'où est le stade ?',
+  "c'est quoi les impôts ?",
+  'tu es le neveu du maire ?',
+  'merci pour ton aide',
+  'bonjour',
+  'tu as quel âge ?',
+  ''
+].forEach(p => garde('refus attendu : ' + JSON.stringify(p), perdu(p), false));
+
+// Tolerance connue, signalee pour ne pas etre decouverte plus tard comme un defaut.
+garde("[tolerance connue] je n'ai pas besoin d'aide", perdu("je n'ai pas besoin d'aide"), true);
+
+// =====================================================================
+titre('7. Normalisation');
+// =====================================================================
+const N = queteAccueilNormaliserPhrase;
+garde('accents retires',              N('Où En Étions-Nous ?'), 'ou en etions nous ?');
+garde('apostrophe typographique',     N('c’est'), "c'est");
+garde('tiret devient espace',         N('aidez-moi'), 'aidez moi');
+garde('espaces reduits et coupes',    N('  je   suis  nouveau  '), 'je suis nouveau');
+garde('null tolere',                  N(null), '');
+garde('undefined tolere',             N(undefined), '');
+
+// =====================================================================
+titre('8. Point d\'apparition du nouveau personnage');
+// =====================================================================
+function departAvecEtape(etape, pays, ville) {
+  state.char = (etape === null) ? {} : { queteAccueil: { etape: etape } };
+  return noeudDepartRueCentrale(pays, ville) || null;
+}
+
+garde('personnage neuf a Luthecia -> Tabernacle',
+  departAvecEtape('non_commencee', 'republic', 'capitale'), 'luthecia-tabernacle-impots');
+
+// LES JOUEURS EXISTANTS NE BOUGENT PAS — c'est la garantie demandee par Fred.
+garde('quete en cours -> noeud habituel (Palais)',
+  departAvecEtape('garde_en_cours', 'republic', 'capitale'), 'luthecia-palais-presidentiel');
+garde('quete terminee -> noeud habituel (Palais)',
+  departAvecEtape('carriere_terminee', 'republic', 'capitale'), 'luthecia-palais-presidentiel');
+garde('presentation forum en cours -> noeud habituel (Palais)',
+  departAvecEtape('presentation_en_cours', 'republic', 'capitale'), 'luthecia-palais-presidentiel');
+garde('ancien personnage sans quete -> noeud habituel (Palais)',
+  departAvecEtape(null, 'republic', 'capitale'), 'luthecia-palais-presidentiel');
+
+// Aucune autre ville, aucun autre empire n'est touche.
+garde('Port-Sainte-Marie inchangee meme pour un neuf',
+  departAvecEtape('non_commencee', 'republic', 'ville_a'), 'psm-centre-multimodal');
+garde('Montrouge inchangee meme pour un neuf',
+  departAvecEtape('non_commencee', 'republic', 'ville_b'), 'montrouge-vue-3');
+garde('Novomirsk inchangee meme pour un neuf',
+  departAvecEtape('non_commencee', 'soviet', 'capitale'), 'novomirsk-vue-1');
+garde('ville inconnue -> null, comme avant',
+  departAvecEtape('non_commencee', 'republic', 'ville_inexistante'), null);
+
+// =====================================================================
+titre('9. Le trajet reel depuis le Tabernacle');
+// =====================================================================
+const tab = RUE_CENTRALE_NOEUDS.republic['luthecia-tabernacle-impots'];
+garde('le noeud d\'apparition existe', !!tab, true);
+garde('une seule fleche part vers le Palais (gauche)', tab.liens.gauche, 'luthecia-palais-presidentiel');
+garde('le Palais existe comme noeud', !!RUE_CENTRALE_NOEUDS.republic['luthecia-palais-presidentiel'], true);
+garde('le Tabernacle des Impots est sur la scene',
+  tab.zones.some(z => z.buildingId === 'tabernacle-impots'), true);
+garde('le Marche est sur la scene',
+  tab.zones.some(z => z.buildingId === 'marche'), true);
+
+// Le retour doit exister, sinon le joueur serait enferme au Palais.
+const palais = RUE_CENTRALE_NOEUDS.republic['luthecia-palais-presidentiel'];
+const liensPalais = []
+  .concat(Object.values(palais.liens || {}))
+  .concat(Object.values(palais.liensParArrivee || {}).flatMap(l => Object.values(l)));
+garde('un lien ramene du Palais vers le Tabernacle',
+  liensPalais.includes('luthecia-tabernacle-impots'), true);
+
+// La quete ne doit demarrer qu'au Palais, jamais au point d'apparition.
+state.char = { queteAccueil: { etape: 'non_commencee' } };
+garde('la quete NE demarre PAS au Tabernacle',
+  queteAccueilDoitDemarrer('republic', 'luthecia-tabernacle-impots'), false);
+garde('la quete demarre au Palais',
+  queteAccueilDoitDemarrer('republic', 'luthecia-palais-presidentiel'), true);
+state.char = { queteAccueil: { etape: 'garde_en_cours' } };
+garde('la quete ne se redeclenche pas une fois commencee',
+  queteAccueilDoitDemarrer('republic', 'luthecia-palais-presidentiel'), false);
+state.char = {};
+garde('un ancien personnage ne declenche jamais la quete',
+  queteAccueilDoitDemarrer('republic', 'luthecia-palais-presidentiel'), false);
+
+// =====================================================================
+titre('10. « Mes Objectifs » a l\'etape non_commencee');
+// =====================================================================
+function objectifPour(etape, pays, ville) {
+  state.char = (etape === null) ? {} : { queteAccueil: { etape: etape } };
+  state.country = pays;
+  state.currentCity = ville;
+  return queteAccueilObjectifActuel();
+}
+
+garde('neuf a Luthecia : une consigne existe',
+  objectifPour('non_commencee', 'republic', 'capitale'), 'Rendez-vous au Palais présidentiel.');
+// La consigne serait intenable ailleurs : la quete ne peut demarrer qu'au Palais de Luthecia.
+garde('neuf dans une autre ville : aucune consigne',
+  objectifPour('non_commencee', 'republic', 'ville_a'), null);
+garde('neuf dans un autre empire : aucune consigne',
+  objectifPour('non_commencee', 'soviet', 'capitale'), null);
+garde('ancien personnage sans quete : aucune consigne',
+  objectifPour(null, 'republic', 'capitale'), null);
+// Les objectifs existants ne changent pas.
+garde('garde_en_cours inchange',
+  objectifPour('garde_en_cours', 'republic', 'capitale'), "Présentez-vous à l'Hôtel de Ville.");
+garde('proposition_carriere inchange',
+  objectifPour('proposition_carriere', 'republic', 'capitale'), "Dites à Jérémy ce que vous aimeriez devenir.");
+garde('une etape terminale n\'affiche rien',
+  objectifPour('carriere_terminee', 'republic', 'capitale'), null);
+
+// =====================================================================
+titre('11. Ce que l\'elargissement ajoute, mesure contre les ANCIENS motifs');
+// =====================================================================
+// Les deux expressions reellement en production avant le 2 octobre 2026, recopiees ici telles
+// quelles. Le banc ne se contente pas de verifier que les nouvelles formulations passent : il
+// prouve qu'elles NE passaient PAS avant, et que toutes celles qui passaient passent encore.
+// C'est la seule facon de distinguer un elargissement reel d'un banc complaisant.
+const ANCIEN_PETIT  = /nouveau|nouvelle|nouvellement/i;
+const ANCIEN_RAPPEL = /où en (?:étions|sommes)|rappel|perdu|que dois-je faire|je ne sais plus|c'était quoi déjà/i;
+
+// a) Formulations VRAIMENT nouvelles chez Petit : refusees avant, acceptees maintenant.
+[
+  'nouvel arrivant',
+  "je viens d'arriver",
+  "je viens d'arriver à Luthécia",
+  "le garde m'envoie",
+  "on m'a demandé de venir",
+  "c'est ma première visite",
+  'de la part du garde',
+  'je viens me présenter',
+  "je ne suis pas d'ici",
+  'je débarque en ville'
+].forEach(p => {
+  garde('[Petit] AVANT refusait : ' + p, ANCIEN_PETIT.test(p), false);
+  garde('[Petit] MAINTENANT accepte : ' + p, arrivant(p), true);
+});
+
+// b) Tout ce que l'ancien motif de Petit acceptait doit encore etre accepte.
+['je suis nouveau', 'je suis nouvelle', 'nouvellement arrivé', 'nouvelle arrivante',
+ 'quoi de nouveau ?', 'un petit nouveau', 'les nouvelles recrues'].forEach(p => {
+  garde('[Petit] l\'ancien acceptait : ' + p, ANCIEN_PETIT.test(p), true);
+  garde('[Petit] le nouveau accepte toujours : ' + p, arrivant(p), true);
+});
+
+// c) Formulations VRAIMENT nouvelles chez Jeremy.
+[
+  'je fais quoi ?',
+  'je suis bloqué',
+  'et maintenant ?',
+  'et ensuite ?',
+  'aide-moi',
+  "j'ai besoin d'aide",
+  'je ne comprends pas',
+  "j'ai oublié",
+  'on en est où ?',
+  'où on en est ?',
+  'où dois-je aller ?',
+  'quel est mon objectif ?',
+  'répète',
+  'au secours',
+  'je suis coincé',
+  'quelle est la suite ?',
+  'je vais où ?',
+  // Les deux pieges d'ecriture : meme phrase, apostrophe et accents differents.
+  'c’était quoi déjà ?',
+  'ou en etions nous'
+].forEach(p => {
+  garde('[Jérémy] AVANT refusait : ' + p, ANCIEN_RAPPEL.test(p), false);
+  garde('[Jérémy] MAINTENANT accepte : ' + p, perdu(p), true);
+});
+
+// d) Tout ce que l'ancien motif du rappel acceptait doit encore etre accepte.
+['où en étions-nous ?', 'où en sommes-nous ?', 'rappel', 'je suis perdu',
+ 'que dois-je faire ?', 'je ne sais plus', "c'était quoi déjà ?"].forEach(p => {
+  garde('[Jérémy] l\'ancien acceptait : ' + p, ANCIEN_RAPPEL.test(p), true);
+  garde('[Jérémy] le nouveau accepte toujours : ' + p, perdu(p), true);
+});
+
+// e) Et les refus doivent rester des refus dans les DEUX versions : l'elargissement ne doit
+// pas avoir ouvert la porte a des questions ordinaires.
+['bonjour', 'qui es-tu ?', 'quel temps fait-il ?', 'où est le stade ?',
+ 'tu aimes le café ?'].forEach(p => {
+  garde('[Jérémy] refuse avant ET apres : ' + p, [ANCIEN_RAPPEL.test(p), perdu(p)], [false, false]);
+});
+['bonjour', 'merci', 'où est le maire ?', 'je cherche du travail',
+ "combien d'impôts dois-je payer ?"].forEach(p => {
+  garde('[Petit] refuse avant ET apres : ' + p, [ANCIEN_PETIT.test(p), arrivant(p)], [false, false]);
+});
+
+} catch (e) {
+  ko++;
+  echecs.push('EXCEPTION : ' + (e && e.stack ? e.stack : e));
+}
+
+// =====================================================================
+let sortie = lignes.join('\n') + '\n\n' + '='.repeat(70) + '\n';
+if (ko === 0) {
+  sortie += 'VERDICT : ' + ok + '/' + ok + ' gardes passees.\n';
+  sortie += 'Motifs : ' + (typeof QUETE_ACCUEIL_PHRASES_ARRIVEE !== 'undefined' ? QUETE_ACCUEIL_PHRASES_ARRIVEE.length : '?')
+         + ' pour l\'arrivee, '
+         + (typeof QUETE_ACCUEIL_PHRASES_PERDU !== 'undefined' ? QUETE_ACCUEIL_PHRASES_PERDU.length : '?')
+         + ' pour le rappel.\n';
+} else {
+  sortie += 'VERDICT : ' + ko + ' ECHEC(S) sur ' + (ok + ko) + ' gardes.\n\n';
+  echecs.forEach(e => { sortie += '  - ' + e + '\n'; });
+}
+sortie += '='.repeat(70);
+document.getElementById('verdict').textContent = sortie;
+</script>

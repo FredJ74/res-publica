@@ -780,6 +780,95 @@ function queteAccueilExpliquerLicenciement() {
   });
 }
 
+// =====================================================================
+// RECONNAITRE L'INTENTION DU JOUEUR (2 octobre 2026)
+// =====================================================================
+//
+// Deux moments de la quete dependent de ce que le joueur TAPE, et non d'un bouton : se declarer
+// nouveau devant le secretaire Petit, et demander a Jeremy ou il en est. Les deux reposaient sur
+// une expression reguliere ecrite en ligne dans plateau-pnj.js -- /nouveau|nouvelle|nouvellement/
+// pour l'un, six formulations figees pour l'autre. Le principe est conserve ; ce qui change est
+// la largeur, et le fait que la connaissance « ce que dit un nouveau joueur » vive desormais dans
+// le fichier de la quete plutot que dans l'aiguilleur de dialogue PNJ.
+//
+// CE QUI N'EST PAS FAIT ICI. Aucun second moteur de dialogue, aucune analyse semantique, aucun
+// appel reseau. Deux listes de motifs et une normalisation, c'est tout. Une phrase non reconnue
+// n'est jamais perdue : elle part vers l'IA comme n'importe quelle question libre.
+//
+// LES DEUX PIEGES QUE LA NORMALISATION FERME. Les motifs d'origine etaient ecrits AVEC accents
+// et AVEC l'apostrophe droite : un joueur tapant « c’était quoi déjà » avec l'apostrophe
+// typographique de son telephone n'etait pas reconnu, alors que le meme texte avec l'apostrophe
+// droite l'etait. Les deux ecritures sont desormais equivalentes, de meme que « aidez-moi » et
+// « aidez moi ». Les motifs ci-dessous s'ecrivent donc SANS accent et avec l'apostrophe droite :
+// c'est la forme normalisee qu'ils doivent rencontrer, jamais le texte brut.
+function queteAccueilNormaliserPhrase(texte) {
+  return String(texte == null ? '' : texte)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')          // accents
+    .replace(/[\u2018\u2019\u02bc\u00b4\u0060]/g, "'")    // apostrophes -> droite
+    .replace(/[-_]+/g, ' ')                             // aidez-moi == aidez moi
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// LE JOUEUR SE DECLARE NOUVEAU (devant le secretaire Petit).
+//
+// Le premier motif remplace a lui seul l'ancien /nouveau|nouvelle|nouvellement/ : « nouvel »
+// etant un prefixe de « nouvelle » et de « nouvellement », deux alternatives suffisent et
+// couvrent STRICTEMENT PLUS que les trois d'avant. Elles ajoutent notamment « nouvel arrivant »,
+// qui ne passait pas -- « nouvel » n'etait ni « nouveau » ni « nouvelle ».
+//
+// TOLERANCE CONNUE ET CONSERVEE : « quoi de nouveau ? » est accepte, comme avant ce jour. La
+// restreindre demanderait d'exiger un contexte autour du mot, ce qui ferait retomber « nouveau »
+// seul -- precisement la formulation que le correctif du 4 aout 2026 avait ouverte. La
+// consequence est au demeurant benigne : la quete avance vers la ou le joueur allait de toute
+// facon. Non corrige volontairement.
+const QUETE_ACCUEIL_PHRASES_ARRIVEE = [
+  /nouveau|nouvel/,
+  /vien[st]{1,2}.{0,15}d'arriver|je suis arrive|a mon arrivee|des mon arrivee/,
+  /je viens m'installer|je m'installe|je viens de m'installer|je viens d'emmenager/,
+  /premiere visite|premiere fois|jamais venu|jamais mis les pieds/,
+  /garde.{0,25}(?:m'envoie|m'a envoye|m'a dit|me dit de)/,
+  /envoye[e]? par.{0,20}garde|de la part du garde/,
+  /on m'a (?:demande|dit)|on me demande de|je dois me presenter|je viens me presenter/,
+  /me faire (?:enregistrer|connaitre)|m'enregistrer|m'inscrire/,
+  /je ne suis pas d'ici|je ne connais pas la ville|je debarque/
+];
+
+// LE JOUEUR EST PERDU (devant Jeremy).
+//
+// Les six formulations d'origine sont toutes conservees, a l'identique, dans les motifs
+// ci-dessous -- le banc le verifie une par une. S'y ajoutent les tournures courantes qui
+// partaient jusqu'ici vers l'IA, c'est-a-dire vers RIEN du tout quand l'IA est indisponible.
+//
+// « besoin d'aide » plutot que « aide » seul : « aide » attraperait « je n'ai pas besoin
+// d'aide », et surtout n'importe quelle phrase ou le joueur propose son aide a Jeremy.
+const QUETE_ACCUEIL_PHRASES_PERDU = [
+  // Les quatre ordres de mots que le joueur emploie reellement : « ou en sommes-nous »,
+  // « on en est ou », « ou on en est », « ou en est on ». Le banc de reprise avait releve que
+  // le troisieme passait a l'IA alors que les autres etaient reconnus.
+  /ou en (?:etions|sommes|est on|etait on)|on en est ou|on en etait ou|ou on en est|ou on en etait/,
+  /rappel|redis|redites|repete|repetez/,
+  /perdu|egare/,
+  /que dois je faire|qu'est ce que je dois faire|qu'est ce que je fais|je fais quoi|on fait quoi/,
+  /je ne sais plus|je sais plus|j'ai oublie|c'etait quoi deja|c'est quoi deja/,
+  /bloque|coince/,
+  /et maintenant|et ensuite|et apres|la suite|on va ou|je vais ou/,
+  /aide moi|aidez moi|besoin d'aide|au secours|un coup de main/,
+  /je ne comprends pas|je comprends pas|je comprend pas|j'y comprends rien/,
+  /ou dois je aller|ou aller|ou doit on aller|mon objectif|mes objectifs|ma mission/
+];
+
+function queteAccueilPhraseDeNouvelArrivant(texte) {
+  const t = queteAccueilNormaliserPhrase(texte);
+  return !!t && QUETE_ACCUEIL_PHRASES_ARRIVEE.some(function (m) { return m.test(t); });
+}
+
+function queteAccueilPhraseDeJoueurPerdu(texte) {
+  const t = queteAccueilNormaliserPhrase(texte);
+  return !!t && QUETE_ACCUEIL_PHRASES_PERDU.some(function (m) { return m.test(t); });
+}
+
 // =====================
 // "MES OBJECTIFS" — carnet de quete simple : action suivante a accomplir pour l'etape en
 // cours du tronc commun. Lu par afficherObjectifsSecrets() (plateau-politique.js), qui
@@ -789,6 +878,13 @@ function queteAccueilExpliquerLicenciement() {
 // specialisees, pas encore reecrites/alimentees dans ce lot.
 // =====================
 const QUETE_ACCUEIL_OBJECTIFS = {
+  // ETAPE 'non_commencee' (2 octobre 2026) — AFFICHEE SOUS CONDITION DE LIEU, voir
+  // queteAccueilObjectifActuel. Depuis que le nouveau personnage apparait au Tabernacle des
+  // Impots et non plus au Palais (RUE_CENTRALE_DEPART_PREMIERS_PAS), il existe un vrai moment
+  // ou il est en jeu sans que la quete ait demarre. Sans cette ligne, « Mes Objectifs » se
+  // replie sur les objectifs secrets d'archetype et RIEN ne lui dit ou aller : c'est le seul
+  // defaut que le deplacement du point d'apparition introduisait.
+  non_commencee: "Rendez-vous au Palais présidentiel.",
   garde_en_cours: "Présentez-vous à l'Hôtel de Ville.",
   guide_carrefour: "Rendez-vous à l'Hôtel de Ville.",
   guide_hdv: "Rendez-vous à l'Hôtel de Ville.",
@@ -813,7 +909,15 @@ const QUETE_ACCUEIL_OBJECTIFS = {
 
 function queteAccueilObjectifActuel() {
   if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return null;
-  return QUETE_ACCUEIL_OBJECTIFS[state.char.queteAccueil.etape] || null;
+  const etape = state.char.queteAccueil.etape;
+  // CONDITION DE LIEU, OBLIGATOIRE. La quete ne peut demarrer qu'au Palais presidentiel de
+  // Luthecia (queteAccueilDoitDemarrer teste exactement ce couple). Un personnage neuf cree
+  // dans un autre empire ou une autre ville porte lui aussi 'non_commencee' : lui afficher
+  // « Rendez-vous au Palais presidentiel » serait une consigne intenable. Il n'a alors aucun
+  // objectif de quete, et ses objectifs secrets d'archetype s'affichent normalement.
+  if (etape === 'non_commencee'
+      && !(state.country === 'republic' && state.currentCity === 'capitale')) return null;
+  return QUETE_ACCUEIL_OBJECTIFS[etape] || null;
 }
 
 // =====================

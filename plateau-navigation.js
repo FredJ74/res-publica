@@ -183,7 +183,13 @@ function showVueRue(batimentQuitte) {
   const ancienConteneur = document.getElementById('rue-centrale-conteneur');
   if (ancienConteneur) ancienConteneur.remove();
 
-  const noeudDepart = typeof RUE_CENTRALE_DEPART !== 'undefined' ? RUE_CENTRALE_DEPART[state.country]?.[state.currentCity] : null;
+  // noeudDepartRueCentrale (plateau-rue-centrale.js) rend le noeud habituel de la ville, SAUF
+  // pour un personnage dont la quete d'accueil n'a pas encore demarre -- qui commence au
+  // Tabernacle des Impots, a une fleche du Palais. Repli sur la table brute si ce fichier
+  // n'est pas charge : le comportement redevient alors exactement celui d'avant.
+  const noeudDepart = (typeof noeudDepartRueCentrale === 'function')
+    ? noeudDepartRueCentrale(state.country, state.currentCity)
+    : (typeof RUE_CENTRALE_DEPART !== 'undefined' ? RUE_CENTRALE_DEPART[state.country]?.[state.currentCity] : null);
   const rueCentraleDisponible = noeudDepart && typeof RUE_CENTRALE_NOEUDS !== 'undefined' && RUE_CENTRALE_NOEUDS[state.country]?.[noeudDepart];
 
   if (rueCentraleDisponible) {
