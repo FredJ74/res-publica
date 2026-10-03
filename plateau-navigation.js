@@ -1421,12 +1421,27 @@ const PLAN_LAYOUTS = {
 
 // Icônes emoji par bâtiment
 const PLAN_ICONS = {
-  'palais-presidentiel': '🏛', 'palais-gouvernement': '🏛',
-  'assemblee': '⚖', 'tribunal': '⚖',
+  // QUATRE COLLISIONS LEVEES (audit UX, 4 octobre 2026). Jusqu'ici le Palais presidentiel, le
+  // Palais du Gouvernement et le Musee National portaient le MEME pictogramme, de meme que
+  // l'Assemblee et le Tribunal, le Dispensaire et la Clinique, l'Armurerie et le Commissariat.
+  // A chaque fois les deux batiments confondus sont voisins immediats sur le plan, et dans le
+  // premier cas il s'agissait des deux lieux les plus importants du jeu. Dans chaque paire on
+  // garde le pictogramme le plus evident et on change l'autre ; les quatre capitales du monde
+  // partagent ces batiments, donc la confusion -- et sa correction -- valent partout.
+  //
+  // DEUX PICTOGRAMMES ONT ETE ECARTES APRES ESSAI DE RENDU, PAS PAR GOUT. Les symboles du plan
+  // bloc Unicode ancien (U+2xxx) sont dessines en monochrome fin : a la taille reelle du plan,
+  // 15 px, l'epee croisee U+2694 s'effondrait en une croix illisible. Seuls les pictogrammes du
+  // bloc emoji proprement dit tiennent a cette taille. L'Armurerie garde donc son bouclier --
+  // il lui va -- et c'est le Commissariat qui prend la voiture de police. Le commissariat local
+  // des autres villes n'est pas touche : l'Armurerie n'existe que dans les capitales, il n'y a
+  // donc aucune collision nulle part.
+  'palais-presidentiel': '🏛', 'palais-gouvernement': '🏰',
+  'assemblee': '🗳', 'tribunal': '⚖',
   'banque-nationale': '🏦', 'banque-privee': '🔐', 'banque-locale': '🏦',
   'hotel-republica': '🏨', 'hotel-port': '🏨', 'hotel-mineur': '🏨',
-  'clinique-privee': '🏥', 'dispensaire-public': '🏥', 'dispensaire-public-v': '🏥',
-  'commissariat': '🛡', 'commissariat-local': '🛡',
+  'clinique-privee': '🏥', 'dispensaire-public': '💊', 'dispensaire-public-v': '🏥',
+  'commissariat': '🚓', 'commissariat-local': '🛡',
   'la-tribune': '📰', 'imprimerie-librairie': '🖨',
   'loge-maconnique': '⬡', 'universite': '🎓',
   'marche': '🛒', 'armurerie': '🛡',
@@ -1439,7 +1454,7 @@ const PLAN_ICONS = {
   'centre-multinodal-montrouge': '🚉',
   'musee-port-sainte-marie': '🖼',
   'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
-  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋', 'musee-ville-luthecia': '🖼', 'parc-botanique-national': '🌳', 'musee-national-republia': '🏛',
+  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋', 'musee-ville-luthecia': '🖼', 'parc-botanique-national': '🌳', 'musee-national-republia': '🗿',
   // Les huit derniers batiments de Luthecia qui partageaient encore l'icone generique (audit
   // d'orientation, 2 octobre 2026) : avec des noms tronques par-dessus, c'etaient huit cases
   // visuellement interchangeables sur le plan.
@@ -1592,9 +1607,15 @@ const PLAN_VILLES = {
 // avenue ; cette table dit a quoi ressemble une avenue. Ajouter une ruelle plus etroite ou un
 // plan d'eau, c'est ajouter une ligne ici, sans toucher a une seule ville.
 const PLAN_TERRAIN_STYLES = {
-  // Voies — couleurs et pointilles repris a l'identique des routes ecrites en dur jusqu'ici.
-  avenue: { epaisseur: 11, remplissage: '#1e1c10', mediane: '#2e2a14', pointilles: '16,10' },
-  rue:    { epaisseur:  7, remplissage: '#1e1c10', mediane: '#2e2a14', pointilles: '10,8'  },
+  // CONTRASTE RELEVE (audit UX, 4 octobre 2026). Les voies heritaient des couleurs des routes
+  // ecrites en dur avant le cadastre : mesure sur le fond du plan (#111008), le ruban d'avenue
+  // ressortait a 1,12 contre 1 et sa mediane a 1,32 contre 1. Autant dire rien -- les rues se
+  // lisaient comme des joints entre blocs, pas comme des voies, et le joueur ne pouvait pas
+  // suivre un trajet du regard. Le ruban passe a 1,41 et la mediane a 3,01 : c'est elle qui
+  // accroche l'oeil et dessine le trace. Aucune geometrie ne bouge, seules les couleurs.
+  avenue: { epaisseur: 11, remplissage: '#332e1c', mediane: '#6b5f38', pointilles: '16,10' },
+  // La rue reste en retrait de l'avenue, pour que la hierarchie des voies se voie elle aussi.
+  rue:    { epaisseur:  7, remplissage: '#2a2618', mediane: '#574d2d', pointilles: '10,8'  },
   // Surfaces — aucune n'est utilisee aujourd'hui ; elles attendent que Fred en declare.
   place:  { surface: true, remplissage: '#17150c', contour: '#2a2616' },
   parc:   { surface: true, remplissage: '#121508', contour: '#1e2410' },
@@ -1802,7 +1823,7 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   let svg = '<svg viewBox="0 0 ' + SVG_W + ' ' + SVG_H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
 
   // Style animation
-  svg += '<defs><style>@keyframes pulse{0%,100%{r:5;opacity:1}50%{r:9;opacity:.3}}.pd{animation:pulse 1.4s ease-in-out infinite}.plan-b{transition:transform .15s ease;transform-box:fill-box;transform-origin:center}.plan-b:hover{transform:scale(1.22)}</style></defs>';
+  svg += '<defs><style>@keyframes pulse{0%,100%{r:5;opacity:1}50%{r:9;opacity:.3}}.pd{animation:pulse 1.4s ease-in-out infinite}@keyframes pulseAnneau{0%,100%{opacity:.9}50%{opacity:.35}}.pd-anneau{animation:pulseAnneau 1.4s ease-in-out infinite}.plan-b{transition:transform .15s ease;transform-box:fill-box;transform-origin:center}.plan-b:hover{transform:scale(1.22)}</style></defs>';
 
   // Fond
   svg += '<rect width="' + SVG_W + '" height="' + SVG_H + '" fill="#111008"/>';
@@ -1982,8 +2003,21 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
         pcy = maxY + 10;
       }
     }
+    // L'ANNEAU DE LOCALISATION (audit UX, 4 octobre 2026). Le point rouge mesurait 5 px de rayon
+    // et se posait sur le plus petit batiment du plan, au coeur de la zone la plus dense : le
+    // signal le plus faible a l'endroit le plus charge. Un joueur ne retrouvait pas sa position
+    // d'un coup d'oeil. On cercle donc le batiment lui-meme, d'un trait clair qui respire au
+    // meme rythme que le point -- une forme large accroche l'oeil la ou une pastille se perd.
+    // Le point rouge est CONSERVE, inchange dans son principe et sa position.
+    if (state.currentBuilding && layout[state.currentBuilding] && countryId === state.country) {
+      const [ax, ay, aw, ah] = layout[state.currentBuilding];
+      const m = 3;
+      svg += '<rect x="' + (ax - m) + '" y="' + (ay - m) + '" width="' + (aw + m * 2) + '" height="' + (ah + m * 2) +
+             '" rx="5" fill="none" stroke="#ff3333" stroke-width="1.8" opacity="0.9" class="pd-anneau"/>';
+    }
     if (pcx !== null) {
-      svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="9" fill="#cc2020" opacity="0.2" class="pd"/>';
+      svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="13" fill="#cc2020" opacity="0.18" class="pd"/>';
+      svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="9" fill="#cc2020" opacity="0.28" class="pd"/>';
       svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="5" fill="#ff3333" stroke="#fff" stroke-width="1.2" class="pd"/>';
     }
   }

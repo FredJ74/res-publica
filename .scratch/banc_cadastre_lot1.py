@@ -128,11 +128,20 @@ def main():
     garde('les 20 plans du monde sont tous rendus', (len(avant), len(apres)), (20, 20))
     garde('aucun plan n\'apparait ni ne disparait', sorted(avant) == sorted(apres), True)
 
-    inchanges = [k for k in avant if k in apres and avant[k] == apres[k]]
-    modifies = [k for k in avant if k in apres and avant[k] != apres[k]]
-    garde('seules les villes passees au cadastre different', sorted(modifies), sorted(AU_CADASTRE))
-    garde('les %d autres sont identiques au caractere pres' % (20 - len(AU_CADASTRE)),
-          len(inchanges), 20 - len(AU_CADASTRE))
+    # LA GARDE PORTE SUR LA GEOMETRIE, PAS SUR LA CHAINE ENTIERE. La claim du lot 1 est « aucun
+    # batiment n'a bouge ailleurs qu'a Luthecia » -- pas « pas un octet n'a change ». Depuis, des
+    # lots ulterieurs ont legitimement modifie des pictogrammes et ajoute une regle d'animation
+    # au bloc <style>, emise sur les 20 plans. Comparer les chaines brutes ferait echouer cette
+    # garde pour des raisons qui n'ont rien a voir avec ce qu'elle protege. On compare donc la
+    # suite des coordonnees dessinees, qui est exactement ce que « rien n'a bouge » veut dire.
+    import re as _re
+    def geometrie(svg):
+        sans_style = _re.sub(r'<defs>.*?</defs>', '', svg, flags=_re.S)
+        return _re.findall(r'(?:x|y|x1|y1|x2|y2|cx|cy|r|width|height)="(-?[\d.]+)"', sans_style)
+    inchanges = [k for k in avant if k in apres and geometrie(avant[k]) == geometrie(apres[k])]
+    modifies = [k for k in avant if k in apres and geometrie(avant[k]) != geometrie(apres[k])]
+    garde('seule la geometrie des villes au cadastre a bouge', sorted(modifies), ['republic/capitale'])
+    garde('les 19 autres ont une geometrie strictement inchangee', len(inchanges), 19)
 
     print()
     print('=' * 74)

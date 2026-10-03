@@ -129,6 +129,10 @@ function rendu(){ state.country='republic'; state.currentCity='capitale'; state.
   ouvrirPlanVille('republic','capitale',true);
   return document.getElementById('minimap-ville-body').innerHTML; }
 
+// La couleur du ruban est LUE dans la table de styles : un releve de contraste ne doit pas
+// faire echouer un banc qui teste la geometrie des voies.
+var RUBAN = PLAN_TERRAIN_STYLES.avenue.remplissage;
+function compteRubans(s){ return (s.split(RUBAN).length - 1) + (s.split(PLAN_TERRAIN_STYLES.rue.remplissage).length - 1); }
 var normal = rendu();
 
 // a) Retirer le terrain doit faire DISPARAITRE les avenues. Si le rendu ne bouge pas, c'est
@@ -157,13 +161,13 @@ var cw = plan.cadre.largeur/plan.grille.colonnes, ch = plan.cadre.hauteur/plan.g
 print(JSON.stringify({
   nbTerrain: sauve.length,
   types: sauve.map(function(t){return t.type;}),
-  avenuesDansNormal: (normal.match(/#1e1c10/g)||[]).length,
-  avenuesSansTerrain: (sansTerrain.match(/#1e1c10/g)||[]).length,
+  avenuesDansNormal: compteRubans(normal),
+  avenuesSansTerrain: compteRubans(sansTerrain),
   deplaceeContientX5: deplacee.indexOf('x="'+(plan.cadre.x+5*cw)+'"') >= 0,
   deplaceeContientX10: deplacee.indexOf('x="'+(plan.cadre.x+10*cw)+'" y="'+plan.cadre.y+'" width="11"') >= 0,
   placeRect: avecPlace.indexOf('<rect x="'+(plan.cadre.x+3*cw)+'" y="'+(plan.cadre.y+4*ch)+'" width="'+(2*cw)+'" height="'+(3*ch)+'" fill="'+styleP.remplissage+'"') >= 0,
   typeInconnuRendu: typeInconnu.length > 0,
-  typeInconnuSansVoie: (typeInconnu.match(/#1e1c10/g)||[]).length,
+  typeInconnuSansVoie: compteRubans(typeInconnu),
   remisIdentique: remis === normal,
   champAvenuesExiste: Object.prototype.hasOwnProperty.call(plan, 'avenues'),
   stylesDeclares: Object.keys(PLAN_TERRAIN_STYLES),

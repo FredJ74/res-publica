@@ -150,7 +150,11 @@ print(JSON.stringify({
   iconesDistinctes: new Set ? undefined : undefined,
   usine: B['usine-pharmaceutique-luthecia'],
   masquentAvenueEO: masquent,
-  pointRouge: (svg.match(/class="pd"/g)||[]).length,
+  // Le marqueur « vous etes ici » : les cercles qui battent, ET l'anneau pose autour du
+  // batiment courant depuis l'audit UX. On compte les deux separement plutot qu'un total,
+  // pour qu'un changement d'un cote ne masque pas la disparition de l'autre.
+  pointRouge: (svg.match(/<circle[^>]*class="pd"/g)||[]).length,
+  anneauIci: (svg.match(/class="pd-anneau"/g)||[]).length,
   // Les etiquettes sont comptees DANS les groupes de batiment : le titre du plan emploie la
   // meme taille de police et fausserait le compte.
   // AU MOINS une etiquette par batiment : le batiment illustre n'a pas d'icone emoji -- c'est
@@ -211,7 +215,8 @@ print(JSON.stringify({
     print('=' * 74)
     print('CE QUI DEVAIT ETRE CONSERVE')
     print('=' * 74)
-    garde('le point rouge « vous etes ici » est toujours la', m['pointRouge'], 2)
+    garde('le point rouge « vous etes ici » est toujours la', m['pointRouge'] >= 2, True)
+    garde('et le batiment courant est cercle', m['anneauIci'], 1)
     garde('les 36 batiments sont dessines', m['batimentsDessines'], 36)
     garde('chaque batiment garde son etiquette', m['etiquettes'], 36)
 

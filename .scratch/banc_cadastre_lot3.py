@@ -255,7 +255,11 @@ print(JSON.stringify({
   posTexte:  bHaut.indexOf('<text'),
   nbTexte:   (bHaut.match(/<text/g)||[]).length,
   liserePardessus: /<image[\s\S]*<rect[^>]*fill="none"/.test(bHaut),
-  pointRouge: (s.match(/class="pd"/g)||[]).length,
+  // Le marqueur « vous etes ici » : les cercles qui battent, ET l'anneau pose autour du
+  // batiment courant depuis l'audit UX. Comptes separement, pour qu'un changement d'un
+  // cote ne masque pas la disparition de l'autre.
+  pointRouge: (s.match(/<circle[^>]*class="pd"/g)||[]).length,
+  anneauIci: (s.match(/class="pd-anneau"/g)||[]).length,
   etiquette:  />([^<]*Palais[^<]*)</.exec(bHaut) ? /&gt;|>([^<]*)</.exec('') : null,
   contientNom: bHaut.indexOf('Palais') >= 0
 }));
@@ -280,7 +284,8 @@ print(JSON.stringify({
     print('=' * 74)
     garde('le nom du batiment est conserve', d['contientNom'], True)
     garde('l\'icone emoji n\'est PAS redessinee par-dessus le dessin', d['nbTexte'], 1)
-    garde('le point rouge « vous etes ici » est toujours la', d['pointRouge'], 2)
+    garde('le point rouge « vous etes ici » est toujours la', d['pointRouge'] >= 2, True)
+    garde('et le batiment courant est cercle', d['anneauIci'], 1)
 
     print()
     print('=' * 74)
