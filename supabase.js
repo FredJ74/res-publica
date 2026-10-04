@@ -5293,6 +5293,29 @@ async function sbEmployeRecruter(metier, nom, genre, fnOrdre, pa, cost) {
   });
 }
 
+// =====================================================================
+// LE SOCLE D'EMBAUCHE DES AGENCES (5 octobre 2026)
+// =====================================================================
+// Generalisation de escorts_agence / escort_recruter a n'importe quel employeur
+// et n'importe quel metier. Deux portes, et aucune n'accepte de montant :
+//
+// employeur_candidats(employeur_id) rend la maison, ses candidats, et pour
+// chaque metier le quota, le nombre deja employe, le prix d'embauche et le cout
+// journalier -- SEPAREMENT. Le navigateur ne recalcule aucune de ces regles.
+//
+// employeur_embaucher(candidat_id) ne prend QUE l'identite. Ni metier, ni nom,
+// ni genre, ni PA, ni prix : le serveur les resout, lit le tarif au referentiel
+// et le revalide contre le miroir des ordres avant de debiter. C'est ce qui
+// rend impossible la confusion entre frais d'embauche et salaire journalier --
+// un seul nombre circulait pour les deux, il n'en circule plus aucun.
+async function sbEmployeurCandidats(employeurId) {
+  return await sbRpc('employeur_candidats', { p_employeur_id: employeurId });
+}
+
+async function sbEmployeurEmbaucher(candidatId) {
+  return await sbRpc('employeur_embaucher', { p_candidat_id: candidatId });
+}
+
 // Depart d'un employe : licenciement, renvoi, ou impaye. JAMAIS une suppression -- la garde de
 // suppression refuserait un PNJ actif, et un employe qui s'en va n'est pas mort. Il est delie et
 // marque disparu, comme un agent de la force publique retire faute de budget.

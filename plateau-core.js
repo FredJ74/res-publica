@@ -295,6 +295,11 @@ const PNJ_AVATAR = {
   hotesse:       { icon: 'ti-user-heart',         color: '#8a4a6a' },
   grand_pretre:  { icon: 'ti-star',               color: '#C9A84C' },
   escort:        { icon: 'ti-heart',              color: '#aa4a6a' },
+  // Metiers du socle d'embauche des agences (5 octobre 2026). La clef est le
+  // METIER tel que le serveur le nomme, pour que le comptoir generique trouve
+  // l'icone sans table de correspondance propre.
+  agent_securite:{ icon: 'ti-shield',             color: '#5a6a7a' },
+  maitre_chien:  { icon: 'ti-dog',                color: '#7a6a4a' },
   // Le point d'acces a l'agence n'est PERSONNE : une icone, jamais un visage.
   escort_agence: { icon: 'ti-address-book',      color: '#cc6699' },
   capitaine_port:{ icon: 'ti-anchor',             color: '#4a6aaa' },

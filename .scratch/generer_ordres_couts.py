@@ -64,6 +64,18 @@ function ctx(cs){ Object.keys(cs||{}).forEach(function(bid){ var c=cs[bid]||{};
   (Array.isArray(c.orders)?c.orders:[]).forEach(function(o){ push(o,'ctx'); });
   Object.keys(c.roomOverrides||{}).forEach(function(rid){
     (Array.isArray((c.roomOverrides[rid]||{}).orders)?c.roomOverrides[rid].orders:[]).forEach(function(o){ push(o,'override'); });
+  });
+  // roomsExtra : ANGLE MORT CORRIGE LE 5 OCTOBRE 2026. Une piece qui n'existe
+  // que dans une ville -- l'agence Grobras du centre d'affaires de Luthecia --
+  // est declaree ici et nulle part ailleurs. Le generateur ne la lisait pas :
+  // ses ordres etaient donc absents du miroir, et payer_ordre les aurait
+  // refuses avec `cout_non_declare`.
+  // Le trou est reste invisible deux semaines parce que les 17 autres fns
+  // vivant dans roomsExtra sont aussi declarees dans BUILDINGS[].rooms avec le
+  // MEME triplet : elles entraient dans le miroir par l'autre porte. Les deux
+  // ordres d'embauche de Grobras sont les premiers a n'exister qu'ici.
+  Object.keys(c.roomsExtra||{}).forEach(function(rid){
+    (Array.isArray((c.roomsExtra[rid]||{}).orders)?c.roomsExtra[rid].orders:[]).forEach(function(o){ push(o,'roomsExtra'); });
   }); }); }
 Object.keys(g.W||{}).forEach(function(p){ var v=g.W[p]||{};
   Object.keys(v).forEach(function(x){ if(v[x]&&v[x].buildingContext) ctx(v[x].buildingContext); });

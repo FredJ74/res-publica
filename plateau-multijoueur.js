@@ -998,10 +998,30 @@ async function doRecruterInformateurPNJ(pa) {
   const carInfo = resEmp.caracteristiques || {};
   const perInformateur = carInfo.PER;
 
+  // ===========================================================================
+  // FRAIS D'EMBAUCHE ET SALAIRE JOURNALIER SONT DEUX CHOSES (5 octobre 2026)
+  // ===========================================================================
+  // `cout` ci-dessus est le prix de L'ORDRE : ce qu'on paie une fois, a
+  // l'embauche. `coutJour` est le SALAIRE, que payerEmployes() preleve a chaque
+  // reveil. Ce bloc poussait `cout` dans state.employes[].cout, donc le prix
+  // d'embauche etait preleve chaque nuit.
+  //
+  // LE DEFAUT ETAIT INVISIBLE, et c'est pourquoi il a survecu : l'informateur
+  // vaut 150 FR a l'embauche ET 150 FR par jour, les deux nombres sont egaux,
+  // le resultat etait juste par coincidence. Il devenait faux des le premier
+  // metier aux deux tarifs differents -- un agent de securite a 500 FR
+  // d'embauche et 0 FR de salaire se serait fait prelever 500 FR par nuit, puis
+  // aurait quitte le groupe faute de paiement.
+  //
+  // On lit donc cout_jour, que la RPC rend deja, exactement comme le font les
+  // escortes depuis le 1er octobre (escortsAgenceRecruter : `cout: r.cout_jour`).
+  // Pour l'informateur le comportement est RIGOUREUSEMENT identique : 150 = 150.
+  const coutJour = (typeof resEmp.cout_jour === 'number') ? resEmp.cout_jour : cout;
+
   state.employes.push({
     nom: nomPnj, pnjId: resEmp.pnj_id, role: 'Informateur', job: 'informateur',
     genre: infoChoisi.genre, photoUrl: infoChoisi.photoUrl, photoPos: '50% 15%',
-    cout, inGroupe: true,
+    cout: coutJour, inGroupe: true,
     buildingId: state.currentBuilding,
     roomId: state.currentRoom,
     city: state.currentCity,
@@ -1014,8 +1034,10 @@ async function doRecruterInformateurPNJ(pa) {
   // explicitement les 5 elements demandes (nom, PER, adhesion au groupe, salaire, effet reel) --
   // l'effet mecanique (moyenne de PER du groupe) etait deja correct mais jamais rappele au
   // joueur au moment ou il compte le plus, juste apres le recrutement.
-  showToast('Informateur recruté !', nomPnj + ' (PER ' + perInformateur + ') rejoint votre groupe. -' + cout + ' ' + cur + ', puis ' + cout + ' ' + cur + '/jour. Sa PER s\'ajoute à celle du groupe pour les recherches, enquêtes et localisations.', true, true);
-  addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ') rejoint le groupe, ' + cout + ' ' + cur + '/jour. Sa PER renforce le groupe pour les recherches, enquêtes et localisations.', 'event-good');
+  // Les deux montants sont annonces separement, et chacun avec le bon nom : le
+  // premier est un frais d'embauche, le second un salaire.
+  showToast('Informateur recruté !', nomPnj + ' (PER ' + perInformateur + ') rejoint votre groupe. -' + cout + ' ' + cur + ' à l\'embauche, puis ' + coutJour + ' ' + cur + '/jour. Sa PER s\'ajoute à celle du groupe pour les recherches, enquêtes et localisations.', true, true);
+  addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ') rejoint le groupe, ' + coutJour + ' ' + cur + '/jour. Sa PER renforce le groupe pour les recherches, enquêtes et localisations.', 'event-good');
 
   // Pas d'ecriture dans room.persons (objet BUILDINGS global, partage par tous les
   // joueurs) : l'informateur a deja ete ajoute a state.employes avec inGroupe:true

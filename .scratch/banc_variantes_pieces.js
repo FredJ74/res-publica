@@ -714,13 +714,33 @@ verifierVrai('Grobras porte son image',
   !!GROBRAS && /grobras-securite\.(webp|png|jpg)$/.test(GROBRAS.imageUrl || ''),
   GROBRAS && GROBRAS.imageUrl);
 verifierVrai('Grobras n est PAS un local louable', !!GROBRAS && !GROBRAS.isLocationRoom);
-/* AUCUN ordre, pas seulement aucun ordre de location : la consigne du 5 octobre
+/* LES ORDRES DE GROBRAS, ET RIEN D'AUTRE QU'EUX.
+   Au lot 1 (5 octobre, matin) cette assertion exigeait ZERO ordre : la consigne
    etait « integration des lieux uniquement, sans les mecaniques de securite ».
-   Le premier jet donnait `se_renseigner`, qui affiche le tableau des locaux a
-   louer du BATIMENT -- hors sujet dans une agence privee. 61 pieces du jeu
-   n'ont aucun ordre : l'etat est supporte. */
+   Le lot 3 (5 octobre, soir) ouvre le recrutement, et l'assertion change donc
+   de valeur attendue -- deliberement, pas par relachement : elle reste une
+   liste EXHAUSTIVE, donc tout ordre supplementaire la fera tomber.
+   `se_renseigner` reste exclu : il affiche le tableau des locaux a louer du
+   BATIMENT, hors sujet dans une agence privee. */
 var ORDRES_GROBRAS = (GROBRAS && GROBRAS.orders || []).map(function (o) { return o.fn; });
-verifier('Grobras n a aucun ordre du tout', ORDRES_GROBRAS, []);
+verifier('Grobras porte exactement les deux ordres d embauche', ORDRES_GROBRAS.slice().sort(),
+  ['embaucher_agent_securite', 'embaucher_maitre_chien']);
+/* CHAQUE ORDRE D'EMBAUCHE DOIT PORTER SON EMPLOYEUR ET SON METIER : c'est la
+   seule chose qui rattache le comptoir generique a cette maison. Sans eux,
+   agenceEmploiOrdreCourant rend null et le bouton n'ouvre rien. */
+(GROBRAS && GROBRAS.orders || []).forEach(function (o) {
+  verifierVrai('ordre ' + o.fn + ' declare son employeur et son metier',
+    o.employeur === 'grobras-securite' && !!o.metier,
+    JSON.stringify({ employeur: o.employeur, metier: o.metier }));
+  verifierVrai('ordre ' + o.fn + ' coute 1 PA',  o.pa === 1, o.pa);
+});
+/* Les deux tarifs d'embauche arbitres le 5 octobre. Ce sont des FRAIS
+   D'EMBAUCHE, pas des salaires : le cout journalier vit uniquement en base
+   (pnj_metiers_profils.cout_jour) et vaut zero a ce stade. */
+verifier('frais d embauche d un agent de securite',
+  (GROBRAS.orders.filter(function (o) { return o.fn === 'embaucher_agent_securite'; })[0] || {}).cost, 500);
+verifier('frais d embauche d un maitre-chien',
+  (GROBRAS.orders.filter(function (o) { return o.fn === 'embaucher_maitre_chien'; })[0] || {}).cost, 700);
 /* Grobras a UNE declaration, reduite a l'ancrage : ni etat, ni image par etat,
    ni enseigne. C'est le minimum qui fait tenir son fronton dans le cadre. */
 var DECL_GROBRAS = varianteDePiece('centre-affaires', 'grobras_securite', 'capitale');

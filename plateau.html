@@ -811,6 +811,10 @@
      plateau-navigation.js, dont declencherEntreeZone appelle son consommateur. -->
 <script src="plateau-social-pnj.js?v=2"></script>
 <script src="plateau-escorts-agence.js?v=1"></script>
+<!-- Comptoir d'embauche des agences : APRES supabase.js (il appelle ses deux portes) et
+     APRES plateau-core.js (PNJ_AVATAR lui donne l'icone du metier), AVANT le routeur,
+     qui resout agenceEmploiOuvrir pour les ordres d'embauche. -->
+<script src="plateau-agence-emploi.js?v=1"></script>
 <script src="plateau-contact-organisation.js?v=1"></script>
 <script src="plateau-camion-militaire.js?v=1"></script>
 <!-- Terminal de section du Lieutenant (lot T) : APRES supabase.js, dont il appelle les cinq

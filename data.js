@@ -472,15 +472,32 @@ const WORLD = {
                 {name:'Gaston Grobras (PNJ)', role:"Directeur d'agence de sécurité", rel:'neutral', job:'directeur'},
                 {name:'Sandra Pelle (PNJ)',   role:'Secrétaire de Grobras Sécurité', rel:'neutral', job:'secretaire'}
               ],
-              // AUCUN ORDRE, et c'est un etat supporte : 61 pieces du jeu sont dans ce
-              // cas, dont les salles de musee. Le premier jet donnait `se_renseigner`
-              // a l'agence -- or cet ordre affiche le tableau des LOCAUX A LOUER DU
-              // BATIMENT (doSeRenseigner, plateau-organisations-quetes.js). Dans le
-              // hall c'est son role ; dans une agence privee, c'est hors sujet, et
-              // c'etait un bouton de plus pour un lieu annonce sans mecanique.
-              // On entre, on regarde, on lit. Le panneau « NOUS RECRUTONS » de la
-              // vitrine est la seule promesse, et elle attend son chantier.
-              orders: []
+              // LE PANNEAU « NOUS RECRUTONS » DEVIENT EFFECTIF (lot 3, 5 octobre
+              // 2026). Deux ordres, et rien d'autre : pas de mission, pas de
+              // garde de batiment, pas de garde du corps -- ces lots viendront.
+              //
+              // `se_renseigner` reste volontairement absent : cet ordre affiche
+              // le tableau des LOCAUX A LOUER DU BATIMENT (doSeRenseigner), ce
+              // qui est le role du hall, pas celui d'une agence privee.
+              //
+              // `employeur` ET `metier` SONT DECLARES ICI, et c'est tout ce qui
+              // rattache le comptoir generique (plateau-agence-emploi.js) a
+              // cette maison : le fichier JavaScript ne connait aucune agence.
+              // Une deuxieme agence n'aura donc besoin que de deux lignes
+              // comme celles-ci, et d'aucun code.
+              //
+              // LE COUT DECLARE ICI EST LE FRAIS D'EMBAUCHE, PAS UN SALAIRE.
+              // C'est ce triplet (fn, pa, cost) que payer_ordre revalide contre
+              // ordres_couts ; le cout journalier, lui, vit uniquement dans
+              // pnj_metiers_profils.cout_jour, et vaut zero a ce stade.
+              orders: [
+                {fn:'embaucher_agent_securite', label:'Embaucher un agent de sécurité', pa:1, cost:500, type:'legal', icon:'ti-shield', successRate:100,
+                 employeur:'grobras-securite', metier:'agent_securite',
+                 desc:'1 PA, 500 FR de frais d\'embauche. L\'agence vous presente ses agents disponibles (VOL 16, PER 12) ; celui que vous choisissez rejoint votre groupe en permanence. Maximum 4 agents. Aucun salaire journalier a ce stade.'},
+                {fn:'embaucher_maitre_chien', label:'Embaucher un maître-chien', pa:1, cost:700, type:'legal', icon:'ti-dog', successRate:100,
+                 employeur:'grobras-securite', metier:'maitre_chien',
+                 desc:'1 PA, 700 FR de frais d\'embauche. L\'agence vous presente ses maitres-chiens disponibles (PER 16, VOL 14) ; celui que vous choisissez rejoint votre groupe avec son chien. Maximum 2 maitres-chiens. Aucun salaire journalier a ce stade.'}
+              ]
             }
           }),
           // Masquage d'onglet, declaratif : les quatre postes existent, sont

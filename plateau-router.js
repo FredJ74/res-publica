@@ -139,6 +139,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
+  // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet
+  // NI pa NI cost : agenceEmploiOuvrir relit l'ordre dans la piece pour y lire
+  // `employeur` et `metier`, et c'est le SERVEUR qui lit le tarif. Ajouter un
+  // metier recrutable ne demande donc qu'un ordre de plus dans data.js et une
+  // ligne ici -- jamais un nouveau handler.
+  if (fn === 'embaucher_agent_securite' || fn === 'embaucher_maitre_chien') {
+    agenceEmploiOuvrir(fn); return;
+  }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts_choix') { ouvrirChoixImprimerTracts(); return; }
   // Alias de compatibilite (12 septembre 2026) : les trois imprimeries de Republia partagent
