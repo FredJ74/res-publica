@@ -714,11 +714,13 @@ verifierVrai('Grobras porte son image',
   !!GROBRAS && /grobras-securite\.(webp|png|jpg)$/.test(GROBRAS.imageUrl || ''),
   GROBRAS && GROBRAS.imageUrl);
 verifierVrai('Grobras n est PAS un local louable', !!GROBRAS && !GROBRAS.isLocationRoom);
+/* AUCUN ordre, pas seulement aucun ordre de location : la consigne du 5 octobre
+   etait « integration des lieux uniquement, sans les mecaniques de securite ».
+   Le premier jet donnait `se_renseigner`, qui affiche le tableau des locaux a
+   louer du BATIMENT -- hors sujet dans une agence privee. 61 pieces du jeu
+   n'ont aucun ordre : l'etat est supporte. */
 var ORDRES_GROBRAS = (GROBRAS && GROBRAS.orders || []).map(function (o) { return o.fn; });
-verifier('Grobras n a aucun ordre de location ni d equipement',
-  ORDRES_GROBRAS.filter(function (f) {
-    return ['louer_local', 'gerer_local', 'commerce_pj', 'installer_equipements'].indexOf(f) !== -1;
-  }), []);
+verifier('Grobras n a aucun ordre du tout', ORDRES_GROBRAS, []);
 /* Grobras a UNE declaration, reduite a l'ancrage : ni etat, ni image par etat,
    ni enseigne. C'est le minimum qui fait tenir son fronton dans le cadre. */
 var DECL_GROBRAS = varianteDePiece('centre-affaires', 'grobras_securite', 'capitale');

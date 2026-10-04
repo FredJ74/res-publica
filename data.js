@@ -461,9 +461,15 @@ const WORLD = {
               desc: "Agence de sécurité privée. Accueil feutré, gardes en costume sur les photos du mur, et une devise peinte sur le fronton : « Parce qu'il vaut mieux prévenir que poursuivre. » Un panneau « NOUS RECRUTONS » occupe la vitrine de gauche.",
               imageUrl: "images/luthecia-centre-affaires-grobras-securite.webp",
               persons: [],
-              orders: [
-                {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
-              ]
+              // AUCUN ORDRE, et c'est un etat supporte : 61 pieces du jeu sont dans ce
+              // cas, dont les salles de musee. Le premier jet donnait `se_renseigner`
+              // a l'agence -- or cet ordre affiche le tableau des LOCAUX A LOUER DU
+              // BATIMENT (doSeRenseigner, plateau-organisations-quetes.js). Dans le
+              // hall c'est son role ; dans une agence privee, c'est hors sujet, et
+              // c'etait un bouton de plus pour un lieu annonce sans mecanique.
+              // On entre, on regarde, on lit. Le panneau « NOUS RECRUTONS » de la
+              // vitrine est la seule promesse, et elle attend son chantier.
+              orders: []
             }
           }),
           // Masquage d'onglet, declaratif : les quatre postes existent, sont
@@ -3613,12 +3619,17 @@ const BUILDINGS = {
         ]
       },
       echoppe_facade: {
-        name: "Échoppe Facade — Local à louer",
+        // Cedille retablie le 5 octobre 2026 : le panneau suspendu grave DANS l'image
+        // ecrit « ÉCHOPPE FAÇADE ». Le nom affiche et l'image se contredisaient.
+        // `label` ne sert qu'a l'affichage (listes de locaux) -- il n'est ni ecrit en
+        // base ni utilise comme cle : une location est identifiee par
+        // pays:batiment:piece:ville. Verifie en base avant le changement.
+        name: "Échoppe Façade — Local à louer",
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
         imageUrl: 'images/centre-artisanal-republic.webp',
         isLocationRoom: true,
-        locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
+        locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Façade', tier: 1 },
         persons: [],
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
