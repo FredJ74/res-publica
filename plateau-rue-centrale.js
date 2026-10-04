@@ -69,7 +69,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- GRANDE RUE DES INSTITUTIONS (deplacement lateral) ----
 
     'luthecia-palais-presidentiel': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-palais-presidentiel.png',
+      image: 'images/rue-palais-presidentiel.png',
       zones: [
         { xPct: [0, 22],  nom: 'Palais Présidentiel', type: 'batiment', buildingId: 'palais-presidentiel' },
         { xPct: [22, 48], nom: 'Palais Gouvernemental', type: 'batiment', buildingId: 'palais-gouvernement' },
@@ -80,7 +80,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-hotel-de-ville': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-hotel-de-ville.png',
+      image: 'images/rue-hotel-de-ville.png',
       zones: [
         { xPct: [0, 25],  nom: 'Hôtel de Ville', type: 'batiment', buildingId: 'mairie-capitale' },
         { xPct: [25, 50], nom: 'Office Notarial', type: 'batiment', buildingId: 'office-notarial' },
@@ -91,7 +91,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-loge': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-loge.png',
+      image: 'images/rue-loge.png',
       zones: [
         { xPct: [0, 25],  nom: 'Banque Privée Helvétia', type: 'batiment', buildingId: 'banque-privee' },
         { xPct: [25, 50], nom: 'Clinique Privée Saint-Luc', type: 'batiment', buildingId: 'clinique-privee' },
@@ -102,7 +102,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-imprimerie': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-imprimerie.png',
+      image: 'images/rue-imprimerie.png',
       zones: [
         // xPct recalibres en mesurant les vraies limites des facades sur l'image (grille de reperes) :
         // Universite 0-27%, Dispensaire 27-55%, Imprimerie 55-68%.
@@ -117,7 +117,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- INTERSECTION VERS STADE / COMMERCE ----
 
     'luthecia-intersection-stade-commercial': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-intersection-stade-commercial.png',
+      image: 'images/rue-intersection-stade-commercial.png',
       zones: [],
       liens: { gauche: 'luthecia-centre-commercial', droite: 'luthecia-stade-multimodal', toutDroit: 'luthecia-musees', arriere: 'luthecia-imprimerie' },
       flechesStyle: {
@@ -128,7 +128,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // ---- MUSEES (Ville de Luthecia + National de Republia, face a face) ----
     'luthecia-musees': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-musees-luthecia.png',
+      image: 'images/rue-musees-luthecia.png',
       zones: [
         { xPct: [0, 45],   nom: 'Musée de la Ville de Luthécia', type: 'batiment', buildingId: 'musee-ville-luthecia' },
         { xPct: [28, 52],  yPct: [20, 78], nom: 'Parc Botanique National', type: 'batiment', buildingId: 'parc-botanique-national' },
@@ -143,7 +143,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // ---- QUARTIER DES AMBASSADES ----
     'luthecia-quartier-ambassades': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-quartier-ambassades.png',
+      image: 'images/rue-quartier-ambassades.png',
       zones: [
         { xPct: [0, 100], nom: 'Quartier des Ambassades', type: 'batiment', buildingId: 'quartier-ambassades' }
       ],
@@ -160,7 +160,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- BRANCHE STADE / MULTIMODAL ----
 
     'luthecia-stade-multimodal': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-stade-multimodal.png',
+      image: 'images/rue-stade-multimodal.png',
       zones: [
         { xPct: [0, 45], nom: 'Stade de Luthécia', type: 'batiment', buildingId: 'stade' },
         { xPct: [55, 100], nom: 'Place du Formulaire de la Liberté', type: 'batiment', buildingId: 'place-formulaire-liberte' }
@@ -174,7 +174,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-usine-pharmaceutique': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/usine-pharmaceutique-luthecia.png',
+      image: 'images/usine-pharmaceutique-luthecia.png',
       zones: [
         { xPct: [0, 100], nom: 'Usine Pharmaceutique Impériale de Républia', type: 'batiment', buildingId: 'usine-pharmaceutique-luthecia' }
       ],
@@ -182,7 +182,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-entrepot-logistique': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-logistique-luthecia.png',
+      image: 'images/entrepot-logistique-luthecia.png',
       // Cette illustration montre DEUX batiments : la gare vitree "Centre Multimodal de Luthecia"
       // occupe la gauche et l'arriere-plan, l'entrepot est le hangar industriel du premier plan a
       // droite. Une zone unique [0,100] rendait toute l'image cliquable : cliquer visuellement sur
@@ -200,7 +200,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-centre-multimodal': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-centre-multimodal.png',
+      image: 'images/rue-centre-multimodal.png',
       zones: [
         { xPct: [0, 100], nom: 'Centre Multimodal de Luthécia', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
       ],
@@ -213,7 +213,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- BRANCHE COMMERCE / ARTISANAT / TERRAINS ----
 
     'luthecia-centre-commercial': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-centre-commercial.png',
+      image: 'images/rue-centre-commercial.png',
       zones: [
         // Ordre corrige : Centre Commercial en premier, Centre d'Affaires juste apres,
         // tous deux du meme cote de la rue (partie droite de l'image — la partie gauche
@@ -239,7 +239,7 @@ const RUE_CENTRALE_NOEUDS = {
       // une vraie photo d'interieur (hall de reception) a silencieusement ecrase la photo de
       // rue ici aussi. Ancienne photo de facade recuperee depuis l'historique git (commit
       // ff7dd49^) et remise sur un fichier dedie, separe de l'accueil.
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-bureau-national-emploi-luthecia.png',
+      image: 'images/rue-bureau-national-emploi-luthecia.png',
       zones: [
         { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
       ],
@@ -256,7 +256,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-terrains-artisanal': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-artisanal.png',
+      image: 'images/rue-terrains-artisanal.png',
       zones: [
         // Debut de zone decale de 0 a 8% pour laisser un espace libre a la fleche gauche
         { xPct: [8, 60],   nom: 'Terrains à Bâtir',            type: 'noeud', noeudId: 'luthecia-terrains-lots' },
@@ -270,7 +270,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Vue rapprochee des 5 lots, atteinte en cliquant sur "Terrains a Batir" depuis la vue large ci-dessus
     'luthecia-terrains-lots': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-lots-detail.png',
+      image: 'images/rue-terrains-lots-detail.png',
       zones: [
         // Correctif du 5 septembre 2026 : ces 5 zones ouvraient -1, -4, -5, -6, -7 alors que
         // Luthecia declare -1 a -5 (WORLD.republic.capitale.buildings) et que le plan SVG
@@ -295,7 +295,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-armurerie': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-armurerie.png',
+      image: 'images/rue-armurerie.png',
       zones: [
         // Seule la facade de l'Armurerie Martinon (partie gauche de l'image) est cliquable —
         // le reste de la scene (place, panneaux, marche au fond) ne mene nulle part.
@@ -314,7 +314,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- TABERNACLE (referme la seconde boucle sur le Palais Présidentiel) ----
 
     'luthecia-tabernacle-impots': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-tabernacle-impots.png',
+      image: 'images/rue-tabernacle-impots.png',
       zones: [
         // Position du Marche corrigee : il est visible a DROITE de l'image (stands, camion
         // "Ferme du Belvedere", banniere "Marche Fermier de Luthecia"), pas a gauche comme
@@ -343,13 +343,13 @@ const RUE_CENTRALE_NOEUDS = {
       // 'psm-eglise-cimetiere' sont des PLACEHOLDERS : a relier aux vrais noeuds une fois ces
       // scenes codees (voir JOURNAL-SESSION.md, scenes du 27 juillet).
       // xPct estimes a l'oeil sur chaque image : a ajuster si le clic tombe a cote.
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
+      image: 'images/rue-carrefour-musee-depuis-artisanal.png',
       imagesParArrivee: {
-        'psm-carrefour-artisanal-scierie': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
-        'psm-ecole-phare':            'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
-        'psm-eglise-cimetiere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
-        'psm-tribunal-banque':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
-        'psm-eglise-cimetiere':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-eglise.png'
+        'psm-carrefour-artisanal-scierie': 'images/rue-carrefour-musee-depuis-artisanal.png',
+        'psm-ecole-phare':            'images/rue-carrefour-musee-depuis-phare.png',
+        'psm-eglise-cimetiere': 'images/rue-carrefour-musee-depuis-phare.png',
+        'psm-tribunal-banque':         'images/rue-carrefour-musee-depuis-tribunal.png',
+        'psm-eglise-cimetiere':           'images/rue-carrefour-musee-depuis-eglise.png'
       },
       zones: [
         { xPct: [0, 22],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
@@ -413,7 +413,7 @@ const RUE_CENTRALE_NOEUDS = {
       // ne se declenchait quasiment jamais en jeu reel, retire). "droite" reste la route vers
       // le sud (carrefour Musee) pour qui arrive par le sud et veut y retourner.
       // 'psm-centre-multimodal' n'est plus un placeholder, deja code.
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-artisanal-scierie.png',
+      image: 'images/rue-carrefour-artisanal-scierie.png',
       zones: [
         { xPct: [0, 26],   nom: 'Centre Artisanal',       type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
@@ -426,7 +426,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Point de depart officiel de la navigation exterieure de PSM (arrivee par transport).
       // Pas de fleche arriere (entree de ville). 'psm-ecole-phare' est un PLACEHOLDER
       // (scene Ecole/Phare, image deja recue de Fred mais pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-centre-multimodal-psm.png',
+      image: 'images/rue-centre-multimodal-psm.png',
       zones: [
         { xPct: [0, 20],   nom: 'Stade de la Brise Mariannaise', type: 'batiment', buildingId: 'stade' },
         { xPct: [20, 78],  nom: 'Centre Multimodal',             type: 'batiment', buildingId: 'centre-multinodal-port-sainte-marie' },
@@ -438,7 +438,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-ecole-phare': {
       // Le Dispensaire est visible au loin mais pas encore cliquable ici (le sera sur la scene suivante).
       // 'psm-dispensaire-port-plaisance' est un PLACEHOLDER (scene pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-ecole-phare-psm.png',
+      image: 'images/rue-ecole-phare-psm.png',
       zones: [
         { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
         // Zone recalibree sur la silhouette reelle du phare (mesuree sur l'image, verifiee
@@ -457,7 +457,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-dispensaire-port-plaisance': {
       // 'psm-tribunal-banque' est un PLACEHOLDER (scene pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-dispensaire-port-plaisance-psm.png',
+      image: 'images/rue-dispensaire-port-plaisance-psm.png',
       zones: [
         { xPct: [0, 30],   nom: 'Dispensaire des Marins Mariannais', type: 'batiment', buildingId: 'dispensaire-public-v' },
         { xPct: [65, 100], nom: 'Port de Plaisance',                 type: 'batiment', buildingId: 'port-plaisance-psm' }
@@ -467,7 +467,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-tribunal-banque': {
       // 'psm-bar-imprimerie-commissariat' est un PLACEHOLDER (scene pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-tribunal-banque-psm.png',
+      image: 'images/rue-tribunal-banque-psm.png',
       zones: [
         { xPct: [15, 55],  nom: 'Tribunal de Port Sainte Marie', type: 'batiment', buildingId: 'tribunal-local' },
         { xPct: [58, 85],  nom: 'Banque Mariannaise',            type: 'batiment', buildingId: 'banque-locale' }
@@ -478,7 +478,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-bar-imprimerie-commissariat': {
       // 'psm-marche-resto-chasse' est un PLACEHOLDER (scene Capitaine Sauvage/Marche/Chasse&Peche, pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-bar-imprimerie-commissariat-psm.png',
+      image: 'images/rue-bar-imprimerie-commissariat-psm.png',
       zones: [
         { xPct: [0, 32],   nom: 'Le Bar des Pêcheurs',       type: 'batiment', buildingId: 'bar-des-pecheurs' },
         { xPct: [35, 65],  nom: "L'Encre Mariannaise",       type: 'batiment', buildingId: 'imprimerie-librairie' },
@@ -489,7 +489,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-marche-resto-chasse': {
       // 'psm-hotel-mairie-place' et 'psm-eglise-cimetiere' sont des PLACEHOLDERS (scenes pas encore codees).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-marche-resto-chasse-psm.png',
+      image: 'images/rue-marche-resto-chasse-psm.png',
       zones: [
         { xPct: [0, 30],   nom: 'Capitaine Sauvage',        type: 'batiment', buildingId: 'capitaine-sauvage' },
         { xPct: [33, 62],  nom: 'Marché',                   type: 'batiment', buildingId: 'marche-psm' },
@@ -501,7 +501,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-hotel-mairie-place': {
       // 'psm-eglise-cimetiere' est reutilise (deja pose en placeholder depuis la scene Marche/Resto/Chasse,
       // ou la zone 'Marche' menait vers ce meme noeud).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-hotel-mairie-place-psm.png',
+      image: 'images/rue-hotel-mairie-place-psm.png',
       zones: [
         { xPct: [0, 30],   nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' },
         { xPct: [33, 62],  nom: "Mairie",            type: 'batiment', buildingId: 'mairie' },
@@ -514,7 +514,7 @@ const RUE_CENTRALE_NOEUDS = {
       // 'psm-chantier-naval' est un PLACEHOLDER (scene pas encore codee).
       // Le retour en arriere reutilise volontairement la vue "depuis le Phare" du carrefour Musee
       // (l'eglise y est visible au loin), voir duplication dans imagesParArrivee/zonesParArrivee/liensParArrivee ci-dessous.
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-eglise-cimetiere-psm.png',
+      image: 'images/rue-eglise-cimetiere-psm.png',
       zones: [
         { xPct: [15, 85], nom: 'Notre-Dame de la Mer & Cimetière Marin', type: 'batiment', buildingId: 'notre-dame-mer' }
       ],
@@ -524,7 +524,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-chantier-naval': {
       // 'psm-terrains-vente' est un PLACEHOLDER (scene pas encore codee).
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-chantier-naval-psm.png',
+      image: 'images/rue-chantier-naval-psm.png',
       zones: [
         { xPct: [15, 85], nom: 'Chantier Naval', type: 'batiment', buildingId: 'chantier-naval' }
       ],
@@ -535,7 +535,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-terrains-vente': {
       // 'psm-terrains-lots' est un PLACEHOLDER (sous-scene des 5 lots, pas encore codee,
       // sur le modele de 'luthecia-terrains-lots').
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-vente-psm.png',
+      image: 'images/rue-terrains-vente-psm.png',
       zones: [
         { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
       ],
@@ -550,7 +550,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Pole Tabac occupe la moitie gauche du cadre, Entrepot Logistique la moitie droite (zones
       // xPct inchangees, la vue elle-meme ne bouge pas), mais la marche se fait tout droit vers le
       // carrefour Scierie/Artisanal, retour vers les Terrains a batir.
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-pole-tabac-psm.png',
+      image: 'images/entrepot-pole-tabac-psm.png',
       zones: [
         { xPct: [0, 45],   nom: 'Pôle Tabac & Alcools Sainte-Mariannaise', type: 'batiment', buildingId: 'pole-tabac-alcools-psm' },
         { xPct: [55, 100], nom: 'Entrepôt Logistique de Sainte-Marie',     type: 'batiment', buildingId: 'entrepot-logistique-psm' }
@@ -563,7 +563,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-lots': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-lots-detail-psm.png',
+      image: 'images/rue-terrains-lots-detail-psm.png',
       zones: [
         // Correctif du 5 septembre 2026 (arbitrage valide) : Port-Sainte-Marie a QUATRE terrains,
         // ceux reellement declares dans WORLD.republic.ville_a (-8 a -11). Une 5e zone ouvrait
@@ -589,7 +589,7 @@ const RUE_CENTRALE_NOEUDS = {
     // fleche directionnelle). Un seul batiment par image : toute l'image est cliquable
     // (xPct/yPct [0,100]), pas besoin de decouper une zone precise.
     'caserne-exterieur': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png',
+      image: 'images/caserne-luthecia-exterieur.png',
       zones: [
         { xPct: [0, 100], yPct: [0, 100], nom: 'Caserne Militaire', type: 'batiment', buildingId: 'caserne-militaire' }
       ],
@@ -597,7 +597,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'qhs-exterieur': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png',
+      image: 'images/qhs-luthecia-exterieur.png',
       zones: [
         { xPct: [0, 100], yPct: [0, 100], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
       ],

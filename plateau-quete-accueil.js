@@ -11,9 +11,9 @@
 //   (suite a coder : detection du Secretaire Petit, Jeremy, etc.)
 
 const QUETE_ACCUEIL_IMAGES = {
-  gardeMenacant: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/garde-menacant-luthecia.png',
-  gardeBienveillant: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/garde-bienveillant-luthecia.png',
-  jeremy: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jeremy-stagiaire-mairie.png'
+  gardeMenacant: 'images/garde-menacant-luthecia.png',
+  gardeBienveillant: 'images/garde-bienveillant-luthecia.png',
+  jeremy: 'images/jeremy-stagiaire-mairie.png'
 };
 
 // Reponse acceptee/refusee a la proposition d'aide de Jeremy (declenchee depuis plateau-pnj.js

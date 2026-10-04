@@ -6,8 +6,8 @@
 // ne detale vers l'autre lieu.
 
 const MAXENCE_PHOTOS = {
-  parc:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/maxence-monfils-parc.png',
-  serre: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/maxence-monfils-criminel.png'
+  parc:  'images/maxence-monfils-parc.png',
+  serre: 'images/maxence-monfils-criminel.png'
 };
 
 // Appelee a chaque entree dans une piece (hook dans enterRoom, plateau-navigation.js).

@@ -4070,10 +4070,10 @@ const PRIX_TERRAIN = 25000;
 // L'ancien bareme (30/50/70/100 k) devient 30/60/90/120 k, conformement a la regle "un jour
 // theorique = 5 000 FR". Deux tables ne pouvaient pas coexister sans finir par diverger.
 const NIVEAUX_CONSTRUCTION = {
-  hangar:            { label: 'Hangar',             cout: coutTotalConstruction('hangar'),            imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hangar-construction-terrain.png' },
-  commerce_standard: { label: 'Commerce standard',  cout: coutTotalConstruction('commerce_standard'), imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-standard-construction-terrain.png' },
-  commerce_premium:  { label: 'Commerce premium',   cout: coutTotalConstruction('commerce_premium'),  imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-premium-construction-terrain.png' },
-  building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/building-construction-terrain.png' }
+  hangar:            { label: 'Hangar',             cout: coutTotalConstruction('hangar'),            imageUrl: 'images/hangar-construction-terrain.png' },
+  commerce_standard: { label: 'Commerce standard',  cout: coutTotalConstruction('commerce_standard'), imageUrl: 'images/commerce-standard-construction-terrain.png' },
+  commerce_premium:  { label: 'Commerce premium',   cout: coutTotalConstruction('commerce_premium'),  imageUrl: 'images/commerce-premium-construction-terrain.png' },
+  building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'images/building-construction-terrain.png' }
 };
 
 // Zonage fixe par ville — verrouille des la conception, pour que la justice ait un critere

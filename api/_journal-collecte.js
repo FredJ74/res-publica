@@ -141,8 +141,8 @@ function resoudreNomVille(pays, villeId) {
 // les 3 clubs republic ont une image dupliquee ici car verifiee reellement presente dans data.js ;
 // les autres pays gardent imageStade:null, resolu proprement en "fallback" plutot qu'en URL fausse).
 const CLUBS_SPORTIFS = [
-  { id: 'olympique-luthecia',  nom: 'Olympique de Luthécia',        country: 'republic', city: 'capitale', imageStade: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png' },
-  { id: 'brise-mariannaise',   nom: 'La Brise Mariannaise',         country: 'republic', city: 'ville_a',  imageStade: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png' },
+  { id: 'olympique-luthecia',  nom: 'Olympique de Luthécia',        country: 'republic', city: 'capitale', imageStade: 'images/stade-olympique-luthecia.png' },
+  { id: 'brise-mariannaise',   nom: 'La Brise Mariannaise',         country: 'republic', city: 'ville_a',  imageStade: 'images/stade-brise-mariannaise.png' },
   { id: 'cheminote-montrouge', nom: 'Union Cheminote de Montrouge', country: 'republic', city: 'ville_b',  imageStade: 'images/montrouge/montrouge-stade-pelouse-accueil.jpg' },
   // Noms alignes sur CLUBS_SPORTIFS (data.js), source canonique, le 5 septembre 2026 : le
   // renommage du 28 aout 2026 (commit 58eea96) n'avait touche que data.js et plateau-divers.js,

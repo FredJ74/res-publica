@@ -65,7 +65,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-militaire.png',
+    imageUrl: 'images/arme-pistolet-militaire.png',
     desc: 'Arme de poing réglementaire de l\'armée de Républia.'
   },
   mitraillette: {
@@ -74,7 +74,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-mitraillette-militaire.png',
+    imageUrl: 'images/arme-mitraillette-militaire.png',
     desc: 'Arme automatique réglementaire de l\'armée de Républia.'
   },
   explosif_militaire: {
@@ -84,7 +84,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 3,
     icon: 'ti-bomb',
     typeObjet: 'explosif', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-militaires.png',
+    imageUrl: 'images/explosifs-militaires.png',
     desc: 'Explosifs réglementaires de l\'armée de Républia.'
   },
 
@@ -109,7 +109,7 @@ const RECETTES_MILITAIRES = {
     pa: 3, produitParLot: 1, prixPnj: 380,
     icon: 'ti-shield-check',
     typeObjet: 'equipement', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/militaire-gilet-pare-balles.png',
+    imageUrl: 'images/militaire-gilet-pare-balles.png',
     desc: 'Gilet pare-balles réglementaire. Protège contre les attaques pertinentes, notamment les tirs.'
   },
   radio: {
@@ -118,7 +118,7 @@ const RECETTES_MILITAIRES = {
     pa: 3, produitParLot: 1, prixPnj: 360,
     icon: 'ti-radio',
     typeObjet: 'equipement', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/militaire-radio.png',
+    imageUrl: 'images/militaire-radio.png',
     desc: 'Poste radio de campagne. Relais de commandement : permet de transmettre des ordres à distance, jamais de se déplacer instantanément.'
   },
   tente: {
@@ -127,7 +127,7 @@ const RECETTES_MILITAIRES = {
     pa: 2, produitParLot: 1, prixPnj: 240,
     icon: 'ti-tent',
     typeObjet: 'equipement', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/militaire-tente.png',
+    imageUrl: 'images/militaire-tente.png',
     capacite: 13,                           // capacite de bivouac, arbitree par le GD
     desc: 'Tente de campagne. Abrite 13 personnes en bivouac. Aucun montage à ordonner : la posséder suffit.'
   },
@@ -137,7 +137,7 @@ const RECETTES_MILITAIRES = {
     pa: 2, produitParLot: 1, prixPnj: 260,
     icon: 'ti-binoculars',
     typeObjet: 'equipement', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/militaire-jumelles.png',
+    imageUrl: 'images/militaire-jumelles.png',
     desc: 'Jumelles d\'observation. Permettent d\'observer un secteur et d\'en tirer un renseignement toujours approximatif.'
   },
   tenue_camouflage: {
@@ -146,7 +146,7 @@ const RECETTES_MILITAIRES = {
     pa: 2, produitParLot: 1, prixPnj: 230,
     icon: 'ti-eye-off',
     typeObjet: 'equipement', sousType: 'militaire',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/militaire-tenue-camouflage.png',
+    imageUrl: 'images/militaire-tenue-camouflage.png',
     desc: 'Tenue de camouflage. Protège CELUI QUI LA PORTE : une seule tenue ne dissimule pas une section entière.'
   }
 };

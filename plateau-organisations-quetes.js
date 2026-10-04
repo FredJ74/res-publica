@@ -8186,19 +8186,19 @@ function ecrireAMembre(nom) {
 
 const PRODUITS_VISUELS_CLUB = {
   'olympique-luthecia': {
-    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-echarpe-luthecia.png',
-    casquette: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-casquette-luthecia.png',
-    maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-tshirt-luthecia.png'
+    echarpe: 'images/produit-echarpe-luthecia.png',
+    casquette: 'images/produit-casquette-luthecia.png',
+    maillot: 'images/produit-tshirt-luthecia.png'
   },
   'cheminote-montrouge': {
-    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-echarpe-montrouge-dediee.png',
-    casquette: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produits-casquette-echarpe-montrouge.png',
-    maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-tshirt-montrouge.png'
+    echarpe: 'images/produit-echarpe-montrouge-dediee.png',
+    casquette: 'images/produits-casquette-echarpe-montrouge.png',
+    maillot: 'images/produit-tshirt-montrouge.png'
   },
   'brise-mariannaise': {
-    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produits-casquette-echarpe-mariannaise.png',
-    casquette: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produits-casquette-echarpe-mariannaise.png',
-    maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-polo-mariannaise.png'
+    echarpe: 'images/produits-casquette-echarpe-mariannaise.png',
+    casquette: 'images/produits-casquette-echarpe-mariannaise.png',
+    maillot: 'images/produit-polo-mariannaise.png'
   }
 };
 

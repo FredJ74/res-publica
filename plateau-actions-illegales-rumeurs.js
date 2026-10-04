@@ -1236,7 +1236,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Légal pour la chasse. Roger ne demande pas à qui.',
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-couteau-republic.png'
+      imageUrl: 'images/arme-couteau-republic.png'
     },
     {
       id: 'revolver',
@@ -1246,7 +1246,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Fiable, discret, classique. Trois balles suffisent généralement.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png'
+      imageUrl: 'images/arme-fusil-republic.png'
     },
     {
       id: 'carabine_chasse',
@@ -1256,7 +1256,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour le gibier. Gros gibier.',
       bonus: { stat: 'PER', val: 15 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-revolver-republic.png'
+      imageUrl: 'images/arme-revolver-republic.png'
     }
   ],
   narco: [
@@ -1268,7 +1268,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: "L'outil universel. Multi-usages.",
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-machette-narco.png'
+      imageUrl: 'images/arme-machette-narco.png'
     },
     {
       id: 'desert_eagle',
@@ -1278,7 +1278,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'El Don lui-même en possède trois.',
       bonus: { stat: 'PER', val: 10 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-deserteagle-narco.png'
+      imageUrl: 'images/arme-deserteagle-narco.png'
     },
     {
       id: 'ak47',
@@ -1288,7 +1288,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: "Origine : inconnue. État : parfait.",
       bonus: { stat: 'PER', val: 18 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-ak47-narco.png'
+      imageUrl: 'images/arme-ak47-narco.png'
     }
   ],
   soviet: [
@@ -1300,7 +1300,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Propriété du Peuple. Empruntée indéfiniment.',
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-baionnette-soviet.png'
+      imageUrl: 'images/arme-baionnette-soviet.png'
     },
     {
       id: 'makarov',
@@ -1310,7 +1310,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Standard réglementaire. Camarade Kalachnikov détourne le regard.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-makarov-soviet.png'
+      imageUrl: 'images/arme-makarov-soviet.png'
     },
     {
       id: 'kalachnikov',
@@ -1320,7 +1320,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour la défense de la Patrie. Usage personnel toléré.',
       bonus: { stat: 'PER', val: 16 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-kalachnikov-soviet.png'
+      imageUrl: 'images/arme-kalachnikov-soviet.png'
     }
   ],
   khalija: [
@@ -1332,7 +1332,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Lame recourbée, tradition millénaire. Hassan l\'a aiguisée ce matin.',
       bonus: { stat: 'VOL', val: 6 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-jambiya-khalija.png'
+      imageUrl: 'images/arme-jambiya-khalija.png'
     },
     {
       id: 'pistolet_dore',
@@ -1342,7 +1342,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Serti de nacre. L\'élégance n\'exclut pas l\'efficacité.',
       bonus: { stat: 'PER', val: 9 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-khalija.png'
+      imageUrl: 'images/arme-pistolet-khalija.png'
     },
     {
       id: 'carabine_precision',
@@ -1352,7 +1352,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour la chasse au faucon. Très grands faucons.',
       bonus: { stat: 'PER', val: 17 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-khalija.png'
+      imageUrl: 'images/arme-fusil-khalija.png'
     }
   ]
 };
@@ -1609,7 +1609,7 @@ async function confirmerAchatArme(armeId) {
   document.getElementById('postes-modal-title').textContent = 'Vente enregistrée';
   let html = '<div style="padding:0">';
   html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
-  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/registre-vente-armes.png" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+  html += '<img src="images/registre-vente-armes.png" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
   html += '</div>';
   html += '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + arme.name + ' consignée au registre officiel des ventes. Gérard tamponne le formulaire sans lever les yeux.</div>';
@@ -1824,7 +1824,7 @@ function doAcheterGilet() {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 600;
-  const imageUrl = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png';
+  const imageUrl = 'images/arme-gilet-republic.png';
 
   document.getElementById('postes-modal-title').textContent = 'Gilet pare-balles';
   let html = '<div style="padding:0">';
@@ -1863,7 +1863,7 @@ async function confirmerAchatGilet() {
   state.inventory.push({
     type: 'protection', name: 'Gilet pare-balles', icon: 'ti-shield-check', legal: true,
     desc: 'Protection physique. Enregistré dans le registre.',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
+    imageUrl: 'images/arme-gilet-republic.png'
   });
   updateUI();
   showToast('Objet acquis', 'Gilet pare-balles ajouté à votre inventaire.', true, true);
@@ -2062,7 +2062,7 @@ function doAcheterExplosifs(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 1200;
-  const imageUrl = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-marche-noir.png';
+  const imageUrl = 'images/explosifs-marche-noir.png';
 
   document.getElementById('postes-modal-title').textContent = 'Explosifs (marché noir)';
   let html = '<div style="padding:0">';
@@ -2116,7 +2116,7 @@ async function confirmerAchatExplosifs(pa, cost) {
   state.inventory.push({
     type: 'explosif', name: 'Explosifs de chantier', icon: 'ti-bomb', legal: false,
     desc: 'Non enregistré. Usage unique.',
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-marche-noir.png'
+    imageUrl: 'images/explosifs-marche-noir.png'
   });
 
   if (!state.historiqueCrimes) state.historiqueCrimes = [];
@@ -2344,10 +2344,10 @@ function doAcheterPoisonObjet(type, pa, cost) {
   // Afficher le modal d'achat avec image et description parodique
   const desc = POISON_DESC_PARODIQUE[type] || obj.msg;
   const imageUrl = {
-    parapluie: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png',
-    polonium:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png',
-    ghb:       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ghb-narco.jpg',
-    vipere:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vipere-des-sables-khalija.png'
+    parapluie: 'images/parapluie-republicain.png',
+    polonium:  'images/polonium-sovarka.png',
+    ghb:       'images/ghb-narco.jpg',
+    vipere:    'images/vipere-des-sables-khalija.png'
   }[type] || '';
 
   document.getElementById('postes-modal-title').textContent = obj.name;
@@ -2392,10 +2392,10 @@ async function confirmerAchatPoison(type, pa, cost) {
     poisonType: type, legal: false, usageUnique: true,
     desc: obj.msg,
     imageUrl: {
-      parapluie: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png',
-      polonium:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png',
-      ghb:       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ghb-narco.jpg',
-      vipere:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vipere-des-sables-khalija.png'
+      parapluie: 'images/parapluie-republicain.png',
+      polonium:  'images/polonium-sovarka.png',
+      ghb:       'images/ghb-narco.jpg',
+      vipere:    'images/vipere-des-sables-khalija.png'
     }[type] || ''
   });
   updateUI();

@@ -22,29 +22,29 @@ const ENIGME1_RUMEURS = {
 // sert qu'a varier le texte de la rumeur ci-dessus).
 const ENIGME1_SALLES_CADRE_VIDE = {
   salle_maires: {
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-cadre-vide-luthecia.png',
-    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-torcieu-maire.png',
+    imageUrl: 'images/salle-maires-cadre-vide-luthecia.png',
+    imageGrosPlan: 'images/cadre-vide-torcieu-maire.png',
     personnage: 'Marcel Torcieu',
     dates: '1895–1958',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Où pourrait-on trouver des informations sur un ancien maire de la ville ?"
   },
   salle_criminels: {
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-cadre-vide-luthecia.png',
-    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-caillon-criminel.png',
+    imageUrl: 'images/salle-criminels-cadre-vide-luthecia.png',
+    imageGrosPlan: 'images/cadre-vide-caillon-criminel.png',
     personnage: 'Maurice Caillon',
     dates: '1901–1954',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Qui, en ville, garderait la mémoire des affaires criminelles d'autrefois ?"
   },
   salle_entrepreneurs: {
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-entrepreneurs-cadre-vide-luthecia.png',
-    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-moulin-entrepreneur.png',
+    imageUrl: 'images/salle-entrepreneurs-cadre-vide-luthecia.png',
+    imageGrosPlan: 'images/cadre-vide-moulin-entrepreneur.png',
     personnage: 'Jacques Moulin',
     dates: '1897–1965',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Qui, en ville, garde une trace écrite de chaque terrain qui change de mains ?"
   },
   salle_plumes: {
-    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-cadre-vide-luthecia.png',
-    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-tintabin-plume.png',
+    imageUrl: 'images/salle-plumes-cadre-vide-luthecia.png',
+    imageGrosPlan: 'images/cadre-vide-tintabin-plume.png',
     personnage: 'Étienne Tintabin',
     dates: '1898–1969',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Où retrouverait-on ce que la presse d'alors a bien pu écrire sur lui ?"
@@ -719,7 +719,7 @@ function enigme1VerifierDebarras(buildingId, roomId) {
 // (tension), 3) le dialogue complet.
 function enigme1AfficherRevelationGerard() {
   let html = '<div style="padding:1.2rem">';
-  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/debarras-tableaux-musee.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:280px;object-fit:cover"/>';
+  html += '<img src="images/debarras-tableaux-musee.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:280px;object-fit:cover"/>';
   html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.6;font-style:italic;text-align:center">Les quatre portraits disparus sont là, appuyés contre le mur du débarras, comme oubliés.</div>';
   html += '<button class="pnj-action-btn" onclick="enigme1RevelationEtape2()" style="margin-top:1rem">Continuer</button>';
   html += '</div>';
@@ -732,7 +732,7 @@ function enigme1AfficherRevelationGerard() {
 function enigme1RevelationEtape2() {
   let html = '<div style="padding:1.2rem;text-align:center">';
   html += '<div style="font-size:.9rem;color:#cc6644;line-height:1.6;font-style:italic;margin-bottom:1rem">La porte se referme derrière vous, dans un bruit sec.</div>';
-  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gerard-poincon-debarras-tension.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:280px;object-fit:cover"/>';
+  html += '<img src="images/gerard-poincon-debarras-tension.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:280px;object-fit:cover"/>';
   html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.6">Gérard Poinçon se tient là, immobile, vous observant.</div>';
   html += '<button class="pnj-action-btn" onclick="enigme1RevelationEtape3()" style="margin-top:1rem">Continuer</button>';
   html += '</div>';
@@ -803,7 +803,7 @@ function enigme1VerifierDeclenchement() {
         id: 'calepin-enigme1',
         name: "Calepin de l'enquête",
         icon: 'ti-notebook',
-        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/calepin-enigme-musee.png',
+        imageUrl: 'images/calepin-enigme-musee.png',
         desc: "Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.",
         calepinEnigme1: true
       });
