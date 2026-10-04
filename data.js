@@ -442,7 +442,30 @@ const WORLD = {
           // on y entre en cliquant un bureau sur le plan. Meme economie que
           // l'Open Space unique qu'ils remplacent -- 200 FR/jour, memes bonus,
           // meme tier : aucun loyer, aucun bonus n'a ete invente ici.
-          roomsExtra: bureauxOpenSpaceCentreAffaires(),
+          // GROBRAS SECURITE (5 octobre 2026). Agence de securite privee installee
+          // dans le centre d'affaires de Luthecia. C'est un LIEU, et rien d'autre a
+          // ce stade : aucun ordre de location (ce local n'est pas a louer, il a son
+          // occupant), aucun ordre d'equipement, aucune mecanique metier. Le panneau
+          // « NOUS RECRUTONS » de la vitrine annonce ce qui viendra, il ne fait rien.
+          //
+          // AUCUNE ENSEIGNE INCRUSTEE : le fronton de l'image porte deja le nom, le
+          // blason et la devise de l'agence. Le moteur d'enseignes ecrirait un second
+          // « Grobras Securite » par-dessus le premier (arbitrage du 5 octobre).
+          //
+          // roomsExtra et non le gabarit partage : BUILDINGS['centre-affaires'] sert
+          // 12 villes, et l'agence n'existe qu'a Luthecia.
+          roomsExtra: Object.assign(bureauxOpenSpaceCentreAffaires(), {
+            grobras_securite: {
+              name: "Grobras Sécurité",
+              imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+              desc: "Agence de sécurité privée. Accueil feutré, gardes en costume sur les photos du mur, et une devise peinte sur le fronton : « Parce qu'il vaut mieux prévenir que poursuivre. » Un panneau « NOUS RECRUTONS » occupe la vitrine de gauche.",
+              imageUrl: "images/luthecia-centre-affaires-grobras-securite.webp",
+              persons: [],
+              orders: [
+                {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+              ]
+            }
+          }),
           // Masquage d'onglet, declaratif : les quatre postes existent, sont
           // louables et atteignables par enterRoom, mais la barre d'onglets
           // garde une seule entree « Open Space ».
@@ -3593,7 +3616,6 @@ const BUILDINGS = {
         name: "Échoppe Facade — Local à louer",
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
-        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
         imageUrl: 'images/centre-artisanal-republic.webp',
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },

@@ -259,7 +259,14 @@ def convertir(liste):
         if os.path.getsize(dest) != r['avant']:
             raise SystemExit('sauvegarde incomplete pour %s' % rel)
 
-        subprocess.run(['git', 'rm', '-q', '--', rel], cwd=RACINE, check=True)
+        # -f est NECESSAIRE et SANS DANGER ici. Necessaire : une image qui vient
+        # d'etre ajoutee au depot est indexee sans etre commitee, et `git rm` la
+        # refuse alors ("has changes staged in the index") -- c'est le cas de
+        # toute image neuve, donc de tout lot d'integration d'art. Sans danger :
+        # la sauvegarde hors depot vient d'etre faite A PARTIR DU FICHIER DU
+        # DISQUE et sa taille a ete verifiee juste au-dessus ; ce que -f efface
+        # est donc deja conserve.
+        subprocess.run(['git', 'rm', '-q', '-f', '--', rel], cwd=RACINE, check=True)
         subprocess.run(['git', 'add', '--', nouveau], cwd=RACINE, check=True)
         couples[rel] = nouveau
         r.pop('donnees')

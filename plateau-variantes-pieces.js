@@ -421,6 +421,57 @@ const PIECE_VARIANTES = {
         }
       },
 
+      /* ---- CENTRE ARTISANAL DE LUTHECIA (5 octobre 2026) ------------------
+         Trois locaux, deux etats chacun, et AUCUNE ENSEIGNE INCRUSTEE.
+
+         Ce n'est pas un oubli, c'est ce que disent les images. Le marche couvert
+         n'a pas de fronton libre au-dessus des vitrines : chaque local porte un
+         panneau noir suspendu, perpendiculaire a la facade, sur lequel est deja
+         grave le nom de la PIECE -- « ÉCHOPPE FAÇADE », « ATELIER CENTRAL »,
+         « RÉSERVE ARRIÈRE ». Ce panneau est identique dans les deux etats, et il
+         designe le local, jamais son locataire. Y ecrire le nom d'un commerce
+         remplacerait l'adresse par l'occupant.
+         Ce que le locataire change, l'image le dit autrement : l'affiche collee
+         en vitrine passe de « LOCAL À LOUER » a « NOUVEAU PROPRIÉTAIRE », et la
+         piece se remplit de son activite. Le moteur n'a donc rien a dessiner ici
+         -- varianteAppliquerEnseigne sort de lui-meme sur `!decl.enseigne`.
+
+         Luthecia seulement. Le gabarit BUILDINGS['centre-artisanal'] sert aussi
+         Port-Sainte-Marie, Montrouge et les trois autres empires : aucun d'eux
+         n'est touche, et le balayage des 846 pieces le verifie. */
+      'centre-artisanal': {
+        echoppe_facade: {
+          famille: 'location',
+          ancrage: 'centre',
+          nom: NOM_LOCAL_LOUABLE,
+          desc: { occupee: "Échoppe en façade du marché couvert, ouverte sur la travée principale. Tout ce qui s'y vend se voit depuis l'allée." },
+          images: {
+            libre:   'images/luthecia-centre-artisanal-echoppe-vide.webp',
+            occupee: 'images/luthecia-centre-artisanal-echoppe-loue.webp'
+          }
+        },
+        atelier_milieu: {
+          famille: 'location',
+          ancrage: 'centre',
+          nom: NOM_LOCAL_LOUABLE,
+          desc: { occupee: "Atelier au cœur du marché, hauteur sous plafond et établi. On y travaille autant qu'on y vend." },
+          images: {
+            libre:   'images/luthecia-centre-artisanal-atelier-vide.webp',
+            occupee: 'images/luthecia-centre-artisanal-atelier-loue.webp'
+          }
+        },
+        reserve_arriere: {
+          famille: 'location',
+          ancrage: 'centre',
+          nom: NOM_LOCAL_LOUABLE,
+          desc: { occupee: "Réserve en fond de marché, étroite et profonde. Peu de vitrine, beaucoup de rangement." },
+          images: {
+            libre:   'images/luthecia-centre-artisanal-reserve-vide.webp',
+            occupee: 'images/luthecia-centre-artisanal-reserve-loue.webp'
+          }
+        }
+      },
+
       /* ---- CENTRE D'AFFAIRES DE LUTHECIA (4 octobre 2026) ----------------
          Trois sortes de plaques, un seul mecanisme.
 
@@ -438,6 +489,24 @@ const PIECE_VARIANTES = {
          ce que la decision de game design demandait, et le moteur n'a rien eu
          a apprendre pour cela. */
       'centre-affaires': Object.assign({
+
+        /* GROBRAS SECURITE (5 octobre 2026) — une declaration reduite a UN SEUL
+           CHAMP : l'ancrage.
+
+           L'agence n'est pas un local a louer : ni etat, ni image par etat, ni
+           enseigne -- son fronton porte deja son nom, son blason et sa devise.
+           Elle ne demande qu'une chose au moteur : que le cadre soit ancre EN
+           HAUT. Mesure faite dans le vrai cadre du jeu (1520 x 280, recadrage
+           `cover`) : centree, l'image perd son fronton et il ne reste que le
+           logo de la vitrine ; ancree en haut, l'agence montre son nom, sa
+           devise et le haut du panneau « NOUS RECRUTONS ».
+
+           Le moteur accepte cette declaration partielle sans rien de special :
+           varianteImagePiece sort sur `!decl.images` et laisse room.imageUrl
+           reprendre la main, varianteEtatPiece sort faute de `famille`, et
+           varianteAppliquerEnseigne sort sur `!decl.enseigne`. Aucune ligne n'a
+           ete ajoutee au moteur pour ce lieu. */
+        grobras_securite: { ancrage: 'haut' },
 
         bureau_prestige: {
           famille: 'location',

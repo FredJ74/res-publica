@@ -72,7 +72,11 @@ function img(base) {
 var PIECES_DECLAREES = {
   'centre-commercial': ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve'],
   'centre-affaires':   ['bureau_prestige','bureau_standard',
-                        'open_space_a','open_space_b','open_space_c','open_space_d']
+                        'open_space_a','open_space_b','open_space_c','open_space_d'],
+  // Centre artisanal de Luthecia (5 octobre 2026). Trois locaux, deux etats, et
+  // AUCUNE enseigne : les images portent un panneau suspendu grave au nom de la
+  // PIECE, pas du locataire. Voir le bloc 18 plus bas.
+  'centre-artisanal':  ['echoppe_facade','atelier_milieu','reserve_arriere']
 };
 
 var LOCAUX = {
@@ -181,7 +185,13 @@ Object.keys(WORLD).forEach(function (pays) {
    un balayage qui se viderait silencieusement (WORLD renomme, BUILDINGS vide) ;
    il n'a pas a suivre le chiffre exact, qui bougera a chaque nouveau batiment. */
 verifierVrai('balayage : le jeu entier a bien ete visite', balayees > 700, 'balayees = ' + balayees);
-verifier('exactement 10 pieces declarees', declarees, 10);
+/* Le nombre attendu est DERIVE de PIECES_DECLAREES, jamais ecrit en dur : sinon
+   il faut le corriger a la main a chaque lieu ajoute, et il finit par mentir.
+   Ce qui compte est l'egalite entre ce qui est declare et ce qui repond. */
+var ATTENDU_DECLAREES = Object.keys(PIECES_DECLAREES).reduce(function (n, b) {
+  return n + PIECES_DECLAREES[b].length;
+}, 0);
+verifier('autant de pieces repondent qu il y en a de declarees', declarees, ATTENDU_DECLAREES);
 verifier('aucune piece parasite', parasites, []);
 
 /* === 8. ARITHMETIQUE DU ROGNAGE ========================================== */
@@ -636,6 +646,100 @@ var absents = [];
   if (!trouvee) absents.push(n);
 });
 verifier('les 7 images du centre d affaires sont presentes', absents, []);
+
+
+/* === 18. CENTRE ARTISANAL DE LUTHECIA ===================================== */
+/* Trois locaux, deux etats. Ce qui est verifie ici est ce qui peut casser :
+   que chaque etat rende SON image, que le nom perde « — Local a louer » une
+   fois loue, qu'aucune enseigne ne soit declaree (les images en portent une,
+   gravee, qui nomme la piece et non son locataire), et surtout que les autres
+   villes et empires qui partagent le gabarit 'centre-artisanal' ne bougent pas. */
+var ARTISANAL = {
+  echoppe_facade:  'echoppe',
+  atelier_milieu:  'atelier',
+  reserve_arriere: 'reserve'
+};
+
+state.country = 'republic'; state.currentCity = 'capitale';
+BAUX = [];
+Object.keys(ARTISANAL).forEach(function (piece) {
+  verifier('artisanal libre > ' + piece,
+    varianteImagePiece('centre-artisanal', piece, 'capitale'),
+    img('images/luthecia-centre-artisanal-' + ARTISANAL[piece] + '-vide'));
+  verifier('artisanal etat libre > ' + piece,
+    varianteEtatPiece('centre-artisanal', piece, 'capitale'), 'libre');
+  verifierVrai('artisanal sans enseigne > ' + piece,
+    !(varianteDePiece('centre-artisanal', piece, 'capitale') || {}).enseigne,
+    'une enseigne est declaree alors que l image en porte deja une, gravee');
+});
+
+BAUX = Object.keys(ARTISANAL).map(function (p) {
+  return { buildingId: 'centre-artisanal', roomId: p, city: 'capitale' };
+});
+Object.keys(ARTISANAL).forEach(function (piece) {
+  verifier('artisanal loue > ' + piece,
+    varianteImagePiece('centre-artisanal', piece, 'capitale'),
+    img('images/luthecia-centre-artisanal-' + ARTISANAL[piece] + '-loue'));
+  var base = BUILDINGS['centre-artisanal'].rooms[piece].name;
+  verifierVrai('artisanal nom sans suffixe > ' + piece,
+    varianteNomPiece('centre-artisanal', piece, 'capitale', base).indexOf('Local a louer') === -1 &&
+    varianteNomPiece('centre-artisanal', piece, 'capitale', base).indexOf('Local à louer') === -1,
+    'nom obtenu : ' + varianteNomPiece('centre-artisanal', piece, 'capitale', base));
+});
+
+/* Les autres villes et empires partagent le gabarit : ils ne doivent rien voir. */
+['ville_a', 'ville_b'].forEach(function (v) {
+  state.currentCity = v;
+  Object.keys(ARTISANAL).forEach(function (piece) {
+    verifier('artisanal ' + v + ' intouche > ' + piece,
+      varianteImagePiece('centre-artisanal', piece, v), null);
+  });
+});
+['narco', 'soviet', 'khalija'].forEach(function (pays) {
+  state.country = pays; state.currentCity = 'capitale';
+  verifier('artisanal empire ' + pays + ' intouche',
+    varianteImagePiece('centre-artisanal', 'echoppe_facade', 'capitale'), null);
+});
+state.country = 'republic'; state.currentCity = 'capitale';
+BAUX = [];
+
+/* === 19. GROBRAS SECURITE ================================================= */
+/* Un LIEU, pas un local. On verifie qu'il existe a Luthecia, qu'il porte son
+   image, et surtout qu'il n'a AUCUN ordre de location ni d'equipement -- la
+   consigne du 5 octobre etait explicite : aucune mecanique metier. */
+var CTX_LUTHECIA = WORLD.republic.capitale.buildingContext['centre-affaires'];
+var GROBRAS = (CTX_LUTHECIA.roomsExtra || {}).grobras_securite;
+verifierVrai('Grobras existe a Luthecia', !!GROBRAS);
+verifierVrai('Grobras porte son image',
+  !!GROBRAS && /grobras-securite\.(webp|png|jpg)$/.test(GROBRAS.imageUrl || ''),
+  GROBRAS && GROBRAS.imageUrl);
+verifierVrai('Grobras n est PAS un local louable', !!GROBRAS && !GROBRAS.isLocationRoom);
+var ORDRES_GROBRAS = (GROBRAS && GROBRAS.orders || []).map(function (o) { return o.fn; });
+verifier('Grobras n a aucun ordre de location ni d equipement',
+  ORDRES_GROBRAS.filter(function (f) {
+    return ['louer_local', 'gerer_local', 'commerce_pj', 'installer_equipements'].indexOf(f) !== -1;
+  }), []);
+/* Grobras a UNE declaration, reduite a l'ancrage : ni etat, ni image par etat,
+   ni enseigne. C'est le minimum qui fait tenir son fronton dans le cadre. */
+var DECL_GROBRAS = varianteDePiece('centre-affaires', 'grobras_securite', 'capitale');
+verifierVrai('Grobras est ancre en haut', !!DECL_GROBRAS && DECL_GROBRAS.ancrage === 'haut',
+  DECL_GROBRAS && DECL_GROBRAS.ancrage);
+verifierVrai('Grobras ne declare aucune enseigne', !!DECL_GROBRAS && !DECL_GROBRAS.enseigne);
+verifierVrai('Grobras ne declare aucune image d etat', !!DECL_GROBRAS && !DECL_GROBRAS.images);
+/* Et le moteur ne prend donc PAS la main sur son image : room.imageUrl passe. */
+verifier('Grobras laisse son imageUrl au jeu',
+  varianteImagePiece('centre-affaires', 'grobras_securite', 'capitale'), null);
+verifier('Grobras n a pas d etat',
+  varianteEtatPiece('centre-affaires', 'grobras_securite', 'capitale'), null);
+/* Et il n'existe QUE la : le gabarit partage par 12 villes ne le connait pas. */
+verifierVrai('Grobras absent du gabarit partage',
+  !BUILDINGS['centre-affaires'].rooms.grobras_securite);
+['ville_a', 'ville_b'].forEach(function (v) {
+  var c = (WORLD.republic[v] || {}).buildingContext || {};
+  var ca = c['centre-affaires'] || {};
+  verifierVrai('Grobras absent de ' + v, !(ca.roomsExtra || {}).grobras_securite);
+});
+
 
 /* === 17. SORTIR D'UN POSTE REND AU PLAN, PAS A LA RUE ==================== */
 /* On reproduit ICI, a l'identique, l'expression de resolution de la piece
