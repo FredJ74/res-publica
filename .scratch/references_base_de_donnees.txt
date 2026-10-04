@@ -16,6 +16,7 @@ escort-h-3-chemise-ouverte-vignette.jpg
 escort-h-3-chemise-ouverte.png
 escort-republic-vignette.jpg
 escort-republic.png
+explosifs-militaires.png
 luthecia-carte-postale-culture.png
 luthecia-carte-postale-institutions.png
 luthecia-carte-postale-internationale.png
@@ -27,9 +28,8 @@ luthecia-restaurant-menu-3.jpg
 luthecia-souvenir-garde-republien.png
 luthecia-souvenir-maxence-monfils.png
 luthecia-souvenir-porte-cle-palais.png
-militaire-trousse-secours.png
 militaire-ration-combat.png
-explosifs-militaires.png
+militaire-trousse-secours.png
 montrouge-carte-postale-musee-rail.png
 montrouge-carte-postale-place-rail.png
 montrouge-carte-postale-touristique.png
@@ -37,6 +37,7 @@ montrouge-marche-casquette.png
 montrouge-marche-casse-croute.png
 montrouge-plat-carbonade.jpg
 montrouge-stade-pelouse-accueil.jpg
+parapluie-republicain.png
 port-sainte-marie-carte-postale-culture-marine.png
 port-sainte-marie-carte-postale-notre-dame-mer.png
 port-sainte-marie-carte-postale-touristique.png

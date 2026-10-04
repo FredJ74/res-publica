@@ -826,7 +826,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (buildingId?.startsWith('terrain-a-batir') && typeof getTerrainState === 'function') {
     const tsChantier = getTerrainState(buildingId);
     if (tsChantier?.chantier) {
-      chantierImg = 'images/chantier-en-cours.png';
+      chantierImg = 'images/chantier-en-cours.webp';
     } else if (tsChantier?.niveau_construction && typeof NIVEAUX_CONSTRUCTION !== 'undefined') {
       chantierImg = NIVEAUX_CONSTRUCTION[tsChantier.niveau_construction]?.imageUrl || null;
     }

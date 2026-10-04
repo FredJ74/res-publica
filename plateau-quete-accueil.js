@@ -11,9 +11,9 @@
 //   (suite a coder : detection du Secretaire Petit, Jeremy, etc.)
 
 const QUETE_ACCUEIL_IMAGES = {
-  gardeMenacant: 'images/garde-menacant-luthecia.png',
-  gardeBienveillant: 'images/garde-bienveillant-luthecia.png',
-  jeremy: 'images/jeremy-stagiaire-mairie.png'
+  gardeMenacant: 'images/garde-menacant-luthecia.webp',
+  gardeBienveillant: 'images/garde-bienveillant-luthecia.webp',
+  jeremy: 'images/jeremy-stagiaire-mairie.webp'
 };
 
 // Reponse acceptee/refusee a la proposition d'aide de Jeremy (declenchee depuis plateau-pnj.js

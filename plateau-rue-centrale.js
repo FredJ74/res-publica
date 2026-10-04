@@ -69,7 +69,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- GRANDE RUE DES INSTITUTIONS (deplacement lateral) ----
 
     'luthecia-palais-presidentiel': {
-      image: 'images/rue-palais-presidentiel.png',
+      image: 'images/rue-palais-presidentiel.webp',
       zones: [
         { xPct: [0, 22],  nom: 'Palais Présidentiel', type: 'batiment', buildingId: 'palais-presidentiel' },
         { xPct: [22, 48], nom: 'Palais Gouvernemental', type: 'batiment', buildingId: 'palais-gouvernement' },
@@ -80,7 +80,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-hotel-de-ville': {
-      image: 'images/rue-hotel-de-ville.png',
+      image: 'images/rue-hotel-de-ville.webp',
       zones: [
         { xPct: [0, 25],  nom: 'Hôtel de Ville', type: 'batiment', buildingId: 'mairie-capitale' },
         { xPct: [25, 50], nom: 'Office Notarial', type: 'batiment', buildingId: 'office-notarial' },
@@ -91,7 +91,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-loge': {
-      image: 'images/rue-loge.png',
+      image: 'images/rue-loge.webp',
       zones: [
         { xPct: [0, 25],  nom: 'Banque Privée Helvétia', type: 'batiment', buildingId: 'banque-privee' },
         { xPct: [25, 50], nom: 'Clinique Privée Saint-Luc', type: 'batiment', buildingId: 'clinique-privee' },
@@ -102,7 +102,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-imprimerie': {
-      image: 'images/rue-imprimerie.png',
+      image: 'images/rue-imprimerie.webp',
       zones: [
         // xPct recalibres en mesurant les vraies limites des facades sur l'image (grille de reperes) :
         // Universite 0-27%, Dispensaire 27-55%, Imprimerie 55-68%.
@@ -117,7 +117,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- INTERSECTION VERS STADE / COMMERCE ----
 
     'luthecia-intersection-stade-commercial': {
-      image: 'images/rue-intersection-stade-commercial.png',
+      image: 'images/rue-intersection-stade-commercial.webp',
       zones: [],
       liens: { gauche: 'luthecia-centre-commercial', droite: 'luthecia-stade-multimodal', toutDroit: 'luthecia-musees', arriere: 'luthecia-imprimerie' },
       flechesStyle: {
@@ -128,7 +128,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // ---- MUSEES (Ville de Luthecia + National de Republia, face a face) ----
     'luthecia-musees': {
-      image: 'images/rue-musees-luthecia.png',
+      image: 'images/rue-musees-luthecia.webp',
       zones: [
         { xPct: [0, 45],   nom: 'Musée de la Ville de Luthécia', type: 'batiment', buildingId: 'musee-ville-luthecia' },
         { xPct: [28, 52],  yPct: [20, 78], nom: 'Parc Botanique National', type: 'batiment', buildingId: 'parc-botanique-national' },
@@ -143,7 +143,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // ---- QUARTIER DES AMBASSADES ----
     'luthecia-quartier-ambassades': {
-      image: 'images/rue-quartier-ambassades.png',
+      image: 'images/rue-quartier-ambassades.webp',
       zones: [
         { xPct: [0, 100], nom: 'Quartier des Ambassades', type: 'batiment', buildingId: 'quartier-ambassades' }
       ],
@@ -160,7 +160,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- BRANCHE STADE / MULTIMODAL ----
 
     'luthecia-stade-multimodal': {
-      image: 'images/rue-stade-multimodal.png',
+      image: 'images/rue-stade-multimodal.webp',
       zones: [
         { xPct: [0, 45], nom: 'Stade de Luthécia', type: 'batiment', buildingId: 'stade' },
         { xPct: [55, 100], nom: 'Place du Formulaire de la Liberté', type: 'batiment', buildingId: 'place-formulaire-liberte' }
@@ -174,7 +174,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-usine-pharmaceutique': {
-      image: 'images/usine-pharmaceutique-luthecia.png',
+      image: 'images/usine-pharmaceutique-luthecia.webp',
       zones: [
         { xPct: [0, 100], nom: 'Usine Pharmaceutique Impériale de Républia', type: 'batiment', buildingId: 'usine-pharmaceutique-luthecia' }
       ],
@@ -182,7 +182,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-entrepot-logistique': {
-      image: 'images/entrepot-logistique-luthecia.png',
+      image: 'images/entrepot-logistique-luthecia.webp',
       // Cette illustration montre DEUX batiments : la gare vitree "Centre Multimodal de Luthecia"
       // occupe la gauche et l'arriere-plan, l'entrepot est le hangar industriel du premier plan a
       // droite. Une zone unique [0,100] rendait toute l'image cliquable : cliquer visuellement sur
@@ -200,7 +200,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-centre-multimodal': {
-      image: 'images/rue-centre-multimodal.png',
+      image: 'images/rue-centre-multimodal.webp',
       zones: [
         { xPct: [0, 100], nom: 'Centre Multimodal de Luthécia', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
       ],
@@ -213,7 +213,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- BRANCHE COMMERCE / ARTISANAT / TERRAINS ----
 
     'luthecia-centre-commercial': {
-      image: 'images/rue-centre-commercial.png',
+      image: 'images/rue-centre-commercial.webp',
       zones: [
         // Ordre corrige : Centre Commercial en premier, Centre d'Affaires juste apres,
         // tous deux du meme cote de la rue (partie droite de l'image — la partie gauche
@@ -239,7 +239,7 @@ const RUE_CENTRALE_NOEUDS = {
       // une vraie photo d'interieur (hall de reception) a silencieusement ecrase la photo de
       // rue ici aussi. Ancienne photo de facade recuperee depuis l'historique git (commit
       // ff7dd49^) et remise sur un fichier dedie, separe de l'accueil.
-      image: 'images/rue-bureau-national-emploi-luthecia.png',
+      image: 'images/rue-bureau-national-emploi-luthecia.webp',
       zones: [
         { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
       ],
@@ -256,7 +256,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-terrains-artisanal': {
-      image: 'images/rue-terrains-artisanal.png',
+      image: 'images/rue-terrains-artisanal.webp',
       zones: [
         // Debut de zone decale de 0 a 8% pour laisser un espace libre a la fleche gauche
         { xPct: [8, 60],   nom: 'Terrains à Bâtir',            type: 'noeud', noeudId: 'luthecia-terrains-lots' },
@@ -270,7 +270,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Vue rapprochee des 5 lots, atteinte en cliquant sur "Terrains a Batir" depuis la vue large ci-dessus
     'luthecia-terrains-lots': {
-      image: 'images/rue-terrains-lots-detail.png',
+      image: 'images/rue-terrains-lots-detail.webp',
       zones: [
         // Correctif du 5 septembre 2026 : ces 5 zones ouvraient -1, -4, -5, -6, -7 alors que
         // Luthecia declare -1 a -5 (WORLD.republic.capitale.buildings) et que le plan SVG
@@ -295,7 +295,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-armurerie': {
-      image: 'images/rue-armurerie.png',
+      image: 'images/rue-armurerie.webp',
       zones: [
         // Seule la facade de l'Armurerie Martinon (partie gauche de l'image) est cliquable —
         // le reste de la scene (place, panneaux, marche au fond) ne mene nulle part.
@@ -314,7 +314,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- TABERNACLE (referme la seconde boucle sur le Palais Présidentiel) ----
 
     'luthecia-tabernacle-impots': {
-      image: 'images/rue-tabernacle-impots.png',
+      image: 'images/rue-tabernacle-impots.webp',
       zones: [
         // Position du Marche corrigee : il est visible a DROITE de l'image (stands, camion
         // "Ferme du Belvedere", banniere "Marche Fermier de Luthecia"), pas a gauche comme
@@ -343,13 +343,13 @@ const RUE_CENTRALE_NOEUDS = {
       // 'psm-eglise-cimetiere' sont des PLACEHOLDERS : a relier aux vrais noeuds une fois ces
       // scenes codees (voir JOURNAL-SESSION.md, scenes du 27 juillet).
       // xPct estimes a l'oeil sur chaque image : a ajuster si le clic tombe a cote.
-      image: 'images/rue-carrefour-musee-depuis-artisanal.png',
+      image: 'images/rue-carrefour-musee-depuis-artisanal.webp',
       imagesParArrivee: {
-        'psm-carrefour-artisanal-scierie': 'images/rue-carrefour-musee-depuis-artisanal.png',
-        'psm-ecole-phare':            'images/rue-carrefour-musee-depuis-phare.png',
-        'psm-eglise-cimetiere': 'images/rue-carrefour-musee-depuis-phare.png',
-        'psm-tribunal-banque':         'images/rue-carrefour-musee-depuis-tribunal.png',
-        'psm-eglise-cimetiere':           'images/rue-carrefour-musee-depuis-eglise.png'
+        'psm-carrefour-artisanal-scierie': 'images/rue-carrefour-musee-depuis-artisanal.webp',
+        'psm-ecole-phare':            'images/rue-carrefour-musee-depuis-phare.webp',
+        'psm-eglise-cimetiere': 'images/rue-carrefour-musee-depuis-phare.webp',
+        'psm-tribunal-banque':         'images/rue-carrefour-musee-depuis-tribunal.webp',
+        'psm-eglise-cimetiere':           'images/rue-carrefour-musee-depuis-eglise.webp'
       },
       zones: [
         { xPct: [0, 22],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
@@ -413,7 +413,7 @@ const RUE_CENTRALE_NOEUDS = {
       // ne se declenchait quasiment jamais en jeu reel, retire). "droite" reste la route vers
       // le sud (carrefour Musee) pour qui arrive par le sud et veut y retourner.
       // 'psm-centre-multimodal' n'est plus un placeholder, deja code.
-      image: 'images/rue-carrefour-artisanal-scierie.png',
+      image: 'images/rue-carrefour-artisanal-scierie.webp',
       zones: [
         { xPct: [0, 26],   nom: 'Centre Artisanal',       type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
@@ -426,7 +426,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Point de depart officiel de la navigation exterieure de PSM (arrivee par transport).
       // Pas de fleche arriere (entree de ville). 'psm-ecole-phare' est un PLACEHOLDER
       // (scene Ecole/Phare, image deja recue de Fred mais pas encore codee).
-      image: 'images/rue-centre-multimodal-psm.png',
+      image: 'images/rue-centre-multimodal-psm.webp',
       zones: [
         { xPct: [0, 20],   nom: 'Stade de la Brise Mariannaise', type: 'batiment', buildingId: 'stade' },
         { xPct: [20, 78],  nom: 'Centre Multimodal',             type: 'batiment', buildingId: 'centre-multinodal-port-sainte-marie' },
@@ -438,7 +438,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-ecole-phare': {
       // Le Dispensaire est visible au loin mais pas encore cliquable ici (le sera sur la scene suivante).
       // 'psm-dispensaire-port-plaisance' est un PLACEHOLDER (scene pas encore codee).
-      image: 'images/rue-ecole-phare-psm.png',
+      image: 'images/rue-ecole-phare-psm.webp',
       zones: [
         { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
         // Zone recalibree sur la silhouette reelle du phare (mesuree sur l'image, verifiee
@@ -457,7 +457,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-dispensaire-port-plaisance': {
       // 'psm-tribunal-banque' est un PLACEHOLDER (scene pas encore codee).
-      image: 'images/rue-dispensaire-port-plaisance-psm.png',
+      image: 'images/rue-dispensaire-port-plaisance-psm.webp',
       zones: [
         { xPct: [0, 30],   nom: 'Dispensaire des Marins Mariannais', type: 'batiment', buildingId: 'dispensaire-public-v' },
         { xPct: [65, 100], nom: 'Port de Plaisance',                 type: 'batiment', buildingId: 'port-plaisance-psm' }
@@ -467,7 +467,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-tribunal-banque': {
       // 'psm-bar-imprimerie-commissariat' est un PLACEHOLDER (scene pas encore codee).
-      image: 'images/rue-tribunal-banque-psm.png',
+      image: 'images/rue-tribunal-banque-psm.webp',
       zones: [
         { xPct: [15, 55],  nom: 'Tribunal de Port Sainte Marie', type: 'batiment', buildingId: 'tribunal-local' },
         { xPct: [58, 85],  nom: 'Banque Mariannaise',            type: 'batiment', buildingId: 'banque-locale' }
@@ -478,7 +478,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-bar-imprimerie-commissariat': {
       // 'psm-marche-resto-chasse' est un PLACEHOLDER (scene Capitaine Sauvage/Marche/Chasse&Peche, pas encore codee).
-      image: 'images/rue-bar-imprimerie-commissariat-psm.png',
+      image: 'images/rue-bar-imprimerie-commissariat-psm.webp',
       zones: [
         { xPct: [0, 32],   nom: 'Le Bar des Pêcheurs',       type: 'batiment', buildingId: 'bar-des-pecheurs' },
         { xPct: [35, 65],  nom: "L'Encre Mariannaise",       type: 'batiment', buildingId: 'imprimerie-librairie' },
@@ -489,7 +489,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-marche-resto-chasse': {
       // 'psm-hotel-mairie-place' et 'psm-eglise-cimetiere' sont des PLACEHOLDERS (scenes pas encore codees).
-      image: 'images/rue-marche-resto-chasse-psm.png',
+      image: 'images/rue-marche-resto-chasse-psm.webp',
       zones: [
         { xPct: [0, 30],   nom: 'Capitaine Sauvage',        type: 'batiment', buildingId: 'capitaine-sauvage' },
         { xPct: [33, 62],  nom: 'Marché',                   type: 'batiment', buildingId: 'marche-psm' },
@@ -501,7 +501,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-hotel-mairie-place': {
       // 'psm-eglise-cimetiere' est reutilise (deja pose en placeholder depuis la scene Marche/Resto/Chasse,
       // ou la zone 'Marche' menait vers ce meme noeud).
-      image: 'images/rue-hotel-mairie-place-psm.png',
+      image: 'images/rue-hotel-mairie-place-psm.webp',
       zones: [
         { xPct: [0, 30],   nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' },
         { xPct: [33, 62],  nom: "Mairie",            type: 'batiment', buildingId: 'mairie' },
@@ -514,7 +514,7 @@ const RUE_CENTRALE_NOEUDS = {
       // 'psm-chantier-naval' est un PLACEHOLDER (scene pas encore codee).
       // Le retour en arriere reutilise volontairement la vue "depuis le Phare" du carrefour Musee
       // (l'eglise y est visible au loin), voir duplication dans imagesParArrivee/zonesParArrivee/liensParArrivee ci-dessous.
-      image: 'images/rue-eglise-cimetiere-psm.png',
+      image: 'images/rue-eglise-cimetiere-psm.webp',
       zones: [
         { xPct: [15, 85], nom: 'Notre-Dame de la Mer & Cimetière Marin', type: 'batiment', buildingId: 'notre-dame-mer' }
       ],
@@ -524,7 +524,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-chantier-naval': {
       // 'psm-terrains-vente' est un PLACEHOLDER (scene pas encore codee).
-      image: 'images/rue-chantier-naval-psm.png',
+      image: 'images/rue-chantier-naval-psm.webp',
       zones: [
         { xPct: [15, 85], nom: 'Chantier Naval', type: 'batiment', buildingId: 'chantier-naval' }
       ],
@@ -535,7 +535,7 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-terrains-vente': {
       // 'psm-terrains-lots' est un PLACEHOLDER (sous-scene des 5 lots, pas encore codee,
       // sur le modele de 'luthecia-terrains-lots').
-      image: 'images/rue-terrains-vente-psm.png',
+      image: 'images/rue-terrains-vente-psm.webp',
       zones: [
         { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
       ],
@@ -550,7 +550,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Pole Tabac occupe la moitie gauche du cadre, Entrepot Logistique la moitie droite (zones
       // xPct inchangees, la vue elle-meme ne bouge pas), mais la marche se fait tout droit vers le
       // carrefour Scierie/Artisanal, retour vers les Terrains a batir.
-      image: 'images/entrepot-pole-tabac-psm.png',
+      image: 'images/entrepot-pole-tabac-psm.webp',
       zones: [
         { xPct: [0, 45],   nom: 'Pôle Tabac & Alcools Sainte-Mariannaise', type: 'batiment', buildingId: 'pole-tabac-alcools-psm' },
         { xPct: [55, 100], nom: 'Entrepôt Logistique de Sainte-Marie',     type: 'batiment', buildingId: 'entrepot-logistique-psm' }
@@ -563,7 +563,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-terrains-lots': {
-      image: 'images/rue-terrains-lots-detail-psm.png',
+      image: 'images/rue-terrains-lots-detail-psm.webp',
       zones: [
         // Correctif du 5 septembre 2026 (arbitrage valide) : Port-Sainte-Marie a QUATRE terrains,
         // ceux reellement declares dans WORLD.republic.ville_a (-8 a -11). Une 5e zone ouvrait
@@ -597,7 +597,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'qhs-exterieur': {
-      image: 'images/qhs-luthecia-exterieur.png',
+      image: 'images/qhs-luthecia-exterieur.webp',
       zones: [
         { xPct: [0, 100], yPct: [0, 100], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
       ],
@@ -789,7 +789,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V1 — Place du Peuple. Point de depart de la ville.
     'novomirsk-vue-1': {
-      image: 'images/rue-palais-gouvernement-place-novomirsk.png',
+      image: 'images/rue-palais-gouvernement-place-novomirsk.webp',
       zones: [
         { xPct: [0, 17],  yPct: [36, 90], nom: 'Librairie du Peuple', type: 'a-venir' },
         // Le grand palais abritera plus tard la Presidence ET le Gouvernement ; son nom
@@ -803,7 +803,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V2 — Musee municipal et restaurant.
     'novomirsk-vue-2': {
-      image: 'images/rue-musee-restaurant-novomirsk.png',
+      image: 'images/rue-musee-restaurant-novomirsk.webp',
       zones: [
         { xPct: [0, 23],   yPct: [22, 70], nom: 'Restaurant La Mère Volga', type: 'a-venir' },
         { xPct: [76, 100], yPct: [0, 74],  nom: 'Musée municipal de Novomirsk', type: 'a-venir' }
@@ -828,7 +828,7 @@ const RUE_CENTRALE_NOEUDS = {
     // toujours ici, d'ou le sortieNoeudId pose sur les deux zones.
     // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
     'novomirsk-vue-4': {
-      image: 'images/rue-hotel-galeries-novomirsk.png',
+      image: 'images/rue-hotel-galeries-novomirsk.webp',
       zones: [
         { xPct: [0, 23],   yPct: [8, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' },
         { xPct: [79, 100], yPct: [2, 70], nom: 'Galeries de Novomirsk', type: 'batiment', buildingId: 'centre-commercial' }
@@ -839,7 +839,7 @@ const RUE_CENTRALE_NOEUDS = {
     // V5 — Seconde entree du Grand Hotel, et centre d'affaires.
     // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
     'novomirsk-vue-5': {
-      image: 'images/rue-hotel-centre-affaires-novomirsk.png',
+      image: 'images/rue-hotel-centre-affaires-novomirsk.webp',
       zones: [
         { xPct: [0, 25],   yPct: [8, 74], nom: 'Centre d\'affaires de Novomirsk', type: 'batiment', buildingId: 'centre-affaires' },
         { xPct: [75, 100], yPct: [0, 74], nom: 'Grand Hôtel de Sovarka', type: 'batiment', buildingId: 'hotel-republica', sortieNoeudId: 'novomirsk-vue-4' }
@@ -861,7 +861,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V7 — Place de la Grande Eglise. Trois hotspots, tous cliquables.
     'novomirsk-vue-7': {
-      image: 'images/rue-residences-eglise-novomirsk.png',
+      image: 'images/rue-residences-eglise-novomirsk.webp',
       zones: [
         { xPct: [0, 16],   yPct: [18, 74], nom: 'Pavillon des Ambassadeurs', type: 'a-venir' },
         { xPct: [33, 70],  yPct: [2, 74],  nom: 'Grande Église du Tractorisme', type: 'batiment', buildingId: 'kolkhoze-spirituel' },
@@ -875,7 +875,7 @@ const RUE_CENTRALE_NOEUDS = {
     // depuis cette vue (il a la sienne, V9).
     // Une fleche BAS avait ete prevue mais sa destination n'a jamais ete definie : absente.
     'novomirsk-vue-8': {
-      image: 'images/rue-entrepot-renseignement-novomirsk.png',
+      image: 'images/rue-entrepot-renseignement-novomirsk.webp',
       zones: [
         { xPct: [0, 29],   yPct: [20, 74], nom: 'Entrepôt logistique de Novomirsk', type: 'a-venir' },
         { xPct: [83, 100], yPct: [8, 80],  nom: 'Direction du Renseignement de Sovarka', type: 'a-venir' }
@@ -889,7 +889,7 @@ const RUE_CENTRALE_NOEUDS = {
     // pas touchee. C'est aussi ce qui fait qu'une arrivee en avion repositionne
     // automatiquement le joueur ici (trouverNoeudRueCentralePourBatiment).
     'novomirsk-vue-9': {
-      image: 'images/rue-centre-multimodal-novomirsk.png',
+      image: 'images/rue-centre-multimodal-novomirsk.webp',
       zones: [
         { xPct: [6, 73], yPct: [0, 74], nom: 'Centre multimodal de Novomirsk', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
       ],
@@ -900,7 +900,7 @@ const RUE_CENTRALE_NOEUDS = {
     // V10 — Tribunal. Le palais visible au fond est le Palais du Gouvernement, atteint par V1 :
     // pas de hotspot ici (un batiment d'arriere-plan n'est pas rendu cliquable).
     'novomirsk-vue-10': {
-      image: 'images/rue-tribunal-palais-novomirsk.png',
+      image: 'images/rue-tribunal-palais-novomirsk.webp',
       zones: [
         { xPct: [0, 34], yPct: [0, 78], nom: 'Tribunal de Novomirsk', type: 'batiment', buildingId: 'tribunal' }
       ],
@@ -911,7 +911,7 @@ const RUE_CENTRALE_NOEUDS = {
     // V11 — Premiere entree de la Caserne centrale, et garage.
     // La Caserne a DEUX entrees (V11 et V12) ; sa sortie canonique ramene toujours a V12.
     'novomirsk-vue-11': {
-      image: 'images/rue-caserne-garage-novomirsk.png',
+      image: 'images/rue-caserne-garage-novomirsk.webp',
       zones: [
         { xPct: [8, 52],   yPct: [6, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
         { xPct: [85, 100], yPct: [38, 88], nom: 'Garage de Novomirsk', type: 'a-venir' }
@@ -922,7 +922,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V12 — Seconde entree de la Caserne (sortie canonique), et salon de coiffure.
     'novomirsk-vue-12': {
-      image: 'images/rue-salon-coiffure-novomirsk.png',
+      image: 'images/rue-salon-coiffure-novomirsk.webp',
       zones: [
         { xPct: [0, 34],   yPct: [0, 74],  nom: 'Caserne centrale de Novomirsk', type: 'a-venir', sortieNoeudId: 'novomirsk-vue-12' },
         { xPct: [78, 100], yPct: [16, 88], nom: 'Salon de coiffure de Novomirsk', type: 'a-venir' }
@@ -945,7 +945,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V14 — Pharmacie et logements.
     'novomirsk-vue-14': {
-      image: 'images/rue-pharmacie-logements-novomirsk.png',
+      image: 'images/rue-pharmacie-logements-novomirsk.webp',
       zones: [
         { xPct: [52, 71],  yPct: [8, 66],  nom: 'Logements', type: 'a-venir' },
         { xPct: [71, 100], yPct: [18, 86], nom: 'Pharmacie officielle de Novomirsk', type: 'a-venir' }
@@ -957,7 +957,7 @@ const RUE_CENTRALE_NOEUDS = {
     // V15 — Clinique privee et hopital public. Pas de hotspot EHPAD pour l'instant, meme si
     // l'enseigne est visible sur l'image.
     'novomirsk-vue-15': {
-      image: 'images/rue-clinique-hopital-novomirsk.png',
+      image: 'images/rue-clinique-hopital-novomirsk.webp',
       zones: [
         { xPct: [12, 38],  yPct: [0, 74], nom: 'Clinique privée Saint-Pavel', type: 'batiment', buildingId: 'clinique-privee' },
         { xPct: [61, 100], yPct: [0, 78], nom: 'Hôpital public de Novomirsk', type: 'batiment', buildingId: 'dispensaire-public' }
@@ -968,7 +968,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V16 — Quai du marche. La marchande de poissons est un hotspot PROPRE, distinct du Marche.
     'novomirsk-vue-16': {
-      image: 'images/rue-marche-novomirsk.png',
+      image: 'images/rue-marche-novomirsk.webp',
       zones: [
         { xPct: [20, 45],  yPct: [52, 95], nom: 'Marchande de poissons', type: 'a-venir' },
         { xPct: [60, 98],  yPct: [32, 74], nom: 'Marché de Novomirsk', type: 'batiment', buildingId: 'marche' }
@@ -979,7 +979,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V17 — Stade et centre artisanal.
     'novomirsk-vue-17': {
-      image: 'images/rue-stade-centre-artisanal-novomirsk.png',
+      image: 'images/rue-stade-centre-artisanal-novomirsk.webp',
       zones: [
         { xPct: [0, 50],   yPct: [0, 70],  nom: 'Stade du Dynamo de Novomirsk', type: 'batiment', buildingId: 'stade' },
         { xPct: [75, 100], yPct: [10, 80], nom: 'Centre artisanal de Novomirsk', type: 'batiment', buildingId: 'centre-artisanal' }
@@ -990,7 +990,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V18 — Usine pharmaceutique et musee national. Ferme la boucle avec V7.
     'novomirsk-vue-18': {
-      image: 'images/rue-usine-pharma-musee-novomirsk.png',
+      image: 'images/rue-usine-pharma-musee-novomirsk.webp',
       zones: [
         { xPct: [0, 41],   yPct: [6, 74], nom: 'Usine pharmaceutique Pharmanov', type: 'a-venir' },
         { xPct: [64, 97],  yPct: [0, 72], nom: 'Musée de la République de Sovarka', type: 'a-venir' }

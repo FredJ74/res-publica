@@ -158,7 +158,7 @@ function bureauxOpenSpaceCentreAffaires() {
       name: "Open Space " + lettre + " — Local à louer",
       imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
       desc: "📋 À LOUER — Poste de travail de l'open space. Moins cher qu'un bureau fermé, mais sans porte.",
-      imageUrl: "images/luthecia-centre-affaires-bureau-open-space.png",
+      imageUrl: "images/luthecia-centre-affaires-bureau-open-space.webp",
       isLocationRoom: true,
       locationData: { prix: 200, bonusPOP: 2, bonusINF: 3, bonusDIS: 1, label: 'Open Space ' + lettre, tier: 3 },
       // Sortir d'un poste rend au PLAN de l'open space, pas a la rue : on est
@@ -194,27 +194,27 @@ const WORLD = {
           name: "Stade Gourgeot — Olympique de Luthécia",
           desc: "L'antre du club le plus titré de Republia. Ambiance electrique les soirs de match.",
           persons: [
-            {name:'Jean-Pierre Taclojnou (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-jean-pierre-taclojnou.png'},
-            {name:'Michel Parlotte (PNJ)', role:'Journaliste Sportif', rel:'neutral', job:'commentateur', photoUrl:'images/journaliste-michel-parlotte.png'}
+            {name:'Jean-Pierre Taclojnou (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-jean-pierre-taclojnou.webp'},
+            {name:'Michel Parlotte (PNJ)', role:'Journaliste Sportif', rel:'neutral', job:'commentateur', photoUrl:'images/journaliste-michel-parlotte.webp'}
           ],
           roomOverrides: {
             terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "images/stade-olympique-luthecia.png" },
-            vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "images/vestiaires-luthecia.png",
-              persons: [{name:'Alphonse Toudroit (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-alphonse-toudroit.png'}]
+            vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "images/vestiaires-luthecia.webp",
+              persons: [{name:'Alphonse Toudroit (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-alphonse-toudroit.webp'}]
             },
-            buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "images/buvette-boutique-luthecia.png",
+            buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "images/buvette-boutique-luthecia.webp",
               persons: [
-                {name:'Justin Verre (PNJ)', role:'Tenancier de Buvette', rel:'neutral', job:'serveur', photoUrl:'images/buvette-scene-tenancier.png'},
-                {name:'Jean Fourtout (PNJ)', role:'Vendeur de Produits Dérivés', rel:'neutral', job:'commercant', photoUrl:'images/buvette-scene-vendeur.png'}
+                {name:'Justin Verre (PNJ)', role:'Tenancier de Buvette', rel:'neutral', job:'serveur', photoUrl:'images/buvette-scene-tenancier.webp'},
+                {name:'Jean Fourtout (PNJ)', role:'Vendeur de Produits Dérivés', rel:'neutral', job:'commercant', photoUrl:'images/buvette-scene-vendeur.webp'}
               ]
             },
             guichet_paris: { name: "Guichet des Paris Sportifs — Olympique de Luthécia", imageUrl: "images/guichet-paris-luthecia.jpeg",
-              persons: [{name:'Ricardo Pif (PNJ)', role:'Bookmaker Officiel', rel:'neutral', job:'bookmaker', photoUrl:'images/bookmaker-ricardo-pif.png'}]
+              persons: [{name:'Ricardo Pif (PNJ)', role:'Bookmaker Officiel', rel:'neutral', job:'bookmaker', photoUrl:'images/bookmaker-ricardo-pif.webp'}]
             },
-            siege_supporters: { name: "Les Vieilles Tuiles de Luthécia — Siège des Supporters", imageUrl: "images/siege-supporters-luthecia.png",
-              persons: [{name:'Alfredo Mifassole (PNJ)', role:'Meneur des Supporters', rel:'neutral', job:'meneur_supporters', photoUrl:'images/meneur-supporters-alfredo-mifassole.png'}]
+            siege_supporters: { name: "Les Vieilles Tuiles de Luthécia — Siège des Supporters", imageUrl: "images/siege-supporters-luthecia.webp",
+              persons: [{name:'Alfredo Mifassole (PNJ)', role:'Meneur des Supporters', rel:'neutral', job:'meneur_supporters', photoUrl:'images/meneur-supporters-alfredo-mifassole.webp'}]
             },
-            bureau_president: { name: "Bureau du Président — Olympique de Luthécia", imageUrl: "images/bureau-president-luthecia.png" }
+            bureau_president: { name: "Bureau du Président — Olympique de Luthécia", imageUrl: "images/bureau-president-luthecia.webp" }
           }
         },
         'hotel-republica': {
@@ -245,7 +245,7 @@ const WORLD = {
           roomOverrides: {
             bar: {
               persons: [
-                {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'images/marco-barman.png', photoPos:'50% 20%'},
+                {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'images/marco-barman.webp', photoPos:'50% 20%'},
                 {name:'L\'hôtesse de l\'agence', role:'Agence Roxane Velours', rel:'neutral', job:'escort_agence', genre:'F'},
                 {name:'L\'hôte de l\'agence', role:'Agence Roxane Velours', rel:'neutral', job:'escort_agence', genre:'H'},
                 {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
@@ -256,7 +256,7 @@ const WORLD = {
         'commissariat': {
           name: "Commissariat Central de Luthecia",
           desc: "Raoul Toufaud pointe toujours dans la mauvaise direction.",
-          persons: [{"name": "Gardien de la Paix (PNJ)", "role": "Agent d'accueil", "rel": "neutral", "job": "gardien_paix", "photoUrl": "images/commissariat-gardien-paix.png", "photoPos": "50% 15%"}]
+          persons: [{"name": "Gardien de la Paix (PNJ)", "role": "Agent d'accueil", "rel": "neutral", "job": "gardien_paix", "photoUrl": "images/commissariat-gardien-paix.webp", "photoPos": "50% 15%"}]
         },
         'tribunal': {
           name: "Tribunal de Luthecia",
@@ -285,7 +285,7 @@ const WORLD = {
         'banque-privee': {
           name: "Banque Privée Helvetia",
           desc: "Hans Von Discret ne confirme ni n'infirme rien.",
-          persons: [{"name": "Hans Von Discret (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier", "photoUrl": "images/banque-privee-helvetia-hans-von-discret.png", "photoPos": "50% 20%"}, {"name": "Ursula Offshore (PNJ)", "role": "Conseillère en optimisation fiscale", "rel": "neutral", "job": "conseiller", "photoUrl": "images/banque-privee-helvetia-ursula-offshore.png", "photoPos": "50% 15%"}]
+          persons: [{"name": "Hans Von Discret (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier", "photoUrl": "images/banque-privee-helvetia-hans-von-discret.webp", "photoPos": "50% 20%"}, {"name": "Ursula Offshore (PNJ)", "role": "Conseillère en optimisation fiscale", "rel": "neutral", "job": "conseiller", "photoUrl": "images/banque-privee-helvetia-ursula-offshore.webp", "photoPos": "50% 15%"}]
         },
         'clinique-privee': {
           name: "Clinique Privée Saint-Luc",
@@ -300,7 +300,7 @@ const WORLD = {
         'la-tribune': {
           name: "L'Autruche Entravée",
           desc: "Le journal d'investigation de Républia.",
-          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.png", "photoPos": "62% 20%"}],
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"}],
           // Tracts calomnieux (24 aout 2026) : ajoute UNIQUEMENT a l'accueil de La Tribune de
           // Luthecia (republic/capitale) via roomOverrides.orders, fusion additive (voir
           // allOrders, plateau-politique.js) -- les 4 ordres de base (se_renseigner/
@@ -368,16 +368,16 @@ const WORLD = {
           name: "Office Notarial — Maître Dubois & Associés",
           desc: "Le notaire de la nation. Ventes de terrain, successions, contrats de mariage — tout ce qui doit rester ecrit, ici, pour toujours.",
           roomOverrides: {
-            accueil_notaire: { imageUrl: "images/accueil-notaire-luthecia.png" },
-            bureau_successions: { imageUrl: "images/bureau-successions-luthecia.png" },
-            bureau_contrats: { imageUrl: "images/bureau-contrats-luthecia.png" },
-            archives_notariales: { imageUrl: "images/archives-notariales-luthecia.png" }
+            accueil_notaire: { imageUrl: "images/accueil-notaire-luthecia.webp" },
+            bureau_successions: { imageUrl: "images/bureau-successions-luthecia.webp" },
+            bureau_contrats: { imageUrl: "images/bureau-contrats-luthecia.webp" },
+            archives_notariales: { imageUrl: "images/archives-notariales-luthecia.webp" }
           }
         },
         'marche': {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
-          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "images/marcel-bidoche.png", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "images/ginette-legume.png", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.png", "photoPos": "62% 20%"}],
+          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "images/marcel-bidoche.webp", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "images/ginette-legume.webp", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"}],
           // Lot Marche (21 aout 2026) : ordres commerce generiques additifs, propres a Luthecia
           // uniquement (roomOverrides.orders, fusion additive avec le template de base partage
           // avec Montrouge -- jamais un remplacement, voir renderRoomActions()). Pas de
@@ -417,7 +417,7 @@ const WORLD = {
         // surcharge fixe.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/centre-commercial-republic.png" }
+            hall: { imageUrl: "images/centre-commercial-republic.webp" }
           }
         },
         // Centre d'Affaires de Luthecia (4 octobre 2026). Le gabarit partage
@@ -426,7 +426,7 @@ const WORLD = {
         // Port-Sainte-Marie, Montrouge et les trois autres empires.
         'centre-affaires': {
           roomOverrides: {
-            hall: { imageUrl: "images/hall-centre-affaires-luthecia.png" },
+            hall: { imageUrl: "images/hall-centre-affaires-luthecia.webp" },
             // L'Open Space n'est plus un local : c'est le PLAN des quatre postes.
             // Les trois ordres de location sont retires -- on ne loue pas un plan,
             // on loue un poste, et chaque poste porte les siens. excludeOrders est
@@ -480,7 +480,7 @@ const WORLD = {
             salle_elections: {
               name: "Salle des Élections",
               imageBg: "linear-gradient(135deg,#0f1810,#142014)",
-              imageUrl: "images/port-sainte-marie-mairie-salle-elections.png",
+              imageUrl: "images/port-sainte-marie-mairie-salle-elections.webp",
               desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
               persons: [],
               orders: [
@@ -499,7 +499,7 @@ const WORLD = {
             salle_archives: {
               name: "Salle des Archives",
               imageBg: "linear-gradient(135deg,#100c08,#181410)",
-              imageUrl: "images/port-sainte-marie-mairie-salle-archives.png",
+              imageUrl: "images/port-sainte-marie-mairie-salle-archives.webp",
               desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
               persons: [],
               orders: [
@@ -519,15 +519,15 @@ const WORLD = {
         // touches : soin_public/vendre_ressource_medicale restent sur la base partagee.
         'dispensaire-public-v': {
           roomOverrides: {
-            attente: { imageUrl: "images/port-sainte-marie-dispensaire-accueil.png" },
+            attente: { imageUrl: "images/port-sainte-marie-dispensaire-accueil.webp" },
             ehpad: {
               name: "Résidence des Embruns",
               desc: "EHPAD moderne de Port-Sainte-Marie avec vue sur le port de plaisance.",
-              imageUrl: "images/port-sainte-marie-ehpad-residence-embruns.png"
+              imageUrl: "images/port-sainte-marie-ehpad-residence-embruns.webp"
             }
           },
           persons: [
-            {name:'Corinne Titgoute (PNJ)', role:'Accueil du Dispensaire des Marins Mariannais', rel:'neutral', job:'hotesse', photoUrl:'images/port-sainte-marie-dispensaire-corinne-titgoute.png', photoPos:'50% 15%'},
+            {name:'Corinne Titgoute (PNJ)', role:'Accueil du Dispensaire des Marins Mariannais', rel:'neutral', job:'hotesse', photoUrl:'images/port-sainte-marie-dispensaire-corinne-titgoute.webp', photoPos:'50% 15%'},
             {name:'Betty Dine (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}
           ]
         },
@@ -535,7 +535,7 @@ const WORLD = {
           name: "Scierie Guy Tarembois",
           desc: "Bois locaux, sciage et rabotage. Rachetee par un habitant de Montrouge, elle alimente le Chantier Naval en planches et en poutres.",
           persons: [
-            {name:'Guy Tarembois (PNJ)', role:'PNJ - Proprietaire de la Scierie', rel:'neutral', job:'proprietaire', photoUrl:'images/atelier-scierie-guy-tarembois-psm.png', photoPos:'68% 20%'}
+            {name:'Guy Tarembois (PNJ)', role:'PNJ - Proprietaire de la Scierie', rel:'neutral', job:'proprietaire', photoUrl:'images/atelier-scierie-guy-tarembois-psm.webp', photoPos:'68% 20%'}
           ],
           roomOverrides: {
             // excludeOrders (lot Scierie Guy Tarembois, 25 aout 2026, audit dedie) : masque
@@ -550,7 +550,7 @@ const WORLD = {
             // (livrerEntrepotsQuotidien, api/cron-minuit.js) -- pas par un ordre joueur ici.
             zone_recolte: {
               name: "Atelier",
-              imageUrl: "images/atelier-scierie-guy-tarembois-psm.png",
+              imageUrl: "images/atelier-scierie-guy-tarembois-psm.webp",
               excludeOrders: ['recolter_matiere'],
               // orders (lot "caisse et stock", 25 aout 2026) : fusion additive avec le template
               // partage (roomOverrides.orders, mecanisme deja existant -- voir data.js:198/247/612)
@@ -586,12 +586,12 @@ const WORLD = {
           // batiment partage -- uniquement imageUrl, aucune mecanique de location/presse/economie
           // touchee, aucun PNJ ajoute/modifie.
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-affaires-accueil.png" },
-            bureau_prestige: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-prestige.png" },
-            bureau_standard: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-standard.png" },
-            open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.png" },
+            hall: { imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp" },
+            bureau_prestige: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-prestige.webp" },
+            bureau_standard: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-standard.webp" },
+            open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.webp" },
             tribune_republia: {
-              imageUrl: "images/port-sainte-marie-centre-affaires-tribune-republia.png",
+              imageUrl: "images/port-sainte-marie-centre-affaires-tribune-republia.webp",
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
               // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
               // interview, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
@@ -613,7 +613,7 @@ const WORLD = {
             bureau_emploi_annexe: {
               name: "Bureau National de l'Emploi (Annexe)",
               imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
-              imageUrl: "images/bureau-emploi-annexe-psm.png",
+              imageUrl: "images/bureau-emploi-annexe-psm.webp",
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
               persons: [],
               orders: [
@@ -632,31 +632,31 @@ const WORLD = {
         // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.png" }
+            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" }
           }
         },
         'stade': {
           name: "Stade de La Brise Mariannaise",
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
           persons: [
-            {name:'Maurice Éhault (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-mariannaise-ehault.png'}
+            {name:'Maurice Éhault (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-mariannaise-ehault.webp'}
           ],
           roomOverrides: {
             terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "images/stade-brise-mariannaise.png" },
-            vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "images/vestiaires-mariannaise.png",
+            vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "images/vestiaires-mariannaise.webp",
               persons: [
-                {name:'Thibault Gosse (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-mariannaise-gosse.png'}
+                {name:'Thibault Gosse (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-mariannaise-gosse.webp'}
               ]
             },
-            buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "images/buvette-boutique-mariannaise.png" },
+            buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "images/buvette-boutique-mariannaise.webp" },
             guichet_paris: { name: "Guichet des Paris — La Brise Mariannaise", imageUrl: "images/guichet-paris-mariannaise.jpeg" },
-            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "images/siege-supporters-mariannaise.png" ,
+            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "images/siege-supporters-mariannaise.webp" ,
               // LE CHEF DES SUPPORTERS DE PORT-SAINTE-MARIE (1er octobre 2026). Le siege existait,
               // mais n'hebergeait personne : la ville heritait donc du « Meneur des Supporters »
               // generique du gabarit, partage par toutes les villes et tous les empires.
               persons: [{name:'Pascal Hamar (PNJ)', role:'Chef des Supporters — Négociant en poisson', rel:'neutral', job:'meneur_supporters'}]
             },
-            bureau_president: { name: "Bureau du Président — La Brise Mariannaise", imageUrl: "images/bureau-president-mariannaise.png" }
+            bureau_president: { name: "Bureau du Président — La Brise Mariannaise", imageUrl: "images/bureau-president-mariannaise.webp" }
           }
         },
         'hotel-republica': {
@@ -680,7 +680,7 @@ const WORLD = {
         // ne touche jamais persons/orders de la base partagee, aucun impact sur Montrouge.
         'commissariat-local': {
           roomOverrides: {
-            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.png" },
+            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.webp" },
             // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
             // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les
@@ -692,9 +692,9 @@ const WORLD = {
             // roomOverride scope a ville_a, Montrouge (aucun override ici) et Luthecia (batiment
             // distinct) restent inchanges.
             geoles: {
-              imageUrl: "images/port-sainte-marie-commissariat-geoles.png",
+              imageUrl: "images/port-sainte-marie-commissariat-geoles.webp",
               persons: [
-                {name:'Loïc Karamel (PNJ)', role:'Prisonnier — Contrebandier', rel:'neutral', job:'detenu', photoUrl:'images/port-sainte-marie-commissariat-loic-karamel.png', photoPos:'50% 15%'}
+                {name:'Loïc Karamel (PNJ)', role:'Prisonnier — Contrebandier', rel:'neutral', job:'detenu', photoUrl:'images/port-sainte-marie-commissariat-loic-karamel.webp', photoPos:'50% 15%'}
               ]
             }
           },
@@ -710,10 +710,10 @@ const WORLD = {
             bureau_commissaire: {
               name: "Bureau du Commissaire",
               imageBg: "linear-gradient(135deg,#0f1018,#151822)",
-              imageUrl: "images/port-sainte-marie-commissariat-bureau-commissaire.png",
+              imageUrl: "images/port-sainte-marie-commissariat-bureau-commissaire.webp",
               desc: "Le bureau du commissaire de Port-Sainte-Marie. Vue sur le port.",
               persons: [
-                {name:'Martial Morvan (PNJ)', role:'Commissaire de Port-Sainte-Marie', rel:'neutral', job:'commissaire', photoUrl:'images/port-sainte-marie-commissariat-martial-morvan.png', photoPos:'50% 20%'}
+                {name:'Martial Morvan (PNJ)', role:'Commissaire de Port-Sainte-Marie', rel:'neutral', job:'commissaire', photoUrl:'images/port-sainte-marie-commissariat-martial-morvan.webp', photoPos:'50% 20%'}
               ],
               orders: []
             }
@@ -729,9 +729,9 @@ const WORLD = {
         'tribunal-local': {
           roomOverrides: {
             salle_audience_locale: {
-              imageUrl: "images/port-sainte-marie-tribunal-salle-audience.png",
+              imageUrl: "images/port-sainte-marie-tribunal-salle-audience.webp",
               persons: [
-                {name:'Mireille Sedlex (PNJ)', role:'Juge de Port-Sainte-Marie', rel:'neutral', job:'juge', photoUrl:'images/port-sainte-marie-tribunal-mireille-sedlex.png', photoPos:'50% 15%'}
+                {name:'Mireille Sedlex (PNJ)', role:'Juge de Port-Sainte-Marie', rel:'neutral', job:'juge', photoUrl:'images/port-sainte-marie-tribunal-mireille-sedlex.webp', photoPos:'50% 15%'}
               ]
             }
           }
@@ -747,16 +747,16 @@ const WORLD = {
         // disposer de coffre_privatif, BUILDINGS['banque-nationale']), non dupliquee ici.
         'banque-locale': {
           roomOverrides: {
-            guichet: { imageUrl: "images/port-sainte-marie-banque-accueil.png" }
+            guichet: { imageUrl: "images/port-sainte-marie-banque-accueil.webp" }
           },
           roomsExtra: {
             bureau_directeur: {
               name: "Bureau de Direction",
               imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
-              imageUrl: "images/port-sainte-marie-banque-bureau-direction.png",
+              imageUrl: "images/port-sainte-marie-banque-bureau-direction.webp",
               desc: "Le bureau de la directrice de l'agence. Vue sur le port.",
               persons: [
-                {name:'Marie Le Roux (PNJ)', role:'Directrice de la banque de Port-Sainte-Marie', rel:'neutral', job:'directeur', photoUrl:'images/port-sainte-marie-banque-marie-le-roux.png', photoPos:'50% 15%'}
+                {name:'Marie Le Roux (PNJ)', role:'Directrice de la banque de Port-Sainte-Marie', rel:'neutral', job:'directeur', photoUrl:'images/port-sainte-marie-banque-marie-le-roux.webp', photoPos:'50% 15%'}
               ],
               orders: []
             }
@@ -780,7 +780,7 @@ const WORLD = {
         'marche': {
           name: "Marché du Port",
           desc: "Poissons frais, rumeurs fraîches.",
-          persons: [{"name": "Marinette Hareng (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant", "photoUrl": "images/marinette-hareng.png", "photoPos": "65% 35%"}]
+          persons: [{"name": "Marinette Hareng (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant", "photoUrl": "images/marinette-hareng.webp", "photoPos": "65% 35%"}]
         }
       }
     },
@@ -795,13 +795,13 @@ const WORLD = {
           name: "Stade Marcel Cazenave",
           desc: "Colle aux voies ferrees. Les Cheminots jouent avec la rage des quartiers ouvriers.",
           persons: [
-            {name:'Jean-Philippe Hervitmonfute (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-montrouge-hervitmonfute.png'},
-            {name:'Émilie Charbon (PNJ)', role:'Journaliste Sportive', rel:'neutral', job:'commentateur', photoUrl:'images/journaliste-montrouge-emilie-charbon.png'}
+            {name:'Jean-Philippe Hervitmonfute (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-montrouge-hervitmonfute.webp'},
+            {name:'Émilie Charbon (PNJ)', role:'Journaliste Sportive', rel:'neutral', job:'commentateur', photoUrl:'images/journaliste-montrouge-emilie-charbon.webp'}
           ],
           roomOverrides: {
             terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "images/montrouge/montrouge-stade-pelouse-accueil.jpg" },
             vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
-              persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-montrouge-bricoleau.png'}]
+              persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-montrouge-bricoleau.webp'}]
             },
             // LE SIEGE DES SUPPORTERS DE MONTROUGE (1er octobre 2026). Sans cette surcharge, la
             // ville heritait du meneur generique du gabarit. Chaque ville a sa propre culture de
@@ -809,7 +809,7 @@ const WORLD = {
             siege_supporters: { name: "Siège des Supporters — Union Cheminote de Montrouge",
               persons: [{name:'Lucas Ténaire (PNJ)', role:'Chef des Supporters — Cheminot syndicaliste', rel:'neutral', job:'meneur_supporters'}]
             },
-            bureau_president: { name: "Bureau du Président — Union Cheminote de Montrouge", imageUrl: "images/bureau-president-montrouge.png" }
+            bureau_president: { name: "Bureau du Président — Union Cheminote de Montrouge", imageUrl: "images/bureau-president-montrouge.webp" }
           }
         },
         'hotel-republica': {
@@ -938,7 +938,7 @@ const WORLD = {
             hall: {
               imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
               persons: [
-                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.webp', photoPos:'38% 45%'},
                 {name:'Moshe Maychan (PNJ)', role:'Assassin', rel:'neutral', job:'criminel'},
                 {name:'Harry Cover (PNJ)', role:'Détective privé', rel:'neutral', job:'inspecteur'}
               ]
@@ -1080,9 +1080,9 @@ const WORLD = {
         'tribunal-local': {
           roomOverrides: {
             salle_audience_locale: {
-              imageUrl: "images/montrouge/montrouge-tribunal-salle-audience.png",
+              imageUrl: "images/montrouge/montrouge-tribunal-salle-audience.webp",
               persons: [
-                {name:'Gérard Bretellewood (PNJ)', role:'Juge de Montrouge', rel:'neutral', job:'juge', photoUrl:'images/montrouge/montrouge-tribunal-gerard-bretellewood.png', photoPos:'50% 15%'}
+                {name:'Gérard Bretellewood (PNJ)', role:'Juge de Montrouge', rel:'neutral', job:'juge', photoUrl:'images/montrouge/montrouge-tribunal-gerard-bretellewood.webp', photoPos:'50% 15%'}
               ]
             }
           }
@@ -1121,7 +1121,7 @@ const WORLD = {
     },
     qhs: {
       name:'Quartier Haute Securite',
-      imageUrl:'images/qhs-luthecia-exterieur.png',
+      imageUrl:'images/qhs-luthecia-exterieur.webp',
       desc:'La prison de haute securite de Republia.',
       isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['qhs-prison']
@@ -1132,7 +1132,7 @@ const WORLD = {
     capitale: {
       name:'Ciudad Roja',
       streetName: 'Avenida del Generalissimo',
-      imageUrl:'images/rue-el-estado.png',
+      imageUrl:'images/rue-el-estado.webp',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
@@ -1632,10 +1632,10 @@ const WORLD = {
           // pas dans BUILDINGS['hotel-republica'] (ce sont 'accueil' et 'chambres'), ces deux
           // habillages khalija n'ont donc jamais ete appliques.
           roomOverrides: {
-            'accueil':      { name: "Grand Hall Al-Nour",    imageUrl: 'images/hall-hotel-khalija.png' },
-            'chambres':     { name: "Suite Royale",          imageUrl: 'images/chambre-hotel-khalija.png' },
-            'restaurant':   { name: "Restaurant Al-Nour",   imageUrl: 'images/hall-hotel-khalija.png' },
-            'bar':          { name: "Salon des Hôtes",       imageUrl: 'images/hall-hotel-khalija.png' }
+            'accueil':      { name: "Grand Hall Al-Nour",    imageUrl: 'images/hall-hotel-khalija.webp' },
+            'chambres':     { name: "Suite Royale",          imageUrl: 'images/chambre-hotel-khalija.webp' },
+            'restaurant':   { name: "Restaurant Al-Nour",   imageUrl: 'images/hall-hotel-khalija.webp' },
+            'bar':          { name: "Salon des Hôtes",       imageUrl: 'images/hall-hotel-khalija.webp' }
           }
         },
         'commissariat': {
@@ -1650,8 +1650,8 @@ const WORLD = {
           // Meme correctif : BUILDINGS['tribunal'] n'a que 'salle_audience' et 'greffe' ; les cles
           // 'audience', 'deliberation' et 'archives' ne correspondaient a aucune salle reelle.
           roomOverrides: {
-            'salle_audience': { name: "Salle d'Audience de la Charia", imageUrl: 'images/tribunal-khalija.png' },
-            'greffe':       { name: "Greffe de la Charia",       imageUrl: 'images/tribunal-khalija.png' }
+            'salle_audience': { name: "Salle d'Audience de la Charia", imageUrl: 'images/tribunal-khalija.webp' },
+            'greffe':       { name: "Greffe de la Charia",       imageUrl: 'images/tribunal-khalija.webp' }
           }
         },
         'banque-nationale': {
@@ -1708,10 +1708,10 @@ const WORLD = {
           desc: 'La résidence du Sheikh. On n\'entre qu\'après triple vérification du protocole et des liens familiaux.',
           persons: [],
           roomOverrides: {
-            'accueil_elysee':      { name: "Hall d'Honneur Royal",         imageUrl: 'images/hall-hotel-khalija.png' },
-            'bureau_president':    { name: "Bureau du Sheikh",              imageUrl: 'images/bureau-roi-khalija.png' },
-            'salle_presse_elysee': { name: "Salle des Annonces Royales",    imageUrl: 'images/hall-hotel-khalija.png' },
-            'salle_reception':     { name: "Salle de Réception Royale",     imageUrl: 'images/hall-hotel-khalija.png' }
+            'accueil_elysee':      { name: "Hall d'Honneur Royal",         imageUrl: 'images/hall-hotel-khalija.webp' },
+            'bureau_president':    { name: "Bureau du Sheikh",              imageUrl: 'images/bureau-roi-khalija.webp' },
+            'salle_presse_elysee': { name: "Salle des Annonces Royales",    imageUrl: 'images/hall-hotel-khalija.webp' },
+            'salle_reception':     { name: "Salle de Réception Royale",     imageUrl: 'images/hall-hotel-khalija.webp' }
           }
         },
         'palais-gouvernement': {
@@ -1724,9 +1724,9 @@ const WORLD = {
           desc: 'Le conseil royal. Consultatif uniquement — les décisions appartiennent au Sheikh.',
           persons: [],
           roomOverrides: {
-            'hemicycle':                { name: "Salle du Conseil Royal",      imageUrl: 'images/assemblee-khalija.png' },
-            'couloirs':                 { name: "Couloirs du Conseil",         imageUrl: 'images/couloirs-conseil-khalija.png' },
-            'salle_archives_assemblee': { name: "Archives Royales",            imageUrl: 'images/archives-an-republic.png' }
+            'hemicycle':                { name: "Salle du Conseil Royal",      imageUrl: 'images/assemblee-khalija.webp' },
+            'couloirs':                 { name: "Couloirs du Conseil",         imageUrl: 'images/couloirs-conseil-khalija.webp' },
+            'salle_archives_assemblee': { name: "Archives Royales",            imageUrl: 'images/archives-an-republic.webp' }
           }
         },
         'mairie-capitale': {
@@ -1990,7 +1990,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#1a1208,#2a1c0a)",
         desc: "Le hall d'entree de l'hotel. Le concierge connait tout le monde.",
-        imageUrl: 'images/hotel-republica.png',
+        imageUrl: 'images/hotel-republica.webp',
         persons: [
           {name:'Nathalie Ondor (PNJ)', role:'Réceptionniste', rel:'neutral', job:'hotelier'},
           {name:'Isidore Trébien (PNJ)', role:'Bagagiste', rel:'neutral', job:'bagagiste'}
@@ -2005,13 +2005,13 @@ const BUILDINGS = {
         image: "🍽️",
         imageBg: "linear-gradient(135deg,#1a1005,#2a1a08)",
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
-        imageUrl: "images/hotel-republica-restaurant.png",
+        imageUrl: "images/hotel-republica-restaurant.webp",
         persons: [
-          {name:'Gaston Sauceblanche (PNJ)', role:'Maitre d\'hotel', rel:'neutral', job:'serveur', photoUrl:'images/paulo-maitre-hotel.png', photoPos:'50% 15%'},
-          {name:'Régis Gondasse (PNJ)', role:'Sommelier', rel:'neutral', job:'serveur', photoUrl:'images/gaston-sauceblanche.png', photoPos:'50% 15%'},
-          {name:'Yvette Gratinée (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/yvette-gratinee.png', photoPos:'50% 15%'},
-          {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
-          {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}
+          {name:'Gaston Sauceblanche (PNJ)', role:'Maitre d\'hotel', rel:'neutral', job:'serveur', photoUrl:'images/paulo-maitre-hotel.webp', photoPos:'50% 15%'},
+          {name:'Régis Gondasse (PNJ)', role:'Sommelier', rel:'neutral', job:'serveur', photoUrl:'images/gaston-sauceblanche.webp', photoPos:'50% 15%'},
+          {name:'Yvette Gratinée (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/yvette-gratinee.webp', photoPos:'50% 15%'},
+          {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'images/jean-dupont-marie-leblanc.webp', photoPos:'20% 30%'},
+          {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'images/jean-dupont-marie-leblanc.webp', photoPos:'70% 30%'}
         ],
         orders: [
           {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
@@ -2030,7 +2030,7 @@ const BUILDINGS = {
         desc: "Le bar est ouvert jusqu'a l'aube. Langue qui se delie, secrets qui se vendent.",
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
-          {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'images/marco-barman.png', photoPos:'50% 20%'},
+          {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'images/marco-barman.webp', photoPos:'50% 20%'},
           {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F', photoUrl:'images/escort-f-1-robe-verte.png', photoPos:'50% 15%'},
           {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H', photoUrl:'images/escort-h-1-costume-beige.png', photoPos:'50% 15%'},
           {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
@@ -2063,7 +2063,7 @@ const BUILDINGS = {
         name: "Suite Privée — Local à louer",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         desc: "📋 À LOUER — Suite luxueuse et très discrète. On y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
-        imageUrl: "images/hotel-republica-suite-privee.png",
+        imageUrl: "images/hotel-republica-suite-privee.webp",
         isLocationRoom: true,
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1, suiteChoice: true },
         persons: [],
@@ -2076,7 +2076,7 @@ const BUILDINGS = {
         name: "Suite Présidentielle — Local à louer",
         imageBg: "linear-gradient(135deg,#181008,#20140a)",
         desc: "📋 À LOUER — Suite d'apparat au décor XIXe, vue sur les toits de la Capitale. Le nec plus ultra pour recevoir en grande pompe.",
-        imageUrl: "images/hotel-republica-suite-presidentielle.png",
+        imageUrl: "images/hotel-republica-suite-presidentielle.webp",
         isLocationRoom: true,
         locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1, suiteChoice: true },
         persons: [],
@@ -2105,8 +2105,8 @@ const BUILDINGS = {
         desc: "Le grand hall du Palais. Gardes republicains en grande tenue. Portraits des presidents passes.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
-          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.png', photoPos:'50% 15%'},
-          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde', photoUrl:'images/garde-republicain-palais-presidentiel.png', photoPos:'50% 15%'}
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.webp', photoPos:'50% 15%'},
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde', photoUrl:'images/garde-republicain-palais-presidentiel.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'solliciter_audience_president', label:'Solliciter une audience', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'0 PA. Aucun indice. Message automatique transmis au President par mail. Il vous repondra directement.'}
@@ -2116,11 +2116,11 @@ const BUILDINGS = {
         name: "Bureau du President",
         imageBg: "linear-gradient(135deg,#0a1005,#12180a)",
         desc: "Le bureau oval de la Presidence. C'est ici que se prennent les decisions les plus importantes de Republia.",
-        imageUrl: "images/bureau-president.png",
+        imageUrl: "images/bureau-president.webp",
         locked: false,
         persons: [
           {name:'Le Président (PNJ)', role:'PNJ - Président de la République', rel:'neutral', job:'president'},
-          {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general', photoUrl:'images/huguette-papier.png', photoPos:'50% 15%'}
+          {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general', photoUrl:'images/huguette-papier.webp', photoPos:'50% 15%'}
         ],
         orders: [
           // REGROUPEMENT UX DU 8 SEPTEMBRE 2026. Douze boutons independants formaient un mur.
@@ -2143,9 +2143,9 @@ const BUILDINGS = {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
         desc: "La salle de presse presidentielle. Les journalistes accredites y attendent les declarations.",
-        imageUrl: "images/salle-presse-palais-presidentiel-luthecia.png",
+        imageUrl: "images/salle-presse-palais-presidentiel-luthecia.webp",
         persons: [
-          {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole', photoUrl:'images/porte-parole-presidentiel.png', photoPos:'50% 15%'}
+          {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole', photoUrl:'images/porte-parole-presidentiel.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'conference_presse',  label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
@@ -2159,7 +2159,7 @@ const BUILDINGS = {
         desc: "La somptueuse salle de reception du Palais. Receptions d'Etat, banquets diplomatiques.",
         imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80",
         persons: [
-          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.png', photoPos:'50% 15%'}
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
@@ -2182,7 +2182,7 @@ const BUILDINGS = {
         name: "Hall d'entree",
         imageBg: "linear-gradient(135deg,#141c10,#1e2a18)",
         desc: "Le hall monumental du Palais. Rotonde a coupole, escalier d'honneur, gardes republicains en faction.",
-        imageUrl: "images/hall-palais-gouvernement-republic.png",
+        imageUrl: "images/hall-palais-gouvernement-republic.webp",
         persons: [
           {name:'Garde Martineau',   role:'PNJ - Securite', rel:'neutral', job:'garde'},
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
@@ -2195,9 +2195,9 @@ const BUILDINGS = {
         name: "Bureau du Premier Ministre",
         imageBg: "linear-gradient(135deg,#0f1a0c,#182416)",
         desc: "Le bureau du Premier Ministre. Acces PM uniquement.",
-        imageUrl: "images/bureau-premier-ministre.png",
+        imageUrl: "images/bureau-premier-ministre.webp",
         persons: [
-          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet', photoUrl:'images/chef-cabinet-pm.png', photoPos:'50% 15%'}
+          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet', photoUrl:'images/chef-cabinet-pm.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
@@ -2209,7 +2209,7 @@ const BUILDINGS = {
         name: "Salle du Conseil",
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
-        imageUrl: "images/conseil-ministres-2.png",
+        imageUrl: "images/conseil-ministres-2.webp",
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
@@ -2288,7 +2288,7 @@ const BUILDINGS = {
         name: "Bureau - Ministre des Finances",
         imageBg: "linear-gradient(135deg,#0a0f08,#101508)",
         desc: "Le bureau du Ministre des Finances. Fiscalite, budget, politique economique.",
-        imageUrl: "images/bureau-ministre-finances-luthecia.png",
+        imageUrl: "images/bureau-ministre-finances-luthecia.webp",
         requiresPostId: 'min_fin',
         persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin'}],
         orders: [
@@ -2302,7 +2302,7 @@ const BUILDINGS = {
         name: "Bureau - Ministre de la Justice",
         imageBg: "linear-gradient(135deg,#0a0808,#140f08)",
         desc: "Le bureau du Ministre de la Justice. Magistrature, poursuites, grace presidentielle.",
-        imageUrl: "images/bureau-ministre-justice-luthecia.png",
+        imageUrl: "images/bureau-ministre-justice-luthecia.webp",
         requiresPostId: 'min_just',
         persons: [{name:'Le Ministre de la Justice (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just'}],
         orders: [
@@ -2330,7 +2330,7 @@ const BUILDINGS = {
         // Le drapeau ne dit PAS qu'il detient le poste : son titre reste recalcule a l'entree.
         persons: [{name:'Martial Bouterin (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def',
                    resteApresPourvoi: true,
-                   photoUrl:'images/martial-bouterin.png',
+                   photoUrl:'images/martial-bouterin.webp',
                    photoPos:'50% 25%'}],
         orders: [
           // FACADE GRATUITE, SOUS-ACTIONS PAYANTES (comme gestion_manifestations) : ouvrir le
@@ -2407,11 +2407,11 @@ const BUILDINGS = {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#181410,#1f1a14)",
         desc: "Le hall d'accueil de l'Assemblee Nationale. Fresque murale, marbre et personnel en faction.",
-        imageUrl: "images/accueil-assemblee-republic.png",
+        imageUrl: "images/accueil-assemblee-republic.webp",
         persons: [
-          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde', photoUrl:'images/garde-republicain-assemblee.png'},
-          {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil', photoUrl:'images/hotesse-accueil-assemblee.png'},
-          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'images/agent-entretien-assemblee.png'}
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde', photoUrl:'images/garde-republicain-assemblee.webp'},
+          {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil', photoUrl:'images/hotesse-accueil-assemblee.webp'},
+          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'images/agent-entretien-assemblee.webp'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'}
@@ -2430,7 +2430,7 @@ const BUILDINGS = {
         // desormais doublon avec de vrais deputes. Le President de l'Assemblee reste : il preside,
         // il ne vote pas, et aucun des neuf sieges ne lui appartient.
         persons: [
-          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'images/president-assemblee-laroche.png'}
+          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'images/president-assemblee-laroche.webp'}
         ],
         orders: [
           {fn:'observer_debats',     label:'Observer les débats',      pa:1, cost:0,   type:'legal', icon:'ti-eye',             successRate:100, desc:'Instantané de tous les projets en session : intentions des députés PNJ, votes des députés joueurs. +1 INF pour les journalistes.'},
@@ -2453,8 +2453,8 @@ const BUILDINGS = {
         desc: "Les couloirs de l\'Assemblee. C'est ici que se font vraiment les deals.",
         imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
         persons: [
-          {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste', photoUrl:'images/lobbyiste-perrin.png'},
-          {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste', photoUrl:'images/journaliste-blanc.png'}
+          {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste', photoUrl:'images/lobbyiste-perrin.webp'},
+          {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste', photoUrl:'images/journaliste-blanc.webp'}
         ],
         orders: [
           {fn:'consulter_lobbyiste', label:'Consulter le Lobbyiste', pa:1, cost:150, type:'grey', icon:'ti-handshake', successRate:100, desc:'+20 points de réussite sur votre prochaine tentative de marchandage de vote. Le bonus est conservé jusqu\'à ce que vous l\'utilisiez.'},
@@ -2467,7 +2467,7 @@ const BUILDINGS = {
         desc: "Les archives de l\'Assemblee Nationale. Le registre officiel des lois y est tenu, sans limite de duree.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
-          {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste', photoUrl:'images/archiviste-parlementaire.png'}
+          {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste', photoUrl:'images/archiviste-parlementaire.webp'}
         ],
         orders: [
           // §31 : le registre remplace l'ancien "Consulter les archives", qui lisait lois_assemblee
@@ -2691,7 +2691,7 @@ const BUILDINGS = {
         image: "⚖️",
         imageBg: "linear-gradient(135deg,#1a1408,#24180a)",
         desc: "La salle d'audience principale. Solennelle et intimidante.",
-        imageUrl: "images/tribunal-salle-audience.png",
+        imageUrl: "images/tribunal-salle-audience.webp",
         persons: [
           {name:'Juge Fontaine',  role:'Presidente du Tribunal (PNJ)', rel:'neutral', job:'juge'},
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
@@ -2706,7 +2706,7 @@ const BUILDINGS = {
         image: "📋",
         imageBg: "linear-gradient(135deg,#141008,#1c1608)",
         desc: "Les archives judiciaires. Tout y est consigne.",
-        imageUrl: "images/tribunal-greffe.png",
+        imageUrl: "images/tribunal-greffe.webp",
         persons: [
           {name:'Greffier Petit', role:'PNJ - Greffe', rel:'neutral', job:'greffier'}
         ],
@@ -2733,9 +2733,9 @@ const BUILDINGS = {
         image: "🏦",
         imageBg: "linear-gradient(135deg,#100f08,#1a1a0a)",
         desc: "L'accueil de la banque nationale. Propre, froid, officiel.",
-        imageUrl: "images/banque-nationale-accueil.png",
+        imageUrl: "images/banque-nationale-accueil.webp",
         persons: [
-          {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur', photoUrl:'images/laurent-barre.png', photoPos:'65% 30%'}
+          {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur', photoUrl:'images/laurent-barre.webp', photoPos:'65% 30%'}
         ],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte',    pa:0, cost:0,    type:'legal', icon:'ti-chart-bar',   successRate:100, desc:'Deposer ou retirer de l\'argent. Voir son solde.'},
@@ -2748,7 +2748,7 @@ const BUILDINGS = {
         name: "Coffre Privatif — Local à louer",
         imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
         desc: "📋 À LOUER — Espace sécurisé dans les sous-sols de la banque. Accès biométrique, surveillance 24h. Le Directeur Barre ne pose jamais de questions sur le contenu.",
-        imageUrl: "images/banque-nationale-coffres.png",
+        imageUrl: "images/banque-nationale-coffres.webp",
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 0, bonusINF: 4, bonusDIS: 12, label: 'Coffre Privatif', tier: 1 },
         persons: [],
@@ -2774,7 +2774,7 @@ const BUILDINGS = {
         image: "🔐",
         imageBg: "linear-gradient(135deg,#0d0d08,#181408)",
         desc: "Un bureau feutre ou tout se passe dans la plus grande discret.",
-        imageUrl: "images/banque-privee-helvetia-bureau.png",
+        imageUrl: "images/banque-privee-helvetia-bureau.webp",
         persons: [
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
@@ -2936,11 +2936,11 @@ const BUILDINGS = {
         name: "EHPAD — Résidence Les Tilleuls",
         imageBg: "linear-gradient(135deg,#141008,#1c1810)",
         desc: "Un salon commun paisible. Fauteuils usés, photos de famille, et des pensionnaires toujours prêts à raconter le passé de Luthécia — à condition qu'on prenne le temps de les écouter.",
-        imageUrl: "images/ehpad-residence-tilleuls.png",
+        imageUrl: "images/ehpad-residence-tilleuls.webp",
         persons: [
-          {name:'Jeanine Dubois (PNJ)', role:'Ancienne institutrice', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/jeanine-dubois-ehpad.png', photoPos:'50% 15%'},
-          {name:'Louis Chevillard (PNJ)', role:'Policier en retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/louis-chevillard-ehpad.png', photoPos:'50% 15%'},
-          {name:'Noël Chauchay (PNJ)', role:'Agriculteur à la retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/noel-chauchay-ehpad.png', photoPos:'50% 15%'}
+          {name:'Jeanine Dubois (PNJ)', role:'Ancienne institutrice', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/jeanine-dubois-ehpad.webp', photoPos:'50% 15%'},
+          {name:'Louis Chevillard (PNJ)', role:'Policier en retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/louis-chevillard-ehpad.webp', photoPos:'50% 15%'},
+          {name:'Noël Chauchay (PNJ)', role:'Agriculteur à la retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'images/noel-chauchay-ehpad.webp', photoPos:'50% 15%'}
         ],
         orders: []
       }
@@ -2960,9 +2960,9 @@ const BUILDINGS = {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
-        imageUrl: "images/commissariat-accueil.png",
+        imageUrl: "images/commissariat-accueil.webp",
         persons: [
-          {name:'Gardien de la Paix (PNJ)', role:'Agent d\'accueil', rel:'neutral', job:'gardien_paix', photoUrl:'images/commissariat-gardien-paix.png', photoPos:'50% 15%'}
+          {name:'Gardien de la Paix (PNJ)', role:'Agent d\'accueil', rel:'neutral', job:'gardien_paix', photoUrl:'images/commissariat-gardien-paix.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Ouvre un dossier transmis au commissaire de la ville. C\'est lui qui decide de classer ou d\'enqueter.'},
@@ -2974,10 +2974,10 @@ const BUILDINGS = {
       prison: {
         name: "Cellules de garde a vue",
         desc: "Les cellules de garde à vue du commissariat. Froid, humide, déprimant.",
-        imageUrl: "images/cellule-garde-a-vue-luthecia.png",
+        imageUrl: "images/cellule-garde-a-vue-luthecia.webp",
         persons: [
-          {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien', photoUrl:'images/commissariat-gardien-dubois.png', photoPos:'50% 15%'},
-          {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'images/commissariat-tristan-cabane.png', photoPos:'50% 15%'}
+          {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien', photoUrl:'images/commissariat-gardien-dubois.webp', photoPos:'50% 15%'},
+          {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'images/commissariat-tristan-cabane.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
@@ -2988,10 +2988,10 @@ const BUILDINGS = {
       bureau_commissaire: {
         name: "Bureau du Commissaire",
         desc: "Dossiers, rapports de filature et avis de recherche s'y accumulent. Acces reserve.",
-        imageUrl: "images/commissariat-bureau-commissaire.png",
+        imageUrl: "images/commissariat-bureau-commissaire.webp",
         persons: [
-          {name:'Raoul Toufaud (PNJ)', role:'Commissaire Central', rel:'neutral', job:'commissaire', photoUrl:'images/commissariat-raoul-toufaud.png', photoPos:'50% 15%'},
-          {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'images/commissariat-brigitte-menottes.png', photoPos:'50% 10%'}
+          {name:'Raoul Toufaud (PNJ)', role:'Commissaire Central', rel:'neutral', job:'commissaire', photoUrl:'images/commissariat-raoul-toufaud.webp', photoPos:'50% 15%'},
+          {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'images/commissariat-brigitte-menottes.webp', photoPos:'50% 10%'}
         ],
         orders: [
           // Dossiers de plainte : l'ecran d'instruction du commissaire (15 septembre 2026). Une
@@ -3022,11 +3022,11 @@ const BUILDINGS = {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
         desc: "Le hall d'entree du journal et de l'imprimerie. Une reception marbree, l'atelier d'impression visible au fond.",
-        imageUrl: "images/la-tribune-accueil.png",
+        imageUrl: "images/la-tribune-accueil.webp",
         persons: [
-          {name:'Nadège Standard (PNJ)', role:'PNJ - Standardiste', rel:'neutral', job:'hotesse', photoUrl:'images/la-tribune-accueil.png', photoPos:'50% 35%'},
-          {name:'Camille Édito (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste', photoUrl:'images/la-tribune-accueil.png', photoPos:'20% 40%'},
-          {name:'Gustave Rotative (PNJ)', role:'PNJ - Chef d\'atelier', rel:'neutral', job:'imprimeur', photoUrl:'images/la-tribune-accueil.png', photoPos:'80% 40%'}
+          {name:'Nadège Standard (PNJ)', role:'PNJ - Standardiste', rel:'neutral', job:'hotesse', photoUrl:'images/la-tribune-accueil.webp', photoPos:'50% 35%'},
+          {name:'Camille Édito (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste', photoUrl:'images/la-tribune-accueil.webp', photoPos:'20% 40%'},
+          {name:'Gustave Rotative (PNJ)', role:'PNJ - Chef d\'atelier', rel:'neutral', job:'imprimeur', photoUrl:'images/la-tribune-accueil.webp', photoPos:'80% 40%'}
         ],
         // SEPARATION JOURNAL / IMPRIMERIE (12 septembre 2026) : l'accueil porte l'activite
         // d'IMPRIMERIE et de commerce (impression, vente de matieres premieres, annonces), la
@@ -3048,7 +3048,7 @@ const BUILDINGS = {
         image: "📰",
         imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
         desc: "La redaction en ebullition permanente. Telephones, claviers, tension.",
-        imageUrl: "images/salle-redaction-autruche-entravee.png",
+        imageUrl: "images/salle-redaction-autruche-entravee.webp",
         persons: [
           {name:'Romain Castel', role:'PNJ - Redacteur en chef', rel:'neutral', job:'redacteur'},
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
@@ -3088,7 +3088,7 @@ const BUILDINGS = {
         name: "Portail de la Loge",
         imageBg: "linear-gradient(135deg,#0f0808,#180f0f)",
         desc: "Une lourde porte en bois sculpte. Un portier vous observe a travers un judas.",
-        imageUrl: "images/loge.png",
+        imageUrl: "images/loge.webp",
         persons: [
           {name:'Le Portier', role:'PNJ - Gardien de la Loge', rel:'neutral', job:'portier'}
         ],
@@ -3156,7 +3156,7 @@ const BUILDINGS = {
         image: "🎓",
         imageBg: "linear-gradient(135deg,#080d10,#0c1418)",
         desc: "Les conferences publiques attirent journalistes et politiques.",
-        imageUrl: "images/universite-amphi-v2.png",
+        imageUrl: "images/universite-amphi-v2.webp",
         persons: [
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
@@ -3196,7 +3196,7 @@ const BUILDINGS = {
         name: "Magasin",
         imageBg: "linear-gradient(135deg,#100a08,#181008)",
         desc: "Presentoirs d'armes. Le vendeur verifie les papiers pour les ventes legales.",
-        imageUrl: "images/armurerie-martinon-comptoir.png",
+        imageUrl: "images/armurerie-martinon-comptoir.webp",
         persons: [
           {name:'Gerard (Armurier)', role:'PNJ - Vendeur', rel:'neutral', job:'armurier'}
         ],
@@ -3212,7 +3212,7 @@ const BUILDINGS = {
             label:'Acheter un gilet pare-balles',
             pa: 0, cost:380, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
-            imageUrl:'images/arme-gilet-republic.png'
+            imageUrl:'images/arme-gilet-republic.webp'
           },
           {
             fn:'consulter_registre_armes',
@@ -3239,7 +3239,7 @@ const BUILDINGS = {
         name: "Etals du marche",
         imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
         desc: "Bruyant, colore, vivant. Tout le monde passe par le marche.",
-        imageUrl: "images/marche.png",
+        imageUrl: "images/marche.webp",
         persons: [
           {name:'Fernande (Marchande)', role:'PNJ - Commercante', rel:'neutral', job:'marchande'},
           {name:'Marcel',               role:'PNJ - Habitant du quartier', rel:'neutral', job:'citoyen'},
@@ -3273,9 +3273,9 @@ const BUILDINGS = {
         desc: "Le hall de l'hotel de ville. Guichets, formulaires, fonctionnaires municipaux.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
-          {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire', photoUrl:'images/secretaire-petit-mairie.png'},
+          {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire', photoUrl:'images/secretaire-petit-mairie.webp'},
           {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'},
-          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'images/hotesse-objets-trouves-mairie.png'}
+          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'images/hotesse-objets-trouves-mairie.webp'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
@@ -3298,7 +3298,7 @@ const BUILDINGS = {
         name: "Bureau du Maire",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         desc: "Le bureau du maire de Luthecia. Acces sur rendez-vous.",
-        imageUrl: "images/bureau-maire.png",
+        imageUrl: "images/bureau-maire.webp",
         persons: [
           {name:'Le Maire de Luthecia (PNJ)', role:'Maire de la Capitale', rel:'neutral', job:'maire'}
         ],
@@ -3314,7 +3314,7 @@ const BUILDINGS = {
         name: "Bureau du Maire Adjoint",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         desc: "Le bureau de l'adjoint au maire de Luthecia. Acces sur rendez-vous.",
-        imageUrl: "images/bureau-maire.png",
+        imageUrl: "images/bureau-maire.webp",
         persons: [],
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
@@ -3352,9 +3352,9 @@ const BUILDINGS = {
         name: "Salle des Archives",
         imageBg: "linear-gradient(135deg,#100c08,#181410)",
         desc: "L'état-civil, le cadastre et les résumés de mandats des maires successifs. Poussiéreux, mais tout y est.",
-        imageUrl: "images/salle-archives-mairie-luthecia.png",
+        imageUrl: "images/salle-archives-mairie-luthecia.webp",
         persons: [
-          {name:'Christophe Bouquin (PNJ)', role:'Archiviste Municipal', rel:'neutral', job:'archiviste', photoUrl:'images/christophe-bouquin-archiviste.png', photoPos:'50% 15%'}
+          {name:'Christophe Bouquin (PNJ)', role:'Archiviste Municipal', rel:'neutral', job:'archiviste', photoUrl:'images/christophe-bouquin-archiviste.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
@@ -3380,11 +3380,11 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
         desc: "Le hall d'accueil du musee. Rosace en marqueterie au sol, maquettes de navires, vitrines d'instruments de navigation. Soizic Le Gall tient l'accueil ; Yvon Le Gall, le conservateur, veille sur les collections.",
-        imageUrl: "images/hall-musee-port-sainte-marie.png",
+        imageUrl: "images/hall-musee-port-sainte-marie.webp",
         persons: [
-          {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'images/hall-musee-port-sainte-marie.png', photoPos:'18% 30%'},
-          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'images/hall-musee-port-sainte-marie.png', photoPos:'42% 22%'},
-          {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'}
+          {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'images/hall-musee-port-sainte-marie.webp', photoPos:'18% 30%'},
+          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'images/hall-musee-port-sainte-marie.webp', photoPos:'42% 22%'},
+          {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'}
         ],
         orders: []
       },
@@ -3397,75 +3397,75 @@ const BUILDINGS = {
         name: "Salle des Grands Criminels Mariannais",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Port-Sainte-Marie. Classement a venir.",
-        imageUrl: "images/salle-criminels-musee-psm.png",
+        imageUrl: "images/salle-criminels-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-criminels-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_maires: {
         name: "Salle des Maires de Port-Sainte-Marie",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
-        imageUrl: "images/salle-maires-musee-psm.png",
+        imageUrl: "images/salle-maires-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-maires-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_personnalites: {
         name: "Salle des Personnalites Mariannaises",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
-        imageUrl: "images/salle-personnalites-musee-psm.png",
+        imageUrl: "images/salle-personnalites-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-personnalites-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_entrepreneurs: {
         name: "Salle des Grands Entrepreneurs Mariannais",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Port-Sainte-Marie, du petit commerce a l'empire industriel. Classement a venir.",
-        imageUrl: "images/salle-entrepreneurs-musee-psm.png",
+        imageUrl: "images/salle-entrepreneurs-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-entrepreneurs-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_organisations: {
         name: "Salle des Organisations Mariannaises",
         imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
         desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
-        imageUrl: "images/salle-organisations-musee-psm.png",
+        imageUrl: "images/salle-organisations-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-organisations-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_plumes: {
         name: "Salle des Plumes Mariannaises",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
-        imageUrl: "images/salle-plumes-musee-psm.png",
+        imageUrl: "images/salle-plumes-musee-psm.webp",
         // Premier export ("PSM musee salle plumes.mp3", 30 aout 2026) etait un fichier de 0 octet
         // (echec AudioFileOpenURL) -- non raccorde a l'epoque, signale a Fred. Remplace le meme
         // jour par un nouvel export valide (152s, verifie via afinfo), copie et raccorde ci-dessous.
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-plumes-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_honneur_militaire: {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Port-Sainte-Marie. Classement a venir.",
-        imageUrl: "images/salle-honneur-militaire-musee-psm.png",
+        imageUrl: "images/salle-honneur-militaire-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-honneur-militaire-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_unions: {
         name: "Salle des Unions Celebres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
-        imageUrl: "images/salle-unions-musee-psm.png",
+        imageUrl: "images/salle-unions-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-unions-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       },
       // salle_dynasties retiree du parcours (commit b202acd, 30 aout 2026, decision de game
@@ -3474,9 +3474,9 @@ const BUILDINGS = {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Port-Sainte-Marie. Classement a venir.",
-        imageUrl: "images/salle-scandales-musee-psm.png",
+        imageUrl: "images/salle-scandales-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-scandales-musee-psm-audio.mp3",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
         orders: []
       }
     }
@@ -3512,7 +3512,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
         desc: "📋 À LOUER — Emplacement premium en façade. Visibilité maximale. Prix élevé, impact fort sur la réputation de votre organisation.",
         imageUrl: "https://images.unsplash.com/photo-1567449303078-57ad995bd17f?w=1200&q=80",
-        imageUrl: 'images/centre-commercial-republic.png',
+        imageUrl: 'images/centre-commercial-republic.webp',
         isLocationRoom: true,
         locationData: { prix: 800, bonusPOP: 10, bonusINF: 5, bonusDIS: 0, label: 'Vitrine Principale', tier: 1 },
         persons: [],
@@ -3579,7 +3579,7 @@ const BUILDINGS = {
         name: "Travées",
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "Les travées du marché couvert artisanal. Odeurs de bois, de cuir et de café, bruit de fond permanent.",
-        imageUrl: "images/travees-centre-artisanal.png",
+        imageUrl: "images/travees-centre-artisanal.webp",
         persons: [
           {name:'Sabri Coledur', role:'Mécanicien', rel:'neutral', job:'commercant'},
           {name:'Céd\' Labone', role:'Dealer', rel:'neutral', job:'criminel'},
@@ -3594,7 +3594,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
         imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
-        imageUrl: 'images/centre-artisanal-republic.png',
+        imageUrl: 'images/centre-artisanal-republic.webp',
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
         persons: [],
@@ -3647,12 +3647,12 @@ const BUILDINGS = {
         name: "Hall d'Entrée",
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "Un hall feutré, marbre noir et lumière tamisée. On y croise beaucoup de monde important qui prétend ne connaître personne.",
-        imageUrl: "images/hall-centre-affaires-luthecia.png",
+        imageUrl: "images/hall-centre-affaires-luthecia.webp",
         // 2026-10-04 : professions alignees sur ce que chacun dit de lui-meme en dialogue
         // (api/_pnj-personnalites.js), et donc identiques dans les trois villes qui
         // partagent ce template ainsi que dans la surcharge de Montrouge.
         persons: [
-          {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+          {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.webp', photoPos:'38% 45%'},
           {name:'Moshe Maychan', role:'Assassin', rel:'neutral', job:'criminel'},
           {name:'Harry Cover', role:'Détective privé', rel:'neutral', job:'inspecteur'}
         ],
@@ -3665,7 +3665,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "📋 À LOUER — Bureau avec vue, mobilier luxueux, accès VIP. Le summum du centre d'affaires. Influence et discrétion maximales.",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        imageUrl: 'images/centre-affaires-republic.png',
+        imageUrl: 'images/centre-affaires-republic.webp',
         isLocationRoom: true,
         locationData: { prix: 1000, bonusPOP: 3, bonusINF: 12, bonusDIS: 8, label: 'Bureau Prestige', tier: 1 },
         persons: [],
@@ -3905,8 +3905,8 @@ const BUILDINGS = {
         name: "Hall",
         imageBg: "linear-gradient(135deg,#0d1018,#141820)",
         desc: "Hall de l'hotel. Matelots, commercants et gens de passage.",
-        imageUrl: "images/hotel-du-port-accueil.png",
-        persons: [{name:'Jeanine Debré (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier', photoUrl:'images/port-sainte-marie-hotel-jeanine-debre.png', photoPos:'45% 25%'}],
+        imageUrl: "images/hotel-du-port-accueil.webp",
+        persons: [{name:'Jeanine Debré (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier', photoUrl:'images/port-sainte-marie-hotel-jeanine-debre.webp', photoPos:'45% 25%'}],
         // Raccorde au moteur commerce generique (audit dedie puis correctif du meme jour) :
         // remplace le reliquat se_nourrir (jamais migre -- doSeReposer('se_nourrir'), ancien
         // chemin generique ignorant meme le cost declare ici, ne creditait aucune caisse) par
@@ -3928,7 +3928,7 @@ const BUILDINGS = {
         name: "Chambre",
         imageBg: "linear-gradient(135deg,#0d1018,#141820)",
         desc: "Une chambre modeste mais propre, avec vue sur le port.",
-        imageUrl: "images/hotel-du-port-chambre.png",
+        imageUrl: "images/hotel-du-port-chambre.webp",
         persons: [],
         orders: [
           {fn:'dormir_chambre', label:'Dormir',       pa:0, cost:0,  type:'legal', icon:'ti-moon',  successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
@@ -3956,16 +3956,16 @@ const BUILDINGS = {
         name: "Salle du bar",
         imageBg: "linear-gradient(135deg,#0a0d10,#101518)",
         desc: "Atmosphere enfumee, bruit de fond. Tout se negocie ici.",
-        imageUrl: "images/port-sainte-marie-bar-pecheurs-salle.png",
+        imageUrl: "images/port-sainte-marie-bar-pecheurs-salle.webp",
         persons: [
-          {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman', photoUrl:'images/port-sainte-marie-bar-pecheurs-marin-dulac.png', photoPos:'50% 20%'},
-          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-bar-pecheurs-rene-seigne.png', photoPos:'55% 20%'},
+          {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman', photoUrl:'images/port-sainte-marie-bar-pecheurs-marin-dulac.webp', photoPos:'50% 20%'},
+          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-bar-pecheurs-rene-seigne.webp', photoPos:'55% 20%'},
           // JEAN-LOU DEMER (29 septembre 2026) — premier PNJ SOCIAL du jeu. Il s'AJOUTE a
           // Marin Dulac et a Rene Seigne, il n'en remplace aucun : le patron tient le bar,
           // Rene renseigne, Jean-Lou est la parce qu'il y est toujours.
           // A NE PAS CONFONDRE avec Jean-Lou Zeure, referent de la branche politique au
           // Bureau National de l'Emploi : deux personnes, deux portraits, deux memoires.
-          {name:'Jean-Lou Demer (PNJ)', role:'Vieux marin, habitué du bar', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.png', photoPos:'50% 15%'}
+          {name:'Jean-Lou Demer (PNJ)', role:'Vieux marin, habitué du bar', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.webp', photoPos:'50% 15%'}
         ],
         // Raccordement au moteur bar generique (audit dedie) : reutilise a l'identique les
         // ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/
@@ -4246,7 +4246,7 @@ const BUILDINGS = {
         desc: "Le bureau d'accueil de l'imprimerie. Odeur d'encre et de papier.",
         imageUrl: "images/port-sainte-marie-imprimerie-accueil.webp",
         persons: [
-          {name:'Annie Talique-Legall (PNJ)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur', photoUrl:'images/port-sainte-marie-imprimerie-annie-talique-legall.png', photoPos:'50% 25%'}
+          {name:'Annie Talique-Legall (PNJ)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur', photoUrl:'images/port-sainte-marie-imprimerie-annie-talique-legall.webp', photoPos:'50% 25%'}
         ],
         // Lot tracts electoraux/calomnieux (24 aout 2026) : imprimer_tracts (partage avec
         // la-tribune) retire d'ici, remplace par imprimer_tracts_electoraux, fn dediee et
@@ -4264,7 +4264,7 @@ const BUILDINGS = {
         name: "Atelier d'Imprimerie",
         imageBg: "linear-gradient(135deg,#0a0a08,#141208)",
         desc: "L'atelier en activite permanente. Presses, rouleaux d'encre, odeur caracteristique.",
-        imageUrl: "images/port-sainte-marie-imprimerie-atelier.png",
+        imageUrl: "images/port-sainte-marie-imprimerie-atelier.webp",
         // Ouvrier typographe (PNJ) conserve tel quel, purement visuel -- aucune mecanique dediee
         // dans ce lot (aucun autre atelier du jeu n'a de PNJ avec fonction mecanique reelle).
         persons: [
@@ -4310,8 +4310,8 @@ const BUILDINGS = {
         // composite source (~/Downloads/PSM vendeurs marche.png, jamais modifie), un fichier par
         // PNJ.
         persons: [
-          {name:'Mireille Legall (PNJ)', role:'Marchande de poisson', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-mireille-legall.png', photoPos:'50% 15%'},
-          {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.png', photoPos:'50% 15%'}
+          {name:'Mireille Legall (PNJ)', role:'Marchande de poisson', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-mireille-legall.webp', photoPos:'50% 15%'},
+          {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.webp', photoPos:'50% 15%'}
         ],
         // Lot 5A -- Faire des achats (24 aout 2026) : premier raccordement reel de ce marche
         // (orders vide jusqu'ici, jamais visite). Pas de se_nourrir/pouls_populaire a masquer --
@@ -4343,9 +4343,9 @@ const BUILDINGS = {
         image: "\u2693",
         imageBg: "linear-gradient(135deg,#0a0806,#12100a)",
         desc: "Tables en terrasse face aux bateaux de pêche. L'ambiance du Capitaine Sauvage.",
-        imageUrl: "images/port-sainte-marie-resto-capitaine-sauvage.png",
+        imageUrl: "images/port-sainte-marie-resto-capitaine-sauvage.webp",
         persons: [
-          {name:'Marine Leroux (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/port-sainte-marie-pnj-marine-leroux.png', photoPos:'50% 15%'}
+          {name:'Marine Leroux (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/port-sainte-marie-pnj-marine-leroux.webp', photoPos:'50% 15%'}
         ],
         // Memes 7 ordres que hotel-republica.restaurant (Luthecia), raccordes au meme moteur
         // generique -- fn/label/pa/cost/desc repris a l'identique, aucun recalibrage (audit du
@@ -4383,11 +4383,11 @@ const BUILDINGS = {
         image: "\ud83c\udfaf",
         imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
         desc: "Rateliers d'armes, cannes a peche et equipements de chasse.",
-        imageUrl: "images/armurerie-port-sainte-marie-maison-le-gall.png",
+        imageUrl: "images/armurerie-port-sainte-marie-maison-le-gall.webp",
         // Victor Legall (PNJ), meme jour : job 'commercant' reutilise (deja le job fonctionnel
         // de Roger Detente, role "Armurier" a l'Armurerie Martinon de Luthecia -- 'armurier'
         // n'existe pas dans PNJ_STATS_PAR_JOB, seul 'commercant' y resout de vraies stats).
-        persons: [{name:'Victor Legall (PNJ)', role:'Armurier', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-armurerie-victor-legall.png', photoPos:'50% 30%'}],
+        persons: [{name:'Victor Legall (PNJ)', role:'Armurier', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-armurerie-victor-legall.webp', photoPos:'50% 30%'}],
         // Raccordement au moteur armurerie generique existant (audit dedie du 24 aout 2026,
         // confirme : entreprise/caisse/stock/registre 'armurerie-republic-ville_a' deja isoles
         // par ville, aucune migration necessaire). 4 ordres standards, memes libelles/PA/couts
@@ -4407,7 +4407,7 @@ const BUILDINGS = {
             label:'Acheter un gilet pare-balles',
             pa: 0, cost:380, type:'legal', icon:'ti-shield-check', successRate:100,
             desc:'Protection physique. Enregistre dans le registre.',
-            imageUrl:'images/arme-gilet-republic.png'
+            imageUrl:'images/arme-gilet-republic.webp'
           },
           {
             fn:'consulter_registre_armes',
@@ -4433,7 +4433,7 @@ const BUILDINGS = {
         image: "\ud83c\udff0",
         imageBg: "linear-gradient(135deg,#0a0a0c,#101014)",
         desc: "Le vent souffle sur les remparts. Vue degagee sur la mer.",
-        imageUrl: "images/port-sainte-marie-place.png",
+        imageUrl: "images/port-sainte-marie-place.webp",
         persons: [],
         orders: []
       }
@@ -4459,9 +4459,9 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
         desc: "Maquettes de navires, sextant et portraits d'anciens capitaines sous une grande verriere.",
-        imageUrl: "images/port-sainte-marie-ecole-marine-hall.png",
+        imageUrl: "images/port-sainte-marie-ecole-marine-hall.webp",
         persons: [
-          {name:'Maxime Bonvent (PNJ)', role:'Directeur de l\'École de Marine Mariannaise', rel:'neutral', job:'directeur', photoUrl:'images/port-sainte-marie-ecole-marine-maxime-bonvent.png', photoPos:'50% 15%'}
+          {name:'Maxime Bonvent (PNJ)', role:'Directeur de l\'École de Marine Mariannaise', rel:'neutral', job:'directeur', photoUrl:'images/port-sainte-marie-ecole-marine-maxime-bonvent.webp', photoPos:'50% 15%'}
         ],
         orders: []
       },
@@ -4469,7 +4469,7 @@ const BUILDINGS = {
         name: "Salle de cours",
         imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
         desc: "Les eleves y apprennent aussi bien la navigation traditionnelle que les techniques maritimes contemporaines.",
-        imageUrl: "images/port-sainte-marie-ecole-marine-salle-cours.png",
+        imageUrl: "images/port-sainte-marie-ecole-marine-salle-cours.webp",
         persons: [],
         orders: []
       }
@@ -4487,7 +4487,7 @@ const BUILDINGS = {
         name: "Entrée du Chantier",
         imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
         desc: "L'entree du chantier naval de Port-Sainte-Marie, entre coques en reparation et bateaux en cale.",
-        imageUrl: "images/hall-chantier-naval-psm.png",
+        imageUrl: "images/hall-chantier-naval-psm.webp",
         persons: [],
         orders: []
       },
@@ -4495,9 +4495,9 @@ const BUILDINGS = {
         name: "Bureau",
         imageBg: "linear-gradient(135deg,#141008,#1c160c)",
         desc: "Le bureau du Chantier Naval Le Roux, fonde par Yves Le Roux (1932-1987). Plans de coques, devis, souvenirs de la Brise Mariannaise aux murs.",
-        imageUrl: "images/bureau-chantier-naval-psm.png",
+        imageUrl: "images/bureau-chantier-naval-psm.webp",
         persons: [
-          {name:'Pierrick Le Roux (PNJ)', role:'PNJ - Chef d\'entreprise du Chantier Naval', rel:'neutral', job:'chef_entreprise', photoUrl:'images/bureau-chantier-naval-psm.png', photoPos:'62% 22%'}
+          {name:'Pierrick Le Roux (PNJ)', role:'PNJ - Chef d\'entreprise du Chantier Naval', rel:'neutral', job:'chef_entreprise', photoUrl:'images/bureau-chantier-naval-psm.webp', photoPos:'62% 22%'}
         ],
         orders: []
       }
@@ -4515,7 +4515,7 @@ const BUILDINGS = {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
         desc: "Vestibule commun a la chapelle et au cimetiere, sur la pointe rocheuse dominant la mer.",
-        imageUrl: "images/hall-notre-dame-mer-psm.png",
+        imageUrl: "images/hall-notre-dame-mer-psm.webp",
         persons: [],
         orders: []
       },
@@ -4529,7 +4529,7 @@ const BUILDINGS = {
         image: "\u26ea",
         imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
         desc: "Ex-voto de marins accroches aux murs. Silence et recueillement.",
-        imageUrl: "images/notre-dame-mer-nef.png",
+        imageUrl: "images/notre-dame-mer-nef.webp",
         persons: [
           {name:'P\u00e8re Iscope (PNJ)', role:'Pr\u00eatre de Port-Sainte-Marie', rel:'neutral', job:'pretre'}
         ],
@@ -4595,7 +4595,7 @@ const BUILDINGS = {
         image: "\u26f5",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Voiliers et bateaux de plaisance amarres le long du quai, grande ouverture sur la mer.",
-        imageUrl: "images/port-sainte-marie-port-plaisance.png",
+        imageUrl: "images/port-sainte-marie-port-plaisance.webp",
         persons: [],
         orders: []
       },
@@ -4603,9 +4603,9 @@ const BUILDINGS = {
         name: "Capitainerie",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Le poste de vigie du port : radios, cartographie et vue sur l'entree du chenal.",
-        imageUrl: "images/port-sainte-marie-capitainerie.png",
+        imageUrl: "images/port-sainte-marie-capitainerie.webp",
         persons: [
-          {name:'Patrice Lecap (PNJ)', role:'Chef de la capitainerie', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-capitainerie-patrice-lecap.png', photoPos:'50% 15%'}
+          {name:'Patrice Lecap (PNJ)', role:'Chef de la capitainerie', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-capitainerie-patrice-lecap.webp', photoPos:'50% 15%'}
         ],
         orders: []
       }
@@ -4759,7 +4759,7 @@ const BUILDINGS = {
         name: "Corps de Garde",
         imageBg: "linear-gradient(135deg,#081008,#0f1a0a)",
         desc: "L'entree de la caserne. Militaires en faction. Verification des acces.",
-        imageUrl: "images/caserne-luthecia-corps-de-garde.png",
+        imageUrl: "images/caserne-luthecia-corps-de-garde.webp",
         persons: [
           // SERGENT DUBOIS ET SOLDAT MARTIN RETIRES (29 septembre 2026). Deux figurants poses le
           // 2 juin avec la caserne, jamais branches : aucune fiche de dialogue dans les cinq tables
@@ -4777,7 +4777,7 @@ const BUILDINGS = {
           // l'avatar de repli du metier reste disponible si l'image manque. job:'aide_de_camp'
           // est conserve. Le decor de l'image EST le corps de garde ou il se tient.
           {name:'Adjudant Gaspard Ferrière (PNJ)', role:'PNJ - Aide de camp', rel:'friendly', job:'aide_de_camp',
-           photoUrl:'images/corps-garde-pnj-adjudant-ferriere.png',
+           photoUrl:'images/corps-garde-pnj-adjudant-ferriere.webp',
            photoPos:'50% 28%'}
         ],
         orders: [
@@ -4841,7 +4841,7 @@ const BUILDINGS = {
         name: "Salle de Commandement",
         imageBg: "linear-gradient(135deg,#060f06,#0a180a)",
         desc: "Le centre nerveux operationnel. Cartes, ecrans, officiers. Acces officiers superieurs.",
-        imageUrl: "images/caserne-luthecia-salle-commandement.png",
+        imageUrl: "images/caserne-luthecia-salle-commandement.webp",
         // requiresPostId : METADONNEE MORTE, ET ICI CONTRADICTOIRE (audit du 21 septembre 2026).
         // Aucun code ne lit ce champ (ni enterRoom, ni renderRoomActions, ni doOrder) : c'est
         // `requiresPost`, porte par chaque ordre, qui restreint reellement. Dans les six bureaux
@@ -4901,7 +4901,7 @@ const BUILDINGS = {
         name: "Armurerie Militaire",
         imageBg: "linear-gradient(135deg,#080808,#121008)",
         desc: "L'armurerie de la caserne. Armes lourdes, equipements tactiques, explosifs reglementaires.",
-        imageUrl: "images/caserne-luthecia-armurerie-militaire.png",
+        imageUrl: "images/caserne-luthecia-armurerie-militaire.webp",
         // requiresPostId : METADONNEE MORTE, ET ICI CONTRADICTOIRE (meme audit que la Salle de
         // Commandement). Les deux retraits sont reserves au Lieutenant, et « Subtiliser des
         // explosifs » est un ordre ILLEGAL volontairement ouvert a n'importe qui : fermer la piece
@@ -4934,7 +4934,7 @@ const BUILDINGS = {
         name: "Réfectoire",
         imageBg: "linear-gradient(135deg,#0a0a06,#13130c)",
         desc: "Longues tables, bancs de bois, odeur de soupe. Les rations sortent de la cuisine par lots de dix. Ici, le grade ne donne droit a rien de plus qu'une gamelle.",
-        imageUrl: "images/caserne-luthecia-refectoire.png",
+        imageUrl: "images/caserne-luthecia-refectoire.webp",
         persons: [
           // CAPORAL ALOUCHE (23 septembre 2026, ex-« Cuistot Marmiton »). Portrait photographique :
           // meme motif que Marc Hantile -- photoUrl + photoPos suffisent, getPnjAvatar prend seul la
@@ -4943,7 +4943,7 @@ const BUILDINGS = {
           // job:'cuistot_mil' est CONSERVE -- l'avatar de repli et les eventuels filtres par metier
           // continuent de fonctionner si la photo venait a manquer.
           {name:'Caporal Alouche', role:'Cuisinier de compagnie', rel:'friendly', job:'cuistot_mil',
-           photoUrl:'images/refectoire-pnj-caporal-alouche.png',
+           photoUrl:'images/refectoire-pnj-caporal-alouche.webp',
            photoPos:'47% 22%'}
         ],
         orders: [
@@ -4957,7 +4957,7 @@ const BUILDINGS = {
         name: "Salle des Faits d'Armes",
         imageBg: "linear-gradient(135deg,#0a0806,#14100a)",
         desc: "Les trophees et etendards des sections. Chaque numero de section porte la memoire de ses combats, transmise d'un lieutenant a l'autre.",
-        imageUrl: "images/caserne-luthecia-salle-faits-armes.png",
+        imageUrl: "images/caserne-luthecia-salle-faits-armes.webp",
         persons: [
           {name:'Archiviste Militaire (PNJ)', role:'PNJ - Gardien de la memoire', rel:'neutral', job:'archiviste_mil'}
         ],
@@ -4969,7 +4969,7 @@ const BUILDINGS = {
         name: "Quartier des Troupes",
         imageBg: "linear-gradient(135deg,#080a08,#0f120a)",
         desc: "Les dortoirs et salles de repos des soldats. Ambiance de camaraderie et discipline.",
-        imageUrl: "images/caserne-luthecia-dortoir.png",
+        imageUrl: "images/caserne-luthecia-dortoir.webp",
         persons: [
           {name:'Caporal Lefebvre (PNJ)', role:'PNJ - Soldat', rel:'neutral', job:'soldat'},
           {name:'Soldat Nguyen (PNJ)',    role:'PNJ - Soldat', rel:'neutral', job:'soldat'}
@@ -4998,10 +4998,10 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
         desc: "Le hall d'accueil du musee de la ville de Luthecia.",
-        imageUrl: "images/hall-musee-ville-luthecia.png",
+        imageUrl: "images/hall-musee-ville-luthecia.webp",
         persons: [
-          {name:'Gérard Poinçon (PNJ)', role:'Gardien du musée', rel:'neutral', job:'gardien_musee', photoUrl:'images/gerard-poincon-gardien-musee.png', photoPos:'50% 15%'},
-          {name:'Valérie Loisillon (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-musee-ville-luthecia.png', photoPos:'20% 30%'}
+          {name:'Gérard Poinçon (PNJ)', role:'Gardien du musée', rel:'neutral', job:'gardien_musee', photoUrl:'images/gerard-poincon-gardien-musee.webp', photoPos:'50% 15%'},
+          {name:'Valérie Loisillon (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-musee-ville-luthecia.webp', photoPos:'20% 30%'}
         ],
         orders: []
       },
@@ -5009,7 +5009,7 @@ const BUILDINGS = {
         name: "Salle des Grands Criminels",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Luthecia. Classement a venir.",
-        imageUrl: "images/salle-criminels-musee-luthecia.png",
+        imageUrl: "images/salle-criminels-musee-luthecia.webp",
         persons: [],
         orders: []
       },
@@ -5017,7 +5017,7 @@ const BUILDINGS = {
         name: "Salle des Maires de Luthécia",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
-        imageUrl: "images/salle-maires-musee-luthecia.png",
+        imageUrl: "images/salle-maires-musee-luthecia.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-maires.mp3",
         persons: [],
         orders: []
@@ -5026,7 +5026,7 @@ const BUILDINGS = {
         name: "Salle des Personnalités Luthéciennes",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-personnalites.png",
+        imageUrl: "images/musee-ville-luthecia-salle-personnalites.webp",
         persons: [],
         orders: []
       },
@@ -5034,7 +5034,7 @@ const BUILDINGS = {
         name: "Salle des Grands Entrepreneurs",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Luthecia, du petit commerce a l'empire industriel. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-entrepreneurs.png",
+        imageUrl: "images/musee-ville-luthecia-salle-entrepreneurs.webp",
         persons: [],
         orders: []
       },
@@ -5042,7 +5042,7 @@ const BUILDINGS = {
         name: "Salle des Organisations",
         imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
         desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-organisations.png",
+        imageUrl: "images/musee-ville-luthecia-salle-organisations.webp",
         persons: [],
         orders: []
       },
@@ -5050,7 +5050,7 @@ const BUILDINGS = {
         name: "Salle des Plumes",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Luthecia. Contenu a venir.",
-        imageUrl: "images/salle-plumes-musee-luthecia.png",
+        imageUrl: "images/salle-plumes-musee-luthecia.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-plumes.mp3",
         persons: [],
         orders: []
@@ -5059,7 +5059,7 @@ const BUILDINGS = {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Luthecia. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-honneur-militaire.png",
+        imageUrl: "images/musee-ville-luthecia-salle-honneur-militaire.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-honneur-militaire-v2.mp3",
         persons: [],
         orders: []
@@ -5068,7 +5068,7 @@ const BUILDINGS = {
         name: "Salle des Unions Célèbres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-unions-celebres.png",
+        imageUrl: "images/musee-ville-luthecia-salle-unions-celebres.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-unions-celebres.mp3",
         persons: [],
         orders: []
@@ -5077,7 +5077,7 @@ const BUILDINGS = {
         name: "Salle des Grandes Dynasties",
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Arbre genealogique vivant des familles historiques de Luthecia. Contenu a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-dynasties.png",
+        imageUrl: "images/musee-ville-luthecia-salle-dynasties.webp",
         persons: [],
         orders: []
       },
@@ -5085,7 +5085,7 @@ const BUILDINGS = {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Luthecia. Classement a venir.",
-        imageUrl: "images/musee-ville-luthecia-salle-scandales.png",
+        imageUrl: "images/musee-ville-luthecia-salle-scandales.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-scandales.mp3",
         persons: [],
         orders: []
@@ -5094,7 +5094,7 @@ const BUILDINGS = {
         name: "Débarras",
         imageBg: "linear-gradient(135deg,#0a0806,#100c08)",
         desc: "Une porte fermée à clé, discrète, au fond du musée. Personne ne semble jamais y entrer.",
-        imageUrl: "images/porte-debarras-musee-luthecia.png",
+        imageUrl: "images/porte-debarras-musee-luthecia.webp",
         locked: true,
         persons: [],
         orders: []
@@ -5118,7 +5118,7 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
         desc: "L'immense hall d'accueil du musee national, sous sa verriere et son escalier monumental.",
-        imageUrl: "images/hall-musee-national-republia.png",
+        imageUrl: "images/hall-musee-national-republia.webp",
         persons: [],
         orders: []
       },
@@ -5126,7 +5126,7 @@ const BUILDINGS = {
         name: "Salle des Présidents de Republia",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire presidentielle de la nation, ses meilleurs et ses pires chefs d'Etat. Classement a venir.",
-        imageUrl: "images/salle-presidents-musee-national.png",
+        imageUrl: "images/salle-presidents-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-luthecia-audio-salle-presidents.mp3",
         persons: [],
         orders: []
@@ -5135,7 +5135,7 @@ const BUILDINGS = {
         name: "Expositions Temporaires",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Une salle dediee aux expositions ponctuelles du musee. Contenu a venir.",
-        imageUrl: "images/expositions-temporaires-musee-national.png",
+        imageUrl: "images/expositions-temporaires-musee-national.webp",
         persons: [],
         orders: []
       },
@@ -5143,7 +5143,7 @@ const BUILDINGS = {
         name: "Salle d'Honneur Militaire Nationale",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les plus grands faits d'armes a l'echelle du pays.",
-        imageUrl: "images/salle-militaires-musee-national.png",
+        imageUrl: "images/salle-militaires-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-audio-salle-honneur-militaire.mp3",
         persons: [],
         orders: [
@@ -5154,7 +5154,7 @@ const BUILDINGS = {
         name: "Salle des Personnalités Politiques",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "Ministres, députés et diplomates ayant marqué l'histoire nationale (hors présidents et maires).",
-        imageUrl: "images/salle-politiques-musee-national.png",
+        imageUrl: "images/salle-politiques-musee-national.webp",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
@@ -5164,7 +5164,7 @@ const BUILDINGS = {
         name: "Salle des Personnalités Civiles et Intellectuelles",
         imageBg: "linear-gradient(135deg,#14100c,#1c1810)",
         desc: "Universitaires, philosophes, journalistes et chercheurs ayant marqué le pays.",
-        imageUrl: "images/salle-civils-intellectuels-musee-national.png",
+        imageUrl: "images/salle-civils-intellectuels-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-personnalites-civiles.mp3",
         persons: [],
         orders: [
@@ -5175,7 +5175,7 @@ const BUILDINGS = {
         name: "Salle des Responsables d'Organisations Syndicales ou Religieuses",
         imageBg: "linear-gradient(135deg,#181008,#221408)",
         desc: "Figures religieuses, syndicales et de loges ayant marqué le pays.",
-        imageUrl: "images/salle-organisations-musee-national.png",
+        imageUrl: "images/salle-organisations-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-responsables-organisations.mp3",
         persons: [],
         orders: [
@@ -5186,7 +5186,7 @@ const BUILDINGS = {
         name: "Salle des Artistes et Sportifs",
         imageBg: "linear-gradient(135deg,#101418,#181c22)",
         desc: "Compositeurs, sculpteurs, champions et figures populaires du sport national.",
-        imageUrl: "images/salle-artistes-sportifs-musee-national.png",
+        imageUrl: "images/salle-artistes-sportifs-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-artistes-sportifs.mp3",
         persons: [],
         orders: [
@@ -5197,7 +5197,7 @@ const BUILDINGS = {
         name: "Salle du Trésor National",
         imageBg: "linear-gradient(135deg,#181008,#221408)",
         desc: "Regalia, objets d'Etat et symboles du pouvoir. Acces strictement interdit — zone sous haute protection, surveillance 24h/24.",
-        imageUrl: "images/tresor-national-musee-national.png",
+        imageUrl: "images/tresor-national-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-tresor-national.mp3",
         persons: [],
         orders: []
@@ -5206,7 +5206,7 @@ const BUILDINGS = {
         name: "Salle des Grandes Réussites Économiques",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les plus grandes fortunes et entreprises a l'echelle nationale.",
-        imageUrl: "images/salle-economie-musee-national.png",
+        imageUrl: "images/salle-economie-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-reussites-economiques.mp3",
         persons: [],
         orders: [
@@ -5217,7 +5217,7 @@ const BUILDINGS = {
         name: "Salle des Grandes Villes de Republia",
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Les maires des differentes villes du pays entrent en competition pour la reconnaissance nationale de leur cite. Classement a venir.",
-        imageUrl: "images/musee-national-salle-grandes-villes.png",
+        imageUrl: "images/musee-national-salle-grandes-villes.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-grandes-villes.mp3",
         persons: [],
         orders: []
@@ -5226,7 +5226,7 @@ const BUILDINGS = {
         name: "Salle des Plus Grands Criminels du Pays",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Les plus grands criminels de chaque ville du pays entrent en competition pour le titre de plus grand criminel de la nation. Classement a venir.",
-        imageUrl: "images/salle-criminels-musee-national.png",
+        imageUrl: "images/salle-criminels-musee-national.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-grands-criminels.mp3",
         persons: [],
         orders: [
@@ -5248,9 +5248,9 @@ const BUILDINGS = {
         name: "Parc Botanique",
         imageBg: "linear-gradient(135deg,#0c140c,#141c14)",
         desc: "Étangs, cygnes, allées gravillonnées et pelouses (interdites). Un lieu paisible au cœur de la ville.",
-        imageUrl: "images/parc-botanique-national.png",
+        imageUrl: "images/parc-botanique-national.webp",
         persons: [
-          {name:'Florian Grès (PNJ)', role:'Jardinier', rel:'neutral', job:'jardinier', photoUrl:'images/florian-gres-jardinier.png', photoPos:'50% 20%'}
+          {name:'Florian Grès (PNJ)', role:'Jardinier', rel:'neutral', job:'jardinier', photoUrl:'images/florian-gres-jardinier.webp', photoPos:'50% 20%'}
         ],
         orders: []
       },
@@ -5260,7 +5260,7 @@ const BUILDINGS = {
         desc: "Plantes exotiques fragiles, orchidées et bassin d'ornement sous verrière. Merci de ne pas toucher les végétaux.",
         imageUrl: "images/serre-botanique-luthecia.webp",
         persons: [
-          {name:'Jean-Pierre Ciseaux (PNJ)', role:'Conservateur', rel:'neutral', job:'conservateur', photoUrl:'images/jean-pierre-ciseaux-conservateur.png', photoPos:'50% 15%'}
+          {name:'Jean-Pierre Ciseaux (PNJ)', role:'Conservateur', rel:'neutral', job:'conservateur', photoUrl:'images/jean-pierre-ciseaux-conservateur.webp', photoPos:'50% 15%'}
         ],
         orders: []
       }
@@ -5277,7 +5277,7 @@ const BUILDINGS = {
     rooms: {
       place: {
         name: "Place du Formulaire de la Liberté",
-        imageUrl: "images/place-formulaire-liberte.png",
+        imageUrl: "images/place-formulaire-liberte.webp",
         desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
         persons: [
           // `contactOrga` designe le PASSEUR, pas le metier : il met en relation avec une
@@ -5285,7 +5285,7 @@ const BUILDINGS = {
           // (contacts_organisations_passeurs). Le champ est pose ICI et nulle part ailleurs --
           // `job:'criminel'` est porte par cinq PNJ de decor qui ne mettent personne en relation,
           // et s'en servir aurait donne ce pouvoir a quatre personnages qui ne l'ont pas.
-          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', contactOrga:'pat_hounette', photoUrl:'images/pat-hounette.png', photoPos:'45% 30%'}
+          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', contactOrga:'pat_hounette', photoUrl:'images/pat-hounette.webp', photoPos:'45% 30%'}
         ],
         orders: []
       }
@@ -5302,7 +5302,7 @@ const BUILDINGS = {
     rooms: {
       accueil_ambassades: {
         name: "Accueil du Quartier des Ambassades",
-        imageUrl: "images/accueil-quartier-ambassades.png",
+        imageUrl: "images/accueil-quartier-ambassades.webp",
         desc: "Le hall d'accueil du quartier diplomatique. Trois bureaux d'ambassadeurs, ouverts selon les relations en cours.",
         persons: [
           {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
@@ -5317,14 +5317,14 @@ const BUILDINGS = {
       salle_reception: {
         name: "Salle de Réception",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
-        imageUrl: "images/ambassades-salle-reception.png",
+        imageUrl: "images/ambassades-salle-reception.webp",
         desc: "Une salle commune aux trois ambassades, reservee aux receptions diplomatiques organisees par les ambassadeurs.",
         persons: [],
         orders: []
       },
       bureau_al_khalija: {
         name: "Ambassade d'Al-Khalija",
-        imageUrl: "images/bureau-ambassadeur-al-khalija.png",
+        imageUrl: "images/bureau-ambassadeur-al-khalija.webp",
         desc: "Le bureau de l'ambassadeur d'Al-Khalija. Ferme tant qu'Al-Khalija n'a pas ouvert d'ambassade a Luthecia.",
         persons: [],
         orders: [
@@ -5336,7 +5336,7 @@ const BUILDINGS = {
       },
       bureau_sovarka: {
         name: "Ambassade de Sovarka",
-        imageUrl: "images/bureau-ambassadeur-sovarka.png",
+        imageUrl: "images/bureau-ambassadeur-sovarka.webp",
         desc: "Le bureau de l'ambassadeur de Sovarka. Ferme tant que Sovarka n'a pas ouvert d'ambassade a Luthecia.",
         persons: [],
         orders: [
@@ -5348,7 +5348,7 @@ const BUILDINGS = {
       },
       bureau_el_estado: {
         name: "Ambassade d'El Estado",
-        imageUrl: "images/bureau-ambassadeur-el-estado.png",
+        imageUrl: "images/bureau-ambassadeur-el-estado.webp",
         desc: "Le bureau de l'ambassadeur d'El Estado. Ferme tant qu'El Estado n'a pas ouvert d'ambassade a Luthecia.",
         persons: [],
         orders: [
@@ -5373,7 +5373,7 @@ const BUILDINGS = {
         name: "Entree Securisee",
         imageBg: "linear-gradient(135deg,#080808,#101010)",
         desc: "L'entree du QHS. Trois sas de securite. Gardes armes en permanence.",
-        imageUrl: "images/qhs-luthecia-entree-controle.png",
+        imageUrl: "images/qhs-luthecia-entree-controle.webp",
         persons: [
           {name:'Dominique Cruel (PNJ)', role:'PNJ - Directeur du QHS', rel:'neutral', job:'directeur_qhs'},
           {name:'Philippe Cognedur (PNJ)', role:'PNJ - Gardien Chef',     rel:'neutral', job:'gardien_qhs'}
@@ -5388,7 +5388,7 @@ const BUILDINGS = {
         name: "Cellules",
         imageBg: "linear-gradient(135deg,#050505,#0a0808)",
         desc: "Les cellules du QHS. Isolement total. Acces interdit sauf pour les detenus et gardiens.",
-        imageUrl: "images/qhs-luthecia-aile-a-cellules.png",
+        imageUrl: "images/qhs-luthecia-aile-a-cellules.webp",
         persons: [
           {name:'Jean Terre (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'},
           {name:'Patrick Coule (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'}
@@ -5404,7 +5404,7 @@ const BUILDINGS = {
         name: "Salle d'Interrogatoire",
         imageBg: "linear-gradient(135deg,#050808,#0a1010)",
         desc: "La salle d'interrogatoire. Lumiere crue, table metallique. Acces enqueteurs autorises.",
-        imageUrl: "images/qhs-luthecia-salle-interrogatoire.png",
+        imageUrl: "images/qhs-luthecia-salle-interrogatoire.webp",
         persons: [],
         orders: [
           {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'},
@@ -5425,7 +5425,7 @@ const BUILDINGS = {
         name: "Salle Commune",
         imageBg: "linear-gradient(135deg,#0a0a0a,#101010)",
         desc: "L'espace de detente des detenus. Echecs, baby-foot, quelques journaux. Sous l'oeil des cameras.",
-        imageUrl: "images/qhs-luthecia-salle-commune.png",
+        imageUrl: "images/qhs-luthecia-salle-commune.webp",
         persons: [],
         orders: []
       }
@@ -5447,7 +5447,7 @@ const BUILDINGS = {
         name: "Nef des Formulaires",
         imageBg: "linear-gradient(135deg,#0a0808,#150f0a)",
         desc: "La grande nef où les fidèles remplissent leurs actes de foi administratifs. Des piles de formulaires s'élèvent jusqu'au plafond.",
-        imageUrl: "images/tabernacle-impots-nef-formulaires.png",
+        imageUrl: "images/tabernacle-impots-nef-formulaires.webp",
         persons: [
           {name:'Père Ception (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
           {name:'Enfant de chœur Lacroix (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
@@ -5652,10 +5652,10 @@ const BUILDINGS = {
       accueil: {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
-        imageUrl: "images/bureau-national-emploi-luthecia.png",
+        imageUrl: "images/bureau-national-emploi-luthecia.webp",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
         persons: [
-          {name:'Jean-Lou Zeure', role:'Ancien Maire de Luthécia', rel:'neutral', job:'citoyen', photoUrl:'images/jean-lou-zeure.png', photoPos:'63% 30%'}
+          {name:'Jean-Lou Zeure', role:'Ancien Maire de Luthécia', rel:'neutral', job:'citoyen', photoUrl:'images/jean-lou-zeure.webp', photoPos:'63% 30%'}
         ],
         orders: [
           {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
@@ -5685,7 +5685,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#181410,#221c15)",
-        imageUrl: "images/entrepot-pole-tabac-psm.png",
+        imageUrl: "images/entrepot-pole-tabac-psm.webp",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
         orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
@@ -5738,7 +5738,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/entrepot-pole-tabac-psm.png",
+        imageUrl: "images/entrepot-pole-tabac-psm.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -5768,7 +5768,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/salle-ventes-entrepot-luthecia.png",
+        imageUrl: "images/salle-ventes-entrepot-luthecia.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -5776,7 +5776,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "images/bureau-direction-entrepot-luthecia.png",
+        imageUrl: "images/bureau-direction-entrepot-luthecia.webp",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Marcel Silo (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
@@ -5798,7 +5798,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#101418,#161c22)",
-        imageUrl: "images/salle-ventes-usine-pharma-luthecia.png",
+        imageUrl: "images/salle-ventes-usine-pharma-luthecia.webp",
         desc: "L'accueil et la salle de vente directe des médicaments produits sur place.",
         persons: [],
         orders: [
@@ -5814,7 +5814,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "images/bureau-direction-usine-pharma-luthecia.png",
+        imageUrl: "images/bureau-direction-usine-pharma-luthecia.webp",
         desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
         persons: [{name:'Bernard Piluler (PNJ)', role:"Directeur de l'Usine Pharmaceutique", rel:'neutral', job:'directeur_pharma'}],
         orders: [
@@ -5828,7 +5828,7 @@ const BUILDINGS = {
       salle_production: {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "images/salle-production-usine-pharma-luthecia.png",
+        imageUrl: "images/salle-production-usine-pharma-luthecia.webp",
         desc: "Les lignes de production. Les plantes livrées y sont transformées en médicaments.",
         persons: [],
         orders: [
@@ -5870,7 +5870,7 @@ const BUILDINGS = {
         name: "Hall des Douanes",
         imageBg: "linear-gradient(135deg,#08090f,#101215)",
         desc: "Le contrôle douanier. Obligatoire avant tout vol international. L\'Inspecteur Prosper Tampon veille avec son tampon béni.",
-        imageUrl: "images/hall-douanes-luthecia.png",
+        imageUrl: "images/hall-douanes-luthecia.webp",
         persons: [
           {name:'Inspecteur Prosper Tampon (PNJ)', role:'Inspecteur des douanes', rel:'neutral', job:'douanier'}
         ],
@@ -5883,7 +5883,7 @@ const BUILDINGS = {
         name: "Zone d\'Embarquement",
         imageBg: "linear-gradient(135deg,#05080f,#080c18)",
         desc: "La zone d\'embarquement internationale. Accès réservé aux voyageurs ayant passé les douanes.",
-        imageUrl: "images/hall-embarquement-luthecia.png",
+        imageUrl: "images/hall-embarquement-luthecia.webp",
         locked: false,
         requiresDouane: true,
         persons: [],
@@ -5906,7 +5906,7 @@ const BUILDINGS = {
         name: "Hall de la Gare",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Une petite gare de province. Calme. Le prochain train est dans 2 heures.",
-        imageUrl: "images/port-sainte-marie-centre-multimodal-accueil.png",
+        imageUrl: "images/port-sainte-marie-centre-multimodal-accueil.webp",
         persons: [
           {name:'Chef de Gare Local (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'}
         ],
@@ -6195,7 +6195,7 @@ const BUILDINGS = {
         name: "Quai Principal",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Les grues bleues s\'activent.",
-        imageUrl: "images/port-sainte-marie-port-industriel.png",
+        imageUrl: "images/port-sainte-marie-port-industriel.webp",
         // Alain Bordage (lot du 24 aout 2026, order dedie supprime le 25 aout 2026) : employe de
         // la compagnie maritime, renseigne desormais les voyageurs directement via le dialogue
         // PNJ standard (talkToPnj, voir PNJ_PERSONALITIES/PNJ_PROFILS dans plateau-core.js) --
@@ -6288,9 +6288,9 @@ const BUILDINGS = {
         name: "Douanes",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Le bureau des douaniers du port : contrôle documentaire, dossiers de cargaisons et va-et-vient incessant entre dockers et agents.",
-        imageUrl: "images/port-sainte-marie-port-industriel-douanes.png",
+        imageUrl: "images/port-sainte-marie-port-industriel-douanes.webp",
         persons: [
-          {name:'Pascal Paguevite (PNJ)', role:'Chef des Douanes', rel:'neutral', job:'chef_douanes', photoUrl:'images/port-sainte-marie-port-industriel-pascal-paguevite.png', photoPos:'50% 20%'}
+          {name:'Pascal Paguevite (PNJ)', role:'Chef des Douanes', rel:'neutral', job:'chef_douanes', photoUrl:'images/port-sainte-marie-port-industriel-pascal-paguevite.webp', photoPos:'50% 20%'}
         ],
         orders: [
           {fn:'consulter_effectifs_douane', label:'Consulter les effectifs', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Liste publique des douaniers en service (information administrative, sans détail de compétences).'},
@@ -6315,10 +6315,10 @@ const BUILDINGS = {
         name: "Bureau Syndical des Dockers",
         imageBg: "linear-gradient(135deg,#100a08,#180e0a)",
         desc: "Le local du Syndicat des Dockers de Port-Sainte-Marie : affiches de mobilisation, tableau d'annonces et permanence syndicale.",
-        imageUrl: "images/port-sainte-marie-port-industriel-syndicat-dockers.png",
+        imageUrl: "images/port-sainte-marie-port-industriel-syndicat-dockers.webp",
         persons: [
           {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
-          {name:'Étienne Dantafasse (PNJ)', role:'Président du Syndicat des Dockers de Port-Sainte-Marie', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-port-industriel-etienne-dantafasse.png', photoPos:'50% 12%'}
+          {name:'Étienne Dantafasse (PNJ)', role:'Président du Syndicat des Dockers de Port-Sainte-Marie', rel:'neutral', job:null, photoUrl:'images/port-sainte-marie-port-industriel-etienne-dantafasse.webp', photoPos:'50% 12%'}
         ],
         orders: [
           {fn:'se_syndiquer', label:'Se syndiquer', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat des Dockers de Port-Sainte-Marie (50 FR).'},
@@ -6332,10 +6332,10 @@ const BUILDINGS = {
         name: "Administration Portuaire",
         imageBg: "linear-gradient(135deg,#0a0c10,#0e1218)",
         desc: "La salle opérationnelle de l'administration du port, avec vue sur les quais et les grues du port industriel.",
-        imageUrl: "images/port-sainte-marie-port-industriel-administration.png",
+        imageUrl: "images/port-sainte-marie-port-industriel-administration.webp",
         persons: [
-          {name:'Marcel Ancre (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port', photoUrl:'images/port-sainte-marie-port-industriel-marcel-ancre.png', photoPos:'50% 15%'},
-          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret', photoUrl:'images/port-sainte-marie-port-industriel-ginette-conteneur.png', photoPos:'50% 15%'}
+          {name:'Marcel Ancre (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port', photoUrl:'images/port-sainte-marie-port-industriel-marcel-ancre.webp', photoPos:'50% 15%'},
+          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret', photoUrl:'images/port-sainte-marie-port-industriel-ginette-conteneur.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Registre administratif persistant : cargaisons de fret privé déclarées (sans révéler leur contenu réel) et flux institutionnels du port. Consultation publique, gratuite.'},
@@ -6358,7 +6358,7 @@ const BUILDINGS = {
         name: "Quai du Peuple",
         imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
         desc: "Des grues rouillées s\'activent sous un ciel gris acier. Camarade Grue surveille. Boris Docker compte les boîtes pour le troisième rapport de la journée.",
-        imageUrl: "images/port-sovarka.png",
+        imageUrl: "images/port-sovarka.webp",
         persons: [
           {name:'Camarade Grue (PNJ)', role:'Directeur du port', rel:'neutral', job:'capitaine_port'},
           {name:'Boris Docker (PNJ)', role:'Docker du Parti', rel:'neutral', job:'docker'}
@@ -6387,7 +6387,7 @@ const BUILDINGS = {
         name: "Quai de la Contrebande",
         imageBg: "linear-gradient(135deg,#100505,#180a08)",
         desc: "Barques rouillées, conteneurs tagués, odeur de diesel et de corruption. El Capitan Turbio fume un cigare en regardant ailleurs.",
-        imageUrl: "images/port-el-estado.png",
+        imageUrl: "images/port-el-estado.webp",
         persons: [
           {name:'El Capitan Turbio (PNJ)', role:'Capitaine de port', rel:'neutral', job:'capitaine_port'},
           {name:'Paco Cargaison (PNJ)', role:'Docker spécialiste', rel:'neutral', job:'docker'}
@@ -6416,7 +6416,7 @@ const BUILDINGS = {
         name: "Terminal Royal",
         imageBg: "linear-gradient(135deg,#080608,#0f0a10)",
         desc: "Immense, propre, désertique. Les grues dorées s\'activent. Hassan Docker fait passer les conteneurs du Cheikh en premier, comme toujours.",
-        imageUrl: "images/port-al-khalija.png",
+        imageUrl: "images/port-al-khalija.webp",
         persons: [
           {name:'Cheikh Ibn Fret (PNJ)', role:'Directeur du port', rel:'neutral', job:'capitaine_port'},
           {name:'Hassan Docker (PNJ)', role:'Chef docker', rel:'neutral', job:'docker'}
@@ -6438,116 +6438,116 @@ const BUILDINGS = {
 const ROOM_IMAGES_EMPIRE = {
   republic: {
     'centre-multinodal-luthecia': {
-      'hall_gare':        'images/centre-multinodal-republic.png',
-      'hall_douanes':     'images/centre-multinodal-republic.png',
-      'zone_embarquement':'images/centre-multinodal-republic.png'
+      'hall_gare':        'images/centre-multinodal-republic.webp',
+      'hall_douanes':     'images/centre-multinodal-republic.webp',
+      'zone_embarquement':'images/centre-multinodal-republic.webp'
     },
     'assemblee': {
       'hemicycle':                'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80',
-      'couloirs':                 'images/couloirs-an-republic.png',
-      'salle_archives_assemblee': 'images/archives-an-republic.png'
+      'couloirs':                 'images/couloirs-an-republic.webp',
+      'salle_archives_assemblee': 'images/archives-an-republic.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':    'images/accueil-palais-president-republic.png',
-      'bureau_president':  'images/bureau-president.png'
+      'accueil_elysee':    'images/accueil-palais-president-republic.webp',
+      'bureau_president':  'images/bureau-president.webp'
     },
     'palais-gouvernement': {
-      'archives_gouv':    'images/archives-gouv-republic.png',
-      'bureau_min_int':   'images/bureau-min-int-republic.png',
-      'bureau_min_ae':    'images/bureau-min-ae-republic.png',
-      'bureau_min_def':   'images/bureau-min-def-republic.png'
+      'archives_gouv':    'images/archives-gouv-republic.webp',
+      'bureau_min_int':   'images/bureau-min-int-republic.webp',
+      'bureau_min_ae':    'images/bureau-min-ae-republic.webp',
+      'bureau_min_def':   'images/bureau-min-def-republic.webp'
     },
     'mairie-capitale': {
-      'hall_mairie':      'images/mairie-luthecia.png',
-      'bureau_maire':     'images/bureau-maire-luthecia.png',
-      'salle_elections':  'images/salle-elections-luthecia.png'
+      'hall_mairie':      'images/mairie-luthecia.webp',
+      'bureau_maire':     'images/bureau-maire-luthecia.webp',
+      'salle_elections':  'images/salle-elections-luthecia.webp'
     },
     'mairie': {
-      'accueil_mairie':   'images/mairie-port-sainte-marie.png'
+      'accueil_mairie':   'images/mairie-port-sainte-marie.webp'
     },
-    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
+    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-republic.webp' },
     'centre-commercial': {
-      'vitrine_principale': 'images/centre-commercial-republic.png',
-      'boutique_milieu':    'images/centre-commercial-republic.png',
-      'arriere_boutique':   'images/centre-commercial-republic.png',
-      'cave_reserve':       'images/centre-commercial-republic.png'
+      'vitrine_principale': 'images/centre-commercial-republic.webp',
+      'boutique_milieu':    'images/centre-commercial-republic.webp',
+      'arriere_boutique':   'images/centre-commercial-republic.webp',
+      'cave_reserve':       'images/centre-commercial-republic.webp'
     },
     'centre-artisanal': {
-      'echoppe_facade':  'images/centre-artisanal-republic.png',
-      'atelier_milieu':  'images/centre-artisanal-republic.png',
-      'reserve_arriere': 'images/centre-artisanal-republic.png'
+      'echoppe_facade':  'images/centre-artisanal-republic.webp',
+      'atelier_milieu':  'images/centre-artisanal-republic.webp',
+      'reserve_arriere': 'images/centre-artisanal-republic.webp'
     },
     'centre-affaires': {
-      'bureau_prestige': 'images/centre-affaires-republic.png',
-      'bureau_standard': 'images/centre-affaires-republic.png',
-      'open_space':      'images/centre-affaires-republic.png'
+      'bureau_prestige': 'images/centre-affaires-republic.webp',
+      'bureau_standard': 'images/centre-affaires-republic.webp',
+      'open_space':      'images/centre-affaires-republic.webp'
     },
   },
   narco: {
     'centre-multinodal-luthecia': {
-      'hall_gare':  'images/gare-el-estado.png',
-      'aeroport':   'images/centre-multinodal-el-estado.png'
+      'hall_gare':  'images/gare-el-estado.webp',
+      'aeroport':   'images/centre-multinodal-el-estado.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':   'images/accueil-prez-el-estado.png',
-      'bureau_president': 'images/bureau-prez-el-estado.png',
-      'salle_presse_elysee': 'images/salle-presse-el-estado.png'
+      'accueil_elysee':   'images/accueil-prez-el-estado.webp',
+      'bureau_president': 'images/bureau-prez-el-estado.webp',
+      'salle_presse_elysee': 'images/salle-presse-el-estado.webp'
     },
     'palais-gouvernement': {
-      'hall':          'images/accueil-prez-el-estado.png',
-      'salle_conseil': 'images/conseil-el-estado.png',
-      'salle_presse':  'images/salle-presse-el-estado.png',
-      'archives_gouv': 'images/archives-el-estado.png',
-      'bureau_min_int':  'images/mint-el-estado.png',
-      'bureau_min_fin':  'images/archives-el-estado.png',
-      'bureau_min_just': 'images/mjust-el-estado.png',
-      'bureau_min_def':  'images/mdef-el-estado.png',
-      'bureau_min_info': 'images/minfo-el-estado.png',
-      'bureau_min_ae':   'images/mae-el-estado.png'
+      'hall':          'images/accueil-prez-el-estado.webp',
+      'salle_conseil': 'images/conseil-el-estado.webp',
+      'salle_presse':  'images/salle-presse-el-estado.webp',
+      'archives_gouv': 'images/archives-el-estado.webp',
+      'bureau_min_int':  'images/mint-el-estado.webp',
+      'bureau_min_fin':  'images/archives-el-estado.webp',
+      'bureau_min_just': 'images/mjust-el-estado.webp',
+      'bureau_min_def':  'images/mdef-el-estado.webp',
+      'bureau_min_info': 'images/minfo-el-estado.webp',
+      'bureau_min_ae':   'images/mae-el-estado.webp'
     },
     'assemblee': {
-      'hemicycle': 'images/an-salle-el-estado.png',
-      'couloirs':  'images/an-el-estado.png'
+      'hemicycle': 'images/an-salle-el-estado.webp',
+      'couloirs':  'images/an-el-estado.webp'
     },
     'commissariat': {
-      'accueil_police': 'images/commissariat-el-estado.png',
-      'prison':         'images/cellule-el-estado.png'
+      'accueil_police': 'images/commissariat-el-estado.webp',
+      'prison':         'images/cellule-el-estado.webp'
     },
     'mairie-capitale': {
-      'hall_mairie':    'images/mairie-el-estado.png'
+      'hall_mairie':    'images/mairie-el-estado.webp'
     },
     'centre-multinodal-luthecia': {
-      'hall_gare':      'images/centre-multinodal-el-estado.png',
-      'aeroport':       'images/centre-multinodal-el-estado.png'
+      'hall_gare':      'images/centre-multinodal-el-estado.webp',
+      'aeroport':       'images/centre-multinodal-el-estado.webp'
     },
-    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
+    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-narco.webp' },
     'centre-commercial': {
-      'vitrine_principale': 'images/centre-commercial-narco.png',
-      'boutique_milieu':    'images/centre-commercial-narco.png',
-      'arriere_boutique':   'images/centre-commercial-narco.png',
-      'cave_reserve':       'images/centre-commercial-narco.png'
+      'vitrine_principale': 'images/centre-commercial-narco.webp',
+      'boutique_milieu':    'images/centre-commercial-narco.webp',
+      'arriere_boutique':   'images/centre-commercial-narco.webp',
+      'cave_reserve':       'images/centre-commercial-narco.webp'
     },
     'centre-artisanal': {
-      'echoppe_facade':  'images/centre-artisanal-narco.png',
-      'atelier_milieu':  'images/centre-artisanal-narco.png',
-      'reserve_arriere': 'images/centre-artisanal-narco.png'
+      'echoppe_facade':  'images/centre-artisanal-narco.webp',
+      'atelier_milieu':  'images/centre-artisanal-narco.webp',
+      'reserve_arriere': 'images/centre-artisanal-narco.webp'
     },
     'centre-affaires': {
-      'bureau_prestige': 'images/centre-affaires-narco.png',
-      'bureau_standard': 'images/centre-affaires-narco.png',
-      'open_space':      'images/centre-affaires-narco.png'
+      'bureau_prestige': 'images/centre-affaires-narco.webp',
+      'bureau_standard': 'images/centre-affaires-narco.webp',
+      'open_space':      'images/centre-affaires-narco.webp'
     },
   },
   soviet: {
@@ -6555,105 +6555,105 @@ const ROOM_IMAGES_EMPIRE = {
       // Nouvel accueil du Centre multimodal de Novomirsk (15 septembre 2026) : seule l'image
       // change, la mecanique du hub partage (ordres de transport sur hall_gare) est intacte.
       'hall_gare':  'images/accueil-centre-multimodal-novomirsk.webp',
-      'aeroport':   'images/centre-multinodal-sovarka.png'
+      'aeroport':   'images/centre-multinodal-sovarka.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':    'images/hall-parti-sovarka.png',
+      'accueil_elysee':    'images/hall-parti-sovarka.webp',
       'bureau_president':  'images/bureau-gouv-sovarka.png'
     },
     'palais-gouvernement': {
-      'hall':              'images/hall-parti-sovarka.png',
+      'hall':              'images/hall-parti-sovarka.webp',
       'bureaux':           'images/bureau-gouv-sovarka.png',
-      'salle_conseil':     'images/conseil-ministres-sovarka.png',
-      'bureau_min_fin':    'images/meco-sovarka.png',
-      'bureau_min_def':    'images/mdef-sovarka.png'
+      'salle_conseil':     'images/conseil-ministres-sovarka.webp',
+      'bureau_min_fin':    'images/meco-sovarka.webp',
+      'bureau_min_def':    'images/mdef-sovarka.webp'
     },
     'tribunal': {
-      'salle_audience': 'images/tribunal-sovarka.png',
-      'greffe':         'images/tribunal-sovarka.png'
+      'salle_audience': 'images/tribunal-sovarka.webp',
+      'greffe':         'images/tribunal-sovarka.webp'
     },
     'mairie-capitale': {
-      'hall_mairie':    'images/mairie-sovarka.png',
-      'bureau_maire':   'images/mairie-sovarka.png',
-      'salle_elections':'images/mairie-sovarka.png'
+      'hall_mairie':    'images/mairie-sovarka.webp',
+      'bureau_maire':   'images/mairie-sovarka.webp',
+      'salle_elections':'images/mairie-sovarka.webp'
     },
-    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
+    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-soviet.webp' },
     'centre-commercial': {
-      'vitrine_principale': 'images/centre-commercial-soviet.png',
-      'boutique_milieu':    'images/centre-commercial-soviet.png',
-      'arriere_boutique':   'images/centre-commercial-soviet.png',
-      'cave_reserve':       'images/centre-commercial-soviet.png'
+      'vitrine_principale': 'images/centre-commercial-soviet.webp',
+      'boutique_milieu':    'images/centre-commercial-soviet.webp',
+      'arriere_boutique':   'images/centre-commercial-soviet.webp',
+      'cave_reserve':       'images/centre-commercial-soviet.webp'
     },
     'centre-artisanal': {
-      'echoppe_facade':  'images/centre-artisanal-soviet.png',
-      'atelier_milieu':  'images/centre-artisanal-soviet.png',
-      'reserve_arriere': 'images/centre-artisanal-soviet.png'
+      'echoppe_facade':  'images/centre-artisanal-soviet.webp',
+      'atelier_milieu':  'images/centre-artisanal-soviet.webp',
+      'reserve_arriere': 'images/centre-artisanal-soviet.webp'
     },
     'centre-affaires': {
-      'bureau_prestige': 'images/centre-affaires-soviet.png',
-      'bureau_standard': 'images/centre-affaires-soviet.png',
-      'open_space':      'images/centre-affaires-soviet.png'
+      'bureau_prestige': 'images/centre-affaires-soviet.webp',
+      'bureau_standard': 'images/centre-affaires-soviet.webp',
+      'open_space':      'images/centre-affaires-soviet.webp'
     },
   },
   khalija: {
     'centre-multinodal-luthecia': {
-      'hall_gare': 'images/gare-al-khalija.png',
-      'aeroport':  'images/gare-al-khalija.png'
+      'hall_gare': 'images/gare-al-khalija.webp',
+      'aeroport':  'images/gare-al-khalija.webp'
     },
     'assemblee': {
-      'hemicycle':              'images/assemblee-khalija.png',
-      'couloirs':               'images/couloirs-conseil-khalija.png',
-      'salle_archives_assemblee': 'images/archives-an-republic.png'
+      'hemicycle':              'images/assemblee-khalija.webp',
+      'couloirs':               'images/couloirs-conseil-khalija.webp',
+      'salle_archives_assemblee': 'images/archives-an-republic.webp'
     },
     'tribunal': {
-      'salle_audience': 'images/tribunal-khalija.png',
-      'greffe':         'images/tribunal-khalija.png'
+      'salle_audience': 'images/tribunal-khalija.webp',
+      'greffe':         'images/tribunal-khalija.webp'
     },
     'palais-presidentiel': {
-      'accueil_elysee':    'images/hall-hotel-khalija.png',
-      'bureau_president':  'images/bureau-roi-khalija.png'
+      'accueil_elysee':    'images/hall-hotel-khalija.webp',
+      'bureau_president':  'images/bureau-roi-khalija.webp'
     },
     'hotel-republica': {
-      'hall_hotel':    'images/hall-hotel-khalija.png',
-      'chambre':       'images/chambre-hotel-khalija.png',
-      'restaurant':    'images/hall-hotel-khalija.png'
+      'hall_hotel':    'images/hall-hotel-khalija.webp',
+      'chambre':       'images/chambre-hotel-khalija.webp',
+      'restaurant':    'images/hall-hotel-khalija.webp'
     },
     'marche': {
-      'marche_ext': 'images/souk-al-khalija.png'
+      'marche_ext': 'images/souk-al-khalija.webp'
     },
     'mairie-capitale': {
-      'hall_mairie':    'images/mairie-al-khalija.png',
-      'bureau_maire':   'images/mairie-al-khalija.png',
-      'salle_elections':'images/mairie-al-khalija.png'
+      'hall_mairie':    'images/mairie-al-khalija.webp',
+      'bureau_maire':   'images/mairie-al-khalija.webp',
+      'salle_elections':'images/mairie-al-khalija.webp'
     },
-    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-1': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-2': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-3': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-4': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-5': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-6': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
+    'terrain-a-batir-7': { 'terrain': 'images/terrain-a-vendre-khalija.webp' },
     'centre-commercial': {
-      'vitrine_principale': 'images/centre-commercial-khalija.png',
-      'boutique_milieu':    'images/centre-commercial-khalija.png',
-      'arriere_boutique':   'images/centre-commercial-khalija.png',
-      'cave_reserve':       'images/centre-commercial-khalija.png'
+      'vitrine_principale': 'images/centre-commercial-khalija.webp',
+      'boutique_milieu':    'images/centre-commercial-khalija.webp',
+      'arriere_boutique':   'images/centre-commercial-khalija.webp',
+      'cave_reserve':       'images/centre-commercial-khalija.webp'
     },
     'centre-artisanal': {
-      'echoppe_facade':  'images/centre-artisanal-khalija.png',
-      'atelier_milieu':  'images/centre-artisanal-khalija.png',
-      'reserve_arriere': 'images/centre-artisanal-khalija.png'
+      'echoppe_facade':  'images/centre-artisanal-khalija.webp',
+      'atelier_milieu':  'images/centre-artisanal-khalija.webp',
+      'reserve_arriere': 'images/centre-artisanal-khalija.webp'
     },
     'centre-affaires': {
-      'bureau_prestige': 'images/centre-affaires-khalija.png',
-      'bureau_standard': 'images/centre-affaires-khalija.png',
-      'open_space':      'images/centre-affaires-khalija.png'
+      'bureau_prestige': 'images/centre-affaires-khalija.webp',
+      'bureau_standard': 'images/centre-affaires-khalija.webp',
+      'open_space':      'images/centre-affaires-khalija.webp'
     },
   }
 };
@@ -6665,7 +6665,7 @@ const ROOM_IMAGES_EMPIRE = {
 const TERRAIN_PNJ_PROFILES = {
   republic: [
     { id:'promoteur',   name:'Gérard Spéculos',      role:'Promoteur immobilier',   job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
-      photoUrl: 'images/promoteur-republic.png', photoPos: '45% 18%',
+      photoUrl: 'images/promoteur-republic.webp', photoPos: '45% 18%',
       trait:'Costume brillant, dents plus brillantes encore. Propose toujours 20% sous le prix du marché en souriant.' },
     { id:'agent',       name:'Nathalie Parpaing',     role:'Agent immobilière',      job:'commercant',  rel:'neutral', prob:0.15, agressif:false,
       trait:'Porte des talons hauts sur un chantier. A vendu le même terrain trois fois cette année.' },
@@ -6673,23 +6673,23 @@ const TERRAIN_PNJ_PROFILES = {
       photoUrl: 'images/squatteur-cool-republic.png', photoPos: '40% 25%',
       trait:'Ont installé un barbecue, un canapé et une télé sur le terrain. Très accueillants.' },
     { id:'squatter_agr', name:'La Bande à Rotule',    role:'Squatteurs menaçants',   job:'citoyen',     rel:'enemy',   prob:0.12, agressif:true,
-      photoUrl: 'images/squatteur-agressif-republic.png', photoPos: '45% 20%',
+      photoUrl: 'images/squatteur-agressif-republic.webp', photoPos: '45% 20%',
       trait:'Regardent fixement. Le plus grand tient un tuyau. Pas le genre à parlementer.' },
     { id:'inspecteur',  name:'Maurice Formulaire',    role:'Inspecteur municipal',   job:'inspecteur',  rel:'neutral', prob:0.15, agressif:false,
-      photoUrl: 'images/inspecteur-republic.png', photoPos: '50% 20%',
+      photoUrl: 'images/inspecteur-republic.webp', photoPos: '50% 20%',
       trait:'Venu vérifier 47 points de conformité. En a trouvé 43 manquants. Souriant mais intransigeant.' },
     { id:'gardien',     name:'Robert Cadenas',        role:'Gardien de chantier',    job:'gardien',     rel:'neutral', prob:0.10, agressif:false,
       trait:'Dort debout. Peut être soudoyé pour 150 FR. Après il dort ailleurs.' },
     { id:'inspecteur_police', name:'L\'Inspecteur Lardasse', role:'Inspecteur de police',   job:'commissaire', rel:'neutral', prob:0, agressif:false,
-      photoUrl: 'images/inspecteur-police-republic.png', photoPos: '50% 15%',
+      photoUrl: 'images/inspecteur-police-republic.webp', photoPos: '50% 15%',
       trait:'Arrive quand on l\'appelle. Cigare aux lèvres. Peut accélérer l\'expulsion contre un petit arrangement.' },
     { id:'cadavre',     name:'Individu non identifié',role:'Cadavre mystérieux',     job:'default',     rel:'neutral', prob:0.04, agressif:false,
-      photoUrl: 'images/cadavre-republic.png', photoPos: '50% 40%',
+      photoUrl: 'images/cadavre-republic.webp', photoPos: '50% 40%',
       trait:'Personne ne sait qui c\'est ni comment il est arrivé là. Les formalités vont prendre du temps.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.06, agressif:false, trait:null },
   ],
   narco: [
-    { id:'promoteur',   name:'Don Ladrillo',          role:'Promoteur (blanchiment)', job:'commercant', rel:'neutral', prob:0.22, agressif:false, photoUrl:'images/promoteur-narco.png', photoPos:'50% 10%',
+    { id:'promoteur',   name:'Don Ladrillo',          role:'Promoteur (blanchiment)', job:'commercant', rel:'neutral', prob:0.22, agressif:false, photoUrl:'images/promoteur-narco.webp', photoPos:'50% 10%',
       trait:'Propose cash. Beaucoup de cash. Ne pose pas de questions. Déconseille d\'en poser.' },
     { id:'agent',       name:'Consuelo Escritura',    role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.10, agressif:false,
       trait:'Ses contrats ont des clauses en petits caractères très petits. Très, très petits.' },
@@ -6697,36 +6697,36 @@ const TERRAIN_PNJ_PROFILES = {
       trait:'Font des grillades permanentes. Offrent une bière et une côtelette. Savent des choses.' },
     { id:'squatter_agr', name:'Los Violentos',        role:'Squatteurs armés',       job:'citoyen',     rel:'enemy',   prob:0.22, agressif:true,
       trait:'Armés. Territorieux. El Don lui-même les évite. Jet CHA difficile.' },
-    { id:'inspecteur',  name:'Oficial Mordida',       role:'Inspecteur corruptible', job:'inspecteur',  rel:'neutral', prob:0.08, agressif:false, photoUrl:'images/inspecteur-narco.png', photoPos:'50% 10%',
+    { id:'inspecteur',  name:'Oficial Mordida',       role:'Inspecteur corruptible', job:'inspecteur',  rel:'neutral', prob:0.08, agressif:false, photoUrl:'images/inspecteur-narco.webp', photoPos:'50% 10%',
       trait:'Venu vérifier. Repart avec une enveloppe. Tout est conforme.' },
     { id:'gardien',     name:'Paco Vigilancia',       role:'Gardien armé',           job:'gardien',     rel:'neutral', prob:0.12, agressif:false,
       trait:'Armé. Sérieux. Travaille pour quelqu\'un. On ne sait pas trop qui.' },
-    { id:'cadavre',     name:'Deux Inconnus',          role:'Cadavres (banal ici)',   job:'default',     rel:'neutral', prob:0.08, photoUrl:'images/cadavre-narco.png', photoPos:'50% 40%', agressif:false,
+    { id:'cadavre',     name:'Deux Inconnus',          role:'Cadavres (banal ici)',   job:'default',     rel:'neutral', prob:0.08, photoUrl:'images/cadavre-narco.webp', photoPos:'50% 40%', agressif:false,
       trait:'Troisième cette semaine sur ce terrain. La police est blasée. Les formalités aussi.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.04, agressif:false, trait:null },
   ],
   soviet: [
     { id:'promoteur',   name:'Camarade Bâtissov',     role:'Directeur de construction', job:'commercant', rel:'neutral', prob:0.08, agressif:false,
-      photoUrl: 'images/promoteur-soviet.png', photoPos: '50% 18%',
+      photoUrl: 'images/promoteur-soviet.webp', photoPos: '50% 18%',
       trait:'Construit pour le Parti. Uniquement pour le Parti. Vous pouvez toujours demander.' },
     { id:'agent',       name:'Nadejda Attribution',   role:'Agente d\'attribution',  job:'commercant',  rel:'neutral', prob:0.05, agressif:false,
       trait:'Le terrain est déjà attribué. Par le Parti. Formulaire B-12 en quadruple.' },
     { id:'squatter_cool',name:'Famille Kolkhozov',    role:'Occupants collectifs',   job:'citoyen',     rel:'ally',    prob:0.08, agressif:false,
-      photoUrl: 'images/squatteur-cool-soviet.png', photoPos: '45% 22%',
+      photoUrl: 'images/squatteur-cool-soviet.webp', photoPos: '45% 22%',
       trait:'Ont obtenu une autorisation provisoire du soviet local. En triple exemplaire.' },
     { id:'squatter_agr', name:'Miliciens Zélés',      role:'Miliciens territoriaux', job:'commissaire', rel:'enemy',   prob:0.05, agressif:true,
-      photoUrl: 'images/squatteur-agressif-soviet.png', photoPos: '45% 18%',
+      photoUrl: 'images/squatteur-agressif-soviet.webp', photoPos: '45% 18%',
       trait:'Défendent le terrain au nom du Parti. Toute présence non autorisée est contre-révolutionnaire.' },
     { id:'inspecteur',  name:'Camarade Conformité',   role:'Inspecteur du Parti',    job:'inspecteur',  rel:'neutral', prob:0.35, agressif:false,
-      photoUrl: 'images/inspecteur-soviet.png', photoPos: '50% 20%',
+      photoUrl: 'images/inspecteur-soviet.webp', photoPos: '50% 20%',
       trait:'Vérifie 127 points de conformité idéologique. Systématique. Inévitable.' },
     { id:'gardien',     name:'Sentinelle du Peuple',  role:'Gardien collectif',      job:'gardien',     rel:'neutral', prob:0.25, agressif:false,
       trait:'Surveille au nom du Parti. Incorruptible. Ou presque, avec beaucoup de roubles.' },
     { id:'inspecteur_police', name:'Milicien Grisov',      role:'Milice du Parti',        job:'commissaire', rel:'neutral', prob:0, agressif:false,
-      photoUrl: 'images/inspecteur-police-soviet.png', photoPos: '50% 15%',
+      photoUrl: 'images/inspecteur-police-soviet.webp', photoPos: '50% 15%',
       trait:'Arrive quand on l\'appelle. Regarde le cadavre. Note quelque chose. Repart. Peut accélérer pour des roubles.' },
     { id:'cadavre',     name:'Camarade Inconnu',      role:'Incident classifié',     job:'default',     rel:'neutral', prob:0.02, agressif:false,
-      photoUrl: 'images/cadavre-soviet.png', photoPos: '50% 40%',
+      photoUrl: 'images/cadavre-soviet.webp', photoPos: '50% 40%',
       trait:'Le Parti nie. Les formulaires d\'enquête existent en 8 exemplaires. Délai : indéterminé.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.12, agressif:false, trait:null },
   ],
@@ -6736,18 +6736,18 @@ const TERRAIN_PNJ_PROFILES = {
     { id:'agent',       name:'Yasmine Al-Vente',      role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
       trait:'Élégante, efficace, commission à 15%. Connaît tous les membres influents de la cour.' },
     { id:'squatter_cool',name:'Famille Al-Bédouin',  role:'Bédouins de passage',    job:'citoyen',     rel:'ally',    prob:0.06, agressif:false,
-      photoUrl: 'images/bedouin-khalija.png', photoPos: '45% 25%',
+      photoUrl: 'images/bedouin-khalija.webp', photoPos: '45% 25%',
       trait:'Campent ici depuis des générations. Très hospitaliers. Offrent du thé et des dattes. Bougent si on leur demande poliment.' },
     { id:'squatter_agr', name:'Clan Al-Résistant',   role:'Bédouins territoriaux',  job:'citoyen',     rel:'enemy',   prob:0.03, agressif:true,
-      photoUrl: 'images/bedouin-agressif-khalija.png', photoPos: '45% 20%',
+      photoUrl: 'images/bedouin-agressif-khalija.webp', photoPos: '45% 20%',
       trait:'Ce terrain appartient à leur clan depuis 400 ans. Ils ont des arguments historiques et des épées.' },
     { id:'inspecteur',  name:'Chambellan Al-Permis',  role:'Inspecteur royal',       job:'inspecteur',  rel:'neutral', prob:0.18, agressif:false,
-      photoUrl: 'images/inspecteur-khalija.png', photoPos: '50% 15%',
+      photoUrl: 'images/inspecteur-khalija.webp', photoPos: '50% 15%',
       trait:'Vérifie la conformité avec le plan d\'urbanisme royal. Très courtois. Très exigeant.' },
     { id:'gardien',     name:'Garde Al-Terrain',      role:'Garde royal',            job:'gardien',     rel:'neutral', prob:0.20, agressif:false,
       trait:'Posté par le Palais. Peut être contourné avec le bon protocole — ou le bon billet.' },
     { id:'cadavre',     name:'Inconnu',               role:'Affaire discrète',       job:'default',     rel:'neutral', prob:0.01, agressif:false,
-      photoUrl: 'images/cadavre-khalija.png', photoPos: '50% 35%',
+      photoUrl: 'images/cadavre-khalija.webp', photoPos: '50% 35%',
       trait:'Le Palais préfère que ça reste discret. Les formalités seront expéditives — dans un sens ou dans l\'autre.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.07, agressif:false, trait:null },
   ]

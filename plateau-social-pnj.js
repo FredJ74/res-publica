@@ -38,7 +38,7 @@ const RP_SOCIAL_LIEUX = {
 const RP_SOCIAL_JALONS = {
   abordage_deuxieme_visite: {
     pnj: 'Jean-Lou Demer',
-    portrait: 'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.png',
+    portrait: 'images/port-sainte-marie-bar-pecheurs-jean-lou-demer.webp',
     // Texte EXACT, « moussaillon » avec deux S.
     texte: function () {
       return 'Alors moussaillon, on apprécie l\'endroit ? C\'est la deuxième fois que je vous vois venir ici.';
@@ -46,7 +46,7 @@ const RP_SOCIAL_JALONS = {
   },
   accueil_premiere_visite: {
     pnj: 'Marine Leroux',
-    portrait: 'images/port-sainte-marie-pnj-marine-leroux.png',
+    portrait: 'images/port-sainte-marie-pnj-marine-leroux.webp',
     // TROIS BRANCHES, UNE SEULE VIVANTE AUJOURD'HUI. Le jeu n'enregistre nulle part
     // le genre d'un personnage joueur : verifie en base et dans tout le code, il
     // n'existe que pour les PNJ. La branche neutre est donc celle qui s'applique,

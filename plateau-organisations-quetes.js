@@ -4292,7 +4292,7 @@ const GABARIT_CRASH_TEST_RAS_DU_SOL = [
     transitionEntree: 'cut', transitionSortie: 'cut',
     couches: [{
       nom: 'placeholder',
-      asset: 'images/football-plan-ras-du-sol-01.png',
+      asset: 'images/football-plan-ras-du-sol-01.webp',
       mouvement: 'dynamique',
       etapes: [
         { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },    easing: 'linear' },
@@ -4797,7 +4797,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     { // PLAN A -- camera ras-du-sol frontale, mouvement rapide vers l'action, cut en plein mouvement.
       type: 'illustre', dureeMs: 700, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
-        nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.png', mouvement: 'dynamique',
+        nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.webp', mouvement: 'dynamique',
         etapes: [
           { t: 0, cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },  easing: 'linear' },
           { t: 1, cadrage: { scale: 1.35, x: 0, y: -3, rotation: -1 }, easing: 'ease-in' }
@@ -4808,7 +4808,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
       // (scale/pan de depart superieurs a l'etat neutre) pour prolonger la sensation du plan A.
       type: 'illustre', dureeMs: 650, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
-        nom: 'placeholder', asset: 'images/football-duel-angle-02.png', mouvement: 'dynamique',
+        nom: 'placeholder', asset: 'images/football-duel-angle-02.webp', mouvement: 'dynamique',
         etapes: [
           { t: 0, cadrage: { scale: 1.15, x: -4, y: 0, rotation: 0 },  easing: 'linear' },
           { t: 1, cadrage: { scale: 1.3,  x: 10, y: 0, rotation: .5 }, easing: 'ease-in' }
@@ -4819,7 +4819,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
       // suspension (ease-out sur le dernier segment) + micro-vibration d'impact avant le cut de sortie.
       type: 'illustre', dureeMs: 900, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
-        nom: 'placeholder', asset: 'images/football-duel-angle-03.png', mouvement: 'dynamique',
+        nom: 'placeholder', asset: 'images/football-duel-angle-03.webp', mouvement: 'dynamique',
         etapes: [
           { t: 0,  cadrage: { scale: 1.4,  x: 0, y: -2, rotation: 0 },   easing: 'linear' },
           { t: .7, cadrage: { scale: 1.55, x: 0, y: -3, rotation: -.5 }, easing: 'ease-in' },
@@ -4846,13 +4846,13 @@ SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLE
 // ce sont des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview
 // -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
 const FRAMES_STOP_MOTION_DUEL = [
-  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 450 }, // duel / approche
-  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 280 }, // declenchement du tacle
-  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 220 }, // tacle engage
-  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 190 }, // glissade avancee
-  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 320 }, // contact / rupture
+  { asset: 'images/football-stopmotion-duel-frame-01.webp', dureeMs: 450 }, // duel / approche
+  { asset: 'images/football-stopmotion-duel-frame-02.webp', dureeMs: 280 }, // declenchement du tacle
+  { asset: 'images/football-stopmotion-duel-frame-03.webp', dureeMs: 220 }, // tacle engage
+  { asset: 'images/football-stopmotion-duel-frame-04.webp', dureeMs: 190 }, // glissade avancee
+  { asset: 'images/football-stopmotion-duel-frame-05.webp', dureeMs: 320 }, // contact / rupture
   {
-    asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 800, // projection / arret visuel -- seule rupture animee
+    asset: 'images/football-stopmotion-duel-frame-06.webp', dureeMs: 800, // projection / arret visuel -- seule rupture animee
     couche: {
       mouvement: 'dynamique',
       etapes: [
@@ -4863,8 +4863,8 @@ const FRAMES_STOP_MOTION_DUEL = [
       vibrationAuMoment: .88
     }
   },
-  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 540 }, // joueurs au sol
-  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 700 }  // debut du relevage
+  { asset: 'images/football-stopmotion-duel-frame-07.webp', dureeMs: 540 }, // joueurs au sol
+  { asset: 'images/football-stopmotion-duel-frame-08.webp', dureeMs: 700 }  // debut du relevage
 ];
 const SEQUENCE_PREVIEW_STOP_MOTION = {
   gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4913,19 +4913,19 @@ const ZOOM_PUBLIC_LEGER = { mouvement: 'dynamique', etapes: [
 ] };
 
 const FRAMES_TENSION_COUP_FRANC = [
-  { asset: 'images/football-tension-coup-franc-frame-01.png', dureeMs: 1300 }, // situation generale
-  { asset: 'images/football-tension-coup-franc-frame-02.png', dureeMs: 900 },  // gros plan ballon
-  { asset: 'images/football-tension-coup-franc-frame-03.png', dureeMs: 900, couche: ZOOM_TIRE_LEGER },    // regard du tireur -- zoom subtil
-  { asset: 'images/football-tension-coup-franc-frame-04.png', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia -- parfaitement fixe
-  { asset: 'images/football-tension-coup-franc-frame-05.png', dureeMs: 900, couche: ZOOM_GARDIEN_LEGER }, // gardien de Luthecia -- zoom un peu plus perceptible
-  { asset: 'images/football-tension-coup-franc-frame-06.png', dureeMs: 1000 }, // Ehault, entraineur La Brise -- parfaitement fixe
-  { asset: 'images/football-tension-coup-franc-frame-07.png', dureeMs: 1500, couche: ZOOM_PUBLIC_LEGER }, // public sous tension -- zoom lent
-  { asset: 'images/football-tension-coup-franc-frame-08.png', dureeMs: 1400 }, // chaussure / ballon
-  { asset: 'images/football-tension-coup-franc-frame-09.png', dureeMs: 1050 }, // reprise de l'elan (acceleration progressive, 29 aout 2026)
-  { asset: 'images/football-tension-coup-franc-frame-10.png', dureeMs: 750 },  // joueur arme sa frappe
-  { asset: 'images/football-tension-coup-franc-frame-11.png', dureeMs: 500 },  // pied droit au contact
-  { asset: 'images/football-tension-coup-franc-frame-12.png', dureeMs: 320 },  // impact maximal
-  { asset: 'images/football-tension-coup-franc-frame-13.png', dureeMs: 220 }   // le ballon commence a partir -- s'arrete la
+  { asset: 'images/football-tension-coup-franc-frame-01.webp', dureeMs: 1300 }, // situation generale
+  { asset: 'images/football-tension-coup-franc-frame-02.webp', dureeMs: 900 },  // gros plan ballon
+  { asset: 'images/football-tension-coup-franc-frame-03.webp', dureeMs: 900, couche: ZOOM_TIRE_LEGER },    // regard du tireur -- zoom subtil
+  { asset: 'images/football-tension-coup-franc-frame-04.webp', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-05.webp', dureeMs: 900, couche: ZOOM_GARDIEN_LEGER }, // gardien de Luthecia -- zoom un peu plus perceptible
+  { asset: 'images/football-tension-coup-franc-frame-06.webp', dureeMs: 1000 }, // Ehault, entraineur La Brise -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-07.webp', dureeMs: 1500, couche: ZOOM_PUBLIC_LEGER }, // public sous tension -- zoom lent
+  { asset: 'images/football-tension-coup-franc-frame-08.webp', dureeMs: 1400 }, // chaussure / ballon
+  { asset: 'images/football-tension-coup-franc-frame-09.webp', dureeMs: 1050 }, // reprise de l'elan (acceleration progressive, 29 aout 2026)
+  { asset: 'images/football-tension-coup-franc-frame-10.webp', dureeMs: 750 },  // joueur arme sa frappe
+  { asset: 'images/football-tension-coup-franc-frame-11.webp', dureeMs: 500 },  // pied droit au contact
+  { asset: 'images/football-tension-coup-franc-frame-12.webp', dureeMs: 320 },  // impact maximal
+  { asset: 'images/football-tension-coup-franc-frame-13.webp', dureeMs: 220 }   // le ballon commence a partir -- s'arrete la
 ];
 const SEQUENCE_PREVIEW_TENSION = {
   gabaritId: 'preview_tension', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4950,9 +4950,9 @@ SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION)
 // gardien seraient coupes en 'cover'). Sequence preview-only : pas de chainage automatique
 // depuis D, pas de branche but/arret, jamais ajoutee a POOL_GABARITS_REALISATEUR.
 const FRAMES_TRAJECTOIRE_COUP_FRANC = [
-  { asset: 'images/football-coup-franc-trajectoire-01.png', dureeMs: 650 },  // gros plan pied/ballon, effets de vitesse -- suite directe de l'impact de D
-  { asset: 'images/football-coup-franc-trajectoire-02.png', dureeMs: 700 },  // le ballon passe au-dessus du mur Luthecia
-  { asset: 'images/football-coup-franc-trajectoire-03.png', dureeMs: 1000 } // le ballon degage le mur, le gardien commence sa detente -- aucun but/arret affirme
+  { asset: 'images/football-coup-franc-trajectoire-01.webp', dureeMs: 650 },  // gros plan pied/ballon, effets de vitesse -- suite directe de l'impact de D
+  { asset: 'images/football-coup-franc-trajectoire-02.webp', dureeMs: 700 },  // le ballon passe au-dessus du mur Luthecia
+  { asset: 'images/football-coup-franc-trajectoire-03.webp', dureeMs: 1000 } // le ballon degage le mur, le gardien commence sa detente -- aucun but/arret affirme
 ];
 const SEQUENCE_PREVIEW_TRAJECTOIRE = {
   gabaritId: 'preview_trajectoire', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4979,9 +4979,9 @@ SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJ
 // 4085,986 ms / 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de
 // la mesure, pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
 const FRAMES_ARRET_COUP_FRANC = [
-  { asset: 'images/football-coup-franc-arret-gardien-capture.png', dureeMs: 700 }, // gardien en plein plongeon avec le ballon (correctif ordre du 29 aout 2026 : passe en premier)
-  { asset: 'images/football-coup-franc-arret-gardien.png', dureeMs: 900 },         // le gardien intercepte le ballon -- resolution de l'action
-  { asset: 'images/football-coup-franc-arret-gardien-releve.png', dureeMs: 1200 }  // le gardien est en possession du ballon, sourit
+  { asset: 'images/football-coup-franc-arret-gardien-capture.webp', dureeMs: 700 }, // gardien en plein plongeon avec le ballon (correctif ordre du 29 aout 2026 : passe en premier)
+  { asset: 'images/football-coup-franc-arret-gardien.webp', dureeMs: 900 },         // le gardien intercepte le ballon -- resolution de l'action
+  { asset: 'images/football-coup-franc-arret-gardien-releve.webp', dureeMs: 1200 }  // le gardien est en possession du ballon, sourit
 ];
 const SEQUENCE_PREVIEW_ARRET = {
   gabaritId: 'preview_arret', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -5010,8 +5010,8 @@ SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); //
 // 4,087 s, identique au format de F1), pas une valeur arbitraire -- 4100ms (meme marge technique
 // que F1, pour ne jamais couper la video avant sa fin naturelle).
 const FRAMES_BUT_COUP_FRANC = [
-  { asset: 'images/football-coup-franc-echec-gardien.png', dureeMs: 700 },  // le ballon a deja depasse les mains du gardien
-  { asset: 'images/football-coup-franc-but-celebration.png', dureeMs: 1400 } // plan large : La Brise celebre, Luthecia abattue, tribune en fete
+  { asset: 'images/football-coup-franc-echec-gardien.webp', dureeMs: 700 },  // le ballon a deja depasse les mains du gardien
+  { asset: 'images/football-coup-franc-but-celebration.webp', dureeMs: 1400 } // plan large : La Brise celebre, Luthecia abattue, tribune en fete
 ];
 const SEQUENCE_PREVIEW_BUT = {
   gabaritId: 'preview_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -8186,19 +8186,19 @@ function ecrireAMembre(nom) {
 
 const PRODUITS_VISUELS_CLUB = {
   'olympique-luthecia': {
-    echarpe: 'images/produit-echarpe-luthecia.png',
-    casquette: 'images/produit-casquette-luthecia.png',
-    maillot: 'images/produit-tshirt-luthecia.png'
+    echarpe: 'images/produit-echarpe-luthecia.webp',
+    casquette: 'images/produit-casquette-luthecia.webp',
+    maillot: 'images/produit-tshirt-luthecia.webp'
   },
   'cheminote-montrouge': {
-    echarpe: 'images/produit-echarpe-montrouge-dediee.png',
-    casquette: 'images/produits-casquette-echarpe-montrouge.png',
-    maillot: 'images/produit-tshirt-montrouge.png'
+    echarpe: 'images/produit-echarpe-montrouge-dediee.webp',
+    casquette: 'images/produits-casquette-echarpe-montrouge.webp',
+    maillot: 'images/produit-tshirt-montrouge.webp'
   },
   'brise-mariannaise': {
-    echarpe: 'images/produits-casquette-echarpe-mariannaise.png',
-    casquette: 'images/produits-casquette-echarpe-mariannaise.png',
-    maillot: 'images/produit-polo-mariannaise.png'
+    echarpe: 'images/produits-casquette-echarpe-mariannaise.webp',
+    casquette: 'images/produits-casquette-echarpe-mariannaise.webp',
+    maillot: 'images/produit-polo-mariannaise.webp'
   }
 };
 

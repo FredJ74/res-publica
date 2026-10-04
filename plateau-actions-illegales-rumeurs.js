@@ -1236,7 +1236,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Légal pour la chasse. Roger ne demande pas à qui.',
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'images/arme-couteau-republic.png'
+      imageUrl: 'images/arme-couteau-republic.webp'
     },
     {
       id: 'revolver',
@@ -1256,7 +1256,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour le gibier. Gros gibier.',
       bonus: { stat: 'PER', val: 15 },
-      imageUrl: 'images/arme-revolver-republic.png'
+      imageUrl: 'images/arme-revolver-republic.webp'
     }
   ],
   narco: [
@@ -1369,17 +1369,17 @@ const ARMES_OVERRIDES_VILLE = {
     couteau: {
       name: 'Couteau de plongée',
       desc: 'Lame inoxydable, dents de scie pour cordages et filets. Indispensable pour la chasse sous-marine.',
-      imageUrl: 'images/armurerie-port-sainte-marie-couteau-plongee.png'
+      imageUrl: 'images/armurerie-port-sainte-marie-couteau-plongee.webp'
     },
     revolver: {
       name: 'Fusil sous-marin',
       desc: 'Harpon professionnel à sandow, moulinet grande capacité. Idéal pour la chasse sous-marine.',
-      imageUrl: 'images/armurerie-port-sainte-marie-fusil-harpon.png'
+      imageUrl: 'images/armurerie-port-sainte-marie-fusil-harpon.webp'
     },
     carabine_chasse: {
       name: 'Carabine de chasse',
       desc: 'Modèle Saint-Marian, mécanisme à verrou, crosse en bois massif. Idéale pour la chasse côtière.',
-      imageUrl: 'images/armurerie-port-sainte-marie-carabine.png'
+      imageUrl: 'images/armurerie-port-sainte-marie-carabine.webp'
     }
   }
 };
@@ -1609,7 +1609,7 @@ async function confirmerAchatArme(armeId) {
   document.getElementById('postes-modal-title').textContent = 'Vente enregistrée';
   let html = '<div style="padding:0">';
   html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
-  html += '<img src="images/registre-vente-armes.png" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+  html += '<img src="images/registre-vente-armes.webp" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
   html += '</div>';
   html += '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + arme.name + ' consignée au registre officiel des ventes. Gérard tamponne le formulaire sans lever les yeux.</div>';
@@ -1824,7 +1824,7 @@ function doAcheterGilet() {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 600;
-  const imageUrl = 'images/arme-gilet-republic.png';
+  const imageUrl = 'images/arme-gilet-republic.webp';
 
   document.getElementById('postes-modal-title').textContent = 'Gilet pare-balles';
   let html = '<div style="padding:0">';
@@ -1863,7 +1863,7 @@ async function confirmerAchatGilet() {
   state.inventory.push({
     type: 'protection', name: 'Gilet pare-balles', icon: 'ti-shield-check', legal: true,
     desc: 'Protection physique. Enregistré dans le registre.',
-    imageUrl: 'images/arme-gilet-republic.png'
+    imageUrl: 'images/arme-gilet-republic.webp'
   });
   updateUI();
   showToast('Objet acquis', 'Gilet pare-balles ajouté à votre inventaire.', true, true);
@@ -2062,7 +2062,7 @@ function doAcheterExplosifs(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 1200;
-  const imageUrl = 'images/explosifs-marche-noir.png';
+  const imageUrl = 'images/explosifs-marche-noir.webp';
 
   document.getElementById('postes-modal-title').textContent = 'Explosifs (marché noir)';
   let html = '<div style="padding:0">';
@@ -2116,7 +2116,7 @@ async function confirmerAchatExplosifs(pa, cost) {
   state.inventory.push({
     type: 'explosif', name: 'Explosifs de chantier', icon: 'ti-bomb', legal: false,
     desc: 'Non enregistré. Usage unique.',
-    imageUrl: 'images/explosifs-marche-noir.png'
+    imageUrl: 'images/explosifs-marche-noir.webp'
   });
 
   if (!state.historiqueCrimes) state.historiqueCrimes = [];
@@ -2345,9 +2345,9 @@ function doAcheterPoisonObjet(type, pa, cost) {
   const desc = POISON_DESC_PARODIQUE[type] || obj.msg;
   const imageUrl = {
     parapluie: 'images/parapluie-republicain.png',
-    polonium:  'images/polonium-sovarka.png',
+    polonium:  'images/polonium-sovarka.webp',
     ghb:       'images/ghb-narco.jpg',
-    vipere:    'images/vipere-des-sables-khalija.png'
+    vipere:    'images/vipere-des-sables-khalija.webp'
   }[type] || '';
 
   document.getElementById('postes-modal-title').textContent = obj.name;
@@ -2393,9 +2393,9 @@ async function confirmerAchatPoison(type, pa, cost) {
     desc: obj.msg,
     imageUrl: {
       parapluie: 'images/parapluie-republicain.png',
-      polonium:  'images/polonium-sovarka.png',
+      polonium:  'images/polonium-sovarka.webp',
       ghb:       'images/ghb-narco.jpg',
-      vipere:    'images/vipere-des-sables-khalija.png'
+      vipere:    'images/vipere-des-sables-khalija.webp'
     }[type] || ''
   });
   updateUI();

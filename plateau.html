@@ -651,7 +651,7 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=312"></script>
+<script src="data.js?v=313"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -758,7 +758,7 @@
 </script>
 <script src="forum-canvas.js?v=36"></script>
 <script src="forum.js?v=161"></script>
-<script src="plateau-core.js?v=197"></script>
+<script src="plateau-core.js?v=198"></script>
 <script src="plateau-immobilier.js?v=11"></script>
 <script src="plateau-chantiers.js?v=8"></script>
 <script src="plateau-fonds.js?v=1"></script>
@@ -768,18 +768,18 @@
      reutilise la fiche officielle, et apres plateau-fonds.js pour nouvelIdFonds. -->
 <script src="plateau-commerce-pj.js?v=7"></script>
 <script src="plateau-resolution.js?v=3"></script>
-<script src="plateau-rue-centrale.js?v=150"></script>
-<script src="plateau-quete-accueil.js?v=31"></script>
-<script src="plateau-enigme-portrait.js?v=24"></script>
+<script src="plateau-rue-centrale.js?v=151"></script>
+<script src="plateau-quete-accueil.js?v=32"></script>
+<script src="plateau-enigme-portrait.js?v=25"></script>
 <script src="plateau-logements-montrouge.js?v=3"></script>
 <script src="plateau-etat-civil.js?v=9"></script>
 <script src="plateau-musee-personnalites.js?v=2"></script>
-<script src="plateau-maxence.js?v=2"></script>
+<script src="plateau-maxence.js?v=3"></script>
 <!-- Variantes graphiques des pieces (4 octobre 2026). AVANT plateau-navigation.js, dont
      enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
      autre fichier au chargement : ses appels a getLocationPourRoom (plateau-justice-economie.js)
      et sbGetFonds (supabase.js) sont tous gardes par typeof et n'ont lieu qu'a l'execution. -->
-<script src="plateau-variantes-pieces.js?v=5"></script>
+<script src="plateau-variantes-pieces.js?v=6"></script>
 <!-- Plan de l'open space : APRES plateau-variantes-pieces.js, dont il reutilise la
      geometrie (varianteZoneEnPixels, varianteTailleNaturelle), et AVANT
      plateau-navigation.js, dont enterRoom appelle openSpaceInjecterZones(). -->
@@ -787,29 +787,29 @@
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=1"></script>
-<script src="plateau-navigation.js?v=201"></script>
+<script src="plateau-navigation.js?v=202"></script>
 <script src="plateau-personnage.js?v=190"></script>
-<script src="plateau-pnj.js?v=205"></script>
-<script src="plateau-multijoueur.js?v=149"></script>
+<script src="plateau-pnj.js?v=206"></script>
+<script src="plateau-multijoueur.js?v=150"></script>
 <script src="plateau-communication.js?v=156"></script>
 <script src="plateau-politique.js?v=249"></script>
 <script src="plateau-gouvernement.js?v=4"></script>
-<script src="plateau-effort-guerre.js?v=8"></script>
-<script src="plateau-justice-economie.js?v=255"></script>
+<script src="plateau-effort-guerre.js?v=9"></script>
+<script src="plateau-justice-economie.js?v=256"></script>
 <script src="plateau-entrepots.js?v=1"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=200"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=201"></script>
 <script src="plateau-football-realisateur-ia.js?v=1"></script>
-<script src="plateau-organisations-quetes.js?v=181"></script>
-<script src="plateau-divers.js?v=150"></script>
+<script src="plateau-organisations-quetes.js?v=182"></script>
+<script src="plateau-divers.js?v=151"></script>
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
      qui resout ses handlers. -->
-<script src="plateau-assemblee.js?v=4"></script>
+<script src="plateau-assemblee.js?v=5"></script>
 <!-- Camion militaire : APRES plateau-commerce-pj.js (les deux deposent leur source d'ordres
      dans le meme registre RP_ORDRES_DYNAMIQUES) et AVANT le routeur, qui resout ses handlers. -->
 <!-- PNJ sociaux : APRES plateau-pnj.js (talkToPnj y note les conversations) et APRES
      plateau-navigation.js, dont declencherEntreeZone appelle son consommateur. -->
-<script src="plateau-social-pnj.js?v=1"></script>
+<script src="plateau-social-pnj.js?v=2"></script>
 <script src="plateau-escorts-agence.js?v=1"></script>
 <script src="plateau-contact-organisation.js?v=1"></script>
 <script src="plateau-camion-militaire.js?v=1"></script>

@@ -954,13 +954,13 @@ async function doAcheterRelique(pa, cost) {
 // OBJET TROUVE (Accueil Assemblee) — 50% de chance, kompromat potentiel
 // =====================
 const OBJETS_TROUVES_ASSEMBLEE = [
-  { name: 'Parapluie a tete de mort', icon: 'ti-umbrella', desc: 'Un parapluie noir orne de tetes de mort doreees, la pointe etrangement acereee. Rappelle furieusement certaines methodes d\'un service secret de l\'Est, jadis tres efficace pour faire taire les genants.', compromettant: true, imageUrl: 'images/objet-parapluie.png' },
-  { name: 'Dossier de presse périmé', icon: 'ti-file-text', desc: 'Un dossier marque "PRESS", rempli de coupures de journaux sur "l\'Affaire du Sphinx" et de cliches compromettants. Quelqu\'un voulait visiblement etouffer cette histoire.', compromettant: true, imageUrl: 'images/objet-dossier-presse.png' },
-  { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true, imageUrl: 'images/objet-culotte-dentelle.png' },
-  { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true, imageUrl: 'images/objet-sachet-poudre.png' },
-  { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true, imageUrl: 'images/objet-preservatifs.png' },
-  { name: 'Agenda à codes ridicules', icon: 'ti-notebook', desc: 'Un petit carnet relié de cuir, ferme par un cadenas et un cachet de cire. A l\'interieur, des rendez-vous notes sous des noms de code grotesques et des symboles que personne ne saurait expliquer.', compromettant: true, imageUrl: 'images/objet-agenda.png' },
-  { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false, imageUrl: 'images/objet-whisky.png' }
+  { name: 'Parapluie a tete de mort', icon: 'ti-umbrella', desc: 'Un parapluie noir orne de tetes de mort doreees, la pointe etrangement acereee. Rappelle furieusement certaines methodes d\'un service secret de l\'Est, jadis tres efficace pour faire taire les genants.', compromettant: true, imageUrl: 'images/objet-parapluie.webp' },
+  { name: 'Dossier de presse périmé', icon: 'ti-file-text', desc: 'Un dossier marque "PRESS", rempli de coupures de journaux sur "l\'Affaire du Sphinx" et de cliches compromettants. Quelqu\'un voulait visiblement etouffer cette histoire.', compromettant: true, imageUrl: 'images/objet-dossier-presse.webp' },
+  { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true, imageUrl: 'images/objet-culotte-dentelle.webp' },
+  { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true, imageUrl: 'images/objet-sachet-poudre.webp' },
+  { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true, imageUrl: 'images/objet-preservatifs.webp' },
+  { name: 'Agenda à codes ridicules', icon: 'ti-notebook', desc: 'Un petit carnet relié de cuir, ferme par un cadenas et un cachet de cire. A l\'interieur, des rendez-vous notes sous des noms de code grotesques et des symboles que personne ne saurait expliquer.', compromettant: true, imageUrl: 'images/objet-agenda.webp' },
+  { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false, imageUrl: 'images/objet-whisky.webp' }
 ];
 
 async function reclamerObjetTrouve(pa, cost) {

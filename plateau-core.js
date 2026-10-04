@@ -99,7 +99,7 @@ const PNJ_PERSONALITIES = {
 // uniquement pour Jodie ici (perimetre de ce correctif) ; a etendre au meme registre si d'autres
 // PNJ ont besoin d'un avatar hors contexte de salle.
 const PNJ_PHOTOS = {
-  'Jodie Moitout': 'images/jodie-moitout.png'
+  'Jodie Moitout': 'images/jodie-moitout.webp'
 };
 
 // Fiches PNJ enrichies (audit du 8 aout 2026) — table separee de PNJ_PERSONALITIES,

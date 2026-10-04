@@ -149,9 +149,9 @@ function getPnjAvatar(pnj, empireColor) {
   if (!pnj.photoUrl && pnj.job === 'escort') {
     const escortPhotos = {
       republic: 'images/escort-republic.png',
-      narco:    'images/escort-narco.png',
-      soviet:   'images/escort-soviet.png',
-      khalija:  'images/escort-khalija.png',
+      narco:    'images/escort-narco.webp',
+      soviet:   'images/escort-soviet.webp',
+      khalija:  'images/escort-khalija.webp',
     };
     pnj.photoUrl = escortPhotos[state.country] || '';
     pnj.photoPos = '50% 10%';
@@ -203,7 +203,7 @@ const QUETE_CARRIERE_BRIEFS = {
   // par declencherMissionPatHounette() et rappelMissionCarriere(), .image/.titre inchanges.
   criminel: {
     titre: 'Pat Hounette',
-    image: 'images/pat-hounette.png',
+    image: 'images/pat-hounette.webp',
     texte: "Jérémy vous envoie ? ... Il parle trop, ce garçon. Alors comme ça, vous cherchez à gagner votre vie sans forcément remplir toutes les cases du formulaire ?<br><br>Bon. J'ai quelque chose à faire livrer. Remettez ce colis à Brigitte Menottes, au commissariat de Luthécia. Ne posez pas de question. Revenez me voir ensuite.",
     rappel: "Le colis secret, toujours à remettre à Brigitte Menottes, au commissariat de Luthécia."
   },
@@ -213,7 +213,7 @@ const QUETE_CARRIERE_BRIEFS = {
   // chainees (declencherMissionJeanLou), .rappel reste lu par rappelMissionCarriere() inchangee.
   politique: {
     titre: 'Jean-Lou Zeure',
-    image: 'images/jean-lou-zeure.png',
+    image: 'images/jean-lou-zeure.webp',
     introduction: "Jérémy, le neveu du nouveau maire, vous envoie voir l'ancien maire pour des conseils ? Surprenant...<br><br>Car oui, je suis l'ancien maire de Luthécia. Ancien, oui. C'est important, le mot ancien, en politique. On vous l'ajoute généralement sans vous demander votre avis.<br><br>Vous avez besoin de conseils donc... D'accord.",
     texte: "Pour séduire les électeurs, vous pouvez faire éditer des tracts à votre nom à l'imprimerie, puis les distribuer aux gens que vous croisez. Certains voteront pour vous, d'autres non : c'est la loi de la démocratie.<br><br>Tenez, voici trois tracts. Présentez-vous à une élection, n'importe laquelle, puis distribuez-les. Revenez ensuite me voir et dites-moi les résultats que vous avez obtenus auprès de ces gens.",
     rappel: "Présentez-vous à une élection puis distribuez les 3 tracts. Revenez ensuite me voir avec les résultats."
@@ -224,7 +224,7 @@ const QUETE_CARRIERE_BRIEFS = {
   // libre (mot-cle Jeremy), pas de bouton "Discuter" -- meme principe que Pat/Jean-Lou.
   entrepreneurial: {
     titre: 'Laurent Barre',
-    image: 'images/laurent-barre.png',
+    image: 'images/laurent-barre.webp',
     texte: "Vous voulez devenir entrepreneur ? Très bien. Commençons par voir si vous savez négocier.<br><br>Allez voir l'agent immobilier ou le promoteur et dites-lui que vous voulez négocier le prix d'une parcelle. Revenez me donner sa réponse, peu importe qu'elle soit positive ou négative.",
     rappel: "Allez négocier le prix d'une parcelle auprès de l'agent immobilier ou du promoteur, puis revenez me voir avec la réponse."
   }
@@ -367,7 +367,7 @@ function remettreColisBrigitte() {
   qc.etape = 'colis_livre';
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
-  const imageBrigitte = 'images/commissariat-brigitte-menottes.png';
+  const imageBrigitte = 'images/commissariat-brigitte-menottes.webp';
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (typeof afficherPopupQueteAccueil !== 'function') return;
 

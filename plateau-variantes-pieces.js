@@ -350,8 +350,8 @@ function bureauxOpenSpaceLuthecia() {
       nom: NOM_LOCAL_LOUABLE,
       desc: { occupee: "Poste de travail de l'open space. Le plateau est partagé, la plaque ne l'est pas." },
       images: {
-        libre:   'images/luthecia-centre-affaires-bureau-open-space.png',
-        occupee: 'images/luthecia-centre-affaires-bureau-open-space.png'
+        libre:   'images/luthecia-centre-affaires-bureau-open-space.webp',
+        occupee: 'images/luthecia-centre-affaires-bureau-open-space.webp'
       },
       enseigne: Object.assign({}, ENSEIGNE_PLAQUE_BUREAU, {
         zone: { x: 0.452, y: 0.482, w: 0.117, h: 0.030 }
@@ -373,8 +373,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Emplacement premium en façade, sur le flux principal de la galerie. Ce qui s'y installe se voit de loin." },
           images: {
-            libre:   'images/luthecia-centre-commercial-grand-local-vide.png',
-            occupee: 'images/luthecia-centre-commercial-grand-local-loue.png'
+            libre:   'images/luthecia-centre-commercial-grand-local-vide.webp',
+            occupee: 'images/luthecia-centre-commercial-grand-local-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
             zone: { x: 0.202, y: 0.172, w: 0.598, h: 0.057 }
@@ -386,8 +386,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Boutique de plain-pied, bon passage, à mi-chemin entre l'entrée et le fond de la galerie." },
           images: {
-            libre:   'images/luthecia-centre-commercial-moyen-local-vide.png',
-            occupee: 'images/luthecia-centre-commercial-moyen-local-loue.png'
+            libre:   'images/luthecia-centre-commercial-moyen-local-vide.webp',
+            occupee: 'images/luthecia-centre-commercial-moyen-local-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
             zone: { x: 0.226, y: 0.200, w: 0.547, h: 0.043 }
@@ -399,8 +399,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Arrière-boutique à l'écart du flux. On y entre sans être remarqué depuis la galerie." },
           images: {
-            libre:   'images/luthecia-centre-commercial-petit-local-vide.png',
-            occupee: 'images/luthecia-centre-commercial-petit-local-loue.png'
+            libre:   'images/luthecia-centre-commercial-petit-local-vide.webp',
+            occupee: 'images/luthecia-centre-commercial-petit-local-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
             zone: { x: 0.219, y: 0.183, w: 0.574, h: 0.059 }
@@ -412,8 +412,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Sous-sol sans fenêtre, sous la galerie. Ce qui s'y passe ne se voit pas d'en haut." },
           images: {
-            libre:   'images/luthecia-centre-commercial-mini-local-vide.png',
-            occupee: 'images/luthecia-centre-commercial-mini-local-loue.png'
+            libre:   'images/luthecia-centre-commercial-mini-local-vide.webp',
+            occupee: 'images/luthecia-centre-commercial-mini-local-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
             zone: { x: 0.282, y: 0.179, w: 0.386, h: 0.064 }
@@ -445,8 +445,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Bureau d'angle, vue sur la ville. Le cabinet qui s'y installe reçoit ici." },
           images: {
-            libre:   'images/luthecia-centre-affaires-bureau-prestige-vide.png',
-            occupee: 'images/luthecia-centre-affaires-bureau-prestige-loue.png'
+            libre:   'images/luthecia-centre-affaires-bureau-prestige-vide.webp',
+            occupee: 'images/luthecia-centre-affaires-bureau-prestige-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
             zone: { x: 0.038, y: 0.362, w: 0.148, h: 0.086 }
@@ -459,8 +459,8 @@ const PIECE_VARIANTES = {
           nom: NOM_LOCAL_LOUABLE,
           desc: { occupee: "Bureau fermé donnant sur la salle de réunion. Discret, sans être caché." },
           images: {
-            libre:   'images/luthecia-centre-affaires-bureau-standard-vide.png',
-            occupee: 'images/luthecia-centre-affaires-bureau-standard-loue.png'
+            libre:   'images/luthecia-centre-affaires-bureau-standard-vide.webp',
+            occupee: 'images/luthecia-centre-affaires-bureau-standard-loue.webp'
           },
           enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
             zone: { x: 0.042, y: 0.366, w: 0.148, h: 0.082 }

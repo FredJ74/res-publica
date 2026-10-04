@@ -52,6 +52,21 @@ function verifierVrai(intitule, condition, detail) {
   if (condition) reussites++; else echecs.push(intitule + (detail ? '\n      ' + detail : ''));
 }
 
+/* RESOLUTION DU FORMAT LIVRE (4 octobre 2026, chantier WebP).
+   Ce banc comparait des chemins en .png ECRITS EN DUR. La conversion WebP l'a fait
+   rougir deux fois de suite alors que rien n'etait casse : ce qu'il verifie est
+   QUELLE image une piece resout, pas dans quel format elle est stockee. `img()`
+   rend donc le chemin reellement present sur le disque, et les attentes cessent
+   de dependre d'un detail d'encodage. Les lots de conversion suivants ne le
+   feront plus rougir. */
+function img(base) {
+  var exts = ['.webp', '.png', '.jpg', '.jpeg'];
+  for (var i = 0; i < exts.length; i++) {
+    try { read(base + exts[i]); return base + exts[i]; } catch (e) {}
+  }
+  return base + '.png';   // absente : on rend le nom attendu, l'assertion dira pourquoi
+}
+
 /* Les seules pieces du jeu qui declarent une variante, au 4 octobre 2026 :
    les 4 locaux du centre commercial et les 6 du centre d'affaires de Luthecia. */
 var PIECES_DECLAREES = {
@@ -72,7 +87,7 @@ BAUX = [];
 Object.keys(LOCAUX).forEach(function (piece) {
   verifier('libre > ' + piece,
     varianteImagePiece('centre-commercial', piece, 'capitale'),
-    'images/luthecia-centre-commercial-' + LOCAUX[piece] + '-local-vide.png');
+    img('images/luthecia-centre-commercial-' + LOCAUX[piece] + '-local-vide'));
   verifier('etat libre > ' + piece,
     varianteEtatPiece('centre-commercial', piece, 'capitale'), 'libre');
 });
@@ -81,10 +96,10 @@ Object.keys(LOCAUX).forEach(function (piece) {
 BAUX = [{ buildingId: 'centre-commercial', roomId: 'boutique_milieu', city: 'capitale' }];
 verifier('occupee > boutique_milieu',
   varianteImagePiece('centre-commercial', 'boutique_milieu', 'capitale'),
-  'images/luthecia-centre-commercial-moyen-local-loue.png');
+  img('images/luthecia-centre-commercial-moyen-local-loue'));
 verifier('les voisins restent libres > vitrine_principale',
   varianteImagePiece('centre-commercial', 'vitrine_principale', 'capitale'),
-  'images/luthecia-centre-commercial-grand-local-vide.png');
+  img('images/luthecia-centre-commercial-grand-local-vide'));
 
 /* Les quatre, loues en meme temps. */
 BAUX = Object.keys(LOCAUX).map(function (p) {
@@ -93,7 +108,7 @@ BAUX = Object.keys(LOCAUX).map(function (p) {
 Object.keys(LOCAUX).forEach(function (piece) {
   verifier('occupee > ' + piece,
     varianteImagePiece('centre-commercial', piece, 'capitale'),
-    'images/luthecia-centre-commercial-' + LOCAUX[piece] + '-local-loue.png');
+    img('images/luthecia-centre-commercial-' + LOCAUX[piece] + '-local-loue'));
 });
 
 /* === 3. RETOUR IMMEDIAT A L'ETAT LIBRE apres resiliation =================== */
@@ -103,7 +118,7 @@ Object.keys(LOCAUX).forEach(function (piece) {
 BAUX = [];
 verifier('apres resiliation > vitrine_principale',
   varianteImagePiece('centre-commercial', 'vitrine_principale', 'capitale'),
-  'images/luthecia-centre-commercial-grand-local-vide.png');
+  img('images/luthecia-centre-commercial-grand-local-vide'));
 
 /* === 4. AUCUNE AUTRE VILLE, AUCUN AUTRE PAYS ============================== */
 BAUX = Object.keys(LOCAUX).map(function (p) {
@@ -257,7 +272,7 @@ Object.keys(LOCAUX).forEach(function (piece) {
     try { read(chemin); } catch (e) { manquants.push(chemin); }
   });
 });
-try { read('images/centre-commercial-republic.png'); }
+try { read(img('images/centre-commercial-republic')); }
 catch (e) { manquants.push('images/centre-commercial-republic.png (hall)'); }
 verifier('tous les fichiers images presents', manquants, []);
 
@@ -452,8 +467,8 @@ verifier('aucune description parasite dans tout le jeu (aucun bail actif)', para
    independamment. Objectif : savoir si cela demande du developpement ou non.
    La declaration est retiree a la fin, le jeu n'en garde rien. */
 state.country = 'republic'; state.currentCity = 'capitale';
-var IMAGE_PARTAGEE_VIDE = 'images/centre-commercial-republic.png';
-var IMAGE_PARTAGEE_LOUEE = 'images/luthecia-centre-commercial-grand-local-loue.png';
+var IMAGE_PARTAGEE_VIDE = img('images/centre-commercial-republic');
+var IMAGE_PARTAGEE_LOUEE = img('images/luthecia-centre-commercial-grand-local-loue');
 var BUREAUX = ['open_space_a','open_space_b','open_space_c','open_space_d','open_space_e'];
 
 PIECE_VARIANTES.republic.zzbanc = { 'centre-affaires': {} };
@@ -525,18 +540,18 @@ state.country = 'republic'; state.currentCity = 'capitale';
 BAUX = [];
 verifier('bureau prestige libre',
   varianteImagePiece('centre-affaires','bureau_prestige','capitale'),
-  'images/luthecia-centre-affaires-bureau-prestige-vide.png');
+  img('images/luthecia-centre-affaires-bureau-prestige-vide'));
 verifier('bureau standard libre',
   varianteImagePiece('centre-affaires','bureau_standard','capitale'),
-  'images/luthecia-centre-affaires-bureau-standard-vide.png');
+  img('images/luthecia-centre-affaires-bureau-standard-vide'));
 BAUX = [{buildingId:'centre-affaires', roomId:'bureau_prestige', city:'capitale'},
         {buildingId:'centre-affaires', roomId:'bureau_standard', city:'capitale'}];
 verifier('bureau prestige loue',
   varianteImagePiece('centre-affaires','bureau_prestige','capitale'),
-  'images/luthecia-centre-affaires-bureau-prestige-loue.png');
+  img('images/luthecia-centre-affaires-bureau-prestige-loue'));
 verifier('bureau standard loue',
   varianteImagePiece('centre-affaires','bureau_standard','capitale'),
-  'images/luthecia-centre-affaires-bureau-standard-loue.png');
+  img('images/luthecia-centre-affaires-bureau-standard-loue'));
 
 /* L'image « vide » porte deja « À LOUER » grave : aucune incrustation a l'etat
    libre pour les bureaux fermes. */
@@ -550,14 +565,14 @@ var POSTES = ['open_space_a','open_space_b','open_space_c','open_space_d'];
 BAUX = [];
 verifier('les 4 postes partagent la meme image',
   POSTES.map(function(b){ return varianteImagePiece('centre-affaires',b,'capitale'); }),
-  POSTES.map(function(){ return 'images/luthecia-centre-affaires-bureau-open-space.png'; }));
+  POSTES.map(function(){ return img('images/luthecia-centre-affaires-bureau-open-space'); }));
 BAUX = [{buildingId:'centre-affaires', roomId:'open_space_c', city:'capitale'}];
 verifier('un seul poste loue : lui seul bascule d etat',
   POSTES.map(function(b){ return varianteEtatPiece('centre-affaires',b,'capitale'); }),
   ['libre','libre','occupee','libre']);
 verifier('et l image reste la meme pour tous',
   POSTES.map(function(b){ return varianteImagePiece('centre-affaires',b,'capitale'); }),
-  POSTES.map(function(){ return 'images/luthecia-centre-affaires-bureau-open-space.png'; }));
+  POSTES.map(function(){ return img('images/luthecia-centre-affaires-bureau-open-space'); }));
 
 /* La plaque d un poste libre porte un libelle FIXE, donc aucun aller-retour. */
 var plaque = PIECE_VARIANTES.republic.capitale['centre-affaires'].open_space_a.enseigne;

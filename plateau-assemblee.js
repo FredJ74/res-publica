@@ -685,7 +685,7 @@ const ASSEMBLEE_FORUM_ID = 'assemblee';
 // revalidees par le serveur au depot (assemblee_deposer_projet), contre la meme
 // liste fermee que celle qui lui a ete donnee. Son texte n'est jamais reinterprete.
 
-const SEBLEX_PORTRAIT = 'images/assemblee-juriste-seb-lex.png';
+const SEBLEX_PORTRAIT = 'images/assemblee-juriste-seb-lex.webp';
 
 // LES TROIS SEULES QUALIFICATIONS que ce client sait traduire en depot. Liste
 // FERMEE, jumelle de celle que le serveur applique : le navigateur ne fabrique

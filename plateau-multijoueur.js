@@ -7,10 +7,10 @@
 // PERSONS LIST
 // =====================
 const CODETENUS_CATALOGUE = [
-  { nom: 'Tristan Cabane', photoUrl: 'images/commissariat-tristan-cabane.png' },
-  { nom: 'Edgard Havu',    photoUrl: 'images/commissariat-edgard-havu.png' },
-  { nom: 'Simona Venture', photoUrl: 'images/commissariat-simona-venture.png' },
-  { nom: 'Kevin Diesel',   photoUrl: 'images/commissariat-kevin-diesel.png' }
+  { nom: 'Tristan Cabane', photoUrl: 'images/commissariat-tristan-cabane.webp' },
+  { nom: 'Edgard Havu',    photoUrl: 'images/commissariat-edgard-havu.webp' },
+  { nom: 'Simona Venture', photoUrl: 'images/commissariat-simona-venture.webp' },
+  { nom: 'Kevin Diesel',   photoUrl: 'images/commissariat-kevin-diesel.webp' }
 ];
 
 function appliquerRemplacantCodetenu(persons) {
@@ -939,12 +939,12 @@ function getEmployes() {
 }
 
 const INFORMATEURS_CATALOGUE = [
-  { nom: 'Momo Fouine',       genre: 'H', photoUrl: 'images/informateur-h-1-corpulent.png' },
-  { nom: 'Bernard Filature',  genre: 'H', photoUrl: 'images/informateur-h-2-lunettes.png' },
-  { nom: 'Gaspard Renseigne', genre: 'H', photoUrl: 'images/informateur-h-3-jeune-casquette.png' },
-  { nom: 'Lucienne Indic',    genre: 'F', photoUrl: 'images/informateur-f-2-agee.png' },
-  { nom: 'Rita Tuyau',        genre: 'F', photoUrl: 'images/informateur-f-3-brune.png' },
-  { nom: 'Nadège Oreille',    genre: 'F', photoUrl: 'images/informateur-f-1-la-poste.png' }
+  { nom: 'Momo Fouine',       genre: 'H', photoUrl: 'images/informateur-h-1-corpulent.webp' },
+  { nom: 'Bernard Filature',  genre: 'H', photoUrl: 'images/informateur-h-2-lunettes.webp' },
+  { nom: 'Gaspard Renseigne', genre: 'H', photoUrl: 'images/informateur-h-3-jeune-casquette.webp' },
+  { nom: 'Lucienne Indic',    genre: 'F', photoUrl: 'images/informateur-f-2-agee.webp' },
+  { nom: 'Rita Tuyau',        genre: 'F', photoUrl: 'images/informateur-f-3-brune.webp' },
+  { nom: 'Nadège Oreille',    genre: 'F', photoUrl: 'images/informateur-f-1-la-poste.webp' }
 ];
 
 async function doRecruterInformateurPNJ(pa) {
