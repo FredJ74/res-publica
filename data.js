@@ -460,7 +460,18 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
               desc: "Agence de sécurité privée. Accueil feutré, gardes en costume sur les photos du mur, et une devise peinte sur le fronton : « Parce qu'il vaut mieux prévenir que poursuivre. » Un panneau « NOUS RECRUTONS » occupe la vitrine de gauche.",
               imageUrl: "images/luthecia-centre-affaires-grobras-securite.webp",
-              persons: [],
+              // LES DEUX SEULS HABITANTS DE L'AGENCE (5 octobre 2026). Ce sont des
+              // ANIMATEURS : ils font vivre le lieu et parlent de leur metier. Leur
+              // personnalite vit dans api/_pnj-personnalites.js, atteinte par le slug
+              // du nom (slugPnj) -- aucun alias a declarer, aucun profil client.
+              // Pas de photoUrl : aucun portrait n'existe pour eux, et recadrer la
+              // devanture dans un avatar de 90 px ne donnerait qu'une vignette
+              // illisible. Ils prennent donc l'icone de leur job, comme Moshe Maychan
+              // et Harry Cover dans le hall du meme batiment.
+              persons: [
+                {name:'Gaston Grobras (PNJ)', role:"Directeur d'agence de sécurité", rel:'neutral', job:'directeur'},
+                {name:'Sandra Pelle (PNJ)',   role:'Secrétaire de Grobras Sécurité', rel:'neutral', job:'secretaire'}
+              ],
               // AUCUN ORDRE, et c'est un etat supporte : 61 pieces du jeu sont dans ce
               // cas, dont les salles de musee. Le premier jet donnait `se_renseigner`
               // a l'agence -- or cet ordre affiche le tableau des LOCAUX A LOUER DU
