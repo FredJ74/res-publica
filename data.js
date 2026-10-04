@@ -434,7 +434,7 @@ const WORLD = {
             open_space: {
               name: "Open Space",
               desc: "Le plateau partagé du centre d'affaires. Quatre postes, quatre locataires possibles. Survolez un bureau pour savoir s'il est libre.",
-              imageUrl: "images/luthecia-centre-affaires-open-space-vue-dessus.png",
+              imageUrl: "images/luthecia-centre-affaires-open-space-vue-dessus.webp",
               excludeOrders: ['commerce_pj', 'louer_local', 'gerer_local', 'installer_equipements']
             }
           },
@@ -452,7 +452,7 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'images/port-sainte-marie.png',
+      imageUrl:'images/port-sainte-marie.webp',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
@@ -786,7 +786,7 @@ const WORLD = {
     },
     ville_b: {
       name:'Montrouge',
-      imageUrl:'images/montrouge.png',
+      imageUrl:'images/montrouge.webp',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','terrain-a-batir-montrouge-3','terrain-a-batir-montrouge-7','terrain-a-batir-montrouge-8','terrain-a-batir-montrouge-9','terrain-a-batir-montrouge-12','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge','place-du-rail-montrouge'],
@@ -1114,7 +1114,7 @@ const WORLD = {
     },
     caserne: {
       name:'Caserne Militaire de Republia',
-      imageUrl:'images/caserne-luthecia-exterieur.png',
+      imageUrl:'images/caserne-luthecia-exterieur.webp',
       desc:'La caserne principale de l\'armee de Republia.',
       isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['caserne-militaire']
@@ -4244,7 +4244,7 @@ const BUILDINGS = {
         name: "Accueil / Bureau",
         imageBg: "linear-gradient(135deg,#0f0d08,#1a1608)",
         desc: "Le bureau d'accueil de l'imprimerie. Odeur d'encre et de papier.",
-        imageUrl: "images/port-sainte-marie-imprimerie-accueil.png",
+        imageUrl: "images/port-sainte-marie-imprimerie-accueil.webp",
         persons: [
           {name:'Annie Talique-Legall (PNJ)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur', photoUrl:'images/port-sainte-marie-imprimerie-annie-talique-legall.png', photoPos:'50% 25%'}
         ],
@@ -4300,7 +4300,7 @@ const BUILDINGS = {
         image: "\ud83e\udd6c",
         imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
         desc: "Poissons frais, legumes de saison et l'odeur du pain chaud de la boulangerie.",
-        imageUrl: "images/port-sainte-marie-marche.png",
+        imageUrl: "images/port-sainte-marie-marche.webp",
         // Lot 5B (24 aout 2026) : 2 PNJ de presence/personnalisation, meme structure que les
         // marches de Luthecia/Montrouge (Jean-Pierre Bidoche/Ginette Legume/Josette Betterave --
         // job:'commercant', pas le job:'marchande' du template generique BUILDINGS['marche']).
@@ -4543,7 +4543,7 @@ const BUILDINGS = {
         image: "\u2693",
         imageBg: "linear-gradient(135deg,#08080a,#0c0c0e)",
         desc: "Une sobre pierre tombale, tournee vers l'horizon. Une inscription discrete rappelle qu'il croyait en la justice des hommes et en la bonte de leurs intentions.",
-        imageUrl: "images/tombe-yann-le-goff-psm.png",
+        imageUrl: "images/tombe-yann-le-goff-psm.webp",
         persons: [],
         orders: []
       }
@@ -4569,7 +4569,7 @@ const BUILDINGS = {
         name: "Sommet du phare",
         imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
         desc: "La lanterne du phare domine Port-Sainte-Marie et offre une vue panoramique sur la ville, les ports et le large.",
-        imageUrl: "images/port-sainte-marie-phare-sommet.png",
+        imageUrl: "images/port-sainte-marie-phare-sommet.webp",
         persons: [],
         orders: []
       }
@@ -4829,7 +4829,7 @@ const BUILDINGS = {
         desc: "L'infirmerie de la caserne. Odeur d'antiseptique, lits de camp alignes, armoire a pharmacie fermee a cle.",
         // Eve Toahemarch figure DANS cette image : aucun avatar separe n'est cree pour elle,
         // l'architecture n'en exige pas et un second portrait ferait doublon.
-        imageUrl: "images/caserne-luthecia-infirmerie.png",
+        imageUrl: "images/caserne-luthecia-infirmerie.webp",
         persons: [
           {name:'Ève Toahémarch (PNJ)', role:'PNJ - Infirmière militaire', rel:'neutral', job:'infirmier_mil'}
         ],
@@ -5258,7 +5258,7 @@ const BUILDINGS = {
         name: "Serre Tropicale",
         imageBg: "linear-gradient(135deg,#0a1410,#101c18)",
         desc: "Plantes exotiques fragiles, orchidées et bassin d'ornement sous verrière. Merci de ne pas toucher les végétaux.",
-        imageUrl: "images/serre-botanique-luthecia.png",
+        imageUrl: "images/serre-botanique-luthecia.webp",
         persons: [
           {name:'Jean-Pierre Ciseaux (PNJ)', role:'Conservateur', rel:'neutral', job:'conservateur', photoUrl:'images/jean-pierre-ciseaux-conservateur.png', photoPos:'50% 15%'}
         ],
@@ -5415,7 +5415,7 @@ const BUILDINGS = {
         name: "Promenoir",
         imageBg: "linear-gradient(135deg,#080808,#0f0f0f)",
         desc: "La cour de promenade. Une heure par jour. Sous surveillance constante.",
-        imageUrl: "images/qhs-luthecia-promenoir.png",
+        imageUrl: "images/qhs-luthecia-promenoir.webp",
         persons: [],
         orders: [
           {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'}
@@ -5852,7 +5852,7 @@ const BUILDINGS = {
         name: "Hall Principal",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Le hall principal. Gaston Retard annonce comme chaque matin un retard indéterminé sur la ligne Nord. Mireille Guichet sourit sans savoir.",
-        imageUrl: "images/hall-centre-multimodal-luthecia.png",
+        imageUrl: "images/hall-centre-multimodal-luthecia.webp",
         persons: [
           {name:'Gaston Retard (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
           {name:'Mireille Guichet (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
@@ -6215,7 +6215,7 @@ const BUILDINGS = {
         name: "Criée",
         imageBg: "linear-gradient(135deg,#08100c,#0c1810)",
         desc: "La grande criée industrielle du port : lots de poisson pesés et vendus chaque matin, cours affichés en direct.",
-        imageUrl: "images/port-sainte-marie-port-industriel-criee.png",
+        imageUrl: "images/port-sainte-marie-port-industriel-criee.webp",
         persons: [],
         orders: [
           {fn:'acheter_criee', label:'Acheter à la Criée', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}
@@ -6235,7 +6235,7 @@ const BUILDINGS = {
         name: "Entrepôts",
         imageBg: "linear-gradient(135deg,#050810,#08100a)",
         desc: "Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques.",
-        imageUrl: "images/port-sainte-marie-port-industriel-entrepots.png",
+        imageUrl: "images/port-sainte-marie-port-industriel-entrepots.webp",
         persons: [],
         orders: [
           {fn:'marchandises_non_reclamees', label:'Marchandises non réclamées', pa:0, cost:0, type:'legal', icon:'ti-truck-loading', successRate:100, desc:'Caisses de fret jamais vidées par leur destinataire (15 jours après arrivée), en vente au profit du port.'},
@@ -6554,7 +6554,7 @@ const ROOM_IMAGES_EMPIRE = {
     'centre-multinodal-luthecia': {
       // Nouvel accueil du Centre multimodal de Novomirsk (15 septembre 2026) : seule l'image
       // change, la mecanique du hub partage (ordres de transport sur hall_gare) est intacte.
-      'hall_gare':  'images/accueil-centre-multimodal-novomirsk.png',
+      'hall_gare':  'images/accueil-centre-multimodal-novomirsk.webp',
       'aeroport':   'images/centre-multinodal-sovarka.png'
     },
     'palais-presidentiel': {

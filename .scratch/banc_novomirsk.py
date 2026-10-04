@@ -76,7 +76,16 @@ HOTSPOTS = {
          'Musée de la République de Sovarka': None},
 }
 
-ACCUEIL_MULTIMODAL = 'images/accueil-centre-multimodal-novomirsk.png'
+# L'EXTENSION N'EST PAS CODEE EN DUR. Ce banc exigeait du .png ; le chantier WebP du
+# 4 octobre 2026 a converti cette image et l'a fait rougir alors que rien n'etait
+# casse -- l'image etait presente, et le code la citait correctement. On resout donc
+# le format REELLEMENT livre, et on verifie que le code cite ce meme fichier. Ce qui
+# est teste reste exactement ce qui comptait : l'image existe, et hall_gare pointe
+# dessus.
+import glob as _glob
+_candidats = sorted(_glob.glob(os.path.join(RACINE, 'images', 'accueil-centre-multimodal-novomirsk.*')))
+ACCUEIL_MULTIMODAL = ('images/' + os.path.basename(_candidats[0])) if _candidats \
+                     else 'images/accueil-centre-multimodal-novomirsk.png'
 
 # ---------------------------------------------------------------- extraction reelle
 EXTRACTION = r"""

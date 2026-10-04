@@ -589,7 +589,7 @@ const RUE_CENTRALE_NOEUDS = {
     // fleche directionnelle). Un seul batiment par image : toute l'image est cliquable
     // (xPct/yPct [0,100]), pas besoin de decouper une zone precise.
     'caserne-exterieur': {
-      image: 'images/caserne-luthecia-exterieur.png',
+      image: 'images/caserne-luthecia-exterieur.webp',
       zones: [
         { xPct: [0, 100], yPct: [0, 100], nom: 'Caserne Militaire', type: 'batiment', buildingId: 'caserne-militaire' }
       ],
@@ -814,7 +814,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V3 — Office notarial et commissariat.
     'novomirsk-vue-3': {
-      image: 'images/rue-notaire-commissariat-novomirsk.png',
+      image: 'images/rue-notaire-commissariat-novomirsk.webp',
       zones: [
         { xPct: [0, 17],   yPct: [10, 72], nom: 'Office notarial de Sovarka', type: 'batiment', buildingId: 'office-notarial' },
         { xPct: [81, 100], yPct: [12, 74], nom: 'Commissariat de Novomirsk', type: 'batiment', buildingId: 'commissariat' }
@@ -850,7 +850,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // V6 — Quartier diplomatique et armurerie.
     'novomirsk-vue-6': {
-      image: 'images/rue-ambassades-armurerie-novomirsk.png',
+      image: 'images/rue-ambassades-armurerie-novomirsk.webp',
       zones: [
         { xPct: [0, 30],   yPct: [0, 72],  nom: 'Palais des Ambassades', type: 'a-venir' },
         { xPct: [79, 100], yPct: [14, 78], nom: 'Armurerie de Novomirsk', type: 'batiment', buildingId: 'armurerie' }
@@ -935,7 +935,7 @@ const RUE_CENTRALE_NOEUDS = {
     // partagent une unique entree exterieure et constituent, pour la navigation, un seul
     // batiment. Les salles interieures separees viendront plus tard.
     'novomirsk-vue-13': {
-      image: 'images/rue-presse-imprimerie-novomirsk.png',
+      image: 'images/rue-presse-imprimerie-novomirsk.webp',
       zones: [
         { xPct: [55, 100], yPct: [0, 80], nom: 'Agence officielle de presse / Imprimerie officielle de Sovarka', type: 'batiment', buildingId: 'la-tribune' }
       ],

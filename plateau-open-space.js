@@ -32,7 +32,7 @@
    soit confortable a la souris. */
 const OPEN_SPACE_PLAN = {
   'centre-affaires': {
-    image: 'images/luthecia-centre-affaires-open-space-vue-dessus.png',
+    image: 'images/luthecia-centre-affaires-open-space-vue-dessus.webp',
     postes: [
       { piece: 'open_space_a', nom: 'Open Space A', zone: { x: 0.222, y: 0.185, w: 0.263, h: 0.300 } },
       { piece: 'open_space_b', nom: 'Open Space B', zone: { x: 0.555, y: 0.170, w: 0.263, h: 0.300 } },
