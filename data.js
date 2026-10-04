@@ -123,6 +123,39 @@ const STAT_DEFS = [
 // =====================
 // WORLD MAP STRUCTURE
 // =====================
+/* Les quatre postes de l'Open Space du Centre d'Affaires de Luthecia.
+   Ils remplacent l'unique piece `open_space` en tant que LOCAUX : celle-ci
+   devient le plan du plateau (voir buildingContext ci-dessous). Les quatre
+   reprennent a l'identique l'economie de l'open space qu'ils remplacent --
+   200 FR/jour, +2 POP, +3 INF, +1 DIS, tier 3 -- et les memes trois ordres.
+   Aucune valeur n'est inventee, aucun loyer n'est modifie. */
+function bureauxOpenSpaceCentreAffaires() {
+  const sortie = {};
+  ['A', 'B', 'C', 'D'].forEach(function (lettre) {
+    sortie['open_space_' + lettre.toLowerCase()] = {
+      name: "Open Space " + lettre + " — Local à louer",
+      imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+      desc: "📋 À LOUER — Poste de travail de l'open space. Moins cher qu'un bureau fermé, mais sans porte.",
+      imageUrl: "images/luthecia-centre-affaires-bureau-open-space.png",
+      isLocationRoom: true,
+      locationData: { prix: 200, bonusPOP: 2, bonusINF: 3, bonusDIS: 1, label: 'Open Space ' + lettre, tier: 3 },
+      // Sortir d'un poste rend au PLAN de l'open space, pas a la rue : on est
+      // entre par le plan, on en ressort. Mecanisme declaratif deja en place
+      // (room.sortieVers, cree le 29 septembre pour l'interieur du camion
+      // militaire) -- aucune condition sur un identifiant de batiment, aucune
+      // ligne de navigation specifique au centre d'affaires.
+      sortieVers: { buildingId: 'centre-affaires', roomId: 'open_space', city: 'capitale' },
+      persons: [],
+      orders: [
+        {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
+        {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
+        {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+      ]
+    };
+  });
+  return sortie;
+}
+
 const WORLD = {
   republic: {
     capitale: {
@@ -363,6 +396,34 @@ const WORLD = {
           roomOverrides: {
             hall: { imageUrl: "images/centre-commercial-republic.png" }
           }
+        },
+        // Centre d'Affaires de Luthecia (4 octobre 2026). Le gabarit partage
+        // BUILDINGS['centre-affaires'] sert 12 villes : rien n'y est touche.
+        // Tout ce qui suit est une surcharge de VILLE, donc invisible pour
+        // Port-Sainte-Marie, Montrouge et les trois autres empires.
+        'centre-affaires': {
+          roomOverrides: {
+            hall: { imageUrl: "images/hall-centre-affaires-luthecia.png" },
+            // L'Open Space n'est plus un local : c'est le PLAN des quatre postes.
+            // Les trois ordres de location sont retires -- on ne loue pas un plan,
+            // on loue un poste, et chaque poste porte les siens. excludeOrders est
+            // le mecanisme deja en place pour cela (cf. se_nourrir au Marche).
+            open_space: {
+              name: "Open Space",
+              desc: "Le plateau partagé du centre d'affaires. Quatre postes, quatre locataires possibles. Survolez un bureau pour savoir s'il est libre.",
+              imageUrl: "images/luthecia-centre-affaires-open-space-vue-dessus.png",
+              excludeOrders: ['commerce_pj', 'louer_local', 'gerer_local']
+            }
+          },
+          // Les quatre postes. Ils ne sont PAS des onglets (voir roomsMasquees) :
+          // on y entre en cliquant un bureau sur le plan. Meme economie que
+          // l'Open Space unique qu'ils remplacent -- 200 FR/jour, memes bonus,
+          // meme tier : aucun loyer, aucun bonus n'a ete invente ici.
+          roomsExtra: bureauxOpenSpaceCentreAffaires(),
+          // Masquage d'onglet, declaratif : les quatre postes existent, sont
+          // louables et atteignables par enterRoom, mais la barre d'onglets
+          // garde une seule entree « Open Space ».
+          roomsMasquees: ['open_space_a', 'open_space_b', 'open_space_c', 'open_space_d']
         }
       }
     },

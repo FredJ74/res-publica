@@ -545,9 +545,19 @@ function renderOngletsPieces(buildingId, roomActifId) {
   // sur l'accueil (doOuvrirChambresClinique, plateau-personnage.js), qui appelle enterRoom()
   // directement vers la bonne chambre. Scope strictement clinique-privee : aucun autre batiment
   // n'est concerne par ce filtre.
-  const rooms = buildingId === 'clinique-privee'
+  // Masquage d'onglet declaratif (4 octobre 2026). Symetrique d'excludeOrders,
+  // qui permet depuis aout a une ville de retirer un ORDRE herite du gabarit
+  // partage : roomsMasquees lui permet de retirer une PIECE de la barre
+  // d'onglets, sans toucher au gabarit ni dupliquer quoi que ce soit.
+  // La piece continue d'exister et reste atteignable par enterRoom -- c'est
+  // exactement le patron des chambres de la clinique, mais declare au lieu
+  // d'etre code en dur. Absent partout ailleurs : aucun autre buildingContext
+  // ne declare roomsMasquees, donc zero changement pour tout le reste du jeu.
+  const masquees = ctxForTabs?.roomsMasquees || [];
+  const rooms = (buildingId === 'clinique-privee'
     ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
-    : roomsBrutes;
+    : roomsBrutes
+  ).filter(([roomId]) => masquees.indexOf(roomId) === -1);
   const conteneur = document.getElementById('pieces-tabs');
   if (conteneur) {
     conteneur.innerHTML = rooms.map(([roomId, room], i) => {
@@ -855,6 +865,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   // qui retire l'enseigne de la piece precedente. Ne jamais la conditionner a
   // varianteImg, sinon une enseigne resterait affichee en changeant de piece.
   if (typeof varianteAppliquerEnseigne === 'function') varianteAppliquerEnseigne(buildingId, roomId, state.currentCity);
+  // Plan de l'open space : pose ses zones cliquables, et retire celles de la
+  // piece precedente. Meme emplacement et meme contrat que la zone de l'enigme.
+  if (typeof openSpaceInjecterZones === 'function') openSpaceInjecterZones(buildingId, roomId, state.currentCity);
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
   // Supprimer ancien emoji si present
@@ -1310,7 +1323,15 @@ function sortirBatiment() {
   // Une piece peut nommer un `handler` : quand sortir suppose de PREVENIR LE
   // SERVEUR (descendre d'un vehicule change ma position officielle), la piece
   // delegue. Sinon, la sortie est une navigation ordinaire.
-  const roomQuittee = BUILDINGS[batimentQuitte]?.rooms?.[state.currentRoom];
+  // La piece quittee est resolue COMME PARTOUT AILLEURS : gabarit partage, puis
+  // pieces propres a la ville (roomsExtra). Sans cette fusion, une sortie
+  // declaree par une piece de ville etait lue comme absente et ignoree en
+  // silence -- c'est ce qui serait arrive aux postes de l'open space de
+  // Luthecia, qui vivent dans roomsExtra. Aucune piece du gabarit ne change de
+  // comportement : la fusion ne fait qu'ajouter des pieces, jamais en remplacer.
+  const ctxSortie = (typeof getBuildingContext === 'function') ? getBuildingContext(batimentQuitte) : null;
+  const roomQuittee = BUILDINGS[batimentQuitte]?.rooms?.[state.currentRoom]
+                   || ctxSortie?.roomsExtra?.[state.currentRoom];
   if (roomQuittee?.sortieVers) {
     const s = roomQuittee.sortieVers;
     if (s.handler && typeof window !== 'undefined' && typeof window[s.handler] === 'function') {

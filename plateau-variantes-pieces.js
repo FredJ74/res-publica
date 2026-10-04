@@ -44,6 +44,9 @@
      enseigne: {                   // facultatif : aucune enseigne si absent
        mode:  'texte',             // 'aucune' | 'texte' | 'image' — defaut du lieu
        etats: ['occupee'],         // etats ou l'enseigne s'affiche
+       libelles: {                 // facultatif : texte FIXE pour certains etats
+         libre: 'À LOUER'          // la famille n'est alors pas consultee
+       },
        zone:  { x:.20, y:.07, w:.57, h:.095 },  // fractions de l'IMAGE SOURCE
        texte: {                    // habillage du mode texte
          align: 'center',          // 'left' | 'center' | 'right'
@@ -106,6 +109,11 @@
 
      { mode:'texte', texte:'Aux Souvenirs d'Arnie' }
      { mode:'image', image:'images/enseigne-du-joueur.png' }
+
+   Un etat peut aussi porter un libelle FIXE, declare dans `libelles` : la plaque
+   d'un bureau libre affiche « À LOUER », et il n'y a aucune raison d'aller le
+   demander au serveur. Quand un etat a un libelle fixe, la famille n'est pas
+   consultee du tout -- l'affichage est alors immediat, sans aller-retour.
 
    C'est tout ce qu'il faudra a l'option premium « Personnaliser mon commerce » :
    deux boutiques voisines pourront porter l'une un nom compose par le jeu,
@@ -293,6 +301,68 @@ const NOM_LOCAL_LOUABLE = {
   occupee: { sansSuffixe: ' — Local à louer' }
 };
 
+/* Plaque doree vissee sur le montant de porte des bureaux du centre d'affaires.
+   Gravure sombre sur laiton : ni ombre portee, ni majuscules forcees -- le mot
+   « Cabinet : » est deja imprime sur l'image, et le nom se pose a sa suite. */
+const ENSEIGNE_PLAQUE_MURALE = {
+  mode: 'texte',
+  etats: ['occupee'],
+  texte: {
+    align: 'center',
+    casse: 'aucune',
+    couleur: '#3b2d12',
+    ombre: false,
+    graisse: 600,
+    police: "'Playfair Display',Georgia,serif",
+    tailleMax: 15
+  },
+  image: { ajustement: 'contain' }
+};
+
+/* Plaque posee sur le plateau du bureau, dans l'Open Space. Vierge sur l'image :
+   elle porte le nom du cabinet, ou « À LOUER » quand le poste est libre. */
+const ENSEIGNE_PLAQUE_BUREAU = {
+  mode: 'texte',
+  etats: ['libre', 'occupee'],
+  libelles: { libre: 'À LOUER' },
+  texte: {
+    align: 'center',
+    casse: 'aucune',
+    couleur: '#2e2208',
+    ombre: false,
+    graisse: 700,
+    police: "'Playfair Display',Georgia,serif",
+    interLettre: '.04em',
+    tailleMax: 17
+  },
+  image: { ajustement: 'contain' }
+};
+
+/* Les quatre postes de l'Open Space de Luthecia. Meme image, meme plaque, meme
+   zone : seule l'identite de la piece change. Ecrit une fois, et c'est deja la
+   forme qu'aura n'importe quel autre open space du jeu. */
+const OPEN_SPACE_LUTHECIA = ['a', 'b', 'c', 'd'];
+
+function bureauxOpenSpaceLuthecia() {
+  const sortie = {};
+  OPEN_SPACE_LUTHECIA.forEach(function (lettre) {
+    sortie['open_space_' + lettre] = {
+      famille: 'location',
+      ancrage: 'centre',
+      nom: NOM_LOCAL_LOUABLE,
+      desc: { occupee: "Poste de travail de l'open space. Le plateau est partagé, la plaque ne l'est pas." },
+      images: {
+        libre:   'images/luthecia-centre-affaires-bureau-open-space.png',
+        occupee: 'images/luthecia-centre-affaires-bureau-open-space.png'
+      },
+      enseigne: Object.assign({}, ENSEIGNE_PLAQUE_BUREAU, {
+        zone: { x: 0.452, y: 0.482, w: 0.117, h: 0.030 }
+      })
+    };
+  });
+  return sortie;
+}
+
 const PIECE_VARIANTES = {
   republic: {
     capitale: {
@@ -309,7 +379,7 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-commercial-grand-local-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
-            zone: { x: 0.205, y: 0.072, w: 0.565, h: 0.090 }
+            zone: { x: 0.202, y: 0.172, w: 0.598, h: 0.057 }
           })
         },
         boutique_milieu: {
@@ -322,7 +392,7 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-commercial-moyen-local-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
-            zone: { x: 0.215, y: 0.060, w: 0.560, h: 0.090 }
+            zone: { x: 0.226, y: 0.200, w: 0.547, h: 0.043 }
           })
         },
         arriere_boutique: {
@@ -335,7 +405,7 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-commercial-petit-local-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
-            zone: { x: 0.240, y: 0.058, w: 0.525, h: 0.090 }
+            zone: { x: 0.219, y: 0.183, w: 0.574, h: 0.059 }
           })
         },
         cave_reserve: {
@@ -348,10 +418,63 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-commercial-mini-local-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_FRONTON_LUTHECIA, {
-            zone: { x: 0.280, y: 0.052, w: 0.370, h: 0.088 }
+            zone: { x: 0.282, y: 0.179, w: 0.386, h: 0.064 }
           })
         }
-      }
+      },
+
+      /* ---- CENTRE D'AFFAIRES DE LUTHECIA (4 octobre 2026) ----------------
+         Trois sortes de plaques, un seul mecanisme.
+
+         Bureau Prestige et Bureau Standard portent une plaque doree sur le
+         montant de porte. Les images « vide » ont deja « À LOUER » grave
+         dessus : aucune incrustation n'y est donc declaree, l'etat libre ne
+         figure pas dans `etats`. Les images « loue » portent « Cabinet : » et
+         des lignes vierges : c'est la que le nom s'inscrit.
+
+         Les quatre bureaux de l'Open Space partagent EXACTEMENT la meme image
+         de poste de travail, dont la plaque posee sur le plateau est vierge.
+         Celle-ci recoit donc soit le nom du cabinet, soit « À LOUER » quand le
+         poste est libre -- un libelle fixe, sans aller-retour reseau.
+         Ces quatre declarations sont identiques au nom pres : c'est precisement
+         ce que la decision de game design demandait, et le moteur n'a rien eu
+         a apprendre pour cela. */
+      'centre-affaires': Object.assign({
+
+        bureau_prestige: {
+          famille: 'location',
+          ancrage: 'haut',
+          nom: NOM_LOCAL_LOUABLE,
+          desc: { occupee: "Bureau d'angle, vue sur la ville. Le cabinet qui s'y installe reçoit ici." },
+          images: {
+            libre:   'images/luthecia-centre-affaires-bureau-prestige-vide.png',
+            occupee: 'images/luthecia-centre-affaires-bureau-prestige-loue.png'
+          },
+          enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
+            zone: { x: 0.040, y: 0.345, w: 0.140, h: 0.055 }
+          })
+        },
+
+        bureau_standard: {
+          famille: 'location',
+          ancrage: 'haut',
+          nom: NOM_LOCAL_LOUABLE,
+          desc: { occupee: "Bureau fermé donnant sur la salle de réunion. Discret, sans être caché." },
+          images: {
+            libre:   'images/luthecia-centre-affaires-bureau-standard-vide.png',
+            occupee: 'images/luthecia-centre-affaires-bureau-standard-loue.png'
+          },
+          enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
+            zone: { x: 0.044, y: 0.348, w: 0.140, h: 0.055 }
+          })
+        },
+
+        /* L'Open Space lui-meme n'est plus un local : c'est le PLAN des quatre
+           postes. Pas de variante d'etat, pas d'enseigne -- juste une image
+           fixe, posee par roomOverrides dans data.js, et des zones cliquables
+           posees par plateau-open-space.js. */
+
+      }, bureauxOpenSpaceLuthecia())
     }
   }
 };
@@ -664,6 +787,17 @@ function varianteAppliquerEnseigne(buildingId, roomId, ville) {
   varianteInstallerObservateur(cadre);
 
   if (decl.enseigne.mode === 'aucune') return;   // le lieu refuse toute enseigne
+
+  /* LIBELLE FIXE. Certains etats n'ont rien a demander a personne : la plaque
+     d'un bureau libre affiche « À LOUER », point. On court-circuite alors la
+     famille, et l'affichage est immediat -- aucun aller-retour reseau pour un
+     texte connu d'avance. */
+  const fixe = decl.enseigne.libelles && decl.enseigne.libelles[etat];
+  if (fixe) {
+    varianteDessinerEnseigne(cadre, decl,
+      varianteNormaliserEnseigne(fixe, decl.enseigne.mode));
+    return;
+  }
 
   const famille = PIECE_FAMILLES_ETAT[decl.famille];
   const brut = (famille && typeof famille.enseigne === 'function')
