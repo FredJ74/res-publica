@@ -719,6 +719,29 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    meme raison. */
 .piece-image[data-musee="1"]{min-height:460px;background-size:100% 100%, contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
 .piece-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:6rem;opacity:.12;pointer-events:none}
+/* Enseigne d'une piece a variantes (voir plateau-variantes-pieces.js). Position,
+   dimensions et taille de police sont posees EN PIXELS par le JS, qui refait le
+   calcul de background-size:cover pour coller au fronton de l'image quelle que
+   soit la fenetre -- aucune valeur de placement ici, elles seraient fausses des
+   le premier redimensionnement. z-index:1 comme .piece-ambiance : au-dessus du
+   voile .piece-image::before (z-index:0), donc jamais assombrie. white-space:
+   nowrap tient l'enseigne sur une ligne, le JS reduisant la police jusqu'a ce
+   qu'un nom long y entre. pointer-events:none : une enseigne ne doit jamais
+   intercepter un clic destine a l'image (zone cliquable de l'enigme du musee). */
+.piece-enseigne{position:absolute;z-index:1;display:flex;align-items:center;
+  white-space:nowrap;overflow:hidden;line-height:1;pointer-events:none}
+/* Ancrage vertical d'une piece a variantes. Meme motif et meme raison que
+   [data-musee] ci-dessus : le background-position:center!important de
+   .piece-image ne peut pas etre surcharge par le style inline, il faut donc une
+   regle de specificite superieure (0,2,0 contre 0,1,0). L'attribut est pose OU
+   RETIRE a chaque entree de piece, jamais seulement pose.
+   Mesure (.scratch/banc_geometrie_piece.html) : centre verticalement, le haut
+   d'une image 1698x926 est rogne des que le cadre depasse le rapport 2,047, et
+   le cadre atteint deja 2,030 en 1280x800. Ancre en haut, le fronton d'une
+   devanture reste visible a tous les rapports -- c'est le sol qui est rogne.
+   Ne touche QUE les pieces qui declarent un ancrage : aucune autre piece du jeu
+   ne porte cet attribut, donc aucun autre fond n'est deplace d'un pixel. */
+.piece-image[data-ancrage="haut"]{background-position:center top!important}
 .piece-ambiance{position:relative;z-index:1;padding:1.2rem;width:100%}
 .piece-nom{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--gold-light);margin-bottom:.2rem}
 .piece-desc{font-size:.82rem;color:#c0b090;font-style:italic;line-height:1.5}

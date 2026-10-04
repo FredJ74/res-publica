@@ -349,6 +349,20 @@ const WORLD = {
               ]
             }
           }
+        },
+        // Centre Commercial de Luthecia, hall d'entree (4 octobre 2026). Le
+        // gabarit partage BUILDINGS['centre-commercial'].rooms.hall pointe encore
+        // vers une photo Unsplash ; Port-Sainte-Marie et Montrouge s'en etaient
+        // deja affranchis par leur propre roomOverride, Luthecia ne l'avait pas.
+        // Surcharge de VILLE uniquement : aucune autre ville, aucun autre empire
+        // n'est touche. Les quatre LOCAUX de ce meme batiment ne sont pas ici --
+        // leur image depend de leur etat (libre/loue) et vit donc dans
+        // PIECE_VARIANTES (plateau-variantes-pieces.js), jamais dans une
+        // surcharge fixe.
+        'centre-commercial': {
+          roomOverrides: {
+            hall: { imageUrl: "images/centre-commercial-republic.png" }
+          }
         }
       }
     },

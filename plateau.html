@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=157">
+<link rel="stylesheet" href="style.css?v=158">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -651,7 +651,7 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=306"></script>
+<script src="data.js?v=307"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -775,7 +775,12 @@
 <script src="plateau-etat-civil.js?v=9"></script>
 <script src="plateau-musee-personnalites.js?v=2"></script>
 <script src="plateau-maxence.js?v=1"></script>
-<script src="plateau-navigation.js?v=196"></script>
+<!-- Variantes graphiques des pieces (4 octobre 2026). AVANT plateau-navigation.js, dont
+     enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
+     autre fichier au chargement : ses appels a getLocationPourRoom (plateau-justice-economie.js)
+     et sbGetFonds (supabase.js) sont tous gardes par typeof et n'ont lieu qu'a l'execution. -->
+<script src="plateau-variantes-pieces.js?v=3"></script>
+<script src="plateau-navigation.js?v=199"></script>
 <script src="plateau-personnage.js?v=190"></script>
 <script src="plateau-pnj.js?v=203"></script>
 <script src="plateau-multijoueur.js?v=148"></script>

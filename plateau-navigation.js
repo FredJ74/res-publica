@@ -555,7 +555,13 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const locked = isZoneEmb && !state.douanePassee;
       const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
       const icon = locked ? '🔒 ' : '';
-      const tabName = ctxForTabs?.roomOverrides?.[roomId]?.name || room.name;
+      // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
+      // un local occupe ne doit pas rester annonce « a louer » dans son onglet
+      // alors que son titre ne l'annonce plus. Rend null pour toute piece non
+      // declaree, donc tous les autres onglets du jeu sont inchanges.
+      const tabNameBase = ctxForTabs?.roomOverrides?.[roomId]?.name || room.name;
+      const tabName = ((typeof varianteNomPiece === 'function')
+        ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
       return `<div class="piece-tab ${actif ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
         ${icon}${tabName}
@@ -815,23 +821,63 @@ function enterRoom(buildingId, roomId, tabEl) {
       chantierImg = NIVEAUX_CONSTRUCTION[tsChantier.niveau_construction]?.imageUrl || null;
     }
   }
-  const imgUrl = enigme1Img || chantierImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
+  // Variante d'etat (plateau-variantes-pieces.js) : une piece declaree peut
+  // avoir une image differente selon son etat -- un local loue ou libre, par
+  // exemple. Place APRES enigme1/chantier, qui sont deux variantes d'etat plus
+  // anciennes et specifiques, et AVANT roomOverride : une image qui depend de
+  // l'etat du monde doit l'emporter sur une image fixe de ville. Rend null pour
+  // toute piece non declaree -- soit, aujourd'hui, toutes sauf les quatre locaux
+  // du centre commercial de Luthecia : la chaine ci-dessous est donc inchangee
+  // au caractere pres partout ailleurs.
+  const varianteImg = (typeof varianteImagePiece === 'function')
+    ? varianteImagePiece(buildingId, roomId, state.currentCity)
+    : null;
+
+  // Ancrage vertical du fond, pose OU RETIRE a chaque entree de piece -- comme
+  // data-musee juste au-dessus, et pour la meme raison : un passage d'une piece
+  // ancree a une piece normale ne doit jamais conserver l'ancrage precedent.
+  const varianteAncrage = (typeof varianteAncragePiece === 'function')
+    ? varianteAncragePiece(buildingId, roomId, state.currentCity)
+    : null;
+  if (varianteAncrage) {
+    pieceImg.setAttribute('data-ancrage', varianteAncrage);
+  } else {
+    pieceImg.removeAttribute('data-ancrage');
+  }
+
+  const imgUrl = enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
+  // Enseigne : appelee pour TOUTE piece, y compris non declaree -- c'est elle
+  // qui retire l'enseigne de la piece precedente. Ne jamais la conditionner a
+  // varianteImg, sinon une enseigne resterait affichee en changeant de piece.
+  if (typeof varianteAppliquerEnseigne === 'function') varianteAppliquerEnseigne(buildingId, roomId, state.currentCity);
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
 
-  document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
+  // Nom de la piece, eventuellement adapte a son etat : un local occupe cesse
+  // d'afficher « — Local à louer ». Meme appel que pour les onglets, juste
+  // au-dessus, pour que le titre et l'onglet ne divergent jamais.
+  const nomBasePiece = roomOverride?.name || room.name;
+  document.getElementById('piece-nom').textContent =
+    ((typeof varianteNomPiece === 'function')
+      ? varianteNomPiece(buildingId, roomId, state.currentCity, nomBasePiece) : null) || nomBasePiece;
   // roomOverride.desc a priorite sur ctx.desc (batiment, 1ere room seulement) et sur room.desc
   // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
   // cas particulier de ville/batiment/room.
-  let displayDesc = roomOverride?.desc || ((isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || ''));
+  // Description de la piece, eventuellement adaptee a son etat : un local occupe
+  // cesse d'afficher « 📋 À LOUER ». Meme mecanisme declaratif que le nom, et
+  // applique AVANT les suffixes dynamiques ci-dessous (peine de prison,
+  // convalescence, solde de caisse), qui restent concatenes comme avant.
+  const descBase = roomOverride?.desc || ((isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || ''));
+  let displayDesc = ((typeof varianteDescPiece === 'function')
+    ? varianteDescPiece(buildingId, roomId, state.currentCity, descBase) : null) || descBase;
   if (state.estEmprisonne && estDansSaCellule) {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
@@ -987,7 +1033,24 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Loc
   const ctxName = ctx?.name || b.shortName || b.name;
   document.getElementById('loc-name').textContent = ctxName;
-  document.getElementById('loc-sub').textContent = room.name;
+  // Troisieme et dernier endroit ou le nom de la piece s'affiche. Meme regle que
+  // le titre et l'onglet, appliquee sur la meme base qu'auparavant (room.name) :
+  // une piece non declaree reste donc rigoureusement inchangee ici.
+  document.getElementById('loc-sub').textContent =
+    ((typeof varianteNomPiece === 'function')
+      ? varianteNomPiece(buildingId, roomId, state.currentCity, room.name) : null) || room.name;
+
+  // Les onglets ont ete construits a l'entree du batiment, avant que ce local ne
+  // soit loue. Quand la regle de nom change quelque chose -- et seulement dans ce
+  // cas -- on les reconstruit, sans quoi l'onglet continuerait d'annoncer « à
+  // louer » un local dont le titre ne l'annonce plus. renderOngletsPieces ne
+  // rejoue aucun verrou ni effet de bord de enterBuilding, et roomActifId garde
+  // l'onglet courant surligne. No-op strict pour toute piece non declaree.
+  if (typeof varianteNomPiece === 'function'
+      && varianteNomPiece(buildingId, roomId, state.currentCity, room.name)
+      && typeof renderOngletsPieces === 'function') {
+    renderOngletsPieces(buildingId, roomId);
+  }
 
   // PROPOSITION DE TRANSFERT VERS LA CASERNE (16 septembre 2026). Elle a remplace l'ordre
   // permanent « Accepter le transfert a la caserne », qui s'affichait a tout visiteur du
