@@ -1172,13 +1172,68 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
                        'procureur_saad', 'juge_fontaine', 'president_laroche', 
                        'raoul_toufaud', 'caporal_alouche', 'eve_toahemarch', 
                        'jean_lou_zeure', 'alain_bordage', 'marcel_ancre', 'pat_hounette', 
-                       'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre'];
+                       'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre',
+  'gretta_delieu'
+];
 
 // Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.
 function referentNoterConsultation(profilId) {
   if (!profilId || PNJ_REFERENTS.indexOf(profilId) === -1) return;
   if (typeof sbReferentPedagogieNoter !== 'function') return;
   sbReferentPedagogieNoter(profilId).catch(function () {});
+}
+
+// ---------------------------------------------------------------------------
+// LES SUJETS ABORDES AVEC UN REFERENT (4 octobre 2026)
+// ---------------------------------------------------------------------------
+// LE SIGNAL VIENT DU JOUEUR, PAS DU MODELE. L'arbitrage du 1er octobre avait
+// laisse la colonne `sujets` vide a dessein : faire annoncer un sujet par le
+// modele aurait change le contrat de /api/chat pour les 180 PNJ. On lit donc ce
+// que le JOUEUR a ecrit, et on le rapproche d'un vocabulaire FERME.
+//
+// CE TABLEAU N'A AUCUNE AUTORITE. Le serveur revalide chaque sujet contre la
+// table pnj_referents_sujets_connus et refuse tout ce qui n'y figure pas : un
+// navigateur ne peut pas s'inventer un souvenir. Ce qui est ici n'est qu'un
+// filtre d'economie, pour ne pas appeler le serveur a chaque phrase.
+//
+// Une seule entree aujourd'hui. Un futur referent ajoutera la sienne ici et ses
+// sujets en base -- aucune ligne de moteur a ecrire.
+const REFERENT_SUJETS = {
+  gretta_delieu: [
+    { sujet: 'bureau_prestige', motifs: ['prestige'] },
+    { sujet: 'bureau_standard', motifs: ['standard'] },
+    { sujet: 'open_space',      motifs: ['open space', 'open-space', 'openspace', 'poste de travail'] },
+    { sujet: 'louer',           motifs: ['louer', 'location', 'louement', 'bail'] },
+    { sujet: 'loyer',           motifs: ['loyer', 'prix', 'tarif', 'combien', 'cout', 'coute'] },
+    { sujet: 'equipements',     motifs: ['equipement', 'amenag', 'materiel', 'ordinateur', 'mobilier'] },
+    { sujet: 'commerce',        motifs: ['commerce', 'cabinet', 'enseigne', 'activite', 'installer'] },
+    { sujet: 'resilier',        motifs: ['resilier', 'rendre', 'quitter', 'partir', 'arreter'] }
+  ]
+};
+
+// Accents retires et minuscules : « Combien coûte ? » doit reconnaitre « coute ».
+function referentNormaliser(texte) {
+  return String(texte || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// Rend les sujets reconnus dans le message du joueur, au plus deux : au-dela,
+// c'est que la phrase parlait de tout et donc de rien.
+function referentSujetsDuMessage(profilId, message) {
+  const vocab = REFERENT_SUJETS[profilId];
+  if (!vocab) return [];
+  const m = referentNormaliser(message);
+  if (!m) return [];
+  return vocab.filter(function (e) { return e.motifs.some(function (mot) { return m.indexOf(mot) >= 0; }); })
+              .map(function (e) { return e.sujet; })
+              .slice(0, 2);
+}
+
+function referentNoterSujets(profilId, message) {
+  if (!profilId || PNJ_REFERENTS.indexOf(profilId) === -1) return;
+  if (typeof sbReferentPedagogieNoterSujet !== 'function') return;
+  referentSujetsDuMessage(profilId, message).forEach(function (sujet) {
+    sbReferentPedagogieNoterSujet(profilId, sujet).catch(function () {});
+  });
 }
 
 const PNJ_PROFILS_SERVEUR = {
@@ -1838,6 +1893,9 @@ RÈGLES ABSOLUES :
     // un PNJ social retient qu'on lui a parle, un referent retient qu'il a explique.
     // Aucun PNJ n'a les deux -- c'est la difference de nature entre eux.
     referentNoterConsultation(profilServeur);
+    // Et LES SUJETS abordes, pour que Gretta s'en souvienne dix jours. Le message
+    // lu est celui du JOUEUR, jamais la reponse du PNJ : on ne devine rien.
+    referentNoterSujets(profilServeur, action);
     return;
   } catch(e) {
     // REPLI UTILE POUR JEREMY. Les trois phrases generiques ci-dessous n'ont aucun sens pour un

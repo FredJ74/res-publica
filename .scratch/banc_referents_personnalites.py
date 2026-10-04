@@ -81,6 +81,16 @@ Object.keys(REFERENTS).forEach(function(k){
 R.nomsConnus = Object.keys(TOUS_PROFILS).map(function(k){ return TOUS_PROFILS[k].nom; })
                      .filter(Boolean);
 // B et D : budget de parole et empire, par referent.
+// Les quatre ANIMATEURS de Luthecia. Ils ne sont PAS referents : ils n'ont ni corpus
+// pedagogique, ni compteur de consultations, et personne ne verifiait leur prompt.
+R.animateurs = {}; R.roles = {};
+['francisca_brel','edgar_simore','harry_cover','moshe_maychan'].forEach(function(k){
+  R.animateurs[k] = construirePromptSysteme(k, 'fr', null) || '';
+  // Le role vit dans la fiche BRUTE : profilsPersonnalites() le fond dans la phrase
+  // d'identite et ne le conserve pas comme champ.
+  var fiche = ORDINAIRES[k] || RICHES[k] || SOCIAUX[k] || {};
+  R.roles[k] = fiche.role || null;
+});
 R.budgets = {}; R.pays = {};
 Object.keys(REFERENTS).forEach(function(k){
   R.budgets[k] = maxTokensProfil(k);
@@ -157,12 +167,32 @@ essai('Ferriere garde son corpus de troupe',
 essai('le Caporal Alouche n\'a pas ete touche',
       'refectoire' in D['alouche'].lower() and 'louche' in D['alouche'].lower())
 
+# --- La scission du socle n'a change AUCUN prompt existant -----------------
+# Les dix-sept referents d'avant ne declarent pas de `lien` : ils doivent donc
+# recevoir le paragraphe par defaut, mot pour mot. Si la scission avait altere
+# ne serait-ce qu'un espace, cette assertion tomberait.
+_ANCIENS = [k for k in D['presents'] if k != 'gretta_delieu']
+essai('les 17 referents d\'avant gardent la distance par defaut, mot pour mot',
+      all("TU N'ES PAS UN AMI. Tu peux parler de toi, de ton metier, de ta vie si on t'y amene"
+          " -- tu es un homme, pas un guichet. Mais tu ne cherches pas a te lier, tu ne demandes"
+          " pas de nouvelles, tu ne t'attaches pas. Ce n'est pas ton role." in P[k] for k in _ANCIENS),
+      str(len(_ANCIENS)) + ' referents')
+essai('Gretta est la seule a declarer son propre rapport aux gens',
+      "TU N'ES PAS UN AMI" not in P['gretta_delieu']
+      and "TU T'ATTACHES AUX GENS" in P['gretta_delieu'])
+
 # --- Les regles de socle, sur chacun des sept ------------------------------
 for k in D['presents']:
     essai('socle : ' + k + ' oriente hors de son domaine',
           'HORS DE TON DOMAINE' in P[k])
-    essai('socle : ' + k + ' ne cherche pas de relation sociale',
-          "TU N'ES PAS UN AMI" in P[k])
+    # LE RAPPORT HUMAIN EST DESORMAIS DECLARE, PAS IMPOSE (4 octobre 2026).
+    # Le socle disait a tous « TU N'ES PAS UN AMI ». Gretta Delieu, hotesse d'accueil,
+    # est la premiere dont la chaleur EST la competence : son prompt se serait
+    # contredit. Le paragraphe est donc devenu un DEFAUT remplacable par `lien`.
+    # Ce que le banc exige maintenant : chaque referent porte UNE position sur le
+    # rapport humain -- la sienne, ou celle par defaut. Aucun n'en est depourvu.
+    essai('socle : ' + k + ' declare son rapport aux gens',
+          ("TU N'ES PAS UN AMI" in P[k]) or ("TU T'ATTACHES AUX GENS" in P[k]))
     essai('socle : ' + k + ' n\'invente jamais',
           'TU NE REPONDS JAMAIS AU HASARD' in P[k])
     essai('socle : ' + k + ' aide avant de jouer son personnage',
@@ -284,6 +314,43 @@ essai('les sept referents declarent leur empire', len(sans_pays) == 0, sans_pays
 essai('ils sont tous de Republia dans ce lot',
       set(D['pays'].values()) == {'republic'}, sorted(set(D['pays'].values())))
 
+# --- Les quatre animateurs de Luthecia ---------------------------------------
+# Ils orientent sans jamais expliquer une regle : c'est ce qui les distingue d'un
+# referent, et c'est donc ce qu'il faut tenir.
+A = D['animateurs']
+for k in ['francisca_brel', 'edgar_simore', 'harry_cover', 'moshe_maychan']:
+    essai('animateur servi : ' + k, len(A.get(k, '')) > 200, '%d caracteres' % len(A.get(k, '')))
+    essai(k + ' sait ou il travaille', 'lieu de travail' in A.get(k, ''))
+    essai(k + " n'a AUCUN corpus pedagogique",
+          'PEDAGOGIE' not in A.get(k, '') and 'tu expliques les regles' not in A.get(k, ''))
+    essai(k + " ne se presente plus comme « PNJ »",
+          D['roles'].get(k) not in (None, 'PNJ'), D['roles'].get(k))
+
+# --- L'ARBITRAGE MOSHE du 4 octobre 2026 -------------------------------------
+# J'avais remplace sa profession par « homme d'affaires », croyant corriger une
+# etiquette technique. Fred l'a refuse : le personnage ne tient QUE par le
+# contraste, et un modele qui se croit honnete n'a aucune raison de s'indigner
+# avec exces. Il doit savoir ce qu'il est pour avoir quelque chose a cacher.
+M = A['moshe_maychan']
+essai('Moshe est un ASSASSIN, et le prompt le dit', D['roles']['moshe_maychan'] == 'Assassin',
+      D['roles']['moshe_maychan'])
+essai("Moshe n'est JAMAIS presente comme un homme d'affaires",
+      "homme d'affaires" not in M.lower())
+essai("Moshe sait qu'il est un assassin", 'TU ES UN ASSASSIN' in M)
+essai("Moshe n'en parle jamais", "tu n'en parles JAMAIS" in M)
+essai('Moshe ne nie pas et ne confirme pas',
+      'tu ne nies pas' in M and 'tu ne confirmes pas' in M)
+essai('Moshe se presente comme faisant « des affaires »',
+      "« des affaires »" in M and "« des arrangements »" in M)
+essai("Moshe s'indigne des crimes DES AUTRES",
+      "TU T'INDIGNES DES CRIMES DES AUTRES" in M)
+essai("l'hypocrisie est tenue : il ne laisse jamais entendre qu'il plaisante",
+      'tu ne laisses jamais entendre que tu plaisantes' in M)
+essai('Moshe reste poli et ne hausse jamais le ton',
+      'poli' in M and 'ne hausses jamais le ton' in M)
+essai('Moshe ne revele rien qui ne soit deja public',
+      'TU NE REVELES RIEN QUI NE SOIT DEJA PUBLIC' in M)
+
 # --- Les TROIS listes de referents doivent rester alignees ------------------
 # Le fichier de personnalites, la liste cliente et la table en base. Trois copies
 # d'un meme ensemble de sept identifiants : c'est le prix a payer pour eviter un
@@ -296,12 +363,13 @@ LISTE_CLIENT = set(re.findall(r"'([a-z_]+)'", cli.group(1))) if cli else set()
 sql = ''.join(open(os.path.join(RACINE, f), encoding='utf-8').read() for f in
               ['migration_20261001_referents_memoire_pedagogique.sql',
                'migration_20261001_referents_lot_deux.sql',
-               'migration_20261001_referent_laurent_barre.sql'])
+               'migration_20261001_referent_laurent_barre.sql',
+               'migration_20261004_gretta_memoire_sujets.sql'])
 LISTE_SQL = set(re.findall(r"\('([a-z_]+)',\s*'", sql))
 essai('la liste des personnalites n\'est pas vide', len(LISTE_JS) >= 7, '%d referents' % len(LISTE_JS))
 essai('la liste cliente est alignee sur le fichier de personnalites',
       LISTE_CLIENT == LISTE_JS, 'ecart=' + str(sorted(LISTE_CLIENT ^ LISTE_JS)))
-essai('la table en base est alignee sur le fichier de personnalites',
+essai('les migrations declarent les memes referents que le fichier de personnalites',
       LISTE_SQL == LISTE_JS, 'ecart=' + str(sorted(LISTE_SQL ^ LISTE_JS)))
 
 print('\n'.join(RES))

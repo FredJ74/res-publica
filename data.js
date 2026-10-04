@@ -926,15 +926,21 @@ const WORLD = {
             // 2026-08-16 : versions corrigees des images (remplacent les anciens .png,
             // supprimes du depot). hall recoit en plus une liste de personnes propre a
             // Montrouge (persons ci-dessous) : le batiment 'centre-affaires' est partage
-            // avec Luthecia/PSM, qui affichent toujours le trio generique (Gretta/Moshe/
-            // Harry) du template BUILDINGS['centre-affaires'].rooms.hall -- inchange, non
-            // touche, pour ne pas les modifier ailleurs.
+            // avec Luthecia/PSM, qui affichent le meme trio (Gretta/Moshe/Harry) depuis
+            // le template BUILDINGS['centre-affaires'].rooms.hall.
+            //
+            // 2026-10-04 : les professions des trois sont alignees sur celles du template
+            // ET sur ce que chacun dit de lui-meme en dialogue (api/_pnj-personnalites.js).
+            // Tant que ces PNJ sont partages entre les villes, leur metier affiche ne doit
+            // pas dependre de la ville ou le joueur les rencontre : Moshe et Harry
+            // n'affichaient ici que l'etiquette technique « PNJ », et Montrouge etait donc
+            // la seule ville a ignorer leur metier.
             hall: {
               imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
               persons: [
-                {name:'Gretta Délieu (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
-                {name:'Moshe Maychan (PNJ)', role:'PNJ', rel:'neutral', job:'criminel'},
-                {name:'Harry Cover (PNJ)', role:'PNJ', rel:'neutral', job:'inspecteur'}
+                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+                {name:'Moshe Maychan (PNJ)', role:'Assassin', rel:'neutral', job:'criminel'},
+                {name:'Harry Cover (PNJ)', role:'Détective privé', rel:'neutral', job:'inspecteur'}
               ]
             },
             bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.jpg" },
@@ -3642,10 +3648,13 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "Un hall feutré, marbre noir et lumière tamisée. On y croise beaucoup de monde important qui prétend ne connaître personne.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png",
+        // 2026-10-04 : professions alignees sur ce que chacun dit de lui-meme en dialogue
+        // (api/_pnj-personnalites.js), et donc identiques dans les trois villes qui
+        // partagent ce template ainsi que dans la surcharge de Montrouge.
         persons: [
-          {name:'Gretta Délieu (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+          {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
           {name:'Moshe Maychan', role:'Assassin', rel:'neutral', job:'criminel'},
-          {name:'Harry Cover', role:'Detective prive', rel:'neutral', job:'inspecteur'}
+          {name:'Harry Cover', role:'Détective privé', rel:'neutral', job:'inspecteur'}
         ],
         orders: [
           {fn:'se_renseigner', label:'Se renseigner',       pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}

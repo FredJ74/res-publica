@@ -5552,6 +5552,13 @@ async function sbReferentPedagogieNoter(referentId) {
   return await sbRpc('referent_pedagogie_noter', { p_referent_id: referentId });
 }
 
+// Note un SUJET aborde avec un referent. Le serveur refuse en silence tout sujet
+// hors du vocabulaire ferme declare en base : ce client n'a aucune autorite sur
+// ce qui est memorisable.
+async function sbReferentPedagogieNoterSujet(referentId, sujet) {
+  return await sbRpc('referent_pedagogie_noter_sujet', { p_referent_id: referentId, p_sujet: sujet });
+}
+
 // =====================================================================
 // MISE EN RELATION AVEC UNE ORGANISATION (1er octobre 2026)
 // =====================================================================
