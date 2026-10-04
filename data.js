@@ -123,6 +123,28 @@ const STAT_DEFS = [
 // =====================
 // WORLD MAP STRUCTURE
 // =====================
+/* ORDRE D'INTERFACE, SANS AUCUNE MECANIQUE (4 octobre 2026). Les bureaux du
+   centre d'affaires pourront un jour etre amenages ; l'entree du menu existe des
+   maintenant pour que la place soit prise, mais rien n'est installable. L'ordre
+   coute 0 PA et 0 FR et son routeur rend la main avant tout debit : l'ouvrir ne
+   consomme rien et ne previent pas le serveur. `desc` devient le title du
+   bouton, donc l'infobulle au survol.
+
+   PORTEE : declare dans le GABARIT PARTAGE BUILDINGS['centre-affaires'], sur les
+   trois bureaux (Prestige, Standard, Open Space). Les douze villes qui
+   embarquent ce batiment en heritent donc sans qu'aucune surcharge de ville ne
+   soit ecrite -- c'est le propre d'une architecture partagee.
+   Deux exceptions, toutes deux a Luthecia : le PLAN de l'open space l'exclut
+   (on n'equipe pas un plan), et les quatre postes individuels, pieces propres a
+   la ville, le declarent eux-memes.
+   Jamais recopie ailleurs. Voir plateau-equipements.js. */
+const ORDRE_EQUIPEMENTS = {
+  fn: 'installer_equipements',
+  label: 'Installer des équipements',
+  pa: 0, cost: 0, type: 'legal', icon: 'ti-tools', successRate: 100,
+  desc: 'Fonctionnalité en cours de développement.'
+};
+
 /* Les quatre postes de l'Open Space du Centre d'Affaires de Luthecia.
    Ils remplacent l'unique piece `open_space` en tant que LOCAUX : celle-ci
    devient le plan du plateau (voir buildingContext ci-dessous). Les quatre
@@ -149,7 +171,8 @@ function bureauxOpenSpaceCentreAffaires() {
       orders: [
         {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
         {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
-        {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+        ORDRE_EQUIPEMENTS
       ]
     };
   });
@@ -412,7 +435,7 @@ const WORLD = {
               name: "Open Space",
               desc: "Le plateau partagé du centre d'affaires. Quatre postes, quatre locataires possibles. Survolez un bureau pour savoir s'il est libre.",
               imageUrl: "images/luthecia-centre-affaires-open-space-vue-dessus.png",
-              excludeOrders: ['commerce_pj', 'louer_local', 'gerer_local']
+              excludeOrders: ['commerce_pj', 'louer_local', 'gerer_local', 'installer_equipements']
             }
           },
           // Les quatre postes. Ils ne sont PAS des onglets (voir roomsMasquees) :
@@ -3640,7 +3663,8 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (1000 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 INF +8 DIS +3 POP. Le bureau qui impressionne.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          ORDRE_EQUIPEMENTS
         ]
       },
       bureau_standard: {
@@ -3654,7 +3678,8 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 INF +5 DIS +1 POP.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          ORDRE_EQUIPEMENTS
         ]
       },
       open_space: {
@@ -3668,7 +3693,8 @@ const BUILDINGS = {
         orders: [
           {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          ORDRE_EQUIPEMENTS
         ]
       },
       tribune_republia: {

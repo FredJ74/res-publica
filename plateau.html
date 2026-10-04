@@ -651,7 +651,7 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=308"></script>
+<script src="data.js?v=310"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -779,11 +779,14 @@
      enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
      autre fichier au chargement : ses appels a getLocationPourRoom (plateau-justice-economie.js)
      et sbGetFonds (supabase.js) sont tous gardes par typeof et n'ont lieu qu'a l'execution. -->
-<script src="plateau-variantes-pieces.js?v=4"></script>
+<script src="plateau-variantes-pieces.js?v=5"></script>
 <!-- Plan de l'open space : APRES plateau-variantes-pieces.js, dont il reutilise la
      geometrie (varianteZoneEnPixels, varianteTailleNaturelle), et AVANT
      plateau-navigation.js, dont enterRoom appelle openSpaceInjecterZones(). -->
 <script src="plateau-open-space.js?v=1"></script>
+<!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
+     routeur, qui resout ouvrirModalEquipements(). -->
+<script src="plateau-equipements.js?v=1"></script>
 <script src="plateau-navigation.js?v=200"></script>
 <script src="plateau-personnage.js?v=190"></script>
 <script src="plateau-pnj.js?v=203"></script>
@@ -813,7 +816,7 @@
 <!-- Terminal de section du Lieutenant (lot T) : APRES supabase.js, dont il appelle les cinq
      portes, et AVANT le routeur, qui resout ouvrirTerminalSection pour l'ordre voir_ma_section. -->
 <script src="plateau-militaire-terminal.js?v=1"></script>
-<script src="plateau-router.js?v=238"></script>
+<script src="plateau-router.js?v=239"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>

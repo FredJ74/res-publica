@@ -54,8 +54,9 @@
          couleur: '#f3e3b4',
          ombre: true,
          graisse: 700,
-         police: "'Playfair Display',serif",
-         tailleMax: 30             // px, plafond quelle que soit la fenetre
+         police: "'Playfair Display',serif"
+         // AUCUNE taille : elle est calculee a l'affichage, pour ce nom et
+         // cette zone. Voir « COMPOSITION TYPOGRAPHIQUE DES ENSEIGNES ».
        },
        image: {                    // habillage du mode image
          ajustement: 'contain'     // 'contain' (defaut) | 'cover'
@@ -284,8 +285,7 @@ const ENSEIGNE_FRONTON_LUTHECIA = {
     ombre: true,
     graisse: 700,
     police: "'Playfair Display',Georgia,serif",
-    interLettre: '.10em',
-    tailleMax: 30
+    interLettre: '.10em'
   },
   // Un visuel de joueur ne doit jamais etre deforme ni deborder du fronton :
   // 'contain' le fait entrer en entier dans la zone, en conservant ses
@@ -313,8 +313,7 @@ const ENSEIGNE_PLAQUE_MURALE = {
     couleur: '#3b2d12',
     ombre: false,
     graisse: 600,
-    police: "'Playfair Display',Georgia,serif",
-    tailleMax: 15
+    police: "'Playfair Display',Georgia,serif"
   },
   image: { ajustement: 'contain' }
 };
@@ -332,8 +331,7 @@ const ENSEIGNE_PLAQUE_BUREAU = {
     ombre: false,
     graisse: 700,
     police: "'Playfair Display',Georgia,serif",
-    interLettre: '.04em',
-    tailleMax: 17
+    interLettre: '.04em'
   },
   image: { ajustement: 'contain' }
 };
@@ -451,7 +449,7 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-affaires-bureau-prestige-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
-            zone: { x: 0.040, y: 0.345, w: 0.140, h: 0.055 }
+            zone: { x: 0.038, y: 0.362, w: 0.148, h: 0.086 }
           })
         },
 
@@ -465,7 +463,7 @@ const PIECE_VARIANTES = {
             occupee: 'images/luthecia-centre-affaires-bureau-standard-loue.png'
           },
           enseigne: Object.assign({}, ENSEIGNE_PLAQUE_MURALE, {
-            zone: { x: 0.044, y: 0.348, w: 0.140, h: 0.055 }
+            zone: { x: 0.042, y: 0.366, w: 0.148, h: 0.082 }
           })
         },
 
@@ -615,6 +613,282 @@ function varianteZoneEnPixels(zone, cadre, taille, ancrage) {
 }
 
 
+
+/* ===========================================================================
+   COMPOSITION TYPOGRAPHIQUE DES ENSEIGNES
+   ===========================================================================
+
+   Le moteur ne cherche PAS a faire rentrer le texte dans la boite. Il cherche la
+   plus belle enseigne possible, et tenir dans la zone n'est qu'une contrainte
+   parmi celles qu'il doit respecter.
+
+   Concretement : il compose le meme nom de plusieurs facons -- sur une, deux ou
+   trois lignes, avec plusieurs decoupages possibles pour chacune -- puis il NOTE
+   chaque maquette et retient la meilleure. Il ne retient jamais la premiere qui
+   rentre.
+
+   --------------------------------------------------------------------------
+   CE QUE LA DECLARATION FOURNIT, ET CE QU'ELLE NE FOURNIT PLUS
+   --------------------------------------------------------------------------
+
+   Elle fournit la zone, la police, la graisse, la casse, la couleur, l'ombre.
+   Elle ne fournit PLUS de taille de police : une taille ecrite a la main ne peut
+   pas etre juste a la fois pour « Chez Lu » et pour « Comptoir General des
+   Tissus Precieux », ni pour un fronton de devanture et une plaque de bureau.
+   La taille est deduite de la zone et du texte, a chaque affichage.
+
+   --------------------------------------------------------------------------
+   LES CINQ CRITERES, ET COMMENT ILS SONT NOTES
+   --------------------------------------------------------------------------
+
+   1. LISIBILITE -- a qualite egale, le plus grand corps gagne. C'est le terme
+      dominant du score : une enseigne se lit de loin.
+
+   2. OCCUPATION HARMONIEUSE -- le bloc doit remplir 80 a 90 % de la largeur
+      utile. En dessous, le texte est perdu dans le cartouche ; au-dessus, il
+      etouffe. La note est maximale a 85 % et decroit de part et d'autre.
+
+   3. EQUILIBRE VISUEL -- sur plusieurs lignes, elles doivent avoir des longueurs
+      voisines. Une maquette « longue / tres courte » est penalisee.
+
+   4. TYPOGRAPHIE -- une ligne ne se termine pas par un mot-outil. C'est ce qui
+      produit « Les Trésors / de Luthécia » plutot que « Les Trésors de /
+      Luthécia », et ce qui evite qu'un dernier mot reste seul en bas.
+
+   5. MARGES ET CENTRAGE -- garantis par construction : le bloc ne depasse jamais
+      94 % de la largeur ni 92 % de la hauteur de la zone, et il est centre sur
+      les deux axes.
+
+   score = lisibilite x occupation x equilibre x typographie
+
+   Un produit, et non une somme : une maquette nulle sur un critere ne peut pas
+   etre rattrapee par les autres.
+
+   --------------------------------------------------------------------------
+   POURQUOI LA MESURE SE FAIT AU CANVAS
+   --------------------------------------------------------------------------
+
+   L'ancienne version mesurait le texte en le posant dans le DOM puis en lisant
+   offsetWidth, taille apres taille. Chaque lecture force un recalcul de mise en
+   page : explorer des dizaines de maquettes ainsi couterait des centaines de
+   recalculs a chaque entree de piece. measureText() d'un canvas donne la meme
+   largeur sans toucher au document, et permet d'explorer librement.
+
+   Deux precautions : les polices doivent etre chargees avant toute mesure
+   (document.fonts.ready), sans quoi on mesurerait une police de repli ; et
+   l'interlettrage CSS n'est pas vu par measureText, il est donc rajoute a la
+   main.
+   =========================================================================== */
+
+/* Reglages typographiques. Ce sont des choix de maquette, pas des reglages par
+   commerce : ils valent pour toutes les enseignes du jeu, aujourd'hui et demain. */
+const ENSEIGNE_COMPO = {
+  largeurMax:   0.94,   // le texte ne touche jamais le bord
+  hauteurMax:   0.92,
+  remplissage:  0.85,   // milieu de la fourchette 80-90 % visee
+  interligne:   1.14,   // separe DEUX lignes ; une ligne seule ne la paie pas
+  lignesMax:    3,
+  planchePolice: 6,     // en dessous, on ellipse plutot que de rendre illisible
+  // Interlettrage que le moteur peut AJOUTER a celui declare, pour qu'un nom
+  // court ne flotte pas au milieu d'un large cartouche. C'est le geste d'un
+  // maquettiste devant une enseigne de deux mots sur un fronton de six metres :
+  // on n'agrandit pas la lettre au-dela de la hauteur disponible, on espace.
+  interlettrageMax: 0.55,   // en em
+  remplissageMaigre: 0.80   // sous ce seuil, on espace pour rejoindre la fourchette
+};
+
+/* Hauteur d'un bloc de n lignes : l'interligne separe les lignes, elle ne
+   s'ajoute pas sous la derniere. Une ligne unique occupe donc toute la hauteur
+   disponible au lieu d'en abandonner 14 %. */
+function enseigneHauteurBloc(n, taille) {
+  return taille * (1 + (n - 1) * ENSEIGNE_COMPO.interligne);
+}
+
+/* Mots qui ne doivent pas finir une ligne : articles, prepositions, liaisons.
+   C'est la regle typographique qui produit les groupes de mots naturels. */
+const ENSEIGNE_MOTS_LIES = [
+  'de','du','des','d','le','la','les','l','un','une','au','aux','a','et','en',
+  'sur','sous','chez','pour','par','&','the','of'
+];
+
+/* --- Mesure ---------------------------------------------------------------- */
+
+let enseigneCanvas = null;
+function enseigneMesurer(texte, taille, style) {
+  if (!enseigneCanvas) enseigneCanvas = document.createElement('canvas').getContext('2d');
+  enseigneCanvas.font = (style.graisse || 700) + ' ' + taille + 'px ' + (style.police || 'serif');
+  let l = enseigneCanvas.measureText(texte).width;
+  // measureText ignore l'interlettrage CSS : on le rajoute, un intervalle par
+  // caractere, comme le fait letter-spacing.
+  const em = parseFloat(style.interLettre || 0);
+  if (em) l += em * taille * texte.length;
+  return l;
+}
+
+/* Les polices doivent etre chargees AVANT de mesurer, sinon on calibre sur une
+   police de repli et tout le bloc est faux une fois la vraie police arrivee. */
+function enseignePolicesPretes() {
+  if (typeof document === 'undefined' || !document.fonts || !document.fonts.ready) {
+    return Promise.resolve();
+  }
+  return document.fonts.ready.catch(function () {});
+}
+
+/* --- Decoupages candidats -------------------------------------------------- */
+
+/* Tous les decoupages d'une liste de mots en n lignes contiguës. Les noms
+   d'enseigne font quelques mots : l'enumeration complete est immediate, et elle
+   garantit qu'aucun bon decoupage n'est manque. Au-dela de 12 mots on se limite
+   au decoupage equilibre, pour ne pas explorer inutilement. */
+function enseigneDecoupages(mots, n) {
+  if (n === 1) return [[mots.join(' ')]];
+  if (mots.length < n) return [];
+  if (mots.length > 12) {
+    // Decoupage equilibre en nombre de caracteres, suffisant a cette longueur.
+    const total = mots.join(' ').length, cible = total / n;
+    const lignes = []; let courante = [], cumul = 0;
+    mots.forEach(function (m) {
+      courante.push(m); cumul += m.length + 1;
+      if (cumul >= cible && lignes.length < n - 1) { lignes.push(courante.join(' ')); courante = []; cumul = 0; }
+    });
+    lignes.push(courante.join(' '));
+    return lignes.length === n ? [lignes] : [];
+  }
+  const sortie = [];
+  const coupes = function (debut, reste, acc) {
+    if (reste === 1) { sortie.push(acc.concat([mots.slice(debut).join(' ')])); return; }
+    for (let i = debut + 1; i <= mots.length - reste + 1; i++) {
+      coupes(i, reste - 1, acc.concat([mots.slice(debut, i).join(' ')]));
+    }
+  };
+  coupes(0, n, []);
+  return sortie;
+}
+
+/* --- Notation d'une maquette ----------------------------------------------- */
+
+function enseigneNoter(lignes, taille, largeurs, L, H) {
+  const plus = Math.max.apply(null, largeurs);
+  const moins = Math.min.apply(null, largeurs);
+
+  // 1. LISIBILITE — le corps obtenu, terme dominant.
+  const lisibilite = taille;
+
+  // 2. OCCUPATION — note maximale a 85 % de la largeur utile.
+  const remplissage = plus / (L * ENSEIGNE_COMPO.largeurMax);
+  const occupation = Math.max(0.05, 1 - 1.15 * Math.abs(remplissage - ENSEIGNE_COMPO.remplissage));
+
+  // 3. EQUILIBRE — lignes de longueurs voisines. Une seule ligne est parfaite.
+  const irregularite = (lignes.length === 1) ? 0 : (plus - moins) / plus;
+  const equilibre = Math.max(0.05, 1 - 0.45 * irregularite);
+
+  // 4. TYPOGRAPHIE — pas de mot-outil en fin de ligne, pas de dernier mot seul.
+  let typo = 1;
+  for (let i = 0; i < lignes.length - 1; i++) {
+    const dernier = lignes[i].split(' ').pop()
+      .toLowerCase().replace(/[’'`.,;:!?]+$/g, '').replace(/[’']/g, '');
+    if (ENSEIGNE_MOTS_LIES.indexOf(dernier) >= 0) typo *= 0.55;
+  }
+  const queue = lignes[lignes.length - 1].split(' ');
+  if (lignes.length > 1 && queue.length === 1 && queue[0].length <= 3) typo *= 0.70;
+
+  return lisibilite * occupation * equilibre * typo;
+}
+
+/* --- Le compositeur -------------------------------------------------------- */
+
+/* Rend la meilleure maquette pour ce texte dans cette zone :
+     { lignes: ['Les Trésors','de Luthécia'], taille: 22.5, interligne: 1.14 }
+   Ne rend jamais une maquette qui depasse -- c'est une contrainte, verifiee
+   une derniere fois avant de rendre. */
+function varianteComposerEnseigne(texte, L, H, style) {
+  const mots = String(texte).trim().split(/\s+/).filter(Boolean);
+  if (!mots.length || L <= 0 || H <= 0) return null;
+
+  const Lutile = L * ENSEIGNE_COMPO.largeurMax;
+  const Hutile = H * ENSEIGNE_COMPO.hauteurMax;
+  const REF = 100;                       // taille de reference pour mesurer
+  let meilleure = null;
+
+  for (let n = 1; n <= Math.min(ENSEIGNE_COMPO.lignesMax, mots.length); n++) {
+    // Hauteur disponible par ligne : c'est elle qui plafonne le corps.
+    const tailleMaxHauteur = Hutile / (1 + (n - 1) * ENSEIGNE_COMPO.interligne);
+
+    enseigneDecoupages(mots, n).forEach(function (lignes) {
+      // Largeur de chaque ligne a la taille de reference, puis la taille qui
+      // fait tenir la plus longue dans la largeur utile.
+      const refs = lignes.map(function (lg) { return enseigneMesurer(lg, REF, style); });
+      const plusLongue = Math.max.apply(null, refs);
+      if (plusLongue <= 0) return;
+      const tailleMaxLargeur = REF * Lutile / plusLongue;
+
+      let taille = Math.min(tailleMaxHauteur, tailleMaxLargeur);
+      taille = Math.floor(taille * 4) / 4;          // quart de pixel
+      if (taille < ENSEIGNE_COMPO.planchePolice) return;
+
+      const largeurs = lignes.map(function (lg) { return enseigneMesurer(lg, taille, style); });
+      const note = enseigneNoter(lignes, taille, largeurs, L, H);
+      if (!meilleure || note > meilleure.note) {
+        meilleure = { lignes: lignes, taille: taille, largeurs: largeurs, note: note };
+      }
+    });
+  }
+
+  /* Cas pathologique : un mot unique plus long que la zone ne le permet, meme au
+     plancher. On ellipse -- une enseigne illisible vaut mieux qu'une enseigne
+     qui deborde, et le debordement est interdit. */
+  if (!meilleure) {
+    let t = ENSEIGNE_COMPO.planchePolice;
+    let s = mots.join(' ');
+    while (s.length > 1 && enseigneMesurer(s + '…', t, style) > Lutile) s = s.slice(0, -1);
+    meilleure = { lignes: [s + '…'], taille: t,
+                  largeurs: [enseigneMesurer(s + '…', t, style)], note: 0 };
+  }
+
+  /* CONTRAINTE FINALE, verifiee et non supposee : rien ne depasse. L'arrondi au
+     quart de pixel et l'interlettrage peuvent faire deriver de quelques
+     dixiemes -- on redescend jusqu'a ce que ce soit vrai. */
+  let garde = 0;
+  while (garde++ < 200) {
+    const larg = meilleure.lignes.map(function (lg) { return enseigneMesurer(lg, meilleure.taille, style); });
+    const haut = enseigneHauteurBloc(meilleure.lignes.length, meilleure.taille);
+    if (Math.max.apply(null, larg) <= Lutile && haut <= Hutile) { meilleure.largeurs = larg; break; }
+    meilleure.taille -= 0.25;
+    if (meilleure.taille <= 1) break;
+  }
+
+  /* INTERLETTRAGE ADAPTATIF. Quand la hauteur du cartouche plafonne le corps et
+     que le bloc reste maigre -- un nom de deux mots sur un fronton tres large --
+     grandir la lettre est impossible, mais l'espacer ne l'est pas. On ajoute donc
+     de l'interlettrage jusqu'a approcher le remplissage vise, sans jamais
+     depasser la largeur utile ni un ecartement qui disloquerait le mot.
+     C'est le seul geste du moteur qui ne soit pas une mise a l'echelle, et c'est
+     celui qui evite qu'une enseigne courte paraisse perdue. */
+  const emDeclare = parseFloat(style.interLettre || 0) || 0;
+  const plusLarge = Math.max.apply(null, meilleure.largeurs);
+  if (plusLarge > 0 && plusLarge / Lutile < ENSEIGNE_COMPO.remplissageMaigre) {
+    const ligneLaPlusLongue = meilleure.lignes[meilleure.largeurs.indexOf(plusLarge)];
+    const nbCar = Math.max(1, ligneLaPlusLongue.length);
+    // Ecart a combler, reparti sur les intervalles de la ligne la plus longue.
+    const vise = Lutile * ENSEIGNE_COMPO.remplissage;
+    const ajout = (vise - plusLarge) / (nbCar * meilleure.taille);
+    const em = Math.min(emDeclare + Math.max(0, ajout), ENSEIGNE_COMPO.interlettrageMax);
+    if (em > emDeclare) {
+      const styleEspace = Object.assign({}, style, { interLettre: em + 'em' });
+      const larg = meilleure.lignes.map(function (lg) { return enseigneMesurer(lg, meilleure.taille, styleEspace); });
+      // On ne retient l'espacement que s'il tient toujours dans la zone.
+      if (Math.max.apply(null, larg) <= Lutile) {
+        meilleure.interLettre = em + 'em';
+        meilleure.largeurs = larg;
+      }
+    }
+  }
+  if (!meilleure.interLettre) meilleure.interLettre = style.interLettre || '0';
+
+  meilleure.interligne = ENSEIGNE_COMPO.interligne;
+  return meilleure;
+}
+
 /* --- L'enseigne ----------------------------------------------------------- */
 
 /* Jeton de fraicheur : identifie la piece pour laquelle le dernier affichage a
@@ -686,10 +960,16 @@ function varianteDessinerEnseigne(cadre, decl, contenu) {
        span est un element de flex : il prend la largeur de son contenu, et
        offsetWidth la rapporte vraiment. */
     const t = conf.texte || {};
-    const txt = document.createElement('span');
-    txt.textContent = (t.casse === 'majuscules')
+    const brut = (t.casse === 'majuscules')
       ? String(contenu.texte).toLocaleUpperCase('fr-FR')
       : String(contenu.texte);
+    // Le texte source est conserve sur l'element : variantePositionnerEnseigne
+    // recompose a chaque changement de taille du cadre, et doit toujours repartir
+    // du nom entier, jamais du decoupage de la fois precedente.
+    el.dataset.texte = brut;
+    const txt = document.createElement('span');
+    txt.textContent = brut;
+    txt.style.display = 'block';
     el.appendChild(txt);
     el.style.textAlign = t.align || 'center';
     el.style.color = t.couleur || '#f3e3b4';
@@ -704,10 +984,14 @@ function varianteDessinerEnseigne(cadre, decl, contenu) {
   variantePositionnerEnseigne(cadre, conf, url, el, decl.ancrage);
 }
 
-/* Place l'enseigne sur le fronton, et -- en mode texte seulement -- calibre la
-   police. Rappele a chaque changement de dimensions du cadre. */
+/* Place l'enseigne sur le fronton. En mode texte, demande au compositeur la
+   meilleure maquette pour cette zone et ce nom, puis la pose ligne par ligne.
+   Rappele a chaque changement de dimensions du cadre : la zone change, donc la
+   maquette est recomposee -- une enseigne n'est pas calibree une fois pour
+   toutes, elle est recomposee pour la place dont elle dispose. */
 function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
-  varianteTailleNaturelle(url).then(function (taille) {
+  Promise.all([varianteTailleNaturelle(url), enseignePolicesPretes()]).then(function (r) {
+    const taille = r[0];
     if (!el.isConnected) return;
     const px = varianteZoneEnPixels(conf.zone, cadre, taille, ancrage);
     if (!px) { el.style.display = 'none'; return; }
@@ -718,31 +1002,46 @@ function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
     el.style.top    = px.haut + 'px';
     el.style.width  = px.largeur + 'px';
     el.style.height = px.hauteur + 'px';
-    el.style.justifyContent = (t.align === 'left') ? 'flex-start'
+    /* Le bloc est centre sur les DEUX axes : colonne de lignes, centrees entre
+       elles et dans la hauteur. L'alignement declare ne regle que l'horizontal. */
+    el.style.flexDirection  = 'column';
+    el.style.justifyContent = 'center';
+    el.style.alignItems     = (t.align === 'left') ? 'flex-start'
                             : (t.align === 'right') ? 'flex-end' : 'center';
 
-    // Le mode image n'a rien a calibrer : objectFit fait entrer le visuel.
+    // Le mode image n'a rien a composer : objectFit fait entrer le visuel.
     if (el.classList.contains('mode-image')) return;
 
-    /* La taille du texte suit la hauteur du fronton, puis retrecit encore si le
-       nom est trop long -- un nom de dix lettres et un nom de quarante doivent
-       tous deux tenir dans le meme cartouche.
-
-       La largeur visee n'est PAS celle du fronton, mais la plus petite des deux
-       entre le fronton et le cadre : en fenetre etroite (telephone, colonne), le
-       rognage horizontal de `cover` rend le fronton plus large que le cadre
-       lui-meme -- mesure : fronton de 945 px dans un cadre de 620. Sans ce
-       plafond, un nom long serait calibre sur une largeur dont la moitie est
-       hors champ, et le joueur n'en verrait que le milieu. */
+    /* La largeur visee n'est pas celle du fronton mais la plus petite des deux
+       entre le fronton et le cadre : en fenetre etroite, le rognage horizontal
+       de `cover` rend le fronton plus large que le cadre lui-meme (mesure :
+       945 px de fronton dans un cadre de 620). Sans ce plafond, le bloc serait
+       compose pour une largeur dont la moitie est hors champ. */
     const largeurUtile = Math.min(px.largeur, cadre.clientWidth);
-    const txt = el.firstChild;
-    let taillePolice = Math.min(px.hauteur * 0.62, t.tailleMax || 30);
-    el.style.fontSize = taillePolice + 'px';
-    let garde = 0;
-    while (txt && txt.offsetWidth > largeurUtile && taillePolice > 9 && garde++ < 60) {
-      taillePolice -= 0.5;
-      el.style.fontSize = taillePolice + 'px';
-    }
+
+    const compo = varianteComposerEnseigne(el.dataset.texte || el.textContent,
+                                           largeurUtile, px.hauteur, t);
+    if (!compo) return;
+
+    el.textContent = '';
+    el.style.fontSize   = compo.taille + 'px';
+    // L'interlettrage est decide par le compositeur, pas par la declaration :
+    // celle-ci n'en donne qu'un plancher.
+    el.style.letterSpacing = compo.interLettre;
+    /* LE RENDU DOIT MESURER CE QUE LE MODELE A CALCULE. line-height s'applique a
+       CHAQUE ligne, y compris a une ligne unique : avec 1,14, un bloc d'une
+       ligne occuperait 14 % de plus que la hauteur calculee et deborderait d'un
+       cartouche plat. On pose donc une hauteur de ligne de 1 et on reporte
+       l'interligne en marge ENTRE les lignes -- la hauteur rendue vaut alors
+       exactement taille x (1 + (n-1) x interligne), la formule du compositeur. */
+    el.style.lineHeight = '1';
+    compo.lignes.forEach(function (ligne, i) {
+      const sp = document.createElement('span');
+      sp.textContent = ligne;
+      sp.style.display = 'block';
+      if (i > 0) sp.style.marginTop = (compo.interligne - 1) + 'em';
+      el.appendChild(sp);
+    });
   });
 }
 

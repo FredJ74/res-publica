@@ -359,6 +359,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
   // lui-meme s'il montre la gestion, la boutique ou l'installation.
   if (fn === 'commerce_pj')              { ouvrirCommercePJ(); return; }
+  // EQUIPEMENTS DE BUREAU (4 octobre 2026) : interface d'attente, sans aucune
+  // mecanique. Sortie immediate, AVANT tout debit -- l'ordre est a 0 PA / 0 FR
+  // et n'a rien a faire savoir au serveur. Voir plateau-equipements.js.
+  if (fn === 'installer_equipements')    { ouvrirModalEquipements(); return; }
   // CAMION MILITAIRE (29 septembre 2026). Quatre ordres, tous a 0 PA et 0 FR :
   // monter, descendre, conduire, envoyer a vide. Le seul cout du systeme -- 2 PA
   // par occupant reellement transporte -- est calcule et preleve PAR LE SERVEUR,
