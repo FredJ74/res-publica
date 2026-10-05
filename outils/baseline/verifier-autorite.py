@@ -22,7 +22,7 @@ Un ecart entre 1 et 2 est une mutation cliente introduite sans decision : c'est
 le garde-fou. Un ecart entre 2 et 3 est un droit que personne n'utilise, ou une
 barriere qui manque.
 
-DOUZE INVARIANTS, en trois familles qui echouent independamment.
+TREIZE INVARIANTS, en trois familles qui echouent independamment.
 
   FAMILLE 1 -- LE CODE                      (toujours bloquante)
     1. aucune mutation cliente hors de la surface declaree
@@ -39,8 +39,16 @@ DOUZE INVARIANTS, en trois familles qui echouent independamment.
    10. aucune fonction mutante client-appelable sans garde d'acteur
    11. aucune fonction mutante appelable par `anon`
 
-  FAMILLE 3 -- LES MIGRATIONS PREPAREES      (toujours bloquante)
+  FAMILLE 3 -- LES PORTES SERVEUR            (toujours bloquante)
    12. tout objet nomme par une migration en attente existe dans le baseline
+   13. toute RPC appelee par le navigateur existe, avec ces parametres-la
+
+Le treizieme vient d'une panne deja vue : une RPC livree cote client dont la
+migration n'avait pas ete appliquee. PostgREST repond 404, le jeu affiche
+« Acces refuse », et on cherche une faille de droits la ou il n'y a qu'une
+fonction absente. Fermer des acces directs sans ce controle, c'est deplacer le
+risque : la porte serveur devient le seul chemin, et un seul parametre mal
+nomme la ferme.
 
 LES ECARTS EN ATTENTE D'UNE MIGRATION. Le principe 2G interdit d'avancer le
 baseline sur la base : tant qu'une migration preparee n'est pas appliquee, les
@@ -160,9 +168,15 @@ def surface_du_navigateur():
 
 
 def rpc_du_navigateur():
-    """Les RPC appelees par le navigateur, avec les noms des parametres passes."""
-    appels = collections.defaultdict(set)
+    """Les RPC appelees par le navigateur, FORME PAR FORME.
+
+    Pas une union des parametres de tous les sites d'appel : une fonction a deux
+    surcharges peut etre appelee sous ses deux formes, et l'union ne
+    correspondrait alors a aucune des deux. On garde donc chaque jeu de
+    parametres tel qu'il part, avec le site qui l'envoie."""
+    formes = collections.defaultdict(lambda: collections.defaultdict(list))
     for chemin in fichiers_du_navigateur():
+        court = os.path.relpath(chemin, RACINE)
         texte = open(chemin, encoding="utf-8", errors="replace").read()
         for m in re.finditer(r"sbRpc\(\s*['\"]([a-z_0-9]+)['\"]\s*,\s*\{", texte):
             i = m.end() - 1
@@ -175,9 +189,11 @@ def rpc_du_navigateur():
                     if prof == 0:
                         break
                 j += 1
-            for p in re.findall(r"[{,]\s*([A-Za-z_][A-Za-z_0-9]*)\s*:", texte[i:j + 1]):
-                appels[m.group(1)].add(p)
-    return appels
+            passes = frozenset(
+                re.findall(r"[{,]\s*([A-Za-z_][A-Za-z_0-9]*)\s*:", texte[i:j + 1]))
+            formes[m.group(1)][passes].append(
+                "%s:%d" % (court, texte[:m.start()].count("\n") + 1))
+    return formes
 
 
 # ---------------------------------------------------------------------------
@@ -261,6 +277,29 @@ def fonctions_du_baseline():
             if nom:
                 defs[nom.group(1)].append(morceau)
     return {nom: "\n".join(v) for nom, v in defs.items()}
+
+
+def parametres_du_baseline():
+    """nom de fonction -> liste des jeux de parametres, une entree par surcharge.
+    Les surcharges comptent : le navigateur appelle parfois une forme courte
+    d'une fonction qui en a deux."""
+    formes = collections.defaultdict(list)
+    for chemin in sorted(glob.glob(os.path.join(DOMAINES, "*", "*fonctions*.sql"))):
+        texte = open(chemin, encoding="utf-8").read()
+        for morceau in re.split(r"(?m)^CREATE OR REPLACE FUNCTION public\.", texte)[1:]:
+            nom = re.match(r"([a-z_0-9]+)", morceau)
+            sig = re.match(r"[a-z_0-9]+\((.*?)\)\s*\n\s*RETURNS", morceau, re.S)
+            if not (nom and sig):
+                continue
+            noms = set()
+            # decoupe sur les virgules de premier niveau : un type peut en
+            # contenir (numeric(10,2)), et une valeur par defaut aussi.
+            for arg in re.split(r",(?![^(]*\))", sig.group(1)):
+                m = re.match(r"\s*([A-Za-z_][A-Za-z_0-9]*)\s", arg)
+                if m:
+                    noms.add(m.group(1))
+            formes[nom.group(1)].append(noms)
+    return formes
 
 
 def garde_a_un_saut(nom, corps):
@@ -394,7 +433,8 @@ def main():
     for fn in sorted(appels_rpc):
         if fn in tolerees or fn not in corps:
             continue
-        identites = sorted(p for p in appels_rpc[fn] if PARAM_IDENTITE.match(p))
+        tous = {p for passes in appels_rpc[fn] for p in passes}
+        identites = sorted(p for p in tous if PARAM_IDENTITE.match(p))
         if identites and not garde_a_un_saut(fn, corps):
             ecarts.append("%s recoit %s et ne verifie aucun acteur"
                           % (fn, ", ".join(identites)))
@@ -482,6 +522,9 @@ def main():
             ecarts.append("%s : mutante, EXECUTE a %s" % (court, ", ".join(ouvert)))
     r.invariant(11, "aucune fonction mutante appelable par anon", ecarts, detail)
 
+    # ----------------------------------------------------------- FAMILLE 3
+    r.famille("FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES")
+
     # Invariant 12 -- LA DERNIERE EPREUVE QUE L'ON PEUT FAIRE HORS LIGNE.
     #
     # Une migration qui nomme une table inexistante echoue a l'application, et
@@ -522,6 +565,29 @@ def main():
             if m.group(1) not in tables_connues:
                 ecarts.append("%s : table inconnue « %s » mise sous RLS" % (court, m.group(1)))
     r.invariant(12, "les migrations en attente ne nomment rien d'inconnu", ecarts, detail)
+
+    # Invariant 13 -- LA PORTE SERVEUR EXISTE-T-ELLE VRAIMENT ?
+    #
+    # Fermer un acces direct ne vaut que si la porte de remplacement s'ouvre.
+    # Une RPC absente de la base repond 404, et le jeu traduit ca en « Acces
+    # refuse » : on cherche alors un droit manquant la ou il manque une
+    # fonction. Un parametre mal nomme donne le meme symptome, PostgREST
+    # resolvant la surcharge par les NOMS des parametres, pas par leur ordre.
+    formes_baseline = parametres_du_baseline()
+    ecarts = []
+    for fn in sorted(appels_rpc):
+        if fn not in formes_baseline:
+            sites = sorted({s for v in appels_rpc[fn].values() for s in v})[:2]
+            ecarts.append("%s : aucune fonction de ce nom dans le baseline — %s"
+                          % (fn, ", ".join(sites)))
+            continue
+        for passes, sites in sorted(appels_rpc[fn].items(), key=lambda kv: sorted(kv[0])):
+            # <= et non == : un parametre a valeur par defaut peut etre omis.
+            if not any(passes <= attendus for attendus in formes_baseline[fn]):
+                ecarts.append("%s : parametres (%s) ne correspondent a aucune "
+                              "surcharge — %s"
+                              % (fn, ", ".join(sorted(passes)) or "aucun", sites[0]))
+    r.invariant(13, "toute RPC appelee par le navigateur existe", ecarts, detail)
 
     return r.verdict()
 
