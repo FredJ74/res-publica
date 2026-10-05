@@ -1,0 +1,975 @@
+{
+ "commentaires": [],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "chat_piece_pkey",
+   "tbl": "chat_piece"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "forum_posts_pkey",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "forum_topics_pkey",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "lectures_chat_pkey",
+   "tbl": "lectures_chat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "mails_pkey",
+   "tbl": "mails"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "mails_envois_systeme_pkey",
+   "tbl": "mails_envois_systeme"
+  },
+  {
+   "empreinte": "2594c4f8dc32318cf14ae5cdc2dfe0bd",
+   "genre": "p",
+   "nom": "mails_expediteurs_systeme_pkey",
+   "tbl": "mails_expediteurs_systeme"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "messages_chat_pkey",
+   "tbl": "messages_chat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "salons_chat_pkey",
+   "tbl": "salons_chat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "salons_membres_pkey",
+   "tbl": "salons_membres"
+  },
+  {
+   "empreinte": "779ad368d96a89dafb800b3672dbfdb1",
+   "genre": "f",
+   "nom": "forum_posts_topic_id_fkey",
+   "tbl": "forum_posts"
+  }
+ ],
+ "dependances_externes": {
+  "_commentaire": "Objets d'AUTRES domaines dont la reconstruction de celui-ci a besoin. Ils ne sont PAS extraits ici : ils sont declares, pour que l'assemblage global sache dans quel ordre proceder.",
+  "cles_etrangeres_sortantes": [],
+  "fonctions_requises_avant_les_policies": [
+   "mon_personnage()",
+   "est_appel_serveur()",
+   "acteur_poste_courant()",
+   "rp_transition_active()"
+  ],
+  "tables_citees_par_les_corps_plpgsql": [
+   "personnages_donnees",
+   "organisations",
+   "mariages",
+   "caisses_fret",
+   "championnat_tentatives"
+  ]
+ },
+ "domaine": "communication",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chat_est_membre_salon(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chat_est_membre_salon(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chat_est_membre_salon(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chat_participe(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chat_participe(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chat_participe(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_compte_rendu_journee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_compte_rendu_journee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_compte_rendu_journee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_compte_rendu_journee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_compte_rendu_journee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_local_territorial()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_local_territorial()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_local_territorial()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_local_territorial()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_local_territorial()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_message_ligue()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_message_ligue()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_message_ligue()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_message_ligue()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_message_ligue()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_programme_officiel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_programme_officiel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_programme_officiel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_programme_officiel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "forum_verrou_programme_officiel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_conjoint(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_conjoint(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_conjoint(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_fret(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_fret(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_fret(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_titulaire(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_titulaire(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_destinataire_est_titulaire(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise_strict(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise_strict(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_autorise_strict(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_organisation(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_organisation(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_organisation(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_expediteur_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mail_systeme_envoyer(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mail_systeme_envoyer(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mail_systeme_envoyer(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "mails_journaliser_envoi_systeme()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "mails_journaliser_envoi_systeme()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mails_journaliser_envoi_systeme()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mails_journaliser_envoi_systeme()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mails_journaliser_envoi_systeme()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "chat_piece",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chat_piece",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chat_piece",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chat_piece",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "forum_posts",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "forum_posts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "forum_posts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "forum_posts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "forum_topics",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "forum_topics",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "forum_topics",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "forum_topics",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "lectures_chat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "lectures_chat",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "lectures_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "lectures_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "mails",
+   "privileges": "MAINTAIN"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "mails",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mails",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mails",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mails_envois_systeme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mails_envois_systeme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mails_expediteurs_systeme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mails_expediteurs_systeme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "messages_chat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "messages_chat",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "messages_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "messages_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "salons_chat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "salons_chat",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salons_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salons_chat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "salons_membres",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "salons_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salons_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salons_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "b06995537f8c7d56faa6d2d3e8cffb47",
+  "20_fonctions.sql": "1e4436195beb3dc1a2d91443ae205aa3",
+  "30_contraintes.sql": "f4ee4ce3f5fb3e28945b5baac160308e",
+  "35_index.sql": "b6379f9fa6bb69fef48c72af3e847b23",
+  "50_triggers.sql": "881cfa332116fede80b55862eac9dedc",
+  "60_rls-policies.sql": "1712321f325f188ab1c86195b11a0b82",
+  "70_droits.sql": "cdfeb139ede8862034cba00e3ab7a297",
+  "80_commentaires.sql": "35d05564f6584ed9ddab50dd7d3724e4"
+ },
+ "fonctions": [
+  {
+   "empreinte": "96d275afe11d49bb1c9a6a23a0e4741f",
+   "security_definer": true,
+   "signature": "chat_est_membre_salon(text)"
+  },
+  {
+   "empreinte": "1272e9f875b0d62ec53cf80140fe17dc",
+   "security_definer": true,
+   "signature": "chat_participe(text,boolean)"
+  },
+  {
+   "empreinte": "498f1073b962637b33ff4dbf9d46f67c",
+   "security_definer": true,
+   "signature": "forum_verrou_compte_rendu_journee()"
+  },
+  {
+   "empreinte": "b0b2e1b6ca9197330cc4fcfc5c50d831",
+   "security_definer": true,
+   "signature": "forum_verrou_local_territorial()"
+  },
+  {
+   "empreinte": "23d31d27e1f3a1d149306a342fca09a0",
+   "security_definer": true,
+   "signature": "forum_verrou_message_ligue()"
+  },
+  {
+   "empreinte": "9af51531232f02405759a78e01902633",
+   "security_definer": true,
+   "signature": "forum_verrou_programme_officiel()"
+  },
+  {
+   "empreinte": "16f47467dfb0968f673c14262a145382",
+   "security_definer": true,
+   "signature": "mail_destinataire_est_conjoint(text,text)"
+  },
+  {
+   "empreinte": "490498d82e2f187ffa9dd66196603425",
+   "security_definer": true,
+   "signature": "mail_destinataire_est_fret(text,text)"
+  },
+  {
+   "empreinte": "407918fe16dd5398bf1e3da6ec555772",
+   "security_definer": true,
+   "signature": "mail_destinataire_est_titulaire(text,text[])"
+  },
+  {
+   "empreinte": "a78dd7a957d0e8fbd530bd97ca6ade8b",
+   "security_definer": true,
+   "signature": "mail_expediteur_autorise(text,text)"
+  },
+  {
+   "empreinte": "0fa73011e807d602abbf5146fe678623",
+   "security_definer": true,
+   "signature": "mail_expediteur_autorise_strict(text,text)"
+  },
+  {
+   "empreinte": "090f88cafd72622cc17e4a3b14b6fc18",
+   "security_definer": true,
+   "signature": "mail_expediteur_organisation(text)"
+  },
+  {
+   "empreinte": "a323e6f45081570d4fde1db43fa3d5b2",
+   "security_definer": true,
+   "signature": "mail_expediteur_systeme(text)"
+  },
+  {
+   "empreinte": "d5865159c2a1f2a4bde0f5c73dd56130",
+   "security_definer": true,
+   "signature": "mail_systeme_envoyer(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "99cc2a8c5f145e996b727b1b07538edd",
+   "security_definer": true,
+   "signature": "mails_journaliser_envoi_systeme()"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "8a7fce39bece8fdcd988da1a3dcd50c3",
+   "nom": "idx_chat_piece_lieu"
+  }
+ ],
+ "libelle": "Communication : messagerie interne, forum, salons de discussion",
+ "policies": [
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "nom": "allow_all_chat_piece",
+   "tbl": "chat_piece"
+  },
+  {
+   "empreinte": "b38b2c25102bf2042da662e247c61e19",
+   "nom": "forum_posts_creation",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "nom": "forum_posts_lecture",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "4d27d2aaec7bf1430097b784fdc04496",
+   "nom": "forum_posts_maj_auteur",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "c8c84f55c14c993b071112180cd92800",
+   "nom": "forum_posts_suppression_auteur",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "b38b2c25102bf2042da662e247c61e19",
+   "nom": "forum_topics_creation",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "nom": "forum_topics_lecture",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "4d27d2aaec7bf1430097b784fdc04496",
+   "nom": "forum_topics_maj_auteur",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "c8c84f55c14c993b071112180cd92800",
+   "nom": "forum_topics_suppression_auteur",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "483ffcc8ef94afffc335755ac4c44f81",
+   "nom": "lectures_chat_majour",
+   "tbl": "lectures_chat"
+  },
+  {
+   "empreinte": "8117a57e5e9bdc20f84b3719e4ffb5b8",
+   "nom": "lectures_chat_poser",
+   "tbl": "lectures_chat"
+  },
+  {
+   "empreinte": "6e5ba92c5f56950ab02941af5c433727",
+   "nom": "lectures_chat_sienne",
+   "tbl": "lectures_chat"
+  },
+  {
+   "empreinte": "a548bcb7857bc66434f49be8cd877e3c",
+   "nom": "mails_envoi",
+   "tbl": "mails"
+  },
+  {
+   "empreinte": "dd7c906de6fc9c7532c5e8e532f7ae1a",
+   "nom": "mails_lecture_partie",
+   "tbl": "mails"
+  },
+  {
+   "empreinte": "3877756d7491adcadf93ddfb193ed457",
+   "nom": "mails_maj_partie",
+   "tbl": "mails"
+  },
+  {
+   "empreinte": "d3bcf5e13e0a6cc909c7083f0651653a",
+   "nom": "mails_suppression_partie",
+   "tbl": "mails"
+  },
+  {
+   "empreinte": "dd976a5d6f0ed8d59945dfd870732afe",
+   "nom": "messages_chat_envoi",
+   "tbl": "messages_chat"
+  },
+  {
+   "empreinte": "7aa1f365e043e981f240dd297e3bd261",
+   "nom": "messages_chat_lecture_partie",
+   "tbl": "messages_chat"
+  },
+  {
+   "empreinte": "54741d7573cf1e1fd07b239de2d483f6",
+   "nom": "salons_chat_creation",
+   "tbl": "salons_chat"
+  },
+  {
+   "empreinte": "00031e6d1c01d2f1c02b4825317e7fca",
+   "nom": "salons_chat_lecture_membre",
+   "tbl": "salons_chat"
+  },
+  {
+   "empreinte": "2118aa29de37d7ca2e1e5b35e533cbf4",
+   "nom": "salons_membres_lecture",
+   "tbl": "salons_membres"
+  },
+  {
+   "empreinte": "082fa25174413fead97aab938c0e9913",
+   "nom": "salons_membres_quitter",
+   "tbl": "salons_membres"
+  },
+  {
+   "empreinte": "8117a57e5e9bdc20f84b3719e4ffb5b8",
+   "nom": "salons_membres_rejoindre",
+   "tbl": "salons_membres"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chat_piece"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "forum_posts"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "forum_topics"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "lectures_chat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mails"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mails_envois_systeme"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mails_expediteurs_systeme"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "messages_chat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salons_chat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salons_membres"
+  }
+ ],
+ "tables": [
+  {
+   "colonnes": 9,
+   "nom": "chat_piece"
+  },
+  {
+   "colonnes": 14,
+   "nom": "forum_posts"
+  },
+  {
+   "colonnes": 16,
+   "nom": "forum_topics"
+  },
+  {
+   "colonnes": 4,
+   "nom": "lectures_chat"
+  },
+  {
+   "colonnes": 12,
+   "nom": "mails"
+  },
+  {
+   "colonnes": 6,
+   "nom": "mails_envois_systeme"
+  },
+  {
+   "colonnes": 9,
+   "nom": "mails_expediteurs_systeme"
+  },
+  {
+   "colonnes": 6,
+   "nom": "messages_chat"
+  },
+  {
+   "colonnes": 4,
+   "nom": "salons_chat"
+  },
+  {
+   "colonnes": 3,
+   "nom": "salons_membres"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "64d1d890b799c626d05a6a3cfe3be3f0",
+   "fonction": "forum_verrou_message_ligue()",
+   "nom": "trg_forum_verrou_message_ligue",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "730f7ea16586e8b174c2892da8d33aee",
+   "fonction": "forum_verrou_local_territorial()",
+   "nom": "trg_forum_local_territorial",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "e19d372efc6b12479871ededbb8c7185",
+   "fonction": "forum_verrou_compte_rendu_journee()",
+   "nom": "trg_forum_verrou_compte_rendu",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "d117ecf37f6ef11fd3692748509684f2",
+   "fonction": "forum_verrou_programme_officiel()",
+   "nom": "trg_forum_verrou_programme",
+   "tbl": "forum_topics"
+  },
+  {
+   "empreinte": "f7c2986fee744a2e42905e8be8e6868c",
+   "fonction": "mails_journaliser_envoi_systeme()",
+   "nom": "trg_mails_journaliser_envoi_systeme",
+   "tbl": "mails"
+  }
+ ]
+}

@@ -1,0 +1,34 @@
+{
+  "_commentaire": "CE QUE LA BASE DIT, releve par introspection au moment de l'extraction. A confronter a MANIFESTE.json, qui dit CE QUI A ETE RENDU. outils/baseline/verifier.py compare les deux, puis compare les fichiers .sql a leurs empreintes. Les trois doivent concorder.",
+  "domaine": "communication",
+  "releve_le": "2026-10-05",
+  "source": "catalogues PostgreSQL du projet jxpwoosmmhohoihxpbuc, via outils/baseline/requetes.py communication inventaire",
+
+  "attendu": {
+    "tables": 10,
+    "colonnes": 83,
+    "contraintes": 11,
+    "index": 11,
+    "index_autonomes": 1,
+    "fonctions": 15,
+    "triggers": 5,
+    "policies": 23,
+    "rls_actives": 10,
+    "droits_colonnes": 0,
+    "lignes_droits": 91
+  },
+
+  "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
+  "empreinte_fonctions_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = signature || ':' || md5(pg_get_functiondef(oid))",
+  "empreinte_fonctions_piege": "Le COLLATE \"C\" n'est pas cosmetique. Sans lui, PostgreSQL trie avec la collation de la base, qui ignore la ponctuation au premier rang : mail_expediteur_autorise_strict(...) passe AVANT mail_expediteur_autorise(...). Python, lui, trie par point de code, ou '(' precede '_'. Les deux empreintes divergent alors que les definitions sont identiques. Valeur obtenue sans COLLATE \"C\" sur cette base, conservee pour memoire : a32458d97c32a6055fa06799e87039d3.",
+
+  "securite_attendue": {
+    "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte.",
+    "fonctions_security_definer": 15,
+    "fonctions_security_invoker": 0,
+    "tables_rls_active_sans_policy": 2,
+    "tables_rls_active_sans_policy_liste": ["mails_envois_systeme", "mails_expediteurs_systeme"],
+    "tables_fermees_a_anon_et_authenticated": ["mails_envois_systeme", "mails_expediteurs_systeme"],
+    "anon_sans_select_sur": ["mails"]
+  }
+}

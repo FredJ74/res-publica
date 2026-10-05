@@ -1,0 +1,64 @@
+{
+  "_commentaire": "Perimetre de chaque domaine du baseline. Ce fichier est la source de verite du DECOUPAGE : il dit quels objets appartiennent a quel domaine, et il est relu par un humain. L'outil ne devine jamais un perimetre, il applique celui-ci. `fonctions_motif` documente COMMENT la liste a ete derivee ; `fonctions` est la liste GELEE qui fait foi, pour que l'extraction soit deterministe meme si une fonction est ajoutee plus tard.",
+
+  "communication": {
+    "libelle": "Communication : messagerie interne, forum, salons de discussion",
+    "derive_le": "2026-10-05",
+
+    "tables": [
+      "chat_piece",
+      "forum_posts",
+      "forum_topics",
+      "lectures_chat",
+      "mails",
+      "mails_envois_systeme",
+      "mails_expediteurs_systeme",
+      "messages_chat",
+      "salons_chat",
+      "salons_membres"
+    ],
+
+    "fonctions_motif": "^(mail|mails|forum|chat|salon|lecture)",
+    "fonctions": [
+      "chat_est_membre_salon(text)",
+      "chat_participe(text,boolean)",
+      "forum_verrou_compte_rendu_journee()",
+      "forum_verrou_local_territorial()",
+      "forum_verrou_message_ligue()",
+      "forum_verrou_programme_officiel()",
+      "mail_destinataire_est_conjoint(text,text)",
+      "mail_destinataire_est_fret(text,text)",
+      "mail_destinataire_est_titulaire(text,text[])",
+      "mail_expediteur_autorise(text,text)",
+      "mail_expediteur_autorise_strict(text,text)",
+      "mail_expediteur_organisation(text)",
+      "mail_expediteur_systeme(text)",
+      "mail_systeme_envoyer(text,text,text,text,text)",
+      "mails_journaliser_envoi_systeme()"
+    ],
+
+    "dependances_externes": {
+      "_commentaire": "Objets d'AUTRES domaines dont la reconstruction de celui-ci a besoin. Ils ne sont PAS extraits ici : ils sont declares, pour que l'assemblage global sache dans quel ordre proceder.",
+      "fonctions_requises_avant_les_policies": [
+        "mon_personnage()",
+        "est_appel_serveur()",
+        "acteur_poste_courant()",
+        "rp_transition_active()"
+      ],
+      "tables_citees_par_les_corps_plpgsql": [
+        "personnages_donnees",
+        "organisations",
+        "mariages",
+        "caisses_fret",
+        "championnat_tentatives"
+      ],
+      "cles_etrangeres_sortantes": []
+    },
+
+    "faux_positifs_ecartes": {
+      "_commentaire": "Pieges rencontres en derivant le perimetre, consignes pour que personne ne les repose.",
+      "entreprises_prix_rachat": "capturee par LIKE '%chat%' -- ra-CHAT. Appartient a l'economie.",
+      "usines_rachat_config": "meme piege."
+    }
+  }
+}
