@@ -120,7 +120,7 @@ jamais l'être : 162 des 184 dépendent d'une table qu'aucun d'eux ne crée.
 **Plus de baseline édité à la main.** Une correction passe par une migration,
 puis par une réextraction. Jamais par un `.sql` du baseline retouché.
 
-## Les huit contrôles
+## Les neuf contrôles
 
 Une seule commande les enchaîne :
 
@@ -132,6 +132,7 @@ python3 outils/baseline/controler-tout.py
 |---|---|
 | `verifier-workflow.py` | les **huit invariants** du processus : rien à la racine, archives intactes, migrations bien nommées, outils à leur place |
 | `verifier-baseline.py` | la fidélité au catalogue, en quatre familles séparées |
+| `verifier-autorite.py` | les **onze invariants** d'autorité : qui peut écrire quoi depuis un navigateur |
 | `verifier-monde-neuf.py` | ni donnée de bêta, ni vestige, dans les seeds |
 | `assembler.py` | les dépendances, à vide |
 | `reconstruire.py` | la grammaire réelle de PostgreSQL, et la simulation d'application |
@@ -142,6 +143,28 @@ python3 outils/baseline/controler-tout.py
 Aucun n'accède à la base. Ils sont tous rejouables hors ligne, et c'est voulu :
 un contrôle qui a besoin de la production n'est pas un contrôle, c'est une
 dépendance.
+
+## Écrire depuis le navigateur : une déclaration, pas un réflexe
+
+Le chantier 3 a ajouté une règle au processus. Toute mutation qu'un fichier
+chargé par `index.html` adresse directement à PostgREST — `sbInsert`,
+`sbUpdate`, `sbDelete`, ou un `fetch` brut — doit être déclarée dans
+`outils/baseline/autorite.json`, clé `surface_cliente`. Sinon
+`verifier-autorite.py` refuse.
+
+**La bonne réaction à ce refus n'est presque jamais d'ajouter la ligne.** Une
+écriture cliente directe signifie que le serveur n'a pas de porte pour cette
+action ; la porte manquante est le vrai sujet. Le socle en a déjà :
+`mon_personnage()` dit qui parle, `exiger_acteur()` le vérifie,
+`est_appel_serveur()` distingue le cron du joueur, `acteur_identifie()` exige
+simplement qu'il y ait quelqu'un, et 316 fonctions `SECURITY DEFINER` font le
+travail. La liste des écritures directes ne doit que **rétrécir**.
+
+Pourquoi ce fichier vit dans `outils/` et non dans `baseline/` : il est écrit à
+la main, et `baseline/` est généré. La déclaration précède la base ; le baseline
+la suit. Quand une migration d'autorité attend son application, les invariants
+qu'elle ferme sont listés dans `en_attente_d_application` — le contrôle les
+rapporte sans échouer, et refuse qu'on y laisse un invariant déjà satisfait.
 
 ## Ce qui reste à faire une fois
 

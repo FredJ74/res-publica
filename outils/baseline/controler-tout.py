@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Enchaine les huit controles du baseline, dans l'ordre utile (chantier 2G).
+"""Enchaine les neuf controles du baseline, dans l'ordre utile (chantier 2G).
 
 UNE SEULE COMMANDE, pour une seule raison : un agent qui doit se souvenir de
-huit commandes en oubliera une, et ce sera celle qui aurait trouve le defaut.
+neuf commandes en oubliera une, et ce sera celle qui aurait trouve le defaut.
 
 Ce module NE REFAIT RIEN. Il appelle les outils existants et rend un verdict
 d'ensemble. Toute logique de controle vit dans l'outil qui en a la charge.
@@ -13,11 +13,17 @@ L'ORDRE N'EST PAS ALPHABETIQUE, il va du plus structurant au plus fin :
   1. le PROCESSUS tient-il            verifier-workflow.py
   2. la CLASSIFICATION est-elle entiere  verifier-classification.py
   3. le BASELINE est-il fidele        verifier-baseline.py
-  4. le MONDE NEUF est-il propre      verifier-monde-neuf.py
-  5. l'ASSEMBLAGE se tient-il         assembler.py
-  6. la RECONSTRUCTION passe-t-elle   reconstruire.py
-  7. le domaine pilote 2B             verifier.py communication
-  8. l'archive du registre 2D         ../verifier-archive-registre.py
+  4. l'AUTORITE tient-elle            verifier-autorite.py
+  5. le MONDE NEUF est-il propre      verifier-monde-neuf.py
+  6. l'ASSEMBLAGE se tient-il         assembler.py
+  7. la RECONSTRUCTION passe-t-elle   reconstruire.py
+  8. le domaine pilote 2B             verifier.py communication
+  9. l'archive du registre 2D         ../verifier-archive-registre.py
+
+Le quatrieme vient juste apres la fidelite, et c'est voulu : il LIT le baseline
+pour juger la base. Tant que le baseline n'est pas fidele, son verdict ne porte
+sur rien. Les trois precedents disent « le depot dit la verite » ; celui-la
+demande « cette verite est-elle tenable ? ».
 
 Un echec en 1 rend les suivants peu interessants : si le depot n'est plus range
 comme le processus l'exige, la fidelite du baseline n'est pas la question. Mais
@@ -29,7 +35,7 @@ Aucun de ces outils n'accede a la base. L'ensemble est rejouable hors ligne.
 Usage :
     python3 outils/baseline/controler-tout.py
     python3 outils/baseline/controler-tout.py --detail   # sortie complete
-Code de sortie 0 si les huit passent, 1 sinon.
+Code de sortie 0 si les neuf passent, 1 sinon.
 """
 
 import os
@@ -43,6 +49,7 @@ CONTROLES = [
     ("le processus tient", [os.path.join(ICI, "verifier-workflow.py")]),
     ("la classification est entiere", [os.path.join(ICI, "verifier-classification.py")]),
     ("le baseline est fidele au catalogue", [os.path.join(ICI, "verifier-baseline.py")]),
+    ("l'autorite tient", [os.path.join(ICI, "verifier-autorite.py")]),
     ("le monde neuf est propre", [os.path.join(ICI, "verifier-monde-neuf.py")]),
     ("l'assemblage se tient", [os.path.join(ICI, "assembler.py")]),
     ("la reconstruction passe", [os.path.join(ICI, "reconstruire.py")]),
@@ -82,8 +89,9 @@ def main():
         print("ces outils rapportent, ils ne reparent pas.")
         return 1
     print("LES %d CONTROLES SONT VERTS." % len(resultats))
-    print("Le processus tient, le baseline est fidele, le monde neuf est propre,")
-    print("et le script de reconstruction passe la grammaire de PostgreSQL 17.")
+    print("Le processus tient, le baseline est fidele, l'autorite est declaree,")
+    print("le monde neuf est propre, et le script de reconstruction passe la")
+    print("grammaire de PostgreSQL 17.")
     return 0
 
 

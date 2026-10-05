@@ -10,9 +10,26 @@ L'horodatage est celui du moment où la migration est écrite, en UTC. Il donne
 l'ordre d'application, et il doit être **postérieur au point de coupe du
 baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
-Ce répertoire est vide aujourd'hui, et c'est normal : le baseline du 5 octobre
-2026 est à jour de la base. La première migration qui s'y posera sera la
-première évolution postérieure à cet état canonique.
+## Les trois migrations en attente d'application — chantier 3, autorité
+
+Elles sont **écrites, éprouvées autant que l'environnement le permet, et non
+appliquées**. Rien dans le dépôt ne prétend le contraire : le baseline n'a pas
+été réextrait, et `verifier-autorite.py` déclare lui-même les sept invariants
+qu'elles ferment comme encore en écart (`en_attente_d_application` dans
+`../outils/baseline/autorite.json`).
+
+| Fichier | Ce qu'elle fait |
+|---|---|
+| `20261005214500_autorite_defauts_fermes.sql` | ferme le robinet : `ALTER DEFAULT PRIVILEGES` n'accordera plus l'écriture sur toute table neuve ; retire les 547 privilèges de maintenance et les 24 fonctions de déclencheur ouvertes aux rôles clients |
+| `20261005214600_autorite_socle_acteur_identifie.sql` | crée `acteur_identifie()`, met les 25 dernières tables sous RLS, remplace les 28 policies totalement permissives, révoque les 101 droits d'écriture que le navigateur n'exerce pas |
+| `20261006013000_autorite_rpc_sans_anon.sql` | retire `EXECUTE` à `anon` sur les 34 fonctions mutantes, et sur les suivantes par défaut |
+
+Aucune ne touche une donnée : ni `INSERT`, ni `UPDATE`, ni `DELETE`, ni
+`TRUNCATE`, ni `DROP TABLE`. Uniquement des privilèges, de la RLS, des policies
+et une fonction.
+
+**Ordre d'application impératif**, puis réextraction du baseline et commit des
+deux ensemble (temps 5 de `../WORKFLOW-SUPABASE.md`).
 
 ## Les trois règles
 
