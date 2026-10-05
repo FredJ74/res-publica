@@ -4,6 +4,10 @@
 > Point de coupe : **5 octobre 2026, 15 h 17 (Paris)**, registre Supabase à 539
 > entrées, dernière version `20261004214621`.
 
+> **Pour faire évoluer la base, voir `../WORKFLOW-SUPABASE.md`.** Ce README-ci
+> décrit ce que le baseline *est* ; le processus pour le faire vivre est décrit
+> là-bas, et une seule fois.
+
 Ce dossier contient la définition canonique du schéma PostgreSQL de Human Gambit,
 extraite des catalogues de la base de production, et le contenu initial avec
 lequel un monde doit naître. Il est destiné à permettre de reconstruire le socle

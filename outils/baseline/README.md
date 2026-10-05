@@ -1,5 +1,9 @@
 # Outillage d'extraction du baseline
 
+> **Le processus à suivre pour faire évoluer la base est dans
+> `../../WORKFLOW-SUPABASE.md`.** Ce README-ci décrit les outils et les pièges
+> rencontrés ; il ne redit pas le processus.
+
 Un module, une responsabilité.
 
 | Fichier | Rôle |
@@ -12,6 +16,8 @@ Un module, une responsabilité.
 | `assembler.py` | **le test d'assemblage statique**, sans créer de base |
 | `verifier-monde-neuf.py` | **le contrôle du monde neuf** : aucune donnée de bêta, aucun vestige canonisé |
 | `reconstruire.py` | **la reconstruction** : assemble le baseline, le soumet à la grammaire réelle de PostgreSQL et simule son application |
+| `verifier-workflow.py` | **le garde-fou du processus** : sept invariants qui empêchent la régression du workflow |
+| `controler-tout.py` | **le lanceur unique** : enchaîne les huit contrôles et rend un verdict d'ensemble |
 | `verifier.py` | **le contrôle du domaine pilote** `communication` (chantier 2B) |
 | `arbitrages.py` | **les tableaux d'arbitrage** de l'état initial, préparés pour être remplis |
 | `verifier-classification.py` | **le contrôle de la classification** 2C |
@@ -47,6 +53,9 @@ python3 outils/baseline/seeds.py  --rendre <repertoire_des_exports> <resultat>
 python3 outils/baseline/arbitrages.py --sql                          # tableaux d'arbitrage
 python3 outils/baseline/arbitrages.py --rendre <resultat>
 
+python3 outils/baseline/controler-tout.py        # les huit, en une commande
+
+python3 outils/baseline/verifier-workflow.py     # ou un par un
 python3 outils/baseline/verifier-baseline.py
 python3 outils/baseline/verifier-monde-neuf.py
 python3 outils/baseline/assembler.py
@@ -184,6 +193,28 @@ première version coupait sur les lignes vides ; comme un corps de fonction en
 contient, deux fonctions ont été coupées en deux. Le contrôle l'a vu — 639
 définitions relues sur 641 — et la découpe se fait désormais sur les **blocs**,
 un bloc valant un objet entier.
+
+## Trois questions différentes, trois outils
+
+Elles ne se déduisent pas l'une de l'autre, et c'est pourquoi il y a trois
+outils plutôt qu'un gros.
+
+**`verifier-baseline.py` — est-ce fidèle ?** Le baseline dit-il la même chose que
+le catalogue ? C'est la question du contenu.
+
+**`verifier-monde-neuf.py` — est-ce propre ?** Le monde qui naîtra traîne-t-il des
+artefacts de bêta ou des vestiges ? Un baseline parfaitement fidèle peut faire
+naître un monde pollué.
+
+**`verifier-workflow.py` — le processus tient-il ?** Le dépôt est-il encore rangé
+comme le workflow l'exige ? Un baseline parfait peut coexister avec un processus
+déjà reparti de travers : un `.sql` posé à la racine, une migration sans
+horodatage, un second moteur de rendu. Rien de cela ne se voit dans un contrôle
+de contenu.
+
+Le garde-fou n'est pas décoratif : vérifié en lui soumettant trois régressions
+réelles — un `migration_*.sql` à la racine, un nom de migration non conforme, une
+migration antérieure au point de coupe. Il refuse les trois.
 
 ## Fidèle n'est pas propre
 
