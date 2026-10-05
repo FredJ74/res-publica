@@ -15,9 +15,9 @@ On capture aussi le besoin en materiaux par journee de construction : il ne depe
 numero de jour (cycle du metal sur 3 jours), il est donc enumerable.
 
 Sorties :
-  python3 .scratch/generer_miroirs_chantiers.py             -> resume
-  python3 .scratch/generer_miroirs_chantiers.py --sql       -> les INSERT
-  python3 .scratch/generer_miroirs_chantiers.py --empreinte -> empreinte stable
+  python3 outils/generateurs/generer_miroirs_chantiers.py             -> resume
+  python3 outils/generateurs/generer_miroirs_chantiers.py --sql       -> les INSERT
+  python3 outils/generateurs/generer_miroirs_chantiers.py --empreinte -> empreinte stable
 
 REJOUER apres toute modification de DUREES_CONSTRUCTION, des couts, des seuils de financement
 ou du panier de materiaux.

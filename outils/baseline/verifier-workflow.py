@@ -11,7 +11,7 @@ processus deja reparti de travers -- un .sql pose a la racine, une migration san
 horodatage, un baseline edite a la main. Rien de tout cela ne se voit dans un
 controle de fidelite.
 
-SEPT INVARIANTS, qui echouent independamment.
+HUIT INVARIANTS, qui echouent independamment.
 
   1. AUCUN .sql A LA RACINE          c'est la dispersion qui a rendu l'histoire
                                      illisible : 184 fichiers sans ordre ni
@@ -29,6 +29,10 @@ SEPT INVARIANTS, qui echouent independamment.
                                      y renvoient au lieu de le repeter
   7. AUCUN DOUBLON D'OUTIL            un seul moteur de rendu, un seul
                                      extracteur, un seul verificateur par objet
+  8. AUCUN SCRIPT A LA RACINE         ni correctif ponctuel, ni generateur : 342
+                                     patch_/fix_ encombraient la racine, et les
+                                     8 generateurs dont le projet depend vivaient
+                                     dans un repertoire de brouillon
 
 Usage :
     python3 outils/baseline/verifier-workflow.py
@@ -55,8 +59,14 @@ BASELINE = os.path.join(RACINE, "baseline")
 # suppression, ce qui serait une perte de trace.
 MIGRATIONS_HISTORIQUES = 184
 NON_APPLIQUEES = 3
+PATCHS_PONCTUELS = 342       # 289 patch_*.py + 53 fix_*.py, archives au 2H
+GENERATEURS = 8              # les miroirs de data.js, sortis de .scratch/ au 2H
 
 MOTIF_MIGRATION = re.compile(r"^(\d{14})_[a-z0-9_]+\.sql$")
+
+# Compose a l'execution, et non ecrit en clair : un detecteur qui porte son
+# propre motif se signale lui-meme.
+CHEMIN_HISTORIQUE = ".scratch" + "/" + "generer_"
 
 # Les seules maisons ou un .sql a un sens, et pourquoi.
 MAISONS = {
@@ -215,6 +225,47 @@ def main():
             r.anomalie("%s : %d outil(s) -- %s. Deux outils pour une meme "
                        "responsabilite, et le dernier execute gagne."
                        % (responsabilite, len(candidats), ", ".join(candidats) or "aucun"))
+
+    # ------------------------------------------- 8. aucun script a la racine
+    r.famille("8. AUCUN SCRIPT TECHNIQUE A LA RACINE")
+    py_racine = sorted(os.path.basename(f) for f in glob.glob(os.path.join(RACINE, "*.py")))
+    r.verif("fichiers .py a la racine du depot", len(py_racine), 0)
+    for f in py_racine:
+        ou = ("historique/patchs-ponctuels/" if f.startswith(("patch_", "fix_"))
+              else "outils/ s'il est reutilisable, historique/ sinon")
+        r.anomalie("script .py a la racine : %s -- il appartient a %s" % (f, ou))
+
+    arch = os.path.join(RACINE, "historique", "patchs-ponctuels")
+    r.verif("correctifs ponctuels archives",
+            len(glob.glob(os.path.join(arch, "*.py"))), PATCHS_PONCTUELS)
+
+    gen = os.path.join(RACINE, "outils", "generateurs")
+    r.verif("generateurs dans outils/generateurs", len(glob.glob(os.path.join(gen, "*.py"))),
+            GENERATEURS)
+    restes = sorted(os.path.basename(f)
+                    for f in glob.glob(os.path.join(RACINE, ".scratch", "generer_*.py")))
+    r.verif("generateurs restes dans .scratch", len(restes), 0)
+    for f in restes:
+        r.anomalie("generateur dans un repertoire de brouillon : %s -- le projet en "
+                   "depend, il appartient a outils/generateurs/" % f)
+
+    # Un chemin historique encore cite serait une rupture silencieuse : le script
+    # existe, mais plus la ou son appelant le cherche.
+    morts = []
+    for motif in ("**/*.py", "**/*.json", "**/*.md"):
+        for chemin in glob.glob(os.path.join(RACINE, motif), recursive=True):
+            rel = os.path.relpath(chemin, RACINE)
+            if rel.startswith("historique" + os.sep) or rel.startswith("node_modules"):
+                continue
+            try:
+                texte = open(chemin, encoding="utf-8").read()
+            except (UnicodeDecodeError, OSError):
+                continue
+            if CHEMIN_HISTORIQUE in texte:
+                morts.append(rel)
+    r.verif("fichiers citant encore l'ancien chemin", len(sorted(set(morts))), 0)
+    for f in sorted(set(morts))[:6]:
+        r.anomalie("chemin historique encore cite dans %s" % f)
 
     # ----------------------------------------------------------------- verdict
     print("\n" + "=" * 72)

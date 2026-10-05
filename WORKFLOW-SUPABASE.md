@@ -91,6 +91,20 @@ Le détail de l'extraction en deux temps — pourquoi l'outil imprime le SQL au
 lieu de l'exécuter, et les douze pièges rencontrés — est dans
 `outils/baseline/README.md`.
 
+## Où vivent les outils
+
+| | |
+|---|---|
+| `outils/baseline/` | l'outillage du baseline : extraction, rendu, contrôles, reconstruction |
+| `outils/generateurs/` | les 8 générateurs des tables miroir de `data.js` — une table miroir se **régénère**, elle ne se recopie pas |
+| `outils/` | les outils transverses (conversion WebP, vérifications ponctuelles) |
+| `historique/patchs-ponctuels/` | 342 correctifs à usage unique, archivés — ils ne sont pas des outils |
+
+**Aucun script technique à la racine.** 342 `patch_*.py` et `fix_*.py` y
+vivaient ; ils sont archivés, et l'invariant 8 du garde-fou refuse qu'ils
+reviennent. Les générateurs, eux, vivaient dans `.scratch/` alors que le projet
+en dépend : un outil dont le projet dépend n'a pas sa place dans un brouillon.
+
 ## Ce qu'on ne fait plus
 
 **Plus aucun `.sql` à la racine du dépôt.** C'est là que vivaient les 184
@@ -116,7 +130,7 @@ python3 outils/baseline/controler-tout.py
 
 | Outil | Ce qu'il vérifie |
 |---|---|
-| `verifier-workflow.py` | les invariants du processus : rien à la racine, archives intactes, migrations bien nommées |
+| `verifier-workflow.py` | les **huit invariants** du processus : rien à la racine, archives intactes, migrations bien nommées, outils à leur place |
 | `verifier-baseline.py` | la fidélité au catalogue, en quatre familles séparées |
 | `verifier-monde-neuf.py` | ni donnée de bêta, ni vestige, dans les seeds |
 | `assembler.py` | les dépendances, à vide |

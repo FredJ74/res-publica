@@ -23,10 +23,10 @@ On garde tous les couples declares pour un meme ordre, parce que dix ordres
 coutent legitimement des prix differents selon le lieu (acheter_terrain va de
 3 500 a 36 000 FR).
 
-Usage :  python3 .scratch/generer_ordres_couts.py            -> resume
-         python3 .scratch/generer_ordres_couts.py --sql      -> VALUES SQL
-         python3 .scratch/generer_ordres_couts.py --json     -> JSON
-         python3 .scratch/generer_ordres_couts.py --empreinte-> empreinte stable
+Usage :  python3 outils/generateurs/generer_ordres_couts.py            -> resume
+         python3 outils/generateurs/generer_ordres_couts.py --sql      -> VALUES SQL
+         python3 outils/generateurs/generer_ordres_couts.py --json     -> JSON
+         python3 outils/generateurs/generer_ordres_couts.py --empreinte-> empreinte stable
 """
 import hashlib, json, os, re, subprocess, sys, tempfile
 

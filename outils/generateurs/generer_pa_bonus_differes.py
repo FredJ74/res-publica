@@ -18,9 +18,9 @@ Sources couvertes :
   * les deux bonus ecrits en dur, declares en constantes nommees pour rester extractibles
 
 Sorties :
-  python3 .scratch/generer_pa_bonus_differes.py            -> resume
-  python3 .scratch/generer_pa_bonus_differes.py --sql      -> les VALUES
-  python3 .scratch/generer_pa_bonus_differes.py --empreinte
+  python3 outils/generateurs/generer_pa_bonus_differes.py            -> resume
+  python3 outils/generateurs/generer_pa_bonus_differes.py --sql      -> les VALUES
+  python3 outils/generateurs/generer_pa_bonus_differes.py --empreinte
 
 REJOUER apres toute modification d'un paDiffere.
 """

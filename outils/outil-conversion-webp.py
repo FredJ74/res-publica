@@ -3,9 +3,9 @@
 """
 OUTIL DE CONVERSION WEBP — reutilisable pour tous les lots du chantier d'images.
 
-    python3 outil-conversion-webp.py mesurer                 # ne touche a rien
-    python3 outil-conversion-webp.py mesurer --top 20
-    python3 outil-conversion-webp.py convertir <fichier...>   # convertit et reecrit les references
+    python3 outils/outil-conversion-webp.py mesurer                 # ne touche a rien
+    python3 outils/outil-conversion-webp.py mesurer --top 20
+    python3 outils/outil-conversion-webp.py convertir <fichier...>   # convertit et reecrit les references
 
 DEUX FICHIERS D'ENTREE, VERSIONNES A COTE DE L'OUTIL :
 

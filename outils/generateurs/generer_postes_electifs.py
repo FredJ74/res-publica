@@ -10,9 +10,9 @@ poste inconnu -- sans croire le navigateur. Or ces regles n'existaient qu'en mem
 dans JavaScriptCore et les postes sont captures tels que le jeu les lit.
 
 Sorties :
-  python3 .scratch/generer_postes_electifs.py            -> resume
-  python3 .scratch/generer_postes_electifs.py --sql      -> les VALUES
-  python3 .scratch/generer_postes_electifs.py --empreinte
+  python3 outils/generateurs/generer_postes_electifs.py            -> resume
+  python3 outils/generateurs/generer_postes_electifs.py --sql      -> les VALUES
+  python3 outils/generateurs/generer_postes_electifs.py --empreinte
 
 REJOUER apres toute modification de POSTES_ELECTIFS (minInf, ajout ou retrait d'un poste).
 """

@@ -9,9 +9,9 @@ qu'il en a le droit. On ne recopie pas POSTES_NOMMES_EXCLUSIFS a la main : on ch
 data.js dans JavaScriptCore et on capture la table telle que le jeu la lit.
 
 Sorties :
-  python3 .scratch/generer_postes_nommes.py            -> resume
-  python3 .scratch/generer_postes_nommes.py --sql      -> les VALUES
-  python3 .scratch/generer_postes_nommes.py --empreinte
+  python3 outils/generateurs/generer_postes_nommes.py            -> resume
+  python3 outils/generateurs/generer_postes_nommes.py --sql      -> les VALUES
+  python3 outils/generateurs/generer_postes_nommes.py --empreinte
 
 REJOUER apres toute modification de POSTES_NOMMES_EXCLUSIFS (ajout d'un poste, changement de
 nommePar ou de scope).

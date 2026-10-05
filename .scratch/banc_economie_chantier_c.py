@@ -235,7 +235,7 @@ def main():
     # et ce controle sort en echec AVANT le deploiement.
     import subprocess
     attendue = subprocess.run(
-        [sys.executable, ".scratch/generer_ordres_couts.py", "--empreinte"],
+        [sys.executable, "outils/generateurs/generer_ordres_couts.py", "--empreinte"],
         capture_output=True, text=True).stdout.strip()
     c, r = http("GET", "/rest/v1/rpc/ordres_couts_empreinte_reelle", jeton=ta)
     if c != 200:

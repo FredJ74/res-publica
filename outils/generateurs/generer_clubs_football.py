@@ -13,9 +13,9 @@ On ne recopie donc aucun nom a la main -- le depot en contient deja deux copies 
 data.js est charge dans JavaScriptCore et les clubs sont captures tels que le jeu les lit.
 
 Sorties :
-  python3 .scratch/generer_clubs_football.py            -> resume
-  python3 .scratch/generer_clubs_football.py --sql      -> les VALUES
-  python3 .scratch/generer_clubs_football.py --empreinte
+  python3 outils/generateurs/generer_clubs_football.py            -> resume
+  python3 outils/generateurs/generer_clubs_football.py --sql      -> les VALUES
+  python3 outils/generateurs/generer_clubs_football.py --empreinte
 
 REJOUER apres toute modification de CLUBS_SPORTIFS (nom, ajout ou retrait d'un club).
 """

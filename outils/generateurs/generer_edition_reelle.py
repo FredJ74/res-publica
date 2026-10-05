@@ -11,7 +11,7 @@ n'apparaisse, car certaines dépendent des réponses précédentes.
 N'ÉCRIT RIEN. Le résultat est imprimé en JSON ; l'écriture en base se fait séparément, par le
 workflow de migration MCP (seule voie disposant du droit d'écriture sur journal_editions).
 
-Usage : python3 .scratch/generer_edition_reelle.py <pays> [fichier_sortie.json]
+Usage : python3 outils/generateurs/generer_edition_reelle.py <pays> [fichier_sortie.json]
 """
 import json
 import os

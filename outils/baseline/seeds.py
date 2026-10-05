@@ -242,15 +242,15 @@ def filtres_dynamiques():
 A_REGENERER = {
     "ordres_couts": {
         "source": "data.js",
-        "generateur": ".scratch/generer_ordres_couts.py (EXISTE)",
+        "generateur": "outils/generateurs/generer_ordres_couts.py (EXISTE)",
         "quoi": "405 couts en PA et en argent, miroir des ordres declares dans data.js. "
                 "Aucune fonction serveur ne l'ecrit.",
         "pourquoi_pas_une_copie": "Ce miroir a deja derive : le chantier du 5 octobre 2026 "
             "y a trouve 24 lignes mortes et 19 ordres gratuits non declares. Copier la base "
             "ferait entrer cette derive dans le baseline et dans tous les mondes a venir.",
-        "a_faire": "Deplacer le generateur hors de .scratch/ -- un outil necessaire au "
-            "fonctionnement du projet n'a rien a faire dans un repertoire de brouillon -- "
-            "puis le faire ecrire directement dans baseline/seeds/95_a-regenerer/.",
+        "a_faire": "Le generateur a quitte .scratch/ au chantier 2H : il vit desormais dans "
+            "outils/generateurs/. Reste a le faire ecrire directement dans "
+            "baseline/seeds/95_a-regenerer/.",
     },
     "ressources_economie": {
         "source": "data.js",
@@ -261,28 +261,28 @@ A_REGENERER = {
         "pourquoi_pas_une_copie": "Meme raison qu'ordres_couts : une table miroir se "
             "regenere, elle ne se recopie pas.",
         "a_faire": "Ecrire le generateur, sur le modele de generer_ordres_couts.py, et le "
-            "ranger hors de .scratch/ avec les autres.",
+            "ranger dans outils/generateurs/ avec les autres.",
     },
     "pa_bonus_differes": {
         "source": "data.js",
-        "generateur": ".scratch/generer_pa_bonus_differes.py (EXISTE)",
+        "generateur": "outils/generateurs/generer_pa_bonus_differes.py (EXISTE)",
         "quoi": "10 bonus de PA differes declares dans data.js.",
         "pourquoi_pas_une_copie": "Meme raison. La table porte deja une table d'empreinte "
             "jumelle (pa_bonus_differes_empreinte) dont le role est precisement de detecter "
             "la derive entre data.js et la base : preuve que la source est data.js.",
         "a_faire": "Le generateur existe et charge le VRAI data.js dans JavaScriptCore. "
-            "Le deplacer hors de .scratch/ et le faire ecrire directement ici, empreinte "
-            "comprise.",
+            "Il a quitte .scratch/ au chantier 2H. Reste a le faire ecrire directement "
+            "ici, empreinte comprise.",
     },
     "postes_nommes_regles": {
         "source": "data.js",
-        "generateur": ".scratch/generer_postes_nommes.py (EXISTE)",
+        "generateur": "outils/generateurs/generer_postes_nommes.py (EXISTE)",
         "quoi": "17 regles de nomination aux postes, miroir de data.js.",
         "pourquoi_pas_une_copie": "Meme raison, et meme preuve : postes_nommes_regles_empreinte "
             "existe pour surveiller la derive.",
         "a_faire": "Le generateur existe et charge le VRAI data.js dans JavaScriptCore. "
-            "Le deplacer hors de .scratch/ et le faire ecrire directement ici, empreinte "
-            "comprise.",
+            "Il a quitte .scratch/ au chantier 2H. Reste a le faire ecrire directement "
+            "ici, empreinte comprise.",
     },
 }
 
@@ -306,17 +306,17 @@ ANOMALIES_SIGNALEES = {}
 # base fige sa derive. Le miroir des couts d'ordre a deja derive : 24 lignes
 # mortes et 19 ordres gratuits non declares, trouves le 5 octobre 2026.
 MIROIRS_SIGNALES = {
-    "armureries_dotations": ".scratch/generer_miroirs_entreprises.py",
-    "commerces_dotations": ".scratch/generer_miroirs_entreprises.py",
-    "commerces_types": ".scratch/generer_miroirs_entreprises.py",
-    "entreprises_constantes": ".scratch/generer_miroirs_entreprises.py et generer_miroirs_chantiers.py",
-    "entreprises_prix_rachat": ".scratch/generer_miroirs_entreprises.py",
-    "recettes_commerce": ".scratch/generer_miroirs_entreprises.py",
-    "recettes_production": ".scratch/generer_miroirs_entreprises.py",
-    "chantiers_besoins_jour": ".scratch/generer_miroirs_chantiers.py",
-    "chantiers_paliers": ".scratch/generer_miroirs_chantiers.py",
-    "postes_electifs_regles": ".scratch/generer_postes_electifs.py",
-    "clubs_football": ".scratch/generer_clubs_football.py",
+    "armureries_dotations": "outils/generateurs/generer_miroirs_entreprises.py",
+    "commerces_dotations": "outils/generateurs/generer_miroirs_entreprises.py",
+    "commerces_types": "outils/generateurs/generer_miroirs_entreprises.py",
+    "entreprises_constantes": "outils/generateurs/generer_miroirs_entreprises.py et generer_miroirs_chantiers.py",
+    "entreprises_prix_rachat": "outils/generateurs/generer_miroirs_entreprises.py",
+    "recettes_commerce": "outils/generateurs/generer_miroirs_entreprises.py",
+    "recettes_production": "outils/generateurs/generer_miroirs_entreprises.py",
+    "chantiers_besoins_jour": "outils/generateurs/generer_miroirs_chantiers.py",
+    "chantiers_paliers": "outils/generateurs/generer_miroirs_chantiers.py",
+    "postes_electifs_regles": "outils/generateurs/generer_postes_electifs.py",
+    "clubs_football": "outils/generateurs/generer_clubs_football.py",
 }
 
 # Les tables dont l'etat initial voulu n'existe nulle part. On n'ecrit PAS de

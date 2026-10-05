@@ -15,10 +15,10 @@ Les dotations pilotes sont des FONCTIONS : on les execute sur un defautCommerce(
 et on capture leur effet reel, plutot que de relire ce qu'elles sont censees faire.
 
 Sorties :
-  python3 .scratch/generer_miroirs_entreprises.py             -> resume lisible
-  python3 .scratch/generer_miroirs_entreprises.py --sql       -> les INSERT des 4 miroirs
-  python3 .scratch/generer_miroirs_entreprises.py --json      -> JSON brut
-  python3 .scratch/generer_miroirs_entreprises.py --empreinte -> empreinte stable
+  python3 outils/generateurs/generer_miroirs_entreprises.py             -> resume lisible
+  python3 outils/generateurs/generer_miroirs_entreprises.py --sql       -> les INSERT des 4 miroirs
+  python3 outils/generateurs/generer_miroirs_entreprises.py --json      -> JSON brut
+  python3 outils/generateurs/generer_miroirs_entreprises.py --empreinte -> empreinte stable
 
 REJOUER apres toute modification de RECETTES_PRODUCTION, RECETTES_ALIMENTAIRES,
 DOTATIONS_COMMERCE_PILOTE ou BUILDING_COMMERCE_TYPE : sinon le serveur refusera un

@@ -79,7 +79,6 @@
   },
   "miroirs_de_data_js_seedes_par_copie": {
     "_commentaire": "CONSTAT DU CHANTIER 2E, A ARBITRER. Onze tables classees seed_complet au chantier 2C sont en realite des MIROIRS de data.js, et un generateur existe DEJA dans le depot pour chacune. Le chantier 2E a produit leur seed par copie de la base, conformement a la strategie validee -- il ne reclasse pas de son propre chef. Mais copier un miroir fige sa derive, et l'un de ces miroirs a deja derive : celui des couts d'ordre portait 24 lignes mortes et 19 ordres gratuits non declares au 5 octobre 2026. Chaque fichier concerne porte un avertissement en en-tete. RECOMMANDATION : faire ecrire ces onze fichiers par leurs generateurs et les deplacer dans 95_a-regenerer.",
-    "_les_generateurs_vivent_dans_scratch": "Les huit generateurs sont dans .scratch/, un repertoire de brouillon non suivi par git. Ce sont des outils NECESSAIRES au fonctionnement du projet : ils doivent en sortir. Ils chargent le VRAI data.js dans JavaScriptCore et capturent les tables telles que le jeu les lit -- c'est la bonne doctrine, mal rangee.",
     "generer_miroirs_entreprises.py": [
       "armureries_dotations",
       "commerces_dotations",
@@ -99,7 +98,8 @@
     ],
     "generer_clubs_football.py": [
       "clubs_football"
-    ]
+    ],
+    "_les_generateurs_vivent_dans_outils_generateurs": "Au chantier 2H, les huit generateurs ont quitte .scratch/ pour outils/generateurs/. Ce sont des outils NECESSAIRES au fonctionnement du projet : un repertoire de brouillon n'etait pas leur place. Ils chargent le VRAI data.js dans JavaScriptCore et capturent les tables telles que le jeu les lit -- la bonne doctrine, desormais bien rangee."
   },
   "faux_positifs_du_crible": {
     "_pourquoi": "Consignes pour que personne ne les reprenne pour des artefacts.",

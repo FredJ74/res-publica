@@ -16,7 +16,7 @@ Un module, une responsabilité.
 | `assembler.py` | **le test d'assemblage statique**, sans créer de base |
 | `verifier-monde-neuf.py` | **le contrôle du monde neuf** : aucune donnée de bêta, aucun vestige canonisé |
 | `reconstruire.py` | **la reconstruction** : assemble le baseline, le soumet à la grammaire réelle de PostgreSQL et simule son application |
-| `verifier-workflow.py` | **le garde-fou du processus** : sept invariants qui empêchent la régression du workflow |
+| `verifier-workflow.py` | **le garde-fou du processus** : huit invariants qui empêchent la régression du workflow |
 | `controler-tout.py` | **le lanceur unique** : enchaîne les huit contrôles et rend un verdict d'ensemble |
 | `verifier.py` | **le contrôle du domaine pilote** `communication` (chantier 2B) |
 | `arbitrages.py` | **les tableaux d'arbitrage** de l'état initial, préparés pour être remplis |
@@ -212,9 +212,15 @@ déjà reparti de travers : un `.sql` posé à la racine, une migration sans
 horodatage, un second moteur de rendu. Rien de cela ne se voit dans un contrôle
 de contenu.
 
-Le garde-fou n'est pas décoratif : vérifié en lui soumettant trois régressions
+Le garde-fou n'est pas décoratif : vérifié en lui soumettant **six** régressions
 réelles — un `migration_*.sql` à la racine, un nom de migration non conforme, une
-migration antérieure au point de coupe. Il refuse les trois.
+migration antérieure au point de coupe, un `patch_*.py` à la racine, un
+générateur laissé dans `.scratch/`, et un fichier citant encore un chemin
+historique. Il refuse les six.
+
+Les outils eux-mêmes sont rangés : `outils/baseline/` pour le baseline,
+`outils/generateurs/` pour les 8 miroirs de `data.js`, `outils/` pour le
+transverse. Voir `../generateurs/README.md`.
 
 ## Fidèle n'est pas propre
 
