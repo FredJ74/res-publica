@@ -1,0 +1,253 @@
+table;domaine;categorie;strategie;lignes_actuelles;colonne_pays;migrations_qui_seedent;fonctions_qui_ecrivent;justification;arbitrage
+actions_tracables;justice;C;structure_seule;0;oui;0;6;Traces laissees par les actions illegales.;
+agent_tentatives;renseignement;C;structure_seule;4;non;0;1;Tentatives d'observation.;
+agents_renseignement;renseignement;C;structure_seule;12;oui;0;25;Agents recrutes.;
+ambassades_ouvertes;divers et technique;C;structure_seule;0;oui;0;0;Ambassades ouvertes.;
+apports_matieres;economie;C;structure_seule;2;non;0;2;Journal idempotent des apports de matiere.;
+armureries_dotations;militaire;B;seed_complet;3;oui;1;1;Dotation initiale d'armurerie, renseignee pour 3 empires.;
+assemblee_catalogue_illegal;assemblee;A;seed_complet;7;non;2;1;7 entrees du catalogue illegal.;
+assemblee_categories_interdiction;assemblee;A;seed_complet;21;non;4;4;21 categories d'interdiction legislative.;
+assemblee_indemnites;assemblee;C;structure_seule;0;non;0;1;Indemnites versees.;
+assemblee_intentions;assemblee;C;structure_seule;0;non;0;3;Intentions de vote marchandees.;
+assemblee_propositions;assemblee;C;structure_seule;0;oui;0;15;Propositions de loi deposees.;
+assemblee_requetes;assemblee;C;structure_seule;1;non;0;2;Garde d'idempotence des requetes d'assemblee.;
+assemblee_sanctions_paliers;assemblee;C;structure_seule;0;oui;0;1;Registre d'idempotence des paliers de sanction debites.;
+assemblee_scrutins;assemblee;C;structure_seule;0;oui;0;2;Scrutins ouverts.;
+assemblee_sieges;assemblee;D;seed_filtre;9;oui;2;5;9 sieges. Le commentaire est explicite : la ligne porte l'identite PERMANENTE du depute Gamma et n'est jamais videe. La presence d'un PJ est derivee.;Seeder les 9 deputes Gamma, jamais l'occupation PJ.
+assemblee_votes;assemblee;C;structure_seule;0;non;0;3;Votes exprimes.;
+batailles;militaire;C;structure_seule;0;oui;0;10;Batailles en cours ou passees.;
+batailles_engagements;militaire;C;structure_seule;0;non;0;14;Engagements de bataille.;
+batailles_groupes;militaire;C;structure_seule;0;non;0;7;Groupes engages dans une bataille.;
+batailles_rounds;militaire;C;structure_seule;0;non;0;3;Rounds de combat.;
+batiments_etat;immobilier et territoire;D;reconstruction_explicite;38;oui;11;38;"38 batiments. Les fixtures (entrepots, commissariats) sont du contenu initial ; l'etat vit dans le meme blob data, mute par 38 fonctions et 2 declencheurs.";L'etat initial d'un batiment doit etre decrit, pas copie.
+batiments_fermes;immobilier et territoire;C;structure_seule;0;oui;0;0;Batiments fermes par une autorite.;
+biens_saisis_helvetia;banque;C;structure_seule;0;oui;0;3;Biens saisis par la banque.;
+bnr_refinancements_helvetia;banque;C;structure_seule;0;oui;0;2;Refinancements de la banque nationale.;
+budget_national_champs_regles;finances publiques;A;seed_complet;20;non;5;1;Champs du budget national et leur autorite.;
+budgets_clubs;finances publiques;D;reconstruction_explicite;12;non;0;2;12 budgets de club, caisse a 0 et bareme de salaires.;Le bareme est du socle, la caisse est vivante.
+budgets_municipaux;finances publiques;D;reconstruction_explicite;4;non;1;3;4 budgets de ville, soldes mutes en jeu.;Caisse municipale de depart ?
+budgets_nationaux;finances publiques;D;reconstruction_explicite;4;non;0;13;Une ligne par empire. Structure initiale voulue, valeurs courantes derivees.;Quelles valeurs de depart ? reserveJour, tauxNational, repartition.
+caisses_autorites;finances publiques;A;seed_complet;16;non;5;2;Quel poste controle quelle caisse. Regle d'autorite, aucune fonction ne l'ecrit.;
+caisses_batiments;finances publiques;D;reconstruction_explicite;151;non;4;28;"151 caisses. La ligne doit exister au depart ; le solde est vivant. 14 RPC peuvent en creer, donc une partie des lignes a ete engendree en jeu et rien ne les distingue.";ARBITRAGE RENDU : les dotations d'amorcage sont definies PAR EMPIRE -- ni constante universelle du moteur, ni soldes de beta, ni deduction aveugle du journal. Les montants de Republia seront fixes lors de la construction de son etat initial.
+caisses_fret;economie;C;structure_seule;0;non;0;3;Caisses de fret en circulation.;
+caisses_mouvements_clients;finances publiques;C;structure_seule;15;non;0;3;Journal des mouvements de caisse declenches par le client.;
+calomnies_actes;presse;C;structure_seule;0;non;0;1;Actes de calomnie.;
+camions_destinations;militaire;B;seed_complet;4;oui;1;1;Destinations ouvertes aux camions d'un pays.;
+camions_embarquements;militaire;C;structure_seule;0;non;0;4;Instants d'embarquement, pour l'ordre de debarquement.;
+camions_militaires;militaire;B;seed_complet;1;oui;1;7;Parc de vehicules, pays=republic. Position courante a remettre a la caserne de rattachement.;
+camions_ordres;militaire;C;structure_seule;5;non;0;2;Journal idempotent des ordres de camion.;
+candidatures;politique et elections;C;structure_seule;1;oui;0;5;Candidatures deposees.;
+candidatures_militaires;militaire;C;structure_seule;0;oui;0;10;Candidatures a un grade.;
+catalogue_correspondance_legacy;economie;D;seed_complet;58;non;2;1;58 correspondances vers les anciens identifiants.;Table de transition : a-t-elle encore un sens dans un monde neuf ?
+catalogue_familles;economie;D;seed_complet;40;non;2;2;40 familles commerciales. Meme absence de dimension empire.;Voir catalogue_types.
+catalogue_generique_type;economie;D;seed_complet;88;non;2;3;88 rattachements generique-type.;Voir catalogue_types.
+catalogue_generiques;economie;D;seed_complet;84;non;2;4;84 generiques d'objets.;Voir catalogue_types.
+catalogue_types;economie;D;seed_complet;14;non;2;4;14 types de commerce. Forme generique, mais AUCUNE colonne pays dans les 6 tables du catalogue.;Separation moteur/contenu : le catalogue est partage par les 4 empires alors que son seed porte des identifiants Republia (menu_psm, tshirt_psm, casquette_montrouge).
+catalogue_variantes;economie;D;seed_complet;6;non;2;3;6 variantes d'objets rattachees aux generiques. Meme absence de dimension empire que le reste du catalogue.;Voir catalogue_types.
+cellules_renseignement;renseignement;C;structure_seule;3;non;0;23;Cellules creees en jeu.;
+chaines_production_usine;economie;A;seed_complet;5;non;1;3;Chaines de production disponibles.;
+championnat;sport;C;structure_seule;10;non;0;8;DECISION GD ACQUISE : le championnat repart de zero. Le calendrier et les resultats vivent dans le meme blob.;Verifier en 2E qu'un calendrier vierge est engendre, sinon aucun match n'aura lieu.
+championnat_tentatives;sport;C;structure_seule;29;non;0;3;Journal des tentatives de resolution, invisible aux clients.;
+chantiers_besoins_jour;economie;A;seed_complet;3;non;1;1;Besoins journaliers d'un chantier.;
+chantiers_paliers;economie;A;seed_complet;4;non;1;1;Paliers d'avancement d'un chantier.;
+chat_piece;communication;C;structure_seule;0;oui;0;0;Messages de piece. Policy FOR ALL TO PUBLIC USING(true) a reproduire telle quelle.;
+chronique_nationale;presse;C;structure_seule;0;oui;0;2;Chronique publiee.;
+clubs_football;sport;B;seed_complet;12;oui;1;1;12 clubs, renseignes pour les 4 empires.;
+clubs_sportifs_regles;sport;B;seed_complet;12;oui;2;4;ARBITRAGE RENDU : les clubs partagent les memes regles, qui relevent donc du socle -- or cette table NE CONTIENT AUCUNE REGLE. Ses colonnes sont club_id, nom, country, city, valeur_base : c'est un doublon du referentiel des clubs, donc du contenu d'empire.;DUPLICATION CONSTATEE : les 12 lignes sont les 12 memes clubs que clubs_football (12/12 en commun, memes identifiants, memes noms, memes pays et villes). Seule `valeur_base` n'y figure pas en double. Le nommage diverge en outre : pays/ville ici, country/city la-bas. A fusionner hors 2C.
+commandes_militaires;militaire;C;structure_seule;0;oui;0;1;Commandes de l'effort de guerre.;
+commerces_dotations;economie;A;seed_complet;11;non;1;1;Dotation initiale de stock par type de commerce.;
+commerces_types;economie;A;seed_complet;11;non;1;2;Types de commerce du referentiel.;
+compagnies_militaires;militaire;D;reconstruction_explicite;1;non;0;39;Une compagnie existe, mais son blob porte l'etat de bataille vivant. L'organigramme initial voulu doit etre decrit, pas copie.;Quelles compagnies et quelles sections un monde neuf comporte-t-il ?
+compagnies_militaires_snapshot_20260926;personnage et presence;C;hors_baseline;1;non;0;0;Snapshot autoritaire avant la bascule du socle PNJ.;
+compromis_historique;banque;C;structure_seule;0;oui;0;0;Historique des compromis de vente.;
+comptes_bancaires;banque;C;structure_seule;17;oui;0;26;17 comptes de joueurs. Entierement vivant.;
+confiscations_douanieres;economie;C;structure_seule;1;oui;0;2;Confiscations prononcees.;
+contacts_militaires;militaire;C;structure_seule;0;non;0;2;Contacts etablis a l'entree en zone.;
+contacts_organisations;personnage et presence;C;structure_seule;0;non;0;2;Etat des mises en relation.;
+contacts_organisations_passeurs;personnage et presence;B;seed_complet;1;oui;2;2;Liste fermee des passeurs, un par empire.;
+contenu_caisses_fret;economie;C;structure_seule;0;non;0;2;Contenu des caisses de fret.;
+contre_espionnage_tentatives;renseignement;C;structure_seule;0;oui;0;1;Tentatives de contre-espionnage.;
+contributions_piete;finances publiques;C;structure_seule;0;oui;0;0;Contributions de piete.;
+corruptions_presse;presse;C;structure_seule;0;oui;0;2;Corruptions tentees.;
+cron_journal;divers et technique;C;structure_seule;254;non;0;1;Journal d'observabilite du cron de minuit.;
+cycles_electoraux;politique et elections;C;structure_seule;13;oui;0;5;DECISION GD ACQUISE : les elections repartent de zero. Les 13 lignes melangent en outre de la production et des lignes zztest.;Aucune RPC ne cree de cycle : verifier en 2E que le cron de minuit sait en engendrer, sinon un monde neuf ne votera jamais.
+decorations_militaires;militaire;C;structure_seule;0;oui;0;2;Decorations decernees.;
+demandes_grace;justice;C;structure_seule;0;non;0;0;Demandes de grace.;
+demandes_manifestation;politique et elections;C;structure_seule;0;non;0;0;Demandes de manifestation.;
+demandes_mariage;personnage et presence;C;structure_seule;0;oui;0;0;Demandes en mariage.;
+demandes_naturalisation;personnage et presence;C;structure_seule;0;non;0;1;Demandes de naturalisation.;
+detentions;justice;C;structure_seule;0;oui;0;9;Detentions en cours.;
+directeurs_usine;economie;B;seed_complet;3;non;1;2;ARBITRAGE RENDU : un monde neuf commence avec les directeurs PNJ des usines deja en poste. C'est donc de l'etat initial authored, pas une nomination produite par le jeu.;
+dons_en_attente;personnage et presence;C;structure_seule;0;non;0;2;Dons en attente d'acceptation.;
+dons_requetes;personnage et presence;C;structure_seule;0;non;0;1;Garde d'idempotence des dons.;
+dossiers_urbanisme;immobilier et territoire;C;structure_seule;0;oui;0;1;Dossiers d'urbanisme deposes.;
+dotations_amorcage_caisses;finances publiques;C;reconstruction_explicite;159;oui;4;0;159 lignes. Les colonnes solde_avant / montant_verse / solde_apres / applique_ts en font un JOURNAL d'idempotence des dotations deja appliquees, pas un bareme. La table porte une colonne pays, et les 4 empires y figurent.;ARBITRAGE RENDU : le bareme est defini par empire et sera ecrit lors de la construction de l'etat initial. Ce journal ne peut en tenir lieu : il dit ce qui a ete verse, pas ce qui doit l'etre.
+elections_tracts_pnj;politique et elections;C;structure_seule;0;non;0;2;Verrou PNJ x cible x jour de la distribution de tracts.;
+engagements_militaires;militaire;C;structure_seule;1;non;0;5;Engagements en cours.;
+entrainements_football;sport;C;structure_seule;4;non;0;2;Journal des entrainements effectues.;
+entrepot_journal;economie;C;structure_seule;151;non;1;2;Journal des mouvements d'entrepot.;
+entrepot_transits;economie;C;structure_seule;0;non;1;3;Transits en cours.;
+entrepots_par_ville;economie;D;seed_complet;5;non;1;2;"5 entrepots. Contenu de Republia dans une table sans colonne pays ; le prix y est mute en jeu.";Separation moteur/contenu, et le prix releve-t-il de l'initial ?
+entrepots_reversements;economie;C;structure_seule;0;non;0;1;Reversements d'excedent.;
+entreprises;economie;D;reconstruction_explicite;20;non;0;36;"20 commerces. L'identite et l'implantation sont du contenu initial ; stock, caisse, prix et matieres vivent dans le meme blob data, mutes par 36 fonctions.";L'etat initial voulu d'un commerce (stock de depart, caisse) doit etre decrit.
+entreprises_constantes;economie;A;seed_complet;20;non;11;14;20 constantes economiques pures (cout horaire, plafonds). Aucune fonction ne l'ecrit.;
+entreprises_prix_rachat;economie;A;seed_complet;6;non;1;1;Prix de rachat par type d'entreprise.;
+escort_evenements_commerciaux;personnage et presence;C;structure_seule;0;non;0;0;Evenements commerciaux d'escort.;
+escorts_agences;personnage et presence;B;seed_complet;1;oui;2;2;Agence d'escorts, une par empire. Contenu, jamais mutualise.;
+escorts_catalogue;personnage et presence;B;seed_complet;7;oui;2;4;7 identites d'escorts, source unique du nom et des images.;
+etat_civil_deces;personnage et presence;C;structure_seule;0;oui;0;0;Deces enregistres.;
+etat_civil_naissances;personnage et presence;C;structure_seule;8;oui;0;0;Naissances enregistrees.;
+etats_urgence;divers et technique;C;structure_seule;0;oui;0;0;Etats d'urgence declares.;
+evenements_globaux;divers et technique;C;structure_seule;21;oui;0;0;Evenements diffuses aux joueurs.;
+fiche_hausses_observees;personnage et presence;C;structure_seule;79;non;0;1;Journal des hausses de fiche observees.;
+fiche_inventaire_observe;personnage et presence;C;structure_seule;27;non;0;1;Journal des inventaires observes.;
+fiscalite_journal;finances publiques;C;structure_seule;0;oui;0;0;Journal fiscal.;
+fonds_credits_sources;finances publiques;A;seed_complet;6;non;3;2;Liste blanche des sources de credit de fonds.;
+fonds_credits_uniques;finances publiques;C;structure_seule;0;non;0;1;Garde d'idempotence des credits de fonds.;
+fonds_debits;finances publiques;C;structure_seule;7;non;0;2;Journal des debits de fonds.;
+football_primes_versees;sport;C;structure_seule;0;non;0;1;Registre d'idempotence des primes.;
+forum_posts;communication;C;structure_seule;7;non;0;4;Messages du forum.;
+forum_topics;communication;C;structure_seule;7;oui;0;6;Sujets du forum.;
+fraudes_electorales;politique et elections;C;structure_seule;1;oui;0;1;Fraudes constatees.;
+fuites_journalistiques;presse;C;structure_seule;0;oui;0;3;Fuites reservees.;
+greves_generales;politique et elections;C;structure_seule;0;oui;0;0;Greves declenchees.;
+groupes_presse;presse;B;seed_complet;4;oui;3;2;4 groupes de presse, un par empire.;
+guerres;militaire;C;structure_seule;0;non;0;8;Etat diplomatique de guerre.;
+historique_deplacements;personnage et presence;C;structure_seule;10429;oui;0;4;10 429 deplacements. 77 % du volume de lignes de la base.;
+impacts_indices_attente;justice;C;structure_seule;0;non;0;2;Impacts d'indices en attente.;
+imprimeries_declarees;economie;B;seed_complet;3;oui;1;1;3 imprimeries de Republia, pays=republic.;
+indices_villes;politique et elections;B;reconstruction_explicite;4;non;0;6;4 jeux d'indicateurs de ville. Les valeurs de depart sont connues (ie 50, isn 30, moral 50) mais ont derive en beta.;Confirmer les valeurs initiales.
+interviews_jodie;presse;C;structure_seule;0;oui;0;0;Interviews realisees.;
+investissements;economie;C;structure_seule;0;oui;0;0;Investissements des joueurs.;
+invitations_diner;personnage et presence;C;structure_seule;0;oui;0;0;Invitations a diner.;
+journal_articles_en_attente;presse;C;structure_seule;2;oui;0;0;File d'articles en attente.;
+journal_editions;presse;C;structure_seule;91;oui;0;2;91 editions publiees. 25 Mo, dont 23 Mo de base64 archive.;
+journaux;presse;B;seed_complet;4;oui;3;6;4 titres, un par empire.;
+journaux_redacteurs;presse;C;structure_seule;0;non;0;3;Delegations de redaction.;
+jugements;justice;C;structure_seule;0;oui;0;4;Jugements rendus.;
+lectures_chat;communication;C;structure_seule;0;non;0;0;Marque-page de lecture par membre.;
+locations_actives;immobilier et territoire;C;structure_seule;1;oui;0;8;Baux en cours.;
+locations_archives;immobilier et territoire;C;structure_seule;0;oui;0;1;Baux termines.;
+logements_attributions_historique;immobilier et territoire;C;structure_seule;0;oui;0;0;Historique d'attribution.;
+logements_demandes;immobilier et territoire;C;structure_seule;0;oui;0;0;Demandes de logement social.;
+lois_assemblee;assemblee;C;hors_baseline;0;oui;0;0;MORT CONFIRME par verification exhaustive : aucune fonction, aucun declencheur, aucune policy, aucun droit anon/authenticated, aucune vue, aucune cle etrangere entrante. Le code client lui-meme la declare obsolete (plateau-politique.js:4930, plateau-router.js:497 : handler remplace par registre_assemblee).;
+mails;communication;C;structure_seule;31;non;0;12;Messagerie des joueurs.;
+mails_envois_systeme;communication;C;structure_seule;9;non;0;2;Journal des envois systeme refuses ou usurpes.;
+mails_expediteurs_systeme;communication;A;seed_complet;28;non;3;3;28 expediteurs systeme autorises et leurs droits de saisine. Liste blanche du moteur.;
+mandats_maires_archives;politique et elections;C;structure_seule;1;oui;0;0;Archive des mandats acheves.;
+mariages;personnage et presence;C;structure_seule;0;oui;0;1;Mariages celebres.;
+messages_chat;communication;C;structure_seule;0;non;0;0;Messages de salon et de conversation.;
+militaire_armes_bonus;militaire;D;seed_filtre;16;non;2;4;Bareme de bonus d'arme, generique dans sa forme, mais la colonne note porte des habillages propres a Republia (« habillage Port-Sainte-Marie »). Aucune colonne pays.;Chantier de separation moteur/contenu : le bareme est du socle, l'habillage est de l'empire.
+militaire_detections;militaire;C;structure_seule;0;non;0;1;Detections de reconnaissance.;
+militaire_terminal_requetes;militaire;C;structure_seule;2;non;0;4;Garde d'idempotence du terminal de section.;
+militants_recrutes;politique et elections;C;structure_seule;0;oui;1;1;Militants recrutes en campagne.;
+mutineries;militaire;C;structure_seule;0;oui;0;4;Mutineries declenchees.;
+mutineries_membres;militaire;C;structure_seule;0;non;0;3;Membres d'une mutinerie.;
+niveaux_prison;justice;D;seed_complet;4;non;0;0;4 niveaux de prison. Valeurs initiales plausibles, mais aucune colonne pays et aucune RPC ecrivante.;"Separation moteur/contenu ; et la valeur 100 est-elle un etat initial ou un parametre ?"
+nominations_en_attente;postes et institutions;C;structure_seule;0;oui;0;2;Nominations proposees, non acceptees.;
+nominations_militaires;militaire;C;structure_seule;0;oui;0;4;Nominations en cours.;
+nominations_poste_attente;postes et institutions;C;structure_seule;0;oui;0;0;File d'attente de nomination.;
+objets_abandonnes;personnage et presence;C;structure_seule;5;oui;0;2;Objets laisses au sol.;
+objets_recus;personnage et presence;C;structure_seule;8;non;1;6;Objets recus en attente de retrait.;
+obligations_helvetia;banque;C;structure_seule;0;oui;0;3;Obligations emises.;
+oeuvres;economie;C;structure_seule;0;oui;0;2;Oeuvres creees en jeu.;
+offres;economie;C;structure_seule;0;non;0;4;Offres commerciales posees en jeu.;
+ordres_couts;economie;A;reconstruction_explicite;405;non;9;7;405 couts en PA et en argent, miroir de data.js. Aucune fonction ne l'ecrit.;A REGENERER par .scratch/generer_ordres_couts.py depuis data.js, jamais a copier depuis la base.
+ordres_couts_ecarts;economie;C;structure_seule;20;non;0;1;Journal des divergences de cout entre client et serveur.;
+ordres_couts_empreinte;economie;A;structure_seule;1;non;1;0;Empreinte du miroir, recalculee a la pose du seed.;
+ordres_couts_inconnus;economie;C;structure_seule;8;non;0;1;Journal des ordres inconnus du miroir.;
+organisations;personnage et presence;D;reconstruction_explicite;0;non;0;14;ARBITRAGE RENDU : un monde neuf comporte des organisations preexistantes, de DEUX natures. (1) Clubs de supporters par ville et Syndicat des Dockers de Port-Sainte-Marie : authored, mais materialises PARESSEUSEMENT par le moteur a la premiere sollicitation -- ils ne se seedent pas. (2) Les DEUX LOGES MACONNIQUES de Republia, Luthecia et Montrouge, qui doivent naitre constituees et dotees d'un chef PNJ pour que la mecanique de prise de pouvoir fonctionne. La table melange donc du contenu initial authored et des organisations fondees par les joueurs.;ETAT INITIAL A CONSTRUIRE : aucune auto-creation n'existe pour les loges, ce qui NE CORRESPOND PAS au game design voulu. Les deux locaux existent (data.js:348 Luthecia, data.js:1147 Montrouge) et des PNJ y sont poses, mais AUCUN n'est rattache a une ligne organisations : le lien chef-d'organisation n'existe pas. Pour Luthecia, deux candidats coexistent -- Venerable Maitre Duval (defaut du batiment, role « Chef de la Loge ») et Frere Jacques D'Equerre (surcharge de Luthecia, role « Grand Maitre », le grade le plus eleve du type loge). Ne rien inventer : trancher.
+pa_bonus_differes;finances publiques;A;reconstruction_explicite;10;non;1;1;Miroir des bonus de PA differes declares dans data.js.;A regenerer par son generateur, comme ordres_couts.
+pa_bonus_differes_empreinte;finances publiques;A;structure_seule;1;non;1;0;Empreinte du miroir.;
+pa_bonus_hotel;finances publiques;A;seed_complet;4;non;1;1;Bonus de PA par chambre d'hotel.;
+pa_credits_sources;finances publiques;A;seed_complet;2;non;1;1;Liste blanche des sources de credit de PA, avec le montant autorise. Ecriture fermee au client depuis le 26/09.;
+pa_credits_uniques;finances publiques;C;structure_seule;9;non;0;1;Garde d'idempotence des credits de PA.;
+paris_sportifs;sport;C;structure_seule;0;non;0;2;CORRECTION : la table N'EST PAS MORTE. Deux RPC actives y ecrivent -- football_pari_engager et football_paris_resoudre -- et le client les appelle (plateau-organisations-quetes.js:9202 et 9243). La fermeture du 20 septembre a ferme l'acces CLIENT DIRECT, pas le chemin RPC. Elle doit exister dans un monde neuf.;
+personnages_donnees;personnage et presence;C;structure_seule;7;oui;0;217;7 personnages joueurs. Entierement vivant.;
+personnages_supprimes;personnage et presence;C;structure_seule;135;non;0;1;135 archives de suppression, colonnes forensiques.;
+petites_annonces;presse;C;structure_seule;0;oui;0;0;Petites annonces deposees.;
+placements_bancaires;banque;C;structure_seule;0;oui;0;5;Placements des joueurs.;
+plaintes_en_cours;justice;C;structure_seule;0;oui;0;2;Plaintes deposees.;
+pnj_axes_autorite;socle PNJ;A;seed_complet;40;non;3;3;Matrice « ou vit la verite » axe par axe. Regle du socle, renseignee en entier.;
+pnj_candidats_catalogue;socle PNJ;B;seed_complet;12;non;1;2;12 identites de candidats a l'embauche (Grobras). Contenu authored.;Seedee par un fichier du depot ABSENT du registre Supabase : verifier la source avant 2E.
+pnj_employes_metier;socle PNJ;C;structure_seule;0;non;0;7;Emplois contractes en jeu. Vide aujourd'hui.;
+pnj_employeurs;socle PNJ;B;seed_complet;1;oui;1;2;Employeur declare, pays=republic. Contenu d'empire.;Meme origine hors registre que pnj_candidats_catalogue.
+pnj_evenements;socle PNJ;C;structure_seule;0;oui;0;2;Journal des evenements vecus par les PNJ.;
+pnj_familles_classes;socle PNJ;A;seed_complet;8;non;4;1;Classe par defaut d'une famille de PNJ. Regle du moteur, aucune fonction ne l'ecrit.;
+pnj_fonctions;socle PNJ;A;seed_complet;38;non;1;2;Nature des PNJ du decor, fonction par fonction. Ne contient aucun PNJ.;
+pnj_force_publique_metier;socle PNJ;C;structure_seule;5;non;0;5;Miroir derive, recalcule par pnj_miroir_police et pnj_miroir_douane au premier passage.;
+pnj_institutions;socle PNJ;A;seed_complet;4;non;4;1;Registre des institutions proprietaires de PNJ et de leur resolveur d'autorite.;
+pnj_membres;socle PNJ;D;seed_filtre;105;oui;2;72;"105 PNJ. L'IDENTITE (famille, classe, metier, proprietaire) est du contenu initial ; la POSITION, les PA, le leader et la mort sont du vivant.";Separation par colonnes. Les tables zz_snap_cka_* temoignent que cette frontiere a deja pose probleme.
+pnj_metiers_profils;socle PNJ;A;seed_complet;10;non;4;7;Caracteristiques FIXES par metier. Source unique du recrutement, aucun tirage aleatoire.;
+pnj_militants_metier;socle PNJ;C;structure_seule;0;non;1;1;Militants recrutes en jeu.;
+pnj_mouvement_individuel;socle PNJ;A;seed_complet;8;non;3;1;Regle de mouvement par famille. Aucune fonction ne l'ecrit.;
+pnj_possessions;socle PNJ;D;seed_filtre;7;non;2;18;"Possessions des PNJ. Une dotation d'equipement initiale est plausible ; le butin de betail ne l'est pas.";Quelles possessions un PNJ a-t-il au premier jour ?
+pnj_referents;socle PNJ;B;seed_complet;18;oui;8;1;18 referents de Republia, identifiants et domaine. Colonne pays presente.;
+pnj_referents_pedagogie;socle PNJ;C;structure_seule;5;non;0;3;Memoire pedagogique d'un referent envers un joueur.;
+pnj_referents_sujets_connus;socle PNJ;A;seed_complet;8;non;2;2;Vocabulaire FERME des sujets memorisables. Le serveur refuse ce qui n'y est pas.;
+pnj_social_escort_choisi;socle PNJ;C;structure_seule;0;non;0;2;Confidente choisie par un joueur.;
+pnj_social_jalons_regles;socle PNJ;A;seed_complet;2;non;2;2;Quand un PNJ social declenche une intervention. Regle, pas etat.;
+pnj_social_relations;socle PNJ;C;structure_seule;0;non;0;4;Memoire relationnelle PNJ-joueur : rencontres, familiarite, confiance.;
+pnj_soldats_metier;socle PNJ;D;seed_filtre;96;non;0;33;"96 soldats. Matricule, grade et compagnie d'affectation sont initiaux ; entrainement, arme equipee et PA sont vivants.";Depend de l'etat initial voulu des compagnies militaires.
+pnj_transitions;socle PNJ;C;structure_seule;1;non;1;0;Drapeau de bascule du socle PNJ, declare perime le 27 septembre 2026.;
+postes_attribues;postes et institutions;C;structure_seule;1;oui;0;9;Registre d'attestation des postes pris par des PJ.;
+postes_electifs_regles;postes et institutions;A;seed_complet;4;non;1;1;Regles des postes electifs.;
+postes_nommes_regles;postes et institutions;A;reconstruction_explicite;17;non;1;3;17 regles de nomination, miroir de data.js.;A regenerer par son generateur.
+postes_nommes_regles_empreinte;postes et institutions;A;structure_seule;1;non;1;0;Empreinte du miroir.;
+presences;personnage et presence;C;structure_seule;11;oui;0;0;Position courante des acteurs.;
+presidents_clubs;sport;C;structure_seule;0;non;0;3;Presidents elus.;
+presse_membres;presse;C;structure_seule;0;non;0;9;Membres d'un organe de presse.;
+prets;banque;C;structure_seule;0;oui;0;8;Prets en cours.;
+prets_bancaires;banque;C;structure_seule;0;oui;0;0;Prets bancaires.;
+prisonniers_qhs;justice;C;structure_seule;1;non;0;2;Prisonniers au QHS.;
+productions_references;economie;C;structure_seule;2;non;0;1;Journal idempotent des productions de references.;
+produits_manufactures;economie;D;reconstruction_explicite;1;non;1;2;Une seule ligne. Impossible de trancher entre catalogue des produits manufacturables et stock des produits fabriques.;Catalogue ou stock ? La lecture d'une ligne unique ne permet pas de conclure.
+propositions_diplomatiques;divers et technique;C;structure_seule;0;non;0;0;Propositions diplomatiques.;
+quetes_actives;personnage et presence;C;structure_seule;2;oui;0;0;Instances de quete en cours.;
+rapports_cellules;renseignement;C;structure_seule;12;non;0;2;Rapports produits.;
+rapports_cellules_artefacts_20260926;renseignement;C;hors_baseline;1;non;0;0;Artefact de la bascule du 26 septembre 2026.;
+rapports_renseignement;renseignement;C;structure_seule;0;non;0;0;Rapports de renseignement.;
+recettes_commerce;economie;D;seed_complet;37;non;1;13;37 recettes. Contrairement a recettes_production, la table PORTE deja la dimension : pays_autorises, villes_autorisees et buildings_autorises. 26 recettes sont restreintes a des villes, 24 a des pays, 11 sont sans restriction.;"La structure sait exprimer la granularite ville ; le melange est dans le contenu du seed (identifiants psm/montrouge), pas dans le schema."
+recettes_production;economie;B;seed_complet;12;oui;1;5;ARBITRAGE RENDU : les recettes ne sont pas generiques, leur granularite voulue est la VILLE. Deux villes d'un meme empire peuvent differer, et deux recettes identiques restent du contenu propre a chaque ville. Les 12 lignes sont donc du contenu, 3 armes par empire.;DETTE DE DIMENSIONNEMENT : la table ne porte que `pays`, AUCUNE colonne ville. La granularite voulue n'est pas exprimable en l'etat. A traiter hors 2C.
+reconciliation_fantomes;personnage et presence;C;structure_seule;1;non;0;2;Reconciliation des personnages fantomes.;
+registre_ventes_armes;divers et technique;C;structure_seule;2;oui;3;1;Registre des ventes d'armes. 3 migrations y ont pourtant insere des lignes.;Les 2 lignes actuelles sont-elles du contenu voulu ?
+renseignement_couvertures;renseignement;B;seed_complet;48;oui;1;1;48 identites de couverture, pool par empire.;
+renseignement_identites_reelles;renseignement;B;seed_complet;4;non;3;3;4 identites reelles d'agents. Contenu authored.;
+renseignements_connus;renseignement;C;structure_seule;4;oui;0;9;Renseignements acquis. 8 migrations y ont pourtant insere des lignes litterales, pays NULL : reliquats probables de mise au point.;Les 4 lignes actuelles sont-elles du contenu voulu ou des reliquats ?
+reservations_salle_reception;immobilier et territoire;C;structure_seule;0;non;0;0;Reservations de salle.;
+ressources_economie;economie;A;reconstruction_explicite;17;non;1;19;17 ressources et leurs prix, miroir de data.js.;Meme regeneration que ordres_couts.
+ressources_economie_empreinte;economie;A;structure_seule;1;non;1;0;Empreinte du miroir.;
+retraits_materiel_militaire;militaire;C;structure_seule;4;oui;0;1;Journal des retraits a l'armurerie.;
+rp_epoques;politique et elections;B;seed_complet;1;oui;2;1;Ancrage du calendrier RP de l'empire, pays=republic.;L'epoque de depart d'un monde neuf est-elle celle-ci ?
+rp_transitions;politique et elections;D;reconstruction_explicite;2;non;4;1;ARBITRAGE RENDU : ce n'est NI une regle perenne du moteur, NI du contenu d'empire. C'est un mecanisme TRANSITOIRE lie a la securisation progressive des anciennes ecritures client. Ses 2 drapeaux ne doivent donc pas etre promus en regle du socle. Ils sont lus par la seule fonction rp_transition_active(cle), qui rend FALSE sur cle absente : une table vide se comporte exactement comme la production d'aujourd'hui.;Le comportement doit etre CONSERVE tant que les chemins legitimes ne sont pas tous migres cote serveur. argent_verrou NE DOIT SURTOUT PAS etre active prematurement : des gains legitimes empruntent encore l'ancien chemin client. OBJECTIF ARCHITECTURAL : supprimer cette tolerance une fois les ecritures legitimes correctement routees.
+rumeurs_actives;justice;C;structure_seule;0;non;0;0;Rumeurs en circulation.;
+salaires_caisses;finances publiques;A;seed_complet;13;non;3;4;Quelle caisse paie quel poste. Le seed utilise un gabarit {pays}_batiment, donc generique.;
+salaires_civils_declares;finances publiques;A;seed_complet;17;non;3;2;Bareme des salaires civils.;
+salaires_civils_verses;finances publiques;C;structure_seule;3;non;0;1;Journal des salaires civils verses.;
+salaires_religieux_declares;finances publiques;A;seed_complet;4;non;2;1;Bareme des salaires religieux.;
+salaires_religieux_verses;finances publiques;C;structure_seule;0;non;0;1;Journal des salaires religieux verses.;
+salons_chat;communication;C;structure_seule;0;non;0;0;Salons crees par les joueurs.;
+salons_membres;communication;C;structure_seule;0;non;0;1;Appartenance aux salons.;
+scandales_presse;presse;C;structure_seule;0;oui;0;2;Scandales publies.;
+scandales_tentatives;presse;C;structure_seule;0;non;0;1;Tentatives de scandale.;
+services_militaires;militaire;C;structure_seule;1;oui;0;8;Periodes de service ouvertes par le jeu.;
+soldes_militaires;militaire;C;structure_seule;2;oui;0;1;Registre des soldes versees.;
+souvenirs_accueil;personnage et presence;C;structure_seule;0;non;0;0;Souvenirs de la quete d'accueil.;
+structures_medicales;economie;D;seed_complet;3;non;1;2;3 structures medicales. Contenu de Republia dans une table sans colonne pays.;Separation moteur/contenu.
+successions;personnage et presence;C;structure_seule;0;oui;0;2;Successions ouvertes.;
+terrains_etat;immobilier et territoire;D;reconstruction_explicite;5;oui;0;14;5 terrains. Aucune RPC ne les cree : les lignes doivent preexister. Leur etat (proprietaire, permis) est vivant.;Quels terrains, et dans quel etat, au premier jour ?
+terrains_historique_ventes;immobilier et territoire;C;structure_seule;0;oui;0;0;Historique des ventes de terrain.;
+testaments;personnage et presence;C;structure_seule;0;oui;0;0;Testaments rediges.;
+titulaires_pnj;postes et institutions;B;seed_filtre;16;oui;0;7;16 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a des PNJ sont occupes par ces PNJ dans un monde neuf.;Filtrer : ne garder que les lignes PNJ, jamais un titulaire PJ herite de la beta.
+tournees;personnage et presence;C;structure_seule;0;oui;0;0;Tournees offertes.;
+transferts_clubs;sport;C;structure_seule;0;non;0;0;Transferts de joueurs.;
+tribune_articles_etouffes;presse;C;structure_seule;0;oui;0;0;Articles etouffes.;
+usines_rachat_config;economie;A;seed_complet;1;non;1;2;Parametrage du rachat de matiere par l'usine.;
+ventes_snapshots;economie;C;structure_seule;0;oui;0;1;Preuve immuable d'une vente, append-only.;
+vols_en_attente;justice;C;structure_seule;0;non;0;1;Vols en attente de resolution.;
+votes_confiance;politique et elections;C;structure_seule;0;oui;0;0;Votes de confiance.;
+votes_confiance_bulletins;politique et elections;C;structure_seule;0;non;0;0;Bulletins de confiance.;
+votes_electoraux;politique et elections;C;structure_seule;0;oui;0;0;Bulletins.;
+zz_snap_cka_blob;socle PNJ;C;hors_baseline;1;non;0;0;Sauvegarde avant bascule du 27/09/2026.;
+zz_snap_cka_membres;socle PNJ;C;hors_baseline;101;oui;0;0;Sauvegarde de pnj_membres avant bascule.;
+zz_snap_cka_metier;socle PNJ;C;hors_baseline;96;non;0;0;Sauvegarde de pnj_soldats_metier avant bascule.;
