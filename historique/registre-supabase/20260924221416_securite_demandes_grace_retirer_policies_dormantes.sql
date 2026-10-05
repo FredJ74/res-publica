@@ -1,0 +1,33 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260924221416
+-- Nom original      : securite_demandes_grace_retirer_policies_dormantes
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-24 22:14:16 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 9145756fcbd3e6ae3378aad340166954
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- PIEGE REEL, ATTRAPE PAR LE BANC. demandes_grace portait trois policies « publiques »
+-- (USING(true) / WITH CHECK(true)) ecrites il y a longtemps mais INERTES, parce que la table
+-- n'avait jamais eu ENABLE ROW LEVEL SECURITY. En activant la RLS au lot precedent, je les ai
+-- REVEILLEES : les policies etant permissives et donc combinees par OU, un simple `true`
+-- l'emporte sur toutes les regles d'autorite qu'on vient d'ecrire. La table paraissait fermee
+-- (RLS active, policies nommees) et restait grande ouverte.
+--
+-- A RETENIR POUR LES LOTS SUIVANTS : 12 autres tables sont dans cet etat exact -- des policies
+-- USING(true) dormantes sous une RLS eteinte. Sur chacune, activer la RLS sans retirer d'abord
+-- ces policies ne ferme RIEN, tout en donnant l'apparence contraire.
+DROP POLICY IF EXISTS "Lecture publique demandes grace" ON public.demandes_grace;
+DROP POLICY IF EXISTS "Ecriture publique demandes grace" ON public.demandes_grace;
+DROP POLICY IF EXISTS "Maj publique demandes grace" ON public.demandes_grace;

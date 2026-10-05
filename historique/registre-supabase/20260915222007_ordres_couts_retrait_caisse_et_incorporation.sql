@@ -1,0 +1,34 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260915222007
+-- Nom original      : ordres_couts_retrait_caisse_et_incorporation
+-- Categorie         : DML -- DML seul (mutation de donnees)
+-- Date (deduite de la version) : 2026-09-15 22:20:07 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 59919d98f541dc1b66c82366531d1521
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- MIROIR DES COUTS — deux ordres retires du commissariat le 16 septembre 2026.
+--
+--   consulter_caisse_commissariat : le solde s'affiche desormais dans l'en-tete du batiment,
+--     pour le seul commissaire ; il n'y a plus de bouton, donc plus d'ordre.
+--   accepter_incorporation : le transfert vers la caserne n'est plus un ordre permanent, mais
+--     une proposition contextuelle presentee une fois par jour de jeu quand les conditions
+--     existantes sont reunies. La mecanique militaire, elle, est inchangee.
+--
+-- Miroir regenere depuis le VRAI data.js (.scratch/generer_ordres_couts.py) : 397 triples,
+-- empreinte 6de4a84c58ed9b2b. Le delta par rapport a la base se limite a ces deux retraits --
+-- verifie avant ecriture.
+DELETE FROM public.ordres_couts
+ WHERE fn IN ('consulter_caisse_commissariat', 'accepter_incorporation');
+UPDATE public.ordres_couts_empreinte SET empreinte = '6de4a84c58ed9b2b', pose_le = now();

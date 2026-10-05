@@ -1,0 +1,58 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260919160617
+-- Nom original      : fermeture_ecriture_anon_fret
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-19 16:06:17 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 206c3648c783dcd35f230bcd53d03007
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- AUDIT PORT INDUSTRIEL / COORDINATEUR (19 septembre 2026) — fermeture d'une faille
+-- technique incontestable constatee pendant l'audit lecture seule.
+--
+-- CONSTAT, banc hostile en transaction annulee, en role `anon` (visiteur NON authentifie,
+-- sans session, sans personnage), sur caisses_fret / contenu_caisses_fret :
+--   lecture de la declaration douaniere ET du contenu reel ........... ACCEPTE
+--   reecriture de declaration_douaniere et valeur_declaree ........... ACCEPTE
+--   passage de dedouanee a true (auto-dedouanement) .................. ACCEPTE
+--   reecriture du contenu reel d'une caisse .......................... ACCEPTE
+--   injection d'une ligne de contenu dans la caisse d'autrui ......... ACCEPTE
+--
+-- Les deux tables avaient relrowsecurity = false, aucune policy, et anon en
+-- SELECT/INSERT/UPDATE. Il n'existe par ailleurs aucune contrainte CHECK sur `statut`.
+--
+-- POURQUOI C'EST GRAVE MALGRE DES TABLES VIDES. Le jeu possede une RPC de dedouanement
+-- correctement construite (fret_dedouaner : verifie le destinataire, exige statut='arrivee',
+-- calcule 10 % de droits sur valeur_declaree, debite le joueur et credite la caisse du port
+-- dans la meme transaction, idempotente). Ecrire directement dans la table contournait
+-- integralement cette porte : une porte verrouillee a cote d'une fenetre ouverte.
+--
+-- CE QUI EST FERME : uniquement l'ECRITURE par `anon`. Le client du jeu est toujours
+-- `authenticated` (auth anonyme Supabase = une session) ; aucun parcours ne reserve une
+-- caisse ni n'y depose sans session. Meme resserrage que
+-- fermeture_delete_anon_traces_orgas_presences, applique le meme jour.
+--
+-- CE QUI N'EST PAS TOUCHE, ET POURQUOI : la LECTURE reste ouverte a tous. Savoir qui a le
+-- droit de consulter une declaration douaniere est precisement la question de game design
+-- posee par le futur Coordinateur (consultation clandestine du registre) -- elle est
+-- signalee dans le rapport, pas tranchee ici. De meme, l'ecart entre declaration et contenu
+-- reel est un choix de design assume et documente dans l'interface du jeu : rien n'est
+-- change de ce cote.
+--
+-- Banc de non-regression AVANT migration, en transaction annulee : en role authenticated
+-- avec les claims d'Arnie, la reservation d'une caisse et un depot passent (1 et 1).
+-- Le meme banc est rejoue APRES.
+
+REVOKE INSERT, UPDATE ON public.caisses_fret         FROM anon, PUBLIC;
+REVOKE INSERT, UPDATE ON public.contenu_caisses_fret FROM anon, PUBLIC;

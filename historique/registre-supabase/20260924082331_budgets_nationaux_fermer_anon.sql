@@ -1,0 +1,42 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260924082331
+-- Nom original      : budgets_nationaux_fermer_anon
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-24 08:23:31 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 7dbe72f09bf3f26cd1b0ad397cf51c57
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- =============================================================================================
+-- BUDGETS NATIONAUX : FERMER LE ROLE ANONYME (24 septembre 2026)
+-- =============================================================================================
+-- CONSTAT D'AUDIT. La table porte les finances des quatre empires -- tresor national, stocks de
+-- l'armurerie, effort de guerre, taux d'imposition -- avec RLS DESACTIVEE et INSERT + UPDATE
+-- accordes a `anon` comme a `authenticated`, sur la ligne entiere. Seul un trigger d'epinglage
+-- arbitre une vingtaine de cles nommees ; les autres, dont `reserveJour`, ne sont protegees par
+-- rien.
+--
+-- CE QUE CETTE MIGRATION FAIT, ET CE QU'ELLE NE FAIT PAS. Elle ferme `anon`, et elle seule.
+-- Aucun chemin legitime n'en a besoin : les dix-neuf sites d'ecriture du navigateur exigent tous
+-- un joueur connecte, le cron travaille en service_role, et les RPC SECURITY DEFINER
+-- s'executent sous leur proprietaire sans dependre des droits de table.
+--
+-- ELLE NE FERME PAS ENCORE `authenticated`. Le faire aujourd'hui casserait huit mecaniques qui
+-- n'ont aucun equivalent serveur -- taux national, repartition budgetaire, couvre-feu, recherche
+-- militaire, virement QHS, preemption, effort de guerre, et la taxe nationale prelevee sur chaque
+-- vente. Les remplacer demande des arbitrages economiques qui ne relevent pas de ce lot : le
+-- point est documente dans le rapport, avec le detail des dix-neuf sites.
+-- =============================================================================================
+
+REVOKE INSERT, UPDATE ON public.budgets_nationaux FROM anon;

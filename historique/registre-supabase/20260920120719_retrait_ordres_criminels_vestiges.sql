@@ -1,0 +1,37 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260920120719
+-- Nom original      : retrait_ordres_criminels_vestiges
+-- Categorie         : DML -- DML seul (mutation de donnees)
+-- Date (deduite de la version) : 2026-09-20 12:07:19 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 2aa6089f8fa22bcd6db634ba0c6c0d6d
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- ARBITRAGE GD DU 20 SEPTEMBRE 2026 : orga_racket, orga_contrebande et
+-- orga_blanchiment sont des vestiges, supprimes sans mecanique de remplacement.
+--
+-- Le miroir des couts doit suivre data.js : un ordre qui n'existe plus ne doit
+-- plus etre facturable. Laisser ces lignes rendrait payer_ordre complice d'un
+-- ordre disparu -- et masquerait, dans un futur audit, le fait que le client ne
+-- peut plus le declencher.
+--
+-- Ce qui RESTE volontairement : orga_intimidation et orga_coup_force, qui
+-- appartiennent au meme type d'organisation mais ne font pas partie de
+-- l'arbitrage. (Constat au passage, non corrige ici : ces deux-la sont declares
+-- dans data.js et dans ce miroir, mais n'ont AUCUN effet implemente cote client
+-- -- ils sont factures puis ne font rien. A traiter dans la section metier des
+-- organisations, pas ici.)
+
+DELETE FROM public.ordres_couts
+ WHERE fn IN ('orga_racket', 'orga_contrebande', 'orga_blanchiment');

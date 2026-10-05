@@ -1,0 +1,57 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260919153317
+-- Nom original      : fermeture_delete_anon_traces_orgas_presences
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-19 15:33:17 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 81219d0565efdf68c3df48ff298b0075
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- AUDIT RUMEURS / TRADUCTEUR (19 septembre 2026) — fermeture d'une faille technique
+-- incontestable constatee pendant l'audit lecture seule.
+--
+-- CONSTAT, mesure sur banc hostile en transaction annulee, en role `anon`
+-- (= visiteur NON AUTHENTIFIE, sans session, sans personnage) :
+--   * DELETE d'une trace criminelle de actions_tracables ....... ACCEPTE
+--   * UPDATE de presences : Arnie teleporte a Novomirsk ........ ACCEPTE
+--   * INSERT d'un faux deplacement dans historique_deplacements  ACCEPTE
+-- Autrement dit, n'importe qui pouvait effacer les preuves judiciaires du jeu.
+--
+-- ORIGINE. Le lot `fermeture_truncate_et_delete_anon` du 18/09 (voir
+-- migration_militaire_phase2_securite.sql) a ferme DELETE sur 46 tables, mais a exempte
+-- en bloc une liste `c_delete_legitime` dont font partie actions_tracables, organisations
+-- et presences. La raison etait juste : LE CLIENT y supprime legitimement (confession qui
+-- efface une trace, dissolution d'organisation, depart d'une piece). Mais l'exemption etait
+-- plus large que sa raison : le client du jeu est TOUJOURS `authenticated` (Supabase auth
+-- anonyme = une session = le role authenticated), jamais `anon`. Aucun parcours de jeu
+-- n'appelle ces suppressions sans session -- avant la connexion, le joueur n'a meme pas de
+-- personnage.
+--
+-- CE LOT N'INVERSE DONC PAS LA DECISION DU 18/09, IL LA RESSERRE SUR SA PROPRE RAISON :
+-- DELETE reste ouvert a `authenticated` (la suppression legitime continue de fonctionner a
+-- l'identique) et n'est retire qu'a `anon` et `PUBLIC`.
+--
+-- AUCUNE REGLE DE JEU N'EST MODIFIEE. En particulier, ce lot ne touche NI la lecture, NI
+-- l'ecriture, NI la question -- entierement ouverte et laissee a l'arbitrage -- de savoir
+-- QUI a le droit de connaitre une trace, une rumeur ou la composition d'une organisation.
+-- Ces tables restent lisibles par tous, y compris `anon` : c'est un point de game design
+-- signale dans le rapport, pas ferme ici.
+--
+-- Banc de non-regression AVANT migration : en role authenticated avec les claims d'Arnie,
+-- la suppression d'une trace (parcours de la confession) renvoie 1 ligne supprimee.
+-- Le meme banc est rejoue APRES migration.
+
+REVOKE DELETE ON public.actions_tracables FROM anon, PUBLIC;
+REVOKE DELETE ON public.organisations     FROM anon, PUBLIC;
+REVOKE DELETE ON public.presences         FROM anon, PUBLIC;

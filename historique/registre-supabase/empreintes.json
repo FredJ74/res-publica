@@ -1,0 +1,18 @@
+{
+  "_commentaire": "Empreintes relevees dans supabase_migrations.schema_migrations au moment de l'export, le 5 octobre 2026. Elles permettent a outils/verifier-archive-registre.py de prouver, sans acceder a la base, que les fichiers archives n'ont pas ete alteres depuis l'export et qu'ils correspondent exactement au registre.",
+  "exporte_le": "2026-10-05",
+  "entrees": 539,
+  "version_premiere": "20260906195401",
+  "version_derniere": "20261004214621",
+  "octets_sql_historique": 3424877,
+  "empreinte_globale": "9e74c0eb5adbddc8b61de2b1532cbef0",
+  "empreinte_globale_formule": "md5(string_agg(version || ':' || md5(statements[1]), ',' order by version))",
+  "empreinte_noms": "b764e9b6141d4e1a17a3d4b016cf3c56",
+  "empreinte_noms_formule": "md5(string_agg(version || '_' || name, ',' order by version))",
+  "categories": {
+    "DDL": 393,
+    "DML": 32,
+    "MIXTE": 114,
+    "AUTRE": 0
+  }
+}

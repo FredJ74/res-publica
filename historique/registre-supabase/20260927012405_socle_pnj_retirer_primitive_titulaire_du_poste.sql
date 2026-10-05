@@ -1,0 +1,32 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260927012405
+-- Nom original      : socle_pnj_retirer_primitive_titulaire_du_poste
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-27 01:24:05 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 8ee87bc58b190da509b3dc75b3c7e867
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- SUPPRESSION DE pnj_titulaire_du_poste (27 septembre 2026)
+--
+-- Cette primitive incarnait exactement le raisonnement que l'audit a rejete : « poste =
+-- lieutenant » donc « le titulaire du poste administre tout ce que ce poste possede ». Elle
+-- resolvait un poste en un nom avec un LIMIT 1 SANS ORDER BY, ce qui rendait le resultat non
+-- deterministe des qu'un pays comptait deux titulaires, et ignorait le PERIMETRE -- la seule
+-- information qui distingue la section d'un Lieutenant de celle d'un autre.
+--
+-- Plus aucune fonction ne l'appelle : la resolution passe desormais par pnj_institutions et un
+-- resolveur fourni par le metier. On la retire plutot que de la laisser dormir : une primitive
+-- fausse laissee en place finit toujours par etre rappelee par quelqu'un.
+DROP FUNCTION IF EXISTS public.pnj_titulaire_du_poste(text, text, text);

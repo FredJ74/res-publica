@@ -1,0 +1,47 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260917094103
+-- Nom original      : appliquer_taxe_transaction_revoque_public
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-17 09:41:03 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : e8e9d0d8f8a051e9fe7e93ce1eb101ed
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- CORRECTIF D'UN CORRECTIF (17 septembre 2026, passe 3 de l'audit d'autorite).
+--
+-- En passe 1, appliquer_taxe_transaction avait ete « revoquee » par :
+--   REVOKE EXECUTE ... FROM anon, authenticated;
+-- et le rapport de passe 1 la declarait fermee. ELLE NE L'ETAIT PAS.
+--
+-- PostgreSQL accorde EXECUTE a PUBLIC par defaut sur toute fonction. L'ACL reelle etait :
+--   =X/postgres | postgres=X/postgres | service_role=X/postgres
+-- L'entree « =X » est le grant a PUBLIC. Retirer les grants EXPLICITES de anon et authenticated
+-- ne change donc rien : authenticated continuait d'heriter d'EXECUTE via PUBLIC.
+--
+-- PREUVE (banc d'autorite generique, transaction annulee, role authenticated reel + claims JWT
+-- d'un joueur ordinaire sans poste) :
+--   appliquer_taxe_transaction('republic','capitale',100000000)
+--   -> verdict « ACCEPTE (etat modifie) » : le budget municipal et la reserve nationale ont ete
+--      credites de la taxe correspondante, sans identite, sans autorite, sans contrepartie.
+-- C'est une creation monetaire a la demande, restee ouverte depuis la passe 1.
+--
+-- Cette faille a ete trouvee par la correction du banc demandee en debut de passe 3 : l'ancien
+-- harnais ne jugeait que la levee d'une exception, jamais l'etat final. Le nouveau juge d'abord
+-- l'etat, et exerce le VRAI role Postgres (SET ROLE) au lieu de se contenter des claims JWT --
+-- sans quoi la couche GRANT/REVOKE n'etait pas testee du tout.
+--
+-- Rappel pour les prochaines revocations : nommer PUBLIC, pas seulement anon et authenticated.
+-- Les deux appelants reels d'appliquer_taxe_transaction (commerce_vendre_produit et recevoir_soin)
+-- sont SECURITY DEFINER et s'executent avec les droits du proprietaire : non affectes.
+REVOKE EXECUTE ON FUNCTION public.appliquer_taxe_transaction(text, text, numeric) FROM PUBLIC;

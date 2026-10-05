@@ -1,0 +1,37 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260915221524
+-- Nom original      : ordres_couts_depot_candidature
+-- Categorie         : DML -- DML seul (mutation de donnees)
+-- Date (deduite de la version) : 2026-09-15 22:15:24 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 7e0e78e174637609ab8d702bda1d18f6
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- MIROIR DES COUTS — declaration du depot de candidature (16 septembre 2026).
+--
+-- confirmerCandidature facturait 2 PA sans passer de `fn` : deduireCoutOrdre retombait sur
+-- state._ordreEnCours, c'est-a-dire 'se_porter_candidat', l'ordre qui ouvre la salle des
+-- elections et qui est declare a 0 PA (ouvrir une liste ne coute rien). payer_ordre recevait donc
+-- le couple (se_porter_candidat, 2, 0), absent du miroir, et refusait : 'cout_non_declare'. Le
+-- depot de candidature etait IMPOSSIBLE quel que soit le nombre de PA du joueur -- c'est ce qu'a
+-- rencontre le game designer avec 12 PA, sous un message trompeur « PA insuffisants ».
+--
+-- Le cout de jeu ne change pas (2 PA) : il porte desormais son propre nom d'ordre, declare dans
+-- plateau-politique.js et repris par le miroir regenere (.scratch/generer_ordres_couts.py, qui
+-- ramasse les litteraux d'ordre des modules, pas seulement ceux de data.js).
+--
+-- Verification avant ecriture : le miroir regenere est identique a la base a CETTE ligne pres
+-- (md5 du corpus trie, 398 vs 399 triples). On n'ecrit donc que celle-la.
+INSERT INTO public.ordres_couts (fn, pa, cost) VALUES ('deposer_candidature', 2, 0);
+UPDATE public.ordres_couts_empreinte SET empreinte = '26b23e309b711fa2', pose_le = now();

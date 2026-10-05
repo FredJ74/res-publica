@@ -1,0 +1,49 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260920144843
+-- Nom original      : retrait_huit_ordres_orga_arbitres
+-- Categorie         : DML -- DML seul (mutation de donnees)
+-- Date (deduite de la version) : 2026-09-20 14:48:43 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : 5c9130b7bcacd9088f28be0de38809f3
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- ARBITRAGE GD DU 20 SEPTEMBRE 2026 : HUIT ORDRES D'ORGANISATION SUPPRIMES
+-- ---------------------------------------------------------------------------
+-- Le miroir des couts doit suivre data.js : un ordre qui n'existe plus ne doit
+-- plus etre facturable. Laisser ces lignes rendrait payer_ordre complice d'un
+-- ordre disparu, et masquerait dans un futur audit le fait que le client ne
+-- peut plus le declencher.
+--
+--   orga_financer_cand  -- le financement d'un candidat passe par les transferts
+--                          reels d'argent et les vrais outils de campagne
+--   orga_torpiller      -- doublon abstrait des moyens de campagne negative
+--   orga_coalition      -- une coalition est un accord entre joueurs, pas un
+--                          objet informatique donnant un bonus electoral
+--   orga_contrat        -- pas de monopole ni de revenu passif cree par un statut
+--   orga_fusion         -- l'ordre disparait ; une fusion volontaire se fera avec
+--                          les mecaniques reelles (transferts, dissolution)
+--   orga_coup_force     -- la violence passe par les vrais moteurs de combat
+--   orga_kompromat_loge -- les loges exploitent les vrais systemes d'information
+--   orga_election_loge  -- le moteur d'elections internes generique l'a remplace
+--
+-- VESTIGES NETTOYES EN MEME TEMPS dans data.js, apres verification qu'aucun
+-- n'etait lu (calculerBonusOrga n'est consomme que pour `dis` et `nego_cha`,
+-- verifie sur ses deux seuls appelants) :
+--   bonus finance_campagne ; les 4 paliers de revenus_passifs ; le vote_bonus
+--   « coalitions electorales » ; les deux cycleElection ; et les trois rangs
+--   minimums devenus orphelins.
+
+DELETE FROM public.ordres_couts
+ WHERE fn IN ('orga_financer_cand', 'orga_torpiller', 'orga_coalition', 'orga_contrat',
+              'orga_fusion', 'orga_coup_force', 'orga_kompromat_loge', 'orga_election_loge');

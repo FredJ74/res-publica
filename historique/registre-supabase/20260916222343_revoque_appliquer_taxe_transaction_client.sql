@@ -1,0 +1,27 @@
+-- ============================================================================
+-- MIGRATION HISTORIQUE -- DEJA APPLIQUEE -- NE PAS EXECUTER
+-- ============================================================================
+-- Version Supabase  : 20260916222343
+-- Nom original      : revoque_appliquer_taxe_transaction_client
+-- Categorie         : DDL -- DDL seul (structure, droits, commentaires)
+-- Date (deduite de la version) : 2026-09-16 22:23:43 UTC
+-- Etat              : DEJA APPLIQUEE A LA BASE DE PRODUCTION
+-- MD5 du SQL historique : e71f8b71c07891647c329089b51be6cb
+--
+-- ARCHIVE DOCUMENTAIRE exportee de supabase_migrations.schema_migrations.
+-- Ce fichier NE FAIT PAS partie d'une chaine de reconstruction et NE DOIT
+-- PAS etre rejoue, ni execute automatiquement, ni servir a installer une
+-- base neuve. Voir historique/registre-supabase/README.md.
+--
+-- Le SQL ci-dessous est conserve INTEGRALEMENT, SANS AUCUNE MODIFICATION :
+-- ni correction, ni mise en forme, ni separation des parties DDL et DML,
+-- ni ajout d'idempotence. On archive ce qui s'est reellement passe.
+-- ============================================================================
+-- >>> DEBUT DU SQL HISTORIQUE -- ne rien inserer au-dessus de cette ligne <<<
+-- Audit des frontieres d'autorite, 17 septembre 2026.
+-- appliquer_taxe_transaction creditait le budget municipal ET la reserve nationale a partir d'un
+-- p_montant_brut fourni par l'appelant, sans aucun controle d'identite, et etait executable par
+-- le role anon (sans session). Aucun appelant client n'existe dans le depot : ses deux appelants
+-- reels sont les RPC SECURITY DEFINER commerce_vendre_produit et recevoir_soin, qui s'executent
+-- avec les droits du proprietaire et ne sont donc pas affectees par cette revocation.
+REVOKE EXECUTE ON FUNCTION public.appliquer_taxe_transaction(text, text, numeric) FROM anon, authenticated;
