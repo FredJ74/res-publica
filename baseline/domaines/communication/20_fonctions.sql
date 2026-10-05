@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION public.chat_est_membre_salon(p_salon text)
 AS $function$
   SELECT EXISTS (SELECT 1 FROM public.salons_membres m
                   WHERE m.salon_id = p_salon AND m.membre = public.mon_personnage());
-$function$
+$function$;
 
 -- chat_participe(text,boolean) -> boolean | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.chat_participe(p_conversation text, p_salon boolean)
@@ -34,7 +34,7 @@ AS $function$
     ELSE public.mon_personnage() IN (split_part(p_conversation, '__', 1),
                                      split_part(p_conversation, '__', 2))
   END;
-$function$
+$function$;
 
 -- forum_verrou_compte_rendu_journee() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.forum_verrou_compte_rendu_journee()
@@ -52,7 +52,7 @@ BEGIN
     RETURN NULL;
   END IF;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- forum_verrou_local_territorial() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.forum_verrou_local_territorial()
@@ -81,7 +81,7 @@ BEGIN
     RETURN NULL;
   END IF;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- forum_verrou_message_ligue() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.forum_verrou_message_ligue()
@@ -100,7 +100,7 @@ BEGIN
     RETURN NULL;
   END IF;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- forum_verrou_programme_officiel() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.forum_verrou_programme_officiel()
@@ -114,7 +114,7 @@ BEGIN
   IF coalesce(current_setting('rp.programme_officiel', true), '') = '1' THEN RETURN NEW; END IF;
   IF NEW.id LIKE 'topic-programme-%' THEN RETURN NULL; END IF;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- mail_destinataire_est_conjoint(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_destinataire_est_conjoint(p_moi text, p_destinataire text)
@@ -130,7 +130,7 @@ AS $function$
        AND ((m.conjoint1 = p_moi AND m.conjoint2 = p_destinataire)
          OR (m.conjoint2 = p_moi AND m.conjoint1 = p_destinataire))
   );
-$function$
+$function$;
 
 -- mail_destinataire_est_fret(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_destinataire_est_fret(p_moi text, p_destinataire text)
@@ -145,7 +145,7 @@ AS $function$
        AND f.destinataire = p_destinataire
        AND f.date_arrivee_reelle IS NULL
   );
-$function$
+$function$;
 
 -- mail_destinataire_est_titulaire(text,text[]) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_destinataire_est_titulaire(p_destinataire text, p_postes text[])
@@ -159,7 +159,7 @@ AS $function$
      WHERE d.name = p_destinataire
        AND d.poste ->> 'id' = ANY (p_postes)
   );
-$function$
+$function$;
 
 -- mail_expediteur_autorise(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_expediteur_autorise(p_nom text, p_destinataire text)
@@ -184,7 +184,7 @@ BEGIN
 
   RETURN false;
 END;
-$function$
+$function$;
 
 -- mail_expediteur_autorise_strict(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_expediteur_autorise_strict(p_nom text, p_destinataire text)
@@ -236,7 +236,7 @@ BEGIN
 
   RETURN false;
 END;
-$function$
+$function$;
 
 -- mail_expediteur_organisation(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_expediteur_organisation(p_nom text)
@@ -249,7 +249,7 @@ AS $function$
     SELECT 1 FROM public.organisations o
      WHERE coalesce(o.data::jsonb ->> 'nom', '') = p_nom
   );
-$function$
+$function$;
 
 -- mail_expediteur_systeme(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_expediteur_systeme(p_nom text)
@@ -263,7 +263,7 @@ AS $function$
      WHERE (NOT m.est_prefixe AND m.expediteur = p_nom)
         OR (m.est_prefixe AND p_nom LIKE m.expediteur || '%')
   );
-$function$
+$function$;
 
 -- mail_systeme_envoyer(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mail_systeme_envoyer(p_expediteur text, p_destinataire text, p_sujet text, p_corps text, p_heure text DEFAULT NULL::text)
@@ -295,7 +295,7 @@ BEGIN
           coalesce(p_heure, to_char(now() AT TIME ZONE 'Europe/Paris', 'HH24') || 'h'), false);
   RETURN jsonb_build_object('ok', true, 'id', v_id);
 END;
-$function$
+$function$;
 
 -- mails_journaliser_envoi_systeme() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mails_journaliser_envoi_systeme()
@@ -314,4 +314,4 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;

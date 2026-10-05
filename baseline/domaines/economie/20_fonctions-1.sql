@@ -151,7 +151,7 @@ BEGIN
     'solde_national', v_solde - v_pris_national,
     'caisse_entrepot', (v_entrepot->>'caisse')::numeric);
 END;
-$function$
+$function$;
 
 -- acheter_a_la_criee(text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.acheter_a_la_criee(p_acteur text, p_pays text, p_ville text, p_batiment text, p_achats jsonb)
@@ -249,7 +249,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'paye', v_paye, 'lignes', v_lignes, 'inventory', v_inv,
     'liquide', v_liquide - v_pris_liquide, 'arg', v_arg - v_paye, 'solde_national', v_solde - v_pris_national);
-END; $function$
+END; $function$;
 
 -- acheter_produit_commerce(text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.acheter_produit_commerce(p_requete text, p_acheteur text, p_fonds_id text, p_reference_id text, p_quantite integer)
@@ -522,7 +522,7 @@ BEGIN
     'net', v_net, 'taxeLocale', (v_taxe->>'taxeLocale')::numeric,
     'taxeNationale', (v_taxe->>'taxeNationale')::numeric);
 END;
-$function$
+$function$;
 
 -- acheter_produit_manufacture(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.acheter_produit_manufacture(p_acteur text, p_pays text, p_produit text)
@@ -588,7 +588,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'prix', v_prix, 'inventory', v_inv,
     'liquide', v_liquide - v_pl, 'arg', v_arg - v_prix, 'solde_national', v_solde - v_pn);
-END; $function$
+END; $function$;
 
 -- acheter_vente_directe_usine(text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.acheter_vente_directe_usine(p_acteur text, p_pays text, p_ville text, p_batiment text, p_achats jsonb)
@@ -678,7 +678,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'paye', v_paye, 'lignes', v_lignes, 'inventory', v_inv,
     'liquide', v_liquide - v_pris_liquide, 'arg', v_arg - v_paye,
     'solde_national', v_solde - v_pris_national, 'caisse_usine', (v_usine->>'caisse')::numeric);
-END; $function$
+END; $function$;
 
 -- approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.approvisionner_chantier(p_acteur text, p_pays text, p_ville text, p_entrepot text, p_besoin jsonb, p_stock_chantier jsonb, p_tresorerie numeric)
@@ -738,7 +738,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'achats', v_achats, 'depense', v_depense,
                             'stockChantier', v_nouveau_chantier);
-END; $function$
+END; $function$;
 
 -- capacite_entrepot() -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.capacite_entrepot()
@@ -746,7 +746,7 @@ CREATE OR REPLACE FUNCTION public.capacite_entrepot()
  LANGUAGE sql
  IMMUTABLE
  SET search_path TO 'public', 'pg_temp'
-AS $function$ SELECT 5000; $function$
+AS $function$ SELECT 5000; $function$;
 
 -- chantier_lancer(text,text,text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.chantier_lancer(p_acteur text, p_pays text, p_batiment text, p_palier text, p_apport numeric)
@@ -814,7 +814,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'chantier', v_chantier, 'apport', p_apport,
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- chantier_travailler(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.chantier_travailler(p_acteur text, p_pays text, p_batiment text, p_heures integer)
@@ -918,7 +918,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'heures', v_heures, 'montant', v_montant,
     'pa', v_pa - v_heures, 'arg', v_arg + v_montant, 'liquide', v_liquide + v_montant,
     'chantier', v_ch);
-END; $function$
+END; $function$;
 
 -- chantier_verser(text,text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.chantier_verser(p_acteur text, p_pays text, p_batiment text, p_montant numeric)
@@ -976,7 +976,7 @@ BEGIN
     'pourcentage', floor((v_verse + v_montant) * 100 / NULLIF(v_total, 0)),
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- coef_prix_max_pj(text) -> numeric | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.coef_prix_max_pj(p_pays text)
@@ -987,7 +987,7 @@ AS $function$
   select valeur::numeric
     from public.entreprises_constantes
    where cle = 'coef_prix_max_pj_' || coalesce(nullif(btrim(p_pays), ''), '__aucun__');
-$function$
+$function$;
 
 -- commerce_acheter_matiere(text,text,text,integer) -> jsonb | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_acheter_matiere(p_acteur text, p_entreprise text, p_matiere text, p_qte integer)
@@ -999,7 +999,7 @@ AS $function$
   SELECT public.commerce_apporter_matiere(
     'appro-legacy-' || md5(random()::text || clock_timestamp()::text),
     p_acteur, p_entreprise, p_matiere, p_qte, 'vente');
-$function$
+$function$;
 
 -- commerce_apporter_matiere(text,text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_apporter_matiere(p_requete text, p_acteur text, p_entreprise text, p_matiere text, p_qte integer, p_mode text)
@@ -1170,7 +1170,7 @@ BEGIN
     'placeRestante', CASE WHEN v_place IS NULL THEN NULL ELSE GREATEST(0, v_place - p_qte) END,
     'coutMoyen', v_cout_moyen, 'caisse', v_caisse - v_total,
     'arg', v_arg + v_total, 'liquide', v_liquide + v_total, 'inventory', v_inv_apres);
-END; $function$
+END; $function$;
 
 -- commerce_cout_revient_portion(jsonb,text) -> numeric | plpgsql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_cout_revient_portion(p_data jsonb, p_recette text)
@@ -1189,7 +1189,7 @@ BEGIN
   END LOOP;
   SELECT valeur INTO v_mo FROM public.entreprises_constantes WHERE cle = 'cout_main_oeuvre_pa_alimentaire';
   RETURN (v_cout + v_r.pa * COALESCE(v_mo, 0)) / v_r.portions;
-END; $function$
+END; $function$;
 
 -- commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_fixer_parametres(p_acteur text, p_entreprise text, p_prix_vente jsonb, p_prix_achat_matiere jsonb, p_stock_max jsonb)
@@ -1297,7 +1297,7 @@ BEGIN
    WHERE id = p_entreprise;
 
   RETURN jsonb_build_object('ok', true, 'parametres', v_param);
-END; $function$
+END; $function$;
 
 -- commerce_produire(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_produire(p_acteur text, p_entreprise text, p_recette text, p_ordre text DEFAULT NULL::text)
@@ -1460,7 +1460,7 @@ BEGIN
     'liquide', v_liquide + v_salaire,
     'stockProduit', v_stock + v_portions,
     'prixVente', v_data->'parametres'->'prixVente'->p_recette);
-END; $function$
+END; $function$;
 
 -- commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.commerce_vendre_produit(p_acteur text, p_entreprise text, p_produits jsonb, p_mode text DEFAULT 'comptoir'::text, p_ordre text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0, p_regle_pa text DEFAULT NULL::text)
@@ -1610,7 +1610,7 @@ BEGIN
     'paMetier', v_pa_metier,
     'arg', v_arg, 'liquide', v_liquide, 'pa', v_pa_reste,
     'livraison', v_livraison);
-END; $function$
+END; $function$;
 
 -- creer_fonds_commerce(text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.creer_fonds_commerce(p_proprietaire text, p_bail_id text, p_fonds_id text, p_apport integer, p_enseigne text)
@@ -1689,7 +1689,7 @@ BEGIN
                             'apport', v_apport, 'proprietaire', p_proprietaire,
                             'vocation', v_vocation, 'typesMax', public.fonds_types_max(p_proprietaire));
 END;
-$function$
+$function$;
 
 -- creer_oeuvre(text,text,text,text,integer,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.creer_oeuvre(p_auteur text, p_type text, p_titre text, p_country text, p_jour integer, p_contenu text, p_data jsonb)
@@ -1724,7 +1724,7 @@ BEGIN
   VALUES (v_id, v_type, v_titre, v_auteur, NULLIF(btrim(COALESCE(p_country, '')), ''), p_jour, NULLIF(v_contenu, ''), v_data);
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'doublon', false);
 END;
-$function$
+$function$;
 
 -- creer_offre(text,text,text,text,integer,bigint,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.creer_offre(p_emetteur text, p_destinataire text, p_type text, p_actif text, p_montant integer, p_duree_ms bigint, p_data jsonb)
@@ -1781,7 +1781,7 @@ BEGIN
   VALUES (v_id, v_type, v_em, v_de, v_actif, v_montant, 'ouverte', v_data, now() + make_interval(secs => v_duree / 1000.0));
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'doublon', false, 'statut', 'ouverte', 'montant', v_montant, 'expireDansMs', v_duree);
 END;
-$function$
+$function$;
 
 -- employer_fonds(text,text,text,text,integer,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.employer_fonds(p_employeur text, p_fonds_id text, p_salarie text, p_role text, p_taux integer, p_actif boolean)
@@ -1815,7 +1815,7 @@ BEGIN
   UPDATE entreprises SET data=jsonb_set(v_fonds,'{salaries}',v_salaries),updated_at=now() WHERE id=p_fonds_id;
   RETURN jsonb_build_object('ok',true,'salarie',p_salarie,'actif',COALESCE(p_actif,true),'tauxHoraire',v_taux,'nouveau',NOT v_trouve);
 END;
-$function$
+$function$;
 
 -- entrepot_caisse_lire(text) -> numeric | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_caisse_lire(p_id text)
@@ -1828,7 +1828,7 @@ AS $function$
               THEN (public.batiment_etat_lire(e.data) -> 'entrepot' ->> 'caisse')::numeric
               ELSE 0 END
     FROM public.batiments_etat e WHERE e.id = p_id;
-$function$
+$function$;
 
 -- entrepot_capacite_disponible(text,text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_capacite_disponible(p_entrepot_id text, p_ressource text)
@@ -1842,7 +1842,7 @@ AS $function$
                   FROM public.batiments_etat WHERE id = p_entrepot_id), 0)
     - coalesce((SELECT sum(quantite) FROM public.entrepot_transits
                  WHERE destination_id = p_entrepot_id AND ressource = p_ressource), 0))::int;
-$function$
+$function$;
 
 -- entrepot_commander(text,text,integer,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_commander(p_acteur text, p_ressource text, p_quantite integer, p_fournisseur_type text, p_fournisseur_id text)
@@ -2006,7 +2006,7 @@ BEGIN
     'prix_unitaire', v_prix, 'fret_unitaire', v_fret, 'montant', v_total,
     'arrivee_le', v_arrivee, 'delai_jours', v_delai,
     'caisse', round(v_caisse_d - v_total, 2), 'fournisseur', v_libelle);
-END; $function$
+END; $function$;
 
 -- entrepot_du_directeur(text) -> TABLE(entrepot_id text, ville text, batiment text) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_du_directeur(p_acteur text)
@@ -2019,7 +2019,7 @@ AS $function$
     FROM public.personnages_donnees p
     JOIN public.entrepots_par_ville e ON e.ville = p.poste->>'city'
    WHERE p.name = p_acteur AND p.poste->>'id' = 'directeur_entrepot';
-$function$
+$function$;
 
 -- entrepot_fixer_desiderata(text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_fixer_desiderata(p_acteur text, p_desiderata jsonb)
@@ -2063,7 +2063,7 @@ BEGIN
    WHERE id = v_id;
 
   RETURN jsonb_build_object('ok', true, 'desiderata', v_d, 'entrepot', v_id);
-END; $function$
+END; $function$;
 
 -- entrepot_livrer_transits() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_livrer_transits()
@@ -2121,7 +2121,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'lignes_livrees', v_livrees,
                             'unites_livrees', v_unites, 'unites_perdues_capacite', v_pertes);
-END; $function$
+END; $function$;
 
 -- entrepot_reverser(text,numeric,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_reverser(p_entrepot_id text, p_montant numeric, p_mode text, p_acteur text DEFAULT NULL::text)
@@ -2199,7 +2199,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'mairie', v_mairie,
                             'caisse', v_caisse - v_verse, 'mode', p_mode, 'jour', v_jour);
 END;
-$function$
+$function$;
 
 -- entrepot_virement_mairie(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_virement_mairie(p_entrepot_id text, p_montant numeric)
@@ -2232,7 +2232,7 @@ BEGIN
 
   RETURN public.entrepot_reverser(p_entrepot_id, p_montant, 'volontaire', v_moi);
 END;
-$function$
+$function$;
 
 -- entrepots_reverser_excedent() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepots_reverser_excedent()
@@ -2260,7 +2260,7 @@ BEGIN
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'entrepots', v_n, 'total', v_total, 'detail', v_detail);
 END;
-$function$
+$function$;
 
 -- entreprise_acte_preemption(text,text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_acte_preemption(p_acteur text, p_entreprise text, p_libelle_etat text, p_ordre text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)
@@ -2297,7 +2297,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'proprietaire', v_data->>'proprietaire',
     'pa', (SELECT pa FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- entreprise_acte_rachat(text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_acte_rachat(p_acteur text, p_entreprise text, p_ordre text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)
@@ -2347,7 +2347,7 @@ BEGIN
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur),
     'pa', (SELECT pa FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- entreprise_ajouter_historique(jsonb,numeric,text,integer) -> jsonb | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_ajouter_historique(p_data jsonb, p_montant numeric, p_motif text, p_jour integer DEFAULT 1)
@@ -2365,7 +2365,7 @@ AS $function$
       OFFSET GREATEST(0, jsonb_array_length(COALESCE(p_data->'historique','[]'::jsonb)) + 1 - 50)
     ) t
   ), true);
-$function$
+$function$;
 
 -- entreprise_assurer_existence(text,text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_assurer_existence(p_id text, p_type text, p_pays text, p_ville text, p_batiment text, p_room text)
@@ -2504,7 +2504,7 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
   SELECT data INTO v_data FROM public.entreprises WHERE id = p_id;
   RETURN jsonb_build_object('ok', true, 'data', v_data, 'cree', true);
-END; $function$
+END; $function$;
 
 -- entreprise_mouvement_fiscal(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_mouvement_fiscal(p_acteur text, p_entreprise text, p_delta numeric)
@@ -2537,7 +2537,7 @@ BEGIN
   UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_entreprise;
 
   RETURN jsonb_build_object('ok', true, 'montantReel', v_reel, 'caisse', v_caisse + v_reel);
-END; $function$
+END; $function$;
 
 -- entreprise_preempter(text,text,numeric,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_preempter(p_acteur text, p_entreprise text, p_montant numeric, p_duree integer)
@@ -2589,7 +2589,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'prix', v_prix, 'montant', p_montant,
     'montantTotal', v_total, 'mensualite', ceil(v_total / p_duree), 'taux', v_taux);
-END; $function$
+END; $function$;
 
 -- entreprise_prix_rachat(jsonb) -> numeric | plpgsql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_prix_rachat(p_data jsonb)
@@ -2612,7 +2612,7 @@ BEGIN
   END IF;
   SELECT prix INTO v_prix FROM public.entreprises_prix_rachat WHERE batiment = v_bat;
   RETURN v_prix;
-END; $function$
+END; $function$;
 
 -- entreprise_signer_compromis(text,text,numeric,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_signer_compromis(p_acteur text, p_entreprise text, p_pret_montant numeric DEFAULT NULL::numeric, p_pret_duree integer DEFAULT NULL::integer)
@@ -2671,7 +2671,7 @@ BEGIN
     'expireAt', v_maintenant + 7 * 86400000, 'pret', v_pret,
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- entreprise_succession_annuler_compromis(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_succession_annuler_compromis(p_acteur text, p_entreprise text, p_succession text)
@@ -2706,7 +2706,7 @@ BEGIN
     'compromisAt', NULL, 'compromisExpireAt', NULL, 'pretDemande', NULL);
   UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_entreprise;
   RETURN jsonb_build_object('ok', true);
-END; $function$
+END; $function$;
 
 -- entreprise_succession_geler(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.entreprise_succession_geler(p_acteur text, p_entreprise text, p_succession text)
@@ -2738,7 +2738,7 @@ BEGIN
          updated_at = now()
    WHERE id = p_entreprise;
   RETURN jsonb_build_object('ok', true, 'gel', p_succession);
-END; $function$
+END; $function$;
 
 -- fabriquer_produit_manufacture(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fabriquer_produit_manufacture(p_acteur text, p_pays text, p_produit text)
@@ -2799,7 +2799,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'stock_produit', coalesce((v_sp->>p_produit)::numeric,0),
     'paConsommes', v_pa_requis, 'pa', v_pa - v_pa_requis);
-END; $function$
+END; $function$;
 
 -- fixer_prix_entrepot(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fixer_prix_entrepot(p_acteur text, p_pays text, p_prix jsonb)
@@ -2843,7 +2843,7 @@ BEGIN
            v_entrepot || jsonb_build_object('prixManuel', v_pm)))::text), updated_at = now()
    WHERE id = v_id;
   RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
-END; $function$
+END; $function$;
 
 -- fixer_prix_vente_directe(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fixer_prix_vente_directe(p_acteur text, p_pays text, p_prix jsonb)
@@ -2889,7 +2889,7 @@ BEGIN
            v_usine || jsonb_build_object('prixManuel', v_pm)))::text), updated_at = now()
    WHERE id = v_id;
   RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
-END; $function$
+END; $function$;
 
 -- fixer_repartition_port(text,numeric,numeric,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fixer_repartition_port(p_cle text, p_capitale numeric, p_ville_a numeric, p_ville_b numeric)
@@ -2928,7 +2928,7 @@ BEGIN
    WHERE id = v_id;
 
   RETURN jsonb_build_object('ok', true, 'repartition', v_port->'repartition'->p_cle);
-END; $function$
+END; $function$;
 
 -- fixer_repartition_production(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fixer_repartition_production(p_acteur text, p_pays text, p_pourcentage numeric)
@@ -2960,7 +2960,7 @@ BEGIN
          updated_at = now()
    WHERE id = v_id;
   RETURN jsonb_build_object('ok', true, 'repartitionEntrepots', p_pourcentage / 100, 'batiment', v_bat);
-END; $function$
+END; $function$;
 
 -- fournisseurs_etrangers() -> TABLE(pays text, libelle text, ressource text, prix_unitaire numeric, disponible integer) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fournisseurs_etrangers()
@@ -2985,4 +2985,4 @@ AS $function$
     FROM pays_etrangers p
     CROSS JOIN public.ressources_economie r
    WHERE r.source = 'livraison';
-$function$
+$function$;

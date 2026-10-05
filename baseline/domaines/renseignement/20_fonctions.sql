@@ -17,7 +17,7 @@ CREATE OR REPLACE FUNCTION public.agent_au_bureau_min_def(p_bat text, p_piece te
  IMMUTABLE
 AS $function$
   SELECT p_bat = 'palais-gouvernement' AND p_piece = 'bureau_min_def';
-$function$
+$function$;
 
 -- agent_conseillere_observer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_conseillere_observer(p_agent_id text)
@@ -132,7 +132,7 @@ BEGIN
   IF v_nb > 0 THEN PERFORM public.agent_trace_deposer(p_agent_id); END IF;
   RETURN jsonb_build_object('ok', true, 'faits', v_nb);
 END;
-$function$
+$function$;
 
 -- agent_coordinateur_multimodal(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_coordinateur_multimodal(p_agent_id text)
@@ -234,7 +234,7 @@ BEGIN
   IF v_nb > 0 THEN PERFORM public.agent_trace_deposer(p_agent_id); END IF;
   RETURN jsonb_build_object('ok', true, 'faits', v_nb);
 END;
-$function$
+$function$;
 
 -- agent_coordinateur_port(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_coordinateur_port(p_agent_id text)
@@ -348,7 +348,7 @@ BEGIN
   IF v_nb > 0 THEN PERFORM public.agent_trace_deposer(p_agent_id); END IF;
   RETURN jsonb_build_object('ok', true, 'faits', v_nb);
 END;
-$function$
+$function$;
 
 -- agent_deposer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_deposer(p_agent_id text)
@@ -384,7 +384,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'agent', p_agent_id, 'pays', d.country,
     'ville', d.current_city, 'batiment', d.current_building, 'piece', d.current_room);
 END;
-$function$
+$function$;
 
 -- agent_garde_observer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_garde_observer(p_agent_id text)
@@ -467,7 +467,7 @@ BEGIN
   IF v_nb > 0 THEN PERFORM public.agent_trace_deposer(p_agent_id); END IF;
   RETURN jsonb_build_object('ok', true, 'faits', v_nb);
 END;
-$function$
+$function$;
 
 -- agent_portrait_chemin(text,text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.agent_portrait_chemin(p_role text, p_pays text)
@@ -494,7 +494,7 @@ AS $function$
     WHEN 'coordinateur|khalija'   THEN 'p-9e17eaed14'
     ELSE 'p-inconnu'
   END || '.png';
-$function$
+$function$;
 
 -- agent_position_effective(text) -> TABLE(pays text, ville text, building_id text, room_id text, porte boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_position_effective(p_agent_id text)
@@ -512,7 +512,7 @@ AS $function$
   FROM public.agents_renseignement ag
   LEFT JOIN public.personnages_donnees d ON d.name = ag.leader_courant
   WHERE ag.id = p_agent_id;
-$function$
+$function$;
 
 -- agent_prendre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_prendre(p_agent_id text)
@@ -567,7 +567,7 @@ BEGIN
    WHERE id = p_agent_id;
   RETURN jsonb_build_object('ok', true, 'agent', p_agent_id, 'leader', v_moi);
 END;
-$function$
+$function$;
 
 -- agent_trace_deposer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_trace_deposer(p_agent_id text)
@@ -615,7 +615,7 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
 
   RETURN jsonb_build_object('ok', true, 'trace', true, 'risque', v_risque, 'reference', v_id);
-END; $function$
+END; $function$;
 
 -- agent_traducteur_ecouter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_traducteur_ecouter(p_agent_id text)
@@ -676,7 +676,7 @@ BEGIN
   IF v_nb > 0 THEN PERFORM public.agent_trace_deposer(p_agent_id); END IF;
   RETURN jsonb_build_object('ok', true, 'faits', v_nb);
 END;
-$function$
+$function$;
 
 -- agent_transferer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agent_transferer(p_agent_id text, p_destinataire text)
@@ -731,7 +731,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'agent', p_agent_id, 'nouveau_leader', p_destinataire);
 END;
-$function$
+$function$;
 
 -- agents_couverture_de_mon_groupe() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agents_couverture_de_mon_groupe()
@@ -754,7 +754,7 @@ BEGIN
    WHERE ag.leader_courant = v_moi AND ag.statut = 'actif' AND c.statut = 'active';
   RETURN jsonb_build_object('ok', true, 'agents', v_res);
 END;
-$function$
+$function$;
 
 -- agents_couverture_ici() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agents_couverture_ici()
@@ -787,7 +787,7 @@ BEGIN
      AND ag.room_id     IS NOT DISTINCT FROM d.current_room;
   RETURN jsonb_build_object('ok', true, 'agents', v_res);
 END;
-$function$
+$function$;
 
 -- agents_de_mon_groupe() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agents_de_mon_groupe()
@@ -807,7 +807,7 @@ BEGIN
    WHERE ag.leader_courant = v_moi;
   RETURN jsonb_build_object('ok', true, 'agents', v_res);
 END;
-$function$
+$function$;
 
 -- agents_renseignement_ici() -> TABLE(nom_couverture text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.agents_renseignement_ici()
@@ -838,7 +838,7 @@ BEGIN
        AND a.leader_courant IS DISTINCT FROM v_moi   -- on ne se detecte pas soi-meme
      ORDER BY a.nom_couverture;
 END;
-$function$
+$function$;
 
 -- cellule_alerter_ministre(text,text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_alerter_ministre(p_cellule_id text, p_couverture text, p_sujet text, p_corps text)
@@ -868,7 +868,7 @@ BEGIN
           'Service de renseignement', v_destinataire, p_sujet, p_corps,
           to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
 END;
-$function$
+$function$;
 
 -- cellule_rapports_mes_cellules(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_rapports_mes_cellules(p_limite integer DEFAULT 10)
@@ -896,7 +896,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'rapports', v_res);
 END;
-$function$
+$function$;
 
 -- cellule_renseignement_clore(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_renseignement_clore(p_cellule_id text, p_mode text)
@@ -949,7 +949,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'cellule', p_cellule_id, 'mode_fin', p_mode,
     'agents_disparus', v_disparus, 'evasions', v_evades, 'morts', v_morts);
 END;
-$function$
+$function$;
 
 -- cellule_renseignement_creer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_renseignement_creer(p_pays_cible text)
@@ -1066,7 +1066,7 @@ BEGIN
     'pays_cible', p_pays_cible, 'echeance', v_echeance, 'cout', c_cout, 'caisse', v_caisse,
     'pa_restants', v_pa - c_pa, 'agents', v_agents);
 END;
-$function$
+$function$;
 
 -- cellule_renseignement_mes_cellules() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_renseignement_mes_cellules()
@@ -1112,7 +1112,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'cellules', v_res);
 END;
-$function$
+$function$;
 
 -- cellule_renseignement_terminer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellule_renseignement_terminer(p_cellule_id text)
@@ -1142,7 +1142,7 @@ BEGIN
   -- Aucun remboursement : le cout n'est jamais rendu.
   RETURN public.cellule_renseignement_clore(p_cellule_id, 'volontaire');
 END;
-$function$
+$function$;
 
 -- cellules_rapports_generer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellules_rapports_generer()
@@ -1189,7 +1189,7 @@ BEGIN
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'rapports', v_n);
 END;
-$function$
+$function$;
 
 -- cellules_renseignement_balayer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellules_renseignement_balayer()
@@ -1220,7 +1220,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'fins_naturelles', v_nat, 'echecs', v_ech);
 END;
-$function$
+$function$;
 
 -- cellules_renseignement_collecter() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cellules_renseignement_collecter()
@@ -1256,7 +1256,7 @@ BEGIN
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'agents', v_n, 'faits', v_faits);
 END;
-$function$
+$function$;
 
 -- contre_espionnage_approfondir(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contre_espionnage_approfondir(p_couverture text)
@@ -1298,7 +1298,7 @@ BEGIN
 
   RETURN public.contre_espionnage_resoudre(v_pays, p_couverture, v_nom, 'detention');
 END;
-$function$
+$function$;
 
 -- contre_espionnage_dossiers() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contre_espionnage_dossiers()
@@ -1335,7 +1335,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'poste', v_poste, 'dossiers', v_res);
 END;
-$function$
+$function$;
 
 -- contre_espionnage_memoriser(text,text,integer,text,text,text,text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contre_espionnage_memoriser(p_pays text, p_couverture text, p_niveau integer, p_vrai_nom text, p_pays_agent text, p_instructeur text, p_ref text)
@@ -1372,7 +1372,7 @@ BEGIN
   END LOOP;
   RETURN p_niveau;
 END;
-$function$
+$function$;
 
 -- contre_espionnage_modificateur(numeric,numeric,numeric) -> integer | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.contre_espionnage_modificateur(p_per_commissaire numeric, p_dup_agent numeric, p_is_national numeric)
@@ -1383,7 +1383,7 @@ CREATE OR REPLACE FUNCTION public.contre_espionnage_modificateur(p_per_commissai
 AS $function$
   SELECT round(3 * (coalesce(p_per_commissaire, 8) - coalesce(p_dup_agent, 8))
              + (coalesce(p_is_national, 50) - 50) / 2.0)::integer;
-$function$
+$function$;
 
 -- contre_espionnage_niveau_connu(text,text) -> integer | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contre_espionnage_niveau_connu(p_pays text, p_couverture text)
@@ -1397,7 +1397,7 @@ AS $function$
    WHERE r.titulaire = 'etat:' || p_pays
      AND r.cible = p_couverture
      AND r.categorie LIKE 'contre_espionnage_niveau_%';
-$function$
+$function$;
 
 -- contre_espionnage_palier(integer) -> integer | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.contre_espionnage_palier(p_score integer)
@@ -1414,7 +1414,7 @@ AS $function$
     WHEN p_score >= 50 THEN 1
     ELSE 0
   END;
-$function$
+$function$;
 
 -- contre_espionnage_resoudre(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contre_espionnage_resoudre(p_pays text, p_couverture text, p_instructeur text, p_ref text)
@@ -1459,7 +1459,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'score', v_score, 'palier', v_palier,
     'niveau_avant', v_avant, 'niveau', v_apres,
     'progression', v_apres > v_avant);
-END; $function$
+END; $function$;
 
 -- convocation_douane_emettre(text,text,integer,integer,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.convocation_douane_emettre(p_cible text, p_motif text, p_jour_emission integer, p_heure_emission integer, p_jour_limite integer, p_heure_limite integer)
@@ -1511,7 +1511,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'convocation', v_conv, 'cible', p_cible, 'acteur', v_acteur);
 END;
-$function$
+$function$;
 
 -- douane_autorite_de_perimetre(text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.douane_autorite_de_perimetre(p_pays text, p_perimetre text)
@@ -1531,7 +1531,7 @@ BEGIN
    ORDER BY pd.name
    LIMIT 1;
   RETURN v_nom;              -- NULL legitime : aucun PJ ne porte le poste aujourd'hui.
-END; $function$
+END; $function$;
 
 -- douane_caracteristiques_metier() -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.douane_caracteristiques_metier()
@@ -1541,7 +1541,7 @@ CREATE OR REPLACE FUNCTION public.douane_caracteristiques_metier()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT public.pnj_metier_profil('douanier');
-$function$
+$function$;
 
 -- douane_effectifs_publics() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.douane_effectifs_publics()
@@ -1568,7 +1568,7 @@ BEGIN
       JOIN public.pnj_force_publique_metier fp ON fp.pnj_id = m.id
      WHERE m.famille = 'douanier' AND m.pays = v_pays AND m.statut = 'actif'
   ), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- douane_payer_effectifs(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.douane_payer_effectifs(p_pays text)
@@ -1680,7 +1680,7 @@ BEGIN
                             'effectif_avant', v_n, 'effectif_apres', v_gardes,
                             'partis', v_n - v_gardes, 'caisse', v_caisse);
 END;
-$function$
+$function$;
 
 -- douane_pnj_id(text,text,text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.douane_pnj_id(p_pays text, p_ville text, p_matricule text)
@@ -1689,7 +1689,7 @@ CREATE OR REPLACE FUNCTION public.douane_pnj_id(p_pays text, p_ville text, p_mat
  IMMUTABLE
 AS $function$
   SELECT 'douane-' || p_pays || '-' || p_ville || '-' || p_matricule;
-$function$
+$function$;
 
 -- filature_deplacements(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.filature_deplacements(p_cible text)
@@ -1727,7 +1727,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'cible', p_cible, 'deplacements', v_lignes);
 END;
-$function$
+$function$;
 
 -- renseignement_agents_disponibles() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.renseignement_agents_disponibles()
@@ -1748,7 +1748,7 @@ BEGIN
     INTO v_res FROM public.renseignement_identites_reelles i;
   RETURN jsonb_build_object('ok', true, 'agents', v_res);
 END;
-$function$
+$function$;
 
 -- renseignement_autorite_de_perimetre(text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.renseignement_autorite_de_perimetre(p_pays text, p_perimetre text)
@@ -1765,7 +1765,7 @@ AS $function$
    WHERE pa.poste_id = 'min_def' AND pa.country = COALESCE(p_perimetre, p_pays)
      AND pa.titulaire IS NOT NULL
    LIMIT 1;
-$function$
+$function$;
 
 -- renseignement_mission_raccorder() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.renseignement_mission_raccorder()
@@ -1787,11 +1787,11 @@ BEGIN
   -- DUP qu'elles avaient reellement au moment de leur mission -- l'historique ne se reecrit pas.
   NEW.dup := v_dup;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- renseignement_pnj_id(text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.renseignement_pnj_id(p_role text)
  RETURNS text
  LANGUAGE sql
  IMMUTABLE
-AS $function$ SELECT 'agent-' || p_role; $function$
+AS $function$ SELECT 'agent-' || p_role; $function$;

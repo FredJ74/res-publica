@@ -66,7 +66,7 @@ BEGIN
    WHERE id = p_fonds_id;
 
   RETURN jsonb_build_object('ok', true, 'montant', v_m, 'caisse', v_caisse + v_m);
-END; $function$
+END; $function$;
 
 -- appliquer_taxe_transaction(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.appliquer_taxe_transaction(p_pays text, p_ville text, p_montant_brut numeric)
@@ -102,7 +102,7 @@ BEGIN
 
   RETURN jsonb_build_object('net', p_montant_brut - v_taxe_l - v_taxe_n,
     'taxeLocale', v_taxe_l, 'taxeNationale', v_taxe_n, 'tauxLocal', v_tl, 'tauxNational', v_tn);
-END; $function$
+END; $function$;
 
 -- budget_national_epingler() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.budget_national_epingler()
@@ -202,7 +202,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- budgets_armurerie_verrou() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.budgets_armurerie_verrou()
@@ -226,7 +226,7 @@ BEGIN
                      ELSE jsonb_set(NEW.data, '{lotsMilitaires}', OLD.data -> 'lotsMilitaires') END;
   END IF;
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- budgets_virement_caserne_verrou() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.budgets_virement_caserne_verrou()
@@ -250,7 +250,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- caisse_client_mouvement(text,numeric,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_client_mouvement(p_caisse text, p_delta numeric, p_motif text DEFAULT NULL::text, p_plafonne boolean DEFAULT false)
@@ -327,7 +327,7 @@ BEGIN
   END IF;
   RETURN v_res;
 END;
-$function$
+$function$;
 
 -- caisse_commissariat_lire(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_commissariat_lire(p_id text)
@@ -372,7 +372,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'solde', coalesce(v_solde, 0));
 END;
-$function$
+$function$;
 
 -- caisse_institution_mouvement(text,numeric,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean DEFAULT false)
@@ -443,7 +443,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true);
 END;
-$function$
+$function$;
 
 -- caisse_institution_mouvement_plafonne(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement_plafonne(p_id text, p_montant numeric)
@@ -504,7 +504,7 @@ BEGIN
          updated_at = now()
    WHERE id = p_id;
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'solde', v_solde - v_verse);
-END; $function$
+END; $function$;
 
 -- caisse_ministere_mouvement(text,numeric,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.caisse_ministere_mouvement(p_source_id text, p_montant numeric, p_destination_id text DEFAULT NULL::text, p_plafonne boolean DEFAULT false)
@@ -587,7 +587,7 @@ BEGIN
     'poste', v_poste, 'source', p_source_id, 'destination', p_destination_id,
     'solde_source', v_solde - v_verse);
 END;
-$function$
+$function$;
 
 -- caisse_postes_requis(text,text) -> text[] | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_postes_requis(p_caisse text, p_pays text)
@@ -612,7 +612,7 @@ BEGIN
   IF NOT FOUND THEN RETURN NULL; END IF;
   RETURN r.postes_debit;
 END;
-$function$
+$function$;
 
 -- caisse_ville_de(text,text) -> text | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.caisse_ville_de(p_caisse text, p_pays text)
@@ -629,7 +629,7 @@ BEGIN
    ORDER BY length(c.motif) DESC LIMIT 1;
   IF NOT FOUND THEN RETURN NULL; END IF;
   RETURN substring(v_suffixe from '^' || r.motif || '_(.+)$');
-END; $function$
+END; $function$;
 
 -- debiter_fonds_ordinaires(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.debiter_fonds_ordinaires(p_acteur text, p_montant numeric)
@@ -675,7 +675,7 @@ BEGIN
     'solde_national', coalesce((SELECT solde FROM public.comptes_bancaires
                                  WHERE personnage = p_acteur AND banque = 'nationale'), 0));
 END;
-$function$
+$function$;
 
 -- dotation_attribuer_point(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.dotation_attribuer_point(p_stat text)
@@ -740,7 +740,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'stat', p_stat, 'valeur', v_courant + 1,
                             'cout', v_cout, 'restants', v_reliquat - v_cout);
 END;
-$function$
+$function$;
 
 -- fonds_acteur_present(text,jsonb) -> boolean | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_acteur_present(p_acteur text, p_implantation jsonb)
@@ -756,7 +756,7 @@ AS $function$
            p_implantation->>'city',
            p_implantation->>'buildingId',
            p_implantation->>'roomId');
-$function$
+$function$;
 
 -- fonds_cout_revient_reference(text,text) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_cout_revient_reference(p_fonds_id text, p_reference_id text)
@@ -799,7 +799,7 @@ BEGIN
     'coutUnitaire', v_cmup, 'coefficient', v_coef,
     'prixMaximum', ceil(v_cmup * v_coef));
 END;
-$function$
+$function$;
 
 -- fonds_crediter_atteste(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_crediter_atteste(p_acteur text, p_source text, p_reference text, p_ordre text DEFAULT NULL::text)
@@ -864,7 +864,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'montant', v_montant, 'source', p_source,
                             'arg', v_arg, 'liquide', v_liquide);
 END;
-$function$
+$function$;
 
 -- fonds_definir_types(text,text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_definir_types(p_acteur text, p_fonds_id text, p_types text[])
@@ -925,7 +925,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'fondsId', p_fonds_id,
                             'typesAutorises', to_jsonb(v_connus), 'maximum', v_max);
 END;
-$function$
+$function$;
 
 -- fonds_generiques_accessibles(text) -> TABLE(generique_id text, libelle text, famille_id text, famille text, types text[]) | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_generiques_accessibles(p_fonds_id text)
@@ -946,7 +946,7 @@ AS $function$
    where exists (select 1 from public.recettes_commerce r where r.generique_id = g.id)
    group by g.id, g.libelle, g.famille_id, fam.libelle
    order by fam.libelle, g.libelle;
-$function$
+$function$;
 
 -- fonds_matiere_apporter(text,text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_matiere_apporter(p_requete text, p_acteur text, p_fonds_id text, p_matiere text, p_qte integer, p_mode text)
@@ -1082,7 +1082,7 @@ BEGIN
     'stock', v_stock + v_qte, 'maximum', v_m.maximum, 'illimite', v_m.maximum = 0,
     'placeRestante', v_reste,
     'coutMoyen', v_nouveau, 'caisse', v_caisse - v_montant, 'inventory', v_inv_apres);
-END; $function$
+END; $function$;
 
 -- fonds_matiere_parametres(text,text,text,numeric,integer,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fonds_matiere_parametres(p_acteur text, p_fonds_id text, p_matiere text, p_prix_achat numeric, p_maximum integer, p_acceptee boolean)
@@ -1143,7 +1143,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'matiere', v_mat,
                             'prixAchat', round(p_prix_achat, 2), 'maximum', p_maximum,
                             'acceptee', v_ok, 'plafondPays', v_plafond);
-END; $function$
+END; $function$;
 
 -- fonds_matieres_accessibles(text) -> TABLE(matiere text, stock numeric, maximum integer, plafond_pays integer, prix_achat numeric, place_restante integer, acceptee boolean, utilisee boolean) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fonds_matieres_accessibles(p_fonds_id text)
@@ -1188,7 +1188,7 @@ BEGIN
         FROM acces a
     ) x
    ORDER BY x.cle;
-END; $function$
+END; $function$;
 
 -- fonds_matieres_recherchees(text) -> TABLE(matiere text, stock numeric, maximum integer, plafond_pays integer, prix_achat numeric, place_restante integer) | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_matieres_recherchees(p_fonds_id text)
@@ -1231,7 +1231,7 @@ BEGIN
         FROM matieres m
     ) x
    ORDER BY x.cle;
-END; $function$
+END; $function$;
 
 -- fonds_plafond_stock_matiere(text) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.fonds_plafond_stock_matiere(p_pays text)
@@ -1242,7 +1242,7 @@ AS $function$
   select valeur::integer
     from public.entreprises_constantes
    where cle = 'stock_max_matiere_' || coalesce(nullif(btrim(p_pays), ''), '__aucun__');
-$function$
+$function$;
 
 -- fonds_reference_activer(text,text,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_activer(p_acteur text, p_fonds_id text, p_reference_id text, p_active boolean)
@@ -1291,7 +1291,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'referenceId', p_reference_id,
                             'active', coalesce(p_active, false));
 END;
-$function$
+$function$;
 
 -- fonds_reference_creer(text,text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_creer(p_acteur text, p_fonds_id text, p_generique_id text, p_recette_id text, p_nom text, p_description text)
@@ -1382,7 +1382,7 @@ BEGIN
                             'recette_id', v_rec, 'famille', v_gen.famille, 'nom', v_nom,
                             'active', false, 'prixVente', 0, 'references', v_n + 1);
 END;
-$function$
+$function$;
 
 -- fonds_reference_modifier(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_modifier(p_acteur text, p_fonds_id text, p_reference_id text, p_nom text, p_description text)
@@ -1431,7 +1431,7 @@ BEGIN
                             'nom', v_ref->>'nom', 'description', v_ref->>'description',
                             'generique_id', v_ref->>'generique_id');
 END;
-$function$
+$function$;
 
 -- fonds_reference_prix(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_prix(p_acteur text, p_fonds_id text, p_reference_id text, p_prix integer)
@@ -1477,7 +1477,7 @@ BEGIN
                             'maximum', (v_cout->>'prixMaximum')::numeric,
                             'coutUnitaire', (v_cout->>'coutUnitaire')::numeric);
 END;
-$function$
+$function$;
 
 -- fonds_reference_produire(text,text,text,text) -> jsonb | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_produire(p_requete text, p_acteur text, p_fonds_id text, p_reference_id text)
@@ -1487,7 +1487,7 @@ CREATE OR REPLACE FUNCTION public.fonds_reference_produire(p_requete text, p_act
  SET search_path TO 'public'
 AS $function$
   SELECT public.fonds_reference_produire_lots(p_requete, p_acteur, p_fonds_id, p_reference_id, 1);
-$function$
+$function$;
 
 -- fonds_reference_produire_lots(text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_produire_lots(p_requete text, p_acteur text, p_fonds_id text, p_reference_id text, p_lots integer)
@@ -1662,7 +1662,7 @@ BEGIN
     'coutMatieres', v_mat, 'coutLot', v_cout_lot, 'coutUnitaireLot', v_unit,
     'cmupAvant', v_cmup_avant, 'cmupApres', v_cmup_apres,
     'matieresConsommees', v_conso);
-END; $function$
+END; $function$;
 
 -- fonds_reference_stock_max(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fonds_reference_stock_max(p_acteur text, p_fonds_id text, p_reference_id text, p_maximum integer)
@@ -1699,7 +1699,7 @@ BEGIN
    WHERE id = p_fonds_id;
 
   RETURN jsonb_build_object('ok', true, 'referenceId', p_reference_id, 'maximum', p_maximum);
-END; $function$
+END; $function$;
 
 -- fonds_references_max(text) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.fonds_references_max(p_proprietaire text)
@@ -1710,7 +1710,7 @@ AS $function$
   select greatest(1, coalesce(
     (select valeur::integer from public.entreprises_constantes
       where cle = 'references_max_base'), 4));
-$function$
+$function$;
 
 -- fonds_rembourser(uuid,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fonds_rembourser(p_debit_id uuid, p_source text)
@@ -1781,7 +1781,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'montant', v_montant, 'source', p_source,
                             'arg', v_arg, 'liquide', v_liquide);
 END;
-$function$
+$function$;
 
 -- fonds_types_max(text) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.fonds_types_max(p_proprietaire text)
@@ -1792,7 +1792,7 @@ AS $function$
   select greatest(1, coalesce(
     (select valeur::integer from public.entreprises_constantes
       where cle = 'types_commerce_max_base'), 2));
-$function$
+$function$;
 
 -- pa_bonus_chambre(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_bonus_chambre(p_acteur text, p_batiment text)
@@ -1818,7 +1818,7 @@ BEGIN
   v_pa := public.pa_crediter_interne(p_acteur, v_montant);
   RETURN jsonb_build_object('ok', true, 'pa', v_pa, 'montant', v_montant);
 END;
-$function$
+$function$;
 
 -- pa_bonus_differe_crediter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_bonus_differe_crediter(p_acteur text, p_source text)
@@ -1842,7 +1842,7 @@ BEGIN
    RETURNING bonus_pa_differe INTO v_total;
   RETURN jsonb_build_object('ok', true, 'montant', v_montant, 'bonus_differe', v_total);
 END;
-$function$
+$function$;
 
 -- pa_crediter_atteste(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_crediter_atteste(p_acteur text, p_source text, p_reference text, p_ordre text DEFAULT NULL::text)
@@ -1883,7 +1883,7 @@ BEGIN
   v_pa := public.pa_crediter_interne(p_acteur, v_montant);
   RETURN jsonb_build_object('ok', true, 'pa', v_pa, 'montant', v_montant);
 END;
-$function$
+$function$;
 
 -- pa_crediter_interne(text,integer) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_crediter_interne(p_nom text, p_montant integer)
@@ -1900,7 +1900,7 @@ BEGIN
    RETURNING pa INTO v_pa;
   RETURN v_pa;
 END;
-$function$
+$function$;
 
 -- pa_repos_nocturne(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_repos_nocturne(p_acteur text)
@@ -1966,7 +1966,7 @@ BEGIN
                             'grade_militaire', v_grade, 'gain', v_gain,
                             'caserne', v_caserne, 'tente', v_tente);
 END;
-$function$
+$function$;
 
 -- percevoir_salaire_directeur(text,text,text,text,text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.percevoir_salaire_directeur(p_acteur text, p_pays text, p_ville text, p_batiment text, p_souscle text, p_poste_attendu text, p_montant numeric)
@@ -2017,7 +2017,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'complet', v_verse >= coalesce(p_montant,0),
     'arg', v_arg + v_verse, 'liquide', v_liquide + v_verse, 'caisse', v_solde - v_verse);
-END; $function$
+END; $function$;
 
 -- redressement_fiscal_appliquer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.redressement_fiscal_appliquer(p_type text, p_cible text)
@@ -2111,7 +2111,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'montant', v_pris, 'pays', v_pays);
 END;
-$function$
+$function$;
 
 -- retirer_caisse_fonds(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.retirer_caisse_fonds(p_acteur text, p_fonds_id text, p_montant integer)
@@ -2165,7 +2165,7 @@ BEGIN
   END IF;
 
   RETURN jsonb_build_object('ok', true, 'montant', v_m, 'caisse', v_caisse - v_m);
-END; $function$
+END; $function$;
 
 -- salaire_caisse_de(text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaire_caisse_de(p_poste_id text, p_pays text, p_ville text)
@@ -2193,7 +2193,7 @@ BEGIN
 
   RETURN NULL;
 END;
-$function$
+$function$;
 
 -- salaire_civil_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaire_civil_percevoir()
@@ -2309,7 +2309,7 @@ BEGIN
                             'cle', v_cle, 'jour', v_jour, 'caisse', v_caisse,
                             'arg', v_arg, 'liquide', v_liquide);
 END;
-$function$
+$function$;
 
 -- salaire_religieux_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaire_religieux_percevoir()
@@ -2401,7 +2401,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'total', v_total, 'jour', v_jour,
                             'details', v_details, 'arg', v_arg, 'liquide', v_liquide);
 END;
-$function$
+$function$;
 
 -- salaire_ville_du_poste(text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaire_ville_du_poste(p_poste_id text, p_ville_fiche text)
@@ -2414,7 +2414,7 @@ AS $function$
     WHEN coalesce(btrim(p_ville_fiche), '') <> '' THEN p_ville_fiche
     ELSE (SELECT s.ville_defaut FROM public.salaires_caisses s WHERE s.poste_id = p_poste_id)
   END;
-$function$
+$function$;
 
 -- salaires_coherence() -> TABLE(probleme text, cles text) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaires_coherence()
@@ -2434,7 +2434,7 @@ AS $function$
    WHERE NOT EXISTS (SELECT 1 FROM public.salaires_civils_declares s
                       WHERE s.cle = c.poste_id AND s.categorie = 'poste')
   HAVING count(*) > 0;
-$function$
+$function$;
 
 -- subvention_citoyen_verser(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.subvention_citoyen_verser(p_beneficiaire text, p_montant integer)
@@ -2496,7 +2496,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'beneficiaire', p_beneficiaire,
                             'acteur', v_acteur, 'caisse', v_caisse);
-END; $function$
+END; $function$;
 
 -- vente_structure_encaisser(text,integer,integer,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.vente_structure_encaisser(p_fn text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0, p_caisse text DEFAULT NULL::text, p_ville text DEFAULT NULL::text)
@@ -2577,4 +2577,4 @@ BEGIN
     'caisse', p_caisse,
     'ville', v_ville);
 END;
-$function$
+$function$;

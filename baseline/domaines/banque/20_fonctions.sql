@@ -39,7 +39,7 @@ BEGIN
 
   RETURN v_pret;
 END;
-$function$
+$function$;
 
 -- banque_nationale_mouvement(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.banque_nationale_mouvement(p_acteur text, p_sens text, p_montant numeric)
@@ -105,7 +105,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'sens', p_sens, 'montant', p_montant,
     'liquide', v_liquide, 'solde', v_solde, 'arg', v_arg, 'compte', v_compte_id);
-END; $function$
+END; $function$;
 
 -- compte_bancaire_initial(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.compte_bancaire_initial(p_acteur text)
@@ -138,7 +138,7 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
 
   RETURN jsonb_build_object('ok', true, 'compte', v_id, 'solde', v_solde);
-END; $function$
+END; $function$;
 
 -- creer_placement_helvetia(text,numeric,text) -> placements_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.creer_placement_helvetia(p_personnage text, p_montant numeric, p_type text)
@@ -223,7 +223,7 @@ begin
 
   return v_placement;
 end;
-$function$
+$function$;
 
 -- creer_placement_national(text,numeric,integer,text) -> placements_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.creer_placement_national(p_personnage text, p_montant numeric, p_int_snapshot integer, p_ville text)
@@ -340,7 +340,7 @@ BEGIN
 
   RETURN v_placement;
 END;
-$function$
+$function$;
 
 -- creer_pret_helvetia(text,numeric,integer) -> prets | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.creer_pret_helvetia(p_personnage text, p_montant numeric, p_duree_jours integer)
@@ -405,7 +405,7 @@ BEGIN
 
   RETURN v_pret;
 END;
-$function$
+$function$;
 
 -- deposer_helvetia(text,numeric) -> comptes_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.deposer_helvetia(p_personnage text, p_montant numeric)
@@ -480,7 +480,7 @@ begin
 
   return v_compte_helvetia;
 end;
-$function$
+$function$;
 
 -- deposer_helvetia(text,numeric,text) -> comptes_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.deposer_helvetia(p_personnage text, p_montant numeric, p_source_type text)
@@ -523,7 +523,7 @@ BEGIN
 
   RETURN v_compte;
 END;
-$function$
+$function$;
 
 -- fermer_compte_helvetia(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fermer_compte_helvetia(p_personnage text, p_destination_type text)
@@ -620,7 +620,7 @@ BEGIN
   RETURN jsonb_build_object('net', v_net, 'applique_a_la_dette', v_applique_a_la_dette,
     'restitution', v_restitution, 'dette_restante', GREATEST(0, v_dette - v_applique_a_la_dette));
 END;
-$function$
+$function$;
 
 -- finaliser_achat_bien_helvetia(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.finaliser_achat_bien_helvetia(p_personnage text, p_terrain_id text)
@@ -718,7 +718,7 @@ BEGIN
 
   RETURN jsonb_build_object('terrain_id', p_terrain_id, 'prix', v_bien.prix_notaire, 'acheteur', p_personnage);
 END;
-$function$
+$function$;
 
 -- helvetia_assurer_liquidite(text,numeric,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_assurer_liquidite(p_pays text, p_montant_necessaire numeric, p_motif text)
@@ -782,7 +782,7 @@ BEGIN
 
   RETURN true;
 END;
-$function$
+$function$;
 
 -- helvetia_crediter_destination(text,numeric,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_crediter_destination(p_personnage text, p_montant numeric, p_destination_type text)
@@ -802,7 +802,7 @@ BEGIN
     RAISE EXCEPTION 'Destination non supportee: %', p_destination_type;
   END IF;
 END;
-$function$
+$function$;
 
 -- helvetia_debiter_fonds_ordinaires(text,numeric) -> boolean | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric)
@@ -841,7 +841,7 @@ BEGIN
   END IF;
 
   RETURN true;
-END; $function$
+END; $function$;
 
 -- helvetia_debiter_source(text,numeric,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_debiter_source(p_personnage text, p_montant numeric, p_source_type text)
@@ -872,7 +872,7 @@ BEGIN
     RAISE EXCEPTION 'Source non supportee: %', p_source_type;
   END IF;
 END;
-$function$
+$function$;
 
 -- helvetia_ie_national(text) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_ie_national(p_pays text)
@@ -893,7 +893,7 @@ BEGIN
   END LOOP;
   RETURN ROUND(v_somme / array_length(v_villes,1));
 END;
-$function$
+$function$;
 
 -- helvetia_inventaire_sortie(jsonb,jsonb,integer,jsonb,integer) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_inventaire_sortie(p_inv jsonb, p_quete jsonb, p_index integer, p_signature jsonb, p_qte integer)
@@ -942,7 +942,7 @@ BEGIN
   END IF;
 
   RETURN jsonb_build_object('ok', true, 'inventory', v_nouveau, 'objet', v_sorti, 'position', v_pos);
-END; $function$
+END; $function$;
 
 -- helvetia_taux_refinancement_bnr(text) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_taux_refinancement_bnr(p_pays text)
@@ -954,7 +954,7 @@ AS $function$
 BEGIN
   RETURN 5 - ((public.helvetia_ie_national(p_pays) - 50) * 0.10);
 END;
-$function$
+$function$;
 
 -- ouvrir_compte_helvetia(text) -> comptes_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ouvrir_compte_helvetia(p_personnage text)
@@ -1049,7 +1049,7 @@ begin
 
   return v_nouveau_compte;
 end;
-$function$
+$function$;
 
 -- regler_creances_helvetia_quotidien(text) -> TABLE(creance_id text, type_creance text, action text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.regler_creances_helvetia_quotidien(p_pays text)
@@ -1135,7 +1135,7 @@ BEGIN
 
   RETURN;
 END;
-$function$
+$function$;
 
 -- rembourser_pret_helvetia_integral(text,text,jsonb) -> prets | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.rembourser_pret_helvetia_integral(p_personnage text, p_pret_id text, p_sources jsonb)
@@ -1232,7 +1232,7 @@ BEGIN
   UPDATE public.prets SET montant_restant = 0, statut = 'rembourse' WHERE id = p_pret_id RETURNING * INTO v_pret;
   RETURN v_pret;
 END;
-$function$
+$function$;
 
 -- resoudre_compromis_helvetia_expire(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.resoudre_compromis_helvetia_expire(p_terrain_id text)
@@ -1317,7 +1317,7 @@ BEGIN
 
   RETURN CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu_acquis_helvetia' END;
 END;
-$function$
+$function$;
 
 -- resoudre_placement_helvetia(text) -> placements_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.resoudre_placement_helvetia(p_placement_id text)
@@ -1469,7 +1469,7 @@ begin
 
   return v_placement;
 end;
-$function$
+$function$;
 
 -- resoudre_placement_national(text,numeric) -> placements_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.resoudre_placement_national(p_placement_id text, p_rendement_pct numeric)
@@ -1610,7 +1610,7 @@ BEGIN
 
   RETURN v_placement;
 END;
-$function$
+$function$;
 
 -- retirer_helvetia(text,numeric) -> comptes_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.retirer_helvetia(p_personnage text, p_montant numeric)
@@ -1653,7 +1653,7 @@ begin
 
   return v_compte_helvetia;
 end;
-$function$
+$function$;
 
 -- retirer_helvetia(text,numeric,text) -> comptes_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.retirer_helvetia(p_personnage text, p_montant numeric, p_destination_type text)
@@ -1698,7 +1698,7 @@ BEGIN
 
   RETURN v_compte;
 END;
-$function$
+$function$;
 
 -- signer_compromis_bien_helvetia(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.signer_compromis_bien_helvetia(p_personnage text, p_terrain_id text)
@@ -1744,7 +1744,7 @@ BEGIN
 
   RETURN jsonb_build_object('terrain_id', p_terrain_id, 'acompte', v_acompte, 'prix', v_bien.prix_notaire);
 END;
-$function$
+$function$;
 
 -- taux_pret_nationale(text) -> numeric | plpgsql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.taux_pret_nationale(p_pays text)
@@ -1761,7 +1761,7 @@ BEGIN
      WHERE id IN ('republic_capitale','republic_ville_a','republic_ville_b');
   END IF;
   RETURN 5 + COALESCE(v_ie, 50) / 10;
-END; $function$
+END; $function$;
 
 -- traiter_prets_helvetia_quotidien() -> TABLE(pret_id text, action text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.traiter_prets_helvetia_quotidien()
@@ -2050,4 +2050,4 @@ BEGIN
   END LOOP;
   RETURN;
 END;
-$function$
+$function$;

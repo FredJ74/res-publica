@@ -11,6 +11,7 @@ Un module, une responsabilité.
 | `verifier-baseline.py` | **le contrôle global** : quatre familles qui échouent indépendamment |
 | `assembler.py` | **le test d'assemblage statique**, sans créer de base |
 | `verifier-monde-neuf.py` | **le contrôle du monde neuf** : aucune donnée de bêta, aucun vestige canonisé |
+| `reconstruire.py` | **la reconstruction** : assemble le baseline, le soumet à la grammaire réelle de PostgreSQL et simule son application |
 | `verifier.py` | **le contrôle du domaine pilote** `communication` (chantier 2B) |
 | `arbitrages.py` | **les tableaux d'arbitrage** de l'état initial, préparés pour être remplis |
 | `verifier-classification.py` | **le contrôle de la classification** 2C |
@@ -49,6 +50,8 @@ python3 outils/baseline/arbitrages.py --rendre <resultat>
 python3 outils/baseline/verifier-baseline.py
 python3 outils/baseline/verifier-monde-neuf.py
 python3 outils/baseline/assembler.py
+python3 outils/baseline/reconstruire.py                   # grammaire + simulation
+python3 outils/baseline/reconstruire.py --ecrire monde-neuf.sql
 python3 outils/baseline/verifier.py communication
 python3 outils/baseline/verifier-classification.py
 ```
@@ -167,7 +170,16 @@ parmi plusieurs étiquettes, en vérifiant qu'il n'apparaît pas dans l'expressi
 La leçon vaut partout où du SQL est généré : un délimiteur se vérifie contre son
 contenu, il ne se suppose pas.
 
-**11. La découpe d'un gros fichier ne doit jamais se faire sur le texte.** La
+**11. `pg_get_functiondef()` ne termine pas par un point-virgule.** Aucune des
+641 définitions de ce schéma n'en portait. Écrites l'une après l'autre, elles se
+collaient : PostgreSQL lisait `$function$ CREATE OR REPLACE FUNCTION` comme un
+seul ordre malformé, et refusait les 18 fichiers de fonctions. **Le baseline
+était fidèle et inapplicable** — un défaut qu'aucun contrôle de fidélité ne peut
+voir, puisque la fidélité était intacte. Il a fallu la grammaire réelle de
+PostgreSQL pour le trouver. Le rendu ajoute désormais le point-virgule, et les
+deux vérificateurs le retirent avant de recalculer l'empreinte.
+
+**12. La découpe d'un gros fichier ne doit jamais se faire sur le texte.** La
 première version coupait sur les lignes vides ; comme un corps de fonction en
 contient, deux fonctions ont été coupées en deux. Le contrôle l'a vu — 639
 définitions relues sur 641 — et la découpe se fait désormais sur les **blocs**,

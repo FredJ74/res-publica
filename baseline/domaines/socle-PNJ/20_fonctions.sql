@@ -18,7 +18,7 @@ CREATE OR REPLACE FUNCTION public.pnj_administrateur(p_id text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT public.pnj_autorite_de(p_id);
-$function$
+$function$;
 
 -- pnj_argent_transferer(text,numeric,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_argent_transferer(p_pnj text, p_montant numeric, p_sens text)
@@ -60,7 +60,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'sens_invalide'); END IF;
 
   RETURN jsonb_build_object('ok', true, 'sens', p_sens, 'montant', p_montant);
-END; $function$
+END; $function$;
 
 -- pnj_autorite_de(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_autorite_de(p_pnj_id text)
@@ -73,7 +73,7 @@ AS $function$
               ELSE public.pnj_autorite_de_perimetre(
                      m.pays, m.proprietaire_institution, m.proprietaire_perimetre) END
     FROM public.pnj_membres m WHERE m.id = p_pnj_id;
-$function$
+$function$;
 
 -- pnj_autorite_de_perimetre(text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_autorite_de_perimetre(p_pays text, p_institution text, p_perimetre text)
@@ -89,7 +89,7 @@ BEGIN
   IF v_res IS NULL THEN RETURN NULL; END IF;      -- institution non enregistree : personne.
   EXECUTE format('SELECT %I($1, $2)', v_res) INTO v_nom USING p_pays, p_perimetre;
   RETURN v_nom;                                    -- NULL legitime : aucune autorite humaine.
-END; $function$
+END; $function$;
 
 -- pnj_axe_au_socle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_axe_au_socle(p_famille text, p_axe text)
@@ -101,7 +101,7 @@ AS $function$
   -- Totale par construction : une famille ou un axe inconnu rend false, jamais NULL.
   SELECT COALESCE((SELECT a.autorite = 'socle' FROM public.pnj_axes_autorite a
                     WHERE a.famille = p_famille AND a.axe = p_axe), false);
-$function$
+$function$;
 
 -- pnj_axe_position_refus(text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_axe_position_refus(p_ids text[])
@@ -117,7 +117,7 @@ BEGIN
   RETURN jsonb_build_object('raison', 'axe_position_hors_socle', 'pnj', v_bloque,
     'explication', 'La position de cette famille est decidee ailleurs que dans le socle. '
                 || 'L''ecrire ici creerait deux verites.');
-END; $function$
+END; $function$;
 
 -- pnj_axe_verrouille(text[],text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_axe_verrouille(p_ids text[], p_axe text)
@@ -130,7 +130,7 @@ AS $function$
    WHERE m.id = ANY(p_ids)
      AND NOT public.pnj_axe_au_socle(m.famille, p_axe)
    LIMIT 1;
-$function$
+$function$;
 
 -- pnj_caracteristique_base(text,text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_caracteristique_base(p_pnj_id text, p_cle text)
@@ -149,7 +149,7 @@ BEGIN
   v := public.pnj_caracteristiques_base(p_pnj_id);
   IF v IS NULL THEN RETURN NULL; END IF;        -- PNJ introuvable : pas une erreur de cle.
   RETURN (v->>p_cle)::integer;
-END; $function$
+END; $function$;
 
 -- pnj_caracteristiques_base(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_caracteristiques_base(p_pnj_id text)
@@ -162,7 +162,7 @@ AS $function$
            'INT', m.car_int, 'CHA', m.car_cha, 'VOL', m.car_vol,
            'PER', m.car_per, 'DUP', m.car_dup, 'ENT', m.car_ent)
     FROM public.pnj_membres m WHERE m.id = p_pnj_id;
-$function$
+$function$;
 
 -- pnj_caracteristiques_cles() -> text[] | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.pnj_caracteristiques_cles()
@@ -171,7 +171,7 @@ CREATE OR REPLACE FUNCTION public.pnj_caracteristiques_cles()
  IMMUTABLE
 AS $function$
   SELECT ARRAY['INT','CHA','VOL','PER','DUP','ENT']::text[];
-$function$
+$function$;
 
 -- pnj_classe_de(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_classe_de(p_pnj_id text)
@@ -184,7 +184,7 @@ AS $function$
   SELECT COALESCE(m.classe,
                   (SELECT c.classe FROM public.pnj_familles_classes c WHERE c.famille = m.famille))
     FROM public.pnj_membres m WHERE m.id = p_pnj_id;
-$function$
+$function$;
 
 -- pnj_classe_decor(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_classe_decor(p_fonction text)
@@ -195,7 +195,7 @@ CREATE OR REPLACE FUNCTION public.pnj_classe_decor(p_fonction text)
 AS $function$
   SELECT COALESCE((SELECT f.classe_decor FROM public.pnj_fonctions f WHERE f.fonction = p_fonction),
                   'gamma');
-$function$
+$function$;
 
 -- pnj_co_present(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_co_present(p_moi text, p_pnj_id text)
@@ -218,7 +218,7 @@ BEGIN
   RETURN COALESCE(pe.pays = a.country AND pe.ville = a.current_city
      AND v_b IS NOT DISTINCT FROM a.current_building
      AND v_r IS NOT DISTINCT FROM a.current_room, false);
-END; $function$
+END; $function$;
 
 -- pnj_comparer_agents() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_comparer_agents()
@@ -267,7 +267,7 @@ BEGIN
                                WHERE a.statut = 'actif' AND a.dup IS DISTINCT FROM m.car_dup),
     'observation_axe_position', (SELECT autorite FROM public.pnj_axes_autorite
                                   WHERE famille = 'agent' AND axe = 'position_leader'));
-END; $function$
+END; $function$;
 
 -- pnj_comparer_douaniers(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_comparer_douaniers(p_pays text, p_ville text, p_batiment text)
@@ -353,7 +353,7 @@ BEGIN
     'observation_partis', (SELECT count(*) FROM public.pnj_membres
        WHERE famille='douanier' AND pays=p_pays AND proprietaire_perimetre=v_per
          AND statut='disparu'));
-END; $function$
+END; $function$;
 
 -- pnj_comparer_policiers(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_comparer_policiers(p_pays text, p_ville text, p_batiment text)
@@ -438,7 +438,7 @@ BEGIN
     'observation_partis', (SELECT count(*) FROM public.pnj_membres
        WHERE famille='policier' AND pays=p_pays AND proprietaire_perimetre=v_per
          AND statut='disparu'));
-END; $function$
+END; $function$;
 
 -- pnj_comparer_soldats(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_comparer_soldats(p_compagnie text)
@@ -616,7 +616,7 @@ BEGIN
     'observation_liquide_non_nuls', v_liquide_non_nuls,
     'observation_leader_et_position_propre', v_les_deux,
     'observation_ni_leader_ni_position', v_ni_lun_ni_lautre);
-END; $function$
+END; $function$;
 
 -- pnj_copier_soldats(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_copier_soldats(p_compagnie text)
@@ -683,7 +683,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'compagnie', p_compagnie, 'pays', v_pays,
     'sections', v_sections, 'copies_section', v_sect, 'copies_reserve', v_res,
     'total', v_sect + v_res);
-END; $function$
+END; $function$;
 
 -- pnj_employe_debaucher(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.pnj_employe_debaucher(p_ancien_proprietaire text, p_pnj_nom text, p_job text)
@@ -745,7 +745,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'retire', true,
                             'ancien_proprietaire', p_ancien_proprietaire, 'pnj', p_pnj_nom);
 END;
-$function$
+$function$;
 
 -- pnj_evenements_lire(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_evenements_lire(p_limite integer DEFAULT 30)
@@ -770,7 +770,7 @@ BEGIN
                           e2.pays, e2.proprietaire_institution, e2.proprietaire_perimetre))
              ORDER BY e2.cree_le DESC LIMIT greatest(1, least(coalesce(p_limite,30), 100))) e
   ), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- pnj_fonction_recrutable(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_fonction_recrutable(p_fonction text)
@@ -781,7 +781,7 @@ CREATE OR REPLACE FUNCTION public.pnj_fonction_recrutable(p_fonction text)
 AS $function$
   SELECT COALESCE((SELECT f.recrutable FROM public.pnj_fonctions f WHERE f.fonction = p_fonction),
                   false);
-$function$
+$function$;
 
 -- pnj_garde_dissolution_compagnie() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_garde_dissolution_compagnie()
@@ -801,7 +801,7 @@ BEGIN
       USING ERRCODE = 'raise_exception';
   END IF;
   RETURN OLD;
-END; $function$
+END; $function$;
 
 -- pnj_garde_suppression() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_garde_suppression()
@@ -819,7 +819,7 @@ BEGIN
       USING ERRCODE = 'raise_exception';
   END IF;
   RETURN OLD;
-END; $function$
+END; $function$;
 
 -- pnj_membres_ici(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_membres_ici(p_pays text, p_ville text, p_building text, p_room text, p_rue_noeud text DEFAULT NULL::text)
@@ -859,7 +859,7 @@ BEGIN
        -- LA MEME CO-PRESENCE QUE LES VERBES, pas une seconde ecriture du meme test.
        AND public.pnj_co_present(v_moi, m.id)
   ), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- pnj_metier_de(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_metier_de(p_pnj_id text)
@@ -872,7 +872,7 @@ AS $function$
               THEN (SELECT e.job FROM public.pnj_employes_metier e WHERE e.pnj_id = m.id)
               ELSE m.famille END
     FROM public.pnj_membres m WHERE m.id = p_pnj_id;
-$function$
+$function$;
 
 -- pnj_metier_profil(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_metier_profil(p_metier text)
@@ -884,7 +884,7 @@ AS $function$
   SELECT jsonb_build_object('INT', p.car_int, 'CHA', p.car_cha, 'VOL', p.car_vol,
                             'PER', p.car_per, 'DUP', p.car_dup, 'ENT', p.car_ent)
     FROM public.pnj_metiers_profils p WHERE p.metier = p_metier;
-$function$
+$function$;
 
 -- pnj_miroir_compagnie(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_compagnie(p_compagnie text)
@@ -988,7 +988,7 @@ BEGIN
    WHERE id LIKE p_compagnie || '-%' AND NOT (id = ANY(v_vus));
   GET DIAGNOSTICS v_sup = ROW_COUNT;
   RETURN jsonb_build_object('ok', true, 'synchronises', v_maj, 'supprimes', v_sup);
-END; $function$
+END; $function$;
 
 -- pnj_miroir_compagnie_trg() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_compagnie_trg()
@@ -1003,7 +1003,7 @@ BEGIN
   IF TG_OP = 'UPDATE' AND NEW.data IS NOT DISTINCT FROM OLD.data THEN RETURN NEW; END IF;
   PERFORM public.pnj_miroir_compagnie(NEW.id);
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- pnj_miroir_douane(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_douane(p_pays text, p_ville text, p_batiment text)
@@ -1073,7 +1073,7 @@ BEGIN
   GET DIAGNOSTICS v_partis = ROW_COUNT;
 
   RETURN jsonb_build_object('ok', true, 'synchronises', v_maj, 'partis', v_partis);
-END; $function$
+END; $function$;
 
 -- pnj_miroir_douane_declencheur() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_douane_declencheur()
@@ -1089,7 +1089,7 @@ BEGIN
     PERFORM public.pnj_miroir_douane(NEW.country, NEW.city, NEW.building_id);
   END IF;
   RETURN NULL;
-END; $function$
+END; $function$;
 
 -- pnj_miroir_police(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_police(p_pays text, p_ville text, p_batiment text)
@@ -1158,7 +1158,7 @@ BEGIN
   GET DIAGNOSTICS v_partis = ROW_COUNT;
 
   RETURN jsonb_build_object('ok', true, 'synchronises', v_maj, 'partis', v_partis);
-END; $function$
+END; $function$;
 
 -- pnj_miroir_police_declencheur() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_police_declencheur()
@@ -1173,7 +1173,7 @@ BEGIN
     PERFORM public.pnj_miroir_police(NEW.country, NEW.city, NEW.building_id);
   END IF;
   RETURN NULL;
-END; $function$
+END; $function$;
 
 -- pnj_miroir_possessions(text,jsonb) -> TABLE(ins integer, sup integer) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_possessions(p_pnj_id text, p_accessoires jsonb)
@@ -1216,7 +1216,7 @@ BEGIN
   GET DIAGNOSTICS v_ins = ROW_COUNT;
 
   RETURN QUERY SELECT v_ins, v_sup;
-END; $function$
+END; $function$;
 
 -- pnj_miroir_possessions_si_axe_blob(text,jsonb) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_miroir_possessions_si_axe_blob(p_pnj_id text, p_accessoires jsonb)
@@ -1229,7 +1229,7 @@ BEGIN
   IF public.pnj_axe_verrouille(ARRAY[p_pnj_id], 'possessions') IS NOT NULL THEN
     PERFORM public.pnj_miroir_possessions(p_pnj_id, p_accessoires);
   END IF;
-END; $function$
+END; $function$;
 
 -- pnj_mon_inventaire() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_mon_inventaire()
@@ -1251,7 +1251,7 @@ BEGIN
                      jsonb_array_elements(COALESCE(d.inventory,'[]'::jsonb))
                WHERE d.name = v_moi) t
     ), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- pnj_mourir(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_mourir(p_id text, p_cause text DEFAULT 'indetermine'::text)
@@ -1303,7 +1303,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'cause', p_cause, 'deposes', v_n,
                             'argent_du_defunt', COALESCE(m.liquide, 0),
                             'ville', v_ville, 'building_id', v_bat, 'room_id', v_room);
-END; $function$
+END; $function$;
 
 -- pnj_mouvement_individuel_refus(text[]) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_mouvement_individuel_refus(p_ids text[])
@@ -1318,7 +1318,7 @@ AS $function$
     JOIN public.pnj_mouvement_individuel r ON r.famille = m.famille
    WHERE m.id = ANY(p_ids) AND r.autorise = false
    LIMIT 1;
-$function$
+$function$;
 
 -- pnj_objet_transferer(text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_objet_transferer(p_pnj text, p_index integer, p_sens text)
@@ -1367,7 +1367,7 @@ BEGIN
     RETURN jsonb_build_object('ok', true, 'sens', 'retirer', 'objet', v_poss.objet);
   END IF;
   RETURN jsonb_build_object('ok', false, 'raison', 'sens_invalide');
-END; $function$
+END; $function$;
 
 -- pnj_pa_crediter(text[],integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_pa_crediter(p_ids text[], p_gain integer)
@@ -1387,7 +1387,7 @@ BEGIN
    WHERE id = ANY(p_ids) AND statut = 'actif';
   GET DIAGNOSTICS v_n = ROW_COUNT;
   RETURN jsonb_build_object('ok', true, 'touches', v_n, 'gain', p_gain);
-END; $function$
+END; $function$;
 
 -- pnj_pa_debiter(text[],integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_pa_debiter(p_ids text[], p_cout integer)
@@ -1413,7 +1413,7 @@ BEGIN
   -- `epuises` est une CONSTATATION remise au metier, pas une mort.
   RETURN jsonb_build_object('ok', true, 'touches', v_touches, 'epuises', v_epuises,
                             'cout', p_cout);
-END; $function$
+END; $function$;
 
 -- pnj_pa_fixer(text[],integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_pa_fixer(p_ids text[], p_valeur integer)
@@ -1434,7 +1434,7 @@ BEGIN
   GET DIAGNOSTICS v_n = ROW_COUNT;
   RETURN jsonb_build_object('ok', true, 'touches', v_n, 'valeur', v_val,
                             'epuises', CASE WHEN v_val = 0 THEN v_n ELSE 0 END);
-END; $function$
+END; $function$;
 
 -- pnj_pa_garde(text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_pa_garde(p_ids text[])
@@ -1460,14 +1460,14 @@ BEGIN
       'explication', 'Seule la classe alpha voit ses PA varier pour agir.');
   END IF;
   RETURN NULL;
-END; $function$
+END; $function$;
 
 -- pnj_pa_max() -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.pnj_pa_max()
  RETURNS integer
  LANGUAGE sql
  IMMUTABLE
-AS $function$ SELECT 12; $function$
+AS $function$ SELECT 12; $function$;
 
 -- pnj_pas_de_sous_hierarchie() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_pas_de_sous_hierarchie()
@@ -1489,7 +1489,7 @@ BEGIN
   END IF;
   NEW.maj_le := now();
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- pnj_peut_administrer(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_peut_administrer(p_moi text, p_pnj_id text)
@@ -1499,7 +1499,7 @@ CREATE OR REPLACE FUNCTION public.pnj_peut_administrer(p_moi text, p_pnj_id text
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT (p_moi = public.pnj_autorite_de(p_pnj_id)) IS TRUE;
-$function$
+$function$;
 
 -- pnj_peut_conduire(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_peut_conduire(p_moi text, p_pnj_id text)
@@ -1510,7 +1510,7 @@ CREATE OR REPLACE FUNCTION public.pnj_peut_conduire(p_moi text, p_pnj_id text)
 AS $function$
   SELECT public.pnj_peut_administrer(p_moi, p_pnj_id)
       OR ((p_moi = (SELECT leader_pj FROM public.pnj_membres WHERE id = p_pnj_id)) IS TRUE);
-$function$
+$function$;
 
 -- pnj_position_effective(text) -> TABLE(pays text, ville text, building_id text, room_id text, rue_noeud_id text, porte boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_position_effective(p_id text)
@@ -1533,7 +1533,7 @@ AS $function$
   LEFT JOIN public.personnages_donnees d ON d.name = m.leader_pj
   LEFT JOIN public.pnj_membres         l ON l.id   = m.leader_pnj_id
   WHERE m.id = p_id;
-$function$
+$function$;
 
 -- pnj_possessions_lire(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_possessions_lire(p_pnj text)
@@ -1558,7 +1558,7 @@ BEGIN
         FROM (SELECT (row_number() OVER (ORDER BY p.id)) - 1 AS rang, p.objet, p.origine
                 FROM public.pnj_possessions p WHERE p.pnj_id = p_pnj) t
     ), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- pnj_prendre(text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_prendre(p_ids text[])
@@ -1587,7 +1587,7 @@ BEGIN
     v_n := v_n + 1;
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'pris', v_n);
-END; $function$
+END; $function$;
 
 -- pnj_quitter_groupe(text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_quitter_groupe(p_ids text[])
@@ -1616,7 +1616,7 @@ BEGIN
     v_n := v_n + 1;
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'detaches', v_n);
-END; $function$
+END; $function$;
 
 -- pnj_rollback_soldats(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_rollback_soldats(p_compagnie text)
@@ -1639,7 +1639,7 @@ BEGIN
     'autres_familles_avant', v_autres_avant, 'autres_familles_apres', v_autres_apres,
     'metier_orphelin', (SELECT count(*) FROM public.pnj_soldats_metier sm
                          WHERE NOT EXISTS (SELECT 1 FROM public.pnj_membres m WHERE m.id = sm.pnj_id)));
-END; $function$
+END; $function$;
 
 -- pnj_social_contexte(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_social_contexte(p_pnj_id text)
@@ -1664,7 +1664,7 @@ BEGIN
     'rencontres', r.rencontres, 'conversations', r.conversations,
     'familiarite', r.familiarite, 'confiance', r.confiance,
     'memoire', r.memoire);
-END; $function$
+END; $function$;
 
 -- pnj_social_entrer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_social_entrer(p_pnj_id text)
@@ -1724,7 +1724,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'social', true,
     'rencontres', r.rencontres, 'conversations', r.conversations,
     'familiarite', r.familiarite, 'jalon', v_jalon);
-END; $function$
+END; $function$;
 
 -- pnj_social_noter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_social_noter(p_pnj_id text, p_evenement text)
@@ -1755,7 +1755,7 @@ BEGIN
   SELECT familiarite INTO v_fam FROM public.pnj_social_relations
    WHERE pnj_id = p_pnj_id AND joueur = v_moi;
   RETURN jsonb_build_object('ok', true, 'social', true, 'familiarite', v_fam);
-END; $function$
+END; $function$;
 
 -- pnj_transferer(text[],text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_transferer(p_ids text[], p_dest text, p_dest_est_pnj boolean DEFAULT false)
@@ -1804,4 +1804,4 @@ BEGIN
     v_n := v_n + 1;
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'transferes', v_n, 'nouveau_leader', p_dest);
-END; $function$
+END; $function$;

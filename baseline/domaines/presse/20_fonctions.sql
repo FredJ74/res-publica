@@ -34,7 +34,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'pop', v_res -> 'pop', 'inf', v_res -> 'inf');
 END;
-$function$
+$function$;
 
 -- calomnie_distribuer(text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.calomnie_distribuer(p_requete text, p_joueur text, p_cible text, p_pnj_nom text, p_vol_pnj integer DEFAULT 10)
@@ -47,7 +47,7 @@ BEGIN
   PERFORM public.exiger_acteur(p_joueur);
   RETURN public.calomnie_distribuer_interne(p_requete, p_joueur, p_cible, p_pnj_nom, p_vol_pnj, now());
 END;
-$function$
+$function$;
 
 -- calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.calomnie_distribuer_interne(p_requete text, p_joueur text, p_cible text, p_pnj_nom text, p_vol_pnj integer, p_instant timestamp with time zone)
@@ -162,7 +162,7 @@ BEGIN
     'jet', v_jet, 'taux', v_taux, 'juridiction', v_pays, 'poursuite', 'mandat',
     'mandat', COALESCE(v_mandat -> 'mandat', 'null'::jsonb)));
 END;
-$function$
+$function$;
 
 -- calomnie_inscrire_mandat(text,text,text,text,timestamp with time zone) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.calomnie_inscrire_mandat(p_auteur text, p_cible text, p_pays text, p_ville_faits text, p_instant timestamp with time zone)
@@ -197,7 +197,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'mandat', v_entree);
 END;
-$function$
+$function$;
 
 -- corruption_presse_affaires(text,timestamp with time zone) -> TABLE(affaire_ref text, affaire_type text, affaire_pj text, resume text, cree_le timestamp with time zone) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.corruption_presse_affaires(p_pays text, p_instant timestamp with time zone DEFAULT now())
@@ -228,7 +228,7 @@ AS $function$
        AND (d.created_at AT TIME ZONE 'Europe/Paris')::date = (p_instant AT TIME ZONE 'Europe/Paris')::date
   )
   SELECT * FROM jug UNION ALL SELECT * FROM det ORDER BY cree_le DESC;
-$function$
+$function$;
 
 -- corruption_presse_etat(text) -> text | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.corruption_presse_etat(p_affaire_ref text)
@@ -240,7 +240,7 @@ AS $function$
   SELECT CASE WHEN bool_or(option = 'etouffer') THEN 'etouffee'
               WHEN bool_or(option = 'favorable') THEN 'favorable' END
     FROM public.corruptions_presse WHERE affaire_ref = p_affaire_ref AND reussite;
-$function$
+$function$;
 
 -- corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.corruption_presse_tenter(p_requete text, p_joueur text, p_affaire_ref text, p_option text, p_malus_isn integer DEFAULT 0, p_instant timestamp with time zone DEFAULT now())
@@ -327,7 +327,7 @@ BEGIN
     'resume', v_a.resume,
     'pa', CASE WHEN v_ok THEN 2 ELSE 0 END, 'cout', CASE WHEN v_ok THEN 500 ELSE 0 END));
 END;
-$function$
+$function$;
 
 -- fuite_publier(bigint,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fuite_publier(p_fuite_id bigint, p_contenu text)
@@ -376,7 +376,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'chronique_id', v_cid);
 END;
-$function$
+$function$;
 
 -- fuite_reserver(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fuite_reserver(p_requete text, p_joueur text, p_cible text)
@@ -430,7 +430,7 @@ BEGIN
   RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object(
     'ok', true, 'trouve', true, 'fuite_id', v_id, 'source', v_t.source, 'faits', v_t.faits, 'cible', p_cible));
 END;
-$function$
+$function$;
 
 -- fuite_traces_eligibles(text) -> TABLE(trace_cle text, source text, faits jsonb) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fuite_traces_eligibles(p_cible text)
@@ -477,7 +477,7 @@ AS $function$
   SELECT t.trace_cle, t.source, t.faits
     FROM toutes t
    WHERE NOT EXISTS (SELECT 1 FROM public.fuites_journalistiques f WHERE f.trace_cle = t.trace_cle);
-$function$
+$function$;
 
 -- imprimerie_cession_finaliser(text,text,text,numeric,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.imprimerie_cession_finaliser(p_requete text, p_acheteur text, p_imprimerie_id text, p_prix numeric, p_jour integer DEFAULT NULL::integer)
@@ -561,7 +561,7 @@ BEGIN
     'ok', true, 'prix', c_prix, 'acompte', v_acompte, 'solde', c_prix - v_acompte,
     'caisse_id', v_caisse, 'caisse_solde', v_mvt -> 'solde', 'proprietaire', p_acheteur));
 END;
-$function$
+$function$;
 
 -- imprimerie_produire_tracts(text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.imprimerie_produire_tracts(p_acteur text, p_pays text, p_ville text, p_batiment text, p_lots integer)
@@ -642,7 +642,7 @@ BEGIN
     'pa', (SELECT pa FROM public.personnages_donnees WHERE name = p_acteur),
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur));
-END; $function$
+END; $function$;
 
 -- journal_edition_lire(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.journal_edition_lire(p_edition_id text)
@@ -691,7 +691,7 @@ AS $function$
               'FACTS', (SELECT liste FROM images),
               'PUBLIC_STATEMENTS', '[]'::jsonb))
     FROM e JOIN public.journaux j ON j.id = e.journal_id;
-$function$
+$function$;
 
 -- journal_edition_rattacher_au_titre() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.journal_edition_rattacher_au_titre()
@@ -711,7 +711,7 @@ BEGIN
   NEW.journal_id := v_journal;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- presse_acteur_directeur(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_acteur_directeur(p_groupe_id text)
@@ -730,7 +730,7 @@ BEGIN
   END IF;
   RETURN v_moi;
 END;
-$function$
+$function$;
 
 -- presse_delegation_accorder(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_delegation_accorder(p_journal_id text, p_personnage text)
@@ -769,7 +769,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'journal', p_journal_id,
                             'personnage', p_personnage, 'grade', v_grade);
 END;
-$function$
+$function$;
 
 -- presse_delegation_retirer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_delegation_retirer(p_journal_id text, p_personnage text)
@@ -794,7 +794,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'journal', p_journal_id, 'personnage', p_personnage);
 END;
-$function$
+$function$;
 
 -- presse_delegations_purger() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_delegations_purger()
@@ -816,7 +816,7 @@ BEGIN
 
   RETURN NULL;
 END;
-$function$
+$function$;
 
 -- presse_designer_successeur(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_designer_successeur(p_groupe_id text, p_personnage text, p_grade_sortant text)
@@ -868,7 +868,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'directeur', p_personnage,
                             'ancien_directeur', v_directeur, 'grade_sortant', p_grade_sortant);
 END;
-$function$
+$function$;
 
 -- presse_directeur_du_journal(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_directeur_du_journal(p_journal_id text)
@@ -888,7 +888,7 @@ BEGIN
   ) THEN RETURN NULL; END IF;
   RETURN v_moi;
 END;
-$function$
+$function$;
 
 -- presse_groupe_fonder(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_groupe_fonder(p_groupe_id text, p_pays text, p_nom text, p_fondateur text, p_organisation_id text DEFAULT NULL::text)
@@ -921,7 +921,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'groupe', p_groupe_id, 'directeur', p_fondateur);
 END;
-$function$
+$function$;
 
 -- presse_journal_creer(text,text,text,text,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_journal_creer(p_journal_id text, p_groupe_id text, p_nom text, p_slug text, p_cree_par text DEFAULT NULL::text, p_garanti_automatique boolean DEFAULT false)
@@ -953,7 +953,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'journal', p_journal_id, 'pays', v_pays);
 END;
-$function$
+$function$;
 
 -- presse_nommer_redacteur_chef(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_nommer_redacteur_chef(p_groupe_id text, p_personnage text)
@@ -988,7 +988,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'grade', 'redacteur_chef');
 END;
-$function$
+$function$;
 
 -- presse_quitter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_quitter(p_groupe_id text)
@@ -1020,7 +1020,7 @@ BEGIN
                             'nouveau_directeur', v_successeur,
                             'groupe_sans_directeur', (v_successeur IS NULL));
 END;
-$function$
+$function$;
 
 -- presse_recruter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_recruter(p_groupe_id text, p_personnage text)
@@ -1054,7 +1054,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'grade', 'correspondant');
 END;
-$function$
+$function$;
 
 -- presse_succession_apres_depart() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presse_succession_apres_depart()
@@ -1088,7 +1088,7 @@ BEGIN
 
   RETURN NULL;
 END;
-$function$
+$function$;
 
 -- scandale_publier(bigint,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.scandale_publier(p_scandale_id bigint, p_article text)
@@ -1145,7 +1145,7 @@ BEGIN
   SELECT count(*) INTO v_n FROM public.scandales_presse WHERE auteur = v_s.auteur AND chronique_id IS NOT NULL;
   RETURN jsonb_build_object('ok', true, 'chronique_id', v_cid, 'effet', v_eff, 'total_auteur', v_n);
 END;
-$function$
+$function$;
 
 -- scandale_taux(text,jsonb,integer) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.scandale_taux(p_career text, p_poste jsonb, p_malus_isn integer)
@@ -1159,7 +1159,7 @@ AS $function$
            WHEN COALESCE(p_poste ->> 'id', '') = 'min_info' THEN 10
            ELSE 0 END
     - LEAST(25, GREATEST(0, COALESCE(p_malus_isn, 0))))::integer;
-$function$
+$function$;
 
 -- scandale_tenter(text,text,text,text,integer,timestamp with time zone) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.scandale_tenter(p_requete text, p_joueur text, p_cible text, p_accusation text, p_malus_isn integer DEFAULT 0, p_instant timestamp with time zone DEFAULT now())
@@ -1228,7 +1228,7 @@ BEGIN
     'ok', true, 'accepte', true, 'jet', v_jet, 'taux', v_taux,
     'scandale_id', v_id, 'pa', 3, 'cout', 800));
 END;
-$function$
+$function$;
 
 -- tracts_appliquer_effet_pop(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_appliquer_effet_pop(p_cible text, p_delta integer)
@@ -1254,7 +1254,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'pop', v_pop);
 END;
-$function$
+$function$;
 
 -- tracts_donner_joueur(text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_donner_joueur(p_requete text, p_expediteur text, p_destinataire text, p_objet jsonb)
@@ -1300,7 +1300,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'id', p_requete, 'rejeu', false);
 END;
-$function$
+$function$;
 
 -- tracts_electoraux_distribuer(text,text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_electoraux_distribuer(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_sens text, p_pnj_nom text, p_vol_pnj integer)
@@ -1313,7 +1313,7 @@ BEGIN
   PERFORM public.exiger_acteur(p_joueur);
   RETURN public.tracts_electoraux_distribuer_interne(p_requete, p_joueur, p_cycle_id, p_candidat, p_sens, p_pnj_nom, p_vol_pnj, now());
 END;
-$function$
+$function$;
 
 -- tracts_electoraux_distribuer_interne(text,text,text,text,text,text,integer,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_electoraux_distribuer_interne(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_sens text, p_pnj_nom text, p_vol_pnj integer, p_instant timestamp with time zone)
@@ -1450,7 +1450,7 @@ BEGIN
     'ok', true, 'reussi', true, 'consomme', 1, 'pa', 1, 'jet', v_jet, 'taux', v_taux, 'sens', p_sens,
     'effet', v_effet, 'tour', v_tour));
 END;
-$function$
+$function$;
 
 -- tracts_electoraux_nom_pnj(text) -> text | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_electoraux_nom_pnj(p_nom text)
@@ -1460,7 +1460,7 @@ CREATE OR REPLACE FUNCTION public.tracts_electoraux_nom_pnj(p_nom text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT btrim(regexp_replace(regexp_replace(lower(COALESCE(p_nom, '')), '\s*\(pnj\)\s*$', ''), '[''’]', '', 'g'));
-$function$
+$function$;
 
 -- tracts_electoraux_taux(numeric,numeric,numeric) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_electoraux_taux(p_cha numeric, p_inf numeric, p_vol_pnj numeric)
@@ -1473,7 +1473,7 @@ AS $function$
     45 + floor(COALESCE(p_cha, 8))::integer
        + floor(GREATEST(0, COALESCE(p_inf, 0)) / 4)::integer
        - 2 * GREATEST(0, floor(COALESCE(p_vol_pnj, 10))::integer - 10)))::integer;
-$function$
+$function$;
 
 -- tracts_reclamer_don(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tracts_reclamer_don(p_id text, p_destinataire text)
@@ -1492,4 +1492,4 @@ BEGIN
   INTO v_resultat;
   RETURN v_resultat;
 END;
-$function$
+$function$;

@@ -58,6 +58,20 @@ def lire(chemin):
         return fh.read()
 
 
+def definition_depuis_le_fichier(bloc):
+    """Retrouve la definition telle que pg_get_functiondef l'a rendue.
+
+    Le fichier ajoute un point-virgule final que la base ne donne pas : il faut
+    le retirer avant de comparer l'empreinte, sinon le controle rougirait sur
+    une difference que le rendu a introduite expres. Verifie sur les 641
+    definitions du schema : aucune ne se termine par un point-virgule.
+    """
+    defi = bloc.rstrip("\n")
+    if defi.endswith(";"):
+        defi = defi[:-1]
+    return defi + "\n"
+
+
 class Rapport:
     def __init__(self):
         self.pbs = {}
@@ -301,7 +315,8 @@ def main():
                 if sig not in attendues:
                     faux.append("%s : absente des manifestes" % sig)
                     continue
-                reel = hashlib.md5((defi.rstrip("\n") + "\n").encode("utf-8")).hexdigest()
+                reel = hashlib.md5(
+                    definition_depuis_le_fichier(defi).encode("utf-8")).hexdigest()
                 if reel == attendues[sig]:
                     trouvees += 1
                 else:

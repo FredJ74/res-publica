@@ -51,6 +51,12 @@ RACINE = os.path.dirname(os.path.dirname(ICI))
 BASE = os.path.join(RACINE, "baseline")
 CIBLE = os.path.join(BASE, "seeds")
 
+def litteral(liste):
+    """Rend une liste de chaines sous forme de VALUES SQL, triee pour etre
+    stable. Meme regle de citation que requetes.py."""
+    return ", ".join("'" + x.replace("'", "''") + "'" for x in sorted(liste))
+
+
 REPERTOIRES = {"A": "90_socle", "B": "91_empire", "D": "92_mixte"}
 
 # Stock initial d'un entrepot de ville, arbitre le 5 octobre 2026. Les trois
@@ -135,6 +141,41 @@ REMISES_A_ZERO = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# DOTATIONS FINANCIERES ARBITREES.
+#
+# Ce seed-ci n'est pas une EXTRACTION, c'est une ECRITURE. Les montants ne
+# viennent pas de la base -- ils viennent du tableau d'arbitrage, seule source
+# de verite des decisions. La base ne fournit que la liste des lignes a ecrire
+# et leur identifiant ; les soldes de bêta ne traversent pas.
+#
+# Lacune trouvee au chantier 2F : les 53 dotations avaient ete arbitrees et
+# consignees dans le tableau, mais aucune ne parvenait au baseline. Un monde
+# reconstruit naissait donc sans aucune caisse, et les montants decides
+# n'etaient jamais appliques. Les 38 caisses qui vivent dans caisses_batiments
+# sont desormais seedees ; les 15 autres vivent dans un blob de batiments_etat,
+# dont 3 -- les entrepots -- sont deja seedees, et 12 attendent l'arbitrage de
+# l'etat complet de leur batiment.
+# ---------------------------------------------------------------------------
+def dotations_caisses_batiments():
+    """Lit les dotations decidees dans le tableau d'arbitrage. Ne retient que
+    celles dont la maison est caisses_batiments : un identifiant prefixe du pays,
+    sans « # » (qui designe un volet de blob) ni « . » (une cle de budget)."""
+    chemin = os.path.join(BASE, "arbitrages", "dotations-financieres-republia.csv")
+    if not os.path.exists(chemin):
+        return {}
+    out = {}
+    with open(chemin, encoding="utf-8") as fh:
+        for l in csv.DictReader(fh, delimiter=";"):
+            ident, montant = l["identifiant_technique"], l["dotation_deja_decidee"]
+            if not montant or not ident.startswith("republic_"):
+                continue
+            if "#" in ident or "." in ident:
+                continue
+            out[ident] = int(montant)
+    return out
+
+
 # Colonnes dont la valeur n'est PAS copiee de la base mais ECRITE par arbitrage.
 # La valeur est une EXPRESSION SQL, emise telle quelle dans l'INSERT : c'est
 # PostgreSQL qui la calcule, et le fichier reste lisible par un humain plutot que
@@ -150,6 +191,50 @@ EXPRESSIONS_ARBITREES = {
                  "entrepots, ou elle est vide, et un objet vide equivaut a son absence."),
     },
 }
+
+def expressions_evaluees():
+    """Expressions SQL EVALUEES pendant l'extraction : c'est leur resultat qui
+    devient le litteral du seed. A distinguer des EXPRESSIONS_ARBITREES, qui
+    partent telles quelles dans l'INSERT -- celles-ci, elles, peuvent parler de
+    la ligne courante, donc porter une valeur differente par ligne."""
+    dot = dotations_caisses_batiments()
+    if not dot:
+        return {}
+    cas = " ".join("when %s then %d" % (litteral([i]), m)
+                   for i, m in sorted(dot.items()))
+    return {
+        "caisses_batiments": {
+            "data": ("jsonb_build_object('solde', (case z.id %s end))" % cas,
+                     "ARBITRAGE DU 5 OCTOBRE 2026. Le solde de chaque caisse est ECRIT "
+                     "depuis le tableau d'arbitrage, jamais copie de la bêta. Le `case` "
+                     "ci-dessous est engendre depuis "
+                     "baseline/arbitrages/dotations-financieres-republia.csv, seule source "
+                     "de verite des montants decides."),
+        },
+    }
+
+
+def filtres_dynamiques():
+    """FILTRES complete par ce qui se deduit du tableau d'arbitrage : la liste
+    des caisses a seeder n'est pas recopiee a la main, elle en est lue."""
+    f = dict(FILTRES)
+    dot = dotations_caisses_batiments()
+    if dot:
+        f["caisses_batiments"] = {
+            "ou": "id in (%s)" % ", ".join(litteral([i]) for i in sorted(dot)),
+            "pourquoi": "SEED ECRIT, PAS EXTRAIT. Les %d caisses dont la dotation est "
+                        "arbitree sont ecrites avec leur montant decide ; les %d autres "
+                        "lignes de la table ne sont pas reprises -- soit elles "
+                        "appartiennent aux trois autres empires, soit l'audit du circuit "
+                        "fiscal les a declarees vestiges, comptes de transit, "
+                        "contreparties ou caisses inertes, soit ce sont des lignes de "
+                        "test. Aucun solde de bêta ne traverse : la colonne `data` est "
+                        "reconstruite depuis le tableau d'arbitrage."
+                        % (len(dot), 151 - len(dot)),
+            "ecartees": 151 - len(dot),
+        }
+    return f
+
 
 # Tables qui sont un MIROIR d'une source canonique du depot. Leur seed ne se
 # copie jamais depuis la base : il se regenere depuis la source. Copier la base
@@ -338,20 +423,6 @@ A_CONSTRUIRE = {
             "caisse et de stock par TYPE de commerce." + POINTEUR2,
         "ne_pas_faire": "Ne jamais deduire une caisse initiale d'un solde courant.",
     },
-    "caisses_batiments": {
-        "strategie_2c": "reconstruction_explicite",
-        "constat_2e": "151 caisses. La ligne doit exister au depart, mais le solde est vivant. "
-            "14 RPC peuvent en creer : une partie des lignes a donc ete engendree en jeu, et "
-            "rien dans la table ne les distingue des lignes initiales.",
-        "decision_attendue": "ARBITRAGE RENDU : les dotations d'amorcage sont definies PAR "
-            "EMPIRE. Ni constante universelle du moteur, ni soldes de bêta, ni deduction "
-            "aveugle du journal. PREMIERE VALEUR ARBITREE LE 5 OCTOBRE 2026 : la caisse "
-            "republic_gouvernement-min_def, budget initial du ministere de la Defense de "
-            "Republia, vaut 35 000 FR. Le ministre transfere ensuite lui-meme vers la "
-            "caserne ; la creation d'une compagnie coute 20 000 FR. Les 54 autres caisses "
-            "de Republia restent a arbitrer." + POINTEUR,
-        "ne_pas_faire": "Ne jamais deduire une dotation initiale d'un solde courant.",
-    },
     "dotations_amorcage_caisses": {
         "strategie_2c": "reconstruction_explicite",
         "constat_2e": "159 lignes. Les colonnes solde_avant / montant_verse / solde_apres / "
@@ -534,9 +605,13 @@ def requete(exp, tables):
         noms = [c["attname"] for c in cols]
         remises = REMISES_A_ZERO.get(tbl, {}).get("colonnes", {})
         expressions = EXPRESSIONS_ARBITREES.get(tbl, {})
+        evaluees = expressions_evaluees().get(tbl, {})
         valeurs = []
         for n in noms:
-            if n in expressions:
+            if n in evaluees:
+                # Evaluee ICI : son resultat devient le litteral du seed.
+                valeurs.append("quote_nullable((%s)::text)" % evaluees[n][0])
+            elif n in expressions:
                 # L'expression part telle quelle dans l'INSERT : la base ne la
                 # calcule pas a l'extraction, elle la calculera a l'application.
                 # PIEGE RENCONTRE ET CORRIGE : l'expression porte deja son propre
@@ -553,7 +628,7 @@ def requete(exp, tables):
             else:
                 valeurs.append("quote_nullable(z.%s::text)" % n)
         pk = cles_primaires(exp, tbl) or noms
-        ou = FILTRES.get(tbl, {}).get("ou")
+        ou = filtres_dynamiques().get(tbl, {}).get("ou")
         branches.append(
             "select %s as tbl, %s as rang, 'INSERT INTO public.%s (%s) VALUES (' || "
             "array_to_string(array[%s], ', ') || ');' as ligne\nfrom public.%s z%s"
@@ -597,8 +672,9 @@ def rendre(exp, resultat):
         _, omises = colonnes_a_seeder(exp, tbl)
 
         regles = ""
-        if tbl in FILTRES:
-            regles += "--\n-- FILTRE APPLIQUE\n" + plier(FILTRES[tbl]["pourquoi"]) + "\n"
+        fdyn = filtres_dynamiques()
+        if tbl in fdyn:
+            regles += "--\n-- FILTRE APPLIQUE\n" + plier(fdyn[tbl]["pourquoi"]) + "\n"
         if tbl in REMISES_A_ZERO:
             rz = REMISES_A_ZERO[tbl]
             regles += ("--\n-- COLONNES REMISES A L'ETAT INITIAL : "
@@ -617,7 +693,9 @@ def rendre(exp, resultat):
                                "gratuits non declares. A terme, ce fichier doit etre ecrit "
                                "par son generateur depuis data.js, et la table doit "
                                "rejoindre 95_a-regenerer.") + "\n")
-        for col, (expr, pourquoi) in sorted(EXPRESSIONS_ARBITREES.get(tbl, {}).items()):
+        for col, (expr, pourquoi) in sorted(
+                list(EXPRESSIONS_ARBITREES.get(tbl, {}).items())
+                + list(expressions_evaluees().get(tbl, {}).items())):
             regles += ("--\n-- COLONNE ECRITE PAR ARBITRAGE : " + col + "\n"
                        + plier(pourquoi) + "\n")
         if omises:

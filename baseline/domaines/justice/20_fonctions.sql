@@ -25,7 +25,7 @@ AS $function$
        -- coalesce a 'capitale' pour les affaires anterieures sans ville.
        AND (d.poste ->> 'city') IS NOT DISTINCT FROM coalesce(p_city, 'capitale')
   );
-$function$
+$function$;
 
 -- affaire_me_concerne(text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.affaire_me_concerne(p_data text)
@@ -47,7 +47,7 @@ BEGIN
   END;
   RETURN (v_json ->> 'cible') = v_moi OR (v_json ->> 'plaignant') = v_moi;
 END;
-$function$
+$function$;
 
 -- affaire_statut(text) -> text | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.affaire_statut(p_data text)
@@ -62,7 +62,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   RETURN NULL;   -- data illisible : aucune publicite accordee
 END;
-$function$
+$function$;
 
 -- arrestation_urgence(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.arrestation_urgence(p_cible text, p_motif text)
@@ -147,7 +147,7 @@ BEGIN
                                      'autorite', v_nom, 'poste', v_poste,
                                      'securite', 1, 'social', -1);
 END;
-$function$
+$function$;
 
 -- commissaire_enqueter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.commissaire_enqueter(p_cible text)
@@ -173,7 +173,7 @@ BEGIN
 
   RETURN public.plainte_instruire_interne(v_pays, v_poste_city, p_cible, 'enquete', v_nom);
 END;
-$function$
+$function$;
 
 -- detention_active(text) -> TABLE(id text, country text, city text, jour_debut integer, jour_fin integer, qhs boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.detention_active(p_nom text)
@@ -189,7 +189,7 @@ AS $function$
      AND d.jour_fin_effective IS NULL
    ORDER BY d.created_at DESC
    LIMIT 1;
-$function$
+$function$;
 
 -- detention_cible_pnj(text,text) -> TABLE(systeme text, pays text, ville text, building_id text, room_id text, agent_id text, statut text, niveau_connu integer, arretable boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.detention_cible_pnj(p_nom text, p_pays_autorite text)
@@ -214,7 +214,7 @@ AS $function$
      AND pe.pays IS NOT DISTINCT FROM p_pays_autorite
      AND c.statut = 'active'
    LIMIT 1;
-$function$
+$function$;
 
 -- detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.detention_ouvrir_interne(p_nom text, p_raison text, p_jours integer, p_city text, p_country text, p_motifs jsonb, p_autorite text, p_issue text)
@@ -290,7 +290,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'detention_id', v_id,
                             'jour_debut', v_jour_cible, 'jour_fin', v_jour_cible + p_jours);
 END;
-$function$
+$function$;
 
 -- detentions_pnj_liberer_echues() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.detentions_pnj_liberer_echues()
@@ -323,7 +323,7 @@ BEGIN
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'liberations', v_n);
 END;
-$function$
+$function$;
 
 -- enquete_garde_a_vue(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.enquete_garde_a_vue(p_cible text, p_motif text, p_ville text)
@@ -372,7 +372,7 @@ BEGIN
              v_acteur,
              'garde_a_vue');
   RETURN v_res;
-END; $function$
+END; $function$;
 
 -- fraude_electorale_sanctionner(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fraude_electorale_sanctionner(p_fraude_id text, p_ville text)
@@ -438,7 +438,7 @@ BEGIN
     'detention_id', v_res->>'detention_id',
     'detention_ouverte', coalesce((v_res->>'ok')::boolean, false),
     'detention_raison', v_res->>'raison');
-END; $function$
+END; $function$;
 
 -- geoles_detenus(text,text) -> TABLE(nom text, photo_url text, qhs boolean) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.geoles_detenus(p_pays text, p_ville text)
@@ -482,7 +482,7 @@ BEGIN
        AND d.mode_fin IS NULL AND d.jour_fin_effective IS NULL
      ORDER BY d.created_at DESC;
 END;
-$function$
+$function$;
 
 -- impact_deposer(text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.impact_deposer(p_id text, p_victime text, p_indice text, p_delta integer, p_palier text DEFAULT NULL::text)
@@ -546,7 +546,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'id', p_id, 'victime', c.name,
     'indice', p_indice, 'delta', v_delta);
 END;
-$function$
+$function$;
 
 -- impact_marquer_traite(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.impact_marquer_traite(p_id text)
@@ -564,7 +564,7 @@ BEGIN
   GET DIAGNOSTICS v_n = ROW_COUNT;
   RETURN jsonb_build_object('ok', true, 'marques', v_n);
 END;
-$function$
+$function$;
 
 -- justice_condamner(text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.justice_condamner(p_cible text, p_entree jsonb)
@@ -604,7 +604,7 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
 
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'accuse', p_cible, 'jours', v_jours);
-END; $function$
+END; $function$;
 
 -- justice_executer_condamnation(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.justice_executer_condamnation(p_jugement_id text, p_ville text)
@@ -653,7 +653,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'accuse', v_j.accuse, 'jours', v_jours,
                             'detention_id', v_res->>'detention_id', 'motif', v_motif);
-END; $function$
+END; $function$;
 
 -- justice_prolonger_peine(text,jsonb,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.justice_prolonger_peine(p_cible text, p_motifs jsonb, p_forcer_qhs boolean DEFAULT false)
@@ -719,7 +719,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'juge', v_juge, 'cible', p_cible,
                             'jours_ajoutes', v_jours_supp, 'jour_fin', v_nouveau_jour_fin);
 END;
-$function$
+$function$;
 
 -- justice_recherches(text) -> TABLE(id text, country text, ville_condamnation text, motif text, jours integer, data jsonb) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.justice_recherches(p_nom text)
@@ -761,7 +761,7 @@ BEGIN
      WHERE j.accuse = p_nom AND j.executee = false
      ORDER BY j.created_at;
 END;
-$function$
+$function$;
 
 -- plainte_deposer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plainte_deposer(p_cible text, p_motif text)
@@ -834,7 +834,7 @@ BEGIN
   RETURN v_res || jsonb_build_object('id', v_id, 'commissaire', v_commissaire,
                                      'commissaire_pj', v_est_pj, 'ville', v_ville);
 END;
-$function$
+$function$;
 
 -- plainte_instruire_interne(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plainte_instruire_interne(p_pays text, p_ville text, p_cible text, p_motif text, p_instructeur text)
@@ -895,7 +895,7 @@ BEGIN
                             'acte', coalesce(v_acte.type_action, 'acte illegal'),
                             'detention', v_det);
 END;
-$function$
+$function$;
 
 -- plainte_traiter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plainte_traiter(p_id text, p_decision text)
@@ -953,7 +953,7 @@ BEGIN
 
   RETURN v_res || jsonb_build_object('id', p_id);
 END;
-$function$
+$function$;
 
 -- plaintes_epingler_verdict() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plaintes_epingler_verdict()
@@ -999,7 +999,7 @@ BEGIN
   NEW.data := v_new::text;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- police_autorite_de_perimetre(text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.police_autorite_de_perimetre(p_pays text, p_perimetre text)
@@ -1022,7 +1022,7 @@ BEGIN
    ORDER BY pd.name
    LIMIT 1;
   RETURN v_nom;
-END; $function$
+END; $function$;
 
 -- police_caracteristiques_metier() -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.police_caracteristiques_metier()
@@ -1032,7 +1032,7 @@ CREATE OR REPLACE FUNCTION public.police_caracteristiques_metier()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT public.pnj_metier_profil('policier');
-$function$
+$function$;
 
 -- police_payer_effectifs(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.police_payer_effectifs(p_pays text)
@@ -1141,7 +1141,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'jour', v_jour, 'pays', p_pays,
     'verse_total', v_total_verse, 'partis_total', v_total_partis, 'villes', v_villes);
-END; $function$
+END; $function$;
 
 -- police_pnj_id(text,text,text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.police_pnj_id(p_pays text, p_ville text, p_matricule text)
@@ -1150,7 +1150,7 @@ CREATE OR REPLACE FUNCTION public.police_pnj_id(p_pays text, p_ville text, p_mat
  IMMUTABLE
 AS $function$
   SELECT 'police-' || p_pays || '-' || p_ville || '-' || p_matricule;
-$function$
+$function$;
 
 -- presidence_gracier(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.presidence_gracier(p_condamne text, p_jour integer DEFAULT NULL::integer)
@@ -1183,7 +1183,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'libere', true,
                             'president', v_president, 'condamne', p_condamne);
 END;
-$function$
+$function$;
 
 -- qhs_pouvoir(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.qhs_pouvoir(p_prisonnier_id text, p_acte text)
@@ -1261,4 +1261,4 @@ BEGIN
          detention_qhs = jsonb_build_object('enQHS', true, 'paLimite1Jour', true)
    WHERE name = v_nom;
   RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'cible', v_nom);
-END; $function$
+END; $function$;

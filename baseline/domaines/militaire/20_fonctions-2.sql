@@ -23,7 +23,7 @@ AS $function$
            'reconnaissance',   coalesce((competences_militaires->>'reconnaissance')::numeric, 0),
            'secourisme',       coalesce((competences_militaires->>'secourisme')::numeric, 0))
     FROM public.personnages_donnees WHERE name = p_nom;
-$function$
+$function$;
 
 -- militaire_decorer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_decorer(p_decore text, p_intitule text, p_citation text DEFAULT NULL::text)
@@ -79,7 +79,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'decore', btrim(p_decore),
     'niveau', v_niveau, 'intitule', v_intitule, 'decerne_par', v_moi, 'poste', v_poste);
 END;
-$function$
+$function$;
 
 -- militaire_defense_pnj(text) -> numeric | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_defense_pnj(p_cle text)
@@ -88,7 +88,7 @@ CREATE OR REPLACE FUNCTION public.militaire_defense_pnj(p_cle text)
  IMMUTABLE
 AS $function$
   SELECT 8::numeric;
-$function$
+$function$;
 
 -- militaire_degats_pct(text) -> numeric | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_degats_pct(p_degre text)
@@ -102,7 +102,7 @@ AS $function$
     WHEN 'partielle_2' THEN 0.50
     ELSE                    0.00
   END;
-$function$
+$function$;
 
 -- militaire_degrader(text,integer,text,text,text) -> jsonb | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_degrader(p_bande text, p_effectif integer, p_pays text, p_ville text, p_batiment text)
@@ -140,7 +140,7 @@ AS $function$
       'effectif_min', NULL, 'effectif_max', NULL,
       'libelle', 'Mouvement de troupes possible dans ce secteur')
   END;
-$function$
+$function$;
 
 -- militaire_degre_combat(integer,integer) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_degre_combat(p_taux integer, p_jet integer)
@@ -160,7 +160,7 @@ AS $function$
           FROM (SELECT least(100, greatest(0,
                   p_jet + (coalesce(p_taux, 50) - 50) / 2.0)) AS s) x)
   END;
-$function$
+$function$;
 
 -- militaire_degre_par_rang(integer) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_degre_par_rang(p_rang integer)
@@ -175,7 +175,7 @@ AS $function$
     WHEN 3 THEN 'partielle_1'
     ELSE        'critique'
   END;
-$function$
+$function$;
 
 -- militaire_degre_rang(text) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_degre_rang(p_degre text)
@@ -190,7 +190,7 @@ AS $function$
     WHEN 'partielle_1'    THEN 3
     WHEN 'critique'       THEN 4
   END;
-$function$
+$function$;
 
 -- militaire_demettre_lieutenant(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_demettre_lieutenant(p_compagnie_id text, p_section_id text)
@@ -225,7 +225,7 @@ BEGIN
    WHERE name = v_ancien AND poste->>'id' = 'lieutenant'
      AND poste->>'compagnieId' = p_compagnie_id;
   RETURN jsonb_build_object('ok', true, 'ancien_lieutenant', v_ancien, 'section', p_section_id);
-END; $function$
+END; $function$;
 
 -- militaire_deposer_soldats(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_deposer_soldats(p_compagnie_id text, p_section_id text, p_nb integer)
@@ -266,7 +266,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'deposes', p_nb,
                             'ville', v_ville, 'batiment', v_bat, 'piece', v_room);
-END; $function$
+END; $function$;
 
 -- militaire_desertions_verifier(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_desertions_verifier(p_pays text DEFAULT NULL::text)
@@ -321,7 +321,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'deserteurs', v_nouveaux);
 END;
-$function$
+$function$;
 
 -- militaire_detachement_ici() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_detachement_ici()
@@ -378,7 +378,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'detachements', v_out);
 END;
-$function$
+$function$;
 
 -- militaire_engagement_affecter_compagnie(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_engagement_affecter_compagnie(p_engagement_id text, p_compagnie_id text)
@@ -415,7 +415,7 @@ BEGIN
          data = data || jsonb_build_object('compagnieId', p_compagnie_id, 'parCommandant', v_moi)
    WHERE id = p_engagement_id;
   RETURN jsonb_build_object('ok', true, 'statut', 'attente_capitaine', 'compagnie', p_compagnie_id);
-END; $function$
+END; $function$;
 
 -- militaire_engagement_affecter_section(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_engagement_affecter_section(p_engagement_id text, p_section_id text)
@@ -491,7 +491,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'statut', 'affecte', 'nom', v_nom,
     'section', p_section_id, 'hommes', v_tire, 'incomplete', (v_deja + v_tire) < c_places);
-END; $function$
+END; $function$;
 
 -- militaire_engagement_creer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_engagement_creer()
@@ -521,7 +521,7 @@ BEGIN
   VALUES (v_id, 'attente_commandant',
           jsonb_build_object('pays', v_pays, 'nom', v_moi, 'depuis', to_jsonb(now())));
   RETURN jsonb_build_object('ok', true, 'engagement', v_id, 'pays', v_pays);
-END; $function$
+END; $function$;
 
 -- militaire_entrainer_section(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_entrainer_section(p_compagnie_id text, p_section_id text, p_stat text)
@@ -619,7 +619,7 @@ BEGIN
     'pnj', jsonb_array_length(v_elus_pnj), 'pj', jsonb_array_length(v_elus_pj),
     'gain', c_gain, 'plafond', c_plafond, 'pa_soldat', c_pa, 'pa_chef', c_pa,
     'pa_restants_chef', v_pa_chef - c_pa, 'matricules', v_elus_pnj, 'joueurs', v_elus_pj);
-END; $function$
+END; $function$;
 
 -- militaire_entree_zone() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_entree_zone()
@@ -745,7 +745,7 @@ BEGIN
     'reconnaissance', v_reco, 'jumelles', v_jumelles,
     'contacts', v_contacts, 'contacts_mutuels', v_mutuels);
 END;
-$function$
+$function$;
 
 -- militaire_equiper_accessoire(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_equiper_accessoire(p_compagnie_id text, p_section_id text, p_matricule text, p_objet_id text, p_sens text)
@@ -814,7 +814,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'sens', p_sens, 'matricule', p_matricule,
     'objet', v_objet->>'name', 'produit', v_objet->>'produitMilitaire', 'objet_id', p_objet_id);
-END; $function$
+END; $function$;
 
 -- militaire_equiper_soldat(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_equiper_soldat(p_compagnie_id text, p_section_id text, p_matricule text, p_categorie text)
@@ -889,7 +889,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'matricule', p_matricule, 'arme', v_rendu,
                             'ancienne', v_anc, 'stock', v_stock);
-END; $function$
+END; $function$;
 
 -- militaire_gilet_absorber(boolean,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_gilet_absorber(p_est_pj boolean, p_nom text, p_compagnie_id text, p_section_id text, p_matricule text)
@@ -942,7 +942,7 @@ BEGIN
      WHERE id = v_ligne;
   END IF;
   RETURN jsonb_build_object('protege', v_protege, 'gilet_fragilise', v_protege);
-END; $function$
+END; $function$;
 
 -- militaire_grade_effectif(text) -> text | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_grade_effectif(p_nom text)
@@ -958,7 +958,7 @@ AS $function$
             jsonb_array_elements(coalesce(c.data->'sections','[]'::jsonb)) s,
             jsonb_array_elements(coalesce(s->'soldats','[]'::jsonb)) sol
       WHERE coalesce((sol->>'pj')::boolean,false) AND sol->>'nom' = p_nom LIMIT 1));
-$function$
+$function$;
 
 -- militaire_groupe_sous_seuil(bigint,text) -> boolean | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_groupe_sous_seuil(p_bataille_id bigint, p_groupe_id text)
@@ -972,7 +972,7 @@ AS $function$
              AND e.sorti_round IS NULL) * 2
          <= coalesce((SELECT g.effectif_initial FROM public.batailles_groupes g
                        WHERE g.bataille_id = p_bataille_id AND g.groupe_id = p_groupe_id), 0);
-$function$
+$function$;
 
 -- militaire_lien_operationnel_rompre(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_lien_operationnel_rompre(p_leader text, p_ville text, p_bat text, p_room text)
@@ -1001,7 +1001,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'soldats', v_total,
                             'ville', p_ville, 'batiment', p_bat, 'piece', p_room);
-END; $function$
+END; $function$;
 
 -- militaire_ma_section() -> record | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_ma_section(OUT o_moi text, OUT o_compagnie text, OUT o_section text, OUT o_data jsonb, OUT o_raison text)
@@ -1024,7 +1024,7 @@ BEGIN
 
   IF o_compagnie IS NULL THEN o_raison := 'pas_lieutenant_de_section'; RETURN; END IF;
   o_raison := NULL;
-END; $function$
+END; $function$;
 
 -- militaire_malus_taille(integer) -> integer | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_malus_taille(p_effectif integer)
@@ -1041,7 +1041,7 @@ AS $function$
     WHEN p_effectif <= 25  THEN -30
     WHEN p_effectif <= 50  THEN -40
     ELSE -50 END;
-$function$
+$function$;
 
 -- militaire_mes_batailles(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_mes_batailles(p_limite integer DEFAULT 10)
@@ -1068,7 +1068,7 @@ BEGIN
      ORDER BY b.debut_ts DESC LIMIT greatest(1, least(50, coalesce(p_limite, 10)))) t;
   RETURN jsonb_build_object('ok', true, 'batailles', v_res);
 END;
-$function$
+$function$;
 
 -- militaire_mes_candidatures() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_mes_candidatures()
@@ -1094,7 +1094,7 @@ BEGIN
     'affectation_a_decouvrir', EXISTS (SELECT 1 FROM public.candidatures_militaires
        WHERE candidat = v_moi AND statut = 'acceptee' AND echeance > now()));
 END;
-$function$
+$function$;
 
 -- militaire_mobilisation_fixer(boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_mobilisation_fixer(p_actif boolean)
@@ -1133,7 +1133,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'actif', coalesce(p_actif, false));
 END;
-$function$
+$function$;
 
 -- militaire_modif_distance(text) -> integer | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_modif_distance(p_bande text)
@@ -1144,7 +1144,7 @@ CREATE OR REPLACE FUNCTION public.militaire_modif_distance(p_bande text)
 AS $function$
   SELECT CASE p_bande WHEN 'proche' THEN 0 WHEN 'moyenne' THEN -20
                       WHEN 'longue' THEN -40 ELSE NULL END;
-$function$
+$function$;
 
 -- militaire_mon_pays() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_mon_pays()
@@ -1155,7 +1155,7 @@ CREATE OR REPLACE FUNCTION public.militaire_mon_pays()
 AS $function$
   SELECT d.country FROM public.personnages_donnees d
    WHERE d.user_id = auth.uid() LIMIT 1;
-$function$
+$function$;
 
 -- militaire_mutinerie_declencher() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_mutinerie_declencher()
@@ -1252,7 +1252,7 @@ BEGIN
     'soldats_rallies', v_vises, 'soldats_disponibles', v_dispo,
     'soldats_restes_loyalistes', greatest(0, v_dispo - v_vises));
 END;
-$function$
+$function$;
 
 -- militaire_objet_signature(jsonb) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_objet_signature(p_objet jsonb)
@@ -1263,7 +1263,7 @@ AS $function$
   SELECT lower(btrim(coalesce(nullif(btrim(coalesce(p_objet->>'produitMilitaire','')), ''),
                               p_objet->>'name', '?')))
       || '|' || lower(coalesce(p_objet->>'type', ''));
-$function$
+$function$;
 
 -- militaire_observer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_observer()
@@ -1332,7 +1332,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pa_restants', v_pa - c_pa,
     'reconnaissance', v_reco, 'contacts', v_contacts);
-END; $function$
+END; $function$;
 
 -- militaire_ordre_collectif(text,text,text,text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_ordre_collectif(p_compagnie_id text, p_section_id text, p_action text, p_leader text DEFAULT NULL::text, p_matricules text[] DEFAULT NULL::text[])
@@ -1511,7 +1511,7 @@ BEGIN
     'rations_propres', CASE WHEN p_action='ration' THEN v_propres END,
     'rations_du_chef', CASE WHEN p_action='ration' THEN v_besoin_chef END,
     'max_ration_jour', CASE WHEN p_action='ration' THEN c_max_ration_jour END);
-END; $function$
+END; $function$;
 
 -- militaire_ordre_pnj(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_ordre_pnj(p_pnj_id text, p_action text)
@@ -1540,7 +1540,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'soldat_en_reserve'); END IF;
   RETURN public.militaire_ordre_collectif(s.compagnie_id, s.section_id, p_action,
                                           s.leader_pj, ARRAY[s.matricule]);
-END; $function$
+END; $function$;
 
 -- militaire_pa_restants(integer,text) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_pa_restants(p_pa integer, p_degre text)
@@ -1550,7 +1550,7 @@ CREATE OR REPLACE FUNCTION public.militaire_pa_restants(p_pa integer, p_degre te
 AS $function$
   SELECT greatest(0, floor(greatest(0, coalesce(p_pa, 0))
                            * (1 - public.militaire_degats_pct(p_degre)))::integer);
-$function$
+$function$;
 
 -- militaire_places_libres_grade(text,text,text,text) -> integer | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_places_libres_grade(p_pays text, p_grade text, p_compagnie_id text, p_section_id text)
@@ -1596,7 +1596,7 @@ BEGIN
   END IF;
   RETURN 0;
 END;
-$function$
+$function$;
 
 -- militaire_position_repli(text,text,text,text) -> jsonb | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_position_repli(p_nom text, p_ville text, p_bat text, p_piece text)
@@ -1610,7 +1610,7 @@ AS $function$
    WHERE p_nom IS NOT NULL AND h.name = p_nom
      AND NOT (h.city = p_ville AND h.building_id = p_bat AND h.room_id = p_piece)
    ORDER BY h.created_at DESC LIMIT 1;
-$function$
+$function$;
 
 -- militaire_presentation_affectation() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_presentation_affectation()
@@ -1722,7 +1722,7 @@ BEGIN
     'compagnie', v_cid, 'inscrit', v_inscrit, 'requisition', v_req,
     'recherche', v_recherche2, 'pa', v_paye->'pa');
 END;
-$function$
+$function$;
 
 -- militaire_proposer_capitaine(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_proposer_capitaine(p_compagnie_id text, p_destinataire text)
@@ -1754,7 +1754,7 @@ BEGIN
   INSERT INTO public.nominations_militaires (id, pays, grade, compagnie_id, section_id, destinataire, par)
   VALUES (v_id, v_pays, 'capitaine', p_compagnie_id, NULL, p_destinataire, v_acteur);
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'destinataire', p_destinataire);
-END; $function$
+END; $function$;
 
 -- militaire_proposer_lieutenant(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_proposer_lieutenant(p_compagnie_id text, p_section_id text, p_destinataire text)
@@ -1791,7 +1791,7 @@ BEGIN
   INSERT INTO public.nominations_militaires (id, pays, grade, compagnie_id, section_id, destinataire, par)
   VALUES (v_id, v_pays, 'lieutenant', p_compagnie_id, p_section_id, p_destinataire, v_moi);
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'destinataire', p_destinataire);
-END; $function$
+END; $function$;
 
 -- militaire_ration_consommer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_ration_consommer()
@@ -1859,7 +1859,7 @@ BEGIN
     'gain_reel', v_pa_apres - v_pa_avant, 'rations_restantes', v_reste,
     'consommees_aujourdhui', v_deja + 1, 'maximum', c_max_par_jour);
 END;
-$function$
+$function$;
 
 -- militaire_rations_retirer(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_rations_retirer(p_nombre integer)
@@ -1914,7 +1914,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'retirees', v_n, 'restantes', v_dispo - v_n);
 END;
-$function$
+$function$;
 
 -- militaire_recruteur_de_moi() -> record | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_recruteur_de_moi(OUT o_moi text, OUT o_pays text, OUT o_grade_recrute text, OUT o_compagnie text, OUT o_section text, OUT o_raison text)
@@ -1944,7 +1944,7 @@ BEGIN
     o_raison := 'pas_recruteur'; RETURN;
   END IF;
 END;
-$function$
+$function$;
 
 -- militaire_recuperer_soldats(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_recuperer_soldats(p_compagnie_id text, p_section_id text, p_nb integer)
@@ -1986,7 +1986,7 @@ BEGIN
   PERFORM public.militaire_blob_projeter(p_compagnie_id);
 
   RETURN jsonb_build_object('ok', true, 'recuperes', p_nb, 'leader', g.o_moi);
-END; $function$
+END; $function$;
 
 -- militaire_reposer_section(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_reposer_section(p_compagnie_id text, p_section_id text)
@@ -2103,7 +2103,7 @@ BEGIN
     'deja_reposes', v_deja, 'effectif', v_total,
     'reposes', v_caserne + v_tente + v_terrain,
     'pnj_par_tente', c_pnj_par_tente);
-END; $function$
+END; $function$;
 
 -- militaire_requisition_civile(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_requisition_civile(p_compagnie_id text, p_section_id text)
@@ -2200,7 +2200,7 @@ BEGIN
     'nombre', array_length(v_noms, 1), 'deadline', v_deadline, 'delai_heures', c_heures,
     'section', v_sec->>'numero', 'lieutenant', v_sec->>'lieutenantNom', 'pa', v_paye->'pa');
 END;
-$function$
+$function$;
 
 -- militaire_retrait(text,text,integer,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_retrait(p_pays text, p_produit text, p_quantite integer, p_lieutenant text, p_section text, p_jour integer)
@@ -2291,7 +2291,7 @@ BEGIN
   RETURN v_mvt || jsonb_build_object('registre', true, 'objets_poses', v_poses,
                                      'inventaire_serveur', true);
 END;
-$function$
+$function$;
 
 -- militaire_section_de_moi(text,text) -> record | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_section_de_moi(p_compagnie_id text, p_section_id text, OUT o_moi text, OUT o_data jsonb, OUT o_raison text)
@@ -2315,7 +2315,7 @@ BEGIN
     o_raison := 'pas_lieutenant_de_cette_section'; RETURN;
   END IF;
   o_raison := NULL;
-END; $function$
+END; $function$;
 
 -- militaire_sections_remplacer(jsonb,text,jsonb) -> jsonb | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_sections_remplacer(p_data jsonb, p_section_id text, p_nouvelle jsonb)
@@ -2327,7 +2327,7 @@ AS $function$
     SELECT jsonb_agg(CASE WHEN s->>'id' = p_section_id THEN p_nouvelle ELSE s END ORDER BY ord)
       FROM jsonb_array_elements(COALESCE(p_data->'sections','[]'::jsonb)) WITH ORDINALITY AS t(s, ord)
   ), '[]'::jsonb));
-$function$
+$function$;
 
 -- militaire_service_fermer(text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_service_fermer(p_nom text, p_grade text)
@@ -2339,7 +2339,7 @@ AS $function$
 BEGIN
   UPDATE public.services_militaires SET fin_ts = now()
    WHERE personnage = p_nom AND grade = p_grade AND fin_ts IS NULL;
-END; $function$
+END; $function$;
 
 -- militaire_service_jours(text,text) -> numeric | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_service_jours(p_nom text, p_grade text)
@@ -2351,7 +2351,7 @@ AS $function$
   SELECT coalesce(sum(extract(epoch FROM (coalesce(fin_ts, now()) - debut_ts)) / 86400.0), 0)
     FROM public.services_militaires
    WHERE personnage = p_nom AND (p_grade IS NULL OR grade = p_grade);
-$function$
+$function$;
 
 -- militaire_service_ouvrir(text,text,text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_service_ouvrir(p_nom text, p_pays text, p_grade text, p_compagnie text, p_section text)
@@ -2367,7 +2367,7 @@ BEGIN
   SELECT p_nom, p_pays, p_grade, p_compagnie, p_section
    WHERE NOT EXISTS (SELECT 1 FROM public.services_militaires
                       WHERE personnage = p_nom AND grade = p_grade AND fin_ts IS NULL);
-END; $function$
+END; $function$;
 
 -- militaire_soldat_pa_fixer(text,text,text,integer) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_soldat_pa_fixer(p_compagnie_id text, p_section_id text, p_matricule text, p_pa integer)
@@ -2379,7 +2379,7 @@ AS $function$
 BEGIN
   PERFORM public.pnj_pa_fixer(ARRAY[p_compagnie_id || '-' || p_matricule], p_pa);
   PERFORM public.militaire_blob_projeter(p_compagnie_id);
-END; $function$
+END; $function$;
 
 -- militaire_soldat_retirer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_soldat_retirer(p_compagnie_id text, p_section_id text, p_nom text)
@@ -2439,7 +2439,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'motif', v_par, 'nom', p_nom,
     'effectif', v_apres, 'places_libres', 24 - v_apres);
-END; $function$
+END; $function$;
 
 -- militaire_soldat_supprimer(text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_soldat_supprimer(p_compagnie_id text, p_section_id text, p_matricule text)
@@ -2473,7 +2473,7 @@ BEGIN
      SET data = public.militaire_sections_remplacer(v_data, p_section_id,
                   v_sec || jsonb_build_object('soldats', v_sols))
    WHERE id = p_compagnie_id;
-END; $function$
+END; $function$;
 
 -- militaire_solde_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_solde_percevoir()
@@ -2526,7 +2526,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'grade', v_grade, 'du', v_du, 'verse', v_verse,
     'dette', v_du - v_verse, 'jour', v_jour,
     'liquide', v_credit->'liquide', 'arg', v_credit->'arg');
-END; $function$
+END; $function$;
 
 -- militaire_subtiliser(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_subtiliser(p_pays text, p_joueur text)
@@ -2545,7 +2545,7 @@ BEGIN
   END IF;
   RETURN public.caserne_stock_mouvement(p_pays, 'explosif_militaire', -1, NULL);
 END;
-$function$
+$function$;
 
 -- militaire_subtiliser_tenter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_subtiliser_tenter(p_pays text)
@@ -2628,7 +2628,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'reussite', true, 'detecte', false,
     'score', v_score, 'objet', v_objet, 'lot', v_objet->>'lot');
 END;
-$function$
+$function$;
 
 -- militaire_taux_combat(numeric,numeric,numeric,integer) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_taux_combat(p_comp_off numeric, p_comp_cible numeric, p_stat_cible numeric, p_bonus_arme integer DEFAULT 0)
@@ -2642,7 +2642,7 @@ AS $function$
          - (coalesce(p_stat_cible, 8) - 8)
          + coalesce(p_bonus_arme, 0)
     )::integer));
-$function$
+$function$;
 
 -- militaire_terminal_dormir(text,text[],text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_terminal_dormir(p_requete text, p_matricules text[], p_tentes text[])
@@ -2754,7 +2754,7 @@ BEGIN
   INSERT INTO public.militaire_terminal_requetes (requete, acteur, action, resultat)
   VALUES (p_requete, g.o_moi, 'dormir', v_res);
   RETURN v_res;
-END; $function$
+END; $function$;
 
 -- militaire_terminal_liaison(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_terminal_liaison(p_moi text, p_pnj_id text)
@@ -2793,7 +2793,7 @@ BEGIN
        AND m2.room_id IS NOT DISTINCT FROM pe.room_id
        AND p.objet->>'produitMilitaire' = 'radio') INTO v_radio_groupe;
   RETURN coalesce(v_radio_groupe, false);
-END; $function$
+END; $function$;
 
 -- militaire_terminal_manger(text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_terminal_manger(p_requete text, p_matricules text[])
@@ -2899,7 +2899,7 @@ BEGIN
   INSERT INTO public.militaire_terminal_requetes (requete, acteur, action, resultat)
   VALUES (p_requete, g.o_moi, 'manger', v_res);
   RETURN v_res;
-END; $function$
+END; $function$;
 
 -- militaire_terminal_rejoindre(text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_terminal_rejoindre(p_requete text, p_matricules text[])
@@ -2965,4 +2965,4 @@ BEGIN
   INSERT INTO public.militaire_terminal_requetes (requete, acteur, action, resultat)
   VALUES (p_requete, g.o_moi, 'rejoindre', v_res);
   RETURN v_res;
-END; $function$
+END; $function$;

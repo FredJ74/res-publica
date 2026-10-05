@@ -20,7 +20,7 @@ AS $function$
   SELECT public.bail_je_suis_locataire(p_data)
       OR public.bail_autorite_municipale(p_data)
       OR public.bail_proprietaire_des_murs(p_data);
-$function$
+$function$;
 
 -- bail_autorite_municipale(jsonb) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.bail_autorite_municipale(p_data jsonb)
@@ -35,7 +35,7 @@ AS $function$
        AND (d.poste ->> 'id') IN ('maire', 'maire_adjoint')
        AND (d.poste ->> 'city') IS NOT DISTINCT FROM coalesce(p_data ->> 'city', 'capitale')
   );
-$function$
+$function$;
 
 -- bail_cle_coherente() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.bail_cle_coherente()
@@ -64,7 +64,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- bail_destination_attestee(jsonb) -> jsonb | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.bail_destination_attestee(p_data jsonb)
@@ -88,7 +88,7 @@ AS $function$
                             'pays',  coalesce(p_data ->> 'country', 'republic'),
                             'ville', coalesce(p_data ->> 'city', 'capitale'))
   END;
-$function$
+$function$;
 
 -- bail_je_suis_locataire(jsonb) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.bail_je_suis_locataire(p_data jsonb)
@@ -96,7 +96,7 @@ CREATE OR REPLACE FUNCTION public.bail_je_suis_locataire(p_data jsonb)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
-AS $function$ SELECT coalesce(p_data ->> 'locataire', '') = coalesce(public.mon_personnage(), '\x00'); $function$
+AS $function$ SELECT coalesce(p_data ->> 'locataire', '') = coalesce(public.mon_personnage(), '\x00'); $function$;
 
 -- bail_proprietaire_des_murs(jsonb) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.bail_proprietaire_des_murs(p_data jsonb)
@@ -120,7 +120,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   RETURN false;   -- data illisible : aucune autorite accordee
 END;
-$function$
+$function$;
 
 -- batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.batiment_caisse_mouvement(p_pays text, p_ville text, p_building text, p_souscle text, p_delta numeric, p_stock_cle text DEFAULT NULL::text, p_stock numeric DEFAULT 0, p_stock_max numeric DEFAULT NULL::numeric, p_exiger_existant boolean DEFAULT false)
@@ -198,7 +198,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'caisse', v_caisse + p_delta,
                             'stock', CASE WHEN p_stock_cle IS NULL THEN NULL ELSE v_obj -> p_stock_cle END);
 END;
-$function$
+$function$;
 
 -- batiment_etat_lire(jsonb) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.batiment_etat_lire(p_data jsonb)
@@ -210,7 +210,7 @@ AS $function$
   SELECT CASE WHEN p_data IS NULL THEN '{}'::jsonb
               WHEN jsonb_typeof(p_data) = 'string' THEN (p_data #>> '{}')::jsonb
               ELSE p_data END;
-$function$
+$function$;
 
 -- batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.batiment_etat_sous_cle_ecrire(p_pays text, p_ville text, p_batiment text, p_sous_cle text, p_valeur jsonb)
@@ -405,7 +405,7 @@ BEGIN
    WHERE id = v_id;
 
   RETURN jsonb_build_object('ok', true, 'valeur', p_valeur);
-END; $function$
+END; $function$;
 
 -- eviction_indemniser(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.eviction_indemniser(p_country text, p_building_id text, p_lot_id text)
@@ -507,7 +507,7 @@ BEGIN
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = v_moi),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = v_moi));
 END;
-$function$
+$function$;
 
 -- prelever_loyer_bail(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.prelever_loyer_bail(p_bail_id text)
@@ -767,7 +767,7 @@ BEGIN
 
   RETURN 'paye';
 END;
-$function$
+$function$;
 
 -- resilier_bail_volontaire(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.resilier_bail_volontaire(p_bail_id text, p_acteur text)
@@ -783,7 +783,7 @@ BEGIN
   END IF;
   RETURN terminer_bail(p_bail_id, 'resiliation_volontaire', p_acteur, 0);
 END;
-$function$
+$function$;
 
 -- terminer_bail(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.terminer_bail(p_bail_id text, p_cause text, p_acteur text, p_indemnite integer)
@@ -842,7 +842,7 @@ BEGIN
   DELETE FROM locations_actives WHERE id = p_bail_id;
   RETURN jsonb_build_object('ok', true, 'deja_termine', false, 'cause', p_cause, 'fondsId', COALESCE(v_fonds_id, ''), 'indemnite', v_ind, 'proprietaireMurs', COALESCE(v_prop, ''));
 END;
-$function$
+$function$;
 
 -- terrain_etat_lire(text) -> jsonb | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.terrain_etat_lire(p_data text)
@@ -853,4 +853,4 @@ AS $function$
 BEGIN
   RETURN p_data::jsonb;
 EXCEPTION WHEN others THEN RETURN NULL;
-END; $function$
+END; $function$;

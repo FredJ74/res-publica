@@ -161,6 +161,13 @@
       "nature": "seed PARTIEL assume, le reste attend un arbitrage",
       "detail": "Gardees : les 3 entrepots logistiques de Republia (Luthecia, Port-Sainte-Marie, Montrouge), dont l'etat initial est arbitre. Ecartees : 11 autres batiments de Republia porteurs d'un etat, les batiments des 3 autres empires, 3 lignes techniques (cron-minuit, bne, candidatures_postes) et les lignes de test.",
       "pourquoi": "Un seed partiel vaut mieux qu'un seed faux. Ce qui est decide est ecrit ; le reste se remplit dans baseline/arbitrages/etat-initial-republia.csv."
+    },
+    "caisses_batiments": {
+      "gardees": 38,
+      "ecartees": 113,
+      "nature": "seed ECRIT depuis le tableau d'arbitrage, pas extrait de la base",
+      "detail": "Gardees : les 38 caisses de Republia dont la dotation est arbitree, 130 000 FR au total. Ecartees : les caisses des trois autres empires, les 24 que l'audit a declarees vestiges, comptes de transit, contreparties ou caisses inertes, et les lignes de test.",
+      "aucun_solde_de_beta_ne_traverse": "La colonne `data` n'est PAS copiee : elle est reconstruite par un jsonb_build_object dont le montant vient d'un `case` engendre depuis baseline/arbitrages/dotations-financieres-republia.csv. La base ne fournit que la liste des identifiants."
     }
   },
   "exigences_de_game_design_a_construire": {
@@ -300,5 +307,14 @@
       "Ecrire le miroir SERVEUR de la distribution municipale, aujourd'hui cliente seulement.",
       "Rebattre la cle de pourcentages en consequence -- et NON dans le chantier 2E : le principe cible compte plus que les pourcentages actuels."
     ]
+  },
+  "chantier_2f": {
+    "_commentaire": "Chantier 2F : reconstruction d'un monde neuf a partir du baseline. Ce bloc consigne ce que 2F a trouve et corrige, et ce qu'il n'a pas pu faire.",
+    "environnement": "Aucun moteur PostgreSQL n'est joignable depuis la machine de developpement : ni serveur local, ni conteneur (docker, podman, colima, lima tous absents), ni CLI Supabase, ni second projet. La base de production est interdite en ecriture. La reconstruction a donc ete eprouvee par les deux voies praticables sans moteur : la GRAMMAIRE REELLE de PostgreSQL (pglast 7.18, qui embarque le parser de PostgreSQL 17.7, quand la production tourne en 17.6) et une SIMULATION DU CATALOGUE ordre par ordre.",
+    "deux_defauts_de_2e_trouves_et_corriges": {
+      "definitions_de_fonction_sans_point-virgule": "DEFAUT BLOQUANT. pg_get_functiondef() ne termine pas par un point-virgule -- verifie : AUCUNE des 641 definitions n'en portait. Les fichiers 20_fonctions*.sql ecrivaient donc les definitions l'une apres l'autre sans separateur, et PostgreSQL lisait « $function$ CREATE OR REPLACE FUNCTION » comme un seul ordre malforme. L'analyseur a refuse 18 fichiers sur 18. Le baseline etait FIDELE et INAPPLICABLE -- exactement le genre de defaut qu'aucun controle de fidelite ne peut voir, puisque la fidelite etait intacte. Corrige : le rendu ajoute le point-virgule, et les deux verificateurs le retirent avant de recalculer l'empreinte.",
+      "dotations_financieres_dans_aucun_seed": "LACUNE. Les 53 dotations avaient ete arbitrees et consignees dans le tableau, mais aucune ne parvenait au baseline : un monde reconstruit naissait avec zero caisse, et les montants decides n'etaient jamais appliques. Corrige : les 38 caisses qui vivent dans caisses_batiments sont desormais seedees, montant ECRIT depuis le tableau d'arbitrage. Les 15 autres vivent dans un blob de batiments_etat -- 3 (les entrepots) sont deja seedees, 12 attendent l'arbitrage de l'etat complet de leur batiment."
+    },
+    "ce_qui_reste_a_faire_hors_2f": "Appliquer reellement le script assemble sur un moteur PostgreSQL neuf. C'est le seul verrou restant, et il est d'environnement, pas de baseline : il se levera le jour ou un projet Supabase jetable sera disponible. La commande est prete : outils/baseline/reconstruire.py --ecrire <fichier.sql> produit le script complet, dans l'ordre d'application."
   }
 }

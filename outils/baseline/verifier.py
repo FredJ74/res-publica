@@ -30,6 +30,20 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
 
 
+def definition_depuis_le_fichier(bloc):
+    """Retrouve la definition telle que pg_get_functiondef l'a rendue.
+
+    Le fichier ajoute un point-virgule final que la base ne donne pas : il faut
+    le retirer avant de comparer l'empreinte, sinon le controle rougirait sur
+    une difference que le rendu a introduite expres. Verifie sur les 641
+    definitions du schema : aucune ne se termine par un point-virgule.
+    """
+    defi = bloc.rstrip("\n")
+    if defi.endswith(";"):
+        defi = defi[:-1]
+    return defi + "\n"
+
+
 def main():
     if len(sys.argv) != 2:
         print(__doc__)
@@ -101,7 +115,7 @@ def main():
         if attendue is None:
             faux.append(signature + " : absente du manifeste")
             continue
-        reel = hashlib.md5((defi.rstrip("\n") + "\n").encode("utf-8")).hexdigest()
+        reel = hashlib.md5(definition_depuis_le_fichier(defi).encode("utf-8")).hexdigest()
         if reel == attendue:
             trouves += 1
         else:

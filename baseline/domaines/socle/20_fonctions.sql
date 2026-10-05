@@ -21,7 +21,7 @@ AS $function$
     FROM public.personnages_donnees p
    WHERE p.user_id = auth.uid()
    LIMIT 1;
-$function$
+$function$;
 
 -- acteur_present_sur_site(text,text,text,text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.acteur_present_sur_site(p_acteur text, p_pays text, p_ville text, p_batiment text, p_piece text)
@@ -58,7 +58,7 @@ BEGIN
   END IF;
 
   RETURN true;
-END $function$
+END $function$;
 
 -- deplacement_enregistrer(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.deplacement_enregistrer(p_city text, p_building text, p_room text, p_heure text DEFAULT NULL::text)
@@ -92,7 +92,7 @@ BEGIN
   VALUES (v_moi, v_pays, p_city, p_building, p_room, v_jour, p_heure);
   RETURN jsonb_build_object('ok', true, 'enregistre', true);
 END;
-$function$
+$function$;
 
 -- eg_etat_id(text,jsonb) -> text | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.eg_etat_id(p_pays text, p_entrepot jsonb)
@@ -102,7 +102,7 @@ CREATE OR REPLACE FUNCTION public.eg_etat_id(p_pays text, p_entrepot jsonb)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT p_pays || '_' || (p_entrepot ->> 'city') || '_' || (p_entrepot ->> 'building');
-$function$
+$function$;
 
 -- eg_etat_lire(jsonb) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.eg_etat_lire(p_brut jsonb)
@@ -116,7 +116,7 @@ AS $function$
     WHEN jsonb_typeof(p_brut) = 'string' THEN (p_brut #>> '{}')::jsonb
     WHEN jsonb_typeof(p_brut) = 'object' THEN p_brut
     ELSE '{}'::jsonb END;
-$function$
+$function$;
 
 -- embargo_actif(text,text) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.embargo_actif(p_pays_soi text, p_pays_cible text)
@@ -131,7 +131,7 @@ AS $function$
      WHERE id = p_pays_soi
        AND jsonb_typeof(data -> 'sanctions' -> p_pays_cible -> 'mesures') = 'array'
   ), false);
-$function$
+$function$;
 
 -- est_appel_serveur() -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.est_appel_serveur()
@@ -153,7 +153,7 @@ AS $function$
            'anon'
          ) = 'service_role'
   END;
-$function$
+$function$;
 
 -- est_mon_personnage(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.est_mon_personnage(p_nom text)
@@ -166,7 +166,7 @@ AS $function$
       OR (p_nom IS NOT NULL AND auth.uid() IS NOT NULL
           AND EXISTS (SELECT 1 FROM public.personnages p
                       WHERE p.name = p_nom AND p.user_id = auth.uid()));
-$function$
+$function$;
 
 -- exiger_acteur(text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.exiger_acteur(p_nom text)
@@ -181,7 +181,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 END;
-$function$
+$function$;
 
 -- exiger_poste(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.exiger_poste(p_poste text)
@@ -210,7 +210,7 @@ BEGIN
   END IF;
   RETURN v_nom;
 END;
-$function$
+$function$;
 
 -- generique_de_objet(jsonb) -> TABLE(generique_id text, variante_id text, effets_effectifs jsonb, motif text, valeur text, priorite integer) | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.generique_de_objet(p_objet jsonb)
@@ -272,7 +272,7 @@ AS $function$
     from tout t
    order by t.priorite desc, t.ordre asc
    limit 1;
-$function$
+$function$;
 
 -- generique_recettes_systeme(text) -> TABLE(recette_id text, label text, pa integer, portions integer, materiaux jsonb) | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.generique_recettes_systeme(p_generique_id text)
@@ -293,7 +293,7 @@ AS $function$
     from toutes t, arbitre a
    where NOT a.oui OR nullif(btrim(t.label_forme), '') is not null
    order by t.id;
-$function$
+$function$;
 
 -- inventaire_abandonner(text,integer,jsonb,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_abandonner(p_acteur text, p_index integer, p_signature jsonb, p_country text, p_city text, p_building text, p_room text)
@@ -330,7 +330,7 @@ BEGIN
   VALUES (v_id, p_country, p_city, p_building, p_room, v_objet::text);
 
   RETURN v_r || jsonb_build_object('objet', v_objet, 'objet_id', v_id);
-END; $function$
+END; $function$;
 
 -- inventaire_ajouter(jsonb,text,integer,text) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_ajouter(p_inv jsonb, p_cle text, p_qte integer, p_desc text)
@@ -350,7 +350,7 @@ BEGIN
   END IF;
   RETURN v_inv || jsonb_build_array(jsonb_build_object(
     'name', p_cle, 'stackable', true, 'stackKey', p_cle, 'qty', p_qte, 'desc', p_desc));
-END; $function$
+END; $function$;
 
 -- inventaire_confisquer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_confisquer(p_acteur text)
@@ -404,7 +404,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'saisis', v_saisis, 'inventory', v_restant,
     'noms', (SELECT string_agg(e->>'name', ', ') FROM jsonb_array_elements(v_saisis) e));
-END; $function$
+END; $function$;
 
 -- inventaire_consommer(text,integer,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_consommer(p_acteur text, p_index integer, p_signature jsonb)
@@ -455,7 +455,7 @@ BEGIN
   END IF;
 
   RETURN v_r;
-END; $function$
+END; $function$;
 
 -- inventaire_detruire(text,integer,jsonb,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_detruire(p_acteur text, p_index integer, p_signature jsonb, p_qte integer DEFAULT 1)
@@ -479,7 +479,7 @@ BEGIN
 
   UPDATE public.personnages_donnees SET inventory = v_r->'inventory' WHERE name = p_acteur;
   RETURN v_r;
-END; $function$
+END; $function$;
 
 -- inventaire_donner(text,text,integer,jsonb,integer,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_donner(p_acteur text, p_destinataire text, p_index integer, p_signature jsonb, p_qte integer DEFAULT 1, p_mutations jsonb DEFAULT NULL::jsonb)
@@ -528,7 +528,7 @@ BEGIN
   VALUES (v_id, p_destinataire, p_acteur, to_jsonb(v_objet::text));
 
   RETURN v_r || jsonb_build_object('objet', v_objet, 'objet_id', v_id);
-END; $function$
+END; $function$;
 
 -- inventaire_localiser(jsonb,integer,jsonb) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_localiser(p_inv jsonb, p_index integer, p_signature jsonb)
@@ -548,7 +548,7 @@ AS $function$
   )
   SELECT coalesce((SELECT pos FROM correspond WHERE pos = p_index),
                   (SELECT min(pos) FROM correspond), -1);
-$function$
+$function$;
 
 -- inventaire_objet_protege(jsonb,jsonb) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_objet_protege(p_quete jsonb, p_item jsonb)
@@ -561,7 +561,7 @@ AS $function$
      AND (p_quete IS NULL
           OR (coalesce(p_quete->>'ambition', '') = 'criminel'
               AND coalesce(p_quete->>'etape', '') <> 'terminee'));
-$function$
+$function$;
 
 -- inventaire_place_restante(jsonb) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb)
@@ -572,7 +572,7 @@ CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb)
 AS $function$
   SELECT greatest(0, 100 - coalesce((SELECT sum(coalesce((e->>'qty')::numeric,
            (e->>'encombrement')::numeric, 1)) FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e), 0))::int;
-$function$
+$function$;
 
 -- inventaire_quantite(jsonb,text) -> numeric | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_quantite(p_inv jsonb, p_cle text)
@@ -584,7 +584,7 @@ AS $function$
   SELECT coalesce((SELECT sum(coalesce((e->>'qty')::numeric,1))
                    FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e
                    WHERE e->>'stackKey' = p_cle), 0);
-$function$
+$function$;
 
 -- inventaire_remettre(text,integer,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_remettre(p_acteur text, p_index integer, p_signature jsonb, p_destinataire text)
@@ -626,7 +626,7 @@ BEGIN
   IF NOT (v_r->>'ok')::boolean THEN RETURN v_r; END IF;
   UPDATE public.personnages_donnees SET inventory = v_r->'inventory' WHERE name = p_acteur;
   RETURN v_r;
-END; $function$
+END; $function$;
 
 -- inventaire_retirer(jsonb,text,integer) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_retirer(p_inv jsonb, p_cle text, p_qte integer)
@@ -640,7 +640,7 @@ AS $function$
                     THEN jsonb_set(e, '{qty}', to_jsonb(coalesce((e->>'qty')::numeric,1) - p_qte))
                     ELSE e END AS e
         FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e) x;
-$function$
+$function$;
 
 -- inventaire_retirer_position(jsonb,integer) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.inventaire_retirer_position(p_inv jsonb, p_pos integer)
@@ -652,7 +652,7 @@ AS $function$
   SELECT coalesce(jsonb_agg(e ORDER BY ord), '[]'::jsonb)
     FROM jsonb_array_elements(coalesce(p_inv, '[]'::jsonb)) WITH ORDINALITY AS t(e, ord)
    WHERE (ord - 1) <> p_pos;
-$function$
+$function$;
 
 -- is_national(text) -> numeric | sql | SECURITY INVOKER | search_path=public
 CREATE OR REPLACE FUNCTION public.is_national(p_pays text)
@@ -670,7 +670,7 @@ AS $function$
                           p_pays || '_ville_a',
                           p_pays || '_ville_b'])
     AND jsonb_typeof(v.data -> 'isn') = 'number';
-$function$
+$function$;
 
 -- jour_de_jeu_pays(text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.jour_de_jeu_pays(p_pays text)
@@ -684,7 +684,7 @@ AS $function$
       - coalesce((SELECT e.jour_un FROM public.rp_epoques e WHERE e.pays = p_pays),
                  DATE '2026-09-13')
     )::int + 1);
-$function$
+$function$;
 
 -- jour_de_jeu_reel() -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.jour_de_jeu_reel()
@@ -694,7 +694,7 @@ CREATE OR REPLACE FUNCTION public.jour_de_jeu_reel()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT public.jour_de_jeu_pays('republic');
-$function$
+$function$;
 
 -- jsonb_cle_economique_presente(jsonb) -> text | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.jsonb_cle_economique_presente(p_val jsonb)
@@ -729,7 +729,7 @@ BEGIN
   END IF;
 
   RETURN NULL;
-END; $function$
+END; $function$;
 
 -- jsonb_cles_hors_liste(jsonb,text[]) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.jsonb_cles_hors_liste(p_obj jsonb, p_autorisees text[])
@@ -740,7 +740,7 @@ AS $function$
   SELECT key FROM jsonb_each(p_obj)
   WHERE jsonb_typeof(p_obj) = 'object' AND NOT (key = ANY (p_autorisees))
   LIMIT 1;
-$function$
+$function$;
 
 -- jsonb_ou_null(text) -> jsonb | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.jsonb_ou_null(p_texte text)
@@ -753,7 +753,7 @@ BEGIN
 EXCEPTION WHEN others THEN
   RETURN NULL;
 END;
-$function$
+$function$;
 
 -- mon_personnage() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mon_personnage()
@@ -765,7 +765,7 @@ AS $function$
   SELECT p.name FROM public.personnages p
   WHERE p.user_id IS NOT NULL AND p.user_id = auth.uid()
   LIMIT 1;
-$function$
+$function$;
 
 -- mon_poste_est(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mon_poste_est(p_poste text)
@@ -779,7 +779,7 @@ AS $function$
      WHERE d.user_id = auth.uid()
        AND (d.poste ->> 'id') = p_poste
   );
-$function$
+$function$;
 
 -- mon_poste_est_dans(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mon_poste_est_dans(p_poste text, p_pays text)
@@ -794,7 +794,7 @@ AS $function$
        AND (d.poste ->> 'id') = p_poste
        AND (p_pays IS NULL OR d.country = p_pays)
   );
-$function$
+$function$;
 
 -- mouvement_titulaire(text,numeric) -> boolean | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mouvement_titulaire(p_ref text, p_delta numeric)
@@ -843,7 +843,7 @@ BEGIN
      SET data = jsonb_set(v_json, '{caisse}', to_jsonb(v_solde + p_delta))::text
    WHERE id = v_id;
   RETURN true;
-END; $function$
+END; $function$;
 
 -- objet_fiche_officielle(jsonb) -> jsonb | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.objet_fiche_officielle(p_objet jsonb)
@@ -899,7 +899,7 @@ AS $function$
       )
       from g)
   end;
-$function$
+$function$;
 
 -- objet_sas_deposer(text,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.objet_sas_deposer(p_motif text, p_destinataire text, p_objet jsonb, p_reference text)
@@ -988,7 +988,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'destinataire', p_destinataire,
                             'motif', p_motif, 'type_butin', v_nouveau_type);
 END;
-$function$
+$function$;
 
 -- personnage_fantome_declarer(text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.personnage_fantome_declarer(p_nom text, p_empreinte jsonb)
@@ -1023,7 +1023,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'enregistre', v_nom);
 END;
-$function$
+$function$;
 
 -- rattacher_personnage(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.rattacher_personnage(p_nom text)
@@ -1081,7 +1081,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'personnage', p_nom, 'deja_rattache', false);
 END;
-$function$
+$function$;
 
 -- ref_patrimoine_existe(text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.ref_patrimoine_existe(p_ref text)
@@ -1101,7 +1101,7 @@ BEGIN
   END IF;
   RETURN EXISTS (SELECT 1 FROM personnages WHERE name = p_ref);
 END;
-$function$
+$function$;
 
 -- restaurer_personnage_sauvegarde(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.restaurer_personnage_sauvegarde(p_nom text, p_poste text DEFAULT NULL::text)
@@ -1185,7 +1185,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'nom', p_nom, 'user_id', v_uid,
     'poste', p_poste, 'poste_resultat', v_res);
 END;
-$function$
+$function$;
 
 -- rp_transition_active(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.rp_transition_active(p_cle text)
@@ -1195,4 +1195,4 @@ CREATE OR REPLACE FUNCTION public.rp_transition_active(p_cle text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT coalesce((SELECT t.actif FROM public.rp_transitions t WHERE t.cle = p_cle), false);
-$function$
+$function$;

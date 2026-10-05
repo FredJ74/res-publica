@@ -144,7 +144,7 @@ BEGIN
     'mon_inventaire', v_inv,
     'soldats', v_soldats,
     'effectif', jsonb_array_length(v_soldats));
-END; $function$
+END; $function$;
 
 -- militaire_terminal_transferer(text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militaire_terminal_transferer(p_requete text, p_matricule text, p_signature text, p_qte integer, p_sens text)
@@ -265,7 +265,7 @@ BEGIN
   INSERT INTO public.militaire_terminal_requetes (requete, acteur, action, resultat)
   VALUES (p_requete, g.o_moi, 'transfert', v_res);
   RETURN v_res;
-END; $function$
+END; $function$;
 
 -- militaire_trousse_retirer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_trousse_retirer()
@@ -329,7 +329,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'fabriquee', true,
     'restant', jsonb_build_object('textile', v_tex - 1, 'medicaments', v_med - 1, 'desinfectant', v_des - 1));
 END;
-$function$
+$function$;
 
 -- militaire_trousse_utiliser(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_trousse_utiliser(p_cible text)
@@ -389,7 +389,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'soignant', v_moi, 'cible', v_cible,
     'secourisme', v_sec, 'gain_theorique', v_gain,
     'pa_avant', v_pa_avant, 'pa_apres', v_pa_apres, 'gain_reel', v_pa_apres - v_pa_avant);
-END; $function$
+END; $function$;
 
 -- militaire_unites_objet(jsonb) -> integer | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.militaire_unites_objet(p_objet jsonb)
@@ -398,7 +398,7 @@ CREATE OR REPLACE FUNCTION public.militaire_unites_objet(p_objet jsonb)
  IMMUTABLE
 AS $function$
   SELECT greatest(1, floor(coalesce((p_objet->>'qty')::numeric, 1))::integer);
-$function$
+$function$;
 
 -- mutinerie_camp_de(text) -> text | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mutinerie_camp_de(p_nom text)
@@ -411,7 +411,7 @@ AS $function$
     JOIN public.mutineries m ON m.camp = mm.camp
    WHERE mm.personnage = p_nom AND mm.statut = 'actif' AND m.statut = 'active'
    LIMIT 1;
-$function$
+$function$;
 
 -- mutinerie_camps_presents(text,text,text,text) -> text[] | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mutinerie_camps_presents(p_pays text, p_ville text, p_bat text, p_piece text)
@@ -439,7 +439,7 @@ AS $function$
        AND pd.current_building = p_bat AND pd.current_room = p_piece
        AND coalesce(pd.pa, 0) > 0
   ) t;
-$function$
+$function$;
 
 -- mutinerie_est_camp(text) -> boolean | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mutinerie_est_camp(p_camp text)
@@ -449,7 +449,7 @@ CREATE OR REPLACE FUNCTION public.mutinerie_est_camp(p_camp text)
  SET search_path TO 'public'
 AS $function$
   SELECT EXISTS (SELECT 1 FROM public.mutineries WHERE camp = p_camp);
-$function$
+$function$;
 
 -- mutinerie_pays_du_camp(text) -> text | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mutinerie_pays_du_camp(p_camp text)
@@ -459,7 +459,7 @@ CREATE OR REPLACE FUNCTION public.mutinerie_pays_du_camp(p_camp text)
  SET search_path TO 'public'
 AS $function$
   SELECT coalesce((SELECT m.pays FROM public.mutineries m WHERE m.camp = p_camp), p_camp);
-$function$
+$function$;
 
 -- mutinerie_social_national(text) -> numeric | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.mutinerie_social_national(p_pays text)
@@ -472,4 +472,4 @@ AS $function$
     FROM public.indices_villes v
    WHERE v.id = ANY (ARRAY[p_pays || '_capitale', p_pays || '_ville_a', p_pays || '_ville_b'])
      AND jsonb_typeof(v.data -> 'social') = 'number';
-$function$
+$function$;

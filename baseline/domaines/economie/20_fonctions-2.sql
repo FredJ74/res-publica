@@ -68,7 +68,7 @@ BEGIN
     'gardiennage', v_gard, 'jours_factures', COALESCE(v_factures, 0), 'caisse', v_caisse,
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = v_moi),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = v_moi));
-END; $function$
+END; $function$;
 
 -- fret_unitaire_international() -> numeric | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fret_unitaire_international()
@@ -76,7 +76,7 @@ CREATE OR REPLACE FUNCTION public.fret_unitaire_international()
  LANGUAGE sql
  IMMUTABLE
  SET search_path TO 'public', 'pg_temp'
-AS $function$ SELECT 0.40::numeric; $function$
+AS $function$ SELECT 0.40::numeric; $function$;
 
 -- local_vocation_commerciale(text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.local_vocation_commerciale(p_building_id text)
@@ -90,7 +90,7 @@ AS $function$
     when 'centre-affaires'   then 'services'
     else null
   end;
-$function$
+$function$;
 
 -- matiere_circuits_disponibles(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.matiere_circuits_disponibles(p_matiere text)
@@ -136,7 +136,7 @@ AS $function$
           FROM public.assemblee_categories_interdiction c
          WHERE p_matiere = ANY (c.matieres)), '[]'::jsonb)
     ) END;
-$function$
+$function$;
 
 -- matiere_refus_circuit_legal(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.matiere_refus_circuit_legal(p_acteur text, p_matiere text, p_mode text)
@@ -176,7 +176,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', false, 'raison', 'matiere_interdite',
                             'matiere', p_matiere, 'mode', v_mode, 'loi', v_loi);
-END $function$
+END $function$;
 
 -- matiere_refus_circuit_legal_lot(text,jsonb,text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.matiere_refus_circuit_legal_lot(p_acteur text, p_panier jsonb, p_mode text)
@@ -192,7 +192,7 @@ AS $function$
    WHERE public.matiere_refus_circuit_legal(p_acteur, k.cle, p_mode) IS NOT NULL
    ORDER BY k.cle
    LIMIT 1;
-$function$
+$function$;
 
 -- ordres_couts_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ordres_couts_empreinte_reelle()
@@ -204,7 +204,7 @@ AS $function$
   SELECT left(md5(string_agg(fn || '|' || pa || '|' || cost, E'\n'
                              ORDER BY fn COLLATE "C", pa, cost)), 16)
   FROM public.ordres_couts;
-$function$
+$function$;
 
 -- payer_ordre(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)
@@ -284,7 +284,7 @@ BEGIN
     'arg', coalesce(v_arg,0) - coalesce(p_cost,0),
     'solde_national', v_solde - v_pris_national,
     'pa_preleves', coalesce(p_pa,0), 'montant_preleve', coalesce(p_cost,0));
-END; $function$
+END; $function$;
 
 -- prix_ressource_selon_stock(text,numeric) -> numeric | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.prix_ressource_selon_stock(p_cle text, p_en_stock numeric)
@@ -299,7 +299,7 @@ BEGIN
   IF v_base IS NULL THEN RETURN NULL; END IF;   -- jamais de tarif invente
   v_taux := greatest(0, least(1, coalesce(p_en_stock,0) / nullif(v_plafond,0)));
   RETURN round(v_base * (1 + (0.5 - v_taux) * 0.8), 2);
-END; $function$
+END; $function$;
 
 -- produire_en_usine(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.produire_en_usine(p_acteur text, p_pays text, p_produit text)
@@ -369,7 +369,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'produits', v_produits, 'salaire', v_salaire,
     'arg', v_arg, 'liquide', v_liquide, 'caisse_usine', v_caisse,
     'stock_produit', v_stock_prod + v_produits, 'stock_matiere', v_stock_mat - 5);
-END; $function$
+END; $function$;
 
 -- recevoir_soin(text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.recevoir_soin(p_acteur text, p_pays text, p_ville text, p_batiment text, p_type text, p_cout integer)
@@ -462,7 +462,7 @@ BEGIN
     'pa', least(30, v_pa + v_gain_pa), 'liquide', v_liquide - v_pris_liquide,
     'arg', v_arg - coalesce(p_cout,0), 'solde_national', v_solde - v_pris_national,
     'gain_hp', v_gain_hp, 'gain_pa', v_gain_pa, 'taxe', v_taxe);
-END; $function$
+END; $function$;
 
 -- refectoire_repas(text,text,integer,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.refectoire_repas(p_pays text, p_joueur text, p_jour integer, p_pa_max integer DEFAULT 30, p_gain integer DEFAULT 2)
@@ -537,7 +537,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'pa', v_pa, 'rations', v_rations,
                             'fabrique', v_fab, 'proteine', v_prot,
                             'pays', v_pays, 'jourCle', v_jour);
-END; $function$
+END; $function$;
 
 -- repondre_offre(text,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.repondre_offre(p_offre_id text, p_acteur text, p_acceptee boolean)
@@ -563,7 +563,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok',false,'raison','pas_partie_a_l_offre');
 END;
-$function$
+$function$;
 
 -- ressources_economie_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ressources_economie_empreinte_reelle()
@@ -579,7 +579,7 @@ AS $function$
           || '|' || coalesce(source, ''),
       E'\n' ORDER BY cle COLLATE "C")), 16)
   FROM public.ressources_economie;
-$function$
+$function$;
 
 -- ressources_economie_nombre(numeric) -> text | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ressources_economie_nombre(n numeric)
@@ -591,7 +591,7 @@ AS $function$
   SELECT CASE WHEN n IS NULL THEN ''
               WHEN n = trunc(n) THEN trunc(n)::bigint::text
               ELSE n::text END;
-$function$
+$function$;
 
 -- restituer_reliquats_chantier(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.restituer_reliquats_chantier(p_beneficiaire text, p_terrain_id text)
@@ -715,7 +715,7 @@ BEGIN
                             'montant', v_montant, 'materiaux', v_remis,
                             'beneficiaire', p_beneficiaire);
 END;
-$function$
+$function$;
 
 -- vendre_fonds_commerce(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.vendre_fonds_commerce(p_vendeur text, p_acheteur text, p_fonds_id text, p_prix integer)
@@ -774,7 +774,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'fondsId', p_fonds_id, 'prix', v_prix, 'caisseExtraite', v_caisse, 'acheteur', p_acheteur, 'bailTransfere', COALESCE(v_bail_id, ''));
 END;
-$function$
+$function$;
 
 -- vendre_materiaux_chantier(text,text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(p_vendeur text, p_country text, p_building_id text, p_matiere text, p_quantite integer, p_prix integer)
@@ -915,7 +915,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'quantite', v_qte, 'montant', v_montant,
                             'prixUnitaire', p_prix, 'matiere', p_matiere);
 END;
-$function$
+$function$;
 
 -- vendre_matiere_a_usine(text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.vendre_matiere_a_usine(p_acteur text, p_pays text, p_ville text, p_batiment text, p_matiere text, p_qte integer)
@@ -1015,7 +1015,7 @@ BEGIN
     'arg', v_arg + v_total, 'liquide', v_liquide + v_total,
     'inventory', public.inventaire_retirer(v_inv, p_matiere, p_qte),
     'caisse_usine', v_caisse - v_total);
-END; $function$
+END; $function$;
 
 -- vendre_ressource_medicale(text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.vendre_ressource_medicale(p_acteur text, p_pays text, p_ville text, p_batiment text, p_ressource text, p_qte integer)
@@ -1111,7 +1111,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'total', v_total, 'prixUnitaire', v_prix, 'qte', p_qte,
     'arg', v_arg + v_total, 'liquide', v_liquide + v_total,
     'inventory', public.inventaire_retirer(v_inv, p_ressource, p_qte));
-END; $function$
+END; $function$;
 
 -- ventes_snapshots_append_only() -> trigger | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.ventes_snapshots_append_only()
@@ -1122,4 +1122,4 @@ BEGIN
   RAISE EXCEPTION 'preuve_immuable: une vente enregistree ne peut etre ni modifiee ni supprimee'
     USING ERRCODE = '42501';
 END;
-$function$
+$function$;

@@ -191,7 +191,15 @@ def phase_fonctions(objets, man, exp):
                      (" | " + ", ".join(f["configuration"])) if f.get("configuration") else ""))
         # Un bloc = une fonction entiere, commentaire inclus. C'est ce qui rend
         # la decoupe d'un gros fichier inoffensive.
-        out.append(entete + "\n" + f["definition"].rstrip())
+        #
+        # LE POINT-VIRGULE FINAL EST AJOUTE ICI, ET IL N'EST PAS DECORATIF.
+        # pg_get_functiondef() ne termine PAS par un point-virgule : aucune des
+        # 641 definitions de ce schema n'en porte. Sans lui, deux definitions
+        # consecutives se collent et PostgreSQL lit « $function$ CREATE OR
+        # REPLACE FUNCTION » comme un seul ordre malforme -- « syntax error at
+        # or near CREATE ». Le fichier serait fidele et inapplicable. Defaut
+        # trouve au chantier 2F, par l'analyseur de PostgreSQL lui-meme.
+        out.append(entete + "\n" + f["definition"].rstrip() + ";")
         man["fonctions"].append({"signature": f["signature"], "empreinte": f["empreinte"],
                                  "security_definer": f["security_definer"]})
     return out

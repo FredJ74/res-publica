@@ -97,7 +97,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'topic_id', v_topic, 'forum', v_forum,
                             'poste', p_poste, 'city', v_ville, 'pa', v_paiement->'pa');
-END; $function$
+END; $function$;
 
 -- candidatures_cloture() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.candidatures_cloture()
@@ -122,7 +122,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cycle_electoral_aligne_dimanche(p_d jsonb, p_maintenant timestamp with time zone)
@@ -161,7 +161,7 @@ BEGIN
   RETURN p_d || jsonb_build_object('dateDebutCampagne', v_cloture, 'dateVote', v_vote, 'dateResultats', v_res,
                                    'realigneDimancheTs', v_ms);
 END;
-$function$
+$function$;
 
 -- cycles_electoraux_dimanche() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cycles_electoraux_dimanche()
@@ -179,7 +179,7 @@ BEGIN
   IF v_n IS DISTINCT FROM v_d THEN NEW.data := v_n::text; END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- elections_voix_pnj_enregistrer(text,text,text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.elections_voix_pnj_enregistrer(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_pnj_nom text, p_canal text, p_cle text DEFAULT NULL::text)
@@ -257,7 +257,7 @@ BEGIN
   RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object(
     'ok', true, 'effet', 1, 'tour', v_tour, 'cle', v_cle, 'canal', p_canal));
 END;
-$function$
+$function$;
 
 -- indice_ville_ajuster_interne(text,text,text,integer) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.indice_ville_ajuster_interne(p_pays text, p_ville text, p_cle text, p_delta integer)
@@ -278,7 +278,7 @@ BEGIN
          updated_at = now()
    WHERE id = v_id;
 END;
-$function$
+$function$;
 
 -- militant_recruter(text,text,text,text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.militant_recruter(p_nom text, p_organisation_id text DEFAULT NULL::text, p_ville text DEFAULT NULL::text, p_batiment text DEFAULT NULL::text, p_piece text DEFAULT NULL::text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT NULL::integer, p_cost integer DEFAULT NULL::integer)
@@ -356,7 +356,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'pnj_id', v_id, 'nom', v_nom, 'metier', 'militant',
     'caracteristiques', public.pnj_metier_profil('militant'),
     'paiement', v_pay, 'militants', v_deja + 1, 'plafond', c_plafond);
-END; $function$
+END; $function$;
 
 -- poste_accepter_nomination(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_accepter_nomination(p_id text)
@@ -384,7 +384,7 @@ BEGIN
   UPDATE public.nominations_en_attente SET traitee = true WHERE id = p_id;
   RETURN public.poste_attribuer_interne(v_pays, v_n.poste_id, v_n.city, v_nom, 'nomination');
 END;
-$function$
+$function$;
 
 -- poste_attribuer_candidature(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_attribuer_candidature(p_poste text, p_city text, p_candidat text)
@@ -412,7 +412,7 @@ BEGIN
 
   RETURN public.poste_attribuer_interne(v_pays, p_poste, p_city, p_candidat, 'candidature_acceptee');
 END;
-$function$
+$function$;
 
 -- poste_attribuer_interne(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_attribuer_interne(p_pays text, p_poste text, p_city text, p_titulaire text, p_source text)
@@ -457,7 +457,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'poste', p_poste, 'city', p_city,
                             'titulaire', p_titulaire, 'predecesseur', v_ancien);
 END;
-$function$
+$function$;
 
 -- poste_autorite_de(text,text) -> TABLE(nom text, pays text, autorite text, scope text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_autorite_de(p_poste text, p_city text)
@@ -488,7 +488,7 @@ BEGIN
 
   RETURN QUERY SELECT v_nom, v_pays, v_regle.nomme_par, v_regle.scope;
 END;
-$function$
+$function$;
 
 -- poste_est_atteste(text,jsonb,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_est_atteste(p_nom text, p_poste jsonb, p_pays text)
@@ -542,7 +542,7 @@ BEGIN
                   WHERE a.titulaire = p_nom AND a.poste_id = v_id
                     AND a.country = p_pays AND a.city IS NOT DISTINCT FROM v_city);
 END;
-$function$
+$function$;
 
 -- poste_nommer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_nommer(p_poste text, p_city text, p_destinataire text)
@@ -598,7 +598,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'decision', 'proposition_envoyee',
                             'id', v_id, 'destinataire', p_destinataire);
 END;
-$function$
+$function$;
 
 -- poste_postuler(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_postuler(p_poste text, p_city text)
@@ -642,7 +642,7 @@ BEGIN
 
   RETURN public.poste_attribuer_interne(v_pays, p_poste, p_city, v_nom, 'candidature_autorite_pnj');
 END;
-$function$
+$function$;
 
 -- poste_quitter() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_quitter()
@@ -661,7 +661,7 @@ BEGIN
   UPDATE public.personnages_donnees SET poste = NULL WHERE name = v_nom;
   RETURN jsonb_build_object('ok', true, 'decision', 'demission');
 END;
-$function$
+$function$;
 
 -- poste_revoquer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_revoquer(p_poste text, p_city text)
@@ -693,4 +693,4 @@ BEGIN
    WHERE name = v_titulaire AND poste ->> 'id' = p_poste;
   RETURN jsonb_build_object('ok', true, 'decision', 'revoque', 'ancien_titulaire', v_titulaire);
 END;
-$function$
+$function$;

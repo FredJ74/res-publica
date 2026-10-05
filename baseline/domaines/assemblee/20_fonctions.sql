@@ -42,7 +42,7 @@ BEGIN
     'loi', v_res -> 'loi', 'acheteur', v_res -> 'acheteur',
     'dis', v_res -> 'acheteur' -> 'dis'));
 END;
-$function$
+$function$;
 
 -- assemblee_amender(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_amender(p_nom text, p_id text, p_texte text, p_requete text)
@@ -94,7 +94,7 @@ BEGIN
 
   RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object('ok', true, 'proposition', to_jsonb(v_row)));
 END;
-$function$
+$function$;
 
 -- assemblee_catalogue_legislatif() -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_catalogue_legislatif()
@@ -133,7 +133,7 @@ AS $function$
     -- fermee, la meme que celle qu'assemblee_portee_valider accepte.
     'portee_dimensions', jsonb_build_array('transformation_stock_interdite')
   );
-$function$
+$function$;
 
 -- assemblee_cle_convocation(jsonb) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.assemblee_cle_convocation(e jsonb)
@@ -146,7 +146,7 @@ AS $function$
     'legacy|' || COALESCE(e->>'motif', '') || '|' || COALESCE(e->>'jourEmission', '')
       || '|' || COALESCE(e->>'heureEmission', '') || '|' || COALESCE(e->>'limiteTs', '')
   );
-$function$
+$function$;
 
 -- assemblee_cloturer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_cloturer(p_id text)
@@ -285,7 +285,7 @@ BEGIN
     'exige_application', public.assemblee_exige_application(v_row.type)
   );
 END;
-$function$
+$function$;
 
 -- assemblee_cloturer_echues(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_cloturer_echues(p_country text DEFAULT 'republic'::text)
@@ -312,7 +312,7 @@ BEGIN
   END LOOP;
   RETURN v_res;
 END;
-$function$
+$function$;
 
 -- assemblee_compter_unites(jsonb,text) -> numeric | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_compter_unites(p_inventaire jsonb, p_stack_key text)
@@ -324,7 +324,7 @@ AS $function$
   SELECT COALESCE(sum((v ->> 'qty')::numeric), 0)
     FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p_inventaire) = 'array' THEN p_inventaire ELSE '[]'::jsonb END) v
    WHERE v ->> 'stackKey' = p_stack_key AND jsonb_typeof(v -> 'qty') = 'number';
-$function$
+$function$;
 
 -- assemblee_consulter_lobbyiste(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_consulter_lobbyiste(p_nom text, p_requete text)
@@ -365,7 +365,7 @@ BEGIN
 
   RETURN public.assemblee_requete_clore(p_requete, v_debit || jsonb_build_object('ok', true, 'bonus_lobbyiste', c_bonus));
 END;
-$function$
+$function$;
 
 -- assemblee_crediter_caisse(text,integer) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_crediter_caisse(p_key text, p_montant integer)
@@ -400,7 +400,7 @@ BEGIN
 
   RETURN COALESCE(v_solde, p_montant);
 END;
-$function$
+$function$;
 
 -- assemblee_crediter_joueur(text,integer) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_crediter_joueur(p_nom text, p_montant integer)
@@ -419,7 +419,7 @@ BEGIN
   RETURNING liquide, arg INTO v_liquide, v_arg;
   RETURN jsonb_build_object('liquide', v_liquide, 'arg', v_arg);
 END;
-$function$
+$function$;
 
 -- assemblee_debiter_caisse_plafonne(text,integer) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_debiter_caisse_plafonne(p_key text, p_montant integer)
@@ -458,7 +458,7 @@ BEGIN
 
   RETURN v_verse;
 END;
-$function$
+$function$;
 
 -- assemblee_debiter_joueur(text,integer,integer) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_debiter_joueur(p_nom text, p_pa integer, p_fr integer)
@@ -520,7 +520,7 @@ BEGIN
     'pa_preleves', p_pa, 'montant_preleve', p_fr,
     'preleve_liquide', v_pl, 'preleve_national', v_pn);
 END;
-$function$
+$function$;
 
 -- assemblee_deposer(text,text,text,text,text,text,text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_deposer(p_nom text, p_titre text, p_type text, p_texte text, p_categorie text, p_loi_cible_id text, p_requete text)
@@ -531,7 +531,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_deposer(p_nom text, p_titre text, p_
 AS $function$
   SELECT public.assemblee_deposer_projet(
     p_requete, p_nom, p_titre, p_type, p_texte, p_categorie, p_loi_cible_id, NULL);
-$function$
+$function$;
 
 -- assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_deposer_projet(p_requete text, p_nom text, p_titre text, p_type text, p_texte text, p_categorie text, p_loi_cible_id text, p_portee jsonb)
@@ -640,7 +640,7 @@ BEGIN
   RETURN public.assemblee_requete_clore(p_requete,
     v_debit || jsonb_build_object('ok', true, 'proposition', to_jsonb(v_row)));
 END;
-$function$
+$function$;
 
 -- assemblee_detecter_partie(text,text,jsonb,text,integer,boolean) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_detecter_partie(p_nom text, p_role text, p_loi jsonb, p_libelle text, p_quantite integer, p_baisse_dis boolean)
@@ -736,7 +736,7 @@ BEGIN
   RETURN jsonb_build_object('role', p_role, 'detecte', v_detecte, 'taux', v_taux, 'jet', v_jet,
     'convocation_creee', v_conv IS NOT NULL, 'trace', v_trace, 'convocation', v_conv, 'dis', v_dis);
 END;
-$function$
+$function$;
 
 -- assemblee_echeance_application(timestamp with time zone) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_echeance_application(p_adoptee_ts timestamp with time zone)
@@ -746,7 +746,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_echeance_application(p_adoptee_ts ti
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT p_adoptee_ts + interval '36 hours';
-$function$
+$function$;
 
 -- assemblee_echeance_palier(timestamp with time zone,integer) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_echeance_palier(p_adoptee_ts timestamp with time zone, p_palier integer)
@@ -756,7 +756,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_echeance_palier(p_adoptee_ts timesta
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT p_adoptee_ts + interval '36 hours' + ((p_palier - 1) * interval '24 hours');
-$function$
+$function$;
 
 -- assemblee_exige_application(text) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_exige_application(p_type text)
@@ -766,7 +766,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_exige_application(p_type text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT coalesce(p_type, '') IN ('mecanique', 'abrogation');
-$function$
+$function$;
 
 -- assemblee_fenetre_ouverture(timestamp with time zone) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_fenetre_ouverture(p_instant timestamp with time zone)
@@ -778,7 +778,7 @@ AS $function$
   SELECT (extract(isodow FROM l) = 3 AND extract(hour FROM l) >= 22)
       OR  extract(isodow FROM l) = 4
     FROM (SELECT p_instant AT TIME ZONE 'Europe/Paris' AS l) x;
-$function$
+$function$;
 
 -- assemblee_fret_vente_legale() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_fret_vente_legale()
@@ -804,7 +804,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- assemblee_gouvernement_actuel(text) -> TABLE(nom text, poste_id text) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_gouvernement_actuel(p_country text)
@@ -819,7 +819,7 @@ AS $function$
      AND pd.poste IS NOT NULL
      AND (pd.poste ->> 'id' IN ('president', 'pm') OR pd.poste ->> 'id' LIKE 'min\_%')
    ORDER BY pd.poste ->> 'id', pd.name;
-$function$
+$function$;
 
 -- assemblee_lier_topic(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_lier_topic(p_nom text, p_id text, p_topic_id text)
@@ -855,7 +855,7 @@ BEGIN
   UPDATE public.assemblee_propositions SET forum_topic_id = p_topic_id WHERE id = p_id;
   RETURN jsonb_build_object('ok', true, 'forum_topic_id', p_topic_id);
 END;
-$function$
+$function$;
 
 -- assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_loi_en_vigueur(p_country text, p_objet jsonb, p_instant timestamp with time zone)
@@ -879,7 +879,7 @@ AS $function$
      AND public.assemblee_objet_vise(p.categorie, p_objet)
    ORDER BY p.appliquee_ts, p.adoptee_ts, p.id
    LIMIT 1;
-$function$
+$function$;
 
 -- assemblee_marchander(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_marchander(p_nom text, p_id text, p_siege_id text, p_intention text, p_requete text)
@@ -969,7 +969,7 @@ BEGIN
     'ok', true, 'reussi', v_reussi, 'applique', v_applique,
     'taux', v_taux, 'jet', v_jet, 'bonus_applique', v_bonus, 'bonus_lobbyiste', 0));
 END;
-$function$
+$function$;
 
 -- assemblee_marquer_convocations_echues(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_marquer_convocations_echues(p_country text DEFAULT 'republic'::text)
@@ -1037,7 +1037,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'marques', v_noms);
 END;
-$function$
+$function$;
 
 -- assemblee_mettre_en_application(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_mettre_en_application(p_requete text, p_acteur text, p_loi_id text)
@@ -1120,7 +1120,7 @@ BEGIN
     'cible_eteinte', CASE WHEN v_cible.id IS NULL THEN NULL
                           ELSE jsonb_build_object('id', v_cible.id, 'titre', v_cible.titre) END));
 END;
-$function$
+$function$;
 
 -- assemblee_neutraliser_depute(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_neutraliser_depute(p_nom text, p_siege_id text, p_mode text, p_requete text)
@@ -1214,7 +1214,7 @@ BEGIN
     'ok', true, 'reussi', v_reussi, 'endormi', v_reussi, 'mode', p_mode,
     'taux', v_taux, 'jet', v_jet, 'dis', v_dis));
 END;
-$function$
+$function$;
 
 -- assemblee_objet_vise(text,jsonb) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_objet_vise(p_categorie text, p_objet jsonb)
@@ -1231,7 +1231,7 @@ AS $function$
                 AND (cardinality(c.sous_types) = 0
                      OR (p_objet ->> 'sousType' IS NOT NULL AND (p_objet ->> 'sousType') = ANY (c.sous_types)))))
   );
-$function$
+$function$;
 
 -- assemblee_occupation_sieges(text) -> TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean) | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.assemblee_occupation_sieges(p_country text DEFAULT 'republic'::text)
@@ -1269,7 +1269,7 @@ AS $function$
     ON d.city = s.city AND d.rang = s.rang
   WHERE s.country = p_country
   ORDER BY s.city, s.rang;
-$function$
+$function$;
 
 -- assemblee_ouvrir_session(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_ouvrir_session(p_id text)
@@ -1325,7 +1325,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'proposition', to_jsonb(v_row), 'session_num', v_num);
 END;
-$function$
+$function$;
 
 -- assemblee_ouvrir_sessions_eligibles(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_ouvrir_sessions_eligibles(p_country text DEFAULT 'republic'::text)
@@ -1355,7 +1355,7 @@ BEGIN
   END LOOP;
   RETURN v_res;
 END;
-$function$
+$function$;
 
 -- assemblee_palier_atteint(timestamp with time zone,timestamp with time zone) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_palier_atteint(p_adoptee_ts timestamp with time zone, p_instant timestamp with time zone)
@@ -1371,7 +1371,7 @@ AS $function$
       extract(epoch FROM (p_instant - (p_adoptee_ts + interval '36 hours'))) / 86400
     )::integer
   END;
-$function$
+$function$;
 
 -- assemblee_peut_deposer(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_peut_deposer(p_nom text, p_country text DEFAULT 'republic'::text)
@@ -1393,7 +1393,7 @@ BEGIN
       )
   );
 END;
-$function$
+$function$;
 
 -- assemblee_pop_du_palier(integer) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_pop_du_palier(p_palier integer)
@@ -1403,7 +1403,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_pop_du_palier(p_palier integer)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT CASE WHEN p_palier <= 1 THEN -20 ELSE -10 END;
-$function$
+$function$;
 
 -- assemblee_portee_valider(jsonb) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_portee_valider(p_portee jsonb)
@@ -1439,7 +1439,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'portee', jsonb_build_object(
     'transformation_stock_interdite',
     coalesce((p_portee ->> 'transformation_stock_interdite')::boolean, false)));
-END $function$
+END $function$;
 
 -- assemblee_prochaine_cloture(timestamp with time zone) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_prochaine_cloture(p_depuis timestamp with time zone)
@@ -1459,7 +1459,7 @@ AS $function$
   )
   SELECT (CASE WHEN cand > t THEN cand ELSE cand + interval '7 days' END) AT TIME ZONE 'Europe/Paris'
     FROM c;
-$function$
+$function$;
 
 -- assemblee_proposition_immuable() -> trigger | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.assemblee_proposition_immuable()
@@ -1482,7 +1482,7 @@ BEGIN
   NEW.updated_at := now();
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- assemblee_registre_execution(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_registre_execution(p_country text DEFAULT 'republic'::text)
@@ -1522,7 +1522,7 @@ AS $function$
          AND p.statut = 'adoptee'
          AND public.assemblee_exige_application(p.type)
     ) s;
-$function$
+$function$;
 
 -- assemblee_requete_clore(text,jsonb) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_requete_clore(p_requete text, p_resultat jsonb)
@@ -1534,7 +1534,7 @@ BEGIN
   UPDATE public.assemblee_requetes SET resultat = p_resultat WHERE id = p_requete;
   RETURN p_resultat;
 END;
-$function$
+$function$;
 
 -- assemblee_requete_ouvrir(text,text,text) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_requete_ouvrir(p_requete text, p_nom text, p_action text)
@@ -1564,7 +1564,7 @@ BEGIN
   RETURN COALESCE(v_row.resultat, jsonb_build_object('ok', false, 'raison', 'requete_en_cours'))
          || jsonb_build_object('rejeu', true);
 END;
-$function$
+$function$;
 
 -- assemblee_retirer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_retirer(p_id text, p_auteur text)
@@ -1599,7 +1599,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'proposition', to_jsonb(v_row));
 END;
-$function$
+$function$;
 
 -- assemblee_retirer_une_unite(jsonb,text) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_retirer_une_unite(p_inventaire jsonb, p_stack_key text)
@@ -1625,7 +1625,7 @@ AS $function$
              FILTER (WHERE NOT COALESCE(e.o = cible.o AND (e.v ->> 'qty')::numeric - 1 <= 0, false)),
            '[]'::jsonb)
     FROM e CROSS JOIN cible;
-$function$
+$function$;
 
 -- assemblee_reveil_minuit(text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_reveil_minuit(p_country text DEFAULT 'republic'::text)
@@ -1648,7 +1648,7 @@ BEGIN
   GET DIAGNOSTICS v_n = ROW_COUNT;
   RETURN v_n;
 END;
-$function$
+$function$;
 
 -- assemblee_reveiller_depute(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_reveiller_depute(p_nom text, p_siege_id text, p_requete text)
@@ -1714,7 +1714,7 @@ BEGIN
     'ok', true, 'reveille', true,
     'sels_restants', public.assemblee_compter_unites(v_inv, c_sels)));
 END;
-$function$
+$function$;
 
 -- assemblee_sanctionner_lois_non_appliquees(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_sanctionner_lois_non_appliquees(p_country text DEFAULT 'republic'::text)
@@ -1792,7 +1792,7 @@ BEGIN
   END LOOP;
 
   RETURN jsonb_build_object('ok', true, 'paliers_appliques', v_faits, 'detail', v_res);
-END $function$
+END $function$;
 
 -- assemblee_stat_base(jsonb,text) -> numeric | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_stat_base(p_stats jsonb, p_cle text)
@@ -1802,7 +1802,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_stat_base(p_stats jsonb, p_cle text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT CASE WHEN jsonb_typeof(p_stats -> p_cle) = 'number' THEN (p_stats ->> p_cle)::numeric ELSE 8 END;
-$function$
+$function$;
 
 -- assemblee_taux_marchandage(jsonb,boolean) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_taux_marchandage(p_stats jsonb, p_bonus_lobbyiste boolean)
@@ -1814,7 +1814,7 @@ AS $function$
   SELECT GREATEST(0, LEAST(66, round(50 + (public.assemblee_stat_base(p_stats, 'CHA')
                                            + public.assemblee_stat_base(p_stats, 'ENT')) / 2)::integer))
          + CASE WHEN p_bonus_lobbyiste THEN 20 ELSE 0 END;
-$function$
+$function$;
 
 -- assemblee_taux_neutralisation(text,jsonb,text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_taux_neutralisation(p_mode text, p_stats jsonb, p_career text)
@@ -1830,7 +1830,7 @@ AS $function$
     FROM (VALUES ('mains', 'FOR', 15, 65), ('arme', 'DUP', 25, 75), ('feu', 'PER', 35, 85))
          AS m(mode, stat, base, cap)
    WHERE m.mode = p_mode;
-$function$
+$function$;
 
 -- assemblee_tracer_vente_interdite(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_tracer_vente_interdite(p_commerce_id text, p_categorie text, p_libelle text, p_country text DEFAULT 'republic'::text)
@@ -1867,7 +1867,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'detecte', v_det -> 'detecte',
     'convocation_creee', v_det -> 'convocation_creee', 'loi', v_loi ->> 'titre');
 END;
-$function$
+$function$;
 
 -- assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_transaction_interdite_interne(p_country text, p_acheteur text, p_vendeur text, p_objet jsonb, p_libelle text, p_quantite integer DEFAULT 1)
@@ -1901,7 +1901,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'interdit', true, 'loi', v_loi, 'acheteur', v_a, 'vendeur', v_v);
 END;
-$function$
+$function$;
 
 -- assemblee_verifier_vente(jsonb,text) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_verifier_vente(p_objets jsonb, p_country text DEFAULT 'republic'::text)
@@ -1924,7 +1924,7 @@ AS $function$
            'interdits', COALESCE((SELECT jsonb_agg(jsonb_build_object('index', idx, 'loi', loi) ORDER BY idx)
                                     FROM o WHERE loi IS NOT NULL), '[]'::jsonb))
   END;
-$function$
+$function$;
 
 -- assemblee_verser_indemnite(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_verser_indemnite(p_nom text)
@@ -1970,7 +1970,7 @@ BEGIN
 
   RETURN v_credit || jsonb_build_object('ok', true, 'montant', v_verse, 'vise', c_montant);
 END;
-$function$
+$function$;
 
 -- assemblee_voter(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_voter(p_id text, p_votant text, p_choix text)
@@ -2022,7 +2022,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'choix', p_choix);
 END;
-$function$
+$function$;
 
 -- depute_presence(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.depute_presence(p_country text DEFAULT 'republic'::text)
@@ -2047,4 +2047,4 @@ AS $function$
     'presents', (SELECT count(*) FROM public.assemblee_occupation_sieges(p_country) o WHERE o.est_pnj),
     'absents',  (SELECT count(*) FROM public.assemblee_occupation_sieges(p_country) o
                   WHERE NOT o.est_pnj));
-$function$
+$function$;

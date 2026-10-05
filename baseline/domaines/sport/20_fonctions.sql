@@ -30,7 +30,7 @@ AS $function$
          (ARRAY['janvier','février','mars','avril','mai','juin','juillet','août',
                 'septembre','octobre','novembre','décembre'])[extract(month FROM jour)::int]
     FROM c;
-$function$
+$function$;
 
 -- championnat_echeance(text) -> timestamp with time zone | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_echeance(p_semaine_precedente text)
@@ -47,7 +47,7 @@ BEGIN
     v_lundi := to_date(replace(p_semaine_precedente, 'W', ''), 'IYYY-IW') + 7;
   END IF;
   RETURN (v_lundi + interval '6 days 20 hours') AT TIME ZONE 'Europe/Paris';
-END; $function$
+END; $function$;
 
 -- championnat_matchs(jsonb) -> TABLE(journee integer, home text, away text, joue boolean, buts_home integer, buts_away integer) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_matchs(p_data jsonb)
@@ -61,7 +61,7 @@ AS $function$
          nullif(m->>'scoreHome','')::int, nullif(m->>'scoreAway','')::int
     FROM jsonb_array_elements(coalesce(p_data->'calendrier', '[]'::jsonb)) j,
          jsonb_array_elements(coalesce(j->'matchs', '[]'::jsonb)) m
-$function$
+$function$;
 
 -- championnat_publier_journee(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_publier_journee(p_journee integer)
@@ -136,7 +136,7 @@ BEGIN
 
   PERFORM set_config('rp.publication_ligue', '0', true);
   RETURN jsonb_build_object('ok', true, 'topic_id', v_topic, 'titre', v_titre);
-END; $function$
+END; $function$;
 
 -- championnat_publier_sacre() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_publier_sacre()
@@ -199,7 +199,7 @@ BEGIN
   PERFORM set_config('rp.publication_ligue', '0', true);
 
   RETURN jsonb_build_object('ok', true, 'topic_id', v_topic, 'champion', v_champion);
-END; $function$
+END; $function$;
 
 -- championnat_publier_tour(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_publier_tour(p_manche text)
@@ -269,7 +269,7 @@ BEGIN
   PERFORM set_config('rp.publication_ligue', '0', true);
 
   RETURN jsonb_build_object('ok', true, 'topic_id', v_topic, 'titre', v_titre);
-END; $function$
+END; $function$;
 
 -- championnat_rang_etape(text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_rang_etape(p_etape text)
@@ -283,7 +283,7 @@ AS $function$
            WHEN 'demies_aller'  THEN 3 WHEN 'demies_retour' THEN 4
            WHEN 'finale'        THEN 5 WHEN 'termine'       THEN 6
            ELSE NULL END;
-$function$
+$function$;
 
 -- championnat_verrou_calendrier() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.championnat_verrou_calendrier()
@@ -392,7 +392,7 @@ BEGIN
   VALUES (auth.uid(), OLD.id, v_journee, v_nouveaux, v_semaine, v_echeance, 'jouer',
           CASE WHEN v_progression THEN 'playoff:' || v_ap ELSE NULL END);
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- club_capitaine(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_capitaine(p_club text)
@@ -422,7 +422,7 @@ BEGIN
 
   RETURN v_nom;   -- NULL => capitaine PNJ par defaut, comme cote client
 END;
-$function$
+$function$;
 
 -- club_electeurs(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_electeurs(p_club text)
@@ -456,7 +456,7 @@ BEGIN
 
   RETURN jsonb_build_object('chefSupporters', v_chef, 'maire', v_maire, 'capitaine', v_cap);
 END;
-$function$
+$function$;
 
 -- club_president_cloturer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_president_cloturer(p_club text)
@@ -527,7 +527,7 @@ BEGIN
                             'candidat', v_cand ->> 'candidat',
                             'pour', v_pour, 'electeurs', v_total);
 END;
-$function$
+$function$;
 
 -- club_president_postuler(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_president_postuler(p_club text)
@@ -584,7 +584,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'candidat', v_moi,
                             'dateLimite', v_jour + 2, 'electeurs', v_elect);
 END;
-$function$
+$function$;
 
 -- club_president_voter(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_president_voter(p_club text, p_vote boolean)
@@ -627,7 +627,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'vote', coalesce(p_vote, false));
 END;
-$function$
+$function$;
 
 -- football_entrainement_consommer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.football_entrainement_consommer(p_stat text)
@@ -679,7 +679,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'nb', v_nb + 1, 'max', c_max,
                             'jour', v_jour, 'pa', v_paie->'pa');
 END;
-$function$
+$function$;
 
 -- football_entrainements_du_jour() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.football_entrainements_du_jour()
@@ -703,7 +703,7 @@ BEGIN
    WHERE e.personnage = v_moi AND e.jour = v_jour;
   RETURN jsonb_build_object('ok', true, 'nb', v_nb, 'max', c_max, 'jour', v_jour);
 END;
-$function$
+$function$;
 
 -- football_noms_composition(jsonb) -> TABLE(nom text) | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_noms_composition(p_liste jsonb)
@@ -715,7 +715,7 @@ AS $function$
   SELECT CASE WHEN jsonb_typeof(e) = 'string' THEN e #>> '{}' ELSE e ->> 'nom' END
     FROM jsonb_array_elements(coalesce(p_liste, '[]'::jsonb)) e
    WHERE coalesce(CASE WHEN jsonb_typeof(e) = 'string' THEN e #>> '{}' ELSE e ->> 'nom' END, '') <> ''
-$function$
+$function$;
 
 -- football_pari_engager(text,text,integer,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_pari_engager(p_home text, p_away text, p_journee integer, p_choix text, p_mise integer)
@@ -795,7 +795,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'mise', p_mise,
                             'saison', v_saison, 'arg', v_arg);
 END;
-$function$
+$function$;
 
 -- football_paris_resoudre(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_paris_resoudre(p_journee integer)
@@ -870,7 +870,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'journee', p_journee, 'regles', v_regles,
                             'payes', v_payes, 'total', v_total, 'detail', v_detail);
-END; $function$
+END; $function$;
 
 -- football_primes_journee(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_primes_journee(p_journee integer)
@@ -909,7 +909,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'journee', p_journee, 'verses', v_verses,
                             'total', v_somme, 'deja_versees', v_ignores, 'detail', v_detail);
-END; $function$
+END; $function$;
 
 -- football_primes_match(integer,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_primes_match(p_saison integer, p_cle text, p_m jsonb)
@@ -993,7 +993,7 @@ BEGIN
 
   RETURN jsonb_build_object('verses', v_verses, 'total', v_somme,
                             'deja_versees', v_ignores, 'detail', v_detail);
-END; $function$
+END; $function$;
 
 -- football_primes_tour(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.football_primes_tour(p_manche text)
@@ -1042,4 +1042,4 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'manche', p_manche, 'verses', v_verses,
                             'total', v_somme, 'deja_versees', v_ignores, 'detail', v_detail);
-END; $function$
+END; $function$;

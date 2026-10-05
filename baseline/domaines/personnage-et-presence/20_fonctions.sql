@@ -43,7 +43,7 @@ BEGIN
    LIMIT 1;
   RETURN v_r;
 END;
-$function$
+$function$;
 
 -- contact_organisation_demander(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contact_organisation_demander(p_passeur text, p_type_organisation text)
@@ -118,7 +118,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'rang',
            coalesce(jsonb_array_length(v_e.organisations_contactees), 0) + 1);
 END;
-$function$
+$function$;
 
 -- contact_organisation_etat(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.contact_organisation_etat(p_passeur text, p_type_organisation text)
@@ -154,7 +154,7 @@ BEGIN
     'jours_restants', v_restant,
     'deja_contactees', jsonb_array_length(v_e.organisations_contactees));
 END;
-$function$
+$function$;
 
 -- cron_journal_ecrire(text,date,text,text,jsonb,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cron_journal_ecrire(p_tache text, p_jour date, p_statut text, p_erreur text DEFAULT NULL::text, p_contexte jsonb DEFAULT NULL::jsonb, p_duree_ms integer DEFAULT NULL::integer)
@@ -201,7 +201,7 @@ BEGIN
     'ok', true, 'id', v_row.id, 'statut', v_row.statut, 'tentatives', v_row.tentatives
   );
 END;
-$function$
+$function$;
 
 -- don_argent_deposer(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.don_argent_deposer(p_requete text, p_destinataire text, p_montant integer)
@@ -255,7 +255,7 @@ BEGIN
     'arg', (SELECT arg FROM public.personnages_donnees WHERE name = v_moi),
     'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = v_moi));
 END;
-$function$
+$function$;
 
 -- employe_liberer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employe_liberer(p_pnj_id text, p_motif text DEFAULT 'licenciement'::text)
@@ -289,7 +289,7 @@ BEGIN
          ville = NULL, building_id = NULL, room_id = NULL, rue_noeud_id = NULL, maj_le = now()
    WHERE id = p_pnj_id;
   RETURN jsonb_build_object('ok', true, 'pnj_id', p_pnj_id, 'metier', v_job, 'motif', p_motif);
-END; $function$
+END; $function$;
 
 -- employe_mes_employes() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employe_mes_employes()
@@ -312,7 +312,7 @@ BEGIN
            ORDER BY e.job, m.nom)
       FROM public.pnj_membres m JOIN public.pnj_employes_metier e ON e.pnj_id = m.id
      WHERE m.proprietaire_pj = v_moi AND m.statut = 'actif'), '[]'::jsonb));
-END; $function$
+END; $function$;
 
 -- employe_metiers_recrutables() -> text[] | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employe_metiers_recrutables()
@@ -324,7 +324,7 @@ AS $function$
   select coalesce(array_agg(metier order by metier), array[]::text[])
     from public.pnj_metiers_profils
    where recrutable;
-$function$
+$function$;
 
 -- employe_pnj_id(text,text,text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.employe_pnj_id(p_proprietaire text, p_metier text, p_nom text)
@@ -334,7 +334,7 @@ CREATE OR REPLACE FUNCTION public.employe_pnj_id(p_proprietaire text, p_metier t
 AS $function$
   SELECT 'emp-' || p_metier || '-' || substr(md5(lower(btrim(p_proprietaire)) || '|' ||
                                                  lower(btrim(p_nom))), 1, 12);
-$function$
+$function$;
 
 -- employe_recruter(text,text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employe_recruter(p_metier text, p_nom text, p_genre text DEFAULT NULL::text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT NULL::integer, p_cost integer DEFAULT NULL::integer)
@@ -425,7 +425,7 @@ BEGIN
     'cout_initial', v_cost, 'pa', v_pa,
     'caracteristiques', public.pnj_metier_profil(p_metier),
     'paiement', v_pay, 'employes', v_deja + 1, 'plafond', c_max_employes);
-END; $function$
+END; $function$;
 
 -- employeur_candidats(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employeur_candidats(p_employeur_id text)
@@ -496,7 +496,7 @@ begin
        where c.employeur_id = v_emp.employeur_id and c.actif
     ), '[]'::jsonb));
 end;
-$function$
+$function$;
 
 -- employeur_embaucher(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.employeur_embaucher(p_candidat_id text)
@@ -607,7 +607,7 @@ begin
     'employes', v_deja + 1, 'plafond', c_max_employes,
     'quota', v_quota, 'employes_metier', v_nb + 1);
 end;
-$function$
+$function$;
 
 -- escort_recruter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.escort_recruter(p_escort_id text)
@@ -688,7 +688,7 @@ BEGIN
     'caracteristiques', public.pnj_metier_profil('escort'),
     'paiement', v_pay, 'employes', v_deja + 1, 'plafond', c_max_employes);
 END;
-$function$
+$function$;
 
 -- escort_sociale_actuelle() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.escort_sociale_actuelle()
@@ -708,7 +708,7 @@ BEGIN
   SELECT nom INTO v_nom FROM public.escorts_catalogue WHERE escort_id = v_id;
   RETURN jsonb_build_object('ok', true, 'escort_id', v_id, 'nom', v_nom);
 END;
-$function$
+$function$;
 
 -- escort_sociale_choisir(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.escort_sociale_choisir(p_escort_id text)
@@ -752,7 +752,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'escort_id', p_escort_id, 'nom', v_esc.nom,
                             'precedente', v_avant, 'precedente_nom', v_avant_nom);
 END;
-$function$
+$function$;
 
 -- escorts_agence() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.escorts_agence()
@@ -785,7 +785,7 @@ BEGIN
         FROM public.escorts_catalogue c
        WHERE c.pays = v_pays AND c.actif), '[]'::jsonb));
 END;
-$function$
+$function$;
 
 -- naturalisation_traiter(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.naturalisation_traiter(p_demande_id text, p_accepter boolean)
@@ -837,7 +837,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'statut', 'refusee', 'demandeur', v_d.demandeur,
                             'remboursement', v_rembours, 'don_id', v_id);
 END;
-$function$
+$function$;
 
 -- personnage_ajuster_pop_inf(text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnage_ajuster_pop_inf(p_cible text, p_pop integer, p_inf integer DEFAULT NULL::integer)
@@ -874,7 +874,7 @@ BEGIN
   END IF;
   RETURN jsonb_build_object('ok', true, 'pop', v_res -> 'pop', 'inf', v_res -> 'inf');
 END;
-$function$
+$function$;
 
 -- personnage_ajuster_pop_inf(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnage_ajuster_pop_inf(p_acteur text, p_cible text, p_pop integer, p_inf integer DEFAULT NULL::integer)
@@ -918,7 +918,7 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pop', v_res -> 'pop', 'inf', v_res -> 'inf');
 END;
-$function$
+$function$;
 
 -- personnage_ajuster_pop_inf(text,text,integer,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.personnage_ajuster_pop_inf(p_acteur text, p_cible text, p_pop integer, p_inf integer, p_cause text)
@@ -1036,7 +1036,7 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'pop', v_res -> 'pop', 'inf', v_res -> 'inf',
                             'cause', p_cause);
 END;
-$function$
+$function$;
 
 -- personnages_archiver_suppression() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_archiver_suppression()
@@ -1074,7 +1074,7 @@ BEGIN
 
   RETURN OLD;
 END;
-$function$
+$function$;
 
 -- personnages_attester_poste() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_attester_poste()
@@ -1106,7 +1106,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_borner_jour() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_borner_jour()
@@ -1131,7 +1131,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_fusionner_pop() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_fusionner_pop()
@@ -1180,7 +1180,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_lien_militaire_rompu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_rompu()
@@ -1213,7 +1213,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_lien_militaire_supprime() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_supprime()
@@ -1227,7 +1227,7 @@ BEGIN
     OLD.name, OLD.current_city, OLD.current_building, OLD.current_room);
   RETURN OLD;
 END;
-$function$
+$function$;
 
 -- personnages_lier_proprietaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_lier_proprietaire()
@@ -1256,7 +1256,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_observer_inventaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_observer_inventaire()
@@ -1290,7 +1290,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_poste_perdu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_poste_perdu()
@@ -1312,7 +1312,7 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$function$
+$function$;
 
 -- personnages_preserver_judiciaire() -> trigger | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.personnages_preserver_judiciaire()
@@ -1383,7 +1383,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_vue_inserer() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_vue_inserer()
@@ -1442,7 +1442,7 @@ BEGIN
     NEW.quete_carriere
   );
   RETURN NEW;
-END; $function$
+END; $function$;
 
 -- personnages_vue_modifier() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_vue_modifier()
@@ -1549,7 +1549,7 @@ BEGIN
   WHERE id = OLD.id;
   RETURN NEW;
 END;
-$function$
+$function$;
 
 -- personnages_vue_supprimer() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_vue_supprimer()
@@ -1568,7 +1568,7 @@ BEGIN
   DELETE FROM public.personnages_donnees WHERE id = OLD.id;
   PERFORM set_config('rp.suppression_via_vue', '', true);
   RETURN OLD;
-END; $function$
+END; $function$;
 
 -- referent_pedagogie_contexte(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.referent_pedagogie_contexte(p_referent_id text)
@@ -1604,7 +1604,7 @@ begin
                             'consultations', coalesce(v_n, 0),
                             'sujets', coalesce(v_sujets, '[]'::jsonb));
 end;
-$function$
+$function$;
 
 -- referent_pedagogie_noter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.referent_pedagogie_noter(p_referent_id text)
@@ -1631,7 +1631,7 @@ BEGIN
    WHERE referent_id = p_referent_id AND joueur = v_moi;
   RETURN jsonb_build_object('ok', true, 'referent', true, 'consultations', v_n);
 END;
-$function$
+$function$;
 
 -- referent_pedagogie_noter_sujet(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.referent_pedagogie_noter_sujet(p_referent_id text, p_sujet text)
@@ -1668,4 +1668,4 @@ begin
 
   return jsonb_build_object('ok', true);
 end;
-$function$
+$function$;
