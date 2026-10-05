@@ -15,8 +15,10 @@
     "policies": 23,
     "rls_actives": 10,
     "droits_colonnes": 0,
-    "lignes_droits": 91
+    "lignes_droits": 93
   },
+
+  "_correction_2e": "lignes_droits valait 91 au chantier 2B. Ce n'etait pas la base qui disait 91 : c'etait la requete DROITS qui ne regardait ni les sequences ni les vues. Le controle global du chantier 2E a trouve 927 lignes de droits de relation dans le schema contre 825 extraites, soit les 102 lignes des 31 sequences. Pour la communication, les 2 lignes manquantes portent sur mails_envois_systeme_id_seq, accordee a postgres et service_role SEULEMENT -- ni anon ni authenticated. C'est coherent : cette table n'est ecrite que par le declencheur mails_journaliser_envoi_systeme, qui est SECURITY DEFINER et s'execute donc avec les droits du proprietaire. La valeur corrigee est la verite relevee en base le 5 octobre 2026 ; le controle n'a pas ete relache, il a ete rendu complet.",
 
   "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
   "empreinte_fonctions_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = signature || ':' || md5(pg_get_functiondef(oid))",

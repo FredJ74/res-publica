@@ -1,0 +1,40 @@
+-- ETAT INITIAL A CONSTRUIRE -- produits_manufactures
+-- ============================================================================
+-- Table     : public.produits_manufactures
+-- Domaine   : economie
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- FAIT ETABLI EN 2E qui tranche la question posee en 2C. 2C hesitait entre «
+-- catalogue des produits manufacturables » et « stock des produits fabriques
+-- ». La structure repond : la table n'a AUCUNE colonne de quantite. Ses
+-- colonnes sont produit, recette, prix_vente, pa, encombrement, ville,
+-- building_id, generique_id. Un stock sans quantite n'existe pas : c'est
+-- donc un CATALOGUE. L'unique ligne est l'armoire a souvenirs de ville_a
+-- (zone-production), recette bois 2 / minerai 2, prix 390, 3 PA.
+--
+-- CE QU'IL FAUT DECIDER
+-- ARBITRAGE RENDU LE 5 OCTOBRE 2026 : c'est un CATALOGUE, a la granularite
+-- VILLE. Bonne nouvelle structurelle : la table porte DEJA une colonne
+-- ville, donc la granularite voulue est exprimable telle quelle -- il n'y a
+-- pas de dette de dimensionnement ici, contrairement a recettes_production
+-- qui ne porte que pays. Reste a decider QUELS produits manufactures chaque
+-- ville de Republia propose au premier jour. Une seule ligne pour un empire
+-- entier est vraisemblablement un contenu incomplet, pas un choix.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne pas dupliquer la ligne de ville_a vers les autres villes pour «
+-- completer » : ce serait inventer du contenu. NE PAS lire une ligne de
+-- catalogue comme une quantite disponible, et NE PAS inventer de stock
+-- initial de produits manufactures : les quantites initiales ne concernent
+-- que les MATIERES PREMIERES, arbitrees dans baseline/arbitrages/.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

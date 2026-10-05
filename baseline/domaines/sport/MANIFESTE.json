@@ -1,0 +1,1014 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "0eee4e3c243be49e414ff7f71039019c",
+   "genre": "TABLE",
+   "objet": "championnat_tentatives",
+   "sous": ""
+  },
+  {
+   "empreinte": "c9d95889b75a79f61f9378c3476baab3",
+   "genre": "TABLE",
+   "objet": "entrainements_football",
+   "sous": ""
+  },
+  {
+   "empreinte": "04739788cbb2d2aaf0ff5cd23e258b04",
+   "genre": "TABLE",
+   "objet": "football_primes_versees",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "championnat_pkey",
+   "tbl": "championnat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "championnat_tentatives_pkey",
+   "tbl": "championnat_tentatives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "clubs_football_pkey",
+   "tbl": "clubs_football"
+  },
+  {
+   "empreinte": "694c0f23dc005a0c7877b0d33f03a249",
+   "genre": "p",
+   "nom": "clubs_sportifs_regles_pkey",
+   "tbl": "clubs_sportifs_regles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "entrainements_football_pkey",
+   "tbl": "entrainements_football"
+  },
+  {
+   "empreinte": "3c7425a830accfc5bf57ba3e07f57cd5",
+   "genre": "p",
+   "nom": "football_primes_versees_pkey",
+   "tbl": "football_primes_versees"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "paris_sportifs_pkey",
+   "tbl": "paris_sportifs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "presidents_clubs_pkey",
+   "tbl": "presidents_clubs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "transferts_clubs_pkey",
+   "tbl": "transferts_clubs"
+  },
+  {
+   "empreinte": "41c58ac15e491bd84a36da379c543628",
+   "genre": "c",
+   "nom": "entrainements_football_stat_check",
+   "tbl": "entrainements_football"
+  }
+ ],
+ "domaine": "sport",
+ "droits": [
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "championnat_date_sportive(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "championnat_date_sportive(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_date_sportive(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_date_sportive(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_date_sportive(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "championnat_echeance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "championnat_echeance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_echeance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_echeance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_echeance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "championnat_matchs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "championnat_matchs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_matchs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_matchs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_matchs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_sacre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_sacre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_sacre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_publier_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "championnat_rang_etape(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "championnat_rang_etape(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_rang_etape(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_rang_etape(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_rang_etape(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "championnat_verrou_calendrier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "championnat_verrou_calendrier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "championnat_verrou_calendrier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "championnat_verrou_calendrier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "championnat_verrou_calendrier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_electeurs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_electeurs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_electeurs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_president_cloturer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_president_cloturer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_president_cloturer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_president_postuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_president_postuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_president_postuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_president_voter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_president_voter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_president_voter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_entrainement_consommer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_entrainement_consommer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_entrainement_consommer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_entrainements_du_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_entrainements_du_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_entrainements_du_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "football_noms_composition(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "football_noms_composition(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_noms_composition(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_noms_composition(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_noms_composition(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_pari_engager(text,text,integer,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_pari_engager(text,text,integer,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_pari_engager(text,text,integer,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_paris_resoudre(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_paris_resoudre(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_paris_resoudre(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_primes_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_primes_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_primes_journee(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_primes_match(integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_primes_match(integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "football_primes_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_primes_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_primes_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "championnat_tentatives_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "championnat_tentatives_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "championnat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "championnat",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "championnat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "championnat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "championnat_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "championnat_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "clubs_football",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "clubs_football",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "clubs_football",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "clubs_football",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "clubs_sportifs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "clubs_sportifs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entrainements_football",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entrainements_football",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "football_primes_versees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "football_primes_versees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "paris_sportifs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "paris_sportifs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "presidents_clubs",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "presidents_clubs",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "presidents_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "presidents_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "transferts_clubs",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "transferts_clubs",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "transferts_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "transferts_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "afc6f86acbaaccd38e635e071c5e98aa",
+  "20_fonctions.sql": "d1388dad501c1d0ab4254f6541fd2893",
+  "30_contraintes.sql": "a945d6b8dc14bd0b29fb832a4652cdec",
+  "35_index.sql": "5650794763a074d67e44e9748b0d7b8b",
+  "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
+  "60_rls-policies.sql": "6693af5cf3eb690fd482fb6241cc7928",
+  "70_droits.sql": "94f8bd5991322feb8f944dc00c8c6b6f",
+  "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
+ },
+ "fonctions": [
+  {
+   "empreinte": "680a7eafc80e4acba99220175223de9c",
+   "security_definer": false,
+   "signature": "championnat_date_sportive(timestamp with time zone)"
+  },
+  {
+   "empreinte": "ee96d4cfba3b68b075d41bc640f03aae",
+   "security_definer": false,
+   "signature": "championnat_echeance(text)"
+  },
+  {
+   "empreinte": "86dd6f6b668d5207622881ef09e90a1a",
+   "security_definer": false,
+   "signature": "championnat_matchs(jsonb)"
+  },
+  {
+   "empreinte": "f8c801bb2ad93240e0be2e7176daf3ff",
+   "security_definer": true,
+   "signature": "championnat_publier_journee(integer)"
+  },
+  {
+   "empreinte": "a11e866ca474b0106b1d2bc74d448bf6",
+   "security_definer": true,
+   "signature": "championnat_publier_sacre()"
+  },
+  {
+   "empreinte": "dc537d827b08b883049cf8edf0ab5284",
+   "security_definer": true,
+   "signature": "championnat_publier_tour(text)"
+  },
+  {
+   "empreinte": "0f26d5d7989dd630abec62600b2bf90e",
+   "security_definer": false,
+   "signature": "championnat_rang_etape(text)"
+  },
+  {
+   "empreinte": "fbf6c2853337014f91fbc6f7417aa6c8",
+   "security_definer": true,
+   "signature": "championnat_verrou_calendrier()"
+  },
+  {
+   "empreinte": "d5c744e01b9318cc8493b4ac509efb24",
+   "security_definer": true,
+   "signature": "club_capitaine(text)"
+  },
+  {
+   "empreinte": "8c3c850519e77fd5bbf6566da73d8bd3",
+   "security_definer": true,
+   "signature": "club_electeurs(text)"
+  },
+  {
+   "empreinte": "286c56c597d8df752ab9b77540b4aaf8",
+   "security_definer": true,
+   "signature": "club_president_cloturer(text)"
+  },
+  {
+   "empreinte": "f6630a9aebe2a9957dd7e3e4d5d22318",
+   "security_definer": true,
+   "signature": "club_president_postuler(text)"
+  },
+  {
+   "empreinte": "c35bb8e7210d60f26f996157913924ee",
+   "security_definer": true,
+   "signature": "club_president_voter(text,boolean)"
+  },
+  {
+   "empreinte": "d89e07db0fbe64adf919b8906dd8d789",
+   "security_definer": true,
+   "signature": "football_entrainement_consommer(text)"
+  },
+  {
+   "empreinte": "fee0aba7133e3ed075f3034a1b9f8e44",
+   "security_definer": true,
+   "signature": "football_entrainements_du_jour()"
+  },
+  {
+   "empreinte": "7910a485eb9b6293356521b99619af17",
+   "security_definer": false,
+   "signature": "football_noms_composition(jsonb)"
+  },
+  {
+   "empreinte": "f8d1233a12fee6196e34de5b03107856",
+   "security_definer": true,
+   "signature": "football_pari_engager(text,text,integer,text,integer)"
+  },
+  {
+   "empreinte": "c80b2c378232bc1c4a4d110c47cae556",
+   "security_definer": true,
+   "signature": "football_paris_resoudre(integer)"
+  },
+  {
+   "empreinte": "3f2ea3efc2856b48a1edd031a959d8f1",
+   "security_definer": true,
+   "signature": "football_primes_journee(integer)"
+  },
+  {
+   "empreinte": "b8e4f889ff91e1597daa2e5ee79570aa",
+   "security_definer": true,
+   "signature": "football_primes_match(integer,text,jsonb)"
+  },
+  {
+   "empreinte": "5c6315d013ba0b6aae79c59fe135a9de",
+   "security_definer": true,
+   "signature": "football_primes_tour(text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "e7090fd4cfe6c41131d35eca2e8f2d59",
+   "nom": "entrainements_football_perso_jour"
+  }
+ ],
+ "index_portes": [
+  "championnat_pkey",
+  "championnat_tentatives_pkey",
+  "clubs_football_pkey",
+  "clubs_sportifs_regles_pkey",
+  "entrainements_football_pkey",
+  "football_primes_versees_pkey",
+  "paris_sportifs_pkey",
+  "presidents_clubs_pkey",
+  "transferts_clubs_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "b9731ab64fc48e2c45c5b7f37f93771c",
+   "empreinte_avec_roles": "fac56811691c4b5f21c1210800b419cf",
+   "nom": "championnat_insert_hors_ligne_historique",
+   "tbl": "championnat"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "11ff65882a0d856326315b33422b86d6",
+   "nom": "championnat_select_public",
+   "tbl": "championnat"
+  },
+  {
+   "empreinte": "bb4150edee02b868c1b9f797e3d257e7",
+   "empreinte_avec_roles": "24dd920f77c4d2091f6e963aa5655d4b",
+   "nom": "championnat_update_hors_ligne_historique",
+   "tbl": "championnat"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "2c6aa57264237218d6c89eb7820b9908",
+   "nom": "clubs_football_lecture",
+   "tbl": "clubs_football"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "11d3dea358aafbae2336229d5393869d",
+   "nom": "presidents_clubs_lecture",
+   "tbl": "presidents_clubs"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "f4d757f0ed6103537c546e99be7efcab",
+   "nom": "Ecriture publique transferts clubs",
+   "tbl": "transferts_clubs"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a8c17fe6de5fe09ea9e1dbfa0a6382a9",
+   "nom": "Lecture publique transferts clubs",
+   "tbl": "transferts_clubs"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "639a4879e2602d55da4b941305602efd",
+   "nom": "Maj publique transferts clubs",
+   "tbl": "transferts_clubs"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "championnat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "championnat_tentatives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "clubs_football"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "clubs_sportifs_regles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entrainements_football"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "football_primes_versees"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "paris_sportifs"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "presidents_clubs"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "transferts_clubs"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "championnat_tentatives_id_seq",
+   "possedee": true,
+   "tbl": "championnat_tentatives"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "d3313da3470afbf90c0b2012435ad85b",
+   "empreinte_texte": "85e36802c80c50ee13dc21e240b1e347",
+   "nom": "championnat"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "a80000e0d3fd25034a777847c8794461",
+   "empreinte_texte": "83717549a983027630d2a32235525868",
+   "nom": "championnat_tentatives"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "a2cfab3a4af6dfb425831b30681a0d03",
+   "empreinte_texte": "215e63993cdc25cfc135449efdb583f2",
+   "nom": "clubs_football"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "73e771d5cb78b49afe7bdec51e3bea53",
+   "empreinte_texte": "19fdf0e20206eb833b839e633a58731f",
+   "nom": "clubs_sportifs_regles"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "3d0a83eed37fddbe9aa5c5e4bcb9af3b",
+   "empreinte_texte": "39934e2d1d4bbd3b3e710d9147c2a8e6",
+   "nom": "entrainements_football"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "c061208a453945b90cfb71982954dd09",
+   "empreinte_texte": "4aa50696152c4c808d3d8d676a4f9fec",
+   "nom": "football_primes_versees"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "60fbb5dbbc6e2b0435a9c73c95204de9",
+   "empreinte_texte": "f861a290166e8f4f91cd78c2ded5419d",
+   "nom": "paris_sportifs"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "presidents_clubs"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "69330cd86f6a3fad8e1b25f6d80bdd83",
+   "empreinte_texte": "8ba8dd286811acbde085ea9020e3557b",
+   "nom": "transferts_clubs"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "481dcfff2fe93d545c2eadd0c6129ddb",
+   "fonction": "championnat_verrou_calendrier()",
+   "nom": "trg_championnat_verrou_calendrier",
+   "tbl": "championnat"
+  }
+ ],
+ "vues": []
+}

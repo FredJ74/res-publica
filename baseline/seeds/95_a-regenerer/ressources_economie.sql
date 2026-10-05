@@ -1,0 +1,24 @@
+-- SEED A REGENERER -- ressources_economie
+-- ============================================================================
+-- Table   : public.ressources_economie
+-- Domaine : economie
+-- Source canonique : data.js
+-- Generateur       : A ECRIRE. Aucun generateur ne cible cette table aujourd'hui : seul .scratch/banc_entreprises_chantier_c.py la mentionne, et c'est un banc d'essai, pas un generateur.
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- 17 ressources et leurs prix, miroir de data.js.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- Meme raison qu'ordres_couts : une table miroir se regenere, elle ne se
+-- recopie pas.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Ecrire le generateur, sur le modele de generer_ordres_couts.py, et le
+-- ranger hors de .scratch/ avec les autres.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

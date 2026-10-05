@@ -1,10 +1,8 @@
 {
   "_commentaire": "Perimetre de chaque domaine du baseline. Ce fichier est la source de verite du DECOUPAGE : il dit quels objets appartiennent a quel domaine, et il est relu par un humain. L'outil ne devine jamais un perimetre, il applique celui-ci. `fonctions_motif` documente COMMENT la liste a ete derivee ; `fonctions` est la liste GELEE qui fait foi, pour que l'extraction soit deterministe meme si une fonction est ajoutee plus tard.",
-
   "communication": {
     "libelle": "Communication : messagerie interne, forum, salons de discussion",
     "derive_le": "2026-10-05",
-
     "tables": [
       "chat_piece",
       "forum_posts",
@@ -17,7 +15,6 @@
       "salons_chat",
       "salons_membres"
     ],
-
     "fonctions_motif": "^(mail|mails|forum|chat|salon|lecture)",
     "fonctions": [
       "chat_est_membre_salon(text)",
@@ -36,7 +33,6 @@
       "mail_systeme_envoyer(text,text,text,text,text)",
       "mails_journaliser_envoi_systeme()"
     ],
-
     "dependances_externes": {
       "_commentaire": "Objets d'AUTRES domaines dont la reconstruction de celui-ci a besoin. Ils ne sont PAS extraits ici : ils sont declares, pour que l'assemblage global sache dans quel ordre proceder.",
       "fonctions_requises_avant_les_policies": [
@@ -54,11 +50,100 @@
       ],
       "cles_etrangeres_sortantes": []
     },
-
     "faux_positifs_ecartes": {
       "_commentaire": "Pieges rencontres en derivant le perimetre, consignes pour que personne ne les repose.",
       "entreprises_prix_rachat": "capturee par LIKE '%chat%' -- ra-CHAT. Appartient a l'economie.",
       "usines_rachat_config": "meme piege."
     }
+  },
+  "_regles_fonctions": {
+    "_commentaire": "Affectation des fonctions a un domaine, par PREFIXE de nom, dans l'ORDRE : la premiere regle qui correspond gagne. Verifiee sur les 641 signatures du 5 octobre 2026 : 636 affectees par regle, 5 par surcharge explicite, 0 orpheline. Une fonction qui n'entrerait dans aucune regle ferait ECHOUER le rendu -- jamais disparaitre silencieusement.",
+    "regles": [
+      [
+        "socle",
+        "^(mon_personnage|mon_poste_est|est_appel_serveur|est_mon_personnage|exiger_acteur|exiger_poste|acteur_poste_courant|acteur_present_sur_site|jour_de_jeu|jsonb_|is_national|rp_transition_active|inventaire_|objet_fiche_officielle|objet_sas_deposer|generique_de_objet|generique_recettes_systeme|ref_patrimoine_existe|eg_etat_|embargo_actif|deplacement_enregistrer|rattacher_personnage|personnage_fantome_declarer|restaurer_personnage_sauvegarde|mouvement_titulaire)"
+      ],
+      [
+        "socle PNJ",
+        "^pnj_"
+      ],
+      [
+        "militaire",
+        "^(militaire_|mutinerie_|camion_|camions_|caserne_|effort_|guerre_|batailles_)"
+      ],
+      [
+        "assemblee",
+        "^assemblee_"
+      ],
+      [
+        "presse",
+        "^(presse_|journal_|scandale_|fuite_|corruption_presse|calomnie_|tracts_|imprimerie_)"
+      ],
+      [
+        "renseignement",
+        "^(renseignement_|agent_|agents_|cellule_|cellules_|contre_espionnage_|filature_|convocation_douane|douane_)"
+      ],
+      [
+        "justice",
+        "^(justice_|plainte_|plaintes_|detention|detentions_|qhs_|geoles_|affaire_|commissaire_|enquete_|arrestation_|police_|presidence_gracier|fraude_electorale)"
+      ],
+      [
+        "sport",
+        "^(championnat_|club_|football_)"
+      ],
+      [
+        "banque",
+        "^(helvetia_|banque_|compte_bancaire|ouvrir_compte|fermer_compte|deposer_helvetia|retirer_helvetia|creer_placement|creer_pret|resoudre_placement|resoudre_compromis|signer_compromis_bien|finaliser_achat_bien|rembourser_pret|accepter_accord|regler_creances|traiter_prets|taux_pret_nationale)"
+      ],
+      [
+        "finances publiques",
+        "^(caisse_|caisses_|budget_|budgets_|salaire_|salaires_|fonds_|dotation_|subvention_|pa_|debiter_fonds|retirer_caisse|alimenter_caisse|appliquer_taxe|redressement_fiscal|vente_structure_encaisser|percevoir_salaire)"
+      ],
+      [
+        "economie",
+        "^(commerce_|entreprise_|entreprises_|entrepot_|entrepots_|acheter_|vendre_|produire_|fabriquer_|recette|chantier_|restituer_reliquats|creer_fonds_commerce|employer_fonds|creer_offre|repondre_offre|creer_oeuvre|fixer_prix|fixer_repartition|prix_ressource|coef_prix_max_pj|capacite_entrepot|fournisseurs_etrangers|matiere_|local_vocation|ressources_economie|ordres_couts|payer_ordre|fret_|recevoir_soin|refectoire_repas)"
+      ],
+      [
+        "immobilier et territoire",
+        "^(bail_|terrain_|terrains_|batiment_|batiments_|eviction_|prelever_loyer|resilier_bail|terminer_bail)"
+      ],
+      [
+        "communication",
+        "^(mail_|mails_|forum_|chat_)"
+      ],
+      [
+        "politique et elections",
+        "^(cycle_|cycles_|candidature|candidatures_|elections_|poste_|postes_|militant_|indice_ville)"
+      ],
+      [
+        "personnage et presence",
+        "^(personnage_|personnages_|escort_|escorts_|contact_organisation|referent_pedagogie|naturalisation_|don_argent|employe_|employeur_|cron_journal)"
+      ]
+    ],
+    "surcharges": {
+      "approvisionner_chantier": [
+        "economie",
+        "approvisionne un chantier : le prefixe chantier_ ne l'attrape pas"
+      ],
+      "depute_presence": [
+        "assemblee",
+        "presence derivee d'un depute Gamma sur son siege"
+      ],
+      "impact_deposer": [
+        "justice",
+        "depose dans impacts_indices_attente, domaine justice en 2C"
+      ],
+      "impact_marquer_traite": [
+        "justice",
+        "meme table"
+      ],
+      "ventes_snapshots_append_only": [
+        "economie",
+        "declencheur append-only de ventes_snapshots"
+      ]
+    }
+  },
+  "_domaine_des_tables": {
+    "_commentaire": "Le domaine d'une table n'est PAS redefini ici : il est lu dans baseline/classification-donnees.csv, colonne `domaine`, produite et relue au chantier 2C. Source unique, pas de copie."
   }
 }

@@ -1,0 +1,2710 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "f6bfa0d0fde17c3ea0a4e0bb7c08a4a3",
+   "genre": "COLUMN",
+   "objet": "escorts_catalogue",
+   "sous": "escort_id"
+  },
+  {
+   "empreinte": "c4895022969439f536cc8b9ca4a4c18a",
+   "genre": "COLUMN",
+   "objet": "escorts_catalogue",
+   "sous": "pays"
+  },
+  {
+   "empreinte": "969d27dc80e4c0533c40b0167f3363e3",
+   "genre": "COLUMN",
+   "objet": "personnages_donnees",
+   "sous": "user_id"
+  },
+  {
+   "empreinte": "bbbc37c93e3b086e18bf85e1f6dbdbab",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_choisir(text,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "82586645c9cccccba28e34288df4d041",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_demander(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "665c4087e313d1ef930dfa8c32bd42b3",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_etat(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "298216dba46096a888cee346912db3f7",
+   "genre": "FUNCTION",
+   "objet": "employe_metiers_recrutables()",
+   "sous": ""
+  },
+  {
+   "empreinte": "5489e0685f8632262328d24e5e5e5681",
+   "genre": "FUNCTION",
+   "objet": "escort_recruter(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "9af27e9911e0379edcd282a0e2d3a04a",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_actuelle()",
+   "sous": ""
+  },
+  {
+   "empreinte": "23d7c1c7ed422888bda28f43733ad760",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_choisir(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "9dbc441401d54e60de376fe1ebb346a7",
+   "genre": "FUNCTION",
+   "objet": "escorts_agence()",
+   "sous": ""
+  },
+  {
+   "empreinte": "ab5b68c201c0bd34b3114a81bece5827",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_contexte(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3c3e6019bedcb4a8d1e673c0860c44a5",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ca031f2f47569d9b9a541243eed5de49",
+   "genre": "TABLE",
+   "objet": "contacts_organisations",
+   "sous": ""
+  },
+  {
+   "empreinte": "654ccfd323590b3a861a72ae5c9fe208",
+   "genre": "TABLE",
+   "objet": "contacts_organisations_passeurs",
+   "sous": ""
+  },
+  {
+   "empreinte": "8ba6560232de7bebe41b757f91cdf4c1",
+   "genre": "TABLE",
+   "objet": "escorts_agences",
+   "sous": ""
+  },
+  {
+   "empreinte": "c30c06b5b73b8d564a34799eb95dcd7c",
+   "genre": "TABLE",
+   "objet": "escorts_catalogue",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "e07956d61cf3afe5f999d1c9506fc8da",
+   "genre": "p",
+   "nom": "contacts_organisations_pkey",
+   "tbl": "contacts_organisations"
+  },
+  {
+   "empreinte": "334463320444db5809e1060aad8fa775",
+   "genre": "p",
+   "nom": "contacts_organisations_passeurs_pkey",
+   "tbl": "contacts_organisations_passeurs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "demandes_mariage_pkey",
+   "tbl": "demandes_mariage"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "demandes_naturalisation_pkey",
+   "tbl": "demandes_naturalisation"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "dons_en_attente_pkey",
+   "tbl": "dons_en_attente"
+  },
+  {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "dons_requetes_pkey",
+   "tbl": "dons_requetes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "escort_evenements_commerciaux_pkey",
+   "tbl": "escort_evenements_commerciaux"
+  },
+  {
+   "empreinte": "db363208cf9cb0a9adba07c0a9eb50b7",
+   "genre": "p",
+   "nom": "escorts_agences_pkey",
+   "tbl": "escorts_agences"
+  },
+  {
+   "empreinte": "4c6a04a76afb4ccbd212e7ed96c1e8f5",
+   "genre": "p",
+   "nom": "escorts_catalogue_pkey",
+   "tbl": "escorts_catalogue"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "etat_civil_deces_pkey",
+   "tbl": "etat_civil_deces"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "etat_civil_naissances_pkey",
+   "tbl": "etat_civil_naissances"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fiche_hausses_observees_pkey",
+   "tbl": "fiche_hausses_observees"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fiche_inventaire_observe_pkey",
+   "tbl": "fiche_inventaire_observe"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "historique_deplacements_pkey",
+   "tbl": "historique_deplacements"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "invitations_diner_pkey",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "mariages_pkey",
+   "tbl": "mariages"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "objets_abandonnes_pkey",
+   "tbl": "objets_abandonnes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "objets_recus_pkey",
+   "tbl": "objets_recus"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "organisations_pkey",
+   "tbl": "organisations"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "personnages_pkey",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "95116a98aca5e46c7c015ee6387b7fad",
+   "genre": "p",
+   "nom": "personnages_supprimes_pkey",
+   "tbl": "personnages_supprimes"
+  },
+  {
+   "empreinte": "c302dc585e3d60f2f29aa138474141ea",
+   "genre": "p",
+   "nom": "presences_pkey",
+   "tbl": "presences"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "quetes_actives_pkey",
+   "tbl": "quetes_actives"
+  },
+  {
+   "empreinte": "0a0db78b5fb70bf8475b3bd434e6842b",
+   "genre": "p",
+   "nom": "reconciliation_fantomes_pkey",
+   "tbl": "reconciliation_fantomes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "souvenirs_accueil_pkey",
+   "tbl": "souvenirs_accueil"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "successions_pkey",
+   "tbl": "successions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "testaments_pkey",
+   "tbl": "testaments"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "tournees_pkey",
+   "tbl": "tournees"
+  },
+  {
+   "empreinte": "662604a51ba575edb1883943db55e764",
+   "genre": "u",
+   "nom": "escorts_catalogue_pays_nom_key",
+   "tbl": "escorts_catalogue"
+  },
+  {
+   "empreinte": "6cd240145af2a9dad30030041a41b7af",
+   "genre": "u",
+   "nom": "personnages_name_key",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "a9c51f570b365e608480b92695c8178e",
+   "genre": "c",
+   "nom": "escort_evenements_commerciaux_type_evenement_check",
+   "tbl": "escort_evenements_commerciaux"
+  },
+  {
+   "empreinte": "b1b35a508acf0a9f4fcbb5357bde7786",
+   "genre": "c",
+   "nom": "escorts_catalogue_genre_check",
+   "tbl": "escorts_catalogue"
+  },
+  {
+   "empreinte": "3bcbb6b11b39f0cb188a95682fc2830d",
+   "genre": "c",
+   "nom": "successions_statut_check",
+   "tbl": "successions"
+  },
+  {
+   "empreinte": "321951d6e159755c6dd2145170b5dd3f",
+   "genre": "c",
+   "nom": "testaments_statut_check",
+   "tbl": "testaments"
+  },
+  {
+   "empreinte": "1d76338ae5405ccea327ff60a3b2ebc9",
+   "genre": "c",
+   "nom": "tournees_statut_check",
+   "tbl": "tournees"
+  },
+  {
+   "empreinte": "c3025b918f5d330db0d4b19482474b87",
+   "genre": "f",
+   "nom": "personnages_user_id_fkey",
+   "tbl": "personnages_donnees"
+  }
+ ],
+ "domaine": "personnage et presence",
+ "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_choisir(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_choisir(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_demander(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_demander(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_demander(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_etat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_etat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contact_organisation_etat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cron_journal_ecrire(text,date,text,text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cron_journal_ecrire(text,date,text,text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "don_argent_deposer(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "don_argent_deposer(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "don_argent_deposer(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "employe_liberer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "employe_liberer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employe_liberer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employe_liberer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employe_liberer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "employe_mes_employes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "employe_mes_employes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employe_mes_employes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employe_mes_employes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employe_mes_employes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employe_metiers_recrutables()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employe_metiers_recrutables()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employe_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employe_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "employe_recruter(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "employe_recruter(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employe_recruter(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employe_recruter(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employe_recruter(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "employeur_candidats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "employeur_candidats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employeur_candidats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employeur_candidats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employeur_candidats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "employeur_embaucher(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "employeur_embaucher(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employeur_embaucher(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employeur_embaucher(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employeur_embaucher(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "escort_recruter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "escort_recruter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "escort_recruter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_actuelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_actuelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_actuelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_choisir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_choisir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "escort_sociale_choisir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "escorts_agence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "escorts_agence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "escorts_agence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "naturalisation_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "naturalisation_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "naturalisation_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnage_ajuster_pop_inf(text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_archiver_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_archiver_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_archiver_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_archiver_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_archiver_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_attester_poste()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_attester_poste()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_attester_poste()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_attester_poste()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_attester_poste()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_borner_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_borner_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_borner_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_borner_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_borner_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_fusionner_pop()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_fusionner_pop()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_rompu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_rompu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_rompu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_rompu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_rompu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_supprime()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_supprime()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_supprime()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_supprime()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_lien_militaire_supprime()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_lier_proprietaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_lier_proprietaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_lier_proprietaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_lier_proprietaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_lier_proprietaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_observer_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_observer_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_observer_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_observer_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_observer_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_poste_perdu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_poste_perdu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_poste_perdu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_poste_perdu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_poste_perdu()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_preserver_judiciaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_preserver_judiciaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_inserer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_inserer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_inserer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_inserer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_inserer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_modifier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_modifier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_modifier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_modifier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_modifier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_supprimer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_supprimer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_supprimer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_supprimer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_vue_supprimer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter_sujet(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter_sujet(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "referent_pedagogie_noter_sujet(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "dons_en_attente_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "dons_en_attente_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "dons_en_attente_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "dons_en_attente_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "fiche_hausses_observees_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "fiche_hausses_observees_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "fiche_inventaire_observe_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "fiche_inventaire_observe_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "fiche_inventaire_observe_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "fiche_inventaire_observe_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "historique_deplacements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "historique_deplacements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "historique_deplacements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "historique_deplacements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "invitations_diner_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "invitations_diner_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "invitations_diner_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "invitations_diner_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "personnages_supprimes_archive_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "personnages_supprimes_archive_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contacts_organisations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contacts_organisations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contacts_organisations_passeurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contacts_organisations_passeurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "demandes_mariage",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "demandes_mariage",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "demandes_mariage",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "demandes_mariage",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "demandes_naturalisation",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "demandes_naturalisation",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "demandes_naturalisation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "demandes_naturalisation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "dons_en_attente",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "dons_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dons_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dons_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "dons_requetes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "dons_requetes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dons_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dons_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "escort_evenements_commerciaux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "escort_evenements_commerciaux",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "escort_evenements_commerciaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "escort_evenements_commerciaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "escorts_agences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "escorts_agences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "escorts_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "escorts_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "etat_civil_deces",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "etat_civil_deces",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "etat_civil_deces",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "etat_civil_deces",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "etat_civil_naissances",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "etat_civil_naissances",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "etat_civil_naissances",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "etat_civil_naissances",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fiche_hausses_observees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fiche_hausses_observees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fiche_inventaire_observe",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fiche_inventaire_observe",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "historique_deplacements",
+   "privileges": "MAINTAIN"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "historique_deplacements",
+   "privileges": "MAINTAIN, REFERENCES, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "historique_deplacements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "historique_deplacements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "invitations_diner",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "invitations_diner",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "invitations_diner",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "mariages",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "mariages",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mariages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mariages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "objets_abandonnes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "objets_abandonnes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "objets_abandonnes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "objets_abandonnes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "objets_recus",
+   "privileges": "DELETE, MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "objets_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "objets_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "organisations",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "organisations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "organisations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "organisations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "personnages",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "personnages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "personnages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "personnages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "personnages_donnees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "personnages_donnees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "personnages_supprimes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "personnages_supprimes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "presences",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "presences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "presences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "presences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "quetes_actives",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "quetes_actives",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "quetes_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "quetes_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "reconciliation_fantomes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "reconciliation_fantomes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "souvenirs_accueil",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "souvenirs_accueil",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "souvenirs_accueil",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "souvenirs_accueil",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "successions",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "successions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "successions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "testaments",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "testaments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "testaments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "tournees",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "tournees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "tournees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "17980d86dcd01212515d3ce61d98234b",
+  "20_fonctions.sql": "a89472641e01593b2f02060476c55754",
+  "30_contraintes.sql": "ffb82407241f2ab9009cb2ce2514c1e3",
+  "35_index.sql": "4634a1852b44770bf0d1a9fd7ffdf625",
+  "40_vues.sql": "4db7a0757bcbd3defd61f7050a934204",
+  "50_triggers.sql": "4b203e841bccf665fab6a5a553ca05ad",
+  "60_rls-policies.sql": "2d3e2c5b5f505d0e98afdb1c94e3f542",
+  "70_droits.sql": "c8876856b1b99a48e6ba26dc38748e11",
+  "80_commentaires.sql": "839783ee3fec34f18e5d9672ae5786a3"
+ },
+ "fonctions": [
+  {
+   "empreinte": "e8aaa72f67c3a606b15d0f3a3e874f89",
+   "security_definer": true,
+   "signature": "contact_organisation_choisir(text,text,jsonb)"
+  },
+  {
+   "empreinte": "6e0a17090647b05bb2ccbdc9ede26274",
+   "security_definer": true,
+   "signature": "contact_organisation_demander(text,text)"
+  },
+  {
+   "empreinte": "1bc87d02da0e5995ffe55cd18786c071",
+   "security_definer": true,
+   "signature": "contact_organisation_etat(text,text)"
+  },
+  {
+   "empreinte": "6a1393fb9e04754b81b6b0a28fd6e03e",
+   "security_definer": true,
+   "signature": "cron_journal_ecrire(text,date,text,text,jsonb,integer)"
+  },
+  {
+   "empreinte": "d096072acb8ac92af7d09f2a5537d8b4",
+   "security_definer": true,
+   "signature": "don_argent_deposer(text,text,integer)"
+  },
+  {
+   "empreinte": "e0a4bb88af2409571105f0eddbc31958",
+   "security_definer": true,
+   "signature": "employe_liberer(text,text)"
+  },
+  {
+   "empreinte": "ea2b92ea66312cfe867bcfcff24f3997",
+   "security_definer": true,
+   "signature": "employe_mes_employes()"
+  },
+  {
+   "empreinte": "c31ab7ad03ddd4150c42fdc0a1b301aa",
+   "security_definer": true,
+   "signature": "employe_metiers_recrutables()"
+  },
+  {
+   "empreinte": "5917575b2a903cafff59a5f3718db2bf",
+   "security_definer": false,
+   "signature": "employe_pnj_id(text,text,text)"
+  },
+  {
+   "empreinte": "f37b5df9f325e7e283c835f2154288e3",
+   "security_definer": true,
+   "signature": "employe_recruter(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "de5ea0e052d3a192a5236c7f571c5b4d",
+   "security_definer": true,
+   "signature": "employeur_candidats(text)"
+  },
+  {
+   "empreinte": "53eb970dbb2bb9ed29abe4f718b8c8b6",
+   "security_definer": true,
+   "signature": "employeur_embaucher(text)"
+  },
+  {
+   "empreinte": "693bcfae325f18306562cc65d64981ae",
+   "security_definer": true,
+   "signature": "escort_recruter(text)"
+  },
+  {
+   "empreinte": "0542fba3753c57b5d293f1a4d474d97f",
+   "security_definer": true,
+   "signature": "escort_sociale_actuelle()"
+  },
+  {
+   "empreinte": "e82d30ce0560b014ab18721848f796db",
+   "security_definer": true,
+   "signature": "escort_sociale_choisir(text)"
+  },
+  {
+   "empreinte": "be9a189c44293fd55bfb45404bdb8efe",
+   "security_definer": true,
+   "signature": "escorts_agence()"
+  },
+  {
+   "empreinte": "a37689af93e0a6a2945e4e377009da4d",
+   "security_definer": true,
+   "signature": "naturalisation_traiter(text,boolean)"
+  },
+  {
+   "empreinte": "f358497db04f48fb8c1d95c204ed1b78",
+   "security_definer": true,
+   "signature": "personnage_ajuster_pop_inf(text,integer,integer)"
+  },
+  {
+   "empreinte": "4d891ca3437be1d0b2f17b6564c07852",
+   "security_definer": true,
+   "signature": "personnage_ajuster_pop_inf(text,text,integer,integer)"
+  },
+  {
+   "empreinte": "bdd5f64cb33e4c72a3611b17ab16054f",
+   "security_definer": true,
+   "signature": "personnage_ajuster_pop_inf(text,text,integer,integer,text)"
+  },
+  {
+   "empreinte": "a22e60acc7c9aa9b4a538b07ba69a6c9",
+   "security_definer": true,
+   "signature": "personnages_archiver_suppression()"
+  },
+  {
+   "empreinte": "2f0161bb353f27e4c8297d001bb2199e",
+   "security_definer": true,
+   "signature": "personnages_attester_poste()"
+  },
+  {
+   "empreinte": "8c93ad9d29e71155d8d12f59c63274bc",
+   "security_definer": true,
+   "signature": "personnages_borner_jour()"
+  },
+  {
+   "empreinte": "6039ac8c922e88ec90415281aed72fdd",
+   "security_definer": true,
+   "signature": "personnages_fusionner_pop()"
+  },
+  {
+   "empreinte": "9427422980f2fbdb0abe0241c1da267e",
+   "security_definer": true,
+   "signature": "personnages_lien_militaire_rompu()"
+  },
+  {
+   "empreinte": "b86d5dc0b82125eb3d52a4809ac18a44",
+   "security_definer": true,
+   "signature": "personnages_lien_militaire_supprime()"
+  },
+  {
+   "empreinte": "9339852204392b0e528de43e98d9fd44",
+   "security_definer": true,
+   "signature": "personnages_lier_proprietaire()"
+  },
+  {
+   "empreinte": "ec1319891e0072235804ae7155eaa041",
+   "security_definer": true,
+   "signature": "personnages_observer_inventaire()"
+  },
+  {
+   "empreinte": "8fbef2f17be2c81c261907dc243ce6da",
+   "security_definer": true,
+   "signature": "personnages_poste_perdu()"
+  },
+  {
+   "empreinte": "cde42ca2aa0a961c6c87e4e9a41b5a76",
+   "security_definer": false,
+   "signature": "personnages_preserver_judiciaire()"
+  },
+  {
+   "empreinte": "52f4f9fb342ffa3796b081c2a5d22251",
+   "security_definer": true,
+   "signature": "personnages_vue_inserer()"
+  },
+  {
+   "empreinte": "95baa2afa9e1e335fcbb58fa8de63a3b",
+   "security_definer": true,
+   "signature": "personnages_vue_modifier()"
+  },
+  {
+   "empreinte": "f2d2d22b6883dfcfbbc99a919641d06a",
+   "security_definer": true,
+   "signature": "personnages_vue_supprimer()"
+  },
+  {
+   "empreinte": "1085cb072ea58b706e59ec35cf8cdc14",
+   "security_definer": true,
+   "signature": "referent_pedagogie_contexte(text)"
+  },
+  {
+   "empreinte": "e9c3f8d987343e3e97c467911a9c4d6d",
+   "security_definer": true,
+   "signature": "referent_pedagogie_noter(text)"
+  },
+  {
+   "empreinte": "10f1d1bbfcde8c5146fb20f7c9ed457a",
+   "security_definer": true,
+   "signature": "referent_pedagogie_noter_sujet(text,text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "43e2a96966c6db262d80ed5008d8d0c2",
+   "nom": "escorts_catalogue_ecran"
+  },
+  {
+   "empreinte": "c857a911549f2f38e502e3141be68095",
+   "nom": "fiche_hausses_observees_colonne_idx"
+  },
+  {
+   "empreinte": "23f1f9984efb7e419cc0f8e3c576d7e9",
+   "nom": "idx_deplacements_lieu"
+  },
+  {
+   "empreinte": "0aaec373263284550061df9172d9dac4",
+   "nom": "idx_deplacements_personne"
+  },
+  {
+   "empreinte": "989d043f8f78ee4868f902766d30575d",
+   "nom": "idx_escort_evenements_client_escort_expiration"
+  },
+  {
+   "empreinte": "67eac150119efdf8730fe600323b89b5",
+   "nom": "idx_escort_evenements_escort_expiration"
+  },
+  {
+   "empreinte": "b992b9ee8452fa53a1be1baf96e335c9",
+   "nom": "idx_objets_recus_destinataire"
+  },
+  {
+   "empreinte": "c355611c45768d2d40c523dbc32b2008",
+   "nom": "idx_personnages_supprimes_nom"
+  },
+  {
+   "empreinte": "dc95f03013568e27739e2f5297dcc8c3",
+   "nom": "idx_presences_room"
+  },
+  {
+   "empreinte": "97370331298d68be364e709defaae788",
+   "nom": "idx_successions_conjoint"
+  },
+  {
+   "empreinte": "fd0f7802f7cd5d566cba2e4f080fe4fa",
+   "nom": "idx_successions_country_statut"
+  },
+  {
+   "empreinte": "4e6828b33e63c29ed57d939b545ef307",
+   "nom": "idx_successions_defunt"
+  },
+  {
+   "empreinte": "acca094f6be3d4176bf9912afe02cc01",
+   "nom": "idx_successions_defunt_en_attente"
+  },
+  {
+   "empreinte": "eb12b504300874ba32734da4ab190c28",
+   "nom": "idx_testaments_testateur"
+  },
+  {
+   "empreinte": "b620c46394a19613fe4d170e52b9700c",
+   "nom": "personnages_requisition_idx"
+  },
+  {
+   "empreinte": "dbed62cd9d03e5b04649fb2c8f735707",
+   "nom": "personnages_user_id_unique"
+  }
+ ],
+ "index_portes": [
+  "contacts_organisations_passeurs_pkey",
+  "contacts_organisations_pkey",
+  "demandes_mariage_pkey",
+  "demandes_naturalisation_pkey",
+  "dons_en_attente_pkey",
+  "dons_requetes_pkey",
+  "escort_evenements_commerciaux_pkey",
+  "escorts_agences_pkey",
+  "escorts_catalogue_pays_nom_key",
+  "escorts_catalogue_pkey",
+  "etat_civil_deces_pkey",
+  "etat_civil_naissances_pkey",
+  "fiche_hausses_observees_pkey",
+  "fiche_inventaire_observe_pkey",
+  "historique_deplacements_pkey",
+  "invitations_diner_pkey",
+  "mariages_pkey",
+  "objets_abandonnes_pkey",
+  "objets_recus_pkey",
+  "organisations_pkey",
+  "personnages_name_key",
+  "personnages_pkey",
+  "personnages_supprimes_pkey",
+  "presences_pkey",
+  "quetes_actives_pkey",
+  "reconciliation_fantomes_pkey",
+  "souvenirs_accueil_pkey",
+  "successions_pkey",
+  "testaments_pkey",
+  "tournees_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "40_vues.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "3f42590ba5d2c3f5600c090bda33e6bc",
+   "nom": "allow_all_demandes_mariage",
+   "tbl": "demandes_mariage"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "2711dc73e6c77e6c35655db0299a7dce",
+   "nom": "allow_all_demandes_naturalisation",
+   "tbl": "demandes_naturalisation"
+  },
+  {
+   "empreinte": "96830a0c59aa65a0f6aec5d66b6cb01a",
+   "empreinte_avec_roles": "bd191614a4f0b4233a907a1d65928ce3",
+   "nom": "dons consommation destinataire",
+   "tbl": "dons_en_attente"
+  },
+  {
+   "empreinte": "ba7b45106c7e0c6472f0645d8d918712",
+   "empreinte_avec_roles": "bddd469c545f99644479dd685a0cfefd",
+   "nom": "dons lecture destinataire",
+   "tbl": "dons_en_attente"
+  },
+  {
+   "empreinte": "fe6884fc109d857056ce97855a29e917",
+   "empreinte_avec_roles": "28eba57c43eb918bc822c0a051071f2c",
+   "nom": "invitation creee par l inviteur",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "4e48d34602e386fb7b839246abbdd53e",
+   "empreinte_avec_roles": "daa2c62f10583626974cd9ba8e4b92e5",
+   "nom": "invitation lecture par les deux parties",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "ccd629ac10b5ac25e10c2364015bf21f",
+   "empreinte_avec_roles": "a5924d7d8ba2e5e51eb258523f4e3e33",
+   "nom": "invitation repondue par l invite",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "0218e9e0d85416220052df7cc2a1eeb6",
+   "empreinte_avec_roles": "afc947a34a6f569cddb2e3ad173cf28d",
+   "nom": "invitation supprimee par les deux parties",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "a491e2d8deb8fddaa9743b0c7ae06254",
+   "nom": "allow_all_mariages",
+   "tbl": "mariages"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "1458688d948562ab789ea08d58078e42",
+   "nom": "allow_all_objets_abandonnes",
+   "tbl": "objets_abandonnes"
+  },
+  {
+   "empreinte": "ba7b45106c7e0c6472f0645d8d918712",
+   "empreinte_avec_roles": "b577a8e629801c0f102ce10e56280de1",
+   "nom": "objets_recus_lire_le_sien",
+   "tbl": "objets_recus"
+  },
+  {
+   "empreinte": "fbf98c9715a344722976e9e60ac8f0bc",
+   "empreinte_avec_roles": "fdac2d41fa72cfdf1f9f2c004e4c74a0",
+   "nom": "objets_recus_reclamer_le_sien",
+   "tbl": "objets_recus"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "3a920feed963aa8d1e2b1ca38efe5478",
+   "nom": "allow_all_organisations",
+   "tbl": "organisations"
+  },
+  {
+   "empreinte": "87524fc66df1b739d77b8c90b3876574",
+   "empreinte_avec_roles": "c3a57625b23a4756181938009c510464",
+   "nom": "personnages_creation_soi",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "c077fe6ed121bf0dac9ec2c67e713682",
+   "nom": "personnages_lecture",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "a4846fa8673ead150bbe5fabdc014376",
+   "empreinte_avec_roles": "e7d5f5784d290786403b6a1632b8b0b7",
+   "nom": "personnages_maj_soi",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "6a606d18094f879158ba8fcbb6558204",
+   "empreinte_avec_roles": "4c95347ee4dc9f0ad888e14e5b7803be",
+   "nom": "personnages_suppression_soi",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "ce2ab2c4a27e710a0696bab54224cf0f",
+   "empreinte_avec_roles": "48409cf8bc4f445d6e560f3b1be6c9f2",
+   "nom": "presences_creation_soi",
+   "tbl": "presences"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "833edb3d50098420e4c0bd65c2a4800f",
+   "nom": "presences_lecture_publique",
+   "tbl": "presences"
+  },
+  {
+   "empreinte": "572961fc5c796c21bd74badff5d6eb11",
+   "empreinte_avec_roles": "a086d5d3daf07551b74277c5cd792c7f",
+   "nom": "presences_maj_soi",
+   "tbl": "presences"
+  },
+  {
+   "empreinte": "bbd8b6f49edad4c2e2ff5d1a91c08e1a",
+   "empreinte_avec_roles": "13d1cc052a95fefb80d45586ddf4acbe",
+   "nom": "presences_suppression_soi",
+   "tbl": "presences"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "612fe4a0f190d776193990b5c47c4373",
+   "nom": "allow_all_quetes_actives",
+   "tbl": "quetes_actives"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "65caf2200f2db1d98674dc21ffa88ab6",
+   "nom": "allow_all_souvenirs_accueil",
+   "tbl": "souvenirs_accueil"
+  },
+  {
+   "empreinte": "aa457bca008c0e8f26e0e7aebd63c249",
+   "empreinte_avec_roles": "00de5ad63833b49c0cc97be0c74ad08d",
+   "nom": "testament lu par son seul testateur",
+   "tbl": "testaments"
+  },
+  {
+   "empreinte": "c2b3d794a7cfd282c10a7fd7b38f2b4a",
+   "empreinte_avec_roles": "9fa61402c880ccc6f220c4c361684975",
+   "nom": "testament redige en son propre nom",
+   "tbl": "testaments"
+  },
+  {
+   "empreinte": "de903178f073a49dbab50575b868d208",
+   "empreinte_avec_roles": "bf7c4697f20c2b9af7f6a9b34d59937e",
+   "nom": "testament revoque ou remplace par son testateur",
+   "tbl": "testaments"
+  },
+  {
+   "empreinte": "e7898f66e80a993640fe5449ac04a497",
+   "empreinte_avec_roles": "32f679f2e6f74ccc487655fea6fea170",
+   "nom": "tournee creee par l offreur",
+   "tbl": "tournees"
+  },
+  {
+   "empreinte": "e8648d9c7f42f4a5149b5898ffe9c750",
+   "empreinte_avec_roles": "5ba14d970128c125c48808e894e13b5b",
+   "nom": "tournee lue par l offreur et ses invites",
+   "tbl": "tournees"
+  },
+  {
+   "empreinte": "e37cb5a656f4eafcbbfcb732ef013290",
+   "empreinte_avec_roles": "5161e9d8c753cc41450ad12928f4f668",
+   "nom": "tournee pilotee par l offreur",
+   "tbl": "tournees"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "contacts_organisations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "contacts_organisations_passeurs"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "demandes_mariage"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "demandes_naturalisation"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "dons_en_attente"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "dons_requetes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "escort_evenements_commerciaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "escorts_agences"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "escorts_catalogue"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "etat_civil_deces"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "etat_civil_naissances"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fiche_hausses_observees"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fiche_inventaire_observe"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "historique_deplacements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "invitations_diner"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mariages"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "objets_abandonnes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "objets_recus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "organisations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "personnages_donnees"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "personnages_supprimes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "presences"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "quetes_actives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "reconciliation_fantomes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "souvenirs_accueil"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "successions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "testaments"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "tournees"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "dons_en_attente_id_seq",
+   "possedee": true,
+   "tbl": "dons_en_attente"
+  },
+  {
+   "nom": "fiche_hausses_observees_id_seq",
+   "possedee": true,
+   "tbl": "fiche_hausses_observees"
+  },
+  {
+   "nom": "fiche_inventaire_observe_id_seq",
+   "possedee": true,
+   "tbl": "fiche_inventaire_observe"
+  },
+  {
+   "nom": "historique_deplacements_id_seq",
+   "possedee": true,
+   "tbl": "historique_deplacements"
+  },
+  {
+   "nom": "invitations_diner_id_seq",
+   "possedee": false,
+   "tbl": "invitations_diner"
+  },
+  {
+   "nom": "personnages_supprimes_archive_id_seq",
+   "possedee": true,
+   "tbl": "personnages_supprimes"
+  }
+ ],
+ "sequences_autonomes": [
+  "invitations_diner_id_seq"
+ ],
+ "tables": [
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "209ad301f6799f4e83fe9feb35916841",
+   "empreinte_texte": "091617bfdb024becfe719778bec0edd3",
+   "nom": "contacts_organisations"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "939267c16f4e42d704b9ae0bd5941c5f",
+   "empreinte_texte": "aa0733803d0bf9769ab1267398ad2468",
+   "nom": "contacts_organisations_passeurs"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "3852650dcdcddbe2b4aa2ef812959a27",
+   "empreinte_texte": "e41a14b08ab84199c9ea47bc8a5d9861",
+   "nom": "demandes_mariage"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "284b3fcf39f9ea458c9f7eed526c1872",
+   "empreinte_texte": "0f27673259e0f8c8c22cfe9f3fa03eb0",
+   "nom": "demandes_naturalisation"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "3a076c821897999b78538f40e5bfea77",
+   "empreinte_texte": "43c888d455b68c834828aeddfc2f1e4a",
+   "nom": "dons_en_attente"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "2d8ecdfb39dcee17275388e9f8abb4b6",
+   "empreinte_texte": "473184632d550b09a35d5bae41216970",
+   "nom": "dons_requetes"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "e12e7340c6ac050ff53fb918a38161d7",
+   "empreinte_texte": "50be427e5cbe8eda976c8bf0efb67fa4",
+   "nom": "escort_evenements_commerciaux"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "f54db9f290816d73f87b8ffa45d5f6f8",
+   "empreinte_texte": "7c465730c165506a35411b1e58727a79",
+   "nom": "escorts_agences"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "e36b35e7fa401e5d8894521a2dcaa511",
+   "empreinte_texte": "729c707c30e0e34d69deeb504e73b46f",
+   "nom": "escorts_catalogue"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "c575dfc1961a3b4088134bb963a9087a",
+   "empreinte_texte": "6af4e8ca54978ed659193596a0b5e206",
+   "nom": "etat_civil_deces"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "f07eb357c807bdaa7208a20c5df6cbf2",
+   "empreinte_texte": "668ad1e7999bc98091653c1c2a5b2779",
+   "nom": "etat_civil_naissances"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "6e003a54832ad854b55307eca4c5e68e",
+   "empreinte_texte": "beb6bac8c7773be69bbd41244f4f0c07",
+   "nom": "fiche_hausses_observees"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "d9b7b3c7bf98b42ee3c9de2b3ffb8a5f",
+   "empreinte_texte": "e5cdff383dee92a03c34b1a6ec6dcdfc",
+   "nom": "fiche_inventaire_observe"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "ae56bfdb24a52ea321d822c3e4025750",
+   "empreinte_texte": "59ff93c3ee54c7f5f20a8a9a4103b7b7",
+   "nom": "historique_deplacements"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "95554c36c8780792b665b115ad9c5a88",
+   "empreinte_texte": "10ceb2944f34d8b4f7977d333d5df10a",
+   "nom": "invitations_diner"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "9ee199d6864f6160e57a96e8e7d5be42",
+   "empreinte_texte": "03d59643dce6baaaf5e6f531d909cc6b",
+   "nom": "mariages"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "ee2943da6e3602c4c8c8713fbdd3a013",
+   "empreinte_texte": "2afc7a09853fc4f48a7ba1e67c30fb17",
+   "nom": "objets_abandonnes"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "b9ade740c69487ee2b77f5d1a34814ef",
+   "empreinte_texte": "3fcc33c22a2e807dbdb4befb82d10900",
+   "nom": "objets_recus"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "8efd5174ccdbf4d8b9ec65620c593abd",
+   "empreinte_texte": "e026fd620e944944e675b3c3b48569b8",
+   "nom": "organisations"
+  },
+  {
+   "colonnes": 74,
+   "empreinte_catalogue": "81bdc969521d46a506de41c30ab9a602",
+   "empreinte_texte": "aa15328c7c15bb505f2d68a23869906f",
+   "nom": "personnages_donnees"
+  },
+  {
+   "colonnes": 17,
+   "empreinte_catalogue": "fc5847f7f5db93acf6f800edbe8d6990",
+   "empreinte_texte": "31b39c6cdb2d1daecf1d4823a29cfd17",
+   "nom": "personnages_supprimes"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "282660a7d1a9cd61b388f95321ee3016",
+   "empreinte_texte": "b4af0d167784cde2480bdda17de60527",
+   "nom": "presences"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "2c208c4e3c413de7c7552e76cb8292de",
+   "empreinte_texte": "6016131cdd84433b35e312fb4c91f3d8",
+   "nom": "quetes_actives"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "f06b2172a1412f7514d15e81eed03385",
+   "empreinte_texte": "1906a76641d21a5903887c784fff582e",
+   "nom": "reconciliation_fantomes"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "f52ffe96f01d227b20faee4eb8f570f5",
+   "empreinte_texte": "16171ab08cdf1f0f0dbb0c7c0062261c",
+   "nom": "souvenirs_accueil"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "565bbd9800da69bbc7323ae5308ba895",
+   "empreinte_texte": "ffb7d2a9481860ca81e895df6e25b063",
+   "nom": "successions"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "2e029c77e2cc31b6884057f44e139141",
+   "empreinte_texte": "d0a59fe9d3c6b9f5e76419113ea149a8",
+   "nom": "testaments"
+  },
+  {
+   "colonnes": 15,
+   "empreinte_catalogue": "415fe9762bf0c90693dbe03ddee7f851",
+   "empreinte_texte": "fa4414ceec7066011a947821df1e7688",
+   "nom": "tournees"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "5aed71d6c468ed907419670abc1db972",
+   "fonction": "personnages_vue_inserer()",
+   "nom": "trg_personnages_vue_inserer",
+   "tbl": "personnages"
+  },
+  {
+   "empreinte": "cde8ef36ac6aec1d4abcb0ed19fc1301",
+   "fonction": "personnages_vue_modifier()",
+   "nom": "trg_personnages_vue_modifier",
+   "tbl": "personnages"
+  },
+  {
+   "empreinte": "93d4d1134f08511bb488e2ffda0f8aea",
+   "fonction": "personnages_vue_supprimer()",
+   "nom": "trg_personnages_vue_supprimer",
+   "tbl": "personnages"
+  },
+  {
+   "empreinte": "5db4aab27cf48accb915da118752e824",
+   "fonction": "personnages_archiver_suppression()",
+   "nom": "trg_personnages_archiver_suppression",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "eccc8a25c25d8c4eb9b9f13ba45f8eb7",
+   "fonction": "personnages_attester_poste()",
+   "nom": "trg_personnages_attester_poste",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "2ef86c6832a912210da96993c3cf96ef",
+   "fonction": "personnages_borner_jour()",
+   "nom": "trg_personnages_borner_jour",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "734f33a38deaefa254ed7f740decad41",
+   "fonction": "personnages_fusionner_pop()",
+   "nom": "trg_personnages_fusionner_pop",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "0537a1b2da3458026557315d3f705913",
+   "fonction": "personnages_lien_militaire_rompu()",
+   "nom": "trg_personnages_lien_militaire_rompu",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "f7c241ee2f85032fd4284a411fb364d6",
+   "fonction": "personnages_lien_militaire_supprime()",
+   "nom": "trg_personnages_lien_militaire_supprime",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "5aef5d59ef5a54825c76ec757d072ea0",
+   "fonction": "personnages_lier_proprietaire()",
+   "nom": "trg_personnages_lier_proprietaire",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "6b1b7b23c29e8af40e33a01d3d56a94d",
+   "fonction": "personnages_observer_inventaire()",
+   "nom": "trg_personnages_observer_inventaire",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "e90341007580617eebd2dccc3a3e544f",
+   "fonction": "personnages_poste_perdu()",
+   "nom": "trg_personnages_poste_perdu",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "34e23222c032d6d06011e8e3769a02e8",
+   "fonction": "personnages_preserver_judiciaire()",
+   "nom": "trg_personnages_preserver_judiciaire",
+   "tbl": "personnages_donnees"
+  }
+ ],
+ "vues": [
+  {
+   "empreinte": "ff3058dda59a859cb40a40297a7d8149",
+   "nom": "personnages",
+   "reloptions": null
+  }
+ ]
+}

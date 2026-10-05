@@ -1,0 +1,1355 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "d7c2dbb4f08473fd2245fe7eb37e1a06",
+   "genre": "COLUMN",
+   "objet": "detentions",
+   "sous": "provenance"
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "actions_tracables_pkey",
+   "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "demandes_grace_pkey",
+   "tbl": "demandes_grace"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "detentions_pkey",
+   "tbl": "detentions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "impacts_indices_attente_pkey",
+   "tbl": "impacts_indices_attente"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "jugements_pkey",
+   "tbl": "jugements"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "niveaux_prison_pkey",
+   "tbl": "niveaux_prison"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "plaintes_en_cours_pkey",
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "prisonniers_qhs_pkey",
+   "tbl": "prisonniers_qhs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "rumeurs_actives_pkey",
+   "tbl": "rumeurs_actives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "vols_en_attente_pkey",
+   "tbl": "vols_en_attente"
+  },
+  {
+   "empreinte": "853b81e60fdd5f0a184a8b38944ce73d",
+   "genre": "u",
+   "nom": "impacts_indices_attente_id_unique",
+   "tbl": "impacts_indices_attente"
+  }
+ ],
+ "domaine": "justice",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "affaire_autorite_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "affaire_autorite_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "affaire_autorite_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "affaire_me_concerne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "affaire_me_concerne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "affaire_me_concerne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "affaire_statut(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "affaire_statut(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "affaire_statut(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "affaire_statut(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "affaire_statut(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "arrestation_urgence(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "arrestation_urgence(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "arrestation_urgence(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commissaire_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commissaire_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commissaire_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_cible_pnj(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_cible_pnj(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detentions_pnj_liberer_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detentions_pnj_liberer_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "enquete_garde_a_vue(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "enquete_garde_a_vue(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "enquete_garde_a_vue(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_sanctionner(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_sanctionner(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_sanctionner(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "geoles_detenus(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "geoles_detenus(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "geoles_detenus(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "impact_deposer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "impact_deposer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "impact_deposer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "impact_marquer_traite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "impact_marquer_traite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "impact_marquer_traite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_condamner(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_condamner(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_condamner(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_prolonger_peine(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_prolonger_peine(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_prolonger_peine(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_recherches(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_recherches(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_recherches(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "plainte_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plainte_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plainte_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plainte_instruire_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plainte_instruire_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "plainte_traiter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plainte_traiter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plainte_traiter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_caracteristiques_metier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_caracteristiques_metier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presidence_gracier(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presidence_gracier(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presidence_gracier(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "qhs_pouvoir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "qhs_pouvoir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "qhs_pouvoir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "actions_tracables",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "actions_tracables",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "actions_tracables",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "actions_tracables",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "demandes_grace",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "demandes_grace",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "demandes_grace",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "detentions",
+   "privileges": "MAINTAIN"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "detentions",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "detentions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "detentions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "impacts_indices_attente",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "impacts_indices_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "impacts_indices_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "jugements",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "jugements",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "jugements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "jugements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "niveaux_prison",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "niveaux_prison",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "niveaux_prison",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "niveaux_prison",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "plaintes_en_cours",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "plaintes_en_cours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "plaintes_en_cours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "prisonniers_qhs",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "prisonniers_qhs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "prisonniers_qhs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "rumeurs_actives",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rumeurs_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rumeurs_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "vols_en_attente",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "vols_en_attente",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "vols_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "vols_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "autorite",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "city",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "country",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "created_at",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "date_fin_effective",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "detention_precedente_id",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "id",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "issue_judiciaire",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "jour_affaire",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "jour_debut",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "jour_fin",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "jour_fin_effective",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "mode_fin",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "motifs",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "nom",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "provenance",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "raison",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "reduction_jours",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "reliquat_jours",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "ville_condamnation",
+   "privileges": "SELECT",
+   "tbl": "detentions"
+  }
+ ],
+ "fichiers": {
+  "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
+  "20_fonctions.sql": "f019eb69104a89e8e1c9d9cb654c214d",
+  "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
+  "35_index.sql": "35101f33980b68952e56850552b2d06a",
+  "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
+  "60_rls-policies.sql": "12667607db8e0c8c90b878aa8081e049",
+  "70_droits.sql": "53c99be0088a925182753e02371680c2",
+  "80_commentaires.sql": "dd675689f39a5ef555c1fe4e0e79fc70"
+ },
+ "fonctions": [
+  {
+   "empreinte": "db798b7603de84132ab58d57f26280f1",
+   "security_definer": true,
+   "signature": "affaire_autorite_de(text)"
+  },
+  {
+   "empreinte": "665ca2fa4d233f9c2ad1b93206a0a2bb",
+   "security_definer": true,
+   "signature": "affaire_me_concerne(text)"
+  },
+  {
+   "empreinte": "f62055310b4f66095ee714f1a1591e57",
+   "security_definer": false,
+   "signature": "affaire_statut(text)"
+  },
+  {
+   "empreinte": "6b17ab43f171bc4f493ec29555d2199e",
+   "security_definer": true,
+   "signature": "arrestation_urgence(text,text)"
+  },
+  {
+   "empreinte": "b9c71045fb37b6723323ae66e654d3d0",
+   "security_definer": true,
+   "signature": "commissaire_enqueter(text)"
+  },
+  {
+   "empreinte": "426848ceb892a05c1f79719e411d35eb",
+   "security_definer": true,
+   "signature": "detention_active(text)"
+  },
+  {
+   "empreinte": "8d43e8e049566213bbc250726bf4a267",
+   "security_definer": true,
+   "signature": "detention_cible_pnj(text,text)"
+  },
+  {
+   "empreinte": "f4de64d1d758396076334a32fedbc268",
+   "security_definer": true,
+   "signature": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)"
+  },
+  {
+   "empreinte": "573e30d1266dd4c6aa7dab59fb258d92",
+   "security_definer": true,
+   "signature": "detentions_pnj_liberer_echues()"
+  },
+  {
+   "empreinte": "d5adf09c00e85faaff9a8e0c4a23fb13",
+   "security_definer": true,
+   "signature": "enquete_garde_a_vue(text,text,text)"
+  },
+  {
+   "empreinte": "e96c4c3eb069ad29770cc8ecc260b210",
+   "security_definer": true,
+   "signature": "fraude_electorale_sanctionner(text,text)"
+  },
+  {
+   "empreinte": "d1c6c848e3a0bbb837184613bbcde731",
+   "security_definer": true,
+   "signature": "geoles_detenus(text,text)"
+  },
+  {
+   "empreinte": "71193ca2b2d52b47f7b2b5f15a8a7df4",
+   "security_definer": true,
+   "signature": "impact_deposer(text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "cb46a7fb2b596a7c9003b2e7637cd777",
+   "security_definer": true,
+   "signature": "impact_marquer_traite(text)"
+  },
+  {
+   "empreinte": "f82a56326e4d5bc9810ddaa8eb143335",
+   "security_definer": true,
+   "signature": "justice_condamner(text,jsonb)"
+  },
+  {
+   "empreinte": "9cee1dae5ff493ac1ec5c5004947f71b",
+   "security_definer": true,
+   "signature": "justice_executer_condamnation(text,text)"
+  },
+  {
+   "empreinte": "079b9f859fda10bc7856a9c354444fe4",
+   "security_definer": true,
+   "signature": "justice_prolonger_peine(text,jsonb,boolean)"
+  },
+  {
+   "empreinte": "9f34fd4454bd5d401a6449f388aba411",
+   "security_definer": true,
+   "signature": "justice_recherches(text)"
+  },
+  {
+   "empreinte": "c5e9a98d56562d91e9f0c25319d9cb5d",
+   "security_definer": true,
+   "signature": "plainte_deposer(text,text)"
+  },
+  {
+   "empreinte": "9c18207b569e147baa42e8a78f1895a9",
+   "security_definer": true,
+   "signature": "plainte_instruire_interne(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "b6bdd6b193a5b036049897bfebfef141",
+   "security_definer": true,
+   "signature": "plainte_traiter(text,text)"
+  },
+  {
+   "empreinte": "739d1aa177fbf39f8c0733686d7b8e46",
+   "security_definer": true,
+   "signature": "plaintes_epingler_verdict()"
+  },
+  {
+   "empreinte": "59dba7065321f51fca9e31e64b85d91e",
+   "security_definer": true,
+   "signature": "police_autorite_de_perimetre(text,text)"
+  },
+  {
+   "empreinte": "006a13a435f6dff02e4a09a3d37eff67",
+   "security_definer": true,
+   "signature": "police_caracteristiques_metier()"
+  },
+  {
+   "empreinte": "f23ea592fbfbf2bc1a0d4b7cad5015c0",
+   "security_definer": true,
+   "signature": "police_payer_effectifs(text)"
+  },
+  {
+   "empreinte": "1045e4d36763a9eea9030e321803f6fc",
+   "security_definer": false,
+   "signature": "police_pnj_id(text,text,text)"
+  },
+  {
+   "empreinte": "7f13e5d7cd480cc8dd2c9a763eab970d",
+   "security_definer": true,
+   "signature": "presidence_gracier(text,integer)"
+  },
+  {
+   "empreinte": "cf977591cd94943b952f3356d6d702a1",
+   "security_definer": true,
+   "signature": "qhs_pouvoir(text,text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "73cb7caf141b2306372a0a82aa9a8b05",
+   "nom": "idx_actions_tracables_pays"
+  },
+  {
+   "empreinte": "76e729f35fe3e3178d13c4021ff454e6",
+   "nom": "jugements_accuse_actifs"
+  }
+ ],
+ "index_portes": [
+  "actions_tracables_pkey",
+  "demandes_grace_pkey",
+  "detentions_pkey",
+  "impacts_indices_attente_id_unique",
+  "impacts_indices_attente_pkey",
+  "jugements_pkey",
+  "niveaux_prison_pkey",
+  "plaintes_en_cours_pkey",
+  "prisonniers_qhs_pkey",
+  "rumeurs_actives_pkey",
+  "vols_en_attente_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "7a96dd4440b9c58315b78b1557da60b7",
+   "empreinte_avec_roles": "db12588306206aa029c8d3fb044560f6",
+   "nom": "traces confession",
+   "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "042a7569a08789b05c1cf3ef8899bbf2",
+   "empreinte_avec_roles": "9786dd51ac0500d9a487858442f587b4",
+   "nom": "traces creation acteur",
+   "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "2d37c5c57fb726ddbbb8cbbee0762773",
+   "nom": "traces lecture",
+   "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "9f38733f3846bc6faddbb488e6fe7ca0",
+   "empreinte_avec_roles": "57bc54e447d057071626f3d2d2cd5fa9",
+   "nom": "grace lue par le president et le proposant",
+   "tbl": "demandes_grace"
+  },
+  {
+   "empreinte": "42624bad5cd8eb3751de0d5a5e1f8799",
+   "empreinte_avec_roles": "9bfef27d51776ae87613c4c1e6079f64",
+   "nom": "grace proposee par le ministre de la justice",
+   "tbl": "demandes_grace"
+  },
+  {
+   "empreinte": "2e6457f9a66355d82c32a9a1c4bd74dc",
+   "empreinte_avec_roles": "186353aefc9154a8c7af9235c136f230",
+   "nom": "grace tranchee par le president",
+   "tbl": "demandes_grace"
+  },
+  {
+   "empreinte": "ca7d813f39d59bc85adaea724181ff30",
+   "empreinte_avec_roles": "8ad5d9394cf9a321926f2dd8f2377f9f",
+   "nom": "detentions_ecriture_soi",
+   "tbl": "detentions"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "35f8acca1d74c581f14b2a2ec08ddbc8",
+   "nom": "detentions_lecture",
+   "tbl": "detentions"
+  },
+  {
+   "empreinte": "a69354681ef3d322d14d901a95491ec9",
+   "empreinte_avec_roles": "1a4c530da7392b00df286263deadd770",
+   "nom": "detentions_maj_soi",
+   "tbl": "detentions"
+  },
+  {
+   "empreinte": "ce267006ab24a965fb970ed196bb05dd",
+   "empreinte_avec_roles": "9d0f89ffcc007ee9343cc83d0376ad37",
+   "nom": "impacts_lecture_victime",
+   "tbl": "impacts_indices_attente"
+  },
+  {
+   "empreinte": "4030f9126730c692eca0d789fe8d6219",
+   "empreinte_avec_roles": "3b129fc2a8093d5a1b3791d9e1c64d47",
+   "nom": "jugements_insertion_juge",
+   "tbl": "jugements"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "30f0cac895c2686cebea96daa85bc565",
+   "nom": "jugements_lecture",
+   "tbl": "jugements"
+  },
+  {
+   "empreinte": "c976d517a98be0806c0f7d73585b7214",
+   "empreinte_avec_roles": "42cc87c601d6cd77ec9ee82d3f800e68",
+   "nom": "affaire lue par les parties, l autorite, ou publique une fois j",
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "empreinte": "b07b31f2782311357d2a0dd88343a041",
+   "empreinte_avec_roles": "aac9b8150dbe6353825209e0947e4320",
+   "nom": "plaintes_insertion_affaires",
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "empreinte": "a1920518329db6b9c3e0a11320d134e3",
+   "empreinte_avec_roles": "457eff5e500400e1586e186a45945edf",
+   "nom": "plaintes_maj_affaires",
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "empreinte": "cc883e8e8a62783b32f481a2e550bb17",
+   "empreinte_avec_roles": "e612eef85c589a157200cc09b7bbf150",
+   "nom": "prisonniers_qhs_insertion_soi",
+   "tbl": "prisonniers_qhs"
+  },
+  {
+   "empreinte": "905e44656aeb4246823e9a96d0f17f9e",
+   "empreinte_avec_roles": "6dc8893a03a70f54f3d505ae2430be9e",
+   "nom": "prisonniers_qhs_maj_soi",
+   "tbl": "prisonniers_qhs"
+  },
+  {
+   "empreinte": "d85ca1ab11116cdbd42e5bd464836e0a",
+   "empreinte_avec_roles": "d9f93b3d64bd51bbda10fcf3e18063d6",
+   "nom": "qhs registre reserve aux habilites et au detenu",
+   "tbl": "prisonniers_qhs"
+  },
+  {
+   "empreinte": "6f816f197538c4270266f341fcb118d3",
+   "empreinte_avec_roles": "3c5a95fe5f20592057cca6e63728d8a6",
+   "nom": "dementi par un membre du gouvernement",
+   "tbl": "rumeurs_actives"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "631869588a92ac28670e5e510650de2c",
+   "nom": "les rumeurs courent entre joueurs",
+   "tbl": "rumeurs_actives"
+  },
+  {
+   "empreinte": "20ecaf141e5d52f256059bc5b18ccc14",
+   "empreinte_avec_roles": "0f415552e263483bdb5a7838849a2b0d",
+   "nom": "rumeur creee sur soi-meme",
+   "tbl": "rumeurs_actives"
+  },
+  {
+   "empreinte": "8eb62364273b207e464675ef2531b0e7",
+   "empreinte_avec_roles": "4c6b9079ca0284217c93eb6803d242ed",
+   "nom": "vols consommation victime",
+   "tbl": "vols_en_attente"
+  },
+  {
+   "empreinte": "fc944d85b5bb6606d0b7db41602a1f2e",
+   "empreinte_avec_roles": "010fe51f2f58537fac0af70b34ca7824",
+   "nom": "vols depot par le voleur",
+   "tbl": "vols_en_attente"
+  },
+  {
+   "empreinte": "ce267006ab24a965fb970ed196bb05dd",
+   "empreinte_avec_roles": "f527e27048d92d8dbd3a2c8d651ca879",
+   "nom": "vols lecture victime",
+   "tbl": "vols_en_attente"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "actions_tracables"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "demandes_grace"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "detentions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "impacts_indices_attente"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "jugements"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "niveaux_prison"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "prisonniers_qhs"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rumeurs_actives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "vols_en_attente"
+  }
+ ],
+ "sequences": [],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "0e8f08f4bed76cc2942577db82ecd7fa",
+   "empreinte_texte": "cf447b3b26bf88d48707eedb61d0b084",
+   "nom": "actions_tracables"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "ae10489ada778014e1b287fd8285ad64",
+   "empreinte_texte": "b24e7c17d42068d3611c04b92ce12d49",
+   "nom": "demandes_grace"
+  },
+  {
+   "colonnes": 21,
+   "empreinte_catalogue": "a92d4cfe971153b23f97dea9eeb5b69f",
+   "empreinte_texte": "babdae7b24365a4515d125426df0c902",
+   "nom": "detentions"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "2dc8d53d5fa5425bfd33967073789fdf",
+   "empreinte_texte": "e3c1fb371af0fd280ffba1ceea48b26d",
+   "nom": "impacts_indices_attente"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "9949884d0fea0002ad02225c5be9844f",
+   "empreinte_texte": "be23b2369ca8bd7439f4c2fbed593d98",
+   "nom": "jugements"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "2a61ff837b5816762f64330b2f37409a",
+   "empreinte_texte": "bbd66107d516ac98f021233fc647d672",
+   "nom": "niveaux_prison"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "cec2a81437df38f1df50f18288335dd7",
+   "empreinte_texte": "b5eb668a99685928bf92e17105193114",
+   "nom": "plaintes_en_cours"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "cc5145348abd9ebddbb2e98963b8bb42",
+   "empreinte_texte": "8e8678643cfe5627aea22a0d337e1084",
+   "nom": "prisonniers_qhs"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "60fbb5dbbc6e2b0435a9c73c95204de9",
+   "empreinte_texte": "f861a290166e8f4f91cd78c2ded5419d",
+   "nom": "rumeurs_actives"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "7d3e92003ea77953bbc3128e720567f4",
+   "empreinte_texte": "f7b0788cfaea3f86bb661b5955a2baaf",
+   "nom": "vols_en_attente"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "3668193290c443c692f7d8d7a6bbb223",
+   "fonction": "plaintes_epingler_verdict()",
+   "nom": "trg_plaintes_epingler_verdict",
+   "tbl": "plaintes_en_cours"
+  }
+ ],
+ "vues": []
+}

@@ -1,0 +1,47 @@
+-- ETAT INITIAL A CONSTRUIRE -- organisations
+-- ============================================================================
+-- Table     : public.organisations
+-- Domaine   : personnage et presence
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- La table est VIDE en base (0 ligne). Elle melange deux natures
+-- d'organisations. (1) Les clubs de supporters de chaque ville et le
+-- Syndicat des Dockers de Port-Sainte-Marie : authored, mais materialises
+-- PARESSEUSEMENT par le moteur a la premiere sollicitation d'un joueur
+-- (doRejoindreClubSupporters, chargerOuCreerSyndicatDockersPSM) -- ils ne se
+-- seedent pas, et c'est normal. (2) Les DEUX LOGES MACONNIQUES de Republia :
+-- Luthecia et Montrouge. Leurs deux locaux existent bien dans data.js
+-- (loge-maconnique de capitale et de ville_b) et des PNJ y sont poses, mais
+-- AUCUN n'est rattache a une ligne organisations : le lien
+-- chef-d'organisation n'existe nulle part. Et surtout, aucune auto-creation
+-- n'existe pour les loges : rien, aujourd'hui, ne les fait naitre.
+--
+-- CE QU'IL FAUT DECIDER
+-- ARBITRAGE DEJA RENDU PAR LE GAME DESIGNER, A CONSTRUIRE : Republia doit
+-- naitre avec ses DEUX loges deja constituees, dotees de leur local et de
+-- leur chef PNJ, parce que la mecanique de prise de pouvoir suppose qu'une
+-- organisation a deja un chef. Chefs arbitres : LUTHECIA -> Frere Jacques
+-- D'Equerre ; MONTROUGE -> Venerable Maitre Duval. Ce qui reste a construire
+-- est le MECANISME, pas la decision : il faut (a) une ligne organisations
+-- par loge, (b) le rattachement de son local, (c) le rattachement de son
+-- chef PNJ, et (d) la creation de ces deux lignes au demarrage d'un monde.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- NE PAS fabriquer un seed compatible avec un mecanisme inexistant. Tant que
+-- le rattachement chef-d'organisation n'existe pas, un INSERT dans
+-- organisations produirait deux loges sans chef -- donc une mecanique de
+-- prise de pouvoir cassee, ce qui est pire que l'absence. NE PAS seeder les
+-- clubs de supporters ni le syndicat des dockers : leur materialisation
+-- paresseuse est le comportement voulu. NE PAS inventer un troisieme PNJ
+-- pour Luthecia.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

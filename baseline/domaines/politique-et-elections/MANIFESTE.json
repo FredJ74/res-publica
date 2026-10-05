@@ -1,0 +1,1154 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "5ad47d2fcf6de670f6e77bd3bf8b9527",
+   "genre": "COLUMN",
+   "objet": "elections_tracts_pnj",
+   "sous": "canal"
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "candidatures_pkey",
+   "tbl": "candidatures"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "cycles_electoraux_pkey",
+   "tbl": "cycles_electoraux"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "demandes_manifestation_pkey",
+   "tbl": "demandes_manifestation"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "elections_tracts_pnj_pkey",
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fraudes_electorales_pkey",
+   "tbl": "fraudes_electorales"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "greves_generales_pkey",
+   "tbl": "greves_generales"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "indices_villes_pkey",
+   "tbl": "indices_villes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "mandats_maires_archives_pkey",
+   "tbl": "mandats_maires_archives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "militants_recrutes_pkey",
+   "tbl": "militants_recrutes"
+  },
+  {
+   "empreinte": "db363208cf9cb0a9adba07c0a9eb50b7",
+   "genre": "p",
+   "nom": "rp_epoques_pkey",
+   "tbl": "rp_epoques"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "rp_transitions_pkey",
+   "tbl": "rp_transitions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "votes_confiance_pkey",
+   "tbl": "votes_confiance"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "votes_confiance_bulletins_pkey",
+   "tbl": "votes_confiance_bulletins"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "votes_electoraux_pkey",
+   "tbl": "votes_electoraux"
+  },
+  {
+   "empreinte": "60f6a61d714c20ae989c4a71d06f2361",
+   "genre": "u",
+   "nom": "elections_tracts_pnj_cycle_id_tour_pnj_cle_key",
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "empreinte": "0612128859141cc9dbb4af0d024f34ae",
+   "genre": "c",
+   "nom": "elections_tracts_pnj_effet_check",
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "empreinte": "e4a0a7b6e416bf856a534ca261cf132a",
+   "genre": "c",
+   "nom": "elections_tracts_pnj_sens_check",
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "empreinte": "853bdb167ecaae570966757b57dfd06d",
+   "genre": "c",
+   "nom": "fraudes_electorales_etat_check",
+   "tbl": "fraudes_electorales"
+  },
+  {
+   "empreinte": "501b537ef395d06fe0468e3eb12b1fd4",
+   "genre": "c",
+   "nom": "fraudes_electorales_type_check",
+   "tbl": "fraudes_electorales"
+  }
+ ],
+ "domaine": "politique et elections",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "candidature_publier(text,text,numeric,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidature_publier(text,text,numeric,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidature_publier(text,text,numeric,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidatures_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidatures_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cycles_electoraux_dimanche()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cycles_electoraux_dimanche()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "indice_ville_ajuster_interne(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "indice_ville_ajuster_interne(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militant_recruter(text,text,text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militant_recruter(text,text,text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militant_recruter(text,text,text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militant_recruter(text,text,text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militant_recruter(text,text,text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_accepter_nomination(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_accepter_nomination(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_accepter_nomination(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_attribuer_candidature(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_attribuer_candidature(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_attribuer_candidature(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_attribuer_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_attribuer_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_autorite_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_autorite_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_autorite_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_est_atteste(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_est_atteste(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_est_atteste(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_nommer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_nommer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_nommer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_postuler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_postuler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_postuler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_quitter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_quitter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_quitter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_revoquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_revoquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_revoquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "elections_tracts_pnj_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "elections_tracts_pnj_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "elections_tracts_pnj_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "elections_tracts_pnj_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "candidatures",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "candidatures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "candidatures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "candidatures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "cycles_electoraux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "cycles_electoraux",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "cycles_electoraux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "cycles_electoraux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "demandes_manifestation",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "demandes_manifestation",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "demandes_manifestation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "demandes_manifestation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "elections_tracts_pnj",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "elections_tracts_pnj",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "elections_tracts_pnj",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "elections_tracts_pnj",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "fraudes_electorales",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "fraudes_electorales",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fraudes_electorales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fraudes_electorales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "greves_generales",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "greves_generales",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "greves_generales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "greves_generales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "indices_villes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "indices_villes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "indices_villes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "indices_villes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "mandats_maires_archives",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "mandats_maires_archives",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mandats_maires_archives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mandats_maires_archives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "militants_recrutes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "militants_recrutes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "militants_recrutes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rp_epoques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rp_epoques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rp_transitions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rp_transitions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "votes_confiance",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "votes_confiance",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "votes_confiance",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "votes_confiance",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "votes_confiance_bulletins",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "votes_confiance_bulletins",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "votes_confiance_bulletins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "votes_confiance_bulletins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "votes_electoraux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "votes_electoraux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "votes_electoraux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "votes_electoraux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "d341852b751536f74b05e46444766e78",
+  "20_fonctions.sql": "85b97d5ab7197b7b4a71ad34e5530375",
+  "30_contraintes.sql": "74b60f013ac9da92adbec51b9abb6a9f",
+  "35_index.sql": "b5f2cff596e2b8bb0e41dc89148bbe98",
+  "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
+  "60_rls-policies.sql": "e999586b242bc2eb71ea76418d1d2a9c",
+  "70_droits.sql": "e79bfb52d35783dc6f8517a98c9cf840",
+  "80_commentaires.sql": "f59a02586f44b50e4fa0bb45553a9475"
+ },
+ "fonctions": [
+  {
+   "empreinte": "9e14d069bcafcd6b2c3de632a7d3d469",
+   "security_definer": true,
+   "signature": "candidature_publier(text,text,numeric,text,text)"
+  },
+  {
+   "empreinte": "64108c614819842a4443ed70e44358c8",
+   "security_definer": true,
+   "signature": "candidatures_cloture()"
+  },
+  {
+   "empreinte": "ac07f64d79b3d43e6b4734e9c476f461",
+   "security_definer": false,
+   "signature": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)"
+  },
+  {
+   "empreinte": "19fc5dd0f693ad27a99e6e09ee380ffa",
+   "security_definer": true,
+   "signature": "cycles_electoraux_dimanche()"
+  },
+  {
+   "empreinte": "a40bbfdbe6eba0a47ca3364f92e32d2a",
+   "security_definer": true,
+   "signature": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)"
+  },
+  {
+   "empreinte": "22cea807f67ec0d58869461e6d24dbd9",
+   "security_definer": true,
+   "signature": "indice_ville_ajuster_interne(text,text,text,integer)"
+  },
+  {
+   "empreinte": "98a4c8d952e4b7e49275753ba572e8a6",
+   "security_definer": true,
+   "signature": "militant_recruter(text,text,text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "441f3c748286f33c6d432684fcb53876",
+   "security_definer": true,
+   "signature": "poste_accepter_nomination(text)"
+  },
+  {
+   "empreinte": "b986edef61ac5a719d91fe322ee34771",
+   "security_definer": true,
+   "signature": "poste_attribuer_candidature(text,text,text)"
+  },
+  {
+   "empreinte": "372e1230a06e6909192bb8e8346c43a2",
+   "security_definer": true,
+   "signature": "poste_attribuer_interne(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "0942efb117ce9b10a8ea4b58fe1b7f3b",
+   "security_definer": true,
+   "signature": "poste_autorite_de(text,text)"
+  },
+  {
+   "empreinte": "38a39a690dcfc9934aa9fac4e2e5b515",
+   "security_definer": true,
+   "signature": "poste_est_atteste(text,jsonb,text)"
+  },
+  {
+   "empreinte": "0a49133ca3c163ad4c239da42b486fa6",
+   "security_definer": true,
+   "signature": "poste_nommer(text,text,text)"
+  },
+  {
+   "empreinte": "92fefcf58dd73d2b46e06475b7f7f6b0",
+   "security_definer": true,
+   "signature": "poste_postuler(text,text)"
+  },
+  {
+   "empreinte": "245d8d8a66d61e53ad351da27d1529fa",
+   "security_definer": true,
+   "signature": "poste_quitter()"
+  },
+  {
+   "empreinte": "47d1231420f15bebf2618bb2da563023",
+   "security_definer": true,
+   "signature": "poste_revoquer(text,text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "dd35466a98dafe4dffd7afbc172e6e8e",
+   "nom": "elections_tracts_pnj_cycle_tour"
+  },
+  {
+   "empreinte": "455b1278d8c9b2d88f9b340de5af41bc",
+   "nom": "fraudes_electorales_scrutin_idx"
+  },
+  {
+   "empreinte": "f66cf0e89a65ed0e6c9efef97af230a6",
+   "nom": "idx_greves_generales_country_statut"
+  },
+  {
+   "empreinte": "8bdc628457c9873115d6c6e63e282f16",
+   "nom": "mandats_maires_archives_ville_idx"
+  },
+  {
+   "empreinte": "163e5b76fcaae5c8ebec1a4d7bbae2f4",
+   "nom": "votes_confiance_country_statut_idx"
+  },
+  {
+   "empreinte": "9d97139a72515411ee8dba4553dee6da",
+   "nom": "votes_confiance_statut_idx"
+  }
+ ],
+ "index_portes": [
+  "candidatures_pkey",
+  "cycles_electoraux_pkey",
+  "demandes_manifestation_pkey",
+  "elections_tracts_pnj_cycle_id_tour_pnj_cle_key",
+  "elections_tracts_pnj_pkey",
+  "fraudes_electorales_pkey",
+  "greves_generales_pkey",
+  "indices_villes_pkey",
+  "mandats_maires_archives_pkey",
+  "militants_recrutes_pkey",
+  "rp_epoques_pkey",
+  "rp_transitions_pkey",
+  "votes_confiance_bulletins_pkey",
+  "votes_confiance_pkey",
+  "votes_electoraux_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "ca7d813f39d59bc85adaea724181ff30",
+   "empreinte_avec_roles": "52f23b0e78386e74c77724d324243ec2",
+   "nom": "candidatures_depot_soi",
+   "tbl": "candidatures"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "d35ff27d38a19162393ffdd93a67c6dd",
+   "nom": "candidatures_lecture",
+   "tbl": "candidatures"
+  },
+  {
+   "empreinte": "6790b5f5b32390c210769534e902c7ad",
+   "empreinte_avec_roles": "37490cde2ba840db8d24f384373886a5",
+   "nom": "candidatures_retrait_soi",
+   "tbl": "candidatures"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "993e544275b868a7b2367cb90aa1b651",
+   "nom": "cycles_electoraux_lecture",
+   "tbl": "cycles_electoraux"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "d4be47952a497543c68a1dd9c87f0aae",
+   "nom": "Ecriture publique demandes manifestation",
+   "tbl": "demandes_manifestation"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "4476580d000fd70935b238b9d446c3a2",
+   "nom": "Lecture publique demandes manifestation",
+   "tbl": "demandes_manifestation"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "3c5fe430ab82881815bbf43caa33002e",
+   "nom": "Maj publique demandes manifestation",
+   "tbl": "demandes_manifestation"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "7476aed6051e3c5516a2aec99e18365f",
+   "nom": "elections_tracts_pnj_lecture",
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "cf69058e16bf2cf5256a0c3a940be755",
+   "nom": "mandats_maires_archives_lecture",
+   "tbl": "mandats_maires_archives"
+  },
+  {
+   "empreinte": "8de3b28b5b30b563150f94386d37b61b",
+   "empreinte_avec_roles": "802b892fbb50ecdf43e2cfbbfe07bdcf",
+   "nom": "militants : les siens, et rien d autre",
+   "tbl": "militants_recrutes"
+  },
+  {
+   "empreinte": "d7a7b5c83ac33345ff99de15adee5f5e",
+   "empreinte_avec_roles": "208135b7920806f5ca0c6f7fe771af16",
+   "nom": "militants recrutes en son propre nom",
+   "tbl": "militants_recrutes"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "0dbaff73081ced61828614a1f42c1977",
+   "nom": "allow_all_votes_confiance",
+   "tbl": "votes_confiance"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "bfdbf73d4dac87b200af2fd933611192",
+   "nom": "allow_all_votes_confiance_bulletins",
+   "tbl": "votes_confiance_bulletins"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "11d5f05cf85f6281e449443b24801a34",
+   "nom": "votes_electoraux_lecture",
+   "tbl": "votes_electoraux"
+  },
+  {
+   "empreinte": "d4e4abb373a05deaf1c0fd43a579e475",
+   "empreinte_avec_roles": "50b0e8e44d013ae852cb9c999e5b5c3b",
+   "nom": "votes_electoraux_vote_soi",
+   "tbl": "votes_electoraux"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "candidatures"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "cycles_electoraux"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "demandes_manifestation"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "elections_tracts_pnj"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "fraudes_electorales"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "greves_generales"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "indices_villes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mandats_maires_archives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "militants_recrutes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rp_epoques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rp_transitions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "votes_confiance"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "votes_confiance_bulletins"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "votes_electoraux"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "elections_tracts_pnj_id_seq",
+   "possedee": true,
+   "tbl": "elections_tracts_pnj"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "7d284e4dbce4d2726331ab6bf3180c34",
+   "empreinte_texte": "0a75f3667eb7ce85f41e688f538adce3",
+   "nom": "candidatures"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "47454e79a190cc60d8a8938e8af6167e",
+   "empreinte_texte": "72335ed833d53028cfe65f2f049beb74",
+   "nom": "cycles_electoraux"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "ae10489ada778014e1b287fd8285ad64",
+   "empreinte_texte": "b24e7c17d42068d3611c04b92ce12d49",
+   "nom": "demandes_manifestation"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "203bcb3d3491e88b288f305d7db663d1",
+   "empreinte_texte": "62750033e075ab04508ebd2795175e86",
+   "nom": "elections_tracts_pnj"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "f708b9f068125773908e61461b4ab0fb",
+   "empreinte_texte": "4ec416d38c9949772f236b44785e43f8",
+   "nom": "fraudes_electorales"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "f9886aafdcfc54ef08ee198d2bd718d9",
+   "empreinte_texte": "ba9eb6e8f71a0334df9ea837f3b8c0f1",
+   "nom": "greves_generales"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f45208dcd7330a52c598bb4487e4424d",
+   "empreinte_texte": "0edfa45a0d3b74c9b16c59e148bc5b59",
+   "nom": "indices_villes"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "a5a1c2f39ab52de4260f9f815e2e826d",
+   "empreinte_texte": "65c3444d326888828df2f69ed775b1ff",
+   "nom": "mandats_maires_archives"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "0c6415470734a7e669acb5ef8828b285",
+   "empreinte_texte": "8b0cce0fd0d29252374a532ac44977f0",
+   "nom": "militants_recrutes"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "2d26fd1956e8180c042f2477b2c07fe9",
+   "empreinte_texte": "39fda4ea4ec92310143f492c5fb52951",
+   "nom": "rp_epoques"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "85204425836f9a964bc4cc232ddbb4ef",
+   "empreinte_texte": "d68fe7064c40dfb725d7cd7d1908d8b5",
+   "nom": "rp_transitions"
+  },
+  {
+   "colonnes": 13,
+   "empreinte_catalogue": "6bf4404ed379f32ce37388084a0b23c2",
+   "empreinte_texte": "e89ed1a9e4355264958848e1d259b8f9",
+   "nom": "votes_confiance"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "a43f9101eafe2c3943fad8df4151228b",
+   "empreinte_texte": "40c0eec744f3e5b22f3a88f9bf9dda59",
+   "nom": "votes_confiance_bulletins"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "16e9e892626557833d9f62d6e662b465",
+   "empreinte_texte": "b880b6aa081733b99e8889e3fe756bec",
+   "nom": "votes_electoraux"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "4f2434a129a187e951e4b1fce630a038",
+   "fonction": "candidatures_cloture()",
+   "nom": "trg_candidatures_cloture",
+   "tbl": "candidatures"
+  },
+  {
+   "empreinte": "fc2174b1415df8a94d4ae4083a528180",
+   "fonction": "cycles_electoraux_dimanche()",
+   "nom": "trg_cycles_electoraux_dimanche",
+   "tbl": "cycles_electoraux"
+  }
+ ],
+ "vues": []
+}

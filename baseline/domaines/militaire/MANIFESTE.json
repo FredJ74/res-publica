@@ -1,0 +1,4508 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "763a1c694f25891b35be31ef94ee2bb5",
+   "genre": "FUNCTION",
+   "objet": "camion_batiment_interieur()",
+   "sous": ""
+  },
+  {
+   "empreinte": "5dd4261898d3f79510128fee1a966ffc",
+   "genre": "FUNCTION",
+   "objet": "camion_deplacer(text,text,boolean,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b97ec8ca98bb61a579fe589cc46fff22",
+   "genre": "FUNCTION",
+   "objet": "camion_descendre(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "634c51f248c831c1e0871ea5772dc985",
+   "genre": "FUNCTION",
+   "objet": "camion_destinations(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "23c58dde8c2c3de9487c24739c4f7aec",
+   "genre": "FUNCTION",
+   "objet": "camion_etat(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "94eabe2e73e2583c2de682cf70268f3b",
+   "genre": "FUNCTION",
+   "objet": "camion_grade_commandant(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "efa07ebd5f1c68bf890f18ae48d6249f",
+   "genre": "FUNCTION",
+   "objet": "camion_monter(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b766960c0258f8c49544607b2aa40245",
+   "genre": "FUNCTION",
+   "objet": "camion_occupants(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "9c3383dc6fce7f1307f61a5425c3d7cd",
+   "genre": "FUNCTION",
+   "objet": "camions_ici(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "efba91b6899430cdfedaaec51dc49a36",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "2d82b59293ebef08a4b15b844c39f53b",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "7406e4a5c6ee9cfaf81abb7cefbd7968",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_combattants(bigint,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "706e639a366d989b816cf256cdc90cbc",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_soldat(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "8c225ed9429f1e6236b4bb5591a4efcd",
+   "genre": "FUNCTION",
+   "objet": "militaire_ma_section()",
+   "sous": ""
+  },
+  {
+   "empreinte": "b296e6c44c75fa009662f74c460ed0b5",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f67cc59723341a03c06032fafeb847aa",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_dormir(text,text[],text[])",
+   "sous": ""
+  },
+  {
+   "empreinte": "7006da84e859b01df12cdbfa7fa79da4",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "86a1a1ede4d71cfc8ce5c1a05f24a085",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_manger(text,text[])",
+   "sous": ""
+  },
+  {
+   "empreinte": "bc19daaa4ffc9119d5dc10bdd5a5c5eb",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_rejoindre(text,text[])",
+   "sous": ""
+  },
+  {
+   "empreinte": "6562360ecae8ed4012205f6fe1f913d8",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_section()",
+   "sous": ""
+  },
+  {
+   "empreinte": "f73a937e165357ec315a964537b23ea0",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_transferer(text,text,text,integer,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "61b1f3de5c68fcdd22fa415482fa55cc",
+   "genre": "TABLE",
+   "objet": "batailles_groupes",
+   "sous": ""
+  },
+  {
+   "empreinte": "072334bcfae5c5b927afbc3842d81a6f",
+   "genre": "TABLE",
+   "objet": "camions_destinations",
+   "sous": ""
+  },
+  {
+   "empreinte": "1c0c6c58ce20f8e239ea1690b1d203db",
+   "genre": "TABLE",
+   "objet": "camions_embarquements",
+   "sous": ""
+  },
+  {
+   "empreinte": "84a4609d9e06d07b886d2c15dd2da5fd",
+   "genre": "TABLE",
+   "objet": "camions_militaires",
+   "sous": ""
+  },
+  {
+   "empreinte": "9b27efe44e96fc2008babd7c8113de66",
+   "genre": "TABLE",
+   "objet": "camions_ordres",
+   "sous": ""
+  },
+  {
+   "empreinte": "4efc81d199b3371fea0c9182dfc28745",
+   "genre": "TABLE",
+   "objet": "candidatures_militaires",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "db363208cf9cb0a9adba07c0a9eb50b7",
+   "genre": "p",
+   "nom": "armureries_dotations_pkey",
+   "tbl": "armureries_dotations"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "batailles_pkey",
+   "tbl": "batailles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "batailles_engagements_pkey",
+   "tbl": "batailles_engagements"
+  },
+  {
+   "empreinte": "1743446e0ffae9dd4b654a2a8fb8b0ae",
+   "genre": "p",
+   "nom": "batailles_groupes_pkey",
+   "tbl": "batailles_groupes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "batailles_rounds_pkey",
+   "tbl": "batailles_rounds"
+  },
+  {
+   "empreinte": "92b5b8eb65713aed5957ca7caa78d718",
+   "genre": "p",
+   "nom": "camions_destinations_pkey",
+   "tbl": "camions_destinations"
+  },
+  {
+   "empreinte": "863002fbbbee85227d81d1adf6790dbd",
+   "genre": "p",
+   "nom": "camions_embarquements_pkey",
+   "tbl": "camions_embarquements"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "camions_militaires_pkey",
+   "tbl": "camions_militaires"
+  },
+  {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "camions_ordres_pkey",
+   "tbl": "camions_ordres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "candidatures_militaires_pkey",
+   "tbl": "candidatures_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "commandes_militaires_pkey",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "compagnies_militaires_pkey",
+   "tbl": "compagnies_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "contacts_militaires_pkey",
+   "tbl": "contacts_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "decorations_militaires_pkey",
+   "tbl": "decorations_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "engagements_militaires_pkey",
+   "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "guerres_pkey",
+   "tbl": "guerres"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "militaire_armes_bonus_pkey",
+   "tbl": "militaire_armes_bonus"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "militaire_detections_pkey",
+   "tbl": "militaire_detections"
+  },
+  {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "militaire_terminal_requetes_pkey",
+   "tbl": "militaire_terminal_requetes"
+  },
+  {
+   "empreinte": "662f41fd3fecad2edfa6d4e61ae29b1d",
+   "genre": "p",
+   "nom": "mutineries_pkey",
+   "tbl": "mutineries"
+  },
+  {
+   "empreinte": "5592bf977fb25c50264b6232f2192bcc",
+   "genre": "p",
+   "nom": "mutineries_membres_pkey",
+   "tbl": "mutineries_membres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "nominations_militaires_pkey",
+   "tbl": "nominations_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "retraits_materiel_militaire_pkey",
+   "tbl": "retraits_materiel_militaire"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "services_militaires_pkey",
+   "tbl": "services_militaires"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "soldes_militaires_pkey",
+   "tbl": "soldes_militaires"
+  },
+  {
+   "empreinte": "faf9e52839584b70a95e2debbacbbe88",
+   "genre": "c",
+   "nom": "batailles_statut_valide",
+   "tbl": "batailles"
+  },
+  {
+   "empreinte": "d3423f427bfb8ef45ab4747a6aed0e89",
+   "genre": "c",
+   "nom": "batailles_engagements_identite",
+   "tbl": "batailles_engagements"
+  },
+  {
+   "empreinte": "d95602f2f2bedd52ec0993582bbb7870",
+   "genre": "c",
+   "nom": "batailles_groupes_decision_check",
+   "tbl": "batailles_groupes"
+  },
+  {
+   "empreinte": "447120706c2097189f420b0d52be9982",
+   "genre": "c",
+   "nom": "camions_militaires_capacite_check",
+   "tbl": "camions_militaires"
+  },
+  {
+   "empreinte": "289c873278bce6ef9faf5875b987f933",
+   "genre": "c",
+   "nom": "camions_militaires_statut_check",
+   "tbl": "camions_militaires"
+  },
+  {
+   "empreinte": "2ef7ceee09eec014c2b960c6d87788cc",
+   "genre": "c",
+   "nom": "candidatures_militaires_grade_vise_check",
+   "tbl": "candidatures_militaires"
+  },
+  {
+   "empreinte": "48832154eb7529e19db9e326aea132c1",
+   "genre": "c",
+   "nom": "candidatures_militaires_statut_check",
+   "tbl": "candidatures_militaires"
+  },
+  {
+   "empreinte": "ee27d0c6fb38494a7ab2d868d849798a",
+   "genre": "c",
+   "nom": "commandes_militaires_quantite_demandee_check",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "6360c5cae63e2a47d605706f442fad69",
+   "genre": "c",
+   "nom": "commandes_militaires_quantite_produite_check",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "84c0ec2b966af1cdc06929b351b218cc",
+   "genre": "c",
+   "nom": "commandes_militaires_reliquat",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "326523a203b0f0fb3b3579e3fec88d92",
+   "genre": "c",
+   "nom": "commandes_militaires_statut",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "a5ae6a5431daee574cf8e65b6ab757f9",
+   "genre": "c",
+   "nom": "decorations_militaires_niveau_check",
+   "tbl": "decorations_militaires"
+  },
+  {
+   "empreinte": "3c353754e5d09061a0ce23f2d4cf9984",
+   "genre": "c",
+   "nom": "militaire_armes_bonus_mode_check",
+   "tbl": "militaire_armes_bonus"
+  },
+  {
+   "empreinte": "0d7821a2ef929c5b1cc7ce2d71c8ea36",
+   "genre": "c",
+   "nom": "nominations_militaires_grade_check",
+   "tbl": "nominations_militaires"
+  },
+  {
+   "empreinte": "819413a3f9fc2b06ee1010319f6f3658",
+   "genre": "c",
+   "nom": "retraits_materiel_militaire_quantite_check",
+   "tbl": "retraits_materiel_militaire"
+  },
+  {
+   "empreinte": "411ded567772178ffc48196bfecba997",
+   "genre": "f",
+   "nom": "batailles_engagements_bataille_id_fkey",
+   "tbl": "batailles_engagements"
+  },
+  {
+   "empreinte": "411ded567772178ffc48196bfecba997",
+   "genre": "f",
+   "nom": "batailles_rounds_bataille_id_fkey",
+   "tbl": "batailles_rounds"
+  },
+  {
+   "empreinte": "93dfd4d91e213c46ca476002f1da9941",
+   "genre": "f",
+   "nom": "contacts_militaires_bataille_id_fkey",
+   "tbl": "contacts_militaires"
+  },
+  {
+   "empreinte": "3cdf74ddfa03abd64db7faa6926bf726",
+   "genre": "f",
+   "nom": "mutineries_membres_camp_fkey",
+   "tbl": "mutineries_membres"
+  }
+ ],
+ "domaine": "militaire",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camion_batiment_interieur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_batiment_interieur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_batiment_interieur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camion_deplacer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_deplacer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_deplacer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camion_descendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_descendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_descendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_destinations(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_destinations(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camion_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_grade_commandant(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_grade_commandant(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camion_monter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_monter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_monter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camion_occupants(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camion_occupants(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "camions_ici(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "camions_ici(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "camions_ici(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caserne_stock_mouvement(text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caserne_stock_mouvement(text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caserne_virement_journalier_fixer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caserne_virement_journalier_fixer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caserne_virement_journalier_fixer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "effort_produire_lot(text,text,text,jsonb,jsonb,numeric,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "effort_produire_lot(text,text,text,jsonb,jsonb,numeric,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "effort_ravitailler(text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "effort_ravitailler(text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "effort_reserve_appliquer(text,jsonb,text[],numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "effort_reserve_appliquer(text,jsonb,text[],numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "effort_reserve_appliquer(text,jsonb,text[],numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "guerre_acteur_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "guerre_acteur_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "guerre_acteur_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "guerre_cessez_le_feu_activer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "guerre_cessez_le_feu_activer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "guerre_cessez_le_feu_activer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "guerre_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "guerre_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "guerre_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_proposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_proposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_proposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "guerre_treve_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_capitaine(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_lieutenant(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_lieutenant(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_accepter_lieutenant(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_accessoires_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_accessoires_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_accessoires_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_affectation_decouvrir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_affectation_decouvrir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_affectation_decouvrir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_affectations_expirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_affectations_expirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_affecter_leader(text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_affecter_leader(text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_affecter_leader(text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_operationnelle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_arme_recalculer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_armurerie_transfert(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_armurerie_transfert(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_armurerie_transfert(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_assigner_mission(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_assigner_mission(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_assigner_mission(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bande_distance(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bande_distance(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bande_distance(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_actions(bigint,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_actions(bigint,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_appliquer(bigint,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_appliquer(bigint,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_arbitrer_groupes(bigint,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_arbitrer_groupes(bigint,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_avancer(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_avancer(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_combattants(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_combattants(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decider(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decider(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decider(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decision_effective(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decision_effective(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decrocher_groupe(bigint,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_decrocher_groupe(bigint,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_doctrine(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_doctrine(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_doctrine(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_engager()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_engager()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_engager()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_etat(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_etat(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_etat(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_groupes_constituer(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_groupes_constituer(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_mon_camp(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_mon_camp(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_poursuivre(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_poursuivre(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_poursuivre(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_rapport(bigint,text,text,integer,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_rapport(bigint,text,text,integer,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_recruter(bigint,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_recruter(bigint,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_round(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bataille_round(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_blob_projeter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_blob_projeter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_bonus_arme(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_bonus_arme(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_calepin()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_calepin()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_calepin()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_camouflage_groupe(numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_camouflage_groupe(numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_camouflage_groupe(numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_camps_hostiles(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_camps_hostiles(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidater_soldat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidater_soldat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidater_soldat(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_accepter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_accepter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_accepter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_refuser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_refuser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_refuser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_retirer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_retirer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_retirer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidature_traiter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidatures_a_traiter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidatures_a_traiter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidatures_a_traiter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidatures_relancer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_candidatures_relancer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_chance_detection(numeric,numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_chance_detection(numeric,numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_chance_detection(numeric,numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnie_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnie_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnie_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_competences(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_competences(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_competences(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_decorer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_decorer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_decorer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_defense_pnj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_defense_pnj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_degats_pct(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_degats_pct(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_degrader(text,integer,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_degrader(text,integer,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_degrader(text,integer,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_combat(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_combat(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_par_rang(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_par_rang(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_rang(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_degre_rang(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_demettre_lieutenant(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_demettre_lieutenant(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_demettre_lieutenant(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_deposer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_deposer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_deposer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_desertions_verifier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_desertions_verifier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_desertions_verifier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_detachement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_detachement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_detachement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_compagnie(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_compagnie(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_compagnie(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_affecter_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_engagement_creer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_entrainer_section(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_entrainer_section(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_entrainer_section(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_entree_zone()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_entree_zone()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_entree_zone()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_accessoire(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_accessoire(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_accessoire(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_soldat(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_soldat(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_equiper_soldat(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_gilet_absorber(boolean,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_gilet_absorber(boolean,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_grade_effectif(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_grade_effectif(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_grade_effectif(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_groupe_sous_seuil(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_groupe_sous_seuil(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_lien_operationnel_rompre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_lien_operationnel_rompre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_ma_section()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_ma_section()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_malus_taille(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_malus_taille(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_malus_taille(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_batailles(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_batailles(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_batailles(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_candidatures()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_candidatures()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_mes_candidatures()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_mobilisation_fixer(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_mobilisation_fixer(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_mobilisation_fixer(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_modif_distance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_modif_distance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_modif_distance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_mon_pays()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_mon_pays()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_mon_pays()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_mutinerie_declencher()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_mutinerie_declencher()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_mutinerie_declencher()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_objet_signature(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_observer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_observer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_observer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_collectif(text,text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_collectif(text,text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_collectif(text,text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_pnj(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_pnj(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_ordre_pnj(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_pa_restants(integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_pa_restants(integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_places_libres_grade(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_places_libres_grade(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_places_libres_grade(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_position_repli(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_position_repli(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_presentation_affectation()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_presentation_affectation()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_presentation_affectation()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_capitaine(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_capitaine(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_capitaine(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_lieutenant(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_lieutenant(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_proposer_lieutenant(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_ration_consommer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_ration_consommer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_ration_consommer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_rations_retirer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_rations_retirer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_rations_retirer(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_recruteur_de_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_recruteur_de_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_recuperer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_recuperer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_recuperer_soldats(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_reposer_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_reposer_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_reposer_section(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_requisition_civile(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_requisition_civile(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_requisition_civile(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_retrait(text,text,integer,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_retrait(text,text,integer,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_retrait(text,text,integer,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_section_de_moi(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_section_de_moi(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_sections_remplacer(jsonb,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_sections_remplacer(jsonb,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_sections_remplacer(jsonb,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_fermer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_fermer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_jours(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_jours(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_jours(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_ouvrir(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_service_ouvrir(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_pa_fixer(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_pa_fixer(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_retirer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_retirer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_retirer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_supprimer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_soldat_supprimer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_solde_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_solde_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_solde_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_subtiliser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_subtiliser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_subtiliser_tenter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_subtiliser_tenter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_subtiliser_tenter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_taux_combat(numeric,numeric,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_taux_combat(numeric,numeric,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_dormir(text,text[],text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_dormir(text,text[],text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_dormir(text,text[],text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_liaison(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_manger(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_manger(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_manger(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_rejoindre(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_rejoindre(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_rejoindre(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_section()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_section()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_section()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_transferer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_transferer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_terminal_transferer(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_utiliser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_utiliser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_trousse_utiliser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "militaire_unites_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "militaire_unites_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_unites_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_unites_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_unites_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camp_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camp_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camp_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camps_presents(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camps_presents(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_camps_presents(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_est_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_est_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_est_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_pays_du_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_pays_du_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_pays_du_camp(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_social_national(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_social_national(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mutinerie_social_national(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "batailles_engagements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "batailles_engagements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "batailles_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "batailles_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "batailles_rounds_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "batailles_rounds_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "contacts_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "contacts_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "decorations_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "decorations_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "retraits_materiel_militaire_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "retraits_materiel_militaire_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "retraits_materiel_militaire_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "retraits_materiel_militaire_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "services_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "services_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "services_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "services_militaires_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "batailles",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batailles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batailles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "batailles_engagements",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batailles_engagements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batailles_engagements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "batailles_groupes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batailles_groupes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batailles_groupes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batailles_rounds",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batailles_rounds",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "camions_destinations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "camions_destinations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "camions_embarquements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "camions_embarquements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "camions_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "camions_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "camions_ordres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "camions_ordres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "candidatures_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "candidatures_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "commandes_militaires",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commandes_militaires",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "commandes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "commandes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "compagnies_militaires",
+   "privileges": "MAINTAIN"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "compagnies_militaires",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "compagnies_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "compagnies_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contacts_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contacts_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "decorations_militaires",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "decorations_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "decorations_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "engagements_militaires",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "engagements_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "engagements_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "guerres",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "guerres",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "guerres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "guerres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "militaire_armes_bonus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "militaire_armes_bonus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "militaire_detections",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "militaire_detections",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "militaire_terminal_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "militaire_terminal_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "mutineries",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mutineries",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mutineries",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "mutineries_membres",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "mutineries_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "mutineries_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "nominations_militaires",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "nominations_militaires",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "nominations_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "nominations_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "retraits_materiel_militaire",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "retraits_materiel_militaire",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "retraits_materiel_militaire",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "retraits_materiel_militaire",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "services_militaires",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "services_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "services_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "soldes_militaires",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "soldes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "soldes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "3839bcf8b78fe3ca4315074e0d6964fa",
+  "20_fonctions-1.sql": "f84c6c213f6c0427dec4937879b048cc",
+  "20_fonctions-2.sql": "5e75d503533698b93eb583e3275361cb",
+  "20_fonctions-3.sql": "fd318265cfa6c9ada80aeeb633910e4f",
+  "30_contraintes.sql": "dde0c79322c3754e5a81519d184c36eb",
+  "35_index.sql": "ace2b2e52d13010d5ded5fbee5cae436",
+  "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
+  "60_rls-policies.sql": "8edce57152d16e64785aa0fb3612c745",
+  "70_droits.sql": "a602cefe93081c9cbbccbb8b3ed304b2",
+  "80_commentaires.sql": "db7d7fe98309d0545b893c039fa61e2a"
+ },
+ "fonctions": [
+  {
+   "empreinte": "d9aaf6099c2489fa277d99fe63a10f63",
+   "security_definer": false,
+   "signature": "camion_batiment_interieur()"
+  },
+  {
+   "empreinte": "23b96156097b61e38f496ec96ce8ec95",
+   "security_definer": true,
+   "signature": "camion_deplacer(text,text,boolean,text)"
+  },
+  {
+   "empreinte": "2ddd1464498e06d5271e03e8ccdd9ac9",
+   "security_definer": true,
+   "signature": "camion_descendre(text)"
+  },
+  {
+   "empreinte": "2f689647f44323d1d5288714f46b92d8",
+   "security_definer": true,
+   "signature": "camion_destinations(text)"
+  },
+  {
+   "empreinte": "a9f7a43804b6e58a5c27807a140fd1ff",
+   "security_definer": true,
+   "signature": "camion_etat(text)"
+  },
+  {
+   "empreinte": "ef77b4e26a322d06881b34cc70791464",
+   "security_definer": true,
+   "signature": "camion_grade_commandant(text)"
+  },
+  {
+   "empreinte": "d101c2f04725a253e44b5d0e56542f88",
+   "security_definer": true,
+   "signature": "camion_monter(text,text)"
+  },
+  {
+   "empreinte": "459605ee09281a2b0e2ebb7b915b057e",
+   "security_definer": true,
+   "signature": "camion_occupants(text)"
+  },
+  {
+   "empreinte": "a2693742735c77b72f4c45b783c40ee6",
+   "security_definer": true,
+   "signature": "camions_ici(text,text,text,text)"
+  },
+  {
+   "empreinte": "5ad51300d7b029d4ccc45c1d64c44dc8",
+   "security_definer": true,
+   "signature": "caserne_stock_mouvement(text,text,integer,text)"
+  },
+  {
+   "empreinte": "ccd7d75db32a4b690dc979bb964ca106",
+   "security_definer": true,
+   "signature": "caserne_virement_journalier_fixer(integer)"
+  },
+  {
+   "empreinte": "112fdcbf677c8c4ce45f8c153fb51b0b",
+   "security_definer": true,
+   "signature": "effort_produire_lot(text,text,text,jsonb,jsonb,numeric,text,text,text,integer)"
+  },
+  {
+   "empreinte": "31f2d07521d88061e7e52114248df056",
+   "security_definer": true,
+   "signature": "effort_ravitailler(text,jsonb,jsonb,jsonb)"
+  },
+  {
+   "empreinte": "ba9ec3e8beb1c4e35ec1678230d444da",
+   "security_definer": true,
+   "signature": "effort_reserve_appliquer(text,jsonb,text[],numeric)"
+  },
+  {
+   "empreinte": "10ccf9acf1617380e3f234c4cf21792c",
+   "security_definer": true,
+   "signature": "guerre_acteur_poste(text)"
+  },
+  {
+   "empreinte": "53beaa5c7950200b5c0c9db6bccabd96",
+   "security_definer": true,
+   "signature": "guerre_cessez_le_feu_activer(text)"
+  },
+  {
+   "empreinte": "641860163bd258e1126e05e6abc17352",
+   "security_definer": true,
+   "signature": "guerre_declarer(text)"
+  },
+  {
+   "empreinte": "76bb44547d1bc15cd12e4eab14a9253e",
+   "security_definer": true,
+   "signature": "guerre_treve_proposer(text)"
+  },
+  {
+   "empreinte": "837736e23a1970827b77620c41eed8ed",
+   "security_definer": true,
+   "signature": "guerre_treve_repondre(text,boolean)"
+  },
+  {
+   "empreinte": "4a9a502d62b0bb8e389683b7d511bedb",
+   "security_definer": true,
+   "signature": "militaire_accepter_capitaine(text)"
+  },
+  {
+   "empreinte": "20278fac68c67f6d6a57b73301fb7f2e",
+   "security_definer": true,
+   "signature": "militaire_accepter_lieutenant(text)"
+  },
+  {
+   "empreinte": "7ace0abb4cf7282f38783823cf7ec39e",
+   "security_definer": true,
+   "signature": "militaire_accessoires_section(text,text)"
+  },
+  {
+   "empreinte": "98f0737ae4d8064b8d16b9103d1dc3aa",
+   "security_definer": true,
+   "signature": "militaire_affectation_decouvrir()"
+  },
+  {
+   "empreinte": "d25c1a9fd7a7fae2ac800846b84f901f",
+   "security_definer": true,
+   "signature": "militaire_affectations_expirer()"
+  },
+  {
+   "empreinte": "e84aec480cddc335d03c7acd9ca56ff6",
+   "security_definer": true,
+   "signature": "militaire_affecter_leader(text,text,integer,text)"
+  },
+  {
+   "empreinte": "bf4d1bd71ff9923f2e22c4f7196d1c52",
+   "security_definer": true,
+   "signature": "militaire_arme_operationnelle(text)"
+  },
+  {
+   "empreinte": "7633d61fd7768fb685766ef7e3b9f737",
+   "security_definer": true,
+   "signature": "militaire_arme_recalculer(text)"
+  },
+  {
+   "empreinte": "d2582490832af2b686d6d5f6320b2120",
+   "security_definer": true,
+   "signature": "militaire_armurerie_transfert(text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "7f615bb5d2149b915ef1b9665b0383ff",
+   "security_definer": true,
+   "signature": "militaire_assigner_mission(text,text,text,text)"
+  },
+  {
+   "empreinte": "1ef50a91a1ff46e06ce92232c035103e",
+   "security_definer": true,
+   "signature": "militaire_autorite_de_perimetre(text,text)"
+  },
+  {
+   "empreinte": "6194b2f7d24c24b7492dbb3f9322ff53",
+   "security_definer": false,
+   "signature": "militaire_bande_distance(text,text,text,text,text,text)"
+  },
+  {
+   "empreinte": "0f97987cc42476e4b8c88e69547a9275",
+   "security_definer": true,
+   "signature": "militaire_bataille_actions(bigint,text,integer,boolean)"
+  },
+  {
+   "empreinte": "3c84d4e542028b15ec3601c63ce54ea0",
+   "security_definer": true,
+   "signature": "militaire_bataille_appliquer(bigint,jsonb,integer)"
+  },
+  {
+   "empreinte": "5ce831001989e608f9c6f11a9578940e",
+   "security_definer": true,
+   "signature": "militaire_bataille_arbitrer_groupes(bigint,integer)"
+  },
+  {
+   "empreinte": "d75d07d28149948735428c2956f69284",
+   "security_definer": true,
+   "signature": "militaire_bataille_avancer(bigint)"
+  },
+  {
+   "empreinte": "d8ff58679c5b7c1bfc580e0637590180",
+   "security_definer": true,
+   "signature": "militaire_bataille_combattants(bigint,text)"
+  },
+  {
+   "empreinte": "1186c0947a180ff59ceca8e5ee1614ca",
+   "security_definer": true,
+   "signature": "militaire_bataille_decider(bigint,text)"
+  },
+  {
+   "empreinte": "7a28a07a25f174fbc6d312e3d3bb9eef",
+   "security_definer": true,
+   "signature": "militaire_bataille_decision_effective(bigint,text)"
+  },
+  {
+   "empreinte": "e5cb475ee61193586b7a2ec7ab95632b",
+   "security_definer": true,
+   "signature": "militaire_bataille_decrocher_groupe(bigint,text,integer)"
+  },
+  {
+   "empreinte": "7e84b7044aa0162c2fb7e1264c0542f8",
+   "security_definer": true,
+   "signature": "militaire_bataille_doctrine(bigint,text)"
+  },
+  {
+   "empreinte": "648545c4fadf53127fb5eca4cb8508da",
+   "security_definer": true,
+   "signature": "militaire_bataille_engager()"
+  },
+  {
+   "empreinte": "0fec31d80d972b8dbf22c66297978268",
+   "security_definer": true,
+   "signature": "militaire_bataille_etat(bigint)"
+  },
+  {
+   "empreinte": "1b29094cc4c65059f360118013e10f00",
+   "security_definer": true,
+   "signature": "militaire_bataille_groupes_constituer(bigint)"
+  },
+  {
+   "empreinte": "47720004f0e828e01ffea7b6729977fa",
+   "security_definer": true,
+   "signature": "militaire_bataille_mon_camp(bigint,text)"
+  },
+  {
+   "empreinte": "a13f9250e36f35f68490ed6a2024ffc8",
+   "security_definer": true,
+   "signature": "militaire_bataille_poursuivre(bigint)"
+  },
+  {
+   "empreinte": "bc5b5f773210131284dfda1956b041a7",
+   "security_definer": true,
+   "signature": "militaire_bataille_rapport(bigint,text,text,integer,jsonb,integer,integer)"
+  },
+  {
+   "empreinte": "3aeaf4a6d4b4c6b711d349a353fe00b7",
+   "security_definer": true,
+   "signature": "militaire_bataille_recruter(bigint,text,text,text,text)"
+  },
+  {
+   "empreinte": "eb3b837478001a062b8696ea00b24c9a",
+   "security_definer": true,
+   "signature": "militaire_bataille_round(bigint)"
+  },
+  {
+   "empreinte": "26ebec519eb8d93ca99b014b77348c46",
+   "security_definer": true,
+   "signature": "militaire_blob_projeter(text)"
+  },
+  {
+   "empreinte": "6b1bd9ebee20eda0857d31c488ed5290",
+   "security_definer": true,
+   "signature": "militaire_bonus_arme(text,text)"
+  },
+  {
+   "empreinte": "62a26605b3d64e0c1386f09794129d8d",
+   "security_definer": true,
+   "signature": "militaire_calepin()"
+  },
+  {
+   "empreinte": "2ff179dc7a36db99aee8991ea05de645",
+   "security_definer": false,
+   "signature": "militaire_camouflage_groupe(numeric,integer,integer)"
+  },
+  {
+   "empreinte": "39fd550222c2457772683b7353c11b80",
+   "security_definer": true,
+   "signature": "militaire_camps_hostiles(bigint,text)"
+  },
+  {
+   "empreinte": "eb438fcc837bc5cfea32000adb117c1f",
+   "security_definer": true,
+   "signature": "militaire_candidater_soldat(text,text)"
+  },
+  {
+   "empreinte": "bc014e9dd4c25fe16870244ad3c72c4e",
+   "security_definer": true,
+   "signature": "militaire_candidature_accepter(text,text,text)"
+  },
+  {
+   "empreinte": "ee6396a2ce5159feedfd89f70ec0b5a9",
+   "security_definer": true,
+   "signature": "militaire_candidature_deposer(text)"
+  },
+  {
+   "empreinte": "96ee81a45ced84d3ebce3c1d79ef9e31",
+   "security_definer": true,
+   "signature": "militaire_candidature_refuser(text)"
+  },
+  {
+   "empreinte": "399c28a04c23330f426454a064728936",
+   "security_definer": true,
+   "signature": "militaire_candidature_retirer(text)"
+  },
+  {
+   "empreinte": "72b7ef5b26957135bd8b90eb1debb378",
+   "security_definer": true,
+   "signature": "militaire_candidature_traiter(text,boolean)"
+  },
+  {
+   "empreinte": "3f3cde934844a476d3b9ea93c7e08c50",
+   "security_definer": true,
+   "signature": "militaire_candidatures_a_traiter()"
+  },
+  {
+   "empreinte": "b1b3bbc6d549085a49dfd86e66d37d31",
+   "security_definer": true,
+   "signature": "militaire_candidatures_relancer()"
+  },
+  {
+   "empreinte": "c653e7c8d0bf942d4751ddec760aaaa3",
+   "security_definer": false,
+   "signature": "militaire_chance_detection(numeric,numeric,integer,integer)"
+  },
+  {
+   "empreinte": "9772105a1e762ad4ba35c1b69c6ceb7e",
+   "security_definer": true,
+   "signature": "militaire_compagnie_creer()"
+  },
+  {
+   "empreinte": "501b4b215475e665c1f41b64c5f0fa0e",
+   "security_definer": true,
+   "signature": "militaire_competences(text)"
+  },
+  {
+   "empreinte": "43951f02dbc1317e7861066ab76f295b",
+   "security_definer": true,
+   "signature": "militaire_decorer(text,text,text)"
+  },
+  {
+   "empreinte": "c874f56556a6cf3ce65f8e2e668d7089",
+   "security_definer": false,
+   "signature": "militaire_defense_pnj(text)"
+  },
+  {
+   "empreinte": "1d0af1671d52820d25ae629b8873dec0",
+   "security_definer": false,
+   "signature": "militaire_degats_pct(text)"
+  },
+  {
+   "empreinte": "09885ebee616c3460911d4e5a0072dc3",
+   "security_definer": false,
+   "signature": "militaire_degrader(text,integer,text,text,text)"
+  },
+  {
+   "empreinte": "982b8671d0ce2b94fb0a46c5c7421461",
+   "security_definer": false,
+   "signature": "militaire_degre_combat(integer,integer)"
+  },
+  {
+   "empreinte": "0e33c697b88d3501ec8b8a3b6608f431",
+   "security_definer": false,
+   "signature": "militaire_degre_par_rang(integer)"
+  },
+  {
+   "empreinte": "137afb069c5b8954c3a9f28b78531228",
+   "security_definer": false,
+   "signature": "militaire_degre_rang(text)"
+  },
+  {
+   "empreinte": "232db10478bf97d3a33d07e3f25a41bd",
+   "security_definer": true,
+   "signature": "militaire_demettre_lieutenant(text,text)"
+  },
+  {
+   "empreinte": "8b91eecb87e458b5094361f929afa99e",
+   "security_definer": true,
+   "signature": "militaire_deposer_soldats(text,text,integer)"
+  },
+  {
+   "empreinte": "c12acd7e8fa3dbd1b4aa69683e6f72c6",
+   "security_definer": true,
+   "signature": "militaire_desertions_verifier(text)"
+  },
+  {
+   "empreinte": "2c4ecba152c55b28f4dbc7f95510e038",
+   "security_definer": true,
+   "signature": "militaire_detachement_ici()"
+  },
+  {
+   "empreinte": "ac2f4c0fa1d36a454422545fcd111281",
+   "security_definer": true,
+   "signature": "militaire_engagement_affecter_compagnie(text,text)"
+  },
+  {
+   "empreinte": "247a2b8285ec75fce5be9f21e00719f4",
+   "security_definer": true,
+   "signature": "militaire_engagement_affecter_section(text,text)"
+  },
+  {
+   "empreinte": "358a6093643884a473cdc829e9ec0ff1",
+   "security_definer": true,
+   "signature": "militaire_engagement_creer()"
+  },
+  {
+   "empreinte": "d024991031d17c585b9edeb0032ddd10",
+   "security_definer": true,
+   "signature": "militaire_entrainer_section(text,text,text)"
+  },
+  {
+   "empreinte": "10d7275c8f0b83136fa79a90a5ce55f7",
+   "security_definer": true,
+   "signature": "militaire_entree_zone()"
+  },
+  {
+   "empreinte": "b3ddac8af490a800d403db3b95ec3fb1",
+   "security_definer": true,
+   "signature": "militaire_equiper_accessoire(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "4965b585644d89575ef562ce0fc5e72d",
+   "security_definer": true,
+   "signature": "militaire_equiper_soldat(text,text,text,text)"
+  },
+  {
+   "empreinte": "041862b20354df47610987ea61f00aae",
+   "security_definer": true,
+   "signature": "militaire_gilet_absorber(boolean,text,text,text,text)"
+  },
+  {
+   "empreinte": "16738a5403f5655230816ebb6c46ba70",
+   "security_definer": true,
+   "signature": "militaire_grade_effectif(text)"
+  },
+  {
+   "empreinte": "7009305dda75139d70a6c6177287c0f6",
+   "security_definer": true,
+   "signature": "militaire_groupe_sous_seuil(bigint,text)"
+  },
+  {
+   "empreinte": "25c8c986007ff52233b834f721835255",
+   "security_definer": true,
+   "signature": "militaire_lien_operationnel_rompre(text,text,text,text)"
+  },
+  {
+   "empreinte": "41152c37493c4e32b4a85729c88e05b9",
+   "security_definer": true,
+   "signature": "militaire_ma_section()"
+  },
+  {
+   "empreinte": "772d3d204b9a8ce98d3c4af72cc1f1a0",
+   "security_definer": false,
+   "signature": "militaire_malus_taille(integer)"
+  },
+  {
+   "empreinte": "ecd0532d7c5627fcb6dcd440fe86a3ed",
+   "security_definer": true,
+   "signature": "militaire_mes_batailles(integer)"
+  },
+  {
+   "empreinte": "e7c8485f7b5182b2ca12f6b5d58b14f8",
+   "security_definer": true,
+   "signature": "militaire_mes_candidatures()"
+  },
+  {
+   "empreinte": "53059c6b116693bda9d1a3de5354f7ab",
+   "security_definer": true,
+   "signature": "militaire_mobilisation_fixer(boolean)"
+  },
+  {
+   "empreinte": "ee5cfe95b53a1469afa84d53cb1d5a18",
+   "security_definer": false,
+   "signature": "militaire_modif_distance(text)"
+  },
+  {
+   "empreinte": "d2f68f334acc5ee36067e273d2951528",
+   "security_definer": true,
+   "signature": "militaire_mon_pays()"
+  },
+  {
+   "empreinte": "a957171afa66a7de0c318f4077e49fef",
+   "security_definer": true,
+   "signature": "militaire_mutinerie_declencher()"
+  },
+  {
+   "empreinte": "a6538ade6b2b1e6da69edab93978b520",
+   "security_definer": false,
+   "signature": "militaire_objet_signature(jsonb)"
+  },
+  {
+   "empreinte": "78c68568c913bf864599e785175d6fa1",
+   "security_definer": true,
+   "signature": "militaire_observer()"
+  },
+  {
+   "empreinte": "5863878c26e18e5a11774070c4d2ab49",
+   "security_definer": true,
+   "signature": "militaire_ordre_collectif(text,text,text,text,text[])"
+  },
+  {
+   "empreinte": "70a0954e6b071db6da2f2ca2b62ca985",
+   "security_definer": true,
+   "signature": "militaire_ordre_pnj(text,text)"
+  },
+  {
+   "empreinte": "c7c49bcfd6d5691e8bc5b28804c8c6e7",
+   "security_definer": false,
+   "signature": "militaire_pa_restants(integer,text)"
+  },
+  {
+   "empreinte": "2534d4af8ca218a4a937cc1e75ec87b9",
+   "security_definer": true,
+   "signature": "militaire_places_libres_grade(text,text,text,text)"
+  },
+  {
+   "empreinte": "70084060a9a8f639005e9b6eec78c5db",
+   "security_definer": true,
+   "signature": "militaire_position_repli(text,text,text,text)"
+  },
+  {
+   "empreinte": "45ac45ac525735f49b0784e149e002ab",
+   "security_definer": true,
+   "signature": "militaire_presentation_affectation()"
+  },
+  {
+   "empreinte": "eb5c4328e25a631e1251c3914bc7fb72",
+   "security_definer": true,
+   "signature": "militaire_proposer_capitaine(text,text)"
+  },
+  {
+   "empreinte": "c99b92f148bc81dff8d6daad5bd49bb5",
+   "security_definer": true,
+   "signature": "militaire_proposer_lieutenant(text,text,text)"
+  },
+  {
+   "empreinte": "a741dc8fa12d7fb0e7295982ea74d834",
+   "security_definer": true,
+   "signature": "militaire_ration_consommer()"
+  },
+  {
+   "empreinte": "8d7aec19bfc48fea5ee15ed29b5a8847",
+   "security_definer": true,
+   "signature": "militaire_rations_retirer(integer)"
+  },
+  {
+   "empreinte": "0e328afc66f6739bdd5278d4413850f0",
+   "security_definer": true,
+   "signature": "militaire_recruteur_de_moi()"
+  },
+  {
+   "empreinte": "bfc1d1afea8cfec1794559838f134c02",
+   "security_definer": true,
+   "signature": "militaire_recuperer_soldats(text,text,integer)"
+  },
+  {
+   "empreinte": "de0edbeb742df87de63bc8058d919630",
+   "security_definer": true,
+   "signature": "militaire_reposer_section(text,text)"
+  },
+  {
+   "empreinte": "2e928e61f910f5e5a2ca433f99f6c1b1",
+   "security_definer": true,
+   "signature": "militaire_requisition_civile(text,text)"
+  },
+  {
+   "empreinte": "9079506971e4d2e2520f12258d249586",
+   "security_definer": true,
+   "signature": "militaire_retrait(text,text,integer,text,text,integer)"
+  },
+  {
+   "empreinte": "136407aaa4b23ffd9a73bdae797fcc56",
+   "security_definer": true,
+   "signature": "militaire_section_de_moi(text,text)"
+  },
+  {
+   "empreinte": "909289079e044d4f2e676ecf3a6a300e",
+   "security_definer": false,
+   "signature": "militaire_sections_remplacer(jsonb,text,jsonb)"
+  },
+  {
+   "empreinte": "fa63f93b8f5405ee1e23b6b59c4c74a3",
+   "security_definer": true,
+   "signature": "militaire_service_fermer(text,text)"
+  },
+  {
+   "empreinte": "115bcda36aac317cd1be53bf9e44f8cf",
+   "security_definer": true,
+   "signature": "militaire_service_jours(text,text)"
+  },
+  {
+   "empreinte": "9da71699d5c139ed5f0e4404e17fc7c2",
+   "security_definer": true,
+   "signature": "militaire_service_ouvrir(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "6caeafee68298f19aacdd976aa883cf8",
+   "security_definer": true,
+   "signature": "militaire_soldat_pa_fixer(text,text,text,integer)"
+  },
+  {
+   "empreinte": "e75c4bb790607188e3eb25e9c578dc88",
+   "security_definer": true,
+   "signature": "militaire_soldat_retirer(text,text,text)"
+  },
+  {
+   "empreinte": "74905f52ef93139d3f7aafe411c04d47",
+   "security_definer": true,
+   "signature": "militaire_soldat_supprimer(text,text,text)"
+  },
+  {
+   "empreinte": "bd0065fedd1fc4af813d3f155f7d3fab",
+   "security_definer": true,
+   "signature": "militaire_solde_percevoir()"
+  },
+  {
+   "empreinte": "da6984f697f4dee3b46a77a4da6c5653",
+   "security_definer": true,
+   "signature": "militaire_subtiliser(text,text)"
+  },
+  {
+   "empreinte": "3d05eed2d577e49efbcada8d0c4efd87",
+   "security_definer": true,
+   "signature": "militaire_subtiliser_tenter(text)"
+  },
+  {
+   "empreinte": "58e370b59082cc93a4e6ab57abb794a4",
+   "security_definer": false,
+   "signature": "militaire_taux_combat(numeric,numeric,numeric,integer)"
+  },
+  {
+   "empreinte": "4bd3f1fff4a0cdbcaa220304a6d6025f",
+   "security_definer": true,
+   "signature": "militaire_terminal_dormir(text,text[],text[])"
+  },
+  {
+   "empreinte": "e42312c8b360d670a62dd68c8de7c41a",
+   "security_definer": true,
+   "signature": "militaire_terminal_liaison(text,text)"
+  },
+  {
+   "empreinte": "aa904a1ea4e6734a50010a15da53fdd7",
+   "security_definer": true,
+   "signature": "militaire_terminal_manger(text,text[])"
+  },
+  {
+   "empreinte": "5a4d2409aea19e086101c6c3d6230f48",
+   "security_definer": true,
+   "signature": "militaire_terminal_rejoindre(text,text[])"
+  },
+  {
+   "empreinte": "1eabb1358581891fa21b88e85d386c0a",
+   "security_definer": true,
+   "signature": "militaire_terminal_section()"
+  },
+  {
+   "empreinte": "963ad62e1d35242a33eea9116bd2aeec",
+   "security_definer": true,
+   "signature": "militaire_terminal_transferer(text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "9e4f47c9832e70009f944d45a5e97a9d",
+   "security_definer": true,
+   "signature": "militaire_trousse_retirer()"
+  },
+  {
+   "empreinte": "37240fb17040f0338ecb5b8c6983d106",
+   "security_definer": true,
+   "signature": "militaire_trousse_utiliser(text)"
+  },
+  {
+   "empreinte": "d4f6fad1349c5f521d151d136867fc4d",
+   "security_definer": false,
+   "signature": "militaire_unites_objet(jsonb)"
+  },
+  {
+   "empreinte": "bc2ddd707e9465895df295cf465f49ff",
+   "security_definer": true,
+   "signature": "mutinerie_camp_de(text)"
+  },
+  {
+   "empreinte": "4e2ffac4d2f18d420cb28d05854d37be",
+   "security_definer": true,
+   "signature": "mutinerie_camps_presents(text,text,text,text)"
+  },
+  {
+   "empreinte": "59243b52d8fda7fde5265c064bed5567",
+   "security_definer": true,
+   "signature": "mutinerie_est_camp(text)"
+  },
+  {
+   "empreinte": "6b25130fc7ae30470bcd1f517c6dae33",
+   "security_definer": true,
+   "signature": "mutinerie_pays_du_camp(text)"
+  },
+  {
+   "empreinte": "19d6117e19c9cd0091914cd9d89b6a44",
+   "security_definer": true,
+   "signature": "mutinerie_social_national(text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "d30bfe6ee6515da7bff8f595836c8727",
+   "nom": "batailles_engagements_bataille_idx"
+  },
+  {
+   "empreinte": "867cba5d74cfe76867cf5b9851dfee3e",
+   "nom": "batailles_engagements_personnage_idx"
+  },
+  {
+   "empreinte": "ff27637582c9f24b3b0069ccb8e9a762",
+   "nom": "batailles_engagements_unicite_pj_idx"
+  },
+  {
+   "empreinte": "9f51cb8730bc8ecbffb93a9ae3ee7cec",
+   "nom": "batailles_engagements_unicite_pnj_idx"
+  },
+  {
+   "empreinte": "4158ad06a0a81064acd2a560c98f37d7",
+   "nom": "batailles_groupes_bataille_idx"
+  },
+  {
+   "empreinte": "665a9e175d780239a0743ea683210592",
+   "nom": "batailles_pays_idx"
+  },
+  {
+   "empreinte": "a872c62ac98afa2022d977d493dc901b",
+   "nom": "batailles_rounds_unicite_idx"
+  },
+  {
+   "empreinte": "a4abc0f89e99a5ba214827d8c008d8b9",
+   "nom": "batailles_zone_en_cours_idx"
+  },
+  {
+   "empreinte": "5fc31a90ad977bf34afb8d444165538b",
+   "nom": "camions_militaires_position_idx"
+  },
+  {
+   "empreinte": "7f03c74538ce10a66efeed5e5bc43a2e",
+   "nom": "camions_ordres_camion_idx"
+  },
+  {
+   "empreinte": "c922ce0fd0ffb6c8e95e9a45448b89a4",
+   "nom": "candidatures_militaires_actives"
+  },
+  {
+   "empreinte": "4ccf1aa55bb8bac635a06edd26fabace",
+   "nom": "candidatures_militaires_une_vivante_par_grade"
+  },
+  {
+   "empreinte": "35de06c49c81420b19a20831426a795f",
+   "nom": "commandes_militaires_fifo"
+  },
+  {
+   "empreinte": "5dca1057cdd0f1e8664741414bbc284f",
+   "nom": "contacts_militaires_ouverts_idx"
+  },
+  {
+   "empreinte": "310641735de3c399d920c954010472ad",
+   "nom": "decorations_militaires_decore_idx"
+  },
+  {
+   "empreinte": "5ad0d98b76b90a2a2d3b1fa4f92ad84d",
+   "nom": "decorations_militaires_unicite_idx"
+  },
+  {
+   "empreinte": "f3628248065fb0381d53220a02b5299c",
+   "nom": "mutineries_membres_un_seul_camp"
+  },
+  {
+   "empreinte": "2976ea38898f04f9f7953f43d3bced42",
+   "nom": "retraits_materiel_militaire_pays"
+  },
+  {
+   "empreinte": "fc0622e6b064a795ae2fbb034b8c29af",
+   "nom": "services_militaires_perso"
+  },
+  {
+   "empreinte": "dec0b5ffb6597162a93463a4e699dc45",
+   "nom": "services_militaires_une_periode_ouverte"
+  },
+  {
+   "empreinte": "c17e8e05dbb63192b8741f24e7bf5887",
+   "nom": "soldes_militaires_impayees"
+  },
+  {
+   "empreinte": "bd24080805384fc4fa7a13a0f8bde37d",
+   "nom": "soldes_militaires_perso"
+  }
+ ],
+ "index_portes": [
+  "armureries_dotations_pkey",
+  "batailles_engagements_pkey",
+  "batailles_groupes_pkey",
+  "batailles_pkey",
+  "batailles_rounds_pkey",
+  "camions_destinations_pkey",
+  "camions_embarquements_pkey",
+  "camions_militaires_pkey",
+  "camions_ordres_pkey",
+  "candidatures_militaires_pkey",
+  "commandes_militaires_pkey",
+  "compagnies_militaires_pkey",
+  "contacts_militaires_pkey",
+  "decorations_militaires_pkey",
+  "engagements_militaires_pkey",
+  "guerres_pkey",
+  "militaire_armes_bonus_pkey",
+  "militaire_detections_pkey",
+  "militaire_terminal_requetes_pkey",
+  "mutineries_membres_pkey",
+  "mutineries_pkey",
+  "nominations_militaires_pkey",
+  "retraits_materiel_militaire_pkey",
+  "services_militaires_pkey",
+  "soldes_militaires_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions-1.sql",
+  "20_fonctions-2.sql",
+  "20_fonctions-3.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "adc6061b302259cbe1e78457faff04c9",
+   "nom": "armureries_dotations lecture",
+   "tbl": "armureries_dotations"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e2414a085e1b49b252d360752a3fef50",
+   "nom": "batailles_lecture",
+   "tbl": "batailles"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "edcf336c5bdc975a0fc2bed1f5c5afb4",
+   "nom": "batailles_engagements_lecture",
+   "tbl": "batailles_engagements"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "8b2b2dfc08c2a49a4fd4774c113d73c1",
+   "nom": "batailles_groupes_lecture",
+   "tbl": "batailles_groupes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "cf8b629e83ebf53eddfef18588d0c52b",
+   "nom": "commandes_militaires_lecture",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "9a3cfb3d8beb7971f382b17182146d03",
+   "empreinte_avec_roles": "a3a06f50ba84fde46ab810c285a05dc1",
+   "nom": "compagnies_lecture_mon_pays",
+   "tbl": "compagnies_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "afd06fda80ef6abe89bcfbd4b4637488",
+   "nom": "decorations_lecture_publique",
+   "tbl": "decorations_militaires"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "55f74031d9f02c487140e1ac9cafbef9",
+   "nom": "Ecriture publique engagements militaires",
+   "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e72904d3a6dd774b82a076120a9ce719",
+   "nom": "Lecture publique engagements militaires",
+   "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "eaabd7bef11776d8c9da004fd38df031",
+   "nom": "Maj publique engagements militaires",
+   "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e62b14b5ecf75d331e562658698b0dd6",
+   "nom": "engagements_militaires_lecture",
+   "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e411fe9ac5fce3be04b51f274a3dd438",
+   "nom": "guerres_lecture",
+   "tbl": "guerres"
+  },
+  {
+   "empreinte": "1e8443171f0ecdd759dbcb92dcd21921",
+   "empreinte_avec_roles": "7e411c7a59727ffcc17bbdf2757a5ac2",
+   "nom": "mutineries_lecture_mon_pays",
+   "tbl": "mutineries"
+  },
+  {
+   "empreinte": "dcb9996c9f9bbcb7ced102bc11d2aecf",
+   "empreinte_avec_roles": "1df2717e82b3dd2a14c97129f76ea31d",
+   "nom": "mutineries_membres_lecture_mon_pays",
+   "tbl": "mutineries_membres"
+  },
+  {
+   "empreinte": "2b86012500b34915d328dd67607f6580",
+   "empreinte_avec_roles": "a1e5e3c1ee51dc40a18f5a56de8da758",
+   "nom": "nominations militaires lecture interessee",
+   "tbl": "nominations_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "c41462ba827e448f741b51660321962e",
+   "nom": "retraits_materiel_militaire_lecture",
+   "tbl": "retraits_materiel_militaire"
+  },
+  {
+   "empreinte": "1e8443171f0ecdd759dbcb92dcd21921",
+   "empreinte_avec_roles": "3091e857a6e4d7d593d5716f9002bd65",
+   "nom": "services_militaires_lecture",
+   "tbl": "services_militaires"
+  },
+  {
+   "empreinte": "55306ff7c8a4184b6dcb29f53b09ef25",
+   "empreinte_avec_roles": "c11800078821543f3353db9cb1174c5a",
+   "nom": "soldes_militaires_lecture",
+   "tbl": "soldes_militaires"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "armureries_dotations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batailles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batailles_engagements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batailles_groupes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batailles_rounds"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "camions_destinations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "camions_embarquements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "camions_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "camions_ordres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "candidatures_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "commandes_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "compagnies_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "contacts_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "decorations_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "engagements_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "guerres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "militaire_armes_bonus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "militaire_detections"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "militaire_terminal_requetes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mutineries"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "mutineries_membres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "nominations_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "retraits_materiel_militaire"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "services_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "soldes_militaires"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "batailles_engagements_id_seq",
+   "possedee": true,
+   "tbl": "batailles_engagements"
+  },
+  {
+   "nom": "batailles_id_seq",
+   "possedee": true,
+   "tbl": "batailles"
+  },
+  {
+   "nom": "batailles_rounds_id_seq",
+   "possedee": true,
+   "tbl": "batailles_rounds"
+  },
+  {
+   "nom": "contacts_militaires_id_seq",
+   "possedee": true,
+   "tbl": "contacts_militaires"
+  },
+  {
+   "nom": "decorations_militaires_id_seq",
+   "possedee": true,
+   "tbl": "decorations_militaires"
+  },
+  {
+   "nom": "retraits_materiel_militaire_id_seq",
+   "possedee": true,
+   "tbl": "retraits_materiel_militaire"
+  },
+  {
+   "nom": "services_militaires_id_seq",
+   "possedee": true,
+   "tbl": "services_militaires"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "3f4aa869fadb8ae2b86604afec7e19ae",
+   "empreinte_texte": "2f536331d96a20d915a35afbb6c09426",
+   "nom": "armureries_dotations"
+  },
+  {
+   "colonnes": 27,
+   "empreinte_catalogue": "a5e179fe9d53615f647467529a710d6f",
+   "empreinte_texte": "5eaed878d6d77b03bdf1f9cd0f9344fd",
+   "nom": "batailles"
+  },
+  {
+   "colonnes": 13,
+   "empreinte_catalogue": "968fb6dbac16ff1b09024c6e8b4c42e1",
+   "empreinte_texte": "78ab946f91dd01966c73e58be2256290",
+   "nom": "batailles_engagements"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "d803d4a78421353ac59e8d66ff6703a5",
+   "empreinte_texte": "1296678c1305a7b6c2d1c38c1a44f559",
+   "nom": "batailles_groupes"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "6bcb4eb40169069014133e10b98ba585",
+   "empreinte_texte": "ef5f54d8aa8fc28386e82a9fc65c8bba",
+   "nom": "batailles_rounds"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "b96af2f537100ff3ddbaf7f8a3aa9c89",
+   "empreinte_texte": "d9adf1887a6c311af262d5b2fd38fc5f",
+   "nom": "camions_destinations"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "025f2d6c54eff70df55cd8ac01ffd68c",
+   "empreinte_texte": "65e5db87c87f330cf749ea836e24064e",
+   "nom": "camions_embarquements"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "640f826ecfd77ed1c2ccaa69b501a8eb",
+   "empreinte_texte": "d95d591d8b9553a834110ed6d6ad2249",
+   "nom": "camions_militaires"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "3b2cd920d74d8d5a811f8f7bb9bf1aef",
+   "empreinte_texte": "43b86a812b98a381bc1b35fdfd3bb675",
+   "nom": "camions_ordres"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "4c7528dfddce6dad30ff354882ce569d",
+   "empreinte_texte": "d4a87e60d30490138c2ecdaf42311294",
+   "nom": "candidatures_militaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "9b84ee5b57f7686dfeb0442371ac396f",
+   "empreinte_texte": "927b8d3abebe6d777d90783a492e36ae",
+   "nom": "commandes_militaires"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "compagnies_militaires"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "be3ef0673f1775618d370a06267f84f8",
+   "empreinte_texte": "a2a18529da16df0b220cb0abb1447609",
+   "nom": "contacts_militaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "6eecc424b81d057bc8d3c89f1d2843ea",
+   "empreinte_texte": "c9882b0fe06c9c6db4bf5e4aa6916391",
+   "nom": "decorations_militaires"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "d27fb2bcdea99c845aefec057a192736",
+   "empreinte_texte": "d8acafbaca89ef0373d6643cb2f434a1",
+   "nom": "engagements_militaires"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "69e3ccc077783817f49ea171533d5ece",
+   "empreinte_texte": "879691636d62b9e8a743a92d2cee1f08",
+   "nom": "guerres"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "aa3b27dff7a54487c80c389db962eb02",
+   "empreinte_texte": "0bbf7a9a66bb73f03402379177b1cc84",
+   "nom": "militaire_armes_bonus"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "9534de89c254d9a5f99f6f444e97f9e8",
+   "empreinte_texte": "b465ee958e958436794cfd01c3519059",
+   "nom": "militaire_detections"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "66e47263ac3dc2b2c2841f7fdd1d6881",
+   "empreinte_texte": "8d9117d22d0035fc191c3415c15c4200",
+   "nom": "militaire_terminal_requetes"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "351ed1baef128e5ea1a3bae5fd246517",
+   "empreinte_texte": "460cf06f8d002dda5fc19b3959be4c7e",
+   "nom": "mutineries"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "7d2cdd77bf710a537f96f45decf5b658",
+   "empreinte_texte": "938265a4855d5be4d01f38e601fe351f",
+   "nom": "mutineries_membres"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "d827c482515137af4fdac0e39c9bf88a",
+   "empreinte_texte": "d779368e317e8248e942beb0e64d551b",
+   "nom": "nominations_militaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "555bd7adcdf824224d8803120f8d47b3",
+   "empreinte_texte": "3baf918fae6a6d8a2b2a707a4c5192d0",
+   "nom": "retraits_materiel_militaire"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "54804f96e1897d6611324b87b35210e1",
+   "empreinte_texte": "3f7587de6c27e7cd70ba8a2f3176a5cb",
+   "nom": "services_militaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "445dcdc8ba8aee2a0d8833151bd38244",
+   "empreinte_texte": "af0cc71ebe1f02c7be543bd2f27d9761",
+   "nom": "soldes_militaires"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "6d4c870ec521162df98a2affa965e10f",
+   "fonction": "pnj_garde_dissolution_compagnie()",
+   "nom": "trg_pnj_garde_dissolution_compagnie",
+   "tbl": "compagnies_militaires"
+  },
+  {
+   "empreinte": "4d13a38661ecf71557e433834281c627",
+   "fonction": "pnj_miroir_compagnie_trg()",
+   "nom": "trg_pnj_miroir_compagnie",
+   "tbl": "compagnies_militaires"
+  }
+ ],
+ "vues": []
+}

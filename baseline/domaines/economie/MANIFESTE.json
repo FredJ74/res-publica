@@ -1,0 +1,3894 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "d0d9ef83cb3c698775c5a15337e4872e",
+   "genre": "COLUMN",
+   "objet": "catalogue_correspondance_legacy",
+   "sous": "effets_effectifs"
+  },
+  {
+   "empreinte": "e033168f6cceadec1d271048913777ad",
+   "genre": "COLUMN",
+   "objet": "catalogue_correspondance_legacy",
+   "sous": "source_audit"
+  },
+  {
+   "empreinte": "fda18e8db96743fc11767f47072df20b",
+   "genre": "COLUMN",
+   "objet": "catalogue_generiques",
+   "sous": "capacites"
+  },
+  {
+   "empreinte": "18c607b62e2e1a08dd2984c225596813",
+   "genre": "COLUMN",
+   "objet": "catalogue_generiques",
+   "sous": "equipable"
+  },
+  {
+   "empreinte": "d28744af7039bd2d9fe82af2cd049ceb",
+   "genre": "COLUMN",
+   "objet": "catalogue_generiques",
+   "sous": "est_service"
+  },
+  {
+   "empreinte": "471f1d123184906d12422a55d40fff92",
+   "genre": "COLUMN",
+   "objet": "recettes_commerce",
+   "sous": "generique_id"
+  },
+  {
+   "empreinte": "09067a1ae64831bf2d7aec0eabab3de2",
+   "genre": "COLUMN",
+   "objet": "recettes_commerce",
+   "sous": "label_forme"
+  },
+  {
+   "empreinte": "e228781af42422c9c937ef1dbc2a8f0e",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_commerce(text,text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "76636a549177c0699d1d4bb2b8efd243",
+   "genre": "FUNCTION",
+   "objet": "coef_prix_max_pj(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b60976946fb8de6c151e64a7a46e0fe0",
+   "genre": "FUNCTION",
+   "objet": "commerce_acheter_matiere(text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "2b7514dd198d0f4b63a6cc8387e13de3",
+   "genre": "FUNCTION",
+   "objet": "commerce_apporter_matiere(text,text,text,text,integer,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "7f35f1b098d017243bcf40ffe2cb5575",
+   "genre": "FUNCTION",
+   "objet": "local_vocation_commerciale(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "cf0ce7144295cdcab802edf42011f64e",
+   "genre": "FUNCTION",
+   "objet": "matiere_circuits_disponibles(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f65dd9bceb7d863308d3f1b97cdbab59",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "05bd5963bf8b630c3dbc0f755982b92e",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal_lot(text,jsonb,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "cb907b5fc8fa9fcc0fb63645dd5c77f1",
+   "genre": "TABLE",
+   "objet": "apports_matieres",
+   "sous": ""
+  },
+  {
+   "empreinte": "2688cb3c8df473e1c5fabd4db7b100a8",
+   "genre": "TABLE",
+   "objet": "catalogue_familles",
+   "sous": ""
+  },
+  {
+   "empreinte": "4641616d9a0fa7484367ecb292e9ec93",
+   "genre": "TABLE",
+   "objet": "catalogue_types",
+   "sous": ""
+  },
+  {
+   "empreinte": "cb3ec728fd0c2438806be17bf4d248eb",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "sous": ""
+  },
+  {
+   "empreinte": "c6e40342fa67a4b7189f9bec8abb54c7",
+   "genre": "TABLE",
+   "objet": "productions_references",
+   "sous": ""
+  },
+  {
+   "empreinte": "8bcc326d4b0acd967c340961b2abbd0a",
+   "genre": "TABLE",
+   "objet": "ventes_snapshots",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "apports_matieres_pkey",
+   "tbl": "apports_matieres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "caisses_fret_pkey",
+   "tbl": "caisses_fret"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "catalogue_correspondance_legacy_pkey",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "catalogue_familles_pkey",
+   "tbl": "catalogue_familles"
+  },
+  {
+   "empreinte": "f77607fef82da3cbddfad14921188241",
+   "genre": "p",
+   "nom": "catalogue_generique_type_pkey",
+   "tbl": "catalogue_generique_type"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "catalogue_generiques_pkey",
+   "tbl": "catalogue_generiques"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "catalogue_types_pkey",
+   "tbl": "catalogue_types"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "catalogue_variantes_pkey",
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "7dd83d6e3a521cb7b07316176a0c29f9",
+   "genre": "p",
+   "nom": "chaines_production_usine_pkey",
+   "tbl": "chaines_production_usine"
+  },
+  {
+   "empreinte": "24bf8bc569c357ad668fe0a4d0e4b8b2",
+   "genre": "p",
+   "nom": "chantiers_besoins_jour_pkey",
+   "tbl": "chantiers_besoins_jour"
+  },
+  {
+   "empreinte": "787d7066806d906417475ecaf03f0603",
+   "genre": "p",
+   "nom": "chantiers_paliers_pkey",
+   "tbl": "chantiers_paliers"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "commerces_dotations_pkey",
+   "tbl": "commerces_dotations"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "commerces_types_pkey",
+   "tbl": "commerces_types"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "confiscations_douanieres_pkey",
+   "tbl": "confiscations_douanieres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "contenu_caisses_fret_pkey",
+   "tbl": "contenu_caisses_fret"
+  },
+  {
+   "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
+   "genre": "p",
+   "nom": "directeurs_usine_pkey",
+   "tbl": "directeurs_usine"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "entrepot_journal_pkey",
+   "tbl": "entrepot_journal"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "entrepot_transits_pkey",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "50aff2171db787297c7d56f585c3fcdb",
+   "genre": "p",
+   "nom": "entrepots_par_ville_pkey",
+   "tbl": "entrepots_par_ville"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "entrepots_reversements_pkey",
+   "tbl": "entrepots_reversements"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "entreprises_pkey",
+   "tbl": "entreprises"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "entreprises_constantes_pkey",
+   "tbl": "entreprises_constantes"
+  },
+  {
+   "empreinte": "60cded2e764aa69830a26055b0cc2636",
+   "genre": "p",
+   "nom": "entreprises_prix_rachat_pkey",
+   "tbl": "entreprises_prix_rachat"
+  },
+  {
+   "empreinte": "adbce386ad7859d6c686661758b9d267",
+   "genre": "p",
+   "nom": "imprimeries_declarees_pkey",
+   "tbl": "imprimeries_declarees"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "investissements_pkey",
+   "tbl": "investissements"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "oeuvres_pkey",
+   "tbl": "oeuvres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "offres_pkey",
+   "tbl": "offres"
+  },
+  {
+   "empreinte": "51cf27f5b78ea23774e621eabdcecd90",
+   "genre": "p",
+   "nom": "ordres_couts_pkey",
+   "tbl": "ordres_couts"
+  },
+  {
+   "empreinte": "51cf27f5b78ea23774e621eabdcecd90",
+   "genre": "p",
+   "nom": "ordres_couts_ecarts_pkey",
+   "tbl": "ordres_couts_ecarts"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "ordres_couts_empreinte_pkey",
+   "tbl": "ordres_couts_empreinte"
+  },
+  {
+   "empreinte": "3372b7ab2b29eade94093a2a29624351",
+   "genre": "p",
+   "nom": "ordres_couts_inconnus_pkey",
+   "tbl": "ordres_couts_inconnus"
+  },
+  {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "productions_references_pkey",
+   "tbl": "productions_references"
+  },
+  {
+   "empreinte": "7dd83d6e3a521cb7b07316176a0c29f9",
+   "genre": "p",
+   "nom": "produits_manufactures_pkey",
+   "tbl": "produits_manufactures"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "recettes_commerce_pkey",
+   "tbl": "recettes_commerce"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "recettes_production_pkey",
+   "tbl": "recettes_production"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "ressources_economie_pkey",
+   "tbl": "ressources_economie"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "ressources_economie_empreinte_pkey",
+   "tbl": "ressources_economie_empreinte"
+  },
+  {
+   "empreinte": "942427d27f89412ea7ced313abdcf775",
+   "genre": "p",
+   "nom": "structures_medicales_pkey",
+   "tbl": "structures_medicales"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "usines_rachat_config_pkey",
+   "tbl": "usines_rachat_config"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "ventes_snapshots_pkey",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "5324d9c5301afb96a3628605098d9ea7",
+   "genre": "u",
+   "nom": "catalogue_correspondance_legacy_motif_valeur_key",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "244be2a06a1064bd5611f9dd2288892b",
+   "genre": "u",
+   "nom": "catalogue_variantes_generique_id_cle_key",
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "842b542de83ed21ef7c735858278a15d",
+   "genre": "u",
+   "nom": "ventes_snapshots_requete_key",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "4616adcc45a334e3eb1f26d6d6777b53",
+   "genre": "c",
+   "nom": "apports_matieres_mode_check",
+   "tbl": "apports_matieres"
+  },
+  {
+   "empreinte": "819413a3f9fc2b06ee1010319f6f3658",
+   "genre": "c",
+   "nom": "apports_matieres_quantite_check",
+   "tbl": "apports_matieres"
+  },
+  {
+   "empreinte": "03f3aaaddf40c963349258981f9a464d",
+   "genre": "c",
+   "nom": "catalogue_correspondance_legacy_motif_check",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "f3cf68ffa6d8641f5ed654f2ccc47f94",
+   "genre": "c",
+   "nom": "catalogue_generiques_regime_check",
+   "tbl": "catalogue_generiques"
+  },
+  {
+   "empreinte": "f3cf68ffa6d8641f5ed654f2ccc47f94",
+   "genre": "c",
+   "nom": "catalogue_variantes_regime_check",
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "b772270ade9ccdb0147b5582cb1b1e63",
+   "genre": "c",
+   "nom": "entrepot_journal_sens_check",
+   "tbl": "entrepot_journal"
+  },
+  {
+   "empreinte": "1596f5dab81226f517cd61b0ff402b00",
+   "genre": "c",
+   "nom": "entrepot_transits_fret_unitaire_check",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "45fca5bf6eb2eb84212f58e91d1572fa",
+   "genre": "c",
+   "nom": "entrepot_transits_montant_total_check",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "2172f9f1521c9d3c2edb45f81b36f148",
+   "genre": "c",
+   "nom": "entrepot_transits_prix_unitaire_check",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "819413a3f9fc2b06ee1010319f6f3658",
+   "genre": "c",
+   "nom": "entrepot_transits_quantite_check",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "8c4f397662de7a38871acbf39562689f",
+   "genre": "c",
+   "nom": "entrepots_reversements_mode_check",
+   "tbl": "entrepots_reversements"
+  },
+  {
+   "empreinte": "e0e59ca442af10caaab454dfa94013bf",
+   "genre": "c",
+   "nom": "offres_parties",
+   "tbl": "offres"
+  },
+  {
+   "empreinte": "0ff61c10b1c7d1d16275fb327cb81e8b",
+   "genre": "c",
+   "nom": "offres_statut_valide",
+   "tbl": "offres"
+  },
+  {
+   "empreinte": "6234dd344fc15d65f2e71f19d26b3c78",
+   "genre": "c",
+   "nom": "offres_type_valide",
+   "tbl": "offres"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "ordres_couts_empreinte_seul_check",
+   "tbl": "ordres_couts_empreinte"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "ressources_economie_empreinte_seul_check",
+   "tbl": "ressources_economie_empreinte"
+  },
+  {
+   "empreinte": "da1d1105f74f9be32fed9058c26e4c1b",
+   "genre": "c",
+   "nom": "ventes_snapshots_montant_total_check",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "a13b95c0707db2d45eac69308dfaa67c",
+   "genre": "c",
+   "nom": "ventes_snapshots_prix_unitaire_check",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "819413a3f9fc2b06ee1010319f6f3658",
+   "genre": "c",
+   "nom": "ventes_snapshots_quantite_check",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "379ace51ddb5a8a6fe8324375b12e48b",
+   "genre": "f",
+   "nom": "catalogue_correspondance_legacy_generique_id_fkey",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "c3ebfff47389958e0e4039378ab272a9",
+   "genre": "f",
+   "nom": "catalogue_correspondance_legacy_variante_id_fkey",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "379ace51ddb5a8a6fe8324375b12e48b",
+   "genre": "f",
+   "nom": "catalogue_generique_type_generique_id_fkey",
+   "tbl": "catalogue_generique_type"
+  },
+  {
+   "empreinte": "109ee81d8916efb3bd20356a8eae2283",
+   "genre": "f",
+   "nom": "catalogue_generique_type_type_id_fkey",
+   "tbl": "catalogue_generique_type"
+  },
+  {
+   "empreinte": "d21ee554616c38cd94e99cd1e3282f98",
+   "genre": "f",
+   "nom": "catalogue_generiques_famille_id_fkey",
+   "tbl": "catalogue_generiques"
+  },
+  {
+   "empreinte": "379ace51ddb5a8a6fe8324375b12e48b",
+   "genre": "f",
+   "nom": "catalogue_variantes_generique_id_fkey",
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "775278b937679f97be053ff321a74a13",
+   "genre": "f",
+   "nom": "contenu_caisses_fret_caisse_id_fkey",
+   "tbl": "contenu_caisses_fret"
+  }
+ ],
+ "domaine": "economie",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_entrepot(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_entrepot(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_entrepot(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_commerce(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_commerce(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_commerce(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "capacite_entrepot()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "capacite_entrepot()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "capacite_entrepot()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chantier_lancer(text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_lancer(text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_lancer(text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chantier_travailler(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_travailler(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_travailler(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chantier_verser(text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_verser(text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_verser(text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "coef_prix_max_pj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "coef_prix_max_pj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "coef_prix_max_pj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "coef_prix_max_pj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commerce_acheter_matiere(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_acheter_matiere(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_acheter_matiere(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commerce_apporter_matiere(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_apporter_matiere(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_apporter_matiere(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_cout_revient_portion(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_cout_revient_portion(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commerce_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "creer_fonds_commerce(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "creer_fonds_commerce(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "creer_fonds_commerce(text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "creer_oeuvre(text,text,text,text,integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "creer_oeuvre(text,text,text,text,integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "creer_oeuvre(text,text,text,text,integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "creer_offre(text,text,text,text,integer,bigint,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "creer_offre(text,text,text,text,integer,bigint,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "creer_offre(text,text,text,text,integer,bigint,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "employer_fonds(text,text,text,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "employer_fonds(text,text,text,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "employer_fonds(text,text,text,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "entrepot_capacite_disponible(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entrepot_capacite_disponible(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_capacite_disponible(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_capacite_disponible(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entrepot_commander(text,text,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_commander(text,text,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_commander(text,text,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entrepot_du_directeur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_du_directeur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_du_directeur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entrepot_fixer_desiderata(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_fixer_desiderata(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_fixer_desiderata(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_livrer_transits()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_livrer_transits()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_reverser(text,numeric,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_reverser(text,numeric,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entrepot_virement_mairie(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_virement_mairie(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_virement_mairie(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepots_reverser_excedent()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepots_reverser_excedent()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_preemption(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_preemption(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_preemption(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_rachat(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_rachat(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_acte_rachat(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_ajouter_historique(jsonb,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_ajouter_historique(jsonb,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_assurer_existence(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_assurer_existence(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_assurer_existence(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_mouvement_fiscal(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_mouvement_fiscal(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_mouvement_fiscal(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_preempter(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_preempter(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_preempter(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_prix_rachat(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_prix_rachat(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_signer_compromis(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_signer_compromis(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_signer_compromis(text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_annuler_compromis(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_annuler_compromis(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_annuler_compromis(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_geler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_geler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entreprise_succession_geler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fabriquer_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fabriquer_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fabriquer_produit_manufacture(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_entrepot(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_entrepot(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_entrepot(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_vente_directe(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_vente_directe(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fixer_prix_vente_directe(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_port(text,numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_port(text,numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_port(text,numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_production(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_production(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fixer_repartition_production(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fournisseurs_etrangers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fournisseurs_etrangers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fournisseurs_etrangers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fournisseurs_etrangers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fret_dedouaner(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fret_dedouaner(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fret_dedouaner(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fret_unitaire_international()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fret_unitaire_international()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fret_unitaire_international()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fret_unitaire_international()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "local_vocation_commerciale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "local_vocation_commerciale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "local_vocation_commerciale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "local_vocation_commerciale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "matiere_circuits_disponibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "matiere_circuits_disponibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "matiere_circuits_disponibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal_lot(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal_lot(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "matiere_refus_circuit_legal_lot(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "ordres_couts_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "ordres_couts_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ordres_couts_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ordres_couts_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ordres_couts_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "payer_ordre(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "payer_ordre(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "payer_ordre(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "prix_ressource_selon_stock(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "prix_ressource_selon_stock(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "prix_ressource_selon_stock(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "prix_ressource_selon_stock(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "prix_ressource_selon_stock(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "produire_en_usine(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "produire_en_usine(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "produire_en_usine(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "recevoir_soin(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recevoir_soin(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recevoir_soin(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "refectoire_repas(text,text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "refectoire_repas(text,text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "refectoire_repas(text,text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "repondre_offre(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "repondre_offre(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "repondre_offre(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restituer_reliquats_chantier(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restituer_reliquats_chantier(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_fonds_commerce(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_fonds_commerce(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vendre_matiere_a_usine(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_matiere_a_usine(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_matiere_a_usine(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vendre_ressource_medicale(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_ressource_medicale(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_ressource_medicale(text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "ventes_snapshots_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "ventes_snapshots_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ventes_snapshots_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ventes_snapshots_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ventes_snapshots_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "catalogue_correspondance_legacy_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "catalogue_correspondance_legacy_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "catalogue_correspondance_legacy_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "catalogue_correspondance_legacy_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "entrepot_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "entrepot_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "entrepot_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "entrepot_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "apports_matieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "apports_matieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "caisses_fret",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "caisses_fret",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "caisses_fret",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_fret",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_correspondance_legacy",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_correspondance_legacy",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_correspondance_legacy",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_correspondance_legacy",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_familles",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_familles",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_familles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_familles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_generique_type",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_generique_type",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_generique_type",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_generique_type",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques_raccordes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques_raccordes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques_raccordes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_generiques_raccordes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_types",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_types",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_types",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_types",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "catalogue_variantes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "catalogue_variantes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "catalogue_variantes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "catalogue_variantes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "chaines_production_usine",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chaines_production_usine",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chaines_production_usine",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chaines_production_usine",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "confiscations_douanieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "confiscations_douanieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "contenu_caisses_fret",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "contenu_caisses_fret",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contenu_caisses_fret",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contenu_caisses_fret",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "directeurs_usine",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "directeurs_usine",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "directeurs_usine",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "directeurs_usine",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entrepot_journal",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entrepot_journal",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entrepot_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entrepot_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entrepot_transits",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entrepot_transits",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entrepot_transits",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entrepot_transits",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entrepots_par_ville",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entrepots_par_ville",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entrepots_par_ville",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entrepots_par_ville",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entrepots_reversements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entrepots_reversements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entreprises",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entreprises",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entreprises",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entreprises",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "imprimeries_declarees",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "imprimeries_declarees",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "imprimeries_declarees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "imprimeries_declarees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "investissements",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "investissements",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "investissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "investissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "oeuvres",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "oeuvres",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "oeuvres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "oeuvres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "offres",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "offres",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "offres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "offres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ordres_couts_ecarts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ordres_couts_ecarts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "ordres_couts_inconnus",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts_inconnus",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ordres_couts_inconnus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ordres_couts_inconnus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "productions_references",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "productions_references",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "produits_manufactures",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "produits_manufactures",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "produits_manufactures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "produits_manufactures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "ressources_economie_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ressources_economie_empreinte",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ressources_economie_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ressources_economie_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "structures_medicales",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "structures_medicales",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "structures_medicales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "structures_medicales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "usines_rachat_config",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "usines_rachat_config",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "usines_rachat_config",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "usines_rachat_config",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ventes_snapshots",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ventes_snapshots",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
+  "20_fonctions-1.sql": "81ac9cbe1bbe333054efc92e1ab9455f",
+  "20_fonctions-2.sql": "8c285aa32d2430379c22970d58233121",
+  "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
+  "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
+  "40_vues.sql": "2d59d994831075a5e118e41b769bf712",
+  "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
+  "60_rls-policies.sql": "8c2f4c566aeef6f0cbaeae89b8467ab4",
+  "70_droits.sql": "9a5a80d4ab6730bb511f8fd2b0d752a9",
+  "80_commentaires.sql": "65f34a472d8515643bd70f405de10c8a"
+ },
+ "fonctions": [
+  {
+   "empreinte": "8ec91e0d618f2a7ac23e792dcc9f3147",
+   "security_definer": true,
+   "signature": "acheter_a_entrepot(text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "cb35b27a78a0153913bc2f538f84ec4d",
+   "security_definer": true,
+   "signature": "acheter_a_la_criee(text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "86c672088148f040220237a323e721cf",
+   "security_definer": true,
+   "signature": "acheter_produit_commerce(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "7f44a23bad6f107ca656823f6cb31a4e",
+   "security_definer": true,
+   "signature": "acheter_produit_manufacture(text,text,text)"
+  },
+  {
+   "empreinte": "e626686e10a0cd74c89b5dd4a410060a",
+   "security_definer": true,
+   "signature": "acheter_vente_directe_usine(text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "99eb840172009eeaeaf941ae33a70a8a",
+   "security_definer": true,
+   "signature": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)"
+  },
+  {
+   "empreinte": "5f93b70bb06bf0020825f54abf2cb9f1",
+   "security_definer": false,
+   "signature": "capacite_entrepot()"
+  },
+  {
+   "empreinte": "9e4dfd4ad3606590b08ab22c24a774da",
+   "security_definer": true,
+   "signature": "chantier_lancer(text,text,text,text,numeric)"
+  },
+  {
+   "empreinte": "97bc24182eeefe271402a3470bfde245",
+   "security_definer": true,
+   "signature": "chantier_travailler(text,text,text,integer)"
+  },
+  {
+   "empreinte": "c80417ea622ddbe18f6ea5dd4007f2c4",
+   "security_definer": true,
+   "signature": "chantier_verser(text,text,text,numeric)"
+  },
+  {
+   "empreinte": "fc18abb7be12da9906c0715fb61058a4",
+   "security_definer": false,
+   "signature": "coef_prix_max_pj(text)"
+  },
+  {
+   "empreinte": "964e8e764fe928f2b54db47d71ea0245",
+   "security_definer": true,
+   "signature": "commerce_acheter_matiere(text,text,text,integer)"
+  },
+  {
+   "empreinte": "1c0d8f281bb1b8d0ba9c366983bc5c3f",
+   "security_definer": true,
+   "signature": "commerce_apporter_matiere(text,text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "e460078ad979f1e401410e896cef1be1",
+   "security_definer": false,
+   "signature": "commerce_cout_revient_portion(jsonb,text)"
+  },
+  {
+   "empreinte": "b444319d69f9586dea27c6b54c98af05",
+   "security_definer": true,
+   "signature": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)"
+  },
+  {
+   "empreinte": "88d0d44c68f9e6a6d9f1a8b5ce77ee4a",
+   "security_definer": true,
+   "signature": "commerce_produire(text,text,text,text)"
+  },
+  {
+   "empreinte": "898557ee0fc72e48c98c4a885e16242d",
+   "security_definer": true,
+   "signature": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)"
+  },
+  {
+   "empreinte": "731deadcab58fbc0f7f5d7a75da446a4",
+   "security_definer": true,
+   "signature": "creer_fonds_commerce(text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "a0f58063c04007a6e2204804f2ff8725",
+   "security_definer": true,
+   "signature": "creer_oeuvre(text,text,text,text,integer,text,jsonb)"
+  },
+  {
+   "empreinte": "607db8b03a67cd67237e1bcbd7ad8156",
+   "security_definer": true,
+   "signature": "creer_offre(text,text,text,text,integer,bigint,jsonb)"
+  },
+  {
+   "empreinte": "48a6bf3308e5d6e1cefe3388668d8ffe",
+   "security_definer": true,
+   "signature": "employer_fonds(text,text,text,text,integer,boolean)"
+  },
+  {
+   "empreinte": "05db47b8870ae2b1e44ff66bdbcd8bbf",
+   "security_definer": true,
+   "signature": "entrepot_caisse_lire(text)"
+  },
+  {
+   "empreinte": "769cda4a6e746805be33aad9478f37c6",
+   "security_definer": false,
+   "signature": "entrepot_capacite_disponible(text,text)"
+  },
+  {
+   "empreinte": "3e590bc64262a6060c9ef9aef790fc3a",
+   "security_definer": true,
+   "signature": "entrepot_commander(text,text,integer,text,text)"
+  },
+  {
+   "empreinte": "bbdd39f0c4f1fe12f6705b4704eda2f0",
+   "security_definer": false,
+   "signature": "entrepot_du_directeur(text)"
+  },
+  {
+   "empreinte": "4a9ab1ea89171923b3cf4b6c6a92b507",
+   "security_definer": true,
+   "signature": "entrepot_fixer_desiderata(text,jsonb)"
+  },
+  {
+   "empreinte": "1f774a45bd4037b584508c9e20f32fb4",
+   "security_definer": true,
+   "signature": "entrepot_livrer_transits()"
+  },
+  {
+   "empreinte": "0a47faebee4783e89506e29ff07ff376",
+   "security_definer": true,
+   "signature": "entrepot_reverser(text,numeric,text,text)"
+  },
+  {
+   "empreinte": "d507f0802f8aeed1a5a89a6ac9900f56",
+   "security_definer": true,
+   "signature": "entrepot_virement_mairie(text,numeric)"
+  },
+  {
+   "empreinte": "52376804f10cd111d2a8ccb3b856ac4f",
+   "security_definer": true,
+   "signature": "entrepots_reverser_excedent()"
+  },
+  {
+   "empreinte": "44b22bdd937a39a7be79276504275439",
+   "security_definer": true,
+   "signature": "entreprise_acte_preemption(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "5b0b96210079d4016c1388f7591c7533",
+   "security_definer": true,
+   "signature": "entreprise_acte_rachat(text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "e46aa84c790716c8287e3cf39e097726",
+   "security_definer": false,
+   "signature": "entreprise_ajouter_historique(jsonb,numeric,text,integer)"
+  },
+  {
+   "empreinte": "586612a11e1019a092a292fa89e9c333",
+   "security_definer": true,
+   "signature": "entreprise_assurer_existence(text,text,text,text,text,text)"
+  },
+  {
+   "empreinte": "9d1aac12eccc44f22efdb5c43e4f2ba3",
+   "security_definer": true,
+   "signature": "entreprise_mouvement_fiscal(text,text,numeric)"
+  },
+  {
+   "empreinte": "5336b164b62cd92fa16ba053feb0f184",
+   "security_definer": true,
+   "signature": "entreprise_preempter(text,text,numeric,integer)"
+  },
+  {
+   "empreinte": "a4fdd392226d6db6bc681447bb7cf29f",
+   "security_definer": false,
+   "signature": "entreprise_prix_rachat(jsonb)"
+  },
+  {
+   "empreinte": "ad39111801232927a6522d7e05b649ee",
+   "security_definer": true,
+   "signature": "entreprise_signer_compromis(text,text,numeric,integer)"
+  },
+  {
+   "empreinte": "0a1478da9946f3cf658eda6b550cb730",
+   "security_definer": true,
+   "signature": "entreprise_succession_annuler_compromis(text,text,text)"
+  },
+  {
+   "empreinte": "cdbb690fdff98c18ce193ec29f84c859",
+   "security_definer": true,
+   "signature": "entreprise_succession_geler(text,text,text)"
+  },
+  {
+   "empreinte": "a382746e46afff74af15a467d37c19ec",
+   "security_definer": true,
+   "signature": "fabriquer_produit_manufacture(text,text,text)"
+  },
+  {
+   "empreinte": "aef3f9fef77dd328ea53f6aafcbf0ae2",
+   "security_definer": true,
+   "signature": "fixer_prix_entrepot(text,text,jsonb)"
+  },
+  {
+   "empreinte": "004d26e26a6af35fc5c47f8ac008b0ee",
+   "security_definer": true,
+   "signature": "fixer_prix_vente_directe(text,text,jsonb)"
+  },
+  {
+   "empreinte": "427022a635e1858ca6cdb9f9a2be4716",
+   "security_definer": true,
+   "signature": "fixer_repartition_port(text,numeric,numeric,numeric)"
+  },
+  {
+   "empreinte": "3df8c432f6c7b05ef1f2320839d53cef",
+   "security_definer": true,
+   "signature": "fixer_repartition_production(text,text,numeric)"
+  },
+  {
+   "empreinte": "b744c4d99ae1de4e4bc364e4b3b5aa7f",
+   "security_definer": false,
+   "signature": "fournisseurs_etrangers()"
+  },
+  {
+   "empreinte": "95695f13239a05d1a59061d61f1bc7d5",
+   "security_definer": true,
+   "signature": "fret_dedouaner(uuid)"
+  },
+  {
+   "empreinte": "3418e59b632f50e181d084774b6dde32",
+   "security_definer": false,
+   "signature": "fret_unitaire_international()"
+  },
+  {
+   "empreinte": "531c06069bcc7419ee378674d994f686",
+   "security_definer": false,
+   "signature": "local_vocation_commerciale(text)"
+  },
+  {
+   "empreinte": "3e81ee8ba838e94a9541583aa96c62ef",
+   "security_definer": true,
+   "signature": "matiere_circuits_disponibles(text)"
+  },
+  {
+   "empreinte": "b752f50f53c97bc0afb5646cc9a83b7c",
+   "security_definer": true,
+   "signature": "matiere_refus_circuit_legal(text,text,text)"
+  },
+  {
+   "empreinte": "b122bccd75648d5c14d233a7a820a879",
+   "security_definer": true,
+   "signature": "matiere_refus_circuit_legal_lot(text,jsonb,text)"
+  },
+  {
+   "empreinte": "68568bfa3026c86168839d3c0193322d",
+   "security_definer": true,
+   "signature": "ordres_couts_empreinte_reelle()"
+  },
+  {
+   "empreinte": "eb9e575d1bf371c1ad0a98d5b852d7dd",
+   "security_definer": true,
+   "signature": "payer_ordre(text,text,integer,integer)"
+  },
+  {
+   "empreinte": "84c3512baebf39cce1619fbf787a20bd",
+   "security_definer": false,
+   "signature": "prix_ressource_selon_stock(text,numeric)"
+  },
+  {
+   "empreinte": "284271d30fce5ae21646cfd0a4b38e26",
+   "security_definer": true,
+   "signature": "produire_en_usine(text,text,text)"
+  },
+  {
+   "empreinte": "ec75c470d29704f609b00e1a45942ae8",
+   "security_definer": true,
+   "signature": "recevoir_soin(text,text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "7d651540b7ababf332d901c5d26b9754",
+   "security_definer": true,
+   "signature": "refectoire_repas(text,text,integer,integer,integer)"
+  },
+  {
+   "empreinte": "3f409dee16536e11f1086f03d6a7199d",
+   "security_definer": true,
+   "signature": "repondre_offre(text,text,boolean)"
+  },
+  {
+   "empreinte": "a51a03dc42bb2e008cb89ef152040313",
+   "security_definer": true,
+   "signature": "ressources_economie_empreinte_reelle()"
+  },
+  {
+   "empreinte": "5e1a33ce00ad784dbfa183a28c9a71c8",
+   "security_definer": false,
+   "signature": "ressources_economie_nombre(numeric)"
+  },
+  {
+   "empreinte": "17fbaf9f5c57464d21909617ce9a83ac",
+   "security_definer": true,
+   "signature": "restituer_reliquats_chantier(text,text)"
+  },
+  {
+   "empreinte": "4a45e56511637cde92975e551f3ba955",
+   "security_definer": true,
+   "signature": "vendre_fonds_commerce(text,text,text,integer)"
+  },
+  {
+   "empreinte": "35eec42c21370d6ce498b77b4de752d0",
+   "security_definer": true,
+   "signature": "vendre_materiaux_chantier(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "9d39e80b5c0b488706fc4079c70831c8",
+   "security_definer": true,
+   "signature": "vendre_matiere_a_usine(text,text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "f9ce10e140a2a19b08c063dbe39e187a",
+   "security_definer": true,
+   "signature": "vendre_ressource_medicale(text,text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "1ce320d0bce93954cf9f784291e759e0",
+   "security_definer": false,
+   "signature": "ventes_snapshots_append_only()"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "b1a8b8ff94c94748859865e9ee8dfd98",
+   "nom": "apports_matieres_fonds_idx"
+  },
+  {
+   "empreinte": "14e56cb3c46f1a542c89372db3860845",
+   "nom": "idx_caisses_fret_destinataire"
+  },
+  {
+   "empreinte": "248e8e99562d4d6d2fa7ed6c8fea9080",
+   "nom": "idx_caisses_fret_pays_destination"
+  },
+  {
+   "empreinte": "7633c263bd9cc4dc60adbf15b56eaf42",
+   "nom": "idx_caisses_fret_statut"
+  },
+  {
+   "empreinte": "af7610c34be847dd59c68cf4f344c122",
+   "nom": "idx_confiscations_lieu"
+  },
+  {
+   "empreinte": "d1aa9dab76c19a1670680b0d464c1f96",
+   "nom": "idx_confiscations_personne"
+  },
+  {
+   "empreinte": "d4c68f9514ee315960ec55c395170364",
+   "nom": "idx_contenu_caisses_fret_caisse"
+  },
+  {
+   "empreinte": "b655df05225c9df61d33b9f53d6b10a8",
+   "nom": "idx_contenu_caisses_fret_deposant"
+  },
+  {
+   "empreinte": "8189b15950413ea3228dee289622ca9e",
+   "nom": "idx_corresp_legacy_generique"
+  },
+  {
+   "empreinte": "e95d38fd31dccf76ed3fdbf5d083d14d",
+   "nom": "idx_journal_entrepot"
+  },
+  {
+   "empreinte": "ecd13f8191d6ffab74a400bd4e6e121d",
+   "nom": "idx_productions_references_fonds"
+  },
+  {
+   "empreinte": "f57f0d3de6d53907a85a2110c937c26d",
+   "nom": "idx_transits_arrivee"
+  },
+  {
+   "empreinte": "2f86a79dd0d49058dcf949b7a8bae708",
+   "nom": "idx_transits_destination"
+  },
+  {
+   "empreinte": "a057a5a06b7cb464b4f1629a0635a566",
+   "nom": "idx_ventes_snapshots_acheteur"
+  },
+  {
+   "empreinte": "ac90cd2125ab39d623e56fe47092ae7b",
+   "nom": "idx_ventes_snapshots_fonds"
+  },
+  {
+   "empreinte": "5658fbce5664014e348976ede28fe0de",
+   "nom": "oeuvres_auteur_idx"
+  },
+  {
+   "empreinte": "f349d0dee8c1e391b10f65c98fc93723",
+   "nom": "oeuvres_type_idx"
+  },
+  {
+   "empreinte": "fad52a470199d9efdffefab38c688fe3",
+   "nom": "offres_destinataire_idx"
+  },
+  {
+   "empreinte": "97ccc9be6dde7024c87d40aa2c2a26a8",
+   "nom": "offres_emetteur_idx"
+  },
+  {
+   "empreinte": "7d3d354debfc589db7947a478642b6ca",
+   "nom": "recettes_commerce_forme_unique"
+  }
+ ],
+ "index_portes": [
+  "apports_matieres_pkey",
+  "caisses_fret_pkey",
+  "catalogue_correspondance_legacy_motif_valeur_key",
+  "catalogue_correspondance_legacy_pkey",
+  "catalogue_familles_pkey",
+  "catalogue_generique_type_pkey",
+  "catalogue_generiques_pkey",
+  "catalogue_types_pkey",
+  "catalogue_variantes_generique_id_cle_key",
+  "catalogue_variantes_pkey",
+  "chaines_production_usine_pkey",
+  "chantiers_besoins_jour_pkey",
+  "chantiers_paliers_pkey",
+  "commerces_dotations_pkey",
+  "commerces_types_pkey",
+  "confiscations_douanieres_pkey",
+  "contenu_caisses_fret_pkey",
+  "directeurs_usine_pkey",
+  "entrepot_journal_pkey",
+  "entrepot_transits_pkey",
+  "entrepots_par_ville_pkey",
+  "entrepots_reversements_pkey",
+  "entreprises_constantes_pkey",
+  "entreprises_pkey",
+  "entreprises_prix_rachat_pkey",
+  "imprimeries_declarees_pkey",
+  "investissements_pkey",
+  "oeuvres_pkey",
+  "offres_pkey",
+  "ordres_couts_ecarts_pkey",
+  "ordres_couts_empreinte_pkey",
+  "ordres_couts_inconnus_pkey",
+  "ordres_couts_pkey",
+  "productions_references_pkey",
+  "produits_manufactures_pkey",
+  "recettes_commerce_pkey",
+  "recettes_production_pkey",
+  "ressources_economie_empreinte_pkey",
+  "ressources_economie_pkey",
+  "structures_medicales_pkey",
+  "usines_rachat_config_pkey",
+  "ventes_snapshots_pkey",
+  "ventes_snapshots_requete_key"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions-1.sql",
+  "20_fonctions-2.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "40_vues.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "280687675a12b385785db6a0798ae7a7",
+   "nom": "catalogue_correspondance_legacy lecture",
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "770c0c7f793418c552b6218f5f31daf5",
+   "nom": "catalogue_familles lecture",
+   "tbl": "catalogue_familles"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "64ec03e0b95c5ba7830a3fc4f4faa69e",
+   "nom": "catalogue_generique_type lecture",
+   "tbl": "catalogue_generique_type"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "bd031a7f0088d715849c78ddd69f2648",
+   "nom": "catalogue_generiques lecture",
+   "tbl": "catalogue_generiques"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a6c86b4dc090d544c3408b11a0384aa0",
+   "nom": "catalogue_types lecture",
+   "tbl": "catalogue_types"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "fb1d59d88f1ce1130d2539e3715a866a",
+   "nom": "catalogue_variantes lecture",
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "d06c09d8517e80bd8f3e9c86e8d1a747",
+   "nom": "chaines_production_lecture",
+   "tbl": "chaines_production_usine"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "cd3bfb7d15a25d22ba9a07dda5fe5b77",
+   "nom": "chantiers_besoins_jour lecture",
+   "tbl": "chantiers_besoins_jour"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "165207b5962980cb344332a9840127e2",
+   "nom": "chantiers_paliers lecture",
+   "tbl": "chantiers_paliers"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "896919812d4bff72f46c6f6d7ba93a8c",
+   "nom": "commerces_dotations lecture",
+   "tbl": "commerces_dotations"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "44e6a7d1709890418826600f739d09e1",
+   "nom": "commerces_types lecture",
+   "tbl": "commerces_types"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "2753a096d1fc120d5897280ed3076cc9",
+   "nom": "directeurs_usine_lecture",
+   "tbl": "directeurs_usine"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "0c94c5621494c26b0b1c1bdea239c819",
+   "nom": "journal_lecture",
+   "tbl": "entrepot_journal"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "dfd87a5362c18f4d965901c3345586eb",
+   "nom": "transits_lecture",
+   "tbl": "entrepot_transits"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5a57b5020b02b93d32e67be7f15e08d5",
+   "nom": "entrepots_par_ville_lecture",
+   "tbl": "entrepots_par_ville"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5a378e67e1b20c1aa62f429c8a313baa",
+   "nom": "entreprises lecture publique",
+   "tbl": "entreprises"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "91ffa29c0ce6a231e0ee651b78c34e70",
+   "nom": "entreprises_constantes lecture",
+   "tbl": "entreprises_constantes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "c57e18409bb36cc06df10a4df8ec1ee4",
+   "nom": "prix_rachat lecture",
+   "tbl": "entreprises_prix_rachat"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "ef38fe45522117d65c15caaf2116325e",
+   "nom": "imprimeries lecture",
+   "tbl": "imprimeries_declarees"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "19064c2d9e2c12a179d5e35bb4f12175",
+   "nom": "investissements_lecture",
+   "tbl": "investissements"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "ff862145cb2af4d88a3de771305ed0ac",
+   "nom": "oeuvres_select",
+   "tbl": "oeuvres"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5d8e4ebbbfd96fb797bb041d59cfe536",
+   "nom": "offres_select",
+   "tbl": "offres"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "9b991dfb4c31696ade7737f752f17e9b",
+   "nom": "produits_manufactures_lecture",
+   "tbl": "produits_manufactures"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "6bb4c29410802067f451b6e9bf4d3cc6",
+   "nom": "recettes_commerce lecture",
+   "tbl": "recettes_commerce"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "d6efe15cf607adffd986f1f0422d8f0c",
+   "nom": "recettes_production lecture",
+   "tbl": "recettes_production"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "92614c8d26783a3a01f8d5a38c65d6fd",
+   "nom": "ressources_economie_lecture",
+   "tbl": "ressources_economie"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "45159a94e7bcddd4f167750354446dff",
+   "nom": "structures_medicales_lecture",
+   "tbl": "structures_medicales"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "398bc6d290a5b600c66a53a2663b485d",
+   "nom": "usines_rachat_config_lecture",
+   "tbl": "usines_rachat_config"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "apports_matieres"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "caisses_fret"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_familles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_generique_type"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_generiques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_types"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "catalogue_variantes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chaines_production_usine"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chantiers_besoins_jour"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chantiers_paliers"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "commerces_dotations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "commerces_types"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "confiscations_douanieres"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "contenu_caisses_fret"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "directeurs_usine"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entrepot_journal"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entrepot_transits"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entrepots_par_ville"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entrepots_reversements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entreprises"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entreprises_constantes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "entreprises_prix_rachat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "imprimeries_declarees"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "investissements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "oeuvres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "offres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ordres_couts"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ordres_couts_ecarts"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ordres_couts_empreinte"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ordres_couts_inconnus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "productions_references"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "produits_manufactures"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "recettes_commerce"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "recettes_production"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ressources_economie"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ressources_economie_empreinte"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "structures_medicales"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "usines_rachat_config"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ventes_snapshots"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "catalogue_correspondance_legacy_id_seq",
+   "possedee": true,
+   "tbl": "catalogue_correspondance_legacy"
+  },
+  {
+   "nom": "entrepot_journal_id_seq",
+   "possedee": true,
+   "tbl": "entrepot_journal"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "562011e03b1f3366b4445684c7e2d1c3",
+   "empreinte_texte": "5bfd39000cd75125f06ccba928b1346b",
+   "nom": "apports_matieres"
+  },
+  {
+   "colonnes": 23,
+   "empreinte_catalogue": "34ea755f42d5a58b3d9ea869b4b8573d",
+   "empreinte_texte": "c136593b4e8dba7e99511675aaea7ab1",
+   "nom": "caisses_fret"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "53bc88dd922289c406f3cb14627a8073",
+   "empreinte_texte": "372a628abe33e2affa5b7ab64cbee15f",
+   "nom": "catalogue_correspondance_legacy"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "dd88487e00bcda091411a9d452484ff3",
+   "empreinte_texte": "24e39e568f84d53c0cf4974f4981a500",
+   "nom": "catalogue_familles"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "0eee1f61e868cb42e0a128148246d362",
+   "empreinte_texte": "5e706bf0f9c421d0e613f137252559e6",
+   "nom": "catalogue_generique_type"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "ba510009c5ef6a415cca968bd012ec63",
+   "empreinte_texte": "19e6a483c142548e099b527c58494c37",
+   "nom": "catalogue_generiques"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "88c3e1ef6e1fac53aa16a5dcf70686b7",
+   "empreinte_texte": "f6a60c9159baa6937bf3e1c643d7337f",
+   "nom": "catalogue_types"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "d28ce992a035ab675db5a32703532af4",
+   "empreinte_texte": "44c255aef8f2475e5d0105457d705341",
+   "nom": "catalogue_variantes"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "5bccda8b6a266268510c38a0bd87a940",
+   "empreinte_texte": "0e25fa8899b3199c5761eb9d7f5db352",
+   "nom": "chaines_production_usine"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "4dd06215e512f4347e60adc8d772da0b",
+   "empreinte_texte": "ef7bc2799485b13f11558eed46590e0b",
+   "nom": "chantiers_besoins_jour"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "9613396b64a760d832be28ed19e48422",
+   "empreinte_texte": "022c3bd850f8e2a99c1604e55ada9f9e",
+   "nom": "chantiers_paliers"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "8a138d39aa0e177c377585e76959e882",
+   "empreinte_texte": "890b1852cbae4441c9ae6982c364c097",
+   "nom": "commerces_dotations"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "e87f8ea229b95d485b07453d68280d76",
+   "empreinte_texte": "8f1e2e8e6b0944b81dcad7189568f183",
+   "nom": "commerces_types"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "ef178fd4d5e5f295be79f983fe72309b",
+   "empreinte_texte": "c31e6e51aa900f6f455e1c6fa1911544",
+   "nom": "confiscations_douanieres"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "8136c9b82d1b5eb0cbe90a28f9b04d44",
+   "empreinte_texte": "35fbc95dc64fb5fbbb61dc9712af6254",
+   "nom": "contenu_caisses_fret"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "008fdcc3d9911508e9bf867f731cad78",
+   "empreinte_texte": "9abdcc0d0a971c87a3ccca1f165db446",
+   "nom": "directeurs_usine"
+  },
+  {
+   "colonnes": 15,
+   "empreinte_catalogue": "93c6c3ce92709e526d44d545bd5618d6",
+   "empreinte_texte": "9666b9accde0a03bdb6e961cb4488e0d",
+   "nom": "entrepot_journal"
+  },
+  {
+   "colonnes": 13,
+   "empreinte_catalogue": "e965698221a4e5633f5870b11258dd29",
+   "empreinte_texte": "f277700dde354e11233acdcdd02856ec",
+   "nom": "entrepot_transits"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "7501d473f1074356491aae0ca0433326",
+   "empreinte_texte": "f4f3dbc4d7f8d36f49f2dc5aa9d08a2b",
+   "nom": "entrepots_par_ville"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "d96c8bb0e109bc170412073292fc6944",
+   "empreinte_texte": "a0970f40fc696579ba84dd81ca581fcc",
+   "nom": "entrepots_reversements"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "entreprises"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "ca0d0e216e60f29f6afe1b6d4c2620ee",
+   "empreinte_texte": "b7fad899a0df049b7f5f6a4dd6de7a7b",
+   "nom": "entreprises_constantes"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "4b22c6930046a20f67ff502896811e02",
+   "empreinte_texte": "04a304c1c9707fc9e95c13289db91895",
+   "nom": "entreprises_prix_rachat"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "7fe4a8f7e342cc8a7af81362b6cfe1be",
+   "empreinte_texte": "d2b7828a4b6fed334698c481e4c099b6",
+   "nom": "imprimeries_declarees"
+  },
+  {
+   "colonnes": 12,
+   "empreinte_catalogue": "6c6b8b592ea3432d2d15bb795df21266",
+   "empreinte_texte": "b43f3d9682b320e09cdc790e21890d9a",
+   "nom": "investissements"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "7070bc2c09be9e1ab792a3c3353c2dc1",
+   "empreinte_texte": "85addd3ec966c8c9879c157432232585",
+   "nom": "oeuvres"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "3a8a2ec4de909a3c568f01ca8dc27d3c",
+   "empreinte_texte": "9b36d8724c2422dd870d784d0fe89755",
+   "nom": "offres"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "122c840bc9f6e23a68f9ea74d1de0411",
+   "empreinte_texte": "2704635d352080ec663dffc61530c76c",
+   "nom": "ordres_couts"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "b3f14ac25b73a60c3a13f1b7391430f6",
+   "empreinte_texte": "a18093844e732e167b30579bac162d39",
+   "nom": "ordres_couts_ecarts"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "99a96df62623d0352d622f130fdba527",
+   "empreinte_texte": "c415d2b4ec5f08e49bb5384e7a7eb5b8",
+   "nom": "ordres_couts_empreinte"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "44693a76101baffa1f7899e8a71bf166",
+   "empreinte_texte": "e8bbf2b04f6d3d99539bc0b2027b45fc",
+   "nom": "ordres_couts_inconnus"
+  },
+  {
+   "colonnes": 13,
+   "empreinte_catalogue": "d8cf0ef04e9d078f1d25ec9ca931b144",
+   "empreinte_texte": "939ef2d1a270d26c009610e2543a0744",
+   "nom": "productions_references"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "9f0253a24820d4b83c9c997489b5c45f",
+   "empreinte_texte": "8b9416dc5274c96260179f230a4ec891",
+   "nom": "produits_manufactures"
+  },
+  {
+   "colonnes": 22,
+   "empreinte_catalogue": "b317d3c840f5651a18591de71f3e3d67",
+   "empreinte_texte": "27cc9a35206317efb3dc2d93a9b732ee",
+   "nom": "recettes_commerce"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "1ad29e7952837c24a3506c9795486ed2",
+   "empreinte_texte": "d20a5803fcbc0b468b97b036c3981a68",
+   "nom": "recettes_production"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "d5e4c97597601f7e970fb54805adc95c",
+   "empreinte_texte": "e7339cf4372a84f8fdef25a8f8bfe382",
+   "nom": "ressources_economie"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "99a96df62623d0352d622f130fdba527",
+   "empreinte_texte": "c415d2b4ec5f08e49bb5384e7a7eb5b8",
+   "nom": "ressources_economie_empreinte"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "08ea4dc0ed1abb24011231fac9830aee",
+   "empreinte_texte": "74736e306ef6e6ba52589f1fcfa1089b",
+   "nom": "structures_medicales"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cfe5a30dddf64683ea872520680f5606",
+   "empreinte_texte": "bf71d6b03c31bc572cb19db43cd749e3",
+   "nom": "usines_rachat_config"
+  },
+  {
+   "colonnes": 20,
+   "empreinte_catalogue": "39d6cd07ca96ce8827394995cdff117b",
+   "empreinte_texte": "d28abebbeabe91b87ee82762e49bd2ba",
+   "nom": "ventes_snapshots"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "335bc298a46fd4caf7327a4b39ab668d",
+   "fonction": "assemblee_fret_vente_legale()",
+   "nom": "trg_assemblee_fret_vente_legale",
+   "tbl": "caisses_fret"
+  },
+  {
+   "empreinte": "1a23c855d46c375934379cdbc824cbf4",
+   "fonction": "ventes_snapshots_append_only()",
+   "nom": "trg_ventes_snapshots_append_only",
+   "tbl": "ventes_snapshots"
+  }
+ ],
+ "vues": [
+  {
+   "empreinte": "966e817b9c99a16f27874fe4694ca3be",
+   "nom": "catalogue_generiques_raccordes",
+   "reloptions": null
+  }
+ ]
+}

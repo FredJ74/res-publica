@@ -1,0 +1,1904 @@
+{
+ "commentaires": [],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "calomnies_actes_pkey",
+   "tbl": "calomnies_actes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "chronique_nationale_pkey",
+   "tbl": "chronique_nationale"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "corruptions_presse_pkey",
+   "tbl": "corruptions_presse"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fuites_journalistiques_pkey",
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "groupes_presse_pkey",
+   "tbl": "groupes_presse"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "interviews_jodie_pkey",
+   "tbl": "interviews_jodie"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "journal_articles_en_attente_pkey",
+   "tbl": "journal_articles_en_attente"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "journal_editions_pkey",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "journaux_pkey",
+   "tbl": "journaux"
+  },
+  {
+   "empreinte": "732bc5d2938a3429e97ed2bcbd25efa8",
+   "genre": "p",
+   "nom": "journaux_redacteurs_pkey",
+   "tbl": "journaux_redacteurs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "petites_annonces_pkey",
+   "tbl": "petites_annonces"
+  },
+  {
+   "empreinte": "ca44313c922497632431bd71101d254f",
+   "genre": "p",
+   "nom": "presse_membres_pkey",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "scandales_presse_pkey",
+   "tbl": "scandales_presse"
+  },
+  {
+   "empreinte": "2abd5c727b1494fdc1534b688a1752fd",
+   "genre": "p",
+   "nom": "scandales_tentatives_pkey",
+   "tbl": "scandales_tentatives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "tribune_articles_etouffes_pkey",
+   "tbl": "tribune_articles_etouffes"
+  },
+  {
+   "empreinte": "62bceca5fb4a1c237751b3a46cf66c06",
+   "genre": "u",
+   "nom": "corruptions_presse_affaire_ref_corrupteur_key",
+   "tbl": "corruptions_presse"
+  },
+  {
+   "empreinte": "d71e3ddae0e9a8ba05aee0e89d4ae1d4",
+   "genre": "u",
+   "nom": "fuites_journalistiques_trace_cle_key",
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "empreinte": "230f2533ee3faace0ed48e3bf42b65d3",
+   "genre": "u",
+   "nom": "groupes_presse_id_pays_unique",
+   "tbl": "groupes_presse"
+  },
+  {
+   "empreinte": "eb8a0e0a9fdcf9676f532edef17bfd31",
+   "genre": "u",
+   "nom": "journal_editions_journal_date_unique",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "c9e9f051160f1e886d82edba5c716af7",
+   "genre": "c",
+   "nom": "calomnies_actes_resultat_check",
+   "tbl": "calomnies_actes"
+  },
+  {
+   "empreinte": "b3d46302aa8640abb452e34eca954900",
+   "genre": "c",
+   "nom": "corruptions_presse_affaire_type_check",
+   "tbl": "corruptions_presse"
+  },
+  {
+   "empreinte": "0ac68b28bbb594e30ceab02d63bf0d49",
+   "genre": "c",
+   "nom": "corruptions_presse_option_check",
+   "tbl": "corruptions_presse"
+  },
+  {
+   "empreinte": "0d1fc11bbcafb1c55af5b8857a3a366d",
+   "genre": "c",
+   "nom": "fuites_journalistiques_source_check",
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "empreinte": "a8bd331f0fbdb36a6e37ab569eecb292",
+   "genre": "c",
+   "nom": "journal_articles_en_attente_statut_check",
+   "tbl": "journal_articles_en_attente"
+  },
+  {
+   "empreinte": "e4dde8aaaa92c5610e71cd09f670164f",
+   "genre": "c",
+   "nom": "journal_editions_statut_check",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "ccefb4eb813d1756e7e8eb226dacd4f7",
+   "genre": "c",
+   "nom": "presse_membres_grade_check",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "44f1b8bf413768bd81c96e4a2792244a",
+   "genre": "f",
+   "nom": "journal_editions_journal_id_fkey",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "22ada0dc771dfdfb581d6faba455cd05",
+   "genre": "f",
+   "nom": "journaux_cree_par_fkey",
+   "tbl": "journaux"
+  },
+  {
+   "empreinte": "b89262fffaa39ebfd28045bacce4648e",
+   "genre": "f",
+   "nom": "journaux_groupe_pays_fk",
+   "tbl": "journaux"
+  },
+  {
+   "empreinte": "76b3d570ec7fe2c1a5962aed5415b934",
+   "genre": "f",
+   "nom": "journaux_redacteurs_journal_id_fkey",
+   "tbl": "journaux_redacteurs"
+  },
+  {
+   "empreinte": "e992b96b6933f269d976bfa614c944a8",
+   "genre": "f",
+   "nom": "journaux_redacteurs_personnage_fkey",
+   "tbl": "journaux_redacteurs"
+  },
+  {
+   "empreinte": "9e8bd6386b3b27be3b67513ad92df394",
+   "genre": "f",
+   "nom": "presse_membres_groupe_id_fkey",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "e992b96b6933f269d976bfa614c944a8",
+   "genre": "f",
+   "nom": "presse_membres_personnage_fkey",
+   "tbl": "presse_membres"
+  }
+ ],
+ "domaine": "presse",
+ "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "calomnie_appliquer_effet(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "calomnie_appliquer_effet(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "calomnie_inscrire_mandat(text,text,text,text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "calomnie_inscrire_mandat(text,text,text,text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_affaires(text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_affaires(text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_affaires(text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_affaires(text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fuite_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fuite_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fuite_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fuite_reserver(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fuite_reserver(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fuite_reserver(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fuite_reserver(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fuite_traces_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fuite_traces_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_produire_tracts(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_produire_tracts(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_produire_tracts(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_rattacher_au_titre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "journal_edition_rattacher_au_titre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_acteur_directeur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_acteur_directeur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_accorder(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_accorder(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_accorder(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_delegation_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_delegations_purger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_delegations_purger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_designer_successeur(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_designer_successeur(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_designer_successeur(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_directeur_du_journal(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_directeur_du_journal(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_groupe_fonder(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_groupe_fonder(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_journal_creer(text,text,text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_journal_creer(text,text,text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_nommer_redacteur_chef(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_nommer_redacteur_chef(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_nommer_redacteur_chef(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_quitter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_quitter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_quitter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "presse_recruter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_recruter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_recruter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "presse_succession_apres_depart()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "presse_succession_apres_depart()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "scandale_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "scandale_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "scandale_publier(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "scandale_taux(text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "scandale_taux(text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_appliquer_effet_pop(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_appliquer_effet_pop(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_interne(text,text,text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_interne(text,text,text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_nom_pnj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_nom_pnj(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_taux(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_taux(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_taux(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_taux(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "tracts_reclamer_don(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_reclamer_don(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_reclamer_don(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_reclamer_don(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "calomnies_actes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "calomnies_actes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "calomnies_actes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "calomnies_actes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "corruptions_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "corruptions_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "corruptions_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "corruptions_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "fuites_journalistiques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "fuites_journalistiques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "fuites_journalistiques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "fuites_journalistiques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "presse_membres_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "presse_membres_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "scandales_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "scandales_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "scandales_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "scandales_presse_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "calomnies_actes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "calomnies_actes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "calomnies_actes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "calomnies_actes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "chronique_nationale",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chronique_nationale",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chronique_nationale",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chronique_nationale",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "corruptions_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "corruptions_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "corruptions_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "corruptions_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "fuites_journalistiques",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "fuites_journalistiques",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fuites_journalistiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fuites_journalistiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "groupes_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "groupes_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "groupes_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "groupes_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "interviews_jodie",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "interviews_jodie",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "interviews_jodie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "interviews_jodie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "journal_articles_en_attente",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "journal_articles_en_attente",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "journal_articles_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "journal_articles_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "journal_editions",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "journal_editions",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "journal_editions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "journal_editions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "journaux",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "journaux",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "journaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "journaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "journaux_redacteurs",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "journaux_redacteurs",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "journaux_redacteurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "journaux_redacteurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "petites_annonces",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "petites_annonces",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "petites_annonces",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "petites_annonces",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "presse_membres",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "presse_membres",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "presse_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "presse_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "scandales_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "scandales_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "scandales_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "scandales_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "scandales_tentatives",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "scandales_tentatives",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "scandales_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "scandales_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "tribune_articles_etouffes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "tribune_articles_etouffes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "tribune_articles_etouffes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "tribune_articles_etouffes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "f18a7d7e7abfcdf6b8eade3bf2954db3",
+  "20_fonctions.sql": "bed0cb2aca6ab52868dab1da698b6986",
+  "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
+  "35_index.sql": "6f50c630734d8b7962501564dc16c984",
+  "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
+  "60_rls-policies.sql": "3ba3d0ba054c019f962ae3d8862ca1c2",
+  "70_droits.sql": "98a8f7d50ba4651a15cca87651144446",
+  "80_commentaires.sql": "cb9314670b33b7585e440be9ef6e1f84"
+ },
+ "fonctions": [
+  {
+   "empreinte": "2d37205980fc7d7fa624fd38951d819b",
+   "security_definer": true,
+   "signature": "calomnie_appliquer_effet(text,integer,integer)"
+  },
+  {
+   "empreinte": "7b9166b4b4f8b67c36ebce3c1e6ccd74",
+   "security_definer": true,
+   "signature": "calomnie_distribuer(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "52843fe5eb18d98f11fbf30d394f7d35",
+   "security_definer": false,
+   "signature": "calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone)"
+  },
+  {
+   "empreinte": "27829d7140edfd14f01df34213c8c895",
+   "security_definer": true,
+   "signature": "calomnie_inscrire_mandat(text,text,text,text,timestamp with time zone)"
+  },
+  {
+   "empreinte": "d9a5a3f13809664e727e196407b1e628",
+   "security_definer": false,
+   "signature": "corruption_presse_affaires(text,timestamp with time zone)"
+  },
+  {
+   "empreinte": "63b15b9acdddc45f35dfc308f4edbc30",
+   "security_definer": false,
+   "signature": "corruption_presse_etat(text)"
+  },
+  {
+   "empreinte": "273d5f71878457923b32d93aa5002e13",
+   "security_definer": true,
+   "signature": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)"
+  },
+  {
+   "empreinte": "6de581856c8472476c21c3bce82c248c",
+   "security_definer": true,
+   "signature": "fuite_publier(bigint,text)"
+  },
+  {
+   "empreinte": "67043c374e3c5ce79e5d4d22a2acb8b1",
+   "security_definer": true,
+   "signature": "fuite_reserver(text,text,text)"
+  },
+  {
+   "empreinte": "94610ab95cded897c7166d4049270756",
+   "security_definer": false,
+   "signature": "fuite_traces_eligibles(text)"
+  },
+  {
+   "empreinte": "8480b1f37216aeb6d58eb8f972b6b4ce",
+   "security_definer": true,
+   "signature": "imprimerie_cession_finaliser(text,text,text,numeric,integer)"
+  },
+  {
+   "empreinte": "bba995867d0ec89b484bdcebea53a102",
+   "security_definer": true,
+   "signature": "imprimerie_produire_tracts(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "67503a7c0fe864fae983ea2f270ca2d8",
+   "security_definer": true,
+   "signature": "journal_edition_lire(text)"
+  },
+  {
+   "empreinte": "fb49ba7e7baeaf335949f16e4e02b02f",
+   "security_definer": true,
+   "signature": "journal_edition_rattacher_au_titre()"
+  },
+  {
+   "empreinte": "ef8f04d93d7cc88150ee75f613214e8e",
+   "security_definer": true,
+   "signature": "presse_acteur_directeur(text)"
+  },
+  {
+   "empreinte": "b99798970837066ab2ea94a11eb4701d",
+   "security_definer": true,
+   "signature": "presse_delegation_accorder(text,text)"
+  },
+  {
+   "empreinte": "8b43b1f6507297fc2e2932063614c6e0",
+   "security_definer": true,
+   "signature": "presse_delegation_retirer(text,text)"
+  },
+  {
+   "empreinte": "602e2c546380730778ed1fada77d78bf",
+   "security_definer": true,
+   "signature": "presse_delegations_purger()"
+  },
+  {
+   "empreinte": "df9b5fe17151f00d9296a5f8f21b3f8d",
+   "security_definer": true,
+   "signature": "presse_designer_successeur(text,text,text)"
+  },
+  {
+   "empreinte": "9296b2e309b290b6f6b0976787b4ae2b",
+   "security_definer": true,
+   "signature": "presse_directeur_du_journal(text)"
+  },
+  {
+   "empreinte": "6077428589e5d20002776b1712485096",
+   "security_definer": true,
+   "signature": "presse_groupe_fonder(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "35d26a807e9c0be836144823aa956a1a",
+   "security_definer": true,
+   "signature": "presse_journal_creer(text,text,text,text,text,boolean)"
+  },
+  {
+   "empreinte": "b2dba181f38c198aab2e2bf3ffdcea6d",
+   "security_definer": true,
+   "signature": "presse_nommer_redacteur_chef(text,text)"
+  },
+  {
+   "empreinte": "a1e0d409c8883e9f0bb9bdfc28fb38e3",
+   "security_definer": true,
+   "signature": "presse_quitter(text)"
+  },
+  {
+   "empreinte": "f81c16bdd307044c84399f7370e27422",
+   "security_definer": true,
+   "signature": "presse_recruter(text,text)"
+  },
+  {
+   "empreinte": "032bedc3a49adecf5f4fe617e6930cf8",
+   "security_definer": true,
+   "signature": "presse_succession_apres_depart()"
+  },
+  {
+   "empreinte": "7f56131385e3c682661c958916ec14cb",
+   "security_definer": true,
+   "signature": "scandale_publier(bigint,text)"
+  },
+  {
+   "empreinte": "447ecd6d0141bf2b20691908cfda10ba",
+   "security_definer": false,
+   "signature": "scandale_taux(text,jsonb,integer)"
+  },
+  {
+   "empreinte": "fffdc73db301ff19f9f6d0dff2d94806",
+   "security_definer": true,
+   "signature": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)"
+  },
+  {
+   "empreinte": "b7646693bcb321d8f9ccb1241acf4bda",
+   "security_definer": true,
+   "signature": "tracts_appliquer_effet_pop(text,integer)"
+  },
+  {
+   "empreinte": "caba346c782ad226e5857ccf77c4da8d",
+   "security_definer": true,
+   "signature": "tracts_donner_joueur(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "95e7a5a0faa6aaa929c6f2c976928174",
+   "security_definer": true,
+   "signature": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "33e6c572ba9a9a755e44a42c4ac6dffa",
+   "security_definer": false,
+   "signature": "tracts_electoraux_distribuer_interne(text,text,text,text,text,text,integer,timestamp with time zone)"
+  },
+  {
+   "empreinte": "fa549fe7fc19ef660300bc497e073851",
+   "security_definer": false,
+   "signature": "tracts_electoraux_nom_pnj(text)"
+  },
+  {
+   "empreinte": "d11936ef1e218099317ebfc5816ab760",
+   "security_definer": false,
+   "signature": "tracts_electoraux_taux(numeric,numeric,numeric)"
+  },
+  {
+   "empreinte": "91d3f536ff35a7651890b7bdb9b73c8d",
+   "security_definer": true,
+   "signature": "tracts_reclamer_don(text,text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "1d2726292813b28a565fb25bb23d7fb7",
+   "nom": "calomnies_actes_cible"
+  },
+  {
+   "empreinte": "c7d631fa662ab7ca61bf6ce0f77ac442",
+   "nom": "calomnies_actes_verrou"
+  },
+  {
+   "empreinte": "ab82d40a2a89b2d3afd9f39fae5bea44",
+   "nom": "corruptions_presse_affaire"
+  },
+  {
+   "empreinte": "e7033811b3f706403a6d576e03748407",
+   "nom": "fuites_journalistiques_cible"
+  },
+  {
+   "empreinte": "cfd3043de5d0767f5073dc1e167e2822",
+   "nom": "idx_journal_articles_en_attente_country"
+  },
+  {
+   "empreinte": "d3b2ceeae9f353816e2eba71aee09a07",
+   "nom": "interviews_jodie_personnage_idx"
+  },
+  {
+   "empreinte": "4a92af93c37ac0547e1f4dd4551eea2e",
+   "nom": "journal_editions_par_journal"
+  },
+  {
+   "empreinte": "dd77e211502de0ac0e2710197024a765",
+   "nom": "journaux_par_groupe"
+  },
+  {
+   "empreinte": "7635edc00c83b67926b38ef77975925b",
+   "nom": "journaux_redacteurs_par_personnage"
+  },
+  {
+   "empreinte": "6d027efbb146669f0bded52dfc7c09c7",
+   "nom": "journaux_slug_par_pays"
+  },
+  {
+   "empreinte": "783e109d103ad1f3e9f6c688673059df",
+   "nom": "journaux_un_garanti_par_pays"
+  },
+  {
+   "empreinte": "a71387ec8385839bf1e11da8a240f1e1",
+   "nom": "petites_annonces_country_statut_idx"
+  },
+  {
+   "empreinte": "2c9f3a170f7a9c303a47df9fe7092f02",
+   "nom": "presse_membres_par_personnage"
+  },
+  {
+   "empreinte": "65924a07b6f9fcf836c0a107e36415c4",
+   "nom": "presse_membres_un_seul_directeur"
+  },
+  {
+   "empreinte": "c4b5264819d32023d844f04ee95b8e6b",
+   "nom": "scandales_presse_auteur"
+  },
+  {
+   "empreinte": "ad9824542718cc02dfeacdf83feed016",
+   "nom": "scandales_presse_cible"
+  }
+ ],
+ "index_portes": [
+  "calomnies_actes_pkey",
+  "chronique_nationale_pkey",
+  "corruptions_presse_affaire_ref_corrupteur_key",
+  "corruptions_presse_pkey",
+  "fuites_journalistiques_pkey",
+  "fuites_journalistiques_trace_cle_key",
+  "groupes_presse_id_pays_unique",
+  "groupes_presse_pkey",
+  "interviews_jodie_pkey",
+  "journal_articles_en_attente_pkey",
+  "journal_editions_journal_date_unique",
+  "journal_editions_pkey",
+  "journaux_pkey",
+  "journaux_redacteurs_pkey",
+  "petites_annonces_pkey",
+  "presse_membres_pkey",
+  "scandales_presse_pkey",
+  "scandales_tentatives_pkey",
+  "tribune_articles_etouffes_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "937c73077ac3af262b2011300a06fc94",
+   "nom": "calomnies_actes_lecture",
+   "tbl": "calomnies_actes"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "806dd51515f7254416941a04161db031",
+   "nom": "chronique_nationale_ecriture_publique",
+   "tbl": "chronique_nationale"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "2cf393d9a7534295464b745b01dea413",
+   "nom": "chronique_nationale_lecture_publique",
+   "tbl": "chronique_nationale"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "dc99211b4e1628dd99ae3da8bfda3fca",
+   "nom": "corruptions_presse_lecture",
+   "tbl": "corruptions_presse"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "cfea99828476a406003214d5b064560f",
+   "nom": "fuites_journalistiques_lecture",
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "ab690fa53b4e05d2c213951b79a877cb",
+   "nom": "groupes_presse_lecture",
+   "tbl": "groupes_presse"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e81beca90498f7bc9c1b210b607ae948",
+   "nom": "journal_editions_lecture_publique",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "d6516e4fc47628b5e8e54a0aedc6c41a",
+   "nom": "journaux_lecture",
+   "tbl": "journaux"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5246152f146270c54ee42f4ef0ac3343",
+   "nom": "journaux_redacteurs_lecture",
+   "tbl": "journaux_redacteurs"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "f30271505da41e9dbd3b5cf54d3ca469",
+   "nom": "presse_membres_lecture",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "546840c1f4d66deb36d9d972397b5524",
+   "nom": "scandales_presse_lecture",
+   "tbl": "scandales_presse"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5d9c420f4d86bcb4e8b9208accadcb67",
+   "nom": "scandales_tentatives_lecture",
+   "tbl": "scandales_tentatives"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "9fb142784af537006d49bd710fe227ad",
+   "nom": "tribune_articles_etouffes_ecriture_publique",
+   "tbl": "tribune_articles_etouffes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "f0a456e2753169857e6ae4f419b514b6",
+   "nom": "tribune_articles_etouffes_lecture_publique",
+   "tbl": "tribune_articles_etouffes"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "calomnies_actes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chronique_nationale"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "corruptions_presse"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "groupes_presse"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "interviews_jodie"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "journal_articles_en_attente"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "journal_editions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "journaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "journaux_redacteurs"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "petites_annonces"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "presse_membres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "scandales_presse"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "scandales_tentatives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "tribune_articles_etouffes"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "calomnies_actes_id_seq",
+   "possedee": true,
+   "tbl": "calomnies_actes"
+  },
+  {
+   "nom": "corruptions_presse_id_seq",
+   "possedee": true,
+   "tbl": "corruptions_presse"
+  },
+  {
+   "nom": "fuites_journalistiques_id_seq",
+   "possedee": true,
+   "tbl": "fuites_journalistiques"
+  },
+  {
+   "nom": "presse_membres_rang_seq",
+   "possedee": true,
+   "tbl": "presse_membres"
+  },
+  {
+   "nom": "scandales_presse_id_seq",
+   "possedee": true,
+   "tbl": "scandales_presse"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 13,
+   "empreinte_catalogue": "e7f6959be3197b2a1ed98b8571a4b2cb",
+   "empreinte_texte": "366cdb80ca506400a925af90e30ad7d8",
+   "nom": "calomnies_actes"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "e260f5e24915e4704be95f2cd3c87b8a",
+   "empreinte_texte": "379393402151a111ec112a1bff4f5686",
+   "nom": "chronique_nationale"
+  },
+  {
+   "colonnes": 12,
+   "empreinte_catalogue": "95073a5b292a8ca38a625a41db530ef0",
+   "empreinte_texte": "afe87a4d5ca041814ab61f6e8c665573",
+   "nom": "corruptions_presse"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "5a41b77b0ea0ed10eefb74f81edb29db",
+   "empreinte_texte": "5cbd539a73e5e706a1508decf6e90483",
+   "nom": "fuites_journalistiques"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "fe4c6a249587b92e293abbb0898a0813",
+   "empreinte_texte": "fe0e9c61eea299d61258baea6a1c66e9",
+   "nom": "groupes_presse"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "e5ffd79501829d8e56077925d352bca6",
+   "empreinte_texte": "b29da7bf420f12427c6b42a04ed822bb",
+   "nom": "interviews_jodie"
+  },
+  {
+   "colonnes": 15,
+   "empreinte_catalogue": "27e53322a8dbdd7becb932bf5a82b603",
+   "empreinte_texte": "473b9a7f4d09c034c5032dc47ef81415",
+   "nom": "journal_articles_en_attente"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "31001754c4899119106c6bd759e393df",
+   "empreinte_texte": "33d1c077ce16b18b2fbb69f4c2ec5ddd",
+   "nom": "journal_editions"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "4e8b18f4aa2e4ee54ff0f376062e056f",
+   "empreinte_texte": "2e87a3a811581e5952a3d9416e075b7c",
+   "nom": "journaux"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "51b39f7c9aaec2980dcf9f4eabb22d9d",
+   "empreinte_texte": "085a1f36251c6a62ffc0349956056f7c",
+   "nom": "journaux_redacteurs"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "3976df5a8483bb09da4e34e9c824c3b6",
+   "empreinte_texte": "cc728d4bcea2b9460214d5e1110ad785",
+   "nom": "petites_annonces"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "86b4441171aab021982b92ff151de869",
+   "empreinte_texte": "2adf45e506889457e883fb3ed60049a4",
+   "nom": "presse_membres"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "9e3cb90f44d5afab6bf7c294d806ea3f",
+   "empreinte_texte": "73ad67c0d7d17f7f01431c6bf7f038dc",
+   "nom": "scandales_presse"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "56af653176fe4d1fd1de998e8a316e73",
+   "empreinte_texte": "9f6cf002c98a0729ac85b5c2bf6e0bbc",
+   "nom": "scandales_tentatives"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "91138e0828d75d4059668abc0d4e48e9",
+   "empreinte_texte": "de2ef92491a594697fed18bcb108b4de",
+   "nom": "tribune_articles_etouffes"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "ae07b7663c4b92a73d65896626623a34",
+   "fonction": "journal_edition_rattacher_au_titre()",
+   "nom": "trg_journal_edition_rattacher",
+   "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "27795c21146fc63775d56dfe9676102c",
+   "fonction": "presse_delegations_purger()",
+   "nom": "trg_presse_delegations_purger_depart",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "b415912edfc18cfe25e6bca4d40be196",
+   "fonction": "presse_delegations_purger()",
+   "nom": "trg_presse_delegations_purger_grade",
+   "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "21d52a447d5c5100d531fe31cd4b6e4b",
+   "fonction": "presse_succession_apres_depart()",
+   "nom": "trg_presse_succession",
+   "tbl": "presse_membres"
+  }
+ ],
+ "vues": []
+}

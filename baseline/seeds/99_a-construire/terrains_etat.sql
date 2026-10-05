@@ -1,0 +1,30 @@
+-- ETAT INITIAL A CONSTRUIRE -- terrains_etat
+-- ============================================================================
+-- Table     : public.terrains_etat
+-- Domaine   : immobilier et territoire
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 5 lignes, dont 1 portant un marqueur zz. Aucune RPC ne cree de terrain :
+-- les lignes doivent donc PREEXISTER. Leur etat (proprietaire, permis) est
+-- vivant.
+--
+-- CE QU'IL FAUT DECIDER
+-- Quels terrains, et dans quel etat, au premier jour ? Perimetre reel pour
+-- Republia : 4 terrains, tous a Luthecia, et non 5 -- la cinquieme ligne est
+-- un terrain de test portant un chantier en cours. Les champs a decider sont
+-- listes, ligne par ligne, dans
+-- baseline/arbitrages/etat-initial-republia.csv.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne pas seeder un proprietaire herite de la bêta.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

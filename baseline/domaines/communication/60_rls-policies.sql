@@ -3,7 +3,7 @@
 -- BASELINE Human Gambit -- domaine communication -- phase 60 : rls-policies
 --
 -- Fichier GENERE par outils/baseline/rendre.py depuis les catalogues
--- PostgreSQL. Ne pas editer a la main : toute correction doit passer par une
+-- PostgreSQL. Ne pas editer a la main : toute correction passe par une
 -- migration, puis par une nouvelle extraction.
 --
 -- ORDRE D'APPLICATION : par PHASE croissante, tous domaines confondus, et non
@@ -23,7 +23,6 @@ ALTER TABLE public.mails_expediteurs_systeme ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages_chat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salons_chat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salons_membres ENABLE ROW LEVEL SECURITY;
-
 
 -- chat_piece
 CREATE POLICY allow_all_chat_piece ON public.chat_piece FOR ALL TO PUBLIC

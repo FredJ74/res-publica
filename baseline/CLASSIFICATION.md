@@ -34,20 +34,25 @@ arbitrer.
 | Catégorie | Tables | Part |
 |---|---|---|
 | A — socle générique | **36** | 14,3 % |
-| B — contenu initial d'empire | **21** | 8,3 % |
-| C — état vivant | **169** | 67,1 % |
-| D — mixte | **26** | 10,3 % |
+| B — contenu initial d'empire | **22** | 8,7 % |
+| C — état vivant | **173** | 68,7 % |
+| D — mixte | **21** | 8,3 % |
 
 | Stratégie | Tables |
 |---|---|
-| `structure_seule` | 166 |
+| `structure_seule` | 170 |
 | `seed_complet` | 57 |
-| `reconstruction_explicite` | 17 |
+| `reconstruction_explicite` | 15 |
 | `hors_baseline` | 6 |
-| `seed_filtre` | 6 |
+| `seed_filtre` | 4 |
 
-**80 tables entrent dans le seed**, pour 1 910 lignes au compteur actuel. Les deux
-tiers du schéma naissent vides.
+**76 tables entrent dans le seed.** Les deux tiers du schéma naissent vides.
+
+> Ces chiffres intègrent les arbitrages du 5 octobre 2026 (voir plus bas). Avant
+> eux, la répartition était A 36 / B 21 / C 169 / D 26 et la surface de seed
+> comptait 80 tables. Quatre tables en sont sorties parce que leur contenu est
+> **engendré par les mécanismes du jeu** et non posé par un seed ; une y est
+> entrée parce que ses valeurs sont désormais décidées.
 
 ### Par domaine
 
@@ -171,6 +176,55 @@ chiffrée existante. Le barème d'un monde neuf doit être écrit ailleurs.
 | Les **directeurs d'usine PNJ** sont en poste dès le départ | `directeurs_usine` passe **D → B**, seed complet |
 | Les clubs partagent les **mêmes règles**, qui relèvent du socle | `clubs_sportifs_regles` passe **D → B** — car la table *ne contient aucune règle* : c'est un doublon du référentiel des clubs (voir ci-dessous) |
 | Un monde neuf comporte des **organisations préexistantes** | `organisations` reste **C / structure seule** : les organisations institutionnelles existent mais le moteur les crée paresseusement, elles ne se sèment pas |
+
+### Deuxième série d'arbitrages, rendus le 5 octobre 2026 au soir
+
+Les sept décisions que le chantier 2E avait consignées comme ouvertes ont été
+rendues. Leur trace complète est dans `DIFFERENCES-DELIBEREES.json`, bloc
+`arbitrages_du_5_octobre_2026`.
+
+| Décision | Effet sur la classification |
+|---|---|
+| Les 96 soldats actuels ont été engendrés **pour tester la carrière militaire** pendant la bêta. Ils restent dans la base de bêta et ne font pas partie de l'état initial. | `pnj_membres`, `pnj_soldats_metier`, `pnj_possessions` passent **D → C** et `seed_filtre` → `structure_seule`. Aucun seed. |
+| Un monde neuf commence avec **0 compagnie et 0 section**. Les compagnies naissent de la chaîne de jeu : ministre de la Défense, Commandant PJ, transfert vers la caserne, création (20 000 FR), Capitaine, Lieutenants. | `compagnies_militaires` passe **D → C** et reconstruction explicite → `structure_seule`. Il n'existe **aucune table de sections** : une section vit dans le blob de sa compagnie. |
+| `produits_manufactures` est un **catalogue**, pas un stock, à la granularité **ville**. | Passe **D → B**. Reste en reconstruction explicite : la nature est tranchée, le contenu reste à écrire. **Pas de dette de dimensionnement** ici — la table porte déjà une colonne `ville`. |
+| Les **dotations initiales** seront fixées sur tableau. | Une seule valeur inscrite : `republic_gouvernement-min_def` = **35 000 FR**. Le reste est listé dans `arbitrages/dotations-initiales-republia.csv`. |
+| L'**état initial des lieux** sera fixé sur tableau. | `arbitrages/etat-initial-republia.csv`. Périmètre réel de Républia corrigé : 14 bâtiments, 14 commerces, 4 terrains — et non 38 / 20 / 5, qui étaient des comptes de lignes tous empires confondus. |
+| Indices des **trois villes de Républia** : IE 50, ISN 30, Moral 50. | `indices_villes` passe reconstruction explicite → `seed_filtre` et reçoit un **vrai seed de 3 lignes**. La 4ᵉ ligne, `republic_zzville-cmr`, est de test et est écartée. Valide pour Républia **uniquement**. |
+| Chaque ville de Républia doit avoir **son propre juge PNJ**, et aucun quatrième juge à `city = NULL`. | **Rien n'a été supprimé.** Les quatre lignes ont été relevées et le vestige identifié (`republic_juge_national`) ; la suppression attend validation. Le seed porte toujours les 16 lignes, l'anomalie signalée en en-tête. |
+
+### Troisième série d'arbitrages, rendus le 5 octobre 2026
+
+| Décision | Effet |
+|---|---|
+| Les **cinq** indices des trois villes de Républia : IE 50, ISN 30, Moral 50, **Piété 40, Social 45**. | Le seed `indices_villes` est validé sur les cinq valeurs. Il n'y a plus aucune valeur supposée dedans. Républia uniquement. |
+| Les **trois juges de ville** sont conservés, le quatrième juge national est un vestige. | Le seed de `titulaires_pnj` écarte `republic_juge_national` : un monde neuf naît avec **15 titulaires**, dont 3 juges municipaux distincts. Rien n'est supprimé en production. |
+| Les **17 dotations de matières premières**, identiques dans les trois villes. | Les 17 valeurs sont préremplies dans le tableau d'arbitrage et consignées dans `seeds/99_a-construire/batiments_etat.sql`. Le seed n'est pas encore écrit : le stock vit dans le même blob que la caisse de l'entrepôt, qui reste à arbitrer. |
+
+## Exigences de game design consignées, non développées
+
+Elles vivent dans `DIFFERENCES-DELIBEREES.json`, bloc
+`exigences_de_game_design_a_construire`, pour ne pas se perdre entre deux
+chantiers. Ce ne sont pas des dettes découvertes au passage : ce sont des
+demandes explicites du game designer.
+
+1. **Outil MJ — substitution aux échelons militaires.** Si le jeu compte trop
+   peu de PJ pour remplir la chaîne Commandant → Capitaine → Lieutenants,
+   l'administrateur doit pouvoir s'y substituer. Aucune fonction du schéma ne le
+   permet aujourd'hui.
+2. **Outil MJ — ajout exceptionnel de matières premières.** Filet de sécurité
+   administratif : ne remplace pas la chaîne d'approvisionnement, ne devient pas
+   une production automatique, ne masque pas un dysfonctionnement économique.
+   Les stocks vivent aujourd'hui dans **trois** endroits distincts — le blob
+   `entrepot` de `batiments_etat`, `budgets_nationaux.caserneMatieres`, et le
+   `stockMatieres` de chaque entreprise — et il n'existe pas de porte unique.
+3. **Audit futur de la chaîne d'approvisionnement automatique.** À mener après
+   le chantier Supabase. Sept observations de passage sont déjà consignées pour
+   lui servir de point de départ, dont l'accumulation de 11 386 unités de bois
+   au port de Port-Sainte-Marie et la répartition municipale qu'aucune fonction
+   serveur ne lit.
+4. **Mécanisme de rattachement chef ↔ organisation**, sans lequel les deux loges
+   ne peuvent pas naître constituées.
 
 ### Duplication constatée : `clubs_sportifs_regles`
 

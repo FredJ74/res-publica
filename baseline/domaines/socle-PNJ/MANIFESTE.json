@@ -1,0 +1,2290 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "e4cf30776c7e5230320a6f9441328e03",
+   "genre": "COLUMN",
+   "objet": "pnj_employes_metier",
+   "sous": "escort_id"
+  },
+  {
+   "empreinte": "6dde312079c723c6ccaa36fffcfe26b9",
+   "genre": "COLUMN",
+   "objet": "pnj_evenements",
+   "sous": "argent_du_defunt"
+  },
+  {
+   "empreinte": "716cdd2648dac2f296c26a5a6d76abed",
+   "genre": "COLUMN",
+   "objet": "pnj_evenements",
+   "sous": "objets_deposes"
+  },
+  {
+   "empreinte": "113a014127319e6f1176b99178577d70",
+   "genre": "COLUMN",
+   "objet": "pnj_fonctions",
+   "sous": "metier_beta"
+  },
+  {
+   "empreinte": "c0014b8564c987c6c7f6997a5209683f",
+   "genre": "COLUMN",
+   "objet": "pnj_fonctions",
+   "sous": "recrutable"
+  },
+  {
+   "empreinte": "a22b16fbd9d08dda300f7cce7d093a54",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_cha"
+  },
+  {
+   "empreinte": "6ed3ae58c04f0abb1a54e56519e83b14",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_dup"
+  },
+  {
+   "empreinte": "27682aeb92e199a849b5415a81e30254",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_ent"
+  },
+  {
+   "empreinte": "a17ac281e66222622f88a5c0bff68e85",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_int"
+  },
+  {
+   "empreinte": "bb48979c57f06daa862b19627e67fb12",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_per"
+  },
+  {
+   "empreinte": "efe52b87d18dc1b54ff6a9647e2e486b",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "car_vol"
+  },
+  {
+   "empreinte": "37173b00f9a2a6fa11b6f508d5e14fb2",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "classe"
+  },
+  {
+   "empreinte": "cb870202639e2af3bb56000999efcd84",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "famille"
+  },
+  {
+   "empreinte": "ffa79d2b228f46f3699b0fe5fa9e59f9",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "proprietaire_institution"
+  },
+  {
+   "empreinte": "0a7fc47850db5697b550d72df8bb8527",
+   "genre": "COLUMN",
+   "objet": "pnj_membres",
+   "sous": "proprietaire_perimetre"
+  },
+  {
+   "empreinte": "174a01fb09354b6a4a110b5bcfd7083b",
+   "genre": "COLUMN",
+   "objet": "pnj_metiers_profils",
+   "sous": "cout_jour"
+  },
+  {
+   "empreinte": "2927b6e748d405affeb4fb8cd8edcb9a",
+   "genre": "COLUMN",
+   "objet": "pnj_possessions",
+   "sous": "origine"
+  },
+  {
+   "empreinte": "f7949675f3226d4e75a1e8a73d6e82e6",
+   "genre": "COLUMN",
+   "objet": "pnj_referents",
+   "sous": "pays"
+  },
+  {
+   "empreinte": "2ab7a1d41227656eccb6dd9e6247b9e7",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "compagnie_id"
+  },
+  {
+   "empreinte": "cf2778762b6444ff7b9172892d13f8d7",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "dernier_bivouac"
+  },
+  {
+   "empreinte": "f24c5ccf54f16f94ff1edb4fc439c21e",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "dernier_ration"
+  },
+  {
+   "empreinte": "dde439529d17ce1c021ada99d8ac7017",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "dernier_sommeil"
+  },
+  {
+   "empreinte": "b8d8bae216d99d9e46d6fb583776d003",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "mutin"
+  },
+  {
+   "empreinte": "525cada53f439d13f5ac668438f41bca",
+   "genre": "COLUMN",
+   "objet": "pnj_soldats_metier",
+   "sous": "nb_ration"
+  },
+  {
+   "empreinte": "475e79d9e82e08583d105d43d7eaa720",
+   "genre": "CONSTRAINT",
+   "objet": "pnj_membres",
+   "sous": "pnj_propriete_exclusive"
+  },
+  {
+   "empreinte": "22b0e3b2e90d6ab8822aa4954c599541",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_contexte(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "61f08e675756f35a892da5eaaebdcbd4",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_entrer(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "793654cc7c13d5a491c3ed35cfc7c5b9",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_noter(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "4646b159e5d8c9cf910175a41fbbfdfa",
+   "genre": "TABLE",
+   "objet": "pnj_axes_autorite",
+   "sous": ""
+  },
+  {
+   "empreinte": "3cbe3e967469083071995747241d72ff",
+   "genre": "TABLE",
+   "objet": "pnj_familles_classes",
+   "sous": ""
+  },
+  {
+   "empreinte": "24729e4dd42f474afa00b49fd4129165",
+   "genre": "TABLE",
+   "objet": "pnj_fonctions",
+   "sous": ""
+  },
+  {
+   "empreinte": "2575d77eacb878bc38f82ea54642eb9e",
+   "genre": "TABLE",
+   "objet": "pnj_institutions",
+   "sous": ""
+  },
+  {
+   "empreinte": "51301e2a88ceff31016dc66eeb07ad13",
+   "genre": "TABLE",
+   "objet": "pnj_metiers_profils",
+   "sous": ""
+  },
+  {
+   "empreinte": "4626e88ba88ec1d036f1964dd8b7657c",
+   "genre": "TABLE",
+   "objet": "pnj_referents",
+   "sous": ""
+  },
+  {
+   "empreinte": "69a5547cec7b18edf8a96f11e57c2867",
+   "genre": "TABLE",
+   "objet": "pnj_referents_pedagogie",
+   "sous": ""
+  },
+  {
+   "empreinte": "87fb1ca195b2fc3079a3be2832c83663",
+   "genre": "TABLE",
+   "objet": "pnj_referents_sujets_connus",
+   "sous": ""
+  },
+  {
+   "empreinte": "0e314153f992cd863527f76982d7c165",
+   "genre": "TABLE",
+   "objet": "pnj_social_escort_choisi",
+   "sous": ""
+  },
+  {
+   "empreinte": "671005259c9a8ee368654ec5324121f9",
+   "genre": "TABLE",
+   "objet": "pnj_social_jalons_regles",
+   "sous": ""
+  },
+  {
+   "empreinte": "c46e860076be4d08500992682f1e3fc2",
+   "genre": "TABLE",
+   "objet": "pnj_social_relations",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "f8b59dbc7e4405df6a1e74900d27f3f5",
+   "genre": "p",
+   "nom": "pnj_axes_autorite_pkey",
+   "tbl": "pnj_axes_autorite"
+  },
+  {
+   "empreinte": "9988f06e2f6bb55efa93d85cc34f3a8e",
+   "genre": "p",
+   "nom": "pnj_candidats_catalogue_pkey",
+   "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
+   "genre": "p",
+   "nom": "pnj_employes_metier_pkey",
+   "tbl": "pnj_employes_metier"
+  },
+  {
+   "empreinte": "04fe1e358871e071b41d6292b4c3c5eb",
+   "genre": "p",
+   "nom": "pnj_employeurs_pkey",
+   "tbl": "pnj_employeurs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "pnj_evenements_pkey",
+   "tbl": "pnj_evenements"
+  },
+  {
+   "empreinte": "2ca0fb5e194d15e120e00cb315f1555e",
+   "genre": "p",
+   "nom": "pnj_familles_classes_pkey",
+   "tbl": "pnj_familles_classes"
+  },
+  {
+   "empreinte": "dbc3a7c9c05ee30309f491b0e946be9a",
+   "genre": "p",
+   "nom": "pnj_fonctions_pkey",
+   "tbl": "pnj_fonctions"
+  },
+  {
+   "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
+   "genre": "p",
+   "nom": "pnj_force_publique_metier_pkey",
+   "tbl": "pnj_force_publique_metier"
+  },
+  {
+   "empreinte": "c6ad09abf51cf71e09bca4e971a08a9f",
+   "genre": "p",
+   "nom": "pnj_institutions_pkey",
+   "tbl": "pnj_institutions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "pnj_membres_pkey",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "4babdb58b281a4e4bf836209bcf3836e",
+   "genre": "p",
+   "nom": "pnj_metiers_profils_pkey",
+   "tbl": "pnj_metiers_profils"
+  },
+  {
+   "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
+   "genre": "p",
+   "nom": "pnj_militants_metier_pkey",
+   "tbl": "pnj_militants_metier"
+  },
+  {
+   "empreinte": "2ca0fb5e194d15e120e00cb315f1555e",
+   "genre": "p",
+   "nom": "pnj_mouvement_individuel_pkey",
+   "tbl": "pnj_mouvement_individuel"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "pnj_possessions_pkey",
+   "tbl": "pnj_possessions"
+  },
+  {
+   "empreinte": "ca368270a4979f8628f738e250277589",
+   "genre": "p",
+   "nom": "pnj_referents_pkey",
+   "tbl": "pnj_referents"
+  },
+  {
+   "empreinte": "a7251c4ebed6dc2be6f0d4b8e0781a99",
+   "genre": "p",
+   "nom": "pnj_referents_pedagogie_pkey",
+   "tbl": "pnj_referents_pedagogie"
+  },
+  {
+   "empreinte": "7b70cb2c3c3696c4da7a7c24bf644e64",
+   "genre": "p",
+   "nom": "pnj_referents_sujets_connus_pkey",
+   "tbl": "pnj_referents_sujets_connus"
+  },
+  {
+   "empreinte": "07f1f9833133c14127b92b36703faf38",
+   "genre": "p",
+   "nom": "pnj_social_escort_choisi_pkey",
+   "tbl": "pnj_social_escort_choisi"
+  },
+  {
+   "empreinte": "4f15cc7caf4775e5229e3a80fba15958",
+   "genre": "p",
+   "nom": "pnj_social_jalons_regles_pkey",
+   "tbl": "pnj_social_jalons_regles"
+  },
+  {
+   "empreinte": "963530cb6a956af0bc3966bad618bbea",
+   "genre": "p",
+   "nom": "pnj_social_relations_pkey",
+   "tbl": "pnj_social_relations"
+  },
+  {
+   "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
+   "genre": "p",
+   "nom": "pnj_soldats_metier_pkey",
+   "tbl": "pnj_soldats_metier"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "pnj_transitions_pkey",
+   "tbl": "pnj_transitions"
+  },
+  {
+   "empreinte": "a73fe3382577634d342bbd857573add4",
+   "genre": "c",
+   "nom": "pnj_axes_autorite_autorite_check",
+   "tbl": "pnj_axes_autorite"
+  },
+  {
+   "empreinte": "260818584164155bd0f8574af78f6843",
+   "genre": "c",
+   "nom": "pnj_candidat_genre_connu",
+   "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "dff639dc352b53fb359865bccd50246c",
+   "genre": "c",
+   "nom": "pnj_evt_type",
+   "tbl": "pnj_evenements"
+  },
+  {
+   "empreinte": "d171fccbd703296685f467e6a47f9609",
+   "genre": "c",
+   "nom": "pnj_familles_classes_classe_check",
+   "tbl": "pnj_familles_classes"
+  },
+  {
+   "empreinte": "1b5adba2974e0415389e36891eb05379",
+   "genre": "c",
+   "nom": "pnj_fonctions_classe_decor_check",
+   "tbl": "pnj_fonctions"
+  },
+  {
+   "empreinte": "f9113d44f8fb72446b2dace8c5408548",
+   "genre": "c",
+   "nom": "pnj_fonctions_role_fonctionnel_check",
+   "tbl": "pnj_fonctions"
+  },
+  {
+   "empreinte": "9dc8d869e9c1188404ecca7e0df5070b",
+   "genre": "c",
+   "nom": "pnj_fp_cyno",
+   "tbl": "pnj_force_publique_metier"
+  },
+  {
+   "empreinte": "21669f847da53845d94dfac0be13759c",
+   "genre": "c",
+   "nom": "pnj_fp_type",
+   "tbl": "pnj_force_publique_metier"
+  },
+  {
+   "empreinte": "e415c8f7b6264c59364bb00e5e214d7a",
+   "genre": "c",
+   "nom": "pnj_car_bornes",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "89d4157de1332def495ea85b78ea8233",
+   "genre": "c",
+   "nom": "pnj_famille_connue",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "dcd08d4777a66cfed64907116838b89d",
+   "genre": "c",
+   "nom": "pnj_membres_classe_connue",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "36283658ce00360d2eb2e1db339396fd",
+   "genre": "c",
+   "nom": "pnj_mort_sans_leader",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "787e83083e5759ef08c6823ab163cd69",
+   "genre": "c",
+   "nom": "pnj_pa_positif",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "99b54968d6f34e5c2bf3174cb95886f2",
+   "genre": "c",
+   "nom": "pnj_pas_son_propre_leader",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "5544f6719f5549377aede12542bcae04",
+   "genre": "c",
+   "nom": "pnj_position_deux_etats",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "d710f4a3c632734df1dfefc5c7a6da63",
+   "genre": "c",
+   "nom": "pnj_propriete_exclusive",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "5701b8cfc04dfba8b2e0fd4adab1586c",
+   "genre": "c",
+   "nom": "pnj_statut_connu",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "c61f3d8a13e099b8c358cf329f579edd",
+   "genre": "c",
+   "nom": "pnj_un_seul_leader",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "aa95261334d357880d36cdd2314d5159",
+   "genre": "c",
+   "nom": "pnj_metiers_profils_bornes",
+   "tbl": "pnj_metiers_profils"
+  },
+  {
+   "empreinte": "dcd08d4777a66cfed64907116838b89d",
+   "genre": "c",
+   "nom": "pnj_metiers_profils_classe_connue",
+   "tbl": "pnj_metiers_profils"
+  },
+  {
+   "empreinte": "7b8dc4c353387e749a32ba01e8beb192",
+   "genre": "c",
+   "nom": "pnj_metiers_profils_quota_positif",
+   "tbl": "pnj_metiers_profils"
+  },
+  {
+   "empreinte": "1fe11be63233ad83cf8d2ed4c6cc05f7",
+   "genre": "c",
+   "nom": "pnj_possessions_origine_connue",
+   "tbl": "pnj_possessions"
+  },
+  {
+   "empreinte": "80cc123c06c855d7ab396e9b022b9fc2",
+   "genre": "c",
+   "nom": "pnj_soldats_compteurs_bien_formes",
+   "tbl": "pnj_soldats_metier"
+  },
+  {
+   "empreinte": "56ae5a0cf931832cd89392c8a722c844",
+   "genre": "c",
+   "nom": "pnj_soldats_section_dans_sa_compagnie",
+   "tbl": "pnj_soldats_metier"
+  },
+  {
+   "empreinte": "9c38d40101d371b310e6393168d82330",
+   "genre": "c",
+   "nom": "soldat_reserve_coherente",
+   "tbl": "pnj_soldats_metier"
+  },
+  {
+   "empreinte": "8e27e6c4d388c77139d450b844f96bf0",
+   "genre": "f",
+   "nom": "pnj_candidats_catalogue_employeur_id_fkey",
+   "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "ff48373e1f5398425bdce79eddfbe1a0",
+   "genre": "f",
+   "nom": "pnj_candidats_catalogue_metier_fkey",
+   "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "52c44f33ab6c78c5fd3e6ac638578d58",
+   "genre": "f",
+   "nom": "pnj_employes_metier_candidat_id_fkey",
+   "tbl": "pnj_employes_metier"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "pnj_employes_metier_pnj_id_fkey",
+   "tbl": "pnj_employes_metier"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "pnj_force_publique_metier_pnj_id_fkey",
+   "tbl": "pnj_force_publique_metier"
+  },
+  {
+   "empreinte": "8dc10109ca20c04139e4d27ab753188c",
+   "genre": "f",
+   "nom": "pnj_membres_leader_pnj_id_fkey",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "pnj_militants_metier_pnj_id_fkey",
+   "tbl": "pnj_militants_metier"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "pnj_possessions_pnj_id_fkey",
+   "tbl": "pnj_possessions"
+  },
+  {
+   "empreinte": "25509b09b2a9256f216ec2184239af13",
+   "genre": "f",
+   "nom": "pnj_referents_sujets_connus_referent_id_fkey",
+   "tbl": "pnj_referents_sujets_connus"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "pnj_soldats_metier_pnj_id_fkey",
+   "tbl": "pnj_soldats_metier"
+  }
+ ],
+ "domaine": "socle PNJ",
+ "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_administrateur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_administrateur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_argent_transferer(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_argent_transferer(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_argent_transferer(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_autorite_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_autorite_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_autorite_de_perimetre(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_autorite_de_perimetre(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_au_socle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_au_socle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_position_refus(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_position_refus(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_verrouille(text[],text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_axe_verrouille(text[],text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristique_base(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristique_base(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristiques_base(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristiques_base(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristiques_cles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_caracteristiques_cles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_classe_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_classe_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_classe_decor(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_classe_decor(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_co_present(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_co_present(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_agents()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_agents()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_douaniers(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_douaniers(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_policiers(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_policiers(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_comparer_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_copier_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_copier_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_employe_debaucher(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_employe_debaucher(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_employe_debaucher(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_evenements_lire(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_evenements_lire(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_evenements_lire(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_fonction_recrutable(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_fonction_recrutable(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_garde_dissolution_compagnie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_garde_dissolution_compagnie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_garde_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_garde_suppression()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_membres_ici(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_membres_ici(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_membres_ici(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_metier_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_metier_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_metier_profil(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_metier_profil(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_compagnie(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_compagnie(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_compagnie_trg()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_compagnie_trg()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_douane(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_douane(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_douane_declencheur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_douane_declencheur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_police(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_police(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_police_declencheur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_police_declencheur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_possessions(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_possessions(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_possessions_si_axe_blob(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_miroir_possessions_si_axe_blob(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_mon_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_mon_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_mon_inventaire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_mourir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_mourir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_mouvement_individuel_refus(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_mouvement_individuel_refus(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_crediter(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_crediter(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_debiter(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_debiter(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_fixer(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_fixer(text[],integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_garde(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_garde(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_max()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pa_max()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_pas_de_sous_hierarchie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_pas_de_sous_hierarchie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_peut_administrer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_peut_administrer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_peut_conduire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_peut_conduire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_position_effective(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_position_effective(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_possessions_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_possessions_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_possessions_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_prendre(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_prendre(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_prendre(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_quitter_groupe(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_quitter_groupe(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_quitter_groupe(text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_rollback_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_rollback_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_contexte(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_entrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_entrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_entrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_noter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_noter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_social_noter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_transferer(text[],text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_transferer(text[],text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_transferer(text[],text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "pnj_evenements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "pnj_evenements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "pnj_evenements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "pnj_evenements_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "pnj_possessions_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "pnj_possessions_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "pnj_possessions_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "pnj_possessions_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_axes_autorite",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_axes_autorite",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_candidats_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_candidats_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_employes_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_employes_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_employeurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_employeurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_evenements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_evenements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_familles_classes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_familles_classes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_fonctions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_fonctions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_force_publique_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_force_publique_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_institutions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_institutions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_membres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_metiers_profils",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_metiers_profils",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_militants_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_militants_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_mouvement_individuel",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_mouvement_individuel",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_possessions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_possessions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_referents",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_referents",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_referents_pedagogie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_referents_pedagogie",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_referents_sujets_connus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_referents_sujets_connus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_social_escort_choisi",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_social_escort_choisi",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_social_jalons_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_social_jalons_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_social_relations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_social_relations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_soldats_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_soldats_metier",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_transitions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_transitions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "987060db29b2631a083fdfbf017b1cb7",
+  "20_fonctions.sql": "29f63644b2422a122e45fce6355d7994",
+  "30_contraintes.sql": "c3505783efdad118e4081622513c5ae7",
+  "35_index.sql": "9cee8070d05ce6f792bb67c136e15fbf",
+  "50_triggers.sql": "b89038660597f60350df81b172a875b0",
+  "60_rls-policies.sql": "850ce0714f315223f78546b4d814f049",
+  "70_droits.sql": "c084d5108f83c3ace9de32ac874f66a2",
+  "80_commentaires.sql": "762d07018c8b6a7bf934291d9e92867f"
+ },
+ "fonctions": [
+  {
+   "empreinte": "9b70c5e1dea4c2fc8dc9e83825cbebd6",
+   "security_definer": true,
+   "signature": "pnj_administrateur(text)"
+  },
+  {
+   "empreinte": "ca9004d078532081cbf7fccf4ae091bb",
+   "security_definer": true,
+   "signature": "pnj_argent_transferer(text,numeric,text)"
+  },
+  {
+   "empreinte": "2bf7ae6afad34840778dbb81b7bfbe8f",
+   "security_definer": true,
+   "signature": "pnj_autorite_de(text)"
+  },
+  {
+   "empreinte": "efc487b09a4dd70d61616de743cf1307",
+   "security_definer": true,
+   "signature": "pnj_autorite_de_perimetre(text,text,text)"
+  },
+  {
+   "empreinte": "28786bde8e2dcf3fa798b9f106ff8911",
+   "security_definer": true,
+   "signature": "pnj_axe_au_socle(text,text)"
+  },
+  {
+   "empreinte": "0138f28a00d7d9fe3d897c2a79658dba",
+   "security_definer": true,
+   "signature": "pnj_axe_position_refus(text[])"
+  },
+  {
+   "empreinte": "854c19bc6f3ebf0b38dcad820c543f27",
+   "security_definer": true,
+   "signature": "pnj_axe_verrouille(text[],text)"
+  },
+  {
+   "empreinte": "ba00e6cc437c026a662dd89ce8104dd3",
+   "security_definer": true,
+   "signature": "pnj_caracteristique_base(text,text)"
+  },
+  {
+   "empreinte": "68424730eb2333d506eb48b6772d07d5",
+   "security_definer": true,
+   "signature": "pnj_caracteristiques_base(text)"
+  },
+  {
+   "empreinte": "c4fbbfb628eede69785e83bbae540213",
+   "security_definer": false,
+   "signature": "pnj_caracteristiques_cles()"
+  },
+  {
+   "empreinte": "710122bc787c9db3df93b05745f5be93",
+   "security_definer": true,
+   "signature": "pnj_classe_de(text)"
+  },
+  {
+   "empreinte": "86e0143de09c66b2f53c1f42a2d11e12",
+   "security_definer": true,
+   "signature": "pnj_classe_decor(text)"
+  },
+  {
+   "empreinte": "79d7521c30e80c5cb9e04beeeda04a59",
+   "security_definer": true,
+   "signature": "pnj_co_present(text,text)"
+  },
+  {
+   "empreinte": "ad73991be9408d031cc137501c54b948",
+   "security_definer": true,
+   "signature": "pnj_comparer_agents()"
+  },
+  {
+   "empreinte": "5000bfb1a5f12c99aae3d5d75a5ecace",
+   "security_definer": true,
+   "signature": "pnj_comparer_douaniers(text,text,text)"
+  },
+  {
+   "empreinte": "9af17080a71c8cb9bc0752fd45d7bf2b",
+   "security_definer": true,
+   "signature": "pnj_comparer_policiers(text,text,text)"
+  },
+  {
+   "empreinte": "7dfbbdced03006fc576928592e4272cd",
+   "security_definer": true,
+   "signature": "pnj_comparer_soldats(text)"
+  },
+  {
+   "empreinte": "44983d4703cf0207b40b43248cb0311a",
+   "security_definer": true,
+   "signature": "pnj_copier_soldats(text)"
+  },
+  {
+   "empreinte": "8ff7d21bd5c437d87f178001e8aa5c1f",
+   "security_definer": true,
+   "signature": "pnj_employe_debaucher(text,text,text)"
+  },
+  {
+   "empreinte": "6dba8a3b0d67d99cd573b5f1c5be2c56",
+   "security_definer": true,
+   "signature": "pnj_evenements_lire(integer)"
+  },
+  {
+   "empreinte": "451d8c859415096c836e09d3db294dad",
+   "security_definer": true,
+   "signature": "pnj_fonction_recrutable(text)"
+  },
+  {
+   "empreinte": "100468bc9585b803ac04f3f62af24e82",
+   "security_definer": true,
+   "signature": "pnj_garde_dissolution_compagnie()"
+  },
+  {
+   "empreinte": "a2e1eaf138b82ba2f965c2d142e2690c",
+   "security_definer": true,
+   "signature": "pnj_garde_suppression()"
+  },
+  {
+   "empreinte": "812fed6c22ce4de4e00f1d1c5f9cc4f2",
+   "security_definer": true,
+   "signature": "pnj_membres_ici(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "2c8392eae5e277a0992432cbef92c8e7",
+   "security_definer": true,
+   "signature": "pnj_metier_de(text)"
+  },
+  {
+   "empreinte": "7b273f46024678ba0e7d406d04066d31",
+   "security_definer": true,
+   "signature": "pnj_metier_profil(text)"
+  },
+  {
+   "empreinte": "0d3dd628c36d89f41e7dca0d37116ccb",
+   "security_definer": true,
+   "signature": "pnj_miroir_compagnie(text)"
+  },
+  {
+   "empreinte": "69a2075418172c181406bfdd2cac16a1",
+   "security_definer": true,
+   "signature": "pnj_miroir_compagnie_trg()"
+  },
+  {
+   "empreinte": "67f95ae7a9670de4673b367a5d955e00",
+   "security_definer": true,
+   "signature": "pnj_miroir_douane(text,text,text)"
+  },
+  {
+   "empreinte": "bafc932c174849f80ab114e1f1eb74b7",
+   "security_definer": true,
+   "signature": "pnj_miroir_douane_declencheur()"
+  },
+  {
+   "empreinte": "45342ec72fe233c05134b9aa9e3d1f36",
+   "security_definer": true,
+   "signature": "pnj_miroir_police(text,text,text)"
+  },
+  {
+   "empreinte": "b90e1b12132fb108d3f31a4327bc19cf",
+   "security_definer": true,
+   "signature": "pnj_miroir_police_declencheur()"
+  },
+  {
+   "empreinte": "57e5b5063ce7b42738cb509716648f84",
+   "security_definer": true,
+   "signature": "pnj_miroir_possessions(text,jsonb)"
+  },
+  {
+   "empreinte": "cc73c7883af5444995e08b8018f4fc9c",
+   "security_definer": true,
+   "signature": "pnj_miroir_possessions_si_axe_blob(text,jsonb)"
+  },
+  {
+   "empreinte": "1e219b6eb40c2b8dfdd8e882127b9cee",
+   "security_definer": true,
+   "signature": "pnj_mon_inventaire()"
+  },
+  {
+   "empreinte": "d3932e45cab23976a8f433d6991ab02b",
+   "security_definer": true,
+   "signature": "pnj_mourir(text,text)"
+  },
+  {
+   "empreinte": "065a0cd8e41fd2e1ff4a9bfd6a566b23",
+   "security_definer": true,
+   "signature": "pnj_mouvement_individuel_refus(text[])"
+  },
+  {
+   "empreinte": "e478373492c1777c35d3291ad4ad7788",
+   "security_definer": true,
+   "signature": "pnj_objet_transferer(text,integer,text)"
+  },
+  {
+   "empreinte": "604d0d02d4f243b9c2f26dd497bf032c",
+   "security_definer": true,
+   "signature": "pnj_pa_crediter(text[],integer)"
+  },
+  {
+   "empreinte": "b1dc539bb46956eeb8a37db15d5cc537",
+   "security_definer": true,
+   "signature": "pnj_pa_debiter(text[],integer)"
+  },
+  {
+   "empreinte": "b5deee19c49629477be0ea5e46c4f37f",
+   "security_definer": true,
+   "signature": "pnj_pa_fixer(text[],integer)"
+  },
+  {
+   "empreinte": "13364966606f35495ead498fab77ff83",
+   "security_definer": true,
+   "signature": "pnj_pa_garde(text[])"
+  },
+  {
+   "empreinte": "e2df5da006209be3714fc14c64d3390f",
+   "security_definer": false,
+   "signature": "pnj_pa_max()"
+  },
+  {
+   "empreinte": "7e2d39a27fd89f67535065d95eee4046",
+   "security_definer": true,
+   "signature": "pnj_pas_de_sous_hierarchie()"
+  },
+  {
+   "empreinte": "179f5f5e9c331907f5842adce619b305",
+   "security_definer": true,
+   "signature": "pnj_peut_administrer(text,text)"
+  },
+  {
+   "empreinte": "050566615080855ff1859ad879d22f33",
+   "security_definer": true,
+   "signature": "pnj_peut_conduire(text,text)"
+  },
+  {
+   "empreinte": "5a899b812b460a2887ee83d036e6a0ed",
+   "security_definer": true,
+   "signature": "pnj_position_effective(text)"
+  },
+  {
+   "empreinte": "dee89b968bdf934812e603eaf9fd7072",
+   "security_definer": true,
+   "signature": "pnj_possessions_lire(text)"
+  },
+  {
+   "empreinte": "c84eb827c4a4037cddf6cd20c4c42641",
+   "security_definer": true,
+   "signature": "pnj_prendre(text[])"
+  },
+  {
+   "empreinte": "d07eb86ea294b0afeb21a2bbfa33ffb0",
+   "security_definer": true,
+   "signature": "pnj_quitter_groupe(text[])"
+  },
+  {
+   "empreinte": "46e01699a4bd27d19a062abf660e985f",
+   "security_definer": true,
+   "signature": "pnj_rollback_soldats(text)"
+  },
+  {
+   "empreinte": "4860944f0c3ab6eafb489fc9f0242b7a",
+   "security_definer": true,
+   "signature": "pnj_social_contexte(text)"
+  },
+  {
+   "empreinte": "2b50db456b10f5673f1420c4b8f8e18a",
+   "security_definer": true,
+   "signature": "pnj_social_entrer(text)"
+  },
+  {
+   "empreinte": "b339c00bb6c8462b8f21e577ccd1dc36",
+   "security_definer": true,
+   "signature": "pnj_social_noter(text,text)"
+  },
+  {
+   "empreinte": "b85c0e334351dc869e38e781773431d6",
+   "security_definer": true,
+   "signature": "pnj_transferer(text[],text,boolean)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "7481896535c33add99a49db4d0d29207",
+   "nom": "idx_pnj_candidats_employeur"
+  },
+  {
+   "empreinte": "e7b42a13fa2471a1e49db8cebfe7ea47",
+   "nom": "idx_pnj_evt_pj"
+  },
+  {
+   "empreinte": "4a5546f366fd06eb5b697a285b59a131",
+   "nom": "idx_pnj_famille"
+  },
+  {
+   "empreinte": "1bcbf27394971275702e416ca6a521df",
+   "nom": "idx_pnj_fp_matricule"
+  },
+  {
+   "empreinte": "31ff0ec986506392b05ac578ab5d2b79",
+   "nom": "idx_pnj_leader_pj"
+  },
+  {
+   "empreinte": "2c18b8031c90d5d1fe47e01704512792",
+   "nom": "idx_pnj_leader_pnj"
+  },
+  {
+   "empreinte": "9076cfe729f5c15ea80ea196a82a5355",
+   "nom": "idx_pnj_militants_orga"
+  },
+  {
+   "empreinte": "441cc930ad74cca188f01c1d65546da8",
+   "nom": "idx_pnj_position"
+  },
+  {
+   "empreinte": "2f71e66ee1e5249fbad9d27347f5048a",
+   "nom": "idx_pnj_possessions_pnj"
+  },
+  {
+   "empreinte": "17ea14fa9118eb9b5c24e4ef7ad5b2a4",
+   "nom": "idx_pnj_prop_institution"
+  },
+  {
+   "empreinte": "1bc8240c22379fd5beb9d5467f0fd2c9",
+   "nom": "idx_pnj_prop_pj"
+  },
+  {
+   "empreinte": "9ed8ff18e5599c47d0d1c0cc5839c241",
+   "nom": "idx_pnj_soldats_compagnie"
+  },
+  {
+   "empreinte": "311de6e471191416563168b8b34665b5",
+   "nom": "idx_pnj_soldats_matricule"
+  },
+  {
+   "empreinte": "9573eeb4b571c58607a10f45c37e9d7a",
+   "nom": "pnj_referents_par_empire"
+  }
+ ],
+ "index_portes": [
+  "pnj_axes_autorite_pkey",
+  "pnj_candidats_catalogue_pkey",
+  "pnj_employes_metier_pkey",
+  "pnj_employeurs_pkey",
+  "pnj_evenements_pkey",
+  "pnj_familles_classes_pkey",
+  "pnj_fonctions_pkey",
+  "pnj_force_publique_metier_pkey",
+  "pnj_institutions_pkey",
+  "pnj_membres_pkey",
+  "pnj_metiers_profils_pkey",
+  "pnj_militants_metier_pkey",
+  "pnj_mouvement_individuel_pkey",
+  "pnj_possessions_pkey",
+  "pnj_referents_pedagogie_pkey",
+  "pnj_referents_pkey",
+  "pnj_referents_sujets_connus_pkey",
+  "pnj_social_escort_choisi_pkey",
+  "pnj_social_jalons_regles_pkey",
+  "pnj_social_relations_pkey",
+  "pnj_soldats_metier_pkey",
+  "pnj_transitions_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_axes_autorite"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_employes_metier"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_employeurs"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_evenements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_familles_classes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_fonctions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_force_publique_metier"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_institutions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_membres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_metiers_profils"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_militants_metier"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_mouvement_individuel"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_possessions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_referents"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_referents_pedagogie"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_referents_sujets_connus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_social_escort_choisi"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_social_jalons_regles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_social_relations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_soldats_metier"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_transitions"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "pnj_evenements_id_seq",
+   "possedee": true,
+   "tbl": "pnj_evenements"
+  },
+  {
+   "nom": "pnj_possessions_id_seq",
+   "possedee": true,
+   "tbl": "pnj_possessions"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "5ed8f05c8694211b3ca91b7fc1603c33",
+   "empreinte_texte": "38ff71a64d174241e15108cce34211d9",
+   "nom": "pnj_axes_autorite"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "908babcedf11194fb7657ddd664be82f",
+   "empreinte_texte": "3abf421388d14e5f47a6728674ec499d",
+   "nom": "pnj_candidats_catalogue"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "7f67e5c8d74c3043eb1520a5ba76d5bc",
+   "empreinte_texte": "6b12c245f2a165f8f5c324ac22f5bdcd",
+   "nom": "pnj_employes_metier"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "dca6e8abf7207f66fd3f078d2843ffaa",
+   "empreinte_texte": "f3690baeacdfbaf0c1eaaeabc7c935ae",
+   "nom": "pnj_employeurs"
+  },
+  {
+   "colonnes": 17,
+   "empreinte_catalogue": "052393a577979f75315dfd6099b35bc1",
+   "empreinte_texte": "0994dbfb61e7e530e55a0e35ceedff89",
+   "nom": "pnj_evenements"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "de56fd04087280afdd495a3f9fdb8f29",
+   "empreinte_texte": "3a3629cf8881f6aaabfcb1b3b84488cc",
+   "nom": "pnj_familles_classes"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "bb8a897cb13966d3041c557364f5e90a",
+   "empreinte_texte": "a553a6ba937e6c914d08db81261c6b22",
+   "nom": "pnj_fonctions"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "b8d878c2cff30302e8f6d5e4282b56ff",
+   "empreinte_texte": "451b123bf69a7f4ec67879b45ffc332d",
+   "nom": "pnj_force_publique_metier"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "e05702c16833e6b2ede909b85a635e10",
+   "empreinte_texte": "d78ce02a45948b259c6616e721af66da",
+   "nom": "pnj_institutions"
+  },
+  {
+   "colonnes": 25,
+   "empreinte_catalogue": "e9e3a4cafb020e61b99024a0a802c4cc",
+   "empreinte_texte": "a4800ff6d3ab9debe7f09a90a4bac1c5",
+   "nom": "pnj_membres"
+  },
+  {
+   "colonnes": 17,
+   "empreinte_catalogue": "be385d379a31846efe120b2fa3c8f4bf",
+   "empreinte_texte": "e1537ef2eab81e5f2db2071eaea52a94",
+   "nom": "pnj_metiers_profils"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "8bfbc35e7624627bfa1dd91fc463d5fc",
+   "empreinte_texte": "aeffc8524b0fd60fb8a0d7bd2cbe973e",
+   "nom": "pnj_militants_metier"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "d328462e6c8be8bc6a3fcbeb90929590",
+   "empreinte_texte": "bb2f35a9cafe13bed4b7a87cf64ab990",
+   "nom": "pnj_mouvement_individuel"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "19c33dcc049a018a6aea1f7944f117ed",
+   "empreinte_texte": "13811fe0c8d83eb8c199d6ce2ec08059",
+   "nom": "pnj_possessions"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "11a9f76d3ac57c4f83e50f4e26447822",
+   "empreinte_texte": "5761acbbe2706d9532f03a92806b9a44",
+   "nom": "pnj_referents"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "cbbe423c039dfbe722bf7d2c9ce10147",
+   "empreinte_texte": "609a1028af27f6c966c380beb786b700",
+   "nom": "pnj_referents_pedagogie"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "80ac265e10788bc32cc5b099ebbeb46d",
+   "empreinte_texte": "2a9bf1c9d152046b54bd55c083e6048b",
+   "nom": "pnj_referents_sujets_connus"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "34217cdc3cd8e131c0da13a86500ea6f",
+   "empreinte_texte": "0bf646a05d023de0d6a65a5067dd100f",
+   "nom": "pnj_social_escort_choisi"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "69b166bd6dad1aa01c7630f190827230",
+   "empreinte_texte": "07b3a6cde474a26e42200bac5870dec4",
+   "nom": "pnj_social_jalons_regles"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "a43671ada48667debccd754a516532e9",
+   "empreinte_texte": "3201ae3e7cd626e75464767e14057401",
+   "nom": "pnj_social_relations"
+  },
+  {
+   "colonnes": 12,
+   "empreinte_catalogue": "9ae73f71cd8a575e261ce9db8328dae6",
+   "empreinte_texte": "23e41efe5e5317ee8f4b8c9d607ee9e2",
+   "nom": "pnj_soldats_metier"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "485784f22414cae4f5fcddf814bfed04",
+   "empreinte_texte": "a902d8b25328f8d08dc28acd8d98e338",
+   "nom": "pnj_transitions"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "ff4108fe35f5c782072a43ea086f4f56",
+   "fonction": "pnj_garde_suppression()",
+   "nom": "trg_pnj_garde_suppression",
+   "tbl": "pnj_membres"
+  },
+  {
+   "empreinte": "000f62ae0f748b0e4a8238137cd0a2f0",
+   "fonction": "pnj_pas_de_sous_hierarchie()",
+   "nom": "trg_pnj_pas_de_sous_hierarchie",
+   "tbl": "pnj_membres"
+  }
+ ],
+ "vues": []
+}

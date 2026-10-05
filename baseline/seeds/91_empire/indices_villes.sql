@@ -1,0 +1,42 @@
+-- SEED -- indices_villes
+-- ============================================================================
+-- Table      : public.indices_villes
+-- Domaine    : politique et elections
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_filtre (classification du chantier 2C)
+-- Lignes     : 3
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- ARBITRAGE RENDU LE 5 OCTOBRE 2026 pour Republia : IE 50, ISN 30, Moral 50,
+-- valeurs communes aux trois villes (Luthecia, Montrouge,
+-- Port-Sainte-Marie). Ces trois valeurs sont deja celles des trois lignes en
+-- base. La 4e ligne, republic_zzville-cmr, est une ligne de test et est
+-- ecartee du seed.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Valide pour Republia UNIQUEMENT : ne pas generaliser aux autres empires.
+-- Le blob porte deux indices supplementaires non arbitres, piete 40 et
+-- social 45, identiques sur les quatre lignes y compris celle de test --
+-- indice fort qu'ils sont d'origine. A confirmer.
+--
+-- FILTRE APPLIQUE
+-- ARBITRAGE COMPLET RENDU LE 5 OCTOBRE 2026 pour Republia. Les CINQ indices
+-- sont decides et communs aux trois villes -- Luthecia, Port-Sainte-Marie,
+-- Montrouge : IE 50, ISN 30, Moral 50, PIETE 40, SOCIAL 45. Ce sont deja les
+-- valeurs des trois lignes en base : le seed les reproduit sans rien
+-- recalculer ni rien deduire de la bêta. La 4e ligne, republic_zzville-cmr,
+-- est une ligne de TEST et est ecartee. Decision valide pour REPUBLIA
+-- uniquement : ne pas generaliser aux autres empires.
+--
+-- COLONNES OMISES (defaut now()) : updated_at
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
+INSERT INTO public.indices_villes (id, data) VALUES ('republic_capitale', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}');
+INSERT INTO public.indices_villes (id, data) VALUES ('republic_ville_a', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}');
+INSERT INTO public.indices_villes (id, data) VALUES ('republic_ville_b', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}');

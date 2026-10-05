@@ -1,0 +1,26 @@
+-- SEED A REGENERER -- pa_bonus_differes
+-- ============================================================================
+-- Table   : public.pa_bonus_differes
+-- Domaine : finances publiques
+-- Source canonique : data.js
+-- Generateur       : .scratch/generer_pa_bonus_differes.py (EXISTE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- 10 bonus de PA differes declares dans data.js.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- Meme raison. La table porte deja une table d'empreinte jumelle
+-- (pa_bonus_differes_empreinte) dont le role est precisement de detecter la
+-- derive entre data.js et la base : preuve que la source est data.js.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Le
+-- deplacer hors de .scratch/ et le faire ecrire directement ici, empreinte
+-- comprise.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

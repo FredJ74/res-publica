@@ -1,0 +1,2458 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "26e3232d18dcdf1847d85f223a8a1cd7",
+   "genre": "FUNCTION",
+   "objet": "alimenter_caisse_fonds(text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "8fe4307a36af3c5fad9f69b5d8bb60d0",
+   "genre": "FUNCTION",
+   "objet": "fonds_acteur_present(text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "e51195963a9d039724cbbba810aaf135",
+   "genre": "FUNCTION",
+   "objet": "fonds_cout_revient_reference(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1520d69a7971b032a5889da860c239db",
+   "genre": "FUNCTION",
+   "objet": "fonds_definir_types(text,text,text[])",
+   "sous": ""
+  },
+  {
+   "empreinte": "d740e78c0fb1b46656d3b5da2d0c3027",
+   "genre": "FUNCTION",
+   "objet": "fonds_generiques_accessibles(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "4d0c5fc983c8e451a7caf597d9715e57",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_apporter(text,text,text,text,integer,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3c930078a9bda5e61606e6c8a052ff4c",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_parametres(text,text,text,numeric,integer,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "63b7f91b863ad61be2d493747a4ea39f",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_accessibles(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "25580a735855c5f0b6a1a99996af17c0",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_recherchees(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "20ded227fc8148dc99798c3c69542c14",
+   "genre": "FUNCTION",
+   "objet": "fonds_plafond_stock_matiere(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "828325635e27fe9772a629befc82c75e",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_activer(text,text,text,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "bec602039f6b89831351ea870654a6a9",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_creer(text,text,text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "a51261574efe407ad8914ed65502c7d8",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_modifier(text,text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c13bd0a661156820a2788e801d62fa78",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_prix(text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "d8b034e75f073439833326c053c8469e",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ceb1b6af90f40ab1a1918362c1e944e0",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire_lots(text,text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "4572969884e091476014b425b12a744e",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_stock_max(text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "faeb7547ffe033933f5ffa23ae71e1f2",
+   "genre": "FUNCTION",
+   "objet": "fonds_references_max(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "0960be2b6ddaf320106c0b9a1d14e65b",
+   "genre": "FUNCTION",
+   "objet": "fonds_types_max(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "29e0c4812a84bf9c7b16f711daca9da8",
+   "genre": "FUNCTION",
+   "objet": "retirer_caisse_fonds(text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "39f5707d05a1fad1b091829c87a2a1ec",
+   "genre": "TABLE",
+   "objet": "pa_credits_sources",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "budgets_clubs_pkey",
+   "tbl": "budgets_clubs"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "budgets_municipaux_pkey",
+   "tbl": "budgets_municipaux"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "budgets_nationaux_pkey",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "cbdf33c175d32d27bf234f697c3b3d91",
+   "genre": "p",
+   "nom": "caisses_autorites_pkey",
+   "tbl": "caisses_autorites"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "caisses_batiments_pkey",
+   "tbl": "caisses_batiments"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "caisses_mouvements_clients_pkey",
+   "tbl": "caisses_mouvements_clients"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "contributions_piete_pkey",
+   "tbl": "contributions_piete"
+  },
+  {
+   "empreinte": "a1c125373e356ba7a63df9d0a07b03d6",
+   "genre": "p",
+   "nom": "dotations_amorcage_caisses_pkey",
+   "tbl": "dotations_amorcage_caisses"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fiscalite_journal_pkey",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "58d4ca0b2c7a70fe9413c735af3f8f15",
+   "genre": "p",
+   "nom": "fonds_credits_sources_pkey",
+   "tbl": "fonds_credits_sources"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fonds_credits_uniques_pkey",
+   "tbl": "fonds_credits_uniques"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fonds_debits_pkey",
+   "tbl": "fonds_debits"
+  },
+  {
+   "empreinte": "58d4ca0b2c7a70fe9413c735af3f8f15",
+   "genre": "p",
+   "nom": "pa_bonus_differes_pkey",
+   "tbl": "pa_bonus_differes"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "pa_bonus_differes_empreinte_pkey",
+   "tbl": "pa_bonus_differes_empreinte"
+  },
+  {
+   "empreinte": "942427d27f89412ea7ced313abdcf775",
+   "genre": "p",
+   "nom": "pa_bonus_hotel_pkey",
+   "tbl": "pa_bonus_hotel"
+  },
+  {
+   "empreinte": "58d4ca0b2c7a70fe9413c735af3f8f15",
+   "genre": "p",
+   "nom": "pa_credits_sources_pkey",
+   "tbl": "pa_credits_sources"
+  },
+  {
+   "empreinte": "abe07e341f5cb2d38db24ce2b9f54294",
+   "genre": "p",
+   "nom": "pa_credits_uniques_pkey",
+   "tbl": "pa_credits_uniques"
+  },
+  {
+   "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
+   "genre": "p",
+   "nom": "salaires_caisses_pkey",
+   "tbl": "salaires_caisses"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "salaires_civils_declares_pkey",
+   "tbl": "salaires_civils_declares"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "salaires_civils_verses_pkey",
+   "tbl": "salaires_civils_verses"
+  },
+  {
+   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "genre": "p",
+   "nom": "salaires_religieux_declares_pkey",
+   "tbl": "salaires_religieux_declares"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "salaires_religieux_verses_pkey",
+   "tbl": "salaires_religieux_verses"
+  },
+  {
+   "empreinte": "db80daef9547f736c8800b0b407243b1",
+   "genre": "u",
+   "nom": "fonds_credits_uniques_ref",
+   "tbl": "fonds_credits_uniques"
+  },
+  {
+   "empreinte": "beecdbc8def823721a00fcbec59ba937",
+   "genre": "c",
+   "nom": "fiscalite_journal_assiette_check",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "a466137117bc193c42f6f0c4e0ecad9f",
+   "genre": "c",
+   "nom": "fiscalite_journal_montant_check",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "ca73219898d9bf0bd26245eade013f99",
+   "genre": "c",
+   "nom": "fiscalite_journal_pays_check",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "fd6e616270181eb511b58016c027005c",
+   "genre": "c",
+   "nom": "fiscalite_journal_personnage_check",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "5f85573cf145abc6aede06e6e027ea6c",
+   "genre": "c",
+   "nom": "fiscalite_journal_type_check",
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "empreinte": "be4d4ba601a38d2bada98be5ff699225",
+   "genre": "c",
+   "nom": "fonds_debits_montant_check",
+   "tbl": "fonds_debits"
+  },
+  {
+   "empreinte": "5d1bfe4bdefe11393cf1a2cf687040d7",
+   "genre": "c",
+   "nom": "pa_bonus_differes_montant_check",
+   "tbl": "pa_bonus_differes"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "pa_bonus_differes_empreinte_seul_check",
+   "tbl": "pa_bonus_differes_empreinte"
+  },
+  {
+   "empreinte": "5d1bfe4bdefe11393cf1a2cf687040d7",
+   "genre": "c",
+   "nom": "pa_bonus_hotel_montant_check",
+   "tbl": "pa_bonus_hotel"
+  },
+  {
+   "empreinte": "88d28b2e8d159d3990dbc422a1d414b1",
+   "genre": "c",
+   "nom": "pa_credits_sources_montant_check",
+   "tbl": "pa_credits_sources"
+  },
+  {
+   "empreinte": "9bfb47b6063f7c333f0be753e550fc34",
+   "genre": "c",
+   "nom": "salaires_civils_declares_categorie_check",
+   "tbl": "salaires_civils_declares"
+  },
+  {
+   "empreinte": "2d49eedb8dfde003792fef709e18dd01",
+   "genre": "c",
+   "nom": "salaires_civils_declares_montant_check",
+   "tbl": "salaires_civils_declares"
+  },
+  {
+   "empreinte": "0bd5479e6e51d9dd6210e408b77a1af2",
+   "genre": "c",
+   "nom": "salaires_religieux_declares_montant_check",
+   "tbl": "salaires_religieux_declares"
+  }
+ ],
+ "domaine": "finances publiques",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "alimenter_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "alimenter_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "alimenter_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "appliquer_taxe_transaction(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "appliquer_taxe_transaction(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "budgets_armurerie_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "budgets_armurerie_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budgets_armurerie_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budgets_armurerie_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budgets_armurerie_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "budgets_virement_caserne_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "budgets_virement_caserne_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budgets_virement_caserne_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budgets_virement_caserne_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budgets_virement_caserne_verrou()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_client_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_client_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_client_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_commissariat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_commissariat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_commissariat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement(text,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement(text,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement(text,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement_plafonne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement_plafonne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_institution_mouvement_plafonne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_ministere_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_ministere_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_ministere_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caisse_postes_requis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_postes_requis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_postes_requis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_ville_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_ville_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "debiter_fonds_ordinaires(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "debiter_fonds_ordinaires(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "debiter_fonds_ordinaires(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "dotation_attribuer_point(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "dotation_attribuer_point(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "dotation_attribuer_point(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_acteur_present(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_acteur_present(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_acteur_present(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_cout_revient_reference(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_cout_revient_reference(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_cout_revient_reference(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_cout_revient_reference(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_definir_types(text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_definir_types(text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_definir_types(text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_generiques_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_generiques_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_generiques_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_generiques_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_apporter(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_apporter(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_apporter(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_parametres(text,text,text,numeric,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_parametres(text,text,text,numeric,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_matiere_parametres(text,text,text,numeric,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_accessibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_recherchees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_recherchees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_recherchees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_matieres_recherchees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_plafond_stock_matiere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_plafond_stock_matiere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_plafond_stock_matiere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_plafond_stock_matiere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_activer(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_activer(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_activer(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_creer(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_creer(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_creer(text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_modifier(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_modifier(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_modifier(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_prix(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_prix(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_prix(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire_lots(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire_lots(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_produire_lots(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_stock_max(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_stock_max(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_reference_stock_max(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_references_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_references_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_references_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_references_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_rembourser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_rembourser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_rembourser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "fonds_types_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fonds_types_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_types_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_types_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_chambre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_chambre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_chambre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differe_crediter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differe_crediter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differe_crediter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pa_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_crediter_atteste(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_crediter_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_crediter_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pa_repos_nocturne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_repos_nocturne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_repos_nocturne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "redressement_fiscal_appliquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "redressement_fiscal_appliquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "redressement_fiscal_appliquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "retirer_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "retirer_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "retirer_caisse_fonds(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "salaire_caisse_de(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "salaire_caisse_de(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "salaire_caisse_de(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "salaire_civil_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "salaire_civil_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "salaire_civil_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "salaire_religieux_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "salaire_religieux_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "salaire_religieux_percevoir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "salaire_ville_du_poste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "salaire_ville_du_poste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "salaire_ville_du_poste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "salaires_coherence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "salaires_coherence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_citoyen_verser(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_citoyen_verser(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_citoyen_verser(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vente_structure_encaisser(text,integer,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vente_structure_encaisser(text,integer,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vente_structure_encaisser(text,integer,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "caisses_mouvements_clients_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "caisses_mouvements_clients_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "contributions_piete_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "contributions_piete_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "contributions_piete_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "contributions_piete_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "fonds_credits_uniques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "fonds_credits_uniques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "fonds_credits_uniques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "fonds_credits_uniques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "budget_national_champs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "budget_national_champs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "budgets_clubs",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "budgets_clubs",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "budgets_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "budgets_clubs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "budgets_municipaux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "budgets_municipaux",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "budgets_municipaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "budgets_municipaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "budgets_nationaux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "budgets_nationaux",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "budgets_nationaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "budgets_nationaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "caisses_autorites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_autorites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "caisses_batiments",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "caisses_batiments",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "caisses_batiments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_batiments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "caisses_mouvements_clients",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_mouvements_clients",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "contributions_piete",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "contributions_piete",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contributions_piete",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contributions_piete",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dotations_amorcage_caisses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dotations_amorcage_caisses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "fiscalite_journal",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "fiscalite_journal",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fiscalite_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fiscalite_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "fonds_credits_sources",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "fonds_credits_sources",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fonds_credits_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fonds_credits_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "fonds_credits_uniques",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "fonds_credits_uniques",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fonds_credits_uniques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fonds_credits_uniques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fonds_debits",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fonds_debits",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pa_bonus_differes_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "pa_bonus_hotel",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "pa_bonus_hotel",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pa_bonus_hotel",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pa_bonus_hotel",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "pa_credits_sources",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "pa_credits_sources",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pa_credits_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pa_credits_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "pa_credits_uniques",
+   "privileges": "MAINTAIN"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "pa_credits_uniques",
+   "privileges": "MAINTAIN, REFERENCES, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pa_credits_uniques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pa_credits_uniques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salaires_caisses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salaires_caisses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salaires_civils_declares",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salaires_civils_declares",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salaires_civils_verses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salaires_civils_verses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salaires_religieux_declares",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salaires_religieux_declares",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "salaires_religieux_verses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "salaires_religieux_verses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "c5042c11717d4fabebd0a2a8e0d53316",
+  "20_fonctions.sql": "3f057a25a84fbfe858700a5d196cdf1b",
+  "30_contraintes.sql": "a42d882320edef05f1585a1759fcefa2",
+  "35_index.sql": "483dda0f0f11e1ccf08b36880962d3c5",
+  "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
+  "60_rls-policies.sql": "fc0b39fea5afa853a7288d8e3e3d240f",
+  "70_droits.sql": "5d4fedec2aeda7333242c5b2b7c4760f",
+  "80_commentaires.sql": "6596ddd3de33bcc257ae3e96fc7872a1"
+ },
+ "fonctions": [
+  {
+   "empreinte": "59c34d60f74696f1d8acc3296f988b5a",
+   "security_definer": true,
+   "signature": "alimenter_caisse_fonds(text,text,integer)"
+  },
+  {
+   "empreinte": "bcb11bc7a885ea903b72c88ed616b48e",
+   "security_definer": true,
+   "signature": "appliquer_taxe_transaction(text,text,numeric)"
+  },
+  {
+   "empreinte": "31fc59e2182bb0aafcd638ad3df2d4a2",
+   "security_definer": true,
+   "signature": "budget_national_epingler()"
+  },
+  {
+   "empreinte": "770ecc0e8e87da94d2149bf5341c9629",
+   "security_definer": true,
+   "signature": "budgets_armurerie_verrou()"
+  },
+  {
+   "empreinte": "7cd81bb9ee19394afd496043a3a86074",
+   "security_definer": true,
+   "signature": "budgets_virement_caserne_verrou()"
+  },
+  {
+   "empreinte": "4a33d8ce0585a4254679146ee79d03e6",
+   "security_definer": true,
+   "signature": "caisse_client_mouvement(text,numeric,text,boolean)"
+  },
+  {
+   "empreinte": "656e7f43d0026371c10d2fa28ef14333",
+   "security_definer": true,
+   "signature": "caisse_commissariat_lire(text)"
+  },
+  {
+   "empreinte": "472fe76cd6d2d8aed94a25b35de947af",
+   "security_definer": true,
+   "signature": "caisse_institution_mouvement(text,numeric,boolean)"
+  },
+  {
+   "empreinte": "1ac1533f93c6947cfecf7c74ab05f2f3",
+   "security_definer": true,
+   "signature": "caisse_institution_mouvement_plafonne(text,numeric)"
+  },
+  {
+   "empreinte": "031cca65001623abd5c0bd2229402b5c",
+   "security_definer": true,
+   "signature": "caisse_ministere_mouvement(text,numeric,text,boolean)"
+  },
+  {
+   "empreinte": "f8fef0b1ef539d1db9ae0b9d837a8c5b",
+   "security_definer": true,
+   "signature": "caisse_postes_requis(text,text)"
+  },
+  {
+   "empreinte": "3f3cb1c5cf4deff5015b471d63618349",
+   "security_definer": false,
+   "signature": "caisse_ville_de(text,text)"
+  },
+  {
+   "empreinte": "c6df5582eef00bb5811631149fec3211",
+   "security_definer": true,
+   "signature": "debiter_fonds_ordinaires(text,numeric)"
+  },
+  {
+   "empreinte": "c3328d83f9b8ba76fd26e885addbd294",
+   "security_definer": true,
+   "signature": "dotation_attribuer_point(text)"
+  },
+  {
+   "empreinte": "45324a4db67d91929173318580a4feb2",
+   "security_definer": true,
+   "signature": "fonds_acteur_present(text,jsonb)"
+  },
+  {
+   "empreinte": "c5f8a1b2e3f9e5773337fb159d0a4724",
+   "security_definer": false,
+   "signature": "fonds_cout_revient_reference(text,text)"
+  },
+  {
+   "empreinte": "a426e44f8426cc4a05bc5e52e1615ebc",
+   "security_definer": true,
+   "signature": "fonds_crediter_atteste(text,text,text,text)"
+  },
+  {
+   "empreinte": "13e6317192d12ef53e316b594009d44d",
+   "security_definer": true,
+   "signature": "fonds_definir_types(text,text,text[])"
+  },
+  {
+   "empreinte": "7a81e3c3bd9d4e1205da9cb6ae77827c",
+   "security_definer": true,
+   "signature": "fonds_generiques_accessibles(text)"
+  },
+  {
+   "empreinte": "74dfdd6b8a0eb907fadd51fa2d6abcfe",
+   "security_definer": true,
+   "signature": "fonds_matiere_apporter(text,text,text,text,integer,text)"
+  },
+  {
+   "empreinte": "b4cbd58c2915c0a4aae29b733cbdfbbe",
+   "security_definer": true,
+   "signature": "fonds_matiere_parametres(text,text,text,numeric,integer,boolean)"
+  },
+  {
+   "empreinte": "56940317d0de88e25c5df27f8e04bf8e",
+   "security_definer": true,
+   "signature": "fonds_matieres_accessibles(text)"
+  },
+  {
+   "empreinte": "38b53ca5425305d9830f101d34cc2a6e",
+   "security_definer": true,
+   "signature": "fonds_matieres_recherchees(text)"
+  },
+  {
+   "empreinte": "d7ca16d1c3c625ca488397361218462e",
+   "security_definer": false,
+   "signature": "fonds_plafond_stock_matiere(text)"
+  },
+  {
+   "empreinte": "872e4d98f6c2bc6afddc0fa84b23b659",
+   "security_definer": true,
+   "signature": "fonds_reference_activer(text,text,text,boolean)"
+  },
+  {
+   "empreinte": "4a8c1e8bb635920f051ca980c4c71373",
+   "security_definer": true,
+   "signature": "fonds_reference_creer(text,text,text,text,text,text)"
+  },
+  {
+   "empreinte": "af991481b777eeb3f4db0c956c35ea0d",
+   "security_definer": true,
+   "signature": "fonds_reference_modifier(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "61c45da6db51497af71b65ea30667b15",
+   "security_definer": true,
+   "signature": "fonds_reference_prix(text,text,text,integer)"
+  },
+  {
+   "empreinte": "908a4ceb626188465b14804756d514fc",
+   "security_definer": true,
+   "signature": "fonds_reference_produire(text,text,text,text)"
+  },
+  {
+   "empreinte": "872a2446916b958feaf986311ffb554b",
+   "security_definer": true,
+   "signature": "fonds_reference_produire_lots(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "9cf017de2a0d678e0f4f97d602b99a9b",
+   "security_definer": true,
+   "signature": "fonds_reference_stock_max(text,text,text,integer)"
+  },
+  {
+   "empreinte": "6f71181babb468ffe1e8048665af978b",
+   "security_definer": false,
+   "signature": "fonds_references_max(text)"
+  },
+  {
+   "empreinte": "3a80c24dddc0718d5d2b6a72f968aede",
+   "security_definer": true,
+   "signature": "fonds_rembourser(uuid,text)"
+  },
+  {
+   "empreinte": "a1bfaf4bdaa79ee0c4b6945cb717ab99",
+   "security_definer": false,
+   "signature": "fonds_types_max(text)"
+  },
+  {
+   "empreinte": "5a28aa9a1e100aef2c4a2c1f501c2ede",
+   "security_definer": true,
+   "signature": "pa_bonus_chambre(text,text)"
+  },
+  {
+   "empreinte": "fb4518591334b8177a6f2ffa38c0fcca",
+   "security_definer": true,
+   "signature": "pa_bonus_differe_crediter(text,text)"
+  },
+  {
+   "empreinte": "fdd69010d4be30c319cfecd79c728c67",
+   "security_definer": true,
+   "signature": "pa_crediter_atteste(text,text,text,text)"
+  },
+  {
+   "empreinte": "7f35efdcc6a22a3cd590f86a76e460d7",
+   "security_definer": true,
+   "signature": "pa_crediter_interne(text,integer)"
+  },
+  {
+   "empreinte": "9303baacb968718d24218203489be776",
+   "security_definer": true,
+   "signature": "pa_repos_nocturne(text)"
+  },
+  {
+   "empreinte": "47451a9fa08fb2e316db06622d1a3bae",
+   "security_definer": true,
+   "signature": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)"
+  },
+  {
+   "empreinte": "8af414e588f70b0a3e04409c025158d2",
+   "security_definer": true,
+   "signature": "redressement_fiscal_appliquer(text,text)"
+  },
+  {
+   "empreinte": "5e04752c8d1b5953ad819b749074a508",
+   "security_definer": true,
+   "signature": "retirer_caisse_fonds(text,text,integer)"
+  },
+  {
+   "empreinte": "107514fb1a4356f017f389d40aded3c4",
+   "security_definer": true,
+   "signature": "salaire_caisse_de(text,text,text)"
+  },
+  {
+   "empreinte": "d79c19b8a8d0ba62a5d58d67988a906d",
+   "security_definer": true,
+   "signature": "salaire_civil_percevoir()"
+  },
+  {
+   "empreinte": "dbfa38ce8557bc217cd69766742df210",
+   "security_definer": true,
+   "signature": "salaire_religieux_percevoir()"
+  },
+  {
+   "empreinte": "3e031212470e1b145f02083a08a8f975",
+   "security_definer": true,
+   "signature": "salaire_ville_du_poste(text,text)"
+  },
+  {
+   "empreinte": "7f63c8018783687ea92b3c0eea9c72b5",
+   "security_definer": true,
+   "signature": "salaires_coherence()"
+  },
+  {
+   "empreinte": "071cabc8d1636da0e2ba5e386bb241b9",
+   "security_definer": true,
+   "signature": "subvention_citoyen_verser(text,integer)"
+  },
+  {
+   "empreinte": "50cbd75871b9bb5b447895a52455c465",
+   "security_definer": true,
+   "signature": "vente_structure_encaisser(text,integer,integer,text,text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "4ea9fa9b953e0b363e919573e5665d13",
+   "nom": "budget_national_champs_regles_cle"
+  },
+  {
+   "empreinte": "c99fd04971c7302db9f3a9208d222d22",
+   "nom": "caisses_mouvements_clients_idx"
+  },
+  {
+   "empreinte": "cfc54308eaad864f9c8c2381f2244be6",
+   "nom": "fiscalite_journal_idempotence"
+  },
+  {
+   "empreinte": "46c9881ac5f0632ffaa7a0a4609ce879",
+   "nom": "fonds_debits_acteur_idx"
+  },
+  {
+   "empreinte": "acf4423fbca7c16ff2b9aafb8480e676",
+   "nom": "idx_contributions_piete_auteur"
+  }
+ ],
+ "index_portes": [
+  "budgets_clubs_pkey",
+  "budgets_municipaux_pkey",
+  "budgets_nationaux_pkey",
+  "caisses_autorites_pkey",
+  "caisses_batiments_pkey",
+  "caisses_mouvements_clients_pkey",
+  "contributions_piete_pkey",
+  "dotations_amorcage_caisses_pkey",
+  "fiscalite_journal_pkey",
+  "fonds_credits_sources_pkey",
+  "fonds_credits_uniques_pkey",
+  "fonds_credits_uniques_ref",
+  "fonds_debits_pkey",
+  "pa_bonus_differes_empreinte_pkey",
+  "pa_bonus_differes_pkey",
+  "pa_bonus_hotel_pkey",
+  "pa_credits_sources_pkey",
+  "pa_credits_uniques_pkey",
+  "salaires_caisses_pkey",
+  "salaires_civils_declares_pkey",
+  "salaires_civils_verses_pkey",
+  "salaires_religieux_declares_pkey",
+  "salaires_religieux_verses_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "72fe1c2cdc6b592e623b71716b93f6d1",
+   "nom": "Ecriture publique du budget club",
+   "tbl": "budgets_clubs"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "b73a67119e71d32b20b2e6b1577dd84a",
+   "nom": "Lecture publique du budget club",
+   "tbl": "budgets_clubs"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "2488fbe7f6fb4c2f02b33959345b7e61",
+   "nom": "Mise a jour publique du budget club",
+   "tbl": "budgets_clubs"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "26019dceffbe93f2654413e3484c88c8",
+   "nom": "Ecriture publique du budget municipal",
+   "tbl": "budgets_municipaux"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "1c5efb05c3f3f08c2457081323eb2732",
+   "nom": "Lecture publique du budget municipal",
+   "tbl": "budgets_municipaux"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "9ce802a6ba1f7aaa4ce88d92b053d407",
+   "nom": "Mise a jour publique du budget municipal",
+   "tbl": "budgets_municipaux"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "15e56b5c2497578f26c2aa6db58dc079",
+   "nom": "Ecriture publique budgets nationaux",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "fc949444dbae6e16bcbf4f6713a59994",
+   "nom": "Lecture publique budgets nationaux",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "059f343b11d2c23c929c231b2c45da11",
+   "empreinte_avec_roles": "dafa2d5daa07d51757aface6a043b71f",
+   "nom": "Maj publique budgets nationaux",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "ad248f2a3b010a5fc9a0ee55937e606d",
+   "empreinte_avec_roles": "473ad6192c03429f6f401fa00f1198bd",
+   "nom": "caisses_batiments lecture publique hors commissariat",
+   "tbl": "caisses_batiments"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a792061bea5947fb9b8e5a5b59dfbc62",
+   "nom": "pa_bonus_differes_lecture",
+   "tbl": "pa_bonus_differes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "b9ea5352f126243f7e3c47255a66d781",
+   "nom": "pa_bonus_hotel_lecture",
+   "tbl": "pa_bonus_hotel"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "budget_national_champs_regles"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "budgets_clubs"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "budgets_municipaux"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "caisses_autorites"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "caisses_batiments"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "caisses_mouvements_clients"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "contributions_piete"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "dotations_amorcage_caisses"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fiscalite_journal"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fonds_credits_sources"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fonds_credits_uniques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fonds_debits"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pa_bonus_differes"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "pa_bonus_differes_empreinte"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pa_bonus_hotel"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "pa_credits_sources"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pa_credits_uniques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salaires_caisses"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salaires_civils_declares"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salaires_civils_verses"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salaires_religieux_declares"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "salaires_religieux_verses"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "caisses_mouvements_clients_id_seq",
+   "possedee": true,
+   "tbl": "caisses_mouvements_clients"
+  },
+  {
+   "nom": "contributions_piete_id_seq",
+   "possedee": true,
+   "tbl": "contributions_piete"
+  },
+  {
+   "nom": "fonds_credits_uniques_id_seq",
+   "possedee": true,
+   "tbl": "fonds_credits_uniques"
+  }
+ ],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "6aac2f4b12b242f766e25d42a2467ddf",
+   "empreinte_texte": "25c4cc7e06afc8eca6f89db1782a0ea5",
+   "nom": "budget_national_champs_regles"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "budgets_clubs"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "budgets_municipaux"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "budgets_nationaux"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "dd28180e72223a555088be4c57534205",
+   "empreinte_texte": "e7b7ee178159717ea9b8def8e8ecaf01",
+   "nom": "caisses_autorites"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
+   "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
+   "nom": "caisses_batiments"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "cede0a5c15f4a52eba32a8a27a9d3d5f",
+   "empreinte_texte": "984cc607f997103a473fdcd654934bcc",
+   "nom": "caisses_mouvements_clients"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "0cdaa7f0f599506c4fd3413c561f5230",
+   "empreinte_texte": "931d6d8a01ea1eea0a52edbc95314af7",
+   "nom": "contributions_piete"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "4e8f66a6aaf3d91543c0f04b748f4d75",
+   "empreinte_texte": "02fc22cf3e45f7d3b898a218ff8784a2",
+   "nom": "dotations_amorcage_caisses"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "cac17f9f0e3faf0d99de62e14d9c336d",
+   "empreinte_texte": "cb8faa93ef79620915c0a9aeaf17765c",
+   "nom": "fiscalite_journal"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "4bef52445fbc6dee497aaf4f85418422",
+   "empreinte_texte": "17eda9469261b014dac0f4d1db4a9400",
+   "nom": "fonds_credits_sources"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "093f22f22b79d742b54763fd20e635c7",
+   "empreinte_texte": "f17e31d27f52643ccbb26950de127863",
+   "nom": "fonds_credits_uniques"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "7b1e2e34167c13abe3207648d996b10c",
+   "empreinte_texte": "58d5a3bebeca6c2e2e1b1d68f90b7bb9",
+   "nom": "fonds_debits"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "b9f1eecd7549bec0d644659d21ac0d4e",
+   "empreinte_texte": "e763b96e824abee2f9afedb75ad46cdb",
+   "nom": "pa_bonus_differes"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "99a96df62623d0352d622f130fdba527",
+   "empreinte_texte": "c415d2b4ec5f08e49bb5384e7a7eb5b8",
+   "nom": "pa_bonus_differes_empreinte"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "1a635b130b20378c1fa414461499525a",
+   "empreinte_texte": "63bb0e86a21fad95eb9c7f5a4e1ee651",
+   "nom": "pa_bonus_hotel"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "dc667d13b618e551bddfe0250dbcaefd",
+   "empreinte_texte": "13fec9b5b83792a3a17d301f86fce4fa",
+   "nom": "pa_credits_sources"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "ba8ca2b2fcc1991616b49797e6c8f771",
+   "empreinte_texte": "d90899abfc094b8cd74970b0e2fcfbc6",
+   "nom": "pa_credits_uniques"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "1f4010178cdc1a87a102cbead023f67c",
+   "empreinte_texte": "f0df63b8a8d4bbd19d9d9561a8dc2e87",
+   "nom": "salaires_caisses"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cef06d1d8efa37cb37698ba1a9608cb1",
+   "empreinte_texte": "77ca51b87ec5572da661c3c49859c2bb",
+   "nom": "salaires_civils_declares"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "d0bb13b89ecffbe25864720075109dfb",
+   "empreinte_texte": "ec0ec84797063e76cde91b220e8fa777",
+   "nom": "salaires_civils_verses"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "150a553afbb2531637ed6d9af1e5b16c",
+   "empreinte_texte": "20bce942d6f5eae98bfde4015f8c6c26",
+   "nom": "salaires_religieux_declares"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "b96530a78a6ae7cd05f26adc53ce1e2a",
+   "empreinte_texte": "531f52686ea5bb3af892e22ec14a3c64",
+   "nom": "salaires_religieux_verses"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "9a2d3d4a06bb45cb324be46b0def9f3e",
+   "fonction": "budgets_armurerie_verrou()",
+   "nom": "budgets_armurerie_verrou",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "33e5751c41f8918fe216e5aaa0938e60",
+   "fonction": "budgets_virement_caserne_verrou()",
+   "nom": "budgets_virement_caserne_verrou",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "9e3ac80e6360332e6d8167d43d7b4485",
+   "fonction": "budget_national_epingler()",
+   "nom": "trg_budget_national_epingler",
+   "tbl": "budgets_nationaux"
+  }
+ ],
+ "vues": []
+}

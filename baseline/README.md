@@ -1,15 +1,40 @@
 # Baseline Human Gambit
 
-> **État : pilote.** Seul le domaine `communication` est extrait, pour valider la
-> méthode. Le baseline complet sera construit au chantier 2E.
+> **État : complet.** Les 17 domaines sont extraits, et les seeds sont constitués.
+> Point de coupe : **5 octobre 2026, 15 h 17 (Paris)**, registre Supabase à 539
+> entrées, dernière version `20261004214621`.
 
 Ce dossier contient la définition canonique du schéma PostgreSQL de Human Gambit,
-extraite des catalogues de la base de production et destinée à permettre, à terme,
-de reconstruire le socle du jeu sur un projet Supabase neuf.
+extraite des catalogues de la base de production, et le contenu initial avec
+lequel un monde doit naître. Il est destiné à permettre de reconstruire le socle
+du jeu sur un projet Supabase neuf — ce que fera le chantier 2F.
 
-Il **ne contient aucune donnée de jeu**. La question de savoir quelles lignes
-doivent exister dans une installation neuve — configuration du moteur, contenu
-d'un empire, état initial — relève du chantier 2C et n'est pas tranchée ici.
+Deux choses distinctes, qui ne se mélangent jamais :
+
+- **le schéma**, dans `domaines/` : comment le monde est fait ;
+- **les seeds**, dans `seeds/` : avec quoi il naît.
+
+## Ce qu'il contient, en chiffres
+
+| | Base | Baseline | Écarté, nommé |
+|---|---|---|---|
+| tables | 252 | 246 | 6 |
+| colonnes | 2 097 | 1 969 | 55 (+ 73 de vues) |
+| fonctions | 641 | 641 | 0 |
+| contraintes | 423 | 421 | 2 |
+| index autonomes | 147 | 147 | 0 |
+| vues | 2 | 2 | 0 |
+| déclencheurs | 40 | 40 | 0 |
+| policies | 213 | 213 | 0 |
+| lignes de droits | 2 838 | 2 826 | 12 |
+| commentaires | 165 | 161 | 4 |
+| seeds | — | 76 tables, 855 lignes | — |
+
+Chaque total du catalogue se décompose **exactement** en « rendu » + « écarté,
+nommé et justifié ». Il n'y a pas de troisième colonne : rien n'est perdu en
+silence. Les six tables écartées et toutes les autres divergences voulues sont
+listées une à une dans `DIFFERENCES-DELIBEREES.json`, que les outils de contrôle
+**lisent** — une divergence non déclarée fait échouer les contrôles.
 
 ## Pourquoi un baseline plutôt que l'histoire des migrations
 
@@ -36,7 +61,7 @@ objet d'un autre sans imposer d'ordre entre les domaines.
 | 20 | `20_fonctions.sql` | fonctions | **créables dans n'importe quel ordre** : le corps d'une fonction `plpgsql` ou `sql` non-`ATOMIC` n'est pas validé à la création. Elles viennent avant les policies, les déclencheurs et les vues, qui exigent leur existence |
 | 30 | `30_contraintes.sql` | PK, UNIQUE, CHECK, puis FK | les FK exigent toutes les tables |
 | 35 | `35_index.sql` | index **autonomes** uniquement | ceux portés par une contrainte sont recréés par la contrainte |
-| 40 | *(vues)* | — | aucune vue dans ce domaine |
+| 40 | `40_vues.sql` | vues | exigent leurs tables ; `reloptions` est reproduit tel quel |
 | 50 | `50_triggers.sql` | déclencheurs | exigent leur fonction **et** leur table |
 | 60 | `60_rls-policies.sql` | activation RLS puis policies | les policies exigent les fonctions qu'elles invoquent |
 | 70 | `70_droits.sql` | `GRANT` table, colonne, fonction | exigent tous les objets |
@@ -52,32 +77,77 @@ d'elle-même), et il n'y a aucun cycle de clés étrangères.
 ```
 baseline/
   README.md                         ce fichier
+  CONTROLE-GLOBAL.json              ce que la base dit, pour tout le schéma
+  DIFFERENCES-DELIBEREES.json       toutes les divergences voulues, une par une
+  INVENTAIRE.json                   récapitulatif du rendu, par domaine
+  classification-donnees.csv        la classification du chantier 2C
+  CLASSIFICATION.md                 sa version lisible, avec les arbitrages
   domaines/
-    communication/
+    socle/  socle-PNJ/  assemblee/  banque/  communication/  divers-et-technique/
+    economie/  finances-publiques/  immobilier-et-territoire/  justice/
+    militaire/  personnage-et-presence/  politique-et-elections/
+    postes-et-institutions/  presse/  renseignement/  sport/
       10_tables.sql       …         les fichiers de phase, générés
       80_commentaires.sql
       MANIFESTE.json                ce qui a été rendu
-      CONTROLE.json                 ce que la base disait, au moment du relevé
+      CONTROLE.json                 (communication seulement : le pilote 2B)
+  seeds/
+    README.md  INVENTAIRE.json
+    90_socle/  91_empire/  92_mixte/  95_a-regenerer/  99_a-construire/
+  arbitrages/
+    README.md
+    dotations-initiales-republia.csv  .md    l'argent et les matières premières
+    etat-initial-republia.csv         .md    les bâtiments, commerces, terrains
 ```
 
-Un dossier par domaine, huit fichiers de phase au plus : assez gros pour être lus
+Un dossier par domaine, neuf fichiers de phase au plus : assez gros pour être lus
 d'une traite, assez séparés pour qu'un `diff` reste parlant. Ni un fichier unique
-de 1,7 Mo, ni des centaines de fichiers d'un objet chacun.
+de 2,7 Mo, ni des centaines de fichiers d'un objet chacun.
+
+Un fichier de phase dépassant 150 000 caractères est découpé — `20_fonctions-1.sql`,
+`-2.sql`… La découpe se fait sur les **blocs**, jamais sur le texte : un fichier ne
+peut donc pas être coupé au milieu d'une fonction.
+
+L'ordre de ces morceaux est **déclaré** dans `MANIFESTE.json`, clé `ordre`, et c'est
+celui-là que lisent les outils. Jamais le tri des noms : au dixième morceau, `-10`
+se trierait avant `-2` et la concaténation mélangerait le fichier.
+
+Le domaine `socle` ne contient **aucune table** et c'est voulu : il porte les 42
+fonctions primitives dont tous les autres domaines dépendent (`mon_personnage()`,
+`est_appel_serveur()`, `acteur_present_sur_site()`…). Comme l'application se fait
+par phase et non par domaine, la phase 20 du socle est appliquée avant la phase 60
+de tous les autres.
 
 Les fichiers `.sql` sont **générés** : ne pas les éditer à la main. Toute
 correction passe par une migration appliquée à la base, puis par une nouvelle
 extraction.
 
-## Vérifier qu'un domaine est fidèle
+## Vérifier que le baseline est fidèle
 
-    python3 outils/baseline/verifier.py communication
+    python3 outils/baseline/verifier-baseline.py     # tout le baseline
+    python3 outils/baseline/verifier-monde-neuf.py   # ni bêta, ni vestige
+    python3 outils/baseline/assembler.py             # l'assemblage, à vide
+    python3 outils/baseline/verifier.py communication    # le domaine pilote 2B
 
-Trois sources sont confrontées et doivent concorder : `CONTROLE.json` (ce que la
-base dit), `MANIFESTE.json` (ce qui a été rendu), et les fichiers `.sql`
-eux-mêmes. Les contrôles de **sécurité** — `SECURITY DEFINER`, activation RLS,
-fermeture au client — sont séparés des contrôles de structure et échouent
-indépendamment : une reconstruction peut être structurellement parfaite et
-fonctionnellement ouverte.
+Le contrôle global confronte trois sources, qui doivent concorder :
+`CONTROLE-GLOBAL.json` (ce que la base dit), les `MANIFESTE.json` (ce qui a été
+rendu), et les fichiers `.sql` eux-mêmes.
+
+Il est découpé en **quatre familles qui échouent indépendamment** — structure,
+logique serveur, sécurité, seeds. Les mélanger permettrait à une régression de
+sécurité de passer derrière un total juste : une reconstruction peut être
+structurellement parfaite et fonctionnellement ouverte.
+
+Le contrôle le plus fort n'est pas un comptage : chaque définition de fonction est
+**relue dans le fichier `.sql`**, réhachée, et confrontée à l'empreinte que la
+base avait calculée sur `pg_get_functiondef`. Les corps de table le sont aussi.
+C'est ce contrôle-là qui attrape une retouche à la main.
+
+`assembler.py` rejoue l'assemblage **sans créer de base** : il vérifie que chaque
+ordre trouverait, à sa phase, tout ce dont il dépend — clés étrangères, fonctions
+de déclencheur, fonctions appelées par les policies, séquences des défauts — et
+qu'aucun fichier ne référence un artefact hors baseline. Un objet qui échoue n'est
+jamais supprimé pour faire passer le test.
 
 ## Dépendances externes d'un domaine
 
@@ -89,6 +159,10 @@ Pour `communication`, ce sont quatre fonctions du socle — `mon_personnage()`,
 `est_appel_serveur()`, `acteur_poste_courant()`, `rp_transition_active()` — et
 cinq tables citées dans des corps `plpgsql`, qui ne bloquent pas la création
 puisque ces corps ne sont pas validés à la création.
+
+Hors du schéma `public`, le baseline dépend de deux objets seulement, tous deux
+fournis par Supabase et donc jamais recréés : `auth.uid()` et `auth.users`. Ils
+sont déclarés, pas absorbés.
 
 ## Ce que le baseline ne couvrira jamais
 

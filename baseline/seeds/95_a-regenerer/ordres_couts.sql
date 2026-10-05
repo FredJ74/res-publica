@@ -1,0 +1,27 @@
+-- SEED A REGENERER -- ordres_couts
+-- ============================================================================
+-- Table   : public.ordres_couts
+-- Domaine : economie
+-- Source canonique : data.js
+-- Generateur       : .scratch/generer_ordres_couts.py (EXISTE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- 405 couts en PA et en argent, miroir des ordres declares dans data.js.
+-- Aucune fonction serveur ne l'ecrit.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- Ce miroir a deja derive : le chantier du 5 octobre 2026 y a trouve 24
+-- lignes mortes et 19 ordres gratuits non declares. Copier la base ferait
+-- entrer cette derive dans le baseline et dans tous les mondes a venir.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Deplacer le generateur hors de .scratch/ -- un outil necessaire au
+-- fonctionnement du projet n'a rien a faire dans un repertoire de brouillon
+-- -- puis le faire ecrire directement dans baseline/seeds/95_a-regenerer/.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

@@ -1,0 +1,29 @@
+-- ETAT INITIAL A CONSTRUIRE -- budgets_municipaux
+-- ============================================================================
+-- Table     : public.budgets_municipaux
+-- Domaine   : finances publiques
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 4 budgets de ville, dont les soldes sont mutes en jeu.
+--
+-- CE QU'IL FAUT DECIDER
+-- Quelle caisse municipale de depart, et quel taux foncier, par ville ? A
+-- noter : la table porte QUATRE lignes pour TROIS villes -- la quatrieme,
+-- republic_caserne, n'est pas une ville. Les valeurs a fixer sont listees,
+-- ligne par ligne, dans baseline/arbitrages/dotations-initiales-republia.csv
+-- -- un tableau prepare pour etre rempli, qui ne propose aucun montant
+-- deduit d'un solde de bêta.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne jamais deduire une dotation initiale d'un solde courant.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

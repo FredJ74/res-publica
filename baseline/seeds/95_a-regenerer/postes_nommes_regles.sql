@@ -1,0 +1,25 @@
+-- SEED A REGENERER -- postes_nommes_regles
+-- ============================================================================
+-- Table   : public.postes_nommes_regles
+-- Domaine : postes et institutions
+-- Source canonique : data.js
+-- Generateur       : .scratch/generer_postes_nommes.py (EXISTE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- 17 regles de nomination aux postes, miroir de data.js.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- Meme raison, et meme preuve : postes_nommes_regles_empreinte existe pour
+-- surveiller la derive.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Le
+-- deplacer hors de .scratch/ et le faire ecrire directement ici, empreinte
+-- comprise.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

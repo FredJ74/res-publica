@@ -1,0 +1,24 @@
+-- SEED -- pnj_employeurs
+-- ============================================================================
+-- Table      : public.pnj_employeurs
+-- Domaine    : socle PNJ
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 1
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Employeur declare, pays=republic. Contenu d'empire.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Meme origine hors registre que pnj_candidats_catalogue.
+--
+-- COLONNES OMISES (defaut now()) : cree_le
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
+INSERT INTO public.pnj_employeurs (employeur_id, pays, nom, caisse_id, proprietaire_pj, actif, note) VALUES ('grobras-securite', 'republic', 'Grobras Sécurité', 'republic_agence-grobras-securite', NULL, 'true', 'Premier employeur du jeu (5 octobre 2026). Luthecia, centre d''affaires, piece grobras_securite. Dirigee par Gaston Grobras, secretariat Sandra Pelle -- deux animateurs narratifs, PAS des candidats : ils ne figurent pas au catalogue. Le panneau « NOUS RECRUTONS » de la vitrine devient effectif avec ce lot.');

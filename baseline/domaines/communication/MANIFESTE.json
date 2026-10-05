@@ -68,23 +68,6 @@
    "tbl": "forum_posts"
   }
  ],
- "dependances_externes": {
-  "_commentaire": "Objets d'AUTRES domaines dont la reconstruction de celui-ci a besoin. Ils ne sont PAS extraits ici : ils sont declares, pour que l'assemblage global sache dans quel ordre proceder.",
-  "cles_etrangeres_sortantes": [],
-  "fonctions_requises_avant_les_policies": [
-   "mon_personnage()",
-   "est_appel_serveur()",
-   "acteur_poste_courant()",
-   "rp_transition_active()"
-  ],
-  "tables_citees_par_les_corps_plpgsql": [
-   "personnages_donnees",
-   "organisations",
-   "mariages",
-   "caisses_fret",
-   "championnat_tentatives"
-  ]
- },
  "domaine": "communication",
  "droits": [
   {
@@ -418,6 +401,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "mails_envois_systeme_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "mails_envois_systeme_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chat_piece",
@@ -636,14 +631,14 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "b06995537f8c7d56faa6d2d3e8cffb47",
-  "20_fonctions.sql": "1e4436195beb3dc1a2d91443ae205aa3",
-  "30_contraintes.sql": "f4ee4ce3f5fb3e28945b5baac160308e",
-  "35_index.sql": "b6379f9fa6bb69fef48c72af3e847b23",
-  "50_triggers.sql": "881cfa332116fede80b55862eac9dedc",
-  "60_rls-policies.sql": "1712321f325f188ab1c86195b11a0b82",
-  "70_droits.sql": "cdfeb139ede8862034cba00e3ab7a297",
-  "80_commentaires.sql": "35d05564f6584ed9ddab50dd7d3724e4"
+  "10_tables.sql": "d720c1c10a9761ab30a89a1116da811b",
+  "20_fonctions.sql": "73abed0f0513dc33875b1cda351cb09c",
+  "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
+  "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
+  "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
+  "60_rls-policies.sql": "5ffebe8ae5f307127b13bf6b1fe56c9e",
+  "70_droits.sql": "181fb4cb0d4037cbc809fefeb1b377d7",
+  "80_commentaires.sql": "8ec239a96f165d4b8d36dd57f9bcf9bd"
  },
  "fonctions": [
   {
@@ -728,120 +723,164 @@
    "nom": "idx_chat_piece_lieu"
   }
  ],
- "libelle": "Communication : messagerie interne, forum, salons de discussion",
+ "index_portes": [
+  "chat_piece_pkey",
+  "forum_posts_pkey",
+  "forum_topics_pkey",
+  "lectures_chat_pkey",
+  "mails_envois_systeme_pkey",
+  "mails_expediteurs_systeme_pkey",
+  "mails_pkey",
+  "messages_chat_pkey",
+  "salons_chat_pkey",
+  "salons_membres_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
  "policies": [
   {
    "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "4040e8c2f556eeaa8c7a18b9afce955b",
    "nom": "allow_all_chat_piece",
    "tbl": "chat_piece"
   },
   {
    "empreinte": "b38b2c25102bf2042da662e247c61e19",
+   "empreinte_avec_roles": "a265d4428522f3337ef040680af79ae5",
    "nom": "forum_posts_creation",
    "tbl": "forum_posts"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "7a771eebcdc3ad5ef3d14c25599358cb",
    "nom": "forum_posts_lecture",
    "tbl": "forum_posts"
   },
   {
    "empreinte": "4d27d2aaec7bf1430097b784fdc04496",
+   "empreinte_avec_roles": "22c790e2a472e21fd4e5e38789049355",
    "nom": "forum_posts_maj_auteur",
    "tbl": "forum_posts"
   },
   {
    "empreinte": "c8c84f55c14c993b071112180cd92800",
+   "empreinte_avec_roles": "b20b8eb8fa6580cbafd999d80318d555",
    "nom": "forum_posts_suppression_auteur",
    "tbl": "forum_posts"
   },
   {
    "empreinte": "b38b2c25102bf2042da662e247c61e19",
+   "empreinte_avec_roles": "1143ae4abf79c2e1be4795764ebab98f",
    "nom": "forum_topics_creation",
    "tbl": "forum_topics"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a1323e52e1645c11129bf38e56a26b01",
    "nom": "forum_topics_lecture",
    "tbl": "forum_topics"
   },
   {
    "empreinte": "4d27d2aaec7bf1430097b784fdc04496",
+   "empreinte_avec_roles": "972df4e4db61767165abec0b7100b7ab",
    "nom": "forum_topics_maj_auteur",
    "tbl": "forum_topics"
   },
   {
    "empreinte": "c8c84f55c14c993b071112180cd92800",
+   "empreinte_avec_roles": "0d2e4bd5e1f89da029dc7bbf95ab87c4",
    "nom": "forum_topics_suppression_auteur",
    "tbl": "forum_topics"
   },
   {
    "empreinte": "483ffcc8ef94afffc335755ac4c44f81",
+   "empreinte_avec_roles": "59b42f38945f9e3fd7c3f63c2b506073",
    "nom": "lectures_chat_majour",
    "tbl": "lectures_chat"
   },
   {
    "empreinte": "8117a57e5e9bdc20f84b3719e4ffb5b8",
+   "empreinte_avec_roles": "857a1adeda466df3b0dd783ff8f8a71b",
    "nom": "lectures_chat_poser",
    "tbl": "lectures_chat"
   },
   {
    "empreinte": "6e5ba92c5f56950ab02941af5c433727",
+   "empreinte_avec_roles": "808f4112612a81392540c9c1d5c1c563",
    "nom": "lectures_chat_sienne",
    "tbl": "lectures_chat"
   },
   {
    "empreinte": "a548bcb7857bc66434f49be8cd877e3c",
+   "empreinte_avec_roles": "e7d9551733ac149511c644e18eb4345e",
    "nom": "mails_envoi",
    "tbl": "mails"
   },
   {
    "empreinte": "dd7c906de6fc9c7532c5e8e532f7ae1a",
+   "empreinte_avec_roles": "ab3584f76ac1e0140fb6b44cc430293a",
    "nom": "mails_lecture_partie",
    "tbl": "mails"
   },
   {
    "empreinte": "3877756d7491adcadf93ddfb193ed457",
+   "empreinte_avec_roles": "fcf23b46f3af94237e69d11b7887db76",
    "nom": "mails_maj_partie",
    "tbl": "mails"
   },
   {
    "empreinte": "d3bcf5e13e0a6cc909c7083f0651653a",
+   "empreinte_avec_roles": "b5f989ff6fec5ae2c4c43600d1edd3f4",
    "nom": "mails_suppression_partie",
    "tbl": "mails"
   },
   {
    "empreinte": "dd976a5d6f0ed8d59945dfd870732afe",
+   "empreinte_avec_roles": "5f79bf2d9ee1834142a777d3fe6fbfe3",
    "nom": "messages_chat_envoi",
    "tbl": "messages_chat"
   },
   {
    "empreinte": "7aa1f365e043e981f240dd297e3bd261",
+   "empreinte_avec_roles": "3134b283592ba72d21cca87dc1b66203",
    "nom": "messages_chat_lecture_partie",
    "tbl": "messages_chat"
   },
   {
    "empreinte": "54741d7573cf1e1fd07b239de2d483f6",
+   "empreinte_avec_roles": "e23a9982f6dd7231dd867768fcf8a8cb",
    "nom": "salons_chat_creation",
    "tbl": "salons_chat"
   },
   {
    "empreinte": "00031e6d1c01d2f1c02b4825317e7fca",
+   "empreinte_avec_roles": "360122b569a9e7e4d9ef461e3e9071df",
    "nom": "salons_chat_lecture_membre",
    "tbl": "salons_chat"
   },
   {
    "empreinte": "2118aa29de37d7ca2e1e5b35e533cbf4",
+   "empreinte_avec_roles": "617177c24881ce20e500ee227b68ae92",
    "nom": "salons_membres_lecture",
    "tbl": "salons_membres"
   },
   {
    "empreinte": "082fa25174413fead97aab938c0e9913",
+   "empreinte_avec_roles": "17bd1adbcf231b3013500a303889845e",
    "nom": "salons_membres_quitter",
    "tbl": "salons_membres"
   },
   {
    "empreinte": "8117a57e5e9bdc20f84b3719e4ffb5b8",
+   "empreinte_avec_roles": "e64781ba65df00cc7a902ef04db2726c",
    "nom": "salons_membres_rejoindre",
    "tbl": "salons_membres"
   }
@@ -898,45 +937,73 @@
    "tbl": "salons_membres"
   }
  ],
+ "sequences": [
+  {
+   "nom": "mails_envois_systeme_id_seq",
+   "possedee": true,
+   "tbl": "mails_envois_systeme"
+  }
+ ],
+ "sequences_autonomes": [],
  "tables": [
   {
    "colonnes": 9,
+   "empreinte_catalogue": "cf83057bcc6b4274bbb6ee372bd42c4f",
+   "empreinte_texte": "c06f9b6eb8eef986745c972869efd903",
    "nom": "chat_piece"
   },
   {
    "colonnes": 14,
+   "empreinte_catalogue": "fd404835b57a789d3c1f84340af37be9",
+   "empreinte_texte": "8bab73cd8286b165e5caf3f7baf90abd",
    "nom": "forum_posts"
   },
   {
    "colonnes": 16,
+   "empreinte_catalogue": "b088925fa3b145ca9d5aa32877a80fee",
+   "empreinte_texte": "86aa4664b40aed23400274d50e8a78c9",
    "nom": "forum_topics"
   },
   {
    "colonnes": 4,
+   "empreinte_catalogue": "bb37111b2ad44fdc67d2a043672e4355",
+   "empreinte_texte": "80169fc5de4dfa21181bf06ace0b448b",
    "nom": "lectures_chat"
   },
   {
    "colonnes": 12,
+   "empreinte_catalogue": "0b784a5b719f5c3ab53ddd96f8f83c7f",
+   "empreinte_texte": "09e215886e248d70f07cf5b97bc96521",
    "nom": "mails"
   },
   {
    "colonnes": 6,
+   "empreinte_catalogue": "9734529bd778b328f107c12c3a8c2258",
+   "empreinte_texte": "37685ec3b247e948b1d7582592684e3d",
    "nom": "mails_envois_systeme"
   },
   {
    "colonnes": 9,
+   "empreinte_catalogue": "3a6d1e15dd2a370f873b631f57bedea4",
+   "empreinte_texte": "efe2fee2f0f009f6b0a025cd4a049312",
    "nom": "mails_expediteurs_systeme"
   },
   {
    "colonnes": 6,
+   "empreinte_catalogue": "b3e9739405fc57bc5af764c61913f192",
+   "empreinte_texte": "f0354c932cafb931af742b572eb19880",
    "nom": "messages_chat"
   },
   {
    "colonnes": 4,
+   "empreinte_catalogue": "303a586e30848fba702290289c57058f",
+   "empreinte_texte": "8870a90fe5fd5bfe664cc2ea1f18ccd3",
    "nom": "salons_chat"
   },
   {
    "colonnes": 3,
+   "empreinte_catalogue": "4f5e57659dc175c6cbbecff637e42123",
+   "empreinte_texte": "9402654634fc68cebc52bf0285bb33c6",
    "nom": "salons_membres"
   }
  ],
@@ -971,5 +1038,6 @@
    "nom": "trg_mails_journaliser_envoi_systeme",
    "tbl": "mails"
   }
- ]
+ ],
+ "vues": []
 }

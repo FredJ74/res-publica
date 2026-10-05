@@ -1,0 +1,14 @@
+-- Activation RLS et policies
+-- ============================================================================
+-- BASELINE Human Gambit -- domaine socle -- phase 60 : rls-policies
+--
+-- Fichier GENERE par outils/baseline/rendre.py depuis les catalogues
+-- PostgreSQL. Ne pas editer a la main : toute correction passe par une
+-- migration, puis par une nouvelle extraction.
+--
+-- ORDRE D'APPLICATION : par PHASE croissante, tous domaines confondus, et non
+-- domaine par domaine. Voir baseline/README.md.
+-- ============================================================================
+
+-- Activation de la RLS. Une table dont la RLS est active SANS policy est
+-- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.

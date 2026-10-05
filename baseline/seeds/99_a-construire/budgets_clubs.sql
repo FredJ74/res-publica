@@ -1,0 +1,28 @@
+-- ETAT INITIAL A CONSTRUIRE -- budgets_clubs
+-- ============================================================================
+-- Table     : public.budgets_clubs
+-- Domaine   : finances publiques
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 12 budgets de club : une caisse a 0 et un bareme de salaires.
+--
+-- CE QU'IL FAUT DECIDER
+-- Le bareme de salaires est identique sur les 12 clubs des 4 empires : il
+-- releve du socle. Seule la caisse de depart des 3 clubs de Republia reste a
+-- arbitrer. Les valeurs a fixer sont listees, ligne par ligne, dans
+-- baseline/arbitrages/dotations-initiales-republia.csv -- un tableau prepare
+-- pour etre rempli, qui ne propose aucun montant deduit d'un solde de bêta.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne pas seeder une caisse de club heritee de la bêta.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

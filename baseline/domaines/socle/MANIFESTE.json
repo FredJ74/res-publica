@@ -1,0 +1,1120 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "200e8cb1587d343486cae38676da1272",
+   "genre": "FUNCTION",
+   "objet": "acteur_present_sur_site(text,text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "13cdf5ea74d3d84ccf90e156d4364712",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3b1b5605cdac3f532978a282cccdb2c8",
+   "genre": "FUNCTION",
+   "objet": "generique_recettes_systeme(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f5003d5037700cee911c9573aaea2597",
+   "genre": "FUNCTION",
+   "objet": "jsonb_ou_null(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "558e5dfeefa49ed9bf00f45e0cd3c59b",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "sous": ""
+  }
+ ],
+ "contraintes": [],
+ "domaine": "socle",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acteur_poste_courant()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acteur_poste_courant()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acteur_poste_courant()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acteur_present_sur_site(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acteur_present_sur_site(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acteur_present_sur_site(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "deplacement_enregistrer(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "deplacement_enregistrer(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "deplacement_enregistrer(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_id(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_id(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_id(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_id(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_id(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "eg_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "est_appel_serveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "est_appel_serveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "est_appel_serveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "est_appel_serveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "est_appel_serveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "est_mon_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "est_mon_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "est_mon_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "est_mon_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "est_mon_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "exiger_acteur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "exiger_acteur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "exiger_acteur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "exiger_acteur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "exiger_acteur(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "exiger_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "exiger_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "exiger_poste(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "generique_de_objet(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_abandonner(text,integer,jsonb,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_abandonner(text,integer,jsonb,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_abandonner(text,integer,jsonb,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_ajouter(jsonb,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_ajouter(jsonb,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_ajouter(jsonb,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_confisquer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_confisquer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_confisquer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_consommer(text,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_consommer(text,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_consommer(text,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_detruire(text,integer,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_detruire(text,integer,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_detruire(text,integer,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_donner(text,text,integer,jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_donner(text,text,integer,jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_donner(text,text,integer,jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_localiser(jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_localiser(jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_localiser(jsonb,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_objet_protege(jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_objet_protege(jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_objet_protege(jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_place_restante(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_place_restante(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_place_restante(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_quantite(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_quantite(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_quantite(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_remettre(text,integer,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_remettre(text,integer,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_remettre(text,integer,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer(jsonb,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer(jsonb,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer(jsonb,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer_position(jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer_position(jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_retirer_position(jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "is_national(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "is_national(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jour_de_jeu_pays(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jour_de_jeu_pays(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jour_de_jeu_reel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jour_de_jeu_reel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jour_de_jeu_reel()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jsonb_cle_economique_presente(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jsonb_cle_economique_presente(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jsonb_cles_hors_liste(jsonb,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jsonb_cles_hors_liste(jsonb,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jsonb_ou_null(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jsonb_ou_null(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jsonb_ou_null(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "mon_personnage()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "mon_personnage()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mon_personnage()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mon_personnage()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mon_personnage()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est_dans(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est_dans(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est_dans(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est_dans(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mon_poste_est_dans(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mouvement_titulaire(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mouvement_titulaire(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_fiche_officielle(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "objet_sas_deposer(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_sas_deposer(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_sas_deposer(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "personnage_fantome_declarer(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnage_fantome_declarer(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnage_fantome_declarer(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rattacher_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rattacher_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rattacher_personnage(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ref_patrimoine_existe(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ref_patrimoine_existe(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurer_personnage_sauvegarde(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurer_personnage_sauvegarde(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rp_transition_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rp_transition_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rp_transition_active(text)",
+   "privileges": "EXECUTE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "20_fonctions.sql": "8a3b584fd0a8233364c6538ea51a189f",
+  "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
+  "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
+  "70_droits.sql": "69f65f2fae57cad19634175d9bab29ca",
+  "80_commentaires.sql": "d50faff86dc5b4bb4e7a74caad139af0"
+ },
+ "fonctions": [
+  {
+   "empreinte": "ace8551c15cc89545036d5c991f913f4",
+   "security_definer": true,
+   "signature": "acteur_poste_courant()"
+  },
+  {
+   "empreinte": "3845125abe2d370a629a5d7e0716979d",
+   "security_definer": true,
+   "signature": "acteur_present_sur_site(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "fb8970ea456e901651db6d8bb6cc98eb",
+   "security_definer": true,
+   "signature": "deplacement_enregistrer(text,text,text,text)"
+  },
+  {
+   "empreinte": "0461c25f4fd33752b650cafef1edf78a",
+   "security_definer": false,
+   "signature": "eg_etat_id(text,jsonb)"
+  },
+  {
+   "empreinte": "1e9bed6a109f7927b062eb948f583713",
+   "security_definer": false,
+   "signature": "eg_etat_lire(jsonb)"
+  },
+  {
+   "empreinte": "f386e93c0d1b759c24ec687bb07d6eaf",
+   "security_definer": false,
+   "signature": "embargo_actif(text,text)"
+  },
+  {
+   "empreinte": "a1e1365c90c6f57b90a655a31da452d0",
+   "security_definer": false,
+   "signature": "est_appel_serveur()"
+  },
+  {
+   "empreinte": "ef36905985dbd5d27f501f78f787a422",
+   "security_definer": true,
+   "signature": "est_mon_personnage(text)"
+  },
+  {
+   "empreinte": "901d4f6a1db3b86adf5215feee806c3a",
+   "security_definer": true,
+   "signature": "exiger_acteur(text)"
+  },
+  {
+   "empreinte": "1b85bf8eeaf1e88ea0a8c46b32a20c9d",
+   "security_definer": true,
+   "signature": "exiger_poste(text)"
+  },
+  {
+   "empreinte": "b87da8e30f772415ef6890ab13ae118e",
+   "security_definer": false,
+   "signature": "generique_de_objet(jsonb)"
+  },
+  {
+   "empreinte": "8f4667678b96d4faf48234e93e5f4c7d",
+   "security_definer": false,
+   "signature": "generique_recettes_systeme(text)"
+  },
+  {
+   "empreinte": "7403d083d82f901cc3e9d61463ab183d",
+   "security_definer": true,
+   "signature": "inventaire_abandonner(text,integer,jsonb,text,text,text,text)"
+  },
+  {
+   "empreinte": "001c4d7482c320f26fb4c729856129cb",
+   "security_definer": false,
+   "signature": "inventaire_ajouter(jsonb,text,integer,text)"
+  },
+  {
+   "empreinte": "2fb83e9531178236d183d36a78abaab5",
+   "security_definer": true,
+   "signature": "inventaire_confisquer(text)"
+  },
+  {
+   "empreinte": "3507c88c0dfeebd88f9d9379a91616b4",
+   "security_definer": true,
+   "signature": "inventaire_consommer(text,integer,jsonb)"
+  },
+  {
+   "empreinte": "a5c76a121b09572405e344540c8947d7",
+   "security_definer": true,
+   "signature": "inventaire_detruire(text,integer,jsonb,integer)"
+  },
+  {
+   "empreinte": "358c1187e8c094a46f706ca7ade55df5",
+   "security_definer": true,
+   "signature": "inventaire_donner(text,text,integer,jsonb,integer,jsonb)"
+  },
+  {
+   "empreinte": "75f205c70469fe29207a3d23b52f3c38",
+   "security_definer": false,
+   "signature": "inventaire_localiser(jsonb,integer,jsonb)"
+  },
+  {
+   "empreinte": "828b5123d21b112ec6574165bd2dd191",
+   "security_definer": false,
+   "signature": "inventaire_objet_protege(jsonb,jsonb)"
+  },
+  {
+   "empreinte": "d6813ae539722073a631bf35cc7e5876",
+   "security_definer": false,
+   "signature": "inventaire_place_restante(jsonb)"
+  },
+  {
+   "empreinte": "13d02f674eea13f30d0af2c79e46ad3d",
+   "security_definer": false,
+   "signature": "inventaire_quantite(jsonb,text)"
+  },
+  {
+   "empreinte": "d21e9a0066ee1ebfb4b01ffb112baf1f",
+   "security_definer": true,
+   "signature": "inventaire_remettre(text,integer,jsonb,text)"
+  },
+  {
+   "empreinte": "c105e4044c9953d94cb93645db5b48e4",
+   "security_definer": false,
+   "signature": "inventaire_retirer(jsonb,text,integer)"
+  },
+  {
+   "empreinte": "47d4a064eb5ebc1b8f9165c4aad63472",
+   "security_definer": false,
+   "signature": "inventaire_retirer_position(jsonb,integer)"
+  },
+  {
+   "empreinte": "d9dc41f518b06a8499418945eeb467d7",
+   "security_definer": false,
+   "signature": "is_national(text)"
+  },
+  {
+   "empreinte": "a52c6da6b64a218aa27cfd01c1c9b253",
+   "security_definer": false,
+   "signature": "jour_de_jeu_pays(text)"
+  },
+  {
+   "empreinte": "3c52f9be144e384d4a784ac41446cfcc",
+   "security_definer": false,
+   "signature": "jour_de_jeu_reel()"
+  },
+  {
+   "empreinte": "a81bd9363e4920bd4db53a583e455e03",
+   "security_definer": false,
+   "signature": "jsonb_cle_economique_presente(jsonb)"
+  },
+  {
+   "empreinte": "5d986bb944efa3e79a5d1b362d9631d6",
+   "security_definer": false,
+   "signature": "jsonb_cles_hors_liste(jsonb,text[])"
+  },
+  {
+   "empreinte": "3f1831560aeea4422582a969253a2c15",
+   "security_definer": false,
+   "signature": "jsonb_ou_null(text)"
+  },
+  {
+   "empreinte": "cc744c8aa93d6aab5edd1c0ba9d1efc1",
+   "security_definer": true,
+   "signature": "mon_personnage()"
+  },
+  {
+   "empreinte": "b0f2d1a9c23f43168a179ddca556c19e",
+   "security_definer": true,
+   "signature": "mon_poste_est(text)"
+  },
+  {
+   "empreinte": "e3046ee3db9337b5f148390832b153c2",
+   "security_definer": true,
+   "signature": "mon_poste_est_dans(text,text)"
+  },
+  {
+   "empreinte": "05bafe0652dc5373d8bb5030580f8280",
+   "security_definer": true,
+   "signature": "mouvement_titulaire(text,numeric)"
+  },
+  {
+   "empreinte": "170f5f34f7a4291ed9f34015d8ebffaa",
+   "security_definer": false,
+   "signature": "objet_fiche_officielle(jsonb)"
+  },
+  {
+   "empreinte": "4567a50bfe52496abdd6cb404deedde4",
+   "security_definer": true,
+   "signature": "objet_sas_deposer(text,text,jsonb,text)"
+  },
+  {
+   "empreinte": "c2c5809d360256e2e713bdfa52a2c218",
+   "security_definer": true,
+   "signature": "personnage_fantome_declarer(text,jsonb)"
+  },
+  {
+   "empreinte": "1d0f64093f4b01279288b764c5f3d749",
+   "security_definer": true,
+   "signature": "rattacher_personnage(text)"
+  },
+  {
+   "empreinte": "14428decd7eb4666dbdde2c2cd99947c",
+   "security_definer": true,
+   "signature": "ref_patrimoine_existe(text)"
+  },
+  {
+   "empreinte": "4cba98e71622db5f6fa5e9fafd540391",
+   "security_definer": true,
+   "signature": "restaurer_personnage_sauvegarde(text,text)"
+  },
+  {
+   "empreinte": "9092282e55d36158a68382defe744a17",
+   "security_definer": true,
+   "signature": "rp_transition_active(text)"
+  }
+ ],
+ "index_autonomes": [],
+ "index_portes": [],
+ "ordre": [
+  "20_fonctions.sql",
+  "35_index.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [],
+ "rls": [],
+ "sequences": [],
+ "sequences_autonomes": [],
+ "tables": [],
+ "triggers": [],
+ "vues": []
+}

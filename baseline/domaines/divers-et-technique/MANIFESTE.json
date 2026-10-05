@@ -1,0 +1,413 @@
+{
+ "commentaires": [],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "ambassades_ouvertes_pkey",
+   "tbl": "ambassades_ouvertes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "cron_journal_pkey",
+   "tbl": "cron_journal"
+  },
+  {
+   "empreinte": "f177ac2d66d4e8a0b1b1d26d548a1ef3",
+   "genre": "p",
+   "nom": "etats_urgence_pkey",
+   "tbl": "etats_urgence"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "evenements_globaux_pkey",
+   "tbl": "evenements_globaux"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "propositions_diplomatiques_pkey",
+   "tbl": "propositions_diplomatiques"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "registre_ventes_armes_pkey",
+   "tbl": "registre_ventes_armes"
+  },
+  {
+   "empreinte": "db5c575c6264ef9076bce4f38125d799",
+   "genre": "c",
+   "nom": "cron_journal_statut_check",
+   "tbl": "cron_journal"
+  }
+ ],
+ "domaine": "divers et technique",
+ "droits": [
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "evenements_globaux_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "evenements_globaux_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "evenements_globaux_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "evenements_globaux_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "registre_ventes_armes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "registre_ventes_armes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "registre_ventes_armes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "registre_ventes_armes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ambassades_ouvertes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ambassades_ouvertes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ambassades_ouvertes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "cron_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "cron_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "etats_urgence",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "etats_urgence",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "etats_urgence",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "etats_urgence",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "evenements_globaux",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "evenements_globaux",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "evenements_globaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "evenements_globaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "propositions_diplomatiques",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "propositions_diplomatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "propositions_diplomatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "registre_ventes_armes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "registre_ventes_armes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "registre_ventes_armes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "registre_ventes_armes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "6d8f527476775fd542299d636ef89108",
+  "30_contraintes.sql": "05f4199f822a8dfe724c8df9341ed389",
+  "35_index.sql": "88464593997ac9d1216d75aea9278e29",
+  "60_rls-policies.sql": "34661d5e318523b7f249ab13a5b2fdc9",
+  "70_droits.sql": "b45cbfe2577dec0330b6a6afe03616ed",
+  "80_commentaires.sql": "51ec70ff5c6ec15c1a83dd342d8422ac"
+ },
+ "fonctions": [],
+ "index_autonomes": [
+  {
+   "empreinte": "a23e2da5eacc4bc53b789aa6574ebc86",
+   "nom": "cron_journal_jour_idx"
+  },
+  {
+   "empreinte": "3859947b4448f7f84797c696d995657e",
+   "nom": "cron_journal_statut_idx"
+  },
+  {
+   "empreinte": "fb1fe384d23d557fce8ba22973fcfba8",
+   "nom": "idx_evenements_country"
+  },
+  {
+   "empreinte": "9b1e5d94eb28b243aa0a021e7af2f40e",
+   "nom": "idx_evenements_created"
+  },
+  {
+   "empreinte": "6a9ee622e7763416a47ba5cd74e367b6",
+   "nom": "idx_registre_ventes_armes_jour"
+  },
+  {
+   "empreinte": "5e1d2324ae8a4b75abb4431d40f93b4d",
+   "nom": "idx_registre_ventes_armes_pays"
+  }
+ ],
+ "index_portes": [
+  "ambassades_ouvertes_pkey",
+  "cron_journal_pkey",
+  "etats_urgence_pkey",
+  "evenements_globaux_pkey",
+  "propositions_diplomatiques_pkey",
+  "registre_ventes_armes_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "38f1b924a9f12da38903efb17135ebab",
+   "empreinte_avec_roles": "b5e670f24eddbb9653475046661fbfb6",
+   "nom": "ambassade geree par l empire ou par l hote",
+   "tbl": "ambassades_ouvertes"
+  },
+  {
+   "empreinte": "f8aeec6ecdb2f58d7920ab3df39a2c6d",
+   "empreinte_avec_roles": "7c621c1cf8fa4d5161dcdc06f043cead",
+   "nom": "ambassade ouverte par les affaires etrangeres",
+   "tbl": "ambassades_ouvertes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3cd4e4ab9adc42b4c9dbaac201adabe3",
+   "nom": "ambassades visibles des joueurs",
+   "tbl": "ambassades_ouvertes"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "5486c2852900f4f04cb21e043d5a25b9",
+   "nom": "allow_all_evenements_globaux",
+   "tbl": "evenements_globaux"
+  },
+  {
+   "empreinte": "ab5c6b639a8d249bd48c57d7f030c3ec",
+   "empreinte_avec_roles": "ace687d4a5e9264f3f968dcc4ca5e1fd",
+   "nom": "diplomatie lue par les deux chancelleries",
+   "tbl": "propositions_diplomatiques"
+  },
+  {
+   "empreinte": "89881c7fe60f4adef57f9b2ab56db579",
+   "empreinte_avec_roles": "ddc3532c8c1252da930ba33a2c19357f",
+   "nom": "proposition faite par le min_ae du pays proposeur",
+   "tbl": "propositions_diplomatiques"
+  },
+  {
+   "empreinte": "06315184b9c7c61777ba3a87b3a4a603",
+   "empreinte_avec_roles": "a9171bdc0448e22ad387c4c02096f373",
+   "nom": "reponse donnee par le min_ae du pays cible",
+   "tbl": "propositions_diplomatiques"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "346217dfe06ec9bc7094d7e959d63ffe",
+   "nom": "Insertion publique du registre",
+   "tbl": "registre_ventes_armes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "f27687dc3879d8b9d720b76d90c6b584",
+   "nom": "Lecture publique du registre",
+   "tbl": "registre_ventes_armes"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ambassades_ouvertes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "cron_journal"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "etats_urgence"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "evenements_globaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "propositions_diplomatiques"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "registre_ventes_armes"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "evenements_globaux_id_seq",
+   "possedee": true,
+   "tbl": "evenements_globaux"
+  },
+  {
+   "nom": "registre_ventes_armes_id_seq",
+   "possedee": false,
+   "tbl": "registre_ventes_armes"
+  }
+ ],
+ "sequences_autonomes": [
+  "registre_ventes_armes_id_seq"
+ ],
+ "tables": [
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "19c7e3e293b2278a6045ce42ba271934",
+   "empreinte_texte": "355a8ca366e1f77b44400e22c426c5d9",
+   "nom": "ambassades_ouvertes"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "822422796100d41dcdbb0b388c60bdbf",
+   "empreinte_texte": "75f8bd0cca8221fdabbf3f18fc434dfe",
+   "nom": "cron_journal"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "cfbaca082f200da3c7ff1f5ee5782376",
+   "empreinte_texte": "262e2514ae250dd5b07e1d50bdf2ab3a",
+   "nom": "etats_urgence"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "3d633b74ed458af8ff3f85cbd623ea00",
+   "empreinte_texte": "bca8391fd4ccac7e185544f29b16ed9e",
+   "nom": "evenements_globaux"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "abf7bbe49ba63d81cf5a964ed437a92c",
+   "empreinte_texte": "7b39a64ab3c1bfb1237108fcd5d74f30",
+   "nom": "propositions_diplomatiques"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "04966b565f672cf506320dc085aa1b24",
+   "empreinte_texte": "1f74f5626b65fafd1e7653514fb26087",
+   "nom": "registre_ventes_armes"
+  }
+ ],
+ "triggers": [],
+ "vues": []
+}

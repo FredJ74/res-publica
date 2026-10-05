@@ -1,0 +1,1904 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "02b56fa331b9494f4a0de0c01c504602",
+   "genre": "COLUMN",
+   "objet": "assemblee_propositions",
+   "sous": "appliquee_par"
+  },
+  {
+   "empreinte": "e3666bca02aba2d7c878dbea0051a1e7",
+   "genre": "COLUMN",
+   "objet": "assemblee_propositions",
+   "sous": "appliquee_ts"
+  },
+  {
+   "empreinte": "dcd558a608925307e662538c691e1246",
+   "genre": "FUNCTION",
+   "objet": "assemblee_catalogue_legislatif()",
+   "sous": ""
+  },
+  {
+   "empreinte": "f2ee16c708f46255dbec50a641615736",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer(text,text,text,text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "29c2b69d7af9a34162119b25b3e1104d",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "6e49fa10310bb43bb6ae69f6c87803e2",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_application(timestamp with time zone)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3d2e0cd8279b1594971b803245a5075d",
+   "genre": "FUNCTION",
+   "objet": "assemblee_exige_application(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3a5f24014bb79ca0b3ba76200741d677",
+   "genre": "FUNCTION",
+   "objet": "assemblee_gouvernement_actuel(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "fa9a8924aceb708d756b37bfb4cbe6a3",
+   "genre": "FUNCTION",
+   "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
+   "sous": ""
+  },
+  {
+   "empreinte": "fa508fe8b7087aaa65b6987352d7a8db",
+   "genre": "FUNCTION",
+   "objet": "assemblee_mettre_en_application(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "035cb90ae3933819eca61c7375eb8464",
+   "genre": "FUNCTION",
+   "objet": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)",
+   "sous": ""
+  },
+  {
+   "empreinte": "87374ee19298cff9883dad05b4388133",
+   "genre": "FUNCTION",
+   "objet": "assemblee_pop_du_palier(integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "0575160f88d12ed43af96a64a16cbb17",
+   "genre": "FUNCTION",
+   "objet": "assemblee_portee_valider(jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "a24b9d0b549cc7effaba46fb694fb00f",
+   "genre": "FUNCTION",
+   "objet": "assemblee_registre_execution(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c3f90e21456318b8b53419627c540fea",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "17210a0da39e68b828a39b9c99877092",
+   "genre": "FUNCTION",
+   "objet": "assemblee_tracer_vente_interdite(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "acf015259de55cc5aea6fa293fcfd382",
+   "genre": "TABLE",
+   "objet": "assemblee_sanctions_paliers",
+   "sous": ""
+  },
+  {
+   "empreinte": "d165075c2e4fad2e91c08259ac3f7f31",
+   "genre": "TABLE",
+   "objet": "assemblee_sieges",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "5e9de07a8b19b5651d77f5da4cde18d0",
+   "genre": "p",
+   "nom": "assemblee_catalogue_illegal_pkey",
+   "tbl": "assemblee_catalogue_illegal"
+  },
+  {
+   "empreinte": "720c348c27b169e2535f9bc1cf0d237d",
+   "genre": "p",
+   "nom": "assemblee_categories_interdiction_pkey",
+   "tbl": "assemblee_categories_interdiction"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_indemnites_pkey",
+   "tbl": "assemblee_indemnites"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_intentions_pkey",
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_propositions_pkey",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_requetes_pkey",
+   "tbl": "assemblee_requetes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_sanctions_paliers_pkey",
+   "tbl": "assemblee_sanctions_paliers"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_scrutins_pkey",
+   "tbl": "assemblee_scrutins"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_sieges_pkey",
+   "tbl": "assemblee_sieges"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_votes_pkey",
+   "tbl": "assemblee_votes"
+  },
+  {
+   "empreinte": "1f676274078af0f2b59666b522c9effd",
+   "genre": "u",
+   "nom": "assemblee_sieges_pnj_id_key",
+   "tbl": "assemblee_sieges"
+  },
+  {
+   "empreinte": "ad7f18eeb588996d048ba56ed884bd2c",
+   "genre": "c",
+   "nom": "assemblee_intention_valide",
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "b27805059e33c4e57c50a2d8f5a058c1",
+   "genre": "c",
+   "nom": "assemblee_prop_abrogation_coherente",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "441c679916934789e2624c92caf33d9a",
+   "genre": "c",
+   "nom": "assemblee_prop_categorie_coherente",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "aa07039e221de3ea83c4eb9ad38fa596",
+   "genre": "c",
+   "nom": "assemblee_prop_statut_valide",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "e094157823bc6862b8d6fa139185540b",
+   "genre": "c",
+   "nom": "assemblee_prop_type_valide",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "664474993954da1da2ea9005df7530dd",
+   "genre": "c",
+   "nom": "assemblee_sanctions_paliers_palier_check",
+   "tbl": "assemblee_sanctions_paliers"
+  },
+  {
+   "empreinte": "46c11103ce5bdc6766684fcaad59c831",
+   "genre": "c",
+   "nom": "assemblee_scrutin_resultat_valide",
+   "tbl": "assemblee_scrutins"
+  },
+  {
+   "empreinte": "5e936f37ec9ec8b05243675c610e4495",
+   "genre": "c",
+   "nom": "assemblee_vote_valide",
+   "tbl": "assemblee_votes"
+  },
+  {
+   "empreinte": "310d15e76ed89a4654e025c1abc977ea",
+   "genre": "f",
+   "nom": "assemblee_intentions_proposition_id_fkey",
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "c03b221438b8d29189475ec5dcac3b3a",
+   "genre": "f",
+   "nom": "assemblee_intentions_siege_id_fkey",
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "310d15e76ed89a4654e025c1abc977ea",
+   "genre": "f",
+   "nom": "assemblee_scrutins_proposition_id_fkey",
+   "tbl": "assemblee_scrutins"
+  },
+  {
+   "empreinte": "310d15e76ed89a4654e025c1abc977ea",
+   "genre": "f",
+   "nom": "assemblee_votes_proposition_id_fkey",
+   "tbl": "assemblee_votes"
+  }
+ ],
+ "domaine": "assemblee",
+ "droits": [
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_achat_illegal(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_achat_illegal(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_achat_illegal(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_achat_illegal(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_amender(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_amender(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_amender(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_amender(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_catalogue_legislatif()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_catalogue_legislatif()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_catalogue_legislatif()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cle_convocation(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cle_convocation(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cle_convocation(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cle_convocation(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cle_convocation(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cloturer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cloturer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cloturer_echues(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_cloturer_echues(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_compter_unites(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_compter_unites(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_consulter_lobbyiste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_consulter_lobbyiste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_consulter_lobbyiste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_consulter_lobbyiste(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_crediter_caisse(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_crediter_caisse(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_crediter_joueur(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_crediter_joueur(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debiter_caisse_plafonne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debiter_caisse_plafonne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debiter_joueur(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debiter_joueur(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer(text,text,text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_application(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_application(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_application(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_palier(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_palier(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_echeance_palier(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_exige_application(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_exige_application(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_exige_application(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_fenetre_ouverture(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_fenetre_ouverture(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_fret_vente_legale()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_fret_vente_legale()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_gouvernement_actuel(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_gouvernement_actuel(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_gouvernement_actuel(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_lier_topic(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_lier_topic(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_lier_topic(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_lier_topic(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marchander(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marchander(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marchander(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marchander(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marquer_convocations_echues(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_marquer_convocations_echues(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_mettre_en_application(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_mettre_en_application(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_mettre_en_application(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_neutraliser_depute(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_neutraliser_depute(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_neutraliser_depute(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_neutraliser_depute(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_objet_vise(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_objet_vise(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_objet_vise(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_objet_vise(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "assemblee_occupation_sieges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_occupation_sieges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_occupation_sieges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_occupation_sieges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_occupation_sieges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_ouvrir_session(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_ouvrir_session(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_ouvrir_sessions_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_ouvrir_sessions_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "assemblee_peut_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_peut_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_peut_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_peut_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_peut_deposer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_pop_du_palier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_pop_du_palier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_pop_du_palier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_portee_valider(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_portee_valider(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_portee_valider(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_prochaine_cloture(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_prochaine_cloture(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_proposition_immuable()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_proposition_immuable()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_registre_execution(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_registre_execution(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_registre_execution(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_requete_clore(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_requete_clore(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_requete_ouvrir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_requete_ouvrir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer_une_unite(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_retirer_une_unite(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveil_minuit(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveil_minuit(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveiller_depute(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveiller_depute(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveiller_depute(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reveiller_depute(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_stat_base(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_stat_base(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_taux_marchandage(jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_taux_marchandage(jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_taux_neutralisation(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_taux_neutralisation(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_tracer_vente_interdite(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_tracer_vente_interdite(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verifier_vente(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verifier_vente(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verifier_vente(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verifier_vente(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verser_indemnite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verser_indemnite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verser_indemnite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_verser_indemnite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "assemblee_voter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_voter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_voter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_voter(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "depute_presence(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "depute_presence(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_catalogue_illegal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_catalogue_illegal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_categories_interdiction",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_categories_interdiction",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_categories_interdiction",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_categories_interdiction",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_indemnites",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_indemnites",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_indemnites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_indemnites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_intentions",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_intentions",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_intentions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_intentions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_propositions",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_propositions",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_propositions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_propositions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_sanctions_paliers",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_sanctions_paliers",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_scrutins",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_scrutins",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_scrutins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_scrutins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_sieges",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_sieges",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_sieges",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_sieges",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_votes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_votes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_votes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_votes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
+  "20_fonctions.sql": "0886c387bb794dbc1d4e1950db9bd03c",
+  "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
+  "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
+  "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
+  "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
+  "70_droits.sql": "89a6972b897ead0b9be6c69f69083854",
+  "80_commentaires.sql": "5e0ee07adf5a9dbde4ab4a6ef9e4ce23"
+ },
+ "fonctions": [
+  {
+   "empreinte": "2d87fa48f0300bbcc1f6e762acabf4b9",
+   "security_definer": true,
+   "signature": "assemblee_achat_illegal(text,text,text,text)"
+  },
+  {
+   "empreinte": "ce55c052413d461d48fe4affb68d8a10",
+   "security_definer": true,
+   "signature": "assemblee_amender(text,text,text,text)"
+  },
+  {
+   "empreinte": "1c392caf679d982c37ccd4a7d8e5d5c7",
+   "security_definer": true,
+   "signature": "assemblee_catalogue_legislatif()"
+  },
+  {
+   "empreinte": "ef74b310543d16de792dc77298a5b6db",
+   "security_definer": false,
+   "signature": "assemblee_cle_convocation(jsonb)"
+  },
+  {
+   "empreinte": "3051ce45816a6aa5310e7c4c5d758f93",
+   "security_definer": true,
+   "signature": "assemblee_cloturer(text)"
+  },
+  {
+   "empreinte": "1e282c9b183c98e9d4e6aa246ebb7c63",
+   "security_definer": true,
+   "signature": "assemblee_cloturer_echues(text)"
+  },
+  {
+   "empreinte": "93edc39b37710d83a48f79ad3c953662",
+   "security_definer": false,
+   "signature": "assemblee_compter_unites(jsonb,text)"
+  },
+  {
+   "empreinte": "bd10bd80d1756d16064dd9626fc5dd45",
+   "security_definer": true,
+   "signature": "assemblee_consulter_lobbyiste(text,text)"
+  },
+  {
+   "empreinte": "fdd3d02e079aed47f7cd1914a8c06f84",
+   "security_definer": true,
+   "signature": "assemblee_crediter_caisse(text,integer)"
+  },
+  {
+   "empreinte": "f6b050f1db9f4d8a82cfb1060d4d8dec",
+   "security_definer": false,
+   "signature": "assemblee_crediter_joueur(text,integer)"
+  },
+  {
+   "empreinte": "f54c3dd2e98f8db528b9658756afefb5",
+   "security_definer": true,
+   "signature": "assemblee_debiter_caisse_plafonne(text,integer)"
+  },
+  {
+   "empreinte": "f5b03c64c215507809518855f726fd2a",
+   "security_definer": false,
+   "signature": "assemblee_debiter_joueur(text,integer,integer)"
+  },
+  {
+   "empreinte": "96d20f2391f025d3d9e75dc1f56f509a",
+   "security_definer": true,
+   "signature": "assemblee_deposer(text,text,text,text,text,text,text)"
+  },
+  {
+   "empreinte": "577f467969e5c0fc869cd4fb8054e7dc",
+   "security_definer": true,
+   "signature": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "ced49bc9a1ddf68599612b1da5c0bcd4",
+   "security_definer": false,
+   "signature": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)"
+  },
+  {
+   "empreinte": "ee34b01e1bf44bcf7913e5f96a420f29",
+   "security_definer": false,
+   "signature": "assemblee_echeance_application(timestamp with time zone)"
+  },
+  {
+   "empreinte": "94746d193883887e097de3635a38007a",
+   "security_definer": false,
+   "signature": "assemblee_echeance_palier(timestamp with time zone,integer)"
+  },
+  {
+   "empreinte": "9be2eedb6fb860734b1ba4ffec3d0577",
+   "security_definer": false,
+   "signature": "assemblee_exige_application(text)"
+  },
+  {
+   "empreinte": "4fe3ead0ffd3201b3718a6ce594e2e2b",
+   "security_definer": false,
+   "signature": "assemblee_fenetre_ouverture(timestamp with time zone)"
+  },
+  {
+   "empreinte": "3f73eb6bf68b9880bd35d5e6c32d2282",
+   "security_definer": true,
+   "signature": "assemblee_fret_vente_legale()"
+  },
+  {
+   "empreinte": "082882cb7adfa9be32aacfbb3d0d685a",
+   "security_definer": true,
+   "signature": "assemblee_gouvernement_actuel(text)"
+  },
+  {
+   "empreinte": "b467b680c8851c6f3ef4e9871218de34",
+   "security_definer": true,
+   "signature": "assemblee_lier_topic(text,text,text)"
+  },
+  {
+   "empreinte": "d19c5e231eb26afd0fc4cfc755ebc5b5",
+   "security_definer": false,
+   "signature": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)"
+  },
+  {
+   "empreinte": "03c6abfcc00f95e0cd92c81eeb6e67bf",
+   "security_definer": true,
+   "signature": "assemblee_marchander(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "64671bcc2c697c93bcbff03d2fad52ef",
+   "security_definer": true,
+   "signature": "assemblee_marquer_convocations_echues(text)"
+  },
+  {
+   "empreinte": "e62a795efcbf85d660643d969a8ee627",
+   "security_definer": true,
+   "signature": "assemblee_mettre_en_application(text,text,text)"
+  },
+  {
+   "empreinte": "ee972c671a6c1d1502b1940865e33c4d",
+   "security_definer": true,
+   "signature": "assemblee_neutraliser_depute(text,text,text,text)"
+  },
+  {
+   "empreinte": "aa9492249656ff35bdba524d1ebb4d85",
+   "security_definer": false,
+   "signature": "assemblee_objet_vise(text,jsonb)"
+  },
+  {
+   "empreinte": "4082c9625fcdea71dd4b574ba6fbdece",
+   "security_definer": false,
+   "signature": "assemblee_occupation_sieges(text)"
+  },
+  {
+   "empreinte": "fd3e0e96c697fc219886f583a1e430d0",
+   "security_definer": true,
+   "signature": "assemblee_ouvrir_session(text)"
+  },
+  {
+   "empreinte": "636295d7927b80ad6c47446193706ddc",
+   "security_definer": true,
+   "signature": "assemblee_ouvrir_sessions_eligibles(text)"
+  },
+  {
+   "empreinte": "52933356b1585e50a3e5a7798859c85e",
+   "security_definer": false,
+   "signature": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)"
+  },
+  {
+   "empreinte": "89163ba53dc379570e46641ed9a5eae7",
+   "security_definer": true,
+   "signature": "assemblee_peut_deposer(text,text)"
+  },
+  {
+   "empreinte": "bd56327be7cb5aa4870a027ce75b8497",
+   "security_definer": false,
+   "signature": "assemblee_pop_du_palier(integer)"
+  },
+  {
+   "empreinte": "a693f64449d471c30fb51c9a23be1337",
+   "security_definer": false,
+   "signature": "assemblee_portee_valider(jsonb)"
+  },
+  {
+   "empreinte": "22eba1875a5c8e851eeca0be4644f007",
+   "security_definer": false,
+   "signature": "assemblee_prochaine_cloture(timestamp with time zone)"
+  },
+  {
+   "empreinte": "8d0abb02c88213e01647a70dee0032d8",
+   "security_definer": false,
+   "signature": "assemblee_proposition_immuable()"
+  },
+  {
+   "empreinte": "50d77fceb4c3f6ef6dde3a43229e31b2",
+   "security_definer": true,
+   "signature": "assemblee_registre_execution(text)"
+  },
+  {
+   "empreinte": "5f56f40af2601ecb9bc5911a7a745562",
+   "security_definer": false,
+   "signature": "assemblee_requete_clore(text,jsonb)"
+  },
+  {
+   "empreinte": "f3e5fa356ac105a3ea77e44d3acee253",
+   "security_definer": false,
+   "signature": "assemblee_requete_ouvrir(text,text,text)"
+  },
+  {
+   "empreinte": "afa19c392747148bc8d735b74ff0e31e",
+   "security_definer": true,
+   "signature": "assemblee_retirer(text,text)"
+  },
+  {
+   "empreinte": "2fd7bed7d1ebe2f8049ca30d1fd67f47",
+   "security_definer": false,
+   "signature": "assemblee_retirer_une_unite(jsonb,text)"
+  },
+  {
+   "empreinte": "e2e980c9a4bceac9cc1b0f0abbeeb772",
+   "security_definer": true,
+   "signature": "assemblee_reveil_minuit(text)"
+  },
+  {
+   "empreinte": "541f8bac9c69c7c41bbbc3178a48f8b7",
+   "security_definer": true,
+   "signature": "assemblee_reveiller_depute(text,text,text)"
+  },
+  {
+   "empreinte": "d60f690891b0691f74e477e9cda47b04",
+   "security_definer": true,
+   "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
+  },
+  {
+   "empreinte": "d0afd595c450b83bfd8c72812b20456d",
+   "security_definer": false,
+   "signature": "assemblee_stat_base(jsonb,text)"
+  },
+  {
+   "empreinte": "c76680d943d53b61f24cfa01a72fbe09",
+   "security_definer": false,
+   "signature": "assemblee_taux_marchandage(jsonb,boolean)"
+  },
+  {
+   "empreinte": "e870bcd35f4e9c875e0e070022c61404",
+   "security_definer": false,
+   "signature": "assemblee_taux_neutralisation(text,jsonb,text)"
+  },
+  {
+   "empreinte": "fe7cdf6fe4a1bd866459032dae3a0147",
+   "security_definer": true,
+   "signature": "assemblee_tracer_vente_interdite(text,text,text,text)"
+  },
+  {
+   "empreinte": "f40128310381c01f32a5e010b8450769",
+   "security_definer": false,
+   "signature": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)"
+  },
+  {
+   "empreinte": "63a8d34fc88f9a3459caaaf652df84a9",
+   "security_definer": false,
+   "signature": "assemblee_verifier_vente(jsonb,text)"
+  },
+  {
+   "empreinte": "b0f87eff8965a320b69c123971c27da2",
+   "security_definer": true,
+   "signature": "assemblee_verser_indemnite(text)"
+  },
+  {
+   "empreinte": "4c98c49c8bcf513fc4aa15c2024933ba",
+   "security_definer": true,
+   "signature": "assemblee_voter(text,text,text)"
+  },
+  {
+   "empreinte": "ed7d00e61a7076a613865bccc5de470d",
+   "security_definer": true,
+   "signature": "depute_presence(text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "030dcd9c85549b7b02f165bc8888e76e",
+   "nom": "assemblee_propositions_a_appliquer_idx"
+  },
+  {
+   "empreinte": "73c67fa1d0be902c1ce2b6b609e91f33",
+   "nom": "assemblee_sanctions_paliers_prop_idx"
+  },
+  {
+   "empreinte": "271269b5817ebae194e7b1e8aebcbe57",
+   "nom": "idx_assemblee_indemnites_perso"
+  },
+  {
+   "empreinte": "194e74a06e810ced80af7681358a8382",
+   "nom": "idx_assemblee_intentions_prop"
+  },
+  {
+   "empreinte": "7c76a0825a1475526d138c99e8e8db87",
+   "nom": "idx_assemblee_prop_cloture"
+  },
+  {
+   "empreinte": "b7a7f606592ca8f4986e4725818ff3ea",
+   "nom": "idx_assemblee_prop_interdictions_actives"
+  },
+  {
+   "empreinte": "9c659c69351b48b86346c3b7205a1cd4",
+   "nom": "idx_assemblee_prop_statut"
+  },
+  {
+   "empreinte": "ac11499a67f94afd69dfeb1a1ba16611",
+   "nom": "idx_assemblee_requetes_perso"
+  },
+  {
+   "empreinte": "ef917ee144324ff69e080d3fc331e1a4",
+   "nom": "idx_assemblee_scrutins_prop"
+  },
+  {
+   "empreinte": "99e13e1bb4147754a959852bbc0ca466",
+   "nom": "idx_assemblee_sieges_pays_ville"
+  },
+  {
+   "empreinte": "529e7c118bf3bb90753fe9496ae5bac1",
+   "nom": "idx_assemblee_votes_prop"
+  }
+ ],
+ "index_portes": [
+  "assemblee_catalogue_illegal_pkey",
+  "assemblee_categories_interdiction_pkey",
+  "assemblee_indemnites_pkey",
+  "assemblee_intentions_pkey",
+  "assemblee_propositions_pkey",
+  "assemblee_requetes_pkey",
+  "assemblee_sanctions_paliers_pkey",
+  "assemblee_scrutins_pkey",
+  "assemblee_sieges_pkey",
+  "assemblee_sieges_pnj_id_key",
+  "assemblee_votes_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "be754b159ae9cb64857f01c347902eb4",
+   "nom": "assemblee_categories_lecture",
+   "tbl": "assemblee_categories_interdiction"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "85f6acd6e6474bb94d9bef303e955996",
+   "nom": "assemblee_intentions_lecture",
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "345c930be6b0ffff98e82dccb5783393",
+   "nom": "assemblee_propositions_lecture",
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "9899a7c65e0563a0d879f6e04e484d42",
+   "nom": "assemblee_scrutins_lecture",
+   "tbl": "assemblee_scrutins"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "35fb560225f995756f67cdfd03032cab",
+   "nom": "assemblee_sieges_lecture",
+   "tbl": "assemblee_sieges"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3b79e4b33d1c5f9a9bb6ce6dd3cdce51",
+   "nom": "assemblee_votes_lecture",
+   "tbl": "assemblee_votes"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_catalogue_illegal"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_categories_interdiction"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_indemnites"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_intentions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_propositions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_requetes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_sanctions_paliers"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_scrutins"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_sieges"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_votes"
+  }
+ ],
+ "sequences": [],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "1ea3b21f817432725fe27717a28f68bd",
+   "empreinte_texte": "c4d396bea98375bc48894489638caba3",
+   "nom": "assemblee_catalogue_illegal"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "9f3bebcf8c031610255e74566df39c51",
+   "empreinte_texte": "bab5e6f01ce263cfd1942fe3918702d9",
+   "nom": "assemblee_categories_interdiction"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "b217c5f09e58ad2779ada285d3c209a8",
+   "empreinte_texte": "4a6764c1830378d9af557b362d12a9dd",
+   "nom": "assemblee_indemnites"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "7b0a5a20aea8b91d069b77e51876852b",
+   "empreinte_texte": "e8142c9bfbc8e0eb3182687f8d6e8cec",
+   "nom": "assemblee_intentions"
+  },
+  {
+   "colonnes": 22,
+   "empreinte_catalogue": "90e69d93d21ba0e56cfd720a97dc20f9",
+   "empreinte_texte": "9891b5f6411b583e19d4ae2e51732a42",
+   "nom": "assemblee_propositions"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "34a3593192c01cabd2f28df8d6a7342f",
+   "empreinte_texte": "7957b47a8f7dae509b4743b8bbb99e71",
+   "nom": "assemblee_requetes"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "dc1bf70491698d853c874c584d08dbb5",
+   "empreinte_texte": "bc7c7e7a910b3610cb1dcecfbdf14e09",
+   "nom": "assemblee_sanctions_paliers"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "f15c49ec3e74d6be71041ce75b48d647",
+   "empreinte_texte": "7c4e58a10f613f033878f79deafce32e",
+   "nom": "assemblee_scrutins"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "ea3fec270c35eeb31fcb00d6cd4e3c7c",
+   "empreinte_texte": "2ff313aa32eb162d51aa3f557411184a",
+   "nom": "assemblee_sieges"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "99a3dd22e7d3fdc7c73822a02bab756e",
+   "empreinte_texte": "41033b614d0d124b27449378180856a8",
+   "nom": "assemblee_votes"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "50e798a0f45c936126fbfd1685e85978",
+   "fonction": "assemblee_proposition_immuable()",
+   "nom": "trg_assemblee_proposition_immuable",
+   "tbl": "assemblee_propositions"
+  }
+ ],
+ "vues": []
+}

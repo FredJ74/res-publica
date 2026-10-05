@@ -3,7 +3,7 @@
 -- BASELINE Human Gambit -- domaine communication -- phase 50 : triggers
 --
 -- Fichier GENERE par outils/baseline/rendre.py depuis les catalogues
--- PostgreSQL. Ne pas editer a la main : toute correction doit passer par une
+-- PostgreSQL. Ne pas editer a la main : toute correction passe par une
 -- migration, puis par une nouvelle extraction.
 --
 -- ORDRE D'APPLICATION : par PHASE croissante, tous domaines confondus, et non

@@ -1,0 +1,33 @@
+-- ETAT INITIAL A CONSTRUIRE -- entreprises
+-- ============================================================================
+-- Table     : public.entreprises
+-- Domaine   : economie
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 20 commerces. L'identite et l'implantation sont du contenu initial, mais
+-- stock, caisse, prix et matieres vivent dans le MEME blob data, mute par 36
+-- fonctions. Le crible y trouve 5 lignes portant un marqueur zz.
+--
+-- CE QU'IL FAUT DECIDER
+-- L'etat initial voulu d'un commerce -- stock de depart, caisse -- doit etre
+-- decrit. Perimetre reel pour Republia : 14 commerces authored, et non 20 --
+-- les 6 autres lignes sont 3 armureries de test, 1 ligne sans ville ni
+-- batiment, 1 commerce de test et 1 fonds de commerce cree par un joueur. A
+-- noter : commerces_dotations porte deja, en contenu authored, une dotation
+-- de caisse et de stock par TYPE de commerce. Les champs a decider sont
+-- listes, ligne par ligne, dans
+-- baseline/arbitrages/etat-initial-republia.csv.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne jamais deduire une caisse initiale d'un solde courant.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

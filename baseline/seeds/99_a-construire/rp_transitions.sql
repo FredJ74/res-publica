@@ -1,0 +1,37 @@
+-- ETAT INITIAL A CONSTRUIRE -- rp_transitions
+-- ============================================================================
+-- Table     : public.rp_transitions
+-- Domaine   : politique et elections
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 2 lignes, et les DEUX sont inactives (actif = false) -- verifie en base le
+-- 5 octobre 2026. La table est lue par la seule fonction
+-- rp_transition_active(cle), qui rend FALSE sur une cle absente. Une table
+-- VIDE se comporte donc EXACTEMENT comme la production d'aujourd'hui. Les
+-- deux cles sont argent_verrou (« a activer une fois les 24 sites de credit
+-- routes ») et mails_expediteurs_tolerance (« fermee le 20/09/2026 »).
+--
+-- CE QU'IL FAUT DECIDER
+-- ARBITRAGE RENDU : ce n'est ni une regle perenne du moteur, ni du contenu
+-- d'empire, mais un mecanisme TRANSITOIRE lie a la securisation progressive
+-- des anciennes ecritures client. Ses drapeaux ne sont donc pas promus en
+-- regle du socle. Le baseline laisse la table VIDE, ce qui reproduit le
+-- comportement actuel a l'identique. L'objectif architectural est de
+-- SUPPRIMER cette tolerance une fois les ecritures legitimes routees cote
+-- serveur.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- ARGENT_VERROU NE DOIT SURTOUT PAS ETRE ACTIVE PREMATUREMENT : des gains
+-- legitimes empruntent encore l'ancien chemin client, et les fermer
+-- maintenant les ferait disparaitre en silence.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

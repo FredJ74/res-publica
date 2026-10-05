@@ -1,0 +1,22 @@
+-- SEED -- camions_militaires
+-- ============================================================================
+-- Table      : public.camions_militaires
+-- Domaine    : militaire
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 1
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Parc de vehicules, pays=republic. Position courante a remettre a la
+-- caserne de rattachement.
+--
+-- COLONNES OMISES (defaut now()) : maj_le
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
+INSERT INTO public.camions_militaires (id, pays, institution, perimetre, libelle, capacite, image_url, caserne_ville, caserne_building, caserne_room, caserne_libelle, ville, building_id, room_id, statut) VALUES ('camion-republic-caserne-luthecia-1', 'republic', 'militaire', 'caserne-luthecia', 'Camion militaire', '25', 'images/republia-camion-caserne.png', 'caserne', 'caserne-militaire', 'corps_garde', 'Caserne de Républia', 'caserne', 'caserne-militaire', 'corps_garde', 'actif');

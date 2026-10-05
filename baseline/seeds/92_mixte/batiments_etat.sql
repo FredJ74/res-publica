@@ -1,0 +1,54 @@
+-- SEED -- batiments_etat
+-- ============================================================================
+-- Table      : public.batiments_etat
+-- Domaine    : immobilier et territoire
+-- Categorie  : D (mixte)
+-- Strategie  : seed_filtre (classification du chantier 2C)
+-- Lignes     : 3
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- ARBITRAGE DU 5 OCTOBRE 2026 : l'etat initial des TROIS entrepots
+-- logistiques de Republia est decide -- 17 matieres premieres identiques par
+-- ville, et une caisse d'amorcage de 5 000 FR chacun. Ces trois lignes sont
+-- donc seedees, le blob etant ECRIT et non copie de la bêta. Les 35 autres
+-- lignes de la table attendent l'arbitrage de leur etat initial.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED PARTIEL ASSUME. L'etat initial d'un batiment doit etre DECRIT, pas
+-- copie : les 11 autres batiments de Republia, ceux des trois autres empires
+-- et les lignes techniques restent a arbitrer dans
+-- baseline/arbitrages/etat-initial-republia.csv. La source de verite de la
+-- caisse d'entrepot a ete etablie par l'audit du circuit fiscal : elle vit
+-- dans ce blob, et le motif `entrepot` de caisses_autorites est inerte.
+--
+-- FILTRE APPLIQUE
+-- SEED PARTIEL, ASSUME. Sur les 38 lignes de la table, seules les TROIS de
+-- Republia dont l'etat initial est arbitre sont ecrites : les entrepots
+-- logistiques de Luthecia, Port-Sainte-Marie et Montrouge. Les 35 autres --
+-- 11 autres batiments de Republia, les batiments des trois autres empires,
+-- les lignes techniques (cron-minuit, bne, candidatures_postes) et les
+-- lignes de test -- attendent l'arbitrage de leur etat initial, qui se
+-- remplit dans baseline/arbitrages/etat-initial-republia.csv. Un seed
+-- partiel vaut mieux qu'un seed faux : ce qui est decide est ecrit, le reste
+-- attend.
+--
+-- COLONNE ECRITE PAR ARBITRAGE : data
+-- ARBITRAGE DU 5 OCTOBRE 2026. Le blob est ECRIT, pas copie : les 17
+-- quantites de matieres premieres sont celles arbitrees, identiques dans les
+-- trois villes, et la caisse de l'entrepot vaut la dotation d'amorcage de 5
+-- 000 FR. Aucune valeur ne vient de la bêta. La cle `prixManuel` n'est pas
+-- reprise : elle n'existe que sur un des trois entrepots, ou elle est vide,
+-- et un objet vide equivaut a son absence.
+--
+-- COLONNES OMISES (defaut now()) : updated_at
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
+INSERT INTO public.batiments_etat (id, country, city, building_id, data) VALUES ('republic_capitale_entrepot-logistique-luthecia', 'republic', 'capitale', 'entrepot-logistique-luthecia', to_jsonb($x${"entrepot": {"caisse": 5000, "stock": {"alcool": 100, "bois": 750, "carburant": 17, "cereales": 75, "charbon": 400, "desinfectant": 32, "fruits_legumes": 150, "medicaments": 25, "metal": 200, "minerai": 500, "petrole": 200, "plantes": 300, "poisson": 125, "produits_exotiques": 125, "tabac": 30, "textile": 125, "viande": 85}}}$x$::text));
+INSERT INTO public.batiments_etat (id, country, city, building_id, data) VALUES ('republic_ville_a_entrepot-logistique-psm', 'republic', 'ville_a', 'entrepot-logistique-psm', to_jsonb($x${"entrepot": {"caisse": 5000, "stock": {"alcool": 100, "bois": 750, "carburant": 17, "cereales": 75, "charbon": 400, "desinfectant": 32, "fruits_legumes": 150, "medicaments": 25, "metal": 200, "minerai": 500, "petrole": 200, "plantes": 300, "poisson": 125, "produits_exotiques": 125, "tabac": 30, "textile": 125, "viande": 85}}}$x$::text));
+INSERT INTO public.batiments_etat (id, country, city, building_id, data) VALUES ('republic_ville_b_entrepot-logistique-montrouge', 'republic', 'ville_b', 'entrepot-logistique-montrouge', to_jsonb($x${"entrepot": {"caisse": 5000, "stock": {"alcool": 100, "bois": 750, "carburant": 17, "cereales": 75, "charbon": 400, "desinfectant": 32, "fruits_legumes": 150, "medicaments": 25, "metal": 200, "minerai": 500, "petrole": 200, "plantes": 300, "poisson": 125, "produits_exotiques": 125, "tabac": 30, "textile": 125, "viande": 85}}}$x$::text));

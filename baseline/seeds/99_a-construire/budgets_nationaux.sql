@@ -1,0 +1,30 @@
+-- ETAT INITIAL A CONSTRUIRE -- budgets_nationaux
+-- ============================================================================
+-- Table     : public.budgets_nationaux
+-- Domaine   : finances publiques
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- Une ligne par empire. La structure initiale est voulue ; les valeurs
+-- courantes sont derivees du jeu.
+--
+-- CE QU'IL FAUT DECIDER
+-- Quelles valeurs de depart pour reserveJour, tauxNational, les rations du
+-- refectoire, les matieres de la caserne et le stock de l'armurerie
+-- nationale ? A fixer par empire. Les valeurs a fixer sont listees, ligne
+-- par ligne, dans baseline/arbitrages/dotations-initiales-republia.csv -- un
+-- tableau prepare pour etre rempli, qui ne propose aucun montant deduit d'un
+-- solde de bêta.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne jamais deduire une dotation initiale d'un solde courant.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

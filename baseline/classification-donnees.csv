@@ -19,7 +19,7 @@ batailles;militaire;C;structure_seule;0;oui;0;10;Batailles en cours ou passees.;
 batailles_engagements;militaire;C;structure_seule;0;non;0;14;Engagements de bataille.;
 batailles_groupes;militaire;C;structure_seule;0;non;0;7;Groupes engages dans une bataille.;
 batailles_rounds;militaire;C;structure_seule;0;non;0;3;Rounds de combat.;
-batiments_etat;immobilier et territoire;D;reconstruction_explicite;38;oui;11;38;"38 batiments. Les fixtures (entrepots, commissariats) sont du contenu initial ; l'etat vit dans le meme blob data, mute par 38 fonctions et 2 declencheurs.";L'etat initial d'un batiment doit etre decrit, pas copie.
+batiments_etat;immobilier et territoire;D;seed_filtre;38;oui;11;38;ARBITRAGE DU 5 OCTOBRE 2026 : l'etat initial des TROIS entrepots logistiques de Republia est decide -- 17 matieres premieres identiques par ville, et une caisse d'amorcage de 5 000 FR chacun. Ces trois lignes sont donc seedees, le blob etant ECRIT et non copie de la bêta. Les 35 autres lignes de la table attendent l'arbitrage de leur etat initial.;SEED PARTIEL ASSUME. L'etat initial d'un batiment doit etre DECRIT, pas copie : les 11 autres batiments de Republia, ceux des trois autres empires et les lignes techniques restent a arbitrer dans baseline/arbitrages/etat-initial-republia.csv. La source de verite de la caisse d'entrepot a ete etablie par l'audit du circuit fiscal : elle vit dans ce blob, et le motif `entrepot` de caisses_autorites est inerte.
 batiments_fermes;immobilier et territoire;C;structure_seule;0;oui;0;0;Batiments fermes par une autorite.;
 biens_saisis_helvetia;banque;C;structure_seule;0;oui;0;3;Biens saisis par la banque.;
 bnr_refinancements_helvetia;banque;C;structure_seule;0;oui;0;2;Refinancements de la banque nationale.;
@@ -57,7 +57,7 @@ clubs_sportifs_regles;sport;B;seed_complet;12;oui;2;4;ARBITRAGE RENDU : les club
 commandes_militaires;militaire;C;structure_seule;0;oui;0;1;Commandes de l'effort de guerre.;
 commerces_dotations;economie;A;seed_complet;11;non;1;1;Dotation initiale de stock par type de commerce.;
 commerces_types;economie;A;seed_complet;11;non;1;2;Types de commerce du referentiel.;
-compagnies_militaires;militaire;D;reconstruction_explicite;1;non;0;39;Une compagnie existe, mais son blob porte l'etat de bataille vivant. L'organigramme initial voulu doit etre decrit, pas copie.;Quelles compagnies et quelles sections un monde neuf comporte-t-il ?
+compagnies_militaires;militaire;C;structure_seule;1;non;0;39;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : un monde neuf commence avec 0 compagnie et 0 section. Les compagnies sont creees par militaire_compagnie_creer() au terme d'une chaine de jeu : ministre de la Defense, nomination d'un Commandant PJ, transfert de fonds vers la caserne, creation de la compagnie (20 000 FR), nomination d'un Capitaine PJ puis des Lieutenants. La ligne existante porte l'horodatage 1790116175239 : elle a ete creee en cours de beta.;Aucune compagnie seedee. Il n'existe AUCUNE table de sections : une section vit dans le blob de sa compagnie. EXIGENCE A CONSTRUIRE, hors 2E : si le jeu compte trop peu de PJ pour remplir les echelons de la chaine militaire, l'administrateur doit pouvoir s'y substituer pour que la mecanique ne soit jamais bloquee.
 compagnies_militaires_snapshot_20260926;personnage et presence;C;hors_baseline;1;non;0;0;Snapshot autoritaire avant la bascule du socle PNJ.;
 compromis_historique;banque;C;structure_seule;0;oui;0;0;Historique des compromis de vente.;
 comptes_bancaires;banque;C;structure_seule;17;oui;0;26;17 comptes de joueurs. Entierement vivant.;
@@ -116,7 +116,7 @@ guerres;militaire;C;structure_seule;0;non;0;8;Etat diplomatique de guerre.;
 historique_deplacements;personnage et presence;C;structure_seule;10429;oui;0;4;10 429 deplacements. 77 % du volume de lignes de la base.;
 impacts_indices_attente;justice;C;structure_seule;0;non;0;2;Impacts d'indices en attente.;
 imprimeries_declarees;economie;B;seed_complet;3;oui;1;1;3 imprimeries de Republia, pays=republic.;
-indices_villes;politique et elections;B;reconstruction_explicite;4;non;0;6;4 jeux d'indicateurs de ville. Les valeurs de depart sont connues (ie 50, isn 30, moral 50) mais ont derive en beta.;Confirmer les valeurs initiales.
+indices_villes;politique et elections;B;seed_filtre;4;non;0;6;ARBITRAGE RENDU LE 5 OCTOBRE 2026 pour Republia : IE 50, ISN 30, Moral 50, valeurs communes aux trois villes (Luthecia, Montrouge, Port-Sainte-Marie). Ces trois valeurs sont deja celles des trois lignes en base. La 4e ligne, republic_zzville-cmr, est une ligne de test et est ecartee du seed.;Valide pour Republia UNIQUEMENT : ne pas generaliser aux autres empires. Le blob porte deux indices supplementaires non arbitres, piete 40 et social 45, identiques sur les quatre lignes y compris celle de test -- indice fort qu'ils sont d'origine. A confirmer.
 interviews_jodie;presse;C;structure_seule;0;oui;0;0;Interviews realisees.;
 investissements;economie;C;structure_seule;0;oui;0;0;Investissements des joueurs.;
 invitations_diner;personnage et presence;C;structure_seule;0;oui;0;0;Invitations a diner.;
@@ -177,18 +177,18 @@ pnj_familles_classes;socle PNJ;A;seed_complet;8;non;4;1;Classe par defaut d'une 
 pnj_fonctions;socle PNJ;A;seed_complet;38;non;1;2;Nature des PNJ du decor, fonction par fonction. Ne contient aucun PNJ.;
 pnj_force_publique_metier;socle PNJ;C;structure_seule;5;non;0;5;Miroir derive, recalcule par pnj_miroir_police et pnj_miroir_douane au premier passage.;
 pnj_institutions;socle PNJ;A;seed_complet;4;non;4;1;Registre des institutions proprietaires de PNJ et de leur resolveur d'autorite.;
-pnj_membres;socle PNJ;D;seed_filtre;105;oui;2;72;"105 PNJ. L'IDENTITE (famille, classe, metier, proprietaire) est du contenu initial ; la POSITION, les PA, le leader et la mort sont du vivant.";Separation par colonnes. Les tables zz_snap_cka_* temoignent que cette frontiere a deja pose probleme.
+pnj_membres;socle PNJ;C;structure_seule;105;oui;2;72;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : les PNJ ne sont pas poses par un seed, ils sont ENGENDRES par les mecanismes. Fait etabli au chantier 2E : 96 des 105 lignes sont des soldats a matricule engendre (202609-001 a 096) appartenant a une compagnie creee en cours de beta le 22 septembre, 1 est POL-zz (marqueur de test), et aucun des 105 identifiants n'existe nulle part dans le depot. Huit fonctions serveur inserent dans cette table.;Les 96 soldats de beta RESTENT dans la base actuelle, intacts, mais ne font pas partie de l'etat initial. Un monde neuf ne recoit aucune ligne : les PNJ naissent des mecanismes de recrutement et de miroir quand l'institution qui les emploie est creee.
 pnj_metiers_profils;socle PNJ;A;seed_complet;10;non;4;7;Caracteristiques FIXES par metier. Source unique du recrutement, aucun tirage aleatoire.;
 pnj_militants_metier;socle PNJ;C;structure_seule;0;non;1;1;Militants recrutes en jeu.;
 pnj_mouvement_individuel;socle PNJ;A;seed_complet;8;non;3;1;Regle de mouvement par famille. Aucune fonction ne l'ecrit.;
-pnj_possessions;socle PNJ;D;seed_filtre;7;non;2;18;"Possessions des PNJ. Une dotation d'equipement initiale est plausible ; le butin de betail ne l'est pas.";Quelles possessions un PNJ a-t-il au premier jour ?
+pnj_possessions;socle PNJ;C;structure_seule;7;non;2;18;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : etat produit par un mecanisme. Les 7 lignes portent toutes l'horodatage de la compagnie de beta dans pnj_id : ce sont des objets acquis en partie. Cinq fonctions y inserent.;Aucune reprise des possessions issues de la beta.
 pnj_referents;socle PNJ;B;seed_complet;18;oui;8;1;18 referents de Republia, identifiants et domaine. Colonne pays presente.;
 pnj_referents_pedagogie;socle PNJ;C;structure_seule;5;non;0;3;Memoire pedagogique d'un referent envers un joueur.;
 pnj_referents_sujets_connus;socle PNJ;A;seed_complet;8;non;2;2;Vocabulaire FERME des sujets memorisables. Le serveur refuse ce qui n'y est pas.;
 pnj_social_escort_choisi;socle PNJ;C;structure_seule;0;non;0;2;Confidente choisie par un joueur.;
 pnj_social_jalons_regles;socle PNJ;A;seed_complet;2;non;2;2;Quand un PNJ social declenche une intervention. Regle, pas etat.;
 pnj_social_relations;socle PNJ;C;structure_seule;0;non;0;4;Memoire relationnelle PNJ-joueur : rencontres, familiarite, confiance.;
-pnj_soldats_metier;socle PNJ;D;seed_filtre;96;non;0;33;"96 soldats. Matricule, grade et compagnie d'affectation sont initiaux ; entrainement, arme equipee et PA sont vivants.";Depend de l'etat initial voulu des compagnies militaires.
+pnj_soldats_metier;socle PNJ;C;structure_seule;96;non;0;33;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : etat produit par un mecanisme. Les 96 lignes sont exactement les 96 soldats de la compagnie de beta -- toutes portent l'horodatage 1790116175239 dans leur identifiant. Deux fonctions seulement y inserent, pnj_miroir_compagnie et pnj_copier_soldats, toutes deux des mecanismes de materialisation.;Aucune reprise de l'etat issu de la beta. Les futurs soldats seront crees par les mecanismes normaux du jeu.
 pnj_transitions;socle PNJ;C;structure_seule;1;non;1;0;Drapeau de bascule du socle PNJ, declare perime le 27 septembre 2026.;
 postes_attribues;postes et institutions;C;structure_seule;1;oui;0;9;Registre d'attestation des postes pris par des PJ.;
 postes_electifs_regles;postes et institutions;A;seed_complet;4;non;1;1;Regles des postes electifs.;
@@ -201,7 +201,7 @@ prets;banque;C;structure_seule;0;oui;0;8;Prets en cours.;
 prets_bancaires;banque;C;structure_seule;0;oui;0;0;Prets bancaires.;
 prisonniers_qhs;justice;C;structure_seule;1;non;0;2;Prisonniers au QHS.;
 productions_references;economie;C;structure_seule;2;non;0;1;Journal idempotent des productions de references.;
-produits_manufactures;economie;D;reconstruction_explicite;1;non;1;2;Une seule ligne. Impossible de trancher entre catalogue des produits manufacturables et stock des produits fabriques.;Catalogue ou stock ? La lecture d'une ligne unique ne permet pas de conclure.
+produits_manufactures;economie;B;reconstruction_explicite;1;non;1;2;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : c'est un CATALOGUE, pas un stock, a la granularite VILLE. La structure le permet deja -- la table porte une colonne ville -- donc il n'y a PAS de dette de dimensionnement ici, contrairement a recettes_production. L'unique ligne est l'armoire a souvenirs de Port-Sainte-Marie (zone-production), recette bois 2 / minerai 2, prix 390, 3 PA.;Reste a decider QUELS produits manufactures chaque ville de Republia propose au premier jour. Une seule ligne pour un empire entier est vraisemblablement un contenu incomplet. NE PAS lire une ligne de catalogue comme une quantite disponible, et NE PAS inventer de stock initial de produits manufactures : les quantites initiales ne concernent que les MATIERES PREMIERES, arbitrees dans baseline/arbitrages/.
 propositions_diplomatiques;divers et technique;C;structure_seule;0;non;0;0;Propositions diplomatiques.;
 quetes_actives;personnage et presence;C;structure_seule;2;oui;0;0;Instances de quete en cours.;
 rapports_cellules;renseignement;C;structure_seule;12;non;0;2;Rapports produits.;

@@ -1,0 +1,404 @@
+{
+ "commentaires": [],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "nominations_en_attente_pkey",
+   "tbl": "nominations_en_attente"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "nominations_poste_attente_pkey",
+   "tbl": "nominations_poste_attente"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "postes_attribues_pkey",
+   "tbl": "postes_attribues"
+  },
+  {
+   "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
+   "genre": "p",
+   "nom": "postes_electifs_regles_pkey",
+   "tbl": "postes_electifs_regles"
+  },
+  {
+   "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
+   "genre": "p",
+   "nom": "postes_nommes_regles_pkey",
+   "tbl": "postes_nommes_regles"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "postes_nommes_regles_empreinte_pkey",
+   "tbl": "postes_nommes_regles_empreinte"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "titulaires_pnj_pkey",
+   "tbl": "titulaires_pnj"
+  },
+  {
+   "empreinte": "995d8b0f7748313079dbe599f56cda4d",
+   "genre": "c",
+   "nom": "postes_nommes_regles_scope_check",
+   "tbl": "postes_nommes_regles"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "postes_nommes_regles_empreinte_seul_check",
+   "tbl": "postes_nommes_regles_empreinte"
+  }
+ ],
+ "domaine": "postes et institutions",
+ "droits": [
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "nominations_en_attente",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "nominations_en_attente",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "nominations_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "nominations_en_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "nominations_poste_attente",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "nominations_poste_attente",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "nominations_poste_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "nominations_poste_attente",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "postes_attribues",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "postes_attribues",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "postes_attribues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "postes_attribues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "postes_electifs_regles",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "postes_electifs_regles",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "postes_electifs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "postes_electifs_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles_empreinte",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "titulaires_pnj",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "titulaires_pnj",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "titulaires_pnj",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "titulaires_pnj",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "6df9925cd479e2b709d9f3d7f1fa7448",
+  "30_contraintes.sql": "a6125475d29c80003cc282fea20f5608",
+  "35_index.sql": "39735b93f3a42d8625f32f9d3554ff53",
+  "60_rls-policies.sql": "173777802e885acd45024a5825da73cf",
+  "70_droits.sql": "7a9308e67942fe0220ff452e9ff0e024",
+  "80_commentaires.sql": "5e35abad14624c873750d2bccfb548d6"
+ },
+ "fonctions": [],
+ "index_autonomes": [
+  {
+   "empreinte": "83c7e6a26dc27376207682aba770965f",
+   "nom": "postes_attribues_titulaire"
+  }
+ ],
+ "index_portes": [
+  "nominations_en_attente_pkey",
+  "nominations_poste_attente_pkey",
+  "postes_attribues_pkey",
+  "postes_electifs_regles_pkey",
+  "postes_nommes_regles_empreinte_pkey",
+  "postes_nommes_regles_pkey",
+  "titulaires_pnj_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "980e2f4b223586ebe61ad65cd1ea1e8a",
+   "nom": "nominations_attente_lecture",
+   "tbl": "nominations_en_attente"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3068e8ed259a93470ad7a476eb05611d",
+   "nom": "nominations_poste_attente_lecture",
+   "tbl": "nominations_poste_attente"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3158ceeb012384fd1176e25b56a28df5",
+   "nom": "postes_attribues_lecture",
+   "tbl": "postes_attribues"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "5fbf48c03b459332f9a56f59703cf888",
+   "nom": "postes_electifs_regles_lecture",
+   "tbl": "postes_electifs_regles"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "34f98160b705bdcff99e6f93fd2b75aa",
+   "nom": "postes_regles_lecture",
+   "tbl": "postes_nommes_regles"
+  },
+  {
+   "empreinte": "55592a1972a4496c12af1f2bd721b15a",
+   "empreinte_avec_roles": "b5043813f7372cdd322e8b98d39b14a3",
+   "nom": "titulaires_pnj_ecriture_non_politique",
+   "tbl": "titulaires_pnj"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "06fea3548d91c397afefb22766fd057e",
+   "nom": "titulaires_pnj_lecture",
+   "tbl": "titulaires_pnj"
+  },
+  {
+   "empreinte": "ad91aa25596231b3fdd9e95c066574b1",
+   "empreinte_avec_roles": "5293feaf3664b485dbecc482668f069c",
+   "nom": "titulaires_pnj_maj_non_politique",
+   "tbl": "titulaires_pnj"
+  },
+  {
+   "empreinte": "ce4f5b20495650ba48708dccb27292fc",
+   "empreinte_avec_roles": "0ebb7dbf9609d67b0f9b387182d2844b",
+   "nom": "titulaires_pnj_suppression_non_politique",
+   "tbl": "titulaires_pnj"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "nominations_en_attente"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "nominations_poste_attente"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "postes_attribues"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "postes_electifs_regles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "postes_nommes_regles"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "postes_nommes_regles_empreinte"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "titulaires_pnj"
+  }
+ ],
+ "sequences": [],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "c983f5defe5d0c8967d3b6640805feb2",
+   "empreinte_texte": "ba0efa80020b14b0e89178bc40962d33",
+   "nom": "nominations_en_attente"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "c78e1f54ccd30a603dcf9ec585bb3686",
+   "empreinte_texte": "3492e916e5fb523701cfb0ac2c3e3005",
+   "nom": "nominations_poste_attente"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "898769ae85a51e6b68ab06cc605c4fd7",
+   "empreinte_texte": "3062b458e826271be9cbd8c95548bef7",
+   "nom": "postes_attribues"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "60da696d3b927ff00728783edad0d243",
+   "empreinte_texte": "006c5e417ebf91a73e491f1bb9aea72b",
+   "nom": "postes_electifs_regles"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "3b17f77d75938df6c8f61ca566b6efac",
+   "empreinte_texte": "baa370699d0140e046d43ea0c4257b13",
+   "nom": "postes_nommes_regles"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "99a96df62623d0352d622f130fdba527",
+   "empreinte_texte": "c415d2b4ec5f08e49bb5384e7a7eb5b8",
+   "nom": "postes_nommes_regles_empreinte"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "851e3495e3b6cbb094b61df36c5405c3",
+   "empreinte_texte": "b6ee52e4cb92950ac84a8667dc1246f7",
+   "nom": "titulaires_pnj"
+  }
+ ],
+ "triggers": [],
+ "vues": []
+}

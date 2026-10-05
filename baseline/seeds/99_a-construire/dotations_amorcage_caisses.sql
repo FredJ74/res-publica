@@ -1,0 +1,28 @@
+-- ETAT INITIAL A CONSTRUIRE -- dotations_amorcage_caisses
+-- ============================================================================
+-- Table     : public.dotations_amorcage_caisses
+-- Domaine   : finances publiques
+-- Strategie annoncee au chantier 2C : reconstruction_explicite
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Un TODO explicite vaut mieux qu'un faux etat initial reconstruit depuis la
+-- beta. Tant que la decision ci-dessous n'est pas prise, un monde neuf naît
+-- sans ces lignes.
+--
+-- CE QUE L'OBSERVATION ETABLIT
+-- 159 lignes. Les colonnes solde_avant / montant_verse / solde_apres /
+-- applique_ts en font un JOURNAL d'idempotence des dotations DEJA
+-- APPLIQUEES, pas un bareme. Les 4 empires y figurent.
+--
+-- CE QU'IL FAUT DECIDER
+-- ARBITRAGE RENDU : le bareme est defini par empire et sera ecrit lors de la
+-- construction de l'etat initial. Ce journal ne peut pas en tenir lieu : il
+-- dit ce qui A ETE verse, pas ce qui DOIT l'etre.
+--
+-- CE QU'IL NE FAUT PAS FAIRE
+-- Ne pas prendre ce journal pour un bareme.
+-- ============================================================================
+
+-- Rien a appliquer. Ce fichier deviendra un seed le jour ou la decision sera
+-- prise et ou les lignes voulues seront ecrites -- a la main ou par un
+-- generateur, jamais par une copie de la base de beta.

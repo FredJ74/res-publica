@@ -3,7 +3,7 @@
 -- BASELINE Human Gambit -- domaine communication -- phase 70 : droits
 --
 -- Fichier GENERE par outils/baseline/rendre.py depuis les catalogues
--- PostgreSQL. Ne pas editer a la main : toute correction doit passer par une
+-- PostgreSQL. Ne pas editer a la main : toute correction passe par une
 -- migration, puis par une nouvelle extraction.
 --
 -- ORDRE D'APPLICATION : par PHASE croissante, tous domaines confondus, et non
@@ -66,6 +66,10 @@ GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO anon;
 GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO postgres;
 GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO service_role;
+
+-- DROITS SUR LES SEQUENCES
+GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.mails_envois_systeme_id_seq TO postgres;
+GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.mails_envois_systeme_id_seq TO service_role;
 
 -- DROITS SUR LES TABLES
 GRANT MAINTAIN, SELECT ON TABLE public.chat_piece TO anon;

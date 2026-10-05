@@ -1,0 +1,952 @@
+{
+ "commentaires": [],
+ "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "batiments_etat_pkey",
+   "tbl": "batiments_etat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "batiments_fermes_pkey",
+   "tbl": "batiments_fermes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "dossiers_urbanisme_pkey",
+   "tbl": "dossiers_urbanisme"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "locations_actives_pkey",
+   "tbl": "locations_actives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "locations_archives_pkey",
+   "tbl": "locations_archives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "logements_attributions_historique_pkey",
+   "tbl": "logements_attributions_historique"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "logements_demandes_pkey",
+   "tbl": "logements_demandes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "reservations_salle_reception_pkey",
+   "tbl": "reservations_salle_reception"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "terrains_etat_pkey",
+   "tbl": "terrains_etat"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "terrains_historique_ventes_pkey",
+   "tbl": "terrains_historique_ventes"
+  },
+  {
+   "empreinte": "5a9af6f22060a8f14db38df5a2c3b5e4",
+   "genre": "c",
+   "nom": "logements_demandes_statut_check",
+   "tbl": "logements_demandes"
+  }
+ ],
+ "domaine": "immobilier et territoire",
+ "droits": [
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_de(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_de(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_de(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_municipale(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_municipale(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_autorite_municipale(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "bail_cle_coherente()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "bail_cle_coherente()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "bail_cle_coherente()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_cle_coherente()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_cle_coherente()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_destination_attestee(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_destination_attestee(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "bail_je_suis_locataire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_je_suis_locataire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_je_suis_locataire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "bail_proprietaire_des_murs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bail_proprietaire_des_murs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bail_proprietaire_des_murs(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_lire(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "eviction_indemniser(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "eviction_indemniser(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "eviction_indemniser(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "prelever_loyer_bail(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "prelever_loyer_bail(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "resilier_bail_volontaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "resilier_bail_volontaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "resilier_bail_volontaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "resilier_bail_volontaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terminer_bail(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terminer_bail(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_etat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_etat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "batiments_fermes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "batiments_fermes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "batiments_fermes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "batiments_fermes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "batiments_etat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "batiments_etat",
+   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batiments_etat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batiments_etat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "batiments_fermes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "batiments_fermes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "batiments_fermes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "dossiers_urbanisme",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "dossiers_urbanisme",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dossiers_urbanisme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dossiers_urbanisme",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "locations_actives",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "locations_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "locations_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "locations_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "locations_archives",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "locations_archives",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "locations_archives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "locations_archives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "logements_attributions_historique",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "logements_attributions_historique",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "logements_attributions_historique",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "logements_attributions_historique",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "logements_demandes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "logements_demandes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "logements_demandes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "logements_demandes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "reservations_salle_reception",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "reservations_salle_reception",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "reservations_salle_reception",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "terrains_etat",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "terrains_etat",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "terrains_etat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "terrains_etat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "terrains_historique_ventes",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "terrains_historique_ventes",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "terrains_historique_ventes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "terrains_historique_ventes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "7922ce0cb8ca8a66f738b2f9eab67bad",
+  "20_fonctions.sql": "7436ae98dc7fd3e86ee5607f9726c7c4",
+  "30_contraintes.sql": "ac91ff7a2d4f6f14bf8c83a8946e23c7",
+  "35_index.sql": "a4f278dfe360e6f53a6985c040d24ed6",
+  "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
+  "60_rls-policies.sql": "c2eadb964a315d8879dc2e5e29ef12d4",
+  "70_droits.sql": "b19b213ea7d53127f31f866edade7204",
+  "80_commentaires.sql": "80a3dc2ba71528dca29027299b36e259"
+ },
+ "fonctions": [
+  {
+   "empreinte": "9eaad0c03a7c6c7763eaa60cfc792275",
+   "security_definer": true,
+   "signature": "bail_autorite_de(jsonb)"
+  },
+  {
+   "empreinte": "ed820aa06f5a70d093fee401a5ba93e3",
+   "security_definer": true,
+   "signature": "bail_autorite_municipale(jsonb)"
+  },
+  {
+   "empreinte": "acf7076574036f2eba9f5afbe0498b95",
+   "security_definer": true,
+   "signature": "bail_cle_coherente()"
+  },
+  {
+   "empreinte": "889df60717e566aa033111c2f276f468",
+   "security_definer": false,
+   "signature": "bail_destination_attestee(jsonb)"
+  },
+  {
+   "empreinte": "d240a02461b5c5889329a341b2d095b3",
+   "security_definer": true,
+   "signature": "bail_je_suis_locataire(jsonb)"
+  },
+  {
+   "empreinte": "147072719ec7bfa3f7cbc740ab95ef45",
+   "security_definer": true,
+   "signature": "bail_proprietaire_des_murs(jsonb)"
+  },
+  {
+   "empreinte": "4c57b38afb2e2964e925aeaef7c69d26",
+   "security_definer": true,
+   "signature": "batiment_caisse_mouvement(text,text,text,text,numeric,text,numeric,numeric,boolean)"
+  },
+  {
+   "empreinte": "3154342030ec62f8236d18e30b2b3de1",
+   "security_definer": false,
+   "signature": "batiment_etat_lire(jsonb)"
+  },
+  {
+   "empreinte": "36ed40fb0c916dfed092e79600a9a343",
+   "security_definer": true,
+   "signature": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "9f0f32bb04a0eaf2825629b7d6c44f9c",
+   "security_definer": true,
+   "signature": "eviction_indemniser(text,text,text)"
+  },
+  {
+   "empreinte": "646f4dd9c5a064ae809b3a1696d216fa",
+   "security_definer": true,
+   "signature": "prelever_loyer_bail(text)"
+  },
+  {
+   "empreinte": "fbcd9597f5f0d4920aca2e6cb15d8e8f",
+   "security_definer": true,
+   "signature": "resilier_bail_volontaire(text,text)"
+  },
+  {
+   "empreinte": "485f1753308174fca7328c12f1a3eadb",
+   "security_definer": true,
+   "signature": "terminer_bail(text,text,text,integer)"
+  },
+  {
+   "empreinte": "41b7b75a7ddfc61b4896d765e092f0e4",
+   "security_definer": false,
+   "signature": "terrain_etat_lire(text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "20195c825cf97e770b8f9fed911f47e0",
+   "nom": "dossiers_urbanisme_commune_idx"
+  },
+  {
+   "empreinte": "196034544deafb5c9717aa06b192c1a6",
+   "nom": "dossiers_urbanisme_numero_idx"
+  },
+  {
+   "empreinte": "ec4c1e3402516b1bdac3c61bf63993ed",
+   "nom": "dossiers_urbanisme_terrain_idx"
+  },
+  {
+   "empreinte": "2727e2634d4b8a30286523f6bb0ffaea",
+   "nom": "idx_batiments_etat_lookup"
+  },
+  {
+   "empreinte": "65acfbceafa985a05992827b09fc8574",
+   "nom": "idx_batiments_fermes_pays_ville"
+  },
+  {
+   "empreinte": "bdac36b7ff94fb7de08054e8ccf94e9f",
+   "nom": "locations_archives_bail_idx"
+  },
+  {
+   "empreinte": "2716c2680ddd15ebb889e7932cc3e9a3",
+   "nom": "locations_archives_fonds_idx"
+  },
+  {
+   "empreinte": "46f0f5423c9277137a8ef202136825fb",
+   "nom": "locations_archives_lieu_idx"
+  },
+  {
+   "empreinte": "a8e8829aeff20422567a3fb9b8983e14",
+   "nom": "locations_archives_titulaire_idx"
+  }
+ ],
+ "index_portes": [
+  "batiments_etat_pkey",
+  "batiments_fermes_pkey",
+  "dossiers_urbanisme_pkey",
+  "locations_actives_pkey",
+  "locations_archives_pkey",
+  "logements_attributions_historique_pkey",
+  "logements_demandes_pkey",
+  "reservations_salle_reception_pkey",
+  "terrains_etat_pkey",
+  "terrains_historique_ventes_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "e3e00fc26abcef4c0e81557622c5ebb9",
+   "nom": "batiments_etat lecture publique",
+   "tbl": "batiments_etat"
+  },
+  {
+   "empreinte": "b7d45a2419f9841e35402e300e65ca6f",
+   "empreinte_avec_roles": "7b3944786cd3cd17591f7eba6b267d8a",
+   "nom": "fermeture inscrite en son propre nom",
+   "tbl": "batiments_fermes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a6d9b2a1a18b73a054df59dbd2bc60c7",
+   "nom": "fermetures visibles de tous les joueurs",
+   "tbl": "batiments_fermes"
+  },
+  {
+   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
+   "empreinte_avec_roles": "1fd987fbe7ce9f0b85f0c9ac21d3ba09",
+   "nom": "dossiers_urbanisme_insertion",
+   "tbl": "dossiers_urbanisme"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "7a3714edb88f43ad2981712f19082ac1",
+   "nom": "dossiers_urbanisme_lecture",
+   "tbl": "dossiers_urbanisme"
+  },
+  {
+   "empreinte": "8efa5b8156e12ab8a9b7f34998203ef8",
+   "empreinte_avec_roles": "99e43f52e3e6371142702d434695f713",
+   "nom": "locations_ecriture",
+   "tbl": "locations_actives"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "d9f51aa0b2cd1effbcd0f053bf7041c3",
+   "nom": "locations_lecture",
+   "tbl": "locations_actives"
+  },
+  {
+   "empreinte": "9ff617a2d2bb95dc5d6a6af7ee7890b6",
+   "empreinte_avec_roles": "2af9210e4bc06fcb6722626fa3906fd2",
+   "nom": "locations_maj",
+   "tbl": "locations_actives"
+  },
+  {
+   "empreinte": "5ddc0f239058d878139d128c5f256929",
+   "empreinte_avec_roles": "166f11d915e3a7dcdd2efe55230ad996",
+   "nom": "locations_resiliation",
+   "tbl": "locations_actives"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "4091e9adb0a1d3af00764abad3f43698",
+   "nom": "locations_archives_select",
+   "tbl": "locations_archives"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "46aa029b5d344ea067e0cc5a7d41cc8b",
+   "nom": "reservations visibles des joueurs",
+   "tbl": "reservations_salle_reception"
+  },
+  {
+   "empreinte": "1bdcfffad5ff2aa667e180f1dcb83274",
+   "empreinte_avec_roles": "b428399daa11cff2d8b591728078e15f",
+   "nom": "salle reservee par un ambassadeur accredite",
+   "tbl": "reservations_salle_reception"
+  },
+  {
+   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
+   "empreinte_avec_roles": "441b46bb0b14d25fb41f19a6c608952d",
+   "nom": "allow_all_terrains_etat",
+   "tbl": "terrains_etat"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batiments_etat"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "batiments_fermes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "dossiers_urbanisme"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "locations_actives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "locations_archives"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "logements_attributions_historique"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "logements_demandes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "reservations_salle_reception"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "terrains_etat"
+  },
+  {
+   "active": false,
+   "forcee": false,
+   "tbl": "terrains_historique_ventes"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "batiments_fermes_id_seq",
+   "possedee": false,
+   "tbl": "batiments_fermes"
+  }
+ ],
+ "sequences_autonomes": [
+  "batiments_fermes_id_seq"
+ ],
+ "tables": [
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "6ba647dcd70aa85dcf56d688f8aa84d3",
+   "empreinte_texte": "56f0172d113f12c6ba43343ed5020493",
+   "nom": "batiments_etat"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "38ced2a0ab66cb8a23f425918a940894",
+   "empreinte_texte": "726e0a40fde6efb72461f78de84d0a6d",
+   "nom": "batiments_fermes"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "6366a29f930635a64a58863a0c342a7b",
+   "empreinte_texte": "8cb95e5bae73c84500bb670bf4748877",
+   "nom": "dossiers_urbanisme"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "5c7f279193830894df5e883f119a17c5",
+   "empreinte_texte": "685dcec9eaf44ee8cf6e1adbd9dc4be0",
+   "nom": "locations_actives"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "0ba5ac611b00aefeec1b63dcd933e79a",
+   "empreinte_texte": "ed5a32106c4d0a929e98df3349d1aae8",
+   "nom": "locations_archives"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "6a8ba908a3eefc9482e29506b3d30fe9",
+   "empreinte_texte": "20ee31ee4cdbaffcf676d8ecde9ffb77",
+   "nom": "logements_attributions_historique"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "4575383bf9fb38b8d53f61d0e789df7a",
+   "empreinte_texte": "04b082450883210ea4aa800901b67807",
+   "nom": "logements_demandes"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "82e875a6479cb25d3657baa321fb1673",
+   "empreinte_texte": "c8adbbfbb1c3be3fd87c437495a86c0e",
+   "nom": "reservations_salle_reception"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "6df63e1d8b0784126f87aea161ccb798",
+   "empreinte_texte": "6cd3cfdae01f2fad647a8c62b2da8b84",
+   "nom": "terrains_etat"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "b1ce29c0fd423330a568c48bb5f0b323",
+   "empreinte_texte": "06451321b0c25e58802faac31e89a7ce",
+   "nom": "terrains_historique_ventes"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "1a1236f9cee105f780c9b620cb0e0662",
+   "fonction": "pnj_miroir_douane_declencheur()",
+   "nom": "trg_pnj_miroir_douane",
+   "tbl": "batiments_etat"
+  },
+  {
+   "empreinte": "e9cc06c707412b15f7a1855216de706e",
+   "fonction": "pnj_miroir_police_declencheur()",
+   "nom": "trg_pnj_miroir_police",
+   "tbl": "batiments_etat"
+  },
+  {
+   "empreinte": "1a527a89e8a84a0941295ac2da9d520e",
+   "fonction": "bail_cle_coherente()",
+   "nom": "trg_bail_cle_coherente",
+   "tbl": "locations_actives"
+  }
+ ],
+ "vues": []
+}

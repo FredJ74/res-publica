@@ -1,0 +1,1450 @@
+{
+ "commentaires": [
+  {
+   "empreinte": "6f54f8d1f60ccba71952783757b5ffa2",
+   "genre": "COLUMN",
+   "objet": "agents_renseignement",
+   "sous": "pays"
+  },
+  {
+   "empreinte": "94cde86ac37f27739ca5f6773d837709",
+   "genre": "COLUMN",
+   "objet": "agents_renseignement",
+   "sous": "pays_couverture"
+  },
+  {
+   "empreinte": "4ef1e1ac0ca9a2ef2048e2804b44c8d5",
+   "genre": "COLUMN",
+   "objet": "agents_renseignement",
+   "sous": "pnj_id"
+  },
+  {
+   "empreinte": "77ef47584a27dbfeca616ee12cc03d2a",
+   "genre": "COLUMN",
+   "objet": "renseignement_identites_reelles",
+   "sous": "dup"
+  },
+  {
+   "empreinte": "e541f9ab4e258cdeee31f1ee214ba9cf",
+   "genre": "COLUMN",
+   "objet": "renseignements_connus",
+   "sous": "jour_observe"
+  },
+  {
+   "empreinte": "4b682d0e2e0c610945f408a9c98e1798",
+   "genre": "COLUMN",
+   "objet": "renseignements_connus",
+   "sous": "pays"
+  },
+  {
+   "empreinte": "85ba89393fe45a571eab4bf9cfde14bf",
+   "genre": "FUNCTION",
+   "objet": "douane_payer_effectifs(text)",
+   "sous": ""
+  }
+ ],
+ "contraintes": [
+  {
+   "empreinte": "31ad7f092497cd7a7bb15d072ca209e8",
+   "genre": "p",
+   "nom": "agent_tentatives_pkey",
+   "tbl": "agent_tentatives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "agents_renseignement_pkey",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "cellules_renseignement_pkey",
+   "tbl": "cellules_renseignement"
+  },
+  {
+   "empreinte": "27fd02e154607259d8b5cec7e6fd9874",
+   "genre": "p",
+   "nom": "contre_espionnage_tentatives_pkey",
+   "tbl": "contre_espionnage_tentatives"
+  },
+  {
+   "empreinte": "c09a651731159a9f296d8223ddc5dab6",
+   "genre": "p",
+   "nom": "rapports_cellules_pkey",
+   "tbl": "rapports_cellules"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "rapports_renseignement_pkey",
+   "tbl": "rapports_renseignement"
+  },
+  {
+   "empreinte": "5b8d6c01f98cb501475288b79cd4b849",
+   "genre": "p",
+   "nom": "renseignement_couvertures_pkey",
+   "tbl": "renseignement_couvertures"
+  },
+  {
+   "empreinte": "d50da14dfeb3341fc80f2a448b9946d9",
+   "genre": "p",
+   "nom": "renseignement_identites_reelles_pkey",
+   "tbl": "renseignement_identites_reelles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "renseignements_connus_pkey",
+   "tbl": "renseignements_connus"
+  },
+  {
+   "empreinte": "4a82f7fc4a85aa3c446dbacfb7301bd1",
+   "genre": "c",
+   "nom": "agent_position_deux_etats",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "68611fa31e028362d4732a875ed78168",
+   "genre": "c",
+   "nom": "agents_renseignement_dup_check",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "ee450c2a2f498fe3626377a0eeb3bc1e",
+   "genre": "c",
+   "nom": "agents_renseignement_role_check",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "5701b8cfc04dfba8b2e0fd4adab1586c",
+   "genre": "c",
+   "nom": "agents_renseignement_statut_check",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "1780a46233274e0abafafd6586b424ea",
+   "genre": "c",
+   "nom": "cellule_fin_coherente",
+   "tbl": "cellules_renseignement"
+  },
+  {
+   "empreinte": "da0d0d6205e638471469d2d35eb315b8",
+   "genre": "c",
+   "nom": "cellules_renseignement_mode_fin_check",
+   "tbl": "cellules_renseignement"
+  },
+  {
+   "empreinte": "2d93ed2c216484dcfb1ac2a28c90c9b3",
+   "genre": "c",
+   "nom": "cellules_renseignement_statut_check",
+   "tbl": "cellules_renseignement"
+  },
+  {
+   "empreinte": "af7f3552d86ce797373057d8decc01f6",
+   "genre": "c",
+   "nom": "renseignement_couvertures_sexe_check",
+   "tbl": "renseignement_couvertures"
+  },
+  {
+   "empreinte": "68611fa31e028362d4732a875ed78168",
+   "genre": "c",
+   "nom": "renseignement_identites_reelles_dup_check",
+   "tbl": "renseignement_identites_reelles"
+  },
+  {
+   "empreinte": "ee450c2a2f498fe3626377a0eeb3bc1e",
+   "genre": "c",
+   "nom": "renseignement_identites_reelles_role_check",
+   "tbl": "renseignement_identites_reelles"
+  },
+  {
+   "empreinte": "af7f3552d86ce797373057d8decc01f6",
+   "genre": "c",
+   "nom": "renseignement_identites_reelles_sexe_check",
+   "tbl": "renseignement_identites_reelles"
+  },
+  {
+   "empreinte": "398ca94927c2c88f7c23fd597ace26d9",
+   "genre": "c",
+   "nom": "renseignements_connus_mode_acquisition_check",
+   "tbl": "renseignements_connus"
+  },
+  {
+   "empreinte": "169bad6c43e33de773a00b3d0db506af",
+   "genre": "f",
+   "nom": "agents_renseignement_cellule_id_fkey",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "c775377dc6ae2787a01eeba119694349",
+   "genre": "f",
+   "nom": "agents_renseignement_pnj_id_fkey",
+   "tbl": "agents_renseignement"
+  },
+  {
+   "empreinte": "169bad6c43e33de773a00b3d0db506af",
+   "genre": "f",
+   "nom": "rapports_cellules_cellule_id_fkey",
+   "tbl": "rapports_cellules"
+  }
+ ],
+ "domaine": "renseignement",
+ "droits": [
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "agent_au_bureau_min_def(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "agent_au_bureau_min_def(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_au_bureau_min_def(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_au_bureau_min_def(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_au_bureau_min_def(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_conseillere_observer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_conseillere_observer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_coordinateur_multimodal(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_coordinateur_multimodal(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_coordinateur_port(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_coordinateur_port(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_garde_observer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_garde_observer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "agent_portrait_chemin(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "agent_portrait_chemin(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_portrait_chemin(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_portrait_chemin(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_portrait_chemin(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_position_effective(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_position_effective(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_position_effective(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_prendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_prendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_prendre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_trace_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_trace_deposer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_traducteur_ecouter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_traducteur_ecouter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "agent_transferer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "agent_transferer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agent_transferer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agent_transferer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agent_transferer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agents_couverture_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agents_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agents_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agents_de_mon_groupe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "agents_renseignement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "agents_renseignement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "agents_renseignement_ici()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_alerter_ministre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_alerter_ministre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "cellule_rapports_mes_cellules(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_rapports_mes_cellules(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_rapports_mes_cellules(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_clore(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_clore(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_creer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_creer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_creer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_mes_cellules()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_mes_cellules()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_mes_cellules()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_terminer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_terminer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellule_renseignement_terminer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellules_rapports_generer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellules_rapports_generer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellules_renseignement_balayer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellules_renseignement_balayer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cellules_renseignement_collecter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cellules_renseignement_collecter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_approfondir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_approfondir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_approfondir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_memoriser(text,text,integer,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_memoriser(text,text,integer,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_modificateur(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_modificateur(numeric,numeric,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_niveau_connu(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_niveau_connu(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_palier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_palier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_resoudre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "contre_espionnage_resoudre(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "convocation_douane_emettre(text,text,integer,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "convocation_douane_emettre(text,text,integer,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "convocation_douane_emettre(text,text,integer,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "douane_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "douane_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "douane_caracteristiques_metier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "douane_caracteristiques_metier()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "douane_effectifs_publics()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "douane_effectifs_publics()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "douane_effectifs_publics()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "douane_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "douane_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "douane_payer_effectifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "douane_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "douane_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "filature_deplacements(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "filature_deplacements(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "filature_deplacements(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "renseignement_agents_disponibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "renseignement_agents_disponibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "renseignement_agents_disponibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "renseignement_agents_disponibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "renseignement_agents_disponibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "renseignement_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "renseignement_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "renseignement_mission_raccorder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "renseignement_mission_raccorder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "renseignement_mission_raccorder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "renseignement_mission_raccorder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "renseignement_mission_raccorder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "renseignement_pnj_id(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "renseignement_pnj_id(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "agent_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "agent_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "agents_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "agents_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "cellules_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "cellules_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "contre_espionnage_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "contre_espionnage_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rapports_cellules",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rapports_cellules",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "rapports_renseignement",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rapports_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rapports_renseignement",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "renseignement_couvertures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "renseignement_couvertures",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "renseignement_identites_reelles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "renseignement_identites_reelles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "renseignements_connus",
+   "privileges": "MAINTAIN, SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "renseignements_connus",
+   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "renseignements_connus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "renseignements_connus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  }
+ ],
+ "droits_colonnes": [],
+ "fichiers": {
+  "10_tables.sql": "b24f9a9b62abc0a393d37752fda0b15a",
+  "20_fonctions.sql": "7a7f7bc4ac1fd370c2ff71068330f229",
+  "30_contraintes.sql": "a32c4c0981a04979dcc6ed2b0434d8d8",
+  "35_index.sql": "f497a9065521793aaf3e2eb09c104783",
+  "50_triggers.sql": "7572e5d6c6fed52f7debb92b077dc520",
+  "60_rls-policies.sql": "1af68eb19e83f0ce1366ca3bd1e66040",
+  "70_droits.sql": "2ec6962a240827c9792ef3f68a6eb2f8",
+  "80_commentaires.sql": "1acdba161abfa36865c5d3cc1dbb2ef9"
+ },
+ "fonctions": [
+  {
+   "empreinte": "8b1014e50da0f40333f88217bf09aedd",
+   "security_definer": false,
+   "signature": "agent_au_bureau_min_def(text,text)"
+  },
+  {
+   "empreinte": "8c81c63bb1cbdfe448e4b77da8b90b24",
+   "security_definer": true,
+   "signature": "agent_conseillere_observer(text)"
+  },
+  {
+   "empreinte": "5327de89e9f30c80e0a03818b0ed1705",
+   "security_definer": true,
+   "signature": "agent_coordinateur_multimodal(text)"
+  },
+  {
+   "empreinte": "3202ae1fcdc5b072d5be728357cf0c25",
+   "security_definer": true,
+   "signature": "agent_coordinateur_port(text)"
+  },
+  {
+   "empreinte": "6fd3c24a46b80a07b9f4e0bfdfddc06f",
+   "security_definer": true,
+   "signature": "agent_deposer(text)"
+  },
+  {
+   "empreinte": "f0015ad58f1066ce2827e793fe8d99b7",
+   "security_definer": true,
+   "signature": "agent_garde_observer(text)"
+  },
+  {
+   "empreinte": "c5d60f2f6f433f0f43eee3373a894cd4",
+   "security_definer": false,
+   "signature": "agent_portrait_chemin(text,text)"
+  },
+  {
+   "empreinte": "850e88f330e6f031cf66dbbd75eac422",
+   "security_definer": true,
+   "signature": "agent_position_effective(text)"
+  },
+  {
+   "empreinte": "30334806da5aeba815c0877cd6eeebdd",
+   "security_definer": true,
+   "signature": "agent_prendre(text)"
+  },
+  {
+   "empreinte": "1ae70f8bf47a903e82105dc6b2a56ee0",
+   "security_definer": true,
+   "signature": "agent_trace_deposer(text)"
+  },
+  {
+   "empreinte": "df26287961f04cdd8e6b1954bf43a396",
+   "security_definer": true,
+   "signature": "agent_traducteur_ecouter(text)"
+  },
+  {
+   "empreinte": "7eb50084ce473dd0ac4225b0896f649b",
+   "security_definer": true,
+   "signature": "agent_transferer(text,text)"
+  },
+  {
+   "empreinte": "0d27205b70d031ba4a601adf414caf8c",
+   "security_definer": true,
+   "signature": "agents_couverture_de_mon_groupe()"
+  },
+  {
+   "empreinte": "09509927745fe4c9dad5de6d0193ccb2",
+   "security_definer": true,
+   "signature": "agents_couverture_ici()"
+  },
+  {
+   "empreinte": "eafb2c1be1a2f282ed55b4997b728af3",
+   "security_definer": true,
+   "signature": "agents_de_mon_groupe()"
+  },
+  {
+   "empreinte": "87dee7d7e2e87e95d957f3b26636f25d",
+   "security_definer": true,
+   "signature": "agents_renseignement_ici()"
+  },
+  {
+   "empreinte": "e215781e933d6676707ff2553f991937",
+   "security_definer": true,
+   "signature": "cellule_alerter_ministre(text,text,text,text)"
+  },
+  {
+   "empreinte": "30fc54bdba1d884d4cc25825d2c46c91",
+   "security_definer": true,
+   "signature": "cellule_rapports_mes_cellules(integer)"
+  },
+  {
+   "empreinte": "799c4691ed8cddca2fc4472f6bcb536b",
+   "security_definer": true,
+   "signature": "cellule_renseignement_clore(text,text)"
+  },
+  {
+   "empreinte": "20c92b9803e83847e57ca4c574c7af45",
+   "security_definer": true,
+   "signature": "cellule_renseignement_creer(text)"
+  },
+  {
+   "empreinte": "efbb77b6764ee633e03000ac1d437d4d",
+   "security_definer": true,
+   "signature": "cellule_renseignement_mes_cellules()"
+  },
+  {
+   "empreinte": "1a4b212bb7f3d8b236a5101dd483b18b",
+   "security_definer": true,
+   "signature": "cellule_renseignement_terminer(text)"
+  },
+  {
+   "empreinte": "78275a89f4c6eac5111d30f5b83ff572",
+   "security_definer": true,
+   "signature": "cellules_rapports_generer()"
+  },
+  {
+   "empreinte": "082f57011d58126468a7376f05bb88da",
+   "security_definer": true,
+   "signature": "cellules_renseignement_balayer()"
+  },
+  {
+   "empreinte": "531441380c0480c04fcf7eb3a345c211",
+   "security_definer": true,
+   "signature": "cellules_renseignement_collecter()"
+  },
+  {
+   "empreinte": "23218ad3623fabe75e762112c7872d81",
+   "security_definer": true,
+   "signature": "contre_espionnage_approfondir(text)"
+  },
+  {
+   "empreinte": "c4eb80f1a78273f93ecd4d8e8fd01701",
+   "security_definer": true,
+   "signature": "contre_espionnage_dossiers()"
+  },
+  {
+   "empreinte": "e9dc7fb5200d45e3fa7c2b90873b41a3",
+   "security_definer": true,
+   "signature": "contre_espionnage_memoriser(text,text,integer,text,text,text,text)"
+  },
+  {
+   "empreinte": "e34e64b7aec3ff7e04c7952afe87f199",
+   "security_definer": false,
+   "signature": "contre_espionnage_modificateur(numeric,numeric,numeric)"
+  },
+  {
+   "empreinte": "99f405653730bae70bff87381624796f",
+   "security_definer": true,
+   "signature": "contre_espionnage_niveau_connu(text,text)"
+  },
+  {
+   "empreinte": "a6d48fe7f7e10fecb9d01acf6e6338eb",
+   "security_definer": false,
+   "signature": "contre_espionnage_palier(integer)"
+  },
+  {
+   "empreinte": "69941a8bf3f99773fc68e9bdddbbfcef",
+   "security_definer": true,
+   "signature": "contre_espionnage_resoudre(text,text,text,text)"
+  },
+  {
+   "empreinte": "f92a44a70257edfba8e4f7e13f6878ee",
+   "security_definer": true,
+   "signature": "convocation_douane_emettre(text,text,integer,integer,integer,integer)"
+  },
+  {
+   "empreinte": "8d9d527fc902770e0ee751af039f471b",
+   "security_definer": true,
+   "signature": "douane_autorite_de_perimetre(text,text)"
+  },
+  {
+   "empreinte": "17c4d102996d9ec6ddc1c19265f44f87",
+   "security_definer": true,
+   "signature": "douane_caracteristiques_metier()"
+  },
+  {
+   "empreinte": "04accbcda8f5396ad221c3fc24ffd729",
+   "security_definer": true,
+   "signature": "douane_effectifs_publics()"
+  },
+  {
+   "empreinte": "ac8ae69b513bcb430ee18e50883facc6",
+   "security_definer": true,
+   "signature": "douane_payer_effectifs(text)"
+  },
+  {
+   "empreinte": "004701e47d2d11b2835c39ad4c363ae6",
+   "security_definer": false,
+   "signature": "douane_pnj_id(text,text,text)"
+  },
+  {
+   "empreinte": "b2225f74cd2e7771a8229d5f33342e19",
+   "security_definer": true,
+   "signature": "filature_deplacements(text)"
+  },
+  {
+   "empreinte": "707464b71933bc60fc8b3edcda52e843",
+   "security_definer": true,
+   "signature": "renseignement_agents_disponibles()"
+  },
+  {
+   "empreinte": "4d36d050cdd3d76241bae41bd265df3e",
+   "security_definer": true,
+   "signature": "renseignement_autorite_de_perimetre(text,text)"
+  },
+  {
+   "empreinte": "b7915d3492e1685db0ca53d2089d1b71",
+   "security_definer": true,
+   "signature": "renseignement_mission_raccorder()"
+  },
+  {
+   "empreinte": "9fc6197e534630507a1a0207ae56a834",
+   "security_definer": false,
+   "signature": "renseignement_pnj_id(text)"
+  }
+ ],
+ "index_autonomes": [
+  {
+   "empreinte": "1ea1c3a07c15fa70d10b4659ce832eb1",
+   "nom": "idx_agents_cellule"
+  },
+  {
+   "empreinte": "b2abb38dd8dc305b179da43c0aa8f608",
+   "nom": "idx_agents_couverture_unique"
+  },
+  {
+   "empreinte": "dc9c535442989acd36dfced1062ed608",
+   "nom": "idx_agents_leader"
+  },
+  {
+   "empreinte": "8763b007867c2bf6de717df3306a14f9",
+   "nom": "idx_agents_position"
+  },
+  {
+   "empreinte": "33762e652b3c136347645511a3012c20",
+   "nom": "idx_agents_role_unique"
+  },
+  {
+   "empreinte": "0b6143ab75d81f3adb1fdce26b4e4088",
+   "nom": "idx_cellules_actives"
+  },
+  {
+   "empreinte": "729a54f7201556a9ebd86c732d95b5f9",
+   "nom": "idx_cellules_echeance"
+  },
+  {
+   "empreinte": "c41ad846bd29b478084106e7e75a4dbd",
+   "nom": "idx_renseignements_cible_categorie"
+  },
+  {
+   "empreinte": "d23d9f46eb6bebdcd39f67aeddf809be",
+   "nom": "idx_renseignements_titulaire_expiration"
+  }
+ ],
+ "index_portes": [
+  "agent_tentatives_pkey",
+  "agents_renseignement_pkey",
+  "cellules_renseignement_pkey",
+  "contre_espionnage_tentatives_pkey",
+  "rapports_cellules_pkey",
+  "rapports_renseignement_pkey",
+  "renseignement_couvertures_pkey",
+  "renseignement_identites_reelles_pkey",
+  "renseignements_connus_pkey"
+ ],
+ "ordre": [
+  "10_tables.sql",
+  "20_fonctions.sql",
+  "30_contraintes.sql",
+  "35_index.sql",
+  "50_triggers.sql",
+  "60_rls-policies.sql",
+  "70_droits.sql",
+  "80_commentaires.sql"
+ ],
+ "policies": [
+  {
+   "empreinte": "ad75ebdd7e783f2e64c996cc8617fc81",
+   "empreinte_avec_roles": "3c90bb0d82f29734e2949b7fedad56e1",
+   "nom": "rens creation acteur",
+   "tbl": "rapports_renseignement"
+  },
+  {
+   "empreinte": "d9e465199485bc179b8992337ab5ab56",
+   "empreinte_avec_roles": "42b8e28a198b6fcd4405d690020ac509",
+   "nom": "rens lecture destinataire",
+   "tbl": "rapports_renseignement"
+  },
+  {
+   "empreinte": "173319007566d2ddbdb2c9785edcd920",
+   "empreinte_avec_roles": "4562f47d6a11aca7bce5594c747c6351",
+   "nom": "rens maj destinataire",
+   "tbl": "rapports_renseignement"
+  }
+ ],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "agent_tentatives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "agents_renseignement"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "cellules_renseignement"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "contre_espionnage_tentatives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rapports_cellules"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rapports_renseignement"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "renseignement_couvertures"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "renseignement_identites_reelles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "renseignements_connus"
+  }
+ ],
+ "sequences": [],
+ "sequences_autonomes": [],
+ "tables": [
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "89ffa36a07cd03abb9285a66a3e6e298",
+   "empreinte_texte": "cf3cf75e27da807a423fa4d47e081a75",
+   "nom": "agent_tentatives"
+  },
+  {
+   "colonnes": 18,
+   "empreinte_catalogue": "b2690b4ce84c2ab9a6d5ee8d83725c53",
+   "empreinte_texte": "d6dc353617d3e052d6ec78bd0c2edd45",
+   "nom": "agents_renseignement"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "970dcb4782ff5f52a5dbe7f5eeef67f8",
+   "empreinte_texte": "f7302c1c08f046095a10f65569b2b486",
+   "nom": "cellules_renseignement"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "c60307f366ca89025bb2ae59bcda4779",
+   "empreinte_texte": "f31211aaf780c2e1ce6f4af9dd25650e",
+   "nom": "contre_espionnage_tentatives"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "0886d96f119cc0424a18e2640bc9734a",
+   "empreinte_texte": "5008fd287e6ad093544df8b1a8daea9d",
+   "nom": "rapports_cellules"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cf80da153fdff321e85cc07928c31b30",
+   "empreinte_texte": "d04ebf1d8e3b2cd5c9e5cad7f4b77ee8",
+   "nom": "rapports_renseignement"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "8a884fd050766315c61ea5375be80cd6",
+   "empreinte_texte": "4635ca455b4aa6da82b14b33c31401de",
+   "nom": "renseignement_couvertures"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "12ab392093ab94c780cb980cf6540ac5",
+   "empreinte_texte": "f44210b1528a28ee308313ca0a81c90c",
+   "nom": "renseignement_identites_reelles"
+  },
+  {
+   "colonnes": 17,
+   "empreinte_catalogue": "a823b1bc6c33c12019bf60c262cd0a75",
+   "empreinte_texte": "7fc6f30c09b99677e1651a30af35b126",
+   "nom": "renseignements_connus"
+  }
+ ],
+ "triggers": [
+  {
+   "empreinte": "3168e01e475481bfd42247aac6c41457",
+   "fonction": "renseignement_mission_raccorder()",
+   "nom": "trg_renseignement_mission_raccorder",
+   "tbl": "agents_renseignement"
+  }
+ ],
+ "vues": []
+}
