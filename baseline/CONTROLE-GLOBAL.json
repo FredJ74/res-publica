@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-06T23:41:49 Europe/Paris",
- "empreintes_relevees_le": "2026-10-06T23:41:49 Europe/Paris",
+ "releve_le": "2026-10-06T23:58:53 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-06T23:58:53 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 254,
@@ -14,14 +14,14 @@
   "index": 408,
   "index_portes": 261,
   "index_autonomes": 147,
-  "fonctions": 647,
+  "fonctions": 648,
   "triggers": 40,
   "policies": 283,
   "rls_actives": 254,
   "droits_relations": 928,
-  "droits_fonctions": 1807,
+  "droits_fonctions": 1809,
   "droits_colonnes": 20,
-  "commentaires": 172
+  "commentaires": 174
  },
  "_droits_relations_detail": "928 = 818 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
  "ecartes": {
@@ -54,30 +54,30 @@
   "contraintes": 422,
   "index_portes": 259,
   "index_autonomes": 147,
-  "fonctions": 647,
+  "fonctions": 648,
   "triggers": 40,
   "policies": 283,
   "rls_actives": 248,
-  "droits": 2723,
+  "droits": 2725,
   "droits_colonnes": 20,
-  "commentaires": 168
+  "commentaires": 170
  },
  "_colonnes_calcul": "1980 = 2108 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
- "_droits_calcul": "2723 = 928 droits de relation + 1807 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
+ "_droits_calcul": "2725 = 928 droits de relation + 1809 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
  "empreintes": {
   "_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = « cle : md5(definition) ». COLLATE \"C\" OBLIGATOIRE : sans lui le tri suit la collation de la base, qui ignore la ponctuation au premier rang, et tout recalcul hors de PostgreSQL (qui trie par point de code) donne une autre valeur alors que les definitions sont identiques. Piege rencontre et corrige le 5 octobre 2026.",
   "colonnes": "2c18f2d9022ab3faeef3654086ba5918",
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
   "contraintes": "9d40fada7adc098f56f988902183ef39",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "8636221a3c88bbac8ce9156f18e46a19",
+  "fonctions": "87524d6bff6d903390f750ce87b77ae7",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "triggers": "019505ce88c072c754432d39d7505d78",
   "policies": "efb512dd92c91e428ee8e547576f7146",
   "policies_avec_roles": "2bfceb0d575e4b0c1b4b55844f86f31a",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "5424cc8c8588505bfd41c83b36c76689",
-  "commentaires": "fee3289fe13296656ef359a43d9f1ac6",
+  "droits": "151d68d88e75b0a4fbd794b4d1ecec73",
+  "commentaires": "1d723a63c73dbc989daae5bb88dc2f51",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
@@ -87,7 +87,7 @@
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 6 octobre 2026, apres les trois migrations d'autorite du chantier 3.",
   "fonctions_security_definer": 536,
-  "fonctions_security_invoker": 111,
+  "fonctions_security_invoker": 112,
   "tables_rls_active_sans_policy": 97,
   "tables_sans_rls": 0,
   "_tables_sans_rls": "ZERO. C'etait 25 au chantier 2E, et c'etait le trou : leur seule garde etait le GRANT. Le chantier 3 a mis la RLS sur les 27 dernieres tables du schema (25 du perimetre, 2 ecartees) -- migration 20261005214600_autorite_socle_acteur_identifie.sql.",
@@ -101,9 +101,9 @@
  },
  "registre": {
   "_commentaire": "Point de coupe du 6 octobre 2026 au soir, apres les QUATRE migrations d'autorite du chantier 3 (autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public) et la migration du chantier 4C (referentiels_empreintes_manquantes).",
-  "entrees": 546,
-  "derniere_version": "20261006214023",
-  "empreinte_versions_et_noms": "d86d864f25ebe85823623857b37ec053",
+  "entrees": 548,
+  "derniere_version": "20261006215127",
+  "empreinte_versions_et_noms": "e881dbad327d7773cabbeb67309e4618",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0"
  },
  "_chantier_3": {
@@ -156,5 +156,19 @@
   },
   "_pourquoi": "commandes_militaires etait ecrite par un INSERT PostgREST direct sous une policy acteur_identifie() : tout joueur authentifie pouvait commander n'importe quel produit, pour n'importe quel pays, en n'importe quelle quantite, et modifier la commande d'autrui. Le poste min_def n'etait verifie que dans le navigateur. L'autorite est desormais au serveur, et le pays n'est plus un parametre : il est deduit du ministre.",
   "ce_qui_n_a_pas_change": "Aucune donnee de jeu. Les 7 personnages, les 8 sujets du forum et les 0 commandes militaires sont intacts. effort_produire_lot n'est pas modifiee."
+ },
+ "_chantier_4d_assemblee": {
+  "_commentaire": "Releve d'apres les migrations 20261006215026_assemblee_portee_choisie et 20261006215127_assemblee_portee_droits_explicites, appliquees le 6 octobre 2026.",
+  "migrations_appliquees": ["assemblee_portee_choisie", "assemblee_portee_droits_explicites"],
+  "ce_qui_a_change": {
+   "fonctions": "647 -> 648 : assemblee_sous_types_connus() ajoutee ; assemblee_objet_vise passe de 2 a 3 parametres (l'ancienne signature est SUPPRIMEE, pas surchargee) ; assemblee_portee_valider, assemblee_loi_en_vigueur et assemblee_catalogue_legislatif remplacees",
+   "categories_d_interdiction": "21 -> 22 : la categorie explosifs est creee. medicaments vise desormais le type d'objet 'soin' et non 'medicament', qui n'existe nulle part dans le jeu",
+   "portee": "1 -> 4 dimensions : transformation_stock_interdite, volet_matieres, volet_objets, sous_types. La liste reste FERMEE",
+   "commentaires": "172 -> 174",
+   "droits": "2723 -> 2725"
+  },
+  "_pourquoi": "Une categorie technique ne doit pas porter de politique. Interdire « les armes a feu » tranchait d'office le sort de l'armement militaire ; interdire « les medicaments » tranchait d'office celui des objets de soin. Ces choix appartiennent aux deputes : la portee les leur rend, sans cas particulier -- les trois arbitrages passent par les memes quatre dimensions.",
+  "_droits_verifies": "assemblee_objet_vise et assemblee_sous_types_connus sont nees avec EXECUTE a PUBLIC, qui couvre anon. Verifie IMMEDIATEMENT apres application et ferme par la seconde migration. Aucune des deux n'est mutante, mais un droit implicite n'a pas sa place la ou tout le reste est explicite.",
+  "ce_qui_n_a_pas_change": "Aucune donnee de jeu. assemblee_propositions et lois_assemblee restent vides : aucune loi n'a jamais ete deposee, donc aucun effet retroactif. Les 7 personnages et les 8 sujets du forum sont intacts."
  }
 }

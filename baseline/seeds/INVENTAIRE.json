@@ -18,7 +18,7 @@
  },
  "fichiers": {
   "90_socle/assemblee_catalogue_illegal.sql": "309ec5b5afbdb010a51455c5705fa396",
-  "90_socle/assemblee_categories_interdiction.sql": "193197d4c5b6ab740deec74c59c74d34",
+  "90_socle/assemblee_categories_interdiction.sql": "6b83c9717a7bfb0f923808ed384b6241",
   "90_socle/budget_national_champs_regles.sql": "dff8abe3096016e65075b8256a59c475",
   "90_socle/caisses_autorites.sql": "7211280bdbc5852a0e129878009fe723",
   "90_socle/chaines_production_usine.sql": "d214345ecd4aed4301807e6ad2a081ca",
@@ -97,7 +97,7 @@
  "lignes_par_table": {
   "armureries_dotations": 3,
   "assemblee_catalogue_illegal": 7,
-  "assemblee_categories_interdiction": 21,
+  "assemblee_categories_interdiction": 22,
   "assemblee_sieges": 9,
   "batiments_etat": 3,
   "budget_national_champs_regles": 20,

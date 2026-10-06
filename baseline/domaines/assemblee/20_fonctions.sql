@@ -104,7 +104,6 @@ CREATE OR REPLACE FUNCTION public.assemblee_catalogue_legislatif()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT jsonb_build_object(
-    -- Les categories reellement votables, avec ce qu'elles visent.
     'categories', coalesce((
       SELECT jsonb_agg(jsonb_build_object(
                'categorie', c.categorie,
@@ -112,9 +111,13 @@ AS $function$
                'matieres', coalesce(to_jsonb(c.matieres), '[]'::jsonb),
                'types_objet', coalesce(to_jsonb(c.types_objet), '[]'::jsonb),
                'sous_types', coalesce(to_jsonb(c.sous_types), '[]'::jsonb),
-               -- Y a-t-il, dans cette categorie, au moins une matiere que l'on
-               -- peut transformer ? Sinon la question du cas B n'a pas de sens et
-               -- Seb ne doit pas la poser.
+               'choix_volets', (cardinality(c.matieres) > 0 AND cardinality(c.types_objet) > 0),
+               'sous_types_disponibles', coalesce((
+                  SELECT to_jsonb(array_agg(DISTINCT s ORDER BY s))
+                    FROM unnest(c.types_objet) t,
+                         unnest(public.assemblee_sous_types_connus(t)) s
+                    WHERE cardinality(c.sous_types) = 0 OR s = ANY (c.sous_types)
+                 ), '[]'::jsonb),
                'transformation_pertinente', EXISTS (
                  SELECT 1 FROM unnest(c.matieres) m
                   WHERE (public.matiere_circuits_disponibles(m) ->> 'transformation')::boolean),
@@ -124,14 +127,11 @@ AS $function$
                      OR (public.matiere_circuits_disponibles(m) ->> 'recolte')::boolean)
              ) ORDER BY c.label)
         FROM public.assemblee_categories_interdiction c), '[]'::jsonb),
-    -- Les circuits reels de chaque matiere, pour que Seb ne parle jamais d'un
-    -- mecanisme inexistant.
     'matieres', coalesce((
       SELECT jsonb_agg(public.matiere_circuits_disponibles(r.cle) ORDER BY r.cle)
         FROM public.ressources_economie r), '[]'::jsonb),
-    -- Les dimensions de portee que le moteur sait REELLEMENT appliquer. Liste
-    -- fermee, la meme que celle qu'assemblee_portee_valider accepte.
-    'portee_dimensions', jsonb_build_array('transformation_stock_interdite')
+    'portee_dimensions', jsonb_build_array('transformation_stock_interdite',
+                                           'volet_matieres', 'volet_objets', 'sous_types')
   );
 $function$;
 
@@ -876,7 +876,8 @@ AS $function$
      AND p.adoptee_ts <= p_instant
      AND p.appliquee_ts IS NOT NULL
      AND p.appliquee_ts <= p_instant
-     AND public.assemblee_objet_vise(p.categorie, p_objet)
+     AND public.assemblee_objet_vise(p.categorie, p_objet,
+                                     coalesce(p.data -> 'portee', '{}'::jsonb))
    ORDER BY p.appliquee_ts, p.adoptee_ts, p.id
    LIMIT 1;
 $function$;
@@ -1216,20 +1217,40 @@ BEGIN
 END;
 $function$;
 
--- assemblee_objet_vise(text,jsonb) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_objet_vise(p_categorie text, p_objet jsonb)
+-- assemblee_objet_vise(text,jsonb,jsonb) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_objet_vise(p_categorie text, p_objet jsonb, p_portee jsonb DEFAULT NULL::jsonb)
  RETURNS boolean
  LANGUAGE sql
  STABLE
  SET search_path TO 'public', 'pg_temp'
 AS $function$
+  WITH c AS (
+    SELECT * FROM public.assemblee_categories_interdiction WHERE categorie = p_categorie
+  ), p AS (
+    SELECT coalesce((p_portee ->> 'volet_matieres')::boolean, true) AS vm,
+           coalesce((p_portee ->> 'volet_objets')::boolean, true)   AS vo,
+           CASE WHEN p_portee ? 'sous_types'
+                 AND jsonb_typeof(p_portee -> 'sous_types') = 'array'
+                THEN ARRAY(SELECT jsonb_array_elements_text(p_portee -> 'sous_types'))
+           END AS st
+  )
   SELECT EXISTS (
-    SELECT 1 FROM public.assemblee_categories_interdiction c
-     WHERE c.categorie = p_categorie
-       AND (   (p_objet ->> 'stackKey' IS NOT NULL AND (p_objet ->> 'stackKey') = ANY (c.matieres))
-            OR (p_objet ->> 'type' IS NOT NULL AND (p_objet ->> 'type') = ANY (c.types_objet)
-                AND (cardinality(c.sous_types) = 0
-                     OR (p_objet ->> 'sousType' IS NOT NULL AND (p_objet ->> 'sousType') = ANY (c.sous_types)))))
+    SELECT 1 FROM c, p
+     WHERE ( p.vm
+             AND p_objet ->> 'stackKey' IS NOT NULL
+             AND (p_objet ->> 'stackKey') = ANY (c.matieres) )
+        OR ( p.vo
+             AND p_objet ->> 'type' IS NOT NULL
+             AND (p_objet ->> 'type') = ANY (c.types_objet)
+             AND ( CASE
+                     WHEN p.st IS NULL AND cardinality(c.sous_types) = 0 THEN true
+                     ELSE (p_objet ->> 'sousType') = ANY (
+                            CASE WHEN p.st IS NULL THEN c.sous_types
+                                 WHEN cardinality(c.sous_types) = 0 THEN p.st
+                                 ELSE ARRAY(SELECT unnest(c.sous_types)
+                                            INTERSECT SELECT unnest(p.st))
+                            END)
+                   END ) )
   );
 $function$;
 
@@ -1412,33 +1433,51 @@ CREATE OR REPLACE FUNCTION public.assemblee_portee_valider(p_portee jsonb)
  IMMUTABLE
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_cle text; v_val jsonb;
+DECLARE v_cle text; v_val jsonb; v_st jsonb;
 BEGIN
-  -- Absente ou vide : CAS A par defaut -- interdiction economique sans
-  -- interdiction de transformation. Le moins-disant, jamais le plus-disant.
   IF p_portee IS NULL OR p_portee = 'null'::jsonb THEN
     RETURN jsonb_build_object('ok', true, 'portee',
-             jsonb_build_object('transformation_stock_interdite', false));
+             jsonb_build_object('transformation_stock_interdite', false,
+                                'volet_matieres', true,
+                                'volet_objets', true,
+                                'sous_types', null));
   END IF;
   IF jsonb_typeof(p_portee) <> 'object' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'portee_invalide');
   END IF;
 
-  -- LISTE FERMEE. Toute cle inconnue est un refus, jamais un silence : c'est ce
-  -- qui empeche l'IA d'inventer un effet que le moteur n'applique pas.
   FOR v_cle IN SELECT jsonb_object_keys(p_portee) LOOP
-    IF v_cle NOT IN ('transformation_stock_interdite') THEN
+    IF v_cle NOT IN ('transformation_stock_interdite', 'volet_matieres',
+                     'volet_objets', 'sous_types') THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'portee_cle_inconnue', 'cle', v_cle);
     END IF;
     v_val := p_portee -> v_cle;
-    IF jsonb_typeof(v_val) <> 'boolean' THEN
+    IF v_cle = 'sous_types' THEN
+      IF jsonb_typeof(v_val) NOT IN ('array', 'null') THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'portee_valeur_invalide', 'cle', v_cle);
+      END IF;
+      IF jsonb_typeof(v_val) = 'array' THEN
+        IF jsonb_array_length(v_val) = 0 THEN
+          RETURN jsonb_build_object('ok', false, 'raison', 'portee_sous_types_vide');
+        END IF;
+        IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_val) e
+                    WHERE jsonb_typeof(e) <> 'string') THEN
+          RETURN jsonb_build_object('ok', false, 'raison', 'portee_valeur_invalide', 'cle', v_cle);
+        END IF;
+      END IF;
+    ELSIF jsonb_typeof(v_val) <> 'boolean' THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'portee_valeur_invalide', 'cle', v_cle);
     END IF;
   END LOOP;
 
+  v_st := p_portee -> 'sous_types';
   RETURN jsonb_build_object('ok', true, 'portee', jsonb_build_object(
     'transformation_stock_interdite',
-    coalesce((p_portee ->> 'transformation_stock_interdite')::boolean, false)));
+      coalesce((p_portee ->> 'transformation_stock_interdite')::boolean, false),
+    'volet_matieres', coalesce((p_portee ->> 'volet_matieres')::boolean, true),
+    'volet_objets',   coalesce((p_portee ->> 'volet_objets')::boolean, true),
+    'sous_types',     CASE WHEN v_st IS NULL OR jsonb_typeof(v_st) = 'null'
+                           THEN NULL ELSE v_st END));
 END $function$;
 
 -- assemblee_prochaine_cloture(timestamp with time zone) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
@@ -1793,6 +1832,25 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'paliers_appliques', v_faits, 'detail', v_res);
 END $function$;
+
+-- assemblee_sous_types_connus(text) -> text[] | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_sous_types_connus(p_type text)
+ RETURNS text[]
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(array_agg(s ORDER BY s), '{}'::text[])
+    FROM (
+      SELECT i.objet ->> 'sousType' AS s
+        FROM public.assemblee_catalogue_illegal i
+       WHERE i.objet ->> 'type' = p_type AND i.objet ->> 'sousType' IS NOT NULL
+      UNION
+      SELECT r.sous_type
+        FROM public.recettes_militaires r
+       WHERE r.type_objet = p_type AND r.sous_type IS NOT NULL
+    ) z;
+$function$;
 
 -- assemblee_stat_base(jsonb,text) -> numeric | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_stat_base(p_stats jsonb, p_cle text)

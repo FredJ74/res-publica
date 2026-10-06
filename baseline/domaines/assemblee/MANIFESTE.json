@@ -61,6 +61,12 @@
    "sous": ""
   },
   {
+   "empreinte": "61ec5d292fc87ebff2f26af65b2bf4e9",
+   "genre": "FUNCTION",
+   "objet": "assemblee_objet_vise(text,jsonb,jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "035cb90ae3933819eca61c7375eb8464",
    "genre": "FUNCTION",
    "objet": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)",
@@ -88,6 +94,12 @@
    "empreinte": "c3f90e21456318b8b53419627c540fea",
    "genre": "FUNCTION",
    "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "9032aed279046ea0dc3813e016ee2a0b",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sous_types_connus(text)",
    "sous": ""
   },
   {
@@ -698,25 +710,25 @@
   {
    "beneficiaire": "anon",
    "genre": "FUNCTION",
-   "objet": "assemblee_objet_vise(text,jsonb)",
+   "objet": "assemblee_objet_vise(text,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "assemblee_objet_vise(text,jsonb)",
+   "objet": "assemblee_objet_vise(text,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "assemblee_objet_vise(text,jsonb)",
+   "objet": "assemblee_objet_vise(text,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "assemblee_objet_vise(text,jsonb)",
+   "objet": "assemblee_objet_vise(text,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -993,6 +1005,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sous_types_connus(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sous_types_connus(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1335,13 +1359,13 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
-  "20_fonctions.sql": "f982a6f689cd3caf5869fbc5cbd16fa0",
+  "20_fonctions.sql": "80feb5e82c9f37f753f0551566624d7f",
   "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
   "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
-  "70_droits.sql": "3dd16cb838c00b83102e1f222db068f0",
-  "80_commentaires.sql": "5e0ee07adf5a9dbde4ab4a6ef9e4ce23"
+  "70_droits.sql": "c64b9e24acd70d19c38417d8dd1fc8d5",
+  "80_commentaires.sql": "ca1a74666ef3b68b78fdbdbcf8beaa8d"
  },
  "fonctions": [
   {
@@ -1355,7 +1379,7 @@
    "signature": "assemblee_amender(text,text,text,text)"
   },
   {
-   "empreinte": "1c392caf679d982c37ccd4a7d8e5d5c7",
+   "empreinte": "671371667fe618a529bf699e26d01c1f",
    "security_definer": true,
    "signature": "assemblee_catalogue_legislatif()"
   },
@@ -1455,7 +1479,7 @@
    "signature": "assemblee_lier_topic(text,text,text)"
   },
   {
-   "empreinte": "d19c5e231eb26afd0fc4cfc755ebc5b5",
+   "empreinte": "92ab91d54f89a4f15da3ac16252bc4e9",
    "security_definer": false,
    "signature": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)"
   },
@@ -1480,9 +1504,9 @@
    "signature": "assemblee_neutraliser_depute(text,text,text,text)"
   },
   {
-   "empreinte": "aa9492249656ff35bdba524d1ebb4d85",
+   "empreinte": "af3377f7c384d388182b9d73ef220902",
    "security_definer": false,
-   "signature": "assemblee_objet_vise(text,jsonb)"
+   "signature": "assemblee_objet_vise(text,jsonb,jsonb)"
   },
   {
    "empreinte": "4082c9625fcdea71dd4b574ba6fbdece",
@@ -1515,7 +1539,7 @@
    "signature": "assemblee_pop_du_palier(integer)"
   },
   {
-   "empreinte": "a693f64449d471c30fb51c9a23be1337",
+   "empreinte": "0899a2a62a039a10f750ab731e9e0284",
    "security_definer": false,
    "signature": "assemblee_portee_valider(jsonb)"
   },
@@ -1568,6 +1592,11 @@
    "empreinte": "d60f690891b0691f74e477e9cda47b04",
    "security_definer": true,
    "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
+  },
+  {
+   "empreinte": "6e6cc241e8aa7de1049ad0e3eb5a2865",
+   "security_definer": false,
+   "signature": "assemblee_sous_types_connus(text)"
   },
   {
    "empreinte": "d0afd595c450b83bfd8c72812b20456d",

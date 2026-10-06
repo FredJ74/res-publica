@@ -72,43 +72,84 @@ function assembleeEstDeputePnj(nom) {
 }
 
 // =====================
-// CATEGORIES TECHNIQUES D'INTERDICTION (§9, §44)
+// LES CATEGORIES D'INTERDICTION VIENNENT DE LA BASE (§9, §44 -- chantier 4D)
 // =====================
 // AUCUNE taxonomie parallele n'est creee. Chaque categorie ne fait que REGROUPER des identifiants
 // qui existent deja dans le jeu :
-//   - matieres  : cles de RESSOURCES_ECONOMIE (data.js) — circuit commerce/entrepot
+//   - matieres  : cles de RESSOURCES_ECONOMIE (data.js) -- circuit commerce/entrepot
 //   - typesObjet: valeurs de item.type dans l'inventaire classique
-//   - sousTypes : raffinement optionnel sur item.sousType (armes)
+//   - sousTypes : raffinement optionnel sur item.sousType (armes, explosifs)
 //
-// L'audit du 9 septembre a montre que ces deux circuits sont DISJOINTS : la viande est une
-// matiere premiere de commerce, jamais un objet d'inventaire au sens de la fouille policiere.
-// Une categorie peut donc viser l'un, l'autre, ou les deux -- c'est exactement ce que §44 demande.
+// IL Y AVAIT ICI UNE CONSTANTE. Elle a ete supprimee le 6 octobre 2026, et c'est le coeur de ce
+// lot. Figee au 11 septembre a quinze entrees, elle en ignorait sept que la base portait :
+// cereales, desinfectant, fruits_legumes, metal, minerai, plantes (ajoutees le 30 septembre) et
+// explosifs (ajoutee par ce chantier). Consequence mesuree : une loi visant l'une d'elles
+// s'affichait sous sa cle brute, sans la ligne « Concerne », et -- beaucoup plus grave -- les
+// objets vises n'etaient JAMAIS confisques, parce que le pre-calcul du navigateur servait de
+// portillon a l'appel serveur. La douane repondait « rien d'illegal trouve ».
 //
-// Les familles LARGES existent volontairement a cote des familles etroites : c'est le coeur de
-// l'avertissement du §9 (choisir "Denrees animales" interdit aussi le poisson). L'interface le
-// signale explicitement au depot.
-const CATEGORIES_INTERDICTION = {
-  viandes:            { label: 'Viandes',                    matieres: ['viande'],                         typesObjet: [], sousTypes: [] },
-  poissons:           { label: 'Poissons',                   matieres: ['poisson'],                        typesObjet: [], sousTypes: [] },
-  denrees_animales:   { label: 'Denrées animales (large)',   matieres: ['viande', 'poisson'],              typesObjet: [], sousTypes: [] },
-  alcools:            { label: 'Alcools',                    matieres: ['alcool'],                         typesObjet: [], sousTypes: [] },
-  tabac:              { label: 'Tabac',                      matieres: ['tabac'],                          typesObjet: [], sousTypes: [] },
-  medicaments:        { label: 'Médicaments',                matieres: ['medicaments'],                    typesObjet: ['medicament'], sousTypes: [] },
-  armes_blanches:     { label: 'Armes blanches',             matieres: [],                                 typesObjet: ['arme'], sousTypes: ['blanche'] },
-  armes_a_feu:        { label: 'Armes à feu',                matieres: [],                                 typesObjet: ['arme'], sousTypes: ['poing', 'carabine'] },
-  armes:              { label: 'Armes (large)',              matieres: [],                                 typesObjet: ['arme'], sousTypes: [] },
-  poisons:            { label: 'Poisons',                    matieres: [],                                 typesObjet: ['poison'], sousTypes: [] },
-  carburants:         { label: 'Carburants',                 matieres: ['carburant', 'petrole'],           typesObjet: [], sousTypes: [] },
-  hydrocarbures:      { label: 'Hydrocarbures (large)',      matieres: ['carburant', 'petrole', 'charbon'], typesObjet: [], sousTypes: [] },
-  bois_et_forets:     { label: 'Bois',                       matieres: ['bois'],                           typesObjet: [], sousTypes: [] },
-  textile:            { label: 'Textile',                    matieres: ['textile'],                        typesObjet: [], sousTypes: [] },
-  produits_exotiques: { label: 'Produits exotiques',         matieres: ['produits_exotiques'],             typesObjet: [], sousTypes: [] }
-};
+// `public.assemblee_categories_interdiction` fait foi. Il n'y a plus de seconde source.
+// Tant que la table n'est pas lue, aucune categorie n'est connue : l'interface n'annonce rien,
+// et c'est le serveur qui refuse -- jamais l'inverse.
+window._assembleeCategories = window._assembleeCategories || { parId: null, ts: 0 };
+
+async function rafraichirAssembleeCategories() {
+  if (typeof sbGetCategoriesInterdiction !== 'function') return null;
+  const lignes = await sbGetCategoriesInterdiction().catch(() => null);
+  if (!lignes) return null;
+  const parId = {};
+  lignes.forEach(function (l) {
+    if (!l || !l.categorie) return;
+    // On rend la MEME forme que l'ancienne constante, pour que rien d'autre ne change de langage.
+    parId[l.categorie] = {
+      label: l.label || l.categorie,
+      matieres: Array.isArray(l.matieres) ? l.matieres : [],
+      typesObjet: Array.isArray(l.types_objet) ? l.types_objet : [],
+      sousTypes: Array.isArray(l.sous_types) ? l.sous_types : []
+    };
+  });
+  window._assembleeCategories = { parId, ts: Date.now() };
+  return parId;
+}
+
+function assembleeCategorie(categorieId) {
+  const c = window._assembleeCategories && window._assembleeCategories.parId;
+  return (c && categorieId) ? (c[categorieId] || null) : null;
+}
+
+// LE LIBELLE D'UNE CATEGORIE, ou sa cle si la table n'est pas encore lue. Afficher la cle brute
+// reste moins mauvais que de taire la categorie : le lecteur voit qu'il manque quelque chose.
+function assembleeLibelleCategorie(categorieId) {
+  const cat = assembleeCategorie(categorieId);
+  return (cat && cat.label) || categorieId || '';
+}
+
+// LA PORTEE VOTEE, telle que le serveur la lit (assemblee_objet_vise). Quatre dimensions, et les
+// memes defauts qu'en SQL : les deux volets a true, aucune restriction de sous-type. Une portee
+// absente vise donc tout ce que la categorie recouvre -- le comportement d'avant ce chantier.
+function assembleePortee(loi) {
+  const p = (loi && loi.data && loi.data.portee) || {};
+  return {
+    voletMatieres: p.volet_matieres !== false,
+    voletObjets:   p.volet_objets   !== false,
+    sousTypes:     Array.isArray(p.sous_types) && p.sous_types.length ? p.sous_types : null
+  };
+}
+
+// Les sous-types REELLEMENT vises, intersection de ce que la categorie borne et de ce que la
+// portee restreint. MEME REGLE QU'EN SQL : la portee retranche, elle n'ajoute jamais. Rend null
+// quand rien ne restreint (la categorie attrape alors toute la famille).
+function assembleeSousTypesVises(cat, portee) {
+  const catSt = (cat.sousTypes || []);
+  if (!portee.sousTypes) return catSt.length ? catSt : null;
+  if (!catSt.length) return portee.sousTypes;
+  return catSt.filter(st => portee.sousTypes.indexOf(st) !== -1);
+}
 
 // Liste lisible de ce qu'une categorie recouvre REELLEMENT, affichee au depot et dans le topic
 // forum (§9 : "accompagnee si possible de la liste des objets actuellement concernes").
 function assembleeContenuCategorie(categorieId) {
-  const cat = CATEGORIES_INTERDICTION[categorieId];
+  const cat = assembleeCategorie(categorieId);
   if (!cat) return [];
   const noms = [];
   (cat.matieres || []).forEach(m => {
@@ -129,9 +170,14 @@ function assembleeContenuCategorie(categorieId) {
 // SOURCE COMMUNE DE LEGALITE (§34 a §39, §44)
 // =====================
 // C'est le point unique auquel tout le reste du jeu demande « est-ce interdit ici et maintenant ».
-// Il ne cree AUCUNE taxonomie parallele : il croise les interdictions en vigueur
-// (assemblee_propositions, type='mecanique', statut='adoptee') avec les identifiants deja
-// existants du jeu, via CATEGORIES_INTERDICTION.
+// Il ne cree AUCUNE taxonomie parallele : il croise les interdictions REELLEMENT EN VIGUEUR
+// (assemblee_propositions, type='mecanique', statut='adoptee' ET appliquee_ts non nul) avec les
+// identifiants deja existants du jeu, via les categories lues en base.
+//
+// ADOPTEE N'EST PAS APPLIQUEE (chantier 4D). Le serveur l'a toujours su -- assemblee_loi_en_vigueur
+// exige appliquee_ts -- mais cette couche-ci ne filtrait que sur le statut. Entre le vote et la
+// mise en application par le Ministre de l'Interieur, le navigateur annoncait donc comme interdit
+// ce que le serveur autorisait encore.
 //
 // TERRITORIALITE (§37) : les lois de Republia ne s'appliquent qu'a Republia. Acheter legalement
 // a l'etranger reste possible ; c'est l'ENTREE sur le territoire qui rend la possession illegale.
@@ -144,6 +190,11 @@ window._assembleeInterdictions = window._assembleeInterdictions || { liste: null
 
 async function rafraichirAssembleeInterdictions() {
   if (typeof sbGetAssembleeInterdictions !== 'function') return null;
+  // Les categories d'abord, et une seule fois : sans elles, une loi lue ne peut etre ni nommee
+  // ni appliquee. Les charger ici evite d'avoir a y penser sur chacun des quatre appelants.
+  if (!(window._assembleeCategories && window._assembleeCategories.parId)) {
+    await rafraichirAssembleeCategories().catch(() => null);
+  }
   const pays = (typeof state !== 'undefined' && state.country) || 'republic';
   const liste = await sbGetAssembleeInterdictions(pays).catch(() => null);
   if (!liste) return null;
@@ -165,8 +216,12 @@ function assembleeLoiApplicable() {
 function assembleeInterdictionMatiere(cleMatiere) {
   if (!assembleeLoiApplicable() || !cleMatiere) return null;
   for (const loi of assembleeInterdictionsActives()) {
-    const cat = CATEGORIES_INTERDICTION[loi.categorie];
-    if (cat && (cat.matieres || []).includes(cleMatiere)) return loi;
+    const cat = assembleeCategorie(loi.categorie);
+    if (!cat) continue;
+    // LE VOLET MATIERES PEUT AVOIR ETE ECARTE PAR LES DEPUTES. Une loi sur les medicaments qui
+    // ne vise que les objets de soin ne doit pas bloquer le commerce de la matiere.
+    if (!assembleePortee(loi).voletMatieres) continue;
+    if ((cat.matieres || []).includes(cleMatiere)) return loi;
   }
   return null;
 }
@@ -180,12 +235,17 @@ function assembleeInterdictionMatiere(cleMatiere) {
 function assembleeInterdictionObjet(item) {
   if (!assembleeLoiApplicable() || !item) return null;
   for (const loi of assembleeInterdictionsActives()) {
-    const cat = CATEGORIES_INTERDICTION[loi.categorie];
+    const cat = assembleeCategorie(loi.categorie);
     if (!cat) continue;
-    if (item.stackKey && (cat.matieres || []).includes(item.stackKey)) return loi;
-    if (item.type && (cat.typesObjet || []).includes(item.type)) {
-      if (!(cat.sousTypes || []).length) return loi;
-      if (item.sousType && cat.sousTypes.includes(item.sousType)) return loi;
+    const portee = assembleePortee(loi);
+    if (portee.voletMatieres && item.stackKey && (cat.matieres || []).includes(item.stackKey)) return loi;
+    if (portee.voletObjets && item.type && (cat.typesObjet || []).includes(item.type)) {
+      const vises = assembleeSousTypesVises(cat, portee);
+      // vises === null : la categorie n'est pas bornee et la portee ne restreint pas -- toute la
+      // famille est visee. Sinon il faut que le sous-type de l'objet figure dans la liste
+      // retenue ; une intersection vide ne vise rien, elle n'ouvre pas tout.
+      if (vises === null) return loi;
+      if (item.sousType && vises.indexOf(item.sousType) !== -1) return loi;
     }
   }
   return null;
@@ -307,12 +367,35 @@ function assembleeHeuresRestantes(c) {
 // c'est la possession au moment du controle qui compte. En revanche cela ne cree JAMAIS de trace
 // de transaction retroactive (§39) -- l'achat passe reste un achat passe.
 async function assembleeConfisquerInterdits() {
-  const vises = assembleeObjetsInterditsPortes();
+  // CE N'EST PLUS LE NAVIGATEUR QUI DECIDE (chantier 4D).
+  //
+  // Avant, cette fonction partait de assembleeObjetsInterditsPortes() -- un calcul local -- et
+  // sortait immediatement sur `if (!vises.length) return ''`. Ce pre-calcul servait donc de
+  // PORTILLON a la confiscation : quand la copie figee du navigateur ignorait la categorie
+  // visee, la liste etait vide, inventaire_confisquer n'etait jamais appelee, et la douane
+  // repondait « rien d'illegal trouve » sur un inventaire plein d'objets interdits.
+  //
+  // On demande desormais au SERVEUR, qui lit les categories et la portee votee. Le calcul local
+  // reste, mais seulement comme repli si la RPC ne repond pas -- jamais comme autorite.
+  if (typeof confisquerObjets !== 'function') return '';
+  const inv = (state.inventory || []);
+  if (!inv.length) return '';
+
+  let vises = null;
+  if (typeof sbAssembleeVerifierVente === 'function' && assembleeLoiApplicable()) {
+    const r = await sbAssembleeVerifierVente(inv, state.country || 'republic').catch(() => null);
+    if (r && Array.isArray(r.interdits)) {
+      vises = r.interdits.map(i => inv[i && i.index]).filter(Boolean);
+    }
+  }
+  // Repli : le serveur n'a pas repondu. On retombe sur le calcul local, qui lit les memes
+  // categories et la meme portee -- il dira la meme chose, sauf si la table n'a pas pu etre lue.
+  if (vises === null) vises = assembleeObjetsInterditsPortes();
   if (!vises.length) return '';
+
   // Repli local SUPPRIME (chantier C, 14 septembre 2026) : il reecrivait l'inventaire depuis le
   // navigateur si le moteur generique manquait -- exactement le repli permissif que la
   // securisation retire partout ailleurs. Sans moteur, la confiscation n'a pas lieu.
-  if (typeof confisquerObjets !== 'function') return '';
   const noms = await confisquerObjets(vises);
   if (typeof sauvegarderPersonnageImmediat === 'function') await sauvegarderPersonnageImmediat();
   return noms;
@@ -1123,7 +1206,7 @@ function assembleeCorpsTopic(titre, type, categorie, texte, auteur) {
   if (type === 'rp') {
     lignes.push('Nature : loi déclarative (RP). Aucun effet mécanique automatique — son application dépend des joueurs et des institutions.');
   } else if (type === 'mecanique') {
-    const cat = CATEGORIES_INTERDICTION[categorie];
+    const cat = assembleeCategorie(categorie);
     lignes.push('Nature : loi d\'interdiction mécanique.');
     lignes.push('Catégorie technique visée : **' + (cat ? cat.label : categorie) + '**.');
     const contenu = assembleeContenuCategorie(categorie);
@@ -1832,7 +1915,7 @@ async function ouvrirRegistreAssemblee() {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:' + col + ';margin:.7rem 0 .35rem">' + titre + ' (' + lot.length + ')</div>';
     lot.forEach(l => {
       const marque = l.type === 'mecanique'
-        ? ' <span style="color:#cc8866">[' + (CATEGORIES_INTERDICTION[l.categorie]?.label || l.categorie) + ']</span>'
+        ? ' <span style="color:#cc8866">[' + assembleeLibelleCategorie(l.categorie) + ']</span>'
         : (l.type === 'abrogation' ? ' <span style="color:#8a6a20">[abrogation]</span>' : '');
       html += '<div onclick="ouvrirDetailProposition(\'' + l.id + '\')" style="padding:.55rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + l.titre + marque + '</div>';
@@ -1869,7 +1952,7 @@ async function ouvrirDetailProposition(propId) {
   html += '<div style="font-size:.74rem;color:#6a5a30;margin-bottom:.7rem">Déposé par ' + p.auteur + ' le ' + assembleeFormaterEcheance(p.depose_ts) + '</div>';
 
   if (p.type === 'mecanique') {
-    const cat = CATEGORIES_INTERDICTION[p.categorie];
+    const cat = assembleeCategorie(p.categorie);
     const contenu = assembleeContenuCategorie(p.categorie);
     html += '<div style="padding:.55rem;border:1px solid #6a2010;background:#1a0a05;margin-bottom:.7rem;font-size:.76rem;color:#cc8866">';
     html += 'Loi d\'interdiction mécanique · catégorie <strong>' + (cat ? cat.label : p.categorie) + '</strong>';

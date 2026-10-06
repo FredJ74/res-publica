@@ -4969,9 +4969,39 @@ async function sbGetAssembleeRegistre(country) {
 
 // Interdictions mecaniques EN VIGUEUR (§34/§36). Requete la plus chaude une fois les lois
 // branchees sur le commerce : index partiel dedie cote base.
+//
+// DEUX CORRECTIONS DU CHANTIER 4D.
+//
+// 1. appliquee_ts. Le serveur n'a JAMAIS considere qu'une loi adoptee produisait
+//    un effet : assemblee_loi_en_vigueur exige appliquee_ts IS NOT NULL depuis
+//    toujours. Cette requete, elle, ne filtrait que sur statut='adoptee' et ne
+//    lisait meme pas la colonne. Entre le vote et la mise en application par le
+//    Ministre de l'Interieur, le navigateur affichait donc comme interdit ce que
+//    le serveur autorisait encore -- plus strict que la loi, ce qui est aussi
+//    faux qu'etre plus permissif.
+//
+// 2. data. La portee votee vit dans data.portee, et c'est elle qui dit si la loi
+//    vise les matieres, les objets, ou seulement certains sous-types. Sans elle,
+//    le navigateur ne peut pas calculer la meme chose que le serveur.
 async function sbGetAssembleeInterdictions(country) {
   return (await sbGet('assemblee_propositions',
-    `country=eq.${encodeURIComponent(country || 'republic')}&type=eq.mecanique&statut=eq.adoptee&select=id,titre,categorie,adoptee_ts`)) || [];
+    `country=eq.${encodeURIComponent(country || 'republic')}&type=eq.mecanique&statut=eq.adoptee`
+    + `&appliquee_ts=not.is.null&select=id,titre,categorie,adoptee_ts,appliquee_ts,data`)) || [];
+}
+
+// LES CATEGORIES D'INTERDICTION, LUES EN BASE (chantier 4D).
+//
+// Elles vivaient aussi dans une constante du navigateur, CATEGORIES_INTERDICTION,
+// figee au 11 septembre 2026 a quinze entrees alors que la base en porte
+// vingt-deux. Les six matieres ajoutees le 30 septembre -- cereales, desinfectant,
+// fruits_legumes, metal, minerai, plantes -- et les explosifs ajoutes par ce
+// chantier etaient donc invisibles au navigateur : une loi les visant s'affichait
+// sous sa cle brute, sans contenu, et surtout n'entrainait aucune confiscation.
+//
+// La table fait foi. La constante ne sert plus que de repli hors ligne.
+async function sbGetCategoriesInterdiction() {
+  return (await sbGet('assemblee_categories_interdiction',
+    'select=categorie,label,matieres,types_objet,sous_types&order=categorie.asc')) || [];
 }
 
 // ---- ECRITURES (RPC uniquement) ----

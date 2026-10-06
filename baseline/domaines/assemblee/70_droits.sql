@@ -85,10 +85,10 @@ GRANT EXECUTE ON FUNCTION public.assemblee_mettre_en_application(text,text,text)
 GRANT EXECUTE ON FUNCTION public.assemblee_neutraliser_depute(text,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_neutraliser_depute(text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_neutraliser_depute(text,text,text,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb) TO anon;
-GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb) TO postgres;
-GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb,jsonb) TO anon;
+GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_objet_vise(text,jsonb,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_occupation_sieges(text) TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.assemblee_occupation_sieges(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.assemblee_occupation_sieges(text) TO authenticated;
@@ -135,6 +135,8 @@ GRANT EXECUTE ON FUNCTION public.assemblee_reveiller_depute(text,text,text) TO p
 GRANT EXECUTE ON FUNCTION public.assemblee_reveiller_depute(text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_sanctionner_lois_non_appliquees(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_sanctionner_lois_non_appliquees(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.assemblee_sous_types_connus(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_sous_types_connus(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_stat_base(jsonb,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_stat_base(jsonb,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_taux_marchandage(jsonb,boolean) TO postgres;

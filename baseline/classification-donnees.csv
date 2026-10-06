@@ -6,7 +6,7 @@ ambassades_ouvertes;divers et technique;C;structure_seule;0;oui;0;0;Ambassades o
 apports_matieres;economie;C;structure_seule;2;non;0;2;Journal idempotent des apports de matiere.;
 armureries_dotations;militaire;B;seed_complet;3;oui;1;1;Dotation initiale d'armurerie, renseignee pour 3 empires.;
 assemblee_catalogue_illegal;assemblee;A;seed_complet;7;non;2;1;7 entrees du catalogue illegal.;
-assemblee_categories_interdiction;assemblee;A;seed_complet;21;non;4;4;21 categories d'interdiction legislative.;
+assemblee_categories_interdiction;assemblee;A;seed_complet;22;non;4;4;22 categories d'interdiction legislative.;
 assemblee_indemnites;assemblee;C;structure_seule;0;non;0;1;Indemnites versees.;
 assemblee_intentions;assemblee;C;structure_seule;0;non;0;3;Intentions de vote marchandees.;
 assemblee_propositions;assemblee;C;structure_seule;0;oui;0;15;Propositions de loi deposees.;

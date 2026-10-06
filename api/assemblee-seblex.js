@@ -109,8 +109,17 @@ function construirePrompt(catalogue, lois) {
     const dims = [];
     if (c.transformation_pertinente === true) dims.push('transformation possible');
     if (c.production_pertinente === true) dims.push('production possible');
+    // CE QUE LE DEPOSANT PEUT CHOISIR, et rien d'autre. Seb ne doit proposer un arbitrage que
+    // s'il existe reellement : annoncer un choix que le moteur n'honore pas serait pire que de
+    // ne rien proposer.
+    const choix = [];
+    if (c.choix_volets === true) choix.push('peut viser la matiere, les objets, ou les deux');
+    if (Array.isArray(c.sous_types_disponibles) && c.sous_types_disponibles.length > 1) {
+      choix.push('sous-types au choix : ' + c.sous_types_disponibles.join(', '));
+    }
     return '- ' + c.categorie + ' « ' + c.label + ' » : ' + cibles.join(' ; ')
-         + (dims.length ? ' [' + dims.join(', ') + ']' : ' [ni production ni transformation dans le jeu]');
+         + (dims.length ? ' [' + dims.join(', ') + ']' : ' [ni production ni transformation dans le jeu]')
+         + (choix.length ? '\n    CHOIX OUVERT AU DEPOSANT : ' + choix.join(' ; ') : '');
   }).join('\n');
 
   const lignesLois = (lois && lois.length)
@@ -132,10 +141,25 @@ function construirePrompt(catalogue, lois) {
     "",
     "1. INTERDICTION (effet mecanique reel). Le moteur ne sait interdire QUE l'une de ces categories :",
     lignesCat,
-    "   Une seule nuance est votable en plus de la categorie : la loi interdit-elle AUSSI de transformer un",
-    "   stock deja possede (fabriquer des produits avec) ? Dans les deux cas elle interdit deja de produire,",
-    "   d'acheter, de vendre et d'importer legalement. Ne pose cette question QUE si la categorie porte la",
-    "   mention « transformation possible ». N'invente aucune autre nuance : elle serait refusee.",
+    "   LA CATEGORIE DIT CE QUI PEUT ETRE VISE ; C'EST LE DEPOSANT QUI DIT CE QU'IL VISE VRAIMENT.",
+    "   Une categorie n'impose jamais une portee politique : quand elle ouvre un choix, tu le poses,",
+    "   en francais, sans jamais nommer un champ technique. Trois nuances existent, et seulement elles :",
+    "",
+    "   a) TRANSFORMATION : la loi interdit-elle AUSSI de transformer un stock deja possede (fabriquer",
+    "      des produits avec) ? Dans les deux cas elle interdit deja de produire, d'acheter, de vendre",
+    "      et d'importer legalement. Ne pose la question QUE si la categorie porte « transformation possible ».",
+    "",
+    "   b) MATIERE OU OBJETS : quand la categorie porte « peut viser la matiere, les objets, ou les deux »,",
+    "      demande lequel. Exemple : interdire les medicaments, est-ce interdire le commerce de la matiere,",
+    "      les produits de soin eux-memes, ou les deux ? Sans reponse, la loi vise les deux.",
+    "",
+    "   c) SOUS-TYPES : quand la categorie liste des sous-types au choix, demande lesquels sont vises.",
+    "      Exemple : interdire les armes, est-ce viser l'armement militaire, les armes civiles, ou tout ?",
+    "      Sans reponse, la loi vise tout ce que la categorie recouvre. Tu ne peux retenir QUE des",
+    "      sous-types figurant dans la liste de la categorie : tout autre serait refuse.",
+    "",
+    "   N'invente aucune autre nuance : elle serait refusee. Et ne demande jamais un choix que la",
+    "   categorie n'ouvre pas -- une categorie purement matiere n'a ni objets ni sous-types.",
     "   Restent TOUJOURS permis, quoi qu'on te demande : posseder un stock, le consommer, le DONNER.",
     "",
     "2. DECLARATIVE. Une proposition parfaitement legitime que le moteur ne sait pas rendre automatique.",
@@ -156,7 +180,11 @@ function construirePrompt(catalogue, lois) {
     'A) il te manque un element : {"etat":"question","question":"<une seule question, 1 a 2 phrases>"}',
     'B) interdiction : {"etat":"synthese","nature":"interdiction","titre":"<80 car. max>",',
     '   "synthese":"<le projet en 1 a 3 phrases, francais clair>","categorie":"<identifiant EXACT>",',
-    '   "transformation_interdite":<true|false>,"mot":"<ta phrase d\'accompagnement, 1 phrase>"}',
+    '   "transformation_interdite":<true|false>,"vise_matiere":<true|false>,"vise_objets":<true|false>,',
+    '   "sous_types":[<sous-types EXACTS de la categorie, ou omis si tous>],',
+    '   "mot":"<ta phrase d\'accompagnement, 1 phrase>"}',
+    '   vise_matiere et vise_objets valent true par defaut ; ne les mets a false que si le deposant',
+    '   a explicitement restreint. N\'ecris sous_types que si le deposant a restreint.',
     'C) declarative : {"etat":"synthese","nature":"declarative","titre":"<80 car. max>",',
     '   "synthese":"<le projet en 1 a 3 phrases>","mot":"<ta phrase : rien a ajouter, ou bien qu\'elle',
     '   n\'aura pas d\'effet automatique>"}',
@@ -234,17 +262,43 @@ function validerReponse(brut, catalogue, lois) {
     const fiche = catalogue.categories.find(c => c && c.categorie === cat);
     if (!fiche) return { ok: false, motif: 'categorie_inconnue' };
 
-    // LA PORTEE : booleen strict, ramene a false si la transformation n'a aucun
-    // sens pour cette categorie. Un effet que le moteur n'appliquerait pas ne doit
-    // jamais etre annonce au deposant.
+    // LA PORTEE : chaque dimension est ramenee a ce que la CATEGORIE offre reellement.
+    // Un effet que le moteur n'appliquerait pas ne doit jamais etre annonce au deposant --
+    // c'est la regle qui empeche l'IA de promettre une loi qui ne fera rien.
     let transfo = (j.transformation_interdite === true);
     if (fiche.transformation_pertinente !== true) transfo = false;
+
+    // Les deux volets : true par defaut. On ne retient un false que si la categorie ouvre
+    // vraiment le choix ; sinon mettre un volet a false neutraliserait la loi en silence.
+    const choixVolets = (fiche.choix_volets === true);
+    const viseMatiere = choixVolets ? (j.vise_matiere !== false) : true;
+    const viseObjets  = choixVolets ? (j.vise_objets  !== false) : true;
+    if (choixVolets && !viseMatiere && !viseObjets) {
+      return { ok: false, motif: 'portee_vide' };   // une loi qui ne vise rien n'est pas une loi
+    }
+
+    // Les sous-types : uniquement ceux que la categorie propose. Un sous-type invente est
+    // rejete, pas ignore -- l'ignorer elargirait la loi au lieu de la restreindre.
+    const dispo = Array.isArray(fiche.sous_types_disponibles) ? fiche.sous_types_disponibles : [];
+    let sousTypes = null;
+    if (Array.isArray(j.sous_types) && j.sous_types.length) {
+      if (j.sous_types.some(st => typeof st !== 'string' || dispo.indexOf(st) === -1)) {
+        return { ok: false, motif: 'sous_type_inconnu' };
+      }
+      // Retenir TOUS les sous-types disponibles revient a ne pas restreindre : on normalise,
+      // pour que deux lois identiques s'ecrivent pareil en base.
+      if (j.sous_types.length < dispo.length) sousTypes = j.sous_types.slice();
+    }
+
+    const portee = { transformation_stock_interdite: transfo,
+                     volet_matieres: viseMatiere, volet_objets: viseObjets };
+    if (sousTypes) portee.sous_types = sousTypes;
 
     return {
       ok: true, etat: 'synthese', nature: 'interdiction', titre, synthese, mot: mot || null,
       categorie: cat,
       label_categorie: texteCourt(fiche.label, 60) || cat,
-      portee: { transformation_stock_interdite: transfo }
+      portee
     };
   }
 
