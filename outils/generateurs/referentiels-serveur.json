@@ -230,15 +230,15 @@
     },
     "GREVE_VILLES_REPUBLIA_SERVEUR": {
       "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
-      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
+      "ferme_par": "lot 4G -- dimensionnement par empire (arbitrage rendu le 6 octobre 2026)"
     },
     "RECETTES_FISCALES_JOUR_SERVEUR": {
       "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
-      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
+      "ferme_par": "lot 4G -- dimensionnement par empire (arbitrage rendu le 6 octobre 2026)"
     },
     "VILLES_ARMURERIES_SERVEUR": {
       "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
-      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
+      "ferme_par": "lot 4G -- dimensionnement par empire (arbitrage rendu le 6 octobre 2026)"
     }
   },
   "_republia_monde_entier": {
@@ -257,7 +257,8 @@
       "2. Rendre l'absence de configuration EXPLICITE et visible, jamais un vide silencieux : un empire non configure doit produire un constat, pas un non-evenement indistinguable d'un empire configure a zero.",
       "3. N'inventer AUCUNE valeur pour Sovarka, El Estado et Al-Khalija.",
       "4. Pour les greves seulement : traiter d'abord l'absence de persistance serveur des indices des trois autres empires, sans laquelle le reste ne peut pas atterrir."
-    ]
+    ],
+    "_lot": "lot 4G"
   },
-  "_etiquettes_de_lot": "Le depot ne connait que deux etiquettes de lot : « lot 4D » pour les divergences metier declarees, et « chantier 7 » pour les fonctions recopiees. La suite de la sequence 4 n'est consignee nulle part ici. Le dimensionnement par empire est donc enregistre sous une etiquette explicite plutot que sous une lettre devinee : si la sequence lui en assigne une, c'est un renommage d'une ligne."
+  "_etiquettes_de_lot": "Trois etiquettes de lot sont employees ici : « lot 4D » pour les divergences metier declarees, « lot 4G » pour le dimensionnement par empire, et « chantier 7 » pour les fonctions recopiees. 4G a ete fixe par Fred le 6 octobre 2026 ; la declaration portait jusque-la une etiquette descriptive, faute de connaitre la lettre."
 }
