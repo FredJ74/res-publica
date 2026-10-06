@@ -7,31 +7,115 @@ const COUNTRIES = {
     n:'Republia', col:'#4a9ade', cur:'FR', icon:'ti-building-community',
     desc:'Democratie fatiguee, elites consanguines, scandale mediatique comme sport national.',
     tags:['Democratie','Satirique'],
-    bases:{INT:8,CHA:7,VOL:6,PER:7,DUP:7,ENT:7},
-    capitaleName:'Luthecia'
+    bases:{INT:8,CHA:7,VOL:6,PER:7,DUP:7,ENT:7}
   },
     narco: {
     n:'El Estado', col:'#cc6644', cur:'PS', icon:'ti-skull',
     desc:'Democratie de facade, cartels, elections achetees. La violence est une langue politique.',
     tags:['Violent','Corruption'],
-    bases:{INT:6,CHA:7,VOL:8,PER:8,DUP:8,ENT:5},
-    capitaleName:'Ciudad Roja'
+    bases:{INT:6,CHA:7,VOL:8,PER:8,DUP:8,ENT:5}
   },
   soviet: {
     n:'Sovarka', col:'#cc4444', cur:'RP', icon:'ti-hammer',
     desc:'Parti unique en tension interne. Reformistes contre conservateurs.',
     tags:['Parti unique','Factions'],
-    bases:{INT:8,CHA:6,VOL:9,PER:8,DUP:7,ENT:6},
-    capitaleName:'Novomirsk'
+    bases:{INT:8,CHA:6,VOL:9,PER:8,DUP:7,ENT:6}
   },
   khalija: {
     n:'Al-Khalija', col:'#C9A84C', cur:'DR', icon:'ti-crown',
     desc:'Monarchie absolue, famille royale tentaculaire. La Grace Royale est la seule monnaie.',
     tags:['Monarchie','Theocratie'],
-    bases:{INT:7,CHA:8,VOL:8,PER:7,DUP:8,ENT:8},
-    capitaleName:'Al-Madina'
+    bases:{INT:7,CHA:8,VOL:8,PER:7,DUP:8,ENT:8}
   }
 };
+
+// =====================
+// LES VILLES — REFERENTIEL CANONIQUE (chantier 4E, 7 octobre 2026)
+// =====================
+// UNE SEULE SOURCE. Avant ce chantier, les noms des douze villes vivaient dans SIX tables, et
+// elles ne disaient pas la meme chose :
+//
+//   1. WORLD[pays][ville].name              (ici)                        -- 8 noms sur 12 FAUX
+//   2. NOMS_VILLES_REPUBLIA                 (plateau-divers.js)          -- Republia seule
+//   3. NOMS_VILLES_PAR_PAYS                 (plateau-divers.js)          -- lue par la seule 4.
+//   4. resoudreNomVille()                   (plateau-divers.js)          -- ZERO appelant
+//   5. VILLES_PAR_EMPIRE                    (plateau-navigation.js)
+//   6. NOMS_VILLES + resoudreNomVille()      (api/_journal-collecte.js)   -- copie serveur
+//
+// Les cinq dernieres portaient les bons noms ; c'est WORLD, la table que tout le monde croit
+// canonique, qui etait perimee. Un joueur de Sovarka arrivait donc a « Starovka » dans le
+// modal de transport et se retrouvait a « Sibirsk-9 » dans son en-tete de ville : deux noms
+// pour un meme lieu, dans un meme ecran. Et la 3. n'etait lue que par la 4., qui n'etait
+// appelee par personne -- deux commentaires la designaient pourtant comme « source canonique ».
+//
+// POURQUOI ICI, ET PAS DANS UN MODULE DE PLATEAU. Les quatre modules qui lisaient
+// NOMS_VILLES_REPUBLIA l'entouraient tous d'un `typeof ... !== 'undefined'`, et ce n'etait pas
+// de la prudence decorative : plateau-divers.js, qui la declarait, se charge en 803e position
+// dans plateau.html, APRES plateau-navigation (790), plateau-politique (795),
+// plateau-gouvernement (796) et plateau-justice-economie (798). La table etait reellement
+// absente pour ses propres lecteurs, et le repli silencieux « afficher le code technique » etait
+// la consequence de cet ordre de chargement -- pas un choix. data.js est charge en 654e
+// position, avant tout le monde : le referentiel et son resolveur sont donc toujours la, et
+// aucune garde n'a plus de raison d'etre.
+//
+// VILLES fait foi desormais. WORLD a ete aligne sur elle, les tables 2 a 5 sont supprimees et
+// leurs appelants passent par le resolveur ci-dessous ; la copie serveur 6. est GENEREE depuis
+// cette table (VILLES_SERVEUR dans api/_referentiels-generes.js), donc controlee. Les cles
+// techniques (capitale / ville_a / ville_b) sont CONSERVEES telles quelles : elles sont
+// partout, en base comme dans le code et dans les donnees persistees, et en changer n'aurait
+// rien clarifie.
+//
+// CE QUI N'EST PAS UNE VILLE. La caserne et le QHS sont des zones speciales SITUEES HORS DES
+// VILLES. Ils ne relevent d'aucune mairie et n'ont donc rien a faire ici. WORLD continue de
+// les porter comme zones (avec isSpecial), ce qui est leur nature ; villeEstReelle() les
+// refuse, et c'est le seul point ou la question se pose.
+const VILLES = {
+  republic: {
+    capitale: { nom: 'Luthécia',          capitale: true  },
+    ville_a:  { nom: 'Port-Sainte-Marie', capitale: false },
+    ville_b:  { nom: 'Montrouge',         capitale: false }
+  },
+  soviet: {
+    capitale: { nom: 'Novomirsk', capitale: true  },
+    ville_a:  { nom: 'Starovka',  capitale: false },
+    ville_b:  { nom: 'Krasnov',   capitale: false }
+  },
+  narco: {
+    capitale: { nom: 'Ciudad Roja',  capitale: true  },
+    ville_a:  { nom: 'Puerto Negro', capitale: false },
+    ville_b:  { nom: 'Villa Sangre', capitale: false }
+  },
+  khalija: {
+    capitale: { nom: 'Al Madina',  capitale: true  },
+    ville_a:  { nom: 'Oasis City', capitale: false },
+    ville_b:  { nom: 'Al-Petrol',  capitale: false }
+  }
+};
+
+// LE RESOLVEUR UNIQUE. Rend le nom d'une vraie ville, ou null.
+//
+// NULL EST UNE REPONSE, PAS UN ACCIDENT. Un identifiant inconnu, une zone hors-ville, un pays
+// inconnu : la fonction rend null et l'appelant decide quoi afficher. Elle ne retombe JAMAIS
+// sur Republia, sur la capitale, ni sur une ville arbitraire -- c'est precisement le repli
+// silencieux que ce chantier supprime.
+function villeNom(pays, ville) {
+  const v = VILLES[pays] && VILLES[pays][ville];
+  return v ? v.nom : null;
+}
+
+// Cette cle designe-t-elle une VRAIE ville de cet empire ? C'est la question que doivent poser
+// toutes les fonctions reservees aux villes -- elle exclut caserne, qhs, et les pseudo-villes
+// techniques ('national', 'global', 'zz*') que porte la base.
+function villeEstReelle(pays, ville) {
+  return !!(VILLES[pays] && VILLES[pays][ville]);
+}
+
+// Les trois villes d'un empire, dans l'ordre canonique. Rend [] pour un empire inconnu --
+// jamais les villes de Republia.
+function villesDe(pays) {
+  const t = VILLES[pays];
+  return t ? Object.keys(t).map(id => ({ id, nom: t[id].nom, capitale: t[id].capitale })) : [];
+}
 
 // Rééquilibrage (bêta) : la richesse et la puissance statistique ne progressent plus
 // systématiquement dans le même sens sur un même choix -- chaque origine a désormais un net de
@@ -182,7 +266,7 @@ function bureauxOpenSpaceCentreAffaires() {
 const WORLD = {
   republic: {
     capitale: {
-      name:'Luthecia',
+      name:'Luthécia',
       imageUrl:'https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?w=1200&q=80',
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
@@ -1335,7 +1419,7 @@ const WORLD = {
       }
     },
     ville_a: {
-      name:'Frontera Alta',
+      name:'Puerto Negro',
       imageUrl:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80',
       desc:'Poste-frontiere perche dans les montagnes. Contrebande, douaniers corruptibles et sentiers connus des seuls inities.',
       isCapitale: false,
@@ -1374,7 +1458,7 @@ const WORLD = {
       }
     },
     ville_b: {
-      name:'La Selva',
+      name:'Villa Sangre',
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
@@ -1579,7 +1663,7 @@ const WORLD = {
       }
     },
     ville_a: {
-      name:'Sibirsk-9',
+      name:'Starovka',
       imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
       desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
       isCapitale: false,
@@ -1618,7 +1702,7 @@ const WORLD = {
       }
     },
     ville_b: {
-      name:'Kolkhoz-7',
+      name:'Krasnov',
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
@@ -1674,7 +1758,7 @@ const WORLD = {
 
   khalija: {
     capitale: {
-      name:'Al-Madina',
+      name:'Al Madina',
       streetName: 'Boulevard Royal Al-Sultani',
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
@@ -1848,7 +1932,7 @@ const WORLD = {
       }
     },
     ville_a: {
-      name:'Oasis Al-Baraka',
+      name:'Oasis City',
       imageUrl:'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=1200&q=80',
       desc:'Oasis caravaniere au coeur du desert. Les marchands s\'y arretent depuis des siecles, les secrets aussi.',
       isCapitale: false,
@@ -1887,7 +1971,7 @@ const WORLD = {
       }
     },
     ville_b: {
-      name:'Port Al-Nour',
+      name:'Al-Petrol',
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,

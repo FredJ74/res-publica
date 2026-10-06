@@ -1795,7 +1795,7 @@ function blocusActifsDepuisEtats(lignes) {
 // Libelle d'identification : ville, batiment, syndicat et intensite -- de quoi choisir sans se
 // tromper de blocus.
 function libelleBlocus(b) {
-  const ville = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[b.city]) || b.city;
+  const ville = villeNom(b.country, b.city) || b.city;
   const bat = (typeof BUILDINGS !== 'undefined' && BUILDINGS[b.buildingId] && BUILDINGS[b.buildingId].name) || b.buildingId;
   return ville + ' — ' + bat + (b.syndicatNom ? ' (' + b.syndicatNom + ')' : '') +
          ' · intensité ' + b.intensite + ' · ' + Math.round(b.taux) + ' % de chances';

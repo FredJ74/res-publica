@@ -386,19 +386,20 @@ def axe_empreintes(decl, echecs):
 def axe_artefact(echecs):
     """TROISIEME AXE : l'artefact genere dit-il encore ce que disent les sources ?
 
-    api/_referentiels-generes.js porte dix-huit constantes que api/cron-minuit.js
-    recopiait a la main. Un artefact genere ne vaut que si personne ne peut le
+    api/_referentiels-generes.js porte les constantes que les modules de api/
+    recopiaient a la main. Un artefact genere ne vaut que si personne ne peut le
     retoucher sans que cela se voie : une valeur « corrigee » a la main y
     survivrait jusqu'a la prochaine generation, apres avoir fait diverger le
     serveur du jeu -- exactement la panne que le chantier 4B existe pour fermer.
 
     On rejoue donc la generation EN MEMOIRE et on compare au fichier du disque.
-    Trois refus :
+    Quatre refus :
       . l'artefact du disque ne correspond plus a ce que rendent les sources
       . une constante declaree n'est plus prouvee equivalente a son canon
-      . cron-minuit.js importe un nom que l'artefact n'exporte pas, ou redeclare
-        localement un nom importe -- la redeclaration masquerait l'import en
-        silence et rendrait l'artefact decoratif.
+      . un module de api/ importe un nom que l'artefact n'exporte pas, ou
+        redeclare localement un nom importe -- la redeclaration masquerait
+        l'import en silence et rendrait l'artefact decoratif
+      . plus aucun module n'importe l'artefact
     """
     import importlib.util
     chemin = os.path.join(RACINE, "outils", "generateurs",
@@ -445,25 +446,61 @@ def axe_artefact(echecs):
         return
 
     exportes = set(re.findall(r"^export const ([A-Za-z_0-9]+)", sur_disque, re.M))
-    cron = open(os.path.join(RACINE, "api", "cron-minuit.js"), encoding="utf-8").read()
-    m = re.search(r"import\s*\{([^}]*)\}\s*from\s*'\./_referentiels-generes\.js'", cron)
-    importes = set()
-    if m:
-        importes = {x.strip() for x in m.group(1).split(",") if x.strip()}
-    inconnus = sorted(importes - exportes)
-    for n in inconnus:
-        echecs.append("artefact : cron-minuit.js importe « %s », que l'artefact n'exporte pas" % n)
-    redeclares = sorted(n for n in importes
-                        if re.search(r"^const %s\s*=" % re.escape(n), cron, re.M))
-    for n in redeclares:
-        echecs.append("artefact : cron-minuit.js redeclare « %s » localement alors qu'il "
-                      "l'importe -- la copie masquerait l'artefact" % n)
 
-    print("  %d constantes generees, %d importees par cron-minuit.js" % (len(exportes), len(importes)))
+    # TOUS LES IMPORTATEURS, PAS SEULEMENT LE CRON. Cet axe ne connaissait que
+    # api/cron-minuit.js, parce qu'il etait le seul client de l'artefact. Le
+    # chantier 4E en a ajoute un second -- api/_journal-collecte.js importe
+    # VILLES_SERVEUR -- et un controle qui ne regarde qu'un fichier aurait laisse
+    # le Journal rompre en silence au premier renommage de constante. On balaie
+    # donc api/, et chaque module qui importe l'artefact est verifie de la meme
+    # facon : il n'importe que des noms exportes, et il n'en redeclare aucun.
+    importateurs = {}
+    api = os.path.join(RACINE, "api")
+    for nom_fichier in sorted(os.listdir(api)):
+        if not nom_fichier.endswith(".js") or nom_fichier == "_referentiels-generes.js":
+            continue
+        src = open(os.path.join(api, nom_fichier), encoding="utf-8").read()
+        m = re.search(r"import\s*\{([^}]*)\}\s*from\s*'\./_referentiels-generes\.js'", src)
+        if not m:
+            continue
+        importateurs[nom_fichier] = (
+            {x.strip() for x in m.group(1).split(",") if x.strip()}, src)
+
+    if not importateurs:
+        echecs.append("artefact : plus aucun module de api/ n'importe l'artefact -- il est "
+                      "devenu decoratif, ou l'import a ete casse")
+
+    fautes = 0
+    for nom_fichier in sorted(importateurs):
+        importes, src = importateurs[nom_fichier]
+        for n in sorted(importes - exportes):
+            echecs.append("artefact : %s importe « %s », que l'artefact n'exporte pas"
+                          % (nom_fichier, n))
+            fautes += 1
+        for n in sorted(n for n in importes
+                        if re.search(r"^const %s\s*=" % re.escape(n), src, re.M)):
+            echecs.append("artefact : %s redeclare « %s » localement alors qu'il l'importe "
+                          "-- la copie masquerait l'artefact" % (nom_fichier, n))
+            fautes += 1
+
+    # UNE CONSTANTE GENEREE QUE PERSONNE N'IMPORTE N'EST PAS UNE FAUTE, mais elle
+    # doit se voir : c'est soit un import oublie, soit une generation devenue
+    # inutile. Le chantier qui l'a produite doit pouvoir le constater.
+    tous_importes = set()
+    for importes, _src in importateurs.values():
+        tous_importes |= importes
+    orphelines = sorted(exportes - tous_importes)
+
+    print("  %d constantes generees, importees par %d module(s) de api/"
+          % (len(exportes), len(importateurs)))
+    for nom_fichier in sorted(importateurs):
+        print("    %-28s %2d constante(s)" % (nom_fichier, len(importateurs[nom_fichier][0])))
     print("  regeneration identique au fichier du disque  (empreinte %s)"
           % __import__("hashlib").md5(attendu.encode("utf-8")).hexdigest()[:16])
-    if not inconnus and not redeclares:
+    if not fautes:
         print("  tous les noms importes sont exportes, aucun n'est redeclare localement")
+    if orphelines:
+        print("  generees mais importees par personne : %s" % ", ".join(orphelines))
 
 
 def main():

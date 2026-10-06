@@ -476,6 +476,66 @@ export const RECETTES_MILITAIRES_SERVEUR = {
   }
 };
 
+// VILLES_SERVEUR -- VILLES de data.js
+export const VILLES_SERVEUR = {
+  "republic": {
+    "capitale": {
+      "nom": "Luthécia",
+      "capitale": true
+    },
+    "ville_a": {
+      "nom": "Port-Sainte-Marie",
+      "capitale": false
+    },
+    "ville_b": {
+      "nom": "Montrouge",
+      "capitale": false
+    }
+  },
+  "soviet": {
+    "capitale": {
+      "nom": "Novomirsk",
+      "capitale": true
+    },
+    "ville_a": {
+      "nom": "Starovka",
+      "capitale": false
+    },
+    "ville_b": {
+      "nom": "Krasnov",
+      "capitale": false
+    }
+  },
+  "narco": {
+    "capitale": {
+      "nom": "Ciudad Roja",
+      "capitale": true
+    },
+    "ville_a": {
+      "nom": "Puerto Negro",
+      "capitale": false
+    },
+    "ville_b": {
+      "nom": "Villa Sangre",
+      "capitale": false
+    }
+  },
+  "khalija": {
+    "capitale": {
+      "nom": "Al Madina",
+      "capitale": true
+    },
+    "ville_a": {
+      "nom": "Oasis City",
+      "capitale": false
+    },
+    "ville_b": {
+      "nom": "Al-Petrol",
+      "capitale": false
+    }
+  }
+};
+
 // POSTES_NOMMES_EXCLUSIFS_SERVEUR -- POSTES_NOMMES_EXCLUSIFS de data.js
 export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
   "juge": {

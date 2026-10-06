@@ -2242,34 +2242,14 @@ const TRANSPORT_CONFIG = {
   bateau: { pa:5, cost:100, ordre:'prendre_bateau',   label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
 };
 
-// Libelles alignes sur la source canonique NOMS_VILLES_PAR_PAYS (plateau-divers.js) le
-// 5 septembre 2026 : le correctif d'identite du 28 aout 2026 n'avait pas ete propage ici, cette
-// table affichait donc encore Puerto Oscuro / La Selva / Stalinova / Kolkhoz-7 / Oasis Al-Zafar /
-// Port Al-Nour. Seul le champ `name` (pur libelle) change -- les `id` (capitale/ville_a/ville_b),
-// qui sont les seules cles de recherche utilisees (voir .find(v => v.id === villeId)) et les
-// seules valeurs persistees, sont strictement inchanges.
-const VILLES_PAR_EMPIRE = {
-  republic: [
-    { id:'capitale',  name:'Luthécia',          type:'capitale' },
-    { id:'ville_a',   name:'Port-Sainte-Marie',  type:'ville' },
-    { id:'ville_b',   name:'Montrouge',           type:'ville' }
-  ],
-  narco: [
-    { id:'capitale',  name:'Ciudad Roja',         type:'capitale' },
-    { id:'ville_a',   name:'Puerto Negro',         type:'ville' },
-    { id:'ville_b',   name:'Villa Sangre',         type:'ville' }
-  ],
-  soviet: [
-    { id:'capitale',  name:'Novomirsk',            type:'capitale' },
-    { id:'ville_a',   name:'Starovka',              type:'ville' },
-    { id:'ville_b',   name:'Krasnov',               type:'ville' }
-  ],
-  khalija: [
-    { id:'capitale',  name:'Al Madina',            type:'capitale' },
-    { id:'ville_a',   name:'Oasis City',           type:'ville' },
-    { id:'ville_b',   name:'Al-Petrol',             type:'ville' }
-  ]
-};
+// VILLES_PAR_EMPIRE EST SUPPRIMEE (chantier 4E, 7 octobre 2026). C'etait la cinquieme des six
+// tables de noms de ville du depot. Les destinations viennent desormais de villesDe(pays)
+// (data.js), qui lit le referentiel canonique VILLES : memes `id` (capitale/ville_a/ville_b),
+// memes libelles, et `capitale: true` a la place de `type:'capitale'`.
+//
+// LES ZONES HORS-VILLE N'Y SONT PAS, ET C'EST LA REGLE. La caserne et le QHS existent dans
+// WORLD comme zones speciales, hors des villes et hors de toute mairie ; ils ne sont pas des
+// destinations de transport intra-empire et n'apparaissent donc dans aucune liste de villes.
 
 const EMPIRES_CONFIG = {
   republic: { name:'Républia', cur:'FR' },
@@ -2303,13 +2283,13 @@ function ouvrirModalTransport(mode) {
     });
   } else {
     // Intra-empire
-    const villes = VILLES_PAR_EMPIRE[pays] || [];
+    const villes = villesDe(pays);
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + ville.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.type === 'capitale' ? 'Capitale' : 'Ville') + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? 'Capitale' : 'Ville') + '</div>';
       html += '</div>';
     });
   }
@@ -2367,7 +2347,7 @@ async function executerVoyage(mode, empireId, villeId) {
   } else {
     forceRenderCity(villeId);
   }
-  const villeName = VILLES_PAR_EMPIRE[empireId]?.find(v => v.id === villeId)?.name || villeId;
+  const villeName = villeNom(empireId, villeId) || villeId;
   const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
   addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
@@ -2511,7 +2491,7 @@ async function confirmerTransport(mode, empireId, villeId) {
     renderPersonsList(city.persons || []);
   }
 
-  const villeName = VILLES_PAR_EMPIRE[empireId]?.find(v => v.id === villeId)?.name || city?.name || villeId;
+  const villeName = villeNom(empireId, villeId) || city?.name || villeId;
   const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
   addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');

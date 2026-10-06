@@ -10483,7 +10483,7 @@ async function doTenterFuitePolice() {
 
 function getBuildingIdCentreMultimodal(ville, pays) {
   // BUG CORRIGE LE 8 AOUT 2026 : la map utilisait 'port-sainte-marie'/'montrouge' comme cles,
-  // mais les appelants (VILLES_PAR_EMPIRE, confirmerTransport/executerVoyage) passent toujours
+  // mais les appelants (villesDe, confirmerTransport/executerVoyage) passent toujours
   // le vrai id de ville 'ville_a'/'ville_b' -> aucune correspondance, repli silencieux sur
   // 'centre-multinodal-ville_a', batiment inexistant.
   if (ville === 'capitale') return 'centre-multinodal-luthecia'; // hub partage, contenu par buildingContext selon l'empire
@@ -11791,13 +11791,22 @@ function getCaisseLocaleId(categorie, ville) {
   return categorie + '_' + (ville || 'capitale');
 }
 
-// Villes reelles d'un pays (hors zones speciales caserne/qhs, isSpecial:true) -- generique,
-// fonctionne pour tout empire des qu'il possede plusieurs villes actives (A3, lot caisses
-// locales, 16 aout 2026).
+// Villes reelles d'un pays. DEMANDE AU REFERENTIEL, PLUS A LA CARTE (chantier 4E, 7 octobre
+// 2026) : cette fonction deduisait la liste de WORLD en filtrant isSpecial, c'est-a-dire qu'elle
+// definissait « vraie ville » par la negative, a partir d'une table de decor. Elle lit desormais
+// VILLES, ou la question ne se pose plus : caserne et QHS n'y sont pas. Verifie les vingt entrees
+// de WORLD une par une le 7 octobre 2026 -- villeEstReelle et !isSpecial donnent exactement le
+// meme verdict sur les douze villes et les huit zones, donc ce changement de source ne deplace
+// aucune frontiere ; il rend seulement la frontiere declaree au lieu d'etre devinee.
+//
+// UN EMPIRE INCONNU REND [], PLUS ['capitale']. L'ancien repli affirmait l'existence d'une
+// capitale dans un empire dont on ne sait rien, et ses deux appelants financiers lui auraient
+// verse de l'argent : distribuerMontantParVilleAuProrataFiscal aurait credite
+// `<empire inconnu>_mairie-capitale`, creant la caisse au passage. Une liste vide ne distribue
+// rien, ce qui est la seule reponse honnete. Aucun des quatre empires n'est concerne : ils sont
+// tous les quatre dans VILLES.
 function getVillesReelles(country) {
-  const monde = WORLD[country];
-  if (!monde) return ['capitale'];
-  return Object.keys(monde).filter(v => monde[v] && !monde[v].isSpecial);
+  return villesDe(country).map(v => v.id);
 }
 
 // Repartit un montant entre les villes reelles d'un pays au prorata de leur dailyTaxRevenue

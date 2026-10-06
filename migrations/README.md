@@ -10,40 +10,43 @@ L'horodatage est celui du moment où la migration est écrite, en UTC. Il donne
 l'ordre d'application, et il doit être **postérieur au point de coupe du
 baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
-## Les trois migrations en attente d'application — chantier 3, autorité
+## La migration en attente d'application — chantier 4E, villes et caisses
 
-Elles sont **écrites, éprouvées autant que l'environnement le permet, et non
-appliquées**. Rien dans le dépôt ne prétend le contraire : le baseline n'a pas
-été réextrait, et `verifier-autorite.py` déclare lui-même les sept invariants
-qu'elles ferment comme encore en écart (`en_attente_d_application` dans
-`../outils/baseline/autorite.json`).
+`20261007003000_villes_referentiel_et_caisses_fail_closed.sql` est **écrite,
+éprouvée autant que l'environnement le permet, et non appliquée**. Rien dans le
+dépôt ne prétend le contraire : le baseline n'a pas été réextrait, et le miroir
+`villes` est déclaré en attente dans `../outils/baseline/referentiels.json`
+(`posee` et `reelle` à `null`, `fonction_reelle_en_base` à `false`).
 
-| Fichier | Ce qu'elle fait |
+Les trois migrations du chantier 3, qui occupaient cette section, **ont été
+appliquées** ; elles vivent dans `../historique/migrations-appliquees/`.
+
+### Ce qu'elle fait
+
+| Partie | Effet |
 |---|---|
-| `20261005214500_autorite_defauts_fermes.sql` | ferme le robinet : `ALTER DEFAULT PRIVILEGES` n'accordera plus l'écriture sur toute table neuve ; retire les 547 privilèges de maintenance et les 24 fonctions de déclencheur ouvertes aux rôles clients |
-| `20261005214600_autorite_socle_acteur_identifie.sql` | crée `acteur_identifie()`, met les 25 dernières tables sous RLS, remplace les 28 policies totalement permissives, révoque les 101 droits d'écriture que le navigateur n'exerce pas |
-| `20261006013000_autorite_rpc_sans_anon.sql` | retire `EXECUTE` à `anon` sur les 34 fonctions mutantes, et sur les suivantes par défaut |
+| référentiel | crée `villes` (12 lignes, semées par `generer_villes.py`) et `villes_empreinte` + `villes_empreinte_reelle()`, cinquième miroir surveillé |
+| résolveurs | `ville_est_reelle()`, `caisse_territoire()` (portée `national` / `ville` / `indetermine`), et `caisse_ville_de()` réécrite pour déléguer |
+| autorité | ferme le *fail-open* des trois primitives de caisse : absence de règle d'autorité = **refus**, et le contrôle de ville est ajouté aux deux qui n'en avaient pas |
+| vestiges | supprime 5 lignes de `caisses_batiments` à solde 0 et sans aucun mouvement, dont `republic_mairie_caserne` |
 
-Aucune ne touche une donnée : ni `INSERT`, ni `UPDATE`, ni `DELETE`, ni
-`TRUNCATE`, ni `DROP TABLE`. Uniquement des privilèges, de la RLS, des policies
-et une fonction.
+C'est la **seule** partie du chantier 4E qui touche la base. Tout le reste —
+référentiel `VILLES` et résolveur unique côté navigateur, suppression de cinq
+tables de noms concurrentes, générateur, contrôles — est livré et ne dépend pas
+d'elle.
 
-**Ordre d'application impératif**, puis réextraction du baseline et commit des
-deux ensemble (temps 5 de `../WORKFLOW-SUPABASE.md`).
+### Où en est l'épreuve (temps 3)
 
-### Où en est le banc (temps 3)
-
-| Fichier | Banc transactionnel |
+| Épreuve | État |
 |---|---|
-| `…_autorite_defauts_fermes.sql` | **passé** le 5 octobre, mesuré puis annulé ; base vérifiée inchangée après |
-| `…_autorite_socle_acteur_identifie.sql` | **à rejouer** — sa version corrigée n'a jamais atteint la base. Détail et historique dans l'en-tête du fichier |
-| `…_autorite_rpc_sans_anon.sql` | **à jouer** — grammaire validée, banc non tenté |
+| grammaire PostgreSQL 17.7 (`pglast`) | **passée** — 44 instructions analysées |
+| invariant 12 de `verifier-autorite.py` | **passé** — chaque table, signature et policy nommée existe, ou est créée par la migration elle-même |
+| table de décision de `caisse_territoire()` | **passée en lecture seule sur les 151 caisses réelles** : 48 nationales, 36 de ville (contre 34 avant, les 4 `mairie-capitale` étant récupérées), 61 sans règle, 6 indéterminées |
+| effet du resserrement sur les postes réellement pourvus | **mesuré** : les deux seuls postes tenus dans la bêta (`min_def`, `lieutenant`) sont nationaux, donc **zéro** chemin légitime fermé ; ce qui se ferme, ce sont 25 caisses sans règle par acteur |
+| banc transactionnel sur la base | **non tenté** — il aurait coûté une seconde confirmation humaine, et les mesures en lecture ci-dessus établissent la même chose |
 
-Les trois passent l'analyseur réel de PostgreSQL 17.7 (`pglast`), et l'invariant
-12 de `verifier-autorite.py` vérifie hors ligne que chaque table, signature et
-policy qu'elles nomment existe bien. Ce que seul le banc peut établir, c'est le
-comportement des boucles sur l'état réel : il reste donc un préalable, pas une
-formalité.
+Ce que seule l'application peut établir, c'est que le DDL passe sur l'état réel.
+Le reste est mesuré.
 
 ## Les trois règles
 

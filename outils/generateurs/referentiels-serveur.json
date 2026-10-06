@@ -185,6 +185,14 @@
       "_pourquoi_generee": "Cette copie etait figee a 3 recettes sur 8 depuis le 18 septembre 2026. Les cinq accessoires etaient proposes au Ministre de la Defense, commandes, et jamais produits : le cron faisait `continue` en silence et la commande restait a 0/N indefiniment. Pire, la liste des matieres reservables etant DEDUITE de ces recettes, le cron liberait chaque nuit le textile, le charbon et les fruits_legumes que le ministre avait reserves. Generer la copie supprime les deux pannes d'un coup."
     },
     {
+      "serveur": "VILLES_SERVEUR",
+      "canon": "VILLES",
+      "fichier": "data.js",
+      "forme": "valeur",
+      "_note": "Le referentiel entier, tel quel : douze couples (pays, ville) avec leur nom et leur rang de capitale. Rien a projeter, il ne porte que ca.",
+      "_pourquoi_generee": "Le serveur portait sa propre table de noms de ville (NOMS_VILLES dans api/_journal-collecte.js), SIXIEME copie des douze memes libelles. Son commentaire disait s'aligner sur une « source canonique » qui etait, elle, du code mort. Le Journal imprime ces noms dans des editions persistees definitivement : une derive silencieuse y serait irreversible. Generer la copie place les six tables sous un seul controle."
+    },
+    {
       "serveur": "POSTES_NOMMES_EXCLUSIFS_SERVEUR",
       "canon": "POSTES_NOMMES_EXCLUSIFS",
       "fichier": "data.js",

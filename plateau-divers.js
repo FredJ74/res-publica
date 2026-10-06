@@ -251,26 +251,16 @@ async function appliquerDeltaIndiceVillesPays(pays, cle, delta) {
   }
 }
 
-const NOMS_VILLES_REPUBLIA = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
-
-// Correctif d'identite ville/club (28 aout 2026) : generalise NOMS_VILLES_REPUBLIA (conservee
-// telle quelle, encore utilisee directement par son nom a plusieurs endroits) aux 3 autres
-// empires -- jusqu'ici sans nom de ville canonique pour ville_a/ville_b, uniquement les noms de
-// capitale (COUNTRIES[pays].capitaleName). Additif uniquement : ne remplace ni ne renomme
-// NOMS_VILLES_REPUBLIA, n'ajoute aucune nouvelle mecanique, juste la donnee + un petit resolveur
-// generique reutilisable partout ou un code de ville (capitale/ville_a/ville_b) doit s'afficher.
-const NOMS_VILLES_PAR_PAYS = {
-  republic: NOMS_VILLES_REPUBLIA,
-  soviet:   { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' },
-  narco:    { capitale: 'Ciudad Roja', ville_a: 'Puerto Negro', ville_b: 'Villa Sangre' },
-  khalija:  { capitale: 'Al Madina', ville_a: 'Oasis City', ville_b: 'Al-Petrol' }
-};
-// Renvoie le nom reel d'une ville pour un pays donne -- jamais le code brut (capitale/ville_a/
-// ville_b) si une correspondance existe ; repli sur le code lui-meme sinon (memes garanties que
-// les usages existants de NOMS_VILLES_REPUBLIA[v] || v).
-function resoudreNomVille(pays, ville) {
-  return (NOMS_VILLES_PAR_PAYS[pays] && NOMS_VILLES_PAR_PAYS[pays][ville]) || ville;
-}
+// LES NOMS DE VILLE NE SONT PLUS ICI (chantier 4E, 7 octobre 2026). Ce fichier portait trois
+// des six tables de noms concurrentes : NOMS_VILLES_REPUBLIA, NOMS_VILLES_PAR_PAYS et
+// resoudreNomVille(). La source unique est desormais VILLES (data.js), et le resolveur unique
+// est villeNom(pays, ville). Les deux tables supprimees portaient les BONS noms -- c'est
+// WORLD, dans data.js, qui etait perimee sur 8 villes sur 12 ; voir le commentaire de VILLES.
+//
+// resoudreNomVille() est supprimee sans remplacement a l'identique : elle n'avait AUCUN
+// appelant, et son repli (`|| ville`) renvoyait le code technique brut en se faisant passer
+// pour un nom. Le repli d'affichage appartient a l'appelant, qui sait quoi montrer ; le
+// resolveur, lui, rend null quand il ne sait pas.
 
 function rendreGrilleIndices(idx, col) {
   let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem">';
@@ -334,7 +324,7 @@ function afficherIndicesEmpire(empireKey) {
         IP: getIndiceVille(empireKey, ville, 'piete')
       };
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + NOMS_VILLES_REPUBLIA[ville] + '</div>';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + (villeNom(empireKey, ville) || ville) + '</div>';
       html += rendreGrilleIndices(iv, '#8a8060');
       html += '</div>';
     });
@@ -528,7 +518,7 @@ async function verifierConqueteReligieuse(pays, ville, auteur, quantiteAjoutee) 
       const attribue = (typeof sbSetTitulairePnj === 'function')
         ? await sbSetTitulairePnj(pays, 'pretre', ville, auteur) : null;
       if (attribue) {
-        const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+        const nomVille = villeNom(pays, ville) || ville;
         showToast('Charge conquise !', 'Vous devenez Prêtre titulaire de ' + nomVille + '.', true, true);
         addJournalEntry('Vous devenez Prêtre titulaire de ' + nomVille + '.', 'event-good');
         if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient Prêtre titulaire de ' + nomVille + '.');

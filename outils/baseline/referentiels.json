@@ -177,10 +177,10 @@
   "empreintes": {
     "_mesure": {
       "le": "2026-10-06",
-      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les quatre valeurs 'reelle' sont desormais rendues par les quatre fonctions <miroir>_empreinte_reelle, les deux dernieres ajoutees par la migration 20261006194527_referentiels_empreintes_manquantes. Mesure refaite apres application : identique a la mesure d'avant, ce qui prouve que la migration n'a touche aucune donnee.",
+      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les quatre valeurs 'reelle' sont rendues par les quatre fonctions <miroir>_empreinte_reelle, les deux dernieres ajoutees par la migration 20261006194527_referentiels_empreintes_manquantes. Mesure refaite apres application : identique a la mesure d'avant, ce qui prouve que la migration n'a touche aucune donnee. Le cinquieme miroir, villes (chantier 4E), n'est pas encore en base : sa requete est deja dans _requete_de_mesure, mais elle echouera tant que la migration du 7 octobre 2026 n'est pas appliquee.",
       "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
     },
-    "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle();",
+    "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle() UNION ALL SELECT 'villes', (SELECT count(*) FROM public.villes), (SELECT empreinte FROM public.villes_empreinte LIMIT 1), public.villes_empreinte_reelle();",
     "miroirs": {
       "pa_bonus_differes": {
         "generateur": "outils/generateurs/generer_pa_bonus_differes.py",
@@ -226,6 +226,19 @@
         "posee": "6de4a84c58ed9b2b",
         "reelle": "a9ee71d9294ffaa8",
         "verdict": "TROIS valeurs differentes"
+      },
+      "villes": {
+        "generateur": "outils/generateurs/generer_villes.py",
+        "table_empreinte": "villes_empreinte",
+        "fonction_reelle": "villes_empreinte_reelle",
+        "fonction_reelle_en_base": false,
+        "data_js": "d41051aa8bcafadd",
+        "lignes": 12,
+        "posee": null,
+        "reelle": null,
+        "verdict": "data.js seul est mesurable : la table, la sentinelle et la fonction n'existent pas encore en base.",
+        "_ne": "EN ATTENTE D'APPLICATION. La table villes, la table villes_empreinte et la fonction villes_empreinte_reelle sont creees par migrations/20261007003000_villes_referentiel_et_caisses_fail_closed.sql, qui n'est PAS appliquee. Seule la colonne data_js est donc renseignee, et le controle saute les deux comparaisons (il ignore un couple ou l'une des deux valeurs est nulle). A reprendre le jour de l'application : mesurer posee et reelle, et basculer fonction_reelle_en_base.",
+        "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner."
       }
     },
     "generes_sans_surveillance": {

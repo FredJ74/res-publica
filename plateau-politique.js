@@ -7273,7 +7273,7 @@ async function ouvrirInterdireManif(pa, cost) {
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">VILLE CIBLEE</div>';
   html += '<select id="interdire-manif-ville" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   if (pays === 'republic' && typeof VILLES_REPUBLIA !== 'undefined') {
-    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (NOMS_VILLES_REPUBLIA[v] || v) + '</option>'; });
+    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (villeNom(pays, v) || v) + '</option>'; });
   } else {
     html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
   }
@@ -7291,7 +7291,7 @@ async function confirmerInterdireManif(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
-  const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+  const nomVille = villeNom(pays, ville) || ville;
 
   if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -5).catch(() => {});
 
@@ -7324,7 +7324,7 @@ async function ouvrirReprimerManif(pa, cost) {
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">VILLE CIBLEE</div>';
   html += '<select id="reprimer-manif-ville" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   if (pays === 'republic' && typeof VILLES_REPUBLIA !== 'undefined') {
-    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (NOMS_VILLES_REPUBLIA[v] || v) + '</option>'; });
+    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (villeNom(pays, v) || v) + '</option>'; });
   } else {
     html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
   }
@@ -7389,7 +7389,7 @@ async function confirmerRepressionBlocus(pa, cost) {
 
   const taux = tauxDispersionBlocus(cible.intensite);
   const roll = Math.floor(Math.random() * 100) + 1;
-  const nomVilleB = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[cible.city]) || cible.city;
+  const nomVilleB = villeNom(cible.country || pays, cible.city) || cible.city;
 
   if (roll <= taux) {
     if (typeof sbSetBatimentEtat === 'function') {
@@ -7421,7 +7421,7 @@ async function confirmerReprimerManif(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
-  const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+  const nomVille = villeNom(pays, ville) || ville;
 
   const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
   const interdictionRecente = budgetMuni.manifestationInterdite && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);

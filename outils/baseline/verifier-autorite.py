@@ -542,7 +542,8 @@ def main():
         texte = open(chemin, encoding="utf-8").read()
         # les tables declarees dans le tableau `surface` de la migration 2
         for m in re.finditer(r"\['([a-z_0-9]+)','[IUD]{1,3}'\]", texte):
-            if m.group(1) not in tables_connues:
+            if m.group(1) not in tables_connues and m.group(1) not in set(re.findall(
+                    r"CREATE TABLE (?:IF NOT EXISTS )?public\.([a-z_0-9]+)", texte)):
                 ecarts.append("%s : table inconnue « %s » dans la surface declaree"
                               % (court, m.group(1)))
         # Les fonctions designees nommement (REVOKE, GRANT, COMMENT ON).
@@ -569,9 +570,20 @@ def main():
             if (m.group(2), nom) not in noms_policies and ("CREATE POLICY %s " % nom) not in texte:
                 ecarts.append("%s : policy inconnue « %s » sur %s"
                               % (court, nom, m.group(2)))
-        # les tables mises sous RLS
+        # Les tables mises sous RLS.
+        #
+        # MEME REGLE QUE POUR LES FONCTIONS ET LES POLICIES : une table que la
+        # migration CREE elle-meme n'est pas inconnue -- elle n'existe pas encore
+        # en base, et c'est le but du fichier. L'invariant ne l'avait que pour les
+        # deux autres familles, et refusait donc toute migration qui cree une table
+        # et la met sous RLS dans le meme fichier : exactement ce qu'une migration
+        # bien ecrite doit faire. Laisser le trou aurait pousse a mettre la RLS
+        # dans un second fichier, c'est-a-dire a livrer une table un instant sans
+        # protection.
+        tables_creees = set(re.findall(
+            r"CREATE TABLE (?:IF NOT EXISTS )?public\.([a-z_0-9]+)", texte))
         for m in re.finditer(r"ALTER TABLE public\.([a-z_0-9]+) ENABLE ROW LEVEL SECURITY", texte):
-            if m.group(1) not in tables_connues:
+            if m.group(1) not in tables_connues and m.group(1) not in tables_creees:
                 ecarts.append("%s : table inconnue « %s » mise sous RLS" % (court, m.group(1)))
     r.invariant(12, "les migrations en attente ne nomment rien d'inconnu", ecarts, detail)
 

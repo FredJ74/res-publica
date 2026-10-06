@@ -3667,12 +3667,22 @@ async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta
 // ci-dessus, mais pour les caisses du systeme "classique" (ministeres, mairies, commissariats...).
 // exigerExistant refuse de creer une caisse fantome quand l'appelant sait qu'elle doit deja exister.
 // FAIL-CLOSED : renvoie null si la RPC est absente ou injoignable -- aucun repli non atomique.
-// AUTORITE (lot P0-A, 20 septembre 2026). La primitive caisse_institution_mouvement n'est plus
-// appelable depuis le navigateur : l'audit avait demontre qu'un joueur sans aucun poste vidait
-// republic_palais-presidentiel et creait une caisse a 99 000 000, le seul controle etant « il
-// existe un personnage ». Le droit EXECUTE lui a ete retire ; les 13 fonctions SQL qui s'en
-// servent (cellule_renseignement_creer, militaire_solde_percevoir, fret_dedouaner...) ne sont pas
-// touchees, car a l'interieur d'une SECURITY DEFINER l'utilisateur effectif est son proprietaire.
+// AUTORITE (lot P0-A, 20 septembre 2026). L'audit avait demontre qu'un joueur sans aucun poste
+// vidait republic_palais-presidentiel et creait une caisse a 99 000 000, le seul controle etant
+// « il existe un personnage ». Le navigateur passe donc par caisse_client_mouvement.
+//
+// RECTIFICATION (chantier 4E, 7 octobre 2026) : ce commentaire affirmait que « le droit EXECUTE
+// lui a ete retire ». C'EST FAUX, et ce l'etait deja. Mesure du 7 octobre sur pg_proc.proacl :
+// caisse_institution_mouvement ET caisse_institution_mouvement_plafonne portent toutes deux
+// `authenticated=X`. Les deux primitives heritees restent donc appelables directement depuis un
+// navigateur, en contournant ce wrapper -- c'est precisement pourquoi elles portent chacune leur
+// propre bloc d'autorite en interne (motifs `primitive_heritee` et `primitive_heritee_plafonnee`
+// dans caisses_mouvements_clients). Ces blocs ont ete fermes le meme jour : une caisse sans regle
+// d'autorite declaree est desormais un REFUS dans les trois fonctions, et non plus une
+// autorisation implicite. Les 13 fonctions SQL qui s'en servent (cellule_renseignement_creer,
+// militaire_solde_percevoir, fret_dedouaner...) ne sont pas touchees : a l'interieur d'une
+// SECURITY DEFINER l'utilisateur effectif est son proprietaire, et le bloc d'autorite est de
+// toute facon saute pour les appels serveur.
 // Le navigateur passe desormais par caisse_client_mouvement, qui exige que la caisse EXISTE et
 // qu'elle appartienne au PAYS de l'appelant, et qui journalise chaque mouvement.
 // exigerExistant disparait de la signature serveur : l'existence est maintenant toujours exigee.

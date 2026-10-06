@@ -110,30 +110,31 @@ const LIMITE_PAR_DOMAINE = 50;
 // moins de 50 reponses eligibles, jamais les plus anciennes a la place des plus recentes.
 const SUR_ECHANTILLON_REPONSES = 4;
 
+import { VILLES_SERVEUR } from './_referentiels-generes.js';
+
 // Duplique de COUNTRIES (data.js).
 const PAYS_JEU = ['republic', 'narco', 'soviet', 'khalija'];
 
-// Duplique de VILLES_PAR_EMPIRE (plateau-navigation.js) -- meme convention que les autres
-// constantes de ce fichier (module serverless isole, sans acces au code client).
-// Libelles alignes sur NOMS_VILLES_PAR_PAYS (plateau-divers.js), source canonique, le
-// 5 septembre 2026 -- le correctif d'identite du 28 aout 2026 n'avait pas ete propage a ce
-// module serverless, qui publiait donc encore Puerto Oscuro / La Selva / Stalinova / Kolkhoz-7 /
-// Oasis Al-Zafar / Port Al-Nour dans le Journal. Cles (capitale/ville_a/ville_b) inchangees.
-const NOMS_VILLES = {
-  republic: { capitale: 'Luthécia',       ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
-  narco:    { capitale: 'Ciudad Roja',    ville_a: 'Puerto Negro',      ville_b: 'Villa Sangre' },
-  soviet:   { capitale: 'Novomirsk',      ville_a: 'Starovka',          ville_b: 'Krasnov' },
-  khalija:  { capitale: 'Al Madina',      ville_a: 'Oasis City',        ville_b: 'Al-Petrol' }
-};
+// LES NOMS DE VILLE SONT DESORMAIS GENERES (chantier 4E, 7 octobre 2026). Ce module portait sa
+// propre table NOMS_VILLES : la SIXIEME copie des douze memes libelles dans le depot, et la plus
+// dangereuse des six, parce que le Journal imprime ces noms dans des editions persistees
+// definitivement -- une derive y aurait ete irreversible. VILLES_SERVEUR est rendue depuis VILLES
+// (data.js) par outils/generateurs/generer_referentiels_serveur.py, et le controle des
+// referentiels verifie que l'artefact du disque est bien ce que rend la source.
 
 // Ligne canonique du championnat -- doit rester synchronisee avec CHAMPIONNAT_ROW_ID
 // (supabase.js). Le championnat a ete deplace de id=1 vers id=2 le 5 septembre 2026 pour couper
 // l'acces des anciens onglets clients, qui ont "id=eq.1" code en dur (voir supabase.js).
 const CHAMPIONNAT_FILTRE_ID = 'id=eq.2';
 
+// Nom affichable d'une ville. LE REPLI SUR LE CODE BRUT EST DELIBERE ET LOCAL : le Journal doit
+// toujours imprimer quelque chose, et une edition est ecrite une fois pour toutes. Le resolveur
+// canonique, lui, ne replie rien -- il rend null quand il ne sait pas ; c'est ici, au point
+// d'affichage, que l'on choisit de montrer le code plutot que rien.
 function resoudreNomVille(pays, villeId) {
   if (!villeId) return null;
-  return (NOMS_VILLES[pays] && NOMS_VILLES[pays][villeId]) || villeId;
+  const v = VILLES_SERVEUR[pays] && VILLES_SERVEUR[pays][villeId];
+  return (v && v.nom) || villeId;
 }
 
 // Duplique de CLUBS_SPORTIFS (data.js) -- champs necessaires ici, plus imageStade (duplique des

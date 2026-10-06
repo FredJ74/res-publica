@@ -60,13 +60,15 @@ BASELINE = os.path.join(RACINE, "baseline")
 MIGRATIONS_HISTORIQUES = 184
 NON_APPLIQUEES = 3
 PATCHS_PONCTUELS = 342       # 289 patch_*.py + 53 fix_*.py, archives au 2H
-GENERATEURS = 10             # 8 miroirs de data.js (sortis de .scratch/ au 2H),
+GENERATEURS = 11             # 8 miroirs de data.js (sortis de .scratch/ au 2H),
                              # + generer_referentiels_serveur.py (api/_referentiels-generes.js,
                              # chantier 4B), + generer_recettes_militaires.py (miroir SQL des
-                             # recettes, chantier 4D). Ce
+                             # recettes, chantier 4D), + generer_villes.py (miroir des douze
+                             # villes canoniques, chantier 4E). Ce
                              # nombre est declare pour qu'un generateur ajoute
                              # ou perdu se voie : c'est ce refus qui a signale
-                             # le neuvieme le jour de sa naissance.
+                             # le neuvieme le jour de sa naissance, et le
+                             # onzieme le jour de la sienne.
 
 MOTIF_MIGRATION = re.compile(r"^(\d{14})_[a-z0-9_]+\.sql$")
 
