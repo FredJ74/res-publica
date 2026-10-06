@@ -229,23 +229,35 @@
       "ferme_par": "suppression, chantier 7"
     },
     "GREVE_VILLES_REPUBLIA_SERVEUR": {
-      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
-      "ferme_par": "arbitrage de game design"
+      "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
+      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
     },
     "RECETTES_FISCALES_JOUR_SERVEUR": {
-      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
-      "ferme_par": "arbitrage de game design"
+      "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
+      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
     },
     "VILLES_ARMURERIES_SERVEUR": {
-      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
-      "ferme_par": "arbitrage de game design"
+      "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
+      "ferme_par": "lot « dimensionnement par empire » de la sequence 4 (arbitrage rendu le 6 octobre 2026)"
     }
   },
   "_republia_monde_entier": {
-    "_commentaire": "Trois constantes du cron ne connaissent qu'un seul empire. Elles ne sont PAS tranchees ici : leur consequence est du game design, pas de la technique. Elles sont laissees intactes et nommees pour que la question soit posee une fois, clairement.",
+    "_commentaire": "Trois constantes du cron ne connaissent qu'un seul empire. ARBITRAGE RENDU par Fred le 6 octobre 2026 : fiscalite, greves et production d'armurerie sont des systemes GENERIQUES, disponibles dans tous les empires. Republia ne doit jamais etre implicitement consideree comme le monde. Les trois constantes doivent donc evoluer vers un canon DIMENSIONNE PAR EMPIRE. Elles ne sont PAS modifiees ici : le chantier 4B etait clos, et les toucher aurait demande d'inventer des valeurs.",
     "GREVE_VILLES_REPUBLIA_SERVEUR": "['capitale','ville_a','ville_b'], parcourue en boucle a la ligne 2335. Consequence : une greve ne peut jamais se declencher ailleurs qu'en Republia.",
     "RECETTES_FISCALES_JOUR_SERVEUR": "{ republic: {...} }, lue en RECETTES_FISCALES_JOUR_SERVEUR[pays] || {}. Consequence : les trois autres empires ne percoivent AUCUNE recette fiscale quotidienne.",
     "VILLES_ARMURERIES_SERVEUR": "{ republic: [...] }, lue en VILLES_ARMURERIES_SERVEUR[pays] || []. Consequence : aucune production d'armurerie hors Republia.",
-    "_la_question": "Les trois autres empires sont-ils censes avoir une fiscalite, des greves et une production militaire nocturnes ? Si oui, ces trois constantes sont des bugs et le canon doit devenir per-empire. Si non, elles sont justes et doivent le DIRE au lieu de le laisser deviner."
-  }
+    "_regle_imperative": "Republia conserve EXACTEMENT ses valeurs et son comportement actuels. Pour Sovarka, El Estado et Al-Khalija, AUCUNE valeur metier ne doit etre inventee : le moteur doit pouvoir recevoir leur configuration plus tard, c'est tout. Et surtout : ABSENCE DE CONFIGURATION EXPLICITE N'EST PAS UN REPLI SILENCIEUX SUR REPUBLIA. Un empire non configure doit se savoir non configure, et le dire.",
+    "_etat_mesure_le_6_octobre_2026": {
+      "GREVE_VILLES_REPUBLIA_SERVEUR": "Ce n'est PAS un repli silencieux, contrairement a ce que la seule lecture de la boucle laissait croire : modifierIndiceVilleServeur et appliquerDeltaSocialPaysServeur commencent toutes deux par `if (pays !== 'republic') return;`. Le refus est explicite. LE VRAI BLOCAGE EST AILLEURS ET IL EST PLUS PROFOND : les trois autres empires n'ont AUCUNE persistance serveur de leurs indices. INDICES_NATIONAUX est une constante en memoire, cote client uniquement, jamais synchronisee en base (decision du 3 septembre 2026, « on finalise Republia »). Dimensionner la constante par empire est donc NECESSAIRE MAIS PAS SUFFISANT : sans indices persistes, il n'y a rien ou ecrire.",
+      "RECETTES_FISCALES_JOUR_SERVEUR": "cron-minuit.js:3822 -- `RECETTES_FISCALES_JOUR_SERVEUR[pays] || {}`. Repli SILENCIEUX sur le vide : un empire non configure ne percoit rien, et personne ne l'apprend. C'est ce silence que l'arbitrage interdit.",
+      "VILLES_ARMURERIES_SERVEUR": "cron-minuit.js:4213 -- `VILLES_ARMURERIES_SERVEUR[pays] || []`. Meme repli silencieux sur le vide."
+    },
+    "_ce_que_le_futur_lot_doit_faire": [
+      "1. Donner aux trois constantes une forme per-empire ou Republia garde ses valeurs exactes.",
+      "2. Rendre l'absence de configuration EXPLICITE et visible, jamais un vide silencieux : un empire non configure doit produire un constat, pas un non-evenement indistinguable d'un empire configure a zero.",
+      "3. N'inventer AUCUNE valeur pour Sovarka, El Estado et Al-Khalija.",
+      "4. Pour les greves seulement : traiter d'abord l'absence de persistance serveur des indices des trois autres empires, sans laquelle le reste ne peut pas atterrir."
+    ]
+  },
+  "_etiquettes_de_lot": "Le depot ne connait que deux etiquettes de lot : « lot 4D » pour les divergences metier declarees, et « chantier 7 » pour les fonctions recopiees. La suite de la sequence 4 n'est consignee nulle part ici. Le dimensionnement par empire est donc enregistre sous une etiquette explicite plutot que sous une lettre devinee : si la sequence lui en assigne une, c'est un renommage d'une ligne."
 }
