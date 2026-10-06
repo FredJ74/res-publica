@@ -14,6 +14,7 @@
 -- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.
 
 ALTER TABLE public.apports_matieres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.caisses_fret ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogue_correspondance_legacy ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogue_familles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogue_generique_type ENABLE ROW LEVEL SECURITY;
@@ -26,6 +27,7 @@ ALTER TABLE public.chantiers_paliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.commerces_dotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.commerces_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.confiscations_douanieres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contenu_caisses_fret ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.directeurs_usine ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.entrepot_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.entrepot_transits ENABLE ROW LEVEL SECURITY;
@@ -51,6 +53,15 @@ ALTER TABLE public.ressources_economie_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.structures_medicales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.usines_rachat_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ventes_snapshots ENABLE ROW LEVEL SECURITY;
+
+-- caisses_fret
+CREATE POLICY caisses_fret_ecriture_acteur ON public.caisses_fret FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY caisses_fret_lecture_publique ON public.caisses_fret FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY caisses_fret_maj_acteur ON public.caisses_fret FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
 
 -- catalogue_correspondance_legacy
 CREATE POLICY "catalogue_correspondance_legacy lecture" ON public.catalogue_correspondance_legacy FOR SELECT TO anon, authenticated
@@ -95,6 +106,15 @@ CREATE POLICY "commerces_dotations lecture" ON public.commerces_dotations FOR SE
 -- commerces_types
 CREATE POLICY "commerces_types lecture" ON public.commerces_types FOR SELECT TO PUBLIC
   USING (true);
+
+-- contenu_caisses_fret
+CREATE POLICY contenu_caisses_fret_ecriture_acteur ON public.contenu_caisses_fret FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY contenu_caisses_fret_lecture_publique ON public.contenu_caisses_fret FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY contenu_caisses_fret_maj_acteur ON public.contenu_caisses_fret FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
 
 -- directeurs_usine
 CREATE POLICY directeurs_usine_lecture ON public.directeurs_usine FOR SELECT TO anon, authenticated

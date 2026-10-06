@@ -15,8 +15,10 @@
 
 ALTER TABLE public.ambassades_ouvertes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cron_journal ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.etats_urgence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evenements_globaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.propositions_diplomatiques ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.registre_ventes_armes ENABLE ROW LEVEL SECURITY;
 
 -- ambassades_ouvertes
 CREATE POLICY "ambassade geree par l empire ou par l hote" ON public.ambassades_ouvertes FOR UPDATE TO authenticated
@@ -27,10 +29,20 @@ CREATE POLICY "ambassade ouverte par les affaires etrangeres" ON public.ambassad
 CREATE POLICY "ambassades visibles des joueurs" ON public.ambassades_ouvertes FOR SELECT TO authenticated
   USING (true);
 
+-- etats_urgence
+CREATE POLICY etats_urgence_ecriture_acteur ON public.etats_urgence FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY etats_urgence_lecture_publique ON public.etats_urgence FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY etats_urgence_maj_acteur ON public.etats_urgence FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
+
 -- evenements_globaux
-CREATE POLICY allow_all_evenements_globaux ON public.evenements_globaux FOR ALL TO PUBLIC
-  USING (true)
-  WITH CHECK (true);
+CREATE POLICY evenements_globaux_ecriture_acteur ON public.evenements_globaux FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY evenements_globaux_lecture_publique ON public.evenements_globaux FOR SELECT TO anon, authenticated
+  USING (true);
 
 -- propositions_diplomatiques
 CREATE POLICY "diplomatie lue par les deux chancelleries" ON public.propositions_diplomatiques FOR SELECT TO authenticated
@@ -42,7 +54,7 @@ CREATE POLICY "reponse donnee par le min_ae du pays cible" ON public.proposition
   WITH CHECK (mon_poste_est_dans('min_ae'::text, data ->> 'empireCible'::text));
 
 -- registre_ventes_armes
-CREATE POLICY "Insertion publique du registre" ON public.registre_ventes_armes FOR INSERT TO PUBLIC
-  WITH CHECK (true);
 CREATE POLICY "Lecture publique du registre" ON public.registre_ventes_armes FOR SELECT TO PUBLIC
   USING (true);
+CREATE POLICY registre_ventes_armes_ecriture_acteur ON public.registre_ventes_armes FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());

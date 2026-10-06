@@ -311,12 +311,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)",
@@ -350,12 +344,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fuite_publier(bigint,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "fuite_reserver(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -386,12 +374,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fuite_traces_eligibles(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -677,12 +659,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)",
@@ -710,12 +686,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "tracts_appliquer_effet_pop(text,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "tracts_donner_joueur(text,text,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -809,12 +779,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "tracts_reclamer_don(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "tracts_reclamer_don(text,text)",
@@ -836,13 +800,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "calomnies_actes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "calomnies_actes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -860,13 +824,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "corruptions_presse_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "corruptions_presse_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -884,13 +848,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "fuites_journalistiques_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "fuites_journalistiques_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -920,13 +884,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "scandales_presse_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "scandales_presse_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -968,13 +932,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chronique_nationale",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "chronique_nationale",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1064,13 +1028,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "interviews_jodie",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "interviews_jodie",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1088,13 +1052,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "journal_articles_en_attente",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "journal_articles_en_attente",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1112,13 +1076,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "journal_editions",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "journal_editions",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1184,13 +1148,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "petites_annonces",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "petites_annonces",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -1280,13 +1244,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "tribune_articles_etouffes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "tribune_articles_etouffes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1308,8 +1272,8 @@
   "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
   "35_index.sql": "6f50c630734d8b7962501564dc16c984",
   "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
-  "60_rls-policies.sql": "3ba3d0ba054c019f962ae3d8862ca1c2",
-  "70_droits.sql": "98a8f7d50ba4651a15cca87651144446",
+  "60_rls-policies.sql": "3eaf79a8204cc1b5a3d7296f6bc728da",
+  "70_droits.sql": "03da62361d2622b3db06212cce3049de",
   "80_commentaires.sql": "cb9314670b33b7585e440be9ef6e1f84"
  },
  "fonctions": [
@@ -1599,9 +1563,9 @@
    "tbl": "calomnies_actes"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "806dd51515f7254416941a04161db031",
-   "nom": "chronique_nationale_ecriture_publique",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "17cb08726f1b437907f555ff5c55bb64",
+   "nom": "chronique_nationale_ecriture_acteur",
    "tbl": "chronique_nationale"
   },
   {
@@ -1647,6 +1611,24 @@
    "tbl": "journaux_redacteurs"
   },
   {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "8284e78c969feb4468e3db42cce955ca",
+   "nom": "petites_annonces_ecriture_acteur",
+   "tbl": "petites_annonces"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3754499f2c72120bb4079b1f18ef82b7",
+   "nom": "petites_annonces_lecture_publique",
+   "tbl": "petites_annonces"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "e9678804d03769c5222c6606490f844a",
+   "nom": "petites_annonces_maj_acteur",
+   "tbl": "petites_annonces"
+  },
+  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "f30271505da41e9dbd3b5cf54d3ca469",
    "nom": "presse_membres_lecture",
@@ -1665,9 +1647,9 @@
    "tbl": "scandales_tentatives"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "9fb142784af537006d49bd710fe227ad",
-   "nom": "tribune_articles_etouffes_ecriture_publique",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "7f06b2f289ff980fd976ec19d29e001c",
+   "nom": "tribune_articles_etouffes_ecriture_acteur",
    "tbl": "tribune_articles_etouffes"
   },
   {
@@ -1729,7 +1711,7 @@
    "tbl": "journaux_redacteurs"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "petites_annonces"
   },

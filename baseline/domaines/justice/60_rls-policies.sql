@@ -18,6 +18,7 @@ ALTER TABLE public.demandes_grace ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.detentions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.impacts_indices_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jugements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.niveaux_prison ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plaintes_en_cours ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prisonniers_qhs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rumeurs_actives ENABLE ROW LEVEL SECURITY;
@@ -60,6 +61,15 @@ CREATE POLICY jugements_insertion_juge ON public.jugements FOR INSERT TO authent
   WITH CHECK (affaire_autorite_de(city));
 CREATE POLICY jugements_lecture ON public.jugements FOR SELECT TO anon, authenticated
   USING (true);
+
+-- niveaux_prison
+CREATE POLICY niveaux_prison_ecriture_acteur ON public.niveaux_prison FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY niveaux_prison_lecture_publique ON public.niveaux_prison FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY niveaux_prison_maj_acteur ON public.niveaux_prison FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
 
 -- plaintes_en_cours
 CREATE POLICY "affaire lue par les parties, l autorite, ou publique une fois j" ON public.plaintes_en_cours FOR SELECT TO authenticated

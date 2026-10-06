@@ -870,18 +870,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "militaire_arme_recalculer(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "militaire_arme_recalculer(text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "militaire_arme_recalculer(text)",
@@ -2763,13 +2751,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "retraits_materiel_militaire_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "retraits_materiel_militaire_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -2787,13 +2775,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "services_militaires_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "services_militaires_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -2811,13 +2799,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "armureries_dotations",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "armureries_dotations",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2961,13 +2949,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "commandes_militaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "commandes_militaires",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -2982,16 +2970,10 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "TABLE",
-   "objet": "compagnies_militaires",
-   "privileges": "MAINTAIN"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "compagnies_militaires",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3039,7 +3021,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "engagements_militaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3057,13 +3039,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "guerres",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "guerres",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3153,13 +3135,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "nominations_militaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "nominations_militaires",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3177,13 +3159,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "retraits_materiel_militaire",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "retraits_materiel_militaire",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3243,8 +3225,8 @@
   "30_contraintes.sql": "dde0c79322c3754e5a81519d184c36eb",
   "35_index.sql": "ace2b2e52d13010d5ded5fbee5cae436",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
-  "60_rls-policies.sql": "8edce57152d16e64785aa0fb3612c745",
-  "70_droits.sql": "a602cefe93081c9cbbccbb8b3ed304b2",
+  "60_rls-policies.sql": "3ab5177bfa292f89c4ef0657686ad58e",
+  "70_droits.sql": "f31648f68c670eaad49f2c96b9c8e955",
   "80_commentaires.sql": "db7d7fe98309d0545b893c039fa61e2a"
  },
  "fonctions": [
@@ -4089,9 +4071,21 @@
    "tbl": "batailles_groupes"
   },
   {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "943664650c8452349714d518b54e72db",
+   "nom": "commandes_militaires_ecriture_acteur",
+   "tbl": "commandes_militaires"
+  },
+  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "cf8b629e83ebf53eddfef18588d0c52b",
    "nom": "commandes_militaires_lecture",
+   "tbl": "commandes_militaires"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "957810061733f3c3841cada31481eefb",
+   "nom": "commandes_militaires_maj_acteur",
    "tbl": "commandes_militaires"
   },
   {
@@ -4107,21 +4101,9 @@
    "tbl": "decorations_militaires"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "55f74031d9f02c487140e1ac9cafbef9",
-   "nom": "Ecriture publique engagements militaires",
-   "tbl": "engagements_militaires"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "e72904d3a6dd774b82a076120a9ce719",
    "nom": "Lecture publique engagements militaires",
-   "tbl": "engagements_militaires"
-  },
-  {
-   "empreinte": "059f343b11d2c23c929c231b2c45da11",
-   "empreinte_avec_roles": "eaabd7bef11776d8c9da004fd38df031",
-   "nom": "Maj publique engagements militaires",
    "tbl": "engagements_militaires"
   },
   {

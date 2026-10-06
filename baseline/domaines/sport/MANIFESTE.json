@@ -264,18 +264,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "championnat_verrou_calendrier()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "championnat_verrou_calendrier()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "championnat_verrou_calendrier()",
@@ -543,13 +531,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "championnat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "championnat",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -579,13 +567,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "clubs_football",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "clubs_football",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -651,13 +639,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "presidents_clubs",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "presidents_clubs",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -675,13 +663,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "transferts_clubs",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "transferts_clubs",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -703,8 +691,8 @@
   "30_contraintes.sql": "a945d6b8dc14bd0b29fb832a4652cdec",
   "35_index.sql": "5650794763a074d67e44e9748b0d7b8b",
   "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
-  "60_rls-policies.sql": "6693af5cf3eb690fd482fb6241cc7928",
-  "70_droits.sql": "94f8bd5991322feb8f944dc00c8c6b6f",
+  "60_rls-policies.sql": "8be2fd6b8c93f9b08a9302d92cdf68b3",
+  "70_droits.sql": "3779accc94be5930ae7c7000fea7019e",
   "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
  },
  "fonctions": [
@@ -873,21 +861,21 @@
    "tbl": "presidents_clubs"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "f4d757f0ed6103537c546e99be7efcab",
-   "nom": "Ecriture publique transferts clubs",
-   "tbl": "transferts_clubs"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "a8c17fe6de5fe09ea9e1dbfa0a6382a9",
    "nom": "Lecture publique transferts clubs",
    "tbl": "transferts_clubs"
   },
   {
-   "empreinte": "059f343b11d2c23c929c231b2c45da11",
-   "empreinte_avec_roles": "639a4879e2602d55da4b941305602efd",
-   "nom": "Maj publique transferts clubs",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "7dd6232142d1a1fb3d5fefb3155dc074",
+   "nom": "transferts_clubs_ecriture_acteur",
+   "tbl": "transferts_clubs"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "d816b11ac38421cb643f686e5d85ea0d",
+   "nom": "transferts_clubs_maj_acteur",
    "tbl": "transferts_clubs"
   }
  ],
@@ -933,7 +921,7 @@
    "tbl": "presidents_clubs"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "transferts_clubs"
   }

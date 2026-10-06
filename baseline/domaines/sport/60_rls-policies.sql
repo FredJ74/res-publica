@@ -21,6 +21,7 @@ ALTER TABLE public.entrainements_football ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.football_primes_versees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.paris_sportifs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presidents_clubs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transferts_clubs ENABLE ROW LEVEL SECURITY;
 
 -- championnat
 CREATE POLICY championnat_insert_hors_ligne_historique ON public.championnat FOR INSERT TO anon, authenticated
@@ -40,9 +41,10 @@ CREATE POLICY presidents_clubs_lecture ON public.presidents_clubs FOR SELECT TO 
   USING (true);
 
 -- transferts_clubs
-CREATE POLICY "Ecriture publique transferts clubs" ON public.transferts_clubs FOR INSERT TO PUBLIC
-  WITH CHECK (true);
 CREATE POLICY "Lecture publique transferts clubs" ON public.transferts_clubs FOR SELECT TO PUBLIC
   USING (true);
-CREATE POLICY "Maj publique transferts clubs" ON public.transferts_clubs FOR UPDATE TO PUBLIC
-  USING (true);
+CREATE POLICY transferts_clubs_ecriture_acteur ON public.transferts_clubs FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY transferts_clubs_maj_acteur ON public.transferts_clubs FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());

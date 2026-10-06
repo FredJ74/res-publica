@@ -1323,13 +1323,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "pnj_evenements_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "pnj_evenements_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -1347,13 +1347,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "pnj_possessions_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "pnj_possessions_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -1640,7 +1640,7 @@
   "35_index.sql": "9cee8070d05ce6f792bb67c136e15fbf",
   "50_triggers.sql": "b89038660597f60350df81b172a875b0",
   "60_rls-policies.sql": "850ce0714f315223f78546b4d814f049",
-  "70_droits.sql": "c084d5108f83c3ace9de32ac874f66a2",
+  "70_droits.sql": "a41d3f92ec23bfe367ac37c346ec7d80",
   "80_commentaires.sql": "762d07018c8b6a7bf934291d9e92867f"
  },
  "fonctions": [

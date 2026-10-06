@@ -87,6 +87,13 @@ python3 outils/baseline/controler-tout.py                 # les 9 contrôles
 La migration **et** le baseline réextrait vont dans le **même commit**. Séparés,
 ils laisseraient un instant où le dépôt dit autre chose que la base.
 
+Puis la migration **quitte `migrations/`** pour
+`historique/migrations-appliquees/`. Son effet n'est plus dans le fichier, il
+est dans le baseline ; la laisser là ferait rougir l'invariant 4 du garde-fou,
+et il aurait raison — une migration antérieure au point de coupe est au mieux
+inutile à rejouer. C'est ce qui rend `migrations/` lisible : ce qu'il contient
+reste à faire.
+
 Le détail de l'extraction en deux temps — pourquoi l'outil imprime le SQL au
 lieu de l'exécuter, et les douze pièges rencontrés — est dans
 `outils/baseline/README.md`.

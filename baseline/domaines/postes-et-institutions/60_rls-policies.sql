@@ -18,6 +18,7 @@ ALTER TABLE public.nominations_poste_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.postes_attribues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.postes_electifs_regles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.postes_nommes_regles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.postes_nommes_regles_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.titulaires_pnj ENABLE ROW LEVEL SECURITY;
 
 -- nominations_en_attente
@@ -38,6 +39,10 @@ CREATE POLICY postes_electifs_regles_lecture ON public.postes_electifs_regles FO
 
 -- postes_nommes_regles
 CREATE POLICY postes_regles_lecture ON public.postes_nommes_regles FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- postes_nommes_regles_empreinte
+CREATE POLICY postes_nommes_regles_empreinte_lecture_publique ON public.postes_nommes_regles_empreinte FOR SELECT TO anon, authenticated
   USING (true);
 
 -- titulaires_pnj

@@ -113,18 +113,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "bail_cle_coherente()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "bail_cle_coherente()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "bail_cle_coherente()",
@@ -332,13 +320,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -356,13 +344,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "batiments_etat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "batiments_etat",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -380,7 +368,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "batiments_fermes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -398,13 +386,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "dossiers_urbanisme",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "dossiers_urbanisme",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -422,13 +410,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "locations_actives",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "locations_actives",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -446,13 +434,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "locations_archives",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "locations_archives",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -470,13 +458,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "logements_attributions_historique",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "logements_attributions_historique",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -494,13 +482,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "logements_demandes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "logements_demandes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -518,7 +506,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "reservations_salle_reception",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -536,13 +524,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "terrains_etat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "terrains_etat",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -560,13 +548,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "terrains_historique_ventes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "terrains_historique_ventes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -588,8 +576,8 @@
   "30_contraintes.sql": "ac91ff7a2d4f6f14bf8c83a8946e23c7",
   "35_index.sql": "a4f278dfe360e6f53a6985c040d24ed6",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
-  "60_rls-policies.sql": "c2eadb964a315d8879dc2e5e29ef12d4",
-  "70_droits.sql": "b19b213ea7d53127f31f866edade7204",
+  "60_rls-policies.sql": "31e222aa30af8775f9a6400465fc58dd",
+  "70_droits.sql": "14f5ce1c6c8206625247f3d66cad2073",
   "80_commentaires.sql": "80a3dc2ba71528dca29027299b36e259"
  },
  "fonctions": [
@@ -744,9 +732,9 @@
    "tbl": "batiments_fermes"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "1fd987fbe7ce9f0b85f0c9ac21d3ba09",
-   "nom": "dossiers_urbanisme_insertion",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "33c272b994e7899502a3a6bf9d8f5ae6",
+   "nom": "dossiers_urbanisme_ecriture_acteur",
    "tbl": "dossiers_urbanisme"
   },
   {
@@ -786,6 +774,36 @@
    "tbl": "locations_archives"
   },
   {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "6c8446643b802a0370912baf68c6e064",
+   "nom": "logements_attributions_historique_ecriture_acteur",
+   "tbl": "logements_attributions_historique"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "fa448cc6ed435b13ae017e5161fdabb5",
+   "nom": "logements_attributions_historique_lecture_publique",
+   "tbl": "logements_attributions_historique"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "ae9774f0da78d32bf57e1fa66061b20f",
+   "nom": "logements_demandes_ecriture_acteur",
+   "tbl": "logements_demandes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "75d647069e9633fbdb12c304a2b346f4",
+   "nom": "logements_demandes_lecture_publique",
+   "tbl": "logements_demandes"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "71b82b712c7f3ea82edec894e20462ce",
+   "nom": "logements_demandes_maj_acteur",
+   "tbl": "logements_demandes"
+  },
+  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "46aa029b5d344ea067e0cc5a7d41cc8b",
    "nom": "reservations visibles des joueurs",
@@ -798,10 +816,34 @@
    "tbl": "reservations_salle_reception"
   },
   {
-   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
-   "empreinte_avec_roles": "441b46bb0b14d25fb41f19a6c608952d",
-   "nom": "allow_all_terrains_etat",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "10df4197b1f317cdbbcb5c44c9ebd7ef",
+   "nom": "terrains_etat_ecriture_acteur",
    "tbl": "terrains_etat"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "37d7e97ba2ac76fd1e2e5ac3a357463f",
+   "nom": "terrains_etat_lecture_publique",
+   "tbl": "terrains_etat"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "9c5fc97e21c1700a9cd17ff19845ee3a",
+   "nom": "terrains_etat_maj_acteur",
+   "tbl": "terrains_etat"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "2e4f86f5943fbc59955ff1b3ff2b50bc",
+   "nom": "terrains_historique_ventes_ecriture_acteur",
+   "tbl": "terrains_historique_ventes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "b5be5d160a35156ff115b39e489e248b",
+   "nom": "terrains_historique_ventes_lecture_publique",
+   "tbl": "terrains_historique_ventes"
   }
  ],
  "rls": [
@@ -831,12 +873,12 @@
    "tbl": "locations_archives"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "logements_attributions_historique"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "logements_demandes"
   },
@@ -851,7 +893,7 @@
    "tbl": "terrains_etat"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "terrains_historique_ventes"
   }

@@ -62,13 +62,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "nominations_en_attente",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "nominations_en_attente",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -86,13 +86,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "nominations_poste_attente",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "nominations_poste_attente",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -110,13 +110,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "postes_attribues",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "postes_attribues",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -134,13 +134,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "postes_electifs_regles",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "postes_electifs_regles",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -158,13 +158,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "postes_nommes_regles",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "postes_nommes_regles",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -182,13 +182,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "postes_nommes_regles_empreinte",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "postes_nommes_regles_empreinte",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -206,13 +206,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "titulaires_pnj",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "titulaires_pnj",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -232,8 +232,8 @@
   "10_tables.sql": "6df9925cd479e2b709d9f3d7f1fa7448",
   "30_contraintes.sql": "a6125475d29c80003cc282fea20f5608",
   "35_index.sql": "39735b93f3a42d8625f32f9d3554ff53",
-  "60_rls-policies.sql": "173777802e885acd45024a5825da73cf",
-  "70_droits.sql": "7a9308e67942fe0220ff452e9ff0e024",
+  "60_rls-policies.sql": "9fdb4aeabb1736c4be0bce88e8c86285",
+  "70_droits.sql": "fd6ed4085a2d1a2a025343f9412bccc3",
   "80_commentaires.sql": "5e35abad14624c873750d2bccfb548d6"
  },
  "fonctions": [],
@@ -292,6 +292,12 @@
    "tbl": "postes_nommes_regles"
   },
   {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "33d19867476213b44500c7504015d74a",
+   "nom": "postes_nommes_regles_empreinte_lecture_publique",
+   "tbl": "postes_nommes_regles_empreinte"
+  },
+  {
    "empreinte": "55592a1972a4496c12af1f2bd721b15a",
    "empreinte_avec_roles": "b5043813f7372cdd322e8b98d39b14a3",
    "nom": "titulaires_pnj_ecriture_non_politique",
@@ -343,7 +349,7 @@
    "tbl": "postes_nommes_regles"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "postes_nommes_regles_empreinte"
   },

@@ -50,13 +50,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "evenements_globaux_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "evenements_globaux_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -74,13 +74,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "registre_ventes_armes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "registre_ventes_armes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -98,7 +98,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ambassades_ouvertes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -128,13 +128,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "etats_urgence",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "etats_urgence",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -152,13 +152,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "evenements_globaux",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "evenements_globaux",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -176,7 +176,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "propositions_diplomatiques",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -194,13 +194,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "registre_ventes_armes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "registre_ventes_armes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -220,8 +220,8 @@
   "10_tables.sql": "6d8f527476775fd542299d636ef89108",
   "30_contraintes.sql": "05f4199f822a8dfe724c8df9341ed389",
   "35_index.sql": "88464593997ac9d1216d75aea9278e29",
-  "60_rls-policies.sql": "34661d5e318523b7f249ab13a5b2fdc9",
-  "70_droits.sql": "b45cbfe2577dec0330b6a6afe03616ed",
+  "60_rls-policies.sql": "061637ab36ff5c8d8bd8ac3ce2060496",
+  "70_droits.sql": "9b1ee8e37cad0f5c5944cca173e3ac12",
   "80_commentaires.sql": "51ec70ff5c6ec15c1a83dd342d8422ac"
  },
  "fonctions": [],
@@ -287,9 +287,33 @@
    "tbl": "ambassades_ouvertes"
   },
   {
-   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
-   "empreinte_avec_roles": "5486c2852900f4f04cb21e043d5a25b9",
-   "nom": "allow_all_evenements_globaux",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "7772339e048910c5fc00aac2e6581e1b",
+   "nom": "etats_urgence_ecriture_acteur",
+   "tbl": "etats_urgence"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "b2a164f1da9253db7111e923b0125861",
+   "nom": "etats_urgence_lecture_publique",
+   "tbl": "etats_urgence"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "4ec466627c554d585f8ea057d17b890a",
+   "nom": "etats_urgence_maj_acteur",
+   "tbl": "etats_urgence"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "55a3c31735f0758581e05fb903dd2d70",
+   "nom": "evenements_globaux_ecriture_acteur",
+   "tbl": "evenements_globaux"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "bdb40bc2e5ac270c3bd47b3d21cb42cd",
+   "nom": "evenements_globaux_lecture_publique",
    "tbl": "evenements_globaux"
   },
   {
@@ -311,15 +335,15 @@
    "tbl": "propositions_diplomatiques"
   },
   {
-   "empreinte": "cc8ce964139dec00fd3cab49416df56d",
-   "empreinte_avec_roles": "346217dfe06ec9bc7094d7e959d63ffe",
-   "nom": "Insertion publique du registre",
-   "tbl": "registre_ventes_armes"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "f27687dc3879d8b9d720b76d90c6b584",
    "nom": "Lecture publique du registre",
+   "tbl": "registre_ventes_armes"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "c8be263e6994f6ddad36f6b31901ac31",
+   "nom": "registre_ventes_armes_ecriture_acteur",
    "tbl": "registre_ventes_armes"
   }
  ],
@@ -335,7 +359,7 @@
    "tbl": "cron_journal"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "etats_urgence"
   },
@@ -350,7 +374,7 @@
    "tbl": "propositions_diplomatiques"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "registre_ventes_armes"
   }

@@ -276,12 +276,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_amender(text,text,text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_amender(text,text,text,text)",
@@ -384,12 +378,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_consulter_lobbyiste(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_consulter_lobbyiste(text,text)",
@@ -600,12 +588,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_lier_topic(text,text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_lier_topic(text,text,text)",
@@ -645,12 +627,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_loi_en_vigueur(text,jsonb,timestamp with time zone)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_marchander(text,text,text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -699,12 +675,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_mettre_en_application(text,text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_neutraliser_depute(text,text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -954,12 +924,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_retirer(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_retirer(text,text)",
@@ -999,12 +963,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_reveil_minuit(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_reveiller_depute(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1122,12 +1080,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_verser_indemnite(text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_verser_indemnite(text)",
@@ -1143,12 +1095,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_verser_indemnite(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "assemblee_voter(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1197,13 +1143,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_categories_interdiction",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_categories_interdiction",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1221,13 +1167,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_indemnites",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_indemnites",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1245,13 +1191,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_intentions",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_intentions",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1269,13 +1215,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_propositions",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_propositions",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1317,13 +1263,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_scrutins",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_scrutins",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1341,13 +1287,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_sieges",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_sieges",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1365,13 +1311,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "assemblee_votes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "assemblee_votes",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1394,7 +1340,7 @@
   "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
-  "70_droits.sql": "89a6972b897ead0b9be6c69f69083854",
+  "70_droits.sql": "3dd16cb838c00b83102e1f222db068f0",
   "80_commentaires.sql": "5e0ee07adf5a9dbde4ab4a6ef9e4ce23"
  },
  "fonctions": [

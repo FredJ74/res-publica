@@ -23,6 +23,7 @@ ALTER TABLE public.journal_articles_en_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_editions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journaux_redacteurs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.petites_annonces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presse_membres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scandales_presse ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scandales_tentatives ENABLE ROW LEVEL SECURITY;
@@ -33,8 +34,8 @@ CREATE POLICY calomnies_actes_lecture ON public.calomnies_actes FOR SELECT TO PU
   USING (true);
 
 -- chronique_nationale
-CREATE POLICY chronique_nationale_ecriture_publique ON public.chronique_nationale FOR INSERT TO PUBLIC
-  WITH CHECK (true);
+CREATE POLICY chronique_nationale_ecriture_acteur ON public.chronique_nationale FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
 CREATE POLICY chronique_nationale_lecture_publique ON public.chronique_nationale FOR SELECT TO PUBLIC
   USING (true);
 
@@ -62,6 +63,15 @@ CREATE POLICY journaux_lecture ON public.journaux FOR SELECT TO anon, authentica
 CREATE POLICY journaux_redacteurs_lecture ON public.journaux_redacteurs FOR SELECT TO anon, authenticated
   USING (true);
 
+-- petites_annonces
+CREATE POLICY petites_annonces_ecriture_acteur ON public.petites_annonces FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY petites_annonces_lecture_publique ON public.petites_annonces FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY petites_annonces_maj_acteur ON public.petites_annonces FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
+
 -- presse_membres
 CREATE POLICY presse_membres_lecture ON public.presse_membres FOR SELECT TO anon, authenticated
   USING (true);
@@ -75,7 +85,7 @@ CREATE POLICY scandales_tentatives_lecture ON public.scandales_tentatives FOR SE
   USING (true);
 
 -- tribune_articles_etouffes
-CREATE POLICY tribune_articles_etouffes_ecriture_publique ON public.tribune_articles_etouffes FOR INSERT TO PUBLIC
-  WITH CHECK (true);
+CREATE POLICY tribune_articles_etouffes_ecriture_acteur ON public.tribune_articles_etouffes FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
 CREATE POLICY tribune_articles_etouffes_lecture_publique ON public.tribune_articles_etouffes FOR SELECT TO PUBLIC
   USING (true);

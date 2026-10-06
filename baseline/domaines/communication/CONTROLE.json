@@ -1,36 +1,41 @@
 {
-  "_commentaire": "CE QUE LA BASE DIT, releve par introspection au moment de l'extraction. A confronter a MANIFESTE.json, qui dit CE QUI A ETE RENDU. outils/baseline/verifier.py compare les deux, puis compare les fichiers .sql a leurs empreintes. Les trois doivent concorder.",
-  "domaine": "communication",
-  "releve_le": "2026-10-05",
-  "source": "catalogues PostgreSQL du projet jxpwoosmmhohoihxpbuc, via outils/baseline/requetes.py communication inventaire",
-
-  "attendu": {
-    "tables": 10,
-    "colonnes": 83,
-    "contraintes": 11,
-    "index": 11,
-    "index_autonomes": 1,
-    "fonctions": 15,
-    "triggers": 5,
-    "policies": 23,
-    "rls_actives": 10,
-    "droits_colonnes": 0,
-    "lignes_droits": 93
-  },
-
-  "_correction_2e": "lignes_droits valait 91 au chantier 2B. Ce n'etait pas la base qui disait 91 : c'etait la requete DROITS qui ne regardait ni les sequences ni les vues. Le controle global du chantier 2E a trouve 927 lignes de droits de relation dans le schema contre 825 extraites, soit les 102 lignes des 31 sequences. Pour la communication, les 2 lignes manquantes portent sur mails_envois_systeme_id_seq, accordee a postgres et service_role SEULEMENT -- ni anon ni authenticated. C'est coherent : cette table n'est ecrite que par le declencheur mails_journaliser_envoi_systeme, qui est SECURITY DEFINER et s'execute donc avec les droits du proprietaire. La valeur corrigee est la verite relevee en base le 5 octobre 2026 ; le controle n'a pas ete relache, il a ete rendu complet.",
-
-  "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
-  "empreinte_fonctions_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = signature || ':' || md5(pg_get_functiondef(oid))",
-  "empreinte_fonctions_piege": "Le COLLATE \"C\" n'est pas cosmetique. Sans lui, PostgreSQL trie avec la collation de la base, qui ignore la ponctuation au premier rang : mail_expediteur_autorise_strict(...) passe AVANT mail_expediteur_autorise(...). Python, lui, trie par point de code, ou '(' precede '_'. Les deux empreintes divergent alors que les definitions sont identiques. Valeur obtenue sans COLLATE \"C\" sur cette base, conservee pour memoire : a32458d97c32a6055fa06799e87039d3.",
-
-  "securite_attendue": {
-    "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte.",
-    "fonctions_security_definer": 15,
-    "fonctions_security_invoker": 0,
-    "tables_rls_active_sans_policy": 2,
-    "tables_rls_active_sans_policy_liste": ["mails_envois_systeme", "mails_expediteurs_systeme"],
-    "tables_fermees_a_anon_et_authenticated": ["mails_envois_systeme", "mails_expediteurs_systeme"],
-    "anon_sans_select_sur": ["mails"]
-  }
+ "_commentaire": "CE QUE LA BASE DIT, releve par introspection au moment de l'extraction. A confronter a MANIFESTE.json, qui dit CE QUI A ETE RENDU. outils/baseline/verifier.py compare les deux, puis compare les fichiers .sql a leurs empreintes. Les trois doivent concorder.",
+ "domaine": "communication",
+ "releve_le": "2026-10-06",
+ "source": "catalogues PostgreSQL du projet jxpwoosmmhohoihxpbuc, via outils/baseline/requetes.py communication inventaire",
+ "attendu": {
+  "tables": 10,
+  "colonnes": 83,
+  "contraintes": 11,
+  "index": 11,
+  "index_autonomes": 1,
+  "fonctions": 15,
+  "triggers": 5,
+  "policies": 24,
+  "rls_actives": 10,
+  "droits_colonnes": 0,
+  "lignes_droits": 82
+ },
+ "_correction_2e": "lignes_droits valait 91 au chantier 2B. Ce n'etait pas la base qui disait 91 : c'etait la requete DROITS qui ne regardait ni les sequences ni les vues. Le controle global du chantier 2E a trouve 927 lignes de droits de relation dans le schema contre 825 extraites, soit les 102 lignes des 31 sequences. Pour la communication, les 2 lignes manquantes portent sur mails_envois_systeme_id_seq, accordee a postgres et service_role SEULEMENT -- ni anon ni authenticated. C'est coherent : cette table n'est ecrite que par le declencheur mails_journaliser_envoi_systeme, qui est SECURITY DEFINER et s'execute donc avec les droits du proprietaire. La valeur corrigee est la verite relevee en base le 5 octobre 2026 ; le controle n'a pas ete relache, il a ete rendu complet.",
+ "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
+ "empreinte_fonctions_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = signature || ':' || md5(pg_get_functiondef(oid))",
+ "empreinte_fonctions_piege": "Le COLLATE \"C\" n'est pas cosmetique. Sans lui, PostgreSQL trie avec la collation de la base, qui ignore la ponctuation au premier rang : mail_expediteur_autorise_strict(...) passe AVANT mail_expediteur_autorise(...). Python, lui, trie par point de code, ou '(' precede '_'. Les deux empreintes divergent alors que les definitions sont identiques. Valeur obtenue sans COLLATE \"C\" sur cette base, conservee pour memoire : a32458d97c32a6055fa06799e87039d3.",
+ "securite_attendue": {
+  "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte.",
+  "fonctions_security_definer": 15,
+  "fonctions_security_invoker": 0,
+  "tables_rls_active_sans_policy": 2,
+  "tables_rls_active_sans_policy_liste": [
+   "mails_envois_systeme",
+   "mails_expediteurs_systeme"
+  ],
+  "tables_fermees_a_anon_et_authenticated": [
+   "mails_envois_systeme",
+   "mails_expediteurs_systeme"
+  ],
+  "anon_sans_select_sur": [
+   "mails"
+  ]
+ },
+ "_correction_chantier_3": "Releve a nouveau le 6 octobre 2026, apres les trois migrations d'autorite. Deux valeurs changent, et seulement deux. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une policy de moins, deux de plus. lignes_droits : 93 -> 82 -- les 11 lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune n'a ete touchee. Mesure independamment en base, pas deduit du rendu."
 }

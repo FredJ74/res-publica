@@ -113,18 +113,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_compte_rendu_journee()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_compte_rendu_journee()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "forum_verrou_compte_rendu_journee()",
@@ -138,18 +126,6 @@
   },
   {
    "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_local_territorial()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_local_territorial()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "forum_verrou_local_territorial()",
    "privileges": "EXECUTE"
@@ -173,18 +149,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_message_ligue()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_message_ligue()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "forum_verrou_message_ligue()",
@@ -198,18 +162,6 @@
   },
   {
    "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_programme_officiel()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_programme_officiel()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "forum_verrou_programme_officiel()",
    "privileges": "EXECUTE"
@@ -372,18 +324,6 @@
   },
   {
    "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "mails_journaliser_envoi_systeme()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "mails_journaliser_envoi_systeme()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "mails_journaliser_envoi_systeme()",
    "privileges": "EXECUTE"
@@ -416,13 +356,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chat_piece",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "chat_piece",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -440,13 +380,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "forum_posts",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "forum_posts",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -464,13 +404,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "forum_topics",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "forum_topics",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -488,13 +428,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "lectures_chat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "lectures_chat",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -507,18 +447,12 @@
    "genre": "TABLE",
    "objet": "lectures_chat",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "TABLE",
-   "objet": "mails",
-   "privileges": "MAINTAIN"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "mails",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -560,13 +494,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "messages_chat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "messages_chat",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -584,13 +518,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "salons_chat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "salons_chat",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -608,13 +542,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "salons_membres",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "salons_membres",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "DELETE, INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -636,8 +570,8 @@
   "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
   "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
-  "60_rls-policies.sql": "5ffebe8ae5f307127b13bf6b1fe56c9e",
-  "70_droits.sql": "181fb4cb0d4037cbc809fefeb1b377d7",
+  "60_rls-policies.sql": "7b2500087e51a183ef6bd439f4474a9b",
+  "70_droits.sql": "ffaeabc3489dab638479f5b217e82b96",
   "80_commentaires.sql": "8ec239a96f165d4b8d36dd57f9bcf9bd"
  },
  "fonctions": [
@@ -747,9 +681,15 @@
  ],
  "policies": [
   {
-   "empreinte": "8c2aedd511efd65fb3b22df089ade7e4",
-   "empreinte_avec_roles": "4040e8c2f556eeaa8c7a18b9afce955b",
-   "nom": "allow_all_chat_piece",
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "45f9ae56ca19a2bfa281c79ea1cb31bd",
+   "nom": "chat_piece_ecriture_acteur",
+   "tbl": "chat_piece"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "c959be37f029c19b5c68803b9a013df2",
+   "nom": "chat_piece_lecture_publique",
    "tbl": "chat_piece"
   },
   {

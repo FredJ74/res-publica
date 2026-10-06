@@ -450,18 +450,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "plaintes_epingler_verdict()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "plaintes_epingler_verdict()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "plaintes_epingler_verdict()",
@@ -567,13 +555,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "actions_tracables",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "actions_tracables",
-   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "DELETE, INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -591,7 +579,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "demandes_grace",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -606,16 +594,10 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "TABLE",
-   "objet": "detentions",
-   "privileges": "MAINTAIN"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "detentions",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, TRIGGER, UPDATE"
+   "privileges": "INSERT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -651,13 +633,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "jugements",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "jugements",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -675,13 +657,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "niveaux_prison",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "niveaux_prison",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -699,7 +681,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "plaintes_en_cours",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -717,7 +699,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "prisonniers_qhs",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -735,7 +717,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "rumeurs_actives",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -753,13 +735,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "vols_en_attente",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "vols_en_attente",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -902,8 +884,8 @@
   "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
-  "60_rls-policies.sql": "12667607db8e0c8c90b878aa8081e049",
-  "70_droits.sql": "53c99be0088a925182753e02371680c2",
+  "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
+  "70_droits.sql": "ce9bf3f777e485d93124db8ef035f0d8",
   "80_commentaires.sql": "dd675689f39a5ef555c1fe4e0e79fc70"
  },
  "fonctions": [
@@ -1155,6 +1137,24 @@
    "tbl": "jugements"
   },
   {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "6df14f411e34070209e2013e8f8fe0bf",
+   "nom": "niveaux_prison_ecriture_acteur",
+   "tbl": "niveaux_prison"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "3bf7ce9c31837fcde4a39dba2f33934b",
+   "nom": "niveaux_prison_lecture_publique",
+   "tbl": "niveaux_prison"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "ff8c6801414399e11c6f29b0848f6a49",
+   "nom": "niveaux_prison_maj_acteur",
+   "tbl": "niveaux_prison"
+  },
+  {
    "empreinte": "c976d517a98be0806c0f7d73585b7214",
    "empreinte_avec_roles": "42cc87c601d6cd77ec9ee82d3f800e68",
    "nom": "affaire lue par les parties, l autorite, ou publique une fois j",
@@ -1254,7 +1254,7 @@
    "tbl": "jugements"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "niveaux_prison"
   },

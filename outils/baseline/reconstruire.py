@@ -313,13 +313,13 @@ def controles_du_monde(cat):
 
     att("tables creees", len(cat.tables), 246)
     att("vues creees", len(cat.vues), 2)
-    att("signatures de fonction creees", cat.n_fonctions, 641)
-    att("noms de fonction distincts", len(cat.fonctions), 637,
+    att("signatures de fonction creees", cat.n_fonctions, 642)
+    att("noms de fonction distincts", len(cat.fonctions), 638,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     att("contraintes posees", len(cat.contraintes), 421)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
-    att("policies creees", len(cat.policies), 213)
+    att("policies creees", len(cat.policies), 284)
     att("sequences disponibles", len(cat.sequences), 31)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,

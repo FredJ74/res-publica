@@ -25,9 +25,10 @@ ALTER TABLE public.salons_chat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salons_membres ENABLE ROW LEVEL SECURITY;
 
 -- chat_piece
-CREATE POLICY allow_all_chat_piece ON public.chat_piece FOR ALL TO PUBLIC
-  USING (true)
-  WITH CHECK (true);
+CREATE POLICY chat_piece_ecriture_acteur ON public.chat_piece FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY chat_piece_lecture_publique ON public.chat_piece FOR SELECT TO anon, authenticated
+  USING (true);
 
 -- forum_posts
 CREATE POLICY forum_posts_creation ON public.forum_posts FOR INSERT TO authenticated

@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "506c3f2fc9673142c2e9dbe854e4a8aa",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "sous": ""
+  },
+  {
    "empreinte": "200e8cb1587d343486cae38676da1272",
    "genre": "FUNCTION",
    "objet": "acteur_present_sur_site(text,text,text,text,text)",
@@ -34,6 +40,36 @@
  "contraintes": [],
  "domaine": "socle",
  "droits": [
+  {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acteur_identifie()",
+   "privileges": "EXECUTE"
+  },
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
@@ -883,13 +919,18 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "20_fonctions.sql": "395d2cf7515d426a9f72a376cb0c5338",
+  "20_fonctions.sql": "252ebba64530dbc1d057119c7f1bfbf2",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "69f65f2fae57cad19634175d9bab29ca",
-  "80_commentaires.sql": "d50faff86dc5b4bb4e7a74caad139af0"
+  "70_droits.sql": "acd34a414645e3f9670bbe449ea56452",
+  "80_commentaires.sql": "27b79b0bd8aef05b5930a67496105584"
  },
  "fonctions": [
+  {
+   "empreinte": "087e7a2283b98e2fd03ec492ef170afd",
+   "security_definer": true,
+   "signature": "acteur_identifie()"
+  },
   {
    "empreinte": "ace8551c15cc89545036d5c991f913f4",
    "security_definer": true,

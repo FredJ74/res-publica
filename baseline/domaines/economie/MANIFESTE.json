@@ -1704,12 +1704,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
@@ -1770,18 +1764,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "ventes_snapshots_append_only()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "ventes_snapshots_append_only()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "ventes_snapshots_append_only()",
@@ -1797,13 +1779,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "catalogue_correspondance_legacy_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "catalogue_correspondance_legacy_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -1821,13 +1803,13 @@
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "entrepot_journal_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "SEQUENCE",
    "objet": "entrepot_journal_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
+   "privileges": "SELECT, USAGE"
   },
   {
    "beneficiaire": "postgres",
@@ -1857,13 +1839,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "caisses_fret",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "caisses_fret",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -2049,13 +2031,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chaines_production_usine",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "chaines_production_usine",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2073,13 +2055,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chantiers_besoins_jour",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "chantiers_besoins_jour",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2097,13 +2079,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chantiers_paliers",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "chantiers_paliers",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2121,13 +2103,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "commerces_dotations",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "commerces_dotations",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2145,13 +2127,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "commerces_types",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "commerces_types",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2181,13 +2163,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "contenu_caisses_fret",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "contenu_caisses_fret",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -2205,13 +2187,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "directeurs_usine",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "directeurs_usine",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2277,13 +2259,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "entrepots_par_ville",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "entrepots_par_ville",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2313,13 +2295,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "entreprises",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "entreprises",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2337,13 +2319,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "entreprises_constantes",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "entreprises_constantes",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2361,13 +2343,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "entreprises_prix_rachat",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "entreprises_prix_rachat",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2385,13 +2367,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "imprimeries_declarees",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "imprimeries_declarees",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2409,13 +2391,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "investissements",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "investissements",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2433,13 +2415,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "oeuvres",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "oeuvres",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2457,13 +2439,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "offres",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "offres",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2481,13 +2463,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "ordres_couts",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ordres_couts",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2517,13 +2499,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "ordres_couts_empreinte",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ordres_couts_empreinte",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2541,13 +2523,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "ordres_couts_inconnus",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ordres_couts_inconnus",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2577,13 +2559,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "produits_manufactures",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "produits_manufactures",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2601,13 +2583,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "recettes_commerce",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "recettes_commerce",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2625,13 +2607,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "recettes_production",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "recettes_production",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2649,13 +2631,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "ressources_economie",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ressources_economie",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2673,13 +2655,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "ressources_economie_empreinte",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ressources_economie_empreinte",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2697,13 +2679,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "structures_medicales",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "structures_medicales",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2721,13 +2703,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "usines_rachat_config",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "usines_rachat_config",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2763,8 +2745,8 @@
   "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
   "40_vues.sql": "2d59d994831075a5e118e41b769bf712",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
-  "60_rls-policies.sql": "8c2f4c566aeef6f0cbaeae89b8467ab4",
-  "70_droits.sql": "9a5a80d4ab6730bb511f8fd2b0d752a9",
+  "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
+  "70_droits.sql": "9d92532754a2293c2405e2246289071a",
   "80_commentaires.sql": "65f34a472d8515643bd70f405de10c8a"
  },
  "fonctions": [
@@ -3245,6 +3227,24 @@
  ],
  "policies": [
   {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "8ac4ab0cc6c3cb6d31c0cd8988acca22",
+   "nom": "caisses_fret_ecriture_acteur",
+   "tbl": "caisses_fret"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "98500075e56e70206f005ac505382015",
+   "nom": "caisses_fret_lecture_publique",
+   "tbl": "caisses_fret"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "625062ee82f3b3838602fd226775e1b0",
+   "nom": "caisses_fret_maj_acteur",
+   "tbl": "caisses_fret"
+  },
+  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "280687675a12b385785db6a0798ae7a7",
    "nom": "catalogue_correspondance_legacy lecture",
@@ -3309,6 +3309,24 @@
    "empreinte_avec_roles": "44e6a7d1709890418826600f739d09e1",
    "nom": "commerces_types lecture",
    "tbl": "commerces_types"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "4628f3218eb6bfeb4a917864d40aafa4",
+   "nom": "contenu_caisses_fret_ecriture_acteur",
+   "tbl": "contenu_caisses_fret"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "113bf0f2e678bb5ed45c33ef20e1b8a4",
+   "nom": "contenu_caisses_fret_lecture_publique",
+   "tbl": "contenu_caisses_fret"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "8f975ed90a19c38c2bbccd54b1027208",
+   "nom": "contenu_caisses_fret_maj_acteur",
+   "tbl": "contenu_caisses_fret"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -3420,7 +3438,7 @@
    "tbl": "apports_matieres"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "caisses_fret"
   },
@@ -3485,7 +3503,7 @@
    "tbl": "confiscations_douanieres"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "contenu_caisses_fret"
   },

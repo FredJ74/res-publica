@@ -41,8 +41,6 @@ GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO PUBLIC;
-GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO anon;
-GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO service_role;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO authenticated;
@@ -91,14 +89,14 @@ GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.championnat_tentatives_id_seq TO 
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.championnat_tentatives_id_seq TO service_role;
 
 -- DROITS SUR LES TABLES
-GRANT MAINTAIN, SELECT ON TABLE public.championnat TO anon;
-GRANT INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE ON TABLE public.championnat TO authenticated;
+GRANT SELECT ON TABLE public.championnat TO anon;
+GRANT INSERT, SELECT, UPDATE ON TABLE public.championnat TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.championnat TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.championnat TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.championnat_tentatives TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.championnat_tentatives TO service_role;
-GRANT MAINTAIN, SELECT ON TABLE public.clubs_football TO anon;
-GRANT MAINTAIN, REFERENCES, SELECT, TRIGGER ON TABLE public.clubs_football TO authenticated;
+GRANT SELECT ON TABLE public.clubs_football TO anon;
+GRANT SELECT ON TABLE public.clubs_football TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.clubs_football TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.clubs_football TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.clubs_sportifs_regles TO postgres;
@@ -109,11 +107,11 @@ GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.football_primes_versees TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.paris_sportifs TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.paris_sportifs TO service_role;
-GRANT MAINTAIN, SELECT ON TABLE public.presidents_clubs TO anon;
-GRANT MAINTAIN, REFERENCES, SELECT, TRIGGER ON TABLE public.presidents_clubs TO authenticated;
+GRANT SELECT ON TABLE public.presidents_clubs TO anon;
+GRANT SELECT ON TABLE public.presidents_clubs TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.presidents_clubs TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.presidents_clubs TO service_role;
-GRANT MAINTAIN, SELECT ON TABLE public.transferts_clubs TO anon;
-GRANT INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE ON TABLE public.transferts_clubs TO authenticated;
+GRANT SELECT ON TABLE public.transferts_clubs TO anon;
+GRANT INSERT, SELECT, UPDATE ON TABLE public.transferts_clubs TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.transferts_clubs TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.transferts_clubs TO service_role;

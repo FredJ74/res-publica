@@ -61,7 +61,7 @@
     "regles": [
       [
         "socle",
-        "^(mon_personnage|mon_poste_est|est_appel_serveur|est_mon_personnage|exiger_acteur|exiger_poste|acteur_poste_courant|acteur_present_sur_site|jour_de_jeu|jsonb_|is_national|rp_transition_active|inventaire_|objet_fiche_officielle|objet_sas_deposer|generique_de_objet|generique_recettes_systeme|ref_patrimoine_existe|eg_etat_|embargo_actif|deplacement_enregistrer|rattacher_personnage|personnage_fantome_declarer|restaurer_personnage_sauvegarde|mouvement_titulaire)"
+        "^(mon_personnage|mon_poste_est|est_appel_serveur|est_mon_personnage|exiger_acteur|exiger_poste|acteur_identifie|acteur_poste_courant|acteur_present_sur_site|jour_de_jeu|jsonb_|is_national|rp_transition_active|inventaire_|objet_fiche_officielle|objet_sas_deposer|generique_de_objet|generique_recettes_systeme|ref_patrimoine_existe|eg_etat_|embargo_actif|deplacement_enregistrer|rattacher_personnage|personnage_fantome_declarer|restaurer_personnage_sauvegarde|mouvement_titulaire)"
       ],
       [
         "socle PNJ",

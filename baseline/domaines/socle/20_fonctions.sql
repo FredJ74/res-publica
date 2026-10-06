@@ -10,6 +10,16 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- acteur_identifie() -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.acteur_identifie()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT public.est_appel_serveur() OR public.mon_personnage() IS NOT NULL;
+$function$;
+
 -- acteur_poste_courant() -> TABLE(nom text, poste_id text, poste_city text, pays text) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.acteur_poste_courant()
  RETURNS TABLE(nom text, poste_id text, poste_city text, pays text)

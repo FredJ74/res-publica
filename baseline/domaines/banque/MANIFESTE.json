@@ -138,18 +138,6 @@
  "domaine": "banque",
  "droits": [
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "accepter_accord_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "accepter_accord_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "accepter_accord_helvetia(text,text)",
@@ -204,18 +192,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "creer_placement_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "creer_placement_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "creer_placement_helvetia(text,numeric,text)",
@@ -231,18 +207,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "creer_placement_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "creer_placement_national(text,numeric,integer,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "creer_placement_national(text,numeric,integer,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -264,18 +228,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "creer_pret_helvetia(text,numeric,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "creer_pret_helvetia(text,numeric,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "creer_pret_helvetia(text,numeric,integer)",
@@ -291,18 +243,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "creer_pret_helvetia(text,numeric,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "deposer_helvetia(text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "deposer_helvetia(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -324,18 +264,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "deposer_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "deposer_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "deposer_helvetia(text,numeric,text)",
@@ -354,18 +282,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "fermer_compte_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "fermer_compte_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "fermer_compte_helvetia(text,text)",
@@ -381,18 +297,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fermer_compte_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "finaliser_achat_bien_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "finaliser_achat_bien_helvetia(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -498,18 +402,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "ouvrir_compte_helvetia(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "ouvrir_compte_helvetia(text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "ouvrir_compte_helvetia(text)",
@@ -537,18 +429,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "regler_creances_helvetia_quotidien(text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "rembourser_pret_helvetia_integral(text,text,jsonb)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "rembourser_pret_helvetia_integral(text,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -606,18 +486,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "retirer_helvetia(text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "retirer_helvetia(text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "retirer_helvetia(text,numeric)",
@@ -636,18 +504,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "retirer_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "retirer_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "retirer_helvetia(text,numeric,text)",
@@ -663,18 +519,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "retirer_helvetia(text,numeric,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "signer_compromis_bien_helvetia(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "signer_compromis_bien_helvetia(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -723,13 +567,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "biens_saisis_helvetia",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "biens_saisis_helvetia",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -747,13 +591,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "bnr_refinancements_helvetia",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "bnr_refinancements_helvetia",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -771,13 +615,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "compromis_historique",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "compromis_historique",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -795,13 +639,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "comptes_bancaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "comptes_bancaires",
-   "privileges": "MAINTAIN, REFERENCES, SELECT, TRIGGER"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -819,13 +663,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "obligations_helvetia",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "obligations_helvetia",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -843,13 +687,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "placements_bancaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "placements_bancaires",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -867,13 +711,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "prets",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "prets",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -891,13 +735,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "prets_bancaires",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "prets_bancaires",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -918,8 +762,8 @@
   "20_fonctions.sql": "e921afe2e4f453298ad21de9df5bddaa",
   "30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",
   "35_index.sql": "84e0b651c5bc4296b38c0b4d4b68c024",
-  "60_rls-policies.sql": "344a2137ab7cf532ea973bf0f7b0f5f5",
-  "70_droits.sql": "59f87031b21256a97c11636368e352bd",
+  "60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",
+  "70_droits.sql": "b048b2111a7416d5ea9c94fd691119ea",
   "80_commentaires.sql": "5e9298777dbc1c55637233cb262fd411"
  },
  "fonctions": [
@@ -1129,6 +973,24 @@
    "empreinte_avec_roles": "84bea4bf310381864cfe415531554093",
    "nom": "placements_bancaires_proprietaire_lecture",
    "tbl": "placements_bancaires"
+  },
+  {
+   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
+   "empreinte_avec_roles": "982bc684a53ae03097cd4ded7fc8bd0a",
+   "nom": "prets_ecriture_acteur",
+   "tbl": "prets"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "a3a9b436a441a81d068a696e015a6da5",
+   "nom": "prets_lecture_publique",
+   "tbl": "prets"
+  },
+  {
+   "empreinte": "e3ea344f347685a7896295df58bef6aa",
+   "empreinte_avec_roles": "7645ceea87e9be9e54b840962b4820fe",
+   "nom": "prets_maj_acteur",
+   "tbl": "prets"
   }
  ],
  "rls": [
@@ -1163,7 +1025,7 @@
    "tbl": "placements_bancaires"
   },
   {
-   "active": false,
+   "active": true,
    "forcee": false,
    "tbl": "prets"
   },

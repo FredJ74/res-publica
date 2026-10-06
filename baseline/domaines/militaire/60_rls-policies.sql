@@ -56,8 +56,13 @@ CREATE POLICY batailles_groupes_lecture ON public.batailles_groupes FOR SELECT T
   USING (true);
 
 -- commandes_militaires
+CREATE POLICY commandes_militaires_ecriture_acteur ON public.commandes_militaires FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
 CREATE POLICY commandes_militaires_lecture ON public.commandes_militaires FOR SELECT TO PUBLIC
   USING (true);
+CREATE POLICY commandes_militaires_maj_acteur ON public.commandes_militaires FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());
 
 -- compagnies_militaires
 CREATE POLICY compagnies_lecture_mon_pays ON public.compagnies_militaires FOR SELECT TO authenticated
@@ -68,11 +73,7 @@ CREATE POLICY decorations_lecture_publique ON public.decorations_militaires FOR 
   USING (true);
 
 -- engagements_militaires
-CREATE POLICY "Ecriture publique engagements militaires" ON public.engagements_militaires FOR INSERT TO PUBLIC
-  WITH CHECK (true);
 CREATE POLICY "Lecture publique engagements militaires" ON public.engagements_militaires FOR SELECT TO PUBLIC
-  USING (true);
-CREATE POLICY "Maj publique engagements militaires" ON public.engagements_militaires FOR UPDATE TO PUBLIC
   USING (true);
 CREATE POLICY engagements_militaires_lecture ON public.engagements_militaires FOR SELECT TO authenticated
   USING (true);

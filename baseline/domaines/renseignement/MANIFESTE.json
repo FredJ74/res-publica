@@ -378,18 +378,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "agent_transferer(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "agent_transferer(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "agent_transferer(text,text)",
@@ -864,18 +852,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "renseignement_mission_raccorder()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "renseignement_mission_raccorder()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "renseignement_mission_raccorder()",
@@ -963,7 +939,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "rapports_renseignement",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "INSERT, SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -1005,13 +981,13 @@
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "renseignements_connus",
-   "privileges": "MAINTAIN, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "renseignements_connus",
-   "privileges": "INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1034,7 +1010,7 @@
   "35_index.sql": "f497a9065521793aaf3e2eb09c104783",
   "50_triggers.sql": "7572e5d6c6fed52f7debb92b077dc520",
   "60_rls-policies.sql": "1af68eb19e83f0ce1366ca3bd1e66040",
-  "70_droits.sql": "2ec6962a240827c9792ef3f68a6eb2f8",
+  "70_droits.sql": "19d7e16726ad500dc20635f00a74ce14",
   "80_commentaires.sql": "1acdba161abfa36865c5d3cc1dbb2ef9"
  },
  "fonctions": [

@@ -136,12 +136,12 @@ GRANT EXECUTE ON FUNCTION public.pnj_transferer(text[],text,boolean) TO postgres
 GRANT EXECUTE ON FUNCTION public.pnj_transferer(text[],text,boolean) TO service_role;
 
 -- DROITS SUR LES SEQUENCES
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO anon;
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO authenticated;
+GRANT SELECT, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO anon;
+GRANT SELECT, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO authenticated;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO postgres;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_evenements_id_seq TO service_role;
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO anon;
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO authenticated;
+GRANT SELECT, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO anon;
+GRANT SELECT, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO authenticated;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO postgres;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.pnj_possessions_id_seq TO service_role;
 

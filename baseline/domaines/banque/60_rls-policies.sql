@@ -19,6 +19,7 @@ ALTER TABLE public.compromis_historique ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comptes_bancaires ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.obligations_helvetia ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.placements_bancaires ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prets_bancaires ENABLE ROW LEVEL SECURITY;
 
 -- comptes_bancaires
@@ -28,3 +29,12 @@ CREATE POLICY "comptes_bancaires lecture proprietaire" ON public.comptes_bancair
 -- placements_bancaires
 CREATE POLICY placements_bancaires_proprietaire_lecture ON public.placements_bancaires FOR SELECT TO anon, authenticated
   USING (personnage = mon_personnage());
+
+-- prets
+CREATE POLICY prets_ecriture_acteur ON public.prets FOR INSERT TO authenticated
+  WITH CHECK (acteur_identifie());
+CREATE POLICY prets_lecture_publique ON public.prets FOR SELECT TO anon, authenticated
+  USING (true);
+CREATE POLICY prets_maj_acteur ON public.prets FOR UPDATE TO authenticated
+  USING (acteur_identifie())
+  WITH CHECK (acteur_identifie());

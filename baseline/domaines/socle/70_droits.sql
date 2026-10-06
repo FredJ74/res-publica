@@ -11,6 +11,11 @@
 -- ============================================================================
 
 -- DROITS SUR LES FUNCTIONS
+GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO anon;
+GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO postgres;
+GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO service_role;
 GRANT EXECUTE ON FUNCTION public.acteur_poste_courant() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.acteur_poste_courant() TO postgres;
 GRANT EXECUTE ON FUNCTION public.acteur_poste_courant() TO service_role;
