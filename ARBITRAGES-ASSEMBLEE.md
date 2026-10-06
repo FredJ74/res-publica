@@ -1,10 +1,13 @@
 # Arbitrages — Assemblée, interdictions et portée des lois
 
-> **Registre de décisions de game design. Rien n'est implémenté ici.**
+> **Registre de décisions de game design.**
 > Décisions prises par Fred le 6 octobre 2026, à l'issue de l'audit 4D des
-> catégories d'interdiction. Ce fichier existe pour qu'on les retrouve au moment
-> d'implémenter, et pour que l'audit de consolidation puisse vérifier qu'elles
-> ont été suivies.
+> catégories d'interdiction.
+>
+> **ÉTAT : IMPLÉMENTÉES le 7 octobre 2026, commit `b3d10a3`.** Les décisions 1 à 6
+> sont en production ; les cinq défauts techniques du § 7 sont corrigés, à
+> l'exception notée en fin de ce fichier. Ce registre reste la trace du *pourquoi* :
+> il dit ce qui a été décidé et sur quels constats, ce qu'aucun diff ne raconte.
 
 ---
 
@@ -124,6 +127,15 @@ Aucun n'est corrigé aujourd'hui. Tous sont mesurés, pas supposés.
 vides. Aucune interdiction n'a jamais été déposée ni votée.
 
 ---
+
+## Ce qui a été fait, et ce qui ne l'a pas été
+
+Les sept décisions sont implémentées (`b3d10a3`), avec une réserve honnête sur le
+§ 7.5 : les trois éléments morts nommés — `sbAssembleeDeposer`,
+`SEBLEX.projet.label_categorie` et la route `deposer_projet` — **n'ont pas été
+retirés**. Ils ne sont pas touchés par cette correction, et les enlever aurait
+élargi le lot sans rien prouver. Les quatre commentaires faux, eux, ont été
+rectifiés parce qu'ils décrivaient précisément le mécanisme corrigé.
 
 ## Ce qui n'est PAS décidé ici
 
