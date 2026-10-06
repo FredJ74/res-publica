@@ -181,6 +181,10 @@ GRANT EXECUTE ON FUNCTION public.prix_ressource_selon_stock(text,numeric) TO ser
 GRANT EXECUTE ON FUNCTION public.produire_en_usine(text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.produire_en_usine(text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.produire_en_usine(text,text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.recettes_militaires_empreinte_reelle() TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.recettes_militaires_empreinte_reelle() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.recettes_militaires_empreinte_reelle() TO postgres;
+GRANT EXECUTE ON FUNCTION public.recettes_militaires_empreinte_reelle() TO service_role;
 GRANT EXECUTE ON FUNCTION public.recevoir_soin(text,text,text,text,text,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.recevoir_soin(text,text,text,text,text,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.recevoir_soin(text,text,text,text,text,integer) TO service_role;

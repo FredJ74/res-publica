@@ -10,6 +10,89 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- militaire_chance_detection(numeric,numeric,integer,integer) -> integer | sql | SECURITY INVOKER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_chance_detection(p_reco_observateur numeric, p_camouflage_cible numeric, p_modif_distance integer, p_bonus_jumelles integer DEFAULT 0)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$
+  SELECT greatest(5, least(95, round(
+    50 + coalesce(p_reco_observateur,0) - coalesce(p_camouflage_cible,0)
+       + coalesce(p_modif_distance,0) + coalesce(p_bonus_jumelles,0))::integer));
+$function$;
+
+-- militaire_compagnie_creer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_compagnie_creer()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  c_contingent constant integer := 96;
+  c_sections   constant integer := 4;
+  c_cout       constant numeric := 20000;
+  c_pa         constant integer := 3;
+  v_moi text; v_pays text; v_pa integer; v_id text; v_prefixe text;
+  v_paye jsonb; v_caisse jsonb; v_sections jsonb; v_reserve jsonb;
+BEGIN
+  PERFORM set_config('rp.caisse_interne', 'on', true);
+  v_moi := public.exiger_poste('commandant');
+  IF v_moi IS NULL THEN v_moi := public.mon_personnage(); END IF;
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT coalesce(country, 'republic'), coalesce(pa, 0) INTO v_pays, v_pa
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  IF v_pa < c_pa THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'requis', c_pa, 'pa_reel', v_pa);
+  END IF;
+
+  v_caisse := public.caisse_institution_mouvement(v_pays || '_caserne-militaire', -c_cout, true);
+  IF NOT coalesce((v_caisse->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false,
+      'raison', coalesce(v_caisse->>'raison', 'caisse_refusee'), 'cout', c_cout);
+  END IF;
+
+  v_paye := public.payer_ordre(v_moi, 'recruter_compagnie', c_pa, 0);
+  IF NOT coalesce((v_paye->>'ok')::boolean, false) THEN
+    RAISE EXCEPTION 'militaire_compagnie_creer: paiement des PA refuse (%)',
+      coalesce(v_paye->>'raison', 'motif inconnu');
+  END IF;
+
+  v_id := 'compagnie-' || v_pays || '-' || floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint::text;
+  v_prefixe := to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYYMM');
+
+  SELECT jsonb_agg(jsonb_build_object(
+           'id', v_id || '-s' || i, 'numero', i, 'lieutenantNom', NULL,
+           'soldats', '[]'::jsonb) ORDER BY i)
+    INTO v_sections FROM generate_series(1, c_sections) AS g(i);
+
+  SELECT jsonb_agg(jsonb_build_object(
+           'matricule', v_prefixe || '-' || lpad(i::text, 3, '0'),
+           'formation', jsonb_build_object('combat_rapproche', 0, 'tir', 0,
+                                           'reconnaissance', 0, 'secourisme', 0),
+           'arme', 'corps_a_corps',
+           'ville', 'caserne', 'buildingId', 'caserne-militaire', 'roomId', 'corps_garde',
+           'leaderCourant', NULL, 'pa', 12) ORDER BY i)
+    INTO v_reserve FROM generate_series(1, c_contingent) AS g(i);
+
+  INSERT INTO public.compagnies_militaires (id, data)
+  VALUES (v_id, jsonb_build_object(
+    'id', v_id, 'pays', v_pays, 'capitaineNom', NULL,
+    'contingentInitial', c_contingent, 'reserve', v_reserve, 'sections', v_sections));
+
+  RETURN jsonb_build_object('ok', true, 'compagnie', v_id, 'contingent', c_contingent,
+                            'sections', c_sections, 'cout', c_cout, 'pa', v_paye->'pa');
+END;
+$function$;
+
 -- militaire_competences(text) -> jsonb | sql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_competences(p_nom text)
  RETURNS jsonb

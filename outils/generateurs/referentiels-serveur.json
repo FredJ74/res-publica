@@ -169,6 +169,20 @@
       "forme": "valeur",
       "lecture": "litteral",
       "_lecture": "plateau-core.js touche `window` des son chargement (window.__rpDiagId, deux addEventListener). Le charger hors navigateur echoue, et le charger DANS le serveur serait exactement le couplage que ce chantier interdit. Seul le litteral est lu."
+    },
+    {
+      "serveur": "RECETTES_MILITAIRES_SERVEUR",
+      "canon": "RECETTES_MILITAIRES",
+      "fichier": "plateau-effort-guerre.js",
+      "forme": "projection_objet",
+      "champs": [
+        "label",
+        "materiaux",
+        "pa",
+        "produitParLot"
+      ],
+      "_note": "Le cron n'a besoin que de ces quatre champs : label pour la facture, materiaux et produitParLot pour la production, pa pour le cout de revient. Le canon en porte onze (typeObjet, sousType, prixPnj, capacite, desc, icon, imageUrl en plus), qui servent a l'interface et au retrait, pas au cron.",
+      "_pourquoi_generee": "Cette copie etait figee a 3 recettes sur 8 depuis le 18 septembre 2026. Les cinq accessoires etaient proposes au Ministre de la Defense, commandes, et jamais produits : le cron faisait `continue` en silence et la commande restait a 0/N indefiniment. Pire, la liste des matieres reservables etant DEDUITE de ces recettes, le cron liberait chaque nuit le textile, le charbon et les fruits_legumes que le ministre avait reserves. Generer la copie supprime les deux pannes d'un coup."
     }
   ],
   "_non_generees": "Ce qui suit n'est PAS genere, et chaque cas dit pourquoi. Aucune de ces copies n'est supprimee.",
@@ -176,11 +190,6 @@
     "POSTES_NOMMES_EXCLUSIFS_SERVEUR": {
       "canon": "POSTES_NOMMES_EXCLUSIFS (data.js)",
       "raison": "DIVERGENCE METIER DECLAREE. juge.scope vaut 'pays' au serveur contre 'ville' dans data.js, et autoriteScope n'est pas recopie. Les 16 autres postes sont identiques au caractere. Generer effacerait la divergence sans arbitrage.",
-      "ferme_par": "lot 4D"
-    },
-    "RECETTES_MILITAIRES_SERVEUR": {
-      "canon": "RECETTES_MILITAIRES (plateau-effort-guerre.js)",
-      "raison": "DIVERGENCE METIER DECLAREE. 3 produits sur 8 : les 5 accessoires du 18 septembre 2026 (gilet_pare_balles, jumelles, radio, tente, tenue_camouflage) n'ont jamais ete reportes cote serveur. La projection sur [label, materiaux, pa, produitParLot] concorde sur les 3 presents.",
       "ferme_par": "lot 4D"
     },
     "NIVEAUX_CONSTRUCTION_SERVEUR": {

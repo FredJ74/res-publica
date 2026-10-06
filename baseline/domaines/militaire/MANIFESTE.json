@@ -55,6 +55,18 @@
    "sous": ""
   },
   {
+   "empreinte": "01e9a95093cc9e4f25e9d5bdd71f6c03",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_annuler(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c2bac785d21c61f6cdb71dabcf63888c",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_creer(text,integer)",
+   "sous": ""
+  },
+  {
    "empreinte": "efba91b6899430cdfedaaec51dc49a36",
    "genre": "FUNCTION",
    "objet": "militaire_arme_operationnelle(text)",
@@ -160,6 +172,12 @@
    "empreinte": "4efc81d199b3371fea0c9182dfc28745",
    "genre": "TABLE",
    "objet": "candidatures_militaires",
+   "sous": ""
+  },
+  {
+   "empreinte": "1320f7211c515c6eeb4b48e284e60149",
+   "genre": "TABLE",
+   "objet": "recettes_militaires",
    "sous": ""
   }
  ],
@@ -295,6 +313,12 @@
    "genre": "p",
    "nom": "nominations_militaires_pkey",
    "tbl": "nominations_militaires"
+  },
+  {
+   "empreinte": "7dd83d6e3a521cb7b07316176a0c29f9",
+   "genre": "p",
+   "nom": "recettes_militaires_pkey",
+   "tbl": "recettes_militaires"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -606,6 +630,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_annuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_annuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_annuler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_creer(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_creer(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "effort_commande_creer(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "effort_produire_lot(text,text,text,jsonb,jsonb,numeric,text,text,text,integer)",
@@ -2955,7 +3015,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "commandes_militaires",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3153,6 +3213,54 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "nominations_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "recettes_militaires",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_militaires",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recettes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recettes_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "recettes_militaires_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_militaires_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recettes_militaires_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recettes_militaires_empreinte",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -3218,16 +3326,16 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "3839bcf8b78fe3ca4315074e0d6964fa",
-  "20_fonctions-1.sql": "618e2857fd1836c7a803cfe147ee6092",
-  "20_fonctions-2.sql": "e84a51677f70ad87bf5964a1f5654af6",
+  "10_tables.sql": "b0cbce6e6da2f36f4251613bc672a672",
+  "20_fonctions-1.sql": "1c6dfa40f72ae0a7e8895f64a6884f9d",
+  "20_fonctions-2.sql": "008bc9e4975120669d4e3700bd237ce4",
   "20_fonctions-3.sql": "418f2d11546caef22030ac484f322758",
-  "30_contraintes.sql": "dde0c79322c3754e5a81519d184c36eb",
-  "35_index.sql": "ace2b2e52d13010d5ded5fbee5cae436",
+  "30_contraintes.sql": "9a10c64eb8a2aac583fb828422059ab8",
+  "35_index.sql": "8568b7cc2cb218862092890a659544f9",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
-  "60_rls-policies.sql": "3ab5177bfa292f89c4ef0657686ad58e",
-  "70_droits.sql": "f31648f68c670eaad49f2c96b9c8e955",
-  "80_commentaires.sql": "db7d7fe98309d0545b893c039fa61e2a"
+  "60_rls-policies.sql": "a69a00a36442f628813ba5faf99bb8c6",
+  "70_droits.sql": "4a6509cb04684fd09d7189e940d4b880",
+  "80_commentaires.sql": "3a3aa4a324ad719098f76831e32ed717"
  },
  "fonctions": [
   {
@@ -3284,6 +3392,16 @@
    "empreinte": "ccd7d75db32a4b690dc979bb964ca106",
    "security_definer": true,
    "signature": "caserne_virement_journalier_fixer(integer)"
+  },
+  {
+   "empreinte": "e96f896da6b0e68e5f2bbc32bcdc03b6",
+   "security_definer": true,
+   "signature": "effort_commande_annuler(text)"
+  },
+  {
+   "empreinte": "3c987ee289e55065e23e6d78fb2720e7",
+   "security_definer": true,
+   "signature": "effort_commande_creer(text,integer)"
   },
   {
    "empreinte": "112fdcbf677c8c4ce45f8c153fb51b0b",
@@ -4029,6 +4147,7 @@
   "mutineries_membres_pkey",
   "mutineries_pkey",
   "nominations_militaires_pkey",
+  "recettes_militaires_pkey",
   "retraits_materiel_militaire_pkey",
   "services_militaires_pkey",
   "soldes_militaires_pkey"
@@ -4071,21 +4190,9 @@
    "tbl": "batailles_groupes"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "943664650c8452349714d518b54e72db",
-   "nom": "commandes_militaires_ecriture_acteur",
-   "tbl": "commandes_militaires"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "cf8b629e83ebf53eddfef18588d0c52b",
    "nom": "commandes_militaires_lecture",
-   "tbl": "commandes_militaires"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "957810061733f3c3841cada31481eefb",
-   "nom": "commandes_militaires_maj_acteur",
    "tbl": "commandes_militaires"
   },
   {
@@ -4135,6 +4242,12 @@
    "empreinte_avec_roles": "a1e5e3c1ee51dc40a18f5a56de8da758",
    "nom": "nominations militaires lecture interessee",
    "tbl": "nominations_militaires"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "ffe6002a9c167dbbc43402bc12483344",
+   "nom": "recettes_militaires_lecture",
+   "tbl": "recettes_militaires"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -4265,6 +4378,16 @@
    "active": true,
    "forcee": false,
    "tbl": "nominations_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "recettes_militaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "recettes_militaires_empreinte"
   },
   {
    "active": true,
@@ -4452,6 +4575,18 @@
    "empreinte_catalogue": "d827c482515137af4fdac0e39c9bf88a",
    "empreinte_texte": "d779368e317e8248e942beb0e64d551b",
    "nom": "nominations_militaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "6e6bd8f9d2bd298e46cd82dac950283b",
+   "empreinte_texte": "a671e3ef9644681c8e000c7607f413a0",
+   "nom": "recettes_militaires"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "c4f09431efd9fb89183e7213b6326810",
+   "empreinte_texte": "9d365efd8c40b60379c1bb60ed72e1ec",
+   "nom": "recettes_militaires_empreinte"
   },
   {
    "colonnes": 9,

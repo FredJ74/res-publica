@@ -597,6 +597,111 @@ BEGIN
 END;
 $function$;
 
+-- effort_commande_annuler(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.effort_commande_annuler(p_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text;
+  v_cmd public.commandes_militaires%ROWTYPE;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT coalesce(country, 'republic'), poste ->> 'id'
+    INTO v_pays, v_poste
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF coalesce(v_poste, '') <> 'min_def' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis',
+                              'attendu', 'min_def', 'obtenu', v_poste);
+  END IF;
+
+  SELECT * INTO v_cmd FROM public.commandes_militaires WHERE id = p_id FOR UPDATE;
+  IF v_cmd.id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_inconnue');
+  END IF;
+  IF v_cmd.pays <> v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_hors_pays');
+  END IF;
+  IF v_cmd.statut <> 'en_cours' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_close',
+                              'statut', v_cmd.statut);
+  END IF;
+
+  UPDATE public.commandes_militaires
+     SET statut = 'annulee', updated_at = now()
+   WHERE id = p_id;
+
+  RETURN jsonb_build_object('ok', true, 'id', p_id,
+                            'quantite_produite', v_cmd.quantite_produite);
+END;
+$function$;
+
+-- effort_commande_creer(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.effort_commande_creer(p_produit text, p_quantite integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text;
+  v_rec public.recettes_militaires%ROWTYPE;
+  v_effort jsonb; v_expire numeric; v_id text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT coalesce(country, 'republic'), poste ->> 'id'
+    INTO v_pays, v_poste
+    FROM public.personnages_donnees WHERE name = v_moi;
+
+  IF coalesce(v_poste, '') <> 'min_def' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis',
+                              'attendu', 'min_def', 'obtenu', v_poste);
+  END IF;
+
+  SELECT * INTO v_rec FROM public.recettes_militaires WHERE produit = p_produit;
+  IF v_rec.produit IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'produit_hors_catalogue',
+                              'produit', p_produit);
+  END IF;
+
+  IF p_quantite IS NULL OR p_quantite <= 0 OR p_quantite > 100000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'quantite_invalide',
+                              'quantite', p_quantite);
+  END IF;
+
+  SELECT data -> 'effortGuerre' INTO v_effort
+    FROM public.budgets_nationaux WHERE id = v_pays;
+  IF v_effort IS NULL OR coalesce((v_effort ->> 'actif')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'effort_inactif');
+  END IF;
+  v_expire := (v_effort ->> 'expireA')::numeric;
+  IF v_expire IS NOT NULL
+     AND v_expire <= extract(epoch FROM now()) * 1000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'effort_expire');
+  END IF;
+
+  v_id := 'cmd-' || to_char(now(), 'YYYYMMDDHH24MISS') || '-' ||
+          substr(md5(random()::text || v_moi), 1, 8);
+
+  INSERT INTO public.commandes_militaires
+    (id, pays, produit, quantite_demandee, quantite_produite, statut, ministre)
+  VALUES (v_id, v_pays, p_produit, p_quantite, 0, 'en_cours', v_moi);
+
+  RETURN jsonb_build_object('ok', true, 'id', v_id, 'pays', v_pays,
+                            'produit', p_produit, 'label', v_rec.label,
+                            'quantite_demandee', p_quantite, 'ministre', v_moi);
+END;
+$function$;
+
 -- effort_produire_lot(text,text,text,jsonb,jsonb,numeric,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.effort_produire_lot(p_pays text, p_commande_id text, p_armurerie text, p_entrepots jsonb, p_recette jsonb, p_cout_revient numeric, p_lot text, p_arme_label text, p_ville_arm text, p_jour integer)
  RETURNS jsonb
@@ -3022,88 +3127,5 @@ BEGIN
     v_n := v_n + 1;
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'relancees', v_n);
-END;
-$function$;
-
--- militaire_chance_detection(numeric,numeric,integer,integer) -> integer | sql | SECURITY INVOKER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_chance_detection(p_reco_observateur numeric, p_camouflage_cible numeric, p_modif_distance integer, p_bonus_jumelles integer DEFAULT 0)
- RETURNS integer
- LANGUAGE sql
- IMMUTABLE
- SET search_path TO 'public'
-AS $function$
-  SELECT greatest(5, least(95, round(
-    50 + coalesce(p_reco_observateur,0) - coalesce(p_camouflage_cible,0)
-       + coalesce(p_modif_distance,0) + coalesce(p_bonus_jumelles,0))::integer));
-$function$;
-
--- militaire_compagnie_creer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_compagnie_creer()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  c_contingent constant integer := 96;
-  c_sections   constant integer := 4;
-  c_cout       constant numeric := 20000;
-  c_pa         constant integer := 3;
-  v_moi text; v_pays text; v_pa integer; v_id text; v_prefixe text;
-  v_paye jsonb; v_caisse jsonb; v_sections jsonb; v_reserve jsonb;
-BEGIN
-  PERFORM set_config('rp.caisse_interne', 'on', true);
-  v_moi := public.exiger_poste('commandant');
-  IF v_moi IS NULL THEN v_moi := public.mon_personnage(); END IF;
-  IF v_moi IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
-  END IF;
-
-  SELECT coalesce(country, 'republic'), coalesce(pa, 0) INTO v_pays, v_pa
-    FROM public.personnages_donnees WHERE name = v_moi;
-  IF v_pays IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
-  END IF;
-
-  IF v_pa < c_pa THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'requis', c_pa, 'pa_reel', v_pa);
-  END IF;
-
-  v_caisse := public.caisse_institution_mouvement(v_pays || '_caserne-militaire', -c_cout, true);
-  IF NOT coalesce((v_caisse->>'ok')::boolean, false) THEN
-    RETURN jsonb_build_object('ok', false,
-      'raison', coalesce(v_caisse->>'raison', 'caisse_refusee'), 'cout', c_cout);
-  END IF;
-
-  v_paye := public.payer_ordre(v_moi, 'recruter_compagnie', c_pa, 0);
-  IF NOT coalesce((v_paye->>'ok')::boolean, false) THEN
-    RAISE EXCEPTION 'militaire_compagnie_creer: paiement des PA refuse (%)',
-      coalesce(v_paye->>'raison', 'motif inconnu');
-  END IF;
-
-  v_id := 'compagnie-' || v_pays || '-' || floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint::text;
-  v_prefixe := to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYYMM');
-
-  SELECT jsonb_agg(jsonb_build_object(
-           'id', v_id || '-s' || i, 'numero', i, 'lieutenantNom', NULL,
-           'soldats', '[]'::jsonb) ORDER BY i)
-    INTO v_sections FROM generate_series(1, c_sections) AS g(i);
-
-  SELECT jsonb_agg(jsonb_build_object(
-           'matricule', v_prefixe || '-' || lpad(i::text, 3, '0'),
-           'formation', jsonb_build_object('combat_rapproche', 0, 'tir', 0,
-                                           'reconnaissance', 0, 'secourisme', 0),
-           'arme', 'corps_a_corps',
-           'ville', 'caserne', 'buildingId', 'caserne-militaire', 'roomId', 'corps_garde',
-           'leaderCourant', NULL, 'pa', 12) ORDER BY i)
-    INTO v_reserve FROM generate_series(1, c_contingent) AS g(i);
-
-  INSERT INTO public.compagnies_militaires (id, data)
-  VALUES (v_id, jsonb_build_object(
-    'id', v_id, 'pays', v_pays, 'capitaineNom', NULL,
-    'contingentInitial', c_contingent, 'reserve', v_reserve, 'sections', v_sections));
-
-  RETURN jsonb_build_object('ok', true, 'compagnie', v_id, 'contingent', c_contingent,
-                            'sections', c_sections, 'cout', c_cout, 'pa', v_paye->'pa');
 END;
 $function$;

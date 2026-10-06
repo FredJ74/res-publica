@@ -50,6 +50,7 @@ import {
   ENTREPOTS_EFFORT_SERVEUR,
   CAISSE_PAR_POSTE_BUDGET_SERVEUR,
   REPARTITION_DEFAULT_SERVEUR,
+  RECETTES_MILITAIRES_SERVEUR,
 } from './_referentiels-generes.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
@@ -4044,21 +4045,17 @@ async function traiterQuotidienNationalServeur(pays) {
 // ============================================================================
 // EFFORT DE GUERRE (13 septembre 2026) — TACHE NOCTURNE
 // ============================================================================
-// CE QUI RESTE RECOPIE ICI, ET POURQUOI (chantier 4B).
-// ENTREPOTS_EFFORT_SERVEUR, COUT_HORAIRE_TRAVAIL_SERVEUR et PA_PRODUCTION_ARMURERIE_SERVEUR
-// sont desormais importes du module genere. Les trois constantes ci-dessous ne le sont pas :
+// CE QUI RESTE RECOPIE ICI, ET POURQUOI (chantiers 4B et 4D).
+// ENTREPOTS_EFFORT_SERVEUR, COUT_HORAIRE_TRAVAIL_SERVEUR, PA_PRODUCTION_ARMURERIE_SERVEUR et
+// RECETTES_MILITAIRES_SERVEUR sont desormais importes du module genere -- cette derniere etait
+// figee a 3 recettes sur 8 depuis le 18 septembre 2026, ce qui rendait les cinq accessoires
+// incommandables en pratique ET faisait liberer chaque nuit le textile, le charbon et les
+// fruits_legumes de la reserve strategique. Les deux constantes ci-dessous ne le sont pas :
 //   DUREE_EFFORT_GUERRE_MS_SERVEUR  canon identique, mais constante MORTE (rien ne la lit) ;
-//   VILLES_ARMURERIES_SERVEUR       ne connait que Republia -- arbitrage de game design ouvert ;
-//   RECETTES_MILITAIRES_SERVEUR     DIVERGENCE declaree : 3 produits sur 8, les 5 accessoires
-//                                   du 18 septembre 2026 n'ont jamais ete reportes ici.
+//   VILLES_ARMURERIES_SERVEUR       ne connait que Republia -- lot 4G ;
 // Les raisons sont tenues a jour dans outils/generateurs/referentiels-serveur.json.
 const DUREE_EFFORT_GUERRE_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;
 const VILLES_ARMURERIES_SERVEUR = { republic: ['capitale', 'ville_a', 'ville_b'] };
-const RECETTES_MILITAIRES_SERVEUR = {
-  arme_de_poing:      { label: 'Pistolet militaire',   materiaux: { metal: 2, bois: 1 },    produitParLot: 1 },
-  mitraillette:       { label: 'Mitraillette',         materiaux: { metal: 2, bois: 2 },    produitParLot: 1 },
-  explosif_militaire: { label: 'Explosifs militaires', materiaux: { metal: 2, minerai: 3 }, pa: 1, produitParLot: 3 }
-};
 // Plafond de securite : borne le temps d'execution de la passe nocturne (le cron Vercel a une
 // duree limitee). Ce qui n'est pas produit ce soir le sera demain -- une commande n'echoue jamais.
 const LOTS_MILITAIRES_MAX_PAR_NUIT = 60;

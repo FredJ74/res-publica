@@ -311,15 +311,15 @@ def controles_du_monde(cat):
     def att(libelle, obtenu, attendu, note=""):
         r.append((libelle, obtenu, attendu, obtenu == attendu, note))
 
-    att("tables creees", len(cat.tables), 246)
+    att("tables creees", len(cat.tables), 248)
     att("vues creees", len(cat.vues), 2)
-    att("signatures de fonction creees", cat.n_fonctions, 644)
-    att("noms de fonction distincts", len(cat.fonctions), 640,
+    att("signatures de fonction creees", cat.n_fonctions, 647)
+    att("noms de fonction distincts", len(cat.fonctions), 643,
         "4 fonctions sont surchargees : moins de noms que de signatures")
-    att("contraintes posees", len(cat.contraintes), 421)
+    att("contraintes posees", len(cat.contraintes), 422)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
-    att("policies creees", len(cat.policies), 284)
+    att("policies creees", len(cat.policies), 283)
     att("sequences disponibles", len(cat.sequences), 31)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,

@@ -398,3 +398,80 @@ export const REPARTITION_DEFAULT_SERVEUR = {
   "mairie": 12,
   "reserve": 2
 };
+
+// RECETTES_MILITAIRES_SERVEUR -- RECETTES_MILITAIRES de plateau-effort-guerre.js
+export const RECETTES_MILITAIRES_SERVEUR = {
+  "arme_de_poing": {
+    "label": "Pistolet militaire",
+    "materiaux": {
+      "metal": 2,
+      "bois": 1
+    },
+    "produitParLot": 1
+  },
+  "mitraillette": {
+    "label": "Mitraillette",
+    "materiaux": {
+      "metal": 2,
+      "bois": 2
+    },
+    "produitParLot": 1
+  },
+  "explosif_militaire": {
+    "label": "Explosifs militaires",
+    "materiaux": {
+      "metal": 2,
+      "minerai": 3
+    },
+    "pa": 1,
+    "produitParLot": 3
+  },
+  "gilet_pare_balles": {
+    "label": "Gilet pare-balles",
+    "materiaux": {
+      "metal": 2,
+      "textile": 2
+    },
+    "pa": 3,
+    "produitParLot": 1
+  },
+  "radio": {
+    "label": "Radio de campagne",
+    "materiaux": {
+      "metal": 1,
+      "textile": 1,
+      "minerai": 1
+    },
+    "pa": 3,
+    "produitParLot": 1
+  },
+  "tente": {
+    "label": "Tente de campagne",
+    "materiaux": {
+      "metal": 1,
+      "textile": 1
+    },
+    "pa": 2,
+    "produitParLot": 1
+  },
+  "jumelles": {
+    "label": "Jumelles",
+    "materiaux": {
+      "metal": 1,
+      "textile": 1,
+      "minerai": 1
+    },
+    "pa": 2,
+    "produitParLot": 1
+  },
+  "tenue_camouflage": {
+    "label": "Tenue de camouflage",
+    "materiaux": {
+      "textile": 1,
+      "charbon": 1,
+      "fruits_legumes": 1
+    },
+    "pa": 2,
+    "produitParLot": 1
+  }
+};

@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 25 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 26 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   armureries_dotations_pkey  (contrainte armureries_dotations_pkey)
 --   batailles_engagements_pkey  (contrainte batailles_engagements_pkey)
 --   batailles_groupes_pkey  (contrainte batailles_groupes_pkey)
@@ -33,6 +33,7 @@
 --   mutineries_membres_pkey  (contrainte mutineries_membres_pkey)
 --   mutineries_pkey  (contrainte mutineries_pkey)
 --   nominations_militaires_pkey  (contrainte nominations_militaires_pkey)
+--   recettes_militaires_pkey  (contrainte recettes_militaires_pkey)
 --   retraits_materiel_militaire_pkey  (contrainte retraits_materiel_militaire_pkey)
 --   services_militaires_pkey  (contrainte services_militaires_pkey)
 --   soldes_militaires_pkey  (contrainte soldes_militaires_pkey)

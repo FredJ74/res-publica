@@ -643,6 +643,21 @@ function majVisuelCommandeMilitaire(produit) {
   if (img && r) { img.src = r.imageUrl || ''; img.alt = r.label; }
 }
 
+// Les motifs de refus de effort_commande_creer / effort_commande_annuler, nommes. Un refus
+// serveur qui arrive sous forme de « ça n'a pas marché » envoie chercher une panne la ou il
+// n'y en a pas : c'est la lecon du chantier 3 sur les six motifs muets de salaire_civil_percevoir.
+const MOTIFS_COMMANDE_MILITAIRE = {
+  acteur_non_authentifie: 'Aucun personnage identifié par le serveur.',
+  poste_requis:           'Réservé au Ministre de la Défense.',
+  produit_hors_catalogue: 'Ce produit n\'est pas au catalogue militaire.',
+  quantite_invalide:      'Quantité invalide.',
+  effort_inactif:         'Aucune commande militaire hors Effort de guerre.',
+  effort_expire:          'L\'Effort de guerre est expiré.',
+  commande_inconnue:      'Cette commande n\'existe plus.',
+  commande_hors_pays:     'Cette commande n\'appartient pas à votre empire.',
+  commande_close:         'Cette commande est déjà close.'
+};
+
 async function confirmerCommandeMilitaire() {
   const pays = state.country || 'republic';
   if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
@@ -654,12 +669,16 @@ async function confirmerCommandeMilitaire() {
   const effort = await chargerEffortGuerre(pays);
   if (!effortDeGuerreActif(effort, Date.now())) { showToast('Effort inactif', 'Aucune commande militaire hors Effort de guerre.', false); return; }
 
-  const ok = await sbCreerCommandeMilitaire({
-    id: 'cmd-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
-    pays: pays, produit: produit, quantite_demandee: qte,
-    ministre: state.char?.name || null
-  }).catch(function () { return null; });
-  if (!ok) { showToast('Commande refusée', 'La commande n\'a pas pu être enregistrée. Rien n\'a été engagé.', false); return; }
+  // LES VERIFICATIONS CI-DESSUS RESTENT, MAIS ELLES NE DECIDENT PLUS (chantier 4D).
+  // Elles servent a expliquer vite au joueur, pas a autoriser : le poste, le catalogue, la
+  // quantite et l'Effort actif sont tous reverifies par effort_commande_creer, qui seule peut
+  // ecrire. L'identifiant et le pays ne sont plus envoyes -- le serveur les etablit lui-meme.
+  const r = await sbCreerCommandeMilitaire(produit, qte).catch(function () { return null; });
+  if (!r || r.ok !== true) {
+    showToast('Commande refusée', MOTIFS_COMMANDE_MILITAIRE[r && r.raison] ||
+              'La commande n\'a pas pu être enregistrée. Rien n\'a été engagé.', false);
+    return;
+  }
 
   showToast('Commande passée', qte + ' × ' + recetteMilitaire(produit).label + '. Production automatique par les trois armureries.', true, true);
   addJournalEntry('Commande militaire : ' + qte + ' × ' + recetteMilitaire(produit).label + '.', 'event-info');
@@ -668,7 +687,12 @@ async function confirmerCommandeMilitaire() {
 
 async function confirmerAnnulationCommande(id) {
   if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
-  await sbAnnulerCommandeMilitaire(id).catch(function () {});
+  const r = await sbAnnulerCommandeMilitaire(id).catch(function () { return null; });
+  if (!r || r.ok !== true) {
+    showToast('Annulation refusée', MOTIFS_COMMANDE_MILITAIRE[r && r.raison] ||
+              'Le serveur n\'a pas accepté l\'annulation. Rien n\'a changé.', false);
+    return;
+  }
   showToast('Reliquat annulé', 'Ce qui a déjà été produit, payé et livré reste acquis.', true);
   addJournalEntry('Reliquat d\'une commande militaire annulé.', 'event-info');
   rendreTableauEffortMinistre();

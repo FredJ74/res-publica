@@ -3841,15 +3841,28 @@ async function sbGetCommandesMilitaires(pays, statut) {
   return (await sbGet('commandes_militaires', filtre)) || [];
 }
 
-async function sbCreerCommandeMilitaire(commande) {
-  return sbInsert('commandes_militaires', commande);
+// LES COMMANDES MILITAIRES PASSENT PAR UNE PORTE SERVEUR (chantier 4D, 6 octobre 2026).
+// Avant : un sbInsert PostgREST direct, sous une policy acteur_identifie(). N'importe quel
+// joueur authentifie pouvait commander n'importe quel produit, pour n'importe quel pays, en
+// n'importe quelle quantite -- et modifier la commande d'autrui. Le poste min_def n'etait
+// verifie que dans ce navigateur, ce qui ne vaut rien. L'ecriture directe est desormais
+// revoquee en base ; seule la RPC ouvre.
+//
+// Noter ce qui a DISPARU de l'appel : l'identifiant et le pays. Le serveur fabrique l'un et
+// deduit l'autre du ministre. On ne demande plus au client ce qu'il n'a pas autorite a dire.
+async function sbCreerCommandeMilitaire(produit, quantite) {
+  const r = await sbRpc('effort_commande_creer',
+                        { p_produit: produit, p_quantite: quantite });
+  return Array.isArray(r) ? r[0] : r;
 }
 
 // Annulation du reliquat : le statut passe a 'annulee', quantite_produite n'est JAMAIS
-// touchee -- ce qui a ete produit, paye et livre reste definitif.
+// touchee -- ce qui a ete produit, paye et livre reste definitif. Meme regle qu'avant, mais
+// c'est le serveur qui la tient, et qui verifie que la commande appartient bien a l'empire
+// du ministre.
 async function sbAnnulerCommandeMilitaire(id) {
-  return sbUpdate('commandes_militaires', `id=eq.${encodeURIComponent(id)}`,
-                  { statut: 'annulee', updated_at: new Date().toISOString() });
+  const r = await sbRpc('effort_commande_annuler', { p_id: id });
+  return Array.isArray(r) ? r[0] : r;
 }
 
 // Registre des sorties de materiel militaire (armes ET explosifs, registre unique).

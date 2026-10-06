@@ -3,7 +3,7 @@
 """Controles automatiques de la classification des donnees (chantier 2C).
 
 Verifie, sans acceder a la base :
-  1. exactement 252 tables classees ;
+  1. exactement 254 tables classees ;
   2. aucune table oubliee ni inventee -- l'empreinte de la liste des tables doit
      correspondre a celle relevee dans le catalogue au moment de la classification ;
   3. aucune table classee deux fois ;
@@ -25,8 +25,8 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-TABLES_ATTENDUES = 252
-EMPREINTE_LISTE = "11aa4bbdee39d11e5e851a238aa155f1"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 254
+EMPREINTE_LISTE = "f39161fb2e49ac49c84f2e432dc1856d"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

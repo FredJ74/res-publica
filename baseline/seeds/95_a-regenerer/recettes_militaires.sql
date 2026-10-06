@@ -1,0 +1,31 @@
+-- SEED A REGENERER -- recettes_militaires
+-- ============================================================================
+-- Table   : public.recettes_militaires
+-- Domaine : militaire
+-- Source canonique : RECETTES_MILITAIRES, plateau-effort-guerre.js
+-- Generateur       : outils/generateurs/generer_recettes_militaires.py (EXISTE ET MARCHE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST LA CONVENTION DU REPERTOIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- 8 recettes de production militaire, miroir de RECETTES_MILITAIRES.
+--
+-- CE QUI LE DISTINGUE DES QUATRE AUTRES FICHIERS DE CE REPERTOIRE
+-- Leur generateur restait a ecrire. Celui-ci existe, tourne, et rend un SQL
+-- deterministe verifie des deux cotes :
+--     python3 outils/generateurs/generer_recettes_militaires.py --sql
+--     python3 outils/generateurs/generer_recettes_militaires.py --empreinte
+-- Empreinte au 6 octobre 2026 : 6162d0e5d809630e
+-- La table a ete peuplee par la migration 20261006213114_effort_commande_autorite,
+-- dont le seed etait produit par ce meme generateur.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Faire ecrire ce fichier directement par le generateur, comme les autres seeds.
+-- Tant que ce n'est pas fait, un MONDE NEUF naitrait sans catalogue militaire --
+-- meme dette que ordres_couts, pa_bonus_differes, postes_nommes_regles et
+-- ressources_economie, qui partagent ce repertoire pour la meme raison.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'ecrit pas ici.

@@ -33,6 +33,7 @@ ALTER TABLE public.militaire_terminal_requetes ADD CONSTRAINT militaire_terminal
 ALTER TABLE public.mutineries ADD CONSTRAINT mutineries_pkey PRIMARY KEY (camp);
 ALTER TABLE public.mutineries_membres ADD CONSTRAINT mutineries_membres_pkey PRIMARY KEY (camp, personnage);
 ALTER TABLE public.nominations_militaires ADD CONSTRAINT nominations_militaires_pkey PRIMARY KEY (id);
+ALTER TABLE public.recettes_militaires ADD CONSTRAINT recettes_militaires_pkey PRIMARY KEY (produit);
 ALTER TABLE public.retraits_materiel_militaire ADD CONSTRAINT retraits_materiel_militaire_pkey PRIMARY KEY (id);
 ALTER TABLE public.services_militaires ADD CONSTRAINT services_militaires_pkey PRIMARY KEY (id);
 ALTER TABLE public.soldes_militaires ADD CONSTRAINT soldes_militaires_pkey PRIMARY KEY (id);

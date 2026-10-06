@@ -371,6 +371,28 @@ BEGIN
     'stock_produit', v_stock_prod + v_produits, 'stock_matiere', v_stock_mat - 5);
 END; $function$;
 
+-- recettes_militaires_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.recettes_militaires_empreinte_reelle()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT left(md5(string_agg(
+      produit || '|' || coalesce(label, '')
+              || '|' || (SELECT coalesce(string_agg(k || ':' || (r.materiaux ->> k),
+                                                    ',' ORDER BY k COLLATE "C"), '')
+                           FROM jsonb_object_keys(r.materiaux) AS k)
+              || '|' || coalesce(pa::text, '')
+              || '|' || coalesce(produit_par_lot::text, '')
+              || '|' || coalesce(type_objet, '')
+              || '|' || coalesce(sous_type, '')
+              || '|' || coalesce(prix_pnj::text, '')
+              || '|' || coalesce(capacite::text, ''),
+      E'\n' ORDER BY produit COLLATE "C")), 16)
+  FROM public.recettes_militaires AS r;
+$function$;
+
 -- recevoir_soin(text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.recevoir_soin(p_acteur text, p_pays text, p_ville text, p_batiment text, p_type text, p_cout integer)
  RETURNS jsonb

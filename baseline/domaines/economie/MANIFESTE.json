@@ -91,6 +91,12 @@
    "sous": ""
   },
   {
+   "empreinte": "68bff56eb12c8a2d920a62facecba839",
+   "genre": "FUNCTION",
+   "objet": "recettes_militaires_empreinte_reelle()",
+   "sous": ""
+  },
+  {
    "empreinte": "cb907b5fc8fa9fcc0fb63645dd5c77f1",
    "genre": "TABLE",
    "objet": "apports_matieres",
@@ -1566,6 +1572,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "recettes_militaires_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "recettes_militaires_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recettes_militaires_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recettes_militaires_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "recevoir_soin(text,text,text,text,text,integer)",
@@ -2734,14 +2764,14 @@
  "fichiers": {
   "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
   "20_fonctions-1.sql": "51f46463fc05bccbc01be5a0967711e2",
-  "20_fonctions-2.sql": "246f7c4ef1ec02a4db6dac492fdf4c3b",
+  "20_fonctions-2.sql": "222ebceba782388e85145bea578ce74c",
   "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
   "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
   "40_vues.sql": "2d59d994831075a5e118e41b769bf712",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
   "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
-  "70_droits.sql": "8e8270b7727db0a7a71c41f03bb5087c",
-  "80_commentaires.sql": "65f34a472d8515643bd70f405de10c8a"
+  "70_droits.sql": "6d8d96ae9d682489b558906fbb738c01",
+  "80_commentaires.sql": "51f00d7ba6f4f810dd54183c4286ca63"
  },
  "fonctions": [
   {
@@ -3023,6 +3053,11 @@
    "empreinte": "284271d30fce5ae21646cfd0a4b38e26",
    "security_definer": true,
    "signature": "produire_en_usine(text,text,text)"
+  },
+  {
+   "empreinte": "076afeb21b884854e74de79b4d3e20bd",
+   "security_definer": true,
+   "signature": "recettes_militaires_empreinte_reelle()"
   },
   {
    "empreinte": "ec75c470d29704f609b00e1a45942ae8",

@@ -35,6 +35,8 @@ ALTER TABLE public.militaire_terminal_requetes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mutineries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mutineries_membres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nominations_militaires ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recettes_militaires ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recettes_militaires_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.retraits_materiel_militaire ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.services_militaires ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.soldes_militaires ENABLE ROW LEVEL SECURITY;
@@ -56,13 +58,8 @@ CREATE POLICY batailles_groupes_lecture ON public.batailles_groupes FOR SELECT T
   USING (true);
 
 -- commandes_militaires
-CREATE POLICY commandes_militaires_ecriture_acteur ON public.commandes_militaires FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
 CREATE POLICY commandes_militaires_lecture ON public.commandes_militaires FOR SELECT TO PUBLIC
   USING (true);
-CREATE POLICY commandes_militaires_maj_acteur ON public.commandes_militaires FOR UPDATE TO authenticated
-  USING (acteur_identifie())
-  WITH CHECK (acteur_identifie());
 
 -- compagnies_militaires
 CREATE POLICY compagnies_lecture_mon_pays ON public.compagnies_militaires FOR SELECT TO authenticated
@@ -95,6 +92,10 @@ CREATE POLICY mutineries_membres_lecture_mon_pays ON public.mutineries_membres F
 -- nominations_militaires
 CREATE POLICY "nominations militaires lecture interessee" ON public.nominations_militaires FOR SELECT TO authenticated
   USING (destinataire = mon_personnage() OR par = mon_personnage());
+
+-- recettes_militaires
+CREATE POLICY recettes_militaires_lecture ON public.recettes_militaires FOR SELECT TO PUBLIC
+  USING (true);
 
 -- retraits_materiel_militaire
 CREATE POLICY retraits_materiel_militaire_lecture ON public.retraits_materiel_militaire FOR SELECT TO PUBLIC

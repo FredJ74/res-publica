@@ -101,8 +101,9 @@
       ],
       "copies": [
         {
-          "fichier": "api/cron-minuit.js",
-          "constante": "RECETTES_MILITAIRES_SERVEUR"
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "RECETTES_MILITAIRES_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js, figee a 3 recettes sur 8. GENEREE depuis le canon depuis le chantier 4D (6 octobre 2026) : les 8 y sont."
         }
       ]
     },
@@ -262,11 +263,6 @@
     },
     "postes_nommes/api/cron-minuit.js": {
       "constat": "juge.scope vaut 'pays' cote serveur contre 'ville' dans data.js, et autoriteScope n'est pas recopie. Les 16 autres entrees sont identiques au caractere.",
-      "ferme_par": "lot 4D",
-      "arbitrage_requis": "aucun : data.js fait foi"
-    },
-    "recettes_militaires/api/cron-minuit.js": {
-      "constat": "3 produits sur 8. Les 5 accessoires du 18 septembre 2026 n'ont jamais ete reportes cote serveur.",
       "ferme_par": "lot 4D",
       "arbitrage_requis": "aucun : data.js fait foi"
     }

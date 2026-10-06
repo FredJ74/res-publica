@@ -259,6 +259,23 @@ CREATE TABLE public.nominations_militaires (
   cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.recettes_militaires (
+  produit text NOT NULL,
+  label text NOT NULL,
+  materiaux jsonb NOT NULL,
+  pa integer,
+  produit_par_lot integer NOT NULL,
+  type_objet text,
+  sous_type text,
+  prix_pnj integer,
+  capacite integer
+);
+
+CREATE TABLE public.recettes_militaires_empreinte (
+  empreinte text NOT NULL,
+  pose_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.retraits_materiel_militaire (
   id bigserial NOT NULL,
   pays text NOT NULL,
