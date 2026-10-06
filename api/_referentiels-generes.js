@@ -476,6 +476,13 @@ export const RECETTES_MILITAIRES_SERVEUR = {
   }
 };
 
+// CAISSES_LEGACY_SERVEUR -- CAISSES_LEGACY de data.js
+export const CAISSES_LEGACY_SERVEUR = {
+  "mairie": {
+    "capitale": "mairie-capitale"
+  }
+};
+
 // VILLES_SERVEUR -- VILLES de data.js
 export const VILLES_SERVEUR = {
   "republic": {

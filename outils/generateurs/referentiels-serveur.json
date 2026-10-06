@@ -185,6 +185,14 @@
       "_pourquoi_generee": "Cette copie etait figee a 3 recettes sur 8 depuis le 18 septembre 2026. Les cinq accessoires etaient proposes au Ministre de la Defense, commandes, et jamais produits : le cron faisait `continue` en silence et la commande restait a 0/N indefiniment. Pire, la liste des matieres reservables etant DEDUITE de ces recettes, le cron liberait chaque nuit le textile, le charbon et les fruits_legumes que le ministre avait reserves. Generer la copie supprime les deux pannes d'un coup."
     },
     {
+      "serveur": "CAISSES_LEGACY_SERVEUR",
+      "canon": "CAISSES_LEGACY",
+      "fichier": "data.js",
+      "forme": "valeur",
+      "_note": "Minuscule par nature : UNE entree. C'est la liste des caisses d'institution de ville dont l'identifiant ne suit pas la convention `<famille>_<ville>`. Elle ne doit que rapetisser.",
+      "_pourquoi_generee": "L'exception `mairie-capitale` etait reapprise a TROIS endroits independants : getBuildingIdMairie (test code en dur), salaire_caisse_de en SQL (essaie `_ville` puis `-ville`), et caisse_ville_de qui ne la connaissait pas du tout -- d'ou un garde-fou territorial desarme sur 126 841 FR. Le cron de minuit en avait besoin a son tour pour repartir la fiscalite sur les trois villes : sans generation, c'eut ete la quatrieme copie."
+    },
+    {
       "serveur": "VILLES_SERVEUR",
       "canon": "VILLES",
       "fichier": "data.js",

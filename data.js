@@ -92,6 +92,44 @@ const VILLES = {
   }
 };
 
+// LES CAISSES TERRITORIALES — UNE CONVENTION, UNE EXCEPTION DECLAREE (chantier 4F, 7 oct. 2026)
+//
+// La regle est simple : la caisse d'une institution de ville s'appelle `<famille>_<ville>`, et
+// l'identifiant complet en base prefixe le pays : `republic_commissariat_ville_a`.
+//
+// UNE SEULE EXCEPTION EXISTE, et la voici ecrite une fois pour toutes. La caisse de la mairie de
+// la capitale s'appelle `mairie-capitale`, avec un TIRET. Ce n'est pas une faute a corriger : la
+// cle a ete deliberement conservee le 17 aout 2026 parce que la capitale avait deja une caisse
+// active sous ce nom, et la renommer aurait orpheline son solde -- 126 841 FR sur les quatre
+// empires au 7 octobre 2026.
+//
+// CE QUE CETTE DECLARATION REMPLACE. La connaissance de cette exception vivait a TROIS endroits
+// qui l'avaient chacun reapprise a leur facon : getBuildingIdMairie (un test `ville ===
+// 'capitale'` code en dur), salaire_caisse_de() en SQL (qui essaie `_ville` puis `-ville`), et
+// caisse_ville_de() qui ne la connaissait PAS -- d'ou un garde-fou territorial desarme sur la
+// plus grosse caisse municipale du jeu. Une exception recopiee est une exception qu'un quatrieme
+// lecteur oubliera. Elle est desormais une DONNEE, et le serveur la recoit generee
+// (CAISSES_LEGACY_SERVEUR).
+//
+// N'AJOUTE RIEN ICI pour contourner un probleme de nommage : toute nouvelle caisse de ville suit
+// la convention reguliere. Cette table ne doit que rapetisser.
+const CAISSES_LEGACY = {
+  mairie: { capitale: 'mairie-capitale' }
+};
+
+// Identifiant de caisse d'une institution de ville, SANS le prefixe pays. Rend la cle historique
+// quand il en existe une, la cle reguliere sinon.
+//
+// LA VILLE N'EST PAS VERIFIEE ICI, ET C'EST VOULU : plusieurs appelants fabriquent legitimement
+// la caisse d'une zone de test ou d'une ville en cours d'ouverture. C'est au moment de DEBITER
+// qu'une caisse doit prouver son territoire -- cote serveur, ou caisse_territoire() refuse ce
+// qui n'est pas une vraie ville. Fabriquer un identifiant n'autorise rien.
+function caisseTerritorialeId(famille, ville) {
+  const v = ville || 'capitale';
+  const legacy = CAISSES_LEGACY[famille] && CAISSES_LEGACY[famille][v];
+  return legacy || (famille + '_' + v);
+}
+
 // LE RESOLVEUR UNIQUE. Rend le nom d'une vraie ville, ou null.
 //
 // NULL EST UNE REPONSE, PAS UN ACCIDENT. Un identifiant inconnu, une zone hors-ville, un pays

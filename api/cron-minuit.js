@@ -52,6 +52,8 @@ import {
   REPARTITION_DEFAULT_SERVEUR,
   RECETTES_MILITAIRES_SERVEUR,
   POSTES_NOMMES_EXCLUSIFS_SERVEUR,
+  VILLES_SERVEUR,
+  CAISSES_LEGACY_SERVEUR,
 } from './_referentiels-generes.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
@@ -2304,7 +2306,10 @@ function niveauGreveGeneraleServeur(niveau) {
   return GREVE_GENERALE_NIVEAUX_SERVEUR.find(n => n.niveau === niveau) || GREVE_GENERALE_NIVEAUX_SERVEUR[0];
 }
 const GREVE_GENERALE_ADHERENTS_MIN_SERVEUR = 100;
-const GREVE_VILLES_REPUBLIA_SERVEUR = ['capitale', 'ville_a', 'ville_b'];
+// GREVE_VILLES_REPUBLIA_SERVEUR EST SUPPRIMEE (chantier 4G, 7 octobre 2026). C'etait la liste
+// des vraies villes de Republia, recopiee a la main. Son unique lecteur demande desormais
+// villesDeServeur(pays), qui lit le referentiel genere : le meme resultat pour Republia, et la
+// structure prete pour les trois autres empires sans qu'aucun parametre soit invente.
 
 // organisations.data est un TEXT column (JSON.stringify), duplique de sbLoadOrganisations/
 // sbSaveOrganisation (supabase.js) -- contexte serveur isole, memes raisons que sbGetBatimentEtat.
@@ -2360,7 +2365,7 @@ async function modifierIndiceVilleServeur(pays, ville, cle, delta, floor) {
 }
 async function appliquerDeltaSocialPaysServeur(pays, delta, floor) {
   if (pays !== 'republic') return; // voir modifierIndiceVilleServeur
-  for (const ville of GREVE_VILLES_REPUBLIA_SERVEUR) {
+  for (const ville of villesDeServeur(pays)) {
     await modifierIndiceVilleServeur(pays, ville, 'social', delta, floor);
   }
 }
@@ -3775,6 +3780,68 @@ async function sauverBudgetNationalServeur(pays, data) {
     { data: data, updated_at: new Date().toISOString() }).catch(() => null);
 }
 
+// LES VRAIES VILLES D'UN EMPIRE, dans l'ordre canonique. Pendant serveur de villesDe()
+// (data.js), lu dans le referentiel GENERE : aucune liste de villes n'est plus ecrite a la main
+// dans ce fichier. Un empire inconnu rend [] -- jamais les villes de Republia.
+function villesDeServeur(pays) {
+  const t = VILLES_SERVEUR[pays];
+  return t ? Object.keys(t) : [];
+}
+
+// L'identifiant de caisse d'une institution de ville, sans le prefixe pays. Pendant serveur de
+// caisseTerritorialeId() (data.js) : convention reguliere `<famille>_<ville>`, plus la table des
+// cles historiques, GENEREE (CAISSES_LEGACY_SERVEUR) et donc impossible a oublier ici.
+function caisseTerritorialeServeur(famille, ville) {
+  const v = ville || 'capitale';
+  const legacy = CAISSES_LEGACY_SERVEUR[famille] && CAISSES_LEGACY_SERVEUR[famille][v];
+  return legacy || (famille + '_' + v);
+}
+
+// REPARTITION D'UN MONTANT NATIONAL SUR LES VRAIES VILLES, au prorata de leur recette fiscale.
+//
+// POURQUOI ELLE EXISTE ICI. Ce calcul vivait cote client
+// (distribuerMontantParVilleAuProrataFiscal, plateau-justice-economie.js), ecrit le 24 aout 2026
+// pour corriger un defaut mesure : mairie, commissariat et tribunal creditaient la ville OU SE
+// TROUVAIT le joueur qui declenchait minuit. Le 20 septembre 2026, la passe cliente a ete
+// retiree de runMidnightUpdate au profit de ce cron -- et la correction du 24 aout est devenue
+// du CODE MORT sans que rien ne le signale. Depuis, seule la capitale est financee.
+//
+// Mesure du 7 octobre 2026 qui l'etablit : republic_mairie_ville_a, mairie_ville_b,
+// commissariat_ville_a, commissariat_ville_b, tribunal_ville_a et tribunal_ville_b portent tous
+// pour derniere ecriture le 19 septembre 2026, et 21 368 FR au total. Les trois caisses de la
+// capitale, elles, sont creditees chaque nuit : 234 696 FR. Dix-huit jours de centralisation
+// involontaire.
+//
+// METHODE DU PLUS FORT RESTE (Hamilton), portee a l'identique : chaque ville recoit le plancher
+// de sa part exacte, puis le reliquat est distribue 1 FR a la fois aux villes dont la part
+// decimale perdue est la plus grande, egalite departagee par l'ordre canonique des villes. La
+// somme creditee est donc exactement egale au montant reparti -- aucun FR perdu par arrondi, et
+// un resultat identique quel que soit le soir.
+//
+// AUCUN REPLI SUR DES PARTS EGALES. La version cliente retombait sur des parts egales quand
+// aucun poids fiscal n'etait connu. Ici, un empire sans recette fiscale declaree ne recoit RIEN
+// et la fonction le dit a son appelant : inventer des parts egales pour Sovarka, El Estado ou
+// Al-Khalija serait fabriquer un parametre economique que personne n'a decide.
+function repartirSurVillesAuProrataFiscal(pays, montantTotal, famille) {
+  const villes = villesDeServeur(pays);
+  const recettes = RECETTES_FISCALES_JOUR_SERVEUR[pays];
+  if (montantTotal <= 0 || villes.length === 0 || !recettes) return null;
+  const poids = villes.map(v => recettes[v] || 0);
+  const totalPoids = poids.reduce((somme, p) => somme + p, 0);
+  if (totalPoids <= 0) return null;
+
+  const parts = poids.map(p => montantTotal * p / totalPoids);
+  const montants = parts.map(p => Math.floor(p));
+  let reliquat = montantTotal - montants.reduce((somme, p) => somme + p, 0);
+  const ordre = parts
+    .map((p, i) => ({ i, frac: p - Math.floor(p) }))
+    .sort((x, y) => y.frac - x.frac || x.i - y.i);
+  for (let k = 0; k < ordre.length && reliquat > 0; k++) { montants[ordre[k].i]++; reliquat--; }
+
+  return villes.map((v, i) => ({ ville: v, caisse: caisseTerritorialeServeur(famille, v),
+                                 montant: montants[i] }));
+}
+
 // Credit d'une caisse de batiment. Meme forme que les credits deja pratiques par ce fichier
 // (successions, chantiers) : lecture, addition, UPDATE ou INSERT selon l'existence.
 async function crediterCaisseBatimentServeur(pays, buildingId, montant) {
@@ -3832,10 +3899,35 @@ async function distribuerFiscaliteServeur(pays) {
   budgetNat.derniereDistribJour = jour;
   if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
 
+  // LES TROIS CAISSES TERRITORIALES SONT TRAITEES A PART, et c'est tout l'objet du correctif.
+  // CAISSE_PAR_POSTE_BUDGET_SERVEUR fait pointer `mairie`, `commissariat` et `tribunal` sur
+  // mairie-capitale, commissariat_capitale et tribunal_capitale : 26 % du budget national
+  // allaient donc aux trois institutions de la CAPITALE, et rien a Montrouge ni a
+  // Port-Sainte-Marie. La regle canonique dit l'inverse (voir
+  // baseline/DIFFERENCES-DELIBEREES.json, cle regle_canonique_de_financement_territorial) :
+  // « Luthecia, Montrouge et Port-Sainte-Marie suivent le MEME principe municipal ».
+  //
+  // Les pourcentages ne changent PAS : 12 / 8 / 6 restent 12 / 8 / 6. Seule la destination
+  // change -- la part de chaque famille est desormais repartie sur les trois villes au prorata
+  // de leur recette fiscale, au lieu d'etre versee entiere a la capitale.
+  const TERRITORIALES = ['mairie', 'commissariat', 'tribunal'];
+
   for (const posteId of Object.keys(CAISSE_PAR_POSTE_BUDGET_SERVEUR)) {
+    if (TERRITORIALES.includes(posteId)) continue;
     const part = (repartition[posteId] || 0) / 100;
     await crediterCaisseBatimentServeur(pays, CAISSE_PAR_POSTE_BUDGET_SERVEUR[posteId],
       Math.floor(totalDisponible * part));
+  }
+
+  for (const famille of TERRITORIALES) {
+    const montant = Math.floor(totalDisponible * ((repartition[famille] || 0) / 100));
+    const lignes = repartirSurVillesAuProrataFiscal(pays, montant, famille);
+    // null = cet empire n'a aucune recette fiscale declaree. On ne verse rien et on n'invente
+    // aucune cle de repartition : l'absence de parametre economique doit rester visible.
+    if (!lignes) continue;
+    for (const l of lignes) {
+      if (l.montant > 0) await crediterCaisseBatimentServeur(pays, l.caisse, l.montant);
+    }
   }
 }
 
@@ -4057,7 +4149,9 @@ async function traiterQuotidienNationalServeur(pays) {
 //   VILLES_ARMURERIES_SERVEUR       ne connait que Republia -- lot 4G ;
 // Les raisons sont tenues a jour dans outils/generateurs/referentiels-serveur.json.
 const DUREE_EFFORT_GUERRE_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;
-const VILLES_ARMURERIES_SERVEUR = { republic: ['capitale', 'ville_a', 'ville_b'] };
+// VILLES_ARMURERIES_SERVEUR EST SUPPRIMEE (chantier 4G, 7 octobre 2026). Meme constat que
+// GREVE_VILLES_REPUBLIA_SERVEUR : une liste de vraies villes recopiee, et qui ne connaissait que
+// Republia. Son lecteur passe par villesDeServeur(pays).
 // Plafond de securite : borne le temps d'execution de la passe nocturne (le cron Vercel a une
 // duree limitee). Ce qui n'est pas produit ce soir le sera demain -- une commande n'echoue jamais.
 const LOTS_MILITAIRES_MAX_PAR_NUIT = 60;
@@ -4209,7 +4303,7 @@ async function traiterRavitaillementServeur(pays, effort) {
 // armurerie detenue par le ministre participe normalement.
 async function traiterProductionMilitaireServeur(pays, effort) {
   const ent = ENTREPOTS_EFFORT_SERVEUR[pays] || [];
-  const villes = VILLES_ARMURERIES_SERVEUR[pays] || [];
+  const villes = villesDeServeur(pays);
   const resultats = { lots: 0, unites: 0, arrets: [] };
   if (!ent.length || !villes.length) return resultats;
   if (Math.max(0, Number(effort.prioriteProductionMilitaire) || 0) <= 0) return resultats;

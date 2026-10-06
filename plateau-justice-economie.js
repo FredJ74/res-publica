@@ -8154,8 +8154,8 @@ const TAUX_TAXE_DEFAUT = 5; // %, local et national
 // selon le declencheur) -- corrige le meme jour, meme mecanisme. Les valeurs ci-dessous
 // ('..._capitale'/'mairie-capitale') ne sont plus lues du tout a l'execution pour ces trois
 // cles : la part nationale de chacune est desormais repartie sur les 3 villes au prorata de leur
-// dailyTaxRevenue (distribuerMontantParVilleAuProrataFiscal, plus bas dans ce fichier),
-// strictement independante de villeFiscale/state.currentCity -- gardees ici uniquement pour que
+// dailyTaxRevenue (repartirSurVillesAuProrataFiscal, api/cron-minuit.js -- ce calcul a quitte ce
+// fichier au chantier 4F), gardees ici uniquement pour que
 // Object.keys(CAISSE_PAR_POSTE_BUDGET) reste la liste complete et documentee de tous les postes
 // de REPARTITION_DEFAULT reellement distribues, la boucle principale les ignorant desormais
 // explicitement (continue).
@@ -10505,14 +10505,19 @@ function getBuildingIdTribunal(ville) {
   return getCaisseLocaleId('tribunal', ville);
 }
 
-// A3 (lot finition financiere locale, 17 aout 2026) : contrairement a Commissariat/Dispensaire/
-// Tribunal ci-dessus, la capitale a deja une caisse 'mairie-capitale' active (solde reel, affichee
-// en en-tete via ROOMS_AVEC_CAISSE) -- lui appliquer getCaisseLocaleId directement migrerait
-// silencieusement vers la cle 'mairie_capitale', orphelinant l'argent existant et figeant
-// l'affichage. La capitale garde donc son id historique ; seules PSM/Montrouge (qui n'ont jamais
-// eu de caisse mairie propre) recoivent une cle locale generique.
+// A3 (lot finition financiere locale, 17 aout 2026) : la capitale a deja une caisse
+// 'mairie-capitale' active (solde reel, affichee en en-tete via ROOMS_AVEC_CAISSE) -- lui
+// appliquer la convention reguliere migrerait silencieusement vers 'mairie_capitale',
+// orphelinant l'argent existant et figeant l'affichage.
+//
+// L'EXCEPTION N'EST PLUS ECRITE ICI (chantier 4F, 7 octobre 2026). Elle etait un `ville ===
+// 'capitale'` code en dur, qu'un lecteur de ce fichier seul ne pouvait pas deviner depuis les
+// trois autres endroits qui la connaissaient aussi. Elle est maintenant une donnee declaree,
+// CAISSES_LEGACY (data.js), que le serveur recoit generee. Cette fonction devient donc le
+// synonyme exact de getCaisseLocaleId('mairie', ...) ; elle reste parce que son nom dit a quoi
+// sert la caisse, pas par necessite technique.
 function getBuildingIdMairie(ville) {
-  return (!ville || ville === 'capitale') ? 'mairie-capitale' : getCaisseLocaleId('mairie', ville);
+  return getCaisseLocaleId('mairie', ville);
 }
 
 // ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
@@ -11788,7 +11793,10 @@ async function lireCaisseCommissariat(pays, buildingId) {
 // stade/stade-buvette/...), 'ville' la ville reelle du batiment physique concerne. Generique :
 // fonctionne pour toute categorie et toute ville de tout empire, sans exception codee en dur.
 function getCaisseLocaleId(categorie, ville) {
-  return categorie + '_' + (ville || 'capitale');
+  // DELEGUE A LA DECLARATION (chantier 4F) : la convention et son unique exception vivent dans
+  // data.js, pres du referentiel des villes. Cette fonction garde son nom et son contrat --
+  // quarante-quatre sites l'appellent -- mais ne decide plus rien.
+  return caisseTerritorialeId(categorie, ville);
 }
 
 // Villes reelles d'un pays. DEMANDE AU REFERENTIEL, PLUS A LA CARTE (chantier 4E, 7 octobre
@@ -11801,7 +11809,7 @@ function getCaisseLocaleId(categorie, ville) {
 //
 // UN EMPIRE INCONNU REND [], PLUS ['capitale']. L'ancien repli affirmait l'existence d'une
 // capitale dans un empire dont on ne sait rien, et ses deux appelants financiers lui auraient
-// verse de l'argent : distribuerMontantParVilleAuProrataFiscal aurait credite
+// verse de l'argent : la repartition territoriale aurait credite
 // `<empire inconnu>_mairie-capitale`, creant la caisse au passage. Une liste vide ne distribue
 // rien, ce qui est la seule reponse honnete. Aucun des quatre empires n'est concerne : ils sont
 // tous les quatre dans VILLES.
@@ -11809,42 +11817,28 @@ function getVillesReelles(country) {
   return villesDe(country).map(v => v.id);
 }
 
-// Repartit un montant entre les villes reelles d'un pays au prorata de leur dailyTaxRevenue
-// (CITY_POPULATION[pays][ville], calcule dynamiquement -- aucun pourcentage de ville code en
-// dur), independamment de villeFiscale/state.currentCity (arbitrage du 24 aout 2026, suite a la
-// verification confirmant que verifierEffetsEtDistributionFiscale() creditait auparavant une
-// seule ville arbitraire -- celle du PJ declencheur -- pour tribunal/commissariat). Methode du
-// plus fort reste (Hamilton) pour l'arrondi : chaque ville recoit Math.floor(sa part exacte),
-// puis le reliquat (montantTotal - somme des planchers) est distribue 1 FR a la fois aux villes
-// ayant la plus grande partie decimale perdue (egalite departagee par l'ordre de
-// getVillesReelles, fixe et deterministe) -- garantit que la somme creditee est exactement egale
-// a montantTotal, jamais de FR perdu par arrondi, et un resultat 100% reproductible quel que
-// soit le declencheur.
-async function distribuerMontantParVilleAuProrataFiscal(pays, montantTotal, resolveBuildingId) {
-  if (montantTotal <= 0) return;
-  const villes = getVillesReelles(pays);
-  const poids = villes.map(v => CITY_POPULATION?.[pays]?.[v]?.dailyTaxRevenue || 0);
-  const totalPoids = poids.reduce((s, p) => s + p, 0);
-  // Repli deterministe (parts egales) si aucun poids fiscal connu pour ce pays -- evite une
-  // division par zero, ne devrait plus survenir pour Republia depuis le correctif
-  // CITY_POPULATION.republic du 24 aout 2026.
-  const parts = totalPoids > 0
-    ? poids.map(p => montantTotal * p / totalPoids)
-    : villes.map(() => montantTotal / villes.length);
-  const planchers = parts.map(p => Math.floor(p));
-  let reliquat = montantTotal - planchers.reduce((s, p) => s + p, 0);
-  const ordreReliquat = parts
-    .map((p, i) => ({ i, frac: p - planchers[i] }))
-    .sort((a, b) => b.frac - a.frac || a.i - b.i);
-  const montants = [...planchers];
-  for (let k = 0; k < ordreReliquat.length && reliquat > 0; k++) {
-    montants[ordreReliquat[k].i]++;
-    reliquat--;
-  }
-  for (let i = 0; i < villes.length; i++) {
-    if (montants[i] > 0) await crediterCaisseBatiment(pays, resolveBuildingId(villes[i]), montants[i]);
-  }
-}
+// LA REPARTITION TERRITORIALE A DEMENAGE AU SERVEUR (chantier 4F, 7 octobre 2026).
+//
+// distribuerMontantParVilleAuProrataFiscal et verifierEffetsEtDistributionFiscale vivaient ici.
+// Elles avaient ete ecrites le 24 aout 2026 pour corriger un defaut mesure : mairie,
+// commissariat et tribunal creditaient la ville OU SE TROUVAIT le joueur qui declenchait
+// minuit. Le 20 septembre 2026, la passe cliente a ete retiree de runMidnightUpdate au profit
+// du cron -- et ces deux fonctions sont devenues DU CODE MORT, sans aucun appelant, sans que
+// rien ne le signale. La correction du 24 aout n'a donc plus jamais tourne.
+//
+// Mesure du 7 octobre 2026 : republic_mairie_ville_a, mairie_ville_b, commissariat_ville_a,
+// commissariat_ville_b, tribunal_ville_a et tribunal_ville_b portent TOUTES pour derniere
+// ecriture le 19 septembre 2026. Dix-huit jours pendant lesquels seule la capitale a ete
+// financee, pour 234 696 FR contre 21 368 FR geles dans les six autres caisses.
+//
+// Le calcul vit desormais dans api/cron-minuit.js (repartirSurVillesAuProrataFiscal), au seul
+// endroit qui tourne vraiment. Ne le reecris pas ici : deux implementations d'une repartition
+// d'argent, c'est exactement ce qui a produit cette panne.
+//
+// CE QUI EST PERDU AVEC ELLES, et qui doit etre su : l'effet du taux d'imposition total sur les
+// indices Social et ISN de la ville du joueur declencheur. Le cron ne peut pas le reproduire --
+// il n'a pas de « ville courante ». Cet effet ne s'applique donc plus depuis le 20 septembre
+// 2026, et le supprimer ici ne change rien a ce fait. Dette consignee, pas resolue.
 
 // LECTURE SEULE (14 septembre 2026). Cette fonction creait la caisse au passage quand elle
 // n'existait pas encore -- une ecriture cliente pour un simple affichage. C'est inutile : la
@@ -12052,72 +12046,6 @@ async function encaisserVenteStructure(fn, pa, cost, caisseId, ville) {
            paPreleves: r.pa_preleves, montantPreleve: r.montant_preleve };
 }
 
-// Verifie une fois par jour : effets du taux d'imposition total sur IS/ISN, distribution aux caisses publiques
-async function verifierEffetsEtDistributionFiscale() {
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays);
-  // IDENTITE PARTAGEE DE LA JOURNEE (correctif Lot 4.3). Le marqueur derniereDistribJour vit dans
-  // budgets_nationaux -- une table PARTAGEE -- mais etait compare a state.day, un compteur PRIVE :
-  // un joueur au jour 3 et un joueur au jour 47 ecrivaient donc chacun leur propre valeur, et la
-  // redistribution fiscale nationale pouvait etre versee PLUSIEURS FOIS le meme soir.
-  //
-  // La cle est desormais la date reelle, celle-la meme qu'emploie le cron. L'ancien format
-  // numerique reste accepte en lecture : une valeur heritee ne bloque pas la premiere distribution
-  // du nouveau format, elle est simplement remplacee.
-  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
-  if (budgetNat.derniereDistribJour === jour) return;
-
-  const budgetMuni = await chargerBudgetMunicipal();
-  const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
-  const tauxTotal = tauxLocal + (budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT);
-
-  // Effets sur les indices de la ville concernee (tauxLocal est deja specifique a cette ville
-  // via chargerBudgetMunicipal/getVilleKey) : Social baisse au-dela d'un taux neutre (~15-20%),
-  // Securite se degrade au-dela de 25% (marche noir). Repli national inchange hors Republia.
-  const villeFiscale = state.currentCity || 'capitale';
-  if (typeof modifierIndiceVille === 'function') {
-    if (tauxTotal > 18) await modifierIndiceVille(pays, villeFiscale, 'social', -Math.min(5, Math.floor((tauxTotal - 18) * 0.5))).catch(() => {});
-    if (tauxTotal > 25) await modifierIndiceVille(pays, villeFiscale, 'isn', -Math.min(5, Math.floor((tauxTotal - 25) * 0.6))).catch(() => {});
-  }
-
-  // Distribution quotidienne : chaque poste recoit sa propre part dans sa propre caisse.
-  // 'mairie'/'commissariat'/'tribunal' sont des caisses PAR VILLE (3 destinations reelles
-  // possibles), contrairement aux caisses nationales uniques (min_int, min_fin, etc.). Toutes
-  // trois creditaient auparavant systematiquement villeFiscale = state.currentCity du PJ qui
-  // declenche le traitement -- credit arbitraire d'une seule ville sur les trois chaque jour,
-  // different selon le declencheur. Corrige pour tribunal/commissariat le 24 aout 2026 (audit
-  // fiscal), puis pour 'mairie' ce meme jour (meme constat, meme correction) : les 3 categories
-  // sont desormais explicitement exclues de cette boucle (continue ci-dessous) et reparties sur
-  // les 3 villes au prorata de leur dailyTaxRevenue via distribuerMontantParVilleAuProrataFiscal,
-  // totalement independamment de villeFiscale/state.currentCity.
-  const dailyBase = Object.values(CITY_POPULATION?.[pays] || {}).reduce((s, v) => s + (v.dailyTaxRevenue || 0), 0);
-  const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
-  const repartition = budgetNat.repartition || REPARTITION_DEFAULT;
-  for (const [posteId, buildingId] of Object.entries(CAISSE_PAR_POSTE_BUDGET)) {
-    if (posteId === 'commissariat' || posteId === 'tribunal' || posteId === 'mairie') continue; // traites separement ci-dessous, repartis sur les 3 villes
-    const part = (repartition[posteId] || 0) / 100;
-    await crediterCaisseBatiment(pays, buildingId, Math.floor(totalDisponible * part));
-  }
-  const montantTribunalNational = Math.floor(totalDisponible * ((repartition.tribunal || 0) / 100));
-  await distribuerMontantParVilleAuProrataFiscal(pays, montantTribunalNational, getBuildingIdTribunal);
-  const montantCommissariatNational = Math.floor(totalDisponible * ((repartition.commissariat || 0) / 100));
-  await distribuerMontantParVilleAuProrataFiscal(pays, montantCommissariatNational, getBuildingIdCommissariat);
-  const montantMairieNational = Math.floor(totalDisponible * ((repartition.mairie || 0) / 100));
-  await distribuerMontantParVilleAuProrataFiscal(pays, montantMairieNational, getBuildingIdMairie);
-  // Le virement journalier automatique vers la caserne, fixe par le MG, est traite separement (voir traiterVirementJournalierCaserne)
-  // 'assemblee' et 'reserve' sont desormais credites eux aussi (arbitrage utilisateur du 24 aout
-  // 2026, cf. CAISSE_PAR_POSTE_BUDGET ci-dessus) : les 100% de REPARTITION_DEFAULT aboutissent
-  // maintenant tous dans une caisse reelle, plus aucune part perdue.
-  // villeFiscale (ci-dessus) n'a plus aucun usage dans cette redistribution : sa seule
-  // dependance restante et legitime est l'effet sur les indices Social/ISN de la ville
-  // courante (juste au-dessus), qui reflete deja intentionnellement le taux local reel de
-  // CETTE ville (tauxLocal via chargerBudgetMunicipal) -- un effet de jeu local au declencheur,
-  // pas une destination de redistribution nationale.
-
-  budgetNat.reserveJour = 0;
-  budgetNat.derniereDistribJour = jour;
-  await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
-}
 
 // verifierSalairePolitique() A ETE RETIREE (§6.1, 20 septembre 2026) : doublon client du
 // versement deja effectue par salaire_civil_percevoir(). Voir le bloc explicatif la ou se
