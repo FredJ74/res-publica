@@ -444,12 +444,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "plaintes_epingler_verdict()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "plaintes_epingler_verdict()",
@@ -885,7 +879,7 @@
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
   "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
-  "70_droits.sql": "ce9bf3f777e485d93124db8ef035f0d8",
+  "70_droits.sql": "2e1e63b75e39f0ab553a2dde1d6c28cb",
   "80_commentaires.sql": "dd675689f39a5ef555c1fe4e0e79fc70"
  },
  "fonctions": [

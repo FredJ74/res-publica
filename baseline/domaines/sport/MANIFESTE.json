@@ -258,12 +258,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "championnat_verrou_calendrier()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "championnat_verrou_calendrier()",
@@ -692,7 +686,7 @@
   "35_index.sql": "5650794763a074d67e44e9748b0d7b8b",
   "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
   "60_rls-policies.sql": "8be2fd6b8c93f9b08a9302d92cdf68b3",
-  "70_droits.sql": "3779accc94be5930ae7c7000fea7019e",
+  "70_droits.sql": "0366e0c2301524f7e87ef796dee3503e",
   "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
  },
  "fonctions": [

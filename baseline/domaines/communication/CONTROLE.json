@@ -14,7 +14,7 @@
   "policies": 24,
   "rls_actives": 10,
   "droits_colonnes": 0,
-  "lignes_droits": 82
+  "lignes_droits": 77
  },
  "_correction_2e": "lignes_droits valait 91 au chantier 2B. Ce n'etait pas la base qui disait 91 : c'etait la requete DROITS qui ne regardait ni les sequences ni les vues. Le controle global du chantier 2E a trouve 927 lignes de droits de relation dans le schema contre 825 extraites, soit les 102 lignes des 31 sequences. Pour la communication, les 2 lignes manquantes portent sur mails_envois_systeme_id_seq, accordee a postgres et service_role SEULEMENT -- ni anon ni authenticated. C'est coherent : cette table n'est ecrite que par le declencheur mails_journaliser_envoi_systeme, qui est SECURITY DEFINER et s'execute donc avec les droits du proprietaire. La valeur corrigee est la verite relevee en base le 5 octobre 2026 ; le controle n'a pas ete relache, il a ete rendu complet.",
  "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
@@ -37,5 +37,5 @@
    "mails"
   ]
  },
- "_correction_chantier_3": "Releve a nouveau le 6 octobre 2026, apres les trois migrations d'autorite. Deux valeurs changent, et seulement deux. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une policy de moins, deux de plus. lignes_droits : 93 -> 82 -- les 11 lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune n'a ete touchee. Mesure independamment en base, pas deduit du rendu."
+ "_correction_chantier_3": "Releve deux fois le 6 octobre 2026, apres les quatre migrations d'autorite. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une de moins, deux de plus. lignes_droits : 93 -> 82 -> 77. Les 11 premieres lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation ; les 5 suivantes sont les GRANT EXECUTE a PUBLIC des 5 fonctions de declencheur du domaine (forum_verrou_compte_rendu_journee, forum_verrou_local_territorial, forum_verrou_message_ligue, forum_verrou_programme_officiel, mails_journaliser_envoi_systeme), fermes par la migration 4. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune definition n'a ete touchee, seuls leurs droits. Mesure independamment en base, pas deduit du rendu."
 }

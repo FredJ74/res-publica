@@ -213,7 +213,6 @@ GRANT EXECUTE ON FUNCTION public.vendre_matiere_a_usine(text,text,text,text,text
 GRANT EXECUTE ON FUNCTION public.vendre_ressource_medicale(text,text,text,text,text,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.vendre_ressource_medicale(text,text,text,text,text,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.vendre_ressource_medicale(text,text,text,text,text,integer) TO service_role;
-GRANT EXECUTE ON FUNCTION public.ventes_snapshots_append_only() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.ventes_snapshots_append_only() TO postgres;
 GRANT EXECUTE ON FUNCTION public.ventes_snapshots_append_only() TO service_role;
 

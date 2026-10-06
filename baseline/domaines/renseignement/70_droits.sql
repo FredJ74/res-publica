@@ -120,7 +120,6 @@ GRANT EXECUTE ON FUNCTION public.renseignement_agents_disponibles() TO postgres;
 GRANT EXECUTE ON FUNCTION public.renseignement_agents_disponibles() TO service_role;
 GRANT EXECUTE ON FUNCTION public.renseignement_autorite_de_perimetre(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.renseignement_autorite_de_perimetre(text,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.renseignement_mission_raccorder() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.renseignement_mission_raccorder() TO postgres;
 GRANT EXECUTE ON FUNCTION public.renseignement_mission_raccorder() TO service_role;
 GRANT EXECUTE ON FUNCTION public.renseignement_pnj_id(text) TO postgres;

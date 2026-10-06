@@ -17,7 +17,6 @@ GRANT EXECUTE ON FUNCTION public.bail_autorite_de(jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_municipale(jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_municipale(jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_municipale(jsonb) TO service_role;
-GRANT EXECUTE ON FUNCTION public.bail_cle_coherente() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.bail_cle_coherente() TO postgres;
 GRANT EXECUTE ON FUNCTION public.bail_cle_coherente() TO service_role;
 GRANT EXECUTE ON FUNCTION public.bail_destination_attestee(jsonb) TO postgres;

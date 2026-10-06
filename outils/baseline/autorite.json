@@ -149,8 +149,6 @@
   "club_president_cloturer": "Depouillement d'un scrutin de club. N'a pas d'acteur par nature -- c'est un moteur, pas une action. Garde ses propres conditions : refuse tant que tous n'ont pas vote ET que la date limite n'est pas atteinte (retourne scrutin_en_cours). Deterministe et idempotente : l'appeler ne change que ce que le temps aurait change.",
   "militaire_arme_recalculer": "Reprojette l'arme d'un soldat PNJ depuis ses possessions, via militaire_arme_operationnelle(). Fonction de PROJECTION : elle ne peut ecrire que la valeur deja vraie, quel que soit l'appelant. Son droit EXECUTE pour anon est en revanche gratuit -- le navigateur l'appelle toujours sous session ; il part avec les 33 autres dans migrations/20261006013000_autorite_rpc_sans_anon.sql (invariant 11)."
  },
- "_en_attente": "Un seul invariant en attente, et il raconte quelque chose. La migration 1 a revoque EXECUTE sur les 24 fonctions de declencheur « FROM anon, authenticated » en laissant le GRANT a PUBLIC -- qui vaut pour tous les roles. La revocation etait sincere et sans effet. C'est l'invariant 9, relu APRES la reextraction du baseline, qui l'a vu : il lit les droits tels qu'ils sont, pas tels qu'on a cru les ecrire. La migration 4 (20261006160000) est ecrite et verifiee par l'analyseur de PostgreSQL 17 ; elle attend son application. Les six autres invariants qui figuraient ici sont fermes et sont devenus bloquants.",
- "en_attente_d_application": {
-  "9": "20261006160000_autorite_declencheurs_public.sql"
- }
+ "_en_attente": "Vide, et definitivement. Les QUATRE migrations d'autorite du chantier 3 sont appliquees (registre Supabase 543) et le baseline a ete reextrait apres chacune. Les treize invariants sont donc BLOQUANTS : tout retour en arriere sur les droits, la RLS, les policies ou les fonctions fait echouer le controle. Si une migration d'autorite future doit attendre son application, c'est ici qu'on la declare -- et le controle refuse qu'un invariant y reste apres avoir ete ferme. C'est ce refus qui a trouve le GRANT a PUBLIC oublie par la migration 1.",
+ "en_attente_d_application": {}
 }

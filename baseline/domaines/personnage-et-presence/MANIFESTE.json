@@ -672,12 +672,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_archiver_suppression()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_archiver_suppression()",
@@ -690,12 +684,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_attester_poste()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_attester_poste()",
@@ -705,12 +693,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnages_attester_poste()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_borner_jour()",
    "privileges": "EXECUTE"
   },
   {
@@ -738,12 +720,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_lien_militaire_rompu()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_lien_militaire_rompu()",
@@ -753,12 +729,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnages_lien_militaire_rompu()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_lien_militaire_supprime()",
    "privileges": "EXECUTE"
   },
   {
@@ -774,12 +744,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_lier_proprietaire()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_lier_proprietaire()",
@@ -792,12 +756,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_observer_inventaire()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_observer_inventaire()",
@@ -807,12 +765,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnages_observer_inventaire()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_poste_perdu()",
    "privileges": "EXECUTE"
   },
   {
@@ -840,12 +792,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_vue_inserer()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_vue_inserer()",
@@ -858,12 +804,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_vue_modifier()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "personnages_vue_modifier()",
@@ -873,12 +813,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnages_vue_modifier()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "personnages_vue_supprimer()",
    "privileges": "EXECUTE"
   },
   {
@@ -1623,7 +1557,7 @@
   "40_vues.sql": "4db7a0757bcbd3defd61f7050a934204",
   "50_triggers.sql": "4b203e841bccf665fab6a5a553ca05ad",
   "60_rls-policies.sql": "fb39aea624fbe902a64a31b5f687886e",
-  "70_droits.sql": "76c5bbd54d2986914438d6e03360c4a3",
+  "70_droits.sql": "ba0f549b694879aa754f833edd7aa017",
   "80_commentaires.sql": "839783ee3fec34f18e5d9672ae5786a3"
  },
  "fonctions": [

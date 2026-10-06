@@ -40,7 +40,6 @@ GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO service_role;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO authenticated;

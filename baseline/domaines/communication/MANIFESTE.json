@@ -107,12 +107,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_compte_rendu_journee()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "forum_verrou_compte_rendu_journee()",
@@ -122,12 +116,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "forum_verrou_compte_rendu_journee()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_local_territorial()",
    "privileges": "EXECUTE"
   },
   {
@@ -143,12 +131,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_message_ligue()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "forum_verrou_message_ligue()",
@@ -158,12 +140,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "forum_verrou_message_ligue()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "forum_verrou_programme_officiel()",
    "privileges": "EXECUTE"
   },
   {
@@ -320,12 +296,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "mail_systeme_envoyer(text,text,text,text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "mails_journaliser_envoi_systeme()",
    "privileges": "EXECUTE"
   },
   {
@@ -571,7 +541,7 @@
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
   "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
   "60_rls-policies.sql": "7b2500087e51a183ef6bd439f4474a9b",
-  "70_droits.sql": "ffaeabc3489dab638479f5b217e82b96",
+  "70_droits.sql": "0d15f5f54bb42b65b7c339d2a9c32ac7",
   "80_commentaires.sql": "8ec239a96f165d4b8d36dd57f9bcf9bd"
  },
  "fonctions": [

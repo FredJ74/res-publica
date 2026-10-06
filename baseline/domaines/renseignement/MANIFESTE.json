@@ -846,12 +846,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "renseignement_mission_raccorder()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "renseignement_mission_raccorder()",
@@ -1010,7 +1004,7 @@
   "35_index.sql": "f497a9065521793aaf3e2eb09c104783",
   "50_triggers.sql": "7572e5d6c6fed52f7debb92b077dc520",
   "60_rls-policies.sql": "1af68eb19e83f0ce1366ca3bd1e66040",
-  "70_droits.sql": "19d7e16726ad500dc20635f00a74ce14",
+  "70_droits.sql": "927e57d19b9b089b4afbb8ec9c089899",
   "80_commentaires.sql": "1acdba161abfa36865c5d3cc1dbb2ef9"
  },
  "fonctions": [

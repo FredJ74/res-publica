@@ -16,13 +16,10 @@ GRANT EXECUTE ON FUNCTION public.alimenter_caisse_fonds(text,text,integer) TO po
 GRANT EXECUTE ON FUNCTION public.alimenter_caisse_fonds(text,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.appliquer_taxe_transaction(text,text,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.appliquer_taxe_transaction(text,text,numeric) TO service_role;
-GRANT EXECUTE ON FUNCTION public.budget_national_epingler() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.budget_national_epingler() TO postgres;
 GRANT EXECUTE ON FUNCTION public.budget_national_epingler() TO service_role;
-GRANT EXECUTE ON FUNCTION public.budgets_armurerie_verrou() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.budgets_armurerie_verrou() TO postgres;
 GRANT EXECUTE ON FUNCTION public.budgets_armurerie_verrou() TO service_role;
-GRANT EXECUTE ON FUNCTION public.budgets_virement_caserne_verrou() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.budgets_virement_caserne_verrou() TO postgres;
 GRANT EXECUTE ON FUNCTION public.budgets_virement_caserne_verrou() TO service_role;
 GRANT EXECUTE ON FUNCTION public.caisse_client_mouvement(text,numeric,text,boolean) TO authenticated;

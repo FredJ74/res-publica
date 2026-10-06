@@ -107,12 +107,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "bail_cle_coherente()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "bail_cle_coherente()",
@@ -577,7 +571,7 @@
   "35_index.sql": "a4f278dfe360e6f53a6985c040d24ed6",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
   "60_rls-policies.sql": "31e222aa30af8775f9a6400465fc58dd",
-  "70_droits.sql": "14f5ce1c6c8206625247f3d66cad2073",
+  "70_droits.sql": "179ad231d2d68a1b2f6dbdf34e3dd2bf",
   "80_commentaires.sql": "80a3dc2ba71528dca29027299b36e259"
  },
  "fonctions": [

@@ -1758,12 +1758,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "ventes_snapshots_append_only()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "ventes_snapshots_append_only()",
@@ -2746,7 +2740,7 @@
   "40_vues.sql": "2d59d994831075a5e118e41b769bf712",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
   "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
-  "70_droits.sql": "9d92532754a2293c2405e2246289071a",
+  "70_droits.sql": "8e8270b7727db0a7a71c41f03bb5087c",
   "80_commentaires.sql": "65f34a472d8515643bd70f405de10c8a"
  },
  "fonctions": [

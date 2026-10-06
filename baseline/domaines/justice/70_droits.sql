@@ -72,7 +72,6 @@ GRANT EXECUTE ON FUNCTION public.plainte_instruire_interne(text,text,text,text,t
 GRANT EXECUTE ON FUNCTION public.plainte_traiter(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.plainte_traiter(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.plainte_traiter(text,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.plaintes_epingler_verdict() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.plaintes_epingler_verdict() TO postgres;
 GRANT EXECUTE ON FUNCTION public.plaintes_epingler_verdict() TO service_role;
 GRANT EXECUTE ON FUNCTION public.police_autorite_de_perimetre(text,text) TO postgres;

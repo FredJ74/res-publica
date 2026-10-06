@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-06T15:04:46 Europe/Paris",
- "empreintes_relevees_le": "2026-10-06T15:04:46 Europe/Paris",
+ "releve_le": "2026-10-06T15:22:17 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-06T15:22:17 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 252,
@@ -19,7 +19,7 @@
   "policies": 284,
   "rls_actives": 252,
   "droits_relations": 920,
-  "droits_fonctions": 1813,
+  "droits_fonctions": 1789,
   "droits_colonnes": 20,
   "commentaires": 166
  },
@@ -58,7 +58,7 @@
   "triggers": 40,
   "policies": 284,
   "rls_actives": 246,
-  "droits": 2721,
+  "droits": 2697,
   "droits_colonnes": 20,
   "commentaires": 162
  },
@@ -76,7 +76,7 @@
   "policies": "3eb13771e98052eaf16879dbcc01b7af",
   "policies_avec_roles": "0ee67058f90245db0fa48c5f6da765c2",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "1e68f541338ea2f2b14d9431b9050cec",
+  "droits": "a72253b1c1702ec8d8d880acdf4c6fd1",
   "commentaires": "956f8a7df88be990d9033ab0edb070d8",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
@@ -100,10 +100,10 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "_commentaire": "Point de coupe du 6 octobre 2026. Les trois entrees ajoutees depuis le chantier 2E sont les trois migrations d'autorite du chantier 3 : autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon.",
-  "entrees": 542,
-  "derniere_version": "20261006123127",
-  "empreinte_versions_et_noms": "b709004525bb24b6cdcefe7a1dae5b71",
+  "_commentaire": "Point de coupe du 6 octobre 2026, apres les QUATRE migrations d'autorite du chantier 3 : autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public.",
+  "entrees": 543,
+  "derniere_version": "20261006131621",
+  "empreinte_versions_et_noms": "648cc2792ef37efdb35c596893a85819",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0"
  },
  "_chantier_3": {
@@ -111,18 +111,20 @@
   "migrations_appliquees": [
    "autorite_defauts_fermes",
    "autorite_socle_acteur_identifie",
-   "autorite_rpc_sans_anon"
+   "autorite_rpc_sans_anon",
+   "autorite_declencheurs_public"
   ],
   "ce_qui_a_change": {
    "privileges_de_maintenance_aux_roles_clients": "547 -> 0",
    "update_sur_sequence_pour_un_client": "40 -> 0",
-   "fonctions_de_declencheur_appelables_par_un_client": "24 -> 0",
+   "fonctions_de_declencheur_appelables_par_un_client": "24 -> 0, en deux temps. La migration 1 a revoque EXECUTE « FROM anon, authenticated » en laissant le GRANT a PUBLIC, qui vaut pour tous les roles : la revocation etait sincere et sans effet. L'invariant 9 de verifier-autorite.py l'a vu APRES la premiere reextraction, et la migration 4 l'a ferme pour de bon. Lecon : revoquer sur une fonction, c'est toujours FROM PUBLIC en plus des roles nommes.",
    "droits_d_ecriture_clients": "233 -> 132",
    "tables_sans_rls": "27 -> 0",
    "policies": "213 -> 284, dont 28 permissives retirees et 99 posees",
    "policies_d_ecriture_totalement_permissives": "28 -> 0",
    "fonctions_mutantes_appelables_par_anon": "34 -> 0",
-   "fonctions": "641 -> 642 : acteur_identifie() ajoutee"
+   "fonctions": "641 -> 642 : acteur_identifie() ajoutee",
+   "droits_de_fonction": "1911 -> 1789"
   },
   "ce_qui_n_a_pas_change": "Aucune donnee. Aucune table, colonne, contrainte, index, sequence, declencheur ni vue. Les 7 personnages de la beta sont intacts. Les 1852 lignes de droits detenues par postgres et service_role sont identiques au releve du 5 octobre."
  }

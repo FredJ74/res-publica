@@ -378,12 +378,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "budget_national_epingler()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "budget_national_epingler()",
@@ -396,12 +390,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "budgets_armurerie_verrou()",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "budgets_armurerie_verrou()",
@@ -411,12 +399,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "budgets_armurerie_verrou()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "PUBLIC",
-   "genre": "FUNCTION",
-   "objet": "budgets_virement_caserne_verrou()",
    "privileges": "EXECUTE"
   },
   {
@@ -1730,7 +1712,7 @@
   "35_index.sql": "483dda0f0f11e1ccf08b36880962d3c5",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
   "60_rls-policies.sql": "ede5c2021917f5811419e731604d2280",
-  "70_droits.sql": "4302be6497136b2ec55f6821768d8278",
+  "70_droits.sql": "c042c89da8e23f9ad22805b88a00d206",
   "80_commentaires.sql": "6596ddd3de33bcc257ae3e96fc7872a1"
  },
  "fonctions": [
