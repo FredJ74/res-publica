@@ -3006,10 +3006,18 @@ async function doReserverChambreHotel(pa) {
   if (cout > 0 && !recetteEncaissee) {
     let net = cout;
     if (typeof appliquerTaxeTransaction === 'function') {
+      // appliquerTaxeTransaction rend null quand la caisse municipale est illisible (chantier 5)
+      // : sans elle on ne sait pas quelle part revient a la ville, et crediter le brut a l'hotel
+      // detournerait la taxe locale. On ne credite donc rien plutot que de crediter a tort.
       const t = await appliquerTaxeTransaction(cout);
-      net = t.net;
+      if (!t) {
+        console.error('chambre d hotel : taxe non calculable, aucun credit a la caisse');
+        net = 0;
+      } else {
+        net = t.net;
+      }
     }
-    if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
+    if (net > 0 && typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
       await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
     }
   }

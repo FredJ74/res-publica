@@ -10529,6 +10529,13 @@ async function ouvrirModalFinancerCommunal(pa, cost) {
   }
   const ville = state.currentCity;
   const budgetMuni = await chargerBudgetMunicipal();
+  // On n'ouvre pas un ecran de virement en annoncant « 0 disponible » quand on n'a simplement
+  // pas pu lire la caisse : le Maire Adjoint croirait la ville ruinee.
+  if (!budgetMuni) {
+    showToast('Caisse illisible', 'La caisse municipale n\'a pas pu etre lue. Reessayez dans un '
+      + 'instant.', false);
+    return;
+  }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Stade/Marche : id codes en dur auparavant, sans ville -- une subvention votee depuis
   // Montrouge creditait la meme caisse que Luthecia (A3, lot caisses locales, 16 aout 2026).
@@ -11985,6 +11992,16 @@ async function chargerBudgetNational(pays) {
 async function appliquerTaxeTransaction(montantBrut) {
   const pays = state.country || 'republic';
   const budgetMuni = await chargerBudgetMunicipal();
+  // UNE CAISSE MUNICIPALE ILLISIBLE N'EST PAS UNE CAISSE VIDE (chantier 5, 7 octobre 2026).
+  // Cette ligne lisait `budgetMuni.tauxLocal` sans garde : depuis que chargerBudgetMunicipal
+  // rend `null` plutot que de fabriquer un budget a caisse 0 sur une panne, continuer ici
+  // signifierait ou bien lever, ou bien -- pire -- ecrire `caisse = 0 + taxe` par-dessus le
+  // solde reel de la ville. On rend donc null, et l'appelant renonce a la transaction.
+  if (!budgetMuni) {
+    console.error('appliquerTaxeTransaction: caisse municipale illisible, transaction non taxee '
+                  + 'et donc non effectuee');
+    return null;
+  }
   const budgetNat = await chargerBudgetNational(pays);
   const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
   const tauxNational = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
@@ -12093,6 +12110,13 @@ async function verifierSalaireReligieux() {
 // =====================
 async function ouvrirFixerImpotsLocauxReel(pa, cost) {
   const budgetMuni = await chargerBudgetMunicipal();
+  // Sans budget lisible, on ne connait ni le taux en vigueur ni la cle a reecrire : afficher un
+  // taux par defaut inviterait le maire a « confirmer » une valeur qu'il n'a jamais fixee.
+  if (!budgetMuni) {
+    showToast('Budget illisible', 'Le budget municipal n\'a pas pu etre lu. Reessayez dans un '
+      + 'instant.', false);
+    return;
+  }
   const taux = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
   document.getElementById('postes-modal-title').textContent = 'Fixer les impôts locaux';
   let html = '<div style="padding:1rem">';

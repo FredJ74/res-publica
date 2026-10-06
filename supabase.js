@@ -30,17 +30,157 @@ function sbEnTetes() {
 // =====================
 // UTILITAIRES
 // =====================
-async function sbGet(table, filters = '') {
+
+// TRANSPORT UNIQUE DES ACCES REST (chantier 5, 7 octobre 2026).
+//
+// LE DEFAUT QU'IL CORRIGE, constate en production. Les quatre primitives REST ci-dessous
+// rendaient `null` des que la reponse n'etait pas un 2xx, et ne capturaient meme pas le rejet
+// de `fetch`. Or `null` est AUSSI ce que rendent des dizaines de helpers pour dire « cette
+// ligne n'existe pas », et `[]` ce qu'ils rendent pour « cette liste est vide ». Une panne
+// etait donc, litteralement, impossible a distinguer d'une reponse metier. Trois consequences
+// mesurees le 7 octobre 2026 :
+//
+//   . LE FORUM a affiche « Aucun sujet. Soyez le premier a en creer un ! » pendant une
+//     indisponibilite de Supabase. La ligne responsable fusionnait les deux cas :
+//     `if (!rows || rows.length === 0) return;`
+//   . LA TRESORERIE D'UNE VILLE pouvait etre DETRUITE par une panne de LECTURE :
+//     chargerBudgetMunicipal lisait `null`, en concluait « pas encore de budget », et ecrivait
+//     un budget neuf a `caisse: 0` par-dessus le solde reel.
+//   . DOUZE helpers `sbSave*` choisissaient INSERT ou UPDATE d'apres une lecture de controle
+//     dont l'echec les faisait basculer sur INSERT.
+//
+// Cette porte est calquee sur sbTransportRpc (plus bas dans ce fichier), ecrite le 28 septembre
+// 2026 pour exactement le meme probleme sur les RPC. MEMES ETATS, MEME VOCABULAIRE : il ne doit
+// pas y avoir deux facons de nommer une panne selon qu'on passe par une RPC ou par une table.
+//
+//   'ok'             -> 2xx ; `donnees` porte le corps analyse (un tableau vide est alors un
+//                       VIDE REEL, recu avec succes -- c'est tout l'interet) ;
+//   'session_perdue' -> 401 : identite refusee ou expiree ;
+//   'http'           -> le serveur a repondu autre chose qu'un 2xx ;
+//   'reseau'         -> `fetch` a rejete : hors ligne, DNS, TLS, requete bloquee.
+//
+// `envoyee` dit si la requete a quitte le navigateur. C'est la seule donnee qui permette
+// d'affirmer a un joueur que son action n'a pas pu partir -- jamais qu'elle a echoue.
+async function sbTransportRest(methode, table, filtres, corps, preferResolution) {
   // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
   // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
     await rpAuthAssurerSession().catch(() => null);
   }
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
-    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' }
-  });
-  if (!res.ok) { console.error('sbGet error', await res.text()); return null; }
-  return res.json();
+
+  const url = `${SUPABASE_URL}/rest/v1/${table}` + (filtres ? `?${filtres}` : '');
+  const prefer = preferResolution
+    ? `return=representation,resolution=${preferResolution}`
+    : 'return=representation';
+  const init = { method: methode, headers: { ...sbEnTetes(), 'Prefer': prefer } };
+  if (corps !== undefined) init.body = JSON.stringify(corps);
+
+  let res;
+  try {
+    res = await fetch(url, init);
+  } catch (e) {
+    // `fetch` a rejete : la requete est partie sur le reseau sans reponse exploitable. On ne
+    // peut PAS affirmer qu'elle n'a rien fait -- d'ou envoyee: true.
+    return { etat: 'reseau', raison: 'reseau_indisponible', http: null, code: null,
+             message: (e && e.message) || null, envoyee: true, donnees: null };
+  }
+
+  if (!res.ok) {
+    const texte = await res.text().catch(() => '');
+    let code = null;
+    try { code = (JSON.parse(texte) || {}).code || null; } catch (e) { code = null; }
+    console.error('sbTransportRest ' + methode + ' ' + table + ' -> ' + res.status, texte);
+    if (res.status === 401) {
+      return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code,
+               message: texte, envoyee: true, donnees: null };
+    }
+    return { etat: 'http', raison: 'transport_indisponible', http: res.status, code,
+             message: texte, envoyee: true, donnees: null };
+  }
+
+  // DELETE et les reponses sans corps : 204, ou un corps vide. On rend `true` plutot qu'une
+  // tentative d'analyse qui leverait.
+  if (res.status === 204) {
+    return { etat: 'ok', donnees: true, http: res.status, code: null, envoyee: true };
+  }
+  let donnees = null;
+  try { donnees = await res.json(); } catch (e) { donnees = true; }
+  return { etat: 'ok', donnees, http: res.status, code: null, envoyee: true };
+}
+
+// VERDICT STRUCTURE POUR REST. Meme forme que sbRpcVerdict : { ok, raison, transport } sur un
+// echec, { ok: true, donnees } sinon. C'est la porte que doit prendre tout chemin ou confondre
+// une panne avec un vide a une consequence -- l'argent, les ecritures, l'affichage d'une liste
+// qui dirait « il n'y a rien ».
+function sbVerdictRest(env) {
+  if (env.etat === 'ok') return { ok: true, donnees: env.donnees };
+  return {
+    ok: false, raison: env.raison,
+    transport: { etat: env.etat, http: env.http || null, code: env.code || null,
+                 envoyee: !!env.envoyee }
+  };
+}
+
+async function sbGetVerdict(table, filters = '') {
+  return sbVerdictRest(await sbTransportRest('GET', table, filters));
+}
+async function sbInsertVerdict(table, data, preferResolution) {
+  return sbVerdictRest(await sbTransportRest('POST', table, '', data, preferResolution));
+}
+async function sbUpdateVerdict(table, filters, data) {
+  return sbVerdictRest(await sbTransportRest('PATCH', table, filters, data));
+}
+async function sbDeleteVerdict(table, filters) {
+  return sbVerdictRest(await sbTransportRest('DELETE', table, filters));
+}
+
+// ECRITURE IDEMPOTENTE D'UNE LIGNE ENTIERE (chantier 5, 7 octobre 2026).
+//
+// LE DEFAUT QU'ELLE SUPPRIME. Treize helpers `sbSave*` decidaient d'INSERT ou d'UPDATE d'apres
+// une lecture de controle :
+//
+//     const existing = await sbGet(table, `id=eq.${cle}`);
+//     if (existing && existing.length > 0) return sbUpdate(...);
+//     return sbInsert(...);
+//
+// `sbGet` rendant `null` sur TOUTE panne, un echec de cette lecture -- reseau coupe, 500, jeton
+// expire -- faisait prendre la branche INSERT sur une ligne qui existait parfaitement. Selon la
+// table : violation de cle primaire et ecriture perdue en silence, ou pire, ecrasement d'une
+// ligne par une version neuve. Treize fois le meme piege, dont les budgets municipaux, les
+// budgets nationaux, les plaintes, les compagnies militaires et les titulaires de postes.
+//
+// LA BASE SAIT FAIRE. PostgREST expose ON CONFLICT DO UPDATE via
+// `Prefer: resolution=merge-duplicates` sur un POST, a condition que la cle primaire figure
+// dans le corps. Les treize tables concernees ont toutes une cle primaire simple `id` (verifie
+// en base le 7 octobre 2026), et les treize payloads la portent deja. Il n'y a donc plus de
+// lecture de controle : il n'y a plus de branche a se tromper.
+//
+// SEULES LES COLONNES FOURNIES SONT ECRITES, en insertion comme en conflit -- meme semantique
+// que le PATCH qu'elle remplace.
+async function sbUpsert(table, ligne) {
+  return sbInsert(table, ligne, 'merge-duplicates');
+}
+
+// CONTRAT HISTORIQUE, INCHANGE -- exactement le choix fait pour sbRpc le 28 septembre 2026.
+// Mille deux cent quatre-vingt-quatorze appels metier lisent ces quatre fonctions : 2xx -> corps
+// analyse, erreur HTTP -> `null`. En changer le sens ferait changer de sens, en silence, chaque
+// `if (!rows)` du jeu. Les appelants qui doivent savoir POURQUOI prennent la variante Verdict
+// ci-dessus ; la migration se fait chemin par chemin, en commencant par ceux ou la confusion
+// coute de l'argent.
+//
+// ET LE REJET RESEAU CONTINUE DE LEVER. Les quatre primitives n'entouraient pas leur `fetch`
+// d'un try/catch : un rejet -- hors ligne, DNS, TLS, requete bloquee -- traversait donc vers
+// l'appelant. Les ~470 sites en `.catch(() => null)` l'attrapaient, les autres echouaient
+// bruyamment. Transformer ce rejet en `null` aurait rendu SILENCIEUSES des pannes qui se voyaient
+// jusqu'ici : exactement l'inverse du but de ce chantier. On le releve donc a l'identique.
+function sbRelancerSiReseau(env) {
+  if (env.etat === 'reseau') throw new Error(env.message || 'reseau_indisponible');
+  return env;
+}
+
+async function sbGet(table, filters = '') {
+  const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
+  return env.etat === 'ok' ? env.donnees : null;
 }
 
 // preferResolution (optionnel, Lot 4 -- cartes postales, 23 aout 2026) : ajoute
@@ -48,48 +188,18 @@ async function sbGet(table, filters = '') {
 // ON CONFLICT DO NOTHING). Retrocompatible : tous les appelants existants (dizaines, deux
 // arguments) gardent exactement le meme comportement, seul un appel a 3 arguments est affecte.
 async function sbInsert(table, data, preferResolution) {
-  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
-  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
-  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
-    await rpAuthAssurerSession().catch(() => null);
-  }
-  const prefer = preferResolution ? `return=representation,resolution=${preferResolution}` : 'return=representation';
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { ...sbEnTetes(), 'Prefer': prefer },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) { console.error('sbInsert error', await res.text()); return null; }
-  return res.json();
+  const env = sbRelancerSiReseau(await sbTransportRest('POST', table, '', data, preferResolution));
+  return env.etat === 'ok' ? env.donnees : null;
 }
 
 async function sbUpdate(table, filters, data) {
-  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
-  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
-  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
-    await rpAuthAssurerSession().catch(() => null);
-  }
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
-    method: 'PATCH',
-    headers: { ...sbEnTetes(), 'Prefer': 'return=representation' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) { console.error('sbUpdate error', await res.text()); return null; }
-  return res.json();
+  const env = sbRelancerSiReseau(await sbTransportRest('PATCH', table, filters, data));
+  return env.etat === 'ok' ? env.donnees : null;
 }
 
 async function sbDelete(table, filters) {
-  // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
-  // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
-  if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
-    await rpAuthAssurerSession().catch(() => null);
-  }
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
-    method: 'DELETE',
-    headers: sbEnTetes()
-  });
-  if (!res.ok) { console.error('sbDelete error', await res.text()); return null; }
-  return true;
+  const env = sbRelancerSiReseau(await sbTransportRest('DELETE', table, filters));
+  return env.etat === 'ok' ? true : null;
 }
 
 // =====================
@@ -631,6 +741,17 @@ async function sbLoadForumTopics(forumId) {
   return sbGet('forum_topics', `forum_id=eq.${forumId}&order=created_at.desc`);
 }
 
+// LA MEME LECTURE, QUI DISTINGUE « AUCUN SUJET » DE « JE N'AI PAS PU LIRE » (chantier 5,
+// 7 octobre 2026). Le forum a affiche « Aucun sujet. Soyez le premier a en creer un ! » pendant
+// une indisponibilite de Supabase : la liste etait vide parce que la LECTURE avait echoue, et
+// rien dans la chaine ne permettait de le savoir -- `if (!rows || rows.length === 0) return;`
+// repondait la meme chose aux deux situations.
+async function sbLoadForumTopicsVerdict(forumId) {
+  const v = await sbGetVerdict('forum_topics', `forum_id=eq.${forumId}&order=created_at.desc`);
+  if (!v.ok) return v;
+  return { ok: true, donnees: Array.isArray(v.donnees) ? v.donnees : [] };
+}
+
 async function sbLoadForumPosts(topicId) {
   return sbGet('forum_posts', `topic_id=eq.${encodeURIComponent(topicId)}&order=created_at.asc`);
 }
@@ -818,11 +939,19 @@ async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg,
     payload.author_org_id = orgaId || null;
     payload.author_org_icon = orgIcon || null;
   }
-  // Comportement de retour volontairement inchange (renvoie toujours id, ne verifie pas
-  // sbInsert()) : l'absence de detection d'echec sur sbCreateTopic est un defaut preexistant
-  // deja identifie et explicitement laisse hors perimetre par le correctif precedent (458c334) --
-  // pas re-ouvert ici.
-  await sbInsert('forum_topics', payload);
+  // CE DEFAUT EST FERME (chantier 5, 7 octobre 2026). Le commentaire qui occupait ces lignes
+  // disait que le retour etait « volontairement inchange » et renvoyait l'id sans verifier
+  // sbInsert -- defaut connu, laisse hors perimetre par le correctif 458c334. C'est precisement
+  // ce qui a fait croire a des joueurs que leur sujet etait publie alors qu'aucune ligne n'avait
+  // ete ecrite.
+  const ecrit = await sbInsert('forum_topics', payload);
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -983,7 +1112,14 @@ async function sbCreerChampionnatSiAbsent(data) {
 
 async function sbCreerPari(data) {
   const id = 'pari-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  await sbInsert('paris_sportifs', { id, resolu: false, data });
+  const ecrit = await sbInsert('paris_sportifs', { id, resolu: false, data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -1048,11 +1184,7 @@ async function sbGetPresidentClub(clubId) {
 }
 
 async function sbSavePresidentClub(clubId, data) {
-  const existing = await sbGet('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('presidents_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
+  return sbUpsert('presidents_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
 }
 
 async function sbListTransfertsClub(clubId) {
@@ -1063,7 +1195,14 @@ async function sbListTransfertsClub(clubId) {
 
 async function sbCreerTransfert(data) {
   const id = 'transfert-' + Date.now();
-  await sbInsert('transferts_clubs', { id, statut: data.statut, data });
+  const ecrit = await sbInsert('transferts_clubs', { id, statut: data.statut, data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -1156,11 +1295,7 @@ async function sbGetBudgetClub(clubId) {
 }
 
 async function sbSaveBudgetClub(clubId, data) {
-  const existing = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
+  return sbUpsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
 }
 
 async function sbGetCaisseBatiment(key) {
@@ -1188,11 +1323,7 @@ async function sbGetNiveauPrison(key) {
 }
 
 async function sbSaveNiveauPrison(key, data) {
-  const existing = await sbGet('niveaux_prison', `id=eq.${encodeURIComponent(key)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('niveaux_prison', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('niveaux_prison', { id: key, data, updated_at: new Date().toISOString() });
+  return sbUpsert('niveaux_prison', { id: key, data, updated_at: new Date().toISOString() });
 }
 
 async function sbGetBudgetNational(pays) {
@@ -1211,11 +1342,7 @@ async function sbMobilisationFixer(actif) {
 }
 
 async function sbSaveBudgetNational(pays, data) {
-  const existing = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('budgets_nationaux', { id: pays, data, updated_at: new Date().toISOString() });
+  return sbUpsert('budgets_nationaux', { id: pays, data, updated_at: new Date().toISOString() });
 }
 
 async function sbGetBudgetMunicipal(key) {
@@ -1224,12 +1351,28 @@ async function sbGetBudgetMunicipal(key) {
   return rows[0].data;
 }
 
+// LA MEME LECTURE, MAIS QUI DIT POURQUOI ELLE N'A RIEN (chantier 5, 7 octobre 2026).
+//
+// LE DEFAUT QU'ELLE CORRIGE EST LE PLUS COUTEUX DU DEPOT. sbGetBudgetMunicipal rend `null` dans
+// deux situations qui n'ont rien a voir : « cette ville n'a pas encore de budget » et « la
+// lecture a echoue ». Son appelant, chargerBudgetMunicipal, repondait au `null` en ECRIVANT un
+// budget neuf a `caisse: 0`. Une indisponibilite de Supabase de deux secondes suffisait donc a
+// ECRASER la tresorerie reelle d'une ville par un zero -- 105 797 FR pour Luthecia au 7 octobre
+// 2026. Aucune alerte, aucune trace : le joueur voyait simplement une caisse vide.
+//
+// Trois reponses distinctes, desormais :
+//   { ok: true,  data: <le budget> }   la ligne existe
+//   { ok: true,  data: null }          la ville n'a vraiment pas de budget -> en creer un est juste
+//   { ok: false, raison: '...' }       la lecture a echoue -> NE RIEN ECRIRE
+async function sbGetBudgetMunicipalVerdict(key) {
+  const v = await sbGetVerdict('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
+  if (!v.ok) return v;
+  const rows = v.donnees;
+  return { ok: true, data: (Array.isArray(rows) && rows.length > 0) ? rows[0].data : null };
+}
+
 async function sbSaveBudgetMunicipal(key, data) {
-  const existing = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('budgets_municipaux', { id: key, data, updated_at: new Date().toISOString() });
+  return sbUpsert('budgets_municipaux', { id: key, data, updated_at: new Date().toISOString() });
 }
 
 // =====================
@@ -1243,11 +1386,7 @@ async function sbGetIndicesVille(key) {
 }
 
 async function sbSaveIndicesVille(key, data) {
-  const existing = await sbGet('indices_villes', `id=eq.${encodeURIComponent(key)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('indices_villes', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
-  }
-  return sbInsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
+  return sbUpsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
 }
 
 // =====================
@@ -1561,15 +1700,21 @@ function sbSauvegardeUrgenceDechargement() {
 // =====================
 // INIT — vérification connexion
 // =====================
+// LE DETECTEUR DE DISPONIBILITE ETAIT AVEUGLE A L'INDISPONIBILITE (chantier 5, 7 octobre 2026).
+//
+// L'ancienne version assignait `rows` et ne le lisait JAMAIS : un 401, un 404 ou un 500
+// affichaient « Supabase connecte » et rendaient `true`. Seule une panne reseau brute atteignait
+// le `catch`. Autrement dit, la premiere chose que le jeu fait au chargement -- verifier qu'il
+// parle au serveur -- ne verifiait rien.
 async function sbInit() {
-  try {
-    const rows = await sbGet('personnages', 'select=count&limit=1');
+  const env = await sbTransportRest('GET', 'personnages', 'select=count&limit=1');
+  if (env.etat === 'ok') {
     console.log('✅ Supabase connecté');
     return true;
-  } catch(e) {
-    console.warn('⚠️ Supabase non disponible — mode local');
-    return false;
   }
+  console.warn('⚠️ Supabase non disponible — mode local (' + env.raison
+               + (env.http ? ', HTTP ' + env.http : '') + ')');
+  return false;
 }
 
 // =====================
@@ -2049,25 +2194,34 @@ async function sbSetMailArchived(mailId, archived) {
 // =====================
 // SUPPRESSION DE PERSONNAGE (conserve forum/mails)
 // =====================
+// CINQ SUPPRESSIONS, CINQ VERDICTS LUS (chantier 5, 7 octobre 2026).
+//
+// Cette fonction enchainait cinq `fetch` DELETE dont AUCUN ne lisait `res.ok`, puis rendait
+// `true`. Cinq refus RLS d'affilee donnaient donc exactement le meme resultat qu'une suppression
+// reussie, et l'appelant etait certain que le personnage, ses presences, ses dons en attente, ses
+// votes et ses candidatures avaient disparu.
+//
+// Elle passe desormais par la porte commune, qui lit le statut, et elle rend `true` seulement si
+// les CINQ suppressions ont abouti. Une suppression partielle rend `false` : c'est le seul
+// resultat honnete, et l'appelant doit pouvoir le distinguer.
 async function sbDeletePersonnage(name) {
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: sbEnTetes()
-    });
-    await fetch(`${SUPABASE_URL}/rest/v1/presences?name=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: sbEnTetes()
-    });
-    await fetch(`${SUPABASE_URL}/rest/v1/dons_en_attente?destinataire=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: sbEnTetes()
-    });
-    await fetch(`${SUPABASE_URL}/rest/v1/votes_electoraux?votant=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: sbEnTetes()
-    });
-    await fetch(`${SUPABASE_URL}/rest/v1/candidatures?nom=eq.${encodeURIComponent(name)}`, {
-      method: 'DELETE', headers: sbEnTetes()
-    });
-    return true;
-  } catch(e) { console.error('sbDeletePersonnage error', e); return false; }
+  const cible = encodeURIComponent(name);
+  const suppressions = [
+    ['personnages', `name=eq.${cible}`],
+    ['presences', `name=eq.${cible}`],
+    ['dons_en_attente', `destinataire=eq.${cible}`],
+    ['votes_electoraux', `votant=eq.${cible}`],
+    ['candidatures', `nom=eq.${cible}`]
+  ];
+  let toutesReussies = true;
+  for (const [table, filtre] of suppressions) {
+    const env = await sbTransportRest('DELETE', table, filtre);
+    if (env.etat !== 'ok') {
+      console.error('sbDeletePersonnage: ' + table + ' non supprimee (' + env.raison + ')');
+      toutesReussies = false;
+    }
+  }
+  return toutesReussies;
 }
 
 // =====================
@@ -2106,13 +2260,8 @@ async function sbMarquerSouvenirRevele(souvenirId) {
 // ORGANISATIONS (structure plate, prepare le multi-empire)
 // =====================
 async function sbSaveOrganisation(orga) {
-  const data = { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) };
-  const existing = await sbGet('organisations', `id=eq.${encodeURIComponent(orga.id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('organisations', `id=eq.${encodeURIComponent(orga.id)}`, data);
-  } else {
-    return sbInsert('organisations', data);
-  }
+  return sbUpsert('organisations',
+    { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) });
 }
 
 async function sbLoadOrganisations() {
@@ -2179,13 +2328,9 @@ async function sbUploadOrgAvatar(orgaId, file) {
 // PLAINTES EN COURS (commissariat/tribunal, partage entre joueurs)
 // =====================
 async function sbSavePlainte(plainte) {
-  const data = { id: plainte.id, country: plainte.country || 'republic', city: plainte.city || null, data: JSON.stringify(plainte) };
-  const existing = await sbGet('plaintes_en_cours', `id=eq.${encodeURIComponent(plainte.id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('plaintes_en_cours', `id=eq.${encodeURIComponent(plainte.id)}`, data);
-  } else {
-    return sbInsert('plaintes_en_cours', data);
-  }
+  return sbUpsert('plaintes_en_cours',
+    { id: plainte.id, country: plainte.country || 'republic', city: plainte.city || null,
+      data: JSON.stringify(plainte) });
 }
 
 async function sbLoadPlaintes(country) {
@@ -2735,7 +2880,14 @@ async function sbMarquerVolTraite(volId) {
 // =====================
 async function sbCreerDemandeManifestation(data) {
   const id = 'manif-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  await sbInsert('demandes_manifestation', { id, statut: 'attente', data });
+  const ecrit = await sbInsert('demandes_manifestation', { id, statut: 'attente', data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -2766,7 +2918,14 @@ async function sbMajDemandeManifestation(id, statut, patch) {
 
 async function sbCreerDemandeGrace(data) {
   const id = 'grace-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  await sbInsert('demandes_grace', { id, statut: 'attente', data });
+  const ecrit = await sbInsert('demandes_grace', { id, statut: 'attente', data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -2859,10 +3018,8 @@ async function sbGetStatCHA(nom) {
 
 async function sbSetTitulairePnj(country, posteId, city, nomPnj) {
   const id = country + '_' + posteId + '_' + (city || 'national');
-  const existing = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
-  const payload = { id, country, poste_id: posteId, city: city || null, nom_pnj: nomPnj, updated_at: new Date().toISOString() };
-  if (existing && existing.length > 0) return sbUpdate('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`, payload);
-  return sbInsert('titulaires_pnj', payload);
+  return sbUpsert('titulaires_pnj', { id, country, poste_id: posteId, city: city || null,
+                                      nom_pnj: nomPnj, updated_at: new Date().toISOString() });
 }
 
 async function sbGetTitulairePnj(country, posteId, city) {
@@ -3099,7 +3256,14 @@ async function sbGetPropositionsDiplomatiques(pays) {
 
 async function sbCreerPropositionDiplomatique(data) {
   const id = 'diplo-' + Date.now();
-  await sbInsert('propositions_diplomatiques', { id, statut: 'en_attente', data });
+  const ecrit = await sbInsert('propositions_diplomatiques', { id, statut: 'en_attente', data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3214,8 +3378,15 @@ async function sbGetMessagesConversation(conversationId, depuis) {
 
 async function sbCreerSalon(nom, createur) {
   const id = 'salon-' + nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 50) + '-' + Date.now().toString(36);
-  await sbInsert('salons_chat', { id, nom, createur, created_at: new Date().toISOString() });
+  const ecrit = await sbInsert('salons_chat', { id, nom, createur, created_at: new Date().toISOString() });
   await sbRejoindreSalon(id, createur);
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3328,12 +3499,7 @@ function idLocationBox(location) {
 async function sbSaveLocation(location) {
   const id = idLocation(location);
   if (!id) return null;
-  const data = { id, country: location.country, data: location };
-  const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('locations_actives', `id=eq.${encodeURIComponent(id)}`, data);
-  }
-  return sbInsert('locations_actives', data);
+  return sbUpsert('locations_actives', { id, country: location.country, data: location });
 }
 
 async function sbLoadLocations(country) {
@@ -3380,12 +3546,7 @@ async function sbSupprimerLocation(country, buildingId, roomId, city) {
 async function sbSaveLocationBox(location) {
   const id = idLocationBox(location);
   if (!id) return null;
-  const data = { id, country: location.country, data: location };
-  const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('locations_actives', `id=eq.${encodeURIComponent(id)}`, data);
-  }
-  return sbInsert('locations_actives', data);
+  return sbUpsert('locations_actives', { id, country: location.country, data: location });
 }
 
 async function sbSupprimerLocationBox(country, buildingId, roomId, city, locataire) {
@@ -3511,7 +3672,14 @@ async function sbGetCompagnies(pays) {
 
 async function sbCreerPrisonnierQHS(data) {
   const id = 'qhs-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  await sbInsert('prisonniers_qhs', { id, statut: 'detenu', data });
+  const ecrit = await sbInsert('prisonniers_qhs', { id, statut: 'detenu', data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3529,7 +3697,14 @@ async function sbMajPrisonnierQHS(id, statut, patch) {
 
 async function sbCreerRapportRenseignement(data) {
   const id = 'rens-' + Date.now();
-  await sbInsert('rapports_renseignement', { id, data });
+  const ecrit = await sbInsert('rapports_renseignement', { id, data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3550,7 +3725,14 @@ async function sbMarquerRapportRemonte(id) {
 // droits. Utiliser sbMilitaireEngagementCreer.
 async function sbCreerEngagement(data) {
   const id = 'engagement-' + Date.now();
-  await sbInsert('engagements_militaires', { id, statut: 'attente_commandant', data });
+  const ecrit = await sbInsert('engagements_militaires', { id, statut: 'attente_commandant', data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3570,7 +3752,14 @@ async function sbMajEngagement(id, statut, patch) {
 
 async function sbCreerFaitArmes(data) {
   const id = 'combat-' + Date.now();
-  await sbInsert('faits_armes', { id, data });
+  const ecrit = await sbInsert('faits_armes', { id, data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -3581,14 +3770,19 @@ async function sbGetFaitsArmes() {
 }
 
 async function sbSaveCompagnie(id, data) {
-  const existing = await sbGet('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`);
-  if (existing && existing.length > 0) return sbUpdate('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`, { data });
-  return sbInsert('compagnies_militaires', { id, data });
+  return sbUpsert('compagnies_militaires', { id, data });
 }
 
 async function sbCreerRumeurPolitique(data) {
   const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  await sbInsert('rumeurs_actives', { id, resolu: false, data });
+  const ecrit = await sbInsert('rumeurs_actives', { id, resolu: false, data });
+  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
+  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
+  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
+  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
+  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
+  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
+  if (!ecrit) return null;
   return id;
 }
 
@@ -4203,12 +4397,7 @@ async function sbSetTerrainState(country, buildingId, etat) {
     data: JSON.stringify(etat),
     updated_at: new Date().toISOString()
   };
-  const existing = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(data.id)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(data.id)}`, data);
-  } else {
-    return sbInsert('terrains_etat', data);
-  }
+  return sbUpsert('terrains_etat', data);
 }
 
 async function sbGetTerrainState(country, buildingId) {

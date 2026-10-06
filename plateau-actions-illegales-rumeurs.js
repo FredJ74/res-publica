@@ -6938,8 +6938,11 @@ async function doConsommerBuvette(pa, cost) {
   // Chemin de repli uniquement (RPC indisponible) : ancien enchainement taxe-puis-credit.
   if (!recetteEncaissee
       && typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
-    const { net } = await appliquerTaxeTransaction(cout);
-    await crediterCaisseBatiment(pays, idCaisseStade, net).catch(() => {});
+    // Meme regle qu'a l'hotel : une taxe non calculable (caisse municipale illisible) interdit
+    // de crediter la buvette du brut, ce qui detournerait la part de la ville.
+    const t = await appliquerTaxeTransaction(cout);
+    if (t && t.net > 0) await crediterCaisseBatiment(pays, idCaisseStade, t.net).catch(() => {});
+    else if (!t) console.error('buvette : taxe non calculable, aucun credit a la caisse');
   }
 
   updateUI();

@@ -850,7 +850,13 @@ function renderTopicList() {
       </button>` : ''}
     </div>
     ${topics.length === 0
-      ? `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`
+      ? (FORUM_LECTURE_ECHOUEE[currentForumId]
+          // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
+          // contenu du forum -- et c'est exactement ce qui s'est produit en production.
+          ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
+             Ce n'est pas qu'elle est vide : la connexion au serveur a échoué.
+             Rechargez la page dans un instant.</div>`
+          : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
             <span>Sujet</span><span>Auteur</span><span>Dernier post</span><span>Vues</span><span>Rép.</span>
@@ -1944,6 +1950,17 @@ async function submitNewTopic() {
     if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, blocks, null, authorReal, idOrga, orgIcon);
   }
 
+  // ON N'ANNONCE PLUS UN SUJET QUI N'EXISTE PAS (chantier 5, 7 octobre 2026). sbCreateTopic
+  // rendait son id sans jamais verifier l'ecriture ; cette fonction fabriquait alors un id local
+  // (`topicId || 'topic-' + Date.now()`), affichait le sujet, creditait 2 POP et le journalisait
+  // -- pour qu'il disparaisse au rechargement. Depuis que sbCreateTopic rend null sur echec, on
+  // peut enfin le dire au joueur. Son texte n'est pas perdu : le formulaire reste ouvert.
+  if (typeof sbCreateTopic === 'function' && !topicId) {
+    showToast('Publication refusée', "Le sujet n'a pas pu être enregistré sur le serveur. "
+      + 'Votre texte est toujours là : réessayez dans un instant.', false);
+    return;
+  }
+
   // Local aussi pour affichage immédiat
   const newTopic = {
     id: topicId || 'topic-' + Date.now(), title, author: authorName,
@@ -2340,11 +2357,26 @@ let currentMailId = null;
 // =====================
 // CHARGEMENT DEPUIS SUPABASE
 // =====================
+// LE FORUM SAIT DESORMAIS QUAND IL N'A PAS PU LIRE (chantier 5, 7 octobre 2026).
+//
+// Cette fonction faisait `if (!rows || rows.length === 0) return;` : une liste vide parce que
+// Supabase etait indisponible et une rubrique reellement vide produisaient exactement le meme
+// effet, et le rendu affichait « Aucun sujet. Soyez le premier a en creer un ! ». C'est arrive
+// en production. On retient donc l'etat de la derniere lecture par rubrique, et le rendu le lit.
+const FORUM_LECTURE_ECHOUEE = {};
+
 async function loadForumTopicsFromSB(forumId) {
-  if (typeof sbLoadForumTopics !== 'function') return;
+  if (typeof sbLoadForumTopicsVerdict !== 'function') return;
   try {
-    const rows = await sbLoadForumTopics(forumId);
-    if (!rows || rows.length === 0) return;
+    const v = await sbLoadForumTopicsVerdict(forumId);
+    if (!v.ok) {
+      FORUM_LECTURE_ECHOUEE[forumId] = v.raison || 'transport_indisponible';
+      console.error('loadForumTopicsFromSB: lecture indisponible (' + FORUM_LECTURE_ECHOUEE[forumId] + ')');
+      return;
+    }
+    delete FORUM_LECTURE_ECHOUEE[forumId];
+    const rows = v.donnees;
+    if (rows.length === 0) return;
     // Fusionner avec les topics locaux existants
     if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];
     rows.forEach(row => {

@@ -7296,8 +7296,15 @@ async function confirmerInterdireManif(pa, cost) {
   if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -5).catch(() => {});
 
   const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  budgetMuni.manifestationInterdite = { sujet, jour: state.day || 1, expireJour: (state.day || 1) + 3 };
-  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  // L'interdiction est inscrite DANS le budget municipal : sans budget lisible, l'ecrire
+  // reviendrait a reconstruire la ligne entiere et donc a remettre la caisse de la ville a zero.
+  if (!budgetMuni) {
+    showToast('Ville injoignable', 'Le registre municipal de ' + nomVille + ' n\'a pas pu etre lu. '
+      + 'L\'interdiction n\'est pas enregistree.', false);
+  } else {
+    budgetMuni.manifestationInterdite = { sujet, jour: state.day || 1, expireJour: (state.day || 1) + 3 };
+    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  }
 
   updateUI();
   showToast('Manifestation interdite', sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
@@ -7424,7 +7431,11 @@ async function confirmerReprimerManif(pa, cost) {
   const nomVille = villeNom(pays, ville) || ville;
 
   const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
-  const interdictionRecente = budgetMuni.manifestationInterdite && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
+  // Budget illisible : on ne PEUT PAS savoir si la manifestation avait ete interdite. Le bareme
+  // etant plus lourd dans ce cas, on retient l'hypothese la plus clemente -- on ne sanctionne
+  // pas davantage sur une information qu'on n'a pas.
+  const interdictionRecente = !!budgetMuni && budgetMuni.manifestationInterdite
+    && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
   // Bareme arrete le 7 septembre 2026 : la repression paie en cohesion sociale ce qu'elle rapporte
   // en securite, symetriquement, et davantage quand la manifestation avait deja ete interdite --
   // disperser un rassemblement interdit est un geste plus lourd des deux cotes.
@@ -9194,37 +9205,54 @@ function getVilleKey() {
   return (state.country || 'republic') + '_' + (state.currentCity || 'capitale');
 }
 
-async function chargerBudgetMunicipal() {
-  if (typeof sbGetBudgetMunicipal !== 'function') return null;
-  const key = getVilleKey();
-  let data = await sbGetBudgetMunicipal(key).catch(() => null);
-  if (!data) {
-    data = {
-      key,
-      allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20, tribunal: 15 },
-      caisse: 0,
-      // Taxe fonciere : FR/m2/jour, prerogative du maire (min/max a definir dans le futur
-      // tableau de bord municipal, pour eviter qu'un taux abusif ruine les proprietaires).
-      tauxFoncier: 0.05,
-      derniereDistribJour: state.day || 1
-    };
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
+// LE BUDGET NEUF N'EST ECRIT QUE SI LA VILLE N'EN A VRAIMENT PAS (chantier 5, 7 octobre 2026).
+//
+// Cette fonction ecrivait un budget a `caisse: 0` des que la lecture rendait `null` -- et
+// sbGetBudgetMunicipal rendait `null` aussi bien pour « pas de ligne » que pour « la lecture a
+// echoue ». Une indisponibilite de deux secondes ECRASAIT donc la tresorerie reelle de la
+// ville : 105 797 FR pour Luthecia au 7 octobre 2026. C'etait le defaut le plus couteux du
+// depot, et il tenait a une seule ligne : `if (!data)`.
+//
+// On distingue desormais les trois cas. Sur echec de transport, la fonction rend `null` et
+// N'ECRIT RIEN : l'appelant saura qu'il ne sait pas. Les appelants qui ne lisent pas ce null
+// afficheront une interface vide -- c'est desagreable, et c'est infiniment preferable a la
+// destruction d'une caisse.
+function budgetMunicipalNeuf(key) {
+  return {
+    key,
+    allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20, tribunal: 15 },
+    caisse: 0,
+    // Taxe fonciere : FR/m2/jour, prerogative du maire (min/max a definir dans le futur
+    // tableau de bord municipal, pour eviter qu'un taux abusif ruine les proprietaires).
+    tauxFoncier: 0.05,
+    derniereDistribJour: state.day || 1
+  };
+}
+
+async function chargerBudgetMunicipalDeLaCle(key) {
+  if (typeof sbGetBudgetMunicipalVerdict !== 'function') return null;
+  const v = await sbGetBudgetMunicipalVerdict(key).catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!v.ok) {
+    console.error('chargerBudgetMunicipal: lecture indisponible (' + v.raison + ') -- '
+                  + 'aucun budget neuf ecrit pour ' + key);
+    return null;
   }
+  if (v.data) return v.data;
+  // Vide REEL, recu avec succes : cette ville n'a pas encore de budget, on le cree.
+  const data = budgetMunicipalNeuf(key);
+  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
   return data;
+}
+
+async function chargerBudgetMunicipal() {
+  return chargerBudgetMunicipalDeLaCle(getVilleKey());
 }
 
 // Variante parametree de chargerBudgetMunicipal (qui suppose toujours la ville courante du
 // joueur via getVilleKey) -- necessaire pour Interdire/Reprimer une manifestation, qui ciblent
 // une ville choisie par le Ministre, pas forcement celle ou il se trouve.
 async function chargerBudgetMunicipalPourVille(pays, ville) {
-  const key = pays + '_' + ville;
-  if (typeof sbGetBudgetMunicipal !== 'function') return { key, allocation: { commissariat:20, multimodal:15, stade:15, marche:15, dispensaire:20, tribunal:15 }, caisse:0, tauxFoncier:0.05, derniereDistribJour: state.day||1 };
-  let data = await sbGetBudgetMunicipal(key).catch(() => null);
-  if (!data) {
-    data = { key, allocation: { commissariat:20, multimodal:15, stade:15, marche:15, dispensaire:20, tribunal:15 }, caisse:0, tauxFoncier:0.05, derniereDistribJour: state.day||1 };
-    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
-  }
-  return data;
+  return chargerBudgetMunicipalDeLaCle(pays + '_' + ville);
 }
 
 // IDENTITE PARTAGEE DE LA JOURNEE (25 septembre 2026). Ce marqueur vit dans une ligne PARTAGEE
@@ -9341,7 +9369,15 @@ async function confirmerRepartitionBudget(pa, cost) {
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  const data = await sbGetBudgetMunicipal(key).catch(() => null) || await chargerBudgetMunicipal();
+  // ON N'ECRIT PAS UNE REPARTITION PAR-DESSUS UN BUDGET QU'ON N'A PAS PU LIRE. L'ancienne ligne
+  // enchainait deux replis (`|| await chargerBudgetMunicipal()`) dont le second fabriquait un
+  // budget a caisse 0 : valider une repartition pendant une panne remettait la caisse a zero.
+  const data = await chargerBudgetMunicipalDeLaCle(key);
+  if (!data) {
+    showToast('Budget indisponible', 'La caisse municipale n\'a pas pu etre lue. Rien n\'a ete '
+      + 'modifie -- reessayez dans un instant.', false);
+    return;
+  }
   data.allocation = allocation;
   await sbSaveBudgetMunicipal(key, data).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
