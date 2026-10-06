@@ -694,3 +694,19 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'decision', 'revoque', 'ancien_titulaire', v_titulaire);
 END;
 $function$;
+
+-- postes_nommes_regles_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.postes_nommes_regles_empreinte_reelle()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT left(md5(string_agg(
+      poste_id || '|' || coalesce(label, '')
+               || '|' || coalesce(nomme_par, '')
+               || '|' || coalesce(scope, '')
+               || '|' || coalesce(autorite_scope, scope, ''),
+      E'\n' ORDER BY poste_id COLLATE "C")), 16)
+  FROM public.postes_nommes_regles;
+$function$;

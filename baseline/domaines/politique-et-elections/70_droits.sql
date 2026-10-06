@@ -54,6 +54,10 @@ GRANT EXECUTE ON FUNCTION public.poste_quitter() TO service_role;
 GRANT EXECUTE ON FUNCTION public.poste_revoquer(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.poste_revoquer(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.poste_revoquer(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO postgres;
+GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO service_role;
 
 -- DROITS SUR LES SEQUENCES
 GRANT SELECT, USAGE ON SEQUENCE public.elections_tracts_pnj_id_seq TO anon;

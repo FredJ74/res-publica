@@ -100,12 +100,12 @@
 
   "_trois_valeurs": "Chaque miroir a jusqu'a TROIS empreintes, et il faut les distinguer sous peine de ne rien comprendre aux ecarts. (1) data.js : ce que le generateur calcule aujourd'hui depuis la source canonique. (2) reelle : ce que la base contient vraiment, rehache par une fonction SQL. (3) posee : la valeur ecrite dans <miroir>_empreinte au moment de la derniere generation. posee != reelle veut dire que la table a bouge depuis, ou que la valeur posee n'a jamais ete juste. data.js != reelle veut dire que le miroir est perime par rapport au jeu.",
 
-  "_couverture_croisee": "La surveillance est CROISEE, et c'est le defaut de fond : 7 generateurs savent calculer une empreinte, mais seules 4 tables <miroir>_empreinte existent, et elles ne recouvrent pas le meme ensemble. ressources_economie est surveillee sans etre generee (aucun generateur ne sait la recalculer : son empreinte ne peut donc PAS etre reverifiee hors ligne). clubs_football, miroirs_chantiers, miroirs_entreprises et postes_electifs sont generees sans etre surveillees. Ces cinq trous sont declares ci-dessous pour qu'ils cessent d'etre invisibles ; les combler demande du SQL que le chantier 4C n'autorise pas.",
+  "_couverture_croisee": "La surveillance est CROISEE, et c'est le defaut de fond : 7 generateurs savent calculer une empreinte, mais seules 4 tables <miroir>_empreinte existent, et elles ne recouvrent pas le meme ensemble. Les quatre miroirs surveilles ont desormais TOUS leur fonction _empreinte_reelle (chantier 4C) ; ce qui reste croise, c'est le peuplement de ces quatre. ressources_economie est surveillee sans etre generee (aucun generateur ne sait la recalculer : son empreinte ne peut donc PAS etre reverifiee hors ligne). clubs_football, miroirs_chantiers, miroirs_entreprises et postes_electifs sont generees sans etre surveillees. Ces cinq trous sont declares ci-dessous pour qu'ils cessent d'etre invisibles ; les combler demande du SQL que le chantier 4C n'autorise pas.",
 
   "empreintes": {
     "_mesure": {
       "le": "2026-10-06",
-      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc ; les colonnes 'reelle' absentes de la base ont ete obtenues en executant en SELECT l'expression exacte de migrations/20261006180000_referentiels_empreintes_manquantes.sql.",
+      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les quatre valeurs 'reelle' sont desormais rendues par les quatre fonctions <miroir>_empreinte_reelle, les deux dernieres ajoutees par la migration 20261006194527_referentiels_empreintes_manquantes. Mesure refaite apres application : identique a la mesure d'avant, ce qui prouve que la migration n'a touche aucune donnee.",
       "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
     },
     "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle();",
@@ -115,8 +115,7 @@
         "generateur": "outils/generateurs/generer_pa_bonus_differes.py",
         "table_empreinte": "pa_bonus_differes_empreinte",
         "fonction_reelle": "pa_bonus_differes_empreinte_reelle",
-        "fonction_reelle_en_base": false,
-        "_fonction_attendue_par": "migrations/20261006180000_referentiels_empreintes_manquantes.sql",
+        "fonction_reelle_en_base": true,
         "data_js": "1c02ca809fdb9b8b",
         "lignes": 10,
         "posee": "1c02ca809fdb9b8b",
@@ -128,8 +127,7 @@
         "generateur": "outils/generateurs/generer_postes_nommes.py",
         "table_empreinte": "postes_nommes_regles_empreinte",
         "fonction_reelle": "postes_nommes_regles_empreinte_reelle",
-        "fonction_reelle_en_base": false,
-        "_fonction_attendue_par": "migrations/20261006180000_referentiels_empreintes_manquantes.sql",
+        "fonction_reelle_en_base": true,
         "data_js": "73985f702ae09796",
         "lignes": 17,
         "posee": "a2993a8bc519ea01",

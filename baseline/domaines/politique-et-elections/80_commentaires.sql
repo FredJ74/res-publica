@@ -11,3 +11,4 @@
 -- ============================================================================
 
 COMMENT ON COLUMN public.elections_tracts_pnj.canal IS 'tract | prospectus | conference | jean_lou -- origine de la voix, pour l''audit uniquement.';
+COMMENT ON FUNCTION public.postes_nommes_regles_empreinte_reelle() IS 'Empreinte reelle du miroir des regles de nomination, sur les cinq colonnes et sur la valeur effective de autorite_scope (coalesce(autorite_scope, scope)), celle que lit poste_autorite_de. Pendant SQL de outils/generateurs/generer_postes_nommes.py. Chantier 4C.';

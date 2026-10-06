@@ -5,6 +5,12 @@
    "genre": "COLUMN",
    "objet": "elections_tracts_pnj",
    "sous": "canal"
+  },
+  {
+   "empreinte": "92c02919acff91db5096992f381c3e8e",
+   "genre": "FUNCTION",
+   "objet": "postes_nommes_regles_empreinte_reelle()",
+   "sous": ""
   }
  ],
  "contraintes": [
@@ -384,6 +390,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "postes_nommes_regles_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "postes_nommes_regles_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "postes_nommes_regles_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "postes_nommes_regles_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "elections_tracts_pnj_id_seq",
@@ -717,13 +747,13 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "d341852b751536f74b05e46444766e78",
-  "20_fonctions.sql": "8d797262273af5dcf29d6433de333289",
+  "20_fonctions.sql": "22ae23cccc6f5813cf238234a7dfb03f",
   "30_contraintes.sql": "74b60f013ac9da92adbec51b9abb6a9f",
   "35_index.sql": "b5f2cff596e2b8bb0e41dc89148bbe98",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
   "60_rls-policies.sql": "4ff4ee091c383af9c50c0e135029dd8d",
-  "70_droits.sql": "608a605d4f5b93e18e94eedccaa9bfa6",
-  "80_commentaires.sql": "f59a02586f44b50e4fa0bb45553a9475"
+  "70_droits.sql": "2315addc9d5ec4d3c48acfddddaeaebb",
+  "80_commentaires.sql": "e2b52bf9c19a374ee8423ba90e68b0e0"
  },
  "fonctions": [
   {
@@ -805,6 +835,11 @@
    "empreinte": "47d1231420f15bebf2618bb2da563023",
    "security_definer": true,
    "signature": "poste_revoquer(text,text)"
+  },
+  {
+   "empreinte": "b3e0acd553fb6c217d080e54edee57ae",
+   "security_definer": true,
+   "signature": "postes_nommes_regles_empreinte_reelle()"
   }
  ],
  "index_autonomes": [

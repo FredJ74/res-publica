@@ -78,11 +78,22 @@ trace d'application qui compte.
 ### 5. Réextraire le baseline, et commiter les deux ensemble
 
 ```
+python3 outils/baseline/requetes.py --exports             # les 4 exports à rejouer
+python3 outils/baseline/requetes.py --export export_droits
 python3 outils/baseline/requetes.py --controle-global     # imprime la requête
 python3 outils/baseline/rendre.py <répertoire_des_exports>
 python3 outils/baseline/seeds.py  --rendre <répertoire> <résultat>
 python3 outils/baseline/controler-tout.py                 # les 10 contrôles
 ```
+
+**Les quatre requêtes d'extraction sont dans `requetes.py`, et il faut les
+jouer telles quelles.** Elles n'y étaient pas jusqu'au 6 octobre 2026 :
+l'une a dû être reconstituée, les séquences y manquaient, et le rendu a
+tranquillement supprimé 102 lignes de droits de séquence — de quoi décrire une
+base où plus aucun rôle client ne peut appeler `nextval()`. Aucun contrôle ne
+l'a vu ; c'est la relecture du diff qui l'a attrapé. **Relire le diff du
+baseline après chaque réextraction** : le nombre de lignes changées doit
+s'expliquer par la migration, et rien d'autre.
 
 La migration **et** le baseline réextrait vont dans le **même commit**. Séparés,
 ils laisseraient un instant où le dépôt dit autre chose que la base.

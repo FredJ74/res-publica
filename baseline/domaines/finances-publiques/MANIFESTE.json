@@ -115,6 +115,12 @@
    "sous": ""
   },
   {
+   "empreinte": "fe141001ddb064af19810405e154f26c",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differes_empreinte_reelle()",
+   "sous": ""
+  },
+  {
    "empreinte": "29e0c4812a84bf9c7b16f711daca9da8",
    "genre": "FUNCTION",
    "objet": "retirer_caisse_fonds(text,text,integer)",
@@ -1002,6 +1008,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "PUBLIC",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differes_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differes_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differes_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pa_bonus_differes_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "pa_crediter_atteste(text,text,text,text)",
@@ -1707,13 +1737,13 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "c5042c11717d4fabebd0a2a8e0d53316",
-  "20_fonctions.sql": "2b2f21ef6935805a49c556a484b9e2ae",
+  "20_fonctions.sql": "11f868439b4ec8e46d3e12a2839820c4",
   "30_contraintes.sql": "a42d882320edef05f1585a1759fcefa2",
   "35_index.sql": "483dda0f0f11e1ccf08b36880962d3c5",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
   "60_rls-policies.sql": "ede5c2021917f5811419e731604d2280",
-  "70_droits.sql": "c042c89da8e23f9ad22805b88a00d206",
-  "80_commentaires.sql": "6596ddd3de33bcc257ae3e96fc7872a1"
+  "70_droits.sql": "e9cf8a5c32243f16e06092052c2b1227",
+  "80_commentaires.sql": "5dfcb3bbdb792468f21f0cfa531d5f74"
  },
  "fonctions": [
   {
@@ -1895,6 +1925,11 @@
    "empreinte": "fb4518591334b8177a6f2ffa38c0fcca",
    "security_definer": true,
    "signature": "pa_bonus_differe_crediter(text,text)"
+  },
+  {
+   "empreinte": "89873b6402ecf59651b079ffcd13dfce",
+   "security_definer": true,
+   "signature": "pa_bonus_differes_empreinte_reelle()"
   },
   {
    "empreinte": "fdd69010d4be30c319cfecd79c728c67",

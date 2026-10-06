@@ -1844,6 +1844,18 @@ BEGIN
 END;
 $function$;
 
+-- pa_bonus_differes_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pa_bonus_differes_empreinte_reelle()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT left(md5(string_agg(source || '|' || montant::text,
+                             E'\n' ORDER BY source COLLATE "C")), 16)
+  FROM public.pa_bonus_differes;
+$function$;
+
 -- pa_crediter_atteste(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pa_crediter_atteste(p_acteur text, p_source text, p_reference text, p_ordre text DEFAULT NULL::text)
  RETURNS jsonb

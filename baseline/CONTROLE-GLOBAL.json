@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-06T15:22:17 Europe/Paris",
- "empreintes_relevees_le": "2026-10-06T15:22:17 Europe/Paris",
+ "releve_le": "2026-10-06T21:51:05 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-06T21:51:05 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 252,
@@ -14,16 +14,16 @@
   "index": 407,
   "index_portes": 260,
   "index_autonomes": 147,
-  "fonctions": 642,
+  "fonctions": 644,
   "triggers": 40,
   "policies": 284,
   "rls_actives": 252,
   "droits_relations": 920,
-  "droits_fonctions": 1789,
+  "droits_fonctions": 1797,
   "droits_colonnes": 20,
-  "commentaires": 166
+  "commentaires": 168
  },
- "_droits_relations_detail": "927 = 817 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
+ "_droits_relations_detail": "920 = 810 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
  "ecartes": {
   "_commentaire": "Objets DELIBEREMENT absents du baseline, parce que les 6 tables qui les portent sont classees hors_baseline au chantier 2C. Ce ne sont pas des oublis : ce sont des artefacts de la bêta (snapshots zz_snap_cka_*, deux tables d'archive datees du 26 septembre) et une table morte (lois_assemblee, remplacee par le circuit de depot unique). Un monde neuf ne doit pas naitre avec eux.",
   "tables": 6,
@@ -54,30 +54,30 @@
   "contraintes": 421,
   "index_portes": 258,
   "index_autonomes": 147,
-  "fonctions": 642,
+  "fonctions": 644,
   "triggers": 40,
   "policies": 284,
   "rls_actives": 246,
-  "droits": 2697,
+  "droits": 2705,
   "droits_colonnes": 20,
-  "commentaires": 162
+  "commentaires": 164
  },
  "_colonnes_calcul": "1969 = 2097 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
- "_droits_calcul": "2826 = 927 droits de relation + 1911 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
+ "_droits_calcul": "2705 = 920 droits de relation + 1797 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
  "empreintes": {
   "_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = « cle : md5(definition) ». COLLATE \"C\" OBLIGATOIRE : sans lui le tri suit la collation de la base, qui ignore la ponctuation au premier rang, et tout recalcul hors de PostgreSQL (qui trie par point de code) donne une autre valeur alors que les definitions sont identiques. Piege rencontre et corrige le 5 octobre 2026.",
   "colonnes": "bd88e392ab76df00e4ad90fa6b1f0692",
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
   "contraintes": "742711fb2ab808cc9652e9f4873e287a",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "ac1d0408c9d27e2437dd56196a82405b",
+  "fonctions": "9b8c0d075f4e4378f29ddf353987bd61",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "triggers": "019505ce88c072c754432d39d7505d78",
   "policies": "3eb13771e98052eaf16879dbcc01b7af",
   "policies_avec_roles": "0ee67058f90245db0fa48c5f6da765c2",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "a72253b1c1702ec8d8d880acdf4c6fd1",
-  "commentaires": "956f8a7df88be990d9033ab0edb070d8",
+  "droits": "56fa92c5bec8d2085beff2e47d2395c5",
+  "commentaires": "9c194510a4fefea2ac0aed4e871a4246",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
@@ -86,7 +86,7 @@
  },
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 6 octobre 2026, apres les trois migrations d'autorite du chantier 3.",
-  "fonctions_security_definer": 531,
+  "fonctions_security_definer": 533,
   "fonctions_security_invoker": 111,
   "tables_rls_active_sans_policy": 96,
   "tables_sans_rls": 0,
@@ -100,10 +100,10 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "_commentaire": "Point de coupe du 6 octobre 2026, apres les QUATRE migrations d'autorite du chantier 3 : autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public.",
-  "entrees": 543,
-  "derniere_version": "20261006131621",
-  "empreinte_versions_et_noms": "648cc2792ef37efdb35c596893a85819",
+  "_commentaire": "Point de coupe du 6 octobre 2026 au soir, apres les QUATRE migrations d'autorite du chantier 3 (autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public) et la migration du chantier 4C (referentiels_empreintes_manquantes).",
+  "entrees": 544,
+  "derniere_version": "20261006194527",
+  "empreinte_versions_et_noms": "dd99101e1428f97eecbd7a7c9c03a1ec",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0"
  },
  "_chantier_3": {
@@ -126,6 +126,20 @@
    "fonctions": "641 -> 642 : acteur_identifie() ajoutee",
    "droits_de_fonction": "1911 -> 1789"
   },
+  "_suite": "Voir _chantier_4c pour le releve suivant.",
   "ce_qui_n_a_pas_change": "Aucune donnee. Aucune table, colonne, contrainte, index, sequence, declencheur ni vue. Les 7 personnages de la beta sont intacts. Les 1852 lignes de droits detenues par postgres et service_role sont identiques au releve du 5 octobre."
+ },
+ "_chantier_4c": {
+  "_commentaire": "Releve d'apres la migration 20261006194527_referentiels_empreintes_manquantes, appliquee le 6 octobre 2026 a 19 h 45 UTC. Le baseline SUIT la base : reextrait APRES application, jamais avant.",
+  "migration_appliquee": "referentiels_empreintes_manquantes",
+  "ce_qui_a_change": {
+   "fonctions": "642 -> 644 : postes_nommes_regles_empreinte_reelle() et pa_bonus_differes_empreinte_reelle()",
+   "fonctions_security_definer": "531 -> 533 : les deux nouvelles le sont, comme les deux fonctions d'empreinte qui existaient deja",
+   "commentaires": "166 -> 168 : un par fonction",
+   "droits_de_fonction": "1789 -> 1797 : quatre beneficiaires par fonction (PUBLIC, authenticated, postgres, service_role)"
+  },
+  "_droits_des_deux_nouvelles_fonctions": "Elles n'ont PAS de GRANT nomme a anon, contrairement aux deux fonctions d'empreinte anterieures (ordres_couts, ressources_economie) qui en portent un. C'est l'effet direct du ALTER DEFAULT PRIVILEGES du chantier 3 : les nouvelles fonctions naissent desormais fermees a anon. Le GRANT a PUBLIC qui subsiste sur les quatre est le defaut natif de PostgreSQL ; il couvre tous les roles. Ces fonctions ne rendent qu'un hachage de 16 caracteres d'une table de referentiel, en lecture seule et sans parametre : aucun invariant d'autorite ne s'en trouve en ecart.",
+  "ce_qui_n_a_pas_change": "Aucune donnee de jeu. Aucune table, colonne, contrainte, index, sequence, declencheur, vue, policy ni RLS. Les 7 personnages de la beta sont intacts, les 8 sujets du forum aussi. Les quatre empreintes de miroir sont rigoureusement identiques avant et apres : la migration n'a rien touche d'autre que l'ajout des deux fonctions.",
+  "_divergences_non_corrigees": "ordres_couts porte TROIS valeurs differentes (posee 6de4a84c58ed9b2b, reelle a9ee71d9294ffaa8, data.js 55038ed4d716d140) et la valeur posee de postes_nommes_regles (a2993a8bc519ea01) ne correspond a aucune formule. Elles sont DECLAREES dans outils/baseline/referentiels.json et volontairement NON corrigees : faire concorder une empreinte en touchant au contenu fabriquerait le resultat du controle."
  }
 }

@@ -574,6 +574,126 @@ def tables_hors_baseline():
                 if l["strategie"] == "hors_baseline"]
 
 
+# ----------------------------------------------------------------- EXPORTS
+# LES QUATRE REQUETES D'EXTRACTION DU BASELINE, et pourquoi elles sont ici.
+#
+# rendre.py attend un repertoire contenant les sorties de ces quatre requetes,
+# reconnues a leur cle discriminante et non a leur nom de fichier. Elles
+# vivaient NULLE PART : ni ici, ni ailleurs dans le depot, alors que ce module
+# existe precisement pour que « la requete qui a produit le baseline soit dans
+# le depot, relisible et rejouable ».
+#
+# CE QUE CET OUBLI A COUTE, LE 6 OCTOBRE 2026. Faute de la trouver, la requete
+# des droits a ete reconstituee avec « relkind in ('r','v') ». Les SEQUENCES en
+# etaient absentes : le rendu a supprime 102 lignes de droits de sequence
+# reparties sur une dizaine de domaines -- 769 suppressions dans le depot, pour
+# une migration qui n'ajoutait que deux fonctions. Aucun controle n'a bronche :
+# le baseline aurait simplement decrit, sans ciller, une base ou plus aucun role
+# client ne peut appeler nextval(). C'est la relecture du diff qui l'a attrape.
+#
+# Une requete d'extraction absente du depot n'est pas reproductible, et une
+# extraction non reproductible fabrique un baseline qui ment avec aplomb.
+
+EXPORTS = {
+    'export_structure': """select jsonb_build_object(
+ 'colonnes', (select jsonb_agg(jsonb_build_object('tbl',c.relname,'kind',c.relkind,'attnum',a.attnum,'attname',a.attname,
+      'type',format_type(a.atttypid,a.atttypmod),'non_nul',a.attnotnull,'identity',a.attidentity,'generee',a.attgenerated,
+      'defaut',pg_get_expr(ad.adbin,ad.adrelid),'collation',coll.collname) order by c.relname collate "C", a.attnum)
+   from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
+   left join pg_attrdef ad on ad.adrelid=a.attrelid and ad.adnum=a.attnum
+   left join pg_collation coll on coll.oid=a.attcollation and coll.collname<>'default'
+   where c.relkind in ('r','v') and a.attnum>0 and not a.attisdropped),
+ 'contraintes', (select jsonb_agg(jsonb_build_object('tbl',c.relname,'nom',k.conname,'genre',k.contype,
+      'definition',pg_get_constraintdef(k.oid,false),'empreinte',md5(pg_get_constraintdef(k.oid,false)))
+      order by c.relname collate "C", k.conname collate "C")
+   from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'),
+ 'index', (select jsonb_agg(jsonb_build_object('tbl',tc.relname,'nom',ic.relname,'definition',pg_get_indexdef(ic.oid),
+      'contrainte',co.conname,'empreinte',md5(pg_get_indexdef(ic.oid))) order by tc.relname collate "C", ic.relname collate "C")
+   from pg_index x join pg_class ic on ic.oid=x.indexrelid join pg_class tc on tc.oid=x.indrelid
+   join pg_namespace n on n.oid=ic.relnamespace and n.nspname='public'
+   left join pg_constraint co on co.conindid=ic.oid and co.contype in ('p','u','x')),
+ 'sequences', (select jsonb_agg(jsonb_build_object('sequence',s.relname,'tbl',tc.relname,'colonne',a.attname,'lien',d.deftype,
+      'start',sq.seqstart,'increment',sq.seqincrement,'cache',sq.seqcache,'cycle',sq.seqcycle) order by s.relname collate "C")
+   from pg_class s join pg_namespace n on n.oid=s.relnamespace and n.nspname='public' and s.relkind='S'
+   join pg_sequence sq on sq.seqrelid=s.oid
+   left join lateral (select dep.deptype as deftype, dep.refobjid, dep.refobjsubid from pg_depend dep
+     where dep.objid=s.oid and dep.classid='pg_class'::regclass and dep.refclassid='pg_class'::regclass and dep.deptype in ('a','i') limit 1) d on true
+   left join pg_class tc on tc.oid=d.refobjid
+   left join pg_attribute a on a.attrelid=d.refobjid and a.attnum=d.refobjsubid)
+) as export_structure;""",
+
+    'export_fonctions': """select jsonb_build_object('fonctions', (select jsonb_agg(jsonb_build_object(
+   'signature', p.oid::regprocedure::text,
+   'proname', p.proname,
+   'retour', pg_get_function_result(p.oid),
+   'langage', l.lanname,
+   'security_definer', p.prosecdef,
+   'volatilite', p.provolatile::text,
+   'configuration', p.proconfig,
+   'definition', pg_get_functiondef(p.oid),
+   'empreinte', md5(pg_get_functiondef(p.oid))) order by p.oid::regprocedure::text collate "C")
+ from pg_proc p join pg_namespace n on n.oid=p.pronamespace and n.nspname='public' join pg_language l on l.oid=p.prolang)
+) as export_fonctions;""",
+
+    'export_logique': """select jsonb_build_object(
+ 'vues', (select jsonb_agg(jsonb_build_object('vue',c.relname,'reloptions',c.reloptions,'definition',pg_get_viewdef(c.oid,true),'empreinte',md5(pg_get_viewdef(c.oid,true))) order by c.relname collate "C")
+   from pg_class c join pg_namespace n on n.oid=c.relnamespace and n.nspname='public' where c.relkind='v'),
+ 'triggers', (select jsonb_agg(jsonb_build_object('tbl',c.relname,'nom',t.tgname,'actif',t.tgenabled,'fonction',p.oid::regprocedure::text,
+      'definition',pg_get_triggerdef(t.oid,true),'empreinte',md5(pg_get_triggerdef(t.oid,true))) order by c.relname collate "C", t.tgname collate "C")
+   from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
+   join pg_proc p on p.oid=t.tgfoid where not t.tgisinternal),
+ 'rls', (select jsonb_agg(jsonb_build_object('tbl',c.relname,'active',c.relrowsecurity,'forcee',c.relforcerowsecurity) order by c.relname collate "C")
+   from pg_class c join pg_namespace n on n.oid=c.relnamespace and n.nspname='public' where c.relkind='r'),
+ 'policies', (select jsonb_agg(jsonb_build_object('tbl',c.relname,'nom',pol.polname,
+      'definition', format('CREATE POLICY %I ON public.%I%s FOR %s TO %s%s%s;', pol.polname, c.relname,
+         case when pol.polpermissive then '' else E'\n  AS RESTRICTIVE' end,
+         case pol.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE' when 'd' then 'DELETE' else 'ALL' end,
+         case when pol.polroles = '{0}'::oid[] then 'PUBLIC' else (select string_agg(quote_ident(rr.rolname), ', ' order by rr.rolname) from pg_roles rr where rr.oid = any(pol.polroles)) end,
+         case when pol.polqual is not null then E'\n  USING (' || pg_get_expr(pol.polqual, pol.polrelid, true) || ')' else '' end,
+         case when pol.polwithcheck is not null then E'\n  WITH CHECK (' || pg_get_expr(pol.polwithcheck, pol.polrelid, true) || ')' else '' end),
+      'empreinte', md5(coalesce(pg_get_expr(pol.polqual,pol.polrelid,true),'')||coalesce(pg_get_expr(pol.polwithcheck,pol.polrelid,true),'')||pol.polcmd::text||pol.polpermissive::text)
+    ) order by c.relname collate "C", pol.polname collate "C")
+   from pg_policy pol join pg_class c on c.oid=pol.polrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'),
+ 'commentaires', (select jsonb_agg(z.x order by z.k collate "C") from (
+     select jsonb_build_object('genre','TABLE','objet',c.relname,'colonne',null,'texte',obj_description(c.oid,'pg_class')) as x, 'T'||c.relname as k
+     from pg_class c join pg_namespace n on n.oid=c.relnamespace and n.nspname='public' where c.relkind in ('r','v') and obj_description(c.oid,'pg_class') is not null
+     union all select jsonb_build_object('genre','COLUMN','objet',c.relname,'colonne',a.attname,'texte',col_description(c.oid,a.attnum)), 'C'||c.relname||'.'||a.attname
+     from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
+     where a.attnum>0 and not a.attisdropped and col_description(c.oid,a.attnum) is not null
+     union all select jsonb_build_object('genre','FUNCTION','objet',p.oid::regprocedure::text,'colonne',null,'texte',obj_description(p.oid,'pg_proc')), 'F'||p.oid::regprocedure::text
+     from pg_proc p join pg_namespace n on n.oid=p.pronamespace and n.nspname='public' where obj_description(p.oid,'pg_proc') is not null
+     union all select jsonb_build_object('genre','CONSTRAINT','objet',c.relname,'colonne',k.conname,'texte',obj_description(k.oid,'pg_constraint')), 'K'||c.relname||'.'||k.conname
+     from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public' where obj_description(k.oid,'pg_constraint') is not null) z)
+) as export_logique;""",
+
+    'export_droits': """select jsonb_build_object(
+ 'droits_relations', (select jsonb_agg(jsonb_build_object('genre',y.g,'objet',y.ob,'beneficiaire',y.ben,'privileges',y.privs) order by y.ob collate "C", y.ben collate "C") from (
+     select case c.relkind when 'S' then 'SEQUENCE' else 'TABLE' end as g, c.relname as ob, coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
+     from pg_class c join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
+     cross join lateral aclexplode(c.relacl) ae left join pg_roles rr on rr.oid=ae.grantee
+     where c.relkind in ('r','v','S') group by c.relkind, c.relname, coalesce(rr.rolname,'PUBLIC')) y),
+ 'droits_fonctions', (select jsonb_agg(jsonb_build_object('genre','FUNCTION','objet',y.ob,'beneficiaire',y.ben,'privileges',y.privs) order by y.ob collate "C", y.ben collate "C") from (
+     select p.oid::regprocedure::text as ob, coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
+     from pg_proc p join pg_namespace n on n.oid=p.pronamespace and n.nspname='public'
+     cross join lateral aclexplode(p.proacl) ae left join pg_roles rr on rr.oid=ae.grantee
+     group by p.oid::regprocedure::text, coalesce(rr.rolname,'PUBLIC')) y),
+ 'droits_colonnes', (select coalesce(jsonb_agg(jsonb_build_object('tbl',y.t,'colonne',y.col,'beneficiaire',y.ben,'privileges',y.privs) order by y.t collate "C", y.col collate "C", y.ben collate "C"),'[]'::jsonb) from (
+     select c.relname as t, a.attname as col, coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
+     from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
+     cross join lateral aclexplode(a.attacl) ae left join pg_roles rr on rr.oid=ae.grantee
+     where a.attacl is not null group by c.relname, a.attname, coalesce(rr.rolname,'PUBLIC')) y)
+) as export_droits;""",
+
+}
+
+EXPORTS_NOTES = {
+    'export_structure': "colonnes, contraintes, index, sequences. relkind in ('r','v') ici : les sequences ont leur propre bloc.",
+    'export_fonctions': 'la plus grosse des quatre, environ 1,5 Mo. Part sur disque sans perte.',
+    'export_logique': 'vues, declencheurs, RLS, policies, commentaires.',
+    'export_droits': "relations, fonctions, colonnes. relkind in ('r','v','S') : LES SEQUENCES SONT INDISPENSABLES, et le genre doit etre distingue -- rendre.py ecrit un bloc « DROITS SUR LES SEQUENCES » a partir de ce champ.",
+}
+
+
 def requete_controle_global():
     return CONTROLE_GLOBAL.format(exclues=litteral(tables_hors_baseline())).strip()
 
@@ -581,6 +701,17 @@ def requete_controle_global():
 def main():
     if len(sys.argv) == 2 and sys.argv[1] == "--controle-global":
         print(requete_controle_global())
+        return 0
+    if len(sys.argv) == 2 and sys.argv[1] == "--exports":
+        for nom in ("export_structure", "export_fonctions", "export_logique", "export_droits"):
+            print("-- %s : %s" % (nom, EXPORTS_NOTES[nom]))
+        print("\npython3 outils/baseline/requetes.py --export <nom>  pour en imprimer une")
+        return 0
+    if len(sys.argv) == 3 and sys.argv[1] == "--export":
+        if sys.argv[2] not in EXPORTS:
+            print("export inconnu : %s" % sys.argv[2])
+            return 2
+        print(EXPORTS[sys.argv[2]].strip())
         return 0
     if len(sys.argv) == 2 and sys.argv[1] == "--liste":
         print("categories : " + ", ".join(sorted(CATEGORIES)))
