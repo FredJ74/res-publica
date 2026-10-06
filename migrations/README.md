@@ -31,6 +31,20 @@ et une fonction.
 **Ordre d'application impératif**, puis réextraction du baseline et commit des
 deux ensemble (temps 5 de `../WORKFLOW-SUPABASE.md`).
 
+### Où en est le banc (temps 3)
+
+| Fichier | Banc transactionnel |
+|---|---|
+| `…_autorite_defauts_fermes.sql` | **passé** le 5 octobre, mesuré puis annulé ; base vérifiée inchangée après |
+| `…_autorite_socle_acteur_identifie.sql` | **à rejouer** — sa version corrigée n'a jamais atteint la base. Détail et historique dans l'en-tête du fichier |
+| `…_autorite_rpc_sans_anon.sql` | **à jouer** — grammaire validée, banc non tenté |
+
+Les trois passent l'analyseur réel de PostgreSQL 17.7 (`pglast`), et l'invariant
+12 de `verifier-autorite.py` vérifie hors ligne que chaque table, signature et
+policy qu'elles nomment existe bien. Ce que seul le banc peut établir, c'est le
+comportement des boucles sur l'état réel : il reste donc un préalable, pas une
+formalité.
+
 ## Les trois règles
 
 1. **Idempotente.** `CREATE ... IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION`,

@@ -57,6 +57,31 @@
 --
 -- Idempotente : DROP POLICY IF EXISTS avant chaque CREATE POLICY, une RLS deja
 -- active ne bouge pas, un REVOKE sur un privilege absent ne fait rien.
+--
+-- ----------------------------------------------------------------------------
+-- ETAT DU BANC -- A REJOUER AVANT TOUTE APPLICATION
+--
+-- Cette migration n'a PAS encore ete eprouvee dans sa version actuelle.
+--
+--   . 5 octobre 2026, banc transactionnel : a trouve une vraie erreur --
+--     « column reference "i" is ambiguous » (42702), l'alias de
+--     generate_subscripts portant le meme nom que la variable plpgsql.
+--     Corrigee : l'alias s'appelle desormais `idx` (voir la boucle A).
+--   . 6 octobre 2026, deux tentatives de rejeu : interrompues AVANT d'atteindre
+--     la base -- une erreur de transport MCP, puis un timeout de connexion.
+--     Etat verifie intact apres chacune : `acteur_identifie` absente, 27 tables
+--     sans RLS, 213 policies, 7 personnages, registre a 539 entrees.
+--
+-- A FAIRE, DANS CET ORDRE : rejouer le banc complet (BEGIN, migration
+-- integrale, mesures, RAISE EXCEPTION, ROLLBACK), verifier qu'il ne reste
+-- rien, PUIS seulement appliquer.
+--
+-- Ce qui est deja prouve hors ligne : la grammaire, par le vrai analyseur de
+-- PostgreSQL 17.7 (pglast) ; et l'existence de chaque objet nomme ici -- 76
+-- tables, 36 signatures, 28 policies --, par l'invariant 12 de
+-- verifier-autorite.py. Ce que seul le banc peut dire : que les cinq boucles
+-- se comportent comme annonce sur l'etat reel.
+-- ----------------------------------------------------------------------------
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
