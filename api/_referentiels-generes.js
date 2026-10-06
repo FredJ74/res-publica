@@ -475,3 +475,144 @@ export const RECETTES_MILITAIRES_SERVEUR = {
     "produitParLot": 1
   }
 };
+
+// POSTES_NOMMES_EXCLUSIFS_SERVEUR -- POSTES_NOMMES_EXCLUSIFS de data.js
+export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
+  "juge": {
+    "label": "Juge",
+    "nommePar": "min_just",
+    "scope": "ville",
+    "autoriteScope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "commissaire": {
+    "label": "Commissaire",
+    "nommePar": "maire",
+    "scope": "ville",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "commandant": {
+    "label": "Commandant de la Caserne",
+    "nommePar": "min_def",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "pm": {
+    "label": "Premier Ministre",
+    "nommePar": "president",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_int": {
+    "label": "Ministre de l'Interieur",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_fin": {
+    "label": "Ministre des Finances",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_just": {
+    "label": "Ministre de la Justice",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_def": {
+    "label": "Ministre de la Defense",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_info": {
+    "label": "Ministre de l'Information",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "min_ae": {
+    "label": "Ministre des Affaires Etrangeres",
+    "nommePar": "pm",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "directeur_pharma": {
+    "label": "Directeur de l'Usine Pharmaceutique",
+    "nommePar": "min_fin",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "directeur_tabac_alcools": {
+    "label": "Directeur du Pôle Tabac & Alcools",
+    "nommePar": "min_fin",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "directeur_raffinerie": {
+    "label": "Directeur de la Raffinerie",
+    "nommePar": "min_fin",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "directeur_entrepot": {
+    "label": "Directeur de l'Entrepôt Logistique",
+    "nommePar": "maire_adjoint",
+    "scope": "ville",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "maire_adjoint": {
+    "label": "Maire Adjoint",
+    "nommePar": "maire",
+    "scope": "ville",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "chef_douanes": {
+    "label": "Chef des Douanes",
+    "nommePar": "min_int",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
+  "capitaine_port": {
+    "label": "Commandant du Port",
+    "nommePar": "min_fin",
+    "scope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  }
+};

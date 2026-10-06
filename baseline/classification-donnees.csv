@@ -240,7 +240,7 @@ successions;personnage et presence;C;structure_seule;0;oui;0;2;Successions ouver
 terrains_etat;immobilier et territoire;D;reconstruction_explicite;5;oui;0;14;5 terrains. Aucune RPC ne les cree : les lignes doivent preexister. Leur etat (proprietaire, permis) est vivant.;Quels terrains, et dans quel etat, au premier jour ?
 terrains_historique_ventes;immobilier et territoire;C;structure_seule;0;oui;0;0;Historique des ventes de terrain.;
 testaments;personnage et presence;C;structure_seule;0;oui;0;0;Testaments rediges.;
-titulaires_pnj;postes et institutions;B;seed_filtre;16;oui;0;7;16 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a des PNJ sont occupes par ces PNJ dans un monde neuf.;Filtrer : ne garder que les lignes PNJ, jamais un titulaire PJ herite de la beta.
+titulaires_pnj;postes et institutions;B;seed_filtre;15;oui;0;7;16 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a des PNJ sont occupes par ces PNJ dans un monde neuf.;Filtrer : ne garder que les lignes PNJ, jamais un titulaire PJ herite de la beta.
 tournees;personnage et presence;C;structure_seule;0;oui;0;0;Tournees offertes.;
 transferts_clubs;sport;C;structure_seule;0;non;0;0;Transferts de joueurs.;
 tribune_articles_etouffes;presse;C;structure_seule;0;oui;0;0;Articles etouffes.;

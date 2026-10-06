@@ -58,8 +58,9 @@
       ],
       "copies": [
         {
-          "fichier": "api/cron-minuit.js",
-          "constante": "POSTES_NOMMES_EXCLUSIFS_SERVEUR"
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "POSTES_NOMMES_EXCLUSIFS_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js avec juge.scope='pays' et sans autoriteScope. GENEREE depuis data.js depuis l'arbitrage du 7 octobre 2026 : le juge est un poste territorial de ville, d'autorite nationale."
         }
       ]
     },
@@ -260,11 +261,6 @@
       "constat": "prixBase vaut prixAchatFournisseur, soit la moitie de la vraie valeur, sur les 16 entrees ; textile absent. Bug documente dans api/cron-minuit.js:2484 et non corrige.",
       "ferme_par": "lot 4D",
       "arbitrage_requis": "corriger double les prix publies par le Journal depuis des semaines"
-    },
-    "postes_nommes/api/cron-minuit.js": {
-      "constat": "juge.scope vaut 'pays' cote serveur contre 'ville' dans data.js, et autoriteScope n'est pas recopie. Les 16 autres entrees sont identiques au caractere.",
-      "ferme_par": "lot 4D",
-      "arbitrage_requis": "aucun : data.js fait foi"
     }
   },
   "_copies_generees": "Cinq copies ne sont plus ressaisies a la main : elles vivent dans api/_referentiels-generes.js, produit par outils/generateurs/generer_referentiels_serveur.py. Cet axe continue de les comparer a data.js -- un artefact genere qu'on ne verifierait plus parce qu'il est genere serait exactement l'angle mort qu'on vient de fermer ailleurs. Le TROISIEME axe verifie en plus que l'artefact du disque est bien ce que rend le generateur."

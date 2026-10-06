@@ -51,6 +51,7 @@ import {
   CAISSE_PAR_POSTE_BUDGET_SERVEUR,
   REPARTITION_DEFAULT_SERVEUR,
   RECETTES_MILITAIRES_SERVEUR,
+  POSTES_NOMMES_EXCLUSIFS_SERVEUR,
 } from './_referentiels-generes.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
@@ -3737,7 +3738,8 @@ async function tacheQuotidienne(nom, fn) {
 //
 // Ce module serverless ne peut pas importer les fichiers client : on duplique donc de facon
 // CONTROLEE ET DOCUMENTEE, exactement comme le font deja RESSOURCES_ECONOMIE_SERVEUR et
-// POSTES_NOMMES_EXCLUSIFS_SERVEUR. Chaque constante ci-dessous porte le chemin de son original.
+// POSTES_NOMMES_EXCLUSIFS_SERVEUR, desormais GENEREE depuis data.js. Chaque constante
+// ci-dessous porte le chemin de son original.
 //
 // PARITE. Les regles, montants, destinations et conditions sont ceux du client, a la ligne pres.
 // Les « tests du lot » annonces ici N'EXISTENT PAS : verifie dans tout le depot le 6 octobre
@@ -4733,7 +4735,6 @@ const PNJ_PAR_DEFAUT_POSTE = {
   min_def:     'Martial Bouterin (PNJ)',
   min_info:    "Le Ministre de l'Information (PNJ)",
   min_ae:      'Le Ministre des Affaires Étrangères (PNJ)',
-  juge:        'Juge Fontaine',
   commissaire: 'Raoul Toufaud (PNJ)',
   // Commandant et les 3 directeurs d'usine ajoutes le 10 aout 2026 (chantier "priorite PJ",
   // point 2 du backlog). Reutilise les PNJ deja en poste dans chaque batiment (data.js) plutot
@@ -4808,25 +4809,7 @@ const CASCADE_NATIONALE = [
 // un contexte serverless isole, sans acces aux fonctions/constantes client, meme convention que
 // RESSOURCES_ECONOMIE_SERVEUR ci-dessus. Republia uniquement (comme le reste de ce fichier).
 // =====================
-const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
-  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
-  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
-  commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
-  pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },
-  min_int:     { label: "Ministre de l'Interieur",       nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_fin:     { label: 'Ministre des Finances',         nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_just:    { label: 'Ministre de la Justice',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_def:     { label: 'Ministre de la Defense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_info:    { label: "Ministre de l'Information",     nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] },
-  directeur_pharma:        { label: "Directeur de l'Usine Pharmaceutique", nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
-  directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
-  directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
-  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire_adjoint', scope: 'ville', compatibles: ['depute'] },
-  maire_adjoint:           { label: 'Maire Adjoint',                      nommePar: 'maire',         scope: 'ville', compatibles: ['depute'] },
-  chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] },
-  capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
-};
+
 
 // Resout le titulaire ACTUEL d'un poste nomme cote serveur (PJ d'abord via personnages.poste,
 // PNJ en repli via titulaires_pnj) -- equivalent serveur de getTitulaireActuel (plateau-
@@ -5080,7 +5063,13 @@ async function verifierPostesVacantsEtAutoPourvoir() {
     // --- President (elu, titulaire stocke dans cycle.eluId — pas dans titulaires_pnj) ---
     if (!estOccupe('president', null)) await pourvoirCycleElu('president', null);
 
-    // --- Cascade nationale, dans l'ordre (president avant pm avant ministres avant juge) ---
+    // --- Cascade nationale, dans l'ordre (president avant pm avant ministres) ---
+    // LE JUGE N'EST PAS ICI, ET C'EST LA REGLE. Il est TERRITORIAL : un juge par ville,
+    // pourvu dans la boucle des villes plus bas. Son autorite, elle, reste nationale --
+    // le Ministre de la Justice nomme les trois, le maire n'en nomme aucun. Tant qu'il
+    // figurait dans cette cascade, le cron creait un quatrieme juge SANS VILLE
+    // (republic_juge_national), doublon du juge de la capitale ; il est retire, et la
+    // ligne qu'il avait laissee en base est supprimee par la migration du 7 octobre 2026.
     for (const { posteId, nommePar } of CASCADE_NATIONALE) {
       if (estOccupe(posteId, null)) continue;
       if (!estOccupe(nommePar, null)) continue; // l'autorite au-dessus pas encore resolue

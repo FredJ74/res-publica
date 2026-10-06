@@ -1,7 +1,7 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-06T23:58:53 Europe/Paris",
+ "releve_le": "2026-10-07T00:25:12 Europe/Paris",
  "empreintes_relevees_le": "2026-10-06T23:58:53 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
@@ -101,9 +101,9 @@
  },
  "registre": {
   "_commentaire": "Point de coupe du 6 octobre 2026 au soir, apres les QUATRE migrations d'autorite du chantier 3 (autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public) et la migration du chantier 4C (referentiels_empreintes_manquantes).",
-  "entrees": 548,
-  "derniere_version": "20261006215127",
-  "empreinte_versions_et_noms": "e881dbad327d7773cabbeb67309e4618",
+  "entrees": 549,
+  "derniere_version": "20261006222201",
+  "empreinte_versions_et_noms": "3f4ae61facec7bb5a37508a8a7fdac65",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0"
  },
  "_chantier_3": {
@@ -170,5 +170,18 @@
   "_pourquoi": "Une categorie technique ne doit pas porter de politique. Interdire « les armes a feu » tranchait d'office le sort de l'armement militaire ; interdire « les medicaments » tranchait d'office celui des objets de soin. Ces choix appartiennent aux deputes : la portee les leur rend, sans cas particulier -- les trois arbitrages passent par les memes quatre dimensions.",
   "_droits_verifies": "assemblee_objet_vise et assemblee_sous_types_connus sont nees avec EXECUTE a PUBLIC, qui couvre anon. Verifie IMMEDIATEMENT apres application et ferme par la seconde migration. Aucune des deux n'est mutante, mais un droit implicite n'a pas sa place la ou tout le reste est explicite.",
   "ce_qui_n_a_pas_change": "Aucune donnee de jeu. assemblee_propositions et lois_assemblee restent vides : aucune loi n'a jamais ete deposee, donc aucun effet retroactif. Les 7 personnages et les 8 sujets du forum sont intacts."
+ },
+ "_chantier_4e_juge": {
+  "_commentaire": "Releve d'apres la migration 20261006222201_juge_territorial, appliquee le 7 octobre 2026. AUCUN changement structurel : la migration ne fait qu'un DELETE et un UPDATE de donnees. Les empreintes de fonctions, policies, droits et commentaires sont inchangees.",
+  "migration_appliquee": "juge_territorial",
+  "arbitrage": "Le juge est un poste TERRITORIAL DE VILLE. Rattachement territorial, PAS municipal : il releve du Ministre de la Justice et il est paye par le tribunal de sa ville, jamais par la mairie.",
+  "ce_qui_a_change": {
+   "titulaires_pnj": "16 -> 15 : republic_juge_national supprime. Il portait « Juge Fontaine », le MEME PNJ que le juge de la capitale, qui siegeait donc deux fois.",
+   "salaires_caisses.juge": "par_ville false -> true, et la note cesse d'annoncer un « poste de portee nationale ». Ni l'une ni l'autre n'est lue par une fonction : aucun comportement ne change. C'est cette note qui avait induit l'audit 4E en erreur.",
+   "exclusion_de_seed": "L'exclusion titulaires_pnj de seeds.py et de DIFFERENCES-DELIBEREES.json est RETIREE : elle n'a plus d'objet. Le controle 4 de verifier-baseline.py l'a signale, 15 lignes seedees pour 14 attendues."
+  },
+  "_ce_qui_etait_deja_juste": "Les trois relations generiques exprimaient deja l'arbitrage, chacune separement : postes_nommes_regles.scope='ville' (territoire), autorite_scope='pays' (min_just), salaires_caisses.motif='{pays}_tribunal_{ville}' et caisses_autorites tribunal->{juge,min_just} (payeur). Aucun cas special n'a ete cree. La divergence ne vivait que dans une copie JavaScript du cron, fermee par generation depuis data.js.",
+  "_aucun_repli": "ville_defaut reste NULL pour le juge. Un juge sans ville est refuse par 'caisse_payeuse_non_declaree' au lieu d'etre paye par la capitale.",
+  "_dette_4f": "La cle budgetaire 'tribunal' de CAISSE_PAR_POSTE_BUDGET pointe vers 'tribunal_capitale' SEUL. Les tribunaux de Port-Sainte-Marie et Montrouge sont dotes (3080 et 2092 FR) mais ne recoivent rien du circuit budgetaire recurrent. Le circuit « budget national -> Ministere de la Justice -> tribunaux territoriaux » n'est donc pas encore per-ville. Hors perimetre 4E."
  }
 }

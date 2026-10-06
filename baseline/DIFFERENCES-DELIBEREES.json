@@ -1,320 +1,320 @@
 {
-  "_commentaire": "LA LISTE COMPLETE DES ENDROITS OU LE BASELINE NE DIT PAS LA MEME CHOSE QUE LA BASE DE PRODUCTION. Un seul fichier, pour qu'aucune difference ne puisse se cacher dans un coin. Les outils de controle le LISENT : outils/baseline/verifier-baseline.py et outils/baseline/assembler.py n'acceptent une divergence que si elle figure ici. Une divergence nouvelle, non declaree, fait echouer les controles -- c'est le comportement voulu.",
-  "etabli_le": "2026-10-05",
-  "chantier": "2E",
-  "tables_non_recreees": {
-    "_pourquoi": "Classees hors_baseline au chantier 2C. Ce ne sont ni des oublis ni des pertes : un monde neuf ne doit pas naitre avec les archives d'une bêta. Les objets qu'elles portaient (55 colonnes, 2 contraintes, 2 index, 12 lignes de droits, 4 commentaires, 4 activations de RLS) partent avec elles, et ces nombres sont verifies par le controle de completude.",
-    "compagnies_militaires_snapshot_20260926": "Instantane d'une table prise le 26 septembre 2026, lors de la bascule de l'axe possessions. Archive de travail.",
-    "rapports_cellules_artefacts_20260926": "Meme bascule, memes raisons.",
-    "zz_snap_cka_blob": "Instantane de la phase miroir du socle PNJ. Le prefixe zz marque un objet de travail.",
-    "zz_snap_cka_membres": "Idem.",
-    "zz_snap_cka_metier": "Idem.",
-    "lois_assemblee": "Table morte. Le circuit de depot unique l'a remplacee au chantier Assemblee du 30 septembre 2026 (6 fonctions supprimees exprès). Les deux seules fonctions du client qui l'atteignaient encore, sbArchiverLoi et sbGetArchivesLois, sont elles-memes mortes. Verifie explicitement au chantier 2C."
-  },
-  "fonction_dependant_d_un_schema_ecarte": {
-    "_pourquoi": "Cette fonction est CONSERVEE TELLE QUELLE dans le baseline, parce que le baseline reproduit fidelement l'etat du serveur et parce qu'on ne supprime jamais un objet pour faire passer un test. Mais elle depend d'un schema que le baseline ne recree pas. Il faut donc le savoir, et c'est ecrit ici plutot que decouvert un jour en production.",
-    "restaurer_personnage_sauvegarde(text,text)": {
-      "domaine": "socle",
-      "depend_de": "schema sauvegarde_beta_20260913, table personnages",
-      "constat": "La fonction lit sauvegarde_beta_20260913.personnages pour rendre a un joueur son personnage apres la reinitialisation de la bêta du 13 septembre 2026. Elle y accede trois fois : un SELECT INTO, une lecture de information_schema.columns pour ne copier que les colonnes communes, et un INSERT ... SELECT construit par format() puis EXECUTE.",
-      "consequence_sur_un_monde_neuf": "AUCUNE A LA CREATION. Un corps plpgsql n'est pas valide au moment du CREATE FUNCTION : la fonction s'installe sans erreur meme si le schema est absent. Elle n'echouerait qu'a l'APPEL, et un monde neuf n'a personne a restaurer. Le baseline reste donc applicable tel quel.",
-      "ce_qu_il_faudra_decider": "Cette fonction est un outil de transition de la bêta, pas une regle du moteur. Elle a vocation a disparaitre avec le schema de sauvegarde. Decision a prendre hors chantier 2E : la retirer du baseline une fois la bêta close, ou la conserver et documenter que le schema de sauvegarde doit etre restaure avec elle.",
-      "ne_pas_faire": "Ne pas la supprimer maintenant. Ne pas creer le schema de sauvegarde dans le baseline : il contient des donnees de joueurs de la bêta, qui n'ont rien a faire dans un monde neuf."
-    }
-  },
-  "arbitrages_du_5_octobre_2026": {
-    "_commentaire": "Les sept decisions de game design que le chantier 2E avait consignees comme ouvertes ont ete rendues. Ce bloc dit, pour chacune, ce qu'elle a change dans le baseline -- et ce qu'elle n'a PAS permis de changer, faute de valeurs.",
-    "1_pnj_militaires": {
-      "decision": "Les 96 soldats actuels ont ete engendres pendant la bêta pour tester la carriere militaire. Ils RESTENT dans la base de bêta, intacts, et ne font pas partie de l'etat initial du jeu definitif. Les futurs soldats seront crees uniquement par les mecanismes normaux du jeu.",
-      "effet_sur_le_baseline": "pnj_membres, pnj_soldats_metier et pnj_possessions passent de seed_filtre a structure_seule, et de categorie D a categorie C. Leurs trois fichiers de TODO sont supprimes : la raison vit desormais dans la classification, source unique. Aucun seed n'est produit pour ces trois tables.",
-      "confirmation_base_de_beta": "AUCUNE ligne n'a ete supprimee ni modifiee dans la base de production. Le chantier 2E n'a execute que des SELECT."
-    },
-    "2_compagnies_et_sections": {
-      "decision": "Un monde neuf commence avec 0 compagnie et 0 section. La chaine voulue est : ministre de la Defense, nomination d'un Commandant PJ a la place du PNJ, transfert de fonds vers la caserne, creation d'une compagnie (20 000 FR), nomination d'un Capitaine PJ, puis des Lieutenants.",
-      "effet_sur_le_baseline": "compagnies_militaires passe de reconstruction_explicite a structure_seule, categorie C. Son fichier de TODO est supprime.",
-      "constat_structurel": "Il n'existe AUCUNE table de sections dans le schema. Une section vit dans le blob de sa compagnie. Il n'y avait donc rien a classer pour les sections, et rien a seeder.",
-      "exigence_a_construire_hors_2e": "Si le jeu compte trop peu de PJ pour remplir les echelons de la chaine militaire, l'administrateur / Maitre du jeu doit pouvoir se substituer aux echelons manquants afin que la mecanique militaire ne soit jamais bloquee. CETTE FONCTION N'EXISTE PAS AUJOURD'HUI : aucune fonction du schema ne permet a un administrateur de tenir un poste a la place d'un PJ absent. Exigence consignee, non developpee en 2E."
-    },
-    "3_produits_manufactures": {
-      "decision": "C'est un CATALOGUE, pas un stock, defini a la granularite VILLE. Chaque ville peut avoir son propre catalogue.",
-      "effet_sur_le_baseline": "La table passe de categorie D a categorie B. Elle reste reconstruction_explicite : la decision de nature est prise, mais le contenu -- quels produits chaque ville propose -- n'est pas encore ecrit.",
-      "bonne_nouvelle_structurelle": "AUCUNE dette de dimensionnement ici : la table porte DEJA une colonne ville, donc la granularite voulue est exprimable telle quelle. C'est recettes_production qui porte la dette, avec sa seule colonne pays.",
-      "interdictions_reportees_dans_le_fichier": "Ne pas lire une ligne de catalogue comme une quantite disponible. Ne pas inventer de stock initial de produits manufactures : les quantites initiales ne concernent que les matieres premieres."
-    },
-    "4_dotations_initiales": {
-      "decision": "Le principe est valide, les montants seront fixes sur un tableau exhaustif.",
-      "effet_sur_le_baseline": "Une seule valeur est desormais inscrite : la caisse republic_gouvernement-min_def vaut 35 000 FR, budget initial du ministere de la Defense de Republia. Les 54 autres caisses de Republia, les budgets national, municipaux et de clubs, et les stocks de matieres premieres restent a arbitrer.",
-      "livrable": "baseline/arbitrages/dotations-initiales-republia.csv et .md",
-      "ce_que_le_tableau_ne_fait_jamais": "Proposer un montant deduit d'un solde de bêta, ou deduit du journal dotations_amorcage_caisses. La colonne de valeur actuelle est informative, pour reconnaitre le lieu."
-    },
-    "5_etat_initial_des_lieux": {
-      "decision": "Meme methode : un tableau, et non une definition abstraite.",
-      "livrable": "baseline/arbitrages/etat-initial-republia.csv et .md",
-      "correction_de_perimetre": "Le rapport 2E annoncait 38 batiments, 20 commerces et 5 terrains. Ces chiffres etaient des COMPTES DE LIGNES, tous empires et lignes techniques confondus. Le perimetre reel de Republia est : 14 batiments porteurs d'un etat dans les trois villes, 14 commerces authored, 4 terrains (tous a Luthecia). Les lignes ecartees sont nommees dans le tableau plutot que supprimees."
-    },
-    "6_indices_des_villes": {
-      "decision": "Pour les TROIS villes de Republia -- Luthecia, Port-Sainte-Marie, Montrouge -- les CINQ indices sont decides et communs : IE 50, ISN 30, Moral 50, Piete 40, Social 45. Valide pour Republia UNIQUEMENT, a ne pas generaliser aux autres empires.",
-      "effet_sur_le_baseline": "indices_villes passe de reconstruction_explicite a seed_filtre et recoit un VRAI seed de 3 lignes. Les cinq valeurs arbitrees sont deja celles des trois lignes en base : le seed les reproduit sans rien recalculer et sans rien deduire de la bêta. La 4e ligne, republic_zzville-cmr, est une ligne de test et est ecartee.",
-      "historique": "Au premier tour d'arbitrage, seuls IE, ISN et Moral etaient decides ; piete et social restaient a confirmer. Ils l'ont ete le meme jour. Il n'y a donc plus aucune valeur supposee dans ce seed."
-    },
-    "7_juges_de_titulaires_pnj": {
-      "decision": "Chaque ville de Republia a son PROPRE juge PNJ : Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie, Gerard Bretellewood a Montrouge. Il n'y a PAS de quatrieme juge generique a city = NULL. La ligne republic_juge_national est un vestige de l'ancien systeme, anterieur a la dimension ville.",
-      "effet_sur_le_baseline": "Le seed de titulaires_pnj ecarte cette ligne : un monde neuf naît avec 15 titulaires PNJ, dont 3 juges municipaux distincts. L'exclusion est declaree dans lignes_exclues_des_seeds et verifiee par le controle.",
-      "ce_qui_n_a_PAS_ete_fait": "AUCUNE suppression dans la base de production. La ligne republic_juge_national y est toujours. Seul le seed du monde neuf l'ecarte.",
-      "preuve_du_vestige": "Trois faits concordent. (1) Son identifiant dit `national` quand les trois autres nomment une ville. (2) Son horodatage est du 13 septembre, sept jours avant les trois lignes de ville, elles-memes horodatees a la MEME seconde du 20 septembre. (3) `juge` est le SEUL poste de la table a porter une ville : les quinze autres titulaires sont tous a city = NULL. La dimension ville a donc ete introduite POUR les juges, et la ligne nationale est l'etat d'avant."
-    },
-    "8_dotations_de_matieres_premieres": {
-      "decision": "Les 17 dotations initiales de matieres premieres de Republia sont arbitrees, et sont IDENTIQUES dans chacune des trois villes : bois 750, minerai 500, charbon 400, plantes 300, metal 200, petrole 200, fruits_legumes 150, poisson 125, textile 125, produits_exotiques 125, alcool 100, viande 85, cereales 75, desinfectant 32, tabac 30, medicaments 25, carburant 17.",
-      "ce_qui_a_change_par_rapport_a_la_beta": "Treize des dix-sept valeurs etaient deja identiques sur les trois villes et sont confirmees telles quelles. Les quatre autres avaient DERIVE en partie et recoivent une valeur de reference : tabac 30 (bêta 32/22/26), viande 85 (83/83/84), cereales 75 (73/70/74), medicaments 25 (21/20/23). Aucune valeur n'a ete deduite d'un stock de bêta : les treize uniformes sont confirmees par le game designer, les quatre autres sont fixees par lui.",
-      "ou_c_est_inscrit": "Les 17 valeurs sont preremplies dans baseline/arbitrages/dotations-initiales-republia.csv et reprises dans baseline/seeds/99_a-construire/batiments_etat.sql.",
-      "pourquoi_le_seed_n_est_pas_encore_ecrivable": "Le stock d'un entrepot vit dans le blob de batiments_etat, aux cotes de la CAISSE du meme entrepot -- et cette caisse n'est pas encore arbitree. Ecrire la ligne maintenant obligerait a inventer la caisse. Les 17 quantites sont donc consignees, pretes a etre ecrites des que la dotation financiere des entrepots sera fixee.",
-      "ce_qui_n_a_PAS_ete_fait": "AUCUN stock de la bêta n'a ete modifie. Le chantier n'a execute que des SELECT."
-    },
-    "9_dotations_financieres": {
-      "decision": "Dotations CANONIQUES D'AMORCAGE d'un monde neuf, qui ne sont pas des budgets durables : Defense 35 000 FR, puis 10 000 FR pour les Affaires etrangeres, les Finances, l'Information, l'Interieur, la Justice, le Premier ministre et la Presidence. La Defense est une exception volontaire : un monde neuf n'a ni compagnie ni section, la creation d'une compagnie coute 20 000 FR, et le ministre doit pouvoir amorcer l'armee.",
-      "effet_sur_le_baseline": "Huit montants preremplis dans baseline/arbitrages/dotations-financieres-republia.csv. Le montant du Premier ministre est porte par la caisse CANONIQUE gouvernement-pm, l'audit ayant etabli que palais-gouvernement est un vestige.",
-      "assemblee_non_arbitree": "A votre demande, la dotation de l'Assemblee reste ouverte. Les faits necessaires sont etablis : alimentation par 8 % de la repartition nocturne (environ 1 968 FR/jour au minimum garanti) ; depense automatique de 250 FR par depute PJ et par jour, versee a la demande et PLAFONNEE PAR LA CAISSE ; si la caisse est insuffisante le versement est partiel ou nul, enregistre tel quel dans assemblee_indemnites, sans erreur ni dette. Avec 9 sieges, la depense maximale est de 2 250 FR/jour, soit plus que l'alimentation garantie.",
-      "principe_economique_verifie": "Le principe « le ministre des Finances recoit les recettes et repartit » N'EST PAS ce que fait le code. Voir baseline/arbitrages/AUDIT-FISCAL.md : la repartition nocturne credite 13 caisses directement et simultanement ; la caisse des Finances ne recoit que sa part (6 % par defaut). Le pouvoir du ministre est reel mais indirect : il fixe les POURCENTAGES de budgets_nationaux.data.repartition. Consequence pour les dotations : elles n'ont qu'a couvrir le PREMIER JOUR, avant la premiere passe du cron."
-    }
-  },
-  "miroirs_de_data_js_seedes_par_copie": {
-    "_commentaire": "CONSTAT DU CHANTIER 2E, A ARBITRER. Onze tables classees seed_complet au chantier 2C sont en realite des MIROIRS de data.js, et un generateur existe DEJA dans le depot pour chacune. Le chantier 2E a produit leur seed par copie de la base, conformement a la strategie validee -- il ne reclasse pas de son propre chef. Mais copier un miroir fige sa derive, et l'un de ces miroirs a deja derive : celui des couts d'ordre portait 24 lignes mortes et 19 ordres gratuits non declares au 5 octobre 2026. Chaque fichier concerne porte un avertissement en en-tete. RECOMMANDATION : faire ecrire ces onze fichiers par leurs generateurs et les deplacer dans 95_a-regenerer.",
-    "generer_miroirs_entreprises.py": [
-      "armureries_dotations",
-      "commerces_dotations",
-      "commerces_types",
-      "entreprises_constantes",
-      "entreprises_prix_rachat",
-      "recettes_commerce",
-      "recettes_production"
-    ],
-    "generer_miroirs_chantiers.py": [
-      "chantiers_besoins_jour",
-      "chantiers_paliers",
-      "entreprises_constantes"
-    ],
-    "generer_postes_electifs.py": [
-      "postes_electifs_regles"
-    ],
-    "generer_clubs_football.py": [
-      "clubs_football"
-    ],
-    "_les_generateurs_vivent_dans_outils_generateurs": "Au chantier 2H, les huit generateurs ont quitte .scratch/ pour outils/generateurs/. Ce sont des outils NECESSAIRES au fonctionnement du projet : un repertoire de brouillon n'etait pas leur place. Ils chargent le VRAI data.js dans JavaScriptCore et capturent les tables telles que le jeu les lit -- la bonne doctrine, desormais bien rangee."
-  },
-  "faux_positifs_du_crible": {
-    "_pourquoi": "Consignes pour que personne ne les reprenne pour des artefacts.",
-    "renseignement_couvertures": "Une ligne capturee par le motif « zz » : le nom de couverture « Nabil Ben Azzouz ». C'est du contenu authored, pas un marqueur de test. Les 48 lignes sont seedees."
-  },
-  "colonnes_omises_dans_les_seeds": {
-    "_pourquoi": "La date de creation d'une ligne n'est pas du contenu ecrit par un auteur : c'est le jour ou le monde est ne. Toutes les colonnes concernees ont un defaut now(), verifie au 5 octobre 2026 ; les omettre laisse donc le defaut jouer, ce qui est exactement le comportement voulu. Une colonne d'horodatage SANS defaut apparaitrait dans le rendu et exigerait une decision explicite.",
-    "colonnes": [
-      "assemblee_sieges.updated_at",
-      "camions_militaires.maj_le",
-      "groupes_presse.cree_le",
-      "journaux.cree_le",
-      "niveaux_prison.updated_at",
-      "pnj_employeurs.cree_le",
-      "titulaires_pnj.updated_at"
-    ]
-  },
-  "etat_vivant_remis_a_l_etat_initial": {
-    "assemblee_sieges": {
-      "colonnes": [
-        "endormi",
-        "endormi_ts",
-        "endormi_par"
-      ],
-      "pourquoi": "Le commentaire de la table l'etablit : la ligne porte l'identite PERMANENTE du depute Gamma, et seules ces trois colonnes decrivent un etat vivant -- un PJ qui a neutralise le Gamma. Les trois seules fonctions qui ecrivent la table ne touchent que ces colonnes, et aucune fonction n'y insere : les 9 lignes doivent donc preexister. Au premier jour aucun depute n'est endormi, ce qui est deja l'etat de la base aujourd'hui (0 ligne endormie)."
-    }
-  },
-  "dependances_vers_un_autre_schema": {
-    "_pourquoi": "Legitimes : ces schemas sont fournis par Supabase, le baseline ne les recree pas, il les suppose presents. Declarees ici plutot qu'absorbees en silence.",
-    "auth.uid()": "Identite du porteur du jeton. Utilisee par les policies du domaine personnage et presence.",
-    "auth.users": "Table des comptes. Referencee par le domaine personnage et presence."
-  },
-  "lignes_exclues_des_seeds": {
-    "_pourquoi": "Exclusion de FAIT, etablie par l'observation, et non arbitrage de game design. Le chantier 2E a passe les 252 tables au crible de trois marqueurs (prefixe zz, horodatage epoch a 13 chiffres, mot « test ») ; ces lignes-ci sont dans une table par ailleurs legitimement seedee.",
-    "entrepots_par_ville": {
-      "gardees": 3,
-      "ecartees": 2,
-      "detail": "Ecartees : (zzville-a, entrepot-zztest-a) et (zzville-b, entrepot-zztest-b). Gardees : les entrepots logistiques de Luthecia, Port-Sainte-Marie et Montrouge.",
-      "consequence_sur_2c": "La strategie annoncee en 2C etait seed_complet ; l'observation impose un filtre. A corriger en seed_filtre dans la classification, ce qui est une correction de fait, pas un changement d'intention.",
-      "nature": "ligne de test, ecartee de fait"
-    },
-    "indices_villes": {
-      "gardees": 3,
-      "ecartees": 1,
-      "detail": "Ecartee : republic_zzville-cmr, ligne de test. Gardees : republic_capitale, republic_ville_a, republic_ville_b, qui portent deja les valeurs arbitrees IE 50 / ISN 30 / Moral 50.",
-      "nature": "ligne de test, ecartee de fait"
-    },
-    "_commentaire": "Lignes ECARTEES du seed, pour deux raisons differentes et toutes deux nommees. (1) LIGNE DE TEST : exclusion de FAIT, etablie par l'observation, pas un arbitrage -- le chantier 2E a passe les 252 tables au crible de trois marqueurs (prefixe zz, horodatage epoch a 13 chiffres, mot « test »). (2) VESTIGE OBSOLETE : exclusion ARBITREE par le game designer, parce que la ligne appartient a un etat du jeu anterieur. Le controle verifie que le nombre de lignes seedees egale le nombre de lignes en base MOINS ces exclusions declarees : une ligne qui disparaitrait sans etre declaree ici ferait echouer le controle.",
-    "titulaires_pnj": {
-      "gardees": 15,
-      "ecartees": 1,
-      "nature": "vestige obsolete, ecarte par arbitrage",
-      "detail": "Ecartee : republic_juge_national (city = NULL, Juge Fontaine). Gardees : les 3 juges municipaux distincts -- Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie, Gerard Bretellewood a Montrouge -- et les 12 autres titulaires nationaux.",
-      "ne_pas_confondre": "Cette ligne N'EST PAS supprimee de la base de production. Seul le seed du monde neuf l'ecarte."
-    },
-    "batiments_etat": {
-      "gardees": 3,
-      "ecartees": 35,
-      "nature": "seed PARTIEL assume, le reste attend un arbitrage",
-      "detail": "Gardees : les 3 entrepots logistiques de Republia (Luthecia, Port-Sainte-Marie, Montrouge), dont l'etat initial est arbitre. Ecartees : 11 autres batiments de Republia porteurs d'un etat, les batiments des 3 autres empires, 3 lignes techniques (cron-minuit, bne, candidatures_postes) et les lignes de test.",
-      "pourquoi": "Un seed partiel vaut mieux qu'un seed faux. Ce qui est decide est ecrit ; le reste se remplit dans baseline/arbitrages/etat-initial-republia.csv."
-    },
-    "caisses_batiments": {
-      "gardees": 38,
-      "ecartees": 113,
-      "nature": "seed ECRIT depuis le tableau d'arbitrage, pas extrait de la base",
-      "detail": "Gardees : les 38 caisses de Republia dont la dotation est arbitree, 130 000 FR au total. Ecartees : les caisses des trois autres empires, les 24 que l'audit a declarees vestiges, comptes de transit, contreparties ou caisses inertes, et les lignes de test.",
-      "aucun_solde_de_beta_ne_traverse": "La colonne `data` n'est PAS copiee : elle est reconstruite par un jsonb_build_object dont le montant vient d'un `case` engendre depuis baseline/arbitrages/dotations-financieres-republia.csv. La base ne fournit que la liste des identifiants."
-    }
-  },
-  "exigences_de_game_design_a_construire": {
-    "_commentaire": "Exigences de game design CONSIGNEES et volontairement NON DEVELOPPEES par le chantier 2E. Elles ne sont pas des dettes techniques decouvertes au passage : ce sont des demandes explicites du game designer, dont le chantier approprie reste a ouvrir. Elles vivent ici pour ne pas se perdre entre deux chantiers.",
-    "outil_mj_substitution_aux_echelons_militaires": {
-      "demande": "Si le jeu compte trop peu de PJ pour remplir les echelons de la chaine militaire -- Commandant, Capitaine, Lieutenants -- l'administrateur / Maitre du jeu doit pouvoir se substituer aux echelons manquants, afin que la mecanique militaire ne soit jamais bloquee.",
-      "etat_actuel_observe": "AUCUNE fonction du schema ne permet a un administrateur de tenir un poste a la place d'un PJ absent. Le recrutement militaire est une filiere unique qui suppose un PJ a chaque echelon.",
-      "consigne_le": "2026-10-05, premier tour d'arbitrage 2E",
-      "ne_pas_faire": "Ne pas developper dans 2E."
-    },
-    "outil_mj_ajout_exceptionnel_de_matieres_premieres": {
-      "demande": "L'administrateur / Maitre du jeu doit disposer d'un outil lui permettant d'ajouter EXCEPTIONNELLEMENT des matieres premieres au monde, si cela devient necessaire. C'est un filet de securite administratif.",
-      "limites_posees_par_le_game_designer": [
-        "ne remplace pas la chaine d'approvisionnement normale",
-        "ne doit pas devenir une production automatique",
-        "ne doit pas masquer un dysfonctionnement economique",
-        "doit seulement permettre de debloquer exceptionnellement une situation"
-      ],
-      "etat_actuel_observe": "Les stocks de matieres premieres vivent dans trois endroits distincts : le blob entrepot de batiments_etat pour les entrepots de ville, budgets_nationaux.caserneMatieres pour la caserne, et le blob stockMatieres de chaque entreprise pour les commerces et les usines. Un outil de MJ devrait donc viser ces trois chemins, ou passer par une porte unique qui n'existe pas encore. Les mouvements existants sont specialises : entrepot_commander, caserne_stock_mouvement, fonds_matiere_apporter, effort_ravitailler.",
-      "consigne_le": "2026-10-05, deuxieme tour d'arbitrage 2E",
-      "ne_pas_faire": "Ne pas developper dans 2E."
-    },
-    "audit_de_la_chaine_d_approvisionnement_automatique": {
-      "demande": "Apres le chantier Supabase, verifier separement que la chaine d'approvisionnement automatique des matieres premieres fonctionne reellement et renouvelle correctement les stocks.",
-      "ce_que_2e_a_deja_observe_et_qui_servira_a_cet_audit": [
-        "Le port de Port-Sainte-Marie accumule : son blob porte 11 386 unites de bois, alimentees par deux arrivages de 150 par jour (Scierie Guy Tarembois et Sovarka) sans consommation equivalente. Un stock qui ne fait que croitre est un signal.",
-        "Quatre des dix-sept matieres ont derive differemment selon la ville (tabac, viande, cereales, medicaments) alors que les treize autres sont restees identiques : la consommation est donc reelle sur ces quatre-la et nulle sur les autres.",
-        "Les stocks des usines sont tres bas face a leur vente directe : raffinerie 6 unites de petrole, usine pharmaceutique 6 d'alcool et 0 de plantes, clinique 2 de medicaments. A verifier : ces usines sont-elles reapprovisionnees ?",
-        "budgets_municipaux.data.allocation declare une repartition (stade 15, marche 15, tribunal 15, multimodal 15, dispensaire 20, commissariat 20) qu'AUCUNE fonction serveur ne lit.",
-        "budgets_municipaux.data.tauxFoncier n'est lu par AUCUNE fonction serveur.",
-        "budgets_clubs porte derniereSubventionJour, mais aucune fonction de subvention n'ecrit cette table : seules football_primes_match et redressement_fiscal_appliquer y touchent.",
-        "contributions_piete n'a AUCUN ecrivain serveur."
-      ],
-      "consigne_le": "2026-10-05, deuxieme tour d'arbitrage 2E",
-      "ne_pas_faire": "Ne pas auditer dans 2E. Les observations ci-dessus sont des constats de passage, pas un audit."
-    },
-    "mecanisme_de_rattachement_chef_organisation": {
-      "demande": "Republia doit naitre avec ses deux loges maconniques constituees, dotees de leur local et de leur chef PNJ -- Luthecia : Frere Jacques D'Equerre ; Montrouge : Venerable Maitre Duval -- parce que la mecanique de prise de pouvoir suppose qu'une organisation a deja un chef.",
-      "etat_actuel_observe": "La table organisations est vide, aucune auto-creation n'existe pour les loges, et le lien chef-d'organisation n'existe nulle part. Les deux locaux existent bien dans data.js et des PNJ y sont poses, mais aucun n'est rattache a une ligne organisations.",
-      "consigne_le": "2026-10-05, premier tour d'arbitrage 2E",
-      "ne_pas_faire": "Ne pas fabriquer un seed compatible avec un mecanisme inexistant : deux loges sans chef seraient pires que l'absence."
-    },
-    "audit_coherence_indemnites_deputes_et_salaires_ministres": {
-      "demande": "Auditer ulterieurement la coherence entre l'indemnite de depute (250 FR/jour, a la demande) et la remuneration des ministres.",
-      "consigne_le": "2026-10-05, cloture 2E",
-      "ne_pas_faire": "Ne pas auditer dans 2E."
-    },
-    "prime_d_assiduite_parlementaire": {
-      "demande": "Etudier une eventuelle prime d'assiduite parlementaire.",
-      "etat": "Au backlog. NE PAS concevoir ni implementer.",
-      "consigne_le": "2026-10-05, cloture 2E"
-    },
-    "rationalisation_des_vestiges_de_caisses": {
-      "demande": "Retirer ou rationaliser les vestiges de caisses identifies par l'audit, apres verification qu'aucun ecran ne les affiche.",
-      "liste": [
-        "republic_palais-gouvernement (la caisse canonique du Premier ministre est gouvernement-pm)",
-        "les 8 caisses non suffixees par la ville : commissariat, commissariat-local, tribunal, tribunal-local, dispensaire-public, dispensaire-public-v, marche, stade -- etat d'avant le correctif du 16 aout 2026",
-        "republic_stade-buvette (la buvette n'a plus de caisse autonome depuis le 17 aout 2026)",
-        "republic_mairie_caserne et la 4e ligne republic_caserne de budgets_municipaux (la caserne n'est pas une ville)",
-        "le motif `entrepot` de caisses_autorites, declaration d'autorite sans consommateur"
-      ],
-      "garde_a_poser_en_meme_temps": "caisse_institution_mouvement(p_id) prend l'identifiant TEL QU'ON LE LUI DONNE. Tant qu'aucune garde n'y impose la convention `categorie_ville`, un appelant pourra toujours recreer une caisse brute. Retirer les lignes sans poser la garde laisserait le piege ouvert.",
-      "consigne_le": "2026-10-05, cloture 2E"
-    },
-    "la_caserne_ne_doit_jamais_etre_traitee_comme_une_ville": {
-      "demande": "getVilleKey() doit passer par getVillesReelles() : une zone speciale -- caserne, QHS -- ne doit pas pouvoir engendrer une cle municipale.",
-      "etat_actuel": "getVillesReelles() exclut bien les zones speciales (isSpecial), mais getVilleKey() lit state.currentCity sans filtrer. Un joueur present a la caserne a deja fait naitre republic_caserne dans budgets_municipaux et republic_mairie_caserne dans caisses_batiments.",
-      "consigne_le": "2026-10-05, cloture 2E"
-    },
-    "executants_manquants_derriere_une_interface": {
-      "demande": "Deux interfaces promettent un flux que rien n'execute. A traiter ensemble, parce que c'est le meme defaut : brancher l'executant, ou retirer l'interface.",
-      "cas": [
-        "virementJournalierQHS : le ministre de la Justice fixe un virement quotidien vers le QHS, un toast le confirme, AUCUN executant n'existe. Le virement ponctuel, lui, fonctionne.",
-        "subvention municipale aux clubs : le code lit budgetMairie.allocation.associatif, or `associatif` vit dans data.indices et non dans data.allocation. Le montant est donc toujours 0, les 12 caisses de club sont a 0 et derniereSubventionJour n'avance jamais."
-      ],
-      "consigne_le": "2026-10-05, cloture 2E"
-    }
-  },
-  "audit_fiscal_du_5_octobre_2026": {
-    "_commentaire": "Audit du circuit fiscal et des flux financiers publics, fait par lecture du code execute -- 641 corps de fonction PostgreSQL, api/cron-minuit.js, modules clients. Le document lisible est baseline/arbitrages/AUDIT-FISCAL.md. Ce bloc n'en retient que les verdicts, pour que les outils et les relectures ultericures y aient acces sans relire la prose.",
-    "recettes_publiques_quotidiennes": "24 600 FR/jour pour Republia (Luthecia 18 000, Port-Sainte-Marie 2 400, Montrouge 4 200) -- CONSTANTE EN DUR dans le cron, miroir de CITY_POPULATION de data.js. L'economie reelle n'alimente que reserveJour, par la taxe sur les transactions. Un monde sans aucune activite economique encaisserait quand meme ces 24 600 FR.",
-    "redistribution": "distribuerFiscaliteServeur() credite 13 caisses directement, une fois par nuit, selon budgets_nationaux.data.repartition : presidence 15, mairie-capitale 12, min_def 10, pm 8, min_int 8, assemblee 8, commissariat_capitale 8, min_fin 6, min_just 6, min_ae 6, tribunal_capitale 6, min_info 5, reserve 2.",
-    "asymetrie_majeure": "La table de repartition ne connait que mairie-capitale, tribunal_capitale et commissariat_capitale. Port-Sainte-Marie et Montrouge ne recoivent RIEN de la repartition nationale. L'Etat de Republia est fiscalement centralise sur sa capitale. C'est une question de jeu, pas une anomalie technique.",
-    "verdicts_sur_les_doublons": {
-      "palais-gouvernement": "VESTIGE. Caisse canonique du Premier ministre : gouvernement-pm. Le palais est un batiment dont chaque piece porte la caisse de son ministere ; le batiment lui-meme n'est dans aucune table de caisse et rien ne le credite.",
-      "deux_caisses_municipales": "PAS UN DOUBLON : deux etapes de deux circuits. budgets_municipaux.data.caisse est un compte de COLLECTE des recettes locales, vide chaque jour vers les six equipements. caisses_batiments.mairie_<ville> est la caisse PROPRE du maire, alimentee par la repartition nationale. Cible : renommer le compte de collecte, et ecrire le miroir serveur de la distribution municipale, aujourd'hui cliente seulement.",
-      "caserne_comme_ville": "ARTEFACT TECHNIQUE. La caserne est une zone speciale (isSpecial), exclue des villes reelles par getVillesReelles(), mais getVilleKey() lit state.currentCity sans filtrer. Cible : faire passer getVilleKey() par getVillesReelles().",
-      "huit_caisses_non_suffixees": "VESTIGES DATES du 16 aout 2026. Avant cette date, getBuildingIdPourCategorieBudget() renvoyait l'identifiant de navigation tel quel, fusionnant les caisses de plusieurs villes. Depuis le lot « A3, caisses locales », la convention canonique est getCaisseLocaleId(categorie, ville) = categorie_ville. Risque residuel signale : caisse_institution_mouvement prend l'identifiant tel qu'on le lui donne, sans garde.",
-      "entrepots": "AMBIGUITE LEVEE. Source de verite : batiments_etat...entrepot.caisse, seul endroit lu et ecrit par entrepot_commander() et entrepot_reverser(). Le motif `entrepot` de caisses_autorites est INERTE : aucun appelant ne lui passe jamais un identifiant d'entrepot. Le seed des matieres premieres n'est donc plus bloque que par un montant.",
-      "marches": "PAS UN DOUBLON : la caisse du lieu est l'equipement municipal, l'entreprise est le fonds de commerce des etals. Deux fonctions economiques distinctes.",
-      "stade-buvette": "VESTIGE DATE du 17 aout 2026 : le code dit explicitement que la buvette n'a plus de caisse autonome et affiche celle du stade de sa ville.",
-      "banque-privee": "CONTREPARTIE NATIONALE des operations Helvetia, pas un budget. deposer_helvetia calcule son identifiant par pays || '_banque-privee'.",
-      "caisses_inertes": "eglise-montrouge, notre-dame-mer, tabernacle-impots : aucun appel ne les credite ni ne les debite. Le circuit de piete passe par le ledger contributions_piete, sans caisse."
-    },
-    "mecanismes_morts_ou_non_branches": {
-      "fiscalite_journal": "MORTE : aucun lecteur, aucun ecrivain, aucune occurrence dans le depot.",
-      "payerSoldeServeur": "VIDEE EXPRES le 18 septembre 2026 : la fonction ne fait plus que `return;`. Coquille conservee dans la sequence nocturne.",
-      "subvention_municipale_aux_clubs": "BRANCHEE SUR UNE CLE INEXISTANTE : le code lit budgetMairie.allocation.associatif, or `associatif` vit dans data.indices et non dans data.allocation. Le montant est donc toujours 0, ce qui explique les 12 caisses de club a 0 et derniereSubventionJour qui n'avance jamais.",
-      "tauxLocal": "DECLARATIF, JAMAIS RENSEIGNE : appliquer_taxe_transaction le lit, mais il est absent des 4 lignes de budgets_municipaux. La taxe locale est donc toujours au defaut de 2 %.",
-      "allocation_municipale": "ACTIVE MAIS CLIENTE SEULEMENT : distribuerBudgetMunicipalVersBatiments n'a aucun miroir serveur. Une ville dont aucun joueur ne passe minuit en ligne ne distribue pas son compte de collecte.",
-      "motif_entrepot_de_caisses_autorites": "INERTE : declaration d'autorite sans consommateur.",
-      "virementJournalierQHS": "CONFIGURABLE MAIS JAMAIS EXECUTE, trouve a la cloture. budget_national_champs_regles declare le champ comme appartenant au ministre de la Justice, confirmerVirementJournalierQHS() l'ecrit et affiche meme « X FR/jour vers le QHS » -- mais AUCUN executant n'existe : ni fonction SQL, ni passe du cron, ni passe cliente de minuit. Le ministre croit programmer un virement quotidien ; rien ne part. Le virement PONCTUEL, lui, fonctionne. Meme famille que la subvention municipale aux clubs : une interface qui promet un flux que rien n'execute."
-    },
-    "corrections_de_mon_rapport_precedent": [
-      "tauxFoncier est ACTIF, lu chaque nuit par preleverTaxeFonciere() dans le cron. J'avais ecrit qu'aucune fonction ne le lisait : vrai des fonctions SQL, faux du systeme.",
-      "contributions_piete est ECRITE par le client (supabase.js). La table n'est pas morte.",
-      "Les huit caisses non suffixees ne sont pas des scories sans histoire : ce sont les identifiants de batiment authored de data.js, dedoublees par un correctif date.",
-      "notre-dame-mer est a Port-Sainte-Marie, pas a Montrouge. Mon rapprochement se faisait sur le mot « mer » ; data.js tranche.",
-      "La double caisse municipale n'est pas un doublon mais deux etapes de deux circuits.",
-      "L'ambiguite de la caisse d'entrepot est levee : le seed n'est plus bloque que par un montant."
-    ]
-  },
-  "regle_canonique_de_financement_territorial": {
-    "_commentaire": "REGLE DE GAME DESIGN FIXEE le 5 octobre 2026, apres l'audit du circuit fiscal. Elle decrit la CIBLE. L'implementation actuelle ne la respecte pas : cet ecart est une DETTE FONCTIONNELLE, consignee ici et volontairement NON corrigee par le chantier 2E.",
-    "regle": {
-      "institutions_municipales": "Les institutions municipales sont financees par les MAIRIES : commissariat, dispensaire, centre multimodal, stade, marche, et tout equipement municipal equivalent. L'Etat central ne finance PAS directement le commissariat ni la mairie de Luthecia au seul motif qu'il s'agit de la capitale. Luthecia, Montrouge et Port-Sainte-Marie suivent le MEME principe municipal.",
-      "exception_tribunaux": "Les tribunaux ne sont PAS finances par les mairies. Circuit canonique : budget national -> ministere de la Justice -> tribunaux des trois villes. Le ministre de la Justice decide d'une REPARTITION AUTOMATIQUE de son budget entre les tribunaux de Luthecia, Port-Sainte-Marie et Montrouge, et cette repartition est ensuite executee automatiquement."
-    },
-    "ecart_constate_avec_l_implementation": {
-      "cle_de_repartition_nationale": "CAISSE_PAR_POSTE_BUDGET_SERVEUR (api/cron-minuit.js) credite directement 13 caisses, dont trois qui ne devraient pas l'etre : mairie-capitale (12 %), commissariat_capitale (8 %) et tribunal_capitale (6 %). L'Etat finance donc aujourd'hui en direct des institutions municipales, et seulement celles de la capitale.",
-      "consequence_observee": "Port-Sainte-Marie et Montrouge ne recoivent RIEN de la repartition nationale : ni mairie, ni tribunal, ni commissariat. L'Etat de Republia est fiscalement centralise sur sa capitale, ce qui n'est pas la regle voulue.",
-      "redistribution_ministerielle_absente": "AUCUN mecanisme ne repartit le budget du ministere de la Justice entre les trois tribunaux. Ni fonction SQL, ni cron, ni code client. Le circuit canonique budget national -> ministere -> tribunaux n'existe donc nulle part, meme partiellement.",
-      "ou_vit_cette_dette": "Dans le CODE (api/cron-minuit.js), pas dans les donnees. C'est une distinction importante pour le baseline : voir le point suivant."
-    },
-    "le_baseline_ne_fossilise_PAS_cette_regle": {
-      "_verifie_le": "2026-10-05",
-      "constat": "Verifie explicitement a la demande du game designer. Le baseline d'un monde neuf ne contient AUCUNE trace de la mauvaise regle territoriale, pour trois raisons distinctes.",
-      "1_les_destinations_sont_dans_le_code": "CAISSE_PAR_POSTE_BUDGET_SERVEUR et REPARTITION_DEFAULT_SERVEUR vivent dans api/cron-minuit.js. Le baseline ne couvre pas le code applicatif : il ne peut donc pas les fossiliser.",
-      "2_les_pourcentages_ne_sont_pas_seedes": "La cle `repartition` vit dans budgets_nationaux.data, et budgets_nationaux est classee reconstruction_explicite : AUCUNE donnee n'est seedee. Un monde neuf naît donc sans cle de repartition, et le code retombe sur son defaut -- un defaut qui est dans le code, pas dans le baseline.",
-      "3_ce_qui_EST_seede_est_de_l_autorite_pas_de_la_valeur": "budget_national_champs_regles (20 lignes, seed complet) ne declare QUE l'autorite : quel poste peut ecrire quel champ. Sa ligne `repartition` dit poste_id = min_fin, ce qui est conforme a la regle canonique -- le ministre des Finances est bien le titulaire de l'arbitrage. Aucune valeur de repartition n'y figure.",
-      "conclusion": "Le baseline est neutre sur ce point. La dette est entierement dans le code, et sa correction ne demandera aucune reprise du baseline."
-    },
-    "a_corriger_dans_le_chantier_approprie": [
-      "Retirer mairie-capitale, commissariat_capitale et tribunal_capitale de la cle de repartition nationale.",
-      "Faire financer les equipements municipaux par les mairies des TROIS villes, selon le meme principe -- ce que la distribution municipale fait deja, mais au profit de la seule ville ou un joueur passe minuit.",
-      "Construire la redistribution automatique du ministere de la Justice vers les trois tribunaux. Elle n'existe nulle part.",
-      "Ecrire le miroir SERVEUR de la distribution municipale, aujourd'hui cliente seulement.",
-      "Rebattre la cle de pourcentages en consequence -- et NON dans le chantier 2E : le principe cible compte plus que les pourcentages actuels."
-    ]
-  },
-  "chantier_2f": {
-    "_commentaire": "Chantier 2F : reconstruction d'un monde neuf a partir du baseline. Ce bloc consigne ce que 2F a trouve et corrige, et ce qu'il n'a pas pu faire.",
-    "environnement": "Aucun moteur PostgreSQL n'est joignable depuis la machine de developpement : ni serveur local, ni conteneur (docker, podman, colima, lima tous absents), ni CLI Supabase, ni second projet. La base de production est interdite en ecriture. La reconstruction a donc ete eprouvee par les deux voies praticables sans moteur : la GRAMMAIRE REELLE de PostgreSQL (pglast 7.18, qui embarque le parser de PostgreSQL 17.7, quand la production tourne en 17.6) et une SIMULATION DU CATALOGUE ordre par ordre.",
-    "deux_defauts_de_2e_trouves_et_corriges": {
-      "definitions_de_fonction_sans_point-virgule": "DEFAUT BLOQUANT. pg_get_functiondef() ne termine pas par un point-virgule -- verifie : AUCUNE des 641 definitions n'en portait. Les fichiers 20_fonctions*.sql ecrivaient donc les definitions l'une apres l'autre sans separateur, et PostgreSQL lisait « $function$ CREATE OR REPLACE FUNCTION » comme un seul ordre malforme. L'analyseur a refuse 18 fichiers sur 18. Le baseline etait FIDELE et INAPPLICABLE -- exactement le genre de defaut qu'aucun controle de fidelite ne peut voir, puisque la fidelite etait intacte. Corrige : le rendu ajoute le point-virgule, et les deux verificateurs le retirent avant de recalculer l'empreinte.",
-      "dotations_financieres_dans_aucun_seed": "LACUNE. Les 53 dotations avaient ete arbitrees et consignees dans le tableau, mais aucune ne parvenait au baseline : un monde reconstruit naissait avec zero caisse, et les montants decides n'etaient jamais appliques. Corrige : les 38 caisses qui vivent dans caisses_batiments sont desormais seedees, montant ECRIT depuis le tableau d'arbitrage. Les 15 autres vivent dans un blob de batiments_etat -- 3 (les entrepots) sont deja seedees, 12 attendent l'arbitrage de l'etat complet de leur batiment."
-    },
-    "ce_qui_reste_a_faire_hors_2f": "Appliquer reellement le script assemble sur un moteur PostgreSQL neuf. C'est le seul verrou restant, et il est d'environnement, pas de baseline : il se levera le jour ou un projet Supabase jetable sera disponible. La commande est prete : outils/baseline/reconstruire.py --ecrire <fichier.sql> produit le script complet, dans l'ordre d'application."
+ "_commentaire": "LA LISTE COMPLETE DES ENDROITS OU LE BASELINE NE DIT PAS LA MEME CHOSE QUE LA BASE DE PRODUCTION. Un seul fichier, pour qu'aucune difference ne puisse se cacher dans un coin. Les outils de controle le LISENT : outils/baseline/verifier-baseline.py et outils/baseline/assembler.py n'acceptent une divergence que si elle figure ici. Une divergence nouvelle, non declaree, fait echouer les controles -- c'est le comportement voulu.",
+ "etabli_le": "2026-10-05",
+ "chantier": "2E",
+ "tables_non_recreees": {
+  "_pourquoi": "Classees hors_baseline au chantier 2C. Ce ne sont ni des oublis ni des pertes : un monde neuf ne doit pas naitre avec les archives d'une bêta. Les objets qu'elles portaient (55 colonnes, 2 contraintes, 2 index, 12 lignes de droits, 4 commentaires, 4 activations de RLS) partent avec elles, et ces nombres sont verifies par le controle de completude.",
+  "compagnies_militaires_snapshot_20260926": "Instantane d'une table prise le 26 septembre 2026, lors de la bascule de l'axe possessions. Archive de travail.",
+  "rapports_cellules_artefacts_20260926": "Meme bascule, memes raisons.",
+  "zz_snap_cka_blob": "Instantane de la phase miroir du socle PNJ. Le prefixe zz marque un objet de travail.",
+  "zz_snap_cka_membres": "Idem.",
+  "zz_snap_cka_metier": "Idem.",
+  "lois_assemblee": "Table morte. Le circuit de depot unique l'a remplacee au chantier Assemblee du 30 septembre 2026 (6 fonctions supprimees exprès). Les deux seules fonctions du client qui l'atteignaient encore, sbArchiverLoi et sbGetArchivesLois, sont elles-memes mortes. Verifie explicitement au chantier 2C."
+ },
+ "fonction_dependant_d_un_schema_ecarte": {
+  "_pourquoi": "Cette fonction est CONSERVEE TELLE QUELLE dans le baseline, parce que le baseline reproduit fidelement l'etat du serveur et parce qu'on ne supprime jamais un objet pour faire passer un test. Mais elle depend d'un schema que le baseline ne recree pas. Il faut donc le savoir, et c'est ecrit ici plutot que decouvert un jour en production.",
+  "restaurer_personnage_sauvegarde(text,text)": {
+   "domaine": "socle",
+   "depend_de": "schema sauvegarde_beta_20260913, table personnages",
+   "constat": "La fonction lit sauvegarde_beta_20260913.personnages pour rendre a un joueur son personnage apres la reinitialisation de la bêta du 13 septembre 2026. Elle y accede trois fois : un SELECT INTO, une lecture de information_schema.columns pour ne copier que les colonnes communes, et un INSERT ... SELECT construit par format() puis EXECUTE.",
+   "consequence_sur_un_monde_neuf": "AUCUNE A LA CREATION. Un corps plpgsql n'est pas valide au moment du CREATE FUNCTION : la fonction s'installe sans erreur meme si le schema est absent. Elle n'echouerait qu'a l'APPEL, et un monde neuf n'a personne a restaurer. Le baseline reste donc applicable tel quel.",
+   "ce_qu_il_faudra_decider": "Cette fonction est un outil de transition de la bêta, pas une regle du moteur. Elle a vocation a disparaitre avec le schema de sauvegarde. Decision a prendre hors chantier 2E : la retirer du baseline une fois la bêta close, ou la conserver et documenter que le schema de sauvegarde doit etre restaure avec elle.",
+   "ne_pas_faire": "Ne pas la supprimer maintenant. Ne pas creer le schema de sauvegarde dans le baseline : il contient des donnees de joueurs de la bêta, qui n'ont rien a faire dans un monde neuf."
   }
+ },
+ "arbitrages_du_5_octobre_2026": {
+  "_commentaire": "Les sept decisions de game design que le chantier 2E avait consignees comme ouvertes ont ete rendues. Ce bloc dit, pour chacune, ce qu'elle a change dans le baseline -- et ce qu'elle n'a PAS permis de changer, faute de valeurs.",
+  "1_pnj_militaires": {
+   "decision": "Les 96 soldats actuels ont ete engendres pendant la bêta pour tester la carriere militaire. Ils RESTENT dans la base de bêta, intacts, et ne font pas partie de l'etat initial du jeu definitif. Les futurs soldats seront crees uniquement par les mecanismes normaux du jeu.",
+   "effet_sur_le_baseline": "pnj_membres, pnj_soldats_metier et pnj_possessions passent de seed_filtre a structure_seule, et de categorie D a categorie C. Leurs trois fichiers de TODO sont supprimes : la raison vit desormais dans la classification, source unique. Aucun seed n'est produit pour ces trois tables.",
+   "confirmation_base_de_beta": "AUCUNE ligne n'a ete supprimee ni modifiee dans la base de production. Le chantier 2E n'a execute que des SELECT."
+  },
+  "2_compagnies_et_sections": {
+   "decision": "Un monde neuf commence avec 0 compagnie et 0 section. La chaine voulue est : ministre de la Defense, nomination d'un Commandant PJ a la place du PNJ, transfert de fonds vers la caserne, creation d'une compagnie (20 000 FR), nomination d'un Capitaine PJ, puis des Lieutenants.",
+   "effet_sur_le_baseline": "compagnies_militaires passe de reconstruction_explicite a structure_seule, categorie C. Son fichier de TODO est supprime.",
+   "constat_structurel": "Il n'existe AUCUNE table de sections dans le schema. Une section vit dans le blob de sa compagnie. Il n'y avait donc rien a classer pour les sections, et rien a seeder.",
+   "exigence_a_construire_hors_2e": "Si le jeu compte trop peu de PJ pour remplir les echelons de la chaine militaire, l'administrateur / Maitre du jeu doit pouvoir se substituer aux echelons manquants afin que la mecanique militaire ne soit jamais bloquee. CETTE FONCTION N'EXISTE PAS AUJOURD'HUI : aucune fonction du schema ne permet a un administrateur de tenir un poste a la place d'un PJ absent. Exigence consignee, non developpee en 2E."
+  },
+  "3_produits_manufactures": {
+   "decision": "C'est un CATALOGUE, pas un stock, defini a la granularite VILLE. Chaque ville peut avoir son propre catalogue.",
+   "effet_sur_le_baseline": "La table passe de categorie D a categorie B. Elle reste reconstruction_explicite : la decision de nature est prise, mais le contenu -- quels produits chaque ville propose -- n'est pas encore ecrit.",
+   "bonne_nouvelle_structurelle": "AUCUNE dette de dimensionnement ici : la table porte DEJA une colonne ville, donc la granularite voulue est exprimable telle quelle. C'est recettes_production qui porte la dette, avec sa seule colonne pays.",
+   "interdictions_reportees_dans_le_fichier": "Ne pas lire une ligne de catalogue comme une quantite disponible. Ne pas inventer de stock initial de produits manufactures : les quantites initiales ne concernent que les matieres premieres."
+  },
+  "4_dotations_initiales": {
+   "decision": "Le principe est valide, les montants seront fixes sur un tableau exhaustif.",
+   "effet_sur_le_baseline": "Une seule valeur est desormais inscrite : la caisse republic_gouvernement-min_def vaut 35 000 FR, budget initial du ministere de la Defense de Republia. Les 54 autres caisses de Republia, les budgets national, municipaux et de clubs, et les stocks de matieres premieres restent a arbitrer.",
+   "livrable": "baseline/arbitrages/dotations-initiales-republia.csv et .md",
+   "ce_que_le_tableau_ne_fait_jamais": "Proposer un montant deduit d'un solde de bêta, ou deduit du journal dotations_amorcage_caisses. La colonne de valeur actuelle est informative, pour reconnaitre le lieu."
+  },
+  "5_etat_initial_des_lieux": {
+   "decision": "Meme methode : un tableau, et non une definition abstraite.",
+   "livrable": "baseline/arbitrages/etat-initial-republia.csv et .md",
+   "correction_de_perimetre": "Le rapport 2E annoncait 38 batiments, 20 commerces et 5 terrains. Ces chiffres etaient des COMPTES DE LIGNES, tous empires et lignes techniques confondus. Le perimetre reel de Republia est : 14 batiments porteurs d'un etat dans les trois villes, 14 commerces authored, 4 terrains (tous a Luthecia). Les lignes ecartees sont nommees dans le tableau plutot que supprimees."
+  },
+  "6_indices_des_villes": {
+   "decision": "Pour les TROIS villes de Republia -- Luthecia, Port-Sainte-Marie, Montrouge -- les CINQ indices sont decides et communs : IE 50, ISN 30, Moral 50, Piete 40, Social 45. Valide pour Republia UNIQUEMENT, a ne pas generaliser aux autres empires.",
+   "effet_sur_le_baseline": "indices_villes passe de reconstruction_explicite a seed_filtre et recoit un VRAI seed de 3 lignes. Les cinq valeurs arbitrees sont deja celles des trois lignes en base : le seed les reproduit sans rien recalculer et sans rien deduire de la bêta. La 4e ligne, republic_zzville-cmr, est une ligne de test et est ecartee.",
+   "historique": "Au premier tour d'arbitrage, seuls IE, ISN et Moral etaient decides ; piete et social restaient a confirmer. Ils l'ont ete le meme jour. Il n'y a donc plus aucune valeur supposee dans ce seed."
+  },
+  "7_juges_de_titulaires_pnj": {
+   "decision": "Chaque ville de Republia a son PROPRE juge PNJ : Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie, Gerard Bretellewood a Montrouge. Il n'y a PAS de quatrieme juge generique a city = NULL. La ligne republic_juge_national est un vestige de l'ancien systeme, anterieur a la dimension ville.",
+   "effet_sur_le_baseline": "Le seed de titulaires_pnj ecarte cette ligne : un monde neuf naît avec 15 titulaires PNJ, dont 3 juges municipaux distincts. L'exclusion est declaree dans lignes_exclues_des_seeds et verifiee par le controle.",
+   "ce_qui_n_a_PAS_ete_fait": "AUCUNE suppression dans la base de production. La ligne republic_juge_national y est toujours. Seul le seed du monde neuf l'ecarte.",
+   "preuve_du_vestige": "Trois faits concordent. (1) Son identifiant dit `national` quand les trois autres nomment une ville. (2) Son horodatage est du 13 septembre, sept jours avant les trois lignes de ville, elles-memes horodatees a la MEME seconde du 20 septembre. (3) `juge` est le SEUL poste de la table a porter une ville : les quinze autres titulaires sont tous a city = NULL. La dimension ville a donc ete introduite POUR les juges, et la ligne nationale est l'etat d'avant."
+  },
+  "8_dotations_de_matieres_premieres": {
+   "decision": "Les 17 dotations initiales de matieres premieres de Republia sont arbitrees, et sont IDENTIQUES dans chacune des trois villes : bois 750, minerai 500, charbon 400, plantes 300, metal 200, petrole 200, fruits_legumes 150, poisson 125, textile 125, produits_exotiques 125, alcool 100, viande 85, cereales 75, desinfectant 32, tabac 30, medicaments 25, carburant 17.",
+   "ce_qui_a_change_par_rapport_a_la_beta": "Treize des dix-sept valeurs etaient deja identiques sur les trois villes et sont confirmees telles quelles. Les quatre autres avaient DERIVE en partie et recoivent une valeur de reference : tabac 30 (bêta 32/22/26), viande 85 (83/83/84), cereales 75 (73/70/74), medicaments 25 (21/20/23). Aucune valeur n'a ete deduite d'un stock de bêta : les treize uniformes sont confirmees par le game designer, les quatre autres sont fixees par lui.",
+   "ou_c_est_inscrit": "Les 17 valeurs sont preremplies dans baseline/arbitrages/dotations-initiales-republia.csv et reprises dans baseline/seeds/99_a-construire/batiments_etat.sql.",
+   "pourquoi_le_seed_n_est_pas_encore_ecrivable": "Le stock d'un entrepot vit dans le blob de batiments_etat, aux cotes de la CAISSE du meme entrepot -- et cette caisse n'est pas encore arbitree. Ecrire la ligne maintenant obligerait a inventer la caisse. Les 17 quantites sont donc consignees, pretes a etre ecrites des que la dotation financiere des entrepots sera fixee.",
+   "ce_qui_n_a_PAS_ete_fait": "AUCUN stock de la bêta n'a ete modifie. Le chantier n'a execute que des SELECT."
+  },
+  "9_dotations_financieres": {
+   "decision": "Dotations CANONIQUES D'AMORCAGE d'un monde neuf, qui ne sont pas des budgets durables : Defense 35 000 FR, puis 10 000 FR pour les Affaires etrangeres, les Finances, l'Information, l'Interieur, la Justice, le Premier ministre et la Presidence. La Defense est une exception volontaire : un monde neuf n'a ni compagnie ni section, la creation d'une compagnie coute 20 000 FR, et le ministre doit pouvoir amorcer l'armee.",
+   "effet_sur_le_baseline": "Huit montants preremplis dans baseline/arbitrages/dotations-financieres-republia.csv. Le montant du Premier ministre est porte par la caisse CANONIQUE gouvernement-pm, l'audit ayant etabli que palais-gouvernement est un vestige.",
+   "assemblee_non_arbitree": "A votre demande, la dotation de l'Assemblee reste ouverte. Les faits necessaires sont etablis : alimentation par 8 % de la repartition nocturne (environ 1 968 FR/jour au minimum garanti) ; depense automatique de 250 FR par depute PJ et par jour, versee a la demande et PLAFONNEE PAR LA CAISSE ; si la caisse est insuffisante le versement est partiel ou nul, enregistre tel quel dans assemblee_indemnites, sans erreur ni dette. Avec 9 sieges, la depense maximale est de 2 250 FR/jour, soit plus que l'alimentation garantie.",
+   "principe_economique_verifie": "Le principe « le ministre des Finances recoit les recettes et repartit » N'EST PAS ce que fait le code. Voir baseline/arbitrages/AUDIT-FISCAL.md : la repartition nocturne credite 13 caisses directement et simultanement ; la caisse des Finances ne recoit que sa part (6 % par defaut). Le pouvoir du ministre est reel mais indirect : il fixe les POURCENTAGES de budgets_nationaux.data.repartition. Consequence pour les dotations : elles n'ont qu'a couvrir le PREMIER JOUR, avant la premiere passe du cron."
+  }
+ },
+ "miroirs_de_data_js_seedes_par_copie": {
+  "_commentaire": "CONSTAT DU CHANTIER 2E, A ARBITRER. Onze tables classees seed_complet au chantier 2C sont en realite des MIROIRS de data.js, et un generateur existe DEJA dans le depot pour chacune. Le chantier 2E a produit leur seed par copie de la base, conformement a la strategie validee -- il ne reclasse pas de son propre chef. Mais copier un miroir fige sa derive, et l'un de ces miroirs a deja derive : celui des couts d'ordre portait 24 lignes mortes et 19 ordres gratuits non declares au 5 octobre 2026. Chaque fichier concerne porte un avertissement en en-tete. RECOMMANDATION : faire ecrire ces onze fichiers par leurs generateurs et les deplacer dans 95_a-regenerer.",
+  "generer_miroirs_entreprises.py": [
+   "armureries_dotations",
+   "commerces_dotations",
+   "commerces_types",
+   "entreprises_constantes",
+   "entreprises_prix_rachat",
+   "recettes_commerce",
+   "recettes_production"
+  ],
+  "generer_miroirs_chantiers.py": [
+   "chantiers_besoins_jour",
+   "chantiers_paliers",
+   "entreprises_constantes"
+  ],
+  "generer_postes_electifs.py": [
+   "postes_electifs_regles"
+  ],
+  "generer_clubs_football.py": [
+   "clubs_football"
+  ],
+  "_les_generateurs_vivent_dans_outils_generateurs": "Au chantier 2H, les huit generateurs ont quitte .scratch/ pour outils/generateurs/. Ce sont des outils NECESSAIRES au fonctionnement du projet : un repertoire de brouillon n'etait pas leur place. Ils chargent le VRAI data.js dans JavaScriptCore et capturent les tables telles que le jeu les lit -- la bonne doctrine, desormais bien rangee."
+ },
+ "faux_positifs_du_crible": {
+  "_pourquoi": "Consignes pour que personne ne les reprenne pour des artefacts.",
+  "renseignement_couvertures": "Une ligne capturee par le motif « zz » : le nom de couverture « Nabil Ben Azzouz ». C'est du contenu authored, pas un marqueur de test. Les 48 lignes sont seedees."
+ },
+ "colonnes_omises_dans_les_seeds": {
+  "_pourquoi": "La date de creation d'une ligne n'est pas du contenu ecrit par un auteur : c'est le jour ou le monde est ne. Toutes les colonnes concernees ont un defaut now(), verifie au 5 octobre 2026 ; les omettre laisse donc le defaut jouer, ce qui est exactement le comportement voulu. Une colonne d'horodatage SANS defaut apparaitrait dans le rendu et exigerait une decision explicite.",
+  "colonnes": [
+   "assemblee_sieges.updated_at",
+   "camions_militaires.maj_le",
+   "groupes_presse.cree_le",
+   "journaux.cree_le",
+   "niveaux_prison.updated_at",
+   "pnj_employeurs.cree_le",
+   "titulaires_pnj.updated_at"
+  ]
+ },
+ "etat_vivant_remis_a_l_etat_initial": {
+  "assemblee_sieges": {
+   "colonnes": [
+    "endormi",
+    "endormi_ts",
+    "endormi_par"
+   ],
+   "pourquoi": "Le commentaire de la table l'etablit : la ligne porte l'identite PERMANENTE du depute Gamma, et seules ces trois colonnes decrivent un etat vivant -- un PJ qui a neutralise le Gamma. Les trois seules fonctions qui ecrivent la table ne touchent que ces colonnes, et aucune fonction n'y insere : les 9 lignes doivent donc preexister. Au premier jour aucun depute n'est endormi, ce qui est deja l'etat de la base aujourd'hui (0 ligne endormie)."
+  }
+ },
+ "dependances_vers_un_autre_schema": {
+  "_pourquoi": "Legitimes : ces schemas sont fournis par Supabase, le baseline ne les recree pas, il les suppose presents. Declarees ici plutot qu'absorbees en silence.",
+  "auth.uid()": "Identite du porteur du jeton. Utilisee par les policies du domaine personnage et presence.",
+  "auth.users": "Table des comptes. Referencee par le domaine personnage et presence."
+ },
+ "lignes_exclues_des_seeds": {
+  "_pourquoi": "Exclusion de FAIT, etablie par l'observation, et non arbitrage de game design. Le chantier 2E a passe les 252 tables au crible de trois marqueurs (prefixe zz, horodatage epoch a 13 chiffres, mot « test ») ; ces lignes-ci sont dans une table par ailleurs legitimement seedee.",
+  "entrepots_par_ville": {
+   "gardees": 3,
+   "ecartees": 2,
+   "detail": "Ecartees : (zzville-a, entrepot-zztest-a) et (zzville-b, entrepot-zztest-b). Gardees : les entrepots logistiques de Luthecia, Port-Sainte-Marie et Montrouge.",
+   "consequence_sur_2c": "La strategie annoncee en 2C etait seed_complet ; l'observation impose un filtre. A corriger en seed_filtre dans la classification, ce qui est une correction de fait, pas un changement d'intention.",
+   "nature": "ligne de test, ecartee de fait"
+  },
+  "indices_villes": {
+   "gardees": 3,
+   "ecartees": 1,
+   "detail": "Ecartee : republic_zzville-cmr, ligne de test. Gardees : republic_capitale, republic_ville_a, republic_ville_b, qui portent deja les valeurs arbitrees IE 50 / ISN 30 / Moral 50.",
+   "nature": "ligne de test, ecartee de fait"
+  },
+  "_commentaire": "Lignes ECARTEES du seed, pour deux raisons differentes et toutes deux nommees. (1) LIGNE DE TEST : exclusion de FAIT, etablie par l'observation, pas un arbitrage -- le chantier 2E a passe les 252 tables au crible de trois marqueurs (prefixe zz, horodatage epoch a 13 chiffres, mot « test »). (2) VESTIGE OBSOLETE : exclusion ARBITREE par le game designer, parce que la ligne appartient a un etat du jeu anterieur. Le controle verifie que le nombre de lignes seedees egale le nombre de lignes en base MOINS ces exclusions declarees : une ligne qui disparaitrait sans etre declaree ici ferait echouer le controle.",
+  "titulaires_pnj": {
+   "gardees": 15,
+   "ecartees": 0,
+   "nature": "exclusion RETIREE le 7 octobre 2026 : elle n'a plus d'objet",
+   "detail": "Les 15 titulaires sont desormais seedes sans exception, dont les 3 juges territoriaux : Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie, Gerard Bretellewood a Montrouge.",
+   "_histoire": "Cette entree ecartait republic_juge_national -- un quatrieme juge a city = NULL portant « Juge Fontaine », c'est-a-dire le MEME PNJ que le juge de la capitale, qui siegeait donc deux fois. L'arbitrage du 5 octobre 2026 l'avait declaree non canonique mais avait choisi de ne pas y toucher en production : le monde neuf naissait juste, la base vivante restait fausse. L'arbitrage du 7 octobre 2026 a tranche le fond -- le juge est un poste TERRITORIAL DE VILLE et l'ancien juge national ne doit pas servir de repli -- et la migration 20261007010000_juge_territorial.sql l'a supprimee de la base. L'exclusion a donc perdu sa cible, et c'est le controle 4 de verifier-baseline.py qui l'a signale : 15 lignes seedees pour 14 attendues."
+  },
+  "batiments_etat": {
+   "gardees": 3,
+   "ecartees": 35,
+   "nature": "seed PARTIEL assume, le reste attend un arbitrage",
+   "detail": "Gardees : les 3 entrepots logistiques de Republia (Luthecia, Port-Sainte-Marie, Montrouge), dont l'etat initial est arbitre. Ecartees : 11 autres batiments de Republia porteurs d'un etat, les batiments des 3 autres empires, 3 lignes techniques (cron-minuit, bne, candidatures_postes) et les lignes de test.",
+   "pourquoi": "Un seed partiel vaut mieux qu'un seed faux. Ce qui est decide est ecrit ; le reste se remplit dans baseline/arbitrages/etat-initial-republia.csv."
+  },
+  "caisses_batiments": {
+   "gardees": 38,
+   "ecartees": 113,
+   "nature": "seed ECRIT depuis le tableau d'arbitrage, pas extrait de la base",
+   "detail": "Gardees : les 38 caisses de Republia dont la dotation est arbitree, 130 000 FR au total. Ecartees : les caisses des trois autres empires, les 24 que l'audit a declarees vestiges, comptes de transit, contreparties ou caisses inertes, et les lignes de test.",
+   "aucun_solde_de_beta_ne_traverse": "La colonne `data` n'est PAS copiee : elle est reconstruite par un jsonb_build_object dont le montant vient d'un `case` engendre depuis baseline/arbitrages/dotations-financieres-republia.csv. La base ne fournit que la liste des identifiants."
+  }
+ },
+ "exigences_de_game_design_a_construire": {
+  "_commentaire": "Exigences de game design CONSIGNEES et volontairement NON DEVELOPPEES par le chantier 2E. Elles ne sont pas des dettes techniques decouvertes au passage : ce sont des demandes explicites du game designer, dont le chantier approprie reste a ouvrir. Elles vivent ici pour ne pas se perdre entre deux chantiers.",
+  "outil_mj_substitution_aux_echelons_militaires": {
+   "demande": "Si le jeu compte trop peu de PJ pour remplir les echelons de la chaine militaire -- Commandant, Capitaine, Lieutenants -- l'administrateur / Maitre du jeu doit pouvoir se substituer aux echelons manquants, afin que la mecanique militaire ne soit jamais bloquee.",
+   "etat_actuel_observe": "AUCUNE fonction du schema ne permet a un administrateur de tenir un poste a la place d'un PJ absent. Le recrutement militaire est une filiere unique qui suppose un PJ a chaque echelon.",
+   "consigne_le": "2026-10-05, premier tour d'arbitrage 2E",
+   "ne_pas_faire": "Ne pas developper dans 2E."
+  },
+  "outil_mj_ajout_exceptionnel_de_matieres_premieres": {
+   "demande": "L'administrateur / Maitre du jeu doit disposer d'un outil lui permettant d'ajouter EXCEPTIONNELLEMENT des matieres premieres au monde, si cela devient necessaire. C'est un filet de securite administratif.",
+   "limites_posees_par_le_game_designer": [
+    "ne remplace pas la chaine d'approvisionnement normale",
+    "ne doit pas devenir une production automatique",
+    "ne doit pas masquer un dysfonctionnement economique",
+    "doit seulement permettre de debloquer exceptionnellement une situation"
+   ],
+   "etat_actuel_observe": "Les stocks de matieres premieres vivent dans trois endroits distincts : le blob entrepot de batiments_etat pour les entrepots de ville, budgets_nationaux.caserneMatieres pour la caserne, et le blob stockMatieres de chaque entreprise pour les commerces et les usines. Un outil de MJ devrait donc viser ces trois chemins, ou passer par une porte unique qui n'existe pas encore. Les mouvements existants sont specialises : entrepot_commander, caserne_stock_mouvement, fonds_matiere_apporter, effort_ravitailler.",
+   "consigne_le": "2026-10-05, deuxieme tour d'arbitrage 2E",
+   "ne_pas_faire": "Ne pas developper dans 2E."
+  },
+  "audit_de_la_chaine_d_approvisionnement_automatique": {
+   "demande": "Apres le chantier Supabase, verifier separement que la chaine d'approvisionnement automatique des matieres premieres fonctionne reellement et renouvelle correctement les stocks.",
+   "ce_que_2e_a_deja_observe_et_qui_servira_a_cet_audit": [
+    "Le port de Port-Sainte-Marie accumule : son blob porte 11 386 unites de bois, alimentees par deux arrivages de 150 par jour (Scierie Guy Tarembois et Sovarka) sans consommation equivalente. Un stock qui ne fait que croitre est un signal.",
+    "Quatre des dix-sept matieres ont derive differemment selon la ville (tabac, viande, cereales, medicaments) alors que les treize autres sont restees identiques : la consommation est donc reelle sur ces quatre-la et nulle sur les autres.",
+    "Les stocks des usines sont tres bas face a leur vente directe : raffinerie 6 unites de petrole, usine pharmaceutique 6 d'alcool et 0 de plantes, clinique 2 de medicaments. A verifier : ces usines sont-elles reapprovisionnees ?",
+    "budgets_municipaux.data.allocation declare une repartition (stade 15, marche 15, tribunal 15, multimodal 15, dispensaire 20, commissariat 20) qu'AUCUNE fonction serveur ne lit.",
+    "budgets_municipaux.data.tauxFoncier n'est lu par AUCUNE fonction serveur.",
+    "budgets_clubs porte derniereSubventionJour, mais aucune fonction de subvention n'ecrit cette table : seules football_primes_match et redressement_fiscal_appliquer y touchent.",
+    "contributions_piete n'a AUCUN ecrivain serveur."
+   ],
+   "consigne_le": "2026-10-05, deuxieme tour d'arbitrage 2E",
+   "ne_pas_faire": "Ne pas auditer dans 2E. Les observations ci-dessus sont des constats de passage, pas un audit."
+  },
+  "mecanisme_de_rattachement_chef_organisation": {
+   "demande": "Republia doit naitre avec ses deux loges maconniques constituees, dotees de leur local et de leur chef PNJ -- Luthecia : Frere Jacques D'Equerre ; Montrouge : Venerable Maitre Duval -- parce que la mecanique de prise de pouvoir suppose qu'une organisation a deja un chef.",
+   "etat_actuel_observe": "La table organisations est vide, aucune auto-creation n'existe pour les loges, et le lien chef-d'organisation n'existe nulle part. Les deux locaux existent bien dans data.js et des PNJ y sont poses, mais aucun n'est rattache a une ligne organisations.",
+   "consigne_le": "2026-10-05, premier tour d'arbitrage 2E",
+   "ne_pas_faire": "Ne pas fabriquer un seed compatible avec un mecanisme inexistant : deux loges sans chef seraient pires que l'absence."
+  },
+  "audit_coherence_indemnites_deputes_et_salaires_ministres": {
+   "demande": "Auditer ulterieurement la coherence entre l'indemnite de depute (250 FR/jour, a la demande) et la remuneration des ministres.",
+   "consigne_le": "2026-10-05, cloture 2E",
+   "ne_pas_faire": "Ne pas auditer dans 2E."
+  },
+  "prime_d_assiduite_parlementaire": {
+   "demande": "Etudier une eventuelle prime d'assiduite parlementaire.",
+   "etat": "Au backlog. NE PAS concevoir ni implementer.",
+   "consigne_le": "2026-10-05, cloture 2E"
+  },
+  "rationalisation_des_vestiges_de_caisses": {
+   "demande": "Retirer ou rationaliser les vestiges de caisses identifies par l'audit, apres verification qu'aucun ecran ne les affiche.",
+   "liste": [
+    "republic_palais-gouvernement (la caisse canonique du Premier ministre est gouvernement-pm)",
+    "les 8 caisses non suffixees par la ville : commissariat, commissariat-local, tribunal, tribunal-local, dispensaire-public, dispensaire-public-v, marche, stade -- etat d'avant le correctif du 16 aout 2026",
+    "republic_stade-buvette (la buvette n'a plus de caisse autonome depuis le 17 aout 2026)",
+    "republic_mairie_caserne et la 4e ligne republic_caserne de budgets_municipaux (la caserne n'est pas une ville)",
+    "le motif `entrepot` de caisses_autorites, declaration d'autorite sans consommateur"
+   ],
+   "garde_a_poser_en_meme_temps": "caisse_institution_mouvement(p_id) prend l'identifiant TEL QU'ON LE LUI DONNE. Tant qu'aucune garde n'y impose la convention `categorie_ville`, un appelant pourra toujours recreer une caisse brute. Retirer les lignes sans poser la garde laisserait le piege ouvert.",
+   "consigne_le": "2026-10-05, cloture 2E"
+  },
+  "la_caserne_ne_doit_jamais_etre_traitee_comme_une_ville": {
+   "demande": "getVilleKey() doit passer par getVillesReelles() : une zone speciale -- caserne, QHS -- ne doit pas pouvoir engendrer une cle municipale.",
+   "etat_actuel": "getVillesReelles() exclut bien les zones speciales (isSpecial), mais getVilleKey() lit state.currentCity sans filtrer. Un joueur present a la caserne a deja fait naitre republic_caserne dans budgets_municipaux et republic_mairie_caserne dans caisses_batiments.",
+   "consigne_le": "2026-10-05, cloture 2E"
+  },
+  "executants_manquants_derriere_une_interface": {
+   "demande": "Deux interfaces promettent un flux que rien n'execute. A traiter ensemble, parce que c'est le meme defaut : brancher l'executant, ou retirer l'interface.",
+   "cas": [
+    "virementJournalierQHS : le ministre de la Justice fixe un virement quotidien vers le QHS, un toast le confirme, AUCUN executant n'existe. Le virement ponctuel, lui, fonctionne.",
+    "subvention municipale aux clubs : le code lit budgetMairie.allocation.associatif, or `associatif` vit dans data.indices et non dans data.allocation. Le montant est donc toujours 0, les 12 caisses de club sont a 0 et derniereSubventionJour n'avance jamais."
+   ],
+   "consigne_le": "2026-10-05, cloture 2E"
+  }
+ },
+ "audit_fiscal_du_5_octobre_2026": {
+  "_commentaire": "Audit du circuit fiscal et des flux financiers publics, fait par lecture du code execute -- 641 corps de fonction PostgreSQL, api/cron-minuit.js, modules clients. Le document lisible est baseline/arbitrages/AUDIT-FISCAL.md. Ce bloc n'en retient que les verdicts, pour que les outils et les relectures ultericures y aient acces sans relire la prose.",
+  "recettes_publiques_quotidiennes": "24 600 FR/jour pour Republia (Luthecia 18 000, Port-Sainte-Marie 2 400, Montrouge 4 200) -- CONSTANTE EN DUR dans le cron, miroir de CITY_POPULATION de data.js. L'economie reelle n'alimente que reserveJour, par la taxe sur les transactions. Un monde sans aucune activite economique encaisserait quand meme ces 24 600 FR.",
+  "redistribution": "distribuerFiscaliteServeur() credite 13 caisses directement, une fois par nuit, selon budgets_nationaux.data.repartition : presidence 15, mairie-capitale 12, min_def 10, pm 8, min_int 8, assemblee 8, commissariat_capitale 8, min_fin 6, min_just 6, min_ae 6, tribunal_capitale 6, min_info 5, reserve 2.",
+  "asymetrie_majeure": "La table de repartition ne connait que mairie-capitale, tribunal_capitale et commissariat_capitale. Port-Sainte-Marie et Montrouge ne recoivent RIEN de la repartition nationale. L'Etat de Republia est fiscalement centralise sur sa capitale. C'est une question de jeu, pas une anomalie technique.",
+  "verdicts_sur_les_doublons": {
+   "palais-gouvernement": "VESTIGE. Caisse canonique du Premier ministre : gouvernement-pm. Le palais est un batiment dont chaque piece porte la caisse de son ministere ; le batiment lui-meme n'est dans aucune table de caisse et rien ne le credite.",
+   "deux_caisses_municipales": "PAS UN DOUBLON : deux etapes de deux circuits. budgets_municipaux.data.caisse est un compte de COLLECTE des recettes locales, vide chaque jour vers les six equipements. caisses_batiments.mairie_<ville> est la caisse PROPRE du maire, alimentee par la repartition nationale. Cible : renommer le compte de collecte, et ecrire le miroir serveur de la distribution municipale, aujourd'hui cliente seulement.",
+   "caserne_comme_ville": "ARTEFACT TECHNIQUE. La caserne est une zone speciale (isSpecial), exclue des villes reelles par getVillesReelles(), mais getVilleKey() lit state.currentCity sans filtrer. Cible : faire passer getVilleKey() par getVillesReelles().",
+   "huit_caisses_non_suffixees": "VESTIGES DATES du 16 aout 2026. Avant cette date, getBuildingIdPourCategorieBudget() renvoyait l'identifiant de navigation tel quel, fusionnant les caisses de plusieurs villes. Depuis le lot « A3, caisses locales », la convention canonique est getCaisseLocaleId(categorie, ville) = categorie_ville. Risque residuel signale : caisse_institution_mouvement prend l'identifiant tel qu'on le lui donne, sans garde.",
+   "entrepots": "AMBIGUITE LEVEE. Source de verite : batiments_etat...entrepot.caisse, seul endroit lu et ecrit par entrepot_commander() et entrepot_reverser(). Le motif `entrepot` de caisses_autorites est INERTE : aucun appelant ne lui passe jamais un identifiant d'entrepot. Le seed des matieres premieres n'est donc plus bloque que par un montant.",
+   "marches": "PAS UN DOUBLON : la caisse du lieu est l'equipement municipal, l'entreprise est le fonds de commerce des etals. Deux fonctions economiques distinctes.",
+   "stade-buvette": "VESTIGE DATE du 17 aout 2026 : le code dit explicitement que la buvette n'a plus de caisse autonome et affiche celle du stade de sa ville.",
+   "banque-privee": "CONTREPARTIE NATIONALE des operations Helvetia, pas un budget. deposer_helvetia calcule son identifiant par pays || '_banque-privee'.",
+   "caisses_inertes": "eglise-montrouge, notre-dame-mer, tabernacle-impots : aucun appel ne les credite ni ne les debite. Le circuit de piete passe par le ledger contributions_piete, sans caisse."
+  },
+  "mecanismes_morts_ou_non_branches": {
+   "fiscalite_journal": "MORTE : aucun lecteur, aucun ecrivain, aucune occurrence dans le depot.",
+   "payerSoldeServeur": "VIDEE EXPRES le 18 septembre 2026 : la fonction ne fait plus que `return;`. Coquille conservee dans la sequence nocturne.",
+   "subvention_municipale_aux_clubs": "BRANCHEE SUR UNE CLE INEXISTANTE : le code lit budgetMairie.allocation.associatif, or `associatif` vit dans data.indices et non dans data.allocation. Le montant est donc toujours 0, ce qui explique les 12 caisses de club a 0 et derniereSubventionJour qui n'avance jamais.",
+   "tauxLocal": "DECLARATIF, JAMAIS RENSEIGNE : appliquer_taxe_transaction le lit, mais il est absent des 4 lignes de budgets_municipaux. La taxe locale est donc toujours au defaut de 2 %.",
+   "allocation_municipale": "ACTIVE MAIS CLIENTE SEULEMENT : distribuerBudgetMunicipalVersBatiments n'a aucun miroir serveur. Une ville dont aucun joueur ne passe minuit en ligne ne distribue pas son compte de collecte.",
+   "motif_entrepot_de_caisses_autorites": "INERTE : declaration d'autorite sans consommateur.",
+   "virementJournalierQHS": "CONFIGURABLE MAIS JAMAIS EXECUTE, trouve a la cloture. budget_national_champs_regles declare le champ comme appartenant au ministre de la Justice, confirmerVirementJournalierQHS() l'ecrit et affiche meme « X FR/jour vers le QHS » -- mais AUCUN executant n'existe : ni fonction SQL, ni passe du cron, ni passe cliente de minuit. Le ministre croit programmer un virement quotidien ; rien ne part. Le virement PONCTUEL, lui, fonctionne. Meme famille que la subvention municipale aux clubs : une interface qui promet un flux que rien n'execute."
+  },
+  "corrections_de_mon_rapport_precedent": [
+   "tauxFoncier est ACTIF, lu chaque nuit par preleverTaxeFonciere() dans le cron. J'avais ecrit qu'aucune fonction ne le lisait : vrai des fonctions SQL, faux du systeme.",
+   "contributions_piete est ECRITE par le client (supabase.js). La table n'est pas morte.",
+   "Les huit caisses non suffixees ne sont pas des scories sans histoire : ce sont les identifiants de batiment authored de data.js, dedoublees par un correctif date.",
+   "notre-dame-mer est a Port-Sainte-Marie, pas a Montrouge. Mon rapprochement se faisait sur le mot « mer » ; data.js tranche.",
+   "La double caisse municipale n'est pas un doublon mais deux etapes de deux circuits.",
+   "L'ambiguite de la caisse d'entrepot est levee : le seed n'est plus bloque que par un montant."
+  ]
+ },
+ "regle_canonique_de_financement_territorial": {
+  "_commentaire": "REGLE DE GAME DESIGN FIXEE le 5 octobre 2026, apres l'audit du circuit fiscal. Elle decrit la CIBLE. L'implementation actuelle ne la respecte pas : cet ecart est une DETTE FONCTIONNELLE, consignee ici et volontairement NON corrigee par le chantier 2E.",
+  "regle": {
+   "institutions_municipales": "Les institutions municipales sont financees par les MAIRIES : commissariat, dispensaire, centre multimodal, stade, marche, et tout equipement municipal equivalent. L'Etat central ne finance PAS directement le commissariat ni la mairie de Luthecia au seul motif qu'il s'agit de la capitale. Luthecia, Montrouge et Port-Sainte-Marie suivent le MEME principe municipal.",
+   "exception_tribunaux": "Les tribunaux ne sont PAS finances par les mairies. Circuit canonique : budget national -> ministere de la Justice -> tribunaux des trois villes. Le ministre de la Justice decide d'une REPARTITION AUTOMATIQUE de son budget entre les tribunaux de Luthecia, Port-Sainte-Marie et Montrouge, et cette repartition est ensuite executee automatiquement."
+  },
+  "ecart_constate_avec_l_implementation": {
+   "cle_de_repartition_nationale": "CAISSE_PAR_POSTE_BUDGET_SERVEUR (api/cron-minuit.js) credite directement 13 caisses, dont trois qui ne devraient pas l'etre : mairie-capitale (12 %), commissariat_capitale (8 %) et tribunal_capitale (6 %). L'Etat finance donc aujourd'hui en direct des institutions municipales, et seulement celles de la capitale.",
+   "consequence_observee": "Port-Sainte-Marie et Montrouge ne recoivent RIEN de la repartition nationale : ni mairie, ni tribunal, ni commissariat. L'Etat de Republia est fiscalement centralise sur sa capitale, ce qui n'est pas la regle voulue.",
+   "redistribution_ministerielle_absente": "AUCUN mecanisme ne repartit le budget du ministere de la Justice entre les trois tribunaux. Ni fonction SQL, ni cron, ni code client. Le circuit canonique budget national -> ministere -> tribunaux n'existe donc nulle part, meme partiellement.",
+   "ou_vit_cette_dette": "Dans le CODE (api/cron-minuit.js), pas dans les donnees. C'est une distinction importante pour le baseline : voir le point suivant."
+  },
+  "le_baseline_ne_fossilise_PAS_cette_regle": {
+   "_verifie_le": "2026-10-05",
+   "constat": "Verifie explicitement a la demande du game designer. Le baseline d'un monde neuf ne contient AUCUNE trace de la mauvaise regle territoriale, pour trois raisons distinctes.",
+   "1_les_destinations_sont_dans_le_code": "CAISSE_PAR_POSTE_BUDGET_SERVEUR et REPARTITION_DEFAULT_SERVEUR vivent dans api/cron-minuit.js. Le baseline ne couvre pas le code applicatif : il ne peut donc pas les fossiliser.",
+   "2_les_pourcentages_ne_sont_pas_seedes": "La cle `repartition` vit dans budgets_nationaux.data, et budgets_nationaux est classee reconstruction_explicite : AUCUNE donnee n'est seedee. Un monde neuf naît donc sans cle de repartition, et le code retombe sur son defaut -- un defaut qui est dans le code, pas dans le baseline.",
+   "3_ce_qui_EST_seede_est_de_l_autorite_pas_de_la_valeur": "budget_national_champs_regles (20 lignes, seed complet) ne declare QUE l'autorite : quel poste peut ecrire quel champ. Sa ligne `repartition` dit poste_id = min_fin, ce qui est conforme a la regle canonique -- le ministre des Finances est bien le titulaire de l'arbitrage. Aucune valeur de repartition n'y figure.",
+   "conclusion": "Le baseline est neutre sur ce point. La dette est entierement dans le code, et sa correction ne demandera aucune reprise du baseline."
+  },
+  "a_corriger_dans_le_chantier_approprie": [
+   "Retirer mairie-capitale, commissariat_capitale et tribunal_capitale de la cle de repartition nationale.",
+   "Faire financer les equipements municipaux par les mairies des TROIS villes, selon le meme principe -- ce que la distribution municipale fait deja, mais au profit de la seule ville ou un joueur passe minuit.",
+   "Construire la redistribution automatique du ministere de la Justice vers les trois tribunaux. Elle n'existe nulle part.",
+   "Ecrire le miroir SERVEUR de la distribution municipale, aujourd'hui cliente seulement.",
+   "Rebattre la cle de pourcentages en consequence -- et NON dans le chantier 2E : le principe cible compte plus que les pourcentages actuels."
+  ]
+ },
+ "chantier_2f": {
+  "_commentaire": "Chantier 2F : reconstruction d'un monde neuf a partir du baseline. Ce bloc consigne ce que 2F a trouve et corrige, et ce qu'il n'a pas pu faire.",
+  "environnement": "Aucun moteur PostgreSQL n'est joignable depuis la machine de developpement : ni serveur local, ni conteneur (docker, podman, colima, lima tous absents), ni CLI Supabase, ni second projet. La base de production est interdite en ecriture. La reconstruction a donc ete eprouvee par les deux voies praticables sans moteur : la GRAMMAIRE REELLE de PostgreSQL (pglast 7.18, qui embarque le parser de PostgreSQL 17.7, quand la production tourne en 17.6) et une SIMULATION DU CATALOGUE ordre par ordre.",
+  "deux_defauts_de_2e_trouves_et_corriges": {
+   "definitions_de_fonction_sans_point-virgule": "DEFAUT BLOQUANT. pg_get_functiondef() ne termine pas par un point-virgule -- verifie : AUCUNE des 641 definitions n'en portait. Les fichiers 20_fonctions*.sql ecrivaient donc les definitions l'une apres l'autre sans separateur, et PostgreSQL lisait « $function$ CREATE OR REPLACE FUNCTION » comme un seul ordre malforme. L'analyseur a refuse 18 fichiers sur 18. Le baseline etait FIDELE et INAPPLICABLE -- exactement le genre de defaut qu'aucun controle de fidelite ne peut voir, puisque la fidelite etait intacte. Corrige : le rendu ajoute le point-virgule, et les deux verificateurs le retirent avant de recalculer l'empreinte.",
+   "dotations_financieres_dans_aucun_seed": "LACUNE. Les 53 dotations avaient ete arbitrees et consignees dans le tableau, mais aucune ne parvenait au baseline : un monde reconstruit naissait avec zero caisse, et les montants decides n'etaient jamais appliques. Corrige : les 38 caisses qui vivent dans caisses_batiments sont desormais seedees, montant ECRIT depuis le tableau d'arbitrage. Les 15 autres vivent dans un blob de batiments_etat -- 3 (les entrepots) sont deja seedees, 12 attendent l'arbitrage de l'etat complet de leur batiment."
+  },
+  "ce_qui_reste_a_faire_hors_2f": "Appliquer reellement le script assemble sur un moteur PostgreSQL neuf. C'est le seul verrou restant, et il est d'environnement, pas de baseline : il se levera le jour ou un projet Supabase jetable sera disponible. La commande est prete : outils/baseline/reconstruire.py --ecrire <fichier.sql> produit le script complet, dans l'ordre d'application."
+ }
 }

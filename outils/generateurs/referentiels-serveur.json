@@ -183,15 +183,25 @@
       ],
       "_note": "Le cron n'a besoin que de ces quatre champs : label pour la facture, materiaux et produitParLot pour la production, pa pour le cout de revient. Le canon en porte onze (typeObjet, sousType, prixPnj, capacite, desc, icon, imageUrl en plus), qui servent a l'interface et au retrait, pas au cron.",
       "_pourquoi_generee": "Cette copie etait figee a 3 recettes sur 8 depuis le 18 septembre 2026. Les cinq accessoires etaient proposes au Ministre de la Defense, commandes, et jamais produits : le cron faisait `continue` en silence et la commande restait a 0/N indefiniment. Pire, la liste des matieres reservables etant DEDUITE de ces recettes, le cron liberait chaque nuit le textile, le charbon et les fruits_legumes que le ministre avait reserves. Generer la copie supprime les deux pannes d'un coup."
+    },
+    {
+      "serveur": "POSTES_NOMMES_EXCLUSIFS_SERVEUR",
+      "canon": "POSTES_NOMMES_EXCLUSIFS",
+      "fichier": "data.js",
+      "forme": "projection_objet",
+      "champs": [
+        "label",
+        "nommePar",
+        "scope",
+        "autoriteScope",
+        "compatibles"
+      ],
+      "_note": "autoriteScope EST dans la projection, et ce n'est pas un detail : le cron lit `regle.autoriteScope || regle.scope` pour savoir a quelle echelle chercher le nominateur. Sans ce champ, un juge de scope 'ville' ferait chercher un Ministre de la Justice MUNICIPAL, qui n'existe pas. Seul le juge le porte aujourd'hui.",
+      "_pourquoi_generee": "La copie etait figee depuis le 13 septembre 2026 avec juge.scope='pays' contre 'ville' dans data.js, et sans autoriteScope. L'arbitrage du 7 octobre 2026 a tranche : le juge est un poste TERRITORIAL DE VILLE, dont l'autorite reste nationale (Ministre de la Justice) et le payeur reste le tribunal de sa ville. Generer la copie ferme la divergence et supprime la derniere ressaisie manuelle de ce referentiel."
     }
   ],
   "_non_generees": "Ce qui suit n'est PAS genere, et chaque cas dit pourquoi. Aucune de ces copies n'est supprimee.",
   "non_generees": {
-    "POSTES_NOMMES_EXCLUSIFS_SERVEUR": {
-      "canon": "POSTES_NOMMES_EXCLUSIFS (data.js)",
-      "raison": "DIVERGENCE METIER DECLAREE. juge.scope vaut 'pays' au serveur contre 'ville' dans data.js, et autoriteScope n'est pas recopie. Les 16 autres postes sont identiques au caractere. Generer effacerait la divergence sans arbitrage.",
-      "ferme_par": "lot 4D"
-    },
     "NIVEAUX_CONSTRUCTION_SERVEUR": {
       "canon": "NIVEAUX_CONSTRUCTION (plateau-justice-economie.js)",
       "raison": "DIVERGENCE INEDITE, trouvee par ce chantier, et sur de l'argent : commerce_standard 50 000 au serveur contre 60 000 dans le jeu, commerce_premium 70 000 contre 90 000, building 100 000 contre 120 000. Seul hangar concorde (30 000). Le canon est CALCULE par coutTotalConstruction (plateau-chantiers.js) ; la copie serveur est figee. Elle n'est lue NULLE PART dans le cron : la divergence n'a aucun effet aujourd'hui, c'est un piege en attente d'un appelant.",

@@ -17,7 +17,7 @@
 
 INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('commissaire', '{pays}_commissariat_{ville}', 'true', 'commissariat de sa ville', NULL);
 INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('depute', '{pays}_assemblee', 'false', 'Assemblee nationale', NULL);
-INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('juge', '{pays}_tribunal_{ville}', 'false', 'poste de portee nationale : tribunal de la capitale', NULL);
+INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('juge', '{pays}_tribunal_{ville}', 'true', 'tribunal de sa ville -- poste territorial, autorite nationale (min_just)', NULL);
 INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('maire', '{pays}_mairie_{ville}', 'true', 'mairie de sa ville', NULL);
 INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('maire_adjoint', '{pays}_mairie_{ville}', 'true', 'mairie de sa ville', NULL);
 INSERT INTO public.salaires_caisses (poste_id, motif, par_ville, note, ville_defaut) VALUES ('min_ae', '{pays}_gouvernement-min_ae', 'false', 'ministere', NULL);

@@ -99,23 +99,26 @@ FILTRES = {
                     "autres empires.",
         "ecartees": 1,
     },
-    "titulaires_pnj": {
-        "ou": "id <> 'republic_juge_national'",
-        "pourquoi": "ARBITRAGE RENDU LE 5 OCTOBRE 2026 : chaque ville de Republia a son "
-                    "PROPRE juge PNJ -- Juge Fontaine a Luthecia, Mireille Sedlex a "
-                    "Port-Sainte-Marie, Gerard Bretellewood a Montrouge -- et il n'y a PAS "
-                    "de quatrieme juge generique a city = NULL. La ligne "
-                    "republic_juge_national est un vestige de l'ancien systeme, anterieur a "
-                    "la dimension ville : son identifiant dit `national`, son horodatage est "
-                    "du 13 septembre quand les trois lignes de ville sont toutes du 20 "
-                    "septembre a la meme seconde, et `juge` est le SEUL poste de la table a "
-                    "porter une ville -- les quinze autres titulaires sont tous a NULL. Elle "
-                    "n'entre donc pas dans l'etat initial canonique. "
-                    "ELLE N'EST PAS SUPPRIMEE DE LA BASE DE PRODUCTION : seul le seed "
-                    "l'ecarte. Le monde neuf naît avec 15 titulaires PNJ, dont 3 juges "
-                    "municipaux distincts.",
-        "ecartees": 1,
-    },
+    # L'EXCLUSION DE titulaires_pnj A ETE RETIREE LE 7 OCTOBRE 2026, et son histoire
+    # merite d'etre gardee ici.
+    #
+    # Elle ecartait du seed la ligne republic_juge_national -- un quatrieme juge PNJ
+    # a city = NULL, portant « Juge Fontaine », c'est-a-dire le MEME PNJ que le juge
+    # de la capitale, qui siegeait donc deux fois. L'arbitrage du 5 octobre 2026 avait
+    # etabli qu'elle n'entrait pas dans l'etat initial canonique, mais la decision
+    # d'alors precisait : « ELLE N'EST PAS SUPPRIMEE DE LA BASE DE PRODUCTION : seul
+    # le seed l'ecarte. » Le monde neuf naissait donc juste, et la base vivante restait
+    # fausse.
+    #
+    # L'arbitrage du 7 octobre 2026 a tranche le fond : le juge est un poste TERRITORIAL
+    # DE VILLE, et l'ancien juge national « n'est pas canonique et ne doit pas servir de
+    # fallback ». La migration 20261007010000_juge_territorial.sql l'a donc supprime de
+    # la base. L'exclusion n'a plus d'objet : la garder ferait attendre 14 lignes seedees
+    # pour 15 en base, et verifier-baseline.py le refuse -- c'est exactement comme cela
+    # qu'on a su qu'il fallait la retirer.
+    #
+    # Une exclusion qui survit a sa cible est une declaration qui mentit en silence.
+
     "entrepots_par_ville": {
         "ou": "ville not like 'zz%'",
         "pourquoi": "5 lignes en base, dont 2 de TEST : (zzville-a, entrepot-zztest-a) "
