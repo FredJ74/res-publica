@@ -27,7 +27,23 @@ commerce legitime (miroir fail-closed).
 import hashlib, json, os, subprocess, sys
 
 JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
-RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def _racine():
+    """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
+    comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
+    au chantier 2H : ils vivaient dans .scratch/, ou deux dirname suffisaient ;
+    passes dans outils/generateurs/, les deux memes dirname rendaient outils/, et
+    chacun cherchait outils/data.js. Aucun ne pouvait plus charger le jeu --
+    c'est pour cela que onze miroirs ont ete semes par copie de la base au
+    chantier 2E au lieu d'etre regeneres. Un repere ne se decale pas."""
+    d = os.path.dirname(os.path.abspath(__file__))
+    while d != os.path.dirname(d):
+        if os.path.exists(os.path.join(d, "data.js")):
+            return d
+        d = os.path.dirname(d)
+    raise SystemExit("racine du depot introuvable : aucun data.js en remontant")
+
+
+RACINE = _racine()
 
 EXTRACTEUR = r"""
 // Le fichier des commerces reference des symboles de data.js : on charge les deux dans le

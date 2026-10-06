@@ -545,10 +545,19 @@ def main():
             if m.group(1) not in tables_connues:
                 ecarts.append("%s : table inconnue « %s » dans la surface declaree"
                               % (court, m.group(1)))
-        # les signatures de fonction revoquees nommement
+        # Les fonctions designees nommement (REVOKE, GRANT, COMMENT ON).
+        #
+        # Une fonction que la migration CREE elle-meme n'est pas inconnue : elle
+        # n'existe pas encore en base, et c'est precisement le but du fichier.
+        # Cette regle existait deja pour les policies, deux blocs plus bas, mais
+        # pas pour les fonctions -- d'ou l'exception codee en dur « sauf
+        # acteur_identifie » qui a vecu ici depuis le chantier 3. Une exception
+        # qui nomme un objet est le symptome d'une regle manquante : on ecrit la
+        # regle, et l'exception s'en va.
+        creees = set(re.findall(r"CREATE OR REPLACE FUNCTION public\.([a-z_0-9]+)\(", texte))
         for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
             sig = "%s(%s)" % (m.group(1), m.group(2))
-            if sig not in signatures_connues and m.group(1) not in ("acteur_identifie",):
+            if sig not in signatures_connues and m.group(1) not in creees:
                 ecarts.append("%s : signature inconnue « %s »" % (court, sig))
         # les policies retirees nommement
         for m in re.finditer(r'DROP POLICY (?:IF EXISTS )?("[^"]+"|[A-Za-z_0-9]+) ON public\.([a-z_0-9]+)',

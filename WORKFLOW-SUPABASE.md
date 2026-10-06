@@ -81,7 +81,7 @@ trace d'application qui compte.
 python3 outils/baseline/requetes.py --controle-global     # imprime la requête
 python3 outils/baseline/rendre.py <répertoire_des_exports>
 python3 outils/baseline/seeds.py  --rendre <répertoire> <résultat>
-python3 outils/baseline/controler-tout.py                 # les 9 contrôles
+python3 outils/baseline/controler-tout.py                 # les 10 contrôles
 ```
 
 La migration **et** le baseline réextrait vont dans le **même commit**. Séparés,
@@ -127,7 +127,7 @@ jamais l'être : 162 des 184 dépendent d'une table qu'aucun d'eux ne crée.
 **Plus de baseline édité à la main.** Une correction passe par une migration,
 puis par une réextraction. Jamais par un `.sql` du baseline retouché.
 
-## Les neuf contrôles
+## Les dix contrôles
 
 Une seule commande les enchaîne :
 
@@ -140,6 +140,7 @@ python3 outils/baseline/controler-tout.py
 | `verifier-workflow.py` | les **huit invariants** du processus : rien à la racine, archives intactes, migrations bien nommées, outils à leur place |
 | `verifier-baseline.py` | la fidélité au catalogue, en quatre familles séparées |
 | `verifier-autorite.py` | les **treize invariants** d'autorité : qui peut écrire quoi depuis un navigateur, et par quelle porte |
+| `verifier-referentiels.py` | que le serveur dit la même chose que le jeu, sur ses **deux** copies : `data.js` confronté aux ressaisies de `api/` en chargeant le vrai code, et `data.js` confronté aux tables miroir par empreinte |
 | `verifier-monde-neuf.py` | ni donnée de bêta, ni vestige, dans les seeds |
 | `assembler.py` | les dépendances, à vide |
 | `reconstruire.py` | la grammaire réelle de PostgreSQL, et la simulation d'application |
