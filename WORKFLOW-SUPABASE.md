@@ -114,7 +114,7 @@ lieu de l'exécuter, et les douze pièges rencontrés — est dans
 | | |
 |---|---|
 | `outils/baseline/` | l'outillage du baseline : extraction, rendu, contrôles, reconstruction |
-| `outils/generateurs/` | les 8 générateurs des tables miroir de `data.js` — une table miroir se **régénère**, elle ne se recopie pas |
+| `outils/generateurs/` | les 9 générateurs : 8 pour les tables miroir de `data.js`, 1 pour le module serveur `api/_referentiels-generes.js` — un miroir se **régénère**, il ne se recopie pas |
 | `outils/` | les outils transverses (conversion WebP, vérifications ponctuelles) |
 | `historique/patchs-ponctuels/` | 342 correctifs à usage unique, archivés — ils ne sont pas des outils |
 
@@ -151,7 +151,7 @@ python3 outils/baseline/controler-tout.py
 | `verifier-workflow.py` | les **huit invariants** du processus : rien à la racine, archives intactes, migrations bien nommées, outils à leur place |
 | `verifier-baseline.py` | la fidélité au catalogue, en quatre familles séparées |
 | `verifier-autorite.py` | les **treize invariants** d'autorité : qui peut écrire quoi depuis un navigateur, et par quelle porte |
-| `verifier-referentiels.py` | que le serveur dit la même chose que le jeu, sur ses **deux** copies : `data.js` confronté aux ressaisies de `api/` en chargeant le vrai code, et `data.js` confronté aux tables miroir par empreinte |
+| `verifier-referentiels.py` | que le serveur dit la même chose que le jeu, sur ses **trois** chemins : `data.js` confronté aux ressaisies de `api/` en chargeant le vrai code, `data.js` confronté aux tables miroir par empreinte, et l'artefact serveur généré confronté à sa regénération |
 | `verifier-monde-neuf.py` | ni donnée de bêta, ni vestige, dans les seeds |
 | `assembler.py` | les dépendances, à vide |
 | `reconstruire.py` | la grammaire réelle de PostgreSQL, et la simulation d'application |
@@ -162,6 +162,31 @@ python3 outils/baseline/controler-tout.py
 Aucun n'accède à la base. Ils sont tous rejouables hors ligne, et c'est voulu :
 un contrôle qui a besoin de la production n'est pas un contrôle, c'est une
 dépendance.
+
+## Le serveur ne recopie plus les référentiels du jeu
+
+Le chantier 4B a ajouté une seconde règle. `api/*.js` ne peut pas importer
+`data.js` ni les modules `plateau-*.js` — ils n'ont pas d'`export`, et surtout
+ils mêlent données et comportement : `plateau-core.js` pose deux écouteurs dès
+son chargement. Les faire exécuter par le serverless serait un couplage faux.
+
+Les constantes dont le cron a besoin sont donc **générées**, jamais ressaisies :
+
+```
+python3 outils/generateurs/generer_referentiels_serveur.py            # vérifie
+python3 outils/generateurs/generer_referentiels_serveur.py --ecrire   # regénère
+```
+
+`api/_referentiels-generes.js` est un **artefact**. Une valeur corrigée là-bas
+serait perdue à la prochaine génération, après avoir fait diverger le serveur du
+jeu : on corrige dans la source canonique, puis on regénère. Le 10e contrôle
+rejoue la génération et refuse si le fichier du disque ne correspond plus.
+
+**Une copie serveur n'est remplacée que si son équivalence est prouvée.** Celles
+qui divergent de leur canon restent écrites à la main, et la divergence est
+déclarée dans `outils/generateurs/referentiels-serveur.json`. Régénérer une
+copie divergente trancherait un arbitrage de game design en le faisant passer
+pour de l'outillage.
 
 ## Écrire depuis le navigateur : une déclaration, pas un réflexe
 

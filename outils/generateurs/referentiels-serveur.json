@@ -1,0 +1,251 @@
+{
+  "_commentaire": "CE QUE LE SERVEUR A LE DROIT DE SAVOIR DU JEU, et d'ou il le tient -- chantier 4B, 6 octobre 2026.",
+  "_pourquoi": "api/*.js ne peut pas importer les fichiers du navigateur : data.js n'a ni export ni module.exports, il n'y a pas de package.json, et les modules plateau-*.js melangent donnees et comportement -- plateau-core.js enregistre des ecouteurs des son chargement. Les faire executer par le serveur serait un couplage faux. Chaque constante dont le cron a besoin etait donc RESSAISIE A LA MAIN, et le fichier le dit lui-meme : « ce module serverless ne peut pas importer les fichiers client ». Une ressaisie derive.",
+  "_doctrine": "SOURCE METIER CANONIQUE -> GENERATION CONTROLEE -> MODULE SERVEUR GENERE -> api/. Le module genere est un ARTEFACT TECHNIQUE : il ne devient jamais une seconde source de verite. C'est la doctrine que le depot applique deja a ses tables miroir (« un miroir se regenere, il ne se recopie pas »), transposee au serveur. La generation tourne HORS LIGNE, dans JavaScriptCore, sur la machine de developpement -- jamais dans le serverless.",
+  "_regle_de_remplacement": "Une copie serveur n'est remplacee par l'import genere QUE si son equivalence est PROUVEE : la valeur produite depuis le canon et la valeur actuellement ecrite a la main doivent rendre le MEME texte, par le meme rendu canonique. Si elles different, la copie reste en place et la divergence est declaree. Jamais l'inverse : on ne corrige pas une divergence en la regenerant, cela reviendrait a trancher un arbitrage de game design en le faisant passer pour de l'outillage.",
+  "_rendu_canonique": "Le rendu produit du JS, pas du JSON, et c'est une necessite mesuree. GREVE_PALIERS et GREVE_GENERALE_NIVEAUX contiennent Infinity, que JSON ne sait pas representer : un aller-retour JSON l'aurait rendu `null`, et `pop >= null` n'est pas `pop >= Infinity`. Les seuils de greve auraient change de comportement sans qu'une seule ligne de game design ait ete touchee. Le rendu refuse donc tout ce qu'il ne sait pas ecrire fidelement (fonction, undefined, NaN, Symbol) au lieu de l'approximer.",
+  "_ordre_des_champs": "Pour les projections, `champs` est ORDONNE, et son ordre est celui de la copie serveur actuelle, pas celui du canon. L'ordre des cles d'un objet JavaScript est observable (Object.keys, JSON.stringify) : le preserver garantit que l'artefact est identique a l'octet pres a ce que le serveur lisait hier.",
+  "formes": {
+    "valeur": "la valeur du canon, telle quelle",
+    "projection_objet": "{cle: {champs retenus}} -- le serveur n'a pas besoin des libelles ni des icones",
+    "projection_liste": "[{champs retenus}]",
+    "projection_objet_de_listes": "{cle: [{champs retenus}]}",
+    "index_par": "une liste du canon, indexee par `cle`, projetee sur `champs`"
+  },
+  "referentiels": [
+    {
+      "serveur": "GREVE_PALIERS_SERVEUR",
+      "canon": "GREVE_PALIERS",
+      "fichier": "data.js",
+      "forme": "valeur",
+      "_note": "contient Infinity sur le dernier palier -- voir _rendu_canonique"
+    },
+    {
+      "serveur": "GREVE_USURE_JOUR_DEBUT_SERVEUR",
+      "canon": "GREVE_USURE_JOUR_DEBUT",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "GREVE_USURE_INF_JOUR_SERVEUR",
+      "canon": "GREVE_USURE_INF_JOUR",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "GREVE_ACTIVITE_PLANCHER_SERVEUR",
+      "canon": "GREVE_ACTIVITE_PLANCHER",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "GREVE_SOCIAL_PLANCHER_SERVEUR",
+      "canon": "GREVE_SOCIAL_PLANCHER",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "GREVE_GENERALE_NIVEAUX_SERVEUR",
+      "canon": "GREVE_GENERALE_NIVEAUX",
+      "fichier": "data.js",
+      "forme": "valeur",
+      "_note": "contient Infinity"
+    },
+    {
+      "serveur": "GREVE_GENERALE_RETOURNEMENT_INF_JOUR_SERVEUR",
+      "canon": "GREVE_GENERALE_RETOURNEMENT_INF_JOUR",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "DELAI_DECISION_CANDIDATURE_MS_SERVEUR",
+      "canon": "DELAI_DECISION_CANDIDATURE_MS",
+      "fichier": "data.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "GREVE_ENTREPRISES_CIBLABLES_SERVEUR",
+      "canon": "GREVE_ENTREPRISES_CIBLABLES",
+      "fichier": "data.js",
+      "forme": "index_par",
+      "cle": "id",
+      "champs": [
+        "city",
+        "country"
+      ]
+    },
+    {
+      "serveur": "RESSOURCES_ECONOMIE_SERVEUR",
+      "canon": "RESSOURCES_ECONOMIE",
+      "fichier": "data.js",
+      "forme": "projection_objet",
+      "champs": [
+        "plafond",
+        "prixBase",
+        "prixAchatFournisseur",
+        "source"
+      ],
+      "_note": "le serveur n'a besoin ni de label ni de icon : 33 usages dans le cron, tous sur ces quatre champs",
+      "ordre_des_cles": [
+        "cereales",
+        "poisson",
+        "viande",
+        "bois",
+        "charbon",
+        "petrole",
+        "minerai",
+        "metal",
+        "plantes",
+        "textile",
+        "fruits_legumes",
+        "produits_exotiques",
+        "medicaments",
+        "alcool",
+        "tabac",
+        "carburant",
+        "desinfectant"
+      ],
+      "_ordre": "Ordre de la copie serveur actuelle, et NON celui de data.js : seul `textile` differe de place. Il est declare pour que l'equivalence soit litterale plutot que raisonnee -- cette constante sert d'espace d'indices dans un aller-retour avec la base (cron-minuit.js:2811). Si data.js gagne ou perd une ressource, la generation s'arrete et demande une decision."
+    },
+    {
+      "serveur": "CLUBS_SPORTIFS_SERVEUR",
+      "canon": "CLUBS_SPORTIFS",
+      "fichier": "data.js",
+      "forme": "projection_liste",
+      "champs": [
+        "id",
+        "country",
+        "city",
+        "nom"
+      ],
+      "_note": "le canon porte aussi identite, stadeBuilding, valeurBase, vedettes -- hors besoin du cron"
+    },
+    {
+      "serveur": "PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR",
+      "canon": "PERMIS_STATUT_LEGACY_ATTENTE",
+      "fichier": "plateau-immobilier.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "DUREE_MESURES_EXCEPTION_MS_SERVEUR",
+      "canon": "DUREE_MESURES_EXCEPTION_MS",
+      "fichier": "plateau-gouvernement.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "COUT_HORAIRE_TRAVAIL_SERVEUR",
+      "canon": "COUT_HORAIRE_TRAVAIL",
+      "fichier": "plateau-commerce.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "PA_PRODUCTION_ARMURERIE_SERVEUR",
+      "canon": "PA_PRODUCTION_ARMURERIE",
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "forme": "valeur"
+    },
+    {
+      "serveur": "ENTREPOTS_EFFORT_SERVEUR",
+      "canon": "ENTREPOTS_EFFORT",
+      "fichier": "plateau-effort-guerre.js",
+      "forme": "projection_objet_de_listes",
+      "champs": [
+        "building",
+        "city"
+      ]
+    },
+    {
+      "serveur": "CAISSE_PAR_POSTE_BUDGET_SERVEUR",
+      "canon": "CAISSE_PAR_POSTE_BUDGET",
+      "fichier": "plateau-justice-economie.js",
+      "forme": "valeur",
+      "lecture": "litteral",
+      "_lecture": "plateau-justice-economie.js ne se charge pas seul : il appelle coutTotalConstruction, definie dans plateau-chantiers.js. On n'extrait donc QUE le litteral de cette constante, et on l'evalue isole -- jamais le fichier entier."
+    },
+    {
+      "serveur": "REPARTITION_DEFAULT_SERVEUR",
+      "canon": "REPARTITION_DEFAULT",
+      "fichier": "plateau-core.js",
+      "forme": "valeur",
+      "lecture": "litteral",
+      "_lecture": "plateau-core.js touche `window` des son chargement (window.__rpDiagId, deux addEventListener). Le charger hors navigateur echoue, et le charger DANS le serveur serait exactement le couplage que ce chantier interdit. Seul le litteral est lu."
+    }
+  ],
+  "_non_generees": "Ce qui suit n'est PAS genere, et chaque cas dit pourquoi. Aucune de ces copies n'est supprimee.",
+  "non_generees": {
+    "POSTES_NOMMES_EXCLUSIFS_SERVEUR": {
+      "canon": "POSTES_NOMMES_EXCLUSIFS (data.js)",
+      "raison": "DIVERGENCE METIER DECLAREE. juge.scope vaut 'pays' au serveur contre 'ville' dans data.js, et autoriteScope n'est pas recopie. Les 16 autres postes sont identiques au caractere. Generer effacerait la divergence sans arbitrage.",
+      "ferme_par": "lot 4D"
+    },
+    "RECETTES_MILITAIRES_SERVEUR": {
+      "canon": "RECETTES_MILITAIRES (plateau-effort-guerre.js)",
+      "raison": "DIVERGENCE METIER DECLAREE. 3 produits sur 8 : les 5 accessoires du 18 septembre 2026 (gilet_pare_balles, jumelles, radio, tente, tenue_camouflage) n'ont jamais ete reportes cote serveur. La projection sur [label, materiaux, pa, produitParLot] concorde sur les 3 presents.",
+      "ferme_par": "lot 4D"
+    },
+    "NIVEAUX_CONSTRUCTION_SERVEUR": {
+      "canon": "NIVEAUX_CONSTRUCTION (plateau-justice-economie.js)",
+      "raison": "DIVERGENCE INEDITE, trouvee par ce chantier, et sur de l'argent : commerce_standard 50 000 au serveur contre 60 000 dans le jeu, commerce_premium 70 000 contre 90 000, building 100 000 contre 120 000. Seul hangar concorde (30 000). Le canon est CALCULE par coutTotalConstruction (plateau-chantiers.js) ; la copie serveur est figee. Elle n'est lue NULLE PART dans le cron : la divergence n'a aucun effet aujourd'hui, c'est un piege en attente d'un appelant.",
+      "ferme_par": "a arbitrer -- ni 4A ni 4C ne l'avaient vue"
+    },
+    "CHANTIER_SEUILS_SERVEUR": {
+      "raison": "aucun canon homonyme cote navigateur. Seuils propres au moteur de chantier serveur.",
+      "ferme_par": "chantier 7"
+    },
+    "TAUX_HORAIRE_SERVEUR": {
+      "raison": "aucun canon homonyme.",
+      "ferme_par": "chantier 7"
+    },
+    "ENTREPOTS_PAR_VILLE_SERVEUR": {
+      "raison": "aucun canon homonyme.",
+      "ferme_par": "chantier 7"
+    },
+    "SEQUENCE_METAL_SERVEUR": {
+      "raison": "aucun canon homonyme.",
+      "ferme_par": "chantier 7"
+    },
+    "MATERIAUX_SERVEUR": {
+      "raison": "aucun canon homonyme. La liste ['bois','minerai','metal'] est Object.keys(PRIX_REFERENCE_MATERIAUX) de plateau-chantiers.js, mais cette equivalence est une DEDUCTION, pas une source declaree : la deduire serait inventer un canon.",
+      "ferme_par": "chantier 7"
+    },
+    "GREVE_POSTES_GOUVERNEMENT_SERVEUR": {
+      "raison": "aucun canon homonyme.",
+      "ferme_par": "chantier 7"
+    },
+    "COUT_SOLDE_PAR_SOLDAT_SERVEUR": {
+      "raison": "le commentaire du code annonce « miroir de coutParSoldat (plateau-politique.js) ». CE SYMBOLE N'EXISTE PAS : verifie dans tout le depot. Le commentaire designe un canon disparu, ce qui est pire qu'une absence de commentaire.",
+      "ferme_par": "chantier 7"
+    },
+    "DUREE_MAX_EXCEPTION_MS_SERVEUR": {
+      "raison": "canon present (plateau-gouvernement.js) et valeur IDENTIQUE, mais la constante est MORTE : une seule occurrence, sa declaration. Rien ne la lit.",
+      "ferme_par": "suppression, chantier 7"
+    },
+    "DUREE_EFFORT_GUERRE_MS_SERVEUR": {
+      "raison": "idem : canon identique, constante morte.",
+      "ferme_par": "suppression, chantier 7"
+    },
+    "GREVE_GENERALE_ADHERENTS_MIN_SERVEUR": {
+      "raison": "idem : canon identique, constante morte.",
+      "ferme_par": "suppression, chantier 7"
+    },
+    "GREVE_VILLES_REPUBLIA_SERVEUR": {
+      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
+      "ferme_par": "arbitrage de game design"
+    },
+    "RECETTES_FISCALES_JOUR_SERVEUR": {
+      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
+      "ferme_par": "arbitrage de game design"
+    },
+    "VILLES_ARMURERIES_SERVEUR": {
+      "raison": "fige Republia comme monde entier -- voir _republia_monde_entier.",
+      "ferme_par": "arbitrage de game design"
+    }
+  },
+  "_republia_monde_entier": {
+    "_commentaire": "Trois constantes du cron ne connaissent qu'un seul empire. Elles ne sont PAS tranchees ici : leur consequence est du game design, pas de la technique. Elles sont laissees intactes et nommees pour que la question soit posee une fois, clairement.",
+    "GREVE_VILLES_REPUBLIA_SERVEUR": "['capitale','ville_a','ville_b'], parcourue en boucle a la ligne 2335. Consequence : une greve ne peut jamais se declencher ailleurs qu'en Republia.",
+    "RECETTES_FISCALES_JOUR_SERVEUR": "{ republic: {...} }, lue en RECETTES_FISCALES_JOUR_SERVEUR[pays] || {}. Consequence : les trois autres empires ne percoivent AUCUNE recette fiscale quotidienne.",
+    "VILLES_ARMURERIES_SERVEUR": "{ republic: [...] }, lue en VILLES_ARMURERIES_SERVEUR[pays] || []. Consequence : aucune production d'armurerie hors Republia.",
+    "_la_question": "Les trois autres empires sont-ils censes avoir une fiscalite, des greves et une production militaire nocturnes ? Si oui, ces trois constantes sont des bugs et le canon doit devenir per-empire. Si non, elles sont justes et doivent le DIRE au lieu de le laisser deviner."
+  }
+}

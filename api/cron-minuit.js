@@ -14,6 +14,44 @@ import { genererToutesLesEditions } from './_journal-generation.js';
 // mort visible la ou Fred regarde deja -- voir la section 0 quater.
 import { appelDeepSeek, cleConfiguree, classerEchecFournisseur } from './_deepseek.js';
 
+// REFERENTIELS DU JEU -- IMPORTES, PLUS RECOPIES (chantier 4B, 6 octobre 2026).
+//
+// Ces dix-huit constantes etaient ressaisies a la main dans ce fichier, sous un nom
+// en _SERVEUR, parce que ce module serverless ne peut pas importer les fichiers du
+// navigateur. Elles sont desormais GENEREES depuis leurs sources canoniques par
+// outils/generateurs/generer_referentiels_serveur.py, qui ne les emet que lorsqu il
+// a PROUVE que la valeur produite depuis le canon est identique, au texte pres, a
+// celle qui etait ecrite ici. Les noms sont inchanges : aucun site d appel ne bouge.
+//
+// Le module importe est un ARTEFACT GENERE. Ne jamais l editer : une valeur corrigee
+// la-bas serait perdue a la prochaine generation, apres avoir fait diverger le
+// serveur du jeu. Pour changer une valeur, la changer dans sa source canonique et
+// rejouer le generateur.
+//
+// Les copies qui NE SONT PAS ici sont restees a la main plus bas, chacune pour une
+// raison declaree dans outils/generateurs/referentiels-serveur.json : une divergence
+// metier en attente d arbitrage, ou l absence de canon.
+import {
+  GREVE_PALIERS_SERVEUR,
+  GREVE_USURE_JOUR_DEBUT_SERVEUR,
+  GREVE_USURE_INF_JOUR_SERVEUR,
+  GREVE_ACTIVITE_PLANCHER_SERVEUR,
+  GREVE_SOCIAL_PLANCHER_SERVEUR,
+  GREVE_GENERALE_NIVEAUX_SERVEUR,
+  GREVE_GENERALE_RETOURNEMENT_INF_JOUR_SERVEUR,
+  DELAI_DECISION_CANDIDATURE_MS_SERVEUR,
+  GREVE_ENTREPRISES_CIBLABLES_SERVEUR,
+  RESSOURCES_ECONOMIE_SERVEUR,
+  CLUBS_SPORTIFS_SERVEUR,
+  PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR,
+  DUREE_MESURES_EXCEPTION_MS_SERVEUR,
+  COUT_HORAIRE_TRAVAIL_SERVEUR,
+  PA_PRODUCTION_ARMURERIE_SERVEUR,
+  ENTREPOTS_EFFORT_SERVEUR,
+  CAISSE_PAR_POSTE_BUDGET_SERVEUR,
+  REPARTITION_DEFAULT_SERVEUR,
+} from './_referentiels-generes.js';
+
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 
@@ -1244,7 +1282,8 @@ const ALEAS_CHANTIER = [
 // DUPLICATION ASSUMEE ET VERROUILLEE PAR TEST : ce fichier est un module serverless isole, il ne
 // peut pas charger plateau-chantiers.js (script classique du navigateur). Les quelques formules
 // necessaires sont donc reecrites ici -- meme convention que sbGet/sbInsert, deja dupliques. Un
-// test compare les DEUX implementations sur les memes entrees et echoue a la moindre divergence.
+// test compare les DEUX implementations sur les memes entrees -- SAUF QUE CE TEST N'EXISTE PAS :
+// verifie dans tout le depot le 6 octobre 2026. L'affirmation est restee ici sans son objet.
 const CHANTIER_SEUILS_SERVEUR = { demarrage: 35, premierTiers: 70, deuxTiers: 100 };
 
 function progressionMaxFinanceeServeur(totalVerse, dureeJours, coutTotal) {
@@ -1261,7 +1300,10 @@ function progressionMaxFinanceeServeur(totalVerse, dureeJours, coutTotal) {
 // en l'absence de ces sous-systemes, la capacite du jour est reputee complete. Isolee ici, comme
 // capaciteProvisoireCompleteLot157 cote client.
 // TRAVAIL REEL (Lot 1.5.9). Memes formules que plateau-chantiers.js, dupliquees ici pour la meme
-// raison que les materiaux, et verrouillees par le meme test d'egalite.
+// raison que les materiaux.
+// AUCUN TEST NE LE VERIFIE AUJOURD'HUI -- constate le 6 octobre 2026 : le test annonce
+// n'existe nulle part dans le depot. La duplication de FONCTIONS est inventoriee et
+// reportee au chantier 7 ; le 4B n'a traite que les donnees.
 const TAUX_HORAIRE_SERVEUR = 70;
 
 function capaciteHeuresJourServeur(ch) {
@@ -1337,7 +1379,10 @@ function besoinMateriauxJourServeur(ch, jourNumero) {
 
 // La matiere la plus manquante commande. Un besoin nul n'est pas une contrainte.
 // Miroir serveur de planifierApprovisionnement (plateau-chantiers.js) -- meme raison que les
-// autres duplications du cron, et meme verrou : un test compare les deux sur les memes entrees.
+// autres duplications du cron.
+// AUCUN TEST NE LE VERIFIE AUJOURD'HUI -- constate le 6 octobre 2026 : le test annonce
+// n'existe nulle part dans le depot. La duplication de FONCTIONS est inventoriee et
+// reportee au chantier 7 ; le 4B n'a traite que les donnees.
 function planifierApprovisionnementServeur(besoin, stockChantier, stockEntrepot, tresorerie) {
   const achats = {}, nouveauChantier = {}, nouvelEntrepot = { ...(stockEntrepot || {}) };
   let depense = 0;
@@ -1380,9 +1425,10 @@ function fractionMateriauxServeur(stock, besoin) {
 // dossier dont le proprietaire ne se connecte pas n'aboutirait jamais. Le passage quotidien est la
 // seule horloge commune.
 //
-// Miroirs des fonctions pures de plateau-immobilier.js, dupliques pour la meme raison que tous les
-// autres miroirs de ce fichier -- module serverless isole -- et verrouilles par test d'egalite.
-const PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR = 'attente_validation';
+// Les FONCTIONS pures ci-dessous restent recopiees de plateau-immobilier.js : le chantier 4B
+// n'a traite que les donnees. Leur deduplication demande de separer donnees et comportement
+// dans les fichiers du navigateur, et c'est un chantier a part. La CONSTANTE qu'elles lisent,
+// PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR, est elle importee du module genere.
 
 function permisEnInstructionServeur(p) {
   const s = p && p.statut;
@@ -1577,8 +1623,10 @@ async function traiterInstructionsPermis() {
 
 // VERROU DU PLAN ET LIVRAISON (Lots 1.5.11 / 1.5.12). Memes formules que plateau-chantiers.js,
 // dupliquees ici pour la meme raison que les materiaux et le travail -- le cron est un module
-// serverless isole qui ne peut pas charger un script de navigateur -- et verrouillees par le meme
-// test d'egalite, qui compare les deux implementations sur les memes entrees.
+// serverless isole qui ne peut pas charger un script de navigateur.
+// AUCUN TEST NE LE VERIFIE AUJOURD'HUI -- constate le 6 octobre 2026 : le test annonce
+// n'existe nulle part dans le depot. La duplication de FONCTIONS est inventoriee et
+// reportee au chantier 7 ; le 4B n'a traite que les donnees.
 function seuilDeuxTiersServeur(dureeJours) {
   return Math.max(0, Number(dureeJours) || 0) * 2 / 3;
 }
@@ -2239,43 +2287,21 @@ async function appliquerEffetsBlocusActifs() {
 // 3 septembre 2026). Duplique cote serveur (contexte isole, memes constantes que data.js/
 // plateau-organisations-quetes.js -- aucun acces possible aux fichiers client depuis ce cron).
 // =====================
-const GREVE_PALIERS_SERVEUR = [
-  { min: 5,   max: 24,       pop: 10, social: 1, entrepriseReduction: 0.10, orgaInf: 1 },
-  { min: 25,  max: 49,       pop: 20, social: 1, entrepriseReduction: 0.20, orgaInf: 2 },
-  { min: 50,  max: 74,       pop: 30, social: 1, entrepriseReduction: 0.30, orgaInf: 3 },
-  { min: 75,  max: 99,       pop: 40, social: 1, entrepriseReduction: 0.40, orgaInf: 4 },
-  { min: 100, max: Infinity, pop: 50, social: 1, entrepriseReduction: 0.50, orgaInf: 5 },
-];
 function palierGreveOrdinaireServeur(nbMembres) {
   return GREVE_PALIERS_SERVEUR.find(p => nbMembres >= p.min && nbMembres <= p.max) || GREVE_PALIERS_SERVEUR[0];
 }
-const GREVE_USURE_JOUR_DEBUT_SERVEUR = 15;
-const GREVE_USURE_INF_JOUR_SERVEUR = 2;
-const GREVE_ACTIVITE_PLANCHER_SERVEUR = 0.40;
-const GREVE_SOCIAL_PLANCHER_SERVEUR = -10;
-// Entreprises reellement ciblables (voir GREVE_ENTREPRISES_CIBLABLES, data.js -- restreint aux 3
-// transformateurs de Republia pour cette premiere version, entrepots/port hors perimetre).
-const GREVE_ENTREPRISES_CIBLABLES_SERVEUR = {
-  'usine-pharmaceutique-luthecia': { city: 'capitale', country: 'republic' },
-  'pole-tabac-alcools-psm':        { city: 'ville_a',  country: 'republic' },
-  'raffinerie-montrouge':          { city: 'ville_b',  country: 'republic' },
-};
+// GREVE_ENTREPRISES_CIBLABLES_SERVEUR est importee du module genere : data.js la restreint
+// aux 3 transformateurs de Republia pour cette premiere version (entrepots et port hors
+// perimetre), et c'est data.js qui en decide desormais, pas une copie locale.
+//
 // PM + 6 ministeres, jamais le President (meme convention que RUMEUR_POSTES_GOUVERNEMENT,
 // plateau-pnj.js -- "immunite totale deja geree ailleurs, hors perimetre ici").
 const GREVE_POSTES_GOUVERNEMENT_SERVEUR = ['pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
 
-const GREVE_GENERALE_NIVEAUX_SERVEUR = [
-  { min: 100, max: 199,      niveau: 1, gouvernementPop: 2,  autresElusPop: 1, social: 1, economieReduction: 0.10, retournementJour: 11 },
-  { min: 200, max: 299,      niveau: 2, gouvernementPop: 4,  autresElusPop: 2, social: 1, economieReduction: 0.20, retournementJour: 9  },
-  { min: 300, max: 399,      niveau: 3, gouvernementPop: 6,  autresElusPop: 3, social: 1, economieReduction: 0.30, retournementJour: 7  },
-  { min: 400, max: 499,      niveau: 4, gouvernementPop: 8,  autresElusPop: 4, social: 2, economieReduction: 0.40, retournementJour: 6  },
-  { min: 500, max: Infinity, niveau: 5, gouvernementPop: 10, autresElusPop: 5, social: 2, economieReduction: 0.50, retournementJour: 5  },
-];
 function niveauGreveGeneraleServeur(niveau) {
   return GREVE_GENERALE_NIVEAUX_SERVEUR.find(n => n.niveau === niveau) || GREVE_GENERALE_NIVEAUX_SERVEUR[0];
 }
 const GREVE_GENERALE_ADHERENTS_MIN_SERVEUR = 100;
-const GREVE_GENERALE_RETOURNEMENT_INF_JOUR_SERVEUR = 5;
 const GREVE_VILLES_REPUBLIA_SERVEUR = ['capitale', 'ville_a', 'ville_b'];
 
 // organisations.data est un TEXT column (JSON.stringify), duplique de sbLoadOrganisations/
@@ -2475,43 +2501,17 @@ async function appliquerEffetsGreveGenerale() {
   return resultats;
 }
 
-// Table dupliquee cote serveur (voir RESSOURCES_ECONOMIE, data.js — si modifiee cote
-// client, repercuter ici aussi).
-// prixBase ajoute a toute la table (30 aout 2026, lot achat inter-usines) -- miroir exact de
-// RESSOURCES_ECONOMIE.<cle>.prixBase, data.js. Necessaire pour calculer server-side le prix de
-// vente directe d'une usine (getPrixRessourceServeur ci-dessous, meme formule que
-// getPrixRessource() cote client, data.js). ATTENTION point verifie avant d'ecrire ceci :
-// api/_journal-collecte.js possede DEJA une table RESSOURCES_ECONOMIE + getPrixRessource, mais
-// son champ 'prixBase' contient en realite prixAchatFournisseur (donc la moitie de la vraie
-// valeur pour toutes les entrees, verifie une a une contre data.js) -- non reutilisee ici pour
-// cette raison, valeurs reprises directement et correctement depuis data.js.
-const RESSOURCES_ECONOMIE_SERVEUR = {
-  cereales:     { plafond: 150, prixBase: 3,  prixAchatFournisseur: 1.5, source: 'livraison' },
-  poisson:      { plafond: 125, prixBase: 4,  prixAchatFournisseur: 2,   source: 'livraison' },
-  viande:       { plafond: 125, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
-  bois:         { plafond: 750, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
-  charbon:      { plafond: 400, prixBase: 7,  prixAchatFournisseur: 3.5, source: 'livraison' }, // valeurs miroir de RESSOURCES_ECONOMIE.charbon, data.js (17 aout 2026)
-  petrole:      { plafond: 200, prixBase: 8,  prixAchatFournisseur: 4,   source: 'livraison' },
-  minerai:      { plafond: 500, prixBase: 10, prixAchatFournisseur: 5,   source: 'livraison' },
-  metal:        { plafond: 200, prixBase: 15, prixAchatFournisseur: 7.5, source: 'livraison' },
-  plantes:      { plafond: 300, prixBase: 6,  prixAchatFournisseur: 3,   source: 'livraison' },
-  // Textile (correctif dedie, 30 aout 2026) : omission corrigee -- RESSOURCES_ECONOMIE.textile
-  // (data.js) existe cote client avec source:'livraison' depuis un certain temps, mais n'avait
-  // jamais ete reporte dans ce miroir serveur, rendant sa livraison structurellement impossible
-  // (audit dedie). Valeurs miroir exactes de RESSOURCES_ECONOMIE.textile (plafond:125,
-  // prixAchatFournisseur:2.5) -- aucune configuration inventee.
-  textile:      { plafond: 125, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
-  // Lot boissons (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.fruits_legumes/
-  // produits_exotiques, data.js.
-  fruits_legumes:     { plafond: 150, prixBase: 4, prixAchatFournisseur: 2, source: 'livraison' },
-  produits_exotiques: { plafond: 125, prixBase: 6, prixAchatFournisseur: 3, source: 'livraison' },
-  medicaments:  { plafond: 100, prixBase: 22, prixAchatFournisseur: 11,  source: 'transformation' },
-  alcool:       { plafond: 100, prixBase: 14, prixAchatFournisseur: 7,   source: 'transformation' },
-  tabac:        { plafond: 100, prixBase: 18, prixAchatFournisseur: 9,   source: 'transformation' },
-  carburant:    { plafond: 100, prixBase: 20, prixAchatFournisseur: 10,  source: 'transformation' },
-  // Filiere alcool->desinfectant (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.desinfectant, data.js.
-  desinfectant: { plafond: 100, prixBase: 18, prixAchatFournisseur: 9,   source: 'transformation' }
-};
+// RESSOURCES_ECONOMIE_SERVEUR n'est plus recopiee ici : elle est GENEREE depuis
+// RESSOURCES_ECONOMIE (data.js), projetee sur les quatre champs dont ce fichier se sert
+// (plafond, prixBase, prixAchatFournisseur, source). Il n'y a donc plus rien a repercuter
+// a la main quand data.js change -- il faut rejouer le generateur.
+//
+// ATTENTION, LE PIEGE EST AILLEURS ET IL EST TOUJOURS LA : api/_journal-collecte.js possede
+// SA PROPRE table RESSOURCES_ECONOMIE, dont le champ 'prixBase' contient en realite
+// prixAchatFournisseur -- la moitie de la vraie valeur, sur toutes les entrees, et textile
+// manquant. Elle n'est pas reutilisee ici pour cette raison, et elle n'a PAS ete corrigee :
+// c'est une divergence metier declaree (outils/baseline/referentiels.json), fermee par un
+// lot a part, parce que la corriger doublerait des prix publies depuis des semaines.
 
 // Prix de vente directe d'une usine, cote serveur -- MEME FORMULE que getPrixRessource() (client,
 // data.js:6741) : stock eleve = prix bas, stock faible = prix haut, +/-40% autour de prixBase a
@@ -3739,29 +3739,21 @@ async function tacheQuotidienne(nom, fn) {
 // POSTES_NOMMES_EXCLUSIFS_SERVEUR. Chaque constante ci-dessous porte le chemin de son original.
 //
 // PARITE. Les regles, montants, destinations et conditions sont ceux du client, a la ligne pres.
-// Toute divergence future doit etre detectable : les tests du lot comparent les deux
-// implementations sur les memes fixtures.
+// Les « tests du lot » annonces ici N'EXISTENT PAS : verifie dans tout le depot le 6 octobre
+// 2026. Rien ne detecte aujourd'hui une divergence entre ces implementations et le client.
 //
 // IDEMPOTENCE. Les trois partagent le marqueur du client -- meme champ, meme cle de journee
 // (jourCourantISO() === jourPartageISO()). Le second passage, quel qu'il soit, est sans effet :
 // client puis cron, cron puis client, cron rejoue, deux clients puis cron.
 
-// Miroir de CAISSE_PAR_POSTE_BUDGET (plateau-justice-economie.js).
-const CAISSE_PAR_POSTE_BUDGET_SERVEUR = {
-  presidence: 'palais-presidentiel', pm: 'gouvernement-pm',
-  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
-  mairie: 'mairie-capitale', commissariat: 'commissariat_capitale', tribunal: 'tribunal_capitale',
-  assemblee: 'assemblee', reserve: 'reserve-nationale'
-};
-
-// Miroir de REPARTITION_DEFAULT (plateau-core.js). Repli seulement : la repartition reellement
-// appliquee est celle fixee par le Ministre des Finances, lue dans budgets_nationaux.
-const REPARTITION_DEFAULT_SERVEUR = {
-  presidence: 15, pm: 8, min_int: 8, min_fin: 6, min_just: 6,
-  min_def: 10, min_info: 5, min_ae: 6,
-  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 2
-};
+// CAISSE_PAR_POSTE_BUDGET_SERVEUR et REPARTITION_DEFAULT_SERVEUR sont importees du module
+// genere, depuis plateau-justice-economie.js et plateau-core.js. Aucun des deux fichiers n'est
+// charge par le serveur : le generateur n'en extrait que le litteral de la constante, et
+// n'execute jamais le comportement qui l'entoure -- plateau-core.js pose deux ecouteurs et
+// ecrit dans window des son chargement.
+//
+// REPARTITION_DEFAULT_SERVEUR reste un REPLI : la repartition reellement appliquee est celle
+// fixee par le Ministre des Finances, lue dans budgets_nationaux.
 
 // Miroir des recettes fiscales quotidiennes de CITY_POPULATION (data.js). La version client est
 // mutee en RAM par mettreAJourPopulation() sans jamais etre persistee : les valeurs de base sont
@@ -3989,10 +3981,10 @@ async function traiterExpulsionsAmbassadeursServeur(pays) {
 // qui regarde le drapeau plutot que l'echeance (un panneau d'etat, un futur ecran de Conseil)
 // afficherait un regime d'exception perpetuel sur un pays qui n'en subit plus rien.
 //
-// DUPLICATION CONTROLEE : le cron est un module serverless, il ne peut pas importer les fichiers
-// client. Les deux constantes sont donc recopiees explicitement, comme RESSOURCES_ECONOMIE_SERVEUR
-// et COUT_SOLDE_PAR_SOLDAT_SERVEUR -- et verrouillees par un test d'egalite avec la source client.
-const DUREE_MESURES_EXCEPTION_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;   // 3 jours REELS
+// DUREE_MESURES_EXCEPTION_MS_SERVEUR (3 jours reels) est desormais IMPORTEE du module
+// genere, depuis plateau-gouvernement.js. DUREE_MAX_EXCEPTION_MS_SERVEUR reste ici : son
+// canon porte la meme valeur, mais la constante est MORTE -- rien ne la lit dans ce
+// fichier. La supprimer est un nettoyage a part entiere, pas un effet de bord du 4B.
 const DUREE_MAX_EXCEPTION_MS_SERVEUR = 9 * 24 * 60 * 60 * 1000;       // 3 + 3 + 3, plafond absolu
 
 // Echeance effective = MINIMUM de l'echeance courante et du plafond absolu. Copie conforme de
@@ -4052,21 +4044,16 @@ async function traiterQuotidienNationalServeur(pays) {
 // ============================================================================
 // EFFORT DE GUERRE (13 septembre 2026) — TACHE NOCTURNE
 // ============================================================================
-// DUPLICATIONS CONTROLEES. Le cron est serverless et ne peut pas importer les fichiers client :
-// les constantes ci-dessous sont recopiees de plateau-effort-guerre.js et plateau-gouvernement.js,
-// selon la convention deja suivie par RESSOURCES_ECONOMIE_SERVEUR et DUREE_MESURES_EXCEPTION_MS_SERVEUR.
-// Toute modification d'un cote doit etre reportee de l'autre.
+// CE QUI RESTE RECOPIE ICI, ET POURQUOI (chantier 4B).
+// ENTREPOTS_EFFORT_SERVEUR, COUT_HORAIRE_TRAVAIL_SERVEUR et PA_PRODUCTION_ARMURERIE_SERVEUR
+// sont desormais importes du module genere. Les trois constantes ci-dessous ne le sont pas :
+//   DUREE_EFFORT_GUERRE_MS_SERVEUR  canon identique, mais constante MORTE (rien ne la lit) ;
+//   VILLES_ARMURERIES_SERVEUR       ne connait que Republia -- arbitrage de game design ouvert ;
+//   RECETTES_MILITAIRES_SERVEUR     DIVERGENCE declaree : 3 produits sur 8, les 5 accessoires
+//                                   du 18 septembre 2026 n'ont jamais ete reportes ici.
+// Les raisons sont tenues a jour dans outils/generateurs/referentiels-serveur.json.
 const DUREE_EFFORT_GUERRE_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;
-const ENTREPOTS_EFFORT_SERVEUR = {
-  republic: [
-    { building: 'entrepot-logistique-luthecia',  city: 'capitale' },
-    { building: 'entrepot-logistique-psm',       city: 'ville_a'  },
-    { building: 'entrepot-logistique-montrouge', city: 'ville_b'  }
-  ]
-};
 const VILLES_ARMURERIES_SERVEUR = { republic: ['capitale', 'ville_a', 'ville_b'] };
-const COUT_HORAIRE_TRAVAIL_SERVEUR = 50;   // 1 PA = 50 FR (plateau-commerce.js)
-const PA_PRODUCTION_ARMURERIE_SERVEUR = 2; // forfait reel de toute production d'armurerie
 const RECETTES_MILITAIRES_SERVEUR = {
   arme_de_poing:      { label: 'Pistolet militaire',   materiaux: { metal: 2, bois: 1 },    produitParLot: 1 },
   mitraillette:       { label: 'Mitraillette',         materiaux: { metal: 2, bois: 2 },    produitParLot: 1 },
@@ -4477,28 +4464,12 @@ async function libererMiroirSubdivision(country, buildingId, lotId) {
 const COTISATION_MONTANT = 50;
 const COTISATION_SYNDICAT_MOIS = 3;
 const ID_SYNDICAT_DOCKERS_PSM = 'orga_syndicat_dockers_republic_ville_a';
-// Duplique minimal de CLUBS_SPORTIFS (data.js) -- country/city/id necessaires pour retrouver la
-// caisse du club (budgets_clubs) associee a un club de supporters local ; nom ajoute (lot du 25
-// aout 2026, licences saisonnieres) pour les messages de Journal envoyes par
-// traiterLicencesSportivesSaison ci-dessous -- aucun impact sur les usages existants (country/
-// city/id inchanges).
-const CLUBS_SPORTIFS_SERVEUR = [
-  { id:'olympique-luthecia',    country:'republic', city:'capitale', nom:'Olympique de Luthécia' },
-  { id:'brise-mariannaise',     country:'republic', city:'ville_a',  nom:'La Brise Mariannaise' },
-  { id:'cheminote-montrouge',   country:'republic', city:'ville_b',  nom:'Union Cheminote de Montrouge' },
-  // Noms alignes sur CLUBS_SPORTIFS (data.js), source canonique, le 5 septembre 2026 -- ils
-  // partent en clair dans les mails de licences sportives (traiterLicencesSportivesSaison).
-  // IDs techniques inchanges (cles de budgets_clubs, licences, transferts).
-  { id:'rojos-cartel',          country:'narco',    city:'capitale', nom:'Estudiantes de la Ciudad' },
-  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a',  nom:'Atlético Puerto Negro' },
-  { id:'jaguares-selva',        country:'narco',    city:'ville_b',  nom:'Independiente de Villa Sangre' },
-  { id:'dynamo-novomirsk',      country:'soviet',   city:'capitale', nom:'Dynamo Novomirsk' },
-  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a',  nom:'Partizan de Starovka' },
-  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b',  nom:'Étoile Rouge de Krasnov' },
-  { id:'nadi-al-madina',        country:'khalija',  city:'capitale', nom:'Shabab Al Madina' },
-  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a',  nom:'Oasis City FC' },
-  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b',  nom:'Al-Petrol United FC' }
-];
+// CLUBS_SPORTIFS_SERVEUR est importee du module genere : une projection de CLUBS_SPORTIFS
+// (data.js) sur id/country/city/nom. id, country et city servent a retrouver la caisse du club
+// (budgets_clubs) associee a un club de supporters local ; nom part en clair dans les messages
+// de Journal de traiterLicencesSportivesSaison, et c'est pour cela qu'il doit venir de data.js
+// plutot que d'une copie -- le 5 septembre 2026, une copie perimee a publie des noms de clubs
+// qui n'existaient plus.
 
 // Ligne canonique du championnat -- doit rester synchronisee avec CHAMPIONNAT_ROW_ID
 // (supabase.js). Deplacee de id=1 vers id=2 le 5 septembre 2026, voir supabase.js.
@@ -4859,8 +4830,6 @@ const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
   chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] },
   capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
 };
-
-const DELAI_DECISION_CANDIDATURE_MS_SERVEUR = 48 * 3600 * 1000;
 
 // Resout le titulaire ACTUEL d'un poste nomme cote serveur (PJ d'abord via personnages.poste,
 // PNJ en repli via titulaires_pnj) -- equivalent serveur de getTitulaireActuel (plateau-

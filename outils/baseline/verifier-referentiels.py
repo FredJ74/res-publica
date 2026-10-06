@@ -124,7 +124,12 @@ def litteral_de(chemin, constante):
     delimiteurs -- sans cela, une accolade dans un libelle (« Journee 4 {...} »)
     ou dans un commentaire fermerait le litteral trop tot."""
     src = open(chemin, encoding="utf-8", errors="replace").read()
-    m = re.search(r"(?:^|\n)\s*(?:const|let|var)\s+%s\s*=\s*" % re.escape(constante), src)
+    # `export const` compte : depuis le chantier 4B, cinq de ces constantes vivent
+    # dans un module ESM genere (api/_referentiels-generes.js) et sont exportees.
+    # Sans le prefixe optionnel, le controle les declarait introuvables et se
+    # disait aveugle -- ce qu'il a effectivement fait le jour du basculement.
+    m = re.search(r"(?:^|\n)\s*(?:export\s+)?(?:const|let|var)\s+%s\s*=\s*"
+                  % re.escape(constante), src)
     if not m:
         return None
     i = m.end()
@@ -378,6 +383,89 @@ def axe_empreintes(decl, echecs):
                 print("    %-22s %s  (rien ne la confronte en base)" % (nom, calculee))
 
 
+def axe_artefact(echecs):
+    """TROISIEME AXE : l'artefact genere dit-il encore ce que disent les sources ?
+
+    api/_referentiels-generes.js porte dix-huit constantes que api/cron-minuit.js
+    recopiait a la main. Un artefact genere ne vaut que si personne ne peut le
+    retoucher sans que cela se voie : une valeur « corrigee » a la main y
+    survivrait jusqu'a la prochaine generation, apres avoir fait diverger le
+    serveur du jeu -- exactement la panne que le chantier 4B existe pour fermer.
+
+    On rejoue donc la generation EN MEMOIRE et on compare au fichier du disque.
+    Trois refus :
+      . l'artefact du disque ne correspond plus a ce que rendent les sources
+      . une constante declaree n'est plus prouvee equivalente a son canon
+      . cron-minuit.js importe un nom que l'artefact n'exporte pas, ou redeclare
+        localement un nom importe -- la redeclaration masquerait l'import en
+        silence et rendrait l'artefact decoratif.
+    """
+    import importlib.util
+    chemin = os.path.join(RACINE, "outils", "generateurs",
+                          "generer_referentiels_serveur.py")
+    if not os.path.exists(chemin):
+        echecs.append("artefact : generateur introuvable -- %s" % chemin)
+        return
+    spec = importlib.util.spec_from_file_location("generer_referentiels_serveur", chemin)
+    gen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gen)
+
+    print("\n" + "-" * 74)
+    print("TROISIEME AXE : l'artefact serveur genere")
+
+    moteur = gen.jsc()
+    if not moteur:
+        echecs.append("artefact : JavaScriptCore introuvable, generation non rejouable")
+        print("  JavaScriptCore introuvable : l'artefact ne peut pas etre reverifie.")
+        return
+
+    attendu, rapport, non_prouvees = gen.construire(moteur)
+    if non_prouvees:
+        for nom, _f, etat, note in rapport:
+            if etat != "PROUVE":
+                echecs.append("artefact/%s : %s -- %s" % (nom, etat, note))
+        print("  %d constante(s) ne sont plus prouvees equivalentes a leur canon"
+              % non_prouvees)
+        return
+
+    if not os.path.exists(gen.ARTEFACT):
+        echecs.append("artefact : %s est absent alors que cron-minuit.js l'importe"
+                      % os.path.relpath(gen.ARTEFACT, RACINE))
+        print("  artefact ABSENT")
+        return
+
+    sur_disque = open(gen.ARTEFACT, encoding="utf-8").read()
+    if sur_disque != attendu:
+        echecs.append("artefact : %s ne correspond plus a ce que rendent les sources "
+                      "canoniques. Soit il a ete modifie a la main -- ce qui est interdit, "
+                      "il est genere -- soit une source a bouge sans que le generateur soit "
+                      "rejoue : python3 outils/generateurs/generer_referentiels_serveur.py "
+                      "--ecrire" % os.path.relpath(gen.ARTEFACT, RACINE))
+        print("  MODIFIE A LA MAIN OU PERIME")
+        return
+
+    exportes = set(re.findall(r"^export const ([A-Za-z_0-9]+)", sur_disque, re.M))
+    cron = open(os.path.join(RACINE, "api", "cron-minuit.js"), encoding="utf-8").read()
+    m = re.search(r"import\s*\{([^}]*)\}\s*from\s*'\./_referentiels-generes\.js'", cron)
+    importes = set()
+    if m:
+        importes = {x.strip() for x in m.group(1).split(",") if x.strip()}
+    inconnus = sorted(importes - exportes)
+    for n in inconnus:
+        echecs.append("artefact : cron-minuit.js importe « %s », que l'artefact n'exporte pas" % n)
+    redeclares = sorted(n for n in importes
+                        if re.search(r"^const %s\s*=" % re.escape(n), cron, re.M))
+    for n in redeclares:
+        echecs.append("artefact : cron-minuit.js redeclare « %s » localement alors qu'il "
+                      "l'importe -- la copie masquerait l'artefact" % n)
+
+    print("  %d constantes generees, %d importees par cron-minuit.js" % (len(exportes), len(importes)))
+    print("  regeneration identique au fichier du disque  (empreinte %s)"
+          % __import__("hashlib").md5(attendu.encode("utf-8")).hexdigest()[:16])
+    if not inconnus and not redeclares:
+        print("  tous les noms importes sont exportes, aucun n'est redeclare localement")
+
+
 def main():
     detail = "--detail" in sys.argv
     decl = json.load(open(DECLARATION, encoding="utf-8"))
@@ -446,6 +534,7 @@ def main():
 
     echecs_empreintes = []
     axe_empreintes(decl, echecs_empreintes)
+    axe_artefact(echecs_empreintes)
 
     print("\n" + "=" * 74)
     if echecs_empreintes:

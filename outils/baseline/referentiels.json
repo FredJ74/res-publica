@@ -1,107 +1,177 @@
 {
   "_commentaire": "LES REFERENTIELS RECOPIES A LA MAIN -- chantier 4C, 6 octobre 2026. Ce fichier declare, referentiel par referentiel, quelle constante de data.js (ou d'un module du navigateur) fait foi, et ou le serveur en detient une copie. verifier-referentiels.py charge les deux cotes pour de vrai et les compare champ par champ.",
-
   "_pourquoi_ce_controle_existe": "Le mecanisme des tables *_empreinte surveille data.js contre la BASE. Il ne regarde jamais data.js contre api/. Or c'est precisement la que vivent les divergences les plus couteuses, parce que api/*.js ne peut PAS importer data.js : il n'a ni export ni module.exports, et il n'y a pas de package.json. Chaque constante dont le serveur a besoin est donc ressaisie, et le depot le dit lui-meme a chaque fois (« ce module serverless ne peut pas importer les fichiers client »). Une ressaisie derive : le 28 aout 2026, un correctif d'identite n'a atteint le module du Journal que le 5 septembre, qui a publie une semaine de noms de villes perimes.",
-
   "_lecture": "canon = la source de verite ; copies = les ressaisies a confronter. cle = le champ qui identifie une entree ; champs = ce qui doit concorder. Un champ absent de `champs` n'est pas compare -- c'est le seul moyen de tolerer une copie volontairement partielle (le Journal ajoute imageStade, le cron n'a pas besoin de vedettes).",
-
   "referentiels": {
     "empires": {
       "_role": "la liste des 4 empires du jeu",
-      "canon": { "fichier": "data.js", "expression": "Object.keys(COUNTRIES)" },
+      "canon": {
+        "fichier": "data.js",
+        "expression": "Object.keys(COUNTRIES)"
+      },
       "forme": "liste",
       "copies": [
-        { "fichier": "api/_journal-collecte.js", "constante": "PAYS_JEU" }
+        {
+          "fichier": "api/_journal-collecte.js",
+          "constante": "PAYS_JEU"
+        }
       ]
     },
-
     "ressources_economie": {
       "_role": "les 17 matieres et leurs prix",
-      "canon": { "fichier": "data.js", "expression": "RESSOURCES_ECONOMIE" },
+      "canon": {
+        "fichier": "data.js",
+        "expression": "RESSOURCES_ECONOMIE"
+      },
       "forme": "objet",
       "cle": "_cle",
-      "champs": ["prixBase", "prixAchatFournisseur", "plafond"],
+      "champs": [
+        "prixBase",
+        "prixAchatFournisseur",
+        "plafond"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "RESSOURCES_ECONOMIE_SERVEUR" },
-        { "fichier": "api/_journal-collecte.js", "constante": "RESSOURCES_ECONOMIE" }
+        {
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "RESSOURCES_ECONOMIE_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+        },
+        {
+          "fichier": "api/_journal-collecte.js",
+          "constante": "RESSOURCES_ECONOMIE"
+        }
       ]
     },
-
     "postes_nommes": {
       "_role": "les 17 postes nommes et qui peut les nommer",
-      "canon": { "fichier": "data.js", "expression": "POSTES_NOMMES_EXCLUSIFS" },
+      "canon": {
+        "fichier": "data.js",
+        "expression": "POSTES_NOMMES_EXCLUSIFS"
+      },
       "forme": "objet",
       "cle": "_cle",
-      "champs": ["label", "nommePar", "scope", "autoriteScope"],
+      "champs": [
+        "label",
+        "nommePar",
+        "scope",
+        "autoriteScope"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "POSTES_NOMMES_EXCLUSIFS_SERVEUR" }
+        {
+          "fichier": "api/cron-minuit.js",
+          "constante": "POSTES_NOMMES_EXCLUSIFS_SERVEUR"
+        }
       ]
     },
-
     "clubs_sportifs": {
       "_role": "les 12 clubs, pivot de toutes les donnees persistees (paris, licences, budgets, transferts, calendrier)",
-      "canon": { "fichier": "data.js", "expression": "CLUBS_SPORTIFS" },
+      "canon": {
+        "fichier": "data.js",
+        "expression": "CLUBS_SPORTIFS"
+      },
       "forme": "liste",
       "cle": "id",
-      "champs": ["nom", "country", "city"],
+      "champs": [
+        "nom",
+        "country",
+        "city"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "CLUBS_SPORTIFS_SERVEUR" },
-        { "fichier": "api/_journal-collecte.js", "constante": "CLUBS_SPORTIFS" }
+        {
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "CLUBS_SPORTIFS_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+        },
+        {
+          "fichier": "api/_journal-collecte.js",
+          "constante": "CLUBS_SPORTIFS"
+        }
       ]
     },
-
     "recettes_militaires": {
       "_role": "ce qu'un atelier militaire sait fabriquer",
-      "canon": { "fichier": "plateau-effort-guerre.js", "constante": "RECETTES_MILITAIRES" },
+      "canon": {
+        "fichier": "plateau-effort-guerre.js",
+        "constante": "RECETTES_MILITAIRES"
+      },
       "forme": "objet",
       "cle": "_cle",
-      "champs": ["pa"],
+      "champs": [
+        "pa"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "RECETTES_MILITAIRES_SERVEUR" }
+        {
+          "fichier": "api/cron-minuit.js",
+          "constante": "RECETTES_MILITAIRES_SERVEUR"
+        }
       ]
     },
-
     "repartition_budgetaire": {
       "_role": "la cle de repartition par defaut des recettes nationales",
-      "canon": { "fichier": "plateau-core.js", "constante": "REPARTITION_DEFAULT" },
+      "canon": {
+        "fichier": "plateau-core.js",
+        "constante": "REPARTITION_DEFAULT"
+      },
       "forme": "objet",
       "cle": "_cle",
-      "champs": ["_valeur"],
+      "champs": [
+        "_valeur"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "REPARTITION_DEFAULT_SERVEUR" }
+        {
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "REPARTITION_DEFAULT_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+        }
       ]
     },
-
     "caisse_par_poste_budget": {
       "_role": "quelle caisse recoit la part d'un poste budgetaire",
-      "canon": { "fichier": "plateau-justice-economie.js", "constante": "CAISSE_PAR_POSTE_BUDGET" },
+      "canon": {
+        "fichier": "plateau-justice-economie.js",
+        "constante": "CAISSE_PAR_POSTE_BUDGET"
+      },
       "forme": "objet",
       "cle": "_cle",
-      "champs": ["_valeur"],
+      "champs": [
+        "_valeur"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "CAISSE_PAR_POSTE_BUDGET_SERVEUR" }
+        {
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "CAISSE_PAR_POSTE_BUDGET_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+        }
       ]
     },
-
     "greve_paliers": {
       "_role": "les cinq paliers d'une greve ordinaire",
       "_note": "max vaut Infinity sur le dernier palier ; JSON.stringify le rend null des deux cotes, la comparaison reste juste.",
-      "canon": { "fichier": "data.js", "expression": "GREVE_PALIERS" },
+      "canon": {
+        "fichier": "data.js",
+        "expression": "GREVE_PALIERS"
+      },
       "forme": "liste",
       "cle": "min",
-      "champs": ["max", "pop", "social", "entrepriseReduction", "orgaInf"],
+      "champs": [
+        "max",
+        "pop",
+        "social",
+        "entrepriseReduction",
+        "orgaInf"
+      ],
       "copies": [
-        { "fichier": "api/cron-minuit.js", "constante": "GREVE_PALIERS_SERVEUR" }
+        {
+          "fichier": "api/_referentiels-generes.js",
+          "constante": "GREVE_PALIERS_SERVEUR",
+          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+        }
       ]
     }
   },
-
   "_empreintes": "SECOND AXE DU CONTROLE : data.js contre la BASE. Le premier axe (ci-dessus) confronte data.js aux ressaisies de api/ ; celui-ci confronte data.js au contenu des tables miroir, par empreinte. Il reste HORS LIGNE : la base est representee par une MESURE DATEE, consignee ici, exactement comme baseline/ represente le schema par un releve date. Le controle, lui, rejoue les generateurs pour de vrai a chaque passage -- c'est la partie vivante.",
-
   "_trois_valeurs": "Chaque miroir a jusqu'a TROIS empreintes, et il faut les distinguer sous peine de ne rien comprendre aux ecarts. (1) data.js : ce que le generateur calcule aujourd'hui depuis la source canonique. (2) reelle : ce que la base contient vraiment, rehache par une fonction SQL. (3) posee : la valeur ecrite dans <miroir>_empreinte au moment de la derniere generation. posee != reelle veut dire que la table a bouge depuis, ou que la valeur posee n'a jamais ete juste. data.js != reelle veut dire que le miroir est perime par rapport au jeu.",
-
   "_couverture_croisee": "La surveillance est CROISEE, et c'est le defaut de fond : 7 generateurs savent calculer une empreinte, mais seules 4 tables <miroir>_empreinte existent, et elles ne recouvrent pas le meme ensemble. Les quatre miroirs surveilles ont desormais TOUS leur fonction _empreinte_reelle (chantier 4C) ; ce qui reste croise, c'est le peuplement de ces quatre. ressources_economie est surveillee sans etre generee (aucun generateur ne sait la recalculer : son empreinte ne peut donc PAS etre reverifiee hors ligne). clubs_football, miroirs_chantiers, miroirs_entreprises et postes_electifs sont generees sans etre surveillees. Ces cinq trous sont declares ci-dessous pour qu'ils cessent d'etre invisibles ; les combler demande du SQL que le chantier 4C n'autorise pas.",
-
   "empreintes": {
     "_mesure": {
       "le": "2026-10-06",
@@ -109,7 +179,6 @@
       "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
     },
     "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle();",
-
     "miroirs": {
       "pa_bonus_differes": {
         "generateur": "outils/generateurs/generer_pa_bonus_differes.py",
@@ -122,7 +191,6 @@
         "reelle": "1c02ca809fdb9b8b",
         "verdict": "les trois concordent"
       },
-
       "postes_nommes_regles": {
         "generateur": "outils/generateurs/generer_postes_nommes.py",
         "table_empreinte": "postes_nommes_regles_empreinte",
@@ -134,7 +202,6 @@
         "reelle": "73985f702ae09796",
         "verdict": "data.js et la base concordent ; la valeur POSEE est perimee"
       },
-
       "ressources_economie": {
         "generateur": null,
         "_pas_de_generateur": "Aucun des 8 generateurs ne sait recalculer ce miroir. Son empreinte ne peut donc pas etre reverifiee hors ligne : le controle la rapporte, il ne la recalcule pas. C'est le seul miroir surveille sans etre generable.",
@@ -147,7 +214,6 @@
         "reelle": "2c2a88b3833ca978",
         "verdict": "les trois concordent"
       },
-
       "ordres_couts": {
         "generateur": "outils/generateurs/generer_ordres_couts.py",
         "table_empreinte": "ordres_couts_empreinte",
@@ -160,7 +226,6 @@
         "verdict": "TROIS valeurs differentes"
       }
     },
-
     "generes_sans_surveillance": {
       "_constat": "Ces miroirs ont un generateur qui sait calculer une empreinte, mais aucune table <miroir>_empreinte en base pour la confronter. Rien ne detecterait leur derive. Les doter d'une table et d'une fonction est du SQL hors perimetre 4C.",
       "clubs_football": "2c2f8d0fe578a8bb",
@@ -169,7 +234,6 @@
       "postes_electifs": "2390eb52a42ae6a6"
     }
   },
-
   "_cles_de_divergence": "Deux axes, donc deux familles de cles, et le controle les verifie separement. « <miroir>/base » declare que data.js ne dit pas la meme chose que le contenu reel de la table -- le miroir est perime. « <miroir>/posee » declare que la valeur inscrite dans <miroir>_empreinte ne correspond pas au contenu reel -- la sentinelle elle-meme est fausse. Un miroir peut avoir les deux, et ordres_couts les a.",
   "divergences_empreintes": {
     "ordres_couts/posee": {
@@ -189,7 +253,6 @@
       "arbitrage_requis": "aucun : il suffira de reposer la valeur mesuree. C'est une ecriture de donnee, donc une migration a part entiere, hors du perimetre « uniquement les deux fonctions » de 4C."
     }
   },
-
   "_divergences": "Les divergences DEJA constatees par l'audit 4A sont declarees ici avec le lot qui les ferme. Le controle les rapporte sans echouer -- sinon il serait rouge le jour de sa naissance et ne pourrait pas etre fusionne. Il echoue en revanche sur toute divergence NON declaree, et aussi sur une divergence declaree qui aurait disparu : c'est ce second refus qui empeche la liste de pourrir. Meme mecanique que en_attente_d_application dans autorite.json, et c'est elle qui a trouve le GRANT a PUBLIC oublie au chantier 3.",
   "divergences_connues": {
     "ressources_economie/api/_journal-collecte.js": {
@@ -207,5 +270,6 @@
       "ferme_par": "lot 4D",
       "arbitrage_requis": "aucun : data.js fait foi"
     }
-  }
+  },
+  "_copies_generees": "Cinq copies ne sont plus ressaisies a la main : elles vivent dans api/_referentiels-generes.js, produit par outils/generateurs/generer_referentiels_serveur.py. Cet axe continue de les comparer a data.js -- un artefact genere qu'on ne verifierait plus parce qu'il est genere serait exactement l'angle mort qu'on vient de fermer ailleurs. Le TROISIEME axe verifie en plus que l'artefact du disque est bien ce que rend le generateur."
 }
