@@ -198,13 +198,34 @@ EXPRESSIONS_ARBITREES = {
                  "est un arbitrage. Les deux ne doivent pas passer par le meme canal."),
     },
     "batiments_etat": {
+        # to_jsonb(texte) EST LA FORME JUSTE ICI, ET CE N'EST PAS UNE ERREUR.
+        #
+        # J'ai failli la « corriger » le 7 octobre 2026 en `(texte)::jsonb`, croyant a un
+        # double encodage accidentel. C'etait une REGRESSION, evitee de justesse.
+        #
+        # `batiments_etat.data` est un jsonb qui contient une CHAINE JSON, deliberement, et
+        # tout le code en depend des deux cotes :
+        #   . cote SQL, batiment_etat_lire() normalise -- « WHEN jsonb_typeof(p_data) =
+        #     'string' THEN (p_data #>> '{}')::jsonb » -- et les cinq fonctions d'entrepot
+        #     passent par elle ;
+        #   . cote JS, sbGetBatimentEtat fait `JSON.parse(rows[0].data)` et le cron ecrit
+        #     `data: JSON.stringify(...)`. Si la colonne portait un OBJET, PostgREST
+        #     renverrait un objet, JSON.parse leverait, et le `catch` rendrait {} : l'etat du
+        #     batiment serait silencieusement PERDU.
+        #
+        # La convention est declaree dans outils/baseline/encodage-blobs.json, et
+        # reconstruire.py verifie desormais les DEUX sens -- un objet natif ici serait
+        # l'erreur, autant qu'une chaine le serait dans caisses_batiments.
         "data": ("to_jsonb(%s::text)" % ("$x$" + BLOB_ENTREPOT + "$x$"),
                  "ARBITRAGE DU 5 OCTOBRE 2026. Le blob est ECRIT, pas copie : les 17 "
                  "quantites de matieres premieres sont celles arbitrees, identiques dans "
                  "les trois villes, et la caisse de l'entrepot vaut la dotation "
                  "d'amorcage de 5 000 FR. Aucune valeur ne vient de la bêta. La cle "
                  "`prixManuel` n'est pas reprise : elle n'existe que sur un des trois "
-                 "entrepots, ou elle est vide, et un objet vide equivaut a son absence."),
+                 "entrepots, ou elle est vide, et un objet vide equivaut a son absence.\n"
+                 "ENCODAGE : une CHAINE JSON dans un jsonb, et c'est la convention declaree de "
+                 "cette table -- batiment_etat_lire() cote SQL et JSON.parse() cote JS en "
+                 "dependent tous deux. Un objet natif ici ferait perdre l'etat du batiment."),
     },
 }
 

@@ -133,6 +133,105 @@ def relations_lues(noeud):
     return trouves
 
 
+# ------------------------------------- jsonb : la FAMILLE D'ENCODAGE declaree, dans les deux sens
+# DEUX FAMILLES COHABITENT. Une colonne jsonb peut porter un OBJET natif ou une CHAINE qui
+# contient du JSON, et le code lecteur n'est pas interchangeable : se tromper de famille ne leve
+# aucune erreur, la donnee est simplement perdue ou illisible.
+#
+#   . caisses_batiments porte un OBJET : tout le SQL fait `data->>'solde'`, qui rendrait NULL sur
+#     une chaine -- et tous les soldes seraient lus a zero.
+#   . batiments_etat porte une CHAINE : sbGetBatimentEtat fait `JSON.parse(rows[0].data)`, et
+#     PostgREST rend un objet quand la colonne porte un objet -- JSON.parse leve, le catch rend
+#     {}, et l'etat du batiment disparait en silence.
+#
+# CE CONTROLE N'INVENTE PAS LA CONVENTION, IL LA LIT. outils/baseline/encodage-blobs.json la
+# declare table par table, avec la preuve qui l'etablit. Les tables non declarees ne sont pas
+# controlees : l'absence de declaration est une lacune, pas une autorisation.
+#
+# POURQUOI IL EXISTE. Le 7 octobre 2026 j'ai pris le to_jsonb(texte) du seed de batiments_etat
+# pour un double encodage accidentel et j'ai failli le remplacer par un cast. La convention etait
+# juste ; ma lecture etait fausse. Un controle a UN SEUL SENS aurait valide la regression.
+
+def _chaine_de(noeud):
+    """Le texte d'un litteral chaine, a travers un eventuel cast. None sinon.
+
+    DEUX FORMES DE A_Const selon la version de pglast : `.sval` directement, ou `.val`
+    portant un noeud String. On accepte les deux plutot que de dependre d'une version --
+    c'est ce qui a fait taire ce controle a son premier jet, et un controle muet est pire
+    qu'un controle absent."""
+    g = type(noeud).__name__
+    if g == "TypeCast":
+        return _chaine_de(noeud.arg)
+    if g != "A_Const":
+        return None
+    for porteur in (getattr(noeud, "sval", None), getattr(noeud, "val", None)):
+        if porteur is None:
+            continue
+        if type(porteur).__name__ == "String":
+            txt = getattr(porteur, "sval", None)
+            if txt is None:
+                txt = getattr(porteur, "str", None)
+            if txt is not None:
+                return txt
+    return None
+
+
+def _nom_fonction(noeud):
+    return ".".join(str(x.sval) for x in (noeud.funcname or ()) if hasattr(x, "sval")).lower()
+
+
+def _est_json_structure(txt):
+    if txt is None:
+        return False
+    try:
+        return isinstance(json.loads(txt), (dict, list))
+    except Exception:
+        return False
+
+
+def encodage_emis(noeud):
+    """La famille d'encodage que ce noeud PRODUIT : 'chaine_json', 'objet_natif', ou None
+    quand on ne peut pas conclure (une expression calculee, un NULL, un nombre)."""
+    g = type(noeud).__name__
+    if g == "FuncCall" and _nom_fonction(noeud).endswith("to_jsonb") \
+       or g == "FuncCall" and _nom_fonction(noeud).endswith("to_json"):
+        args = list(noeud.args or ())
+        if len(args) == 1 and _est_json_structure(_chaine_de(args[0])):
+            return "chaine_json"       # to_jsonb(<texte JSON>) encapsule, il ne parse pas
+        return None
+    if g == "TypeCast":
+        cible = ".".join(str(x.sval) for x in (noeud.typeName.names or ())
+                         if hasattr(x, "sval")).lower()
+        if not (cible.endswith("jsonb") or cible.endswith("json")):
+            return None
+        txt = _chaine_de(noeud.arg)
+        if txt is None:
+            return None
+        if _est_json_structure(txt):
+            return "objet_natif"       # (<texte JSON>)::jsonb parse : c'est un objet
+        try:
+            dedans = json.loads(txt)
+        except Exception:
+            return None
+        if isinstance(dedans, str) and _est_json_structure(dedans):
+            return "chaine_json"       # un litteral deja doublement encode
+        return None
+    if g == "A_Const":
+        # Un litteral nu vers une colonne jsonb : PostgreSQL le PARSE.
+        return "objet_natif" if _est_json_structure(_chaine_de(noeud)) else None
+    return None
+
+
+def charger_encodages():
+    chemin = os.path.join(BASE, "..", "outils", "baseline", "encodage-blobs.json")
+    chemin = os.path.normpath(os.path.join(ICI, "encodage-blobs.json")) \
+        if os.path.exists(os.path.join(ICI, "encodage-blobs.json")) else chemin
+    if not os.path.exists(chemin):
+        return {}
+    d = json.load(open(chemin, encoding="utf-8"))
+    return {t: (r["colonne"], r["encodage"]) for t, r in d.get("tables", {}).items()}
+
+
 # ------------------------------------------------------------- simulation
 class Catalogue:
     def __init__(self):
@@ -151,6 +250,9 @@ class Catalogue:
 
     def relation_existe(self, nom):
         return nom in self.tables or nom in self.vues
+
+
+ENCODAGES = charger_encodages()
 
 
 def simuler(morceaux):
@@ -314,6 +416,23 @@ def simuler(morceaux):
                         manque("INSERT dans %s : colonne(s) inexistante(s) %s -- le seed est "
                                "anterieur a un changement de colonnes et doit etre regenere"
                                % (t, ", ".join(inconnues)))
+                # LA FAMILLE D'ENCODAGE DE LA COLONNE, dans les deux sens.
+                if t in ENCODAGES and stmt.selectStmt is not None \
+                   and type(stmt.selectStmt).__name__ == "SelectStmt":
+                    col_attendue, attendu = ENCODAGES[t]
+                    noms = [c.name for c in (stmt.cols or ()) if getattr(c, "name", None)]
+                    if col_attendue in noms:
+                        rang_col = noms.index(col_attendue)
+                        for v in (stmt.selectStmt.valuesLists or ()):
+                            if rang_col >= len(v):
+                                continue
+                            obtenu = encodage_emis(v[rang_col])
+                            if obtenu is not None and obtenu != attendu:
+                                manque("INSERT dans %s : la colonne %s est declaree « %s » dans "
+                                       "outils/baseline/encodage-blobs.json, et ce seed emet "
+                                       "« %s ». Se tromper de famille ne leve aucune erreur : la "
+                                       "donnee sera perdue ou illisible."
+                                       % (t, col_attendue, attendu, obtenu))
                 cat.lignes[t] = cat.lignes.get(t, 0) + 1
 
             elif genre in ("SelectStmt", "VariableSetStmt"):

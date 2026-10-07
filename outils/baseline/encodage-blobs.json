@@ -1,0 +1,70 @@
+{
+ "_commentaire": "DEUX FAMILLES D'ENCODAGE COHABITENT dans ce schema, et le depot ne le disait que dans un commentaire isole du cron. Une colonne jsonb peut porter soit un OBJET natif, soit une CHAINE qui contient du JSON -- et le code lecteur n'est PAS interchangeable entre les deux. Se tromper de famille ne leve aucune erreur : la donnee est silencieusement perdue ou illisible. Ce fichier declare la convention, table par table, avec la preuve qui l'etablit.",
+
+ "_pourquoi_ce_fichier_existe": "Le 7 octobre 2026, j'ai pris le to_jsonb(texte) du seed de batiments_etat pour un double encodage accidentel, et j'ai failli le remplacer par un cast ::jsonb. C'eut ete une REGRESSION : sbGetBatimentEtat fait JSON.parse(rows[0].data), et PostgREST rend un OBJET quand la colonne porte un objet -- JSON.parse(objet) leve, le catch rend {}, et l'etat du batiment disparait. La convention etait juste ; c'est ma lecture qui etait fausse. Un controle qui ne connait pas la convention ne peut pas distinguer l'erreur de l'intention : il la declare donc ici.",
+
+ "_comment_se_prouve_une_convention": "Trois indices concordants, et on ne conclut pas sur un seul : (1) le chemin d'ECRITURE JS -- `data: JSON.stringify(x)` dit CHAINE, un objet passe tel quel dit OBJET ; (2) le chemin de LECTURE JS -- `JSON.parse(r.data)` dit CHAINE, `rows[0].data` utilise directement dit OBJET ; (3) le chemin SQL -- un normaliseur comme batiment_etat_lire() dit CHAINE toleree, un `data->>'cle'` direct dit OBJET.",
+
+ "_ce_que_le_controle_verifie": "reconstruire.py verifie les DEUX SENS sur les tables declarees ici. Une CHAINE la ou un OBJET est declare est une erreur ; un OBJET la ou une CHAINE est declaree en est une aussi. Les tables absentes de ce fichier ne sont pas controlees -- l'absence de declaration n'est pas une autorisation, c'est une lacune a combler quand la preuve sera faite.",
+
+ "tables": {
+  "batiments_etat": {
+   "colonne": "data",
+   "encodage": "chaine_json",
+   "preuve_ecriture_js": "api/cron-minuit.js -- sbUpdate('batiments_etat', ..., { data: JSON.stringify(fusion) }) et sbInsert correspondant ; supabase.js -- sbSetBatimentEtat ecrit data: JSON.stringify(etat).",
+   "preuve_lecture_js": "supabase.js -- sbGetBatimentEtat : `try { return JSON.parse(rows[0].data); } catch(e) { return {}; }`. Un objet natif ferait lever JSON.parse et le catch rendrait {} : l'etat serait PERDU EN SILENCE.",
+   "preuve_sql": "batiment_etat_lire(p_data jsonb) normalise explicitement la chaine : « WHEN jsonb_typeof(p_data) = 'string' THEN (p_data #>> '{}')::jsonb ». Les cinq fonctions d'entrepot passent toutes par elle.",
+   "consequence_pour_le_seed": "Le seed DOIT emettre to_jsonb(<texte JSON>::text), qui produit une chaine. Un cast (<texte>)::jsonb produirait un objet et casserait le cron et le navigateur."
+  },
+  "terrains_etat": {
+   "colonne": "data",
+   "encodage": "chaine_json",
+   "preuve_ecriture_js": "api/cron-minuit.js -- sbUpdate('terrains_etat', ..., { data: JSON.stringify(etat) }), deux sites (taxe fonciere et vente de terrain).",
+   "preuve_lecture_js": "api/cron-minuit.js -- `try { etat = JSON.parse(row.data); } catch(e) { continue; }`, plusieurs sites.",
+   "preuve_sql": "Aucun normaliseur dedie repere. A verifier avant d'y toucher.",
+   "consequence_pour_le_seed": "Table classee structure_seule : aucun seed ne l'alimente aujourd'hui. La convention est consignee pour le jour ou ce sera le cas."
+  },
+  "cycles_electoraux": {
+   "colonne": "data",
+   "encodage": "chaine_json",
+   "preuve_ecriture_js": "plateau-politique.js -- sbUpdate('cycles_electoraux', ..., { data: JSON.stringify(cycle) }).",
+   "preuve_lecture_js": "plateau-politique.js -- `const cycle = JSON.parse(row.data);` ; api/cron-minuit.js, meme forme.",
+   "preuve_sql": "Non recherche.",
+   "consequence_pour_le_seed": "Aucun seed aujourd'hui."
+  },
+  "organisations": {
+   "colonne": "data",
+   "encodage": "chaine_json",
+   "preuve_ecriture_js": "supabase.js -- { id: orga.id, country_origine: ..., data: JSON.stringify(orga) }.",
+   "preuve_lecture_js": "supabase.js -- rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).",
+   "preuve_sql": "Non recherche.",
+   "consequence_pour_le_seed": "Classee en etat initial a construire (99_a-construire) : les loges attendent le mecanisme de rattachement du chef."
+  },
+  "caisses_batiments": {
+   "colonne": "data",
+   "encodage": "objet_natif",
+   "preuve_ecriture_js": "supabase.js -- l'ecriture directe est NEUTRALISEE ; tout passe par les RPC, qui ecrivent `coalesce(data,'{}'::jsonb) || jsonb_build_object('solde', ...)` -- un OBJET.",
+   "preuve_lecture_js": "supabase.js -- sbGetCaisseBatiment rend `rows[0].data` TEL QUEL, sans JSON.parse.",
+   "preuve_sql": "Partout : `(data->>'solde')::numeric`, `jsonb_typeof(data->'solde')`. Un `data->>'solde'` sur une chaine rendrait NULL, et tout solde serait lu a zero.",
+   "consequence_pour_le_seed": "Le seed emet des litteraux '{\"solde\": N}' que PostgreSQL caste en objet. C'est juste."
+  },
+  "budgets_municipaux": {
+   "colonne": "data",
+   "encodage": "objet_natif",
+   "preuve_ecriture_js": "supabase.js -- sbSaveBudgetMunicipal passe l'objet tel quel a sbUpsert, sans JSON.stringify.",
+   "preuve_lecture_js": "supabase.js -- sbGetBudgetMunicipal rend `rows[0].data` TEL QUEL.",
+   "preuve_sql": "appliquer_taxe_transaction lit `v_muni->>'tauxLocal'` et ecrit `jsonb_set(v_muni, '{caisse}', ...)` -- des operations d'OBJET, qui echoueraient sur une chaine.",
+   "consequence_pour_le_seed": "Classee en etat initial a construire : aucun seed aujourd'hui."
+  },
+  "entreprises": {
+   "colonne": "data",
+   "encodage": "objet_natif",
+   "preuve_ecriture_js": "api/cron-minuit.js, commentaire de resoudreCompromisEntreprisesExpires : « Table 'entreprises' stocke data en jsonb natif (pas de JSON.parse/stringify, contrairement a terrains_etat) ». C'est ce commentaire isole qui a mis sur la piste des deux familles.",
+   "preuve_lecture_js": "Lecture directe, sans JSON.parse.",
+   "preuve_sql": "Non recherche.",
+   "consequence_pour_le_seed": "Classee en etat initial a construire."
+  }
+ },
+
+ "_lacune_assumee": "Ce registre ne couvre que les sept tables dont la preuve a ete faite le 7 octobre 2026, a l'occasion du chantier des budgets municipaux. Le schema compte d'autres colonnes jsonb -- personnages_donnees.poste, budgets_nationaux.data, pnj_membres... -- dont la famille n'a pas ete etablie. Les completer est un balayage a part entiere, pas un effet de bord de ce lot. En attendant, le controle ne crie que sur ce qui est declare : il ne peut donc pas produire de faux positif, mais il ne couvre pas tout."
+}
