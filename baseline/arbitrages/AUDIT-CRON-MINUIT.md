@@ -83,7 +83,23 @@ Restent à décider :
 
 ## Les tâches non idempotentes — classées par ce qu'une double exécution coûte
 
-### Aucun garde-fou du tout
+> **Trois réparations faites la nuit du 7 octobre 2026**, avant toute extraction,
+> parce que extraire un défaut d'idempotence dans un nouvel endpoint le duplique
+> au lieu de le corriger :
+>
+> | Réparé | Comment |
+> |---|---|
+> | **souvenirs d'accueil** | passe sous `tacheQuotidienne` (le registre, comme les dix-sept autres) ; le marquage `revele: true` est **vérifié avant** l'annonce du scandale ; l'échec de lecture remonte dans `ECHECS_PASSE`. `resultats.expires` et `aujourdHui`, déclarés sans lecteur, sont retirés |
+> | **cotisations** | le marqueur est persisté **après chaque membre** au lieu d'une fois pour tous, son échec n'est plus avalé, et il **interrompt** l'organisation : on ne débite plus des membres dont on sait qu'on n'arrive pas à enregistrer qu'ils ont payé. Le prélèvement récurrent infini devient borné à une nuit et visible |
+> | **les deux moteurs de grève** | le marqueur et l'usure d'influence sont posés **avant** l'effet, et la grève est sautée si la pose n'a pas pris — la doctrine déjà appliquée par `tacheQuotidienne`, les prêts et la fiscalité. `sbSaveOrganisationServeur` rend désormais son verdict au lieu de l'avaler |
+>
+> **Restent ouverts** : les compromis (double crédit de prêt), les votes de
+> confiance (re-dépouillement aléatoire), les candidatures expirées, les
+> successions, l'ardoise des loyers. Tous demandent une transaction, donc une
+> RPC — pas un correctif de séquence. Ils sont à réparer dans leur lot
+> d'extraction respectif (5, 7 et 8).
+
+### Aucun garde-fou du tout — **RÉPARÉ**
 
 **`traiterSouvenirsAccueil`** est la seule tâche du fichier hors registre **et**
 sans marqueur. Chaque passe retire 5–10 % de probabilité de fuite **par

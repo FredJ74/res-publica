@@ -2318,8 +2318,11 @@ async function sbLoadOrganisationsServeur() {
   if (!rows) return [];
   return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
 }
+// REND SON VERDICT (chantier 6, 7 octobre 2026). Elle avalait son echec, ce qui empechait
+// l'appelant de savoir si un marqueur d'idempotence avait bien ete enregistre.
 async function sbSaveOrganisationServeur(orga) {
-  await sbUpdate('organisations', `id=eq.${encodeURIComponent(orga.id)}`, { data: JSON.stringify(orga) }).catch(() => {});
+  return await sbUpdate('organisations', `id=eq.${encodeURIComponent(orga.id)}`,
+                        { data: JSON.stringify(orga) });
 }
 
 async function ajusterPopJoueurServeur(nom, delta) {
@@ -2394,6 +2397,29 @@ async function appliquerEffetsGrevesOrdinaires() {
       const type = orga.greve.type;
       const cibleValue = orga.greve.cibleValue;
 
+      // LE MARQUEUR AVANT L'EFFET (chantier 6, 7 octobre 2026).
+      //
+      // Il etait pose APRES : la POP de tous les elus et le Social du pays etaient debites,
+      // PUIS derniereApplicationJour etait ecrit par un sbUpdate dont l'echec etait avale. Si
+      // cette ecriture echouait, la nuit suivante redebitait tout le monde. C'est l'inverse de
+      // la doctrine deja appliquee par tacheQuotidienne(), par les prets bancaires et par la
+      // redistribution fiscale, qui posent tous leur marqueur d'abord et renoncent s'il n'a pas
+      // pris.
+      //
+      // Ce qu'on echange : si la pose reussit et qu'un effet echoue ensuite, la greve de ce jour
+      // est perdue. Perdre une journee de malus de POP est sans commune mesure avec la rejouer
+      // indefiniment sur les memes personnes.
+      orga.greve.joursActifs = (orga.greve.joursActifs || 0) + 1;
+      orga.greve.derniereApplicationJour = aujourdHui;
+      if (orga.greve.joursActifs >= GREVE_USURE_JOUR_DEBUT_SERVEUR) {
+        const infUsure = Number.isFinite(orga.influence) ? orga.influence : 50;
+        orga.influence = Math.max(0, infUsure - GREVE_USURE_INF_JOUR_SERVEUR);
+      }
+      if (!(await sbSaveOrganisationServeur(orga))) {
+        resultats.marqueurs_non_poses = (resultats.marqueurs_non_poses || 0) + 1;
+        continue;   // aucun effet applique : rien a rejouer, rien a reprendre
+      }
+
       if (type === 'pj') {
         await ajusterPopJoueurServeur(cibleValue, -palier.pop);
       } else if (type === 'gouvernement') {
@@ -2418,13 +2444,7 @@ async function appliquerEffetsGrevesOrdinaires() {
         await appliquerDeltaSocialPaysServeur(cibleValue, -palier.social, GREVE_SOCIAL_PLANCHER_SERVEUR);
       }
 
-      orga.greve.joursActifs = (orga.greve.joursActifs || 0) + 1;
-      orga.greve.derniereApplicationJour = aujourdHui;
-      if (orga.greve.joursActifs >= GREVE_USURE_JOUR_DEBUT_SERVEUR) {
-        const infActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
-        orga.influence = Math.max(0, infActuelle - GREVE_USURE_INF_JOUR_SERVEUR);
-      }
-      await sbSaveOrganisationServeur(orga);
+      // Le marqueur, les joursActifs et l'usure d'influence sont deja enregistres plus haut.
       resultats.syndicatsTraites++;
     }
 
@@ -4601,10 +4621,29 @@ async function renouvellerCotisationsOrganisations() {
       if (orga.type !== 'supporters' && !estSyndicatDockersPSM) continue;
       if (!orga.membres || orga.membres.length === 0) continue;
 
+      // LE MARQUEUR ETAIT PERSISTE UNE SEULE FOIS, A LA FIN, ET SON ECHEC ETAIT AVALE
+      // (chantier 6, 7 octobre 2026). Les 50 FR etaient debites du membre, le marqueur
+      // (derniereCotisationSaison ou derniereCotisationDate) etait pose EN MEMOIRE, et tout
+      // etait persiste apres la boucle par un `sbUpdate(...).catch(() => {})`. Si cette unique
+      // ecriture echouait, AUCUN marqueur de la passe n'etait enregistre : l'echeance restait
+      // depassee, et chaque nuit suivante reprelevait 50 FR a chacun, indefiniment, pendant que
+      // resultats.renouvellements comptait des succes.
+      //
+      // Trois changements, et un seul objectif : borner la perte et la rendre visible.
+      //   . le marqueur est persiste APRES CHAQUE membre, plus une fois pour tous : un echec
+      //     ne concerne plus qu'un membre au lieu de toute l'organisation ;
+      //   . son echec n'est plus avale -- il remonte dans ECHECS_PASSE, donc la passe rend 500 ;
+      //   . et il INTERROMPT l'organisation : on ne continue pas a debiter des membres dont on
+      //     sait deja qu'on n'arrive plus a enregistrer qu'ils ont paye.
+      //
+      // Ce n'est PAS la reparation complete. Debiter un personnage et marquer son adhesion sont
+      // deux ecritures sur deux tables : les rendre atomiques demande une RPC. Dette consignee.
       let modifie = false;
       const membresConserves = [];
+      let persistanceRompue = false;
 
       for (const membre of orga.membres) {
+        if (persistanceRompue) { membresConserves.push(membre); continue; }
         let doitRenouveler = false;
         if (orga.type === 'supporters') {
           doitRenouveler = !!saisonActuelle && membre.derniereCotisationSaison !== saisonActuelle.numero;
@@ -4638,6 +4677,16 @@ async function renouvellerCotisationsOrganisations() {
           membresConserves.push(membre);
           resultats.renouvellements++;
           modifie = true;
+          // LE MARQUEUR, IMMEDIATEMENT. On ecrit la liste telle qu'elle est a cet instant :
+          // les membres pas encore traites y figurent inchanges, ce qui est exact.
+          const instantane = { ...orga, membres: [...membresConserves,
+            ...orga.membres.slice(orga.membres.indexOf(membre) + 1)] };
+          const pose = await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`,
+                                      { data: JSON.stringify(instantane) });
+          if (!pose) {
+            resultats.marqueurs_non_poses = (resultats.marqueurs_non_poses || 0) + 1;
+            persistanceRompue = true;
+          }
         } else {
           resultats.resiliations++;
           modifie = true;
@@ -4657,9 +4706,12 @@ async function renouvellerCotisationsOrganisations() {
         }
       }
 
-      if (modifie) {
+      // L'ECRITURE FINALE RESTE : elle porte les RESILIATIONS (membres retires de la liste),
+      // qui n'ont fait l'objet d'aucun debit et dont la perte ne coute donc rien d'autre qu'un
+      // retard d'un jour. Son echec n'est plus avale pour autant.
+      if (modifie && !persistanceRompue) {
         orga.membres = membresConserves;
-        await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(orga) }).catch(() => {});
+        await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(orga) });
       }
     }
   } catch(e) { console.error('renouvellerCotisationsOrganisations error', e); }
@@ -4776,29 +4828,50 @@ async function traiterLicencesSportivesSaison() {
   return resultats;
 }
 
+// FUITES SPONTANEES DES SOUVENIRS DE L'ACCUEIL — 5 a 10 % par jour et par souvenir.
+//
+// TROIS DEFAUTS FERMES ICI (chantier 6, 7 octobre 2026).
+//
+// 1. C'ETAIT LA SEULE TACHE DU FICHIER SANS AUCUN GARDE-FOU. Ni registre de journee, ni
+//    marqueur sur la donnee. Chaque passe relancait un TIRAGE par souvenir : deux executions
+//    dans la meme nuit doublaient la probabilite de fuite, et chaque fuite insere un
+//    `evenements_globaux` « SCANDALE » nominatif -- irreversible. Son appel passe desormais par
+//    tacheQuotidienne(), comme les dix-sept autres : marqueur pose AVANT l'effet, relu pour
+//    verifier sa persistance, et la tache ne tourne pas si le marqueur n'a pas pris.
+//
+// 2. LE MARQUAGE `revele: true` N'ETAIT PAS VERIFIE. Un `fetch` PATCH brut sans lecture de
+//    `res.ok` : le scandale pouvait etre annonce publiquement alors que le souvenir restait
+//    `revele: false`, donc re-tirable la nuit suivante. Le meme joueur pouvait voir le meme
+//    secret fuiter deux fois. On n'annonce plus rien avant que le marquage ait abouti.
+//
+// 3. LA LECTURE AVALAIT SON ECHEC. `if (!res.ok) return resultats;` rendait `{fuites: 0}`, ce
+//    qui ne se distingue pas de « aucune fuite cette nuit ». L'echec remonte desormais dans
+//    ECHECS_PASSE comme pour toutes les autres lectures du fichier.
+//
+// `resultats.expires` ET `aujourdHui` ONT ETE RETIRES. Le compteur etait declare et jamais
+// incremente, et la variable calculee puis jamais lue : le « nettoyage des souvenirs expires »
+// qu'annoncaient le nom de la tache et son commentaire d'appel N'EXISTE PAS -- un commentaire
+// interne disait lui-meme « on ignore silencieusement ». Construire ce nettoyage est une
+// decision de game design (que devient un souvenir de plus de 12 jours ?), pas du menage.
 async function traiterSouvenirsAccueil() {
-  const resultats = { fuites: 0, expires: 0 };
-  try {
-    // Recuperer tous les souvenirs non encore reveles
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/souvenirs_accueil?revele=eq.false`, { headers: HEADERS });
-    if (!res.ok) return resultats;
-    const souvenirs = await res.json();
-    const aujourdHui = Math.max(...souvenirs.map(s => s.jour_creation), 1); // approx, pas critique
+  const resultats = { fuites: 0, marquages_echoues: 0 };
+  const souvenirs = await sbGet('souvenirs_accueil', 'revele=eq.false');
+  if (!souvenirs) return resultats;   // sbGet a deja signale l'echec
 
-    for (const s of souvenirs) {
-      // Nettoyage : souvenir expire (12 jours passes) -> on ignore silencieusement, sera filtre cote client
-      // Fuite spontanee : 5-10% de chance par jour, seulement si pas deja revele
-      const chanceFuite = 0.05 + Math.random() * 0.05; // entre 5% et 10%
-      if (Math.random() < chanceFuite) {
-        await fetch(`${SUPABASE_URL}/rest/v1/souvenirs_accueil?id=eq.${s.id}`, {
-          method: 'PATCH', headers: HEADERS, body: JSON.stringify({ revele: true })
-        });
-        const texte = `📰 SCANDALE : un journaliste révèle que ${s.pj_nom} a récupéré "${s.objet_nom}" au service des objets trouvés de l'Assemblée.`;
-        await sbInsert('evenements_globaux', { country: 'republic', city: null, texte, jour: null });
-        resultats.fuites++;
-      }
-    }
-  } catch(e) { console.error('traiterSouvenirsAccueil error', e); }
+  for (const s of souvenirs) {
+    const chanceFuite = 0.05 + Math.random() * 0.05; // entre 5% et 10%
+    if (Math.random() >= chanceFuite) continue;
+
+    // LE MARQUAGE D'ABORD, L'ANNONCE ENSUITE. Un scandale annonce sur un souvenir non marque
+    // serait rejoue la nuit suivante.
+    const marque = await sbUpdate('souvenirs_accueil', `id=eq.${encodeURIComponent(s.id)}`,
+                                  { revele: true });
+    if (!marque) { resultats.marquages_echoues++; continue; }
+
+    const texte = `📰 SCANDALE : un journaliste révèle que ${s.pj_nom} a récupéré "${s.objet_nom}" au service des objets trouvés de l'Assemblée.`;
+    await sbInsert('evenements_globaux', { country: 'republic', city: null, texte, jour: null });
+    resultats.fuites++;
+  }
   return resultats;
 }
 
@@ -6010,8 +6083,10 @@ export default async function handler(req, res) {
     // volontairement hors du registre de journees. Ne touche jamais au QHS (chantier separe).
     const detentionsLiberees = await libererDetentionsEchuesServeur();
 
-    // 3. Fuites spontanees des souvenirs de l'accueil (5-10% par jour) + nettoyage des souvenirs expires
-    const fuites = await traiterSouvenirsAccueil();
+    // 3. Fuites spontanees des souvenirs de l'accueil (5-10% par jour et par souvenir).
+    // Sous registre depuis le 7 octobre 2026 : c'etait la seule tache du fichier qu'une double
+    // execution relancait entierement, et chaque fuite est un scandale public irreversible.
+    const fuites = await tacheQuotidienne('souvenirs_accueil', traiterSouvenirsAccueil);
 
     // 4. Taxe fonciere quotidienne sur tous les terrains possedes
     const taxeFonciere = await tacheQuotidienne('taxe_fonciere', preleverTaxeFonciere);
