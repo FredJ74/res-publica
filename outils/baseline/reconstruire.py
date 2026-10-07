@@ -142,6 +142,12 @@ class Catalogue:
         self.n_fonctions = 0      # signatures creees ; les noms, eux,
                                   # sont moins nombreux : 4 surcharges
         self.lignes = {}          # table -> nombre de lignes inserees
+        # LES COLONNES, table par table. Sans elles, un seed qui insere dans une colonne
+        # disparue passait la simulation sans un mot : la table existe, donc l'INSERT etait
+        # declare bon. C'est arrive le 7 octobre 2026, quand part_pourcent a cede la place a
+        # part_numerateur / part_denominateur : le script du monde neuf aurait echoue a sa
+        # premiere ligne de seed, et la reconstruction se disait VALIDEE.
+        self.colonnes = {}        # table -> set des colonnes connues
 
     def relation_existe(self, nom):
         return nom in self.tables or nom in self.vues
@@ -171,6 +177,8 @@ def simuler(morceaux):
                 if t in cat.tables:
                     manque("table %s creee deux fois" % t)
                 cat.tables.add(t)
+                cat.colonnes[t] = {el.colname for el in (stmt.tableElts or ())
+                                   if type(el).__name__ == "ColumnDef" and el.colname}
                 # un bigserial cree sa sequence implicitement
                 for el in (stmt.tableElts or ()):
                     if type(el).__name__ == "ColumnDef" and el.typeName:
@@ -201,7 +209,16 @@ def simuler(morceaux):
                 if not cat.relation_existe(t):
                     manque("table %s absente" % t)
                 for cmd in (stmt.cmds or ()):
+                    # ADD COLUMN / DROP COLUMN : le baseline n'en contient pas aujourd'hui,
+                    # mais une migration future assemblee ici en contiendrait, et le
+                    # catalogue simule doit suivre.
+                    sous = str(getattr(cmd, "subtype", ""))
                     d = getattr(cmd, "def_", None)
+                    if sous.endswith("AT_AddColumn") and d is not None \
+                       and type(d).__name__ == "ColumnDef" and d.colname:
+                        cat.colonnes.setdefault(t, set()).add(d.colname)
+                    elif sous.endswith("AT_DropColumn") and cmd.name:
+                        cat.colonnes.setdefault(t, set()).discard(cmd.name)
                     if d is None or type(d).__name__ != "Constraint":
                         continue
                     if d.conname:
@@ -287,6 +304,16 @@ def simuler(morceaux):
                 t = nom_relation(stmt.relation)
                 if not cat.relation_existe(t):
                     manque("INSERT dans %s, table absente" % t)
+                # CHAQUE COLONNE NOMMEE DOIT EXISTER. Un seed engendre avant un changement de
+                # colonnes echouerait a l'application ; sans ce controle, la simulation le
+                # laissait passer parce qu'elle ne regardait que le nom de la table.
+                elif t in cat.colonnes:
+                    inconnues = sorted({c.name for c in (stmt.cols or ())
+                                        if getattr(c, "name", None)} - cat.colonnes[t])
+                    if inconnues:
+                        manque("INSERT dans %s : colonne(s) inexistante(s) %s -- le seed est "
+                               "anterieur a un changement de colonnes et doit etre regenere"
+                               % (t, ", ".join(inconnues)))
                 cat.lignes[t] = cat.lignes.get(t, 0) + 1
 
             elif genre in ("SelectStmt", "VariableSetStmt"):
@@ -311,7 +338,7 @@ def controles_du_monde(cat):
     def att(libelle, obtenu, attendu, note=""):
         r.append((libelle, obtenu, attendu, obtenu == attendu, note))
 
-    # 253 depuis les migrations du 8 octobre 2026 : +2 pour le referentiel des villes
+    # 253 depuis les migrations du 7 octobre 2026 : +2 pour le referentiel des villes
     # (villes, villes_empreinte, chantier 4E) et +2 pour la brique budgetaire generique
     # (repartitions_budgetaires, repartitions_versements, chantier 4F). Les 6 tables
     # hors_baseline ne sont jamais creees : 259 au catalogue, 253 ici.
@@ -320,12 +347,16 @@ def controles_du_monde(cat):
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
     # budget_repartition_fixer, budget_repartition_lire, budget_coherence).
-    att("signatures de fonction creees", cat.n_fonctions, 657)
-    att("noms de fonction distincts", len(cat.fonctions), 653,
+    # 658 : +1 au chantier 4F, budget_part_totale -- la somme des parts d'une source en une seule
+    # fraction exacte, seul endroit du systeme ou cette arithmetique vit.
+    att("signatures de fonction creees", cat.n_fonctions, 658)
+    att("noms de fonction distincts", len(cat.fonctions), 654,
         "4 fonctions sont surchargees : moins de noms que de signatures")
-    # 431 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
-    # chantier 4E, +2 cles primaires et +1 CHECK (la part bornee entre 0 et 100) au 4F.
-    att("contraintes posees", len(cat.contraintes), 431)
+    # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
+    # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
+    # une FRACTION -- trois CHECK (couple entier, denominateur positif, numerateur borne par le
+    # denominateur) remplacent l'unique borne 0-100 de l'ancien pourcentage.
+    att("contraintes posees", len(cat.contraintes), 433)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
@@ -360,13 +391,18 @@ def controles_du_monde(cat):
     # (Douanes et QHS), et trois Justice -> tribunaux a part NULLE.
     #
     # DEUX ETATS A NE PAS CONFONDRE, et ce compte les garde tous les deux. La ligne du QHS porte
-    # une part de ZERO : le beneficiaire est reconnu, la regle existe et donne zero. Les trois
-    # tribunaux portent NULL : la part n'est pas arbitree, et budget_repartir les ignore. Si un
-    # jour ce compte tombait a 15, ce serait le signe qu'une part a zero a ete prise pour une
-    # absence de regle et effacee.
+    # une part de ZERO : le beneficiaire est reconnu, la regle existe et donne zero. Une part
+    # NULLE, elle, n'est pas arbitree et budget_repartir l'ignore -- il n'en reste AUCUNE depuis
+    # l'arbitrage de la Justice du 7 octobre 2026. Si un jour ce compte tombait a 15, ce serait le
+    # signe qu'une part a zero a ete prise pour une absence de regle et effacee.
+    #
+    # LA PART EST UNE FRACTION, PAS UN POURCENTAGE. Les trois tribunaux portent 1/3 chacun : trois
+    # parts rigoureusement egales, que 33,33 ne sait pas ecrire sans perdre 0,01 % ou privilegier
+    # l'un des trois pour toujours.
     att("lignes de repartition budgetaire seedees",
         cat.lignes.get("repartitions_budgetaires", 0), 16,
-        "10 nationales (9 x 9 % + Assemblee 19 %), Defense 65 %, Douanes 35 %, QHS 0 %, 3 tribunaux a NULL")
+        "10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, "
+        "QHS 0/100, 3 tribunaux a 1/3")
     att("versements budgetaires seedes", cat.lignes.get("repartitions_versements", 0), 0,
         "journal des versements reels : un monde neuf nait sans historique, sinon le premier "
         "minuit croirait avoir deja verse")

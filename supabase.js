@@ -4681,7 +4681,7 @@ async function sbRpcVerdict(fn, params, options) {
 }
 
 // =====================
-// REPARTITIONS BUDGETAIRES (chantier 4F, 8 octobre 2026)
+// REPARTITIONS BUDGETAIRES (chantier 4F, 7 octobre 2026)
 // =====================
 // UNE REGLE, DEUX REPRESENTATIONS. Le pourcentage est la regle ; le montant en FR est une
 // representation, calculee par le SERVEUR sur le dernier versement reellement recu par la caisse

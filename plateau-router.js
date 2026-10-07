@@ -684,6 +684,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // ARBITRAGE DU 8 OCTOBRE 2026 : le Ministre de l'Interieur a son tableau de bord
   // budgetaire, servi par le MEME ecran que celui de la Defense. Douanes 35 %, QHS 0 %.
   if (fn === 'gerer_budget_interieur') { ouvrirBudgetInterieur(); return; }
+  // ARBITRAGE DU 7 OCTOBRE 2026 : le Ministre de la Justice repartit son budget entre les
+  // trois tribunaux territoriaux, a parts egales au demarrage. Meme ecran generique.
+  if (fn === 'gerer_budget_justice') { ouvrirBudgetJustice(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(pa, cost); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans', pa, cost); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }

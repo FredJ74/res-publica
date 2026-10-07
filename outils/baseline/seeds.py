@@ -92,8 +92,8 @@ FILTRES = {
         "pourquoi": "ARBITRAGE COMPLET RENDU LE 5 OCTOBRE 2026 pour Republia. Les CINQ "
                     "indices sont decides et communs aux trois villes -- Luthecia, "
                     "Port-Sainte-Marie, Montrouge : IE 50, ISN 30, Moral 50, PIETE 40, "
-                    "SOCIAL 45. Ce sont deja les valeurs des trois lignes en base : le seed "
-                    "les reproduit sans rien recalculer ni rien deduire de la bêta. La 4e "
+                    "SOCIAL 45. LE SEED LES ECRIT, IL NE LES COPIE PLUS -- voir la colonne "
+                    "arbitree ci-dessous. La 4e "
                     "ligne, republic_zzville-cmr, est une ligne de TEST et est ecartee. "
                     "Decision valide pour REPUBLIA uniquement : ne pas generaliser aux "
                     "autres empires.",
@@ -184,6 +184,19 @@ def dotations_caisses_batiments():
 # PostgreSQL qui la calcule, et le fichier reste lisible par un humain plutot que
 # de porter un litteral jsonb echappe.
 EXPRESSIONS_ARBITREES = {
+    "indices_villes": {
+        "data": ("'{\"ie\": 50, \"isn\": 30, \"moral\": 50, \"piete\": 40, \"social\": 45}'::jsonb",
+                 "ARBITRAGE DU 5 OCTOBRE 2026. Les cinq indices sont DECIDES et communs aux trois "
+                 "villes de Republia : IE 50, ISN 30, Moral 50, Piete 40, Social 45. Le seed les "
+                 "ECRIT depuis cette decision, il ne les copie plus de la base.\n"
+                 "POURQUOI CE CHANGEMENT, LE 7 OCTOBRE 2026. Le seed recopiait la base, et les "
+                 "cinq valeurs y etaient encore celles de l'arbitrage -- jusqu'a ce que la partie "
+                 "les fasse bouger. La relecture du diff du baseline a montre la piete de "
+                 "Port-Sainte-Marie passee de 40 a 43 : une derive de PARTIE EN COURS, qui allait "
+                 "etre canonisee dans tous les mondes a venir et effacer silencieusement une "
+                 "decision ecrite. Un indice de ville est de l'etat VIVANT ; sa valeur de depart "
+                 "est un arbitrage. Les deux ne doivent pas passer par le meme canal."),
+    },
     "batiments_etat": {
         "data": ("to_jsonb(%s::text)" % ("$x$" + BLOB_ENTREPOT + "$x$"),
                  "ARBITRAGE DU 5 OCTOBRE 2026. Le blob est ECRIT, pas copie : les 17 "
@@ -270,7 +283,7 @@ A_REGENERER = {
             "precisement pour surveiller cette derive.",
         "a_faire": "CE FICHIER ETAIT ECRIT A LA MAIN, hors de tout registre : seeds.py ne le "
             "connaissait pas, l'INVENTAIRE ne le hachait pas, et le controle de couverture du "
-            "8 octobre 2026 l'a decouvert en meme temps que l'oubli de `villes`. Il est "
+            "7 octobre 2026 l'a decouvert en meme temps que l'oubli de `villes`. Il est "
             "desormais declare ici. Son generateur, lui, existe deja et tourne : "
             "`generer_recettes_militaires.py --sql` rend un SQL deterministe, empreinte "
             "6162d0e5d809630e au 6 octobre 2026, et c'est lui qui a produit le seed de la "
@@ -833,7 +846,7 @@ def main():
     # Si elle n'est dans NI L'UN NI L'AUTRE, elle disparait du baseline SANS UN MOT -- et un
     # monde reconstruit nait sans elle.
     #
-    # C'est arrive le 8 octobre 2026 a la table `villes`, nee la veille : classee, rendue dans le
+    # C'est arrive le 7 octobre 2026 a la table `villes`, nee la veille : classee, rendue dans le
     # schema, mais absente des deux registres. Un monde neuf serait ne sans aucune ville. Rien ne
     # l'a signale ; ce controle existe pour que cela ne puisse plus arriver en silence.
     orphelines = sorted(t for t, l in cls.items()

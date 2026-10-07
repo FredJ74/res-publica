@@ -3773,7 +3773,7 @@ async function tacheQuotidienne(nom, fn) {
 // client puis cron, cron puis client, cron rejoue, deux clients puis cron.
 
 // CAISSE_PAR_POSTE_BUDGET_SERVEUR ET REPARTITION_DEFAULT_SERVEUR NE SONT PLUS IMPORTEES
-// (chantier 4F, 8 octobre 2026), parce qu'elles n'existent plus. La cle de repartition du budget
+// (chantier 4F, 7 octobre 2026), parce qu'elles n'existent plus. La cle de repartition du budget
 // national vivait dans le navigateur et le serveur la recevait generee ; elle vit maintenant en
 // base (repartitions_budgetaires), ou le Ministre de l'Economie et des Finances la modifie par
 // RPC et ou le serveur l'applique. Le commentaire qui occupait ces lignes disait que
@@ -3812,7 +3812,7 @@ function caisseTerritorialeServeur(famille, ville) {
   return legacy || (famille + '_' + v);
 }
 
-// LA REPARTITION TERRITORIALE AU PRORATA FISCAL A ETE RETIREE (chantier 4F, 8 octobre 2026).
+// LA REPARTITION TERRITORIALE AU PRORATA FISCAL A ETE RETIREE (chantier 4F, 7 octobre 2026).
 //
 // Elle avait ete ecrite la nuit du 7 octobre pour reparer un defaut reel : mairie, commissariat
 // et tribunal etaient finances en direct par l'Etat, et uniquement dans la capitale -- les six
@@ -3868,7 +3868,7 @@ async function debiterCaisseBatimentPlafonneServeur(pays, buildingId, montant) {
 // propre part, puis chaque ministere repartit vers les institutions de son ressort sur la base
 // de ce qu'il vient de recevoir.
 //
-// CE QUI A DISPARU ICI, ET POURQUOI (arbitrage du 8 octobre 2026).
+// CE QUI A DISPARU ICI, ET POURQUOI (arbitrage du 7 octobre 2026).
 //
 //   . LA BOUCLE SUR TREIZE CAISSES. Elle appliquait une cle qui melangeait ministeres,
 //     commissariats, tribunaux et mairies, et cette cle vivait dans le CODE

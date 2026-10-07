@@ -2904,7 +2904,7 @@ async function ouvrirGestionBudget() {
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  // LA REPARTITION VIENT DE LA BASE, PLUS D'UNE CONSTANTE DU NAVIGATEUR (chantier 4F, 8 octobre
+  // LA REPARTITION VIENT DE LA BASE, PLUS D'UNE CONSTANTE DU NAVIGATEUR (chantier 4F, 7 octobre
   // 2026). REPARTITION_DEFAULT vivait dans plateau-core.js et melangeait ministeres,
   // commissariats, tribunaux et mairies ; la cle canonique est desormais la table
   // repartitions_budgetaires, et le serveur rend aussi l'equivalent en FR de chaque part.
@@ -2941,9 +2941,19 @@ function rendreRepartitionBudgetaire(source, lignes, intro) {
   const avecPonctuel = (source !== SOURCE_BUDGET_NATIONAL);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const fmt = n => Number(n).toLocaleString('fr-FR');
-  const arbitrees = lignes.filter(l => l.part_pourcent !== null && l.part_pourcent !== undefined);
-  const total = arbitrees.reduce((s, l) => s + Number(l.part_pourcent), 0);
   const base = lignes.length ? lignes[0].base_reference : null;
+
+  // LE TOTAL VIENT DU SERVEUR, ET IL EST EXACT (chantier 4F, arbitrage Justice du 7 octobre
+  // 2026). Le recalculer ici en additionnant les pourcentages AFFICHES donnerait 99,9999 % pour
+  // trois tiers : 33,3333 est un arrondi, et trois arrondis ne refont pas le tout. Le serveur,
+  // lui, somme les FRACTIONS -- 1/3 + 1/3 + 1/3 = 3/3 -- et rend 100,0000.
+  //
+  // majTotalBudget() reprend la main des que le ministre saisit un chiffre : a partir de la, il
+  // manipule bien des pourcentages, et leur somme est la bonne reference.
+  const total = lignes.length && lignes[0].total_pourcent !== null
+                && lignes[0].total_pourcent !== undefined
+    ? Number(lignes[0].total_pourcent)
+    : 0;
 
   let html = '<div style="padding:1rem" data-source="' + source + '">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + intro + '</div>';
@@ -2958,19 +2968,32 @@ function rendreRepartitionBudgetaire(source, lignes, intro) {
          + 'Les montants ci-dessous en découlent.</div>';
   }
 
+  const totalAffiche = Math.round(total * 10000) / 10000;
   html += '<div id="budget-total-label" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:'
-       + (total === 100 ? '#6ab858' : '#cc6a44') + ';margin-bottom:.6rem">TOTAL : ' + total + ' %</div>';
+       + (Math.abs(total - 100) < 0.00005 ? '#6ab858' : '#cc6a44')
+       + ';margin-bottom:.6rem">TOTAL : ' + totalAffiche + ' %</div>';
 
   lignes.forEach(l => {
     const nonArbitree = (l.part_pourcent === null || l.part_pourcent === undefined);
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
     html += '<div style="font-size:.8rem;color:' + (l.est_la_source ? '#8a8060' : '#c0b090')
          + ';width:210px">' + l.libelle + (l.est_la_source ? ' (part conservée)' : '') + '</div>';
-    html += '<input type="number" min="0" max="100" step="0.01" value="' + (nonArbitree ? '' : l.part_pourcent)
+    // STEP A QUATRE DECIMALES. Le serveur arrondit la part saisie a 10^-4 et rend 33,3333 pour
+    // un tiers : un step a 0,01 ferait refuser par le navigateur la valeur que le serveur vient
+    // de lui donner.
+    html += '<input type="number" min="0" max="100" step="0.0001" value="' + (nonArbitree ? '' : l.part_pourcent)
          + '" placeholder="—" data-beneficiaire="' + l.beneficiaire + '"'
          + ' onchange="majTotalBudget()" class="budget-part"'
          + ' style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.85rem;outline:none">';
     html += '<span style="font-size:.75rem;color:#8a8060">%</span>';
+    // QUAND LE POURCENTAGE N'EST QU'UN ARRONDI, ON DIT LA FRACTION. Le denominateur vaut 100
+    // dans le cas courant, et le pourcentage est alors exact : rien a ajouter. Un tiers, lui,
+    // s'affiche « 33,3333 % » -- l'ecran doit montrer 1/3 a cote, sinon il laisse croire que la
+    // regle est approximative alors qu'elle est exacte.
+    if (!nonArbitree && Number(l.part_denominateur) !== 100) {
+      html += '<span style="font-size:.72rem;color:#6a8a9a" title="Part exacte : le pourcentage '
+           + 'affiché n\'est qu\'un arrondi.">(' + l.part_exacte + ')</span>';
+    }
     html += '<span style="font-size:.75rem;color:#8a6a20;min-width:110px;text-align:right">'
          + (l.equivalent_fr === null || l.equivalent_fr === undefined ? '—' : fmt(l.equivalent_fr) + ' ' + cur)
          + '</span>';
@@ -3010,7 +3033,7 @@ function rendreRepartitionBudgetaire(source, lignes, intro) {
   return html;
 }
 
-// LE VIREMENT PONCTUEL, GENERIQUE (chantier 4F, arbitrage QHS du 8 octobre 2026).
+// LE VIREMENT PONCTUEL, GENERIQUE (chantier 4F, arbitrage QHS du 7 octobre 2026).
 //
 // Il remplace confirmerVirementPonctuel (Defense -> Caserne) et confirmerVirementPonctuelQHS
 // (Justice -> QHS), qui etaient deux copies de la meme chose avec une destination codee en dur.
@@ -3120,7 +3143,9 @@ async function validerRepartitionBudget(source) {
   champs.forEach(el => { avant[el.dataset.beneficiaire] = el.defaultValue === '' ? null : Number(el.defaultValue); });
   const aEcrire = modifiees
     .map(el => ({ b: el.dataset.beneficiaire, part: Number(el.value), ancienne: avant[el.dataset.beneficiaire] }))
-    .filter(x => x.ancienne === null || Math.abs(x.ancienne - x.part) >= 0.005)
+    // TOLERANCE ALIGNEE SUR LA PRECISION DU SERVEUR (10^-4). A 0,005, une part inchangee de
+    // 33,3333 aurait ete consideree identique a 33,336 : le ministre aurait cru avoir modifie.
+    .filter(x => x.ancienne === null || Math.abs(x.ancienne - x.part) >= 0.00005)
     .sort((x, y) => (x.part - (x.ancienne || 0)) - (y.part - (y.ancienne || 0)));
 
   let echecs = [];

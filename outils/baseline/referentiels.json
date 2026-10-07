@@ -139,7 +139,7 @@
   "empreintes": {
     "_mesure": {
       "le": "2026-10-08",
-      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les CINQ valeurs 'reelle' sont rendues par les cinq fonctions <miroir>_empreinte_reelle. Remesure du 8 octobre 2026, apres l'application de 20261008000000_villes_referentiel_et_caisses_fail_closed : les quatre miroirs anterieurs sont INCHANGES -- ce qui prouve que la migration n'a touche aucune de leurs donnees -- et le cinquieme, villes, est desormais mesurable.",
+      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les CINQ valeurs 'reelle' sont rendues par les cinq fonctions <miroir>_empreinte_reelle. Remesure du 7 octobre 2026, apres l'application de 20261008000000_villes_referentiel_et_caisses_fail_closed : les quatre miroirs anterieurs sont INCHANGES -- ce qui prouve que la migration n'a touche aucune de leurs donnees -- et le cinquieme, villes, est desormais mesurable.",
       "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
     },
     "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle() UNION ALL SELECT 'villes', (SELECT count(*) FROM public.villes), (SELECT empreinte FROM public.villes_empreinte LIMIT 1), public.villes_empreinte_reelle();",
@@ -183,12 +183,12 @@
         "table_empreinte": "ordres_couts_empreinte",
         "fonction_reelle": "ordres_couts_empreinte_reelle",
         "fonction_reelle_en_base": true,
-        "data_js": "5f16f8865fca8827",
-        "lignes": 401,
+        "data_js": "7c3a0e66846fb92b",
+        "lignes": 402,
         "posee": "6de4a84c58ed9b2b",
         "reelle": "a9ee71d9294ffaa8",
         "verdict": "TROIS valeurs differentes",
-        "_mesure_du_8_octobre_2026": "data.js a change : l'arbitrage du QHS ajoute l'ordre `gerer_budget_interieur` (0 PA, 0 FR) au bureau du Ministre de l'Interieur. L'empreinte passe donc de 55038ed4d716d140 a 5f16f8865fca8827, et le generateur compte 401 triples pour 377 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT D'UNE LIGNE, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Le nouvel ordre est le vingtieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier."
+        "_mesure_du_7_octobre_2026": "data.js a change DEUX fois ce jour-la, et l'empreinte du miroir avec : l'arbitrage du QHS a ajoute l'ordre `gerer_budget_interieur`, puis celui de la Justice l'ordre `gerer_budget_justice`. 55038ed4d716d140 -> 5f16f8865fca8827 -> 7c3a0e66846fb92b. Le generateur compte 402 triples pour 378 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT DE DEUX LIGNES, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Les deux nouveaux sont le vingtieme et le vingt-et-unieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier."
       },
       "villes": {
         "generateur": "outils/generateurs/generer_villes.py",
@@ -201,7 +201,7 @@
         "reelle": "d41051aa8bcafadd",
         "verdict": "les trois concordent",
         "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner.",
-        "_applique": "APPLIQUEE le 8 octobre 2026 (registre 20261007150217). Les trois valeurs ont ete mesurees le jour meme, par la requete de _requete_de_mesure : data.js, la sentinelle posee et la fonction villes_empreinte_reelle() rendent toutes d41051aa8bcafadd. Le miroir des villes est donc le seul des cinq a naitre deja concordant -- les autres portaient une derive au moment ou on a commence a les surveiller."
+        "_applique": "APPLIQUEE le 7 octobre 2026 (registre 20261007150217). Les trois valeurs ont ete mesurees le jour meme, par la requete de _requete_de_mesure : data.js, la sentinelle posee et la fonction villes_empreinte_reelle() rendent toutes d41051aa8bcafadd. Le miroir des villes est donc le seul des cinq a naitre deja concordant -- les autres portaient une derive au moment ou on a commence a les surveiller."
       }
     },
     "generes_sans_surveillance": {
@@ -245,7 +245,7 @@
     "repartition_budgetaire": {
       "retire_le": "2026-10-08",
       "canon_disparu": "REPARTITION_DEFAULT (plateau-core.js)",
-      "pourquoi": "La cle de repartition du budget national vivait dans une constante du NAVIGATEUR et le serveur la recevait generee. C'etait pourtant la regle REELLEMENT appliquee : verifie en base le 7 octobre 2026, budgets_nationaux.data ne portait aucune cle `repartition`, donc le cron retombait toujours sur cette constante. Depuis l'arbitrage du 8 octobre 2026, la cle canonique est la table repartitions_budgetaires -- en base, parce que c'est le serveur qui l'applique et le Ministre de l'Economie et des Finances qui la modifie par RPC budget_repartition_fixer.",
+      "pourquoi": "La cle de repartition du budget national vivait dans une constante du NAVIGATEUR et le serveur la recevait generee. C'etait pourtant la regle REELLEMENT appliquee : verifie en base le 7 octobre 2026, budgets_nationaux.data ne portait aucune cle `repartition`, donc le cron retombait toujours sur cette constante. Depuis l'arbitrage du 7 octobre 2026, la cle canonique est la table repartitions_budgetaires -- en base, parce que c'est le serveur qui l'applique et le Ministre de l'Economie et des Finances qui la modifie par RPC budget_repartition_fixer.",
       "ce_qui_la_controle_desormais": "La fonction SQL budget_coherence() : aucune somme de parts au-dela de 100 %, aucun beneficiaire a part non nulle sans caisse, aucun poste d'autorite inconnu, aucun double versement le meme jour. Et la cle primaire de repartitions_versements, qui porte le jour.",
       "_ancienne_declaration": {
         "_role": "la cle de repartition par defaut des recettes nationales",

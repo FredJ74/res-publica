@@ -562,7 +562,7 @@ def main():
             # naturellement « ville_est_reelle(text, text) ». Comparer les deux tels
             # quels rendait cet invariant DOUBLEMENT faux : il criait sur des fonctions
             # qui existent, et il serait reste muet sur une vraie inconnue ecrite sans
-            # espace. Trouve le 8 octobre 2026, sur trois fonctions du chantier 4E.
+            # espace. Trouve le 7 octobre 2026, sur trois fonctions du chantier 4E.
             sig = "%s(%s)" % (m.group(1), re.sub(r"\s+", "", m.group(2)))
             if sig not in signatures_connues and m.group(1) not in creees:
                 ecarts.append("%s : signature inconnue « %s »" % (court, sig))

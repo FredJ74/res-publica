@@ -53,7 +53,9 @@ ALTER TABLE public.pa_bonus_differes ADD CONSTRAINT pa_bonus_differes_montant_ch
 ALTER TABLE public.pa_bonus_differes_empreinte ADD CONSTRAINT pa_bonus_differes_empreinte_seul_check CHECK (seul);
 ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_montant_check CHECK (((montant > 0) AND (montant <= 10)));
 ALTER TABLE public.pa_credits_sources ADD CONSTRAINT pa_credits_sources_montant_check CHECK (((montant IS NULL) OR ((montant > 0) AND (montant <= 10))));
-ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_part_bornee CHECK (((part_pourcent IS NULL) OR ((part_pourcent >= (0)::numeric) AND (part_pourcent <= (100)::numeric))));
+ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_denominateur_positif CHECK (((part_denominateur IS NULL) OR (part_denominateur > (0)::numeric)));
+ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_part_bornee CHECK (((part_numerateur IS NULL) OR ((part_numerateur >= (0)::numeric) AND (part_numerateur <= part_denominateur))));
+ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_part_entiere CHECK (((part_numerateur IS NULL) = (part_denominateur IS NULL)));
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_categorie_check CHECK ((categorie = ANY (ARRAY['poste'::text, 'emploi'::text, 'universel'::text])));
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_montant_check CHECK ((montant >= 0));
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_montant_check CHECK ((montant > 0));

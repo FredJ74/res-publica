@@ -25,7 +25,7 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-# Mesure du 8 octobre 2026, apres les migrations 20261008000000 et 20261008010000, qui ont
+# Mesure du 7 octobre 2026, apres les migrations 20261008000000 et 20261008010000, qui ont
 # porte le catalogue de 255 a 259 tables : villes, villes_empreinte (chantier 4E),
 # repartitions_budgetaires et repartitions_versements (chantier 4F). Les deux valeurs viennent
 # de la MEME requete que celle en commentaire, jouee sur la base -- et le md5 qu'elle rend est

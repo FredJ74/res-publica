@@ -438,7 +438,7 @@ const BUDGET_DEFAULT = {
   mairie:     { solde: 30000, coutOrdre: 250 }
 };
 
-// REPARTITION_DEFAULT A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026).
+// REPARTITION_DEFAULT A ETE SUPPRIMEE (chantier 4F, 7 octobre 2026).
 //
 // C'etait la cle de repartition du budget national, et elle etait la REGLE REELLEMENT APPLIQUEE :
 // verifie en base le 7 octobre 2026, `budgets_nationaux.data` ne portait aucune cle
@@ -2375,7 +2375,7 @@ async function runMidnightUpdate() {
   verifierDecouverteCrimesPasses();
   // Population
   mettreAJourPopulation();
-  // DEUX APPELS ONT ETE RETIRES ICI (chantier 4F, 8 octobre 2026), et les deux etaient des
+  // DEUX APPELS ONT ETE RETIRES ICI (chantier 4F, 7 octobre 2026), et les deux etaient des
   // distributeurs de recettes nationales concurrents de la cascade serveur.
   //
   //   . alimenterBudgets() repartissait les MEMES recettes que le cron -- la somme des

@@ -22,7 +22,7 @@
 -- CE QU'IL RESTE A FAIRE
 -- CE FICHIER ETAIT ECRIT A LA MAIN, hors de tout registre : seeds.py ne le
 -- connaissait pas, l'INVENTAIRE ne le hachait pas, et le controle de
--- couverture du 8 octobre 2026 l'a decouvert en meme temps que l'oubli de
+-- couverture du 7 octobre 2026 l'a decouvert en meme temps que l'oubli de
 -- `villes`. Il est desormais declare ici. Son generateur, lui, existe deja
 -- et tourne : `generer_recettes_militaires.py --sql` rend un SQL
 -- deterministe, empreinte 6162d0e5d809630e au 6 octobre 2026, et c'est lui

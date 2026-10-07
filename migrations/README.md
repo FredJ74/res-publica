@@ -10,50 +10,38 @@ L'horodatage est celui du moment où la migration est écrite, en UTC. Il donne
 l'ordre d'application, et il doit être **postérieur au point de coupe du
 baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
-## La migration en attente d'application — chantier 4E, villes et caisses
+## Aucune migration en attente
 
-`20261008000000_villes_referentiel_et_caisses_fail_closed.sql` est **écrite,
-éprouvée autant que l'environnement le permet, et non appliquée**. Rien dans le
-dépôt ne prétend le contraire : son effet n'est pas dans le baseline, et le
-miroir `villes` est déclaré en attente dans
-`../outils/baseline/referentiels.json` (`posee` et `reelle` à `null`,
-`fonction_reelle_en_base` à `false`).
+Ce répertoire ne contient que ce fichier et `PLAN-APPLICATION.md`. Les sept
+migrations des chantiers 4E et 4F ont toutes été appliquées et vivent dans
+`../historique/migrations-appliquees/`, chacune avec, en tête, **la version du
+registre Supabase** et **ce qui a été vérifié après coup**.
 
-Elle a été **redatée** du 7 au 8 octobre 2026 : le point de coupe du baseline a
-avancé avec les deux migrations du chantier 4F, et l'invariant 4 du garde-fou
-refuse — à raison — une migration antérieure au point de coupe. Son contenu n'a
-pas bougé, hormis deux `REVOKE` ajoutés par prudence (voir plus bas).
+> **Les noms de fichiers gardent leur horodatage de rédaction.** Cinq d'entre
+> eux commencent par `20261008`, alors que l'horloge du projet et le registre
+> disent le 7 octobre 2026. Ce sont les noms sous lesquels ces migrations ont été
+> **réellement appliquées** : les renommer réécrirait l'historique pour corriger
+> une faute de date, et un historique qui se corrige ne prouve plus rien. La
+> prose du dépôt, elle, a été alignée sur le 7 octobre — c'est purement
+> documentaire. Et les textes déjà **en base** (un `COMMENT`, une `note` de
+> référentiel) gardent le 8 octobre, parce que c'est ce que la base contient :
+> les fichiers générés de `baseline/` doivent dire la vérité sur elle, pas sur
+> nos intentions.
 
-Les trois migrations du chantier 3 et les deux du chantier 4F, qui occupaient
-cette section, **ont été appliquées** ; elles vivent dans
-`../historique/migrations-appliquees/`.
+### Ce que la prochaine migration doit respecter
 
-### Ce qu'elle fait
+Deux règles, apprises à ce chantier :
 
-| Partie | Effet |
-|---|---|
-| référentiel | crée `villes` (12 lignes, semées par `generer_villes.py`) et `villes_empreinte` + `villes_empreinte_reelle()`, cinquième miroir surveillé |
-| résolveurs | `ville_est_reelle()`, `caisse_territoire()` (portée `national` / `ville` / `indetermine`), et `caisse_ville_de()` réécrite pour déléguer |
-| autorité | ferme le *fail-open* des trois primitives de caisse : absence de règle d'autorité = **refus**, et le contrôle de ville est ajouté aux deux qui n'en avaient pas |
-| vestiges | supprime 5 lignes de `caisses_batiments` à solde 0 et sans aucun mouvement, dont `republic_mairie_caserne` |
-
-C'est la **seule** partie du chantier 4E qui touche la base. Tout le reste —
-référentiel `VILLES` et résolveur unique côté navigateur, suppression de cinq
-tables de noms concurrentes, générateur, contrôles — est livré et ne dépend pas
-d'elle.
-
-### Où en est l'épreuve (temps 3)
-
-| Épreuve | État |
-|---|---|
-| grammaire PostgreSQL 17.7 (`pglast`) | **passée** — 44 instructions analysées |
-| invariant 12 de `verifier-autorite.py` | **passé** — chaque table, signature et policy nommée existe, ou est créée par la migration elle-même |
-| table de décision de `caisse_territoire()` | **passée en lecture seule sur les 151 caisses réelles** : 48 nationales, 36 de ville (contre 34 avant, les 4 `mairie-capitale` étant récupérées), 61 sans règle, 6 indéterminées |
-| effet du resserrement sur les postes réellement pourvus | **mesuré** : les deux seuls postes tenus dans la bêta (`min_def`, `lieutenant`) sont nationaux, donc **zéro** chemin légitime fermé ; ce qui se ferme, ce sont 25 caisses sans règle par acteur |
-| banc transactionnel sur la base | **non tenté** — il aurait coûté une seconde confirmation humaine, et les mesures en lecture ci-dessus établissent la même chose |
-
-Ce que seule l'application peut établir, c'est que le DDL passe sur l'état réel.
-Le reste est mesuré.
+1. **Être postérieure au point de coupe du baseline**
+   (`../baseline/CONTROLE-GLOBAL.json`, clé `releve_le`). L'invariant 4 du
+   garde-fou refuse l'inverse, à raison : l'effet d'une migration antérieure est
+   censé être déjà dans le baseline. Si une réextraction a lieu entre l'écriture
+   et l'application, **redater le fichier** est la seule réponse juste.
+2. **Porter ses propres contrôles dans sa transaction.** Un bloc `DO` qui lève
+   plutôt que de laisser croire que la migration a fait ce qu'elle annonce.
+   C'est ce qui a sauvé le chantier de la Justice : la première version sommait
+   trois tiers par division et obtenait `0,99999999999999999999` ; son assertion
+   l'a refusée, et **rien n'a été appliqué**.
 
 ## Les trois règles
 

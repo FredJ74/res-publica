@@ -1,5 +1,5 @@
 -- =============================================================================
--- BANC D'ESSAI DE LA CASCADE BUDGETAIRE -- chantier 4F, 8 octobre 2026
+-- BANC D'ESSAI DE LA CASCADE BUDGETAIRE -- chantier 4F, 7 octobre 2026
 -- =============================================================================
 --
 -- POURQUOI CE FICHIER EXISTE. La brique budgetaire deplace de l'argent chaque nuit. On ne la
@@ -228,7 +228,7 @@ END $$;
 -- -----------------------------------------------------------------------------
 -- EPREUVE 4 -- UNE PART A 0 % EST UNE CONFIGURATION, PAS UNE ABSENCE DE REGLE
 -- -----------------------------------------------------------------------------
--- Arbitrage du 8 octobre 2026 : le QHS releve budgetairement de l'Interieur, a 0 % par defaut.
+-- Arbitrage du 7 octobre 2026 : le QHS releve budgetairement de l'Interieur, a 0 % par defaut.
 -- Les sept preuves demandees, dans l'ordre.
 
 DO $$
@@ -335,5 +335,165 @@ END $$;
 --   (7) LES CINQ INVARIANTS TIENNENT, y compris le nouveau -- aucune caisse financee par deux
 --       sources.
 --
--- APRES CE BLOC, verifie le 8 octobre 2026 : 0 versement en base, caisse du QHS a 200,
+-- APRES CE BLOC, verifie le 7 octobre 2026 : 0 versement en base, caisse du QHS a 200,
 -- Interieur a 86 424, Douanes a 0, parts a 0,00 et 35,00. Rien n'a persiste.
+
+
+-- -----------------------------------------------------------------------------
+-- EPREUVE 5 -- TROIS PARTS RIGOUREUSEMENT EGALES, ET UN RELIQUAT QUI TOURNE
+-- -----------------------------------------------------------------------------
+-- Arbitrage du 7 octobre 2026 : le budget du Ministere de la Justice se repartit a PARTS EGALES
+-- entre les trois tribunaux territoriaux. Pas 33,33 -- qui ne fait pas 100 a trois. Pas
+-- 33,33 / 33,33 / 33,34 -- qui privilegie un tribunal pour toujours. UN TIERS EXACT.
+
+DO $$
+DECLARE
+  v text := E'\n'; r jsonb; v_lig record; v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_num numeric; v_den numeric; v_dec integer := ((now() AT TIME ZONE 'Europe/Paris')::date - DATE '2026-01-01');
+BEGIN
+  SELECT numerateur, denominateur INTO v_num, v_den
+    FROM public.budget_part_totale('republic','gouvernement-min_just');
+  v := v || 'somme des parts Justice = ' || trim_scale(v_num)::text || '/' || trim_scale(v_den)::text
+         || '  -> le tout : ' || (v_num = v_den)::text || E'\n';
+  v := v || 'parts : ' || (SELECT string_agg(beneficiaire || '=' || trim_scale(part_numerateur)::text
+         || '/' || trim_scale(part_denominateur)::text, '  ' ORDER BY rang)
+         FROM public.repartitions_budgetaires
+        WHERE pays='republic' AND source='gouvernement-min_just') || E'\n';
+  v := v || 'valeurs distinctes = ' || (SELECT count(DISTINCT part_numerateur/part_denominateur)
+         FROM public.repartitions_budgetaires
+        WHERE pays='republic' AND source='gouvernement-min_just')::text
+         || ' (1 = aucune preference structurelle)' || E'\n';
+
+  r := public.budget_repartir('republic','gouvernement-min_just', 2215);
+  v := v || E'\n' || 'base 2215 : distribuable=' || (r->>'distribuable')
+         || '  verse=' || (r->>'verse') || '  parts=' || (r->>'parts_totales') || E'\n';
+  v := v || '  ' || (SELECT string_agg(beneficiaire || '=' || montant, ' ' ORDER BY beneficiaire)
+         FROM public.repartitions_versements
+        WHERE source='gouvernement-min_just' AND jour=v_jour) || E'\n';
+  v := v || '  somme versee = ' || (SELECT sum(montant) FROM public.repartitions_versements
+        WHERE source='gouvernement-min_just' AND jour=v_jour)::text
+         || ' / base 2215  -> aucun FR perdu : '
+         || ((SELECT sum(montant) FROM public.repartitions_versements
+              WHERE source='gouvernement-min_just' AND jour=v_jour) = 2215)::text || E'\n';
+
+  -- LE RELIQUAT TOURNE AVEC LE JOUR. La cascade ne peut pas etre rejouee pour trois journees
+  -- dans une seule transaction -- la cle du journal l'interdit, et c'est voulu. On rejoue donc
+  -- l'EXPRESSION DE DEPARTAGE pour quatre decalages consecutifs. Deux niveaux de CTE sont
+  -- necessaires : PostgreSQL refuse une fonction de fenetrage dans la definition d'une autre,
+  -- et c'est pourquoi budget_repartir a lui aussi une etape `denses` separee.
+  v := v || E'\n' || 'departage du reliquat, decalage du jour = ' || v_dec || ' :' || E'\n';
+  FOR v_lig IN
+    WITH d AS (SELECT v_dec + g AS dec FROM generate_series(0,3) g),
+    denses AS (
+      SELECT d.dec, b.beneficiaire, b.rang,
+             row_number() OVER (PARTITION BY d.dec ORDER BY b.rang) AS position,
+             count(*) OVER (PARTITION BY d.dec) AS combien
+        FROM d CROSS JOIN public.repartitions_budgetaires b
+       WHERE b.pays='republic' AND b.source='gouvernement-min_just'),
+    classe AS (
+      SELECT x.dec, x.beneficiaire,
+             row_number() OVER (PARTITION BY x.dec
+               ORDER BY ((x.position - 1 + x.dec) % x.combien), x.rang) AS ordre
+        FROM denses x)
+    SELECT dec, beneficiaire FROM classe WHERE ordre = 1 ORDER BY dec
+  LOOP
+    v := v || '  decalage ' || v_lig.dec || ' -> le FR orphelin va a ' || v_lig.beneficiaire || E'\n';
+  END LOOP;
+
+  RAISE EXCEPTION 'JUSTICE EN TIERS (transaction annulee) : %', v;
+END $$;
+
+-- RESULTAT MESURE LE 7 OCTOBRE 2026
+--   somme des parts Justice = 3/3  -> le tout : true
+--   parts : tribunal_capitale=1/3  tribunal_ville_a=1/3  tribunal_ville_b=1/3
+--   valeurs distinctes = 1 (1 = aucune preference structurelle)
+--   base 2215 : distribuable=2215  verse=2215  parts=3.00000000000000000000/3
+--     tribunal_capitale=739 tribunal_ville_a=738 tribunal_ville_b=738
+--     somme versee = 2215 / base 2215  -> aucun FR perdu : true
+--   departage du reliquat, decalage du jour = 279 :
+--     decalage 279 -> le FR orphelin va a tribunal_capitale
+--     decalage 280 -> le FR orphelin va a tribunal_ville_b
+--     decalage 281 -> le FR orphelin va a tribunal_ville_a
+--     decalage 282 -> le FR orphelin va a tribunal_capitale
+--
+-- CE QUE CELA PROUVE
+--   . TROIS PARTS EXACTEMENT EGALES. 1/3 chacune, UNE seule valeur distincte. Aucune hierarchie,
+--     pas meme d'un centieme de point -- ce que 33,33 / 33,33 / 33,34 n'aurait pas permis.
+--   . LA SOMME EST LE TOUT. 3/3, verifie en FRACTIONS : la somme des parts n'est pas comparee a
+--     1 apres division, elle est comparee numerateur a denominateur. Le premier jet de la
+--     migration divisait d'abord et obtenait 0,99999999999999999999 ; son propre controle l'a
+--     refusee, et rien n'avait ete applique.
+--   . AUCUN FR PERDU SUR UNE BASE NON DIVISIBLE PAR TROIS. 2215 = 739 + 738 + 738. Le
+--     distribuable vaut 2215, pas 2214 : la division est ENTIERE (div), jamais un floor sur un
+--     quotient decimal tronque.
+--   . LE RELIQUAT NE VA PAS TOUJOURS AU MEME. Sur quatre jours consecutifs : capitale, ville_b,
+--     ville_a, capitale. Chacun l'obtient une fois sur trois, et la meme journee rend toujours
+--     le meme resultat -- deterministe sans etre partial. Avant ce lot, le departage se faisait
+--     par le RANG : Luthecia aurait ramasse le FR orphelin chaque nuit, pour toujours. Le defaut
+--     n'etait pas propre a la Justice -- les neuf caisses nationales a 9 % sont elles aussi a
+--     egalite entre elles.
+--
+-- UNE COSMETIQUE NON CORRIGEE : `parts=3.00000000000000000000/3` dans le JSON de retour. La
+-- valeur est juste, son echelle est bruyante. C'est une chaine de journal lue par le cron
+-- seulement ; un trim_scale() a cet endroit ne valait pas une migration de plus.
+
+
+-- -----------------------------------------------------------------------------
+-- EPREUVE 6 -- LE CIRCUIT MINISTERE DE LA JUSTICE -> LES TROIS TRIBUNAUX
+-- -----------------------------------------------------------------------------
+-- UNE PRECAUTION DE LECTURE, PAYEE COMPTANT. Un premier jet de cette epreuve appelait
+-- caisse_ministere_mouvement() depuis cette session et concluait, devant trois
+-- `acteur_non_authentifie`, que budget_repartition_fixer et caisse_ministere_mouvement lisaient
+-- l'autorite a deux endroits differents. C'ETAIT FAUX, et la verification l'a montre : les deux
+-- lisent personnages_donnees.poste->>'id' filtre par user_id = auth.uid(). La vraie raison est
+-- que exiger_poste() rend NULL quand est_appel_serveur() est vrai -- ce qui est le cas d'une
+-- session service_role -- et que caisse_ministere_mouvement traite ce NULL comme un refus.
+--
+-- CONSEQUENCE : le virement ponctuel N'EST PAS exercable depuis une session serveur, par
+-- construction. C'est un acte de ministre, et seule une session de navigateur authentifiee
+-- l'obtient. Ce qui SE verifie ici, c'est la plomberie : les trois caisses de tribunal
+-- acceptent le credit, la caisse du ministere est debitee d'autant, et la REGLE ne bouge pas.
+
+DO $$
+DECLARE v text := E'\n'; r jsonb; b text; v_avant numeric; v_apres numeric;
+BEGIN
+  v := v || 'est_appel_serveur() dans cette session : ' || public.est_appel_serveur()::text || E'\n\n';
+  FOREACH b IN ARRAY ARRAY['tribunal_capitale','tribunal_ville_a','tribunal_ville_b'] LOOP
+    SELECT (data->>'solde')::numeric INTO v_avant
+      FROM public.caisses_batiments WHERE id = 'republic_' || b;
+    PERFORM set_config('rp.caisse_interne', 'on', true);
+    r := public.caisse_institution_mouvement('republic_gouvernement-min_just', -500, true);
+    IF coalesce((r->>'ok')::boolean,false) THEN
+      r := public.caisse_institution_mouvement('republic_' || b, 500, false);
+    END IF;
+    PERFORM set_config('rp.caisse_interne', '', true);
+    SELECT (data->>'solde')::numeric INTO v_apres
+      FROM public.caisses_batiments WHERE id = 'republic_' || b;
+    v := v || '  ' || b || ' : ok=' || coalesce(r->>'ok','?')
+           || '  ' || v_avant || ' -> ' || v_apres || E'\n';
+  END LOOP;
+  v := v || '  caisse de la Justice : '
+         || (SELECT (data->>'solde') FROM public.caisses_batiments
+              WHERE id='republic_gouvernement-min_just') || E'\n';
+  v := v || E'\n' || 'LES PARTS N''ONT PAS BOUGE : ' || (SELECT string_agg(
+         trim_scale(part_numerateur)::text || '/' || trim_scale(part_denominateur)::text, ' '
+         ORDER BY rang) FROM public.repartitions_budgetaires
+        WHERE pays='republic' AND source='gouvernement-min_just')
+         || '  -- un acte ne modifie pas une regle' || E'\n';
+  RAISE EXCEPTION 'PLOMBERIE DU PONCTUEL (transaction annulee) : %', v;
+END $$;
+
+-- RESULTAT MESURE LE 7 OCTOBRE 2026
+--   est_appel_serveur() dans cette session : true
+--     tribunal_capitale : ok=true  56921 -> 57421
+--     tribunal_ville_a : ok=true  3224 -> 3724
+--     tribunal_ville_b : ok=true  2344 -> 2844
+--     caisse de la Justice : 67629   (69129 - 3 x 500)
+--   LES PARTS N'ONT PAS BOUGE : 1/3 1/3 1/3  -- un acte ne modifie pas une regle
+--
+-- ET LE CHEMIN D'AUTORITE, mesure a part depuis une identite de PJ reelle (voir epreuve 2 pour
+-- la methode) : un acteur qui ne tient pas min_just recoit `autorite_insuffisante` de
+-- budget_repartition_fixer, avec `poste_requis: min_just`. Porter une part de la Justice a 50 %
+-- sans baisser les autres d'abord est refuse pour `somme_depasse_cent` (116,6667 %), et le refus
+-- RESTAURE l'ancienne valeur : les trois parts restent a 1/3 apres l'echec. C'est pourquoi
+-- l'ecran ecrit les baisses avant les hausses.

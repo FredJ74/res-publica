@@ -7,16 +7,34 @@
    "sous": "beneficiaire"
   },
   {
-   "empreinte": "885d1137e1315948cf5f131672a7b13d",
+   "empreinte": "55a2ab85203d828a339a3eac765aa968",
    "genre": "COLUMN",
    "objet": "repartitions_budgetaires",
-   "sous": "part_pourcent"
+   "sous": "part_denominateur"
+  },
+  {
+   "empreinte": "2da1bf43eb5006c35133012028fb9a57",
+   "genre": "COLUMN",
+   "objet": "repartitions_budgetaires",
+   "sous": "part_numerateur"
   },
   {
    "empreinte": "f3f25ab8edb96e1f53d8070dbd771e0d",
    "genre": "COLUMN",
    "objet": "repartitions_budgetaires",
    "sous": "source"
+  },
+  {
+   "empreinte": "f0f927d85bbd198f9f04610c2a15b348",
+   "genre": "COLUMN",
+   "objet": "repartitions_versements",
+   "sous": "part_denominateur"
+  },
+  {
+   "empreinte": "555cf5e56654d17f3ce2ae1328781c5c",
+   "genre": "COLUMN",
+   "objet": "repartitions_versements",
+   "sous": "part_numerateur"
   },
   {
    "empreinte": "b78dbce2ecfb04b7e62d8e21f50eb48c",
@@ -37,25 +55,31 @@
    "sous": ""
   },
   {
-   "empreinte": "02d785ef965c0a15b6b8293ea515a3b7",
+   "empreinte": "3c8cf81dbf07c0d892de33c786d82f19",
    "genre": "FUNCTION",
    "objet": "budget_coherence()",
    "sous": ""
   },
   {
-   "empreinte": "0f23845292dfe4ad21a1239f93724f68",
+   "empreinte": "0510fee96a73d6b6fde7f4a9b068a1ea",
+   "genre": "FUNCTION",
+   "objet": "budget_part_totale(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1cd8c4579c8689473d96b38a70fff87f",
    "genre": "FUNCTION",
    "objet": "budget_repartir(text,text,numeric)",
    "sous": ""
   },
   {
-   "empreinte": "94ae8779b33b2c09eb52fb81ad84a2c8",
+   "empreinte": "525570cf93c721950305b6973f4f0b8d",
    "genre": "FUNCTION",
    "objet": "budget_repartition_fixer(text,text,numeric)",
    "sous": ""
   },
   {
-   "empreinte": "50f9ff5292dbf7ef0d78b38e1700d568",
+   "empreinte": "3cfaeecfd51f292c3717f6c61d3fa3f1",
    "genre": "FUNCTION",
    "objet": "budget_repartition_lire(text)",
    "sous": ""
@@ -471,9 +495,21 @@
    "tbl": "pa_credits_sources"
   },
   {
-   "empreinte": "c0b77a445a26ef78feb0e3bf114dc11a",
+   "empreinte": "f1a93f49a71e75be755b34b8d0bed523",
+   "genre": "c",
+   "nom": "repartitions_budgetaires_denominateur_positif",
+   "tbl": "repartitions_budgetaires"
+  },
+  {
+   "empreinte": "5d898d0f5ca57f4e8fe3582885479e23",
    "genre": "c",
    "nom": "repartitions_budgetaires_part_bornee",
+   "tbl": "repartitions_budgetaires"
+  },
+  {
+   "empreinte": "dd67986072dce1b73f6e6bd88f5a0efb",
+   "genre": "c",
+   "nom": "repartitions_budgetaires_part_entiere",
    "tbl": "repartitions_budgetaires"
   },
   {
@@ -561,6 +597,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_part_totale(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_part_totale(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2012,14 +2060,14 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "1bae0d575ab6c4365607fa19654d2437",
-  "20_fonctions.sql": "b3d81f9dcbbabae15149b198b01dcf04",
-  "30_contraintes.sql": "3cb0318b4caaaf22ca16865948efa3c4",
+  "10_tables.sql": "0f37d2cf9ad02c3f7eb2ed5e8d524857",
+  "20_fonctions.sql": "238803d7e750492dbd685ab71d5c2bb1",
+  "30_contraintes.sql": "5adb8a15bcda020d85cba7ab0c6eb06d",
   "35_index.sql": "ce9f5765ad90487d36fabc4763cdf994",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
   "60_rls-policies.sql": "1a0a1c0d23fb469d3e58885b4c4fb0a6",
-  "70_droits.sql": "9bcd0e336f5ecbd8484bc8a76313733f",
-  "80_commentaires.sql": "c3b29e301f441ad56262a706b5c53cbb"
+  "70_droits.sql": "08b46899e430a6c0f11d18c8ecf60e01",
+  "80_commentaires.sql": "66f49734815b0ffa198d9da25aa6240d"
  },
  "fonctions": [
   {
@@ -2038,7 +2086,7 @@
    "signature": "budget_cascade_quotidienne(text,numeric)"
   },
   {
-   "empreinte": "31874f0fd9ed143cc8ba1343a220f274",
+   "empreinte": "ffd107e69cf5938ed8d3b7b71f7c3b31",
    "security_definer": true,
    "signature": "budget_coherence()"
   },
@@ -2048,17 +2096,22 @@
    "signature": "budget_national_epingler()"
   },
   {
-   "empreinte": "b21825013004d1a6b52777b3178cabc0",
+   "empreinte": "7a0ec6d105b7f1f3223faa8096858d4d",
+   "security_definer": true,
+   "signature": "budget_part_totale(text,text)"
+  },
+  {
+   "empreinte": "02d1ccfe6791fa91ca4046100de5e143",
    "security_definer": true,
    "signature": "budget_repartir(text,text,numeric)"
   },
   {
-   "empreinte": "43f3158dd7a8865a30856105ea2316da",
+   "empreinte": "41c3970dcf5cb115c14b279b07e58d79",
    "security_definer": true,
    "signature": "budget_repartition_fixer(text,text,numeric)"
   },
   {
-   "empreinte": "fbdf22b3ba63fa1c96031830011abcb4",
+   "empreinte": "d5100107f7211122d18c75c8f6cb6214",
    "security_definer": true,
    "signature": "budget_repartition_lire(text)"
   },
@@ -2732,15 +2785,15 @@
    "nom": "pa_credits_uniques"
   },
   {
-   "colonnes": 8,
-   "empreinte_catalogue": "7f5ec1df14eafe82f63d8110a92259b5",
-   "empreinte_texte": "6981763049ceed487e3e7bb5d07ef45c",
+   "colonnes": 9,
+   "empreinte_catalogue": "7e8d6cd6db34907e34872fc9f7715cf7",
+   "empreinte_texte": "751715099c95e22c8a5e5dedf51efeac",
    "nom": "repartitions_budgetaires"
   },
   {
-   "colonnes": 9,
-   "empreinte_catalogue": "a80f3139b8957f6e40448c5f004486b4",
-   "empreinte_texte": "f827fb2d44323bc1668d569eced2515a",
+   "colonnes": 10,
+   "empreinte_catalogue": "f3995dd1306cd3f5bc4b08ccb82fd57e",
+   "empreinte_texte": "b1a18e33894461a44541d6a3f1297639",
    "nom": "repartitions_versements"
   },
   {

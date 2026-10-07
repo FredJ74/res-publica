@@ -798,7 +798,7 @@ function depenseBudget(institution, montant) {
   return true;
 }
 
-// mettreAJourBudgets A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). C'etait le TROISIEME
+// mettreAJourBudgets A ETE SUPPRIMEE (chantier 4F, 7 octobre 2026). C'etait le TROISIEME
 // distributeur : il reversait 40 % des recettes de la ville courante aux institutions dont la cle
 // commence par le nom de cette ville, plafonnees a 20 000 -- une troisieme economie parallele.
 //
@@ -1969,7 +1969,7 @@ function verifierBudgetInstitution(inst) {
   return true;
 }
 
-// alimenterBudgets A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). C'etait le SECOND
+// alimenterBudgets A ETE SUPPRIMEE (chantier 4F, 7 octobre 2026). C'etait le SECOND
 // distributeur des recettes nationales, et le plus trompeur des trois.
 //
 // Elle etait appelee a CHAQUE minuit joueur (runMidnightUpdate, plateau-core.js) et repartissait
@@ -1978,7 +1978,7 @@ function verifierBudgetInstitution(inst) {
 // institution, et remis a BUDGET_DEFAULT a chaque rechargement de page. Deux systemes
 // distribuaient donc simultanement les memes recettes, l'un reellement, l'autre dans le vide.
 //
-// L'arbitrage du 8 octobre 2026 l'interdit explicitement : « Ne laisse surtout pas deux systemes
+// L'arbitrage du 7 octobre 2026 l'interdit explicitement : « Ne laisse surtout pas deux systemes
 // distribuer simultanement les memes recettes. » Le distributeur reel et unique est desormais la
 // cascade serveur (budget_cascade_quotidienne), appelee par le cron.
 //
@@ -8140,7 +8140,7 @@ const TAUX_TAXE_DEFAUT = 5; // %, local et national
 //
 // Les deux constantes n'avaient aucun autre lecteur (verifie : 0 occurrence ailleurs).
 
-// CAISSE_PAR_POSTE_BUDGET A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026).
+// CAISSE_PAR_POSTE_BUDGET A ETE SUPPRIMEE (chantier 4F, 7 octobre 2026).
 //
 // C'etait la table « poste de la cle de repartition -> identifiant de caisse », treize entrees,
 // doublee par un miroir genere vers le serveur. Elle n'a plus d'objet : la table
@@ -8153,7 +8153,7 @@ const TAUX_TAXE_DEFAUT = 5; // %, local et national
 // C'etait vrai cote navigateur et FAUX cote serveur : le cron les creditait chaque nuit, et c'est
 // ce qui a prive Montrouge et Port-Sainte-Marie de tout financement pendant dix-huit jours (voir
 // le commit ba75c1e). Les trois familles territoriales quittent la cle nationale par l'arbitrage
-// du 8 octobre, ce qui ferme la question pour de bon.
+// du 7 octobre, ce qui ferme la question pour de bon.
 
 const COUT_REPARATION_GRILLE = 200; // FR par point regenere
 const REGEN_GRILLE_PAR_JOUR = 4; // points vises par jour, plafonne par le budget dispo

@@ -178,13 +178,16 @@ CREATE OR REPLACE FUNCTION public.budget_coherence()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-  -- La somme des parts d'une source ne doit jamais depasser 100 %.
+  -- La somme des parts d'une source ne doit jamais depasser le tout. Comparee en FRACTIONS :
+  -- trois tiers font exactement UN, et ne declenchent donc pas cet invariant.
   SELECT 'somme des parts superieure a 100 %',
-         string_agg(x.pays || '/' || x.source || ' = ' || x.somme::text, ', ' ORDER BY x.source)
-    FROM (SELECT pays, source, sum(part_pourcent) AS somme
-            FROM public.repartitions_budgetaires WHERE part_pourcent IS NOT NULL
-           GROUP BY pays, source) x
-   WHERE x.somme > 100
+         string_agg(x.pays || '/' || x.source || ' = '
+                    || round(x.num * 100 / x.den, 4)::text || ' %', ', ' ORDER BY x.source)
+    FROM (SELECT s.pays, s.source, t.numerateur AS num, t.denominateur AS den
+            FROM (SELECT DISTINCT pays, source FROM public.repartitions_budgetaires
+                   WHERE part_numerateur IS NOT NULL) s
+            CROSS JOIN LATERAL public.budget_part_totale(s.pays, s.source) t) x
+   WHERE x.num > x.den
   HAVING count(*) > 0
   UNION ALL
   -- Un beneficiaire declare doit avoir une caisse qui existe, sinon le versement sera refuse
@@ -194,7 +197,7 @@ AS $function$
   SELECT 'beneficiaire sans caisse en base',
          string_agg(b.pays || '_' || b.beneficiaire, ', ' ORDER BY b.beneficiaire)
     FROM public.repartitions_budgetaires b
-   WHERE b.part_pourcent IS NOT NULL
+   WHERE b.part_numerateur IS NOT NULL
      AND NOT EXISTS (SELECT 1 FROM public.caisses_batiments c
                       WHERE c.id = b.pays || '_' || b.beneficiaire)
   HAVING count(*) > 0
@@ -328,6 +331,30 @@ BEGIN
 END;
 $function$;
 
+-- budget_part_totale(text,text) -> record | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_part_totale(p_pays text, p_source text, OUT numerateur numeric, OUT denominateur numeric)
+ RETURNS record
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE d numeric;
+BEGIN
+  denominateur := 1;
+  FOR d IN SELECT DISTINCT part_denominateur
+             FROM public.repartitions_budgetaires
+            WHERE pays = p_pays AND source = p_source AND part_numerateur IS NOT NULL
+            ORDER BY part_denominateur
+  LOOP
+    IF denominateur % d <> 0 THEN denominateur := denominateur * d; END IF;
+  END LOOP;
+  SELECT coalesce(sum(part_numerateur * (denominateur / part_denominateur)), 0)
+    INTO numerateur
+    FROM public.repartitions_budgetaires
+   WHERE pays = p_pays AND source = p_source AND part_numerateur IS NOT NULL;
+END;
+$function$;
+
 -- budget_repartir(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.budget_repartir(p_pays text, p_source text, p_base numeric)
  RETURNS jsonb
@@ -338,12 +365,13 @@ AS $function$
 DECLARE
   v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
   v_base numeric := floor(coalesce(p_base, 0));
-  v_total_parts numeric := 0;
+  v_num_total numeric; v_den_total numeric;
   v_distribuable numeric;
+  v_decalage integer;
   v_lignes jsonb := '[]'::jsonb;
   v_verse numeric := 0;
   v_conserve numeric := 0;
-  r record; v_rep jsonb; v_cle text;
+  r record; v_rep jsonb;
 BEGIN
   IF coalesce(btrim(p_pays), '') = '' OR coalesce(btrim(p_source), '') = '' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
@@ -352,48 +380,70 @@ BEGIN
     RETURN jsonb_build_object('ok', true, 'raison', 'base_nulle', 'verse', 0, 'lignes', v_lignes);
   END IF;
 
-  -- Les parts NON ARBITREES (NULL) sont exclues : rien n'est verse, et rien n'est invente.
-  SELECT coalesce(sum(part_pourcent), 0) INTO v_total_parts
-    FROM public.repartitions_budgetaires
-   WHERE pays = p_pays AND source = p_source AND part_pourcent IS NOT NULL;
-  IF v_total_parts <= 0 THEN
+  -- LE DECALAGE DU JOUR fait tourner le departage des ex aequo. Il ne depend que de la DATE :
+  -- deux executions du meme jour rendent le meme resultat, et un rejeu donne les memes chiffres.
+  v_decalage := (v_jour - DATE '2026-01-01');
+
+  -- LA SOMME DES PARTS, EN UNE FRACTION EXACTE.
+  SELECT numerateur, denominateur INTO v_num_total, v_den_total
+    FROM public.budget_part_totale(p_pays, p_source);
+  IF v_num_total <= 0 THEN
     RETURN jsonb_build_object('ok', true, 'raison', 'aucune_part_arbitree', 'verse', 0,
                               'lignes', v_lignes);
   END IF;
 
-  v_distribuable := floor(v_base * v_total_parts / 100);
+  -- DIVISION ENTIERE, PAS UN FLOOR SUR UNE DIVISION DECIMALE. div() est exacte ; floor(a/b) sur
+  -- des numerics passe par un quotient tronque a une vingtaine de decimales.
+  v_distribuable := div(v_base * v_num_total, v_den_total);
 
   -- PLUS FORT RESTE, EN UNE SEULE REQUETE. Aucune table temporaire : une fonction
   -- SECURITY DEFINER qui cree du DDL a chaque appel est une surprise de plus a maintenir, et le
   -- calcul se dit tres bien en CTE.
-  --   parts   : la part exacte et son plancher, par beneficiaire declare ;
-  --   classe  : les beneficiaires ordonnes par partie decimale perdue decroissante, egalite
-  --             departagee par le rang declare -- donc un resultat identique chaque soir ;
+  --   parts   : le plancher exact et la fraction perdue, par beneficiaire declare ;
+  --   denses  : une POSITION contigue 1..n, pour que la rotation soit juste meme si les rangs
+  --             declares sautent des numeros ;
+  --   classe  : les beneficiaires ordonnes par fraction perdue decroissante. A EGALITE, c'est le
+  --             decalage du jour qui tranche, et non le rang : sinon le premier rang ramasserait
+  --             le FR orphelin chaque nuit, pour toujours.
   --   le +1 va aux `distribuable - somme des planchers` premiers de ce classement.
   FOR r IN
     WITH parts AS (
-      SELECT b.beneficiaire, b.part_pourcent AS part, b.rang, b.libelle,
-             v_base * b.part_pourcent / 100          AS exact,
-             floor(v_base * b.part_pourcent / 100)    AS plancher
+      SELECT b.beneficiaire, b.part_numerateur AS num, b.part_denominateur AS den,
+             b.rang, b.libelle,
+             -- Le plancher par DIVISION ENTIERE : exact, quel que soit le denominateur.
+             div(v_base * b.part_numerateur, b.part_denominateur) AS plancher,
+             -- Et la fraction PERDUE par ce plancher, qui sert a classer. Elle est calculee en
+             -- une seule division pour etre comparable entre denominateurs differents ; deux
+             -- parts rigoureusement egales rendent ici la meme valeur, donc restent a egalite.
+             (v_base * b.part_numerateur
+              - div(v_base * b.part_numerateur, b.part_denominateur) * b.part_denominateur)
+               / b.part_denominateur AS perdu
         FROM public.repartitions_budgetaires b
-       WHERE b.pays = p_pays AND b.source = p_source AND b.part_pourcent IS NOT NULL
-    ), reliquat AS (
-      SELECT v_distribuable - coalesce(sum(plancher), 0) AS n FROM parts
-    ), classe AS (
-      SELECT p.*, row_number() OVER (ORDER BY (p.exact - p.plancher) DESC, p.rang) AS ordre
+       WHERE b.pays = p_pays AND b.source = p_source AND b.part_numerateur IS NOT NULL
+    ), denses AS (
+      SELECT p.*, row_number() OVER (ORDER BY p.rang) AS position, count(*) OVER () AS combien
         FROM parts p
+    ), reste AS (
+      SELECT v_distribuable - coalesce(sum(plancher), 0) AS nb FROM parts
+    ), classe AS (
+      SELECT d.*, row_number() OVER (
+          ORDER BY d.perdu DESC,
+                   ((d.position - 1 + v_decalage) % d.combien),
+                   d.rang) AS ordre
+        FROM denses d
     )
-    SELECT c.beneficiaire, c.part, c.libelle,
-           c.plancher + CASE WHEN c.ordre <= (SELECT n FROM reliquat) THEN 1 ELSE 0 END AS montant
+    SELECT c.beneficiaire, c.num, c.den, c.libelle,
+           c.plancher + CASE WHEN c.ordre <= (SELECT nb FROM reste) THEN 1 ELSE 0 END AS montant
       FROM classe c ORDER BY c.rang
   LOOP
     -- LA CLE DU JOURNAL EST LE GARDE-FOU. Un second passage le meme jour leve ici.
     BEGIN
       INSERT INTO public.repartitions_versements
-        (pays, source, beneficiaire, jour, base, part_pourcent, montant, transfere)
-      VALUES (p_pays, p_source, r.beneficiaire, v_jour, v_base, r.part, r.montant,
+        (pays, source, beneficiaire, jour, base, part_numerateur, part_denominateur,
+         montant, transfere)
+      VALUES (p_pays, p_source, r.beneficiaire, v_jour, v_base, r.num, r.den, r.montant,
               -- transfere DIT LA VERITE : il est faux aussi bien pour la part que le
-              -- repartiteur conserve que pour un montant nul. Une part declaree a 0 % est
+              -- repartiteur conserve que pour un montant nul. Une part declaree a 0 est
               -- journalisee -- la regle a bien ete appliquee -- mais rien n'a bouge, et le
               -- journal ne doit pas pretendre le contraire.
               r.beneficiaire <> p_source AND r.montant > 0);
@@ -404,7 +454,7 @@ BEGIN
     END;
 
     -- LA PART DU REPARTITEUR NE SE TRANSFERE PAS. C'est ce qui empeche la boucle : le MEco
-    -- recoit tout, en distribue 91 %, et conserve ses 9 % la ou ils sont deja.
+    -- recoit tout, en distribue 91 %, et conserve sa part la ou elle est deja.
     IF r.beneficiaire = p_source THEN
       v_conserve := v_conserve + r.montant;
       v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
@@ -445,7 +495,10 @@ BEGIN
   END LOOP;
 
   RETURN jsonb_build_object('ok', true, 'pays', p_pays, 'source', p_source, 'jour', v_jour,
-                            'base', v_base, 'total_parts', v_total_parts,
+                            'base', v_base,
+                            'parts_totales', v_num_total::text || '/' || v_den_total::text,
+                            'distribuable', v_distribuable,
+                            'decalage_du_jour', v_decalage,
                             'verse', v_verse, 'conserve', v_conserve, 'lignes', v_lignes);
 END;
 $function$;
@@ -460,6 +513,7 @@ AS $function$
 DECLARE
   v_moi text; v_pays text; v_poste text; r record;
   v_part numeric; v_somme numeric;
+  v_anc_num numeric; v_anc_den numeric; v_num numeric; v_den numeric;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -479,56 +533,90 @@ BEGIN
                               'poste_requis', r.poste_autorite);
   END IF;
 
-  v_part := round(coalesce(p_part, 0)::numeric, 2);
+  v_part := round(coalesce(p_part, 0)::numeric, 4);
   IF v_part < 0 OR v_part > 100 THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'part_hors_bornes');
   END IF;
 
-  SELECT coalesce(sum(part_pourcent), 0) + v_part INTO v_somme
-    FROM public.repartitions_budgetaires
-   WHERE pays = v_pays AND source = p_source AND part_pourcent IS NOT NULL
-     AND beneficiaire <> p_beneficiaire;
-  IF v_somme > 100 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'somme_depasse_cent',
-                              'somme_obtenue', v_somme);
-  END IF;
+  -- LA SOMME NE DEPASSE JAMAIS LE TOUT. Verifiee ICI, au serveur : une somme a 110 % versee par
+  -- un client modifie distribuerait plus que les recettes.
+  --
+  -- LA COMPARAISON NE DIVISE PAS. On ecrit la ligne, on demande a budget_part_totale() la somme
+  -- exacte de la source, et on compare numerateur et denominateur. Si le total depasse, on
+  -- RESTAURE l'ancienne valeur et on refuse -- la verification est donc faite sur l'etat REEL,
+  -- pas sur une simulation qui pourrait differer. Tout se passe dans une transaction : un refus
+  -- ne laisse aucune trace.
+  -- L'ancienne valeur est deja dans `r`, lu au debut : pas de seconde lecture.
+  v_anc_num := r.part_numerateur;
+  v_anc_den := r.part_denominateur;
 
-  UPDATE public.repartitions_budgetaires SET part_pourcent = v_part
+  UPDATE public.repartitions_budgetaires
+     SET part_numerateur = trim_scale(v_part), part_denominateur = 100
    WHERE pays = v_pays AND source = p_source AND beneficiaire = p_beneficiaire;
 
+  SELECT numerateur, denominateur INTO v_num, v_den
+    FROM public.budget_part_totale(v_pays, p_source);
+  IF v_num > v_den THEN
+    UPDATE public.repartitions_budgetaires
+       SET part_numerateur = v_anc_num, part_denominateur = v_anc_den
+     WHERE pays = v_pays AND source = p_source AND beneficiaire = p_beneficiaire;
+    RETURN jsonb_build_object('ok', false, 'raison', 'somme_depasse_cent',
+                              'somme_obtenue', round(v_num * 100 / v_den, 4));
+  END IF;
+  v_somme := round(v_num * 100 / v_den, 4);
+
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'source', p_source,
-                            'beneficiaire', p_beneficiaire, 'part', v_part, 'somme', v_somme);
+                            'beneficiaire', p_beneficiaire, 'part', v_part,
+                            'somme', v_somme);
 END;
 $function$;
 
--- budget_repartition_lire(text) -> TABLE(beneficiaire text, libelle text, part_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+-- budget_repartition_lire(text) -> TABLE(beneficiaire text, libelle text, part_pourcent numeric, part_numerateur numeric, part_denominateur numeric, part_exacte text, total_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.budget_repartition_lire(p_source text)
- RETURNS TABLE(beneficiaire text, libelle text, part_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text)
+ RETURNS TABLE(beneficiaire text, libelle text, part_pourcent numeric, part_numerateur numeric, part_denominateur numeric, part_exacte text, total_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_pays text; v_base numeric;
+DECLARE v_moi text; v_pays text; v_base numeric; v_total numeric;
+        v_num_total numeric; v_den_total numeric;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN; END IF;
   SELECT coalesce(country,'republic') INTO v_pays
     FROM public.personnages_donnees WHERE name = v_moi;
 
+  -- La base de reference : ce que la SOURCE a recu lors du dernier versement la concernant.
   SELECT v.montant INTO v_base
     FROM public.repartitions_versements v
    WHERE v.pays = v_pays AND v.beneficiaire = p_source
    ORDER BY v.jour DESC LIMIT 1;
 
+  -- LA SOMME EXACTE, par la fonction qui porte cette arithmetique : trois tiers rendent
+  -- 100,0000 et non 99,9999. C'est ce total que l'ecran doit afficher a l'ouverture.
+  SELECT numerateur, denominateur INTO v_num_total, v_den_total
+    FROM public.budget_part_totale(v_pays, p_source);
+  v_total := CASE WHEN v_den_total = 0 THEN 0 ELSE v_num_total / v_den_total END;
+
   RETURN QUERY
-  SELECT b.beneficiaire, b.libelle, b.part_pourcent, b.rang, b.poste_autorite,
+  SELECT b.beneficiaire, b.libelle,
+         CASE WHEN b.part_numerateur IS NULL THEN NULL
+              ELSE round(b.part_numerateur * 100 / b.part_denominateur, 4) END,
+         b.part_numerateur, b.part_denominateur,
+         -- Les deux valeurs sont stockees a l'echelle minimale (trim_scale), donc ::text rend
+         -- « 1/3 », « 9/100 », « 33.33/100 » -- jamais « 9.00/100 ».
+         CASE WHEN b.part_numerateur IS NULL THEN NULL
+              ELSE trim_scale(b.part_numerateur)::text || '/'
+                   || trim_scale(b.part_denominateur)::text END,
+         round(v_num_total * 100 / v_den_total, 4),
+         b.rang, b.poste_autorite,
          (b.beneficiaire = b.source) AS est_la_source,
          (SELECT CASE WHEN jsonb_typeof(c.data->'solde') = 'number'
                       THEN (c.data->>'solde')::numeric ELSE 0 END
             FROM public.caisses_batiments c WHERE c.id = v_pays || '_' || b.beneficiaire),
          v_base,
-         CASE WHEN v_base IS NULL OR b.part_pourcent IS NULL THEN NULL
-              ELSE floor(v_base * b.part_pourcent / 100) END,
+         CASE WHEN v_base IS NULL OR b.part_numerateur IS NULL THEN NULL
+              ELSE div(v_base * b.part_numerateur, b.part_denominateur) END,
          (SELECT v.montant FROM public.repartitions_versements v
            WHERE v.pays = b.pays AND v.source = b.source AND v.beneficiaire = b.beneficiaire
            ORDER BY v.jour DESC LIMIT 1),

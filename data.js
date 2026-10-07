@@ -2495,7 +2495,11 @@ const BUILDINGS = {
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
           {fn:'proposer_grace',      label:'Proposer une grace',           pa:2, cost:0,   type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'min_just', desc:'Recommander une grace au President — qui devra valider.'},
           {fn:'gerer_juges',          label:'Gérer les juges',              pa:1, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:100, requiresPost:'min_just', desc:'Magistrat en fonction, candidatures reçues, nomination et révocation.'},
-          {fn:'gestion_qhs',          label:'Gestion du QHS',               pa:0, cost:0,   type:'legal',   icon:'ti-building-fortress', successRate:100, requiresPost:'min_just', desc:'Liste des detenus du QHS. Transferer, ameliorer les conditions, ou faire torturer. Le FINANCEMENT du QHS releve du Ministere de l\'Interieur depuis le 8 octobre 2026.'}
+          // ARBITRAGE DU 7 OCTOBRE 2026. Le Ministre de la Justice repartit son budget entre les
+          // TROIS tribunaux territoriaux, a parts egales au demarrage -- un tiers chacun, exactement.
+          // Meme ecran generique que la Defense et l'Interieur (ouvrirBudgetMinisteriel).
+          {fn:'gerer_budget_justice', label:'Gérer le budget de la Justice', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_just', desc:'Part de votre budget versee chaque nuit aux trois tribunaux territoriaux, et virements ponctuels. Les trois sont a parts egales au demarrage : un tiers chacun.'},
+          {fn:'gestion_qhs',          label:'Gestion du QHS',               pa:0, cost:0,   type:'legal',   icon:'ti-building-fortress', successRate:100, requiresPost:'min_just', desc:'Liste des detenus du QHS. Transferer, ameliorer les conditions, ou faire torturer. Le FINANCEMENT du QHS releve du Ministere de l\'Interieur depuis le 7 octobre 2026.'}
         ]
       },
       bureau_min_def: {

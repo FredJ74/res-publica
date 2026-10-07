@@ -9225,7 +9225,7 @@ function ouvrirConfirmationDemission() {
 // =====================
 // INDICES LOCAUX & BUDGET MUNICIPAL
 // =====================
-// LE TRIBUNAL A QUITTE LE CIRCUIT MUNICIPAL (chantier 4F, 8 octobre 2026). Les tribunaux sont
+// LE TRIBUNAL A QUITTE LE CIRCUIT MUNICIPAL (chantier 4F, 7 octobre 2026). Les tribunaux sont
 // TERRITORIAUX mais relevent financierement du Ministere de la Justice : « Ne donne aucune
 // autorite financiere aux maires sur les tribunaux », et « Les tribunaux n'en font PAS partie »
 // pour le financement municipal. Le ministre repartit son budget entre les trois tribunaux par la
@@ -9280,7 +9280,7 @@ function getVilleKey() {
 function budgetMunicipalNeuf(key) {
   return {
     key,
-    // tribunal retire le 8 octobre 2026 : il releve du Ministere de la Justice. Les cinq parts
+    // tribunal retire le 7 octobre 2026 : il releve du Ministere de la Justice. Les cinq parts
     // restantes sont inchangees, la somme fait donc 85 % et le reliquat reste en caisse.
     allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20 },
     caisse: 0,
@@ -11377,7 +11377,7 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
 
 // ---- BUDGET DE LA CASERNE (alloue par le MG) ----
 // L'ECRAN BUDGETAIRE D'UN MINISTERE, UN SEUL POUR TOUS (chantier 4F, arbitrage QHS du
-// 8 octobre 2026).
+// 7 octobre 2026).
 //
 // Il y avait un ecran par institution financee : « Budget militaire » pour la caserne, « Budget
 // du QHS » pour le QHS, chacun avec sa caisse en dur, son champ de virement et sa fonction de
@@ -11447,7 +11447,30 @@ async function ouvrirGererBudgetMilitaire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// LE BUDGET DE L'INTERIEUR (arbitrage du 8 octobre 2026). Deux beneficiaires declares : les
+// LE BUDGET DE LA JUSTICE (arbitrage du 7 octobre 2026). Trois beneficiaires declares : les
+// tribunaux de Luthecia, de Port-Sainte-Marie et de Montrouge, a UN TIERS chacun.
+//
+// PARTS EGALES, PAS 33,33. L'ecran affiche « 33,3333 % » dans le champ -- c'est la
+// representation que le ministre saisit -- et « (1/3) » a cote, parce que la REGLE est la
+// fraction et que le pourcentage n'en est qu'un arrondi. Le total, lui, affiche 100 % : il vient
+// du serveur, qui somme les fractions et non les arrondis.
+//
+// LE MINISTRE PEUT MODIFIER LIBREMENT. S'il porte un tribunal a 50 %, cette part devient 50/100
+// et cesse d'etre un tiers : c'est sa decision, et il la prend en voyant la fraction qu'il
+// remplace. Il devra baisser les autres d'abord -- le serveur refuse tout total au-dela du tout,
+// et l'ecran ecrit les baisses avant les hausses pour qu'aucun plafond transitoire ne le gene.
+async function ouvrirBudgetJustice() {
+  const html = await ouvrirBudgetMinisteriel('min_just', 'Budget de la Justice',
+    'Ministre de la Justice',
+    'Part de votre budget versée chaque nuit à chacun des trois tribunaux territoriaux. Au '
+    + 'démarrage, les trois sont à égalité parfaite — un tiers chacun. Le virement ponctuel est '
+    + 'un acte distinct : il ne modifie aucune part.');
+  if (html === undefined) return;
+  document.getElementById('postes-body').innerHTML = html + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// LE BUDGET DE L'INTERIEUR (arbitrage du 7 octobre 2026). Deux beneficiaires declares : les
 // Douanes a 35 % et le QHS a 0 %.
 //
 // LE 0 % DU QHS EST UNE CONFIGURATION, PAS UN OUBLI. Le QHS est un beneficiaire RECONNU du
@@ -11466,7 +11489,7 @@ async function ouvrirBudgetInterieur() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// LE VIREMENT JOURNALIER EN FR A ETE RETIRE (chantier 4F, 8 octobre 2026).
+// LE VIREMENT JOURNALIER EN FR A ETE RETIRE (chantier 4F, 7 octobre 2026).
 //
 // confirmerVirementJournalier() vivait ici. Elle ecrivait
 // `budgets_nationaux.data.virementJournalierCaserne` par la RPC attestee
@@ -11475,7 +11498,7 @@ async function ouvrirBudgetInterieur() {
 //
 // Ce n'est pas elle qui etait fautive, c'est le MODELE : un montant absolu en FR constituait une
 // SECONDE regle de financement recurrent, concurrente de la cle de repartition, et rien
-// n'empechait les deux de diverger. L'arbitrage du 8 octobre 2026 tranche : « Si l'ancien champ FR
+// n'empechait les deux de diverger. L'arbitrage du 7 octobre 2026 tranche : « Si l'ancien champ FR
 // constitue actuellement une regle absolue independante, migre proprement le modele au lieu de
 // conserver deux automatismes concurrents. »
 //
@@ -11490,7 +11513,7 @@ async function ouvrirBudgetInterieur() {
 // repris : la RPC caserne_virement_journalier_fixer et son declencheur de verrou. Les retirer est
 // un lot de menage, pas un effet de bord de celui-ci.
 
-// confirmerVirementPonctuel A ETE SUPPRIMEE (arbitrage QHS du 8 octobre 2026). Elle virait un
+// confirmerVirementPonctuel A ETE SUPPRIMEE (arbitrage QHS du 7 octobre 2026). Elle virait un
 // montant de gouvernement-min_def vers 'caserne-militaire', destination codee en dur. Sa jumelle
 // confirmerVirementPonctuelQHS faisait exactement la meme chose vers 'qhs-prison'. Les deux sont
 // remplacees par confirmerVirementPonctuelBudget(source, beneficiaire, libelle)
@@ -11502,7 +11525,7 @@ async function ouvrirBudgetInterieur() {
 // transaction -- le versement reste plafonne au solde, et c'est toujours le montant REELLEMENT
 // verse qui est annonce, jamais celui qui a ete demande.
 
-// traiterVirementJournalierCaserne A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). Elle etait
+// traiterVirementJournalierCaserne A ETE SUPPRIMEE (chantier 4F, 7 octobre 2026). Elle etait
 // DEJA MORTE -- zero appelant depuis que la passe cliente de minuit a ete retiree le 20 septembre
 // 2026 -- et son objet, le montant absolu en FR, n'existe plus : le financement recurrent de la
 // caserne est une PART declaree (Defense -> Caserne, 65 %), executee par la cascade serveur.
@@ -13017,7 +13040,7 @@ async function ouvrirGestionQHS() {
   if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }
   document.getElementById('postes-modal-title').textContent = 'Gestion du QHS';
   let html = '<div style="padding:1rem">';
-  // LE BUDGET DU QHS A QUITTE CET ECRAN (arbitrage du 8 octobre 2026) : le QHS releve
+  // LE BUDGET DU QHS A QUITTE CET ECRAN (arbitrage du 7 octobre 2026) : le QHS releve
   // BUDGETAIREMENT du Ministere de l'Interieur. Le Ministre de la Justice garde tout le reste --
   // les detenus, les transferts, les conditions de detention -- parce que l'arbitrage porte sur
   // le financement, pas sur l'autorite penitentiaire.
@@ -13029,7 +13052,7 @@ async function ouvrirGestionQHS() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// ouvrirBudgetQHS ET confirmerVirementPonctuelQHS ONT ETE SUPPRIMEES (arbitrage du 8 octobre
+// ouvrirBudgetQHS ET confirmerVirementPonctuelQHS ONT ETE SUPPRIMEES (arbitrage du 7 octobre
 // 2026). Le QHS releve budgetairement du MINISTERE DE L'INTERIEUR, pas de la Justice : son
 // financement se regle desormais dans l'ecran generique du ministere de l'Interieur
 // (ouvrirBudgetInterieur), ou il figure comme beneficiaire declare a 0 %.

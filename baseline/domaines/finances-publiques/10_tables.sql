@@ -165,11 +165,12 @@ CREATE TABLE public.repartitions_budgetaires (
   pays text NOT NULL,
   source text NOT NULL,
   beneficiaire text NOT NULL,
-  part_pourcent numeric(5,2),
   poste_autorite text NOT NULL,
   rang integer NOT NULL,
   libelle text NOT NULL,
-  note text
+  note text,
+  part_numerateur numeric,
+  part_denominateur numeric
 );
 
 CREATE TABLE public.repartitions_versements (
@@ -178,10 +179,11 @@ CREATE TABLE public.repartitions_versements (
   beneficiaire text NOT NULL,
   jour date NOT NULL,
   base numeric NOT NULL,
-  part_pourcent numeric(5,2),
   montant numeric NOT NULL,
   transfere boolean DEFAULT true NOT NULL,
-  verse_le timestamp with time zone DEFAULT now() NOT NULL
+  verse_le timestamp with time zone DEFAULT now() NOT NULL,
+  part_numerateur numeric,
+  part_denominateur numeric
 );
 
 CREATE TABLE public.salaires_caisses (

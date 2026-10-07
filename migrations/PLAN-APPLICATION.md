@@ -1,6 +1,6 @@
 # Plan d'application — **aucune migration en attente**
 
-> **État au 8 octobre 2026, après les arbitrages « architecture budgétaire de
+> **État au 7 octobre 2026, après les arbitrages « architecture budgétaire de
 > Républia » puis « le QHS relève de l'Intérieur ».** Ce répertoire ne contient
 > plus que ce fichier et son `README`.
 
@@ -15,8 +15,9 @@
 | `20261007153134` | `20261008020000_revoquer_authenticated_cinq_fonctions_serveur.sql` | correctif : cinq fonctions serveur perdent le `authenticated` qu'elles n'avaient jamais demandé |
 | `20261007181335` | `20261008030000_qhs_releve_de_l_interieur.sql` | le QHS devient bénéficiaire déclaré du Ministère de l'Intérieur, à **0 %** ; `transfere` cesse de prétendre qu'un versement nul est un transfert ; cinquième invariant — une caisse, un financeur |
 | `20261007182523` | `20261008040000_virement_qhs_declaration_dit_la_verite.sql` | la déclaration résiduelle de `virementJournalierQHS` garde son verrou et dit ce qu'elle est |
+| `20261007191006` | `20261007210000_parts_exactes_et_justice_en_tiers.sql` | la part devient une **fraction exacte** (`num`/`den`) dans les deux tables ; les trois tribunaux passent à **1/3** chacun ; `budget_part_totale()` naît et porte seule l'arithmétique des sommes ; le reliquat du plus fort reste **tourne avec le jour** |
 
-Les sept fichiers sont dans `historique/migrations-appliquees/`, et chacun porte
+Les huit fichiers sont dans `historique/migrations-appliquees/`, et chacun porte
 en tête la version du registre **et ce qui a été vérifié après coup**. Le
 baseline a été réextrait et commité avec eux.
 
@@ -35,13 +36,16 @@ baseline a été réextrait et commité avec eux.
 qui y naît reçoit un `GRANT` nommé à `anon`, `authenticated` et `service_role`.
 Révoquer `PUBLIC` retire le pseudo-rôle, et lui seul.
 
-| Date | Objets | Trouvé par |
-|---|---|---|
-| 7 oct. | `directions_etablissements` (table) | **le diff du baseline** |
-| 8 oct. | `villes_empreinte_reelle`, `ville_est_reelle`, `caisse_territoire`, `caisse_refus_autorite`, `budget_coherence` (fonctions) | **le diff du baseline** |
+| Objets | Trouvé par |
+|---|---|
+| `directions_etablissements` (table) | **le diff du baseline** |
+| `villes_empreinte_reelle`, `ville_est_reelle`, `caisse_territoire`, `caisse_refus_autorite`, `budget_coherence` (fonctions) | **le diff du baseline** |
+| `budget_part_totale` — **évité à l'écriture** | les trois `REVOKE` posés d'emblée, confirmés par le diff |
 
 Trois fois sur trois, c'est la **relecture ligne par ligne du diff de
-`70_droits.sql`** qui l'a vu. **Aucun des dix contrôles ne le voit**, et c'est la
+`70_droits.sql`** qui l'a vu. La quatrième occasion, elle, a été évitée à la
+rédaction : `budget_part_totale` est née avec ses trois `REVOKE`, et le diff l'a
+confirmée — `postgres` et `service_role`, rien d'autre. **Aucun des dix contrôles ne le voit**, et c'est la
 dette d'outillage la plus coûteuse qui reste : il manque un contrôle qui compare
 les droits réels à l'**intention déclarée dans les migrations**. Tant qu'il
 n'existe pas, l'étape « relire le diff » du workflow n'est pas une formalité.
@@ -58,6 +62,19 @@ Et la vérifier **dans la transaction**, par un bloc `DO` qui lève plutôt que 
 laisser croire que la porte est fermée — c'est ce que fait `20261008020000`.
 
 ---
+
+## Ce que la relecture du diff a attrapé, et qu'aucun contrôle ne voyait
+
+| Défaut | Comment il se manifestait | Corrigé par |
+|---|---|---|
+| Les droits **nommés** `authenticated` sur six objets neufs | Le dépôt déclarait `service_role` seul, la base disait autre chose | `20261008020000`, puis les trois `REVOKE` à l'écriture |
+| La **reconstruction ne vérifiait pas les colonnes** d'un seed | Un seed engendré avant un changement de colonne insérait dans `part_pourcent`, disparue, et le contrôle annonçait « RECONSTRUCTION VALIDÉE » | `reconstruire.py` suit désormais les colonnes et refuse l'`INSERT` — **vérifié en le faisant échouer** sur le seed périmé |
+| Un **seed arbitré copiait une dérive de partie** | La piété de Port-Sainte-Marie, décidée à 40 le 5 octobre, valait 43 en base : la dérive allait être canonisée dans tous les mondes à venir | `indices_villes.data` est désormais **écrit** depuis l'arbitrage, plus copié |
+
+Les trois ont été vus par la **lecture ligne par ligne du diff du baseline**,
+jamais par un contrôle. Deux sur trois sont maintenant couverts par un contrôle ;
+le premier ne l'est toujours pas, et c'est la dette d'outillage la plus coûteuse
+qui reste.
 
 ## Deux trous du registre des seeds, trouvés le même jour
 
@@ -86,12 +103,12 @@ ici. Les trois points sur lesquels ce chantier a buté :
 
 1. **Une migration doit être postérieure au point de coupe du baseline**
    (`baseline/CONTROLE-GLOBAL.json`, clé `releve_le` — désormais
-   `2026-10-07T20:23:28`). L'invariant 4 du garde-fou refuse une migration
+   `2026-10-07T21:23:47`). L'invariant 4 du garde-fou refuse une migration
    antérieure, à raison : son effet est censé être déjà dans le baseline. Si une
    réextraction a lieu entre l'écriture et l'application, **redater le fichier**
    est la seule réponse juste.
 2. **Une migration appliquée doit être identique au fichier du dépôt, au
-   caractère près.** Le 8 octobre, une application de `20261008010000` avait
+   caractère près.** Le 7 octobre, une application de `20261008010000` avait
    échoué sur « requestState expiré » et la seconde est passée avec un payload
    raccourci. Le dépôt et la base ont donc divergé discrètement pendant une
    journée — sur des commentaires internes et une variable locale inutilisée,

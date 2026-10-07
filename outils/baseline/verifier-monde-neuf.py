@@ -55,14 +55,14 @@ ARTEFACTS = [
 # Aucun ne doit apparaitre comme donnee dans un seed.
 # --------------------------------------------------------------------------
 VESTIGES = {
-    # republic_palais-gouvernement A QUITTE CETTE LISTE le 8 octobre 2026, et c'est le seul
+    # republic_palais-gouvernement A QUITTE CETTE LISTE le 7 octobre 2026, et c'est le seul
     # verdict de l'audit du 5 octobre qui ait ete RENVERSE.
     #
     # L'audit avait raison A SA DATE : aucune fonction serveur, aucun appel client et aucun cron
     # ne touchait cette caisse, et la repartition nationale ne la connaissait pas. Elle etait
     # bien le residu d'un modele d'avant les caisses par piece.
     #
-    # L'arbitrage du 8 octobre la fait exister pour de bon : le Palais du Gouvernement est l'une
+    # L'arbitrage du 7 octobre la fait exister pour de bon : le Palais du Gouvernement est l'une
     # des DIX caisses nationales, a 9 %, et elle porte les actions gouvernementales communes --
     # distincte de gouvernement-pm, qui reste l'enveloppe propre du Premier ministre. La trouver
     # dans un seed n'est donc plus un defaut : c'est la regle.

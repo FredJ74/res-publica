@@ -22,6 +22,8 @@ GRANT EXECUTE ON FUNCTION public.budget_coherence() TO postgres;
 GRANT EXECUTE ON FUNCTION public.budget_coherence() TO service_role;
 GRANT EXECUTE ON FUNCTION public.budget_national_epingler() TO postgres;
 GRANT EXECUTE ON FUNCTION public.budget_national_epingler() TO service_role;
+GRANT EXECUTE ON FUNCTION public.budget_part_totale(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.budget_part_totale(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.budget_repartir(text,text,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.budget_repartir(text,text,numeric) TO service_role;
 GRANT EXECUTE ON FUNCTION public.budget_repartition_fixer(text,text,numeric) TO authenticated;
