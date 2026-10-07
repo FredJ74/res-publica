@@ -1,0 +1,69 @@
+# =============================================================================
+# CE QUI NE PART PAS CHEZ VERCEL
+# 8 octobre 2026 — chantier infra, audit du Deployment Storage
+# =============================================================================
+#
+# POURQUOI CE FICHIER EXISTE. Le depot n'avait AUCUN fichier d'exclusion -- ni
+# .gitignore, ni .vercelignore. Tout ce qui est suivi par git partait donc chez
+# Vercel a chaque deploiement : 505 Mo, dont 104 Mo qui ne servent jamais a
+# l'execution. A ce poids, 20 deploiements saturent les 10 Go inclus.
+#
+# CE FICHIER NE SUPPRIME RIEN ET NE DEPLACE RIEN. Les fichiers restent dans git,
+# a leur place, et le jeu ne change pas d'un octet. Seul le CONTENU DU
+# DEPLOIEMENT change.
+#
+# POURQUOI C'EST SUR, ET COMMENT CA A ETE VERIFIE. Aucun des repertoires exclus
+# n'est charge a l'execution :
+#   . zero reference reelle -- src=, href=, fetch(), import -- depuis un .html,
+#     un .js ou un .css servi. Les 18 mentions de « .scratch/ » trouvees dans le
+#     code sont toutes des COMMENTAIRES qui citent un script d'outillage ;
+#   . zero lecture de fichier dans api/ : aucun readFile, aucun require('../',
+#     aucun import '../. Les fonctions serverless sont autonomes ;
+#   . aucune etape de build. Pas de package.json, aucun buildCommand dans
+#     vercel.json : site statique plus fonctions. Rien ne compile depuis ces
+#     repertoires.
+#
+# CE QUI PART TOUJOURS, ET QU'IL NE FAUT PAS EXCLURE : vercel.json (la
+# configuration des fonctions, des crons et des en-tetes de cache), api/ (les
+# fonctions serverless), i18n/ (charge par index.html), images/, audio/, et tous
+# les .js, .html et .css de la racine.
+#
+# =============================================================================
+
+# --- OUTILLAGE DE DEVELOPPEMENT -------------------------------------- 86,9 Mo
+# Captures d'ecran, rendus de composition, bancs d'essai, scripts jetables.
+# 302 fichiers suivis, dont 89 PNG pour 76,9 Mo a eux seuls. C'est le premier
+# poste de gaspillage du deploiement, et le plus facile a retirer.
+.scratch/
+
+# --- ARCHIVE DOCUMENTAIRE --------------------------------------------- 9,7 Mo
+# Les migrations deja appliquees et les SQL archives. C'est de l'histoire, pas
+# du code executable : non rejouable par construction.
+historique/
+
+# --- ETAT CANONIQUE DU SCHEMA ----------------------------------------- 4,0 Mo
+# Le baseline est GENERE depuis les catalogues PostgreSQL et sert a reconstruire
+# un monde neuf hors ligne. Aucune ligne n'est lue a l'execution.
+baseline/
+
+# --- OUTILLAGE PYTHON ------------------------------------------------- 0,6 Mo
+# Generateurs, controles, extracteurs. Aucun n'a de contrepartie executee par
+# Vercel -- il n'y a pas de runtime Python sur ce projet.
+outils/
+
+# --- SOURCES 3D ------------------------------------------------------- 2,6 Mo
+# Fichiers .blend : les sources de travail des visuels. Ce qui est servi, ce
+# sont les images exportees, dans images/.
+Blender/
+
+# --- MIGRATIONS EN ATTENTE -------------------------------------------- ~0 Mo
+# Du SQL destine a etre applique a la main sur Supabase, jamais servi.
+migrations/
+
+# --- INTEGRATION CONTINUE --------------------------------------------- ~0 Mo
+.github/
+
+# --- BRUIT macOS ------------------------------------------------------ ~0 Mo
+# Suivi par git par accident, et sans aucun sens en production.
+.DS_Store
+**/.DS_Store
