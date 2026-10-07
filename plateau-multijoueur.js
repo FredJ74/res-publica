@@ -2339,8 +2339,9 @@ async function ouvrirGroupePnj() {
     sbPnjPossessions(m.id).then(liste => {
       const el = document.getElementById('grp-poss-' + i);
       if (!el) return;
-      const noms = (Array.isArray(liste) ? liste : [])
-        .map(o => (o.objet?.nom || o.objet?.name || '?'));
+      // null = lecture impossible ou autorite refusee (chantier 5) ; [] = ce PNJ ne porte rien.
+      if (liste === null) { el.textContent = 'possessions : illisibles pour le moment'; return; }
+      const noms = liste.map(o => (o.objet?.nom || o.objet?.name || '?'));
       el.textContent = 'possessions : ' + (noms.length === 0 ? 'aucune' : noms.join(', '));
     }).catch(() => {});
   });

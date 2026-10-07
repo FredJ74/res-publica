@@ -1606,10 +1606,16 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
 // Le jet et le paiement restent ou ils sont, cote appelant : les deplacer changerait la
 // mecanique, ce qui n'est pas l'objet de ce chantier. `depuisJour` n'est plus transmis -- le
 // serveur calcule la fenetre depuis le jour du commissaire, et n'accepterait pas qu'on l'elargisse.
+// REND null QUAND ELLE N'A PAS PU LIRE (chantier 5, 7 octobre 2026). Cette fonction rendait `[]`
+// pour TROIS situations differentes : une panne de transport, un refus d'autorite (la RPC relit
+// le poste en base et refuse qui n'est pas commissaire), et une cible qui ne s'est reellement
+// pas deplacee. Le commissaire payait sa filature et lisait « aucun deplacement » dans les trois
+// cas. `[]` ne signifie plus que le dernier.
 async function sbGetHistoriqueDeplacements(name, depuisJour) {
   const rows = await sbRpc('filature_deplacements', { p_cible: name });
   const r = Array.isArray(rows) ? rows[0] : rows;
-  return (r && r.ok === true && Array.isArray(r.deplacements)) ? r.deplacements : [];
+  if (!r || r.ok !== true) return null;
+  return Array.isArray(r.deplacements) ? r.deplacements : [];
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
@@ -5632,9 +5638,15 @@ async function sbPnjEvenementsLire(limite) {
 }
 
 // Possessions et bourse d'un PNJ, pour l'ecran RETIRER. Reserve a qui peut le commander.
+//
+// REND null SUR ECHEC (chantier 5, 7 octobre 2026) : `[]` confondait « ce PNJ ne porte rien »
+// avec « je n'ai pas pu lire » et avec « vous n'avez pas autorite sur ce PNJ ». Sa jumelle
+// sbPnjPossessionsEtBourse, juste en dessous, rend le verdict intact depuis toujours -- la bonne
+// version existait a cote.
 async function sbPnjPossessions(pnjId) {
   const r = await sbRpc('pnj_possessions_lire', { p_pnj: pnjId });
-  return (r && r.ok) ? (r.possessions || []) : [];
+  if (!r || !r.ok) return null;
+  return r.possessions || [];
 }
 async function sbPnjPossessionsEtBourse(pnjId) {
   return await sbRpc('pnj_possessions_lire', { p_pnj: pnjId });

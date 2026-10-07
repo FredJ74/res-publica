@@ -11147,11 +11147,21 @@ async function confirmerOrganiserFilature(pa, cost) {
   }
 
   const jourMin = Math.max(1, (state.day || 1) - 1);
-  const historique = typeof sbGetHistoriqueDeplacements === 'function' ? await sbGetHistoriqueDeplacements(cible, jourMin).catch(() => []) : [];
+  // sbGetHistoriqueDeplacements rend null quand elle n'a pas pu lire ou que l'autorite a ete
+  // refusee, et [] seulement quand la cible ne s'est reellement pas deplacee (chantier 5).
+  // La distinction compte ici plus qu'ailleurs : la filature a DEJA ete payee 150 FR, et
+  // annoncer « aucun deplacement » sur une panne ferait croire au commissaire que sa cible
+  // n'a pas bouge.
+  const historique = typeof sbGetHistoriqueDeplacements === 'function'
+    ? await sbGetHistoriqueDeplacements(cible, jourMin).catch(() => null) : null;
 
   document.getElementById('postes-modal-title').textContent = 'Rapport de filature — ' + cible;
   let html = '<div style="padding:1rem">';
-  if (!historique || historique.length === 0) {
+  if (historique === null) {
+    html += '<div style="font-size:.85rem;color:#cc6a44;font-style:italic">Le rapport n\'a pas pu '
+         + 'etre etabli : le registre des deplacements est injoignable. Ceci ne signifie pas que '
+         + cible + ' n\'a pas bouge.</div>';
+  } else if (historique.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun deplacement enregistre sur les dernieres 24h.</div>';
   } else {
     historique.forEach(h => {

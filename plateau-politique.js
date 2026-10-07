@@ -6795,18 +6795,41 @@ async function ouvrirCiblageFiscalType(action, typeCible, titre) {
 }
 
 // Lit le solde actuel d'une cible, quel que soit son type
+// UNE PANNE DE LECTURE N'EST PAS UN SOLDE DE ZERO (chantier 5, 7 octobre 2026).
+//
+// Cette fonction rendait `0` pour les quatre types de cible des que la lecture echouait :
+// `.catch(() => [])` puis `rows?.[0]?.arg ?? 0` pour un citoyen, `.catch(() => null)` puis
+// `e?.caisse || 0` pour une entreprise. Son unique appelante est ajusterSoldeCibleFiscale, qui
+// calcule `montantReel = -Math.min(soldeActuel, -delta)` : un solde lu a zero par erreur fait
+// donc prelever ZERO lors d'un redressement fiscal, et le redressement est compte comme
+// applique. L'inverse d'un prelevement excessif, mais une fausse ecriture quand meme.
+//
+// Rend desormais `null` quand elle n'a pas pu lire, et l'appelante renonce. Les cibles lues en
+// memoire (le joueur lui-meme, une organisation deja chargee) ne peuvent pas echouer et gardent
+// leur chiffre.
 async function getSoldeCibleFiscale(typeCible, idCible) {
   const pays = state.country || 'republic';
   if (typeCible === 'citoyen') {
     if (idCible === state.char?.name) return state.arg || 0;
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(idCible)}&select=arg`).catch(() => []);
-    return rows?.[0]?.arg ?? 0;
+    const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(idCible)}&select=arg`)
+      .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+    if (!v.ok) { console.error('getSoldeCibleFiscale: ' + idCible + ' illisible (' + v.raison + ')'); return null; }
+    // Vide REEL : ce personnage n'existe pas. Zero est alors la bonne reponse.
+    return v.donnees?.[0]?.arg ?? 0;
   }
   if (typeCible === 'club_sportif') { const b = await chargerBudgetClub(idCible); return b?.caisse || 0; }
   // Lecture PURE (chantier C, phase 3) : consulter le solde d'une cible fiscale ne doit pas
   // creer l'entreprise au passage -- c'est desormais le role de entreprise_assurer_existence,
   // appele depuis le commerce lui-meme.
-  if (typeCible === 'entreprise') { const e = await sbGetEntreprise(idCible).catch(() => null); return e?.caisse || 0; }
+  if (typeCible === 'entreprise') {
+    const v = await sbGetVerdict('entreprises', `id=eq.${encodeURIComponent(idCible)}`)
+      .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+    if (!v.ok) { console.error('getSoldeCibleFiscale: entreprise ' + idCible + ' illisible (' + v.raison + ')'); return null; }
+    // `caisse` vit DANS le blob `data` de la ligne, pas en colonne -- c'est ce que rend
+    // sbGetEntreprise, et s'en ecarter aurait lu undefined donc zero sur toutes les entreprises.
+    const ligne = Array.isArray(v.donnees) ? v.donnees[0] : null;
+    return ligne ? ((ligne.data && ligne.data.caisse) || 0) : 0;   // absente en base = zero, et c'est juste
+  }
   if (typeCible === 'organisation') { const o = (state.organisations || []).find(x => x.id === idCible); return o?.caisse || 0; }
   return 0;
 }
@@ -6815,6 +6838,9 @@ async function getSoldeCibleFiscale(typeCible, idCible) {
 async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
   const pays = state.country || 'republic';
   const soldeActuel = await getSoldeCibleFiscale(typeCible, idCible);
+  // Solde illisible : on ne prelevé rien et on le dit. Prelever sur un solde suppose a zero
+  // compterait le redressement comme applique sans qu'un centime ait bouge.
+  if (soldeActuel === null) return null;
   const montantReel = delta >= 0 ? delta : -Math.min(soldeActuel, -delta);
 
   if (typeCible === 'citoyen') {
@@ -7009,7 +7035,20 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   } else {
     montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
     if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
-    await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
+    // L'ARGENT A DEJA QUITTE LE MINISTERE A CETTE LIGNE. Si le credit de la cible echoue, il
+    // est detruit : ajusterSoldeCibleFiscale rend desormais null quand elle n'a pas pu lire le
+    // solde de la cible (chantier 5), et le ministre doit l'apprendre immediatement plutot que
+    // de lire « Subvention accordee ». La reparation du non-atomique lui-meme -- debit et credit
+    // dans une seule transaction serveur -- est une brique economique, consignee en dette.
+    const credit = await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
+    if (credit === null) {
+      showToast('Subvention a verifier', montantVerse.toLocaleString('fr-FR') + ' ' + cur
+        + ' ont quitte le Ministere mais le solde de ' + nomCible + ' etait illisible : le credit '
+        + "n'est PAS confirme. Signalez-le avant de recommencer.", false);
+      addJournalEntry('Subvention de ' + montantVerse + ' FR a ' + nomCible
+        + ' : debit effectue, credit NON confirme.', 'event-bad');
+      return;
+    }
   }
   if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
   updateUI();
