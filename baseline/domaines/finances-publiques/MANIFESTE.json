@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "b78dbce2ecfb04b7e62d8e21f50eb48c",
+   "genre": "COLUMN",
+   "objet": "salaires_civils_declares",
+   "sous": "pays"
+  },
+  {
    "empreinte": "26e3232d18dcdf1847d85f223a8a1cd7",
    "genre": "FUNCTION",
    "objet": "alimenter_caisse_fonds(text,text,integer)",
@@ -121,9 +127,33 @@
    "sous": ""
   },
   {
+   "empreinte": "50f0490e88105dbe13812aa5cb506be9",
+   "genre": "FUNCTION",
+   "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "sous": ""
+  },
+  {
    "empreinte": "29e0c4812a84bf9c7b16f711daca9da8",
    "genre": "FUNCTION",
    "objet": "retirer_caisse_fonds(text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ff3ba1c611f47c10b39a34fdb9b5c128",
+   "genre": "FUNCTION",
+   "objet": "salaire_civil_percevoir()",
+   "sous": ""
+  },
+  {
+   "empreinte": "dadf2dc9401bff8782976ec0c35a6ce9",
+   "genre": "FUNCTION",
+   "objet": "salaires_coherence()",
+   "sous": ""
+  },
+  {
+   "empreinte": "cfbe6d2f394ce5918d7bfd0b87d9781d",
+   "genre": "TABLE",
+   "objet": "directions_etablissements",
    "sous": ""
   },
   {
@@ -175,6 +205,12 @@
    "genre": "p",
    "nom": "contributions_piete_pkey",
    "tbl": "contributions_piete"
+  },
+  {
+   "empreinte": "7d4bb2296c278690ad80412cc36b44a0",
+   "genre": "p",
+   "nom": "directions_etablissements_pkey",
+   "tbl": "directions_etablissements"
   },
   {
    "empreinte": "a1c125373e356ba7a63df9d0a07b03d6",
@@ -243,7 +279,7 @@
    "tbl": "salaires_caisses"
   },
   {
-   "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
+   "empreinte": "92b5b8eb65713aed5957ca7caa78d718",
    "genre": "p",
    "nom": "salaires_civils_declares_pkey",
    "tbl": "salaires_civils_declares"
@@ -271,6 +307,18 @@
    "genre": "u",
    "nom": "fonds_credits_uniques_ref",
    "tbl": "fonds_credits_uniques"
+  },
+  {
+   "empreinte": "3eb40ccaa2c576e9fdd624dd3bf73c71",
+   "genre": "c",
+   "nom": "directions_etablissements_salaire_jour_check",
+   "tbl": "directions_etablissements"
+  },
+  {
+   "empreinte": "060c8ea35a096b36374bcaa5d1c67a19",
+   "genre": "c",
+   "nom": "directions_etablissements_souscle_check",
+   "tbl": "directions_etablissements"
   },
   {
    "empreinte": "beecdbc8def823721a00fcbec59ba937",
@@ -1472,6 +1520,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "directions_etablissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "directions_etablissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "dotations_amorcage_caisses",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -1736,14 +1796,14 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "c5042c11717d4fabebd0a2a8e0d53316",
-  "20_fonctions.sql": "11f868439b4ec8e46d3e12a2839820c4",
-  "30_contraintes.sql": "a42d882320edef05f1585a1759fcefa2",
-  "35_index.sql": "483dda0f0f11e1ccf08b36880962d3c5",
+  "10_tables.sql": "00628b92950d76c69a1cc50e99bf35ed",
+  "20_fonctions.sql": "0ae7eb102c754b1d5a0bb08dcee4ae74",
+  "30_contraintes.sql": "352e980224c408b804686dee6276551c",
+  "35_index.sql": "435ae49f576897c7ebba5cdc7fe95d41",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
-  "60_rls-policies.sql": "ede5c2021917f5811419e731604d2280",
-  "70_droits.sql": "e9cf8a5c32243f16e06092052c2b1227",
-  "80_commentaires.sql": "5dfcb3bbdb792468f21f0cfa531d5f74"
+  "60_rls-policies.sql": "fac127e641e1c0e6ca605b9be137412a",
+  "70_droits.sql": "89b94ca40a0d6c3d0b9fa1b54bdca699",
+  "80_commentaires.sql": "d7014defdbb67e76bfae2fb794cb5523"
  },
  "fonctions": [
   {
@@ -1947,7 +2007,7 @@
    "signature": "pa_repos_nocturne(text)"
   },
   {
-   "empreinte": "47451a9fa08fb2e316db06622d1a3bae",
+   "empreinte": "949f54299bdab8cc56463bed2078a044",
    "security_definer": true,
    "signature": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)"
   },
@@ -1967,7 +2027,7 @@
    "signature": "salaire_caisse_de(text,text,text)"
   },
   {
-   "empreinte": "d79c19b8a8d0ba62a5d58d67988a906d",
+   "empreinte": "02595048f85ffd255fc1a8a8f0c28465",
    "security_definer": true,
    "signature": "salaire_civil_percevoir()"
   },
@@ -1982,7 +2042,7 @@
    "signature": "salaire_ville_du_poste(text,text)"
   },
   {
-   "empreinte": "7f63c8018783687ea92b3c0eea9c72b5",
+   "empreinte": "aa434fc27ee97dc0fb4a210159f6ee27",
    "security_definer": true,
    "signature": "salaires_coherence()"
   },
@@ -2027,6 +2087,7 @@
   "caisses_batiments_pkey",
   "caisses_mouvements_clients_pkey",
   "contributions_piete_pkey",
+  "directions_etablissements_pkey",
   "dotations_amorcage_caisses_pkey",
   "fiscalite_journal_pkey",
   "fonds_credits_sources_pkey",
@@ -2196,6 +2257,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "directions_etablissements"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "dotations_amorcage_caisses"
   },
   {
@@ -2337,6 +2403,12 @@
    "nom": "contributions_piete"
   },
   {
+   "colonnes": 6,
+   "empreinte_catalogue": "b3518a84079dba110592b797a6ee1e1b",
+   "empreinte_texte": "cc50766b6b35c9432627c0cf28023d93",
+   "nom": "directions_etablissements"
+  },
+  {
    "colonnes": 9,
    "empreinte_catalogue": "4e8f66a6aaf3d91543c0f04b748f4d75",
    "empreinte_texte": "02fc22cf3e45f7d3b898a218ff8784a2",
@@ -2403,9 +2475,9 @@
    "nom": "salaires_caisses"
   },
   {
-   "colonnes": 3,
-   "empreinte_catalogue": "cef06d1d8efa37cb37698ba1a9608cb1",
-   "empreinte_texte": "77ca51b87ec5572da661c3c49859c2bb",
+   "colonnes": 4,
+   "empreinte_catalogue": "fdbde2a59cf350f245f3f8d63cdf97ba",
+   "empreinte_texte": "d3c7ef4ca4bc719272fee512e94e4658",
    "nom": "salaires_civils_declares"
   },
   {

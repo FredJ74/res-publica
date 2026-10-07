@@ -14,12 +14,12 @@
 -- Regles des postes electifs.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_postes_electifs.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja : outils/generateurs/generer_postes_electifs.py.
+-- Les lignes ci-dessous sont copiees depuis la base, conformement a la
+-- strategie seed_complet du chantier 2C -- mais copier un miroir fige sa
+-- derive. Celui des couts d'ordre avait derive de 24 lignes mortes et 19
+-- ordres gratuits non declares. A terme, ce fichier doit etre ecrit par son
+-- generateur depuis data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.postes_electifs_regles (poste_id, nom, scope, niveau, min_inf, nb_par_ville) VALUES ('chef_syndicat', 'Chef Syndical', 'national', 'national', '5', NULL);

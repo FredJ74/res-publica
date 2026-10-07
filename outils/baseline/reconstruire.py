@@ -311,12 +311,17 @@ def controles_du_monde(cat):
     def att(libelle, obtenu, attendu, note=""):
         r.append((libelle, obtenu, attendu, obtenu == attendu, note))
 
-    att("tables creees", len(cat.tables), 248)
+    # 249 depuis la migration 20261007140910 : la table ajoutee est
+    # directions_etablissements (chantier 4F).
+    att("tables creees", len(cat.tables), 249)
     att("vues creees", len(cat.vues), 2)
     att("signatures de fonction creees", cat.n_fonctions, 648)
     att("noms de fonction distincts", len(cat.fonctions), 644,
         "4 fonctions sont surchargees : moins de noms que de signatures")
-    att("contraintes posees", len(cat.contraintes), 422)
+    # 425 depuis la meme migration : +1 cle primaire et +2 CHECK sur
+    # directions_etablissements. La cle primaire de salaires_civils_declares a change de
+    # colonnes -- (pays, cle) au lieu de (cle) -- mais reste une seule contrainte.
+    att("contraintes posees", len(cat.contraintes), 425)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
     att("policies creees", len(cat.policies), 283)

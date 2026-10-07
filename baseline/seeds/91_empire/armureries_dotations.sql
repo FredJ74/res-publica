@@ -14,12 +14,13 @@
 -- Dotation initiale d'armurerie, renseignee pour 3 empires.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_entreprises.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.armureries_dotations (pays, caisse, stock_matieres, parametres) VALUES ('narco', '20000', '{"bois": 10, "metal": 20}', '{"stockMax": {"ak47": 5, "machette": 10, "desert_eagle": 5}, "prixVente": {"ak47": 1200, "machette": 300, "desert_eagle": 800}, "prixAchatMatiere": {"bois": 10, "metal": 20}}');

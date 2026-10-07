@@ -1,27 +1,27 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-07T00:25:12 Europe/Paris",
- "empreintes_relevees_le": "2026-10-06T23:58:53 Europe/Paris",
+ "releve_le": "2026-10-07T16:19:59 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-07T16:19:59 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
-  "tables": 254,
+  "tables": 255,
   "vues": 2,
   "sequences": 31,
-  "colonnes": 2108,
+  "colonnes": 2115,
   "colonnes_de_vues": 73,
-  "contraintes": 424,
-  "index": 408,
-  "index_portes": 261,
+  "contraintes": 427,
+  "index": 409,
+  "index_portes": 262,
   "index_autonomes": 147,
   "fonctions": 648,
   "triggers": 40,
   "policies": 283,
-  "rls_actives": 254,
-  "droits_relations": 928,
+  "rls_actives": 255,
+  "droits_relations": 930,
   "droits_fonctions": 1809,
   "droits_colonnes": 20,
-  "commentaires": 174
+  "commentaires": 179
  },
  "_droits_relations_detail": "928 = 818 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
  "ecartes": {
@@ -48,36 +48,36 @@
  },
  "attendu_dans_le_baseline": {
   "_commentaire": "totaux - ecartes. C'est ce que la somme des MANIFESTE.json doit donner, exactement.",
-  "tables": 248,
+  "tables": 249,
   "vues": 2,
-  "colonnes": 1980,
-  "contraintes": 422,
-  "index_portes": 259,
+  "colonnes": 1987,
+  "contraintes": 425,
+  "index_portes": 260,
   "index_autonomes": 147,
   "fonctions": 648,
   "triggers": 40,
   "policies": 283,
-  "rls_actives": 248,
-  "droits": 2725,
+  "rls_actives": 249,
+  "droits": 2727,
   "droits_colonnes": 20,
-  "commentaires": 170
+  "commentaires": 175
  },
- "_colonnes_calcul": "1980 = 2108 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
- "_droits_calcul": "2725 = 928 droits de relation + 1809 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
+ "_colonnes_calcul": "1987 = 2115 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
+ "_droits_calcul": "2727 = 930 droits de relation + 1809 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
  "empreintes": {
   "_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = « cle : md5(definition) ». COLLATE \"C\" OBLIGATOIRE : sans lui le tri suit la collation de la base, qui ignore la ponctuation au premier rang, et tout recalcul hors de PostgreSQL (qui trie par point de code) donne une autre valeur alors que les definitions sont identiques. Piege rencontre et corrige le 5 octobre 2026.",
-  "colonnes": "2c18f2d9022ab3faeef3654086ba5918",
+  "colonnes": "a24531d688a09b31700978170d058d12",
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
-  "contraintes": "9d40fada7adc098f56f988902183ef39",
+  "contraintes": "e6349ab784dd6534ade7002685a23be0",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "87524d6bff6d903390f750ce87b77ae7",
+  "fonctions": "06c24a2a99186949e169aed72a26e9b3",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "triggers": "019505ce88c072c754432d39d7505d78",
   "policies": "efb512dd92c91e428ee8e547576f7146",
   "policies_avec_roles": "2bfceb0d575e4b0c1b4b55844f86f31a",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "151d68d88e75b0a4fbd794b4d1ecec73",
-  "commentaires": "1d723a63c73dbc989daae5bb88dc2f51",
+  "droits": "b3e0e15993b7a7388327283be7d9b586",
+  "commentaires": "004e662e8a26ad6895ae42579ee6d014",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
@@ -85,13 +85,13 @@
   }
  },
  "securite": {
-  "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 6 octobre 2026, apres les trois migrations d'autorite du chantier 3.",
+  "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 7 octobre 2026, apres les deux migrations du chantier 4F.",
   "fonctions_security_definer": 536,
   "fonctions_security_invoker": 112,
-  "tables_rls_active_sans_policy": 97,
+  "tables_rls_active_sans_policy": 98,
   "tables_sans_rls": 0,
   "_tables_sans_rls": "ZERO. C'etait 25 au chantier 2E, et c'etait le trou : leur seule garde etait le GRANT. Le chantier 3 a mis la RLS sur les 27 dernieres tables du schema (25 du perimetre, 2 ecartees) -- migration 20261005214600_autorite_socle_acteur_identifie.sql.",
-  "_tables_rls_active_sans_policy": "96 tables ont la RLS active et aucune policy : elles sont donc fermees a tout role soumis a la RLS, et accessibles uniquement par une fonction SECURITY DEFINER. C'est un etat VOULU dans la majorite des cas, pas un oubli."
+  "_tables_rls_active_sans_policy": "98 tables ont la RLS active et aucune policy : elles sont donc fermees a tout role soumis a la RLS, et accessibles uniquement par une fonction SECURITY DEFINER. C'est un etat VOULU dans la majorite des cas, pas un oubli. La 98e est directions_etablissements, creee le 7 octobre 2026."
  },
  "releve_de_cloture": {
   "_commentaire": "Le chantier 2E a relevé la base DEUX FOIS : au point de coupe, avant l'extraction, et à la clôture, après. Le second relevé a été produit par la MEME requête, celle du dépôt (python3 outils/baseline/requetes.py --controle-global), et non par une variante improvisée. Les deux relevés sont identiques sur TOUT : les 16 totaux, les 11 lignes d'écartés, les 10 empreintes, les 3 valeurs du registre, les 3 chiffres de sécurité. Aucun changement structurel n'est survenu pendant le chantier.",
@@ -100,11 +100,12 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "_commentaire": "Point de coupe du 6 octobre 2026 au soir, apres les QUATRE migrations d'autorite du chantier 3 (autorite_defauts_fermes, autorite_socle_acteur_identifie, autorite_rpc_sans_anon, autorite_declencheurs_public) et la migration du chantier 4C (referentiels_empreintes_manquantes).",
-  "entrees": 549,
-  "derniere_version": "20261006222201",
-  "empreinte_versions_et_noms": "3f4ae61facec7bb5a37508a8a7fdac65",
-  "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0"
+  "_commentaire": "Point de coupe du 7 octobre 2026, apres les DEUX migrations du chantier 4F : 20261007140910 direction_etablissements_salaire_serveur, puis 20261007141655 directions_etablissements_sans_roles_clients (le correctif de droits decrit plus bas).",
+  "entrees": 551,
+  "derniere_version": "20261007141655",
+  "empreinte_versions_et_noms": "721be815330c73b03168b05b2eb44263",
+  "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0",
+  "_empreinte_contenu_2d": "Non remesuree : elle porte sur l'archive 2D, qui est CLOSE. verifier-archive-registre.py la verifie et passe."
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -145,7 +146,10 @@
  },
  "_chantier_4d": {
   "_commentaire": "Releve d'apres la migration 20261006213114_effort_commande_autorite, appliquee le 6 octobre 2026. Le baseline SUIT la base : reextrait APRES application.",
-  "migrations_appliquees": ["effort_commande_autorite", "effort_commande_sans_public"],
+  "migrations_appliquees": [
+   "effort_commande_autorite",
+   "effort_commande_sans_public"
+  ],
   "ce_qui_a_change": {
    "tables": "252 -> 254 : recettes_militaires (miroir genere des 8 recettes) et recettes_militaires_empreinte",
    "fonctions": "644 -> 647 : recettes_militaires_empreinte_reelle(), effort_commande_creer(), effort_commande_annuler()",
@@ -159,7 +163,10 @@
  },
  "_chantier_4d_assemblee": {
   "_commentaire": "Releve d'apres les migrations 20261006215026_assemblee_portee_choisie et 20261006215127_assemblee_portee_droits_explicites, appliquees le 6 octobre 2026.",
-  "migrations_appliquees": ["assemblee_portee_choisie", "assemblee_portee_droits_explicites"],
+  "migrations_appliquees": [
+   "assemblee_portee_choisie",
+   "assemblee_portee_droits_explicites"
+  ],
   "ce_qui_a_change": {
    "fonctions": "647 -> 648 : assemblee_sous_types_connus() ajoutee ; assemblee_objet_vise passe de 2 a 3 parametres (l'ancienne signature est SUPPRIMEE, pas surchargee) ; assemblee_portee_valider, assemblee_loi_en_vigueur et assemblee_catalogue_legislatif remplacees",
    "categories_d_interdiction": "21 -> 22 : la categorie explosifs est creee. medicaments vise desormais le type d'objet 'soin' et non 'medicament', qui n'existe nulle part dans le jeu",
@@ -183,5 +190,12 @@
   "_ce_qui_etait_deja_juste": "Les trois relations generiques exprimaient deja l'arbitrage, chacune separement : postes_nommes_regles.scope='ville' (territoire), autorite_scope='pays' (min_just), salaires_caisses.motif='{pays}_tribunal_{ville}' et caisses_autorites tribunal->{juge,min_just} (payeur). Aucun cas special n'a ete cree. La divergence ne vivait que dans une copie JavaScript du cron, fermee par generation depuis data.js.",
   "_aucun_repli": "ville_defaut reste NULL pour le juge. Un juge sans ville est refuse par 'caisse_payeuse_non_declaree' au lieu d'etre paye par la capitale.",
   "_dette_4f": "La cle budgetaire 'tribunal' de CAISSE_PAR_POSTE_BUDGET pointe vers 'tribunal_capitale' SEUL. Les tribunaux de Port-Sainte-Marie et Montrouge sont dotes (3080 et 2092 FR) mais ne recoivent rien du circuit budgetaire recurrent. Le circuit « budget national -> Ministere de la Justice -> tribunaux territoriaux » n'est donc pas encore per-ville. Hors perimetre 4E."
+ },
+ "_chantier_4f": {
+  "_commentaire": "Chantier 4F, 7 octobre 2026. Deux migrations appliquees, et ce que la reextraction a attrape.",
+  "ce_que_la_premiere_a_change": "+1 table (directions_etablissements, 6 lignes, categorie A seed_complet) ; +1 colonne (salaires_civils_declares.pays) ; la cle primaire de salaires_civils_declares passe de (cle) a (pays, cle) ; +3 contraintes (1 PK, 2 CHECK) ; +1 index porte ; +5 commentaires ; 3 fonctions REMPLACEES (percevoir_salaire_directeur, salaire_civil_percevoir, salaires_coherence) -- d'ou un total de fonctions inchange a 648.",
+  "ce_que_la_seconde_a_corrige": "Un defaut que j'ai introduit. La premiere migration declarait, en commentaire, que directions_etablissements suivait « le meme regime que caisses_autorites » -- RLS active, aucune policy, aucun droit client -- mais ne portait qu'un REVOKE ALL FROM PUBLIC. C'est le piege symetrique de celui rencontre trois fois sur les fonctions : FROM PUBLIC ne retire que le privilege de PUBLIC, et Supabase accorde SELECT a anon et authenticated NOMMEMENT sur toute table neuve du schema public (ALTER DEFAULT PRIVILEGES). La table est donc nee avec anon=r et authenticated=r. La RLS etant active sans aucune policy, aucune ligne ne sortait -- le privilege etait inerte -- mais le depot declarait une chose et la base en disait une autre. Les droits de relation passent de 930 a 930 apres correctif (928 + 4 legitimes - 2 retires), soit 2727 attendus dans le baseline.",
+  "ce_qui_l_a_vu": "LA RELECTURE DU DIFF DU BASELINE, pas un controle. Les deux GRANT SELECT ... TO anon/authenticated sont apparus dans le diff de 70_droits.sql. C'est la deuxieme fois que cette relecture attrape ce qu'aucun controle ne voit -- la premiere etait la suppression silencieuse de 102 droits de sequence, le 6 octobre. Le workflow l'impose pour cette raison.",
+  "le_meme_piege_ferme_par_avance": "La migration encore en attente (villes et caisses fail-closed) cree DEUX tables et portait le meme defaut. Ses trois REVOKE sont ecrits avant toute application."
  }
 }

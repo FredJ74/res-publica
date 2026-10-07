@@ -18,7 +18,7 @@
 --
 -- CE QU'IL RESTE A FAIRE
 -- Ecrire le generateur, sur le modele de generer_ordres_couts.py, et le
--- ranger hors de .scratch/ avec les autres.
+-- ranger dans outils/generateurs/ avec les autres.
 -- ============================================================================
 
 -- Rien a appliquer tant que le generateur n'a pas ecrit ici.

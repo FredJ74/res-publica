@@ -3,7 +3,7 @@
 """Controles automatiques de la classification des donnees (chantier 2C).
 
 Verifie, sans acceder a la base :
-  1. exactement 254 tables classees ;
+  1. exactement 255 tables classees ;
   2. aucune table oubliee ni inventee -- l'empreinte de la liste des tables doit
      correspondre a celle relevee dans le catalogue au moment de la classification ;
   3. aucune table classee deux fois ;
@@ -25,8 +25,12 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-TABLES_ATTENDUES = 254
-EMPREINTE_LISTE = "f39161fb2e49ac49c84f2e432dc1856d"   # md5(string_agg(relname,',' order by relname collate "C"))
+# Mesure du 7 octobre 2026, apres la migration 20261007140910 : la 255e table est
+# directions_etablissements. Les deux valeurs viennent de la MEME requete que celle en
+# commentaire, jouee sur la base -- et le md5 qu'elle rend est exactement celui que ce
+# controle recalcule depuis le CSV, ce qui est le point de la verification.
+TABLES_ATTENDUES = 255
+EMPREINTE_LISTE = "8572e604bf9820077011dd8241ae63e1"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

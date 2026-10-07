@@ -91,7 +91,16 @@ ALTER TABLE public.villes ENABLE ROW LEVEL SECURITY;
 -- Aucune policy, aucun droit client : c'est un referentiel d'autorite, lu
 -- uniquement par des fonctions SECURITY DEFINER. Meme regime que
 -- caisses_autorites. Le navigateur a deja VILLES dans data.js.
+--
+-- LES TROIS REVOKE SONT NECESSAIRES (lecon du 7 octobre 2026, apprise sur
+-- directions_etablissements). `FROM PUBLIC` ne retire QUE le droit de PUBLIC ;
+-- Supabase accorde SELECT a `anon` et `authenticated` NOMMEMENT sur toute table
+-- neuve du schema public, par ALTER DEFAULT PRIVILEGES. Sans les deux lignes
+-- suivantes, cette table naitrait avec `anon=r` et `authenticated=r` -- inerte
+-- tant qu'aucune policy n'existe, mais contredisant cette declaration.
 REVOKE ALL ON TABLE public.villes FROM PUBLIC;
+REVOKE ALL ON TABLE public.villes FROM anon;
+REVOKE ALL ON TABLE public.villes FROM authenticated;
 
 DELETE FROM public.villes;
 INSERT INTO public.villes (pays, ville, nom, est_capitale, rang) VALUES

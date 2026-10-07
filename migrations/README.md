@@ -12,14 +12,21 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## La migration en attente d'application — chantier 4E, villes et caisses
 
-`20261007003000_villes_referentiel_et_caisses_fail_closed.sql` est **écrite,
+`20261008000000_villes_referentiel_et_caisses_fail_closed.sql` est **écrite,
 éprouvée autant que l'environnement le permet, et non appliquée**. Rien dans le
-dépôt ne prétend le contraire : le baseline n'a pas été réextrait, et le miroir
-`villes` est déclaré en attente dans `../outils/baseline/referentiels.json`
-(`posee` et `reelle` à `null`, `fonction_reelle_en_base` à `false`).
+dépôt ne prétend le contraire : son effet n'est pas dans le baseline, et le
+miroir `villes` est déclaré en attente dans
+`../outils/baseline/referentiels.json` (`posee` et `reelle` à `null`,
+`fonction_reelle_en_base` à `false`).
 
-Les trois migrations du chantier 3, qui occupaient cette section, **ont été
-appliquées** ; elles vivent dans `../historique/migrations-appliquees/`.
+Elle a été **redatée** du 7 au 8 octobre 2026 : le point de coupe du baseline a
+avancé avec les deux migrations du chantier 4F, et l'invariant 4 du garde-fou
+refuse — à raison — une migration antérieure au point de coupe. Son contenu n'a
+pas bougé, hormis deux `REVOKE` ajoutés par prudence (voir plus bas).
+
+Les trois migrations du chantier 3 et les deux du chantier 4F, qui occupaient
+cette section, **ont été appliquées** ; elles vivent dans
+`../historique/migrations-appliquees/`.
 
 ### Ce qu'elle fait
 

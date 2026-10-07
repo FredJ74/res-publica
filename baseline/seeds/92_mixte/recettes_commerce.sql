@@ -21,12 +21,13 @@
 -- contenu du seed (identifiants psm/montrouge), pas dans le schema.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_entreprises.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux, prix_fixe, categorie, types_autorises, pays_autorises, villes_autorisees, buildings_autorises, effets, stack_key, sous_type, icone, image, description, famille_produit_marche, bonus_integration_ville, generique_id, label_forme) VALUES ('biere_pression', 'alimentaire', 'Bière', '1', '15', '{"cereales": 1}', NULL, 'boisson', '["buvette", "bar", "cafe", "brasserie"]', NULL, NULL, NULL, '{"moral": 2}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);

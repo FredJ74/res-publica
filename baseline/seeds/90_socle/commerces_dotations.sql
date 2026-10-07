@@ -14,12 +14,13 @@
 -- Dotation initiale de stock par type de commerce.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_entreprises.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES ('bar-des-pecheurs|salle_bar', 'bar', '2000', '{"cereales": 10, "fruits_legumes": 10, "produits_exotiques": 10}', '{"cereales": 3, "fruits_legumes": 4, "produits_exotiques": 6}', '["biere_pression", "vin", "cafe_boisson", "boisson_sans_alcool", "snack_buvette"]', '{"stockMax": {"vin": 20, "cafe_boisson": 20, "snack_buvette": 20, "biere_pression": 20, "boisson_sans_alcool": 20}, "prixVente": {"vin": 7, "cafe_boisson": 7, "snack_buvette": 7, "biere_pression": 7, "boisson_sans_alcool": 10}}');

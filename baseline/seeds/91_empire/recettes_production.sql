@@ -22,12 +22,13 @@
 -- hors 2C.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_entreprises.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.recettes_production (id, ut, label, pays, materiaux, generique_id) VALUES ('ak47', '3', 'AK-47', 'narco', '{"bois": 1, "metal": 3}', NULL);

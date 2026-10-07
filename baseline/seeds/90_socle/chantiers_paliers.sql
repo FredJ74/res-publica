@@ -14,12 +14,13 @@
 -- Paliers d'avancement d'un chantier.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_chantiers.py. Les
--- lignes ci-dessous sont copiees depuis la base, conformement a la strategie
--- seed_complet du chantier 2C -- mais copier un miroir fige sa derive. Celui
--- des couts d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits
--- non declares. A terme, ce fichier doit etre ecrit par son generateur
--- depuis data.js, et la table doit rejoindre 95_a-regenerer.
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_chantiers.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
 INSERT INTO public.chantiers_paliers (palier, label, duree_jours, cout_total, cout_materiaux, cout_travail, heures_totales, apport_minimal, gabarit) VALUES ('building', 'Building', '24', '120000', '36000', '84000', '1200', '42000', '{"type": "construction", "arrete": null, "niveau": "building", "coutTotal": 120000, "jourDebut": 1, "travauxPJ": [], "dureeJours": 24, "evenements": [], "jourTraite": null, "totalVerse": 0, "tresorerie": 0, "coutTravail": 84000, "heuresFaites": 0, "coutMateriaux": 36000, "heuresTotales": 1200, "stockMateriaux": {"bois": 0, "metal": 0, "minerai": 0}, "progressionJours": 0, "ventesMateriauxPJ": []}');

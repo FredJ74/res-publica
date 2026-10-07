@@ -21,6 +21,7 @@ ALTER TABLE public.caisses_autorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_batiments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_mouvements_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contributions_piete ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.directions_etablissements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dotations_amorcage_caisses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fiscalite_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fonds_credits_sources ENABLE ROW LEVEL SECURITY;

@@ -15,7 +15,8 @@
 -- ne l'ecrit.
 --
 -- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
--- Un generateur existe deja : .scratch/generer_miroirs_entreprises.py et
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py et
 -- generer_miroirs_chantiers.py. Les lignes ci-dessous sont copiees depuis la
 -- base, conformement a la strategie seed_complet du chantier 2C -- mais
 -- copier un miroir fige sa derive. Celui des couts d'ordre avait derive de

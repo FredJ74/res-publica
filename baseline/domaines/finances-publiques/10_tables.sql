@@ -70,6 +70,15 @@ CREATE TABLE public.contributions_piete (
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.directions_etablissements (
+  pays text NOT NULL,
+  poste_id text NOT NULL,
+  ville text NOT NULL,
+  souscle text NOT NULL,
+  building_id text NOT NULL,
+  salaire_jour integer NOT NULL
+);
+
 CREATE TABLE public.dotations_amorcage_caisses (
   caisse_ref text NOT NULL,
   stockage text NOT NULL,
@@ -163,7 +172,8 @@ CREATE TABLE public.salaires_caisses (
 CREATE TABLE public.salaires_civils_declares (
   cle text NOT NULL,
   categorie text NOT NULL,
-  montant integer NOT NULL
+  montant integer NOT NULL,
+  pays text NOT NULL
 );
 
 CREATE TABLE public.salaires_civils_verses (

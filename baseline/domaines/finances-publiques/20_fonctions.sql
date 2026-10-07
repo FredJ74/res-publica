@@ -1988,37 +1988,48 @@ CREATE OR REPLACE FUNCTION public.percevoir_salaire_directeur(p_acteur text, p_p
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
-  v_id text := p_pays || '_' || p_ville || '_' || p_batiment;
-  v_poste text; v_jour int; v_stats jsonb; v_marqueur text;
+  v_poste text; v_poste_city text; v_pays text; v_jour int; v_stats jsonb;
+  v_marqueur text; v_id text; d record; v_nb int;
   v_etat jsonb; v_sous jsonb; v_solde numeric; v_verse numeric;
   v_arg numeric; v_liquide numeric;
 BEGIN
   PERFORM public.exiger_acteur(p_acteur);
-  IF p_souscle NOT IN ('entrepot','usine') THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'souscle_invalide');
-  END IF;
-  v_marqueur := 'salaireDirecteur_' || p_souscle || '_' || p_batiment;
-
-  SELECT poste->>'id', coalesce(day,1), coalesce(stats,'{}'::jsonb), coalesce(arg,0), coalesce(liquide,0)
-    INTO v_poste, v_jour, v_stats, v_arg, v_liquide
+  SELECT poste->>'id', poste->>'city', coalesce(country,'republic'),
+         coalesce(day,1), coalesce(stats,'{}'::jsonb), coalesce(arg,0), coalesce(liquide,0)
+    INTO v_poste, v_poste_city, v_pays, v_jour, v_stats, v_arg, v_liquide
   FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
-  IF v_jour IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  IF v_jour IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
   IF v_poste IS DISTINCT FROM p_poste_attendu THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_detenu', 'poste_reel', v_poste);
   END IF;
+  SELECT count(*) INTO v_nb FROM public.directions_etablissements x
+   WHERE x.pays = v_pays AND x.poste_id = v_poste
+     AND (coalesce(btrim(v_poste_city), '') = '' OR x.ville = v_poste_city);
+  IF v_nb <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'direction_non_declaree',
+                              'poste', v_poste, 'ville_du_poste', v_poste_city, 'lignes_trouvees', v_nb);
+  END IF;
+  SELECT * INTO d FROM public.directions_etablissements x
+   WHERE x.pays = v_pays AND x.poste_id = v_poste
+     AND (coalesce(btrim(v_poste_city), '') = '' OR x.ville = v_poste_city);
+  v_marqueur := 'salaireDirecteur_' || d.souscle || '_' || d.building_id;
   IF coalesce((v_stats->>v_marqueur)::int, -1) = v_jour THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'deja_percu_aujourdhui');
   END IF;
-
+  v_id := d.pays || '_' || d.ville || '_' || d.building_id;
   SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
-  IF v_etat IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'etablissement_introuvable'); END IF;
-  v_sous := coalesce(v_etat->p_souscle, '{}'::jsonb);
+  IF v_etat IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'etablissement_introuvable', 'id', v_id);
+  END IF;
+  v_sous  := coalesce(v_etat->d.souscle, '{}'::jsonb);
   v_solde := coalesce((v_sous->>'caisse')::numeric, 0);
-  v_verse := least(v_solde, greatest(0, coalesce(p_montant,0)));   -- versement partiel conserve
-
+  v_verse := least(v_solde, d.salaire_jour);
+  IF v_verse < 0 THEN v_verse := 0; END IF;
   IF v_verse > 0 THEN
     UPDATE public.batiments_etat
-       SET data = to_jsonb((v_etat || jsonb_build_object(p_souscle,
+       SET data = to_jsonb((v_etat || jsonb_build_object(d.souscle,
              v_sous || jsonb_build_object('caisse', v_solde - v_verse)))::text), updated_at = now()
      WHERE id = v_id;
   END IF;
@@ -2026,8 +2037,9 @@ BEGIN
      SET arg = v_arg + v_verse, liquide = v_liquide + v_verse,
          stats = jsonb_set(v_stats, ARRAY[v_marqueur], to_jsonb(v_jour))
    WHERE name = p_acteur;
-
-  RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'complet', v_verse >= coalesce(p_montant,0),
+  RETURN jsonb_build_object('ok', true, 'verse', v_verse,
+    'complet', v_verse >= d.salaire_jour, 'du', d.salaire_jour,
+    'etablissement', d.building_id, 'ville', d.ville,
     'arg', v_arg + v_verse, 'liquide', v_liquide + v_verse, 'caisse', v_solde - v_verse);
 END; $function$;
 
@@ -2224,27 +2236,19 @@ BEGIN
   IF v_moi IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
   END IF;
-
-  -- LA VILLE VIENT DU POSTE, JAMAIS DE LA POSITION (20/09/2026). current_city est la
-  -- ville ou le joueur SE TROUVE : l'employer ici laissait un titulaire se faire payer
-  -- par la caisse de la ville ou il passait. A defaut de ville sur le poste, on prend le
-  -- defaut DECLARE pour ce poste (salaires_caisses.ville_defaut) ; s'il n'y en a pas,
-  -- v_ville reste NULL et salaire_caisse_de ne resoudra aucune caisse -- refus explicite.
   SELECT coalesce(country,'republic'), poste ->> 'id',
          public.salaire_ville_du_poste(poste ->> 'id', poste ->> 'city')
     INTO v_pays, v_poste, v_ville
     FROM public.personnages_donnees WHERE name = v_moi;
-
   v_grade := public.militaire_grade_effectif(v_moi);
   IF v_grade IS NOT NULL OR coalesce(v_poste,'') IN ('soldat','lieutenant','capitaine','commandant') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'paye_par_la_caserne');
   END IF;
-
   IF v_poste IS NOT NULL THEN
     SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
-      FROM public.salaires_civils_declares s WHERE s.cle = v_poste AND s.categorie = 'poste';
+      FROM public.salaires_civils_declares s
+     WHERE s.pays = v_pays AND s.cle = v_poste AND s.categorie = 'poste';
   END IF;
-
   IF v_cle IS NULL THEN
     SELECT coalesce(e.data -> 'offres', e.data -> 'bne' -> 'offres')
       INTO v_offres FROM public.batiments_etat e WHERE e.id = v_pays || '_national_bne';
@@ -2257,32 +2261,27 @@ BEGIN
         LIMIT 1;
       IF v_offre IS NOT NULL THEN
         SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
-          FROM public.salaires_civils_declares s WHERE s.cle = v_offre AND s.categorie = 'emploi';
+          FROM public.salaires_civils_declares s
+         WHERE s.pays = v_pays AND s.cle = v_offre AND s.categorie = 'emploi';
       END IF;
     END IF;
   END IF;
-
   IF v_cle IS NULL THEN
     SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
-      FROM public.salaires_civils_declares s WHERE s.cle = 'default';
+      FROM public.salaires_civils_declares s
+     WHERE s.pays = v_pays AND s.cle = 'default';
   END IF;
-
   IF v_montant IS NULL OR v_montant <= 0 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'bareme_absent');
+    RETURN jsonb_build_object('ok', false, 'raison', 'bareme_absent', 'pays', v_pays);
   END IF;
-
   v_jour := (now() AT TIME ZONE 'Europe/Paris')::date;
   v_id   := v_moi || ':' || v_jour::text;
-
-  -- LA CAISSE PAYEUSE. Seul le revenu universel n'en a pas.
   IF v_origine = 'poste' THEN
     v_caisse := public.salaire_caisse_de(v_poste, v_pays, v_ville);
     IF v_caisse IS NULL THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'caisse_payeuse_non_declaree', 'poste', v_poste);
     END IF;
   END IF;
-
-  -- L'anti-rejeu EST la cle : pose AVANT tout mouvement d'argent.
   BEGIN
     INSERT INTO public.salaires_civils_verses (id, personnage, jour, origine, cle, montant)
     VALUES (v_id, v_moi, v_jour, v_origine, v_cle, v_montant);
@@ -2292,14 +2291,10 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'deja_percu_aujourdhui',
                               'jour', v_jour, 'arg', v_arg, 'liquide', v_liquide);
   END;
-
   IF v_caisse IS NOT NULL THEN
     SELECT (data->>'solde')::numeric INTO v_solde
       FROM public.caisses_batiments WHERE id = v_caisse FOR UPDATE;
-    -- TOUT OU RIEN : pas de versement partiel, pas de dette.
     IF coalesce(v_solde, 0) < v_montant THEN
-      -- On retire la ligne d'anti-rejeu : rien n'a ete verse, le titulaire
-      -- pourra retenter si sa caisse est realimentee dans la journee.
       DELETE FROM public.salaires_civils_verses WHERE id = v_id;
       RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante',
                                 'caisse', v_caisse, 'solde', coalesce(v_solde,0), 'du', v_montant);
@@ -2309,19 +2304,15 @@ BEGIN
            updated_at = now()
      WHERE id = v_caisse;
   END IF;
-
   UPDATE public.personnages_donnees
-     SET liquide = coalesce(liquide,0) + v_montant,
-         arg     = coalesce(arg,0)     + v_montant,
+     SET liquide = coalesce(liquide,0) + v_montant, arg = coalesce(arg,0) + v_montant,
          updated_at = now()
    WHERE name = v_moi
    RETURNING arg, liquide INTO v_arg, v_liquide;
-
   RETURN jsonb_build_object('ok', true, 'montant', v_montant, 'origine', v_origine,
                             'cle', v_cle, 'jour', v_jour, 'caisse', v_caisse,
                             'arg', v_arg, 'liquide', v_liquide);
-END;
-$function$;
+END; $function$;
 
 -- salaire_religieux_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.salaire_religieux_percevoir()
@@ -2435,7 +2426,7 @@ CREATE OR REPLACE FUNCTION public.salaires_coherence()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-  SELECT 'bareme de poste sans caisse payeuse', string_agg(s.cle, ', ' ORDER BY s.cle)
+  SELECT 'bareme de poste sans caisse payeuse', string_agg(s.pays || '/' || s.cle, ', ' ORDER BY s.pays, s.cle)
     FROM public.salaires_civils_declares s
    WHERE s.categorie = 'poste'
      AND NOT EXISTS (SELECT 1 FROM public.salaires_caisses c WHERE c.poste_id = s.cle)
@@ -2445,6 +2436,19 @@ AS $function$
     FROM public.salaires_caisses c
    WHERE NOT EXISTS (SELECT 1 FROM public.salaires_civils_declares s
                       WHERE s.cle = c.poste_id AND s.categorie = 'poste')
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'poste de direction declare en bareme de poste : SUPPRIME le cumul avec le revenu universel',
+         string_agg(s.pays || '/' || s.cle, ', ' ORDER BY s.pays, s.cle)
+    FROM public.salaires_civils_declares s
+   WHERE s.categorie = 'poste'
+     AND EXISTS (SELECT 1 FROM public.directions_etablissements d
+                  WHERE d.pays = s.pays AND d.poste_id = s.cle)
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'bareme sans empire declare', string_agg(s.cle, ', ' ORDER BY s.cle)
+    FROM public.salaires_civils_declares s
+   WHERE coalesce(btrim(s.pays), '') = ''
   HAVING count(*) > 0;
 $function$;
 

@@ -77,6 +77,7 @@ demandes_manifestation;politique et elections;C;structure_seule;0;non;0;0;Demand
 demandes_mariage;personnage et presence;C;structure_seule;0;oui;0;0;Demandes en mariage.;
 demandes_naturalisation;personnage et presence;C;structure_seule;0;non;0;1;Demandes de naturalisation.;
 detentions;justice;C;structure_seule;0;oui;0;9;Detentions en cours.;
+directions_etablissements;finances publiques;A;seed_complet;6;oui;1;0;Quel etablissement chaque poste de direction dirige, ou, et pour quel salaire quotidien. Miroir de DIRECTEUR_USINE_INFO, ENTREPOT_PAR_VILLE et SALAIRE_DIRECTEUR (plateau-justice-economie.js). Lue par percevoir_salaire_directeur, qui n'accepte plus ni ville ni batiment ni montant du navigateur. Seul Republia y figure : aucun etablissement de production n'est declare pour les trois autres empires, et en inventer serait du game design.;
 directeurs_usine;economie;B;seed_complet;3;non;1;2;ARBITRAGE RENDU : un monde neuf commence avec les directeurs PNJ des usines deja en poste. C'est donc de l'etat initial authored, pas une nomination produite par le jeu.;
 dons_en_attente;personnage et presence;C;structure_seule;0;non;0;2;Dons en attente d'acceptation.;
 dons_requetes;personnage et presence;C;structure_seule;0;non;0;1;Garde d'idempotence des dons.;
@@ -224,7 +225,7 @@ rp_epoques;politique et elections;B;seed_complet;1;oui;2;1;Ancrage du calendrier
 rp_transitions;politique et elections;D;reconstruction_explicite;2;non;4;1;ARBITRAGE RENDU : ce n'est NI une regle perenne du moteur, NI du contenu d'empire. C'est un mecanisme TRANSITOIRE lie a la securisation progressive des anciennes ecritures client. Ses 2 drapeaux ne doivent donc pas etre promus en regle du socle. Ils sont lus par la seule fonction rp_transition_active(cle), qui rend FALSE sur cle absente : une table vide se comporte exactement comme la production d'aujourd'hui.;Le comportement doit etre CONSERVE tant que les chemins legitimes ne sont pas tous migres cote serveur. argent_verrou NE DOIT SURTOUT PAS etre active prematurement : des gains legitimes empruntent encore l'ancien chemin client. OBJECTIF ARCHITECTURAL : supprimer cette tolerance une fois les ecritures legitimes correctement routees.
 rumeurs_actives;justice;C;structure_seule;0;non;0;0;Rumeurs en circulation.;
 salaires_caisses;finances publiques;A;seed_complet;13;non;3;4;Quelle caisse paie quel poste. Le seed utilise un gabarit {pays}_batiment, donc generique.;
-salaires_civils_declares;finances publiques;A;seed_complet;17;non;3;2;Bareme des salaires civils.;
+salaires_civils_declares;finances publiques;A;seed_complet;17;oui;4;2;Bareme des salaires civils. La colonne pays a ete ajoutee le 7 octobre 2026 et la cle primaire est devenue (pays, cle) : la table n'avait aucune dimension d'empire, et salaire_civil_percevoir y lisait sans filtre -- les trois autres empires heritaient donc du bareme de Republia, revenu universel compris. Les 17 lignes sont toutes en 'republic'.;
 salaires_civils_verses;finances publiques;C;structure_seule;3;non;0;1;Journal des salaires civils verses.;
 salaires_religieux_declares;finances publiques;A;seed_complet;4;non;2;1;Bareme des salaires religieux.;
 salaires_religieux_verses;finances publiques;C;structure_seule;0;non;0;1;Journal des salaires religieux verses.;

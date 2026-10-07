@@ -3,7 +3,7 @@
 -- Table   : public.pa_bonus_differes
 -- Domaine : finances publiques
 -- Source canonique : data.js
--- Generateur       : .scratch/generer_pa_bonus_differes.py (EXISTE)
+-- Generateur       : outils/generateurs/generer_pa_bonus_differes.py (EXISTE)
 --
 -- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
 -- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
@@ -18,9 +18,9 @@
 -- derive entre data.js et la base : preuve que la source est data.js.
 --
 -- CE QU'IL RESTE A FAIRE
--- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Le
--- deplacer hors de .scratch/ et le faire ecrire directement ici, empreinte
--- comprise.
+-- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Il a
+-- quitte .scratch/ au chantier 2H. Reste a le faire ecrire directement ici,
+-- empreinte comprise.
 -- ============================================================================
 
 -- Rien a appliquer tant que le generateur n'a pas ecrit ici.

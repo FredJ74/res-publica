@@ -3,7 +3,7 @@
 -- Table   : public.ordres_couts
 -- Domaine : economie
 -- Source canonique : data.js
--- Generateur       : .scratch/generer_ordres_couts.py (EXISTE)
+-- Generateur       : outils/generateurs/generer_ordres_couts.py (EXISTE)
 --
 -- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
 -- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
@@ -19,9 +19,9 @@
 -- entrer cette derive dans le baseline et dans tous les mondes a venir.
 --
 -- CE QU'IL RESTE A FAIRE
--- Deplacer le generateur hors de .scratch/ -- un outil necessaire au
--- fonctionnement du projet n'a rien a faire dans un repertoire de brouillon
--- -- puis le faire ecrire directement dans baseline/seeds/95_a-regenerer/.
+-- Le generateur a quitte .scratch/ au chantier 2H : il vit desormais dans
+-- outils/generateurs/. Reste a le faire ecrire directement dans
+-- baseline/seeds/95_a-regenerer/.
 -- ============================================================================
 
 -- Rien a appliquer tant que le generateur n'a pas ecrit ici.

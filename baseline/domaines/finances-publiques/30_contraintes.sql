@@ -18,6 +18,7 @@ ALTER TABLE public.caisses_autorites ADD CONSTRAINT caisses_autorites_pkey PRIMA
 ALTER TABLE public.caisses_batiments ADD CONSTRAINT caisses_batiments_pkey PRIMARY KEY (id);
 ALTER TABLE public.caisses_mouvements_clients ADD CONSTRAINT caisses_mouvements_clients_pkey PRIMARY KEY (id);
 ALTER TABLE public.contributions_piete ADD CONSTRAINT contributions_piete_pkey PRIMARY KEY (id);
+ALTER TABLE public.directions_etablissements ADD CONSTRAINT directions_etablissements_pkey PRIMARY KEY (pays, poste_id, ville);
 ALTER TABLE public.dotations_amorcage_caisses ADD CONSTRAINT dotations_amorcage_caisses_pkey PRIMARY KEY (caisse_ref);
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_pkey PRIMARY KEY (id);
 ALTER TABLE public.fonds_credits_sources ADD CONSTRAINT fonds_credits_sources_pkey PRIMARY KEY (source);
@@ -29,7 +30,7 @@ ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_pkey PRIMARY KEY
 ALTER TABLE public.pa_credits_sources ADD CONSTRAINT pa_credits_sources_pkey PRIMARY KEY (source);
 ALTER TABLE public.pa_credits_uniques ADD CONSTRAINT pa_credits_uniques_pkey PRIMARY KEY (acteur, source, reference);
 ALTER TABLE public.salaires_caisses ADD CONSTRAINT salaires_caisses_pkey PRIMARY KEY (poste_id);
-ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_pkey PRIMARY KEY (cle);
+ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_pkey PRIMARY KEY (pays, cle);
 ALTER TABLE public.salaires_civils_verses ADD CONSTRAINT salaires_civils_verses_pkey PRIMARY KEY (id);
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_pkey PRIMARY KEY (cle);
 ALTER TABLE public.salaires_religieux_verses ADD CONSTRAINT salaires_religieux_verses_pkey PRIMARY KEY (id);
@@ -38,6 +39,8 @@ ALTER TABLE public.salaires_religieux_verses ADD CONSTRAINT salaires_religieux_v
 ALTER TABLE public.fonds_credits_uniques ADD CONSTRAINT fonds_credits_uniques_ref UNIQUE (source, reference);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.directions_etablissements ADD CONSTRAINT directions_etablissements_salaire_jour_check CHECK ((salaire_jour >= 0));
+ALTER TABLE public.directions_etablissements ADD CONSTRAINT directions_etablissements_souscle_check CHECK ((souscle = ANY (ARRAY['entrepot'::text, 'usine'::text])));
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_assiette_check CHECK (((assiette IS NULL) OR (assiette >= (0)::numeric)));
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_montant_check CHECK ((montant >= (0)::numeric));
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_pays_check CHECK ((pays <> ''::text));

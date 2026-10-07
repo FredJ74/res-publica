@@ -237,7 +237,7 @@
         "posee": null,
         "reelle": null,
         "verdict": "data.js seul est mesurable : la table, la sentinelle et la fonction n'existent pas encore en base.",
-        "_ne": "EN ATTENTE D'APPLICATION. La table villes, la table villes_empreinte et la fonction villes_empreinte_reelle sont creees par migrations/20261007003000_villes_referentiel_et_caisses_fail_closed.sql, qui n'est PAS appliquee. Seule la colonne data_js est donc renseignee, et le controle saute les deux comparaisons (il ignore un couple ou l'une des deux valeurs est nulle). A reprendre le jour de l'application : mesurer posee et reelle, et basculer fonction_reelle_en_base.",
+        "_ne": "EN ATTENTE D'APPLICATION. La table villes, la table villes_empreinte et la fonction villes_empreinte_reelle sont creees par migrations/20261008000000_villes_referentiel_et_caisses_fail_closed.sql, qui n'est PAS appliquee. Seule la colonne data_js est donc renseignee, et le controle saute les deux comparaisons (il ignore un couple ou l'une des deux valeurs est nulle). A reprendre le jour de l'application : mesurer posee et reelle, et basculer fonction_reelle_en_base.",
         "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner."
       }
     },

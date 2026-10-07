@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 23 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 24 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   budgets_clubs_pkey  (contrainte budgets_clubs_pkey)
 --   budgets_municipaux_pkey  (contrainte budgets_municipaux_pkey)
 --   budgets_nationaux_pkey  (contrainte budgets_nationaux_pkey)
@@ -18,6 +18,7 @@
 --   caisses_batiments_pkey  (contrainte caisses_batiments_pkey)
 --   caisses_mouvements_clients_pkey  (contrainte caisses_mouvements_clients_pkey)
 --   contributions_piete_pkey  (contrainte contributions_piete_pkey)
+--   directions_etablissements_pkey  (contrainte directions_etablissements_pkey)
 --   dotations_amorcage_caisses_pkey  (contrainte dotations_amorcage_caisses_pkey)
 --   fiscalite_journal_pkey  (contrainte fiscalite_journal_pkey)
 --   fonds_credits_sources_pkey  (contrainte fonds_credits_sources_pkey)
