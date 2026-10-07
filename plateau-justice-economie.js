@@ -10522,13 +10522,28 @@ function getBuildingIdMairie(ville) {
 
 // ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
 // partage avec le Maire) : virement instantane depuis la caisse municipale ----
+// LA COMMUNE ADMINISTREE VIENT DU POSTE, PAS DE LA POSITION (chantier 4F, 7 octobre 2026).
+// maire_adjoint est un poste de scope VILLE : son titulaire porte sa commune sur sa fiche. Les
+// deux fonctions ci-dessous lisaient state.currentCity, donc un adjoint de Luthecia de passage a
+// Montrouge finançait les batiments de Montrouge depuis la caisse de Montrouge. Aucune regle de
+// jeu ne change : on ne lui impose PAS d'etre physiquement dans sa mairie (rien ne l'exigeait, et
+// l'inventer serait une decision) -- on corrige seulement QUELLE commune il administre.
+function villeDuPosteMunicipal() {
+  return state.poste?.city || null;
+}
+
 async function ouvrirModalFinancerCommunal(pa, cost) {
   if (state.poste?.id !== 'maire_adjoint') {
     showToast('Acces refuse', 'Reserve au Maire Adjoint.', false);
     return;
   }
-  const ville = state.currentCity;
-  const budgetMuni = await chargerBudgetMunicipal();
+  const ville = villeDuPosteMunicipal();
+  if (!ville) {
+    showToast('Commune inconnue', 'Votre poste ne porte aucune ville : impossible de savoir quelle '
+      + 'mairie vous administrez.', false);
+    return;
+  }
+  const budgetMuni = await chargerBudgetMunicipalDeLaCle((state.country || 'republic') + '_' + ville);
   // On n'ouvre pas un ecran de virement en annoncant « 0 disponible » quand on n'a simplement
   // pas pu lire la caisse : le Maire Adjoint croirait la ville ruinee.
   if (!budgetMuni) {
@@ -10572,7 +10587,12 @@ async function confirmerFinancementCommunal(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (!buildingId || montant <= 0) return;
 
-  const budgetMuni = await chargerBudgetMunicipal();
+  const ville = villeDuPosteMunicipal();
+  if (!ville) {
+    showToast('Commune inconnue', 'Votre poste ne porte aucune ville.', false);
+    return;
+  }
+  const budgetMuni = await chargerBudgetMunicipalDeLaCle((state.country || 'republic') + '_' + ville);
   if (!budgetMuni || (budgetMuni.caisse || 0) < montant) {
     showToast('Fonds insuffisants', 'La caisse municipale ne couvre pas ce montant.', false);
     return;
@@ -10944,9 +10964,23 @@ async function confirmerMenerEnquete(pa, cost) {
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
+  // LA JURIDICTION, PAS LA POSITION (chantier 4F, 7 octobre 2026). Ces trois ordres sont
+  // declares `requiresPost: 'commissaire'` (data.js), ce qui verifie le POSTE et rien de plus :
+  // un commissaire de Luthecia qui passait par le commissariat de Montrouge debitait la caisse
+  // de Montrouge. commissaireLocalValide() existe depuis le 15 septembre 2026, compare
+  // state.poste.city a state.currentCity, et sert deja aux huit ordres d'effectifs -- aucun
+  // ordre financier ne l'appelait. La ville payeuse vient desormais du POSTE.
+  const juridiction = commissaireLocalValide();
+  if (!juridiction.ok) {
+    showToast(juridiction.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
+      juridiction.raison === 'juridiction'
+        ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : '', false);
+    return;
+  }
+
   const pays = state.country;
-  const ville = state.currentCity;
-  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const ville = juridiction.ville;
+  const buildingId = getBuildingIdCommissariat(ville);
   const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
   if (!rEnquete.ok) {
     showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
@@ -11069,9 +11103,23 @@ async function confirmerOrganiserFilature(pa, cost) {
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
+  // LA JURIDICTION, PAS LA POSITION (chantier 4F, 7 octobre 2026). Ces trois ordres sont
+  // declares `requiresPost: 'commissaire'` (data.js), ce qui verifie le POSTE et rien de plus :
+  // un commissaire de Luthecia qui passait par le commissariat de Montrouge debitait la caisse
+  // de Montrouge. commissaireLocalValide() existe depuis le 15 septembre 2026, compare
+  // state.poste.city a state.currentCity, et sert deja aux huit ordres d'effectifs -- aucun
+  // ordre financier ne l'appelait. La ville payeuse vient desormais du POSTE.
+  const juridiction = commissaireLocalValide();
+  if (!juridiction.ok) {
+    showToast(juridiction.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
+      juridiction.raison === 'juridiction'
+        ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : '', false);
+    return;
+  }
+
   const pays = state.country;
-  const ville = state.currentCity;
-  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const ville = juridiction.ville;
+  const buildingId = getBuildingIdCommissariat(ville);
   const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
   if (!rFilature.ok) {
     showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
@@ -11218,9 +11266,23 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
     return;
   }
 
+  // LA JURIDICTION, PAS LA POSITION (chantier 4F, 7 octobre 2026). Ces trois ordres sont
+  // declares `requiresPost: 'commissaire'` (data.js), ce qui verifie le POSTE et rien de plus :
+  // un commissaire de Luthecia qui passait par le commissariat de Montrouge debitait la caisse
+  // de Montrouge. commissaireLocalValide() existe depuis le 15 septembre 2026, compare
+  // state.poste.city a state.currentCity, et sert deja aux huit ordres d'effectifs -- aucun
+  // ordre financier ne l'appelait. La ville payeuse vient desormais du POSTE.
+  const juridiction = commissaireLocalValide();
+  if (!juridiction.ok) {
+    showToast(juridiction.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
+      juridiction.raison === 'juridiction'
+        ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : '', false);
+    return;
+  }
+
   const pays = state.country;
-  const ville = state.currentCity;
-  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const ville = juridiction.ville;
+  const buildingId = getBuildingIdCommissariat(ville);
   const rChasse = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
   if (!rChasse.ok) {
     showToast(rChasse.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',

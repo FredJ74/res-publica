@@ -3768,8 +3768,6 @@ async function tacheQuotidienne(nom, fn) {
 // donc la seule verite partagee, et c'est bien elles que le serveur doit employer.
 const RECETTES_FISCALES_JOUR_SERVEUR = { republic: { capitale: 18000, ville_a: 2400, ville_b: 4200 } };
 
-const COUT_SOLDE_PAR_SOLDAT_SERVEUR = 20;   // miroir de coutParSoldat (plateau-politique.js)
-
 async function chargerBudgetNationalServeur(pays) {
   const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`).catch(() => null);
   return (rows && rows[0]) ? (rows[0].data || {}) : null;
@@ -3960,10 +3958,11 @@ async function virementCaserneServeur(pays) {
 // compagnie. Retiree EN MEME TEMPS que son miroir client payerSoldeQuotidienne
 // (plateau-politique.js) : les deux partageaient la cle de journee derniereSoldeJour, et n'en
 // retirer qu'un aurait laisse l'autre payer seul.
-// Coquille conservee : l'appel vit dans la sequence nocturne, le retirer est un lot de menage.
-async function payerSoldeServeur(pays) {
-  return;
-}
+//
+// LA COQUILLE EST PARTIE (chantier 6, lot 1, 7 octobre 2026). Le commentaire d'origine disait
+// lui-meme « le retirer est un lot de menage » : c'est ce lot. La fonction ne contenait qu'un
+// `return;`, son unique appel vivait dans la sequence nocturne, et COUT_SOLDE_PAR_SOLDAT_SERVEUR
+// (20 FR) n'avait plus d'autre lecteur qu'elle.
 
 // --- 4. DESERTIONS : convoque -> deserteur a l'expiration du delai ------------
 // Miroir de verifierDesertionsQuotidien (plateau-politique.js). Transition PUREMENT temporelle et
@@ -4077,10 +4076,11 @@ async function traiterExpulsionsAmbassadeursServeur(pays) {
 // afficherait un regime d'exception perpetuel sur un pays qui n'en subit plus rien.
 //
 // DUREE_MESURES_EXCEPTION_MS_SERVEUR (3 jours reels) est desormais IMPORTEE du module
-// genere, depuis plateau-gouvernement.js. DUREE_MAX_EXCEPTION_MS_SERVEUR reste ici : son
-// canon porte la meme valeur, mais la constante est MORTE -- rien ne la lit dans ce
-// fichier. La supprimer est un nettoyage a part entiere, pas un effet de bord du 4B.
-const DUREE_MAX_EXCEPTION_MS_SERVEUR = 9 * 24 * 60 * 60 * 1000;       // 3 + 3 + 3, plafond absolu
+// genere, depuis plateau-gouvernement.js. DUREE_MAX_EXCEPTION_MS_SERVEUR a ete SUPPRIMEE au
+// chantier 6, lot 1 (7 octobre 2026) : le commentaire qui l'accompagnait disait « la constante
+// est MORTE -- rien ne la lit dans ce fichier. La supprimer est un nettoyage a part entiere » --
+// c'est ce lot. Le plafond absolu de 9 jours reste applique par echeanceEffectiveServeur, qui le
+// calcule depuis la duree importee.
 
 // Echeance effective = MINIMUM de l'echeance courante et du plafond absolu. Copie conforme de
 // echeanceEffective() : une prolongation ne peut jamais repousser le regime au-dela du 9e jour,
@@ -4128,7 +4128,6 @@ async function traiterExpirationRegimeExceptionServeur(pays) {
 async function traiterQuotidienNationalServeur(pays) {
   await distribuerFiscaliteServeur(pays);
   await virementCaserneServeur(pays);
-  await payerSoldeServeur(pays);
   await traiterExpirationRegimeExceptionServeur(pays);
   // Ces deux-la ne dependent d'aucun flux d'argent : leur position apres la solde est sans effet,
   // elles sont regroupees ici pour n'avoir qu'un seul point d'entree quotidien national.
@@ -4145,10 +4144,9 @@ async function traiterQuotidienNationalServeur(pays) {
 // figee a 3 recettes sur 8 depuis le 18 septembre 2026, ce qui rendait les cinq accessoires
 // incommandables en pratique ET faisait liberer chaque nuit le textile, le charbon et les
 // fruits_legumes de la reserve strategique. Les deux constantes ci-dessous ne le sont pas :
-//   DUREE_EFFORT_GUERRE_MS_SERVEUR  canon identique, mais constante MORTE (rien ne la lit) ;
+//   DUREE_EFFORT_GUERRE_MS_SERVEUR  SUPPRIMEE au chantier 6, lot 1 : elle etait morte ;
 //   VILLES_ARMURERIES_SERVEUR       ne connait que Republia -- lot 4G ;
 // Les raisons sont tenues a jour dans outils/generateurs/referentiels-serveur.json.
-const DUREE_EFFORT_GUERRE_MS_SERVEUR = 3 * 24 * 60 * 60 * 1000;
 // VILLES_ARMURERIES_SERVEUR EST SUPPRIMEE (chantier 4G, 7 octobre 2026). Meme constat que
 // GREVE_VILLES_REPUBLIA_SERVEUR : une liste de vraies villes recopiee, et qui ne connaissait que
 // Republia. Son lecteur passe par villesDeServeur(pays).
@@ -5866,40 +5864,25 @@ export default async function handler(req, res) {
 
       if (posteId === 'depute') {
         // ================= LEGISLATIVES : 3 sieges reels par ville =================
-        if (cycle.phase === 'vote_3e_siege') {
-          // Resolution du second tour PARTIEL (candidats deja restreints aux ex aequo) : simple
-          // classement par voix parmi le pool restreint, top N = sieges encore a attribuer.
-          const scoresRunoff = {};
-          (cycle.candidats || []).forEach(c => { scoresRunoff[c.nom] = 0; });
-          Object.values(cycle.votes || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
-          Object.values(cycle.votesPNJ || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
-          appliquerEffetsTracts(scoresRunoff, cycle);
-          fraudesActives.forEach(f => { if (scoresRunoff[f.candidat] !== undefined) scoresRunoff[f.candidat] = Math.max(0, scoresRunoff[f.candidat] + f.delta_voix); });
-          const sortedRunoff = Object.entries(scoresRunoff).sort((a, b) => b[1] - a[1]);
-          const gagnantsRunoff = sortedRunoff.slice(0, cycle.siegesRestantsRunoff || 1).map(([n]) => n);
-          let elusFinaux = [...(cycle.elusPartiels || []), ...gagnantsRunoff];
-          if (elusFinaux.length < 3) {
-            const pool = (PNJ_DEPUTES_PAR_VILLE[ville] || []).filter(n => !elusFinaux.includes(n));
-            while (elusFinaux.length < 3 && pool.length) elusFinaux.push(pool.shift());
-          }
-          cycle.elus = elusFinaux;
-          cycle.elusPartiels = null;
-          cycle.siegesRestantsRunoff = null;
-          cycle.resultatsTraites = true;
-          cycle.phase = 'mandat';
-          cycle.dateDebutMandatTs = now.getTime();
-          cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
-          const texte3 = `🗳️ RÉSULTATS (3e siège, égalité tranchée) : ${gagnantsRunoff.join(', ') || 'aucun candidat'} — Assemblée de ${ville}.`;
-          await sbInsert('evenements_globaux', { country, city: ville, texte: texte3, jour: null }).catch(() => {});
-          await sbInsert('chronique_nationale', {
-            id: `election-${row.id}-${cycle.dateResultats}-3e`,
-            country, city: ville, type: 'election_resultat',
-            personnages: elusFinaux,
-            libelle: `Assemblée de ${ville} : ${elusFinaux.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
-            data: { poste_id: 'depute', elus: elusFinaux, cycle_row_id: row.id }, source_ref: row.id
-          }).catch(() => {});
-          results.push({ poste: 'depute', country, city: ville, statut: 'elu_3e_siege', elus: elusFinaux });
-        } else {
+        // LA BRANCHE DU DEPARTAGE DU 3e SIEGE EST SUPPRIMEE (chantier 6, lot 1, 7 oct. 2026).
+        //
+        // Quarante lignes de depouillement d'un second tour PARTIEL, inatteignables. Trois
+        // mesures le prouvent :
+        //   . resoudreScrutinDepute rend `egalite3eSiege: null` dans ses TROIS retours, ici
+        //     comme dans son miroir client (plateau-politique.js) -- depuis le passage aux
+        //     legislatives a un tour unique, le 12 septembre 2026 ;
+        //   . aucun code du depot n'affecte jamais `phase = 'vote_3e_siege'` ;
+        //   . zero des 13 lignes de cycles_electoraux ne porte cette phase (mesure du
+        //     7 octobre 2026).
+        //
+        // Le client conserve le libelle et la couleur de la phase (PHASES_ELECTORALES.
+        // VOTE3E_SIEGE, data.js) : c'est une regle de jeu documentee, et l'effacer serait une
+        // decision de game design. Ce qui part ici, c'est le depouillement mort -- il ne
+        // protegeait rien, et il devait etre relu a chaque passage sur ce fichier.
+        //
+        // Le bloc nu ci-dessous n'est pas un reste : il garde `resultatDepute` dans sa propre
+        // portee, comme le faisait la branche `else` qu'il remplace.
+        {
           const resultatDepute = resoudreScrutinDepute(cycle, fraudesActives);
           if (!resultatDepute || resultatDepute.totalExprimes === 0) {
             cycle.resultatsTraites = true;

@@ -45,7 +45,30 @@ invisible.
 
 ---
 
-## Ce qui est mort, et doit partir d'abord
+## Ce qui est mort — **LOT 1 FAIT le 7 octobre 2026**
+
+Supprimé : la branche `vote_3e_siege` (~40 lignes de dépouillement inatteignable,
+trois preuves dans le commentaire laissé en place), la coquille
+`payerSoldeServeur` et son appel, `COUT_SOLDE_PAR_SOLDAT_SERVEUR`,
+`DUREE_MAX_EXCEPTION_MS_SERVEUR` et `DUREE_EFFORT_GUERRE_MS_SERVEUR` — ces trois
+dernières étant déjà déclarées mortes par leurs propres commentaires, qui
+disaient « la supprimer est un nettoyage à part entière ».
+
+**Corrigé au passage dans cet audit** : `CANDIDATURES_MIN_MS` avait été classée
+morte à tort. Elle est **lue** par le calendrier électoral du cron. Vérifié
+ligne par ligne avant toute suppression — c'est la raison pour laquelle on ne
+supprime jamais sur la foi d'un inventaire.
+
+Restent à décider :
+- `resultats.expires` de `traiterSouvenirsAccueil` est déclaré et jamais
+  incrémenté : le « nettoyage des souvenirs expirés » annoncé par le nom de la
+  tâche **n'existe pas**. Le supprimer est du ménage ; le *construire* est du
+  game design. Non touché.
+- la variable `aujourdHui` de la même fonction, et `cur = 'FR'` : assignées sans
+  lecteur, dans des fonctions que les lots 2 et 7 vont extraire — autant les
+  retirer avec elles.
+
+## Ce qui était mort — inventaire d'origine
 
 | Objet | Preuve |
 |---|---|
