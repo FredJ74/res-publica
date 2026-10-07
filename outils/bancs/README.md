@@ -12,6 +12,20 @@ $JSC outils/bancs/banc-transport-rest.js
 | Banc | Ce qu'il établit |
 |---|---|
 | `banc-transport-rest.js` | Les cinq états de `sbTransportRest` (supabase.js) sont nommés et distincts ; un **vide réel** (2xx avec `[]`) n'est plus confondu avec une **panne** ; le contrat historique des quatre primitives `sbGet`/`sbInsert`/`sbUpdate`/`sbDelete` est intact, rejet réseau compris ; `sbUpsert` ne fait plus de lecture de contrôle. 24 cas. |
+| `banc-budget-cascade.sql` | La cascade budgétaire ne perd aucun FR à l'arrondi, ne boucle pas sur le répartiteur, n'invente aucune part là où le pourcentage n'est pas arbitré, et **ne peut pas distribuer deux fois le même jour**. L'autorité et les bornes sont relues en base, pas dans le formulaire. 3 épreuves. |
+
+## Le banc SQL : un banc qui écrit, et qu'une exception annule
+
+`banc-budget-cascade.sql` n'est pas un banc JavaScriptCore. La brique qu'il
+éprouve vit **en base**, et la seule base joignable depuis cette machine est la
+production, interdite en écriture. Chaque épreuve est donc un bloc `DO` qui écrit
+pour de vrai, mesure, puis **lève une exception dont le message porte le
+rapport** : l'exception annule la transaction, et le résultat revient quand même.
+Le succès attendu se présente comme une erreur `P0001`.
+
+C'est la même technique que le dry-run des migrations, décrite dans
+`WORKFLOW-SUPABASE.md`. Après chaque bloc, on vérifie que rien n'a bougé — les
+deux requêtes de contrôle sont en tête du fichier.
 
 ## Les deux pièges de JavaScriptCore
 

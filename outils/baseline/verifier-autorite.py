@@ -535,7 +535,7 @@ def main():
     # par construction fidele a la base (controle 3).
     ecarts = []
     tables_connues = set(relations) | tables_rendues
-    signatures_connues = set(fonc_droits)
+    signatures_connues = {re.sub(r"\s+", "", k) for k in fonc_droits}
     noms_policies = {(p["table"], p["nom"]) for p in policies}
     for chemin in sorted(glob.glob(os.path.join(MIGRATIONS, "*.sql"))):
         court = os.path.basename(chemin)
@@ -557,7 +557,13 @@ def main():
         # regle, et l'exception s'en va.
         creees = set(re.findall(r"CREATE OR REPLACE FUNCTION public\.([a-z_0-9]+)\(", texte))
         for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
-            sig = "%s(%s)" % (m.group(1), m.group(2))
+            # LES ESPACES NE FONT PAS LA SIGNATURE. Le catalogue rend
+            # « ville_est_reelle(text,text) » ; un auteur de migration ecrit
+            # naturellement « ville_est_reelle(text, text) ». Comparer les deux tels
+            # quels rendait cet invariant DOUBLEMENT faux : il criait sur des fonctions
+            # qui existent, et il serait reste muet sur une vraie inconnue ecrite sans
+            # espace. Trouve le 8 octobre 2026, sur trois fonctions du chantier 4E.
+            sig = "%s(%s)" % (m.group(1), re.sub(r"\s+", "", m.group(2)))
             if sig not in signatures_connues and m.group(1) not in creees:
                 ecarts.append("%s : signature inconnue « %s »" % (court, sig))
         # les policies retirees nommement

@@ -1,0 +1,31 @@
+-- SEED A REGENERER -- villes
+-- ============================================================================
+-- Table   : public.villes
+-- Domaine : immobilier et territoire
+-- Source canonique : data.js (constante VILLES)
+-- Generateur       : outils/generateurs/generer_villes.py (EXISTE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- Les douze vraies villes du jeu, une ligne par couple (pays, ville). Le
+-- referentiel canonique des villes, dont depend ville_est_reelle() -- et
+-- donc toute autorite territoriale cote serveur.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- La source de verite est VILLES dans data.js, et le generateur REFUSE
+-- d'emettre si VILLES et WORLD se contredisent, ou si une zone speciale --
+-- caserne, QHS -- s'y est glissee. Copier la base contournerait ces deux
+-- refus et pourrait canoniser une ville qui n'en est pas une.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Reste
+-- a le faire ecrire directement ici, empreinte comprise. ATTENTION : tant
+-- que ce fichier est vide, un monde reconstruit naitrait SANS AUCUNE VILLE,
+-- et ville_est_reelle() refuserait tout -- fail closed, donc sans danger,
+-- mais injouable. C'est le defaut le plus urgent de ce repertoire.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

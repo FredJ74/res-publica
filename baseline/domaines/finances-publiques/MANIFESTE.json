@@ -1,6 +1,24 @@
 {
  "commentaires": [
   {
+   "empreinte": "39ea1b0fdf765b3a038beb236c03b76a",
+   "genre": "COLUMN",
+   "objet": "repartitions_budgetaires",
+   "sous": "beneficiaire"
+  },
+  {
+   "empreinte": "885d1137e1315948cf5f131672a7b13d",
+   "genre": "COLUMN",
+   "objet": "repartitions_budgetaires",
+   "sous": "part_pourcent"
+  },
+  {
+   "empreinte": "f3f25ab8edb96e1f53d8070dbd771e0d",
+   "genre": "COLUMN",
+   "objet": "repartitions_budgetaires",
+   "sous": "source"
+  },
+  {
    "empreinte": "b78dbce2ecfb04b7e62d8e21f50eb48c",
    "genre": "COLUMN",
    "objet": "salaires_civils_declares",
@@ -10,6 +28,54 @@
    "empreinte": "26e3232d18dcdf1847d85f223a8a1cd7",
    "genre": "FUNCTION",
    "objet": "alimenter_caisse_fonds(text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f98b6c5a5b0bd3e646e0ca0bfe242020",
+   "genre": "FUNCTION",
+   "objet": "budget_cascade_quotidienne(text,numeric)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1bffe45ab1e74251c73abbb0cb058571",
+   "genre": "FUNCTION",
+   "objet": "budget_coherence()",
+   "sous": ""
+  },
+  {
+   "empreinte": "10277793e833035696825126ecd4cf34",
+   "genre": "FUNCTION",
+   "objet": "budget_repartir(text,text,numeric)",
+   "sous": ""
+  },
+  {
+   "empreinte": "94ae8779b33b2c09eb52fb81ad84a2c8",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_fixer(text,text,numeric)",
+   "sous": ""
+  },
+  {
+   "empreinte": "50f9ff5292dbf7ef0d78b38e1700d568",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_lire(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b88341cfe5cb6aceb5a18066ed88acf3",
+   "genre": "FUNCTION",
+   "objet": "caisse_refus_autorite(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "a67f7558de754955dd442be0dc3f70dd",
+   "genre": "FUNCTION",
+   "objet": "caisse_territoire(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c936b252e20396ec48a11541aa31b1f9",
+   "genre": "FUNCTION",
+   "objet": "caisse_ville_de(text,text)",
    "sous": ""
   },
   {
@@ -161,6 +227,18 @@
    "genre": "TABLE",
    "objet": "pa_credits_sources",
    "sous": ""
+  },
+  {
+   "empreinte": "783c5c7e08cae27a2acb565df2fa4fe4",
+   "genre": "TABLE",
+   "objet": "repartitions_budgetaires",
+   "sous": ""
+  },
+  {
+   "empreinte": "d7e8c71854cb57112a4dfd489230ac66",
+   "genre": "TABLE",
+   "objet": "repartitions_versements",
+   "sous": ""
   }
  ],
  "contraintes": [
@@ -273,6 +351,18 @@
    "tbl": "pa_credits_uniques"
   },
   {
+   "empreinte": "b069bb6cb37c40b9a7e9924d8d545dc6",
+   "genre": "p",
+   "nom": "repartitions_budgetaires_pkey",
+   "tbl": "repartitions_budgetaires"
+  },
+  {
+   "empreinte": "26da4678d069df01434f969e829c15c6",
+   "genre": "p",
+   "nom": "repartitions_versements_pkey",
+   "tbl": "repartitions_versements"
+  },
+  {
    "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
    "genre": "p",
    "nom": "salaires_caisses_pkey",
@@ -381,6 +471,12 @@
    "tbl": "pa_credits_sources"
   },
   {
+   "empreinte": "c0b77a445a26ef78feb0e3bf114dc11a",
+   "genre": "c",
+   "nom": "repartitions_budgetaires_part_bornee",
+   "tbl": "repartitions_budgetaires"
+  },
+  {
    "empreinte": "9bfb47b6063f7c333f0be753e550fc34",
    "genre": "c",
    "nom": "salaires_civils_declares_categorie_check",
@@ -434,6 +530,30 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "budget_cascade_quotidienne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_cascade_quotidienne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_coherence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_coherence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "budget_national_epingler()",
    "privileges": "EXECUTE"
   },
@@ -441,6 +561,54 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "budget_national_epingler()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_repartir(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_repartir(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_fixer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_fixer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_fixer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_repartition_lire(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -573,6 +741,30 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "caisse_postes_requis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_refus_autorite(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_refus_autorite(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_territoire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_territoire(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1736,6 +1928,30 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "repartitions_budgetaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "repartitions_budgetaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "repartitions_versements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "repartitions_versements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "salaires_caisses",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -1796,14 +2012,14 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "00628b92950d76c69a1cc50e99bf35ed",
-  "20_fonctions.sql": "0ae7eb102c754b1d5a0bb08dcee4ae74",
-  "30_contraintes.sql": "352e980224c408b804686dee6276551c",
-  "35_index.sql": "435ae49f576897c7ebba5cdc7fe95d41",
+  "10_tables.sql": "1bae0d575ab6c4365607fa19654d2437",
+  "20_fonctions.sql": "a926aa9fd611edfafd037789484fa324",
+  "30_contraintes.sql": "3cb0318b4caaaf22ca16865948efa3c4",
+  "35_index.sql": "ce9f5765ad90487d36fabc4763cdf994",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
-  "60_rls-policies.sql": "fac127e641e1c0e6ca605b9be137412a",
-  "70_droits.sql": "89b94ca40a0d6c3d0b9fa1b54bdca699",
-  "80_commentaires.sql": "d7014defdbb67e76bfae2fb794cb5523"
+  "60_rls-policies.sql": "1a0a1c0d23fb469d3e58885b4c4fb0a6",
+  "70_droits.sql": "9bcd0e336f5ecbd8484bc8a76313733f",
+  "80_commentaires.sql": "111263284f69a343887ee89261371a2b"
  },
  "fonctions": [
   {
@@ -1817,9 +2033,34 @@
    "signature": "appliquer_taxe_transaction(text,text,numeric)"
   },
   {
+   "empreinte": "1cde8275228c531d55457f624ef86fee",
+   "security_definer": true,
+   "signature": "budget_cascade_quotidienne(text,numeric)"
+  },
+  {
+   "empreinte": "1f9589f718520b6a404a118b544d48d3",
+   "security_definer": true,
+   "signature": "budget_coherence()"
+  },
+  {
    "empreinte": "31fc59e2182bb0aafcd638ad3df2d4a2",
    "security_definer": true,
    "signature": "budget_national_epingler()"
+  },
+  {
+   "empreinte": "8b3968cd8f3de97f17de4f02f142bc46",
+   "security_definer": true,
+   "signature": "budget_repartir(text,text,numeric)"
+  },
+  {
+   "empreinte": "43f3158dd7a8865a30856105ea2316da",
+   "security_definer": true,
+   "signature": "budget_repartition_fixer(text,text,numeric)"
+  },
+  {
+   "empreinte": "fbdf22b3ba63fa1c96031830011abcb4",
+   "security_definer": true,
+   "signature": "budget_repartition_lire(text)"
   },
   {
    "empreinte": "770ecc0e8e87da94d2149bf5341c9629",
@@ -1832,7 +2073,7 @@
    "signature": "budgets_virement_caserne_verrou()"
   },
   {
-   "empreinte": "4a33d8ce0585a4254679146ee79d03e6",
+   "empreinte": "a907d7ae22029193cdec6d4ea33b4ab5",
    "security_definer": true,
    "signature": "caisse_client_mouvement(text,numeric,text,boolean)"
   },
@@ -1842,12 +2083,12 @@
    "signature": "caisse_commissariat_lire(text)"
   },
   {
-   "empreinte": "472fe76cd6d2d8aed94a25b35de947af",
+   "empreinte": "ea33a50b6fc2d797c5a2fd89e6b42473",
    "security_definer": true,
    "signature": "caisse_institution_mouvement(text,numeric,boolean)"
   },
   {
-   "empreinte": "1ac1533f93c6947cfecf7c74ab05f2f3",
+   "empreinte": "0ec30ab1b169275560d7afc85dbf1347",
    "security_definer": true,
    "signature": "caisse_institution_mouvement_plafonne(text,numeric)"
   },
@@ -1862,8 +2103,18 @@
    "signature": "caisse_postes_requis(text,text)"
   },
   {
-   "empreinte": "3f3cb1c5cf4deff5015b471d63618349",
-   "security_definer": false,
+   "empreinte": "73e49fc7d5c67a98df6b3f8bc04efeff",
+   "security_definer": true,
+   "signature": "caisse_refus_autorite(text,text)"
+  },
+  {
+   "empreinte": "ff71b58a8939aa8d7016efd905261818",
+   "security_definer": true,
+   "signature": "caisse_territoire(text,text)"
+  },
+  {
+   "empreinte": "ca6da71e647e8d1997df09044ed51b35",
+   "security_definer": true,
    "signature": "caisse_ville_de(text,text)"
   },
   {
@@ -2099,6 +2350,8 @@
   "pa_bonus_hotel_pkey",
   "pa_credits_sources_pkey",
   "pa_credits_uniques_pkey",
+  "repartitions_budgetaires_pkey",
+  "repartitions_versements_pkey",
   "salaires_caisses_pkey",
   "salaires_civils_declares_pkey",
   "salaires_civils_verses_pkey",
@@ -2312,6 +2565,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "repartitions_budgetaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "repartitions_versements"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "salaires_caisses"
   },
   {
@@ -2467,6 +2730,18 @@
    "empreinte_catalogue": "ba8ca2b2fcc1991616b49797e6c8f771",
    "empreinte_texte": "d90899abfc094b8cd74970b0e2fcfbc6",
    "nom": "pa_credits_uniques"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "7f5ec1df14eafe82f63d8110a92259b5",
+   "empreinte_texte": "6981763049ceed487e3e7bb5d07ef45c",
+   "nom": "repartitions_budgetaires"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "a80f3139b8957f6e40448c5f004486b4",
+   "empreinte_texte": "f827fb2d44323bc1668d569eced2515a",
+   "nom": "repartitions_versements"
   },
   {
    "colonnes": 5,

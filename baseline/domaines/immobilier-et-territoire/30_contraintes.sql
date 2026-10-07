@@ -21,6 +21,9 @@ ALTER TABLE public.logements_demandes ADD CONSTRAINT logements_demandes_pkey PRI
 ALTER TABLE public.reservations_salle_reception ADD CONSTRAINT reservations_salle_reception_pkey PRIMARY KEY (id);
 ALTER TABLE public.terrains_etat ADD CONSTRAINT terrains_etat_pkey PRIMARY KEY (id);
 ALTER TABLE public.terrains_historique_ventes ADD CONSTRAINT terrains_historique_ventes_pkey PRIMARY KEY (id);
+ALTER TABLE public.villes ADD CONSTRAINT villes_pkey PRIMARY KEY (pays, ville);
+ALTER TABLE public.villes_empreinte ADD CONSTRAINT villes_empreinte_pkey PRIMARY KEY (seul);
 
 -- CONTRAINTES DE VALIDATION
 ALTER TABLE public.logements_demandes ADD CONSTRAINT logements_demandes_statut_check CHECK ((statut = ANY (ARRAY['en_attente'::text, 'attribuee'::text, 'annulee'::text])));
+ALTER TABLE public.villes_empreinte ADD CONSTRAINT villes_empreinte_seul_check CHECK (seul);

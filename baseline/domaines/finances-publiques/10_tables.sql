@@ -161,6 +161,29 @@ CREATE TABLE public.pa_credits_uniques (
   cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.repartitions_budgetaires (
+  pays text NOT NULL,
+  source text NOT NULL,
+  beneficiaire text NOT NULL,
+  part_pourcent numeric(5,2),
+  poste_autorite text NOT NULL,
+  rang integer NOT NULL,
+  libelle text NOT NULL,
+  note text
+);
+
+CREATE TABLE public.repartitions_versements (
+  pays text NOT NULL,
+  source text NOT NULL,
+  beneficiaire text NOT NULL,
+  jour date NOT NULL,
+  base numeric NOT NULL,
+  part_pourcent numeric(5,2),
+  montant numeric NOT NULL,
+  transfere boolean DEFAULT true NOT NULL,
+  verse_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.salaires_caisses (
   poste_id text NOT NULL,
   motif text NOT NULL,

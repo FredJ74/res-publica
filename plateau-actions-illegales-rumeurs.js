@@ -2896,107 +2896,186 @@ function ouvrirCalendrierElections() {
 }
 
 async function ouvrirGestionBudget() {
-  if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
-  document.getElementById('postes-modal-title').textContent = 'Répartition budgétaire';
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Acces refuse', 'Reserve au Ministre de l\'Economie et des Finances.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Répartition du budget national';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays);
-  const rep = budgetNat.repartition || { ...REPARTITION_DEFAULT };
-  const noms = {
-    presidence:'Presidence', min_int:'Min. Interieur', min_fin:'Min. Finances',
-    min_just:'Min. Justice', min_def:'Min. Defense', min_info:'Min. Information',
-    min_ae:'Min. AE', assemblee:'Assemblee', tribunal:'Tribunal',
-    commissariat:'Commissariat', mairie:'Mairie', reserve:'Reserve'
-  };
+  // LA REPARTITION VIENT DE LA BASE, PLUS D'UNE CONSTANTE DU NAVIGATEUR (chantier 4F, 8 octobre
+  // 2026). REPARTITION_DEFAULT vivait dans plateau-core.js et melangeait ministeres,
+  // commissariats, tribunaux et mairies ; la cle canonique est desormais la table
+  // repartitions_budgetaires, et le serveur rend aussi l'equivalent en FR de chaque part.
+  const v = await sbBudgetRepartitionLireVerdict(SOURCE_BUDGET_NATIONAL);
+  if (!v.ok) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem;font-size:.85rem;color:#cc6a44">La répartition n\'a pas pu être lue '
+      + '(' + v.raison + '). Ce n\'est pas qu\'elle est vide : réessayez dans un instant.</div>';
+    return;
+  }
+  document.getElementById('postes-body').innerHTML = rendreRepartitionBudgetaire(
+    SOURCE_BUDGET_NATIONAL, v.lignes,
+    'Fixez la part des recettes nationales attribuée à chaque caisse. Le total doit faire 100 %. '
+    + 'Les recettes transitent d\'abord par votre ministère, qui conserve sa propre part sans la '
+    + 'redistribuer.');
+}
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Fixez le pourcentage des recettes fiscales attribué à chaque institution. Total doit être 100%. Partagé entre tous les joueurs, appliqué chaque nuit.</div>';
+// L'ECRAN GENERIQUE DE REPARTITION (chantier 4F). Le meme pour le budget national, pour la
+// Defense, pour l'Interieur, pour la Justice et pour tout ministere a venir : il n'y a plus
+// d'ecran par ministere, il y a un ecran par SOURCE declaree.
+//
+// DEUX REPRESENTATIONS, UNE SEULE REGLE. Le pourcentage est la regle -- c'est lui qu'on saisit et
+// lui seul qui est persiste. Le montant en FR a cote est calcule PAR LE SERVEUR sur le dernier
+// versement reellement recu par la caisse source : un fait mesure, pas une projection. Les deux
+// ne peuvent donc pas diverger.
+const SOURCE_BUDGET_NATIONAL = 'gouvernement-min_fin';
 
-  let total = Object.values(rep).reduce((s, v) => s + v, 0);
-  html += '<div id="budget-total-label" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:' + (total === 100 ? '#6ab858' : '#cc6a44') + ';margin-bottom:.6rem">TOTAL : ' + total + '% (doit être 100%)</div>';
+function rendreRepartitionBudgetaire(source, lignes, intro) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const fmt = n => Number(n).toLocaleString('fr-FR');
+  const arbitrees = lignes.filter(l => l.part_pourcent !== null && l.part_pourcent !== undefined);
+  const total = arbitrees.reduce((s, l) => s + Number(l.part_pourcent), 0);
+  const base = lignes.length ? lignes[0].base_reference : null;
 
-  Object.keys(rep).forEach(inst => {
+  let html = '<div style="padding:1rem" data-source="' + source + '">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + intro + '</div>';
+
+  if (base === null || base === undefined) {
+    html += '<div style="font-size:.76rem;color:#8a6a20;margin-bottom:.6rem">Cette caisse n\'a encore '
+         + 'reçu aucun versement : l\'équivalent en ' + cur + ' ne peut pas être calculé. Les parts, elles, '
+         + 's\'appliqueront dès le prochain passage de minuit.</div>';
+  } else {
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.6rem">Dernier versement reçu par '
+         + 'cette caisse : <strong style="color:#C9A84C">' + fmt(base) + ' ' + cur + '</strong>. '
+         + 'Les montants ci-dessous en découlent.</div>';
+  }
+
+  html += '<div id="budget-total-label" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:'
+       + (total === 100 ? '#6ab858' : '#cc6a44') + ';margin-bottom:.6rem">TOTAL : ' + total + ' %</div>';
+
+  lignes.forEach(l => {
+    const nonArbitree = (l.part_pourcent === null || l.part_pourcent === undefined);
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
-    html += '<div style="font-size:.8rem;color:#c0b090;width:120px">' + (noms[inst]||inst) + '</div>';
-    html += '<input type="number" min="0" max="50" value="' + rep[inst] + '" id="budget-' + inst + '" onchange="majTotalBudget()" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.85rem;outline:none">';
+    html += '<div style="font-size:.8rem;color:' + (l.est_la_source ? '#8a8060' : '#c0b090')
+         + ';width:210px">' + l.libelle + (l.est_la_source ? ' (part conservée)' : '') + '</div>';
+    html += '<input type="number" min="0" max="100" step="0.01" value="' + (nonArbitree ? '' : l.part_pourcent)
+         + '" placeholder="—" data-beneficiaire="' + l.beneficiaire + '"'
+         + ' onchange="majTotalBudget()" class="budget-part"'
+         + ' style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.85rem;outline:none">';
     html += '<span style="font-size:.75rem;color:#8a8060">%</span>';
+    html += '<span style="font-size:.75rem;color:#8a6a20;min-width:110px;text-align:right">'
+         + (l.equivalent_fr === null || l.equivalent_fr === undefined ? '—' : fmt(l.equivalent_fr) + ' ' + cur)
+         + '</span>';
+    html += '<span style="font-size:.72rem;color:#5a5040">caisse : '
+         + fmt(l.solde_beneficiaire || 0) + ' ' + cur + '</span>';
+    if (nonArbitree) {
+      html += '<span style="font-size:.72rem;color:#8a6a20;font-style:italic">part non arbitrée</span>';
+    }
     html += '</div>';
   });
 
-  html += '<button onclick="validerRepartitionBudget(\'' + pays + '\')" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '<button onclick="validerRepartitionBudget(\'' + source + '\')" style="margin-top:.8rem;'
+       + 'font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem 1.2rem;'
+       + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
   html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+  return html;
 }
 
+// Le total se recalcule sur les champs REELLEMENT presents, plus sur une liste de cles codee en
+// dur : l'ancienne version bouclait sur REPARTITION_DEFAULT et ne voyait donc jamais une ligne
+// ajoutee en base.
 function majTotalBudget() {
-  const rep = REPARTITION_DEFAULT;
   let total = 0;
-  Object.keys(rep).forEach(inst => {
-    const val = parseInt(document.getElementById('budget-' + inst)?.value || '0');
-    total += val;
+  document.querySelectorAll('.budget-part').forEach(el => {
+    if (el.value !== '') total += Number(el.value) || 0;
   });
   const label = document.getElementById('budget-total-label');
   if (label) {
-    label.textContent = 'TOTAL : ' + total + '% (doit être 100%)';
-    label.style.color = total === 100 ? '#6ab858' : '#cc6a44';
+    label.textContent = 'TOTAL : ' + Math.round(total * 100) / 100 + ' %';
+    label.style.color = Math.abs(total - 100) < 0.005 ? '#6ab858' : '#cc6a44';
   }
 }
 
-async function validerRepartitionBudget(pays) {
-  const rep = REPARTITION_DEFAULT;
-  let total = 0;
-  const newRep = {};
-  Object.keys(rep).forEach(inst => {
-    const val = parseInt(document.getElementById('budget-' + inst)?.value || '0');
-    newRep[inst] = val;
-    total += val;
-  });
-  if (total !== 100) {
-    showToast('Total incorrect', 'Le total doit etre exactement 100%. Actuel : ' + total + '%.', false);
+// VALIDE LIGNE PAR LIGNE, PAR LA RPC. Le serveur relit le poste en base, verifie que la somme
+// reste sous 100 % et refuse sinon : le navigateur ne peut plus ecrire une cle a 110 % en
+// contournant l'ecran, ce qui etait possible tant que le total n'etait verifie qu'ici.
+async function validerRepartitionBudget(source) {
+  const champs = Array.from(document.querySelectorAll('.budget-part'));
+  const modifiees = champs.filter(el => el.value !== '');
+  const total = modifiees.reduce((s, el) => s + (Number(el.value) || 0), 0);
+
+  // Pour le budget NATIONAL, le total doit faire exactement 100 % : les recettes sont entierement
+  // reparties. Pour une source ministerielle, un total inferieur est legitime -- le ministere
+  // garde le reste pour ses depenses propres.
+  if (source === SOURCE_BUDGET_NATIONAL && Math.abs(total - 100) >= 0.005) {
+    showToast('Total incorrect', 'Le budget national doit être réparti à 100 % (actuellement '
+      + (Math.round(total * 100) / 100) + ' %).', false);
+    return;
+  }
+  if (total > 100.005) {
+    showToast('Total incorrect', 'La somme des parts dépasse 100 %.', false);
     return;
   }
 
-  // BORNES REELLES (Lot 4.3). Jusqu'ici le seul garde-fou etait l'attribut HTML max="50" des champs,
-  // jamais revalide ici : un min_def a 98 % passait des lors que le total faisait 100. Le verdict est
-  // porte par plateau-gouvernement.js, partage avec les tests, et tient compte de l'effort de guerre.
-  //   hors guerre : plancher 5 % par MINISTERE, plafond 20 % pour la Defense
-  //   en guerre   : planchers ministeriels leves ET plafond Defense leve, total toujours 100 %
-  if (typeof verdictRepartitionBudget === 'function') {
-    let effortDeGuerre = false;
-    try {
-      const bn = await chargerBudgetNational(pays);
-      effortDeGuerre = !!(bn && bn.effortDeGuerre && bn.effortDeGuerre.actif);
-    } catch (e) { effortDeGuerre = false; }
-    const v = verdictRepartitionBudget(newRep, effortDeGuerre);
-    if (!v.ok) {
-      const p0 = v.violations[0] || {};
-      const messages = {
-        sous_le_plancher: 'Un ministère ne peut pas descendre sous ' + p0.plancher + ' %.',
-        au_dessus_du_plafond: 'La Défense ne peut pas dépasser ' + p0.plafond + ' % hors effort de guerre.',
-        valeur_invalide: 'Une valeur saisie n\'est pas un entier positif.',
-        total_incorrect: 'Le total doit être exactement 100 %.'
-      };
-      showToast('Répartition refusée', (messages[p0.motif] || 'Répartition invalide.') +
-        (p0.poste ? ' (' + p0.poste + ')' : ''), false);
+  // LES PLANCHERS ET LE PLAFOND DE LA DEFENSE SONT CONSERVES (regle anterieure au chantier 4F,
+  // plateau-gouvernement.js : 5 % plancher par ministere, 20 % plafond sur la Defense hors effort
+  // de guerre). Ils portaient sur les cles de l'ancienne repartition ; ils portent maintenant sur
+  // les BENEFICIAIRES, et le poste s'en derive par la convention deja canonique -- le prefixe
+  // `gouvernement-` designe un ministere, exactement comme le fait caisse_postes_requis au
+  // serveur. Aucune table inverse n'est reintroduite pour cela.
+  if (source === SOURCE_BUDGET_NATIONAL && typeof bornesBudget === 'function') {
+    const guerre = !!(state.effortDeGuerreActif || state.budgetNational?.effortGuerre?.actif);
+    const violations = [];
+    modifiees.forEach(el => {
+      const motif = el.dataset.beneficiaire;
+      const poste = /^gouvernement-(.+)$/.exec(motif)?.[1] || motif;
+      const b = bornesBudget(poste, guerre);
+      const val = Number(el.value) || 0;
+      if (val < b.plancher) violations.push(motif + ' sous le plancher de ' + b.plancher + ' %');
+      if (val > b.plafond) violations.push(motif + ' au-dessus du plafond de ' + b.plafond + ' %');
+    });
+    if (violations.length) {
+      showToast('Répartition refusée', violations.join(' ; ') + '.', false);
       return;
     }
   }
 
-  // UNE VALIDATION = UN ACTE POLITIQUE, donc 1 PA, quel que soit le nombre de lignes modifiees
-  // (arbitrage du 7 septembre 2026). Aucun PA n'etait deduit jusqu'ici, alors que l'ordre en
-  // declarait deux : le cout est desormais reellement preleve, et une seule fois.
   const rPa = await deduireCoutOrdre({ pa: 1, cost: 0 });
   if (!rPa.ok) { signalerRefusCout(rPa); return; }
 
-  const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.repartition = newRep;
-  await sbSaveBudgetNational(pays, budgetNat);
+  // ORDRE DECROISSANT DES PARTS. Le serveur refuse toute ecriture qui ferait depasser 100 % a cet
+  // instant : en commencant par les baisses, on ne se heurte jamais a un plafond transitoire.
+  const avant = {};
+  champs.forEach(el => { avant[el.dataset.beneficiaire] = el.defaultValue === '' ? null : Number(el.defaultValue); });
+  const aEcrire = modifiees
+    .map(el => ({ b: el.dataset.beneficiaire, part: Number(el.value), ancienne: avant[el.dataset.beneficiaire] }))
+    .filter(x => x.ancienne === null || Math.abs(x.ancienne - x.part) >= 0.005)
+    .sort((x, y) => (x.part - (x.ancienne || 0)) - (y.part - (y.ancienne || 0)));
+
+  let echecs = [];
+  for (const x of aEcrire) {
+    const r = await sbBudgetRepartitionFixer(source, x.b, x.part);
+    if (!r || r.ok !== true) echecs.push((r && r.raison) || 'refus_serveur');
+  }
+
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Répartition validée !', 'Les nouveaux taux s\'appliqueront à partir de minuit, pour tous les joueurs.', true, true);
-  addJournalEntry('Repartition budgetaire modifiee par le Ministre des Finances.', 'event-info');
-  addExternalEvent('FINANCES : Nouvelle repartition budgetaire fixee par le Ministre des Finances.');
+  if (echecs.length) {
+    showToast('Répartition partiellement refusée',
+      echecs.length + ' ligne(s) refusée(s) par le serveur : ' + echecs.join(', ') + '.', false);
+    addJournalEntry('Répartition budgétaire : ' + echecs.length + ' ligne(s) refusée(s).', 'event-bad');
+    return;
+  }
+  if (!aEcrire.length) {
+    showToast('Rien à modifier', 'Aucune part n\'a changé.', false);
+    return;
+  }
+  showToast('Répartition validée', 'Les nouvelles parts s\'appliqueront au prochain passage de minuit.', true, true);
+  addJournalEntry('Répartition budgétaire modifiée (' + aEcrire.length + ' ligne(s)).', 'event-info');
+  if (source === SOURCE_BUDGET_NATIONAL) {
+    addExternalEvent('FINANCES : nouvelle répartition du budget national.');
+  }
 }
 
 // =====================

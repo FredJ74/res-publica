@@ -1112,6 +1112,15 @@ function bornesBudget(posteBudget, effortDeGuerre) {
 
 // Verdict complet d'une repartition. Rend TOUTES les violations, pas seulement la premiere : un
 // ministre qui corrige son tableau a besoin de voir d'un coup ce qui cloche.
+//
+// SANS APPELANT DEPUIS LE CHANTIER 4F (8 octobre 2026). La repartition n'est plus un objet
+// {posteBudget: pourcentage} valide d'un bloc : c'est une table de lignes declarees, validees une
+// par une par la RPC budget_repartition_fixer, qui verifie au SERVEUR que la somme reste sous
+// 100 %. Les deux bornes de cette famille -- le plancher de 5 % par ministere et le plafond de
+// 20 % sur la Defense -- sont conservees et appliquees par bornesBudget, que l'ecran appelle
+// ligne par ligne (plateau-actions-illegales-rumeurs.js). Cette fonction-ci n'est pas supprimee
+// parce qu'elle porte le raisonnement complet et son avertissement « ⚠ A CONFIRMER » ci-dessus,
+// qui reste ouvert ; la supprimer effacerait une question non tranchee.
 function verdictRepartitionBudget(repartition, effortDeGuerre) {
   const rep = repartition || {};
   const cles = Object.keys(rep);

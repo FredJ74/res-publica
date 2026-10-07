@@ -105,7 +105,7 @@
       ],
       [
         "immobilier et territoire",
-        "^(bail_|terrain_|terrains_|batiment_|batiments_|eviction_|prelever_loyer|resilier_bail|terminer_bail)"
+        "^(bail_|terrain_|terrains_|batiment_|batiments_|eviction_|prelever_loyer|resilier_bail|terminer_bail|ville_est_reelle|villes_)"
       ],
       [
         "communication",

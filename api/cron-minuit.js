@@ -48,8 +48,6 @@ import {
   COUT_HORAIRE_TRAVAIL_SERVEUR,
   PA_PRODUCTION_ARMURERIE_SERVEUR,
   ENTREPOTS_EFFORT_SERVEUR,
-  CAISSE_PAR_POSTE_BUDGET_SERVEUR,
-  REPARTITION_DEFAULT_SERVEUR,
   RECETTES_MILITAIRES_SERVEUR,
   POSTES_NOMMES_EXCLUSIFS_SERVEUR,
   VILLES_SERVEUR,
@@ -3774,14 +3772,13 @@ async function tacheQuotidienne(nom, fn) {
 // (jourCourantISO() === jourPartageISO()). Le second passage, quel qu'il soit, est sans effet :
 // client puis cron, cron puis client, cron rejoue, deux clients puis cron.
 
-// CAISSE_PAR_POSTE_BUDGET_SERVEUR et REPARTITION_DEFAULT_SERVEUR sont importees du module
-// genere, depuis plateau-justice-economie.js et plateau-core.js. Aucun des deux fichiers n'est
-// charge par le serveur : le generateur n'en extrait que le litteral de la constante, et
-// n'execute jamais le comportement qui l'entoure -- plateau-core.js pose deux ecouteurs et
-// ecrit dans window des son chargement.
-//
-// REPARTITION_DEFAULT_SERVEUR reste un REPLI : la repartition reellement appliquee est celle
-// fixee par le Ministre des Finances, lue dans budgets_nationaux.
+// CAISSE_PAR_POSTE_BUDGET_SERVEUR ET REPARTITION_DEFAULT_SERVEUR NE SONT PLUS IMPORTEES
+// (chantier 4F, 8 octobre 2026), parce qu'elles n'existent plus. La cle de repartition du budget
+// national vivait dans le navigateur et le serveur la recevait generee ; elle vit maintenant en
+// base (repartitions_budgetaires), ou le Ministre de l'Economie et des Finances la modifie par
+// RPC et ou le serveur l'applique. Le commentaire qui occupait ces lignes disait que
+// REPARTITION_DEFAULT_SERVEUR n'etait qu'un « REPLI » : c'etait faux, elle etait la regle
+// appliquee -- aucune cle `repartition` n'a jamais ete ecrite dans budgets_nationaux.
 
 // Miroir des recettes fiscales quotidiennes de CITY_POPULATION (data.js). La version client est
 // mutee en RAM par mettreAJourPopulation() sans jamais etre persistee : les valeurs de base sont
@@ -3815,50 +3812,21 @@ function caisseTerritorialeServeur(famille, ville) {
   return legacy || (famille + '_' + v);
 }
 
-// REPARTITION D'UN MONTANT NATIONAL SUR LES VRAIES VILLES, au prorata de leur recette fiscale.
+// LA REPARTITION TERRITORIALE AU PRORATA FISCAL A ETE RETIREE (chantier 4F, 8 octobre 2026).
 //
-// POURQUOI ELLE EXISTE ICI. Ce calcul vivait cote client
-// (distribuerMontantParVilleAuProrataFiscal, plateau-justice-economie.js), ecrit le 24 aout 2026
-// pour corriger un defaut mesure : mairie, commissariat et tribunal creditaient la ville OU SE
-// TROUVAIT le joueur qui declenchait minuit. Le 20 septembre 2026, la passe cliente a ete
-// retiree de runMidnightUpdate au profit de ce cron -- et la correction du 24 aout est devenue
-// du CODE MORT sans que rien ne le signale. Depuis, seule la capitale est financee.
+// Elle avait ete ecrite la nuit du 7 octobre pour reparer un defaut reel : mairie, commissariat
+// et tribunal etaient finances en direct par l'Etat, et uniquement dans la capitale -- les six
+// caisses de Montrouge et de Port-Sainte-Marie n'avaient plus rien recu depuis le 19 septembre.
+// Elle a bien tourne une nuit, et les chiffres sont au commit ba75c1e.
 //
-// Mesure du 7 octobre 2026 qui l'etablit : republic_mairie_ville_a, mairie_ville_b,
-// commissariat_ville_a, commissariat_ville_b, tribunal_ville_a et tribunal_ville_b portent tous
-// pour derniere ecriture le 19 septembre 2026, et 21 368 FR au total. Les trois caisses de la
-// capitale, elles, sont creditees chaque nuit : 234 696 FR. Dix-huit jours de centralisation
-// involontaire.
+// L'ARBITRAGE DU 8 OCTOBRE REND CE CALCUL SANS OBJET, et c'est un progres : les trois familles
+// quittent la cle nationale. Les institutions municipales relevent des MAIRIES, qui les financent
+// depuis leur budget municipal ; les tribunaux relevent du MINISTERE DE LA JUSTICE, qui repartit
+// entre les trois par la meme brique generique que tous les autres ministeres. L'Etat ne finance
+// plus d'institution territoriale en direct, donc il n'a plus de prorata a calculer.
 //
-// METHODE DU PLUS FORT RESTE (Hamilton), portee a l'identique : chaque ville recoit le plancher
-// de sa part exacte, puis le reliquat est distribue 1 FR a la fois aux villes dont la part
-// decimale perdue est la plus grande, egalite departagee par l'ordre canonique des villes. La
-// somme creditee est donc exactement egale au montant reparti -- aucun FR perdu par arrondi, et
-// un resultat identique quel que soit le soir.
-//
-// AUCUN REPLI SUR DES PARTS EGALES. La version cliente retombait sur des parts egales quand
-// aucun poids fiscal n'etait connu. Ici, un empire sans recette fiscale declaree ne recoit RIEN
-// et la fonction le dit a son appelant : inventer des parts egales pour Sovarka, El Estado ou
-// Al-Khalija serait fabriquer un parametre economique que personne n'a decide.
-function repartirSurVillesAuProrataFiscal(pays, montantTotal, famille) {
-  const villes = villesDeServeur(pays);
-  const recettes = RECETTES_FISCALES_JOUR_SERVEUR[pays];
-  if (montantTotal <= 0 || villes.length === 0 || !recettes) return null;
-  const poids = villes.map(v => recettes[v] || 0);
-  const totalPoids = poids.reduce((somme, p) => somme + p, 0);
-  if (totalPoids <= 0) return null;
-
-  const parts = poids.map(p => montantTotal * p / totalPoids);
-  const montants = parts.map(p => Math.floor(p));
-  let reliquat = montantTotal - montants.reduce((somme, p) => somme + p, 0);
-  const ordre = parts
-    .map((p, i) => ({ i, frac: p - Math.floor(p) }))
-    .sort((x, y) => y.frac - x.frac || x.i - y.i);
-  for (let k = 0; k < ordre.length && reliquat > 0; k++) { montants[ordre[k].i]++; reliquat--; }
-
-  return villes.map((v, i) => ({ ville: v, caisse: caisseTerritorialeServeur(famille, v),
-                                 montant: montants[i] }));
-}
+// Ce qui subsiste de cette nuit-la : villesDeServeur et caisseTerritorialeServeur, employes par
+// les greves et les armureries.
 
 // Credit d'une caisse de batiment. Meme forme que les credits deja pratiques par ce fichier
 // (successions, chantiers) : lecture, addition, UPDATE ou INSERT selon l'existence.
@@ -3892,82 +3860,62 @@ async function debiterCaisseBatimentPlafonneServeur(pays, buildingId, montant) {
   return r ? verse : 0;
 }
 
-// --- 1. REDISTRIBUTION FISCALE NATIONALE -----------------------------------
-// Miroir de verifierEffetsEtDistributionFiscale (plateau-justice-economie.js).
-// N'inclut PAS les effets sur les indices de ville : ils dependent de la ville OU SE TROUVE le
-// joueur declencheur, une notion qui n'existe pas cote serveur. C'est une divergence ASSUMEE et
-// documentee, pas un oubli -- le commentaire du client la qualifie lui-meme d'« effet de jeu local
-// au declencheur, pas une destination de redistribution nationale ».
+// --- 1. LA CASCADE BUDGETAIRE QUOTIDIENNE -----------------------------------
+//
+// LE CRON N'ORCHESTRE PLUS RIEN. Il dit au serveur « voici les recettes du jour », et la base
+// fait le reste en UNE transaction : les recettes entrent dans la caisse du Ministere de
+// l'Economie et des Finances, qui repartit vers les dix caisses nationales en conservant sa
+// propre part, puis chaque ministere repartit vers les institutions de son ressort sur la base
+// de ce qu'il vient de recevoir.
+//
+// CE QUI A DISPARU ICI, ET POURQUOI (arbitrage du 8 octobre 2026).
+//
+//   . LA BOUCLE SUR TREIZE CAISSES. Elle appliquait une cle qui melangeait ministeres,
+//     commissariats, tribunaux et mairies, et cette cle vivait dans le CODE
+//     (REPARTITION_DEFAULT) -- verifie en base, budgets_nationaux.data ne portait aucune cle
+//     `repartition`. Elle vit maintenant dans la table repartitions_budgetaires, qui est la
+//     source canonique et que le Ministre des Finances modifie par RPC.
+//
+//   . LA REPARTITION TERRITORIALE DES TROIS FAMILLES. mairie, commissariat et tribunal quittent
+//     la cle nationale : les institutions municipales relevent des mairies, et les tribunaux du
+//     Ministere de la Justice. repartirSurVillesAuProrataFiscal n'a donc plus d'appelant ici.
+//
+//   . LE VIREMENT JOURNALIER VERS LA CASERNE. C'etait un montant ABSOLU en FR
+//     (budgets_nationaux.data.virementJournalierCaserne), donc une seconde regle, concurrente de
+//     la cle de repartition. Il est remplace par une PART : Defense -> Caserne, 65 %. Le champ
+//     etait absent de la base -- l'automatisme ne versait donc rien -- la migration est
+//     indolore. Le virement PONCTUEL en FR, lui, reste : c'est un acte, pas une regle.
+//
+// LE MARQUEUR DE JOURNEE N'EST PLUS ICI NON PLUS. L'idempotence vit dans la cle primaire de
+// repartitions_versements, qui porte le jour : un second passage leve une violation d'unicite et
+// ne verse rien. Ce n'est plus un champ qu'une ecriture avalee peut perdre.
 async function distribuerFiscaliteServeur(pays) {
   const budgetNat = await chargerBudgetNationalServeur(pays);
-  if (!budgetNat) return;
-  // CRON-SEULEMENT depuis le 20 septembre 2026 : la passe cliente qui partageait
-  // ce marqueur (derniereDistribJour) a ete retiree de runMidnightUpdate().
-  // La garde peut donc parler Europe/Paris sans fenetre de divergence.
-  const jour = jourParisISO();
-  if (budgetNat.derniereDistribJour === jour) return;
+  if (!budgetNat) return { ok: false, raison: 'budget_national_illisible' };
 
+  // LES RECETTES DU JOUR. Seule chose que le cron calcule encore : la somme des recettes
+  // fiscales declarees des villes, plus la reserve accumulee par les taxes de transaction.
+  // RECETTES_FISCALES_JOUR_SERVEUR ne connait que Republia -- un empire sans recette declaree
+  // passe une base nulle, et la cascade ne verse rien plutot que d'inventer un chiffre.
   const villes = RECETTES_FISCALES_JOUR_SERVEUR[pays] || {};
   const dailyBase = Object.keys(villes).reduce((s, v) => s + (villes[v] || 0), 0);
   const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
-  const repartition = budgetNat.repartition || REPARTITION_DEFAULT_SERVEUR;
 
-  // Marqueur pose AVANT les credits : un cron rejoue ne peut pas verser deux fois.
-  budgetNat.reserveJour = 0;
-  budgetNat.derniereDistribJour = jour;
-  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
-
-  // LES TROIS CAISSES TERRITORIALES SONT TRAITEES A PART, et c'est tout l'objet du correctif.
-  // CAISSE_PAR_POSTE_BUDGET_SERVEUR fait pointer `mairie`, `commissariat` et `tribunal` sur
-  // mairie-capitale, commissariat_capitale et tribunal_capitale : 26 % du budget national
-  // allaient donc aux trois institutions de la CAPITALE, et rien a Montrouge ni a
-  // Port-Sainte-Marie. La regle canonique dit l'inverse (voir
-  // baseline/DIFFERENCES-DELIBEREES.json, cle regle_canonique_de_financement_territorial) :
-  // « Luthecia, Montrouge et Port-Sainte-Marie suivent le MEME principe municipal ».
-  //
-  // Les pourcentages ne changent PAS : 12 / 8 / 6 restent 12 / 8 / 6. Seule la destination
-  // change -- la part de chaque famille est desormais repartie sur les trois villes au prorata
-  // de leur recette fiscale, au lieu d'etre versee entiere a la capitale.
-  const TERRITORIALES = ['mairie', 'commissariat', 'tribunal'];
-
-  for (const posteId of Object.keys(CAISSE_PAR_POSTE_BUDGET_SERVEUR)) {
-    if (TERRITORIALES.includes(posteId)) continue;
-    const part = (repartition[posteId] || 0) / 100;
-    await crediterCaisseBatimentServeur(pays, CAISSE_PAR_POSTE_BUDGET_SERVEUR[posteId],
-      Math.floor(totalDisponible * part));
-  }
-
-  for (const famille of TERRITORIALES) {
-    const montant = Math.floor(totalDisponible * ((repartition[famille] || 0) / 100));
-    const lignes = repartirSurVillesAuProrataFiscal(pays, montant, famille);
-    // null = cet empire n'a aucune recette fiscale declaree. On ne verse rien et on n'invente
-    // aucune cle de repartition : l'absence de parametre economique doit rester visible.
-    if (!lignes) continue;
-    for (const l of lignes) {
-      if (l.montant > 0) await crediterCaisseBatimentServeur(pays, l.caisse, l.montant);
+  // La reserve est remise a zero AVANT l'appel : elle vient d'etre versee dans la base de la
+  // cascade, et la laisser serait la distribuer deux fois demain. La cascade, elle, porte sa
+  // propre garde d'idempotence.
+  if ((budgetNat.reserveJour || 0) !== 0) {
+    budgetNat.reserveJour = 0;
+    if (!(await sauverBudgetNationalServeur(pays, budgetNat))) {
+      return { ok: false, raison: 'reserve_non_remise_a_zero' };
     }
   }
-}
 
-// --- 2. VIREMENT QUOTIDIEN GOUVERNEMENT -> CASERNE --------------------------
-// Miroir de traiterVirementJournalierCaserne (plateau-politique.js). Montant fixe par le Ministre
-// de la Guerre, defaut 0 : un ministre qui n'y touche pas ne finance rien, et c'est voulu.
-async function virementCaserneServeur(pays) {
-  const budgetNat = await chargerBudgetNationalServeur(pays);
-  if (!budgetNat) return;
-  const montant = budgetNat.virementJournalierCaserne || 0;
-  if (montant <= 0) return;
-  // CRON-SEULEMENT depuis le 20 septembre 2026 : la passe cliente qui partageait
-  // ce marqueur (dernierVirementCaserneJour) a ete retiree de runMidnightUpdate().
-  // La garde peut donc parler Europe/Paris sans fenetre de divergence.
-  const jour = jourParisISO();
-  if (budgetNat.dernierVirementCaserneJour === jour) return;
-
-  budgetNat.dernierVirementCaserneJour = jour;
-  if (!(await sauverBudgetNationalServeur(pays, budgetNat))) return;
-
-  const verse = await debiterCaisseBatimentPlafonneServeur(pays, 'gouvernement-min_def', montant);
-  if (verse > 0) await crediterCaisseBatimentServeur(pays, 'caserne-militaire', verse);
+  const rows = await sbRpc('budget_cascade_quotidienne', {
+    p_pays: pays, p_recettes: totalDisponible
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
 }
 
 // --- 3. SOLDE QUOTIDIENNE DES SOLDATS ---------------------------------------
@@ -4146,8 +4094,10 @@ async function traiterExpirationRegimeExceptionServeur(pays) {
 // ORDRE IMPERATIF : fiscalite (qui alimente gouvernement-min_def), PUIS virement vers la caserne,
 // PUIS solde. Le meme ordre que runMidnightUpdate cote client.
 async function traiterQuotidienNationalServeur(pays) {
+  // La cascade porte desormais les DEUX niveaux : national puis ministeriel. Le virement
+  // journalier vers la caserne n'est plus une tache separee -- c'est la part Defense -> Caserne
+  // de la repartition declaree.
   await distribuerFiscaliteServeur(pays);
-  await virementCaserneServeur(pays);
   await traiterExpirationRegimeExceptionServeur(pays);
   // Ces deux-la ne dependent d'aucun flux d'argent : leur position apres la solde est sans effet,
   // elles sont regroupees ici pour n'avoir qu'un seul point d'entree quotidien national.

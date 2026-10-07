@@ -1,6 +1,23 @@
 -- =============================================================================
 -- CHANTIER 4E — LE SERVEUR APPREND CE QU'EST UNE VILLE, ET LES CAISSES SE FERMENT
 -- 7 octobre 2026
+--
+-- APPLIQUEE le 8 octobre 2026. Inscrite au registre Supabase sous la version
+-- 20261007150217 (le registre horodate a l'APPLICATION ; le nom de ce fichier garde
+-- l'horodatage de sa redaction).
+--
+-- CE QUI A ETE VERIFIE APRES COUP. Les CINQ suppressions de caisses vestigiales ont ete
+-- verifiees apres coup : aucune des cinq n'existe plus en base. Les douze villes sont semees, et
+-- les trois empreintes du miroir concordent -- data.js, la sentinelle posee et
+-- villes_empreinte_reelle() rendent toutes d41051aa8bcafadd.
+--
+-- UN DEFAUT DE CETTE MIGRATION, TROUVE PAR LA RELECTURE DU DIFF DU BASELINE ET CORRIGE A PART.
+-- Ses quatre fonctions neuves -- villes_empreinte_reelle, ville_est_reelle, caisse_territoire
+-- et caisse_refus_autorite -- declaraient `REVOKE ALL ... FROM PUBLIC, anon` puis
+-- `GRANT ... TO service_role`, mais gardaient en base le GRANT EXECUTE nomme a
+-- `authenticated` que l'ALTER DEFAULT PRIVILEGES de Supabase pose sur toute fonction neuve.
+-- Ferme par 20261008020000_revoquer_authenticated_cinq_fonctions_serveur. Les REVOKE de ce
+-- fichier-ci ont ete completes pour qu'une rejouee soit juste.
 -- =============================================================================
 --
 -- CE QUE CETTE MIGRATION CORRIGE, mesure par mesure, sur la base reelle du
@@ -161,7 +178,7 @@ AS $function$
   FROM public.villes;
 $function$;
 
-REVOKE ALL ON FUNCTION public.villes_empreinte_reelle() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.villes_empreinte_reelle() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO service_role;
 
 -- -----------------------------------------------------------------------------
@@ -183,7 +200,7 @@ $function$;
 COMMENT ON FUNCTION public.ville_est_reelle(text, text) IS
   'Ce couple (pays, ville) designe-t-il une VRAIE ville ? Refuse les zones hors-ville (caserne, QHS), les pseudo-villes techniques et les empires inconnus. Ne replie jamais sur Republia ni sur la capitale.';
 
-REVOKE ALL ON FUNCTION public.ville_est_reelle(text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.ville_est_reelle(text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text, text) TO service_role;
 
 -- -----------------------------------------------------------------------------
@@ -287,7 +304,7 @@ $function$;
 COMMENT ON FUNCTION public.caisse_territoire(text, text) IS
   'Portee territoriale d''une caisse : national (aucune ville a verifier), ville (territoriale, ville connue) ou indetermine (REFUS). Separe deliberement « nationale » de « ville inconnue », que l''ancien caisse_ville_de confondait en un seul NULL.';
 
-REVOKE ALL ON FUNCTION public.caisse_territoire(text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.caisse_territoire(text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.caisse_territoire(text, text) TO service_role;
 
 -- caisse_ville_de reste la question courte « quelle ville ? », et delegue.
@@ -368,7 +385,7 @@ $function$;
 COMMENT ON FUNCTION public.caisse_refus_autorite(text, text) IS
   'Le verdict d''autorite sur une sortie d''argent d''une caisse, ecrit UNE fois pour les trois primitives de mouvement. Rend NULL si l''acteur a l''autorite, sinon le motif du refus. Absence de regle = REFUS (caisse_sans_regle_autorite), jamais autorisation implicite.';
 
-REVOKE ALL ON FUNCTION public.caisse_refus_autorite(text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.caisse_refus_autorite(text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.caisse_refus_autorite(text, text) TO service_role;
 
 -- -----------------------------------------------------------------------------

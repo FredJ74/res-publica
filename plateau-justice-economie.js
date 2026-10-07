@@ -798,22 +798,23 @@ function depenseBudget(institution, montant) {
   return true;
 }
 
-function mettreAJourBudgets() {
-  if (!state.budgetsActuels) return;
-  // Recettes fiscales allouees aux institutions
-  const pop = CITY_POPULATION[state.country]?.[state.currentCity];
-  if (!pop) return;
-  const recettes = pop.dailyTaxRevenue || 0;
-  const allocation = Math.floor(recettes * 0.4); // 40% des recettes aux institutions
-  Object.keys(state.budgetsActuels).forEach(key => {
-    if (key.startsWith(state.currentCity)) {
-      state.budgetsActuels[key].budget = Math.min(
-        state.budgetsActuels[key].budget + Math.floor(allocation / 3),
-        20000
-      );
-    }
-  });
-}
+// mettreAJourBudgets A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). C'etait le TROISIEME
+// distributeur : il reversait 40 % des recettes de la ville courante aux institutions dont la cle
+// commence par le nom de cette ville, plafonnees a 20 000 -- une troisieme economie parallele.
+//
+// ELLE NE TOURNAIT PAS, MAIS ELLE ETAIT APPELEE, et la nuance a failli me couter cher. Ma
+// premiere redaction de ce commentaire disait « zero appelant dans tout le depot ». C'etait
+// FAUX : runMidnightUpdate() l'appelait a chaque passage de minuit (plateau-core.js). Si elle ne
+// faisait rien, c'est pour une autre raison -- sa premiere ligne etait
+// `if (!state.budgetsActuels) return;`, et `state.budgetsActuels` n'etait initialise nulle part
+// dans le depot. Elle rendait donc la main immediatement, chaque nuit, depuis toujours.
+//
+// La difference n'est pas academique : supprimer la fonction en laissant l'appel transformait un
+// appel inoffensif en ReferenceError, qui aurait interrompu runMidnightUpdate() a cette ligne --
+// donc la population, les salaires et tout ce qui suit. L'appel a ete retire en meme temps, et
+// la lecon est qu'une fonction « morte » se prouve en cherchant ses APPELANTS, pas en lisant son
+// corps.
+
 
 function mettreAJourPopulation() {
   Object.keys(CITY_POPULATION[state.country] || {}).forEach(cityId => {
@@ -1968,32 +1969,26 @@ function verifierBudgetInstitution(inst) {
   return true;
 }
 
-async function alimenterBudgets() {
-  // Appele a minuit - distribue les recettes fiscales
-  const pays = state.country || 'republic';
-  const pop = CITY_POPULATION?.[pays];
-  if (!pop) return;
-  let recettesTotales = 0;
-  Object.values(pop).forEach(ville => {
-    recettesTotales += ville.dailyTaxRevenue || 0;
-  });
+// alimenterBudgets A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). C'etait le SECOND
+// distributeur des recettes nationales, et le plus trompeur des trois.
+//
+// Elle etait appelee a CHAQUE minuit joueur (runMidnightUpdate, plateau-core.js) et repartissait
+// les MEMES recettes que le cron -- la somme des dailyTaxRevenue de CITY_POPULATION -- mais dans
+// `state.budgets` : un objet LOCAL AU NAVIGATEUR, jamais persiste, plafonne a 200 000 par
+// institution, et remis a BUDGET_DEFAULT a chaque rechargement de page. Deux systemes
+// distribuaient donc simultanement les memes recettes, l'un reellement, l'autre dans le vide.
+//
+// L'arbitrage du 8 octobre 2026 l'interdit explicitement : « Ne laisse surtout pas deux systemes
+// distribuer simultanement les memes recettes. » Le distributeur reel et unique est desormais la
+// cascade serveur (budget_cascade_quotidienne), appelee par le cron.
+//
+// CE QUI SUBSISTE, ET POURQUOI. getBudgetInstitution / verifierBudgetInstitution / depenseBudget
+// lisent et debitent toujours ce meme `state.budgets`. Ce sont des GARDES d'ordre, pas un
+// distributeur : elles conditionnent deux ordres presidentiels a un budget qui, lui, repart de
+// BUDGET_DEFAULT a chaque session -- donc leur comportement ne change pas d'un iota du fait de
+// cette suppression. Les remplacer par la vraie caisse institutionnelle change QUI peut agir :
+// c'est une decision de game design, consignee, pas un effet de bord de ce lot.
 
-  const budgetNat = typeof chargerBudgetNational === 'function' ? await chargerBudgetNational(pays) : null;
-  const rep = budgetNat?.repartition || REPARTITION_DEFAULT;
-  if (!state.budgets) state.budgets = JSON.parse(JSON.stringify(BUDGET_DEFAULT));
-
-  Object.keys(rep).forEach(inst => {
-    if (inst === 'reserve') return;
-    const montant = Math.floor(recettesTotales * (rep[inst] / 100));
-    if (state.budgets[inst]) {
-      state.budgets[inst].solde = Math.min(state.budgets[inst].solde + montant, 200000);
-    }
-  });
-
-  // Reserve
-  if (!state.reserve) state.reserve = 0;
-  state.reserve += Math.floor(recettesTotales * ((rep.reserve || 10) / 100));
-}
 
 function ouvrirFixerImpotsLocaux() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -8145,37 +8140,20 @@ const TAUX_TAXE_DEFAUT = 5; // %, local et national
 //
 // Les deux constantes n'avaient aucun autre lecteur (verifie : 0 occurrence ailleurs).
 
-// Part quotidienne de la reserve fiscale (dailyTaxRevenue + taxes accumulees) attribuee a chaque caisse publique
-// Chaque poste a sa propre caisse dediee, alimentee par sa part de la repartition nationale (min_fin)
-// commissariat/tribunal ajoutes (correctif du 24 aout 2026, audit fiscal) : REPARTITION_DEFAULT
-// leur allouait deja 8%/6% mais aucune caisse de destination n'existait ici, donc ces parts
-// n'etaient jamais creditees nulle part (calculees puis perdues). mairie souffrait d'un probleme
-// distinct mais equivalent une fois verifie (credit systematique de villeFiscale, arbitraire
-// selon le declencheur) -- corrige le meme jour, meme mecanisme. Les valeurs ci-dessous
-// ('..._capitale'/'mairie-capitale') ne sont plus lues du tout a l'execution pour ces trois
-// cles : la part nationale de chacune est desormais repartie sur les 3 villes au prorata de leur
-// dailyTaxRevenue (repartirSurVillesAuProrataFiscal, api/cron-minuit.js -- ce calcul a quitte ce
-// fichier au chantier 4F), gardees ici uniquement pour que
-// Object.keys(CAISSE_PAR_POSTE_BUDGET) reste la liste complete et documentee de tous les postes
-// de REPARTITION_DEFAULT reellement distribues, la boucle principale les ignorant desormais
-// explicitement (continue).
-// assemblee/reserve ajoutes (arbitrage utilisateur du 24 aout 2026, apres STOP signale dans
-// l'audit) : deux caisses nationales dediees, creees uniquement comme destinations de la
-// redistribution fiscale -- aucun ordre de retrait/depense/transfert ni prerogative politique
-// n'est ajoute dans ce lot, ni pour l'une ni pour l'autre. 'assemblee' reutilise le vrai
-// buildingId de navigation deja existant (BUILDINGS['assemblee'], meme convention que
-// 'palais-presidentiel'/'gouvernement-pm' ci-dessus). 'reserve' n'a aucun batiment de
-// navigation associe (explicitement demande distinct de budgetNat.reserveJour, qui est un
-// accumulateur temporaire remis a 0 chaque jour, pas une reserve) -- 'reserve-nationale' est un
-// simple identifiant de caisse (aucune collision verifiee), au meme titre que 'caserne-militaire'
-// ou 'qhs-prison' qui ne correspondent pas non plus a un poste nomme.
-const CAISSE_PAR_POSTE_BUDGET = {
-  presidence: 'palais-presidentiel', pm: 'gouvernement-pm',
-  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae', mairie: 'mairie-capitale',
-  commissariat: 'commissariat_capitale', tribunal: 'tribunal_capitale',
-  assemblee: 'assemblee', reserve: 'reserve-nationale'
-};
+// CAISSE_PAR_POSTE_BUDGET A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026).
+//
+// C'etait la table « poste de la cle de repartition -> identifiant de caisse », treize entrees,
+// doublee par un miroir genere vers le serveur. Elle n'a plus d'objet : la table
+// repartitions_budgetaires nomme DIRECTEMENT les caisses beneficiaires, puisqu'une repartition se
+// declare desormais caisse a caisse. Il n'y a plus de « poste de budget » a traduire en caisse,
+// donc plus de traduction a maintenir -- ni a regenerer.
+//
+// Son commentaire d'origine disait que trois de ses valeurs (`mairie-capitale`,
+// `commissariat_capitale`, `tribunal_capitale`) « ne sont plus lues du tout a l'execution ».
+// C'etait vrai cote navigateur et FAUX cote serveur : le cron les creditait chaque nuit, et c'est
+// ce qui a prive Montrouge et Port-Sainte-Marie de tout financement pendant dix-huit jours (voir
+// le commit ba75c1e). Les trois familles territoriales quittent la cle nationale par l'arbitrage
+// du 8 octobre, ce qui ferme la question pour de bon.
 
 const COUT_REPARATION_GRILLE = 200; // FR par point regenere
 const REGEN_GRILLE_PAR_JOUR = 4; // points vises par jour, plafonne par le budget dispo

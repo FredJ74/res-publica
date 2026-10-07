@@ -32,6 +32,8 @@ ALTER TABLE public.pa_bonus_differes_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_bonus_hotel ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_credits_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_credits_uniques ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.repartitions_budgetaires ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.repartitions_versements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_caisses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_civils_declares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_civils_verses ENABLE ROW LEVEL SECURITY;

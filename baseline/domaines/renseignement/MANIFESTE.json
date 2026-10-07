@@ -37,7 +37,7 @@
    "sous": "pays"
   },
   {
-   "empreinte": "85ba89393fe45a571eab4bf9cfde14bf",
+   "empreinte": "43e1598d53ba764d4d23db1aa6fc28fa",
    "genre": "FUNCTION",
    "objet": "douane_payer_effectifs(text)",
    "sous": ""
@@ -999,13 +999,13 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "b24f9a9b62abc0a393d37752fda0b15a",
-  "20_fonctions.sql": "edb8c353afc31437b9e667a705de2e3e",
+  "20_fonctions.sql": "eabafb58ac86307817aba1236578d523",
   "30_contraintes.sql": "a32c4c0981a04979dcc6ed2b0434d8d8",
   "35_index.sql": "f497a9065521793aaf3e2eb09c104783",
   "50_triggers.sql": "7572e5d6c6fed52f7debb92b077dc520",
   "60_rls-policies.sql": "1af68eb19e83f0ce1366ca3bd1e66040",
   "70_droits.sql": "927e57d19b9b089b4afbb8ec9c089899",
-  "80_commentaires.sql": "1acdba161abfa36865c5d3cc1dbb2ef9"
+  "80_commentaires.sql": "014910c7d8af57fe442ee182721db843"
  },
  "fonctions": [
   {
@@ -1189,7 +1189,7 @@
    "signature": "douane_effectifs_publics()"
   },
   {
-   "empreinte": "ac8ae69b513bcb430ee18e50883facc6",
+   "empreinte": "3dad9a787f66e4c671a0553aec3ab844",
    "security_definer": true,
    "signature": "douane_payer_effectifs(text)"
   },

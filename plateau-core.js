@@ -438,11 +438,23 @@ const BUDGET_DEFAULT = {
   mairie:     { solde: 30000, coutOrdre: 250 }
 };
 
-const REPARTITION_DEFAULT = {
-  presidence: 15, pm: 8, min_int: 8, min_fin: 6, min_just: 6,
-  min_def: 10, min_info: 5, min_ae: 6,
-  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 2
-};
+// REPARTITION_DEFAULT A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026).
+//
+// C'etait la cle de repartition du budget national, et elle etait la REGLE REELLEMENT APPLIQUEE :
+// verifie en base le 7 octobre 2026, `budgets_nationaux.data` ne portait aucune cle
+// `repartition`, donc le cron retombait toujours sur celle-ci. Treize lignes qui melangeaient
+// ministeres, commissariats, tribunaux et mairies.
+//
+// La cle canonique est desormais la table repartitions_budgetaires : dix caisses nationales, neuf
+// a 9 % et l'Assemblee a 19 %, puis chaque ministere repartit vers les institutions de son
+// ressort. Elle vit en base parce que c'est le serveur qui l'applique et le Ministre de l'Economie
+// et des Finances qui la modifie -- une constante du navigateur ne pouvait etre ni l'un ni
+// l'autre.
+//
+// BUDGET_DEFAULT, juste au-dessus, n'est PAS la meme chose et subsiste : ce sont les soldes de
+// depart et les couts d'ordre de `state.budgets`, l'objet local qui sert de garde a deux ordres
+// presidentiels. Voir le commentaire laisse a la place d'alimenterBudgets
+// (plateau-justice-economie.js).
 
 const EMPIRE_STYLES = {
   republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Papyrusisme", currency: "FR", leader: "le Président" },
@@ -2361,10 +2373,21 @@ async function runMidnightUpdate() {
   traiterConvocations();
   verifierLiberationPrisonniers();
   verifierDecouverteCrimesPasses();
-  // Budget institutions et population
-  mettreAJourBudgets();
+  // Population
   mettreAJourPopulation();
-  await alimenterBudgets();
+  // DEUX APPELS ONT ETE RETIRES ICI (chantier 4F, 8 octobre 2026), et les deux etaient des
+  // distributeurs de recettes nationales concurrents de la cascade serveur.
+  //
+  //   . alimenterBudgets() repartissait les MEMES recettes que le cron -- la somme des
+  //     dailyTaxRevenue de CITY_POPULATION -- mais dans `state.budgets`, un objet local au
+  //     navigateur, plafonne et remis a BUDGET_DEFAULT a chaque rechargement de page.
+  //
+  //   . mettreAJourBudgets() reversait 40 % des recettes de la ville courante aux institutions
+  //     dont la cle commence par son nom. Elle ne faisait RIEN : sa premiere ligne etait
+  //     `if (!state.budgetsActuels) return;` et `state.budgetsActuels` n'etait initialise nulle
+  //     part dans le depot. Elle rendait la main immediatement, chaque nuit, depuis toujours.
+  //
+  // Un seul distributeur desormais, et il est serveur : budget_cascade_quotidienne().
   // ---------------------------------------------------------------------------
   // LES TRAITEMENTS NATIONAUX QUOTIDIENS NE SONT PLUS DECLENCHES D'ICI
   // (20 septembre 2026, balayage « passe cliente qui double un miroir serveur »).

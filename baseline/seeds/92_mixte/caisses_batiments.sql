@@ -4,7 +4,7 @@
 -- Domaine    : finances publiques
 -- Categorie  : D (mixte)
 -- Strategie  : seed_filtre (classification du chantier 2C)
--- Lignes     : 38
+-- Lignes     : 41
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -25,8 +25,8 @@
 -- verse, pas ce qui doit l'etre.
 --
 -- FILTRE APPLIQUE
--- SEED ECRIT, PAS EXTRAIT. Les 38 caisses dont la dotation est arbitree sont
--- ecrites avec leur montant decide ; les 113 autres lignes de la table ne
+-- SEED ECRIT, PAS EXTRAIT. Les 41 caisses dont la dotation est arbitree sont
+-- ecrites avec leur montant decide ; les 110 autres lignes de la table ne
 -- sont pas reprises -- soit elles appartiennent aux trois autres empires,
 -- soit l'audit du circuit fiscal les a declarees vestiges, comptes de
 -- transit, contreparties ou caisses inertes, soit ce sont des lignes de
@@ -46,6 +46,7 @@
 
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_agence-grobras-securite', '{"solde": 0}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_assemblee', '{"solde": 5000}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_caserne-militaire', '{"solde": 0}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_centre-multinodal-luthecia', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_centre-multinodal-montrouge', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_centre-multinodal-port-sainte-marie', '{"solde": 200}');
@@ -55,6 +56,7 @@ INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_commissariat_v
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_capitale', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_ville_a', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_ville_b', '{"solde": 200}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_douane', '{"solde": 0}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_ae', '{"solde": 10000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_def', '{"solde": 35000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_fin', '{"solde": 10000}');
@@ -72,6 +74,7 @@ INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_marche_capital
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_marche_ville_a', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_marche_ville_b', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_office-notarial', '{"solde": 200}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_palais-gouvernement', '{"solde": 0}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_palais-presidentiel', '{"solde": 10000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_port-sainte-marie', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_qhs-prison', '{"solde": 200}');

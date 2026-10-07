@@ -51,6 +51,10 @@ GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO postgr
 GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO postgres;
+GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO service_role;
 
 -- DROITS SUR LES SEQUENCES
 GRANT SELECT, USAGE ON SEQUENCE public.batiments_fermes_id_seq TO anon;
@@ -97,3 +101,9 @@ GRANT SELECT ON TABLE public.terrains_historique_ventes TO anon;
 GRANT INSERT, SELECT ON TABLE public.terrains_historique_ventes TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrains_historique_ventes TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrains_historique_ventes TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.villes TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.villes TO service_role;
+GRANT SELECT ON TABLE public.villes_empreinte TO anon;
+GRANT SELECT ON TABLE public.villes_empreinte TO authenticated;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.villes_empreinte TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.villes_empreinte TO service_role;

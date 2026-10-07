@@ -854,3 +854,29 @@ BEGIN
   RETURN p_data::jsonb;
 EXCEPTION WHEN others THEN RETURN NULL;
 END; $function$;
+
+-- ville_est_reelle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.ville_est_reelle(p_pays text, p_ville text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.villes v
+                  WHERE v.pays = p_pays AND v.ville = p_ville);
+$function$;
+
+-- villes_empreinte_reelle() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.villes_empreinte_reelle()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT left(md5(string_agg(
+      pays || '|' || ville || '|' || nom
+           || '|' || CASE WHEN est_capitale THEN '1' ELSE '0' END
+           || '|' || rang::text,
+      E'\n' ORDER BY pays COLLATE "C", ville COLLATE "C")), 16)
+  FROM public.villes;
+$function$;

@@ -9225,8 +9225,19 @@ function ouvrirConfirmationDemission() {
 // =====================
 // INDICES LOCAUX & BUDGET MUNICIPAL
 // =====================
-const CATEGORIES_BUDGET_MAIRIE = ['commissariat', 'multimodal', 'stade', 'marche', 'dispensaire', 'tribunal'];
-const LABELS_BUDGET_MAIRIE = { commissariat: 'Commissariat', multimodal: 'Centre Multimodal', stade: 'Stade', marche: 'Marche', dispensaire: 'Dispensaire', tribunal: 'Tribunal' };
+// LE TRIBUNAL A QUITTE LE CIRCUIT MUNICIPAL (chantier 4F, 8 octobre 2026). Les tribunaux sont
+// TERRITORIAUX mais relevent financierement du Ministere de la Justice : « Ne donne aucune
+// autorite financiere aux maires sur les tribunaux », et « Les tribunaux n'en font PAS partie »
+// pour le financement municipal. Le ministre repartit son budget entre les trois tribunaux par la
+// meme brique generique que tous les ministeres (repartitions_budgetaires).
+//
+// LES CINQ CATEGORIES RESTANTES GARDENT LEURS PARTS TELLES QUELLES. La somme de l'allocation par
+// defaut ne fait donc plus 100 % mais 85 %, et le reliquat demeure en caisse municipale --
+// distribuerBudgetMunicipalVersBatiments ne deduit que ce qu'elle a reellement verse depuis le
+// 7 octobre 2026. Rebattre ces cinq pourcentages serait inventer une repartition que personne n'a
+// decidee ; le maire peut le faire lui-meme, et c'est a lui de le faire.
+const CATEGORIES_BUDGET_MAIRIE = ['commissariat', 'multimodal', 'stade', 'marche', 'dispensaire'];
+const LABELS_BUDGET_MAIRIE = { commissariat: 'Commissariat', multimodal: 'Centre Multimodal', stade: 'Stade', marche: 'Marche', dispensaire: 'Dispensaire' };
 
 // LE PAYS TRAVERSE DESORMAIS LA RESOLUTION (chantier 4G, 7 octobre 2026). Cette fonction
 // appelait getBuildingIdCentreMultimodal(ville) SANS le pays, alors que cette derniere porte un
@@ -9269,7 +9280,9 @@ function getVilleKey() {
 function budgetMunicipalNeuf(key) {
   return {
     key,
-    allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20, tribunal: 15 },
+    // tribunal retire le 8 octobre 2026 : il releve du Ministere de la Justice. Les cinq parts
+    // restantes sont inchangees, la somme fait donc 85 % et le reliquat reste en caisse.
+    allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20 },
     caisse: 0,
     // Taxe fonciere : FR/m2/jour, prerogative du maire (min/max a definir dans le futur
     // tableau de bord municipal, pour eviter qu'un taux abusif ruine les proprietaires).
@@ -11368,9 +11381,6 @@ async function ouvrirGererBudgetMilitaire() {
   const pays = state.country || 'republic';
   const maCaisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_def') : { solde: 0 };
   const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire') : { solde: 0 };
-  const budgetNat = await chargerBudgetNational(pays);
-  const virementActuel = budgetNat.virementJournalierCaserne || 0;
-
   document.getElementById('postes-modal-title').textContent = 'Budget militaire';
   let html = '<div style="padding:1rem">';
   html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.95rem">';
@@ -11378,12 +11388,33 @@ async function ouvrirGererBudgetMilitaire() {
   html += '<span style="color:#8a8060">Caisse de la Caserne : ' + (caisseCaserne.solde||0).toLocaleString('fr-FR') + ' FR</span>';
   html += '</div>';
 
-  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT JOURNALIER AUTOMATIQUE</div>';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">Actuellement : ' + virementActuel.toLocaleString('fr-FR') + ' FR/jour, prélevé automatiquement chaque nuit sur votre caisse.</div>';
-  html += '<input id="montant-virement-journalier" type="number" min="0" value="' + virementActuel + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
-  html += '<button onclick="confirmerVirementJournalier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fixer ce montant</button>';
-  html += '</div>';
+  // LE FINANCEMENT RECURRENT EST UNE PART, PLUS UN MONTANT (chantier 4F, 8 octobre 2026).
+  //
+  // Il y avait ici un champ en FR, `budgets_nationaux.data.virementJournalierCaserne`, qui
+  // constituait une REGLE absolue : « prelever N FR chaque nuit ». C'etait un second automatisme,
+  // concurrent de la cle de repartition, et les deux pouvaient diverger sans que rien ne le dise.
+  // Le modele est migre : une seule regle, le POURCENTAGE du budget du ministere -- 65 % vers la
+  // caserne par defaut -- et deux representations, la part et son equivalent en FR. L'ecran
+  // generique de repartition est le MEME que celui du budget national : il n'y a pas d'ecran par
+  // ministere.
+  //
+  // Le champ en FR n'avait aucune valeur en base (verifie le 7 octobre 2026) : l'automatisme ne
+  // versait donc rien, et la migration ne fait perdre aucun reglage.
+  if (typeof sbBudgetRepartitionLireVerdict === 'function') {
+    const vRep = await sbBudgetRepartitionLireVerdict('gouvernement-min_def');
+    if (!vRep.ok) {
+      html += '<div style="border:1px solid #5a3020;background:#140d05;padding:.7rem;margin-bottom:.7rem;'
+           + 'font-size:.76rem;color:#cc6a44">Le financement récurrent n\'a pas pu être lu ('
+           + vRep.raison + '). Réessayez dans un instant.</div>';
+    } else if (typeof rendreRepartitionBudgetaire === 'function') {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.7rem">';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;padding:.7rem .7rem 0">FINANCEMENT RÉCURRENT</div>';
+      html += rendreRepartitionBudgetaire('gouvernement-min_def', vRep.lignes,
+        'Part de votre budget versée chaque nuit, automatiquement. Le reste demeure dans votre caisse '
+        + 'pour vos dépenses propres.');
+      html += '</div>';
+    }
+  }
 
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT PONCTUEL</div>';
@@ -11397,27 +11428,29 @@ async function ouvrirGererBudgetMilitaire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// ECRITURE ATTESTEE (18 septembre 2026). Cette fonction relisait puis reecrivait le blob entier
-// de budgets_nationaux SANS aucune attestation -- elle est globale, donc n'importe quel joueur
-// authentifie pouvait fixer depuis la console le montant preleve chaque nuit sur la caisse du
-// Ministere, et la reecriture du blob pouvait ecraser les sous-cles modifiees entre-temps. Le
-// meme correctif avait ete applique au virement PONCTUEL en son temps ; le journalier avait ete
-// oublie.
+// LE VIREMENT JOURNALIER EN FR A ETE RETIRE (chantier 4F, 8 octobre 2026).
 //
-// La RPC deduit le pays de l'acteur au lieu de l'accepter en parametre, et ecrit par SOUS-CLE.
-// L'execution quotidienne, elle, n'est pas touchee : traiterVirementJournalierCaserne et son
-// miroir cron continuent exactement comme avant, marqueur de journee partage compris.
-async function confirmerVirementJournalier() {
-  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-journalier')?.value || '0'));
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await sbCaserneVirementJournalierFixer(montant);
-  if (!r || r.ok !== true) {
-    showToast('Virement non fixé', 'Réservé au Ministre de la Défense en exercice.', false);
-    return;
-  }
-  showToast('Virement journalier fixé', Number(r.montant).toLocaleString('fr-FR') + ' FR/jour vers la caserne, à partir de demain.', true, true);
-  addJournalEntry('Virement journalier vers la caserne fixé à ' + r.montant + ' FR.', 'event-info');
-}
+// confirmerVirementJournalier() vivait ici. Elle ecrivait
+// `budgets_nationaux.data.virementJournalierCaserne` par la RPC attestee
+// caserne_virement_journalier_fixer -- une bonne RPC, qui relisait le poste en base et ecrivait
+// par sous-cle, protegee en plus par un declencheur (budgets_virement_caserne_verrou).
+//
+// Ce n'est pas elle qui etait fautive, c'est le MODELE : un montant absolu en FR constituait une
+// SECONDE regle de financement recurrent, concurrente de la cle de repartition, et rien
+// n'empechait les deux de diverger. L'arbitrage du 8 octobre 2026 tranche : « Si l'ancien champ FR
+// constitue actuellement une regle absolue independante, migre proprement le modele au lieu de
+// conserver deux automatismes concurrents. »
+//
+// La regle est desormais le POURCENTAGE (repartitions_budgetaires), fixe par
+// budget_repartition_fixer, qui verifie l'autorite ET que la somme reste sous 100 %. Le champ en
+// FR etait vide en base : aucun reglage de ministre n'a ete perdu.
+//
+// LE VIREMENT PONCTUEL EN FR, LUI, RESTE -- juste en dessous. C'est un ACTE, pas une regle : le
+// ministre decide d'un transfert unique. Les deux ne sont pas concurrents.
+//
+// Restent sans appelant, et volontairement conservees cote serveur tant que le baseline n'est pas
+// repris : la RPC caserne_virement_journalier_fixer et son declencheur de verrou. Les retirer est
+// un lot de menage, pas un effet de bord de celui-ci.
 
 async function confirmerVirementPonctuel() {
   const montant = Math.max(0, parseInt(document.getElementById('montant-virement-ponctuel')?.value || '0'));
@@ -11440,29 +11473,10 @@ async function confirmerVirementPonctuel() {
   addJournalEntry('Virement ponctuel de ' + montantVerse + ' FR vers la caserne.', 'event-good');
 }
 
-// Traite le virement journalier automatique fixe par le MG (a appeler a minuit)
-async function traiterVirementJournalierCaserne(pays) {
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  if (!budgetNat) return;
-  const montant = budgetNat.virementJournalierCaserne || 0;
-  if (montant <= 0) return;
-
-  // IDEMPOTENCE PARTAGEE (correctif Lot 4.3). Cette fonction n'avait AUCUNE garde : chaque joueur
-  // qui passait minuit declenchait un virement, donc N joueurs connectes = N virements le meme
-  // soir. Le marqueur est desormais la DATE REELLE, identique cote serveur -- jamais state.day, qui
-  // est prive et ne peut pas identifier une journee partagee.
-  //
-  // Marqueur pose AVANT le mouvement : deux clients simultanes ne peuvent pas se croiser entre la
-  // lecture et l'ecriture. Un virement perdu vaut mieux qu'un virement double.
-  const jourV = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
-  if (jourV) {
-    if (budgetNat.dernierVirementCaserneJour === jourV) return;
-    budgetNat.dernierVirementCaserneJour = jourV;
-    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
-  }
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', montant);
-  if (montantVerse > 0) await crediterCaisseBatiment(pays, 'caserne-militaire', montantVerse);
-}
+// traiterVirementJournalierCaserne A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). Elle etait
+// DEJA MORTE -- zero appelant depuis que la passe cliente de minuit a ete retiree le 20 septembre
+// 2026 -- et son objet, le montant absolu en FR, n'existe plus : le financement recurrent de la
+// caserne est une PART declaree (Defense -> Caserne, 65 %), executee par la cascade serveur.
 
 
 
@@ -11632,7 +11646,6 @@ async function construireEtatArmee(pays) {
     stockArmurerie, armesAssignees, armesLibresSections,
     tauxEquipementGlobal: effectifTotal ? armesAssigneesTotal / effectifTotal : null,
     caisseCaserne: caisseCaserne.solde || 0,
-    virementJournalier: budgetNat.virementJournalierCaserne || 0,
     compagnies: compagniesDetail
   };
 }
@@ -11705,7 +11718,13 @@ function renderInspectionDetaillee(etat) {
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;margin:.9rem 0 .5rem">BUDGET DE LA CASERNE</div>';
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;font-size:.76rem;color:#a89870">';
   html += '<div style="margin-bottom:.3rem">Caisse de la Caserne : ' + etat.caisseCaserne.toLocaleString('fr-FR') + ' FR.</div>';
-  html += '<div style="margin-bottom:.3rem">Virement journalier automatique configuré : ' + etat.virementJournalier.toLocaleString('fr-FR') + ' FR/jour.</div>';
+  // LE FINANCEMENT RECURRENT EST UNE PART, ET ELLE NE SE LIT PLUS ICI (chantier 4F). Cette ligne
+  // affichait `virementJournalierCaserne`, un montant absolu qui n'existe plus -- elle aurait
+  // annonce « 0 FR/jour » indefiniment. Le pourcentage vit dans repartitions_budgetaires, et
+  // l'ecran Budget militaire le montre avec son equivalent en FR : le reproduire ici creerait une
+  // seconde source d'affichage, qui finirait par dire autre chose.
+  html += '<div style="margin-bottom:.3rem;color:#8a8060">Financement récurrent : voir l\'écran '
+       + '<em>Budget militaire</em> du Ministère de la Défense.</div>';
   html += '<div style="font-style:italic;color:#8a8060">Aucun historique détaillé des dépenses/mouvements n\'est actuellement conservé pour la caserne : seuls le solde courant et le virement configuré existent réellement dans le système.</div>';
   html += '</div>';
 
@@ -12980,9 +12999,23 @@ async function ouvrirBudgetQHS() {
   const pays = state.country || 'republic';
   const maCaisse = await chargerCaisseBatiment(pays, 'gouvernement-min_just');
   const caisseQHS = await chargerCaisseBatiment(pays, 'qhs-prison');
-  const budgetNat = await chargerBudgetNational(pays);
-  const virementActuel = budgetNat.virementJournalierQHS || 0;
-
+  // LE VIREMENT JOURNALIER VERS LE QHS N'A JAMAIS EXISTE (constat du chantier 4F, 8 octobre 2026).
+  //
+  // Il y avait ici le MEME ecran que pour la caserne : un champ en FR,
+  // `budgets_nationaux.data.virementJournalierQHS`, annonce « FR/jour » et « AUTOMATIQUE ». Sauf
+  // qu'aucun automate ne l'a jamais applique : ni le cron, ni aucune fonction SQL ne lit ce champ
+  // -- verifie sur pg_proc et sur tout le depot le 8 octobre 2026. Le ministre de la Justice
+  // reglait donc un virement qui ne partait jamais, et l'ecran le lui confirmait.
+  //
+  // CE N'EST PAS LE MEME CAS QUE LA CASERNE. Pour la caserne, un automate existait et le modele a
+  // ete migre en POURCENTAGE (Defense -> Caserne, 65 %). Ici il n'y a rien a migrer : declarer une
+  // part Justice -> QHS serait inventer une repartition secondaire, et l'arbitrage du 8 octobre
+  // l'interdit explicitement pour les ministeres autres que la Defense et l'Interieur («
+  // n'invente aucune nouvelle repartition secondaire »). Qui finance le QHS, et dans quelle
+  // proportion, est une decision de game design -- elle est consignee, pas devinee.
+  //
+  // L'ecran ne promet donc plus rien. LE VIREMENT PONCTUEL, lui, fonctionne vraiment : il appelle
+  // une RPC attestee et transfere reellement. C'est le seul financement du QHS aujourd'hui.
   document.getElementById('postes-modal-title').textContent = 'Budget du QHS';
   let html = '<div style="padding:1rem">';
   html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.9rem">';
@@ -12990,11 +13023,9 @@ async function ouvrirBudgetQHS() {
   html += '<span style="color:#8a8060">Caisse du QHS : ' + (caisseQHS.solde||0).toLocaleString('fr-FR') + ' FR</span>';
   html += '</div>';
 
-  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.76rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT JOURNALIER AUTOMATIQUE</div>';
-  html += '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.5rem">Actuellement : ' + virementActuel.toLocaleString('fr-FR') + ' FR/jour.</div>';
-  html += '<input id="montant-virement-qhs-j" type="number" min="0" value="' + virementActuel + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
-  html += '<button onclick="confirmerVirementJournalierQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fixer ce montant</button>';
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem;font-size:.72rem;color:#8a8060">';
+  html += 'Le QHS n\'a aucun financement récurrent : aucune part du budget du ministère ne lui est ';
+  html += 'versée automatiquement. Vous l\'alimentez par des transferts ponctuels.';
   html += '</div>';
 
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">';
@@ -13006,15 +13037,11 @@ async function ouvrirBudgetQHS() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerVirementJournalierQHS() {
-  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-qhs-j')?.value || '0'));
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
-  const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.virementJournalierQHS = montant;
-  await sbSaveBudgetNational(pays, budgetNat);
-  showToast('Virement journalier fixé', montant.toLocaleString('fr-FR') + ' FR/jour vers le QHS.', true, true);
-}
+// confirmerVirementJournalierQHS A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). Elle ecrivait
+// `budgets_nationaux.data.virementJournalierQHS` et affichait « virement journalier fixe » -- un
+// champ qu'aucun automate n'a jamais lu. Ecrire une regle que rien n'applique, et le confirmer a
+// l'ecran, est pire qu'un champ mort : c'est une promesse. Voir le commentaire dans
+// ouvrirBudgetQHS.
 
 async function confirmerVirementPonctuelQHS() {
   const montant = Math.max(0, parseInt(document.getElementById('montant-virement-qhs-p')?.value || '0'));

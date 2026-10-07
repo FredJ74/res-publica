@@ -1611,7 +1611,7 @@ BEGIN
 
   v_jour   := ((now() AT TIME ZONE 'Europe/Paris')::date - 1);
   v_id     := p_pays || '_' || c_ville || '_' || c_batiment;
-  v_caisse := p_pays || '_gouvernement-min_int';
+  v_caisse := p_pays || '_douane';
 
   SELECT data INTO v_data FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
   IF NOT FOUND THEN
@@ -1644,9 +1644,6 @@ BEGIN
                         THEN c_cout_cynophile ELSE c_cout_standard END;
   END LOOP;
 
-  -- Debit plafonne sur la caisse du Ministere de l'Interieur. L'autorite propre a l'operation
-  -- vient d'etre verifiee : on ouvre donc la porte interne prevue par la primitive, pour cette
-  -- transaction seulement. Le Chef des Douanes n'obtient aucun droit generique sur la caisse.
   PERFORM set_config('rp.caisse_interne', 'on', true);
   v_r := public.caisse_institution_mouvement_plafonne(v_caisse, v_du);
   PERFORM set_config('rp.caisse_interne', '', true);
@@ -1655,8 +1652,6 @@ BEGIN
   END IF;
   v_verse := COALESCE((v_r->>'verse')::numeric, 0);
 
-  -- Combien d'agents le versement couvre-t-il ? Les DERNIERS RECRUTES partent d'abord :
-  -- equivalent exact de effectifs.douaniers.slice(0, nbGardes) du chemin client.
   FOR v_el IN SELECT value FROM jsonb_array_elements(v_liste) LOOP
     v_cumul := v_cumul + CASE WHEN COALESCE(v_el->>'type','standard') = 'cynophile'
                               THEN c_cout_cynophile ELSE c_cout_standard END;

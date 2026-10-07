@@ -104,6 +104,112 @@ BEGIN
     'taxeLocale', v_taxe_l, 'taxeNationale', v_taxe_n, 'tauxLocal', v_tl, 'tauxNational', v_tn);
 END; $function$;
 
+-- budget_cascade_quotidienne(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_cascade_quotidienne(p_pays text, p_recettes numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  c_repartiteur constant text := 'gouvernement-min_fin';
+  v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_base numeric := floor(coalesce(p_recettes, 0));
+  v_national jsonb; v_etapes jsonb := '[]'::jsonb;
+  v_rep jsonb; r record; v_recu numeric;
+BEGIN
+  IF coalesce(btrim(p_pays), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.repartitions_budgetaires
+                  WHERE pays = p_pays AND source = c_repartiteur) THEN
+    RETURN jsonb_build_object('ok', true, 'raison', 'aucune_repartition_declaree',
+                              'pays', p_pays, 'verse', 0);
+  END IF;
+
+  IF v_base <= 0 THEN
+    RETURN jsonb_build_object('ok', true, 'raison', 'recettes_nulles', 'verse', 0);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM public.repartitions_versements
+              WHERE pays = p_pays AND source = c_repartiteur AND jour = v_jour) THEN
+    RETURN jsonb_build_object('ok', true, 'raison', 'cascade_deja_passee_ce_jour',
+                              'jour', v_jour, 'verse', 0);
+  END IF;
+
+  PERFORM set_config('rp.caisse_interne', 'on', true);
+  v_rep := public.caisse_institution_mouvement(p_pays || '_' || c_repartiteur, v_base, false);
+  PERFORM set_config('rp.caisse_interne', '', true);
+  IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'entree_recettes_refusee',
+                              'detail', v_rep);
+  END IF;
+
+  v_national := public.budget_repartir(p_pays, c_repartiteur, v_base);
+  v_etapes := v_etapes || jsonb_build_array(v_national);
+
+  FOR r IN SELECT DISTINCT b.source
+             FROM public.repartitions_budgetaires b
+            WHERE b.pays = p_pays AND b.source <> c_repartiteur
+            ORDER BY b.source
+  LOOP
+    SELECT v.montant INTO v_recu
+      FROM public.repartitions_versements v
+     WHERE v.pays = p_pays AND v.source = c_repartiteur
+       AND v.beneficiaire = r.source AND v.jour = v_jour;
+    IF v_recu IS NULL OR v_recu <= 0 THEN
+      v_etapes := v_etapes || jsonb_build_array(jsonb_build_object(
+        'source', r.source, 'ok', true, 'raison', 'aucune_part_recue_ce_jour'));
+      CONTINUE;
+    END IF;
+    v_etapes := v_etapes || jsonb_build_array(public.budget_repartir(p_pays, r.source, v_recu));
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'pays', p_pays, 'jour', v_jour,
+                            'recettes', v_base, 'etapes', v_etapes);
+END;
+$function$;
+
+-- budget_coherence() -> TABLE(probleme text, detail text) | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_coherence()
+ RETURNS TABLE(probleme text, detail text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT 'somme des parts superieure a 100 %',
+         string_agg(x.pays || '/' || x.source || ' = ' || x.somme::text, ', ' ORDER BY x.source)
+    FROM (SELECT pays, source, sum(part_pourcent) AS somme
+            FROM public.repartitions_budgetaires WHERE part_pourcent IS NOT NULL
+           GROUP BY pays, source) x
+   WHERE x.somme > 100
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'beneficiaire sans caisse en base',
+         string_agg(b.pays || '_' || b.beneficiaire, ', ' ORDER BY b.beneficiaire)
+    FROM public.repartitions_budgetaires b
+   WHERE b.part_pourcent IS NOT NULL AND b.part_pourcent > 0
+     AND NOT EXISTS (SELECT 1 FROM public.caisses_batiments c
+                      WHERE c.id = b.pays || '_' || b.beneficiaire)
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'poste d''autorite inconnu',
+         string_agg(DISTINCT b.poste_autorite, ', ')
+    FROM public.repartitions_budgetaires b
+   WHERE NOT EXISTS (SELECT 1 FROM public.postes_nommes_regles p WHERE p.poste_id = b.poste_autorite)
+     AND NOT EXISTS (SELECT 1 FROM public.salaires_caisses s WHERE s.poste_id = b.poste_autorite)
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'double versement le meme jour',
+         string_agg(v.source || '->' || v.beneficiaire || ' le ' || v.jour::text, ', ')
+    FROM (SELECT pays, source, beneficiaire, jour, count(*) AS n
+            FROM public.repartitions_versements
+           GROUP BY pays, source, beneficiaire, jour) v
+   WHERE v.n > 1
+  HAVING count(*) > 0;
+$function$;
+
 -- budget_national_epingler() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.budget_national_epingler()
  RETURNS trigger
@@ -204,6 +310,200 @@ BEGIN
 END;
 $function$;
 
+-- budget_repartir(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_repartir(p_pays text, p_source text, p_base numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_base numeric := floor(coalesce(p_base, 0));
+  v_total_parts numeric := 0;
+  v_distribuable numeric;
+  v_lignes jsonb := '[]'::jsonb;
+  v_verse numeric := 0;
+  v_conserve numeric := 0;
+  r record; v_rep jsonb;
+BEGIN
+  IF coalesce(btrim(p_pays), '') = '' OR coalesce(btrim(p_source), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  IF v_base <= 0 THEN
+    RETURN jsonb_build_object('ok', true, 'raison', 'base_nulle', 'verse', 0, 'lignes', v_lignes);
+  END IF;
+
+  SELECT coalesce(sum(part_pourcent), 0) INTO v_total_parts
+    FROM public.repartitions_budgetaires
+   WHERE pays = p_pays AND source = p_source AND part_pourcent IS NOT NULL;
+  IF v_total_parts <= 0 THEN
+    RETURN jsonb_build_object('ok', true, 'raison', 'aucune_part_arbitree', 'verse', 0,
+                              'lignes', v_lignes);
+  END IF;
+
+  v_distribuable := floor(v_base * v_total_parts / 100);
+
+  FOR r IN
+    WITH parts AS (
+      SELECT b.beneficiaire, b.part_pourcent AS part, b.rang, b.libelle,
+             v_base * b.part_pourcent / 100          AS exact,
+             floor(v_base * b.part_pourcent / 100)    AS plancher
+        FROM public.repartitions_budgetaires b
+       WHERE b.pays = p_pays AND b.source = p_source AND b.part_pourcent IS NOT NULL
+    ), reliquat AS (
+      SELECT v_distribuable - coalesce(sum(plancher), 0) AS n FROM parts
+    ), classe AS (
+      SELECT p.*, row_number() OVER (ORDER BY (p.exact - p.plancher) DESC, p.rang) AS ordre
+        FROM parts p
+    )
+    SELECT c.beneficiaire, c.part, c.libelle,
+           c.plancher + CASE WHEN c.ordre <= (SELECT n FROM reliquat) THEN 1 ELSE 0 END AS montant
+      FROM classe c ORDER BY c.rang
+  LOOP
+    BEGIN
+      INSERT INTO public.repartitions_versements
+        (pays, source, beneficiaire, jour, base, part_pourcent, montant, transfere)
+      VALUES (p_pays, p_source, r.beneficiaire, v_jour, v_base, r.part, r.montant,
+              r.beneficiaire <> p_source);
+    EXCEPTION WHEN unique_violation THEN
+      v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
+        'beneficiaire', r.beneficiaire, 'montant', 0, 'raison', 'deja_verse_ce_jour'));
+      CONTINUE;
+    END;
+
+    IF r.beneficiaire = p_source THEN
+      v_conserve := v_conserve + r.montant;
+      v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
+        'beneficiaire', r.beneficiaire, 'montant', r.montant, 'conserve', true));
+      CONTINUE;
+    END IF;
+
+    IF r.montant <= 0 THEN
+      v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
+        'beneficiaire', r.beneficiaire, 'montant', 0));
+      CONTINUE;
+    END IF;
+
+    PERFORM set_config('rp.caisse_interne', 'on', true);
+    v_rep := public.caisse_institution_mouvement(p_pays || '_' || p_source, -r.montant, true);
+    IF coalesce((v_rep->>'ok')::boolean, false) THEN
+      v_rep := public.caisse_institution_mouvement(p_pays || '_' || r.beneficiaire, r.montant, false);
+    END IF;
+    PERFORM set_config('rp.caisse_interne', '', true);
+
+    IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+      DELETE FROM public.repartitions_versements
+       WHERE pays = p_pays AND source = p_source AND beneficiaire = r.beneficiaire AND jour = v_jour;
+      v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
+        'beneficiaire', r.beneficiaire, 'montant', 0,
+        'raison', coalesce(v_rep->>'raison','transfert_refuse')));
+      CONTINUE;
+    END IF;
+
+    v_verse := v_verse + r.montant;
+    v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
+      'beneficiaire', r.beneficiaire, 'montant', r.montant));
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'pays', p_pays, 'source', p_source, 'jour', v_jour,
+                            'base', v_base, 'total_parts', v_total_parts,
+                            'verse', v_verse, 'conserve', v_conserve, 'lignes', v_lignes);
+END;
+$function$;
+
+-- budget_repartition_fixer(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_repartition_fixer(p_source text, p_beneficiaire text, p_part numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text; r record;
+  v_part numeric; v_somme numeric;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT coalesce(country,'republic'), poste->>'id' INTO v_pays, v_poste
+    FROM public.personnages_donnees WHERE name = v_moi;
+
+  SELECT * INTO r FROM public.repartitions_budgetaires
+   WHERE pays = v_pays AND source = p_source AND beneficiaire = p_beneficiaire;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'repartition_non_declaree',
+                              'source', p_source, 'beneficiaire', p_beneficiaire);
+  END IF;
+  IF v_poste IS DISTINCT FROM r.poste_autorite THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante',
+                              'poste_requis', r.poste_autorite);
+  END IF;
+
+  v_part := round(coalesce(p_part, 0)::numeric, 2);
+  IF v_part < 0 OR v_part > 100 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'part_hors_bornes');
+  END IF;
+
+  SELECT coalesce(sum(part_pourcent), 0) + v_part INTO v_somme
+    FROM public.repartitions_budgetaires
+   WHERE pays = v_pays AND source = p_source AND part_pourcent IS NOT NULL
+     AND beneficiaire <> p_beneficiaire;
+  IF v_somme > 100 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'somme_depasse_cent',
+                              'somme_obtenue', v_somme);
+  END IF;
+
+  UPDATE public.repartitions_budgetaires SET part_pourcent = v_part
+   WHERE pays = v_pays AND source = p_source AND beneficiaire = p_beneficiaire;
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'source', p_source,
+                            'beneficiaire', p_beneficiaire, 'part', v_part, 'somme', v_somme);
+END;
+$function$;
+
+-- budget_repartition_lire(text) -> TABLE(beneficiaire text, libelle text, part_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.budget_repartition_lire(p_source text)
+ RETURNS TABLE(beneficiaire text, libelle text, part_pourcent numeric, rang integer, poste_autorite text, est_la_source boolean, solde_beneficiaire numeric, base_reference numeric, equivalent_fr numeric, dernier_versement numeric, dernier_jour date, note text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_base numeric;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN; END IF;
+  SELECT coalesce(country,'republic') INTO v_pays
+    FROM public.personnages_donnees WHERE name = v_moi;
+
+  SELECT v.montant INTO v_base
+    FROM public.repartitions_versements v
+   WHERE v.pays = v_pays AND v.beneficiaire = p_source
+   ORDER BY v.jour DESC LIMIT 1;
+
+  RETURN QUERY
+  SELECT b.beneficiaire, b.libelle, b.part_pourcent, b.rang, b.poste_autorite,
+         (b.beneficiaire = b.source) AS est_la_source,
+         (SELECT CASE WHEN jsonb_typeof(c.data->'solde') = 'number'
+                      THEN (c.data->>'solde')::numeric ELSE 0 END
+            FROM public.caisses_batiments c WHERE c.id = v_pays || '_' || b.beneficiaire),
+         v_base,
+         CASE WHEN v_base IS NULL OR b.part_pourcent IS NULL THEN NULL
+              ELSE floor(v_base * b.part_pourcent / 100) END,
+         (SELECT v.montant FROM public.repartitions_versements v
+           WHERE v.pays = b.pays AND v.source = b.source AND v.beneficiaire = b.beneficiaire
+           ORDER BY v.jour DESC LIMIT 1),
+         (SELECT v.jour FROM public.repartitions_versements v
+           WHERE v.pays = b.pays AND v.source = b.source AND v.beneficiaire = b.beneficiaire
+           ORDER BY v.jour DESC LIMIT 1),
+         b.note
+    FROM public.repartitions_budgetaires b
+   WHERE b.pays = v_pays AND b.source = p_source
+   ORDER BY b.rang;
+END;
+$function$;
+
 -- budgets_armurerie_verrou() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.budgets_armurerie_verrou()
  RETURNS trigger
@@ -261,7 +561,7 @@ CREATE OR REPLACE FUNCTION public.caisse_client_mouvement(p_caisse text, p_delta
 AS $function$
 DECLARE
   v_moi text; v_pays text; v_existe boolean; v_solde numeric; v_verse numeric;
-  v_res jsonb; v_raison text; v_postes text[];
+  v_res jsonb; v_raison text;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -282,16 +582,7 @@ BEGIN
     IF NOT coalesce(v_existe, false) THEN
       v_raison := 'caisse_inexistante';
     ELSIF p_delta < 0 OR p_plafonne THEN
-      -- SORTIE D'ARGENT PUBLIC : autorite exigee.
-      v_postes := public.caisse_postes_requis(p_caisse, v_pays);
-      IF v_postes IS NOT NULL THEN
-        IF array_length(v_postes, 1) IS NULL THEN
-          v_raison := 'caisse_reservee_au_serveur';
-        ELSIF NOT EXISTS (SELECT 1 FROM public.acteur_poste_courant() a
-                           WHERE a.poste_id = ANY (v_postes) AND a.pays = v_pays) THEN
-          v_raison := 'autorite_insuffisante';
-        END IF;
-      END IF;
+      v_raison := public.caisse_refus_autorite(p_caisse, v_pays);
     END IF;
   END IF;
 
@@ -383,7 +674,7 @@ CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delt
 AS $function$
 DECLARE
   v_data jsonb; v_solde numeric; v_existe boolean;
-  v_moi text; v_pays text; v_postes text[]; v_client boolean;
+  v_moi text; v_pays text; v_client boolean; v_raison text;
 BEGIN
   IF COALESCE(btrim(p_id), '') = '' OR p_delta IS NULL OR p_delta = 0
      OR abs(p_delta) > 100000000 THEN
@@ -402,17 +693,11 @@ BEGIN
     IF v_pays IS NULL OR p_id NOT LIKE v_pays || '\_%' THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'caisse_hors_pays');
     END IF;
-    v_postes := public.caisse_postes_requis(p_id, v_pays);
-    IF v_postes IS NOT NULL THEN
-      IF array_length(v_postes, 1) IS NULL THEN
-        RETURN jsonb_build_object('ok', false, 'raison', 'caisse_reservee_au_serveur');
-      END IF;
-      IF NOT EXISTS (SELECT 1 FROM public.acteur_poste_courant() a
-                      WHERE a.poste_id = ANY (v_postes) AND a.pays = v_pays) THEN
-        INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
-        VALUES (v_moi, p_id, p_delta, 'primitive_heritee', false, 'autorite_insuffisante');
-        RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante');
-      END IF;
+    v_raison := public.caisse_refus_autorite(p_id, v_pays);
+    IF v_raison IS NOT NULL THEN
+      INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+      VALUES (v_moi, p_id, p_delta, 'primitive_heritee', false, v_raison);
+      RETURN jsonb_build_object('ok', false, 'raison', v_raison);
     END IF;
   END IF;
 
@@ -453,7 +738,7 @@ CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement_plafonne(p_id tex
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE v_data jsonb; v_solde numeric; v_verse numeric;
-        v_moi text; v_pays text; v_postes text[]; v_ville text;
+        v_moi text; v_pays text; v_raison text;
 BEGIN
   IF COALESCE(btrim(p_id), '') = '' OR p_montant IS NULL OR p_montant <= 0
      OR p_montant > 100000000 THEN
@@ -470,22 +755,11 @@ BEGIN
     IF v_pays IS NULL OR p_id NOT LIKE v_pays || '\_%' THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'caisse_hors_pays');
     END IF;
-    v_postes := public.caisse_postes_requis(p_id, v_pays);
-    v_ville  := public.caisse_ville_de(p_id, v_pays);
-    IF v_postes IS NOT NULL THEN
-      IF array_length(v_postes, 1) IS NULL
-         OR NOT EXISTS (SELECT 1 FROM public.acteur_poste_courant() a
-                         WHERE a.poste_id = ANY (v_postes) AND a.pays = v_pays
-                           -- LA VILLE : un poste national passe, un poste de ville doit etre
-                           -- celui de CETTE ville.
-                           AND (v_ville IS NULL OR a.poste_city IS NULL
-                                OR a.poste_city = v_ville)) THEN
-        INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
-        VALUES (v_moi, p_id, -p_montant, 'primitive_heritee_plafonnee', false,
-                CASE WHEN v_ville IS NULL THEN 'autorite_insuffisante'
-                     ELSE 'autorite_insuffisante_hors_ville' END);
-        RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante', 'verse', 0);
-      END IF;
+    v_raison := public.caisse_refus_autorite(p_id, v_pays);
+    IF v_raison IS NOT NULL THEN
+      INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+      VALUES (v_moi, p_id, -p_montant, 'primitive_heritee_plafonnee', false, v_raison);
+      RETURN jsonb_build_object('ok', false, 'raison', v_raison, 'verse', 0);
     END IF;
   END IF;
 
@@ -504,7 +778,8 @@ BEGIN
          updated_at = now()
    WHERE id = p_id;
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'solde', v_solde - v_verse);
-END; $function$;
+END;
+$function$;
 
 -- caisse_ministere_mouvement(text,numeric,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.caisse_ministere_mouvement(p_source_id text, p_montant numeric, p_destination_id text DEFAULT NULL::text, p_plafonne boolean DEFAULT false)
@@ -614,22 +889,104 @@ BEGIN
 END;
 $function$;
 
--- caisse_ville_de(text,text) -> text | plpgsql | SECURITY INVOKER
-CREATE OR REPLACE FUNCTION public.caisse_ville_de(p_caisse text, p_pays text)
+-- caisse_refus_autorite(text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caisse_refus_autorite(p_caisse text, p_pays text)
  RETURNS text
  LANGUAGE plpgsql
- IMMUTABLE
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_suffixe text; r record;
+DECLARE v_postes text[]; v_portee text; v_ville text;
 BEGIN
+  SELECT t.portee, t.ville INTO v_portee, v_ville
+    FROM public.caisse_territoire(p_caisse, p_pays) t;
+
+  v_postes := public.caisse_postes_requis(p_caisse, p_pays);
+  IF v_postes IS NULL THEN
+    RETURN 'caisse_sans_regle_autorite';
+  END IF;
+
+  IF array_length(v_postes, 1) IS NULL THEN
+    RETURN 'caisse_reservee_au_serveur';
+  END IF;
+
+  IF v_portee = 'indetermine' THEN
+    RETURN 'caisse_territoire_indetermine';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.acteur_poste_courant() a
+                  WHERE a.poste_id = ANY (v_postes)
+                    AND a.pays = p_pays
+                    AND (v_portee <> 'ville' OR a.poste_city IS NULL
+                         OR a.poste_city = v_ville)) THEN
+    IF v_portee = 'ville' AND EXISTS (SELECT 1 FROM public.acteur_poste_courant() a
+                                       WHERE a.poste_id = ANY (v_postes) AND a.pays = p_pays) THEN
+      RETURN 'autorite_insuffisante_hors_ville';
+    END IF;
+    RETURN 'autorite_insuffisante';
+  END IF;
+
+  RETURN NULL;
+END;
+$function$;
+
+-- caisse_territoire(text,text) -> TABLE(portee text, ville text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caisse_territoire(p_caisse text, p_pays text)
+ RETURNS TABLE(portee text, ville text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_suffixe text; r record; v_sep text; v_reste text;
+BEGIN
+  IF coalesce(btrim(p_caisse), '') = '' OR coalesce(btrim(p_pays), '') = '' THEN
+    RETURN QUERY SELECT 'indetermine'::text, NULL::text; RETURN;
+  END IF;
+
   v_suffixe := regexp_replace(p_caisse, '^' || p_pays || '_', '');
-  IF v_suffixe LIKE 'gouvernement-%' THEN RETURN NULL; END IF;   -- ministere : national
+
+  IF v_suffixe LIKE 'gouvernement-%' THEN
+    RETURN QUERY SELECT 'national'::text, NULL::text; RETURN;
+  END IF;
+
   SELECT * INTO r FROM public.caisses_autorites c
-   WHERE c.est_prefixe AND v_suffixe LIKE c.motif || '\_%'
-   ORDER BY length(c.motif) DESC LIMIT 1;
-  IF NOT FOUND THEN RETURN NULL; END IF;
-  RETURN substring(v_suffixe from '^' || r.motif || '_(.+)$');
-END; $function$;
+   WHERE (NOT c.est_prefixe AND c.motif = v_suffixe)
+      OR (c.est_prefixe AND v_suffixe LIKE c.motif || '%')
+   ORDER BY c.est_prefixe, length(c.motif) DESC
+   LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT 'indetermine'::text, NULL::text; RETURN;
+  END IF;
+
+  IF NOT r.est_prefixe THEN
+    RETURN QUERY SELECT 'national'::text, NULL::text; RETURN;
+  END IF;
+
+  IF right(r.motif, 1) IN ('-', '_') THEN
+    RETURN QUERY SELECT 'national'::text, NULL::text; RETURN;
+  END IF;
+
+  v_sep   := substr(v_suffixe, length(r.motif) + 1, 1);
+  v_reste := substr(v_suffixe, length(r.motif) + 2);
+  IF v_sep NOT IN ('-', '_') OR coalesce(v_reste, '') = ''
+     OR NOT public.ville_est_reelle(p_pays, v_reste) THEN
+    RETURN QUERY SELECT 'indetermine'::text, NULL::text; RETURN;
+  END IF;
+
+  RETURN QUERY SELECT 'ville'::text, v_reste;
+END;
+$function$;
+
+-- caisse_ville_de(text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caisse_ville_de(p_caisse text, p_pays text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT t.ville FROM public.caisse_territoire(p_caisse, p_pays) t;
+$function$;
 
 -- debiter_fonds_ordinaires(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.debiter_fonds_ordinaires(p_acteur text, p_montant numeric)

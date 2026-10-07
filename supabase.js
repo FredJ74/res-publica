@@ -4680,6 +4680,48 @@ async function sbRpcVerdict(fn, params, options) {
   };
 }
 
+// =====================
+// REPARTITIONS BUDGETAIRES (chantier 4F, 8 octobre 2026)
+// =====================
+// UNE REGLE, DEUX REPRESENTATIONS. Le pourcentage est la regle ; le montant en FR est une
+// representation, calculee par le SERVEUR sur le dernier versement reellement recu par la caisse
+// source. Le navigateur ne calcule aucun des deux : il affiche ce que la base rend, et saisit la
+// decision du titulaire.
+//
+// Ce que le navigateur ne decide JAMAIS : la caisse source, la caisse beneficiaire, son propre
+// droit, ni le montant final transferable. Il nomme une ligne declaree et une part ; le serveur
+// relit le poste en base, verifie que la somme ne depasse pas 100 %, et refuse sinon.
+
+// Lit la repartition declaree d'une caisse source. Rend un tableau de lignes portant la part, son
+// equivalent en FR (`equivalent_fr`, NULL si la source n'a encore rien recu), le solde du
+// beneficiaire et le dernier versement constate.
+async function sbBudgetRepartitionLire(source) {
+  const rows = await sbRpc('budget_repartition_lire', { p_source: source });
+  return Array.isArray(rows) ? rows : [];
+}
+
+// Meme lecture, mais qui distingue une panne d'une repartition vide -- a employer partout ou
+// afficher « aucune repartition » serait une affirmation fausse.
+async function sbBudgetRepartitionLireVerdict(source) {
+  const env = await sbTransportRpc('budget_repartition_lire', { p_source: source });
+  if (env.etat !== 'ok') {
+    return { ok: false, raison: env.raison,
+             transport: { etat: env.etat, http: env.http || null, code: env.code || null,
+                          envoyee: !!env.envoyee } };
+  }
+  return { ok: true, lignes: Array.isArray(env.donnees) ? env.donnees : [] };
+}
+
+// Fixe la part d'un beneficiaire. Rend le verdict METIER tel que le serveur l'ecrit
+// ({ok, raison, ...}) : `autorite_insuffisante`, `somme_depasse_cent`, `repartition_non_declaree`.
+async function sbBudgetRepartitionFixer(source, beneficiaire, part) {
+  const rows = await sbRpc('budget_repartition_fixer', {
+    p_source: source, p_beneficiaire: beneficiaire, p_part: Number(part)
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || null;
+}
+
 // Creation atomique d'un placement Banque nationale : verifie le solde reel du compte national,
 // le debite, et cree la ligne placements_bancaires (avec sa ville), dans une seule transaction
 // cote serveur. Signature confirmee par sondage en lecture seule contre la RPC reelle avant

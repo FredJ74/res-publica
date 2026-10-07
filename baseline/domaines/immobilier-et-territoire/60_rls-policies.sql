@@ -23,6 +23,8 @@ ALTER TABLE public.logements_demandes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reservations_salle_reception ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.terrains_etat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.terrains_historique_ventes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.villes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.villes_empreinte ENABLE ROW LEVEL SECURITY;
 
 -- batiments_etat
 CREATE POLICY "batiments_etat lecture publique" ON public.batiments_etat FOR SELECT TO PUBLIC
@@ -91,4 +93,8 @@ CREATE POLICY terrains_etat_maj_acteur ON public.terrains_etat FOR UPDATE TO aut
 CREATE POLICY terrains_historique_ventes_ecriture_acteur ON public.terrains_historique_ventes FOR INSERT TO authenticated
   WITH CHECK (acteur_identifie());
 CREATE POLICY terrains_historique_ventes_lecture_publique ON public.terrains_historique_ventes FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- villes_empreinte
+CREATE POLICY villes_empreinte_lecture_publique ON public.villes_empreinte FOR SELECT TO PUBLIC
   USING (true);

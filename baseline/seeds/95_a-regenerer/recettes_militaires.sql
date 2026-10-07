@@ -5,27 +5,30 @@
 -- Source canonique : RECETTES_MILITAIRES, plateau-effort-guerre.js
 -- Generateur       : outils/generateurs/generer_recettes_militaires.py (EXISTE ET MARCHE)
 --
--- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST LA CONVENTION DU REPERTOIRE.
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
 -- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
 -- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
 --
 -- CE QUE LA TABLE PORTE
--- 8 recettes de production militaire, miroir de RECETTES_MILITAIRES.
+-- 8 recettes de production militaire, miroir de RECETTES_MILITAIRES. Aucune
+-- fonction ne l'ecrit : le serveur ne fait que la lire pour valider qu'un
+-- produit commande existe.
 --
--- CE QUI LE DISTINGUE DES QUATRE AUTRES FICHIERS DE CE REPERTOIRE
--- Leur generateur restait a ecrire. Celui-ci existe, tourne, et rend un SQL
--- deterministe verifie des deux cotes :
---     python3 outils/generateurs/generer_recettes_militaires.py --sql
---     python3 outils/generateurs/generer_recettes_militaires.py --empreinte
--- Empreinte au 6 octobre 2026 : 6162d0e5d809630e
--- La table a ete peuplee par la migration 20261006213114_effort_commande_autorite,
--- dont le seed etait produit par ce meme generateur.
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- La source de verite vit dans le depot. Copier la base figerait toute
+-- derive entre les deux, et recettes_militaires_empreinte existe precisement
+-- pour surveiller cette derive.
 --
 -- CE QU'IL RESTE A FAIRE
--- Faire ecrire ce fichier directement par le generateur, comme les autres seeds.
--- Tant que ce n'est pas fait, un MONDE NEUF naitrait sans catalogue militaire --
--- meme dette que ordres_couts, pa_bonus_differes, postes_nommes_regles et
--- ressources_economie, qui partagent ce repertoire pour la meme raison.
+-- CE FICHIER ETAIT ECRIT A LA MAIN, hors de tout registre : seeds.py ne le
+-- connaissait pas, l'INVENTAIRE ne le hachait pas, et le controle de
+-- couverture du 8 octobre 2026 l'a decouvert en meme temps que l'oubli de
+-- `villes`. Il est desormais declare ici. Son generateur, lui, existe deja
+-- et tourne : `generer_recettes_militaires.py --sql` rend un SQL
+-- deterministe, empreinte 6162d0e5d809630e au 6 octobre 2026, et c'est lui
+-- qui a produit le seed de la migration
+-- 20261006213114_effort_commande_autorite. Reste a le faire ecrire
+-- directement ici, empreinte comprise.
 -- ============================================================================
 
--- Rien a appliquer tant que le generateur n'ecrit pas ici.
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

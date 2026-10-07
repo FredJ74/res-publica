@@ -365,40 +365,6 @@ export const ENTREPOTS_EFFORT_SERVEUR = {
   ]
 };
 
-// CAISSE_PAR_POSTE_BUDGET_SERVEUR -- CAISSE_PAR_POSTE_BUDGET de plateau-justice-economie.js
-export const CAISSE_PAR_POSTE_BUDGET_SERVEUR = {
-  "presidence": "palais-presidentiel",
-  "pm": "gouvernement-pm",
-  "min_int": "gouvernement-min_int",
-  "min_fin": "gouvernement-min_fin",
-  "min_just": "gouvernement-min_just",
-  "min_def": "gouvernement-min_def",
-  "min_info": "gouvernement-min_info",
-  "min_ae": "gouvernement-min_ae",
-  "mairie": "mairie-capitale",
-  "commissariat": "commissariat_capitale",
-  "tribunal": "tribunal_capitale",
-  "assemblee": "assemblee",
-  "reserve": "reserve-nationale"
-};
-
-// REPARTITION_DEFAULT_SERVEUR -- REPARTITION_DEFAULT de plateau-core.js
-export const REPARTITION_DEFAULT_SERVEUR = {
-  "presidence": 15,
-  "pm": 8,
-  "min_int": 8,
-  "min_fin": 6,
-  "min_just": 6,
-  "min_def": 10,
-  "min_info": 5,
-  "min_ae": 6,
-  "assemblee": 8,
-  "tribunal": 6,
-  "commissariat": 8,
-  "mairie": 12,
-  "reserve": 2
-};
-
 // RECETTES_MILITAIRES_SERVEUR -- RECETTES_MILITAIRES de plateau-effort-guerre.js
 export const RECETTES_MILITAIRES_SERVEUR = {
   "arme_de_poing": {

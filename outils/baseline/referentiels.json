@@ -108,44 +108,6 @@
         }
       ]
     },
-    "repartition_budgetaire": {
-      "_role": "la cle de repartition par defaut des recettes nationales",
-      "canon": {
-        "fichier": "plateau-core.js",
-        "constante": "REPARTITION_DEFAULT"
-      },
-      "forme": "objet",
-      "cle": "_cle",
-      "champs": [
-        "_valeur"
-      ],
-      "copies": [
-        {
-          "fichier": "api/_referentiels-generes.js",
-          "constante": "REPARTITION_DEFAULT_SERVEUR",
-          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
-        }
-      ]
-    },
-    "caisse_par_poste_budget": {
-      "_role": "quelle caisse recoit la part d'un poste budgetaire",
-      "canon": {
-        "fichier": "plateau-justice-economie.js",
-        "constante": "CAISSE_PAR_POSTE_BUDGET"
-      },
-      "forme": "objet",
-      "cle": "_cle",
-      "champs": [
-        "_valeur"
-      ],
-      "copies": [
-        {
-          "fichier": "api/_referentiels-generes.js",
-          "constante": "CAISSE_PAR_POSTE_BUDGET_SERVEUR",
-          "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
-        }
-      ]
-    },
     "greve_paliers": {
       "_role": "les cinq paliers d'une greve ordinaire",
       "_note": "max vaut Infinity sur le dernier palier ; JSON.stringify le rend null des deux cotes, la comparaison reste juste.",
@@ -176,8 +138,8 @@
   "_couverture_croisee": "La surveillance est CROISEE, et c'est le defaut de fond : 7 generateurs savent calculer une empreinte, mais seules 4 tables <miroir>_empreinte existent, et elles ne recouvrent pas le meme ensemble. Les quatre miroirs surveilles ont desormais TOUS leur fonction _empreinte_reelle (chantier 4C) ; ce qui reste croise, c'est le peuplement de ces quatre. ressources_economie est surveillee sans etre generee (aucun generateur ne sait la recalculer : son empreinte ne peut donc PAS etre reverifiee hors ligne). clubs_football, miroirs_chantiers, miroirs_entreprises et postes_electifs sont generees sans etre surveillees. Ces cinq trous sont declares ci-dessous pour qu'ils cessent d'etre invisibles ; les combler demande du SQL que le chantier 4C n'autorise pas.",
   "empreintes": {
     "_mesure": {
-      "le": "2026-10-06",
-      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les quatre valeurs 'reelle' sont rendues par les quatre fonctions <miroir>_empreinte_reelle, les deux dernieres ajoutees par la migration 20261006194527_referentiels_empreintes_manquantes. Mesure refaite apres application : identique a la mesure d'avant, ce qui prouve que la migration n'a touche aucune donnee. Le cinquieme miroir, villes (chantier 4E), n'est pas encore en base : sa requete est deja dans _requete_de_mesure, mais elle echouera tant que la migration du 7 octobre 2026 n'est pas appliquee.",
+      "le": "2026-10-08",
+      "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les CINQ valeurs 'reelle' sont rendues par les cinq fonctions <miroir>_empreinte_reelle. Remesure du 8 octobre 2026, apres l'application de 20261008000000_villes_referentiel_et_caisses_fail_closed : les quatre miroirs anterieurs sont INCHANGES -- ce qui prouve que la migration n'a touche aucune de leurs donnees -- et le cinquieme, villes, est desormais mesurable.",
       "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
     },
     "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle() UNION ALL SELECT 'villes', (SELECT count(*) FROM public.villes), (SELECT empreinte FROM public.villes_empreinte LIMIT 1), public.villes_empreinte_reelle();",
@@ -231,14 +193,14 @@
         "generateur": "outils/generateurs/generer_villes.py",
         "table_empreinte": "villes_empreinte",
         "fonction_reelle": "villes_empreinte_reelle",
-        "fonction_reelle_en_base": false,
+        "fonction_reelle_en_base": true,
         "data_js": "d41051aa8bcafadd",
         "lignes": 12,
-        "posee": null,
-        "reelle": null,
-        "verdict": "data.js seul est mesurable : la table, la sentinelle et la fonction n'existent pas encore en base.",
-        "_ne": "EN ATTENTE D'APPLICATION. La table villes, la table villes_empreinte et la fonction villes_empreinte_reelle sont creees par migrations/20261008000000_villes_referentiel_et_caisses_fail_closed.sql, qui n'est PAS appliquee. Seule la colonne data_js est donc renseignee, et le controle saute les deux comparaisons (il ignore un couple ou l'une des deux valeurs est nulle). A reprendre le jour de l'application : mesurer posee et reelle, et basculer fonction_reelle_en_base.",
-        "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner."
+        "posee": "d41051aa8bcafadd",
+        "reelle": "d41051aa8bcafadd",
+        "verdict": "les trois concordent",
+        "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner.",
+        "_applique": "APPLIQUEE le 8 octobre 2026 (registre 20261007150217). Les trois valeurs ont ete mesurees le jour meme, par la requete de _requete_de_mesure : data.js, la sentinelle posee et la fonction villes_empreinte_reelle() rendent toutes d41051aa8bcafadd. Le miroir des villes est donc le seul des cinq a naitre deja concordant -- les autres portaient une derive au moment ou on a commence a les surveiller."
       }
     },
     "generes_sans_surveillance": {
@@ -276,5 +238,57 @@
       "arbitrage_requis": "corriger double les prix publies par le Journal depuis des semaines"
     }
   },
-  "_copies_generees": "Cinq copies ne sont plus ressaisies a la main : elles vivent dans api/_referentiels-generes.js, produit par outils/generateurs/generer_referentiels_serveur.py. Cet axe continue de les comparer a data.js -- un artefact genere qu'on ne verifierait plus parce qu'il est genere serait exactement l'angle mort qu'on vient de fermer ailleurs. Le TROISIEME axe verifie en plus que l'artefact du disque est bien ce que rend le generateur."
+  "_copies_generees": "Cinq copies ne sont plus ressaisies a la main : elles vivent dans api/_referentiels-generes.js, produit par outils/generateurs/generer_referentiels_serveur.py. Cet axe continue de les comparer a data.js -- un artefact genere qu'on ne verifierait plus parce qu'il est genere serait exactement l'angle mort qu'on vient de fermer ailleurs. Le TROISIEME axe verifie en plus que l'artefact du disque est bien ce que rend le generateur.",
+  "_referentiels_supprimes": {
+    "_commentaire": "Referentiels RETIRES de ce controle parce que leur canon n'existe plus. On les garde nommes ici plutot que de les effacer : un controle qui perd une ligne sans dire pourquoi laisse croire qu'elle n'a jamais existe.",
+    "repartition_budgetaire": {
+      "retire_le": "2026-10-08",
+      "canon_disparu": "REPARTITION_DEFAULT (plateau-core.js)",
+      "pourquoi": "La cle de repartition du budget national vivait dans une constante du NAVIGATEUR et le serveur la recevait generee. C'etait pourtant la regle REELLEMENT appliquee : verifie en base le 7 octobre 2026, budgets_nationaux.data ne portait aucune cle `repartition`, donc le cron retombait toujours sur cette constante. Depuis l'arbitrage du 8 octobre 2026, la cle canonique est la table repartitions_budgetaires -- en base, parce que c'est le serveur qui l'applique et le Ministre de l'Economie et des Finances qui la modifie par RPC budget_repartition_fixer.",
+      "ce_qui_la_controle_desormais": "La fonction SQL budget_coherence() : aucune somme de parts au-dela de 100 %, aucun beneficiaire a part non nulle sans caisse, aucun poste d'autorite inconnu, aucun double versement le meme jour. Et la cle primaire de repartitions_versements, qui porte le jour.",
+      "_ancienne_declaration": {
+        "_role": "la cle de repartition par defaut des recettes nationales",
+        "canon": {
+          "fichier": "plateau-core.js",
+          "constante": "REPARTITION_DEFAULT"
+        },
+        "forme": "objet",
+        "cle": "_cle",
+        "champs": [
+          "_valeur"
+        ],
+        "copies": [
+          {
+            "fichier": "api/_referentiels-generes.js",
+            "constante": "REPARTITION_DEFAULT_SERVEUR",
+            "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+          }
+        ]
+      }
+    },
+    "caisse_par_poste_budget": {
+      "retire_le": "2026-10-08",
+      "canon_disparu": "CAISSE_PAR_POSTE_BUDGET (plateau-justice-economie.js)",
+      "pourquoi": "La table « poste de budget -> caisse » n'a plus d'objet : une repartition se declare desormais CAISSE A CAISSE, il n'y a donc plus de poste a traduire. Son commentaire d'origine affirmait que trois de ses valeurs n'etaient plus lues a l'execution -- vrai au navigateur, FAUX au serveur, et c'est ce qui a prive Montrouge et Port-Sainte-Marie de tout financement du 19 septembre au 7 octobre 2026 (commit ba75c1e).",
+      "_ancienne_declaration": {
+        "_role": "quelle caisse recoit la part d'un poste budgetaire",
+        "canon": {
+          "fichier": "plateau-justice-economie.js",
+          "constante": "CAISSE_PAR_POSTE_BUDGET"
+        },
+        "forme": "objet",
+        "cle": "_cle",
+        "champs": [
+          "_valeur"
+        ],
+        "copies": [
+          {
+            "fichier": "api/_referentiels-generes.js",
+            "constante": "CAISSE_PAR_POSTE_BUDGET_SERVEUR",
+            "_deplacee": "Etait recopiee a la main dans api/cron-minuit.js ; GENEREE depuis le canon depuis le chantier 4B (6 octobre 2026)."
+          }
+        ]
+      }
+    }
+  }
 }

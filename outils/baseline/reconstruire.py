@@ -311,20 +311,27 @@ def controles_du_monde(cat):
     def att(libelle, obtenu, attendu, note=""):
         r.append((libelle, obtenu, attendu, obtenu == attendu, note))
 
-    # 249 depuis la migration 20261007140910 : la table ajoutee est
-    # directions_etablissements (chantier 4F).
-    att("tables creees", len(cat.tables), 249)
+    # 253 depuis les migrations du 8 octobre 2026 : +2 pour le referentiel des villes
+    # (villes, villes_empreinte, chantier 4E) et +2 pour la brique budgetaire generique
+    # (repartitions_budgetaires, repartitions_versements, chantier 4F). Les 6 tables
+    # hors_baseline ne sont jamais creees : 259 au catalogue, 253 ici.
+    att("tables creees", len(cat.tables), 253)
     att("vues creees", len(cat.vues), 2)
-    att("signatures de fonction creees", cat.n_fonctions, 648)
-    att("noms de fonction distincts", len(cat.fonctions), 644,
+    # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
+    # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
+    # budget_repartition_fixer, budget_repartition_lire, budget_coherence).
+    att("signatures de fonction creees", cat.n_fonctions, 657)
+    att("noms de fonction distincts", len(cat.fonctions), 653,
         "4 fonctions sont surchargees : moins de noms que de signatures")
-    # 425 depuis la meme migration : +1 cle primaire et +2 CHECK sur
-    # directions_etablissements. La cle primaire de salaires_civils_declares a change de
-    # colonnes -- (pays, cle) au lieu de (cle) -- mais reste une seule contrainte.
-    att("contraintes posees", len(cat.contraintes), 425)
+    # 431 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
+    # chantier 4E, +2 cles primaires et +1 CHECK (la part bornee entre 0 et 100) au 4F.
+    att("contraintes posees", len(cat.contraintes), 431)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
-    att("policies creees", len(cat.policies), 283)
+    # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
+    # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
+    # elles ne sont lisibles que par le serveur et par les RPC attestees.
+    att("policies creees", len(cat.policies), 284)
     att("sequences disponibles", len(cat.sequences), 31)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
@@ -345,8 +352,19 @@ def controles_du_monde(cat):
         "les loges attendent le mecanisme de rattachement du chef")
     att("lignes de rp_transitions", cat.lignes.get("rp_transitions", 0), 0,
         "table volontairement vide : rp_transition_active() rend FALSE sur cle absente")
-    att("caisses de batiment seedees", cat.lignes.get("caisses_batiments", 0), 38,
-        "les 38 dotations financieres arbitrees, 130 000 FR, ecrites depuis le tableau")
+    att("caisses de batiment seedees", cat.lignes.get("caisses_batiments", 0), 41,
+        "les 41 dotations financieres arbitrees, 130 000 FR, ecrites depuis le tableau")
+    # LA CLE DE REPARTITION NAIT AVEC LE MONDE. Sans ces quinze lignes, la cascade nocturne ne
+    # verserait rien -- et c'est volontairement ce qui arrive aux trois autres empires, qui n'en
+    # ont aucune. Dix lignes au niveau national, une Defense -> Caserne, une Interieur -> Douanes,
+    # et trois Justice -> tribunaux a part NULLE : le mecanisme est la, le pourcentage attend un
+    # arbitrage, et rien n'a ete invente a sa place.
+    att("lignes de repartition budgetaire seedees",
+        cat.lignes.get("repartitions_budgetaires", 0), 15,
+        "10 nationales (9 x 9 % + Assemblee 19 %), Defense 65 %, Douanes 35 %, 3 tribunaux a NULL")
+    att("versements budgetaires seedes", cat.lignes.get("repartitions_versements", 0), 0,
+        "journal des versements reels : un monde neuf nait sans historique, sinon le premier "
+        "minuit croirait avoir deja verse")
     return r
 
 

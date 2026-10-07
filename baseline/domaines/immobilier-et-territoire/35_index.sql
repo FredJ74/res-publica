@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 10 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 12 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   batiments_etat_pkey  (contrainte batiments_etat_pkey)
 --   batiments_fermes_pkey  (contrainte batiments_fermes_pkey)
 --   dossiers_urbanisme_pkey  (contrainte dossiers_urbanisme_pkey)
@@ -21,6 +21,8 @@
 --   reservations_salle_reception_pkey  (contrainte reservations_salle_reception_pkey)
 --   terrains_etat_pkey  (contrainte terrains_etat_pkey)
 --   terrains_historique_ventes_pkey  (contrainte terrains_historique_ventes_pkey)
+--   villes_empreinte_pkey  (contrainte villes_empreinte_pkey)
+--   villes_pkey  (contrainte villes_pkey)
 
 -- Index autonomes :
 CREATE INDEX dossiers_urbanisme_commune_idx ON public.dossiers_urbanisme USING btree (country, city, created_at);

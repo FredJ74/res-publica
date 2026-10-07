@@ -1,5 +1,18 @@
 {
- "commentaires": [],
+ "commentaires": [
+  {
+   "empreinte": "dbde34bf03d6d6f19889e8be40f17c20",
+   "genre": "FUNCTION",
+   "objet": "ville_est_reelle(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "50aa20d91ac40bf1cf5bbf20b4338862",
+   "genre": "TABLE",
+   "objet": "villes",
+   "sous": ""
+  }
+ ],
  "contraintes": [
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -62,10 +75,28 @@
    "tbl": "terrains_historique_ventes"
   },
   {
+   "empreinte": "ddffd24f170056733318cd26b5f045fd",
+   "genre": "p",
+   "nom": "villes_pkey",
+   "tbl": "villes"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "villes_empreinte_pkey",
+   "tbl": "villes_empreinte"
+  },
+  {
    "empreinte": "5a9af6f22060a8f14db38df5a2c3b5e4",
    "genre": "c",
    "nom": "logements_demandes_statut_check",
    "tbl": "logements_demandes"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "villes_empreinte_seul_check",
+   "tbl": "villes_empreinte"
   }
  ],
  "domaine": "immobilier et territoire",
@@ -308,6 +339,30 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "terrain_etat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ville_est_reelle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ville_est_reelle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "villes_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "villes_empreinte_reelle()",
    "privileges": "EXECUTE"
   },
   {
@@ -561,18 +616,54 @@
    "genre": "TABLE",
    "objet": "terrains_historique_ventes",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "villes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "villes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "villes_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "villes_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "villes_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "villes_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "7922ce0cb8ca8a66f738b2f9eab67bad",
-  "20_fonctions.sql": "f5bad049be013c9703418ff5d4acf5fd",
-  "30_contraintes.sql": "ac91ff7a2d4f6f14bf8c83a8946e23c7",
-  "35_index.sql": "a4f278dfe360e6f53a6985c040d24ed6",
+  "10_tables.sql": "66b1fea54fa7c394f1b301c5738dc9a4",
+  "20_fonctions.sql": "5e0c506ab80db9f4c0c6d044eb509d5b",
+  "30_contraintes.sql": "a5a5bf05e55f51602249819fcb875cd2",
+  "35_index.sql": "3d319f664a45b587249753e4ef607bed",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
-  "60_rls-policies.sql": "31e222aa30af8775f9a6400465fc58dd",
-  "70_droits.sql": "179ad231d2d68a1b2f6dbdf34e3dd2bf",
-  "80_commentaires.sql": "80a3dc2ba71528dca29027299b36e259"
+  "60_rls-policies.sql": "c51fbae86e985e66aeeaeac3aa2ca050",
+  "70_droits.sql": "31c17572a6c42a24d4dfe0c7a0bdf16f",
+  "80_commentaires.sql": "1f3a2950e2af35ad3e61470a1ae940a7"
  },
  "fonctions": [
   {
@@ -644,6 +735,16 @@
    "empreinte": "41b7b75a7ddfc61b4896d765e092f0e4",
    "security_definer": false,
    "signature": "terrain_etat_lire(text)"
+  },
+  {
+   "empreinte": "ebe2b9c8ceca60f0f9dd2a7e7e114a1e",
+   "security_definer": true,
+   "signature": "ville_est_reelle(text,text)"
+  },
+  {
+   "empreinte": "da0cff3876d40be8f55d66c4b6c54e05",
+   "security_definer": true,
+   "signature": "villes_empreinte_reelle()"
   }
  ],
  "index_autonomes": [
@@ -694,7 +795,9 @@
   "logements_demandes_pkey",
   "reservations_salle_reception_pkey",
   "terrains_etat_pkey",
-  "terrains_historique_ventes_pkey"
+  "terrains_historique_ventes_pkey",
+  "villes_empreinte_pkey",
+  "villes_pkey"
  ],
  "ordre": [
   "10_tables.sql",
@@ -838,6 +941,12 @@
    "empreinte_avec_roles": "b5be5d160a35156ff115b39e489e248b",
    "nom": "terrains_historique_ventes_lecture_publique",
    "tbl": "terrains_historique_ventes"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "2247ee12b355f15388150381fe226b33",
+   "nom": "villes_empreinte_lecture_publique",
+   "tbl": "villes_empreinte"
   }
  ],
  "rls": [
@@ -890,6 +999,16 @@
    "active": true,
    "forcee": false,
    "tbl": "terrains_historique_ventes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "villes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "villes_empreinte"
   }
  ],
  "sequences": [
@@ -962,6 +1081,18 @@
    "empreinte_catalogue": "b1ce29c0fd423330a568c48bb5f0b323",
    "empreinte_texte": "06451321b0c25e58802faac31e89a7ce",
    "nom": "terrains_historique_ventes"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "6304c1a99383471ae89cb97795f085dc",
+   "empreinte_texte": "4883517f86d421de1d64c8aa861d104b",
+   "nom": "villes"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "02f024a350bc9c98160e03c2a30e115e",
+   "empreinte_texte": "641608a7aab64f177136d6fe7d290a88",
+   "nom": "villes_empreinte"
   }
  ],
  "triggers": [

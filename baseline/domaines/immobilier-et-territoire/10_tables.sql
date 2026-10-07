@@ -120,6 +120,20 @@ CREATE TABLE public.terrains_historique_ventes (
   created_at timestamp with time zone DEFAULT now()
 );
 
+CREATE TABLE public.villes (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  nom text NOT NULL,
+  est_capitale boolean DEFAULT false NOT NULL,
+  rang integer NOT NULL
+);
+
+CREATE TABLE public.villes_empreinte (
+  seul boolean DEFAULT true NOT NULL,
+  empreinte text NOT NULL,
+  pose_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 
 -- Sequences autonomes (non possedees par une colonne)
 

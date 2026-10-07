@@ -3,7 +3,7 @@
 """Controles automatiques de la classification des donnees (chantier 2C).
 
 Verifie, sans acceder a la base :
-  1. exactement 255 tables classees ;
+  1. exactement 259 tables classees ;
   2. aucune table oubliee ni inventee -- l'empreinte de la liste des tables doit
      correspondre a celle relevee dans le catalogue au moment de la classification ;
   3. aucune table classee deux fois ;
@@ -25,12 +25,14 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-# Mesure du 7 octobre 2026, apres la migration 20261007140910 : la 255e table est
-# directions_etablissements. Les deux valeurs viennent de la MEME requete que celle en
-# commentaire, jouee sur la base -- et le md5 qu'elle rend est exactement celui que ce
-# controle recalcule depuis le CSV, ce qui est le point de la verification.
-TABLES_ATTENDUES = 255
-EMPREINTE_LISTE = "8572e604bf9820077011dd8241ae63e1"   # md5(string_agg(relname,',' order by relname collate "C"))
+# Mesure du 8 octobre 2026, apres les migrations 20261008000000 et 20261008010000, qui ont
+# porte le catalogue de 255 a 259 tables : villes, villes_empreinte (chantier 4E),
+# repartitions_budgetaires et repartitions_versements (chantier 4F). Les deux valeurs viennent
+# de la MEME requete que celle en commentaire, jouee sur la base -- et le md5 qu'elle rend est
+# exactement celui que ce controle recalcule depuis le CSV, ce qui est le point de la
+# verification.
+TABLES_ATTENDUES = 259
+EMPREINTE_LISTE = "44eac2eb908c9ca8eb87d43055927105"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

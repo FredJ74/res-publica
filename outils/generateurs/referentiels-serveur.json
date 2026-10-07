@@ -155,22 +155,6 @@
       ]
     },
     {
-      "serveur": "CAISSE_PAR_POSTE_BUDGET_SERVEUR",
-      "canon": "CAISSE_PAR_POSTE_BUDGET",
-      "fichier": "plateau-justice-economie.js",
-      "forme": "valeur",
-      "lecture": "litteral",
-      "_lecture": "plateau-justice-economie.js ne se charge pas seul : il appelle coutTotalConstruction, definie dans plateau-chantiers.js. On n'extrait donc QUE le litteral de cette constante, et on l'evalue isole -- jamais le fichier entier."
-    },
-    {
-      "serveur": "REPARTITION_DEFAULT_SERVEUR",
-      "canon": "REPARTITION_DEFAULT",
-      "fichier": "plateau-core.js",
-      "forme": "valeur",
-      "lecture": "litteral",
-      "_lecture": "plateau-core.js touche `window` des son chargement (window.__rpDiagId, deux addEventListener). Le charger hors navigateur echoue, et le charger DANS le serveur serait exactement le couplage que ce chantier interdit. Seul le litteral est lu."
-    },
-    {
       "serveur": "RECETTES_MILITAIRES_SERVEUR",
       "canon": "RECETTES_MILITAIRES",
       "fichier": "plateau-effort-guerre.js",
@@ -274,6 +258,14 @@
     "VILLES_ARMURERIES_SERVEUR": {
       "raison": "fige Republia comme monde entier. ARBITRAGE RENDU : doit devenir per-empire. Non traitee dans 4B, qui etait clos -- voir _republia_monde_entier.",
       "ferme_par": "lot 4G -- dimensionnement par empire (arbitrage rendu le 6 octobre 2026)"
+    },
+    "CAISSE_PAR_POSTE_BUDGET_SERVEUR": {
+      "canon": "SUPPRIMEE le 8 octobre 2026",
+      "raison": "La table « poste de budget -> caisse » n'a plus d'objet. La repartition budgetaire se declare desormais CAISSE A CAISSE dans la table repartitions_budgetaires : il n'y a plus de poste a traduire en caisse, donc plus de traduction a generer. Son commentaire d'origine pretendait que trois de ses valeurs n'etaient plus lues a l'execution -- c'etait vrai au navigateur et FAUX au serveur, et c'est ce qui a prive Montrouge et Port-Sainte-Marie de financement pendant dix-huit jours."
+    },
+    "REPARTITION_DEFAULT_SERVEUR": {
+      "canon": "SUPPRIMEE le 8 octobre 2026",
+      "raison": "C'etait la cle de repartition du budget national, et la regle REELLEMENT appliquee : budgets_nationaux.data ne portait aucune cle `repartition`, donc le cron retombait toujours sur cette constante du navigateur. La cle canonique est desormais la table repartitions_budgetaires -- en base, parce que c'est le serveur qui l'applique et le Ministre de l'Economie et des Finances qui la modifie par RPC."
     }
   },
   "_republia_monde_entier": {

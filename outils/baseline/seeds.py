@@ -243,6 +243,40 @@ def filtres_dynamiques():
 # copie jamais depuis la base : il se regenere depuis la source. Copier la base
 # reviendrait a figer une derive de bêta et a perdre le lien avec la source.
 A_REGENERER = {
+    "villes": {
+        "source": "data.js (constante VILLES)",
+        "generateur": "outils/generateurs/generer_villes.py (EXISTE)",
+        "quoi": "Les douze vraies villes du jeu, une ligne par couple (pays, ville). Le "
+                "referentiel canonique des villes, dont depend ville_est_reelle() -- et donc "
+                "toute autorite territoriale cote serveur.",
+        "pourquoi_pas_une_copie": "La source de verite est VILLES dans data.js, et le "
+            "generateur REFUSE d'emettre si VILLES et WORLD se contredisent, ou si une zone "
+            "speciale -- caserne, QHS -- s'y est glissee. Copier la base contournerait ces deux "
+            "refus et pourrait canoniser une ville qui n'en est pas une.",
+        "a_faire": "Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Reste a "
+            "le faire ecrire directement ici, empreinte comprise. ATTENTION : tant que ce "
+            "fichier est vide, un monde reconstruit naitrait SANS AUCUNE VILLE, et "
+            "ville_est_reelle() refuserait tout -- fail closed, donc sans danger, mais "
+            "injouable. C'est le defaut le plus urgent de ce repertoire.",
+    },
+    "recettes_militaires": {
+        "source": "RECETTES_MILITAIRES, plateau-effort-guerre.js",
+        "generateur": "outils/generateurs/generer_recettes_militaires.py (EXISTE ET MARCHE)",
+        "quoi": "8 recettes de production militaire, miroir de RECETTES_MILITAIRES. Aucune "
+                "fonction ne l'ecrit : le serveur ne fait que la lire pour valider qu'un produit "
+                "commande existe.",
+        "pourquoi_pas_une_copie": "La source de verite vit dans le depot. Copier la base "
+            "figerait toute derive entre les deux, et recettes_militaires_empreinte existe "
+            "precisement pour surveiller cette derive.",
+        "a_faire": "CE FICHIER ETAIT ECRIT A LA MAIN, hors de tout registre : seeds.py ne le "
+            "connaissait pas, l'INVENTAIRE ne le hachait pas, et le controle de couverture du "
+            "8 octobre 2026 l'a decouvert en meme temps que l'oubli de `villes`. Il est "
+            "desormais declare ici. Son generateur, lui, existe deja et tourne : "
+            "`generer_recettes_militaires.py --sql` rend un SQL deterministe, empreinte "
+            "6162d0e5d809630e au 6 octobre 2026, et c'est lui qui a produit le seed de la "
+            "migration 20261006213114_effort_commande_autorite. Reste a le faire ecrire "
+            "directement ici, empreinte comprise.",
+    },
     "ordres_couts": {
         "source": "data.js",
         "generateur": "outils/generateurs/generer_ordres_couts.py (EXISTE)",
@@ -792,6 +826,25 @@ def main():
     if "colonnes" not in exp:
         raise SystemExit("exports introuvables ou incomplets dans " + sys.argv[2])
     cls = classification()
+
+    # COUVERTURE DES TABLES A RECONSTRUIRE. Une table classee reconstruction_explicite ne se
+    # copie pas depuis la base : elle doit donc etre declaree soit dans A_REGENERER (un
+    # generateur du depot l'ecrit), soit dans A_CONSTRUIRE (son etat initial reste a decider).
+    # Si elle n'est dans NI L'UN NI L'AUTRE, elle disparait du baseline SANS UN MOT -- et un
+    # monde reconstruit nait sans elle.
+    #
+    # C'est arrive le 8 octobre 2026 a la table `villes`, nee la veille : classee, rendue dans le
+    # schema, mais absente des deux registres. Un monde neuf serait ne sans aucune ville. Rien ne
+    # l'a signale ; ce controle existe pour que cela ne puisse plus arriver en silence.
+    orphelines = sorted(t for t, l in cls.items()
+                        if l["strategie"] == "reconstruction_explicite"
+                        and t not in A_REGENERER and t not in A_CONSTRUIRE)
+    if orphelines:
+        raise SystemExit(
+            "ECHEC : %d table(s) classee(s) reconstruction_explicite ne sont declarees ni dans "
+            "A_REGENERER ni dans A_CONSTRUIRE, et disparaitraient du baseline sans un mot :\n  - "
+            % len(orphelines) + "\n  - ".join(orphelines))
+
     a_seeder = sorted(t for t, l in cls.items()
                       if l["strategie"] in ("seed_complet", "seed_filtre")
                       and t not in A_CONSTRUIRE)

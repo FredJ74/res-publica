@@ -24,7 +24,9 @@ HUIT INVARIANTS, qui echouent independamment.
      POINT DE COUPE                   est deja dans le baseline : la rejouer est
                                      au mieux inutile, au pire destructeur
   5. SQL DANS SES TROIS MAISONS       baseline/, migrations/, historique/ -- et
-                                     nulle part ailleurs
+                                     nulle part ailleurs, SAUF un banc sous
+                                     outils/bancs/, qui doit prouver qu'il
+                                     s'annule lui-meme
   6. LE PROCESSUS EST ECRIT           WORKFLOW-SUPABASE.md existe et les README
                                      y renvoient au lieu de le repeter
   7. AUCUN DOUBLON D'OUTIL            un seul moteur de rendu, un seul
@@ -182,10 +184,47 @@ def main():
     # --------------------------------------- 5. le SQL dans ses trois maisons
     r.famille("5. SQL DANS SES TROIS MAISONS")
     egares = []
+    # OUTILS/BANCS/ EST UNE QUATRIEME PLACE, ET ELLE DOIT SE JUSTIFIER FICHIER PAR FICHIER.
+    #
+    # La regle des trois maisons existe pour qu'aucun .sql du depot ne puisse etre pris pour
+    # quelque chose d'applicable : un quatrieme canal d'application creuserait le trou que le
+    # chantier 2A a mis des jours a combler. Un BANC, lui, est du SQL qui s'execute et qui
+    # s'annule : chacune de ses epreuves ecrit pour de vrai, mesure, puis leve une exception dont
+    # le message porte le rapport -- et l'exception annule la transaction.
+    #
+    # On n'ecrit donc pas une exception qui NOMME banc-budget-cascade.sql : une exception qui
+    # nomme un objet est le symptome d'une regle manquante. On ecrit la REGLE, et le banc doit la
+    # satisfaire -- autant d'exceptions levees que de blocs DO, et aucun ordre nu en dehors.
+    # Un banc qui oublierait son RAISE ecrirait en production : ce controle refuserait de passer.
+    bancs = os.path.join("outils", "bancs")
     for chemin in glob.glob(os.path.join(RACINE, "**", "*.sql"), recursive=True):
         rel = os.path.relpath(chemin, RACINE)
         tete = rel.split(os.sep)[0]
         if tete in MAISONS or tete == ".scratch" or tete.startswith("."):
+            continue
+        if os.path.dirname(rel) == bancs:
+            texte = open(chemin, encoding="utf-8").read()
+            nu = re.sub(r"(?m)^\s*--.*$", "", texte)
+            blocs  = len(re.findall(r"(?mi)^\s*DO\s*\$\$", nu))
+            raises = len(re.findall(r"(?i)RAISE\s+EXCEPTION", nu))
+            # Les ordres a l'INTERIEUR d'un bloc DO sont annules avec lui : ce qu'on cherche,
+            # ce sont les ordres NUS, ceux qui s'executeraient seuls. On retire donc les corps
+            # des blocs avant de regarder. Premier jet de ce controle : il comptait l'INSERT de
+            # l'epreuve 3 comme un ordre nu, alors qu'il est dans un bloc qui leve.
+            dehors = re.sub(r"(?si)\bDO\s*\$\$.*?\$\$\s*;", "", nu)
+            hors = [m.group(1) for m in
+                    re.finditer(r"(?mi)^\s*(INSERT|UPDATE|DELETE|TRUNCATE|DROP|ALTER|GRANT|REVOKE|CREATE)\b", dehors)]
+            if blocs == 0:
+                r.anomalie("banc sans bloc DO, donc applicable tel quel : " + rel)
+            elif raises < blocs:
+                r.anomalie("banc dont %d bloc(s) sur %d ne levent pas : %s -- ce qu'ils "
+                           "ecrivent resterait ecrit" % (blocs - raises, blocs, rel))
+            elif hors:
+                r.anomalie("banc portant %d ordre(s) nu(s) hors d'un bloc DO (%s) : %s"
+                           % (len(hors), ", ".join(sorted(set(hors))), rel))
+            else:
+                print("  %-14s %4d blocs DO, %d RAISE, 0 ordre nu  %s"
+                      % (bancs + "/", blocs, raises, os.path.basename(rel)))
             continue
         egares.append(rel)
     r.verif("fichiers .sql hors des trois maisons", len(egares), 0)
