@@ -1,7 +1,13 @@
 # Audit du cron de minuit — cartographie et découpage proposé
 
 > **Chantier 6, audit préalable. 7 octobre 2026.**
-> `api/cron-minuit.js`, 6 202 lignes, un seul endpoint. Cadence `0 23 * * *`
+> **Révisé le 8 octobre 2026** : trois affirmations de cette page avaient vieilli
+> en vingt-quatre heures et sont corrigées ci-dessous (nombre de lignes, nombre
+> de tâches sous registre, état des successions). Le reste a été revérifié et
+> tient. Le détail du contre-audit est dans
+> [`AUDIT-CHANTIER-6-IDEMPOTENCE.md`](AUDIT-CHANTIER-6-IDEMPOTENCE.md).
+>
+> `api/cron-minuit.js`, 6 304 lignes, un seul endpoint. Cadence `0 23 * * *`
 > (23 h UTC), `maxDuration: 120 s`. Journée canonique : `jourParisISO()`.
 > Deux portes fail-closed en tête : `CRON_SECRET` puis
 > `SUPABASE_SERVICE_ROLE_KEY`.
@@ -22,7 +28,8 @@ fichier est resté monolithique.
 `joursCron: { <tâche>: 'AAAA-MM-JJ' }`. Le marqueur est posé **avant** l'effet,
 puis **relu** pour vérifier qu'il a bien été persisté — si non, la tâche ne
 tourne pas. C'est un vrai fail-closed, et c'est le **seul** garde-fou
-d'idempotence de **dix-sept** tâches.
+d'idempotence de **dix-huit** tâches (elles étaient dix-sept le 7 octobre ;
+`souvenirs_accueil` est entrée au registre le même jour).
 
 La lecture-fusion-écriture n'est pas atomique. **Deux lots extraits qui
 tourneraient en parallèle s'écraseraient leurs marqueurs** — donc double
@@ -122,7 +129,7 @@ l'effet se reproduit la nuit suivante.
 | **compromis de vente / d'entreprise** | le crédit du prêt est appliqué, `statut = 'accorde'` n'est pas persisté → **double crédit** avec un nouveau tirage ; et si c'est l'`INSERT` dans `prets` qui échoue seul, le joueur garde l'argent **sans dette** |
 | **votes de confiance** | clôture avalée → **re-dépouillement avec un nouveau tirage aléatoire**, pouvant inverser confiance et censure, après que l'événement public et les mails ont annoncé le premier verdict |
 | **candidatures expirées** | un seul `.catch(() => {})` annule le marquage de **tous** les dossiers de la passe → nouveau tirage, nouveau gagnant, nouvelles sanctions POP |
-| **successions** | huit écritures non atomiques, toutes en `.catch(() => null)` → bénéficiaire crédité, part de l'État non prélevée, marqueur non posé → **re-crédit** |
+| ~~**successions**~~ | **CETTE LIGNE ÉTAIT FAUSSE DÈS LA RÉDACTION, corrigée le 8 octobre 2026.** Le code ne fait pas « huit écritures non atomiques toutes avalées » : `reglerSuccession` vérifie **chacune** de ses écritures (`if (!r) return false;`), pose le marqueur `d.regle` **par disposition** immédiatement après la mutation et **le relit**, et porte deux marqueurs fiscaux indépendants également vérifiés. Le défaut résiduel est une **fenêtre**, pas une passoire : entre le crédit réel et la pose du marqueur il reste deux requêtes HTTP, donc un crash dans cet intervalle laisse un bénéficiaire crédité sans `regle` → re-crédit la nuit suivante. Probabilité faible, montant élevé (un héritage entier). Reste à traiter, mais pas au même rang que les compromis ou les candidatures |
 | **ardoise d'impayé des loyers** | le prélèvement est protégé en base, mais le branchement `expulsion_requise` est du JavaScript sans clé de journée : `jours + 1` et `montantDu + prix` **doublent** — et cette ardoise est la pièce du dossier de récupération du local |
 
 ### Protégées par le seul registre

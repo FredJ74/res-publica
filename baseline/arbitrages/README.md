@@ -1,4 +1,27 @@
-# Tableaux d'arbitrage de l'état initial de Républia
+# Arbitrages et audits
+
+Ce répertoire porte deux genres de documents qu'il ne faut pas confondre : des
+**tableaux d'arbitrage**, qui attendent des valeurs de game design, et des
+**audits**, qui établissent ce que le code fait réellement avant qu'on le
+change.
+
+## Les audits — ce que le code fait aujourd'hui
+
+À lire **avant** de toucher au domaine correspondant. Chacun sépare
+explicitement ce qui est une décision technique (prise dans le document) de ce
+qui est une décision de game design (posée en question, jamais inventée).
+
+| Fichier | Domaine | Ce qu'il établit |
+|---|---|---|
+| `AUDIT-FISCAL.md` | fiscalité | **le circuit fiscal réellement exécuté**, et les verdicts techniques sur chaque doublon de caisse. À lire avant de chiffrer |
+| `AUDIT-MUNICIPAL.md` | budgets municipaux | le circuit municipal réel, la séquence de minuit, les trois canaux de recette, et le plan de reprise du chantier |
+| `AUDIT-CRON-MINUIT.md` | chantier 6 | cartographie de la passe de minuit et découpage proposé. **Trois affirmations corrigées le 8 octobre** |
+| `AUDIT-CHANTIER-6-IDEMPOTENCE.md` | chantier 6 | ce qui rejoue, par **coût d'un rejeu** ; la brique `actes_nocturnes` ; ce qu'il ne faut **pas** toucher |
+| `AUDIT-CHANTIER-5-FAIL-SILENT.md` | chantier 5 | 1 335 avaleurs d'erreur, dont **813** pertinents et **19** interventions qui couvrent tout l'argent |
+| `AUDIT-DISK-IO.md` | performance | suspects classés A/B/C, avec **la requête de mesure** de chacun. Aucune optimisation avant mesure |
+| `AUDIT-EMPIRES-4G.md` | chantier 4G | ce qui est déjà fail-closed hors Républia, et les trois questions de game design qui bloquent le reste |
+
+## Les tableaux d'arbitrage de l'état initial
 
 Onze tables du baseline attendent des **valeurs**, pas une méthode. Ces tableaux
 existent pour qu'elles se remplissent une fois, à plat, sans avoir à comprendre
@@ -6,7 +29,6 @@ le schéma SQL.
 
 | Fichier | Lignes | Ce qu'on y décide |
 |---|---|---|
-| `AUDIT-FISCAL.md` | — | **le circuit fiscal réellement exécuté**, et les verdicts techniques sur chaque doublon de caisse. À lire avant de chiffrer |
 | `dotations-financieres-republia` | 80 | **les caisses et budgets, aucune matière** |
 | `dotations-initiales-republia` | 98 | l'argent **et** les matières premières — le tableau complet |
 | `etat-initial-republia` | 80 | les bâtiments, les commerces, les terrains |

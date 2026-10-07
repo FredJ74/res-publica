@@ -247,8 +247,27 @@ def phase_vues(objets, man, exp):
         out.append("-- Vue %s | reloptions = %s"
                    % (v["vue"], ", ".join(opts) if opts else "AUCUNE"))
         if not opts:
-            out.append("-- ATTENTION : ne JAMAIS ajouter security_invoker. Son absence est ce qui")
-            out.append("-- fait tenir le masquage des colonnes privees.")
+            # CE COMMENTAIRE DISAIT UNE CHOSE FAUSSE, et il la disait sur TOUTES les vues.
+            #
+            # Il affirmait « ne JAMAIS ajouter security_invoker : son absence est ce qui fait
+            # tenir le masquage des colonnes privees ». Emis sans condition pour chaque vue sans
+            # reloptions, il etait :
+            #   . FAUX pour catalogue_generiques_raccordes, un simple COUNT sans masquage, sans
+            #     auth.uid(), dont les deux tables sont deja lisibles par anon et authenticated ;
+            #   . INEXACT pour personnages, dont le masquage repose sur auth.uid() et
+            #     est_appel_serveur() -- que security_invoker ne deplace pas. Ce qui tiendrait
+            #     reellement a security_invoker, c'est la LECTURE : personnages_donnees a fait
+            #     l'objet d'un REVOKE ALL delibere pour anon et authenticated, et la vue est ce
+            #     qui leur donne acces. En invoker, chaque lecture cliente leverait un 42501.
+            #
+            # Un generateur ne peut pas savoir pourquoi une vue donnee est en SECURITY DEFINER.
+            # Il enonce donc le FAIT, et renvoie a la ou l'intention est consignee. Enoncer un
+            # motif qu'on ne connait pas, c'est fabriquer une preuve.
+            out.append("-- SECURITY DEFINER (par defaut : reloptions vide). Cette vue s'execute donc")
+            out.append("-- avec les droits de son PROPRIETAIRE, et les policies RLS des tables")
+            out.append("-- sous-jacentes sont evaluees pour lui, pas pour l'appelant.")
+            out.append("-- Intentionnel ou vestigial ? La reponse est dans")
+            out.append("-- baseline/DIFFERENCES-DELIBEREES.json, cle vues_security_definer.")
         out.append("CREATE OR REPLACE VIEW public.%s AS\n%s" % (v["vue"], v["definition"].rstrip()))
         out.append("")
         man["vues"].append({"nom": v["vue"], "empreinte": v["empreinte"], "reloptions": opts})
