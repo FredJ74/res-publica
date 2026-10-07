@@ -10532,14 +10532,25 @@ async function ouvrirModalFinancerCommunal(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Stade/Marche : id codes en dur auparavant, sans ville -- une subvention votee depuis
   // Montrouge creditait la meme caisse que Luthecia (A3, lot caisses locales, 16 aout 2026).
+  // LE PAYS TRAVERSE LA RESOLUTION (chantier 4G, 8 octobre 2026). Cet ecran est le JUMEAU de
+  // getBuildingIdPourCategorieBudget (plateau-politique.js:9252), corrige la veille, et il
+  // portait le meme defaut : getBuildingIdCentreMultimodal(ville) etait appelee SANS le pays,
+  // alors qu'elle porte un garde-fou explicite -- `if (pays && pays !== 'republic') return null;`
+  // -- pour qu'un autre empire ne se voie pas attribuer les hubs de Republia, les seuls
+  // construits. Le garde-fou ne pouvait pas se declencher : `pays` arrivait toujours undefined.
+  //
+  // UN `null` SE RETIRE DE LA LISTE, il ne s'affiche pas. Sans ce filtre, la categorie absente
+  // devenait `<option value="null">` et le virement creditait la caisse `<pays>_null`, un
+  // identifiant qui n'est celui d'aucun batiment. Rendre `null`, c'est repondre « cette
+  // categorie n'existe pas dans cet empire » : la seule suite correcte est de ne rien proposer.
   const options = [
     { id: getBuildingIdCommissariat(ville), label: 'Commissariat' },
-    { id: getBuildingIdCentreMultimodal(ville), label: 'Centre Multimodal' },
+    { id: getBuildingIdCentreMultimodal(ville, state.country), label: 'Centre Multimodal' },
     { id: getCaisseLocaleId('stade', ville), label: 'Stade' },
     { id: getCaisseLocaleId('marche', ville), label: 'Marche' },
     { id: getBuildingIdDispensaire(ville), label: 'Dispensaire' },
     { id: getBuildingIdTribunal(ville), label: 'Tribunal' }
-  ];
+  ].filter(o => o.id);
 
   document.getElementById('postes-modal-title').textContent = 'Financer un batiment communal';
   let html = '<div style="padding:1rem">';
@@ -10571,17 +10582,65 @@ async function confirmerFinancementCommunal(pa, cost) {
     return;
   }
   const budgetMuni = await chargerBudgetMunicipalDeLaCle((state.country || 'republic') + '_' + ville);
-  if (!budgetMuni || (budgetMuni.caisse || 0) < montant) {
+  // UNE LECTURE QUI ECHOUE N'EST PAS UNE CAISSE VIDE. La garde unique `!budgetMuni ||
+  // caisse < montant` annoncait « la caisse municipale ne couvre pas ce montant » a un adjoint
+  // dont la commune est peut-etre riche : seule la lecture avait echoue. L'ecran d'ouverture
+  // distingue deja les deux cas ; la confirmation le fait desormais aussi.
+  if (!budgetMuni) {
+    showToast('Caisse illisible', 'La caisse municipale n\'a pas pu etre lue. Rien n\'a ete vire. '
+      + 'Reessayez dans un instant.', false);
+    return;
+  }
+  if ((budgetMuni.caisse || 0) < montant) {
     showToast('Fonds insuffisants', 'La caisse municipale ne couvre pas ce montant.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  budgetMuni.caisse -= montant;
-  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
-  await crediterCaisseBatiment(state.country, buildingId, montant);
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // L'ORDRE DES DEUX ECRITURES EST LE SEUL GARDE-FOU DISPONIBLE ICI, et c'est desormais celui du
+  // jumeau deja corrige (distribuerBudgetMunicipalVersBatiments, plateau-politique.js) : on
+  // CREDITE D'ABORD, sous verdict, et on ne debite l'assiette qu'ensuite.
+  //
+  // CE QUE L'ANCIEN ORDRE DETRUISAIT. `budgetMuni.caisse -= montant` etait sauvegarde en
+  // `.catch(() => {})`, PUIS crediterCaisseBatiment etait appelee sans que son verdict soit lu,
+  // PUIS « Virement effectue » s'affichait inconditionnellement. Un credit refuse -- caisse
+  // inconnue, autorite refusee, reseau coupe -- faisait donc disparaitre l'argent de la caisse
+  // municipale sans qu'il arrive nulle part, et le Maire Adjoint lisait que son virement avait
+  // reussi. crediterCaisseBatiment rend `null` dans ce cas : le verdict existait depuis le
+  // chantier C, personne ne le regardait.
+  //
+  // CREDITER D'ABORD FERME LE CAS COUTEUX : credit refuse, assiette jamais touchee, rien de
+  // perdu, et on le dit. Il laisse ouvert le cas inverse -- credit passe, sauvegarde de
+  // l'assiette refusee -- ou la commune garde une somme deja versee. Ce cas-la n'est plus
+  // silencieux : il est annonce, chiffre et journalise en anomalie. Le fermer vraiment demande
+  // une ecriture unique, et c'est le chantier municipal qui la portera : quand la tresorerie de
+  // la mairie sera une vraie caisse de caisses_batiments, les deux ecritures deviendront un seul
+  // mouvement transactionnel. Le cout de l'ordre, lui, reste preleve dans tous les cas -- c'est
+  // la dette K-bis deja consignee pour les douze sites concernes, et l'inventer ici serait un
+  // traitement particulier.
+  const soldeApres = await crediterCaisseBatiment(state.country, buildingId, montant);
+  if (soldeApres == null) {
+    showToast('Virement refuse', 'Le batiment n\'a pas pu etre credite. La caisse municipale est '
+      + 'intacte : aucun franc communal n\'a ete verse.', false);
+    return;
+  }
+
+  budgetMuni.caisse = Math.max(0, (budgetMuni.caisse || 0) - montant);
+  const sauve = (typeof sbSaveBudgetMunicipal === 'function')
+    ? await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => null)
+    : null;
+  if (!sauve) {
+    showToast('Virement a verifier', montant.toLocaleString('fr-FR') + ' ' + cur + ' ont bien ete '
+      + 'verses au batiment, mais la caisse municipale n\'a pas pu etre mise a jour. Signalez-le '
+      + 'avant de virer de nouveau.', false);
+    addJournalEntry('ANOMALIE : ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' verses a '
+      + buildingId + ' sans que la caisse municipale ait pu etre debitee.', 'event-bad');
+    return;
+  }
+
   showToast('Virement effectue', montant.toLocaleString('fr-FR') + ' ' + cur + ' verses.', true, true);
   addJournalEntry('Virement de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' de la caisse municipale vers ' + buildingId + '.', 'event-good');
 }
@@ -11888,9 +11947,24 @@ function getVillesReelles(country) {
 // ecriture le 19 septembre 2026. Dix-huit jours pendant lesquels seule la capitale a ete
 // financee, pour 234 696 FR contre 21 368 FR geles dans les six autres caisses.
 //
-// Le calcul vit desormais dans api/cron-minuit.js (repartirSurVillesAuProrataFiscal), au seul
-// endroit qui tourne vraiment. Ne le reecris pas ici : deux implementations d'une repartition
-// d'argent, c'est exactement ce qui a produit cette panne.
+// OU LE CALCUL VIT AUJOURD'HUI -- corrige le 8 octobre 2026. Cette phrase disait « dans
+// api/cron-minuit.js (repartirSurVillesAuProrataFiscal), au seul endroit qui tourne vraiment ».
+// C'est FAUX sur les deux moities : cette fonction a ete supprimee du depot avec le chantier 4F
+// et n'existe plus nulle part, et `grep -c distribuerBudgetMunicipal api/cron-minuit.js` rend 0
+// -- le cron ne distribue aucun budget municipal. Laisser cette phrase, c'etait envoyer le
+// prochain lecteur chercher un calcul la ou il n'est pas.
+//
+// La verite du 8 octobre, en deux morceaux :
+//   . la cle de repartition NATIONALE ne finance plus du tout mairie, commissariat ni tribunal
+//     (chantier 4F) : les institutions municipales relevent des mairies, les tribunaux du
+//     Ministere de la Justice ;
+//   . la repartition MUNICIPALE, elle, est restee COTE NAVIGATEUR --
+//     distribuerBudgetMunicipalVersBatiments (plateau-politique.js), appelee depuis doDormir. Ce
+//     n'est pas un oubli de description : c'est l'etat reel, et c'est precisement ce que le
+//     chantier des budgets municipaux doit deplacer vers la sequence de minuit.
+//
+// Ne reecris pas le calcul ici pour autant : deux implementations d'une repartition d'argent,
+// c'est exactement ce qui a produit cette panne.
 //
 // CE QUI EST PERDU AVEC ELLES, et qui doit etre su : l'effet du taux d'imposition total sur les
 // indices Social et ISN de la ville du joueur declencheur. Le cron ne peut pas le reproduire --
