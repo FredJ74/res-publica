@@ -1,0 +1,493 @@
+image                                                          avant     apres     gain    mode
+images/accueil-assemblee-republic.png                           256K      170K    33.4%     q82
+images/accueil-notaire-luthecia.png                            2341K      151K    93.5%     q82
+images/accueil-palais-president-republic.png                    298K      222K    25.5%     q82
+images/accueil-prez-el-estado.png                               276K      194K    29.5%     q82
+images/accueil-quartier-ambassades.png                         2238K      180K    91.9%     q82
+images/agent-entretien-assemblee.png                           2400K      113K    95.3%     q82
+images/ambassades-salle-reception.png                          2775K      397K    85.7%     q88
+images/an-el-estado.png                                         275K      197K    28.4%     q82
+images/an-salle-el-estado.png                                   279K      201K    28.0%     q82
+images/archives-an-republic.png                                 319K      248K    22.3%     q82
+images/archives-el-estado.png                                   258K      182K    29.4%     q82
+images/archives-gouv-republic.png                               312K      237K    24.1%     q82
+images/archives-notariales-luthecia.png                        2270K      146K    93.5%     q82
+images/archiviste-parlementaire.png                            2477K      116K    95.3%     q82
+images/arme-couteau-republic.png                               1974K       83K    95.8%     q82
+images/arme-gilet-republic.png                                 2288K      139K    93.9%     q82
+images/arme-revolver-republic.png                              2264K      151K    93.3%     q82
+images/armurerie-martinon-comptoir.png                         2360K      163K    93.1%     q82
+images/armurerie-port-sainte-marie-carabine.png                2265K      189K    91.6%     q82
+images/armurerie-port-sainte-marie-couteau-plongee.png         2087K      139K    93.3%     q82
+images/armurerie-port-sainte-marie-fusil-harpon.png            2106K      154K    92.7%     q82
+images/armurerie-port-sainte-marie-maison-le-gall.png          3141K     2395K    23.8% sans perte
+images/assemblee-juriste-seb-lex.png                           2077K      154K    92.6%     q82
+images/assemblee-khalija.png                                    529K      435K    17.7%     q82
+images/atelier-scierie-guy-tarembois-psm.png                   2612K      214K    91.8%     q82
+images/banque-nationale-accueil.png                            2766K      393K    85.8%     q88
+images/banque-nationale-coffres.png                            2511K      330K    86.8%     q88
+images/banque-privee-helvetia-bureau.png                       2339K      153K    93.5%     q82
+images/banque-privee-helvetia-hans-von-discret.png              156K       13K    92.0%     q82
+images/banque-privee-helvetia-ursula-offshore.png                99K       11K    89.3%     q82
+images/bedouin-agressif-khalija.png                             236K      168K    28.9%     q82
+images/bedouin-khalija.png                                      257K      187K    27.1%     q82
+images/bookmaker-ricardo-pif.png                               2309K      169K    92.7%     q82
+images/building-construction-terrain.png                       2851K      419K    85.3%     q88
+images/bureau-ambassadeur-al-khalija.png                       2585K      540K    79.1%     q94
+images/bureau-ambassadeur-el-estado.png                        2133K      150K    92.9%     q82
+images/bureau-ambassadeur-sovarka.png                          2044K      117K    94.3%     q82
+images/bureau-chantier-naval-psm.png                           2584K      214K    91.7%     q82
+images/bureau-contrats-luthecia.png                            1980K      104K    94.7%     q82
+images/bureau-direction-entrepot-luthecia.png                  2074K      162K    92.2%     q82
+images/bureau-direction-usine-pharma-luthecia.png              2079K      155K    92.5%     q82
+images/bureau-emploi-annexe-psm.png                            2183K      148K    93.2%     q82
+images/bureau-maire-luthecia.png                               2492K      231K    90.7%     q82
+images/bureau-maire.png                                         255K      149K    41.7%     q82
+images/bureau-min-ae-republic.png                               300K      190K    36.7%     q82
+images/bureau-min-def-republic.png                              245K      145K    40.8%     q82
+images/bureau-min-int-republic.png                              283K      173K    38.9%     q82
+images/bureau-ministre-finances-luthecia.png                   2458K      310K    87.4%     q88
+images/bureau-ministre-justice-luthecia.png                    2328K      276K    88.2%     q88
+images/bureau-national-emploi-luthecia.png                     2193K      152K    93.1%     q82
+images/bureau-premier-ministre.png                              346K      234K    32.4%     q82
+images/bureau-president-luthecia.png                           2056K      113K    94.5%     q82
+images/bureau-president-mariannaise.png                        2159K      118K    94.5%     q82
+images/bureau-president-montrouge.png                          2235K      143K    93.6%     q82
+images/bureau-president.png                                     391K      278K    28.9%     q82
+images/bureau-prez-el-estado.png                                248K      170K    31.3%     q82
+images/bureau-roi-khalija.png                                   432K      330K    23.6%     q82
+images/bureau-successions-luthecia.png                         2195K      118K    94.6%     q82
+images/buvette-boutique-luthecia.png                           2330K      169K    92.7%     q82
+images/buvette-boutique-mariannaise.png                        2346K      184K    92.2%     q82
+images/buvette-scene-tenancier.png                             2551K      201K    92.1%     q82
+images/buvette-scene-vendeur.png                               2536K      204K    92.0%     q82
+images/cadavre-khalija.png                                      234K      167K    28.5%     q82
+images/cadavre-narco.png                                        233K      167K    28.2%     q82
+images/cadavre-republic.png                                     349K      286K    18.1%     q82
+images/cadavre-soviet.png                                       243K      180K    26.1%     q82
+images/cadre-vide-caillon-criminel.png                         2358K      170K    92.8%     q82
+images/cadre-vide-moulin-entrepreneur.png                      2507K      139K    94.5%     q82
+images/cadre-vide-tintabin-plume.png                           2206K      147K    93.3%     q82
+images/cadre-vide-torcieu-maire.png                            2409K      237K    90.2%     q88
+images/caserne-luthecia-armurerie-militaire.png                2557K      187K    92.7%     q82
+images/caserne-luthecia-corps-de-garde.png                     2506K      155K    93.8%     q82
+images/caserne-luthecia-dortoir.png                            2491K      186K    92.5%     q82
+images/caserne-luthecia-refectoire.png                         2271K      192K    91.5%     q82
+images/caserne-luthecia-salle-commandement.png                 2513K      186K    92.6%     q82
+images/caserne-luthecia-salle-faits-armes.png                  2774K      387K    86.1%     q88
+images/cellule-el-estado.png                                    260K      185K    29.2%     q82
+images/cellule-garde-a-vue-luthecia.png                        2222K       99K    95.5%     q82
+images/centre-affaires-khalija.png                              305K      227K    25.7%     q82
+images/centre-affaires-narco.png                                278K      194K    30.0%     q82
+images/centre-affaires-republic.png                             307K      226K    26.4%     q82
+images/centre-affaires-soviet.png                               253K      178K    29.8%     q82
+images/centre-artisanal-khalija.png                             263K      188K    28.5%     q82
+images/centre-artisanal-narco.png                               304K      230K    24.3%     q82
+images/centre-artisanal-republic.png                            330K      262K    20.6%     q82
+images/centre-artisanal-soviet.png                              303K      240K    20.9%     q82
+images/centre-commercial-khalija.png                            288K      213K    25.9%     q82
+images/centre-commercial-narco.png                              274K      197K    27.9%     q82
+images/centre-commercial-republic.png                           268K      181K    32.4%     q82
+images/centre-commercial-soviet.png                             261K      188K    27.8%     q82
+images/centre-multinodal-el-estado.png                          342K      276K    19.4%     q82
+images/centre-multinodal-republic.png                           371K      299K    19.5%     q82
+images/centre-multinodal-sovarka.png                            292K      222K    24.0%     q82
+images/chambre-hotel-khalija.png                                319K      251K    21.4%     q82
+images/chantier-alea-greve.png                                 2736K      253K    90.7%     q82
+images/chantier-alea-vol.png                                   2691K      243K    91.0%     q82
+images/chantier-en-cours.png                                   2901K      420K    85.5%     q88
+images/chef-cabinet-pm.png                                     1966K      100K    94.9%     q82
+images/christophe-bouquin-archiviste.png                       2179K      142K    93.5%     q82
+images/commerce-premium-construction-terrain.png               2760K      276K    90.0%     q82
+images/commerce-standard-construction-terrain.png              2745K      352K    87.2%     q88
+images/commissariat-accueil.png                                2594K      234K    91.0%     q82
+images/commissariat-brigitte-menottes.png                      2023K      107K    94.7%     q82
+images/commissariat-bureau-commissaire.png                     2139K      163K    92.4%     q82
+images/commissariat-edgard-havu.png                            1988K       98K    95.1%     q82
+images/commissariat-el-estado.png                               258K      184K    28.8%     q82
+images/commissariat-gardien-dubois.png                         1810K       73K    96.0%     q82
+images/commissariat-gardien-paix.png                           1927K      106K    94.5%     q82
+images/commissariat-kevin-diesel.png                           2024K      112K    94.5%     q82
+images/commissariat-raoul-toufaud.png                          1998K       88K    95.6%     q82
+images/commissariat-simona-venture.png                         2054K      116K    94.4%     q82
+images/commissariat-tristan-cabane.png                         2017K       96K    95.2%     q82
+images/conseil-el-estado.png                                    262K      183K    30.0%     q82
+images/conseil-ministres-2.png                                  308K      201K    34.9%     q82
+images/conseil-ministres-sovarka.png                            268K      197K    26.5%     q82
+images/corps-garde-pnj-adjudant-ferriere.png                   2022K      121K    94.0%     q82
+images/couloirs-an-republic.png                                 295K      218K    26.0%     q82
+images/couloirs-conseil-khalija.png                             428K      325K    23.9%     q82
+images/debarras-tableaux-musee.png                             2247K      164K    92.7%     q82
+images/depute-majorite-martin.png                              2347K      130K    94.5%     q82
+images/depute-opposition-chen.png                              2229K      115K    94.8%     q82
+images/ehpad-residence-tilleuls.png                            2242K      141K    93.7%     q82
+images/entraineur-adjoint-alphonse-toudroit.png                2212K      121K    94.5%     q82
+images/entraineur-adjoint-mariannaise-gosse.png                2396K      151K    93.7%     q82
+images/entraineur-adjoint-montrouge-bricoleau.png              2353K      155K    93.4%     q82
+images/entraineur-jean-pierre-taclojnou.png                    2238K      122K    94.5%     q82
+images/entraineur-mariannaise-ehault.png                        639K       62K    90.3%     q82
+images/entraineur-montrouge-hervitmonfute.png                  2130K      121K    94.3%     q82
+images/entrepot-logistique-luthecia.png                        2470K      243K    90.2%     q82
+images/entrepot-pole-tabac-psm.png                             2577K      369K    85.7%     q88
+images/escort-khalija.png                                       206K      126K    38.7%     q82
+images/escort-narco.png                                         203K      124K    39.0%     q82
+images/escort-soviet.png                                        217K      139K    36.1%     q82
+images/explosifs-marche-noir.png                               2265K      175K    92.3%     q82
+images/expositions-temporaires-musee-national.png              2281K      420K    81.6%     q94
+images/florian-gres-jardinier.png                              2516K      216K    91.4%     q82
+images/football-coup-franc-arret-gardien-capture.png           2305K      193K    91.6%     q82
+images/football-coup-franc-arret-gardien-releve.png            2189K      188K    91.4%     q82
+images/football-coup-franc-arret-gardien.png                   2342K      135K    94.2%     q82
+images/football-coup-franc-but-celebration.png                 2500K      207K    91.7%     q82
+images/football-coup-franc-echec-gardien.png                   2230K      200K    91.0%     q82
+images/football-coup-franc-trajectoire-01.png                   773K       76K    90.1%     q82
+images/football-coup-franc-trajectoire-02.png                   715K       72K    89.9%     q88
+images/football-coup-franc-trajectoire-03.png                   719K       65K    91.0%     q82
+images/football-duel-angle-02.png                              2186K      182K    91.7%     q82
+images/football-duel-angle-03.png                              2486K      237K    90.5%     q82
+images/football-plan-ras-du-sol-01.png                         2220K      159K    92.9%     q82
+images/football-stopmotion-duel-frame-01.png                   2324K      169K    92.7%     q82
+images/football-stopmotion-duel-frame-02.png                   2042K      209K    89.8%     q82
+images/football-stopmotion-duel-frame-03.png                   1964K      192K    90.2%     q82
+images/football-stopmotion-duel-frame-04.png                   2052K      204K    90.1%     q82
+images/football-stopmotion-duel-frame-05.png                   2089K      208K    90.0%     q82
+images/football-stopmotion-duel-frame-06.png                   2490K      306K    87.7%     q88
+images/football-stopmotion-duel-frame-07.png                   2334K      186K    92.0%     q82
+images/football-stopmotion-duel-frame-08.png                   2355K      196K    91.7%     q82
+images/football-tension-coup-franc-frame-01.png                2680K      267K    90.0%     q82
+images/football-tension-coup-franc-frame-02.png                2327K      217K    90.7%     q88
+images/football-tension-coup-franc-frame-03.png                2410K      144K    94.0%     q82
+images/football-tension-coup-franc-frame-04.png                1828K       90K    95.1%     q82
+images/football-tension-coup-franc-frame-05.png                2089K      156K    92.5%     q82
+images/football-tension-coup-franc-frame-06.png                2043K      119K    94.2%     q82
+images/football-tension-coup-franc-frame-07.png                2232K      142K    93.6%     q82
+images/football-tension-coup-franc-frame-08.png                2566K      480K    81.3%     q94
+images/football-tension-coup-franc-frame-09.png                2289K      208K    90.9%     q82
+images/football-tension-coup-franc-frame-10.png                2424K      240K    90.1%     q82
+images/football-tension-coup-franc-frame-11.png                2438K      241K    90.1%     q82
+images/football-tension-coup-franc-frame-12.png                2319K      238K    89.7%     q82
+images/football-tension-coup-franc-frame-13.png                2316K      224K    90.3%     q82
+images/garde-bienveillant-luthecia.png                         2248K      151K    93.3%     q82
+images/garde-menacant-luthecia.png                             2225K      152K    93.2%     q82
+images/garde-republicain-assemblee.png                         2356K      102K    95.7%     q82
+images/garde-republicain-palais-presidentiel.png               2014K      103K    94.9%     q82
+images/gare-al-khalija.png                                      351K      277K    21.1%     q82
+images/gare-el-estado.png                                       313K      241K    23.2%     q82
+images/gare-sovarka.png                                         291K      222K    24.0%     q82
+images/gaston-sauceblanche.png                                  190K      109K    42.2%     q82
+images/gerard-poincon-debarras-tension.png                     1816K       78K    95.7%     q82
+images/gerard-poincon-gardien-musee.png                        2075K      119K    94.3%     q82
+images/gerard-tamponneau.png                                   1783K       71K    96.0%     q82
+images/ginette-legume.png                                       315K      237K    24.8%     q82
+images/hall-centre-affaires-luthecia.png                       2141K      105K    95.1%     q82
+images/hall-chantier-naval-psm.png                             2785K      263K    90.6%     q82
+images/hall-douanes-luthecia.png                               2575K      358K    86.1%     q88
+images/hall-embarquement-luthecia.png                          2725K      613K    77.5%     q94
+images/hall-hotel-khalija.png                                   405K      340K    16.0%     q82
+images/hall-musee-national-republia.png                        2967K     2018K    32.0% sans perte
+images/hall-musee-port-sainte-marie.png                        2362K      280K    88.1%     q88
+images/hall-musee-ville-luthecia.png                           2850K      544K    80.9%     q94
+images/hall-notre-dame-mer-psm.png                             2513K      206K    91.8%     q82
+images/hall-palais-gouvernement-republic.png                    313K      232K    25.9%     q82
+images/hall-parti-sovarka.png                                   269K      194K    27.7%     q82
+images/hangar-construction-terrain.png                         2158K      174K    91.9%     q82
+images/hotel-du-port-accueil.png                               2565K      211K    91.8%     q82
+images/hotel-du-port-chambre.png                               2516K      281K    88.8%     q88
+images/hotel-republica-restaurant.png                          2282K      186K    91.9%     q82
+images/hotel-republica-suite-presidentielle.png                2579K      263K    89.8%     q82
+images/hotel-republica-suite-privee.png                        2631K      262K    90.1%     q82
+images/hotel-republica.png                                      288K      178K    38.3%     q82
+images/hotesse-accueil-assemblee.png                           2383K      111K    95.4%     q82
+images/hotesse-objets-trouves-mairie.png                       2269K      176K    92.2%     q82
+images/hotesse-objets-trouves.png                               278K      206K    26.1%     q82
+images/huguette-papier.png                                     1647K       62K    96.2%     q82
+images/informateur-f-1-la-poste.png                            1964K      141K    92.8%     q82
+images/informateur-f-2-agee.png                                2015K      202K    90.0%     q88
+images/informateur-f-3-brune.png                               1915K      122K    93.6%     q82
+images/informateur-h-1-corpulent.png                           2024K      137K    93.2%     q82
+images/informateur-h-2-lunettes.png                            1995K      125K    93.8%     q82
+images/informateur-h-3-jeune-casquette.png                     2024K      142K    93.0%     q82
+images/inspecteur-khalija.png                                   231K      160K    30.7%     q82
+images/inspecteur-narco.png                                     218K      149K    31.7%     q82
+images/inspecteur-police-khalija.png                            236K      168K    28.6%     q82
+images/inspecteur-police-republic.png                           359K      293K    18.2%     q82
+images/inspecteur-police-soviet.png                             256K      196K    23.5%     q82
+images/inspecteur-republic.png                                  368K      302K    18.0%     q82
+images/inspecteur-soviet.png                                    248K      187K    24.6%     q82
+images/jean-dupont-marie-leblanc.png                            196K      118K    39.6%     q82
+images/jean-lou-zeure.png                                      2241K      123K    94.5%     q82
+images/jean-pierre-ciseaux-conservateur.png                    2694K      255K    90.5%     q82
+images/jeanine-dubois-ehpad.png                                2521K      199K    92.1%     q82
+images/jeremy-stagiaire-mairie.png                             2061K       78K    96.2%     q82
+images/jodie-moitout.png                                        175K       93K    46.9%     q82
+images/journaliste-blanc.png                                   2318K       79K    96.6%     q82
+images/journaliste-michel-parlotte.png                         2237K      120K    94.6%     q82
+images/journaliste-montrouge-emilie-charbon.png                2196K      140K    93.6%     q82
+images/la-tribune-accueil.png                                  2265K      186K    91.8%     q82
+images/laurent-barre.png                                       2136K       94K    95.6%     q82
+images/lobbyiste-perrin.png                                    2073K       75K    96.4%     q82
+images/loge.png                                                2679K      254K    90.5%     q82
+images/louis-chevillard-ehpad.png                              2436K      175K    92.8%     q82
+images/luthecia-centre-affaires-bureau-open-space.png          2477K      211K    91.5%     q82
+images/luthecia-centre-affaires-bureau-prestige-loue.png       2422K      216K    91.1%     q82
+images/luthecia-centre-affaires-bureau-prestige-vide.png       2620K      229K    91.3%     q82
+images/luthecia-centre-affaires-bureau-standard-loue.png       2366K      187K    92.1%     q82
+images/luthecia-centre-affaires-bureau-standard-vide.png       2427K      202K    91.7%     q82
+images/luthecia-centre-affaires-open-space-vide.png            2514K      225K    91.1%     q82
+images/luthecia-centre-commercial-grand-local-loue.png         1893K     1517K    19.9% sans perte
+images/luthecia-centre-commercial-grand-local-vide.png         2066K      150K    92.7%     q82
+images/luthecia-centre-commercial-mini-local-loue.png          1706K     1299K    23.9% sans perte
+images/luthecia-centre-commercial-mini-local-vide.png          1972K      182K    90.8%     q88
+images/luthecia-centre-commercial-moyen-local-loue.png         1975K     1445K    26.8% sans perte
+images/luthecia-centre-commercial-moyen-local-vide.png         2025K      152K    92.5%     q82
+images/luthecia-centre-commercial-petit-local-loue.png         1847K     1462K    20.8% sans perte
+images/luthecia-centre-commercial-petit-local-vide.png         1891K      130K    93.1%     q82
+images/luthecia-logo-supporters.png                             449K      290K    35.5% sans perte
+images/mae-el-estado.png                                        253K      181K    28.3%     q82
+images/mairie-al-khalija.png                                    378K      282K    25.2%     q82
+images/mairie-el-estado.png                                     273K      200K    26.7%     q82
+images/mairie-luthecia.png                                      331K      266K    19.6%     q82
+images/mairie-port-sainte-marie.png                             342K      242K    29.3%     q82
+images/mairie-sovarka.png                                       322K      220K    31.7%     q82
+images/marcel-bidoche.png                                       338K      266K    21.4%     q82
+images/marcel-kermeur-guide-musee.png                          2318K      175K    92.4%     q82
+images/marche.png                                               510K      407K    20.1%     q82
+images/marco-barman.png                                        2049K      130K    93.7%     q82
+images/marinette-hareng.png                                     337K      260K    22.8%     q82
+images/martial-bouterin.png                                    2044K      129K    93.7%     q82
+images/maxence-monfils-criminel.png                            2066K       93K    95.5%     q82
+images/maxence-monfils-parc.png                                2908K      441K    84.8%     q88
+images/mdef-el-estado.png                                       252K      180K    28.7%     q82
+images/mdef-sovarka.png                                         243K      169K    30.3%     q82
+images/meco-sovarka.png                                         244K      168K    31.2%     q82
+images/meneur-supporters-alfredo-mifassole.png                 2550K      203K    92.1%     q82
+images/militaire-gilet-pare-balles.png                          206K       34K    83.3%     q88
+images/militaire-jumelles.png                                   177K       19K    89.3%     q82
+images/militaire-radio.png                                      153K       17K    88.7%     q82
+images/militaire-tente.png                                      179K       29K    83.9%     q88
+images/militaire-tenue-camouflage.png                           217K       56K    74.0%     q94
+images/minfo-el-estado.png                                      248K      175K    29.4%     q82
+images/mint-el-estado.png                                       237K      153K    35.5%     q82
+images/mjust-el-estado.png                                      248K      169K    32.0%     q82
+images/montrouge/montrouge-tribunal-gerard-bretellewood.pn      115K       82K    28.3% sans perte
+images/montrouge/montrouge-tribunal-salle-audience.png         2235K      173K    92.2%     q82
+images/musee-national-salle-grandes-villes.png                 2533K     1779K    29.8% sans perte
+images/musee-ville-luthecia-salle-dynasties.png                2486K     1831K    26.3% sans perte
+images/musee-ville-luthecia-salle-entrepreneurs.png            2358K     1703K    27.7% sans perte
+images/musee-ville-luthecia-salle-honneur-militaire.png        2543K     1851K    27.2% sans perte
+images/musee-ville-luthecia-salle-organisations.png            2485K     1807K    27.3% sans perte
+images/musee-ville-luthecia-salle-personnalites.png            2317K     1617K    30.2% sans perte
+images/musee-ville-luthecia-salle-scandales.png                2588K     1922K    25.7% sans perte
+images/musee-ville-luthecia-salle-unions-celebres.png          2389K     1730K    27.6% sans perte
+images/noel-chauchay-ehpad.png                                 2268K      145K    93.6%     q82
+images/notre-dame-mer-nef.png                                  2407K      131K    94.5%     q82
+images/objet-agenda.png                                         224K      153K    31.5%     q82
+images/objet-culotte-dentelle.png                               263K      188K    28.7%     q82
+images/objet-dossier-presse.png                                 258K      187K    27.6%     q82
+images/objet-parapluie.png                                      231K      167K    27.7%     q82
+images/objet-preservatifs.png                                   129K       72K    44.5%     q82
+images/objet-sachet-poudre.png                                  241K      159K    33.7%     q82
+images/objet-whisky.png                                         220K      145K    34.1%     q82
+images/parc-botanique-national.png                             2884K      432K    85.0%     q88
+images/pat-hounette.png                                        2303K      134K    94.2%     q82
+images/paulo-maitre-hotel.png                                  2001K      126K    93.7%     q82
+images/place-formulaire-liberte.png                            2377K     1816K    23.6% sans perte
+images/polonium-sovarka.png                                    2152K      111K    94.8%     q82
+images/port-al-khalija.png                                      365K      274K    24.9%     q82
+images/port-el-estado.png                                       377K      288K    23.7%     q82
+images/port-sainte-marie-armurerie-victor-legall.png            253K      193K    23.5% sans perte
+images/port-sainte-marie-banque-accueil.png                    2409K      205K    91.5%     q82
+images/port-sainte-marie-banque-bureau-direction.png           2130K      149K    93.0%     q82
+images/port-sainte-marie-banque-marie-le-roux.png               141K       12K    91.7%     q82
+images/port-sainte-marie-bar-pecheurs-jean-lou-demer.png       2342K      176K    92.5%     q82
+images/port-sainte-marie-bar-pecheurs-marin-dulac.png          2476K      220K    91.1%     q82
+images/port-sainte-marie-bar-pecheurs-rene-seigne.png          2124K      131K    93.8%     q82
+images/port-sainte-marie-bar-pecheurs-salle.png                2651K      245K    90.7%     q82
+images/port-sainte-marie-capitainerie-patrice-lecap.png         542K       38K    92.9%     q82
+images/port-sainte-marie-capitainerie.png                      2266K      172K    92.4%     q82
+images/port-sainte-marie-centre-affaires-accueil.png           2197K      157K    92.8%     q82
+images/port-sainte-marie-centre-affaires-bureau-prestige.p     2161K      182K    91.6%     q82
+images/port-sainte-marie-centre-affaires-bureau-standard.p     2083K      139K    93.3%     q82
+images/port-sainte-marie-centre-affaires-open-space.png        2161K      177K    91.8%     q82
+images/port-sainte-marie-centre-affaires-tribune-republia.     2140K      175K    91.8%     q82
+images/port-sainte-marie-centre-commercial-hall.png            2254K      197K    91.3%     q82
+images/port-sainte-marie-centre-multimodal-accueil.png         2534K      242K    90.4%     q82
+images/port-sainte-marie-commissariat-accueil.png              2656K      213K    92.0%     q82
+images/port-sainte-marie-commissariat-bureau-commissaire.p     2468K      193K    92.2%     q82
+images/port-sainte-marie-commissariat-geoles.png               2511K      173K    93.1%     q82
+images/port-sainte-marie-commissariat-loic-karamel.png          481K       34K    92.8%     q82
+images/port-sainte-marie-commissariat-martial-morvan.png        737K       43K    94.2%     q82
+images/port-sainte-marie-dispensaire-accueil.png               2074K      132K    93.6%     q82
+images/port-sainte-marie-dispensaire-corinne-titgoute.png        97K        9K    91.1%     q82
+images/port-sainte-marie-ecole-marine-hall.png                 2582K      201K    92.2%     q82
+images/port-sainte-marie-ecole-marine-maxime-bonvent.png        207K       18K    91.1%     q82
+images/port-sainte-marie-ecole-marine-salle-cours.png          2618K      238K    90.9%     q82
+images/port-sainte-marie-ehpad-residence-embruns.png           2328K      180K    92.3%     q82
+images/port-sainte-marie-hotel-jeanine-debre.png                130K       18K    86.1%     q88
+images/port-sainte-marie-imprimerie-annie-talique-legall.p      122K       15K    88.1%     q82
+images/port-sainte-marie-imprimerie-atelier.png                2565K      248K    90.3%     q82
+images/port-sainte-marie-mairie-salle-archives.png             2718K      229K    91.6%     q82
+images/port-sainte-marie-mairie-salle-elections.png            2634K      261K    90.1%     q82
+images/port-sainte-marie-marche-bastien-leroux.png             1211K      115K    90.5%     q82
+images/port-sainte-marie-marche-mireille-legall.png            1223K      115K    90.6%     q82
+images/port-sainte-marie-place.png                             2801K      303K    89.2%     q82
+images/port-sainte-marie-pnj-marine-leroux.png                 2174K      147K    93.2%     q82
+images/port-sainte-marie-port-industriel-administration.pn     2668K      236K    91.2%     q82
+images/port-sainte-marie-port-industriel-douanes.png           2735K      238K    91.3%     q82
+images/port-sainte-marie-port-industriel-etienne-dantafass     2271K      141K    93.8%     q82
+images/port-sainte-marie-port-industriel-ginette-conteneur      160K       18K    88.5%     q82
+images/port-sainte-marie-port-industriel-marcel-ancre.png       157K       16K    89.9%     q82
+images/port-sainte-marie-port-industriel-pascal-paguevite.     2111K      113K    94.7%     q82
+images/port-sainte-marie-port-industriel-syndicat-dockers.     2607K      226K    91.3%     q82
+images/port-sainte-marie-port-industriel.png                   2728K      404K    85.2%     q88
+images/port-sainte-marie-port-plaisance.png                    2495K      252K    89.9%     q82
+images/port-sainte-marie-resto-capitaine-sauvage.png           2408K      195K    91.9%     q82
+images/port-sainte-marie-tribunal-mireille-sedlex.png           111K       14K    87.8%     q88
+images/port-sainte-marie-tribunal-salle-audience.png           2092K      139K    93.4%     q82
+images/port-sovarka.png                                         359K      268K    25.2%     q82
+images/porte-debarras-musee-luthecia.png                       2111K       77K    96.4%     q82
+images/porte-parole-presidentiel.png                           1767K       65K    96.3%     q82
+images/president-assemblee-laroche.png                         2401K      158K    93.4%     q82
+images/produit-casquette-luthecia.png                          1991K       93K    95.3%     q82
+images/produit-echarpe-luthecia.png                            2020K      100K    95.0%     q82
+images/produit-echarpe-montrouge-dediee.png                    2627K      220K    91.6%     q82
+images/produit-polo-mariannaise.png                            2173K      122K    94.4%     q82
+images/produit-tshirt-luthecia.png                             2202K      123K    94.4%     q82
+images/produit-tshirt-montrouge.png                            2196K      123K    94.4%     q82
+images/produits-casquette-echarpe-mariannaise.png              2213K      124K    94.4%     q82
+images/produits-casquette-echarpe-montrouge.png                2282K      143K    93.7%     q82
+images/promoteur-narco.png                                      221K      154K    30.1%     q82
+images/promoteur-republic.png                                   331K      265K    19.9%     q82
+images/promoteur-soviet.png                                     239K      173K    27.9%     q82
+images/qhs-luthecia-aile-a-cellules.png                        2520K      172K    93.2%     q82
+images/qhs-luthecia-entree-controle.png                        2744K      258K    90.6%     q82
+images/qhs-luthecia-exterieur.png                              2701K      218K    91.9%     q82
+images/qhs-luthecia-salle-commune.png                          2474K      173K    93.0%     q82
+images/qhs-luthecia-salle-interrogatoire.png                   2691K      187K    93.0%     q82
+images/refectoire-pnj-caporal-alouche.png                      2290K      158K    93.1%     q82
+images/registre-vente-armes.png                                2258K      146K    93.5%     q82
+images/rue-armurerie.png                                       2058K      266K    87.1%     q88
+images/rue-bar-imprimerie-commissariat-psm.png                 2631K      277K    89.5%     q82
+images/rue-bureau-national-emploi-luthecia.png                 2568K      249K    90.3%     q82
+images/rue-carrefour-artisanal-scierie.png                     2596K      367K    85.9%     q88
+images/rue-carrefour-musee-depuis-artisanal.png                2622K     2014K    23.2% sans perte
+images/rue-carrefour-musee-depuis-eglise.png                   2465K     2016K    18.2% sans perte
+images/rue-carrefour-musee-depuis-phare.png                    2712K     2136K    21.2% sans perte
+images/rue-carrefour-musee-depuis-tribunal.png                 2588K     2081K    19.6% sans perte
+images/rue-caserne-garage-novomirsk.png                        2952K      455K    84.6%     q88
+images/rue-centre-commercial.png                               1922K      185K    90.4%     q82
+images/rue-centre-multimodal-novomirsk.png                     2717K      291K    89.3%     q82
+images/rue-centre-multimodal-psm.png                           2587K      263K    89.8%     q82
+images/rue-centre-multimodal.png                               2412K      229K    90.5%     q82
+images/rue-chantier-naval-psm.png                              2598K      253K    90.3%     q82
+images/rue-clinique-hopital-novomirsk.png                      3071K     2319K    24.5% sans perte
+images/rue-dispensaire-port-plaisance-psm.png                  2809K      353K    87.4%     q88
+images/rue-ecole-phare-psm.png                                 2760K      546K    80.2%     q94
+images/rue-eglise-cimetiere-psm.png                            2677K      391K    85.4%     q88
+images/rue-el-estado.png                                        351K      277K    21.1%     q82
+images/rue-entrepot-renseignement-novomirsk.png                2735K      428K    84.4%     q88
+images/rue-hotel-centre-affaires-novomirsk.png                 3088K      684K    77.8%     q94
+images/rue-hotel-de-ville.png                                  2003K      202K    89.9%     q82
+images/rue-hotel-galeries-novomirsk.png                        3139K      689K    78.0%     q94
+images/rue-hotel-mairie-place-psm.png                          2563K      228K    91.1%     q82
+images/rue-imprimerie.png                                      1943K      200K    89.7%     q82
+images/rue-intersection-stade-commercial.png                   2458K      247K    90.0%     q82
+images/rue-loge.png                                            1905K      192K    89.9%     q82
+images/rue-marche-novomirsk.png                                2664K      392K    85.3%     q88
+images/rue-marche-resto-chasse-psm.png                         2889K      467K    83.8%     q88
+images/rue-musee-restaurant-novomirsk.png                      2949K      443K    85.0%     q88
+images/rue-musees-luthecia.png                                 2719K      354K    87.0%     q88
+images/rue-palais-gouvernement-place-novomirsk.png             2732K      283K    89.6%     q82
+images/rue-palais-presidentiel.png                             1915K      189K    90.1%     q82
+images/rue-pharmacie-logements-novomirsk.png                   2900K      459K    84.2%     q88
+images/rue-quartier-ambassades.png                             2149K      300K    86.0%     q88
+images/rue-residences-eglise-novomirsk.png                     2935K      475K    83.8%     q88
+images/rue-salon-coiffure-novomirsk.png                        2864K      623K    78.2%     q94
+images/rue-stade-centre-artisanal-novomirsk.png                3027K      663K    78.1%     q94
+images/rue-stade-multimodal.png                                1972K      199K    89.9%     q82
+images/rue-tabernacle-impots.png                               2932K     2280K    22.2% sans perte
+images/rue-terrains-artisanal.png                              1936K      175K    91.0%     q82
+images/rue-terrains-lots-detail-psm.png                        2550K      371K    85.4%     q88
+images/rue-terrains-lots-detail.png                            2107K      291K    86.2%     q88
+images/rue-terrains-vente-psm.png                              2495K      343K    86.3%     q88
+images/rue-tribunal-banque-psm.png                             2762K      301K    89.1%     q82
+images/rue-tribunal-palais-novomirsk.png                       2881K      439K    84.8%     q88
+images/rue-usine-pharma-musee-novomirsk.png                    2980K      656K    78.0%     q94
+images/salle-archives-mairie-luthecia.png                      2473K      191K    92.3%     q82
+images/salle-artistes-sportifs-musee-national.png              2489K     1892K    24.0% sans perte
+images/salle-civils-intellectuels-musee-national.png           2426K     1843K    24.0% sans perte
+images/salle-criminels-cadre-vide-luthecia.png                 2411K      320K    86.7%     q88
+images/salle-criminels-musee-luthecia.png                      2676K     1874K    30.0% sans perte
+images/salle-criminels-musee-national.png                      2299K     1751K    23.8% sans perte
+images/salle-criminels-musee-psm.png                           2401K     1814K    24.4% sans perte
+images/salle-economie-musee-national.png                       2441K     1856K    24.0% sans perte
+images/salle-elections-luthecia.png                            2432K      214K    91.2%     q82
+images/salle-entrepreneurs-cadre-vide-luthecia.png             2273K     1732K    23.8% sans perte
+images/salle-entrepreneurs-musee-psm.png                       2575K     1948K    24.4% sans perte
+images/salle-honneur-militaire-musee-psm.png                   2654K     2053K    22.6% sans perte
+images/salle-maires-cadre-vide-luthecia.png                    2564K      524K    79.6%     q94
+images/salle-maires-musee-luthecia.png                         2815K     1953K    30.6% sans perte
+images/salle-maires-musee-psm.png                              2344K     1806K    22.9% sans perte
+images/salle-militaires-musee-national.png                     2479K     1875K    24.3% sans perte
+images/salle-organisations-musee-national.png                  2491K     1901K    23.7% sans perte
+images/salle-organisations-musee-psm.png                       2527K     1959K    22.5% sans perte
+images/salle-personnalites-musee-psm.png                       2518K     1919K    23.8% sans perte
+images/salle-plumes-cadre-vide-luthecia.png                    2505K     1917K    23.5% sans perte
+images/salle-plumes-musee-luthecia.png                         2674K     1930K    27.8% sans perte
+images/salle-plumes-musee-psm.png                              2681K     2052K    23.5% sans perte
+images/salle-politiques-musee-national.png                     2424K     1842K    24.0% sans perte
+images/salle-presidents-musee-national.png                     2376K     1806K    24.0% sans perte
+images/salle-presse-el-estado.png                               237K      153K    35.5%     q82
+images/salle-presse-palais-presidentiel-luthecia.png           2349K      206K    91.2%     q82
+images/salle-production-usine-pharma-luthecia.png              2430K      200K    91.8%     q82
+images/salle-redaction-autruche-entravee.png                   2508K      244K    90.3%     q82
+images/salle-scandales-musee-psm.png                           2518K     1902K    24.5% sans perte
+images/salle-unions-musee-psm.png                              2570K     1982K    22.9% sans perte
+images/salle-ventes-entrepot-luthecia.png                      2279K      298K    86.9%     q88
+images/salle-ventes-usine-pharma-luthecia.png                  2007K      153K    92.4%     q82
+images/secretaire-petit-mairie.png                             2230K      142K    93.6%     q82
+images/siege-supporters-luthecia.png                           2557K      204K    92.0%     q82
+images/siege-supporters-mariannaise.png                        2462K      198K    92.0%     q82
+images/souk-al-khalija.png                                      393K      283K    28.0%     q82
+images/squatteur-agressif-republic.png                          350K      278K    20.5%     q82
+images/squatteur-agressif-soviet.png                            249K      187K    24.9%     q82
+images/squatteur-cool-soviet.png                                245K      179K    27.2%     q82
+images/suite-privee-republia.png                               2539K      179K    92.9%     q82
+images/tabernacle-impots-nef-formulaires.png                   2637K      546K    79.3%     q94
+images/terrain-a-vendre-khalija.png                             387K      304K    21.4%     q82
+images/terrain-a-vendre-narco.png                               385K      303K    21.3%     q82
+images/terrain-a-vendre-republic.png                            423K      349K    17.4%     q82
+images/terrain-a-vendre-soviet.png                              416K      341K    17.9%     q82
+images/travees-centre-artisanal.png                            2624K      352K    86.6%     q88
+images/tresor-national-musee-national.png                      2491K     1903K    23.6% sans perte
+images/tribunal-greffe.png                                     2337K      169K    92.7%     q82
+images/tribunal-khalija.png                                     376K      269K    28.5%     q82
+images/tribunal-salle-audience.png                             2471K      194K    92.2%     q82
+images/tribunal-sovarka.png                                     308K      198K    35.7%     q82
+images/universite-amphi-v2.png                                 2277K      190K    91.6%     q82
+images/usine-pharmaceutique-luthecia.png                       2393K      230K    90.4%     q82
+images/vestiaires-luthecia.png                                 2395K      189K    92.1%     q82
+images/vestiaires-mariannaise.png                              2233K      140K    93.7%     q82
+images/vipere-des-sables-khalija.png                           2685K      255K    90.5%     q82
+images/yvette-gratinee.png                                      189K      107K    43.1%     q82
+
+  471 image(s) converties, 818.85 Mo -> 166.17 Mo
+  originaux sauvegardes dans /Users/fredericjasseron/ResPublica-originaux-images
+  references reecrites :
+      423  data.js
+       52  plateau-rue-centrale.js
+       42  plateau-organisations-quetes.js
+       14  plateau-actions-illegales-rumeurs.js
+       14  plateau-variantes-pieces.js
+       10  plateau-enigme-portrait.js
+       10  plateau-multijoueur.js
+        7  plateau-divers.js
+        7  plateau-pnj.js
+        5  plateau-effort-guerre.js
+        4  plateau-justice-economie.js
+        3  plateau-quete-accueil.js
+        2  plateau-maxence.js
+        2  plateau-social-pnj.js
+        1  plateau-assemblee.js
+        1  plateau-core.js
+        1  plateau-navigation.js

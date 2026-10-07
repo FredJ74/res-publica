@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<!-- BANC VISUEL — rend UNE piece du centre commercial de Luthecia dans la vraie
+     cascade CSS du jeu, avec le vrai moteur de variantes, et reproduit a
+     l'identique le bloc image de enterRoom().
+
+     Parametres d'URL :
+       ?piece=hall|vitrine_principale|boutique_milieu|arriere_boutique|cave_reserve
+       &etat=libre|occupee
+       &nom=<enseigne>            (defaut : Aux Souvenirs d'Arnie)
+
+     Capture :
+       "Google Chrome" --headless=new --screenshot=... --window-size=1440,900 \
+         "file://.../banc_visuel_variantes.html?piece=...&etat=occupee" -->
+<base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>html,body{margin:0;height:100%}</style>
+</head>
+<body>
+<div class="game-container" style="height:100vh;display:flex;flex-direction:column">
+  <div class="main-area" style="flex:1;display:flex;min-height:0">
+    <div class="center-panel" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="batiment-header" style="padding:.5rem .8rem">
+        <div class="batiment-nom" id="bat-nom">Centre Commercial</div>
+      </div>
+      <div class="pieces-tabs" id="onglets"></div>
+      <div class="piece-container">
+        <div class="piece-image" id="piece-image">
+          <div class="piece-ambiance">
+            <div class="piece-nom" id="piece-nom">Piece</div>
+            <div class="piece-desc" id="piece-desc">Description</div>
+          </div>
+        </div>
+        <div class="persons-sidebar"><div class="persons-title">PERSONNES PRESENTES</div><div id="persons-list"></div></div>
+      </div>
+      <div class="actions-zone" style="min-height:110px;padding:.6rem"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* --- Doublures : uniquement ce que le moteur consulte --------------------- */
+const P = new URLSearchParams(location.search);
+const PIECE = P.get('piece') || 'vitrine_principale';
+const ETAT  = P.get('etat')  || 'libre';
+const NOM   = P.get('nom')   || "Aux Souvenirs d'Arnie";
+
+var state = { country: 'republic', currentCity: 'capitale' };
+
+/* Un bail existe si et seulement si l'etat demande est "occupee" -- c'est
+   exactement le critere du jeu. */
+function getLocationPourRoom(buildingId, roomId, city) {
+  if (ETAT !== 'occupee') return undefined;
+  if (buildingId !== 'centre-commercial' || roomId !== PIECE || city !== 'capitale') return undefined;
+  return { buildingId: buildingId, roomId: roomId, city: city, fondsId: 'fonds-banc' };
+}
+function fondsEstActif(f) { return !!f && f.statut === 'actif'; }
+const VISUEL = P.get('visuel') || null;   // simule l'option premium
+function sbGetFonds(id) {
+  // Resolu au tour suivant, pour reproduire le caractere asynchrone du reseau.
+  return new Promise(function (r) {
+    const f = { id: id, statut: 'actif', enseigne: NOM };
+    if (VISUEL) f.enseigneVisuel = VISUEL;
+    setTimeout(function () { r(f); }, 30);
+  });
+}
+</script>
+<script src="plateau-variantes-pieces.js"></script>
+<script>
+/* --- Reproduction a l'identique du bloc image de enterRoom() -------------- */
+function poserPiece(buildingId, roomId) {
+  const b = BUILDINGS[buildingId];
+  const ctx = WORLD[state.country][state.currentCity].buildingContext?.[buildingId];
+  const room = b.rooms[roomId];
+  const roomOverride = ctx?.roomOverrides?.[roomId];
+  const empireRoomImg = ROOM_IMAGES_EMPIRE[state.country]?.[buildingId]?.[roomId];
+  const pieceImg = document.getElementById('piece-image');
+
+  const varianteImg = varianteImagePiece(buildingId, roomId, state.currentCity);
+
+  const varianteAncrage = varianteAncragePiece(buildingId, roomId, state.currentCity);
+  if (varianteAncrage) pieceImg.setAttribute('data-ancrage', varianteAncrage);
+  else pieceImg.removeAttribute('data-ancrage');
+
+  const imgUrl = varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
+  if (imgUrl) {
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
+  } else {
+    pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+  }
+  varianteAppliquerEnseigne(buildingId, roomId, state.currentCity);
+
+  const nomBase = roomOverride?.name || room.name;
+  document.getElementById('piece-nom').textContent =
+    varianteNomPiece(buildingId, roomId, state.currentCity, nomBase) || nomBase;
+  const descBase = room.desc || '';
+  document.getElementById('piece-desc').textContent =
+    varianteDescPiece(buildingId, roomId, state.currentCity, descBase) || descBase;
+
+  // Onglets, pour que la capture ressemble a l'ecran reel.
+  const noms = ['hall','vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve'];
+  // Les onglets portent le meme nom que le titre -- c'est tout l'objet de la
+  // regle de nom : ils ne doivent jamais se contredire.
+  document.getElementById('onglets').innerHTML = noms.map(function (n) {
+    const base = b.rooms[n].name;
+    const nom = varianteNomPiece(buildingId, n, state.currentCity, base) || base;
+    return '<div class="piece-tab' + (n === roomId ? ' active' : '') + '">' + nom + '</div>';
+  }).join('');
+}
+
+window.addEventListener('load', function () { poserPiece('centre-commercial', PIECE); });
+</script>
+</body></html>

@@ -9189,9 +9189,19 @@ function ouvrirConfirmationDemission() {
 const CATEGORIES_BUDGET_MAIRIE = ['commissariat', 'multimodal', 'stade', 'marche', 'dispensaire', 'tribunal'];
 const LABELS_BUDGET_MAIRIE = { commissariat: 'Commissariat', multimodal: 'Centre Multimodal', stade: 'Stade', marche: 'Marche', dispensaire: 'Dispensaire', tribunal: 'Tribunal' };
 
-function getBuildingIdPourCategorieBudget(cat, ville) {
+// LE PAYS TRAVERSE DESORMAIS LA RESOLUTION (chantier 4G, 7 octobre 2026). Cette fonction
+// appelait getBuildingIdCentreMultimodal(ville) SANS le pays, alors que cette derniere porte un
+// garde-fou explicite -- `if (pays && pays !== 'republic') return null;` -- precisement pour
+// qu'un autre empire ne se voie pas attribuer les hubs de Republia, qui sont les seuls
+// construits. Le garde-fou ne pouvait pas se declencher : `pays` arrivait toujours undefined.
+// Consequence : le budget municipal d'une ville d'Al-Khalija aurait credite
+// `khalija_centre-multinodal-port-sainte-marie`, un batiment de Port-Sainte-Marie.
+//
+// Rend `null` quand cette categorie n'a aucun etablissement dans cet empire. C'est une reponse,
+// pas un accident : l'appelant doit alors NE RIEN VERSER, et surtout pas retomber sur Republia.
+function getBuildingIdPourCategorieBudget(cat, ville, pays) {
   if (cat === 'commissariat') return getBuildingIdCommissariat(ville);
-  if (cat === 'multimodal') return getBuildingIdCentreMultimodal(ville);
+  if (cat === 'multimodal') return getBuildingIdCentreMultimodal(ville, pays);
   if (cat === 'dispensaire') return getBuildingIdDispensaire(ville);
   if (cat === 'tribunal') return getBuildingIdTribunal(ville);
   // stade/marche (et toute categorie future sans helper dedie) : repli generique sur la meme
@@ -9279,18 +9289,35 @@ async function distribuerBudgetMunicipalVersBatiments(pays, ville) {
   const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
   if (data.derniereDistribJour === jour) return;
 
+  // CE QUI N'A PAS PU ETRE VERSE RESTE EN CAISSE (chantier 4F, 7 octobre 2026). L'ancienne
+  // version mettait `data.caisse = 0` quoi qu'il arrive : la part d'une categorie sans
+  // etablissement dans cet empire -- buildingId null -- etait donc retiree de la caisse
+  // municipale sans arriver nulle part. De l'argent public detruit en silence, chaque nuit.
+  //
+  // On ne retire desormais que ce qui a ete REELLEMENT credite. Le reliquat reste a la ville et
+  // sera redistribue demain, ou le jour ou l'etablissement existera.
   const montantAReparter = data.caisse || 0;
+  let verseTotal = 0;
   if (montantAReparter > 0) {
     for (const cat of CATEGORIES_BUDGET_MAIRIE) {
       const part = (data.allocation[cat] || 0) / 100;
       const montant = Math.floor(montantAReparter * part);
-      if (montant > 0) {
-        const buildingId = getBuildingIdPourCategorieBudget(cat, ville);
-        if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, buildingId, montant);
+      if (montant <= 0) continue;
+      const buildingId = getBuildingIdPourCategorieBudget(cat, ville, pays);
+      if (!buildingId) {
+        console.warn('budget municipal : aucun etablissement « ' + cat + ' » en ' + pays
+                     + '/' + ville + ' -- sa part reste en caisse');
+        continue;
+      }
+      if (typeof crediterCaisseBatiment === 'function') {
+        const solde = await crediterCaisseBatiment(pays, buildingId, montant);
+        // crediterCaisseBatiment rend null en cas d'echec (fail-closed, chantier C) : on ne
+        // deduit alors rien de la caisse.
+        if (solde !== null) verseTotal += montant;
       }
     }
   }
-  data.caisse = 0;
+  data.caisse = Math.max(0, montantAReparter - verseTotal);
   data.derniereDistribJour = jour;
   if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(data.key, data).catch(() => {});
 }
@@ -9305,7 +9332,7 @@ async function doConsulterIndicesLocaux() {
   const cur = COUNTRIES[pays]?.cur || 'FR';
   let html = '<div style="padding:1rem">';
   for (const cat of CATEGORIES_BUDGET_MAIRIE) {
-    const buildingId = getBuildingIdPourCategorieBudget(cat, ville);
+    const buildingId = getBuildingIdPourCategorieBudget(cat, ville, pays);
     // LE COMMISSARIAT FAIT EXCEPTION DEPUIS LE 15 SEPTEMBRE 2026. Cet ecran est public et gratuit
     // a l'Hotel de Ville : il exposait donc le solde du commissariat a n'importe quel joueur, ce
     // qui aurait rendu cosmetique la restriction posee sur l'ordre du commissariat lui-meme. La

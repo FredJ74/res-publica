@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- APERCU DE CONTROLE C7 — hors jeu, jamais servi par Vercel (.scratch).
+     Il charge le VRAI plateau-commerce-pj.js et le VRAI style.css, et ne bouchonne
+     que le transport (les sb*) et le socle (state, showToast). Ce qui s'affiche ici
+     est donc exactement ce que le joueur verra. -->
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aperçu C7</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../style.css">
+<body style="background:#15120c">
+<div id="modal-postes" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="postes-modal-title">—</div>
+      <button class="modal-close">×</button>
+    </div>
+    <div id="postes-body"></div>
+  </div>
+</div>
+<script>
+// --- SOCLE BOUCHONNE ---------------------------------------------------------
+const COUNTRIES = { republic: { cur: 'FR' } };
+const RESSOURCES_ECONOMIE = {
+  bois:    { label: 'Bois',    icon: 'ti-trees' },
+  metal:   { label: 'Métal',   icon: 'ti-bolt' },
+  textile: { label: 'Textile', icon: 'ti-shirt' },
+  produits_exotiques: { label: 'Produits exotiques', icon: 'ti-package' }
+};
+const COUT_MAIN_OEUVRE_PA_ALIMENTAIRE = 12;
+const state = { country: 'republic', currentCity: 'capitale', currentBuilding: 'centre-commercial',
+  currentRoom: 'boutique_milieu', char: { name: 'Marsault' }, arg: 4000, liquide: 2500, inventory: [] };
+function escapeHtmlText(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function showToast(t, s){ console.log('[toast]', t, s); }
+function updateUI(){}
+function addJournalEntry(){}
+
+// --- TRANSPORT BOUCHONNE : les memes formes de retour que les RPC -----------
+const FONDS = {
+  id: 'zz', enseigne: 'Manga Paradise', proprietaire: 'Marsault', caisse: 12450,
+  implantation: { roomId: 'boutique_milieu', country: 'republic' },
+  typesAutorises: ['commerce-non-alimentaire', 'vetements'],
+  references: {
+    r1: { nom: 'Votez Arnie !', active: true,  prixVente: 30, generique_id: 'affiche', recette_id: 'x' },
+    r2: { nom: 'Porte-clé présidentiel Collector', active: false, prixVente: 0, generique_id: 'souvenir', recette_id: 'y' }
+  },
+  stockReferences: { r1: 6, r2: 0 },
+  parametres: { stockMaxReferences: { r1: 20, r2: 0 } }
+};
+async function sbBailIdDeLocal(){ return 'bail'; }
+async function sbGetBail(){ return { fondsId: 'zz', locataire: 'Marsault' }; }
+async function sbGetFonds(){ return FONDS; }
+async function sbGetCatalogueTypes(){ return [
+  { id: 'commerce-non-alimentaire', libelle: 'Commerce non alimentaire' },
+  { id: 'vetements', libelle: 'Vêtements' }]; }
+async function sbFondsCoutRevientReference(f, id){
+  return id === 'r1' ? { disponible: true, coutUnitaire: 12.5, prixMaximum: 31 } : { disponible: false }; }
+async function sbFondsMatieresAccessibles(){ return [
+  { matiere: 'bois',    stock: 0, maximum: 2,  plafond_pays: 20, prix_achat: 2.5, place_restante: 2,  acceptee: true,  utilisee: true },
+  { matiere: 'metal',   stock: 1, maximum: 20, plafond_pays: 20, prix_achat: 20,  place_restante: 19, acceptee: true,  utilisee: true },
+  { matiere: 'produits_exotiques', stock: 0, maximum: 0, plafond_pays: 20, prix_achat: 3, place_restante: 0, acceptee: false, utilisee: false },
+  { matiere: 'textile', stock: 1, maximum: 10, plafond_pays: 20, prix_achat: 8,   place_restante: 9,  acceptee: true,  utilisee: true }]; }
+async function sbFondsMatiereParametres(a,b,m,p,mx){ return { ok:true, matiere:m, prixAchat:p, maximum:mx, acceptee: mx>0 }; }
+async function sbFondsReferenceStockMax(){ return { ok: true }; }
+async function sbFondsReferencePrix(){ return { ok: true }; }
+async function sbAlimenterCaisseFonds(a,b,m){ return { ok:true, montant:m, caisse: FONDS.caisse + m }; }
+async function sbRetirerCaisseFonds(a,b,m){ return { ok:true, montant:m, caisse: FONDS.caisse - m }; }
+function getLocationPourRoom(){ return null; }
+</script>
+<script src="../plateau-commerce-pj.js"></script>
+<script>commercePjEcranGestion();</script>
+</body>

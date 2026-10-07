@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+html,body{margin:0;background:#141210;color:#e8ddc0;font-family:Inter,sans-serif}
+.enveloppe{padding:1.2rem 1.4rem;max-width:1180px;margin:0 auto}
+h1{font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;color:#C9A84C;font-size:1.5rem;margin:0 0 .2rem}
+h2{font-family:'Bebas Neue',sans-serif;letter-spacing:.09em;color:#C9A84C;font-size:1rem;
+   margin:1.6rem 0 .5rem;border-bottom:1px solid #3a2a10;padding-bottom:.25rem}
+.sous{color:#8a8060;font-size:.78rem;margin:0 0 .6rem}
+table{border-collapse:collapse;width:100%;font-size:.76rem}
+th{text-align:left;color:#8a8060;font-weight:500;padding:.3rem .5rem .3rem 0;
+   border-bottom:1px solid #2a2010;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase}
+td{padding:.45rem .5rem .45rem 0;border-bottom:1px solid #1c1810;vertical-align:middle}
+.boite{position:relative;background:#1d1a12;outline:1px dashed #4a3a18;overflow:hidden}
+.ens{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+     align-items:center;white-space:nowrap;line-height:1;overflow:hidden}
+.ens span{display:block}
+.chiffres{color:#8a8060;font-size:.7rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ok{color:#6ab858}.ko{color:#cc6a44;font-weight:600}
+#verdict{position:fixed;left:0;right:0;bottom:0;background:#0b0b08;border-top:2px solid #C9A84C;
+  color:#ddd;font:13px/1.5 monospace;padding:.7rem 1rem;z-index:99;max-height:40vh;overflow:auto}
+</style></head>
+<body>
+<div class="enveloppe">
+  <h1>Moteur de composition des enseignes</h1>
+  <p class="sous">Avant / après, sur les vraies géométries de cartouche du jeu. Le cadre pointillé est la zone déclarée.</p>
+  <div id="sortie"></div>
+</div>
+
+<script src="plateau-variantes-pieces.js?x=2"></script>
+<script>
+/* --- Les trois geometries reelles, calculees pour un cadre de 1240 x 732 ----
+   (fronton de devanture, plaque murale de bureau, plaque posee sur un bureau) */
+const ZONES = [
+  { nom: 'Fronton de devanture',  l: 774, h: 42,
+    style: { align:'center', casse:'majuscules', couleur:'#f3e3b4', ombre:true, graisse:700,
+             police:"'Playfair Display',Georgia,serif", interLettre:'.10em' } },
+  { nom: 'Plaque murale de bureau', l: 174, h: 46,
+    style: { align:'center', casse:'aucune', couleur:'#3b2d12', ombre:false, graisse:600,
+             police:"'Playfair Display',Georgia,serif" } },
+  { nom: 'Plaque posée sur le bureau', l: 145, h: 25,
+    style: { align:'center', casse:'aucune', couleur:'#2e2208', ombre:false, graisse:700,
+             police:"'Playfair Display',Georgia,serif", interLettre:'.04em' } }
+];
+
+const NOMS = [
+  'Chez Lu',
+  'À LOUER',
+  "Aux Souvenirs d'Arnie",
+  'Les Trésors de Luthécia',
+  'Cabinet Valdez & Associés',
+  'La Grande Maison du Cuir de Luthécia',
+  'Comptoir Général des Tissus Précieux et Fournitures Mariannaises',
+  'Anticonstitutionnellementissime'
+];
+
+/* ANCIEN ALGORITHME, reproduit fidelement pour la comparaison : une seule ligne,
+   taille de depart = min(hauteur x 0,62 ; plafond declare), puis reduction de
+   0,5 px tant que le texte depasse. Les plafonds etaient 30 / 15 / 17 px. */
+const PLAFONDS = [30, 15, 17];
+function ancienneCompo(texte, L, H, style, plafond) {
+  let t = Math.min(H * 0.62, plafond);
+  let garde = 0;
+  while (enseigneMesurer(texte, t, style) > L && t > 9 && garde++ < 200) t -= 0.5;
+  return { lignes: [texte], taille: t };
+}
+
+let ok = 0; const ko = []; let debordementsAvant = 0;
+function v(titre, cond, detail) { if (cond) ok++; else ko.push(titre + (detail ? ' | ' + detail : '')); }
+
+function poser(boite, compo, style) {
+  const d = document.createElement('div');
+  d.className = 'ens';
+  d.style.color = style.couleur;
+  d.style.fontFamily = style.police;
+  d.style.fontWeight = style.graisse;
+  if (style.interLettre) d.style.letterSpacing = style.interLettre;
+  if (style.ombre) d.style.textShadow = '0 1px 2px rgba(0,0,0,.75)';
+  d.style.fontSize = compo.taille + 'px';
+  d.style.lineHeight = '1';
+  if (compo.interLettre) d.style.letterSpacing = compo.interLettre;
+  compo.lignes.forEach(function (lg, i) {
+    const s = document.createElement('span'); s.textContent = lg;
+    if (i > 0) s.style.marginTop = ((compo.interligne || 1.14) - 1) + 'em';
+    d.appendChild(s);
+  });
+  boite.appendChild(d);
+  return d;
+}
+
+function construire() {
+  const sortie = document.getElementById('sortie');
+  ZONES.forEach(function (z, iz) {
+    const h2 = document.createElement('h2');
+    h2.textContent = z.nom + ' — zone ' + z.l + ' × ' + z.h + ' px';
+    sortie.appendChild(h2);
+
+    const tbl = document.createElement('table');
+    tbl.innerHTML = '<tr><th style="width:17%">Nom</th><th style="width:33%">Avant</th>' +
+                    '<th style="width:13%">—</th><th style="width:33%">Après</th><th>—</th></tr>';
+    NOMS.forEach(function (nom) {
+      const txt = (z.style.casse === 'majuscules') ? nom.toLocaleUpperCase('fr-FR') : nom;
+      const tr = document.createElement('tr');
+
+      const tdNom = document.createElement('td');
+      tdNom.textContent = nom.length > 34 ? nom.slice(0, 32) + '…' : nom;
+      tdNom.style.color = '#b0a080'; tr.appendChild(tdNom);
+
+      // AVANT
+      const tdA = document.createElement('td');
+      const bA = document.createElement('div');
+      bA.className = 'boite avant'; bA.style.width = z.l + 'px'; bA.style.height = z.h + 'px';
+      tdA.appendChild(bA); tr.appendChild(tdA);
+      const cA = ancienneCompo(txt, z.l, z.h, z.style, PLAFONDS[iz]);
+      const dA = poser(bA, cA, z.style);
+      const tdAi = document.createElement('td');
+      const largA = enseigneMesurer(txt, cA.taille, z.style);
+      const debordeA = largA > z.l + 0.5;
+      tdAi.className = 'chiffres';
+      tdAi.innerHTML = cA.taille.toFixed(1) + ' px · 1 ligne<br>' +
+        (debordeA ? '<span class="ko">déborde de ' + Math.round(largA - z.l) + ' px</span>'
+                  : 'remplit ' + Math.round(largA / z.l * 100) + ' %');
+      tr.appendChild(tdAi);
+
+      // APRES
+      const tdB = document.createElement('td');
+      const bB = document.createElement('div');
+      bB.className = 'boite apres'; bB.style.width = z.l + 'px'; bB.style.height = z.h + 'px';
+      tdB.appendChild(bB); tr.appendChild(tdB);
+      const cB = varianteComposerEnseigne(txt, z.l, z.h, z.style);
+      poser(bB, cB, z.style);
+      const plus = Math.max.apply(null, cB.largeurs);
+      const hautB = enseigneHauteurBloc(cB.lignes.length, cB.taille);
+      const tdBi = document.createElement('td');
+      tdBi.className = 'chiffres';
+      tdBi.innerHTML = cB.taille.toFixed(2) + ' px · ' + cB.lignes.length + ' ligne(s)<br>' +
+        'remplit <b>' + Math.round(plus / (z.l * 0.94) * 100) + ' %</b> de l\'utile';
+      tr.appendChild(tdBi);
+
+      /* CONTRAINTE : rien ne doit depasser, jamais. Verifie sur la mesure ET sur
+         le rendu reel du navigateur. */
+      v('aucun debordement en largeur > ' + z.nom + ' / ' + nom.slice(0,18),
+        plus <= z.l * 0.94 + 0.5, plus.toFixed(1) + ' > ' + (z.l*0.94).toFixed(1));
+      v('aucun debordement en hauteur > ' + z.nom + ' / ' + nom.slice(0,18),
+        hautB <= z.h * 0.92 + 0.5, hautB.toFixed(1) + ' > ' + (z.h*0.92).toFixed(1));
+      v('au plus 3 lignes > ' + z.nom + ' / ' + nom.slice(0,18), cB.lignes.length <= 3);
+      /* Le nouveau moteur ne peut etre compare a l'ancien que la ou l'ancien
+         tenait vraiment dans la zone : partout ailleurs sa taille etait plus
+         grande seulement parce qu'il debordait. */
+      if (debordeA) debordementsAvant++;
+
+      /* LE CRITERE DE REUSSITE n'est pas « ca rentre » mais « ca occupe bien ».
+         Le bloc doit remplir 80 a 90 % de la largeur utile -- sauf quand la
+         hauteur du cartouche plafonne le corps (un nom court dans une zone tres
+         plate ne peut pas remplir davantage, meme espace au maximum) ou quand
+         le nom est un mot unique insecable. */
+      const fill = plus / (z.l * 0.94);
+      const plafondHauteur = (z.h * 0.92) / (1 + (cB.lignes.length - 1) * 1.14);
+      const limiteParHauteur = Math.abs(cB.taille - Math.floor(plafondHauteur * 4) / 4) < 0.3;
+      const motUnique = cB.lignes.length === 1 && cB.lignes[0].split(' ').length === 1;
+      v('occupation harmonieuse > ' + z.nom + ' / ' + nom.slice(0,18),
+        (fill >= 0.78 && fill <= 1.0) || limiteParHauteur || motUnique,
+        'remplit ' + (fill*100).toFixed(0) + '%');
+
+      tbl.appendChild(tr);
+    });
+    sortie.appendChild(tbl);
+  });
+
+  /* Verification au rendu reel : aucun span ne doit depasser sa boite. */
+  setTimeout(function () {
+    document.querySelectorAll('.boite.apres').forEach(function (b) {
+      const e = b.querySelector('.ens');
+      if (!e) return;
+      /* LE VRAI TEST DE DEBORDEMENT : les rectangles reellement peints, compares
+         a celui de la boite. scrollHeight ne convient pas -- sur un conteneur
+         flex a contenu centre, il sur-rapporte d'un pixel ou deux par arrondi du
+         decalage de centrage, et signale un debordement qui n'existe pas
+         (mesure : contenu 39 px, boite 42 px, scrollHeight 43). */
+      const rb = b.getBoundingClientRect();
+      let hautMin = Infinity, basMax = -Infinity;
+      e.querySelectorAll('span').forEach(function (sp) {
+        const r = sp.getBoundingClientRect();
+        hautMin = Math.min(hautMin, r.top); basMax = Math.max(basMax, r.bottom);
+        v('rendu : la ligne tient en largeur',
+          r.width <= rb.width + 1, r.width.toFixed(1) + ' > ' + rb.width.toFixed(1));
+        v('rendu : la ligne ne sort pas lateralement',
+          r.left >= rb.left - 1 && r.right <= rb.right + 1,
+          r.left.toFixed(0) + '/' + r.right.toFixed(0) + ' vs ' + rb.left.toFixed(0) + '/' + rb.right.toFixed(0));
+      });
+      v('rendu : le bloc tient en hauteur',
+        hautMin >= rb.top - 1 && basMax <= rb.bottom + 1,
+        (basMax - hautMin).toFixed(1) + ' px de texte dans ' + rb.height.toFixed(1) + ' px');
+    });
+
+    /* Cesures intelligentes : le decoupage attendu par la typographie. */
+    const z = ZONES[1];
+    const c1 = varianteComposerEnseigne('Les Trésors de Luthécia', z.l, z.h, z.style);
+    v('cesure naturelle : « Les Trésors / de Luthécia »',
+      c1.lignes.length === 2 && /de Luth/.test(c1.lignes[1]), JSON.stringify(c1.lignes));
+    const c2 = varianteComposerEnseigne('Cabinet Valdez & Associés', z.l, z.h, z.style);
+    v('aucune ligne ne finit par un mot-outil',
+      c2.lignes.slice(0,-1).every(function(l){
+        return ENSEIGNE_MOTS_LIES.indexOf(l.split(' ').pop().toLowerCase()) === -1; }),
+      JSON.stringify(c2.lignes));
+
+    /* Le constat qui compte : l'ancien algorithme debordait, le nouveau jamais. */
+    v('l ancien algorithme debordait sur au moins un nom', debordementsAvant > 0,
+      'debordements avant = ' + debordementsAvant);
+
+    const d = document.createElement('div');
+    d.id = 'verdict';
+    d.textContent = 'VERDICT reussites=' + ok + ' echecs=' + ko.length +
+      ' | debordements de l ancien algorithme : ' + debordementsAvant +
+      (ko.length ? '\n' + ko.map(x => '  ECHEC ' + x).join('\n') + '\n\nBANC ROUGE' : '\n\nBANC COMPOSITION VERT');
+    document.body.appendChild(d);
+  }, 400);
+}
+window.addEventListener('load', function () { enseignePolicesPretes().then(construire); });
+</script>
+</body></html>

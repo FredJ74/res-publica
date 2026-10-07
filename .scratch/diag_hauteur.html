@@ -1,0 +1,21 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>.b{position:relative;width:774px;height:42px;outline:1px dashed #888;overflow:hidden}
+.e{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1;white-space:nowrap}
+.e span{display:block}</style></head><body>
+<div class="b"><div class="e" id="e"><span id="s">CHEZ LU</span></div></div><pre id="r"></pre>
+<script>
+window.addEventListener('load',function(){ setTimeout(function(){
+ const e=document.getElementById('e'), s=document.getElementById('s');
+ e.style.fontSize='38.5px';
+ const cs=getComputedStyle(s);
+ document.getElementById('r').textContent =
+  'font-size      : '+cs.fontSize+'\n'+
+  'line-height    : '+cs.lineHeight+'\n'+
+  'span offsetH   : '+s.offsetHeight+'\n'+
+  'span clientH   : '+s.clientHeight+'\n'+
+  'ens scrollH    : '+e.scrollHeight+'\n'+
+  'ens clientH    : '+e.clientHeight+'\n'+
+  'boite clientH  : '+document.querySelector('.b').clientHeight;
+},600);});
+</script></body></html>

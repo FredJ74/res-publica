@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<!-- BANC DE GEOMETRIE — mesure la taille reelle du cadre #piece-image dans la
+     vraie cascade CSS du jeu, a plusieurs largeurs de fenetre, et calcule si le
+     fronton des images de local (zone y=5..16% de l'image) survit au rognage
+     `background-size:cover`. Aucune donnee du jeu n'est requise : seul le
+     squelette DOM de plateau.html et style.css comptent pour la mise en page. -->
+<link rel="stylesheet" href="../style.css">
+<style>html,body{margin:0;height:100%}</style>
+</head>
+<body>
+<!-- Squelette repris a l'identique de plateau.html (hierarchie complete, sinon
+     flex:1 et min-height:0 ne produisent pas la meme hauteur). -->
+<div class="game-container" style="height:100vh;display:flex;flex-direction:column">
+  <div class="main-area" style="flex:1;display:flex;min-height:0">
+    <div class="center-panel" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="batiment-header"><div class="batiment-nom">Centre Commercial</div></div>
+      <div class="pieces-tabs"><div class="piece-tab active">Hall</div><div class="piece-tab">Vitrine</div></div>
+      <div class="piece-container">
+        <div class="piece-image" id="piece-image">
+          <div class="piece-ambiance">
+            <div class="piece-nom">Vitrine Principale</div>
+            <div class="piece-desc">Emplacement premium en façade.</div>
+          </div>
+        </div>
+        <div class="persons-sidebar"><div class="persons-title">PERSONNES PRESENTES</div><div id="persons-list"></div></div>
+      </div>
+      <div class="actions-zone" style="min-height:120px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const IMG_L = 1698, IMG_H = 926;           // taille naturelle des 8 images livrees
+const FRONTON = { haut: 0.052, bas: 0.162 }; // bande ou vit l'enseigne, toutes tailles
+
+function mesure() {
+  const c = document.getElementById('piece-image');
+  const L = c.clientWidth, H = c.clientHeight;
+  const echelle = Math.max(L / IMG_L, H / IMG_H);
+  const dessinH = IMG_H * echelle;
+  const origineY = (H - dessinH) / 2;
+  const frontonHaut = origineY + FRONTON.haut * dessinH;
+  const frontonBas  = origineY + FRONTON.bas  * dessinH;
+  return {
+    cadre: L + 'x' + H,
+    ratioCadre: (L / H).toFixed(3),
+    ratioImage: (IMG_L / IMG_H).toFixed(3),
+    frontonHaut: Math.round(frontonHaut),
+    frontonBas: Math.round(frontonBas),
+    visible: frontonHaut >= 0 && frontonBas <= H
+  };
+}
+// Le resultat est ECRIT DANS LE DOM : --dump-dom ne sait pas evaluer une
+// expression, il ne rend que le document. C'est donc la page elle-meme qui
+// publie sa mesure.
+window.addEventListener('load', function () {
+  const m = mesure();
+  const pre = document.createElement('pre');
+  pre.id = 'resultat';
+  pre.textContent = 'RESULTAT ' + JSON.stringify(m);
+  document.body.appendChild(pre);
+});
+</script>
+</body></html>

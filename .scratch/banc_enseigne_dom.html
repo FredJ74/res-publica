@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>html,body{margin:0;height:100%}
+#verdict{position:fixed;inset:0;background:#0b0b08;color:#ddd;font:13px/1.6 monospace;padding:1rem;overflow:auto;z-index:99}</style>
+</head>
+<body>
+<!-- BANC DOM — l'enseigne, dans un vrai navigateur, avec le vrai CSS.
+     Le banc logique (jsc) ne peut pas voir ceci : il n'a ni mise en page ni
+     mesure de texte. C'est precisement la qu'un defaut est passe une fois --
+     scrollWidth d'un conteneur flex centre vaut toujours clientWidth, si bien
+     que le calibrage du texte se declenchait sur un arrondi au pixel et
+     ecrasait deux enseignes sur quatre a 8 px. Ce banc le verrouille.
+
+     Lancement : "Google Chrome" --headless=new --window-size=1440,900 \
+       --virtual-time-budget=8000 --dump-dom \
+       http://localhost:8731/.scratch/banc_enseigne_dom.html -->
+<div style="height:100vh;display:flex;flex-direction:column">
+  <div class="piece-container" style="flex:1;min-height:0">
+    <div class="piece-image" id="piece-image"><div class="piece-ambiance"><div class="piece-nom" id="piece-nom">x</div><div class="piece-desc" id="piece-desc">y</div></div></div>
+    <div class="persons-sidebar"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+var state = { country: 'republic', currentCity: 'capitale' };
+var BAIL = null;                      // pilote par le banc
+var ENSEIGNE = "Aux Souvenirs d'Arnie";
+function getLocationPourRoom(b, r, c) {
+  return (BAIL && BAIL.roomId === r && BAIL.city === c) ? BAIL : undefined;
+}
+function fondsEstActif(f) { return !!f && f.statut === 'actif'; }
+var VISUEL = null;   // quand il est pose, le fonds porte un visuel premium
+function sbGetFonds(id) {
+  return new Promise(function (res) {
+    var f = { id: id, statut: 'actif', enseigne: ENSEIGNE };
+    if (VISUEL) f.enseigneVisuel = VISUEL;
+    setTimeout(function () { res(f); }, 10);
+  });
+}
+</script>
+<script src="plateau-variantes-pieces.js"></script>
+<script>
+const cadre = document.getElementById('piece-image');
+let ok = 0; const ko = [];
+function v(titre, cond, detail) { if (cond) ok++; else ko.push(titre + (detail ? ' | ' + detail : '')); }
+const attendre = ms => new Promise(r => setTimeout(r, ms));
+
+/* Reproduit le bloc image de enterRoom(), pour que le banc teste le vrai
+   enchainement et pas seulement la fonction d'enseigne isolee. */
+function entrer(roomId) {
+  const decl = varianteDePiece('centre-commercial', roomId, 'capitale');
+  const anc = varianteAncragePiece('centre-commercial', roomId, 'capitale');
+  if (anc) cadre.setAttribute('data-ancrage', anc); else cadre.removeAttribute('data-ancrage');
+  const url = varianteImagePiece('centre-commercial', roomId, 'capitale')
+           || (BUILDINGS['centre-commercial'].rooms[roomId] || {}).imageUrl;
+  if (url) cadre.style.background = "url('" + url + "') center/cover no-repeat";
+  varianteAppliquerEnseigne('centre-commercial', roomId, 'capitale');
+  // Comme enterRoom : le nom de la piece suit l'etat.
+  var base = BUILDINGS['centre-commercial'].rooms[roomId].name;
+  document.getElementById('piece-nom').textContent =
+    varianteNomPiece('centre-commercial', roomId, 'capitale', base) || base;
+  var baseD = BUILDINGS['centre-commercial'].rooms[roomId].desc || '';
+  document.getElementById('piece-desc').textContent =
+    varianteDescPiece('centre-commercial', roomId, 'capitale', baseD) || baseD;
+  return decl;
+}
+const ens = () => cadre.querySelector('.piece-enseigne');
+
+
+async function banc() {
+  /* --- 1. LIBRE : aucune enseigne --------------------------------------- */
+  BAIL = null;
+  entrer('vitrine_principale'); await attendre(120);
+  v('local libre : aucune enseigne', ens() === null);
+  v('local libre : image vide',
+    cadre.style.background.indexOf('grand-local-vide') >= 0, cadre.style.background.slice(0, 90));
+  v('ancrage pose', cadre.getAttribute('data-ancrage') === 'haut');
+  v('CSS applique : background-position center top',
+    getComputedStyle(cadre).backgroundPosition.indexOf('top') >= 0 ||
+    getComputedStyle(cadre).backgroundPosition.indexOf('0%') >= 0,
+    getComputedStyle(cadre).backgroundPosition);
+
+  /* --- 2. OCCUPE : enseigne, avec le nom du commerce --------------------- */
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('vitrine_principale'); await attendre(160);
+  v('local loue : image louee',
+    cadre.style.background.indexOf('grand-local-loue') >= 0, cadre.style.background.slice(0, 90));
+  v('local loue : enseigne presente', ens() !== null);
+  v('enseigne : nom du commerce en majuscules',
+    ens() && ens().textContent === "AUX SOUVENIRS D'ARNIE", ens() && ens().textContent);
+  v('enseigne : le texte est dans un SPAN mesurable',
+    ens() && ens().firstChild && ens().firstChild.tagName === 'SPAN');
+
+  /* --- 3. LE DEFAUT HISTORIQUE : le calibrage doit mesurer le TEXTE ------ */
+  /* Le rendu doit appliquer EXACTEMENT ce que le compositeur a decide : c'est le
+     seul lien a verifier ici, la qualite de la composition elle-meme etant
+     eprouvee par banc_composition.html sur trois geometries et huit noms. */
+  for (const piece of ['vitrine_principale', 'boutique_milieu', 'arriere_boutique', 'cave_reserve']) {
+    BAIL = { buildingId: 'centre-commercial', roomId: piece, city: 'capitale', fondsId: 'f-' + piece };
+    ENSEIGNE = "Chez Lu";
+    entrer(piece); await attendre(200);
+    const d = varianteDePiece('centre-commercial', piece, 'capitale');
+    const ta = PIECE_VARIANTES_TAILLES[d.images.occupee];
+    const zp = varianteZoneEnPixels(d.enseigne.zone, cadre, ta, d.ancrage);
+    const largeurUtile = Math.min(zp.largeur, cadre.clientWidth);
+    const attendu = varianteComposerEnseigne('CHEZ LU', largeurUtile, zp.hauteur, d.enseigne.texte);
+    const t = ens() ? parseFloat(ens().style.fontSize) : 0;
+    v('le rendu applique la taille composee > ' + piece,
+      Math.abs(t - attendu.taille) < 0.3, 'rendu=' + t + ' compose=' + attendu.taille);
+    v('aucun debordement du bloc > ' + piece,
+      enseigneHauteurBloc(attendu.lignes.length, attendu.taille) <= zp.hauteur * 0.92 + 0.5 &&
+      Math.max.apply(null, attendu.largeurs) <= largeurUtile * 0.94 + 0.5);
+  }
+
+  /* Un nom long doit VRAIMENT retrecir -- sinon il deborderait du fronton. */
+  const mesures = {};
+  for (const [etiquette, nom] of [
+    ['court', 'Chez Lu'],
+    ['moyen', "Aux Souvenirs d'Arnie"],
+    ['long',  'La Grande Maison du Cuir de Luthecia'],
+    ['tres long', 'Comptoir General des Tissus Precieux et Fournitures Mariannaises']
+  ]) {
+    BAIL = { buildingId: 'centre-commercial', roomId: 'cave_reserve', city: 'capitale', fondsId: 'f-' + etiquette };
+    ENSEIGNE = nom;
+    entrer('cave_reserve'); await attendre(140);
+    mesures[etiquette] = ens() ? parseFloat(ens().style.fontSize) : 0;
+  }
+  v('plus le nom est long, plus la police est petite',
+    mesures['court'] >= mesures['moyen'] && mesures['moyen'] > mesures['long'] && mesures['long'] > mesures['tres long'],
+    JSON.stringify(mesures));
+
+  /* Et le texte doit TENIR dans la largeur visible, quel que soit le nom. */
+  for (const piece of ['vitrine_principale', 'cave_reserve']) {
+    BAIL = { buildingId: 'centre-commercial', roomId: piece, city: 'capitale', fondsId: 'f-long-' + piece };
+    ENSEIGNE = 'Comptoir General des Tissus Precieux et Fournitures Mariannaises';
+    entrer(piece); await attendre(160);
+    const e = ens(), span = e && e.firstChild;
+    v('nom tres long tient dans le fronton > ' + piece,
+      span && span.offsetWidth <= e.clientWidth + 1,
+      span ? (span.offsetWidth + ' > ' + e.clientWidth) : 'pas d enseigne');
+    v('nom tres long tient dans le cadre > ' + piece,
+      span && span.offsetWidth <= cadre.clientWidth,
+      span ? (span.offsetWidth + ' > ' + cadre.clientWidth) : 'pas d enseigne');
+  }
+
+  /* --- 4. L'ENSEIGNE EST SUR LE FRONTON --------------------------------- */
+  ENSEIGNE = "Aux Souvenirs d'Arnie";
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('vitrine_principale'); await attendre(160);
+  const e = ens();
+  const taille = PIECE_VARIANTES_TAILLES['images/luthecia-centre-commercial-grand-local-loue.png'];
+  v('taille naturelle lue', taille && taille.l === 1667 && taille.h === 943, JSON.stringify(taille));
+  const attendu = varianteZoneEnPixels(
+    PIECE_VARIANTES.republic.capitale['centre-commercial'].vitrine_principale.enseigne.zone,
+    cadre, taille, 'haut');
+  v('position = calcul de rognage, au pixel',
+    e && Math.abs(parseFloat(e.style.left) - attendu.gauche) < 1
+      && Math.abs(parseFloat(e.style.top) - attendu.haut) < 1,
+    e ? (e.style.left + '/' + e.style.top + ' attendu ' + attendu.gauche + '/' + attendu.haut) : 'absente');
+  v('enseigne entierement dans le cadre (verticalement)',
+    e && parseFloat(e.style.top) >= 0
+      && parseFloat(e.style.top) + parseFloat(e.style.height) <= cadre.clientHeight,
+    e ? (e.style.top + ' + ' + e.style.height + ' vs ' + cadre.clientHeight) : 'absente');
+  v('enseigne au-dessus du voile (z-index)',
+    e && getComputedStyle(e).zIndex === '1', e && getComputedStyle(e).zIndex);
+  v('enseigne non cliquable',
+    e && getComputedStyle(e).pointerEvents === 'none', e && getComputedStyle(e).pointerEvents);
+
+  /* --- 5. L'ENSEIGNE NE SURVIT PAS AU CHANGEMENT DE PIECE --------------- */
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('hall'); await attendre(140);
+  v('hall : enseigne retiree', ens() === null);
+  v('hall : ancrage retire', cadre.getAttribute('data-ancrage') === null);
+
+  entrer('boutique_milieu'); await attendre(140);   // libre : BAIL porte sur un autre local
+  v('local voisin libre : aucune enseigne heritee', ens() === null);
+
+  /* --- 6. RESILIATION : retour immediat --------------------------------- */
+  BAIL = { buildingId: 'centre-commercial', roomId: 'cave_reserve', city: 'capitale', fondsId: 'f9' };
+  entrer('cave_reserve'); await attendre(160);
+  v('avant resiliation : enseigne presente', ens() !== null);
+  BAIL = null;                                      // ce que fait le splice du jeu
+  entrer('cave_reserve'); await attendre(140);
+  v('apres resiliation : enseigne retiree', ens() === null);
+  v('apres resiliation : image vide revenue',
+    cadre.style.background.indexOf('mini-local-vide') >= 0, cadre.style.background.slice(0, 90));
+
+  /* --- 7. BAIL SANS COMMERCE INSTALLE ----------------------------------- */
+  BAIL = { buildingId: 'centre-commercial', roomId: 'cave_reserve', city: 'capitale' };  // pas de fondsId
+  entrer('cave_reserve'); await attendre(160);
+  v('loue sans commerce : image louee',
+    cadre.style.background.indexOf('mini-local-loue') >= 0);
+  v('loue sans commerce : aucune enseigne', ens() === null);
+
+  /* --- 8. REPOSITIONNEMENT QUAND LE CADRE CHANGE ------------------------ */
+  /* CE QUE CE BANC NE PEUT PAS PROUVER : la LIVRAISON de la notification de
+     ResizeObserver. Elle a lieu pendant les etapes de rendu, et un navigateur
+     sans interface n'en produit aucune -- un observateur temoin pose par le banc
+     lui-meme ne recoit que son appel initial, et requestAnimationFrame ne tourne
+     jamais. Ce n'est donc pas le moteur qui est en cause, et la seule
+     verification possible ici porte sur les deux maillons restants :
+       a) un observateur est bien installe sur le cadre ;
+       b) le recalcul, appele avec un cadre d'une autre largeur, deplace
+          effectivement l'enseigne -- c'est tout ce que l'observateur declenche.
+     Le maillon central (le navigateur appelle l'observateur) est du ressort
+     d'un controle a l'oeil, en redimensionnant la fenetre. */
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('vitrine_principale'); await attendre(160);
+  v('un observateur de redimensionnement est installe',
+    typeof varianteObservateur !== 'undefined' && varianteObservateur !== null);
+
+  const avant = ens() && ens().style.left;
+  const largeurAvant = cadre.clientWidth;
+  document.querySelector('.piece-container').style.gridTemplateColumns = '1fr 420px';
+  await attendre(300);
+  const largeurApres = cadre.clientWidth;
+  v('le cadre a bien change de largeur (premisse du test)',
+    largeurAvant !== largeurApres, largeurAvant + ' -> ' + largeurApres);
+
+  // On declenche le recalcul a la main, exactement comme le fait l'observateur.
+  const dcl = varianteDePiece('centre-commercial', 'vitrine_principale', 'capitale');
+  variantePositionnerEnseigne(cadre, dcl.enseigne,
+    dcl.images.occupee, ens(), dcl.ancrage);
+  await attendre(200);
+  const apres = ens() && ens().style.left;
+  v('le recalcul deplace bien l enseigne quand le cadre change',
+    avant && apres && avant !== apres,
+    'cadre ' + largeurAvant + '->' + largeurApres + ' | gauche ' + avant + ' -> ' + apres);
+
+  // Et la nouvelle position doit rester celle du calcul de rognage.
+  const t2 = PIECE_VARIANTES_TAILLES[dcl.images.occupee];
+  const att2 = varianteZoneEnPixels(dcl.enseigne.zone, cadre, t2, dcl.ancrage);
+  v('nouvelle position = calcul de rognage sur le nouveau cadre',
+    ens() && Math.abs(parseFloat(ens().style.left) - att2.gauche) < 1,
+    ens() && (ens().style.left + ' attendu ' + att2.gauche));
+  document.querySelector('.piece-container').style.gridTemplateColumns = '1fr 200px';
+
+  /* --- 9. LE NOM DE LA PIECE SUIT L'ETAT -------------------------------- */
+  ENSEIGNE = "Aux Souvenirs d'Arnie"; VISUEL = null;
+  BAIL = null;
+  entrer('vitrine_principale'); await attendre(140);
+  v('libre : le nom annonce toujours le local a louer',
+    document.getElementById('piece-nom').textContent === 'Vitrine Principale — Local à louer',
+    document.getElementById('piece-nom').textContent);
+
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('vitrine_principale'); await attendre(160);
+  v('occupe : la mention « Local à louer » a disparu',
+    document.getElementById('piece-nom').textContent === 'Vitrine Principale',
+    document.getElementById('piece-nom').textContent);
+
+  BAIL = { buildingId: 'centre-commercial', roomId: 'cave_reserve', city: 'capitale', fondsId: 'f2' };
+  entrer('cave_reserve'); await attendre(160);
+  v('occupe : la barre oblique interne est conservee',
+    document.getElementById('piece-nom').textContent === 'Cave / Réserve',
+    document.getElementById('piece-nom').textContent);
+
+  BAIL = null;
+  entrer('cave_reserve'); await attendre(140);
+  v('apres resiliation : le nom reannonce le local a louer',
+    document.getElementById('piece-nom').textContent === 'Cave / Réserve — Local à louer',
+    document.getElementById('piece-nom').textContent);
+
+  entrer('hall'); await attendre(120);
+  v('hall : nom inchange',
+    document.getElementById('piece-nom').textContent === "Hall d'Entrée",
+    document.getElementById('piece-nom').textContent);
+
+  /* --- 9 bis. LA DESCRIPTION SUIT L'ETAT -------------------------------- */
+  const desc = () => document.getElementById('piece-desc').textContent;
+  BAIL = null;
+  entrer('vitrine_principale'); await attendre(140);
+  v('libre : la description annonce le local a louer', desc().indexOf('📋 À LOUER') === 0, desc());
+
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'f1' };
+  entrer('vitrine_principale'); await attendre(160);
+  v('occupe : plus de « À LOUER » dans la description', desc().indexOf('LOUER') === -1, desc());
+  v('occupe : plus aucune mention de location',
+    ['louer','Prix élevé','Rapport qualité','pour démarrer','Idéal pour']
+      .every(t => desc().indexOf(t) === -1), desc());
+  v('occupe : la description reste substantielle', desc().length > 30, desc());
+
+  BAIL = null;
+  entrer('vitrine_principale'); await attendre(140);
+  v('apres resiliation : la description reannonce le local a louer',
+    desc().indexOf('📋 À LOUER') === 0, desc());
+
+  entrer('hall'); await attendre(120);
+  v('hall : description inchangee',
+    desc() === BUILDINGS['centre-commercial'].rooms.hall.desc, desc());
+
+  /* Les quatre locaux, occupes : chacun garde son caractere propre. */
+  const descriptions = {};
+  for (const piece of ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve']) {
+    BAIL = { buildingId: 'centre-commercial', roomId: piece, city: 'capitale', fondsId: 'f-' + piece };
+    entrer(piece); await attendre(140);
+    descriptions[piece] = desc();
+  }
+  v('les 4 descriptions occupees sont toutes differentes',
+    new Set(Object.values(descriptions)).size === 4, JSON.stringify(descriptions).slice(0, 160));
+
+  /* --- 10. LE MODE IMAGE, DE BOUT EN BOUT ------------------------------- */
+  /* Aucun fonds ne porte encore de visuel, mais le chemin doit etre reellement
+     exerce : sans cela, « c'est pret pour plus tard » ne serait qu'une
+     affirmation. On simule ici un fonds premium. */
+  VISUEL = 'images/luthecia-centre-commercial-grand-local-loue.png';
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'premium1' };
+  entrer('vitrine_principale'); await attendre(220);
+  const ei = ens();
+  v('mode image : enseigne presente', ei !== null);
+  v('mode image : classe posee', ei && ei.classList.contains('mode-image'),
+    ei && ei.className);
+  v('mode image : un <img> et aucun texte',
+    ei && ei.firstChild && ei.firstChild.tagName === 'IMG' && ei.textContent === '',
+    ei && ei.innerHTML.slice(0, 80));
+  v('mode image : visuel du fonds utilise',
+    ei && ei.firstChild.getAttribute('src') === VISUEL,
+    ei && ei.firstChild.getAttribute('src'));
+  v('mode image : ajustement contain, jamais deforme',
+    ei && getComputedStyle(ei.firstChild).objectFit === 'contain',
+    ei && getComputedStyle(ei.firstChild).objectFit);
+  v('mode image : place sur le fronton, comme le texte',
+    ei && parseFloat(ei.style.top) >= 0 && parseFloat(ei.style.width) > 0,
+    ei && (ei.style.left + ' ' + ei.style.top + ' ' + ei.style.width));
+  v('mode image : aucune taille de police imposee',
+    ei && !ei.style.fontSize, ei && ei.style.fontSize);
+
+  /* Retour au mode texte : le meme local, un fonds sans visuel. */
+  VISUEL = null;
+  BAIL = { buildingId: 'centre-commercial', roomId: 'vitrine_principale', city: 'capitale', fondsId: 'ordinaire1' };
+  entrer('vitrine_principale'); await attendre(200);
+  v('retour au mode texte sur la meme piece',
+    ens() && ens().classList.contains('mode-texte') && ens().textContent === "AUX SOUVENIRS D'ARNIE",
+    ens() && (ens().className + ' / ' + ens().textContent));
+
+  /* Mode « aucune » : le lieu refuse toute enseigne, meme si le fonds en a une. */
+  const sauve = PIECE_VARIANTES.republic.capitale['centre-commercial'].vitrine_principale.enseigne.mode;
+  PIECE_VARIANTES.republic.capitale['centre-commercial'].vitrine_principale.enseigne.mode = 'aucune';
+  entrer('vitrine_principale'); await attendre(200);
+  v('mode aucune : rien n est dessine', ens() === null);
+  PIECE_VARIANTES.republic.capitale['centre-commercial'].vitrine_principale.enseigne.mode = sauve;
+
+  /* --- Verdict ---------------------------------------------------------- */
+  const d = document.createElement('div');
+  d.id = 'verdict';
+  d.textContent = 'VERDICT reussites=' + ok + ' echecs=' + ko.length + '\n'
+    + (ko.length ? ko.map(x => '  ECHEC ' + x).join('\n') + '\n\nBANC DOM ROUGE' : '\nBANC DOM VERT');
+  document.body.appendChild(d);
+}
+window.addEventListener('load', function () { banc(); });
+</script>
+</body></html>

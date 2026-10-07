@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+</head><body><pre id="r"></pre>
+<script src="plateau-variantes-pieces.js?x=2"></script>
+<script>
+const Z=[{n:'fronton',l:774,h:42,s:{align:'center',casse:'majuscules',graisse:700,police:"'Playfair Display',Georgia,serif",interLettre:'.10em'}},
+         {n:'plaque murale',l:174,h:46,s:{align:'center',graisse:600,police:"'Playfair Display',Georgia,serif"}},
+         {n:'plaque bureau',l:145,h:25,s:{align:'center',graisse:700,police:"'Playfair Display',Georgia,serif",interLettre:'.04em'}}];
+const N=['Chez Lu','À LOUER',"Aux Souvenirs d'Arnie",'Les Trésors de Luthécia','Cabinet Valdez & Associés',
+         'La Grande Maison du Cuir de Luthécia','Comptoir Général des Tissus Précieux et Fournitures Mariannaises','Anticonstitutionnellementissime'];
+enseignePolicesPretes().then(function(){
+ let o='';
+ Z.forEach(function(z){
+  o+='\n== '+z.n+' ('+z.l+'x'+z.h+') ==\n';
+  N.forEach(function(nm){
+   const t=(z.s.casse==='majuscules')?nm.toLocaleUpperCase('fr-FR'):nm;
+   const c=varianteComposerEnseigne(t,z.l,z.h,z.s);
+   const plus=Math.max.apply(null,c.largeurs);
+   const fill=plus/(z.l*0.94);
+   const hautMax=(z.h*0.92)/(c.lignes.length*1.14);
+   const limiteHauteur=Math.abs(c.taille-Math.floor(hautMax*4)/4)<0.3;
+   o+='  '+(nm.slice(0,30)+'                              ').slice(0,30)+
+      ' '+c.lignes.length+'L '+c.taille.toFixed(2).padStart(6)+'px  remplit '+(fill*100).toFixed(0).padStart(3)+'%'+
+      (limiteHauteur?'  [limite par la hauteur]':'')+
+      '   '+JSON.stringify(c.lignes)+'\n';
+  });
+ });
+ document.getElementById('r').textContent=o;
+});
+</script></body></html>

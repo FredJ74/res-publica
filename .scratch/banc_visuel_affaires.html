@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="rue-centrale.css">
+<style>html,body{margin:0;height:100%}</style>
+</head>
+<body>
+<!-- BANC VISUEL — Centre d'Affaires de Luthecia, dans la vraie cascade CSS et
+     avec le vrai code (plateau-variantes-pieces.js + plateau-open-space.js).
+     Reproduit le bloc image de enterRoom().
+
+     ?piece=hall|bureau_prestige|bureau_standard|open_space|open_space_a..d
+     &etat=libre|occupee           (etat du local courant)
+     &loues=a,c                    (postes de l open space deja loues)
+     &nom=<enseigne>
+     &survol=open_space_b          (declenche l infobulle sur ce poste du plan) -->
+<div class="game-container" style="height:100vh;display:flex;flex-direction:column">
+  <div class="main-area" style="flex:1;display:flex;min-height:0">
+    <div class="center-panel" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="batiment-header" style="padding:.5rem .8rem">
+        <div class="batiment-nom" id="bat-nom">Centre d'Affaires</div>
+      </div>
+      <div class="pieces-tabs" id="pieces-tabs"></div>
+      <div class="piece-container">
+        <div class="piece-image" id="piece-image">
+          <div class="piece-ambiance">
+            <div class="piece-nom" id="piece-nom">Piece</div>
+            <div class="piece-desc" id="piece-desc">Description</div>
+          </div>
+        </div>
+        <div class="persons-sidebar"><div class="persons-title">PERSONNES PRESENTES</div><div id="persons-list"></div></div>
+      </div>
+      <div class="actions-zone" id="actions" style="min-height:110px;padding:.6rem"></div>
+    </div>
+  </div>
+</div>
+<div id="modal-postes" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="postes-modal-title">Titre</div>
+    </div>
+    <div id="postes-body"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const P = new URLSearchParams(location.search);
+const PIECE  = P.get('piece') || 'open_space';
+const ETAT   = P.get('etat')  || 'libre';
+const NOM    = P.get('nom')   || "Cabinet Valdez & Associés";
+const LOUES  = (P.get('loues') || '').split(',').filter(Boolean);
+const SURVOL = P.get('survol');
+
+const PAYS = P.get('pays') || 'republic';
+const VILLE = P.get('ville') || 'capitale';
+var state = { country: PAYS, currentCity: VILLE };
+
+/* Baux : les postes listes dans ?loues, plus la piece courante si ?etat=occupee */
+function getLocationPourRoom(b, r, c) {
+  if (c !== VILLE || b !== 'centre-affaires') return undefined;
+  if (LOUES.indexOf(r.replace('open_space_','')) >= 0) {
+    return { buildingId:b, roomId:r, city:c, fondsId:'f-'+r, locataire:'Maître Varnier' };
+  }
+  if (r === PIECE && ETAT === 'occupee') {
+    return { buildingId:b, roomId:r, city:c, fondsId:'f-courant', locataire:'Maître Varnier' };
+  }
+  return undefined;
+}
+function fondsEstActif(f) { return !!f && f.statut === 'actif'; }
+function sbGetFonds(id) {
+  return new Promise(function (r) {
+    setTimeout(function () { r({ id:id, statut:'actif', enseigne: NOM }); }, 20);
+  });
+}
+</script>
+<script src="plateau-variantes-pieces.js"></script>
+<script src="plateau-open-space.js"></script>
+<script src="plateau-equipements.js"></script>
+<script>
+/* Reproduction du bloc image de enterRoom(), a l'identique. */
+function entrer(roomId) {
+  const b = BUILDINGS['centre-affaires'];
+  const ctx = (WORLD[PAYS][VILLE].buildingContext && WORLD[PAYS][VILLE].buildingContext['centre-affaires']) || {};
+  const room = Object.assign({}, b.rooms, ctx.roomsExtra || {})[roomId];
+  const ro = ctx.roomOverrides?.[roomId];
+  const cadre = document.getElementById('piece-image');
+
+  const varImg = varianteImagePiece('centre-affaires', roomId, VILLE);
+  const anc = varianteAncragePiece('centre-affaires', roomId, VILLE);
+  if (anc) cadre.setAttribute('data-ancrage', anc); else cadre.removeAttribute('data-ancrage');
+
+  const url = varImg || ro?.imageUrl || room.imageUrl;
+  cadre.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${url}') center/cover no-repeat`;
+
+  varianteAppliquerEnseigne('centre-affaires', roomId, VILLE);
+  openSpaceInjecterZones('centre-affaires', roomId, VILLE);
+
+  const nomBase = ro?.name || room.name;
+  document.getElementById('piece-nom').textContent =
+    varianteNomPiece('centre-affaires', roomId, VILLE, nomBase) || nomBase;
+  const descBase = ro?.desc || room.desc || '';
+  document.getElementById('piece-desc').textContent =
+    varianteDescPiece('centre-affaires', roomId, VILLE, descBase) || descBase;
+
+  /* Onglets : exactement la regle de renderOngletsPieces, roomsMasquees compris. */
+  const masquees = ctx.roomsMasquees || [];
+  const toutes = Object.entries(Object.assign({}, b.rooms, ctx.roomsExtra || {}))
+                       .filter(([r]) => masquees.indexOf(r) === -1);
+  document.getElementById('pieces-tabs').innerHTML = toutes.map(function ([r, o]) {
+    const base = ctx.roomOverrides?.[r]?.name || o.name;
+    const n = varianteNomPiece('centre-affaires', r, VILLE, base) || base;
+    return '<div class="piece-tab' + (r === roomId ? ' active' : '') + '">' + n + '</div>';
+  }).join('');
+
+  /* Ordres, excludeOrders compris — pour montrer que le plan n'est pas louable
+     et qu'un poste l'est. */
+  /* Fusion IDENTIQUE a renderRoomActions : ordres du gabarit + ordres du
+     batiment + ordres de la surcharge de piece, moins les exclus. */
+  const exclus = ro?.excludeOrders || [];
+  const ordres = (room.orders || [])
+    .concat(ctx.orders || [])
+    .concat(ro?.orders || [])
+    .filter(o => exclus.indexOf(o.fn) === -1);
+  document.getElementById('actions').innerHTML = ordres.map(o =>
+    '<span class="piece-tab" style="margin-right:.4rem" title="' + (o.desc||'') + '">' + o.label + '</span>').join('')
+    || '<span style="color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">AUCUNE ACTION — CE PLAN N\'EST PAS UN LOCAL</span>';
+}
+
+/* Reproduit la resolution de sortie de sortirBatiment(), a l'identique. */
+function sortir() {
+  const ctx = (WORLD[PAYS][VILLE].buildingContext && WORLD[PAYS][VILLE].buildingContext['centre-affaires']) || {};
+  const room = BUILDINGS['centre-affaires'].rooms[ETAPE_PIECE]
+            || ctx.roomsExtra?.[ETAPE_PIECE];
+  if (room?.sortieVers?.buildingId && room.sortieVers.roomId) {
+    entrer(room.sortieVers.roomId);
+    return room.sortieVers.roomId;
+  }
+  return '(retour a la rue)';
+}
+let ETAPE_PIECE = PIECE;
+const SEQUENCE = P.get('sequence');
+
+window.addEventListener('load', function () {
+  var ctxNom = (WORLD[PAYS][VILLE].buildingContext && WORLD[PAYS][VILLE].buildingContext['centre-affaires']) || {};
+  document.getElementById('bat-nom').textContent =
+    (ctxNom.name || BUILDINGS['centre-affaires'].name) + '  \u2014  ' + PAYS + ' / ' + VILLE;
+  entrer(PIECE);
+  if (P.get('equip')) setTimeout(function(){ ouvrirModalEquipements(); }, 500);
+  if (SEQUENCE === 'retour') {
+    // plan -> clic sur le poste B -> sortir -> on doit retrouver le plan
+    setTimeout(function () {
+      const z = document.querySelector('.os-zone[data-piece="open_space_b"]');
+      if (z) z.click();
+      ETAPE_PIECE = 'open_space_b';
+      setTimeout(function () {
+        const dest = sortir();
+        const t = document.createElement('div');
+        t.style.cssText = 'position:fixed;left:0;right:0;bottom:0;background:#14100a;border-top:2px solid #C9A84C;color:#f0ead6;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;padding:.7rem 1rem;z-index:99;font-size:1rem';
+        t.textContent = 'SEQUENCE : Open Space (plan) -> clic sur le poste B -> Sortir -> destination : ' + dest;
+        document.body.appendChild(t);
+      }, 900);
+    }, 900);
+    return;
+  }
+  if (SURVOL) {
+    setTimeout(function () {
+      const z = document.querySelector('.os-zone[data-piece="' + SURVOL + '"]');
+      if (!z) return;
+      const r = z.getBoundingClientRect();
+      z.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true,
+        clientX: r.left + r.width/2, clientY: r.top + r.height/2,
+        pageX:  r.left + r.width/2, pageY:  r.top + r.height/2
+      }));
+    }, 700);
+  }
+});
+</script>
+</body></html>
