@@ -354,14 +354,19 @@ def controles_du_monde(cat):
         "table volontairement vide : rp_transition_active() rend FALSE sur cle absente")
     att("caisses de batiment seedees", cat.lignes.get("caisses_batiments", 0), 41,
         "les 41 dotations financieres arbitrees, 130 000 FR, ecrites depuis le tableau")
-    # LA CLE DE REPARTITION NAIT AVEC LE MONDE. Sans ces quinze lignes, la cascade nocturne ne
+    # LA CLE DE REPARTITION NAIT AVEC LE MONDE. Sans ces seize lignes, la cascade nocturne ne
     # verserait rien -- et c'est volontairement ce qui arrive aux trois autres empires, qui n'en
-    # ont aucune. Dix lignes au niveau national, une Defense -> Caserne, une Interieur -> Douanes,
-    # et trois Justice -> tribunaux a part NULLE : le mecanisme est la, le pourcentage attend un
-    # arbitrage, et rien n'a ete invente a sa place.
+    # ont aucune. Dix lignes au niveau national, une Defense -> Caserne, deux pour l'Interieur
+    # (Douanes et QHS), et trois Justice -> tribunaux a part NULLE.
+    #
+    # DEUX ETATS A NE PAS CONFONDRE, et ce compte les garde tous les deux. La ligne du QHS porte
+    # une part de ZERO : le beneficiaire est reconnu, la regle existe et donne zero. Les trois
+    # tribunaux portent NULL : la part n'est pas arbitree, et budget_repartir les ignore. Si un
+    # jour ce compte tombait a 15, ce serait le signe qu'une part a zero a ete prise pour une
+    # absence de regle et effacee.
     att("lignes de repartition budgetaire seedees",
-        cat.lignes.get("repartitions_budgetaires", 0), 15,
-        "10 nationales (9 x 9 % + Assemblee 19 %), Defense 65 %, Douanes 35 %, 3 tribunaux a NULL")
+        cat.lignes.get("repartitions_budgetaires", 0), 16,
+        "10 nationales (9 x 9 % + Assemblee 19 %), Defense 65 %, Douanes 35 %, QHS 0 %, 3 tribunaux a NULL")
     att("versements budgetaires seedes", cat.lignes.get("repartitions_versements", 0), 0,
         "journal des versements reels : un monde neuf nait sans historique, sinon le premier "
         "minuit croirait avoir deja verse")

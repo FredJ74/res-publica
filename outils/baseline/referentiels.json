@@ -183,11 +183,12 @@
         "table_empreinte": "ordres_couts_empreinte",
         "fonction_reelle": "ordres_couts_empreinte_reelle",
         "fonction_reelle_en_base": true,
-        "data_js": "55038ed4d716d140",
-        "lignes": 405,
+        "data_js": "5f16f8865fca8827",
+        "lignes": 401,
         "posee": "6de4a84c58ed9b2b",
         "reelle": "a9ee71d9294ffaa8",
-        "verdict": "TROIS valeurs differentes"
+        "verdict": "TROIS valeurs differentes",
+        "_mesure_du_8_octobre_2026": "data.js a change : l'arbitrage du QHS ajoute l'ordre `gerer_budget_interieur` (0 PA, 0 FR) au bureau du Ministre de l'Interieur. L'empreinte passe donc de 55038ed4d716d140 a 5f16f8865fca8827, et le generateur compte 401 triples pour 377 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT D'UNE LIGNE, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Le nouvel ordre est le vingtieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier."
       },
       "villes": {
         "generateur": "outils/generateurs/generer_villes.py",

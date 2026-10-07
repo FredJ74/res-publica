@@ -2933,6 +2933,12 @@ async function ouvrirGestionBudget() {
 const SOURCE_BUDGET_NATIONAL = 'gouvernement-min_fin';
 
 function rendreRepartitionBudgetaire(source, lignes, intro) {
+  // LE VIREMENT PONCTUEL EST MINISTERIEL, PAS NATIONAL. Le Ministre de l'Economie et des
+  // Finances est le REPARTITEUR : il declare une regle, il ne fait pas de transferts
+  // discretionnaires vers les dix caisses. Lui en donner le pouvoir serait inventer une
+  // prerogative que personne n'a arbitree. Chaque ministre, lui, dispose librement de SA caisse
+  // -- c'est deja vrai pour la Defense depuis septembre 2026.
+  const avecPonctuel = (source !== SOURCE_BUDGET_NATIONAL);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const fmt = n => Number(n).toLocaleString('fr-FR');
   const arbitrees = lignes.filter(l => l.part_pourcent !== null && l.part_pourcent !== undefined);
@@ -2970,10 +2976,31 @@ function rendreRepartitionBudgetaire(source, lignes, intro) {
          + '</span>';
     html += '<span style="font-size:.72rem;color:#5a5040">caisse : '
          + fmt(l.solde_beneficiaire || 0) + ' ' + cur + '</span>';
+    // TROIS ETATS, PAS DEUX. Une part NULLE n'est pas arbitree -- personne n'a decide, et la
+    // cascade l'ignore. Une part a ZERO est une DECISION : le beneficiaire est reconnu, la regle
+    // s'applique chaque nuit, et elle verse zero. Les confondre serait effacer un arbitrage.
     if (nonArbitree) {
       html += '<span style="font-size:.72rem;color:#8a6a20;font-style:italic">part non arbitrée</span>';
+    } else if (Number(l.part_pourcent) === 0) {
+      html += '<span style="font-size:.72rem;color:#5a7a9a;font-style:italic">aucun financement récurrent</span>';
     }
     html += '</div>';
+
+    // LE VIREMENT PONCTUEL, UNE LIGNE PAR BENEFICIAIRE DECLARE. C'est un ACTE, pas une regle :
+    // il fonctionne quelle que soit la part, 0 % compris, et ne la modifie jamais. Il n'y a plus
+    // de code de virement par institution -- l'ecran le propose la ou une ligne est declaree.
+    // La part conservee par le repartiteur n'en recoit pas : on ne se vire pas de l'argent a
+    // soi-meme.
+    if (avecPonctuel && !l.est_la_source) {
+      html += '<div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .7rem 210px">';
+      html += '<input id="ponctuel-' + l.beneficiaire + '" type="number" min="0" value="0"'
+           + ' style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.8rem;outline:none">';
+      html += '<span style="font-size:.72rem;color:#8a8060">' + cur + '</span>';
+      html += '<button onclick="confirmerVirementPonctuelBudget(\'' + source + '\', \''
+           + l.beneficiaire + '\', \'' + l.libelle.replace(/'/g, "\\'") + '\')"'
+           + ' style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .7rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Virement ponctuel</button>';
+      html += '</div>';
+    }
   });
 
   html += '<button onclick="validerRepartitionBudget(\'' + source + '\')" style="margin-top:.8rem;'
@@ -2981,6 +3008,48 @@ function rendreRepartitionBudgetaire(source, lignes, intro) {
        + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
   html += '</div>';
   return html;
+}
+
+// LE VIREMENT PONCTUEL, GENERIQUE (chantier 4F, arbitrage QHS du 8 octobre 2026).
+//
+// Il remplace confirmerVirementPonctuel (Defense -> Caserne) et confirmerVirementPonctuelQHS
+// (Justice -> QHS), qui etaient deux copies de la meme chose avec une destination codee en dur.
+// Une seule fonction desormais, et la destination vient de la LIGNE DECLAREE : ajouter un
+// beneficiaire a une source lui donne son virement ponctuel sans une ligne de code nouvelle.
+//
+// POURQUOI L'ACTE ET LA REGLE NE SE MELANGENT PAS. Le pourcentage dit ce qui part chaque nuit ;
+// le virement ponctuel est une decision unique du ministre. Il fonctionne donc meme quand la
+// part vaut 0 % -- c'est exactement le cas du QHS -- et il ne modifie jamais la part.
+//
+// L'AUTORITE EST RELUE EN BASE. caisse_ministere_mouvement() deduit le poste habilite de
+// l'identifiant meme de la caisse source ('<pays>_gouvernement-<poste>') et verifie que l'acteur
+// l'occupe dans CE pays. Cette fonction etant globale, elle est appelable depuis la console : le
+// navigateur ne decide donc ni de la source, ni de son propre droit. Le debit et le credit se
+// font dans UNE transaction serveur -- l'argent ne peut pas se perdre entre les deux.
+async function confirmerVirementPonctuelBudget(source, beneficiaire, libelle) {
+  const champ = document.getElementById('ponctuel-' + beneficiaire);
+  const montant = Math.max(0, parseInt(champ?.value || '0'));
+  if (montant <= 0) {
+    showToast('Montant nul', 'Indiquez un montant à transférer.', false);
+    return;
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const r = await sbCaisseMinistereMouvement(pays, source, montant, beneficiaire, true);
+  if (!r || r.ok !== true) {
+    const raison = r && r.raison;
+    showToast(raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Virement impossible',
+      raison === 'hors_juridiction' ? 'Cette caisse relève d\'un autre pays.'
+      : raison === 'solde_insuffisant' ? ''
+      : 'Réservé au ministre en exercice.', false);
+    return;
+  }
+  // PLAFONNE : le serveur verse ce que la caisse peut, et rend le montant REELLEMENT verse.
+  // On annonce ce chiffre-la, jamais celui qui a ete demande.
+  const verse = Number(r.verse || 0);
+  showToast('Virement effectué', verse.toLocaleString('fr-FR') + ' FR transférés vers ' + libelle + '.',
+            true, true);
+  addJournalEntry('Virement ponctuel de ' + verse + ' FR vers ' + libelle + '.', 'event-good');
 }
 
 // Le total se recalcule sur les champs REELLEMENT presents, plus sur une liste de cles codee en

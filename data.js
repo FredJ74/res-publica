@@ -2453,6 +2453,12 @@ const BUILDINGS = {
           // plateau-router.js, mais AUCUN ordre ne le portait : la route etait orpheline. C'est
           // aussi l'endroit ou le ministre voit le solde des commissariats de son empire, depuis
           // son ministere -- la consultation depuis le commissariat lui-meme reste au commissaire.
+          // ARBITRAGE DU 8 OCTOBRE 2026. Le Ministre de l'Interieur a desormais un tableau de bord
+          // budgetaire, comme celui de la Defense : la part de son budget versee chaque nuit a
+          // chaque institution de son ressort. Deux beneficiaires declares -- les Douanes a 35 %
+          // et le QHS a 0 %. L'ecran est le MEME que celui du ministere de la Defense
+          // (ouvrirBudgetMinisteriel) : il n'y a pas d'ecran par ministere.
+          {fn:'gerer_budget_interieur', label:"Gérer le budget de l'Intérieur", pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Part de votre budget versee chaque nuit aux Douanes et au QHS, et virements ponctuels. Le QHS est a 0 % par defaut : beneficiaire reconnu, sans financement recurrent au demarrage.'},
           {fn:'subvention_min_int',   label:'Financer la police',         pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Solde des commissariats de l\'empire et du QHS, et virement depuis la caisse du Ministere.'},
           // MISE EN APPLICATION DES LOIS (chantier du 30 septembre 2026). Une loi
           // adoptee par l'Assemblee n'entre en vigueur que lorsque le Ministre de
@@ -2489,7 +2495,7 @@ const BUILDINGS = {
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
           {fn:'proposer_grace',      label:'Proposer une grace',           pa:2, cost:0,   type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'min_just', desc:'Recommander une grace au President — qui devra valider.'},
           {fn:'gerer_juges',          label:'Gérer les juges',              pa:1, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:100, requiresPost:'min_just', desc:'Magistrat en fonction, candidatures reçues, nomination et révocation.'},
-          {fn:'gestion_qhs',          label:'Gestion du QHS',               pa:0, cost:0,   type:'legal',   icon:'ti-building-fortress', successRate:100, requiresPost:'min_just', desc:'Budget dedie et liste des detenus du QHS. Transferer, ameliorer les conditions, ou faire torturer.'}
+          {fn:'gestion_qhs',          label:'Gestion du QHS',               pa:0, cost:0,   type:'legal',   icon:'ti-building-fortress', successRate:100, requiresPost:'min_just', desc:'Liste des detenus du QHS. Transferer, ameliorer les conditions, ou faire torturer. Le FINANCEMENT du QHS releve du Ministere de l\'Interieur depuis le 8 octobre 2026.'}
         ]
       },
       bureau_min_def: {
@@ -5074,7 +5080,7 @@ const BUILDINGS = {
           // dans NIVEAUX_INSPECTION_TROUPES (plateau-politique.js), que le generateur du miroir
           // ramasse comme les autres ordres declares hors data.js.
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:['min_def','commandant'], desc:'Deux niveaux : passer les troupes en revue (1 PA) ou inspecter les unites en detail (2 PA) — effectifs, officiers, equipement, budget reels.'},
-          {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'},
+          {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Part de votre budget versee chaque nuit a la caserne (65 % par defaut), virement ponctuel, ou financer directement la recherche militaire.'},
           // Tableau de controle de l'Effort de guerre (13 septembre 2026). N'est utilisable que
           // pendant un Effort decrete par le President : hors Effort, il le dit et ne fait rien.
           {fn:'tableau_effort_guerre', label:'Effort de guerre — tableau de contrôle', pa:0, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'min_def', desc:'Curseurs de ravitaillement et de production militaire, commandes d\'armement, gestion des reliquats. Reglages gratuits.'}

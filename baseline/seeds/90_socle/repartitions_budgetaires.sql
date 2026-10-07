@@ -4,7 +4,7 @@
 -- Domaine    : finances publiques
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 15
+-- Lignes     : 16
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -13,12 +13,15 @@
 -- JUSTIFICATION DU SEED (chantier 2C)
 -- La cle de repartition budgetaire : quelle source verse quelle part a quel
 -- beneficiaire, et quel poste peut la modifier. C'est la REGLE, pas un
--- historique -- elle doit naitre avec le monde. Les quinze lignes de
--- Republia sont celles de l'arbitrage du 8 octobre 2026 : dix caisses
--- nationales (neuf a 9 %, l'Assemblee a 19 %), Defense -> Caserne 65 %,
--- Interieur -> Douanes 35 %, et les trois tribunaux a part NULLE. Les trois
--- autres empires n'ont AUCUNE ligne, et c'est voulu : sans ligne declaree,
--- la cascade ne verse rien plutot que d'appliquer la cle de Republia.
+-- historique -- elle doit naitre avec le monde. Les seize lignes de Republia
+-- sont celles des arbitrages du 8 octobre 2026 : dix caisses nationales
+-- (neuf a 9 %, l'Assemblee a 19 %), Defense -> Caserne 65 %, Interieur ->
+-- Douanes 35 %, QHS 0 % (arbitrage du 8 octobre : beneficiaire reconnu de
+-- l'Interieur, sans financement recurrent au demarrage -- a ne pas confondre
+-- avec une part non arbitree), et les trois tribunaux a part NULLE. Les
+-- trois autres empires n'ont AUCUNE ligne, et c'est voulu : sans ligne
+-- declaree, la cascade ne verse rien plutot que d'appliquer la cle de
+-- Republia.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- Les trois parts de la Justice restent NON ARBITREES (part_pourcent NULL).
@@ -39,6 +42,7 @@ INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_po
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_fin', 'palais-gouvernement', '9.00', 'min_fin', '9', 'Palais du Gouvernement', 'Actions gouvernementales communes -- communication et autres depenses institutionnelles. DISTINCTE de la caisse du Premier ministre.');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_fin', 'palais-presidentiel', '9.00', 'min_fin', '1', 'Présidence', NULL);
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_int', 'douane', '35.00', 'min_int', '1', 'Service des douanes', 'Valeur par defaut arbitree le 8 octobre 2026. Le ministre peut la modifier.');
+INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_int', 'qhs-prison', '0.00', 'min_int', '2', 'Quartier de Haute Sécurité', 'ARBITRAGE DU 8 OCTOBRE 2026 : le QHS releve budgetairement de l''Interieur, pas de la Justice. Part a 0 % PAR DECISION -- beneficiaire reconnu, sans financement recurrent au demarrage. Le ministre peut la modifier, et le virement ponctuel en FR reste possible meme a 0 %.');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_just', 'tribunal_capitale', NULL, 'min_just', '1', 'Tribunal de Luthécia', 'Part NON ARBITREE au 8 octobre 2026 : mecanisme valide, pourcentage a decider.');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_just', 'tribunal_ville_a', NULL, 'min_just', '2', 'Tribunal de Port-Sainte-Marie', 'Part NON ARBITREE au 8 octobre 2026.');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, part_pourcent, poste_autorite, rang, libelle, note) VALUES ('republic', 'gouvernement-min_just', 'tribunal_ville_b', NULL, 'min_just', '3', 'Tribunal de Montrouge', 'Part NON ARBITREE au 8 octobre 2026.');

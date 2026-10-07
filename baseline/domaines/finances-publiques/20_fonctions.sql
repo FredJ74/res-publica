@@ -178,6 +178,7 @@ CREATE OR REPLACE FUNCTION public.budget_coherence()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
+  -- La somme des parts d'une source ne doit jamais depasser 100 %.
   SELECT 'somme des parts superieure a 100 %',
          string_agg(x.pays || '/' || x.source || ' = ' || x.somme::text, ', ' ORDER BY x.source)
     FROM (SELECT pays, source, sum(part_pourcent) AS somme
@@ -186,14 +187,19 @@ AS $function$
    WHERE x.somme > 100
   HAVING count(*) > 0
   UNION ALL
+  -- Un beneficiaire declare doit avoir une caisse qui existe, sinon le versement sera refuse
+  -- chaque nuit en silence. Les parts NULL sont exclues : elles ne versent rien. Les parts a
+  -- ZERO, elles, sont incluses -- la regle existe, elle s'appliquera le jour ou le ministre
+  -- relevera la part, et la caisse doit donc etre la des maintenant.
   SELECT 'beneficiaire sans caisse en base',
          string_agg(b.pays || '_' || b.beneficiaire, ', ' ORDER BY b.beneficiaire)
     FROM public.repartitions_budgetaires b
-   WHERE b.part_pourcent IS NOT NULL AND b.part_pourcent > 0
+   WHERE b.part_pourcent IS NOT NULL
      AND NOT EXISTS (SELECT 1 FROM public.caisses_batiments c
                       WHERE c.id = b.pays || '_' || b.beneficiaire)
   HAVING count(*) > 0
   UNION ALL
+  -- Le poste d'autorite doit exister comme poste du jeu.
   SELECT 'poste d''autorite inconnu',
          string_agg(DISTINCT b.poste_autorite, ', ')
     FROM public.repartitions_budgetaires b
@@ -201,12 +207,24 @@ AS $function$
      AND NOT EXISTS (SELECT 1 FROM public.salaires_caisses s WHERE s.poste_id = b.poste_autorite)
   HAVING count(*) > 0
   UNION ALL
+  -- Deux versements le meme jour pour le meme couple : impossible par la cle primaire, mais on
+  -- le verifie quand meme -- c'est l'invariant le plus couteux s'il tombe.
   SELECT 'double versement le meme jour',
          string_agg(v.source || '->' || v.beneficiaire || ' le ' || v.jour::text, ', ')
     FROM (SELECT pays, source, beneficiaire, jour, count(*) AS n
             FROM public.repartitions_versements
            GROUP BY pays, source, beneficiaire, jour) v
    WHERE v.n > 1
+  HAVING count(*) > 0
+  UNION ALL
+  -- UNE CAISSE, UN FINANCEUR RECURRENT.
+  SELECT 'caisse financee par deux sources',
+         string_agg(y.pays || '_' || y.beneficiaire || ' <- ' || y.sources, ', ' ORDER BY y.beneficiaire)
+    FROM (SELECT pays, beneficiaire, string_agg(source, ' et ' ORDER BY source) AS sources
+            FROM public.repartitions_budgetaires
+           WHERE beneficiaire <> source
+           GROUP BY pays, beneficiaire
+          HAVING count(*) > 1) y
   HAVING count(*) > 0;
 $function$;
 
@@ -325,7 +343,7 @@ DECLARE
   v_lignes jsonb := '[]'::jsonb;
   v_verse numeric := 0;
   v_conserve numeric := 0;
-  r record; v_rep jsonb;
+  r record; v_rep jsonb; v_cle text;
 BEGIN
   IF coalesce(btrim(p_pays), '') = '' OR coalesce(btrim(p_source), '') = '' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
@@ -334,6 +352,7 @@ BEGIN
     RETURN jsonb_build_object('ok', true, 'raison', 'base_nulle', 'verse', 0, 'lignes', v_lignes);
   END IF;
 
+  -- Les parts NON ARBITREES (NULL) sont exclues : rien n'est verse, et rien n'est invente.
   SELECT coalesce(sum(part_pourcent), 0) INTO v_total_parts
     FROM public.repartitions_budgetaires
    WHERE pays = p_pays AND source = p_source AND part_pourcent IS NOT NULL;
@@ -344,6 +363,13 @@ BEGIN
 
   v_distribuable := floor(v_base * v_total_parts / 100);
 
+  -- PLUS FORT RESTE, EN UNE SEULE REQUETE. Aucune table temporaire : une fonction
+  -- SECURITY DEFINER qui cree du DDL a chaque appel est une surprise de plus a maintenir, et le
+  -- calcul se dit tres bien en CTE.
+  --   parts   : la part exacte et son plancher, par beneficiaire declare ;
+  --   classe  : les beneficiaires ordonnes par partie decimale perdue decroissante, egalite
+  --             departagee par le rang declare -- donc un resultat identique chaque soir ;
+  --   le +1 va aux `distribuable - somme des planchers` premiers de ce classement.
   FOR r IN
     WITH parts AS (
       SELECT b.beneficiaire, b.part_pourcent AS part, b.rang, b.libelle,
@@ -361,17 +387,24 @@ BEGIN
            c.plancher + CASE WHEN c.ordre <= (SELECT n FROM reliquat) THEN 1 ELSE 0 END AS montant
       FROM classe c ORDER BY c.rang
   LOOP
+    -- LA CLE DU JOURNAL EST LE GARDE-FOU. Un second passage le meme jour leve ici.
     BEGIN
       INSERT INTO public.repartitions_versements
         (pays, source, beneficiaire, jour, base, part_pourcent, montant, transfere)
       VALUES (p_pays, p_source, r.beneficiaire, v_jour, v_base, r.part, r.montant,
-              r.beneficiaire <> p_source);
+              -- transfere DIT LA VERITE : il est faux aussi bien pour la part que le
+              -- repartiteur conserve que pour un montant nul. Une part declaree a 0 % est
+              -- journalisee -- la regle a bien ete appliquee -- mais rien n'a bouge, et le
+              -- journal ne doit pas pretendre le contraire.
+              r.beneficiaire <> p_source AND r.montant > 0);
     EXCEPTION WHEN unique_violation THEN
       v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
         'beneficiaire', r.beneficiaire, 'montant', 0, 'raison', 'deja_verse_ce_jour'));
       CONTINUE;
     END;
 
+    -- LA PART DU REPARTITEUR NE SE TRANSFERE PAS. C'est ce qui empeche la boucle : le MEco
+    -- recoit tout, en distribue 91 %, et conserve ses 9 % la ou ils sont deja.
     IF r.beneficiaire = p_source THEN
       v_conserve := v_conserve + r.montant;
       v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(
@@ -385,6 +418,9 @@ BEGIN
       CONTINUE;
     END IF;
 
+    -- DEBIT DE LA SOURCE PUIS CREDIT DU BENEFICIAIRE, par les primitives atomiques existantes.
+    -- La porte interne est ouverte pour cette transaction : l'autorite de l'operation est celle
+    -- du serveur, pas celle d'un poste.
     PERFORM set_config('rp.caisse_interne', 'on', true);
     v_rep := public.caisse_institution_mouvement(p_pays || '_' || p_source, -r.montant, true);
     IF coalesce((v_rep->>'ok')::boolean, false) THEN
@@ -393,6 +429,8 @@ BEGIN
     PERFORM set_config('rp.caisse_interne', '', true);
 
     IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+      -- FAIL CLOSED : rien n'a abouti, on retire la ligne de journal pour que le versement
+      -- puisse etre retente, et on le dit.
       DELETE FROM public.repartitions_versements
        WHERE pays = p_pays AND source = p_source AND beneficiaire = r.beneficiaire AND jour = v_jour;
       v_lignes := v_lignes || jsonb_build_array(jsonb_build_object(

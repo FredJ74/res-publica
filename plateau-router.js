@@ -681,6 +681,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // conditions existantes sont reunies (voir proposerTransfertCaserne).
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
+  // ARBITRAGE DU 8 OCTOBRE 2026 : le Ministre de l'Interieur a son tableau de bord
+  // budgetaire, servi par le MEME ecran que celui de la Defense. Douanes 35 %, QHS 0 %.
+  if (fn === 'gerer_budget_interieur') { ouvrirBudgetInterieur(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(pa, cost); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans', pa, cost); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }

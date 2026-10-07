@@ -11376,55 +11376,93 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
 }
 
 // ---- BUDGET DE LA CASERNE (alloue par le MG) ----
-async function ouvrirGererBudgetMilitaire() {
-  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+// L'ECRAN BUDGETAIRE D'UN MINISTERE, UN SEUL POUR TOUS (chantier 4F, arbitrage QHS du
+// 8 octobre 2026).
+//
+// Il y avait un ecran par institution financee : « Budget militaire » pour la caserne, « Budget
+// du QHS » pour le QHS, chacun avec sa caisse en dur, son champ de virement et sa fonction de
+// confirmation. Trois copies du meme formulaire, et c'est ainsi que le QHS a pu garder pendant
+// des semaines un « virement journalier automatique » que rien n'appliquait : personne ne
+// regardait les trois en meme temps.
+//
+// UN SEUL ECRAN, PARAMETRE PAR LE POSTE. Il lit les beneficiaires DECLARES de la source
+// `gouvernement-<poste>` et les rend tous, avec leur part, son equivalent en FR et leur virement
+// ponctuel. Donner un beneficiaire de plus a un ministere ne demande plus une ligne de code :
+// une ligne dans repartitions_budgetaires suffit. C'est ce qui a rendu l'arbitrage du QHS
+// gratuit cote navigateur.
+//
+// L'AUTORITE RESTE RELUE EN BASE. La garde `state.poste?.id` ci-dessous n'est qu'une politesse
+// d'interface : budget_repartition_fixer et caisse_ministere_mouvement verifient toutes deux le
+// poste au serveur, et un appel console ne gagne rien.
+async function ouvrirBudgetMinisteriel(posteId, titre, nomDuMinistre, intro) {
+  if (state.poste?.id !== posteId) {
+    showToast('Réservé au ' + nomDuMinistre, '', false);
+    return;
+  }
   const pays = state.country || 'republic';
-  const maCaisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_def') : { solde: 0 };
-  const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire') : { solde: 0 };
-  document.getElementById('postes-modal-title').textContent = 'Budget militaire';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.95rem">';
-  html += '<span style="color:#C9A84C">Ma caisse (Ministère) : ' + (maCaisse.solde||0).toLocaleString('fr-FR') + ' FR</span>';
-  html += '<span style="color:#8a8060">Caisse de la Caserne : ' + (caisseCaserne.solde||0).toLocaleString('fr-FR') + ' FR</span>';
-  html += '</div>';
+  const source = 'gouvernement-' + posteId;
+  const maCaisse = typeof chargerCaisseBatiment === 'function'
+    ? await chargerCaisseBatiment(pays, source) : { solde: 0 };
 
-  // LE FINANCEMENT RECURRENT EST UNE PART, PLUS UN MONTANT (chantier 4F, 8 octobre 2026).
-  //
-  // Il y avait ici un champ en FR, `budgets_nationaux.data.virementJournalierCaserne`, qui
-  // constituait une REGLE absolue : « prelever N FR chaque nuit ». C'etait un second automatisme,
-  // concurrent de la cle de repartition, et les deux pouvaient diverger sans que rien ne le dise.
-  // Le modele est migre : une seule regle, le POURCENTAGE du budget du ministere -- 65 % vers la
-  // caserne par defaut -- et deux representations, la part et son equivalent en FR. L'ecran
-  // generique de repartition est le MEME que celui du budget national : il n'y a pas d'ecran par
-  // ministere.
-  //
-  // Le champ en FR n'avait aucune valeur en base (verifie le 7 octobre 2026) : l'automatisme ne
-  // versait donc rien, et la migration ne fait perdre aucun reglage.
+  document.getElementById('postes-modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.95rem;color:#C9A84C">';
+  html += 'Ma caisse (Ministère) : ' + (maCaisse.solde || 0).toLocaleString('fr-FR') + ' FR</div>';
+
+  // LE SOLDE DE CHAQUE BENEFICIAIRE EST DEJA DANS LES LIGNES, rendu par le serveur
+  // (budget_repartition_lire.solde_beneficiaire) : plus besoin d'un chargerCaisseBatiment par
+  // institution, ni d'une liste de caisses a tenir a jour ici.
   if (typeof sbBudgetRepartitionLireVerdict === 'function') {
-    const vRep = await sbBudgetRepartitionLireVerdict('gouvernement-min_def');
+    const vRep = await sbBudgetRepartitionLireVerdict(source);
     if (!vRep.ok) {
       html += '<div style="border:1px solid #5a3020;background:#140d05;padding:.7rem;margin-bottom:.7rem;'
-           + 'font-size:.76rem;color:#cc6a44">Le financement récurrent n\'a pas pu être lu ('
-           + vRep.raison + '). Réessayez dans un instant.</div>';
+           + 'font-size:.76rem;color:#cc6a44">Votre budget n\'a pas pu être lu (' + vRep.raison
+           + '). Ce n\'est pas qu\'il est vide : réessayez dans un instant.</div>';
+    } else if (!vRep.lignes.length) {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem;'
+           + 'font-size:.76rem;color:#8a8060">Aucune institution n\'est rattachée au financement de '
+           + 'votre ministère. Votre caisse ne sert qu\'à vos dépenses propres.</div>';
     } else if (typeof rendreRepartitionBudgetaire === 'function') {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.7rem">';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;padding:.7rem .7rem 0">FINANCEMENT RÉCURRENT</div>';
-      html += rendreRepartitionBudgetaire('gouvernement-min_def', vRep.lignes,
-        'Part de votre budget versée chaque nuit, automatiquement. Le reste demeure dans votre caisse '
-        + 'pour vos dépenses propres.');
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;padding:.7rem .7rem 0">FINANCEMENT DES INSTITUTIONS DE VOTRE RESSORT</div>';
+      html += rendreRepartitionBudgetaire(source, vRep.lignes, intro);
       html += '</div>';
     }
   }
+  return html;
+}
 
-  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT PONCTUEL</div>';
-  html += '<input id="montant-virement-ponctuel" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
-  html += '<button onclick="confirmerVirementPonctuel()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Transférer maintenant</button>';
-  html += '</div>';
+async function ouvrirGererBudgetMilitaire() {
+  const html = await ouvrirBudgetMinisteriel('min_def', 'Budget militaire',
+    'Ministre de la Défense',
+    'Part de votre budget versée chaque nuit, automatiquement. Le reste demeure dans votre caisse '
+    + 'pour vos dépenses propres. Le virement ponctuel, lui, est un acte unique : il ne modifie '
+    + 'aucune part.');
+  if (html === undefined) return;
+  // LA RECHERCHE MILITAIRE RESTE PROPRE A LA DEFENSE. Ce n'est pas un financement d'institution :
+  // c'est une depense du ministere pour lui-meme, et elle n'a donc rien a faire dans l'ecran
+  // generique.
+  let fin = '<button onclick="ouvrirRechercheMilitaireDepuisMinistere()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Financer directement la recherche militaire</button>';
+  document.getElementById('postes-body').innerHTML = html + fin + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
 
-  html += '<button onclick="ouvrirRechercheMilitaireDepuisMinistere()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Financer directement la recherche militaire</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+// LE BUDGET DE L'INTERIEUR (arbitrage du 8 octobre 2026). Deux beneficiaires declares : les
+// Douanes a 35 % et le QHS a 0 %.
+//
+// LE 0 % DU QHS EST UNE CONFIGURATION, PAS UN OUBLI. Le QHS est un beneficiaire RECONNU du
+// ministere -- il apparait dans ce tableau, le ministre peut relever sa part quand il le decide,
+// et le virement ponctuel vers lui fonctionne des aujourd'hui. Une part a 0 % et une part NON
+// ARBITREE (NULL, le cas des trois tribunaux) ne versent ni l'une ni l'autre, et c'est la seule
+// chose qu'elles ont en commun : l'ecran les distingue par deux mentions differentes.
+async function ouvrirBudgetInterieur() {
+  const html = await ouvrirBudgetMinisteriel('min_int', 'Budget de l\'Intérieur',
+    'Ministre de l\'Intérieur',
+    'Part de votre budget versée chaque nuit à chaque institution de votre ressort. Une part à '
+    + '0 % est un choix, pas un oubli : l\'institution est reconnue et vous pouvez la financer à '
+    + 'tout moment, par un virement ponctuel ou en relevant sa part.');
+  if (html === undefined) return;
+  document.getElementById('postes-body').innerHTML = html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -11452,26 +11490,17 @@ async function ouvrirGererBudgetMilitaire() {
 // repris : la RPC caserne_virement_journalier_fixer et son declencheur de verrou. Les retirer est
 // un lot de menage, pas un effet de bord de celui-ci.
 
-async function confirmerVirementPonctuel() {
-  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-ponctuel')?.value || '0'));
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (montant <= 0) return;
-  const pays = state.country || 'republic';
-  // Meme correctif que confirmerVirementPonctuelQHS : une seule transaction serveur, et le poste
-  // min_def deduit de l'identifiant de la caisse source au lieu d'etre suppose depuis l'ouverture
-  // de la modale. confirmerVirementPonctuel() etant globale, elle etait appelable depuis la
-  // console par n'importe quel joueur authentifie.
-  const r = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_def', montant, 'caserne-militaire', true);
-  if (!r || r.ok !== true) {
-    showToast(r && r.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Virement impossible',
-              r && r.raison === 'hors_juridiction' ? 'Cette caisse relève d\'un autre pays.'
-              : (r && r.raison === 'solde_insuffisant' ? '' : 'Réservé au Ministre de la Défense en exercice.'), false);
-    return;
-  }
-  const montantVerse = Number(r.verse || 0);
-  showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers la caserne.', true, true);
-  addJournalEntry('Virement ponctuel de ' + montantVerse + ' FR vers la caserne.', 'event-good');
-}
+// confirmerVirementPonctuel A ETE SUPPRIMEE (arbitrage QHS du 8 octobre 2026). Elle virait un
+// montant de gouvernement-min_def vers 'caserne-militaire', destination codee en dur. Sa jumelle
+// confirmerVirementPonctuelQHS faisait exactement la meme chose vers 'qhs-prison'. Les deux sont
+// remplacees par confirmerVirementPonctuelBudget(source, beneficiaire, libelle)
+// (plateau-actions-illegales-rumeurs.js), que l'ecran generique appelle une fois par beneficiaire
+// DECLARE : la destination vient de la ligne de repartition, plus du code.
+//
+// Rien n'est perdu au passage. La RPC attestee est la meme -- caisse_ministere_mouvement, qui
+// deduit le poste de l'identifiant de la caisse source et fait debit et credit dans une seule
+// transaction -- le versement reste plafonne au solde, et c'est toujours le montant REELLEMENT
+// verse qui est annonce, jamais celui qui a ete demande.
 
 // traiterVirementJournalierCaserne A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). Elle etait
 // DEJA MORTE -- zero appelant depuis que la passe cliente de minuit a ete retiree le 20 septembre
@@ -12988,84 +13017,37 @@ async function ouvrirGestionQHS() {
   if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }
   document.getElementById('postes-modal-title').textContent = 'Gestion du QHS';
   let html = '<div style="padding:1rem">';
-  html += '<button onclick="ouvrirBudgetQHS()" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Budget du QHS</button>';
+  // LE BUDGET DU QHS A QUITTE CET ECRAN (arbitrage du 8 octobre 2026) : le QHS releve
+  // BUDGETAIREMENT du Ministere de l'Interieur. Le Ministre de la Justice garde tout le reste --
+  // les detenus, les transferts, les conditions de detention -- parce que l'arbitrage porte sur
+  // le financement, pas sur l'autorite penitentiaire.
+  html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">'
+       + 'Le financement du QHS relève du Ministère de l\'Intérieur.</div>';
   html += '<button onclick="ouvrirListePrisonniersQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Liste des prisonniers</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function ouvrirBudgetQHS() {
-  const pays = state.country || 'republic';
-  const maCaisse = await chargerCaisseBatiment(pays, 'gouvernement-min_just');
-  const caisseQHS = await chargerCaisseBatiment(pays, 'qhs-prison');
-  // LE VIREMENT JOURNALIER VERS LE QHS N'A JAMAIS EXISTE (constat du chantier 4F, 8 octobre 2026).
-  //
-  // Il y avait ici le MEME ecran que pour la caserne : un champ en FR,
-  // `budgets_nationaux.data.virementJournalierQHS`, annonce « FR/jour » et « AUTOMATIQUE ». Sauf
-  // qu'aucun automate ne l'a jamais applique : ni le cron, ni aucune fonction SQL ne lit ce champ
-  // -- verifie sur pg_proc et sur tout le depot le 8 octobre 2026. Le ministre de la Justice
-  // reglait donc un virement qui ne partait jamais, et l'ecran le lui confirmait.
-  //
-  // CE N'EST PAS LE MEME CAS QUE LA CASERNE. Pour la caserne, un automate existait et le modele a
-  // ete migre en POURCENTAGE (Defense -> Caserne, 65 %). Ici il n'y a rien a migrer : declarer une
-  // part Justice -> QHS serait inventer une repartition secondaire, et l'arbitrage du 8 octobre
-  // l'interdit explicitement pour les ministeres autres que la Defense et l'Interieur («
-  // n'invente aucune nouvelle repartition secondaire »). Qui finance le QHS, et dans quelle
-  // proportion, est une decision de game design -- elle est consignee, pas devinee.
-  //
-  // L'ecran ne promet donc plus rien. LE VIREMENT PONCTUEL, lui, fonctionne vraiment : il appelle
-  // une RPC attestee et transfere reellement. C'est le seul financement du QHS aujourd'hui.
-  document.getElementById('postes-modal-title').textContent = 'Budget du QHS';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.9rem">';
-  html += '<span style="color:#C9A84C">Ma caisse (Ministère) : ' + (maCaisse.solde||0).toLocaleString('fr-FR') + ' FR</span>';
-  html += '<span style="color:#8a8060">Caisse du QHS : ' + (caisseQHS.solde||0).toLocaleString('fr-FR') + ' FR</span>';
-  html += '</div>';
+// ouvrirBudgetQHS ET confirmerVirementPonctuelQHS ONT ETE SUPPRIMEES (arbitrage du 8 octobre
+// 2026). Le QHS releve budgetairement du MINISTERE DE L'INTERIEUR, pas de la Justice : son
+// financement se regle desormais dans l'ecran generique du ministere de l'Interieur
+// (ouvrirBudgetInterieur), ou il figure comme beneficiaire declare a 0 %.
+//
+// CE QUE CES DEUX FONCTIONS FAISAIENT, ET CE QUI EN RESTE.
+//   . ouvrirBudgetQHS affichait la caisse de gouvernement-min_just, celle du QHS, un
+//     « VIREMENT JOURNALIER AUTOMATIQUE » et un virement ponctuel. Le virement journalier etait
+//     une promesse non tenue -- le champ budgets_nationaux.data.virementJournalierQHS n'etait lu
+//     par AUCUN code, ni cron ni fonction SQL (verifie sur pg_proc et sur tout le depot). Le
+//     ministre reglait un virement qui ne partait jamais.
+//   . confirmerVirementPonctuelQHS, elle, marchait vraiment. Elle est remplacee par le virement
+//     ponctuel generique de l'ecran de repartition, avec la MEME RPC attestee
+//     (caisse_ministere_mouvement) -- seule la caisse source change, min_int au lieu de min_just,
+//     et c'est precisement l'objet de l'arbitrage.
+//
+// Il n'existe plus qu'UNE SEULE regle recurrente pour le QHS : sa part declaree dans
+// repartitions_budgetaires, a 0 % par decision. Aucun automate concurrent ne subsiste.
 
-  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem;font-size:.72rem;color:#8a8060">';
-  html += 'Le QHS n\'a aucun financement récurrent : aucune part du budget du ministère ne lui est ';
-  html += 'versée automatiquement. Vous l\'alimentez par des transferts ponctuels.';
-  html += '</div>';
-
-  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.76rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT PONCTUEL</div>';
-  html += '<input id="montant-virement-qhs-p" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
-  html += '<button onclick="confirmerVirementPonctuelQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Transférer maintenant</button>';
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// confirmerVirementJournalierQHS A ETE SUPPRIMEE (chantier 4F, 8 octobre 2026). Elle ecrivait
-// `budgets_nationaux.data.virementJournalierQHS` et affichait « virement journalier fixe » -- un
-// champ qu'aucun automate n'a jamais lu. Ecrire une regle que rien n'applique, et le confirmer a
-// l'ecran, est pire qu'un champ mort : c'est une promesse. Voir le commentaire dans
-// ouvrirBudgetQHS.
-
-async function confirmerVirementPonctuelQHS() {
-  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-qhs-p')?.value || '0'));
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (montant <= 0) return;
-  const pays = state.country || 'republic';
-  // VIREMENT MINISTERIEL ATTESTE (17 septembre 2026, suite de l'audit des frontieres d'autorite).
-  // AVANT : deux appels HTTP separes (debit min_just, puis credit QHS) -- entre les deux, l'argent
-  // n'existait nulle part, et un echec du second le detruisait. Surtout, le poste min_just n'etait
-  // verifie qu'a l'OUVERTURE de la modale, jamais ici : confirmerVirementPonctuelQHS() etant une
-  // fonction globale, n'importe quel joueur authentifie pouvait l'appeler depuis la console et
-  // vider la caisse du ministere de la Justice vers le QHS.
-  // MAINTENANT : une seule transaction serveur. Le poste habilite est deduit de l'identifiant meme
-  // de la caisse ('<pays>_gouvernement-min_just'), et le pays de l'acteur doit correspondre.
-  const r = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_just', montant, 'qhs-prison', true);
-  if (!r || r.ok !== true) {
-    showToast(r && r.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Virement impossible',
-              r && r.raison === 'hors_juridiction' ? 'Cette caisse relève d\'un autre pays.'
-              : (r && r.raison === 'solde_insuffisant' ? '' : 'Réservé au Ministre de la Justice en exercice.'), false);
-    return;
-  }
-  const montantVerse = Number(r.verse || 0);
-  showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers le QHS.', true, true);
-}
 
 async function ouvrirListePrisonniersQHS() {
   const pays = state.country || 'republic';

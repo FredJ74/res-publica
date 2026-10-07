@@ -223,3 +223,117 @@ END $$;
 -- derriere lui -- le total reste a 100, pas a un etat intermediaire. Le navigateur ne peut donc
 -- pas ecrire une cle a 110 %% en contournant l'ecran : la garde est en base, pas dans le
 -- formulaire.
+
+
+-- -----------------------------------------------------------------------------
+-- EPREUVE 4 -- UNE PART A 0 % EST UNE CONFIGURATION, PAS UNE ABSENCE DE REGLE
+-- -----------------------------------------------------------------------------
+-- Arbitrage du 8 octobre 2026 : le QHS releve budgetairement de l'Interieur, a 0 % par defaut.
+-- Les sept preuves demandees, dans l'ordre.
+
+DO $$
+DECLARE
+  v jsonb; r jsonb; t text := E'\n';
+  v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_qhs_avant numeric; v_qhs_apres numeric; v_lig record;
+BEGIN
+  -- (1) et (2) LES DEUX PARTS DECLAREES DE L'INTERIEUR.
+  t := t || 'parts declarees de gouvernement-min_int :' || E'\n';
+  FOR v_lig IN SELECT beneficiaire, part_pourcent, rang FROM public.repartitions_budgetaires
+                WHERE pays='republic' AND source='gouvernement-min_int' ORDER BY rang LOOP
+    t := t || '  ' || v_lig.beneficiaire || ' = '
+      || coalesce(v_lig.part_pourcent::text, 'NULL') || E'\n';
+  END LOOP;
+
+  -- (3) ZERO N'EST PAS NULL. La distinction est portee par le type, et c'est tout l'arbitrage.
+  t := t || E'\n' || 'QHS : part NULL ? '
+    || (SELECT (part_pourcent IS NULL)::text FROM public.repartitions_budgetaires
+         WHERE pays='republic' AND source='gouvernement-min_int' AND beneficiaire='qhs-prison')
+    || '   tribunal_capitale : part NULL ? '
+    || (SELECT (part_pourcent IS NULL)::text FROM public.repartitions_budgetaires
+         WHERE pays='republic' AND source='gouvernement-min_just' AND beneficiaire='tribunal_capitale')
+    || E'\n';
+
+  -- (6) JUSTICE N'A AUCUNE RELATION VERS LE QHS.
+  t := t || 'sources qui financent le QHS : '
+    || coalesce((SELECT string_agg(source, ', ' ORDER BY source)
+                   FROM public.repartitions_budgetaires WHERE beneficiaire='qhs-prison'),
+                '(aucune)') || E'\n';
+
+  -- (4) AUCUN VERSEMENT RECURRENT AU QHS TANT QUE LA PART VAUT 0 %.
+  SELECT (data->>'solde')::numeric INTO v_qhs_avant
+    FROM public.caisses_batiments WHERE id='republic_qhs-prison';
+  v := public.budget_cascade_quotidienne('republic', 24601);
+  SELECT (data->>'solde')::numeric INTO v_qhs_apres
+    FROM public.caisses_batiments WHERE id='republic_qhs-prison';
+  t := t || E'\n' || 'apres une cascade complete :' || E'\n';
+  t := t || '  caisse du QHS : ' || v_qhs_avant || ' -> ' || v_qhs_apres || E'\n';
+  t := t || '  journal Interieur : ' || coalesce((SELECT string_agg(
+        beneficiaire || ' montant=' || montant || ' transfere=' || transfere, '  ' ORDER BY beneficiaire)
+      FROM public.repartitions_versements
+     WHERE pays='republic' AND source='gouvernement-min_int' AND jour=v_jour), '(rien)') || E'\n';
+  t := t || '  journal Justice   : ' || coalesce((SELECT string_agg(
+        beneficiaire || '=' || montant, ' ' ORDER BY beneficiaire)
+      FROM public.repartitions_versements
+     WHERE pays='republic' AND source='gouvernement-min_just' AND jour=v_jour), '(rien)') || E'\n';
+
+  -- (5) LE VIREMENT PONCTUEL RESTE POSSIBLE, PART A 0 % COMPRISE.
+  PERFORM set_config('rp.caisse_interne', 'on', true);
+  r := public.caisse_institution_mouvement('republic_gouvernement-min_int', -500, true);
+  IF coalesce((r->>'ok')::boolean,false) THEN
+    r := public.caisse_institution_mouvement('republic_qhs-prison', 500, false);
+  END IF;
+  PERFORM set_config('rp.caisse_interne', '', true);
+  SELECT (data->>'solde')::numeric INTO v_qhs_apres
+    FROM public.caisses_batiments WHERE id='republic_qhs-prison';
+  t := t || E'\n' || 'virement ponctuel de 500 FR : ok=' || coalesce(r->>'ok','?')
+    || '  caisse du QHS = ' || v_qhs_apres || E'\n';
+  t := t || 'part du QHS apres le virement ponctuel : '
+    || (SELECT part_pourcent FROM public.repartitions_budgetaires
+         WHERE pays='republic' AND source='gouvernement-min_int' AND beneficiaire='qhs-prison')
+    || ' %% -- un acte ne modifie pas une regle' || E'\n';
+
+  -- (7) LES CINQ INVARIANTS, LE NOUVEAU COMPRIS.
+  t := t || E'\n' || 'budget_coherence() : '
+    || coalesce((SELECT string_agg(probleme, ' | ') FROM public.budget_coherence()),
+                'aucun probleme') || E'\n';
+
+  RAISE EXCEPTION 'ARBITRAGE QHS (transaction annulee) : %', t;
+END $$;
+
+-- RESULTAT MESURE LE 8 OCTOBRE 2026
+--   parts declarees de gouvernement-min_int :
+--     douane = 35.00
+--     qhs-prison = 0.00
+--   QHS : part NULL ? false   tribunal_capitale : part NULL ? true
+--   sources qui financent le QHS : gouvernement-min_int
+--   apres une cascade complete :
+--     caisse du QHS : 200 -> 200
+--     journal Interieur : douane montant=774 transfere=true  qhs-prison montant=0 transfere=false
+--     journal Justice   : (rien)
+--   virement ponctuel de 500 FR : ok=true  caisse du QHS = 700
+--   part du QHS apres le virement ponctuel : 0.00 % -- un acte ne modifie pas une regle
+--   budget_coherence() : aucun probleme
+--
+-- LES SEPT PREUVES, LIGNE PAR LIGNE
+--   (1) MInt -> Douanes = 35 %, inchange par cet arbitrage.
+--   (2) MInt -> QHS = 0 %.
+--   (3) ZERO N'EST PAS NULL, et c'est la preuve centrale. `part NULL ?` rend FALSE pour le QHS et
+--       TRUE pour un tribunal. Les deux ne versent rien, et c'est tout ce qu'ils ont en commun :
+--       le QHS est un beneficiaire RECONNU dont la part a ete DECIDEE a zero, le tribunal attend
+--       encore un arbitrage. budget_repartir applique la premiere et ignore la seconde.
+--   (4) AUCUN VERSEMENT RECURRENT. La caisse du QHS ne bouge pas (200 -> 200), et pourtant le
+--       journal porte une ligne `qhs-prison montant=0 transfere=false`. C'est exactement ce qu'on
+--       veut : la regle a ete APPLIQUEE -- la trace le prouve -- et elle a donne zero. Une
+--       absence de ligne, elle, ne distinguerait pas « regle a zero » de « pas de regle ».
+--       `transfere=false` est l'apport de la migration 20261008030000 : avant elle, cette ligne
+--       aurait affirme chaque nuit qu'un transfert avait eu lieu.
+--   (5) LE VIREMENT PONCTUEL FONCTIONNE A 0 %. 500 FR passent, la caisse monte a 700, et la part
+--       reste a 0,00 %. L'acte et la regle ne se touchent pas.
+--   (6) JUSTICE N'A AUCUNE RELATION VERS LE QHS : une seule source le finance, et le journal de
+--       la Justice est vide (ses trois parts sont NULL).
+--   (7) LES CINQ INVARIANTS TIENNENT, y compris le nouveau -- aucune caisse financee par deux
+--       sources.
+--
+-- APRES CE BLOC, verifie le 8 octobre 2026 : 0 versement en base, caisse du QHS a 200,
+-- Interieur a 86 424, Douanes a 0, parts a 0,00 et 35,00. Rien n'a persiste.

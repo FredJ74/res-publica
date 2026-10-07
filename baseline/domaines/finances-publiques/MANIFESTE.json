@@ -37,13 +37,13 @@
    "sous": ""
   },
   {
-   "empreinte": "1bffe45ab1e74251c73abbb0cb058571",
+   "empreinte": "02d785ef965c0a15b6b8293ea515a3b7",
    "genre": "FUNCTION",
    "objet": "budget_coherence()",
    "sous": ""
   },
   {
-   "empreinte": "10277793e833035696825126ecd4cf34",
+   "empreinte": "0f23845292dfe4ad21a1239f93724f68",
    "genre": "FUNCTION",
    "objet": "budget_repartir(text,text,numeric)",
    "sous": ""
@@ -2013,13 +2013,13 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "1bae0d575ab6c4365607fa19654d2437",
-  "20_fonctions.sql": "a926aa9fd611edfafd037789484fa324",
+  "20_fonctions.sql": "b3d81f9dcbbabae15149b198b01dcf04",
   "30_contraintes.sql": "3cb0318b4caaaf22ca16865948efa3c4",
   "35_index.sql": "ce9f5765ad90487d36fabc4763cdf994",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
   "60_rls-policies.sql": "1a0a1c0d23fb469d3e58885b4c4fb0a6",
   "70_droits.sql": "9bcd0e336f5ecbd8484bc8a76313733f",
-  "80_commentaires.sql": "111263284f69a343887ee89261371a2b"
+  "80_commentaires.sql": "c3b29e301f441ad56262a706b5c53cbb"
  },
  "fonctions": [
   {
@@ -2038,7 +2038,7 @@
    "signature": "budget_cascade_quotidienne(text,numeric)"
   },
   {
-   "empreinte": "1f9589f718520b6a404a118b544d48d3",
+   "empreinte": "31874f0fd9ed143cc8ba1343a220f274",
    "security_definer": true,
    "signature": "budget_coherence()"
   },
@@ -2048,7 +2048,7 @@
    "signature": "budget_national_epingler()"
   },
   {
-   "empreinte": "8b3968cd8f3de97f17de4f02f142bc46",
+   "empreinte": "b21825013004d1a6b52777b3178cabc0",
    "security_definer": true,
    "signature": "budget_repartir(text,text,numeric)"
   },
