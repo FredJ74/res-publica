@@ -1,0 +1,19 @@
+{
+ "_commentaire": "Plafonds DECLARES du payload Vercel, lus par outils/payload-vercel.py --garde. Ce ne sont pas des mesures : ce sont des decisions. Le jour ou la mesure les depasse, c'est la mesure qu'il faut expliquer, pas le plafond qu'il faut relever -- sauf si l'augmentation est voulue, et alors il faut le dire dans _pourquoi.",
+ "_pourquoi": "Mesure du 8 octobre 2026 apres le lot 2 du chantier Vercel : 310,0 Mo en 733 fichiers. Le plafond est pose a 330 Mo, soit environ 20 Mo de marge -- de quoi habiller plusieurs pieces de Republia sans que le controle crie, mais pas de quoi laisser rentrer un repertoire entier sans s'en apercevoir. Repere utile : 104 Mo d'outillage etaient embarques sans que personne le voie, et 90 Mo d'audio que le jeu ne telecharge meme pas depuis Vercel.",
+ "plafond_payload_octets": 346030080,
+ "_seuil_fichier": "Au-dela de ce poids, un fichier doit etre DECLARE ci-dessous. Le but n'est pas d'interdire les gros fichiers -- les cartes postales en PNG pesent 3,3 Mo -- mais d'empecher qu'un nouveau passe inapercu. 3 Mo est le seuil ou les quatre plus lourds d'aujourd'hui se trouvent.",
+ "seuil_fichier_octets": 3145728,
+ "gros_fichiers_connus": [
+  "images/luthecia-carte-postale-culture.png",
+  "images/luthecia-carte-postale-institutions.png",
+  "images/luthecia-carte-postale-internationale.png",
+  "images/montrouge/montrouge-carte-postale-place-rail.png",
+  "images/montrouge/montrouge-carte-postale-touristique.png",
+  "images/port-sainte-marie-carte-postale-culture-marine.png",
+  "images/port-sainte-marie-carte-postale-notre-dame-mer.png",
+  "images/port-sainte-marie-carte-postale-touristique.png"
+ ],
+ "_plafond_doublons": "Aucun doublon binaire exact dans le payload au 8 octobre 2026, verifie par empreinte md5 sur les fichiers de meme taille. Le plafond est donc a ZERO : le premier doublon qui apparait doit se justifier, parce qu'un meme octet livre deux fois est toujours soit une erreur de copie, soit une variante qui aurait du remplacer l'original.",
+ "plafond_doublons_octets": 0
+}

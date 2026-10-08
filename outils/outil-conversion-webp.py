@@ -51,7 +51,23 @@ import io, json, os, re, shutil, subprocess, sys, math
 from PIL import Image, ImageChops, ImageStat
 
 Image.MAX_IMAGE_PIXELS = None
-RACINE = os.path.dirname(os.path.abspath(__file__))
+# LA RACINE EST CELLE DU DEPOT, PAS CELLE DE L'OUTIL (corrige le 8 octobre 2026).
+#
+# Cette ligne valait `os.path.dirname(__file__)`, c'est-a-dire `outils/`, depuis que l'outil a
+# quitte .scratch/ pour y vivre. Trois consequences, toutes silencieuses :
+#
+#   . les images etaient cherchees dans `outils/images/` : l'outil n'en trouvait AUCUNE, et
+#     `mesurer` finissait par planter sur un repertoire `outils/.scratch/` inexistant ;
+#   . la carte des batiments etait cherchee dans `outils/.scratch/` : absente, donc toute image
+#     de MUSEE passait pour une image ordinaire et recevait le palier de qualite le moins severe
+#     -- exactement les images dont aucun cartel ne doit fondre ;
+#   . la liste des images CITEES EN BASE etait cherchee au meme endroit : absente, donc le
+#     garde-fou qui refuse de renommer une image dont la base porte le nom etait INERTE.
+#
+# Et `SAUVEGARDE` valait alors `<depot>/ResPublica-originaux-images`, c'est-a-dire DANS le depot,
+# alors que l'en-tete promet « hors du depot » : les originaux auraient ete suivis par git et
+# embarques dans chaque deploiement. L'expression est inchangee ; elle devient juste correcte.
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAUVEGARDE = os.path.join(os.path.dirname(RACINE), 'ResPublica-originaux-images')
 CARTE_BATIMENTS = os.path.join(RACINE, '.scratch', 'image_batiments.json')
 
@@ -113,8 +129,14 @@ def psnr_pire_carreau(a, b, nx=6, ny=4):
 def citee_en_base(rel):
     try:
         noms = set(l.strip() for l in open(REFS_BASE, encoding='utf-8') if l.strip())
-    except Exception:
-        return False
+    except Exception as e:
+        # MEME REGLE, ET L'ENJEU EST PLUS GRAVE ENCORE : rendre `False` ici signifie « cette
+        # image n'est pas citee en base », donc « tu peux la renommer ». Une liste introuvable
+        # autorisait ainsi la conversion d'images dont le chemin est construit par concatenation
+        # dans une fonction SQL -- le piege trouve au lot 2, sur seize portraits d'agents.
+        raise SystemExit("outil-conversion-webp : %s est introuvable ou illisible (%s). C'est le "
+                         "garde-fou qui empeche de renommer une image dont la BASE porte le nom. "
+                         "Sans lui, l'outil refuse de convertir." % (REFS_BASE, e))
     return os.path.basename(rel) in noms
 
 
@@ -146,10 +168,19 @@ def transparence_reelle(im):
 
 
 def palier_musee(rel):
+    # UN CONTROLE MUET EST PIRE QU'UN CONTROLE ABSENT. Ce `try/except: return False` rendait
+    # « ce n'est pas un musee » quand la carte etait introuvable -- donc le palier le MOINS
+    # severe, sur les seules images qui exigent le plus. On leve.
+    if not os.path.exists(CARTE_BATIMENTS):
+        raise SystemExit("outil-conversion-webp : %s est absent. Il dit quelle image appartient "
+                         "a quel batiment, et c'est lui qui reconnait les musees -- affiches SANS "
+                         "recadrage, donc soumis au palier de qualite severe. Sans lui, l'outil "
+                         "refuse de decider plutot que de decider mal. Regenere-le avant de "
+                         "mesurer ou de convertir." % CARTE_BATIMENTS)
     try:
         carte = json.load(open(CARTE_BATIMENTS, encoding='utf-8'))
-    except Exception:
-        return False
+    except Exception as e:
+        raise SystemExit("outil-conversion-webp : %s est illisible (%s)." % (CARTE_BATIMENTS, e))
     return any(b.startswith('musee-') for b in carte.get(rel, []))
 
 

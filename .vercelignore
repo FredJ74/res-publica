@@ -25,8 +25,13 @@
 #
 # CE QUI PART TOUJOURS, ET QU'IL NE FAUT PAS EXCLURE : vercel.json (la
 # configuration des fonctions, des crons et des en-tetes de cache), api/ (les
-# fonctions serverless), i18n/ (charge par index.html), images/, audio/, et tous
-# les .js, .html et .css de la racine.
+# fonctions serverless), i18n/ (charge par index.html), images/, et les .js,
+# .html et .css de la racine que les pages chargent reellement.
+#
+# CORRIGE LE 8 OCTOBRE 2026 : cette phrase citait aussi « audio/ ». C'etait faux,
+# et c'est l'erreur qui a coute le plus cher de tout ce chantier -- 89,8 Mo par
+# deploiement. Les MP3 sont charges depuis raw.githubusercontent.com, jamais
+# depuis Vercel. La preuve est au bloc AUDIO ci-dessous.
 #
 # =============================================================================
 
@@ -67,3 +72,79 @@ migrations/
 # Suivi par git par accident, et sans aucun sens en production.
 .DS_Store
 **/.DS_Store
+
+# --- AUDIO : SERVI PAR GITHUB, PAS PAR VERCEL ------------------------- 89,8 Mo
+# LA PREUVE, ET ELLE EST EXHAUSTIVE. Les 29 MP3 des audioguides de musee sont
+# references dans data.js par une URL ABSOLUE :
+#
+#     audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/..."
+#
+# Le navigateur du joueur les telecharge donc depuis raw.githubusercontent.com, et
+# jamais depuis res-publica.vercel.app. Verifie fichier par fichier le 8 octobre
+# 2026 : 29 sur 29 passent par cette URL, et il n'existe AUCUNE reference relative
+# a « audio/ » dans tout le code servi -- ni dans les .js, ni dans les .html, ni
+# dans les .css, ni dans api/. vercel.json ne porte d'ailleurs aucun en-tete de
+# cache pour /audio/, alors qu'il en porte un pour /images/ : la configuration
+# elle-meme temoigne que ce repertoire n'est pas servi.
+#
+# Ces 89,8 Mo partaient donc a chaque deploiement pour n'etre jamais demandes.
+#
+# SI L'AUDIO REPASSE UN JOUR EN CHEMIN RELATIF, RETIRER CETTE EXCLUSION. C'est la
+# seule condition qui la rend valide. Ce qui le trahirait : un `audioUrl` sans le
+# prefixe github dans data.js. Les fichiers restent dans git, a leur place --
+# c'est precisement la que les URL pointent.
+audio/
+
+# --- DOCUMENTATION ----------------------------------------------------- 247 Ko
+# Aucun .md n'est charge par une page servie, et le depot ne contient AUCUN import
+# dynamique ni fetch d'un fichier local : les quatre pages HTML du payload chargent
+# 54 ressources, enumerees et verifiees, dont aucune n'est un .md. Le motif porte
+# sur le NOM, donc tout .md ajoute plus tard a la racine est exclu sans qu'on y
+# pense -- c'est voulu.
+*.md
+
+# --- PROTOTYPES JETABLES ------------------------------------------------ 49 Ko
+# Deux pages autonomes qui se declarent elles-memes « PROTOTYPE JETABLE » dans leur
+# <title> et portent <meta name="robots" content="noindex">. Aucun href ni src ne
+# les pointe : elles ne sont citees que dans un COMMENTAIRE de plateau.html, qui
+# rappelle qu'elles ont servi a valider le chargement ESM de Tiptap. Les deployer
+# publiait deux surfaces d'essai que personne n'atteint.
+prototype-*.html
+
+# --- BANCS NODE -------------------------------------------------------- 56 Ko
+# Deux fichiers qui ne peuvent PAS tourner dans un navigateur : ils utilisent
+# `require(` et `process.`, et leur en-tete annonce « Executable : node ... ». Ni
+# l'un ni l'autre n'est charge par une page, et aucune fonction du simulateur n'est
+# appelee depuis plateau-football-realisateur-ia.js, qui est le seul des trois a
+# etre reellement charge.
+plateau-football-realisateur-simulateur.js
+plateau-football-realisateur-tests.js
+
+# =============================================================================
+# CE QUI N'EST PAS EXCLU, ET POURQUOI -- cette liste compte autant que l'autre
+# =============================================================================
+#
+# i18n/i18next.LICENSE.txt   1,1 Ko, jamais charge par une page, et il RESTE :
+#                            c'est la licence d'une bibliotheque tierce distribuee
+#                            a cote de son code minifie. L'economie serait d'un
+#                            kilo-octet, le manquement serait juridique.
+#
+# plateau-alimentaire.js     25,9 Ko. Mesure : aucune page ne le charge, aucune de
+#                            ses 24 fonctions n'est appelee ailleurs, et son nom
+#                            n'est cite nulle part. Il RESTE pourtant. Un .js a la
+#                            racine est indiscernable des cinquante autres qui SONT
+#                            charges : l'exclure par son nom poserait un piege pour
+#                            le jour ou un <script src> l'ajoutera -- une 404 au
+#                            lieu d'un module. 0,006 % du payload ne vaut pas ca.
+#
+# images/                    302,5 Mo, et tout y reste. Verifie : ZERO image n'est
+#                            chargee depuis GitHub, 605 sur 656 portent une
+#                            reference relative explicite, et sur les 51 restantes
+#                            30 sont citees DANS LA BASE -- portraits de joueurs,
+#                            escorts, camions militaires. L'absence de grep n'a
+#                            jamais prouve qu'un asset etait inutile.
+#
+# images/*.mp4               Les deux videos de reaction du football sont, elles,
+#                            referencees par un chemin RELATIF (`asset:
+#                            'images/football-reaction-...mp4'`). Servies par
+#                            Vercel, elles restent.

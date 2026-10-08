@@ -1,0 +1,46 @@
+name: Garde du payload Vercel
+
+# POURQUOI CE WORKFLOW. Le 8 octobre 2026, le payload envoyé à chaque déploiement pesait
+# 400 Mo, dont 104 Mo d'outillage et 90 Mo d'audio servi en réalité depuis GitHub. Personne
+# ne l'avait vu grossir, parce que rien ne le mesurait : `du -sh .` donne un chiffre faux
+# dans les deux sens, et le tableau de bord Vercel ne dit pas d'où vient le poids.
+#
+# Ce workflow ne corrige rien. Il REND BRUYANTE une augmentation qui, sans lui, est
+# silencieuse — c'est tout ce qu'on lui demande.
+#
+# CE QU'IL NE FAIT PAS, ET IL FAUT LE SAVOIR. GitHub Actions et Vercel sont deux systèmes
+# indépendants : un échec ici n'empêche PAS le déploiement correspondant. C'est une alarme,
+# pas un verrou. Le verrou, s'il en faut un un jour, est côté Vercel (« Ignored Build
+# Step ») et se décide séparément.
+
+on:
+  push:
+    branches: [main]
+    # Un seul garde-fou sur un seul chemin : `main` est la seule branche qui déploie en
+    # production, et c'est le payload de production qu'on surveille.
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+    # Pour relancer la mesure à la main depuis l'onglet « Actions », sans attendre un push.
+
+jobs:
+  mesurer-le-payload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        # La mesure lit `git ls-files` : il faut un vrai dépôt, pas une archive. Le clone
+        # superficiel par défaut suffit — on mesure l'état du commit, pas son histoire.
+
+      - name: Mesurer le payload et le comparer au plafond déclaré
+        run: python3 outils/payload-vercel.py --garde
+        # L'outil rend un code de sortie non nul si le payload dépasse le plafond de
+        # outils/payload-vercel.json, si un fichier neuf dépasse le seuil unitaire sans
+        # être déclaré, ou s'il apparaît des doublons binaires exacts. Il refuse aussi de
+        # tourner si son fichier de seuils est absent : un plafond déduit de la mesure du
+        # jour validerait toujours l'état présent.
+
+      - name: Rapport détaillé (toujours, y compris après un échec)
+        if: always()
+        run: python3 outils/payload-vercel.py
+        # Si la garde a crié, c'est ce rapport qu'on lit pour savoir QUOI a grossi : la
+        # ventilation par dossier, par extension, et les cinquante fichiers les plus lourds.

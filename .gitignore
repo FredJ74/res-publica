@@ -1,0 +1,70 @@
+# Ce que git ne doit jamais se mettre à suivre
+#
+# POURQUOI CE FICHIER EXISTE, ET POURQUOI SI TARD. Le dépôt n'en avait aucun jusqu'au
+# 8 octobre 2026. Ce n'était pas sans conséquence : sur un projet connecté à Git, Vercel
+# envoie à chaque déploiement les fichiers SUIVIS PAR GIT moins ceux qu'écarte
+# `.vercelignore`. Un fichier de bruit qui se fait commiter par inadvertance part donc
+# chez Vercel, et y reste tant qu'on ne l'a pas retiré du suivi — le supprimer du disque
+# ne suffit pas.
+#
+# LA DIVISION DU TRAVAIL ENTRE LES DEUX FICHIERS D'EXCLUSION. Ils ne font pas le même
+# métier et il ne faut pas les confondre :
+#
+#   .gitignore    — ce qui n'entre pas dans l'HISTOIRE du projet. Du bruit : artefacts
+#                   du système de fichiers, caches d'outils, secrets.
+#   .vercelignore — ce qui entre dans l'histoire mais n'a rien à faire en PRODUCTION.
+#                   Du travail légitime : outillage, migrations, bancs d'essai, archives.
+#
+# Un fichier peut donc être versionné et non déployé — c'est le cas normal pour tout
+# l'outillage. L'inverse n'existe pas.
+#
+# CE QUI N'EST DÉLIBÉRÉMENT PAS IGNORÉ ICI, et c'est le point important :
+#
+#   .scratch/     — 302 fichiers, 86 Mo, versionnés EXPRÈS. Ce répertoire porte les
+#                   preuves des chantiers : bancs d'essai, mesures, captures, états
+#                   avant/après. On veut pouvoir y revenir, donc il est dans l'histoire ;
+#                   il est écarté du déploiement par `.vercelignore`, pas d'ici.
+#   *.log         — `.scratch/mesure_webp.log` est une mesure archivée, pas un log
+#                   d'exécution. Un motif `*.log` l'aurait masqué : vérifié avant d'écrire
+#                   ce fichier, et écarté pour cette raison.
+#
+# RÈGLE DE MODIFICATION. Avant d'ajouter un motif ici, vérifier qu'il ne recouvre aucun
+# fichier déjà suivi :
+#
+#     git ls-files | grep <le motif>
+#
+# Si la liste n'est pas vide, le motif est faux : git continuerait de suivre ces fichiers
+# (un `.gitignore` n'a aucun effet sur ce qui est déjà indexé) tout en les rendant
+# invisibles aux prochains `git status`. C'est le pire des deux mondes.
+
+# --- artefacts du système de fichiers ---------------------------------------
+# macOS écrit .DS_Store dans chaque dossier visité par le Finder. Un exemplaire s'était
+# fait commiter à la racine et y est resté trois commits ; il est retiré du suivi en même
+# temps que l'écriture de ce fichier.
+.DS_Store
+._*
+Thumbs.db
+
+# --- caches d'outils --------------------------------------------------------
+# L'outillage du projet est en Python 3 (outils/). CPython écrit son bytecode à côté des
+# sources dès qu'un module en importe un autre.
+__pycache__/
+*.pyc
+
+# --- dépendances et état local des plateformes ------------------------------
+# Le projet n'a aujourd'hui aucune dépendance npm et aucun build : ces deux motifs sont
+# préventifs. `node_modules/` peut apparaître au premier outil installé localement, et
+# `.vercel/` est créé par la CLI Vercel au premier `vercel link` — il contient
+# l'identifiant du projet et de l'organisation.
+node_modules/
+.vercel/
+
+# --- secrets ----------------------------------------------------------------
+# Les clés vivent dans les variables d'environnement Vercel, jamais dans le dépôt. Ces
+# motifs sont là pour que l'erreur soit impossible, pas pour corriger une erreur passée.
+.env
+.env.*
+
+# --- éditeurs ---------------------------------------------------------------
+*.swp
+*~
