@@ -74,8 +74,12 @@ GRANT EXECUTE ON FUNCTION public.creer_offre(text,text,text,text,integer,bigint,
 GRANT EXECUTE ON FUNCTION public.employer_fonds(text,text,text,text,integer,boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.employer_fonds(text,text,text,text,integer,boolean) TO postgres;
 GRANT EXECUTE ON FUNCTION public.employer_fonds(text,text,text,text,integer,boolean) TO service_role;
+GRANT EXECUTE ON FUNCTION public.entrepot_caisse_id(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.entrepot_caisse_id(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.entrepot_caisse_lire(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.entrepot_caisse_lire(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.entrepot_caisse_mouvement(text,numeric) TO postgres;
+GRANT EXECUTE ON FUNCTION public.entrepot_caisse_mouvement(text,numeric) TO service_role;
 GRANT EXECUTE ON FUNCTION public.entrepot_capacite_disponible(text,text) TO anon;
 GRANT EXECUTE ON FUNCTION public.entrepot_capacite_disponible(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.entrepot_capacite_disponible(text,text) TO postgres;

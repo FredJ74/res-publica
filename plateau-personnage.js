@@ -2306,8 +2306,14 @@ async function doDormir() {
     // Il est desormais dans api/cron-minuit.js, tache 'paye_douane', via la RPC metier
     // douane_payer_effectifs. Voir migration_20260926_douane_payer_effectifs.sql.
     // La paye de la police et celle des employes/escorts ont le meme defaut et suivront.
-    // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
-    if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
+    //
+    // LA DISTRIBUTION DU BUDGET MUNICIPAL A QUITTE CET ENDROIT LE 8 OCTOBRE 2026, et pour la
+    // meme raison que la paye de la douane ci-dessus : elle ne doit pas dependre de ce qu'un
+    // joueur particulier clique sur Dormir. Une commune dont aucun habitant ne dormait n'etait
+    // jamais financee, et deux joueurs endormis a la meme seconde passaient tous deux la garde --
+    // limite qui etait consignee au rapport, pas resolue. Elle est desormais dans
+    // api/cron-minuit.js, tache 'budgets_municipaux', via la RPC budget_municipal_cascade, dont
+    // l'idempotence vit dans la cle primaire de repartitions_versements.
     // Decroissance lente de la reputation criminelle si inactif
     if (state.reputationCriminelle) state.reputationCriminelle = Math.max(0, state.reputationCriminelle - 1);
     updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
@@ -2979,7 +2985,9 @@ async function doReserverChambreHotel(pa) {
                                       pays + '_' + getCaisseLocaleId('hotel', ville), ville);
     recetteEncaissee = r.ok;
   } else {
-    r = await deduireCoutOrdre({ pa, cost: cout });
+    // PLUS DE REPLI CLIENT (8 octobre 2026) : voir le commentaire du bloc supprime plus bas.
+    // On refuse au lieu de prelever.
+    r = { ok: false, raison: 'encaissement_indisponible' };
   }
   if (!r.ok) {
     signalerRefusReservationChambre(r, cout);
@@ -3000,27 +3008,21 @@ async function doReserverChambreHotel(pa) {
   // privee (l'entreprise du commerce), pas la caisse institutionnelle 'hotel' partagee par Hotel
   // du Port/Hotel de la Victoire (non touches, toujours sur crediterCaisseBatiment ci-dessous).
   // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
-  // Chemin de repli uniquement : si ni l'entreprise ni vente_structure_encaisser n'ont encaisse
-  // la recette (RPC indisponible), on retombe sur l'ancien enchainement taxe-puis-credit. Dans le
-  // cas normal recetteEncaissee est vrai et ce bloc ne s'execute pas.
-  if (cout > 0 && !recetteEncaissee) {
-    let net = cout;
-    if (typeof appliquerTaxeTransaction === 'function') {
-      // appliquerTaxeTransaction rend null quand la caisse municipale est illisible (chantier 5)
-      // : sans elle on ne sait pas quelle part revient a la ville, et crediter le brut a l'hotel
-      // detournerait la taxe locale. On ne credite donc rien plutot que de crediter a tort.
-      const t = await appliquerTaxeTransaction(cout);
-      if (!t) {
-        console.error('chambre d hotel : taxe non calculable, aucun credit a la caisse');
-        net = 0;
-      } else {
-        net = t.net;
-      }
-    }
-    if (net > 0 && typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
-      await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
-    }
-  }
+  // LE CHEMIN DE REPLI A ETE SUPPRIME LE 8 OCTOBRE 2026. Il recalculait la taxe dans le
+  // navigateur (appliquerTaxeTransaction) puis creditait l'hotel du net -- exactement le triple
+  // appel client que le lot « ventes a une structure » avait remplace par une seule transaction
+  // serveur. Deux raisons de le retirer, et la seconde seule suffirait :
+  //
+  //   . IL ECRIVAIT `budgets_municipaux.data.caisse`, une cle que le chantier municipal vient de
+  //     supprimer. Il l'aurait donc RECREEE avec la taxe locale dedans : une seconde bourse,
+  //     alimentee par de l'argent deja compte ailleurs.
+  //   . IL ETAIT UN SECOND MOTEUR DE TAXE. Les taux vivent au serveur, la perception municipale
+  //     passe par recette_municipale, et deux calculs de la meme taxe finissent toujours par
+  //     diverger.
+  //
+  // Il ne s'activait de toute facon que si `encaisserVenteStructure` manquait de la page -- un
+  // defaut de deploiement, pas une panne. Ce cas-la refuse desormais la reservation en amont,
+  // avant tout prelevement : rien n'est pris, donc rien n'est perdu.
 
   // Persistance (urgence du 27 aout 2026, migration personnages.reservation_hotel executee) :
   // portee sur state.char (jamais sur la racine de state, qui n'est jamais persistee) --

@@ -4,7 +4,7 @@
 -- Domaine    : finances publiques
 -- Categorie  : D (mixte)
 -- Strategie  : seed_filtre (classification du chantier 2C)
--- Lignes     : 41
+-- Lignes     : 44
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -25,8 +25,8 @@
 -- verse, pas ce qui doit l'etre.
 --
 -- FILTRE APPLIQUE
--- SEED ECRIT, PAS EXTRAIT. Les 41 caisses dont la dotation est arbitree sont
--- ecrites avec leur montant decide ; les 110 autres lignes de la table ne
+-- SEED ECRIT, PAS EXTRAIT. Les 44 caisses dont la dotation est arbitree sont
+-- ecrites avec leur montant decide ; les 107 autres lignes de la table ne
 -- sont pas reprises -- soit elles appartiennent aux trois autres empires,
 -- soit l'audit du circuit fiscal les a declarees vestiges, comptes de
 -- transit, contreparties ou caisses inertes, soit ce sont des lignes de
@@ -57,6 +57,9 @@ INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_ca
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_ville_a', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_dispensaire_ville_b', '{"solde": 200}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_douane', '{"solde": 0}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_entrepot_capitale', '{"solde": 5000}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_entrepot_ville_a', '{"solde": 5000}');
+INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_entrepot_ville_b', '{"solde": 5000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_ae', '{"solde": 10000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_def', '{"solde": 35000}');
 INSERT INTO public.caisses_batiments (id, data) VALUES ('republic_gouvernement-min_fin', '{"solde": 10000}');

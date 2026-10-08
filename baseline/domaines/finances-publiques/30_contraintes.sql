@@ -29,6 +29,7 @@ ALTER TABLE public.pa_bonus_differes_empreinte ADD CONSTRAINT pa_bonus_differes_
 ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_pkey PRIMARY KEY (building_id);
 ALTER TABLE public.pa_credits_sources ADD CONSTRAINT pa_credits_sources_pkey PRIMARY KEY (source);
 ALTER TABLE public.pa_credits_uniques ADD CONSTRAINT pa_credits_uniques_pkey PRIMARY KEY (acteur, source, reference);
+ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_pkey PRIMARY KEY (pays, ville, jour, canal);
 ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_pkey PRIMARY KEY (pays, source, beneficiaire);
 ALTER TABLE public.repartitions_versements ADD CONSTRAINT repartitions_versements_pkey PRIMARY KEY (pays, source, beneficiaire, jour);
 ALTER TABLE public.salaires_caisses ADD CONSTRAINT salaires_caisses_pkey PRIMARY KEY (poste_id);
@@ -53,6 +54,10 @@ ALTER TABLE public.pa_bonus_differes ADD CONSTRAINT pa_bonus_differes_montant_ch
 ALTER TABLE public.pa_bonus_differes_empreinte ADD CONSTRAINT pa_bonus_differes_empreinte_seul_check CHECK (seul);
 ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_montant_check CHECK (((montant > 0) AND (montant <= 10)));
 ALTER TABLE public.pa_credits_sources ADD CONSTRAINT pa_credits_sources_montant_check CHECK (((montant IS NULL) OR ((montant > 0) AND (montant <= 10))));
+ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_canal_check CHECK ((canal = ANY (ARRAY['taxe_fonciere'::text, 'loyer'::text, 'taxe_transaction'::text])));
+ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_montant_check CHECK ((montant > (0)::numeric));
+ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_pays_check CHECK ((pays <> ''::text));
+ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_ville_check CHECK ((ville <> ''::text));
 ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_denominateur_positif CHECK (((part_denominateur IS NULL) OR (part_denominateur > (0)::numeric)));
 ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_part_bornee CHECK (((part_numerateur IS NULL) OR ((part_numerateur >= (0)::numeric) AND (part_numerateur <= part_denominateur))));
 ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetaires_part_entiere CHECK (((part_numerateur IS NULL) = (part_denominateur IS NULL)));

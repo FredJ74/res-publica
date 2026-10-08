@@ -1,8 +1,13 @@
 # Baseline Human Gambit
 
 > **État : complet.** Les 17 domaines sont extraits, et les seeds sont constitués.
-> Point de coupe : **5 octobre 2026, 15 h 17 (Paris)**, registre Supabase à 539
-> entrées, dernière version `20261004214621`.
+> Point de coupe : **8 octobre 2026, 9 h 44 (Paris)**, registre Supabase à 559
+> entrées, dernière version `20261008072422`.
+>
+> Les chiffres de ce fichier avaient vieilli de deux lots — ils décrivaient encore
+> le relevé du 5 octobre alors que `CONTROLE-GLOBAL.json`, lui, suivait la base.
+> Ils sont réalignés ici, et c'est `CONTROLE-GLOBAL.json` qui fait foi en cas de
+> doute : il est produit par une requête du dépôt, relisible et rejouable.
 
 > **Pour faire évoluer la base, voir `../WORKFLOW-SUPABASE.md`.** Ce README-ci
 > décrit ce que le baseline *est* ; le processus pour le faire vivre est décrit
@@ -22,17 +27,17 @@ Deux choses distinctes, qui ne se mélangent jamais :
 
 | | Base | Baseline | Écarté, nommé |
 |---|---|---|---|
-| tables | 252 | 246 | 6 |
-| colonnes | 2 097 | 1 969 | 55 (+ 73 de vues) |
-| fonctions | 641 | 641 | 0 |
-| contraintes | 423 | 421 | 2 |
+| tables | 260 | 254 | 6 |
+| colonnes | 2 148 | 2 020 | 55 (+ 73 de vues) |
+| fonctions | 663 | 663 | 0 |
+| contraintes | 440 | 438 | 2 |
 | index autonomes | 147 | 147 | 0 |
 | vues | 2 | 2 | 0 |
 | déclencheurs | 40 | 40 | 0 |
-| policies | 213 | 213 | 0 |
-| lignes de droits | 2 838 | 2 826 | 12 |
-| commentaires | 165 | 161 | 4 |
-| seeds | — | 76 tables, 855 lignes | — |
+| policies | 285 | 285 | 0 |
+| lignes de droits | 2 786 | 2 774 | 12 |
+| commentaires | 205 | 201 | 4 |
+| seeds | — | 65 tables, 932 lignes | — |
 
 Chaque total du catalogue se décompose **exactement** en « rendu » + « écarté,
 nommé et justifié ». Il n'y a pas de troisième colonne : rien n'est perdu en

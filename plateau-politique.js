@@ -9277,17 +9277,21 @@ function getVilleKey() {
 // N'ECRIT RIEN : l'appelant saura qu'il ne sait pas. Les appelants qui ne lisent pas ce null
 // afficheront une interface vide -- c'est desagreable, et c'est infiniment preferable a la
 // destruction d'une caisse.
+// UNE LIGNE DE CONFIGURATION, PLUS UNE BOURSE (8 octobre 2026). Trois cles ont disparu de cet
+// objet, et la migration les a retirees de la base le meme jour :
+//   . `caisse`     etait la seconde tresorerie municipale. La seule est desormais
+//                  caisses_batiments.<pays>_mairie_<ville>.
+//   . `allocation` etait une seconde regle de repartition, concurrente de
+//                  repartitions_budgetaires. Deux regles pouvant diverger, c'est precisement ce
+//                  que les arbitrages interdisent.
+//   . `derniereDistribJour` marquait l'idempotence d'une distribution cliente qui n'existe plus.
+// Ne les reintroduis pas : un budget neuf ne doit plus porter d'argent.
 function budgetMunicipalNeuf(key) {
   return {
     key,
-    // tribunal retire le 7 octobre 2026 : il releve du Ministere de la Justice. Les cinq parts
-    // restantes sont inchangees, la somme fait donc 85 % et le reliquat reste en caisse.
-    allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20 },
-    caisse: 0,
     // Taxe fonciere : FR/m2/jour, prerogative du maire (min/max a definir dans le futur
     // tableau de bord municipal, pour eviter qu'un taux abusif ruine les proprietaires).
-    tauxFoncier: 0.05,
-    derniereDistribJour: state.day || 1
+    tauxFoncier: 0.05
   };
 }
 
@@ -9317,62 +9321,32 @@ async function chargerBudgetMunicipalPourVille(pays, ville) {
   return chargerBudgetMunicipalDeLaCle(pays + '_' + ville);
 }
 
-// IDENTITE PARTAGEE DE LA JOURNEE (25 septembre 2026). Ce marqueur vit dans une ligne PARTAGEE
-// (budgets_municipaux) et etait compare a `state.day`, qui est un compteur PROPRE A CHAQUE
-// PERSONNAGE : un joueur est au jour 3, un autre au jour 47. Deux habitants de la meme ville
-// vidaient donc chacun la caisse municipale vers les batiments le meme soir reel, puisque leurs
-// deux compteurs differaient. La caisse etait distribuee deux fois, puis remise a zero.
+// LA DISTRIBUTION MUNICIPALE A QUITTE LE NAVIGATEUR LE 8 OCTOBRE 2026.
 //
-// jourPartageISO() rend la date reelle Europe/Paris, la meme pour tous les joueurs ET pour le
-// cron (jourParisISO, api/cron-minuit.js). C'est exactement le correctif deja applique a la
-// distribution fiscale nationale et au paiement des effectifs de police -- voir le commentaire
-// canonique de plateau-core.js:2010-2045. Aucune regle de jeu ne change : une distribution par
-// jour, comme avant. Seule la definition de « le meme jour » devient commune.
+// distribuerBudgetMunicipalVersBatiments vivait ici et etait appelee depuis doDormir
+// (plateau-personnage.js). Trois defauts tenaient ensemble, et aucun ne se corrigeait cote
+// client :
 //
-// Les anciens marqueurs numeriques (issus de state.day) ne correspondent a aucune date ISO : la
-// premiere distribution apres ce correctif a donc lieu normalement, et une seule fois.
+//   . ELLE DEPENDAIT D'UN JOUEUR. Une commune dont aucun habitant ne dormait n'etait jamais
+//     financee -- six caisses de Port-Sainte-Marie et de Montrouge ont porte le 19 septembre
+//     comme derniere ecriture pendant dix-huit jours.
+//   . SON IDEMPOTENCE ETAIT UN CHAMP DE BLOB. `derniereDistribJour`, lu puis reecrit sans
+//     verrou : deux navigateurs declenchant la distribution dans la meme seconde passaient tous
+//     deux la garde. La limite etait consignee au rapport, pas fermee -- la fermer demandait un
+//     compare-and-swap serveur.
+//   . ELLE PORTAIT SA PROPRE REGLE. `data.allocation` repartissait entre six beneficiaires, en
+//     concurrence avec repartitions_budgetaires.
 //
-// LIMITE ASSUMEE, consignee au rapport : deux navigateurs qui declencheraient la distribution
-// dans la meme seconde passeraient tous deux la garde. La fermer exige un compare-and-swap
-// serveur sur la caisse municipale -- une brique economique, hors perimetre de cette passe.
-async function distribuerBudgetMunicipalVersBatiments(pays, ville) {
-  const data = await chargerBudgetMunicipal();
-  if (!data) return;
-  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
-  if (data.derniereDistribJour === jour) return;
-
-  // CE QUI N'A PAS PU ETRE VERSE RESTE EN CAISSE (chantier 4F, 7 octobre 2026). L'ancienne
-  // version mettait `data.caisse = 0` quoi qu'il arrive : la part d'une categorie sans
-  // etablissement dans cet empire -- buildingId null -- etait donc retiree de la caisse
-  // municipale sans arriver nulle part. De l'argent public detruit en silence, chaque nuit.
-  //
-  // On ne retire desormais que ce qui a ete REELLEMENT credite. Le reliquat reste a la ville et
-  // sera redistribue demain, ou le jour ou l'etablissement existera.
-  const montantAReparter = data.caisse || 0;
-  let verseTotal = 0;
-  if (montantAReparter > 0) {
-    for (const cat of CATEGORIES_BUDGET_MAIRIE) {
-      const part = (data.allocation[cat] || 0) / 100;
-      const montant = Math.floor(montantAReparter * part);
-      if (montant <= 0) continue;
-      const buildingId = getBuildingIdPourCategorieBudget(cat, ville, pays);
-      if (!buildingId) {
-        console.warn('budget municipal : aucun etablissement « ' + cat + ' » en ' + pays
-                     + '/' + ville + ' -- sa part reste en caisse');
-        continue;
-      }
-      if (typeof crediterCaisseBatiment === 'function') {
-        const solde = await crediterCaisseBatiment(pays, buildingId, montant);
-        // crediterCaisseBatiment rend null en cas d'echec (fail-closed, chantier C) : on ne
-        // deduit alors rien de la caisse.
-        if (solde !== null) verseTotal += montant;
-      }
-    }
-  }
-  data.caisse = Math.max(0, montantAReparter - verseTotal);
-  data.derniereDistribJour = jour;
-  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(data.key, data).catch(() => {});
-}
+// Le serveur fait desormais foi : budget_municipal_cascade('republic'), appelee par le cron de
+// minuit sous la tache 'budgets_municipaux', apres la taxe fonciere et les loyers. Sa base est la
+// somme des recettes du jour (recettes_municipales), sa regle est repartitions_budgetaires, et
+// son idempotence est la cle primaire de repartitions_versements -- qu'aucune ecriture avalee ne
+// peut perdre.
+//
+// CATEGORIES_BUDGET_MAIRIE et getBuildingIdPourCategorieBudget RESTENT, et ne sont plus lues que
+// par l'ecran public « Caisses communales » et par l'ecran de virement du maire : ce sont
+// desormais des categories d'AFFICHAGE et de financement ponctuel, plus une regle de
+// repartition.
 
 async function doConsulterIndicesLocaux() {
   const ville = state.currentCity;
@@ -9411,20 +9385,66 @@ async function doConsulterIndicesLocaux() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// LA SOURCE DE LA REPARTITION MUNICIPALE, c'est-a-dire le suffixe de la caisse de la mairie.
+// caisseTerritorialeId (data.js) porte la convention ET son unique exception -- la capitale ecrit
+// « mairie-capitale » la ou les autres villes ecrivent « mairie_ville_a ». On ne recopie pas
+// cette exception ici : une regle, un endroit.
+function sourceRepartitionMairie(ville) {
+  return (typeof caisseTerritorialeId === 'function') ? caisseTerritorialeId('mairie', ville) : null;
+}
+
+// L'ECRAN DU MAIRE LIT ET ECRIT LA BRIQUE GENERIQUE (8 octobre 2026). Il editait
+// `budgets_municipaux.data.allocation` -- une regle concurrente de repartitions_budgetaires,
+// vivant dans un blob, sans verification serveur de la somme, et sans aucune territorialite : la
+// garde reposait sur le seul fait que l'ecran lisait getVilleKey().
+//
+// Il passe au MEME chemin que le Ministre des Finances : budget_repartition_lire pour afficher,
+// budget_repartition_fixer pour ecrire. Le serveur verifie l'autorite (poste `maire`), la
+// COMMUNE (ajoutee le meme jour : il y a trois maires, et chacun ne repartit que la sienne) et
+// que la somme des parts ne depasse jamais 100 % -- en fractions exactes, pas en flottants.
+//
+// LES BENEFICIAIRES NE SONT PLUS UNE LISTE CLIENTE. Ils viennent de la base : trois lignes par
+// ville, commissariat / entrepot / mairie elle-meme. Ajouter un beneficiaire sera une ligne de
+// donnee, pas une modification de cet ecran.
 async function doRepartirBudgetMunicipal(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Répartir le budget municipal';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const data = await chargerBudgetMunicipal();
-  if (!data) return;
+  const ville = state.poste?.city || state.currentCity;
+  const source = sourceRepartitionMairie(ville);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // UNE PANNE DE LECTURE N'EST PAS UNE REPARTITION VIDE. Afficher des champs a zero pendant une
+  // indisponibilite, c'est inviter le maire a valider une repartition fausse.
+  const v = (typeof sbBudgetRepartitionLireVerdict === 'function')
+    ? await sbBudgetRepartitionLireVerdict(source)
+    : { ok: false, raison: 'helper_absent' };
+  if (!v.ok) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;color:#cc6a44;font-size:.85rem">La répartition n\'a pas pu être lue ('
+      + (v.raison || 'indisponible') + '). Rien n\'a été modifié — réessayez dans un instant.</div>';
+    return;
+  }
+  if (!v.lignes.length) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;color:#8a8060;font-size:.85rem">Aucune répartition n\'est déclarée pour cette commune.</div>';
+    return;
+  }
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez 100% des recettes fiscales locales entre les batiments communaux. Applique chaque nuit, credite directement leur caisse reelle.</div>';
-  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez 100% des recettes municipales du jour. Appliqué par le serveur à la mise à jour de minuit, directement sur les caisses réelles. Votre part reste dans la caisse de la mairie.</div>';
+  v.lignes.forEach(l => {
+    const equiv = (l.equivalent_fr != null)
+      ? ' <span style="color:#8a8060">— ' + Number(l.equivalent_fr).toLocaleString('fr-FR') + ' ' + cur + ' au dernier versement</span>'
+      : '';
     html += '<div style="margin-bottom:.6rem">';
-    html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">' + LABELS_BUDGET_MAIRIE[cat] + '</label>';
-    html += '<input type="number" id="budget-' + cat + '" value="' + data.allocation[cat] + '" min="0" max="100" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>';
+    html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">'
+          + (l.libelle || l.beneficiaire) + (l.est_la_source ? ' (conservé)' : '') + equiv + '</label>';
+    html += '<input type="number" step="0.0001" min="0" max="100" class="part-mairie"'
+          + ' data-beneficiaire="' + l.beneficiaire + '"'
+          + ' value="' + (l.part_pourcent == null ? '' : l.part_pourcent) + '"'
+          + ' style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>';
     html += '</div>';
   });
   html += '<div id="budget-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
@@ -9434,33 +9454,53 @@ async function doRepartirBudgetMunicipal(pa, cost) {
 }
 
 async function confirmerRepartitionBudget(pa, cost) {
-  const key = getVilleKey();
-  const allocation = {};
+  const ville = state.poste?.city || state.currentCity;
+  const source = sourceRepartitionMairie(ville);
+  const champs = Array.from(document.querySelectorAll('.part-mairie'));
+  if (!champs.length) return;
+
+  // LE TOTAL EST VERIFIE ICI POUR LE CONFORT, ET AU SERVEUR POUR DE VRAI. Cette garde evite un
+  // aller-retour inutile ; c'est budget_repartition_fixer qui refuse reellement, en fractions
+  // exactes, et un client modifie ne gagne rien a la contourner.
   let total = 0;
-  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
-    const v = Math.max(0, parseInt(document.getElementById('budget-' + cat)?.value || '0'));
-    allocation[cat] = v;
-    total += v;
-  });
-  if (total !== 100) {
-    document.getElementById('budget-total-warning').textContent = 'Le total doit être exactement 100% (actuellement ' + total + '%).';
+  champs.forEach(el => { total += Number(el.value) || 0; });
+  if (Math.abs(total - 100) > 0.00005) {
+    document.getElementById('budget-total-warning').textContent =
+      'Le total doit être exactement 100% (actuellement ' + total + '%).';
     return;
   }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-  // ON N'ECRIT PAS UNE REPARTITION PAR-DESSUS UN BUDGET QU'ON N'A PAS PU LIRE. L'ancienne ligne
-  // enchainait deux replis (`|| await chargerBudgetMunicipal()`) dont le second fabriquait un
-  // budget a caisse 0 : valider une repartition pendant une panne remettait la caisse a zero.
-  const data = await chargerBudgetMunicipalDeLaCle(key);
-  if (!data) {
-    showToast('Budget indisponible', 'La caisse municipale n\'a pas pu etre lue. Rien n\'a ete '
-      + 'modifie -- reessayez dans un instant.', false);
+
+  // ORDRE CROISSANT DES VARIATIONS : on commence par les BAISSES, sinon une hausse ecrite la
+  // premiere se heurterait au plafond de 100 % encore occupe par l'ancienne valeur. Meme motif
+  // que l'ecran du Ministre des Finances.
+  const aEcrire = champs
+    .map(el => ({ b: el.dataset.beneficiaire, part: Number(el.value) || 0,
+                  ancienne: el.defaultValue === '' ? null : Number(el.defaultValue) }))
+    .filter(x => x.ancienne === null || Math.abs(x.ancienne - x.part) >= 0.00005)
+    .sort((x, y) => (x.part - (x.ancienne || 0)) - (y.part - (y.ancienne || 0)));
+
+  if (!aEcrire.length) {
+    showToast('Rien à modifier', 'Aucune part n\'a changé.', false);
     return;
   }
-  data.allocation = allocation;
-  await sbSaveBudgetMunicipal(key, data).catch(() => {});
+
+  const echecs = [];
+  for (const x of aEcrire) {
+    const rep = await sbBudgetRepartitionFixer(source, x.b, x.part);
+    if (!rep || rep.ok !== true) echecs.push((rep && rep.raison) || 'refus_serveur');
+  }
+
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Budget mis à jour', 'La nouvelle repartition sera appliquee des le prochain reveil.', true, true);
+  if (echecs.length) {
+    showToast('Répartition partiellement refusée',
+      echecs.length + ' ligne(s) refusée(s) par le serveur : ' + echecs.join(', ') + '.', false);
+    addJournalEntry('Répartition du budget municipal : ' + echecs.length + ' ligne(s) refusée(s).', 'event-bad');
+    return;
+  }
+  showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera à la mise à jour de minuit.', true, true);
   addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
 }
 

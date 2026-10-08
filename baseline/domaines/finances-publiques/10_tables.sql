@@ -161,6 +161,15 @@ CREATE TABLE public.pa_credits_uniques (
   cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.recettes_municipales (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  jour date NOT NULL,
+  canal text NOT NULL,
+  montant numeric NOT NULL,
+  updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.repartitions_budgetaires (
   pays text NOT NULL,
   source text NOT NULL,

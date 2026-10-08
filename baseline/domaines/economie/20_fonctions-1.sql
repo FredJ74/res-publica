@@ -1817,6 +1817,19 @@ BEGIN
 END;
 $function$;
 
+-- entrepot_caisse_id(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.entrepot_caisse_id(p_entrepot_id text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT e.country || '_entrepot_' || e.city
+    FROM public.batiments_etat e
+    JOIN public.villes v ON v.pays = e.country AND v.ville = e.city
+   WHERE e.id = p_entrepot_id;
+$function$;
+
 -- entrepot_caisse_lire(text) -> numeric | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.entrepot_caisse_lire(p_id text)
  RETURNS numeric
@@ -1824,10 +1837,42 @@ CREATE OR REPLACE FUNCTION public.entrepot_caisse_lire(p_id text)
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-  SELECT CASE WHEN jsonb_typeof(public.batiment_etat_lire(e.data) -> 'entrepot' -> 'caisse') = 'number'
-              THEN (public.batiment_etat_lire(e.data) -> 'entrepot' ->> 'caisse')::numeric
-              ELSE 0 END
-    FROM public.batiments_etat e WHERE e.id = p_id;
+  SELECT coalesce((SELECT CASE WHEN jsonb_typeof(c.data -> 'solde') = 'number'
+                               THEN (c.data ->> 'solde')::numeric ELSE 0 END
+                     FROM public.caisses_batiments c
+                    WHERE c.id = public.entrepot_caisse_id(p_id)), 0);
+$function$;
+
+-- entrepot_caisse_mouvement(text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.entrepot_caisse_mouvement(p_entrepot_id text, p_delta numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_caisse text; v_rep jsonb;
+BEGIN
+  IF NOT public.est_appel_serveur() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_au_serveur');
+  END IF;
+  IF p_delta IS NULL OR p_delta = 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'delta_nul');
+  END IF;
+  v_caisse := public.entrepot_caisse_id(p_entrepot_id);
+  IF v_caisse IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_entrepot_non_declaree',
+                              'entrepot', p_entrepot_id);
+  END IF;
+  PERFORM set_config('rp.caisse_interne', 'on', true);
+  v_rep := public.caisse_institution_mouvement(v_caisse, p_delta, true);
+  PERFORM set_config('rp.caisse_interne', '', true);
+  IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_rep->>'raison', 'mouvement_refuse'),
+                              'caisse', v_caisse);
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'caisse', v_caisse, 'delta', p_delta,
+                            'solde', (v_rep->>'solde')::numeric);
+END;
 $function$;
 
 -- entrepot_capacite_disponible(text,text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
@@ -1858,6 +1903,7 @@ DECLARE
   v_etat_d jsonb; v_ent_d jsonb; v_caisse_d numeric;
   v_etat_f jsonb; v_ent_f jsonb; v_caisse_f numeric; v_stock_f numeric;
   v_ids text[]; v_i text; v_arrivee date;
+  v_caisse_dest_id text; v_caisse_four_id text; v_rep jsonb;
 BEGIN
   PERFORM set_config('rp.caisse_interne', 'on', true);
   PERFORM public.exiger_acteur(p_acteur);
@@ -1878,6 +1924,14 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'fournisseur_est_soi_meme');
   END IF;
 
+  -- LA CAISSE CANONIQUE DU DESTINATAIRE. Fail-closed : un entrepot sans caisse declaree -- une
+  -- ville de test -- ne commande rien, au lieu de voir sa cle fabriquee dans un blob.
+  v_caisse_dest_id := public.entrepot_caisse_id(v_dest_id);
+  IF v_caisse_dest_id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_entrepot_non_declaree',
+                              'entrepot', v_dest_id);
+  END IF;
+
   -- --- Verrouillage ordonne des lignes touchees --------------------------------
   v_ids := CASE WHEN p_fournisseur_type IN ('entrepot', 'port')
                 THEN ARRAY(SELECT unnest(ARRAY[v_dest_id, p_fournisseur_id]) ORDER BY 1)
@@ -1889,7 +1943,7 @@ BEGIN
   SELECT public.batiment_etat_lire(data) INTO v_etat_d FROM public.batiments_etat WHERE id = v_dest_id;
   IF v_etat_d IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'entrepot_introuvable'); END IF;
   v_ent_d := coalesce(v_etat_d->'entrepot', '{}'::jsonb);
-  v_caisse_d := coalesce((v_ent_d->>'caisse')::numeric, 0);
+  v_caisse_d := public.entrepot_caisse_lire(v_dest_id);
 
   -- --- Le fournisseur : prix, stock, delai, libelle -----------------------------
   IF p_fournisseur_type IN ('entrepot', 'port') THEN
@@ -1904,6 +1958,11 @@ BEGIN
       -- reference. Le vendeur ne peut pas refuser : s'il affiche, il vend.
       v_prix := coalesce((v_ent_f->'prixManuel'->>p_ressource)::numeric,
                          (SELECT prix_base FROM public.ressources_economie WHERE cle = p_ressource));
+      v_caisse_four_id := public.entrepot_caisse_id(p_fournisseur_id);
+      IF v_caisse_four_id IS NULL THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'caisse_fournisseur_non_declaree',
+                                  'entrepot', p_fournisseur_id);
+      END IF;
     ELSE
       -- Port industriel : son stock institutionnel en attente de repartition, au prix de reference.
       v_ent_f := coalesce(v_etat_f->'port', '{}'::jsonb);
@@ -1949,25 +2008,29 @@ BEGIN
   END IF;
 
   -- --- Mouvements : tout ou rien -------------------------------------------------
-  UPDATE public.batiments_etat
-     SET data = to_jsonb((v_etat_d || jsonb_build_object('entrepot',
-           v_ent_d || jsonb_build_object('caisse', round(v_caisse_d - v_total, 2))))::text),
-         updated_at = now()
-   WHERE id = v_dest_id;
+  -- LE DEBIT PASSE PAR LA PRIMITIVE VERROUILLEE. L'UPDATE du blob qui ne portait que la caisse
+  -- disparait : le blob ne contient plus de tresorerie.
+  v_rep := public.caisse_institution_mouvement(v_caisse_dest_id, -v_total, true);
+  IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_rep->>'raison', 'debit_refuse'),
+                              'caisse', v_caisse_d, 'montant', v_total);
+  END IF;
 
   IF p_fournisseur_type IN ('entrepot', 'port') THEN
     -- Le stock part immediatement de chez le fournisseur : il ne peut pas etre vendu deux fois.
     -- Le fret n'est PAS verse au vendeur -- c'est un cout logistique absorbe.
     IF p_fournisseur_type = 'entrepot' THEN
-      v_caisse_f := coalesce((v_ent_f->>'caisse')::numeric, 0);
+      v_caisse_f := public.entrepot_caisse_lire(p_fournisseur_id);
+      -- Le blob du fournisseur ne garde que son STOCK : sa recette va a sa caisse.
       v_ent_f := v_ent_f
         || jsonb_build_object('stock', jsonb_set(coalesce(v_ent_f->'stock', '{}'::jsonb),
-                                                 ARRAY[p_ressource], to_jsonb(v_stock_f - p_quantite)))
-        || jsonb_build_object('caisse', round(v_caisse_f + round(p_quantite * v_prix, 2), 2));
+                                                 ARRAY[p_ressource], to_jsonb(v_stock_f - p_quantite)));
       UPDATE public.batiments_etat
          SET data = to_jsonb((v_etat_f || jsonb_build_object('entrepot', v_ent_f))::text),
              updated_at = now()
        WHERE id = p_fournisseur_id;
+      PERFORM public.caisse_institution_mouvement(v_caisse_four_id,
+                                                  round(p_quantite * v_prix, 2), true);
     ELSE
       v_ent_f := v_ent_f
         || jsonb_build_object('stock', jsonb_set(coalesce(v_ent_f->'stock', '{}'::jsonb),
@@ -2132,25 +2195,33 @@ CREATE OR REPLACE FUNCTION public.entrepot_reverser(p_entrepot_id text, p_montan
 AS $function$
 DECLARE
   c_roulement constant numeric := 5000;   -- fonds de roulement permanent (regle GD)
-  v_pays text; v_ville text; v_etat jsonb; v_caisse numeric;
-  v_mairie text; v_verse numeric; v_jour date; v_id text;
+  v_pays text; v_ville text; v_caisse_id text; v_caisse numeric;
+  v_mairie text; v_verse numeric; v_jour date; v_id text; v_rep jsonb;
 BEGIN
-  -- L'identifiant est <pays>_<ville>_<batiment> : on en derive pays et ville.
-  v_pays  := split_part(p_entrepot_id, '_', 1);
-  v_ville := split_part(p_entrepot_id, '_', 2);
-  IF v_pays = '' OR v_ville = '' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'entrepot_invalide');
-  END IF;
-
-  -- Verrou de ligne : deux reversements simultanes se serialisent.
-  SELECT public.batiment_etat_lire(e.data) INTO v_etat
-    FROM public.batiments_etat e WHERE e.id = p_entrepot_id FOR UPDATE;
-  IF NOT FOUND THEN
+  -- LES COLONNES FONT AUTORITE. Voir l'en-tete de cette migration : la derivation par
+  -- split_part rendait « ville » au lieu de « ville_a », et le reversement etait donc
+  -- impossible ailleurs qu'a la capitale.
+  SELECT e.country, e.city INTO v_pays, v_ville
+    FROM public.batiments_etat e WHERE e.id = p_entrepot_id;
+  IF v_pays IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'entrepot_introuvable');
   END IF;
 
-  v_caisse := CASE WHEN jsonb_typeof(v_etat -> 'entrepot' -> 'caisse') = 'number'
-                   THEN (v_etat -> 'entrepot' ->> 'caisse')::numeric ELSE 0 END;
+  v_caisse_id := public.entrepot_caisse_id(p_entrepot_id);
+  IF v_caisse_id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_entrepot_non_declaree',
+                              'ville', v_ville);
+  END IF;
+
+  -- Verrou de ligne : deux reversements simultanes se serialisent.
+  SELECT CASE WHEN jsonb_typeof(c.data -> 'solde') = 'number'
+              THEN (c.data ->> 'solde')::numeric ELSE 0 END
+    INTO v_caisse
+    FROM public.caisses_batiments c WHERE c.id = v_caisse_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_entrepot_non_declaree',
+                              'caisse', v_caisse_id);
+  END IF;
 
   v_mairie := public.salaire_caisse_de('maire', v_pays, v_ville);
   IF v_mairie IS NULL THEN
@@ -2186,15 +2257,19 @@ BEGIN
                               'jour', v_jour, 'caisse', v_caisse);
   END;
 
-  -- Debit de l'entrepot, en conservant la forme d'origine (chaine JSON).
-  v_etat := jsonb_set(v_etat, '{entrepot,caisse}', to_jsonb(v_caisse - v_verse));
-  UPDATE public.batiments_etat
-     SET data = to_jsonb(v_etat::text), updated_at = now()
-   WHERE id = p_entrepot_id;
-
-  -- Credit de la mairie, par la primitive verrouillee (appel interne).
+  -- DEBIT DE L'ENTREPOT PUIS CREDIT DE LA MAIRIE, par la primitive verrouillee. Si le credit
+  -- echouait, la levee annule le debit : la transaction est la frontiere.
   PERFORM set_config('rp.caisse_interne', 'on', true);
-  PERFORM public.caisse_institution_mouvement(v_mairie, v_verse, true);
+  v_rep := public.caisse_institution_mouvement(v_caisse_id, -v_verse, true);
+  IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+    PERFORM set_config('rp.caisse_interne', '', true);
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_rep->>'raison','debit_refuse'));
+  END IF;
+  v_rep := public.caisse_institution_mouvement(v_mairie, v_verse, true);
+  PERFORM set_config('rp.caisse_interne', '', true);
+  IF NOT coalesce((v_rep->>'ok')::boolean, false) THEN
+    RAISE EXCEPTION 'reversement_entrepot_credit_refuse:%', coalesce(v_rep->>'raison','?');
+  END IF;
 
   RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'mairie', v_mairie,
                             'caisse', v_caisse - v_verse, 'mode', p_mode, 'jour', v_jour);
@@ -2890,99 +2965,3 @@ BEGIN
    WHERE id = v_id;
   RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
 END; $function$;
-
--- fixer_repartition_port(text,numeric,numeric,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.fixer_repartition_port(p_cle text, p_capitale numeric, p_ville_a numeric, p_ville_b numeric)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE v_id text := 'republic_ville_a_port-sainte-marie';
-        v_data jsonb; v_etat jsonb; v_port jsonb;
-BEGIN
-  PERFORM public.exiger_poste('capitaine_port');
-
-  IF p_cle IS NULL OR NOT EXISTS (SELECT 1 FROM public.ressources_economie WHERE cle = p_cle) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'ressource_inconnue');
-  END IF;
-  IF p_capitale IS NULL OR p_ville_a IS NULL OR p_ville_b IS NULL
-     OR p_capitale < 0 OR p_ville_a < 0 OR p_ville_b < 0
-     OR abs((p_capitale + p_ville_a + p_ville_b) - 100) > 0.1 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'repartition_invalide');
-  END IF;
-
-  SELECT data INTO v_data FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
-  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'port_absent'); END IF;
-
-  v_etat := COALESCE(public.batiment_etat_lire(v_data), '{}'::jsonb);
-  v_port := COALESCE(v_etat->'port', '{}'::jsonb);
-  v_port := jsonb_set(v_port, ARRAY['repartition'],
-              COALESCE(v_port->'repartition', '{}'::jsonb), true);
-  v_port := jsonb_set(v_port, ARRAY['repartition', p_cle],
-              jsonb_build_object('capitale', p_capitale, 'ville_a', p_ville_a,
-                                 'ville_b', p_ville_b), true);
-  v_etat := jsonb_set(v_etat, ARRAY['port'], v_port, true);
-
-  UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now()
-   WHERE id = v_id;
-
-  RETURN jsonb_build_object('ok', true, 'repartition', v_port->'repartition'->p_cle);
-END; $function$;
-
--- fixer_repartition_production(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.fixer_repartition_production(p_acteur text, p_pays text, p_pourcentage numeric)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_poste text; v_ville text; v_bat text; v_id text; v_etat jsonb; v_usine jsonb;
-BEGIN
-  PERFORM public.exiger_acteur(p_acteur);
-  SELECT poste->>'id' INTO v_poste FROM public.personnages_donnees WHERE name = p_acteur;
-  SELECT ville, building_id INTO v_ville, v_bat FROM public.directeurs_usine WHERE poste_id = v_poste;
-  IF v_bat IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_detenu', 'poste_reel', v_poste);
-  END IF;
-  IF p_pourcentage IS NULL OR p_pourcentage < 0 OR p_pourcentage > 100 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'valeur_invalide');
-  END IF;
-
-  v_id := p_pays || '_' || v_ville || '_' || v_bat;
-  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
-  IF v_etat IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'usine_introuvable'); END IF;
-  v_usine := coalesce(v_etat->'usine', '{}'::jsonb);
-  UPDATE public.batiments_etat
-     SET data = to_jsonb((v_etat || jsonb_build_object('usine',
-           v_usine || jsonb_build_object('repartitionEntrepots', p_pourcentage / 100)))::text),
-         updated_at = now()
-   WHERE id = v_id;
-  RETURN jsonb_build_object('ok', true, 'repartitionEntrepots', p_pourcentage / 100, 'batiment', v_bat);
-END; $function$;
-
--- fournisseurs_etrangers() -> TABLE(pays text, libelle text, ressource text, prix_unitaire numeric, disponible integer) | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.fournisseurs_etrangers()
- RETURNS TABLE(pays text, libelle text, ressource text, prix_unitaire numeric, disponible integer)
- LANGUAGE sql
- STABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-  WITH pays_etrangers(code, nom) AS (
-    VALUES ('narco', 'El Estado'), ('soviet', 'Sovarka'), ('khalija', 'Al-Khalija')
-  ),
-  -- Relations d'approvisionnement REELLES, recopiees de ORIGINE_IMPORTS_PORT (api/cron-minuit.js).
-  producteurs(code, ressource) AS (
-    VALUES ('khalija', 'petrole'), ('soviet', 'petrole'), ('narco', 'produits_exotiques')
-  )
-  SELECT p.code,
-         p.nom,
-         r.cle,
-         CASE WHEN EXISTS (SELECT 1 FROM producteurs pr WHERE pr.code = p.code AND pr.ressource = r.cle)
-              THEN r.prix_achat_fournisseur ELSE r.prix_base END,
-         NULL::integer
-    FROM pays_etrangers p
-    CROSS JOIN public.ressources_economie r
-   WHERE r.source = 'livraison';
-$function$;

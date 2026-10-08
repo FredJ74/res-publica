@@ -62,10 +62,14 @@ REPERTOIRES = {"A": "90_socle", "B": "91_empire", "D": "92_mixte"}
 # Stock initial d'un entrepot de ville, arbitre le 5 octobre 2026. Les trois
 # villes de Republia recoivent la meme dotation.
 STOCK_ENTREPOT_INITIAL = {'alcool': 100, 'bois': 750, 'carburant': 17, 'cereales': 75, 'charbon': 400, 'desinfectant': 32, 'fruits_legumes': 150, 'medicaments': 25, 'metal': 200, 'minerai': 500, 'petrole': 200, 'plantes': 300, 'poisson': 125, 'produits_exotiques': 125, 'tabac': 30, 'textile': 125, 'viande': 85}
-CAISSE_ENTREPOT_INITIALE = 5000
+# LA CAISSE N'EST PLUS DANS LE BLOB (8 octobre 2026). Elle a demenage vers
+# caisses_batiments.<pays>_entrepot_<ville>, et sa dotation de 5 000 FR est
+# desormais lue dans dotations-financieres-republia.csv comme celle de toutes
+# les autres caisses -- meme canal, meme arbitrage. La laisser ICI en plus
+# aurait reconstitue la seconde bourse que le chantier vient de supprimer : un
+# monde neuf serait ne avec 5 000 FR en double par entrepot.
 BLOB_ENTREPOT = __import__("json").dumps(
-    {"entrepot": {"caisse": CAISSE_ENTREPOT_INITIALE,
-                  "stock": STOCK_ENTREPOT_INITIAL}},
+    {"entrepot": {"stock": STOCK_ENTREPOT_INITIAL}},
     ensure_ascii=False, sort_keys=True)
 
 
@@ -219,10 +223,12 @@ EXPRESSIONS_ARBITREES = {
         "data": ("to_jsonb(%s::text)" % ("$x$" + BLOB_ENTREPOT + "$x$"),
                  "ARBITRAGE DU 5 OCTOBRE 2026. Le blob est ECRIT, pas copie : les 17 "
                  "quantites de matieres premieres sont celles arbitrees, identiques dans "
-                 "les trois villes, et la caisse de l'entrepot vaut la dotation "
-                 "d'amorcage de 5 000 FR. Aucune valeur ne vient de la bêta. La cle "
+                 "les trois villes. Aucune valeur ne vient de la bêta. La cle "
                  "`prixManuel` n'est pas reprise : elle n'existe que sur un des trois "
                  "entrepots, ou elle est vide, et un objet vide equivaut a son absence.\n"
+                 "LA CAISSE N'EST PLUS ICI (8 octobre 2026) : le blob ne porte plus que du "
+                 "METIER -- le stock. La tresorerie est une vraie caisse, seedee par le meme "
+                 "canal que les 43 autres, depuis le tableau d'arbitrage.\n"
                  "ENCODAGE : une CHAINE JSON dans un jsonb, et c'est la convention declaree de "
                  "cette table -- batiment_etat_lire() cote SQL et JSON.parse() cote JS en "
                  "dependent tous deux. Un objet natif ici ferait perdre l'etat du batiment."),

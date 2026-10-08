@@ -4722,6 +4722,35 @@ async function sbBudgetRepartitionFixer(source, beneficiaire, part) {
   return r || null;
 }
 
+// VIREMENT COMMUNAL ATOMIQUE (8 octobre 2026). La caisse de la mairie est debitee et celle du
+// batiment creditee DANS LA MEME TRANSACTION serveur : il n'existe plus de fenetre ou l'argent a
+// quitte la commune sans arriver, ni l'inverse. Remplace la sequence « crediter puis sauvegarder
+// le blob municipal » de confirmerFinancementCommunal, qui ne pouvait pas etre rendue atomique
+// tant que la tresorerie de la mairie vivait dans un blob.
+// Rend le verdict METIER tel que le serveur l'ecrit : `autorite_insuffisante`,
+// `hors_de_sa_commune`, `solde_insuffisant`, `caisse_cible_inconnue`. Un refus porte
+// `rien_na_bouge: true` quand aucune des deux caisses n'a ete touchee.
+async function sbMairieVirementBatiment(buildingId, montant) {
+  const rows = await sbRpc('mairie_virement_batiment', {
+    p_building_id: buildingId, p_montant: Number(montant)
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || null;
+}
+
+// REVERSEMENT VOLONTAIRE D'UN ENTREPOT VERS SA MAIRIE. L'autorite est celle du directeur de CET
+// entrepot dans SA ville -- ni le maire ni son adjoint ne peuvent le declencher, l'autonomie de
+// la caisse etant precisement le sujet. Le montant est borne par la tresorerie REELLE, jamais
+// par ce que le navigateur annonce. La fonction existait en base depuis le 20 septembre 2026
+// sans aucun appelant : ce helper la branche enfin.
+async function sbEntrepotVirementMairie(entrepotId, montant) {
+  const rows = await sbRpc('entrepot_virement_mairie', {
+    p_entrepot_id: entrepotId, p_montant: Number(montant)
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || null;
+}
+
 // Creation atomique d'un placement Banque nationale : verifie le solde reel du compte national,
 // le debite, et cree la ligne placements_bancaires (avec sa ville), dans une seule transaction
 // cote serveur. Signature confirmee par sondage en lecture seule contre la RPC reelle avant

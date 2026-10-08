@@ -721,24 +721,34 @@ async function preleverTaxeFonciere() {
       await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() });
     }
 
+    // LA TAXE FONCIERE PASSE PAR LE POINT D'ENTREE UNIQUE (8 octobre 2026). Cette boucle ecrivait
+    // `budgetMuni.caisse` -- la seconde bourse municipale, supprimee par le chantier des budgets
+    // municipaux -- en reecrivant le blob entier par un sbUpdate en `.catch(() => {})`. Deux
+    // defauts dans la meme ligne : l'echec etait avale, alors que les proprietaires venaient
+    // D'ETRE DEBITES plus haut -- la collecte de la nuit disparaissait sans trace ; et
+    // `resultats.collecte` etait incremente quoi qu'il arrive, donc le rapport de passe affirmait
+    // une recette qui n'existait pas.
+    //
+    // recette_municipale credite la vraie tresorerie -- caisses_batiments.<pays>_mairie_<ville> --
+    // et incremente le compteur du jour dans UNE SEULE transaction. Son verdict est LU : une
+    // commune qui n'a pas pu encaisser remonte dans ECHECS_PASSE, donc la passe rend 500.
     for (const [villeKey, montant] of Object.entries(collectesParMairie)) {
-      const budgetMuni = await getBudgetMuni(villeKey);
-      if (!budgetMuni) continue;
-      budgetMuni.caisse = (budgetMuni.caisse || 0) + montant;
-      // Correctif (lot isolation des villes, 22 aout 2026) : "data" etait ecrit ici via
-      // JSON.stringify(budgetMuni), alors que getBudgetMuni() ci-dessus (et tout le reste du
-      // projet, chargerBudgetMunicipal()/sbSaveBudgetMunicipal(), plateau-politique.js/
-      // supabase.js) le lit et l'ecrit toujours comme un objet natif, jamais une chaine --
-      // budgets_municipaux.data est une colonne jsonb, pas text (contrairement a terrains_etat
-      // ci-dessus, dont le JSON.stringify/JSON.parse est lui correct et coherent des deux cotes).
-      // Cette double-encodage transformait silencieusement la ligne en une chaine de caracteres
-      // (confirme en audit lecture seule sur republic_capitale) : chaque lecture ulterieure de
-      // budgetMuni.allocation/.caisse/.tauxFoncier redevenait alors "undefined" (proprietes d'une
-      // chaine), bloquant silencieusement toute redistribution vers les caisses institutionnelles
-      // (Commissariat/Multimodal/Stade/Marche/Dispensaire/Tribunal) sans jamais lever d'erreur
-      // visible (l'appelant, plateau-personnage.js, avale toute exception via .catch(()=>{})).
-      await sbUpdate('budgets_municipaux', `id=eq.${encodeURIComponent(villeKey)}`, { data: budgetMuni, updated_at: new Date().toISOString() }).catch(() => {});
-      resultats.collecte += montant;
+      if (!(montant > 0)) continue;
+      // `villeKey` vaut <pays>_<ville>, et la ville peut contenir un souligne (ville_a) : on
+      // coupe au PREMIER separateur, jamais avec un split sur tous.
+      const sep = villeKey.indexOf('_');
+      const pays = sep > 0 ? villeKey.slice(0, sep) : '';
+      const ville = sep > 0 ? villeKey.slice(sep + 1) : '';
+      const rows = await sbRpc('recette_municipale', {
+        p_pays: pays, p_ville: ville, p_montant: montant, p_canal: 'taxe_fonciere'
+      }, HEADERS_SERVICE);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (r && r.ok === true) {
+        resultats.collecte += montant;
+      } else {
+        signalerEchec('taxe_fonciere:encaissement:' + villeKey,
+          (r && r.raison) || 'verdict_absent');
+      }
     }
   } catch(e) { console.error('preleverTaxeFonciere error', e); }
   return resultats;
@@ -1896,9 +1906,21 @@ async function avancerChantiersQuotidien() {
         if (depense > 0) {
           ch.stockMateriaux = plan.stockChantier;
           ch.tresorerie = Math.max(0, (Number(ch.tresorerie) || 0) - depense);
-          etatEnt.entrepot = { ...(etatEnt.entrepot || {}), stock: plan.stockEntrepot,
-                               caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + depense };
+          // LA RECETTE DE L'ENTREPOT VA DANS SA CAISSE, PLUS DANS SON BLOB (8 octobre 2026).
+          // Cette ligne ecrivait `caisse: (blob.caisse || 0) + depense`. Depuis que la cle a
+          // quitte le blob, `blob.caisse` vaut toujours undefined : elle aurait donc RECREE la
+          // cle avec la depense dedans, a chaque chantier approvisionne. Une seconde bourse,
+          // alimentee par de l'argent qui existe deja ailleurs -- c'est-a-dire de la creation
+          // monetaire, chaque nuit, en silence.
+          etatEnt.entrepot = { ...(etatEnt.entrepot || {}), stock: plan.stockEntrepot };
           await sbSetBatimentEtat(row.country, villeChantier, idEntrepot, { entrepot: etatEnt.entrepot }).catch(() => {});
+          const idEnt = row.country + '_' + villeChantier + '_' + idEntrepot;
+          const repEnt = await sbRpc('entrepot_caisse_mouvement',
+            { p_entrepot_id: idEnt, p_delta: depense }, HEADERS_SERVICE);
+          const rEnt = Array.isArray(repEnt) ? repEnt[0] : repEnt;
+          if (!rEnt || rEnt.ok !== true) {
+            signalerEchec('chantier:recette_entrepot:' + idEnt, (rEnt && rEnt.raison) || 'verdict_absent');
+          }
           ch.evenements = (ch.evenements || []).concat([{ cle: 'approvisionnement', jour: jour, achats: achats, cout: depense }]);
           resultats.approvisionnements++;
         }
@@ -2981,7 +3003,7 @@ async function livrerEntrepotsQuotidien() {
   // jeu, jamais une erreur technique.
   const resultats = { entrepots: 0, unitesLivrees: 0, coutTotal: 0,
                       approvisionnes: 0, sansTresorerie: 0, echecsTechniques: 0,
-                      dotationsPubliques: 0, entrepotsDotes: 0, parEntrepot: [] };
+                      parEntrepot: [] };
   // Accumulateur national (lot logistique portuaire, 25 aout 2026) : sommme, sur les 3 tirages
   // INDEPENDANTS des 3 entrepots (inchanges, meme RNG qu'avant ce lot), la part de
   // bois/petrole/produits_exotiques desormais reroutee vers le port plutot que creditee
@@ -3011,17 +3033,11 @@ async function livrerEntrepotsQuotidien() {
       (dirs || []).forEach(d => { if (d.poste && d.poste.city) directeursEnPoste[d.poste.city] = d.name; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
 
-    // Caisses municipales : c'est la VILLE qui soutient son entrepot PNJ, jamais l'Etat. Lues
-    // une fois, mutees en memoire pendant la boucle, reecrites une seule fois a la fin -- meme
-    // patron que preleverTaxeFonciere, qui manipule deja ces memes lignes.
-    const budgetsMunicipaux = {};
-    const villesADebiter = {};
-    for (const { city } of ENTREPOTS_VILLES) {
-      try {
-        const rows = await sbGet('budgets_municipaux', 'id=eq.' + encodeURIComponent('republic_' + city));
-        if (rows && rows[0] && rows[0].data) budgetsMunicipaux[city] = rows[0].data;
-      } catch (e) { /* budget illisible : aucun soutien versé a cette ville cette nuit */ }
-    }
+    // LA LECTURE DES CAISSES MUNICIPALES A DISPARU (8 octobre 2026). Elle ne servait qu'au
+    // soutien ad hoc de l'entrepot par sa ville -- une seconde regle de financement, retiree
+    // avec le reste : l'entrepot touche desormais sa part declaree, 40 % des recettes du jour,
+    // versee par la cascade municipale. Cette passe ne lit ni n'ecrit plus aucun budget
+    // municipal.
 
     // Ce qui est deja en route vers chaque entrepot, par ressource. Sans cette lecture, une
     // commande directe passee la veille serait rachetee une seconde fois par le cron.
@@ -3048,9 +3064,21 @@ async function livrerEntrepotsQuotidien() {
       // Dotation de depart : de quoi remplir un stock vide a son plafond au prix fournisseur
       // (~8500 FR, calcule sur les 8 ressources livrables). Sans ca, la caisse resterait a 0
       // et l'entrepot ne pourrait jamais payer sa toute premiere livraison.
-      const entrepot = etat.entrepot || { stock: {}, caisse: 8500 };
+      const entrepot = etat.entrepot || { stock: {} };
       const stock = entrepot.stock || {};
-      let caisse = entrepot.caisse || 0;
+      // LA TRESORERIE EST DANS SA CAISSE, PLUS DANS LE BLOB (8 octobre 2026). Deux defauts
+      // tombent avec ce changement : lire `entrepot.caisse` rendrait desormais zero, et la
+      // reecrire en fin de boucle RECREERAIT la cle -- une seconde bourse. Et le repli
+      // `{ caisse: 8500 }` ci-dessus FABRIQUAIT 8 500 FR chaque fois que le blob n'avait pas
+      // la cle : une dotation de demarrage qui n'avait plus de raison d'etre depuis que les
+      // caisses existent vraiment et recoivent 40 % des recettes municipales chaque nuit.
+      //
+      // On lit la caisse canonique, on calcule la passe en memoire comme avant, et on
+      // n'applique a la fin que le DELTA, par la porte serveur verrouillee.
+      const lecture = await sbRpc('entrepot_caisse_lire',
+        { p_id: 'republic_' + city + '_' + buildingId }, HEADERS_SERVICE);
+      const caisseAvant = Number(Array.isArray(lecture) ? lecture[0] : lecture) || 0;
+      let caisse = caisseAvant;
       let unitesEntrepot = 0;
       let coutEntrepot = 0;
       let lotsRefusesTresorerie = 0;   // lots que la caisse n'a pas pu payer, voir plus bas
@@ -3153,18 +3181,18 @@ async function livrerEntrepotsQuotidien() {
       // viendra reduire le soutien des nuits suivantes). Aucun double financement possible --
       // le soutien ne finance que le besoin calcule, jamais un montant forfaitaire.
       const dirigeParPj = !!directeursEnPoste[city];
-      let dotationPublique = 0;
-      const budgetVille = budgetsMunicipaux[city];
-      if (!dirigeParPj && valeurTotale > caisse && budgetVille) {
-        const manque = Math.round((valeurTotale - caisse) * 100) / 100;
-        const disponibleVille = Math.max(0, Number(budgetVille.caisse) || 0);
-        dotationPublique = Math.round(Math.min(manque, disponibleVille) * 100) / 100;
-        if (dotationPublique > 0) {
-          caisse += dotationPublique;
-          budgetVille.caisse = Math.round((disponibleVille - dotationPublique) * 100) / 100;
-          villesADebiter[city] = true;
-        }
-      }
+      // LE SOUTIEN MUNICIPAL AD HOC EST SUPPRIME (8 octobre 2026), et ce n'est pas un effet de
+      // bord : c'etait une SECONDE REGLE DE FINANCEMENT, concurrente de celle que l'arbitrage
+      // vient de poser. Le mecanisme ponctionnait `budgets_municipaux.data.caisse` -- la bourse
+      // supprimee -- pour combler le besoin de l'entrepot quand aucun PJ ne le dirigeait.
+      //
+      // L'ENTREPOT EST DESORMAIS FINANCE PAR SA PART DECLAREE : 40 % des recettes municipales du
+      // jour, chaque nuit, par la cascade. Garder en plus un prelevement discretionnaire dans la
+      // caisse de la mairie, decide par le cron et invisible du maire, ferait exactement ce que
+      // les arbitrages interdisent -- deux regles qui distribuent le meme argent.
+      //
+      // Un entrepot qui ne peut pas payer sert donc partiellement, et c'est desormais une
+      // consequence lisible de la repartition que le maire a choisie.
 
       const facteurBudget = (valeurTotale > caisse && valeurTotale > 0) ? caisse / valeurTotale : 1;
       if (facteurBudget < 1) lotsRefusesTresorerie++;   // servi partiellement, faute de tresorerie
@@ -3223,7 +3251,20 @@ async function livrerEntrepotsQuotidien() {
         });
       }
 
-      await sbSetBatimentEtat('republic', city, buildingId, { ...etat, entrepot: { ...entrepot, stock, caisse } }).catch(() => {});
+      // LE BLOB NE GARDE QUE LE STOCK. Et le mouvement de caisse est applique en DELTA, pas en
+      // valeur absolue : deux passes concurrentes ne peuvent plus s'ecraser, et la primitive
+      // refuse de descendre sous zero.
+      await sbSetBatimentEtat('republic', city, buildingId, { ...etat, entrepot: { ...entrepot, stock } }).catch(() => {});
+      const deltaCaisse = Math.round((caisse - caisseAvant) * 100) / 100;
+      if (deltaCaisse !== 0) {
+        const repMvt = await sbRpc('entrepot_caisse_mouvement',
+          { p_entrepot_id: 'republic_' + city + '_' + buildingId, p_delta: deltaCaisse },
+          HEADERS_SERVICE);
+        const rMvt = Array.isArray(repMvt) ? repMvt[0] : repMvt;
+        if (!rMvt || rMvt.ok !== true) {
+          signalerEchec('livraisons:caisse_entrepot:' + city, (rMvt && rMvt.raison) || 'verdict_absent');
+        }
+      }
       if (usineLocale && etatUsine) {
         await sbSetBatimentEtat('republic', city, usineLocale.buildingId, { ...etatUsine, usine: { ...(etatUsine.usine || {}), stockMatieres: stockMatieresUsine } }).catch(() => {});
       }
@@ -3243,23 +3284,15 @@ async function livrerEntrepotsQuotidien() {
                                    cout: Math.round(coutEntrepot * 100) / 100,
                                    caisseRestante: Math.round(caisse * 100) / 100,
                                    lotsRefusesTresorerie,
-                                   dirigeParPj, dotationPublique });
-      resultats.dotationsPubliques += dotationPublique;
-      if (dotationPublique > 0) resultats.entrepotsDotes++;
+                                   dirigeParPj });
 
       // REGISTRE COMMERCIAL. Une ligne par ressource reellement achetee, jamais une ligne par
       // nuit vide : le registre appartient a l'etablissement et doit rester leger.
-      // La dotation publique y figure explicitement, en tete : sans elle, les comptes de
-      // l'etablissement seraient inexplicables -- de l'argent apparaitrait sans origine.
+      // La ligne « soutien municipal » a disparu avec le mecanisme qu'elle tracait (voir plus
+      // haut) : l'entrepot est finance par sa part declaree, versee par la cascade, et cette
+      // recette-la est journalisee dans repartitions_versements.
       const entrepotId = 'republic_' + city + '_' + buildingId;
       const lignesRegistre = [];
-      if (dotationPublique > 0) {
-        lignesRegistre.push({
-          entrepot_id: entrepotId, operation: 'soutien_municipal', sens: 'entree',
-          contrepartie: 'Caisse municipale', ressource: null, quantite: null,
-          prix_unitaire: null, fret_unitaire: 0, montant: dotationPublique, statut: 'comptant'
-        });
-      }
       achatsDuJour.forEach(a => lignesRegistre.push({
         entrepot_id: entrepotId, operation: 'approvisionnement_auto', sens: 'entree',
         contrepartie: 'Fournisseurs', ressource: a.cle, quantite: a.qte,
@@ -3274,13 +3307,9 @@ async function livrerEntrepotsQuotidien() {
       resultats.coutTotal += coutEntrepot;
     }
 
-    // Les caisses municipales reellement ponctionnees sont reecrites une seule fois, apres la
-    // boucle : une ville ne finance qu'un entrepot, mais l'ecriture groupee evite un aller-retour
-    // par entrepot et garde le debit atomique du point de vue de la ligne budgetaire.
-    for (const city of Object.keys(villesADebiter)) {
-      await sbUpdate('budgets_municipaux', 'id=eq.' + encodeURIComponent('republic_' + city),
-        { data: budgetsMunicipaux[city], updated_at: new Date().toISOString() }).catch(() => {});
-    }
+    // LA REECRITURE DES CAISSES MUNICIPALES A DISPARU avec le soutien ad hoc qu'elle persistait.
+    // Cette passe ne touche plus un seul centime de budget municipal : l'entrepot est finance par
+    // la cascade, qui debite la caisse de la mairie par la primitive verrouillee.
 
     // Production nationale de bois (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :
     // deux flux reels et deterministes, totalement independants du tirage RNG ci-dessus (voir
@@ -6051,6 +6080,26 @@ export default async function handler(req, res) {
     //    avec le chemin client : le second passage, quel qu'il soit, est sans effet.
     await traiterQuotidienNationalServeur('republic');
 
+    // 5 ter. CASCADE MUNICIPALE (8 octobre 2026). Elle vient APRES la taxe fonciere (4) et les
+    //    loyers (5) : ce sont eux qui alimentent le compteur recettes_municipales dont elle tire
+    //    sa base. La taxe sur les transactions, elle, l'a alimente en continu pendant la journee.
+    //
+    //    JUSQU'ICI LA REDISTRIBUTION MUNICIPALE N'ETAIT PAS DANS LE CRON. Elle vivait dans le
+    //    navigateur -- distribuerBudgetMunicipalVersBatiments, declenchee par doDormir -- donc
+    //    une commune dont aucun habitant ne dormait n'etait jamais financee, et deux joueurs
+    //    endormis a la meme seconde passaient tous deux la garde. Le serveur fait desormais foi.
+    //
+    //    IDEMPOTENCE : la cle primaire de repartitions_versements porte le jour. Un second
+    //    passage ne verse rien, et le registre joursCron n'est qu'une commodite par-dessus.
+    const cascadeMunicipale = await tacheQuotidienne('budgets_municipaux', async () => {
+      const rows = await sbRpc('budget_municipal_cascade', { p_pays: 'republic' }, HEADERS_SERVICE);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || r.ok !== true) {
+        signalerEchec('budgets_municipaux', (r && r.raison) || 'verdict_absent');
+      }
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
@@ -6284,7 +6333,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

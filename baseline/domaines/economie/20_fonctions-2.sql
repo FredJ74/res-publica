@@ -10,6 +10,102 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- fixer_repartition_port(text,numeric,numeric,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.fixer_repartition_port(p_cle text, p_capitale numeric, p_ville_a numeric, p_ville_b numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_id text := 'republic_ville_a_port-sainte-marie';
+        v_data jsonb; v_etat jsonb; v_port jsonb;
+BEGIN
+  PERFORM public.exiger_poste('capitaine_port');
+
+  IF p_cle IS NULL OR NOT EXISTS (SELECT 1 FROM public.ressources_economie WHERE cle = p_cle) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ressource_inconnue');
+  END IF;
+  IF p_capitale IS NULL OR p_ville_a IS NULL OR p_ville_b IS NULL
+     OR p_capitale < 0 OR p_ville_a < 0 OR p_ville_b < 0
+     OR abs((p_capitale + p_ville_a + p_ville_b) - 100) > 0.1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'repartition_invalide');
+  END IF;
+
+  SELECT data INTO v_data FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'port_absent'); END IF;
+
+  v_etat := COALESCE(public.batiment_etat_lire(v_data), '{}'::jsonb);
+  v_port := COALESCE(v_etat->'port', '{}'::jsonb);
+  v_port := jsonb_set(v_port, ARRAY['repartition'],
+              COALESCE(v_port->'repartition', '{}'::jsonb), true);
+  v_port := jsonb_set(v_port, ARRAY['repartition', p_cle],
+              jsonb_build_object('capitale', p_capitale, 'ville_a', p_ville_a,
+                                 'ville_b', p_ville_b), true);
+  v_etat := jsonb_set(v_etat, ARRAY['port'], v_port, true);
+
+  UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now()
+   WHERE id = v_id;
+
+  RETURN jsonb_build_object('ok', true, 'repartition', v_port->'repartition'->p_cle);
+END; $function$;
+
+-- fixer_repartition_production(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.fixer_repartition_production(p_acteur text, p_pays text, p_pourcentage numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_poste text; v_ville text; v_bat text; v_id text; v_etat jsonb; v_usine jsonb;
+BEGIN
+  PERFORM public.exiger_acteur(p_acteur);
+  SELECT poste->>'id' INTO v_poste FROM public.personnages_donnees WHERE name = p_acteur;
+  SELECT ville, building_id INTO v_ville, v_bat FROM public.directeurs_usine WHERE poste_id = v_poste;
+  IF v_bat IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_detenu', 'poste_reel', v_poste);
+  END IF;
+  IF p_pourcentage IS NULL OR p_pourcentage < 0 OR p_pourcentage > 100 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'valeur_invalide');
+  END IF;
+
+  v_id := p_pays || '_' || v_ville || '_' || v_bat;
+  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
+  IF v_etat IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'usine_introuvable'); END IF;
+  v_usine := coalesce(v_etat->'usine', '{}'::jsonb);
+  UPDATE public.batiments_etat
+     SET data = to_jsonb((v_etat || jsonb_build_object('usine',
+           v_usine || jsonb_build_object('repartitionEntrepots', p_pourcentage / 100)))::text),
+         updated_at = now()
+   WHERE id = v_id;
+  RETURN jsonb_build_object('ok', true, 'repartitionEntrepots', p_pourcentage / 100, 'batiment', v_bat);
+END; $function$;
+
+-- fournisseurs_etrangers() -> TABLE(pays text, libelle text, ressource text, prix_unitaire numeric, disponible integer) | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.fournisseurs_etrangers()
+ RETURNS TABLE(pays text, libelle text, ressource text, prix_unitaire numeric, disponible integer)
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  WITH pays_etrangers(code, nom) AS (
+    VALUES ('narco', 'El Estado'), ('soviet', 'Sovarka'), ('khalija', 'Al-Khalija')
+  ),
+  -- Relations d'approvisionnement REELLES, recopiees de ORIGINE_IMPORTS_PORT (api/cron-minuit.js).
+  producteurs(code, ressource) AS (
+    VALUES ('khalija', 'petrole'), ('soviet', 'petrole'), ('narco', 'produits_exotiques')
+  )
+  SELECT p.code,
+         p.nom,
+         r.cle,
+         CASE WHEN EXISTS (SELECT 1 FROM producteurs pr WHERE pr.code = p.code AND pr.ressource = r.cle)
+              THEN r.prix_achat_fournisseur ELSE r.prix_base END,
+         NULL::integer
+    FROM pays_etrangers p
+    CROSS JOIN public.ressources_economie r
+   WHERE r.source = 'livraison';
+$function$;
+
 -- fret_dedouaner(uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fret_dedouaner(p_caisse_id uuid)
  RETURNS jsonb

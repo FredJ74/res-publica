@@ -61,6 +61,12 @@
    "sous": ""
   },
   {
+   "empreinte": "f92154b1e97cddaecd97098550c1114b",
+   "genre": "FUNCTION",
+   "objet": "budget_municipal_cascade(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "0510fee96a73d6b6fde7f4a9b068a1ea",
    "genre": "FUNCTION",
    "objet": "budget_part_totale(text,text)",
@@ -211,6 +217,12 @@
    "sous": ""
   },
   {
+   "empreinte": "f6734e000feb7b7fc4939cdf4ebe021b",
+   "genre": "FUNCTION",
+   "objet": "mairie_virement_batiment(text,numeric)",
+   "sous": ""
+  },
+  {
    "empreinte": "fe141001ddb064af19810405e154f26c",
    "genre": "FUNCTION",
    "objet": "pa_bonus_differes_empreinte_reelle()",
@@ -220,6 +232,12 @@
    "empreinte": "50f0490e88105dbe13812aa5cb506be9",
    "genre": "FUNCTION",
    "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ffce072983e8f6a9f4e5436a89ae6415",
+   "genre": "FUNCTION",
+   "objet": "recette_municipale(text,text,numeric,text)",
    "sous": ""
   },
   {
@@ -241,6 +259,12 @@
    "sous": ""
   },
   {
+   "empreinte": "09935c69152ac6eb9c14f63b95bfb7c7",
+   "genre": "TABLE",
+   "objet": "budgets_municipaux",
+   "sous": ""
+  },
+  {
    "empreinte": "cfbe6d2f394ce5918d7bfd0b87d9781d",
    "genre": "TABLE",
    "objet": "directions_etablissements",
@@ -250,6 +274,12 @@
    "empreinte": "39f5707d05a1fad1b091829c87a2a1ec",
    "genre": "TABLE",
    "objet": "pa_credits_sources",
+   "sous": ""
+  },
+  {
+   "empreinte": "ab1fa946edcbfbe20d2a7de6063474d5",
+   "genre": "TABLE",
+   "objet": "recettes_municipales",
    "sous": ""
   },
   {
@@ -375,6 +405,12 @@
    "tbl": "pa_credits_uniques"
   },
   {
+   "empreinte": "5e0e7f578d47cd281e1530dd9d6cb39f",
+   "genre": "p",
+   "nom": "recettes_municipales_pkey",
+   "tbl": "recettes_municipales"
+  },
+  {
    "empreinte": "b069bb6cb37c40b9a7e9924d8d545dc6",
    "genre": "p",
    "nom": "repartitions_budgetaires_pkey",
@@ -495,6 +531,30 @@
    "tbl": "pa_credits_sources"
   },
   {
+   "empreinte": "2b0cf04b68bffd4b267d97cb003ec565",
+   "genre": "c",
+   "nom": "recettes_municipales_canal_check",
+   "tbl": "recettes_municipales"
+  },
+  {
+   "empreinte": "be4d4ba601a38d2bada98be5ff699225",
+   "genre": "c",
+   "nom": "recettes_municipales_montant_check",
+   "tbl": "recettes_municipales"
+  },
+  {
+   "empreinte": "ca73219898d9bf0bd26245eade013f99",
+   "genre": "c",
+   "nom": "recettes_municipales_pays_check",
+   "tbl": "recettes_municipales"
+  },
+  {
+   "empreinte": "4a4a73c1a5a9f93ef04c7deb6387249a",
+   "genre": "c",
+   "nom": "recettes_municipales_ville_check",
+   "tbl": "recettes_municipales"
+  },
+  {
    "empreinte": "f1a93f49a71e75be755b34b8d0bed523",
    "genre": "c",
    "nom": "repartitions_budgetaires_denominateur_positif",
@@ -590,6 +650,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "budget_municipal_cascade(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_municipal_cascade(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "budget_national_epingler()",
    "privileges": "EXECUTE"
   },
@@ -1257,6 +1329,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fonds_types_max(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mairie_virement_batiment(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mairie_virement_batiment(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mairie_virement_batiment(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -1383,6 +1473,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recette_municipale(text,text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recette_municipale(text,text,numeric,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1974,6 +2076,30 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "recettes_municipales",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_municipales",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recettes_municipales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recettes_municipales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "repartitions_budgetaires",
@@ -2060,14 +2186,14 @@
  ],
  "droits_colonnes": [],
  "fichiers": {
-  "10_tables.sql": "0f37d2cf9ad02c3f7eb2ed5e8d524857",
-  "20_fonctions.sql": "238803d7e750492dbd685ab71d5c2bb1",
-  "30_contraintes.sql": "5adb8a15bcda020d85cba7ab0c6eb06d",
-  "35_index.sql": "ce9f5765ad90487d36fabc4763cdf994",
+  "10_tables.sql": "79e1c0f037aeec8c2a1661608025a4b5",
+  "20_fonctions.sql": "23c4fdbf80c4b80e17e59028a51eb715",
+  "30_contraintes.sql": "ad9c26714715423fc522c3407cfa99b4",
+  "35_index.sql": "84a42ccef20ead05e8f4e25e19897707",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
-  "60_rls-policies.sql": "1a0a1c0d23fb469d3e58885b4c4fb0a6",
-  "70_droits.sql": "08b46899e430a6c0f11d18c8ecf60e01",
-  "80_commentaires.sql": "66f49734815b0ffa198d9da25aa6240d"
+  "60_rls-policies.sql": "5550ba5434e706dc1a502c28b339b4c2",
+  "70_droits.sql": "435ec79f8cafabb76017505980ec1d20",
+  "80_commentaires.sql": "07b1861e4fe417ea4f3be32a3d92b7cb"
  },
  "fonctions": [
   {
@@ -2076,7 +2202,7 @@
    "signature": "alimenter_caisse_fonds(text,text,integer)"
   },
   {
-   "empreinte": "bcb11bc7a885ea903b72c88ed616b48e",
+   "empreinte": "0d3f1e7cd9e1aa2be055be407d5c9f97",
    "security_definer": true,
    "signature": "appliquer_taxe_transaction(text,text,numeric)"
   },
@@ -2089,6 +2215,11 @@
    "empreinte": "ffd107e69cf5938ed8d3b7b71f7c3b31",
    "security_definer": true,
    "signature": "budget_coherence()"
+  },
+  {
+   "empreinte": "d031a1b7c2a4b04796cb16e4eeaac812",
+   "security_definer": true,
+   "signature": "budget_municipal_cascade(text)"
   },
   {
    "empreinte": "31fc59e2182bb0aafcd638ad3df2d4a2",
@@ -2106,7 +2237,7 @@
    "signature": "budget_repartir(text,text,numeric)"
   },
   {
-   "empreinte": "41c3970dcf5cb115c14b279b07e58d79",
+   "empreinte": "22a5fe3a0f2c680435d3df6e61ba7e03",
    "security_definer": true,
    "signature": "budget_repartition_fixer(text,text,numeric)"
   },
@@ -2281,6 +2412,11 @@
    "signature": "fonds_types_max(text)"
   },
   {
+   "empreinte": "7f58f3aad8d49fa6541017f388add5f0",
+   "security_definer": true,
+   "signature": "mairie_virement_batiment(text,numeric)"
+  },
+  {
    "empreinte": "5a28aa9a1e100aef2c4a2c1f501c2ede",
    "security_definer": true,
    "signature": "pa_bonus_chambre(text,text)"
@@ -2316,6 +2452,11 @@
    "signature": "percevoir_salaire_directeur(text,text,text,text,text,text,numeric)"
   },
   {
+   "empreinte": "d261777d2bc3e8e85d9ea5d349aaaf77",
+   "security_definer": true,
+   "signature": "recette_municipale(text,text,numeric,text)"
+  },
+  {
    "empreinte": "8af414e588f70b0a3e04409c025158d2",
    "security_definer": true,
    "signature": "redressement_fiscal_appliquer(text,text)"
@@ -2331,7 +2472,7 @@
    "signature": "salaire_caisse_de(text,text,text)"
   },
   {
-   "empreinte": "02595048f85ffd255fc1a8a8f0c28465",
+   "empreinte": "4690d41f1c9f2812dcf6aad96f92593a",
    "security_definer": true,
    "signature": "salaire_civil_percevoir()"
   },
@@ -2403,6 +2544,7 @@
   "pa_bonus_hotel_pkey",
   "pa_credits_sources_pkey",
   "pa_credits_uniques_pkey",
+  "recettes_municipales_pkey",
   "repartitions_budgetaires_pkey",
   "repartitions_versements_pkey",
   "salaires_caisses_pkey",
@@ -2517,6 +2659,12 @@
    "empreinte_avec_roles": "12ee23840830c98c229b58860df707b6",
    "nom": "pa_credits_sources_lecture_publique",
    "tbl": "pa_credits_sources"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "61775df5e45c4dbfb8a0b51d27c9a674",
+   "nom": "recettes_municipales_lecture_publique",
+   "tbl": "recettes_municipales"
   }
  ],
  "rls": [
@@ -2614,6 +2762,11 @@
    "active": true,
    "forcee": false,
    "tbl": "pa_credits_uniques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "recettes_municipales"
   },
   {
    "active": true,
@@ -2783,6 +2936,12 @@
    "empreinte_catalogue": "ba8ca2b2fcc1991616b49797e6c8f771",
    "empreinte_texte": "d90899abfc094b8cd74970b0e2fcfbc6",
    "nom": "pa_credits_uniques"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "c655fc0e8335b127516bfb999d48940f",
+   "empreinte_texte": "0b40bdaccc76bfc2ac0b96657401eb37",
+   "nom": "recettes_municipales"
   },
   {
    "colonnes": 9,

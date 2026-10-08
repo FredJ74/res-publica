@@ -112,8 +112,12 @@ async function chargerTableauEntrepot() {
   const monId = entrepotIdCourant();
   if (!monId) return null;
 
-  const [etatMoi, transits, journal, etrangers, tousEntrepots, port] = await Promise.all([
+  // LA TRESORERIE EST UNE CAISSE, PLUS UNE CLE DE BLOB (8 octobre 2026). Elle vit dans
+  // caisses_batiments.<pays>_entrepot_<ville>, sous controle d'autorite et journalisee, comme
+  // toutes les autres caisses institutionnelles. `etat.entrepot.caisse` n'existe plus.
+  const [etatMoi, caisseEnt, transits, journal, etrangers, tousEntrepots, port] = await Promise.all([
     sbGetBatimentEtat(state.country, state.poste.city, getBuildingIdDirecteurEntrepot()).catch(() => null),
+    sbGetCaisseBatiment(state.country + '_entrepot_' + state.poste.city).catch(() => null),
     sbGet('entrepot_transits', 'destination_id=eq.' + encodeURIComponent(monId) + '&order=arrivee_le.asc').catch(() => []),
     sbGet('entrepot_journal', 'entrepot_id=eq.' + encodeURIComponent(monId) + '&order=horodatage.desc&limit=40').catch(() => []),
     sbRpc('fournisseurs_etrangers', {}).catch(() => []),
@@ -131,7 +135,10 @@ async function chargerTableauEntrepot() {
 
   return {
     monId: monId,
-    entrepot: (etatMoi && etatMoi.entrepot) || { stock: {}, caisse: 0, prixManuel: {}, desiderata: {} },
+    entrepot: (etatMoi && etatMoi.entrepot) || { stock: {}, prixManuel: {}, desiderata: {} },
+    // null = la caisse n'a pas pu etre lue. On ne le confond pas avec zero : afficher « 0 FR » a
+    // un directeur dont l'entrepot est solvable l'enverrait prendre de mauvaises decisions.
+    caisse: (caisseEnt && typeof caisseEnt.solde === 'number') ? caisseEnt.solde : null,
     transits: transits || [],
     journal: journal || [],
     etrangers: etrangers || [],
@@ -176,7 +183,29 @@ function rendreTableauEntrepot(onglet) {
        + '<span style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;color:#8a6a20">'
        + tEntrepot('entrepots.tresorerie') + '</span>'
        + '<span style="font-family:Bebas Neue,sans-serif;font-size:1.5rem;color:#C9A84C">'
-       + fmtFR(d.entrepot.caisse || 0) + ' ' + cur + '</span></div>';
+       + (d.caisse === null ? 'illisible' : fmtFR(d.caisse) + ' ' + cur) + '</span></div>';
+
+  // --- REVERSEMENT VOLONTAIRE A SA MAIRIE ---
+  // La RPC entrepot_virement_mairie existait en base depuis le 20 septembre 2026 SANS AUCUN
+  // APPELANT : le directeur n'avait aucun moyen de reverser quoi que ce soit. Elle est branchee
+  // ici. Le serveur borne le montant par la tresorerie REELLE, et l'autorite est la sienne seule
+  // -- ni le maire ni son adjoint ne peuvent declencher ce virement. Cela ne lui donne en retour
+  // aucun pouvoir sur les taux municipaux : il ne deplace que sa propre caisse.
+  if (d.caisse !== null && d.caisse > 0) {
+    html += '<div style="border:1px solid #2a2010;background:#0d0b04;padding:.6rem 1rem;margin-bottom:.9rem">'
+         + '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.35rem">'
+         + 'REVERSER A LA MAIRIE</div>'
+         + '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.45rem">'
+         + 'Verse une partie de votre tr\u00e9sorerie \u00e0 la caisse de votre commune. D\u00e9cision qui vous appartient.</div>'
+         + '<div style="display:flex;gap:.5rem;align-items:center">'
+         + '<input type="number" id="entrepot-reversement" min="1" step="1" max="' + Math.floor(d.caisse) + '"'
+         + ' placeholder="Montant en ' + cur + '" style="flex:1;background:#121005;border:1px solid #2a2010;'
+         + 'color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>'
+         + '<button onclick="confirmerReversementEntrepot()" style="font-family:Bebas Neue,sans-serif;'
+         + 'font-size:.76rem;letter-spacing:.1em;padding:.45rem 1rem;border:1px solid #8a6a20;'
+         + 'background:transparent;color:#C9A84C;cursor:pointer">Reverser</button>'
+         + '</div></div>';
+  }
 
   // --- Onglets ---
   const onglets = [['stocks', 'entrepots.onglet.stocks'], ['marche', 'entrepots.onglet.marche'],
@@ -504,4 +533,64 @@ function nomEtablissementEntrepot(buildingId) {
   if (b && b.shortName) return b.shortName;
   if (b && b.name) return b.name;
   return buildingId;
+}
+
+// =====================================================================
+// REVERSEMENT VOLONTAIRE A LA MAIRIE
+// =====================================================================
+// LE MONTANT N'EST QU'UNE DEMANDE. Le serveur le borne par la tresorerie reelle
+// (`least(demande, caisse)`), verifie que l'appelant est bien le directeur de CET entrepot dans
+// SA ville, et journalise le reversement dans entrepots_reversements avec une cle anti-rejeu.
+// Le client n'a donc rien a verifier : il transmet, il lit le verdict, et il le dit.
+async function confirmerReversementEntrepot() {
+  const champ = document.getElementById('entrepot-reversement');
+  const montant = Math.max(0, parseInt((champ && champ.value) || '0', 10));
+  if (montant <= 0) {
+    showToast('Montant invalide', 'Indiquez un montant superieur a zero.', false);
+    return;
+  }
+  const id = entrepotIdCourant();
+  if (!id) {
+    showToast('Entrepot inconnu', 'Votre poste ne designe aucun entrepot.', false);
+    return;
+  }
+  if (typeof sbEntrepotVirementMairie !== 'function') {
+    showToast('Action impossible', 'Le reversement n\'est pas disponible dans cette version.', false);
+    return;
+  }
+
+  const r = await sbEntrepotVirementMairie(id, montant);
+  if (!r) {
+    // VERDICT ABSENT : l'appel n'a pas abouti. On ne peut PAS affirmer que rien n'a eu lieu.
+    showToast('Reversement incertain', 'Le serveur n\'a pas repondu. Verifiez votre tresorerie '
+      + 'avant de recommencer : l\'operation a pu aboutir.', false);
+    return;
+  }
+  if (r.ok !== true) {
+    const motifs = {
+      autorite_insuffisante: 'Reserve au Directeur de cet entrepot.',
+      caisse_entrepot_non_declaree: 'Cet entrepot n\'a pas de caisse declaree.',
+      mairie_introuvable: 'La caisse de votre mairie est introuvable.',
+      deja_reverse_aujourdhui: 'Un reversement a deja eu lieu aujourd\'hui.',
+      montant_invalide: 'Montant invalide.'
+    };
+    showToast('Reversement refuse', motifs[r.raison] || ('Refus du serveur (' + r.raison + ').'), false);
+    return;
+  }
+  if (!(Number(r.verse) > 0)) {
+    showToast('Rien a reverser', 'Votre tresorerie ne permet aucun versement.', false);
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const verse = Number(r.verse);
+  showToast('Reversement effectue', verse.toLocaleString('fr-FR') + ' ' + cur
+    + ' verses a la caisse de votre commune.', true, true);
+  addJournalEntry('Reversement de ' + verse.toLocaleString('fr-FR') + ' ' + cur
+    + ' de la caisse de l\'entrepot vers la mairie.', 'event-good');
+
+  // On relit l'etat complet plutot que de recopier le solde annonce : une relecture ne peut pas
+  // se desynchroniser, une recopie si.
+  _entrepotTableau = await chargerTableauEntrepot();
+  if (_entrepotTableau) rendreTableauEntrepot('stocks');
 }

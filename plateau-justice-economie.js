@@ -10581,63 +10581,53 @@ async function confirmerFinancementCommunal(pa, cost) {
     showToast('Commune inconnue', 'Votre poste ne porte aucune ville.', false);
     return;
   }
-  const budgetMuni = await chargerBudgetMunicipalDeLaCle((state.country || 'republic') + '_' + ville);
-  // UNE LECTURE QUI ECHOUE N'EST PAS UNE CAISSE VIDE. La garde unique `!budgetMuni ||
-  // caisse < montant` annoncait « la caisse municipale ne couvre pas ce montant » a un adjoint
-  // dont la commune est peut-etre riche : seule la lecture avait echoue. L'ecran d'ouverture
-  // distingue deja les deux cas ; la confirmation le fait desormais aussi.
-  if (!budgetMuni) {
-    showToast('Caisse illisible', 'La caisse municipale n\'a pas pu etre lue. Rien n\'a ete vire. '
-      + 'Reessayez dans un instant.', false);
-    return;
-  }
-  if ((budgetMuni.caisse || 0) < montant) {
-    showToast('Fonds insuffisants', 'La caisse municipale ne couvre pas ce montant.', false);
-    return;
-  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  // L'ORDRE DES DEUX ECRITURES EST LE SEUL GARDE-FOU DISPONIBLE ICI, et c'est desormais celui du
-  // jumeau deja corrige (distribuerBudgetMunicipalVersBatiments, plateau-politique.js) : on
-  // CREDITE D'ABORD, sous verdict, et on ne debite l'assiette qu'ensuite.
+  // UN SEUL MOUVEMENT, UNE SEULE TRANSACTION (8 octobre 2026). Cet ecran a connu trois etats, et
+  // il faut les trois pour comprendre pourquoi celui-ci est le bon :
   //
-  // CE QUE L'ANCIEN ORDRE DETRUISAIT. `budgetMuni.caisse -= montant` etait sauvegarde en
-  // `.catch(() => {})`, PUIS crediterCaisseBatiment etait appelee sans que son verdict soit lu,
-  // PUIS « Virement effectue » s'affichait inconditionnellement. Un credit refuse -- caisse
-  // inconnue, autorite refusee, reseau coupe -- faisait donc disparaitre l'argent de la caisse
-  // municipale sans qu'il arrive nulle part, et le Maire Adjoint lisait que son virement avait
-  // reussi. crediterCaisseBatiment rend `null` dans ce cas : le verdict existait depuis le
-  // chantier C, personne ne le regardait.
+  //   1  Il debitait le blob municipal, creditait le batiment SANS lire le verdict, et affichait
+  //      « Virement effectue » dans tous les cas. Un credit refuse faisait disparaitre l'argent
+  //      de la commune sans qu'il arrive nulle part, en annoncant une reussite.
+  //   2  Le correctif du matin (3359c38) a inverse l'ordre -- credit d'abord, sous verdict -- ce
+  //      qui ferme le cas couteux mais laisse ouvert son inverse : credit passe, sauvegarde du
+  //      blob refusee, et la commune garde une somme deja versee. C'etait annonce et journalise,
+  //      donc plus silencieux, mais toujours pas atomique.
+  //   3  Maintenant que la tresorerie de la mairie EST une caisse de caisses_batiments, les deux
+  //      cotes sont de meme nature et le mouvement se dit en une seule transaction serveur.
+  //      mairie_virement_batiment debite et credite dans le meme bloc : une levee a l'interieur
+  //      annule le debit. Il n'existe plus aucune fenetre.
   //
-  // CREDITER D'ABORD FERME LE CAS COUTEUX : credit refuse, assiette jamais touchee, rien de
-  // perdu, et on le dit. Il laisse ouvert le cas inverse -- credit passe, sauvegarde de
-  // l'assiette refusee -- ou la commune garde une somme deja versee. Ce cas-la n'est plus
-  // silencieux : il est annonce, chiffre et journalise en anomalie. Le fermer vraiment demande
-  // une ecriture unique, et c'est le chantier municipal qui la portera : quand la tresorerie de
-  // la mairie sera une vraie caisse de caisses_batiments, les deux ecritures deviendront un seul
-  // mouvement transactionnel. Le cout de l'ordre, lui, reste preleve dans tous les cas -- c'est
-  // la dette K-bis deja consignee pour les douze sites concernes, et l'inventer ici serait un
-  // traitement particulier.
-  const soldeApres = await crediterCaisseBatiment(state.country, buildingId, montant);
-  if (soldeApres == null) {
-    showToast('Virement refuse', 'Le batiment n\'a pas pu etre credite. La caisse municipale est '
-      + 'intacte : aucun franc communal n\'a ete verse.', false);
-    return;
-  }
-
-  budgetMuni.caisse = Math.max(0, (budgetMuni.caisse || 0) - montant);
-  const sauve = (typeof sbSaveBudgetMunicipal === 'function')
-    ? await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => null)
+  // CE QUE LE SERVEUR VERIFIE, ET QUE LE CLIENT NE PRETEND PLUS VERIFIER : l'autorite (maire ou
+  // adjoint), la COMMUNE du poste, la territorialite de la cible -- une caisse nationale ou
+  // d'une autre ville est refusee -- et le solde reel. On ne lit donc plus le budget avant de
+  // virer : ce prefetch n'etait qu'une estimation, et il est devenu un mensonge possible.
+  const rep = (typeof sbMairieVirementBatiment === 'function')
+    ? await sbMairieVirementBatiment(buildingId, montant)
     : null;
-  if (!sauve) {
-    showToast('Virement a verifier', montant.toLocaleString('fr-FR') + ' ' + cur + ' ont bien ete '
-      + 'verses au batiment, mais la caisse municipale n\'a pas pu etre mise a jour. Signalez-le '
-      + 'avant de virer de nouveau.', false);
-    addJournalEntry('ANOMALIE : ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' verses a '
-      + buildingId + ' sans que la caisse municipale ait pu etre debitee.', 'event-bad');
+
+  if (!rep || rep.ok !== true) {
+    // UN REFUS METIER ET UNE PANNE NE DISENT PAS LA MEME CHOSE. `rien_na_bouge` est pose par le
+    // serveur quand aucune des deux caisses n'a ete touchee ; son absence, avec un verdict nul,
+    // signifie que l'appel n'a pas abouti et que l'etat est indecidable.
+    const motifs = {
+      autorite_insuffisante: 'Reserve au Maire et a son Adjoint.',
+      hors_de_sa_commune: 'Ce batiment n\'appartient pas a votre commune.',
+      solde_insuffisant: 'La caisse municipale ne couvre pas ce montant.',
+      caisse_cible_inconnue: 'Ce batiment n\'a pas de caisse declaree.',
+      commune_inconnue: 'Votre poste ne porte aucune ville.',
+      montant_invalide: 'Montant invalide.'
+    };
+    if (!rep) {
+      showToast('Virement incertain', 'Le serveur n\'a pas repondu. Verifiez la caisse avant de '
+        + 'virer de nouveau : l\'operation a pu aboutir.', false);
+      return;
+    }
+    showToast('Virement refuse', (motifs[rep.raison] || 'Refus du serveur (' + rep.raison + ').')
+      + (rep.rien_na_bouge ? ' La caisse municipale est intacte.' : ''), false);
     return;
   }
 
@@ -12111,37 +12101,25 @@ async function chargerBudgetNational(pays) {
   return data;
 }
 
-// Calcule le montant net d'une vente legale apres taxe locale+nationale, alimente les deux reserves.
-// A appeler pour toute transaction commerciale legale (le gris et l'illegal ne sont jamais taxes).
-async function appliquerTaxeTransaction(montantBrut) {
-  const pays = state.country || 'republic';
-  const budgetMuni = await chargerBudgetMunicipal();
-  // UNE CAISSE MUNICIPALE ILLISIBLE N'EST PAS UNE CAISSE VIDE (chantier 5, 7 octobre 2026).
-  // Cette ligne lisait `budgetMuni.tauxLocal` sans garde : depuis que chargerBudgetMunicipal
-  // rend `null` plutot que de fabriquer un budget a caisse 0 sur une panne, continuer ici
-  // signifierait ou bien lever, ou bien -- pire -- ecrire `caisse = 0 + taxe` par-dessus le
-  // solde reel de la ville. On rend donc null, et l'appelant renonce a la transaction.
-  if (!budgetMuni) {
-    console.error('appliquerTaxeTransaction: caisse municipale illisible, transaction non taxee '
-                  + 'et donc non effectuee');
-    return null;
-  }
-  const budgetNat = await chargerBudgetNational(pays);
-  const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
-  const tauxNational = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
-
-  const taxeLocale = Math.round(montantBrut * tauxLocal / 100);
-  const taxeNationale = Math.round(montantBrut * tauxNational / 100);
-  const net = montantBrut - taxeLocale - taxeNationale;
-
-  budgetMuni.caisse = (budgetMuni.caisse || 0) + taxeLocale;
-  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
-
-  budgetNat.reserveJour = (budgetNat.reserveJour || 0) + taxeNationale;
-  if (typeof sbSaveBudgetNational === 'function') await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
-
-  return { net, taxeLocale, taxeNationale, tauxLocal, tauxNational };
-}
+// appliquerTaxeTransaction A ETE SUPPRIMEE LE 8 OCTOBRE 2026. C'etait le SECOND MOTEUR de la
+// taxe sur les transactions : elle lisait les deux taux, calculait les deux parts, puis ecrivait
+// elle-meme `budgets_municipaux.data.caisse` et `budgets_nationaux.data.reserveJour` depuis le
+// navigateur.
+//
+// POURQUOI MAINTENANT. Le chantier des budgets municipaux a supprime la cle `caisse` : cette
+// fonction l'aurait donc RECREEE, avec la taxe locale dedans, a chaque appel. Une seconde bourse
+// alimentee par de l'argent deja compte -- c'est-a-dire de la creation monetaire.
+//
+// POURQUOI ELLE ETAIT DEJA A SUPPRIMER. Le moteur canonique est la fonction SQL
+// appliquer_taxe_transaction, en service depuis le chantier C pour les commerces et les soins, et
+// REVOQUEE au navigateur depuis le 16 septembre 2026 -- precisement parce qu'une taxe calculee par
+// le client est une taxe optionnelle. Ses deux derniers appelants, la chambre d'hotel et la
+// buvette, ne l'invoquaient plus que par un chemin de repli qui ne s'activait jamais dans un
+// deploiement correct ; ces deux chemins refusent desormais l'operation au lieu de prelever.
+//
+// LA ROUTE CANONIQUE, pour tout nouvel appelant : vente_structure_encaisser, qui fait le
+// prelevement, la taxe et le credit de la structure en UNE transaction serveur, et annule tout si
+// le credit echoue.
 
 // VENTE A UNE STRUCTURE — prelevement, taxe et recette dans UNE seule transaction serveur
 // (17 septembre 2026, lot « ventes a une structure » de l'audit d'autorite).

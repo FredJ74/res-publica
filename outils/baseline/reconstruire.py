@@ -461,27 +461,40 @@ def controles_du_monde(cat):
     # (villes, villes_empreinte, chantier 4E) et +2 pour la brique budgetaire generique
     # (repartitions_budgetaires, repartitions_versements, chantier 4F). Les 6 tables
     # hors_baseline ne sont jamais creees : 259 au catalogue, 253 ici.
-    att("tables creees", len(cat.tables), 253)
+    # 254 le 8 octobre 2026 : +1 pour recettes_municipales, le COMPTEUR des recettes du jour.
+    # Ce n'est pas une tresorerie -- son CHECK montant > 0 l'interdit structurellement -- mais la
+    # mesure que la cascade municipale prend pour base.
+    att("tables creees", len(cat.tables), 254)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
     # budget_repartition_fixer, budget_repartition_lire, budget_coherence).
     # 658 : +1 au chantier 4F, budget_part_totale -- la somme des parts d'une source en une seule
     # fraction exacte, seul endroit du systeme ou cette arithmetique vit.
-    att("signatures de fonction creees", cat.n_fonctions, 658)
-    att("noms de fonction distincts", len(cat.fonctions), 654,
+    # 663 le 8 octobre 2026 : +5 au chantier municipal -- recette_municipale (le seul point
+    # d'entree d'une recette communale), budget_municipal_cascade (la passe de minuit),
+    # mairie_virement_batiment (le virement atomique du maire), entrepot_caisse_id (la SEULE
+    # regle qui nomme la caisse d'un entrepot) et entrepot_caisse_mouvement (sa porte serveur).
+    att("signatures de fonction creees", cat.n_fonctions, 663)
+    att("noms de fonction distincts", len(cat.fonctions), 659,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
     # une FRACTION -- trois CHECK (couple entier, denominateur positif, numerateur borne par le
     # denominateur) remplacent l'unique borne 0-100 de l'ancien pourcentage.
-    att("contraintes posees", len(cat.contraintes), 433)
+    # 438 le 8 octobre 2026 : +5 pour recettes_municipales -- sa cle primaire a quatre colonnes
+    # (pays, ville, jour, canal) et ses quatre CHECK, dont `montant > 0` qui est ce qui garantit
+    # qu'aucune fonction ne pourra jamais s'en servir comme d'une bourse.
+    att("contraintes posees", len(cat.contraintes), 438)
     att("index autonomes crees", len(cat.index), 147)
     att("declencheurs crees", len(cat.triggers), 40)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
-    att("policies creees", len(cat.policies), 284)
+    # 285 le 8 octobre 2026 : +1 pour la lecture publique de recettes_municipales. Les recettes
+    # d'une commune sont une donnee de finances publiques, comme le sont deja ses taux : c'est une
+    # ouverture VOULUE, en lecture seule, et non une policy dormante oubliee en USING(true).
+    att("policies creees", len(cat.policies), 285)
     att("sequences disponibles", len(cat.sequences), 31)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
@@ -489,7 +502,8 @@ def controles_du_monde(cat):
     att("titulaires PNJ seedes", cat.lignes.get("titulaires_pnj", 0), 15,
         "15 titulaires, dont 3 juges municipaux distincts, sans le juge national")
     att("entrepots seedes", cat.lignes.get("batiments_etat", 0), 3,
-        "les 3 entrepots logistiques, 17 matieres + 5 000 FR chacun")
+        "les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob "
+        "le 8 octobre 2026 pour une vraie caisse, seedee avec les autres")
     att("PNJ de socle seedes", cat.lignes.get("pnj_membres", 0), 0,
         "un monde neuf n'herite d'aucun PNJ : ils naissent des mecanismes")
     att("soldats seedes", cat.lignes.get("pnj_soldats_metier", 0), 0,
@@ -502,8 +516,12 @@ def controles_du_monde(cat):
         "les loges attendent le mecanisme de rattachement du chef")
     att("lignes de rp_transitions", cat.lignes.get("rp_transitions", 0), 0,
         "table volontairement vide : rp_transition_active() rend FALSE sur cle absente")
-    att("caisses de batiment seedees", cat.lignes.get("caisses_batiments", 0), 41,
-        "les 41 dotations financieres arbitrees, 130 000 FR, ecrites depuis le tableau")
+    # 44 le 8 octobre 2026 : +3 pour les caisses d'entrepot. La dotation de 5 000 FR ne change
+    # pas -- elle etait deja arbitree le 5 octobre -- seule son ADRESSE change : elle vivait dans
+    # batiments_etat.data.entrepot.caisse, elle vit maintenant dans caisses_batiments. Si ce
+    # compte retombait a 41, ce serait le signe que la tresorerie est retournee dans le blob.
+    att("caisses de batiment seedees", cat.lignes.get("caisses_batiments", 0), 44,
+        "les 44 dotations financieres arbitrees, ecrites depuis le tableau")
     # LA CLE DE REPARTITION NAIT AVEC LE MONDE. Sans ces seize lignes, la cascade nocturne ne
     # verserait rien -- et c'est volontairement ce qui arrive aux trois autres empires, qui n'en
     # ont aucune. Dix lignes au niveau national, une Defense -> Caserne, deux pour l'Interieur
@@ -518,13 +536,24 @@ def controles_du_monde(cat):
     # LA PART EST UNE FRACTION, PAS UN POURCENTAGE. Les trois tribunaux portent 1/3 chacun : trois
     # parts rigoureusement egales, que 33,33 ne sait pas ecrire sans perdre 0,01 % ou privilegier
     # l'un des trois pour toujours.
+    # 25 le 8 octobre 2026 : +9 pour le circuit MUNICIPAL -- trois villes x trois beneficiaires
+    # (commissariat 40/100, entrepot 40/100, et la mairie elle-meme 20/100). La troisieme ligne
+    # de chaque ville a pour beneficiaire SA PROPRE SOURCE : la part est journalisee mais jamais
+    # transferee, exactement comme celle du Ministere de l'Economie. C'est ce qui empeche la
+    # boucle, et c'est pourquoi la part conservee par la mairie n'a demande aucun mecanisme neuf.
     att("lignes de repartition budgetaire seedees",
-        cat.lignes.get("repartitions_budgetaires", 0), 16,
+        cat.lignes.get("repartitions_budgetaires", 0), 25,
         "10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, "
-        "QHS 0/100, 3 tribunaux a 1/3")
+        "QHS 0/100, 3 tribunaux a 1/3, et 3 x 3 municipales a 40/40/20")
     att("versements budgetaires seedes", cat.lignes.get("repartitions_versements", 0), 0,
         "journal des versements reels : un monde neuf nait sans historique, sinon le premier "
         "minuit croirait avoir deja verse")
+    # MEME RAISON, MEME ZERO. Le compteur des recettes du jour est de l'etat vivant pur : un
+    # monde neuf doit naitre sans aucune ligne, sinon sa premiere cascade municipale repartirait
+    # des recettes qu'aucune commune n'a percues.
+    att("compteur de recettes municipales seede",
+        cat.lignes.get("recettes_municipales", 0), 0,
+        "mesure du jour, jamais une tresorerie : un monde neuf nait sans recette percue")
     return r
 
 

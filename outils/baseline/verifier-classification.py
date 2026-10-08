@@ -25,14 +25,17 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-# Mesure du 7 octobre 2026, apres les migrations 20261008000000 et 20261008010000, qui ont
-# porte le catalogue de 255 a 259 tables : villes, villes_empreinte (chantier 4E),
-# repartitions_budgetaires et repartitions_versements (chantier 4F). Les deux valeurs viennent
-# de la MEME requete que celle en commentaire, jouee sur la base -- et le md5 qu'elle rend est
-# exactement celui que ce controle recalcule depuis le CSV, ce qui est le point de la
-# verification.
-TABLES_ATTENDUES = 259
-EMPREINTE_LISTE = "44eac2eb908c9ca8eb87d43055927105"   # md5(string_agg(relname,',' order by relname collate "C"))
+# Mesure du 8 octobre 2026, apres la migration 20261008071350 du chantier des budgets
+# municipaux, qui porte le catalogue de 259 a 260 tables : recettes_municipales, le COMPTEUR des
+# recettes du jour -- une mesure, pas une tresorerie. (Pour memoire, 255 -> 259 le 7 octobre :
+# villes et villes_empreinte au chantier 4E, repartitions_budgetaires et repartitions_versements
+# au 4F.)
+#
+# LES DEUX VALEURS VIENNENT DE LA BASE, pas du CSV, et c'est tout le point de ce controle : elles
+# sont relevees par la requete citee en commentaire, puis comparees a ce que le CSV recalcule. Les
+# poser depuis le CSV rendrait la verification circulaire -- elle ne dirait plus rien.
+TABLES_ATTENDUES = 260
+EMPREINTE_LISTE = "ce03ae70750e119504b02630b4d6cc48"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

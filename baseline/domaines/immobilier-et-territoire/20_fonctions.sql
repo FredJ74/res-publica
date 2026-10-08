@@ -533,6 +533,7 @@ DECLARE
   v_orga_id     text;
   v_orga_data   text;
   v_maj         integer;
+  v_rec         jsonb;
 BEGIN
   SELECT *
   INTO v_bail
@@ -620,28 +621,10 @@ BEGIN
 
     v_pays  := COALESCE(v_dest ->> 'pays',  v_data ->> 'country');
     v_ville := COALESCE(v_dest ->> 'ville', v_data ->> 'city');
-    v_cle   := v_pays || '_' || v_ville;
 
-    UPDATE budgets_municipaux
-    SET data = jsonb_set(
-                 COALESCE(data, '{}'::jsonb),
-                 '{caisse}',
-                 to_jsonb(
-                   COALESCE((data ->> 'caisse')::numeric, 0) + v_prix
-                 )
-               ),
-        updated_at = now()
-    WHERE id = v_cle;
-
-    GET DIAGNOSTICS v_maj = ROW_COUNT;
-
-    IF v_maj = 0 THEN
-      INSERT INTO budgets_municipaux (id, data, updated_at)
-      VALUES (
-        v_cle,
-        jsonb_build_object('caisse', v_prix),
-        now()
-      );
+    v_rec := public.recette_municipale(v_pays, v_ville, v_prix, 'loyer');
+    IF NOT COALESCE((v_rec ->> 'ok')::boolean, false) THEN
+      RAISE EXCEPTION 'destination_introuvable';
     END IF;
 
   ELSIF v_dest_type = 'titulaire_murs' THEN

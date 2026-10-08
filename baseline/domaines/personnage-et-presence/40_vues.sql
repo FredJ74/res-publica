@@ -11,8 +11,11 @@
 -- ============================================================================
 
 -- Vue personnages | reloptions = AUCUNE
--- ATTENTION : ne JAMAIS ajouter security_invoker. Son absence est ce qui
--- fait tenir le masquage des colonnes privees.
+-- SECURITY DEFINER (par defaut : reloptions vide). Cette vue s'execute donc
+-- avec les droits de son PROPRIETAIRE, et les policies RLS des tables
+-- sous-jacentes sont evaluees pour lui, pas pour l'appelant.
+-- Intentionnel ou vestigial ? La reponse est dans
+-- baseline/DIFFERENCES-DELIBEREES.json, cle vues_security_definer.
 CREATE OR REPLACE VIEW public.personnages AS
  SELECT id,
     name,

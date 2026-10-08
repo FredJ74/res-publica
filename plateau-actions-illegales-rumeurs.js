@@ -7103,20 +7103,18 @@ async function doConsommerBuvette(pa, cost) {
                                       pays + '_' + idCaisseStade, state.currentCity);
     recetteEncaissee = r.ok;
   } else {
-    r = await deduireCoutOrdre({ pa, cost });
+    // PLUS DE REPLI CLIENT (8 octobre 2026). Cette branche debitait le joueur par
+    // deduireCoutOrdre, puis un bloc plus bas recalculait la taxe et creditait le stade --
+    // c'est-a-dire le triple appel que le lot « ventes a une structure » avait precisement
+    // remplace. Ce repli ne s'activait que si `encaisserVenteStructure` manquait de la page, un
+    // defaut de deploiement et non une panne reseau ; mais il ecrivait
+    // `budgets_municipaux.data.caisse`, une cle supprimee par le chantier municipal, et il
+    // l'aurait donc RECREEE avec de l'argent dedans. On refuse au lieu de prelever : un joueur
+    // qui ne consomme pas est preferable a une taxe qui n'arrive nulle part.
+    r = { ok: false, raison: 'encaissement_indisponible' };
   }
   if (!r.ok) { signalerRefusCout(r); return; }
   state.pop = Math.min(100, (state.pop || 0) + 2);
-
-  // Chemin de repli uniquement (RPC indisponible) : ancien enchainement taxe-puis-credit.
-  if (!recetteEncaissee
-      && typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
-    // Meme regle qu'a l'hotel : une taxe non calculable (caisse municipale illisible) interdit
-    // de crediter la buvette du brut, ce qui detournerait la part de la ville.
-    const t = await appliquerTaxeTransaction(cout);
-    if (t && t.net > 0) await crediterCaisseBatiment(pays, idCaisseStade, t.net).catch(() => {});
-    else if (!t) console.error('buvette : taxe non calculable, aucun credit a la caisse');
-  }
 
   updateUI();
   showToast('Un verre entre supporters', '+2 POP.', true, true);

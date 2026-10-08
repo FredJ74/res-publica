@@ -67,6 +67,18 @@
    "sous": ""
   },
   {
+   "empreinte": "580841af4b4eff98b386340f0546100b",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_id(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "5f754b47ea48dc98272212fd38d8e69c",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_mouvement(text,numeric)",
+   "sous": ""
+  },
+  {
    "empreinte": "7f35f1b098d017243bcf40ffe2cb5575",
    "genre": "FUNCTION",
    "objet": "local_vocation_commerciale(text)",
@@ -932,6 +944,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "entrepot_caisse_id(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_id(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "entrepot_caisse_lire(text)",
    "privileges": "EXECUTE"
   },
@@ -939,6 +963,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "entrepot_caisse_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_mouvement(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "entrepot_caisse_mouvement(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -2763,15 +2799,15 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
-  "20_fonctions-1.sql": "51f46463fc05bccbc01be5a0967711e2",
-  "20_fonctions-2.sql": "222ebceba782388e85145bea578ce74c",
+  "20_fonctions-1.sql": "1100975a5562ec801d8c90fabb91b6c6",
+  "20_fonctions-2.sql": "fb308ad1b89a2bab637984162d0b3a7d",
   "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
   "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
-  "40_vues.sql": "2d59d994831075a5e118e41b769bf712",
+  "40_vues.sql": "f497a75227aaca997f101cf901f5e423",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
   "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
-  "70_droits.sql": "6d8d96ae9d682489b558906fbb738c01",
-  "80_commentaires.sql": "51f00d7ba6f4f810dd54183c4286ca63"
+  "70_droits.sql": "9f9287b5c778eb6de829714850ecd44c",
+  "80_commentaires.sql": "0e55a84a8e49402b495076344832ef63"
  },
  "fonctions": [
   {
@@ -2880,9 +2916,19 @@
    "signature": "employer_fonds(text,text,text,text,integer,boolean)"
   },
   {
-   "empreinte": "05db47b8870ae2b1e44ff66bdbcd8bbf",
+   "empreinte": "a67297c225a57b8333986c9f0a2b053f",
+   "security_definer": true,
+   "signature": "entrepot_caisse_id(text)"
+  },
+  {
+   "empreinte": "419fcecd411a623986ab9207a20542cc",
    "security_definer": true,
    "signature": "entrepot_caisse_lire(text)"
+  },
+  {
+   "empreinte": "26bc536836375edfdecd7e32d085bca7",
+   "security_definer": true,
+   "signature": "entrepot_caisse_mouvement(text,numeric)"
   },
   {
    "empreinte": "769cda4a6e746805be33aad9478f37c6",
@@ -2890,7 +2936,7 @@
    "signature": "entrepot_capacite_disponible(text,text)"
   },
   {
-   "empreinte": "3e590bc64262a6060c9ef9aef790fc3a",
+   "empreinte": "1635ccff2ca15abd1313aa97e4582f12",
    "security_definer": true,
    "signature": "entrepot_commander(text,text,integer,text,text)"
   },
@@ -2910,7 +2956,7 @@
    "signature": "entrepot_livrer_transits()"
   },
   {
-   "empreinte": "0a47faebee4783e89506e29ff07ff376",
+   "empreinte": "3507dfcd29ed03c3c944e096d7df4fcb",
    "security_definer": true,
    "signature": "entrepot_reverser(text,numeric,text,text)"
   },

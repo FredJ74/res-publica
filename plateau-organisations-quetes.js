@@ -8270,9 +8270,22 @@ async function verifierSubventionMairie(club) {
     return;
   }
 
-  const dailyRevenue = (typeof CITY_POPULATION !== 'undefined' && CITY_POPULATION[club.country]?.[club.city]?.dailyTaxRevenue) || 2000;
-  const montantParJour = Math.round(dailyRevenue * ((budgetMairie.allocation.associatif || 0) / 100) * 0.1); // 10% de la ligne associative, par jour
-  const montantTotal = montantParJour * Math.min(joursEcoules, 14);
+  // CE CALCUL ETAIT DEJA MORT, ET IL EST MAINTENANT IMPOSSIBLE (8 octobre 2026). Il lisait
+  // `budgetMairie.allocation.associatif` -- une categorie « associatif » qui n'a JAMAIS existe
+  // dans la cle `allocation` (ses six categories etaient commissariat, multimodal, stade,
+  // marche, dispensaire et tribunal). Le `|| 0` rendait donc toujours zero, et la subvention
+  // valait toujours zero : aucun club n'a jamais touche un franc par ce chemin.
+  //
+  // La cle `allocation` elle-meme a disparu avec le chantier des budgets municipaux : la
+  // repartition canonique est repartitions_budgetaires, et elle ne connait pas de ligne
+  // associative. Lire une categorie inexistante dans une cle supprimee serait deux erreurs
+  // superposees, donc le montant est explicitement nul et le reste du chemin -- le marqueur de
+  // jour, la sauvegarde -- est conserve tel quel pour ne rien changer d'autre.
+  //
+  // SI LES CLUBS DOIVENT ETRE SUBVENTIONNES PAR LEUR COMMUNE, cela se declarera comme une ligne
+  // de repartitions_budgetaires, decidee par le maire, pas par une categorie fantome lue dans un
+  // blob. C'est une decision de game design, pas un correctif : elle n'est pas prise ici.
+  const montantTotal = 0;
 
   if (montantTotal > 0) await crediterBudgetClub(club.id, montantTotal, 'Subvention municipale');
   budgetClub.derniereSubventionJour = jour;
