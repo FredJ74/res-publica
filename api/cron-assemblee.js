@@ -41,6 +41,10 @@
 // L'echeance des sessions n'est plus calculee ici : la base la fixe elle-meme (mercredi 22:00
 // Europe/Paris) et refuse toute ouverture hors de la fenetre du mercredi soir, meme pour ce cron.
 
+// Les empires dont l'Assemblee est en service. Fermee PAR LA DONNEE chez les autres -- aucun
+// siege declare -- mais la liste rend le fait lisible plutot que devinable.
+const EMPIRES_AVEC_ASSEMBLEE = ['republic'];
+
 const SUPABASE_URL = 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
@@ -147,7 +151,10 @@ export default async function handler(req, res) {
 
   try {
     // ---- 1. CLOTURE DES SCRUTINS ECHUS (§26) ----
-    const brut = await sbRpc('assemblee_cloturer_echues', { p_country: 'republic' });
+    // L'EMPIRE EST DECLARE, PAS SUPPOSE (chantier 4G). Republia est le seul a avoir une
+    // Assemblee -- aucun siege n'est declare ailleurs -- et cette liste le DIT au lieu de
+    // laisser un litteral repete le suggerer. Y ajouter un empire est une decision de jeu.
+    const brut = await sbRpc('assemblee_cloturer_echues', { p_country: EMPIRES_AVEC_ASSEMBLEE[0] });
     const clotures = Array.isArray(brut) ? (Array.isArray(brut[0]) ? brut[0] : brut) : [];
 
     for (const c of (clotures || [])) {
@@ -193,7 +200,7 @@ export default async function handler(req, res) {
     // Apres la cloture, et non avant : un projet renvoye pour egalite repart ainsi immediatement
     // pour une nouvelle bataille, sans attendre une semaine de plus (§27). L'echeance est fixee
     // par la base ; hors de la fenetre du mercredi soir, elle refuse (raison hors_fenetre_ouverture).
-    const ouvertes = await sbRpc('assemblee_ouvrir_sessions_eligibles', { p_country: 'republic' });
+    const ouvertes = await sbRpc('assemblee_ouvrir_sessions_eligibles', { p_country: EMPIRES_AVEC_ASSEMBLEE[0] });
     const listeOuvertes = Array.isArray(ouvertes) ? (Array.isArray(ouvertes[0]) ? ouvertes[0] : ouvertes) : [];
 
     let clotureSuivante = null;

@@ -148,6 +148,21 @@ function villeEstReelle(pays, ville) {
   return !!(VILLES[pays] && VILLES[pays][ville]);
 }
 
+// CET EMPIRE EST-IL DECLARE ? Question symetrique de villeEstReelle, et posee au MEME
+// referentiel. Elle existe parce que trois etats doivent se distinguer, et que deux d'entre eux
+// se confondaient jusqu'ici dans un `|| 'republic'` :
+//
+//   . un empire DECLARE          -- republic, soviet, narco, khalija ;
+//   . un empire INCONNU          -- une chaine qui ne designe aucun empire ;
+//   . l'ABSENCE de pays          -- undefined, null, chaine vide.
+//
+// Les deux derniers ne doivent JAMAIS devenir Republia. Republia est le premier empire
+// implemente, pas le repli implicite de ce qu'on ne sait pas lire : une mecanique qui ne sait
+// pas dans quel empire elle se trouve doit refuser, pas supposer.
+function empireDeclare(pays) {
+  return !!(pays && VILLES[pays]);
+}
+
 // Les trois villes d'un empire, dans l'ordre canonique. Rend [] pour un empire inconnu --
 // jamais les villes de Republia.
 function villesDe(pays) {

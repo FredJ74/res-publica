@@ -206,9 +206,43 @@ function assembleeInterdictionsActives() {
   return (window._assembleeInterdictions && window._assembleeInterdictions.liste) || [];
 }
 
-// Republia uniquement (§37).
+// TROIS ETATS, ET NON DEUX (chantier 4G, 8 octobre 2026). Jusqu'ici une seule question etait
+// posee -- « suis-je en Republia ? » -- et deux situations tres differentes y repondaient
+// pareil, grace au `|| 'republic'` :
+//
+//   'republic'       l'Assemblee existe, ses lois s'appliquent ;
+//   'hors_assemblee' un empire DECLARE sans Assemblee (§37) : aucune loi d'interdiction n'y
+//                    existe, et c'est une REGLE DE JEU, pas une ignorance ;
+//   'indetermine'    on ne sait pas dans quel empire on se trouve. Ce n'est pas une regle,
+//                    c'est un defaut de lecture.
+//
+// LE PIEGE A EVITER, ET POURQUOI CE N'EST PAS « return false partout ». Le controle de vente
+// AUTORISE quand la loi ne s'applique pas -- ce qui est juste pour un autre empire. Resserrer
+// naivement `(state.country || 'republic') === 'republic'` en `state.country === 'republic'`
+// aurait donc rendu `false` sur un pays absent, donc AUTORISE la vente sans aucune verification :
+// un fail-OPEN sur l'application de la loi, obtenu en croyant durcir. Le `|| 'republic'` etait
+// accidentellement du bon cote ; il devient explicite.
+function assembleeLoiPortee() {
+  if (typeof state === 'undefined') return 'indetermine';
+  const pays = state.country;
+  if (!pays) return 'indetermine';
+  if (pays === 'republic') return 'republic';
+  if (typeof empireDeclare === 'function' && !empireDeclare(pays)) return 'indetermine';
+  return 'hors_assemblee';
+}
+
+// LA LOI DOIT-ELLE ETRE EVALUEE ? Oui en Republia, et oui aussi quand on ne sait pas : evaluer
+// est le sens RESTRICTIF, et c'est celui qu'on veut par defaut pour une interdiction. Non dans un
+// autre empire declare, parce qu'il n'y a la-bas aucune loi a evaluer.
 function assembleeLoiApplicable() {
-  return (typeof state !== 'undefined') && (state.country || 'republic') === 'republic';
+  return assembleeLoiPortee() !== 'hors_assemblee';
+}
+
+// L'ABSENCE DE LOI EST-ELLE UNE REPONSE ? Seulement si l'on sait ou l'on est. C'est la question
+// que doit poser tout chemin qui AUTORISE quand la loi ne s'applique pas -- et il n'y en a qu'un :
+// le controle de vente legale.
+function assembleeLoiDecidable() {
+  return assembleeLoiPortee() !== 'indetermine';
 }
 
 // Renvoie la loi qui interdit cette matiere de commerce, ou null.
@@ -277,8 +311,16 @@ function assembleeObjetsInterditsPortes() {
 // true = vente autorisee. false = refusee (interdite, ou legalite non verifiable : fail-closed) ;
 // le joueur en est informe ici et rien n'a ete debite.
 async function assembleeControlerVenteLegale(objets) {
+  // UN EMPIRE DONT ON NE SAIT RIEN N'AUTORISE RIEN. C'est le seul endroit du module ou « la loi
+  // ne s'applique pas » debouche sur une AUTORISATION : il doit donc distinguer l'absence de loi
+  // (regle de jeu, §37) de l'absence de pays (defaut de lecture).
+  if (!assembleeLoiDecidable()) {
+    showToast('Vente impossible', 'Votre empire n\'a pas pu etre determine : la legalite de cette '
+      + 'marchandise est donc inverifiable. Rien n\'a ete debite.', false);
+    return false;
+  }
   if (!assembleeLoiApplicable()) return true;   // §37 : Republia uniquement
-  const pays = (typeof state !== 'undefined' && state.country) || 'republic';
+  const pays = state.country;
   const res = (typeof sbAssembleeVerifierVente === 'function')
     ? await sbAssembleeVerifierVente(objets || [], pays).catch(() => null)
     : null;
@@ -383,7 +425,7 @@ async function assembleeConfisquerInterdits() {
 
   let vises = null;
   if (typeof sbAssembleeVerifierVente === 'function' && assembleeLoiApplicable()) {
-    const r = await sbAssembleeVerifierVente(inv, state.country || 'republic').catch(() => null);
+    const r = await sbAssembleeVerifierVente(inv, state.country).catch(() => null);
     if (r && Array.isArray(r.interdits)) {
       vises = r.interdits.map(i => inv[i && i.index]).filter(Boolean);
     }

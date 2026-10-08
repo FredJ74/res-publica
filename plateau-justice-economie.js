@@ -10459,20 +10459,58 @@ async function doTenterFuitePolice() {
   await appliquerConsequencesFuiteRatee(objetsConnus);
 }
 
+// LE RESOLVEUR DEMANDE AU REFERENTIEL, IL NE DEVINE PLUS (chantier 4G, 8 octobre 2026).
+//
+// CE QU'IL FAISAIT, ET CE QUE LE REFERENTIEL DIT VRAIMENT. Deux regles codees en dur se
+// superposaient : `ville === 'capitale'` rendait toujours `centre-multinodal-luthecia`, et
+// `if (pays && pays !== 'republic') return null` fermait les villes secondaires aux autres
+// empires, au motif que « les hubs des villes secondaires ne sont construits que pour
+// Republia ». Or le referentiel dit AUTRE CHOSE, et c'est verifiable dans data.js :
+//
+//   . les capitales de SOVIET et de KHALIJA declarent elles-memes
+//     `centre-multinodal-luthecia` dans leur liste `buildings`, et chacune en surcharge le nom
+//     dans son `buildingContext`. Le premier cas n'etait donc PAS un repli vers Republia : la
+//     caisse est prefixee par l'empire (`soviet_centre-multinodal-luthecia`), l'argent reste
+//     territorial, et les trois caisses existantes sont legitimes. Ce qui est anormal, c'est le
+//     NOM -- un batiment appele « Luthecia » plante a Novomirsk -- et c'est la dette du decor
+//     partage entre les quatre empires, deja consignee, pas un defaut de resolution ;
+//   . les villes secondaires de soviet et khalija declarent `centre-multinodal-montrouge`. Le
+//     garde-fou leur refusait donc un batiment que le referentiel leur donne : il etait
+//     fail-closed, mais FAUX.
+//
+// LA REGLE DEVIENT : on cherche le hub dans la liste `buildings` de CETTE ville de CET empire.
+// Absent -> null, et null est une reponse, pas un accident : l'appelant ne doit rien verser ni
+// rien ouvrir. Un empire ou une ville inconnus rendent null par construction, sans qu'aucune
+// ligne ne mentionne Republia.
+//
+// ET UNE TROISIEME CHOSE, QUE LE BANC A TROUVEE. Chez soviet, narco et khalija, `ville_a` ET
+// `ville_b` declarent le MEME identifiant, `centre-multinodal-montrouge`. Resoudre les deux
+// donnerait donc UNE SEULE caisse `<pays>_centre-multinodal-montrouge` pour DEUX villes : la
+// fusion de caisses entre villes, exactement le defaut que le lot « caisses locales » du 16 aout
+// 2026 avait corrige pour Republia. On refuse donc quand le referentiel est AMBIGU pour cet
+// empire -- plusieurs villes se reclamant du meme hub -- et on le refuse sans rien inventer :
+// aucun nom de batiment n'est fabrique, aucune ville n'est privilegiee. Republia n'est pas
+// concernee : ses trois hubs portent trois identifiants distincts.
 function getBuildingIdCentreMultimodal(ville, pays) {
-  // BUG CORRIGE LE 8 AOUT 2026 : la map utilisait 'port-sainte-marie'/'montrouge' comme cles,
-  // mais les appelants (villesDe, confirmerTransport/executerVoyage) passent toujours
-  // le vrai id de ville 'ville_a'/'ville_b' -> aucune correspondance, repli silencieux sur
-  // 'centre-multinodal-ville_a', batiment inexistant.
-  if (ville === 'capitale') return 'centre-multinodal-luthecia'; // hub partage, contenu par buildingContext selon l'empire
-  // Les hubs des villes secondaires ne sont construits que pour Republia pour l'instant (voir
-  // meme choix deja fait pour le systeme fiscal/electoral). Sans ce garde-fou, un joueur d'un
-  // autre empire se retrouvait a entrer dans le Centre Multimodal de Port-Sainte-Marie (le
-  // batiment existe globalement, meme s'il n'a de sens que pour Republia) plutot que de
-  // simplement rester dans sa propre rue faute d'equivalent construit.
-  if (pays && pays !== 'republic') return null;
-  const map = { 'ville_a': 'centre-multinodal-port-sainte-marie', 'ville_b': 'centre-multinodal-montrouge' };
-  return map[ville] || null;
+  if (typeof WORLD === 'undefined' || !pays || !ville) return null;
+  const villesDeLEmpire = WORLD[pays];
+  const batiments = villesDeLEmpire?.[ville]?.buildings;
+  if (!Array.isArray(batiments)) return null;
+  // Le prefixe est la seule chose stable du nommage de cette famille -- les suffixes sont des
+  // noms de lieu, et c'est precisement ce qu'il ne faut pas recopier ici.
+  const hub = batiments.find(b => typeof b === 'string' && b.startsWith('centre-multinodal-'));
+  if (!hub) return null;
+  // AMBIGUITE DU REFERENTIEL : ce hub est-il reclame par une AUTRE ville du meme empire ?
+  const concurrentes = Object.keys(villesDeLEmpire).filter(v =>
+    v !== ville && Array.isArray(villesDeLEmpire[v]?.buildings)
+                && villesDeLEmpire[v].buildings.includes(hub));
+  if (concurrentes.length) {
+    console.warn('centre multimodal : ' + pays + '/' + ville + ' et ' + concurrentes.join(', ')
+      + ' declarent tous le meme batiment « ' + hub + ' ». Resolution refusee : une seule caisse '
+      + 'pour plusieurs villes fusionnerait leurs tresoreries.');
+    return null;
+  }
+  return hub;
 }
 
 function getBuildingIdDispensaire(ville) {

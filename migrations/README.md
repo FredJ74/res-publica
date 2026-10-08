@@ -10,12 +10,28 @@ L'horodatage est celui du moment où la migration est écrite, en UTC. Il donne
 l'ordre d'application, et il doit être **postérieur au point de coupe du
 baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
-## Aucune migration en attente
+## Une migration en attente
 
-Ce répertoire ne contient que ce fichier et `PLAN-APPLICATION.md`. Les sept
-migrations des chantiers 4E et 4F ont toutes été appliquées et vivent dans
-`../historique/migrations-appliquees/`, chacune avec, en tête, **la version du
-registre Supabase** et **ce qui a été vérifié après coup**.
+`20261008104500_pays_declare_et_retrait_des_defauts_republic.sql` — chantier 4G.
+Elle pose la garde qui refuse un personnage sans empire déclaré, et retire les
+onze `p_country text DEFAULT 'republic'` des fonctions de l'Assemblée.
+
+> **Écrite, grammaire validée localement (pglast), NON APPLIQUÉE.** L'instance
+> Supabase est redevenue injoignable pendant le lot du 8 octobre — trois échecs
+> consécutifs, dont deux `SELECT 1` nus en *Connection terminated due to
+> connection timeout*. Son banc en transaction annulée n'a donc **pas** pu rendre
+> son rapport : **rien n'est prouvé contre la base réelle**. Son en-tête dit les
+> quatre étapes à suivre avant de l'appliquer.
+
+Elle est **sans danger à laisser en attente** : les corrections JavaScript du
+même lot passent déjà le pays explicitement, donc les onze défauts ne sont plus
+exercés par aucun appelant — ils ne sont qu'une porte ouverte que personne
+n'emprunte.
+
+Les neuf migrations des chantiers 4E, 4F et des budgets municipaux ont toutes été
+appliquées et vivent dans `../historique/migrations-appliquees/`, chacune avec,
+en tête, **la version du registre Supabase** et **ce qui a été vérifié après
+coup**.
 
 > **Les noms de fichiers gardent leur horodatage de rédaction.** Cinq d'entre
 > eux commencent par `20261008`, alors que l'horloge du projet et le registre

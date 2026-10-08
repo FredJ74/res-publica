@@ -1541,9 +1541,18 @@ function texteAccordTaciteServeur(doc) {
 // qu'archiverEvenementUrbanisme (plateau-immobilier.js) : append-only, une ligne par evenement.
 // Renvoie true seulement si la ligne existe reellement -- c'est elle qui COMMANDE.
 async function archiverEvenementUrbanismeServeur(doc) {
+  // LE PAYS D'UN DOSSIER D'URBANISME EST SA JURIDICTION (chantier 4G, 8 octobre 2026). Cette
+  // ligne ecrivait `doc.pays || 'republic'` : un dossier dont le pays n'etait pas renseigne etait
+  // archive dans la commune de Republia, quelle que soit celle ou se trouve le terrain. On refuse
+  // plutot que d'archiver au mauvais endroit -- une archive append-only ne se corrige pas apres
+  // coup, et le refus remonte dans ECHECS_PASSE donc la passe rend 500.
+  if (!(doc && VILLES_SERVEUR[doc.pays])) {
+    signalerEchec('urbanisme:pays_non_declare', JSON.stringify(doc && doc.pays));
+    return false;
+  }
   const rows = await sbInsert('dossiers_urbanisme', {
     id: 'urb-' + doc.nature + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
-    country: doc.pays || 'republic',
+    country: doc.pays,
     city: doc.ville || null,
     building_id: doc.buildingId || null,
     numero_dossier: doc.numeroDossier || null,
@@ -2231,7 +2240,13 @@ async function preleverPretsBancairesServeur() {
 async function preleverPreemptionsServeur() {
   const resultats = { payes: 0, reportes: 0, soldes: 0 };
   try {
-    for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+    // LES EMPIRES VIENNENT DU REFERENTIEL (chantier 4G), plus d'une liste recopiee a la main --
+    // le commentaire d'un de ces quatre sites avouait d'ailleurs « meme liste de pays codee en dur
+    // que le reste de ce cron ». Un cinquieme empire declare dans VILLES serait traite sans qu'on y
+    // pense, et un empire retire cesserait de l'etre. Ces passes LISENT un etat par empire et
+    // appellent des RPC fail-closed : elles ne declenchent aucune economie chez un empire qui n'en
+    // a pas.
+    for (const pays of Object.keys(VILLES_SERVEUR)) {
       const budgetRows = await sbGet('budgets_nationaux', `id=eq.${pays}`);
       const budgetRow = budgetRows && budgetRows[0];
       const preemption = budgetRow?.data?.preemption;
@@ -4420,8 +4435,16 @@ async function titulaireMursDuBail(data) {
   if (dest.type && dest.type !== 'titulaire_murs') return null;
   let titulaire = dest.titulaire || null;
   if (!titulaire) {
+    // LE PAYS DU BAIL NE SE DEVINE PAS (chantier 4G, 8 octobre 2026). Cette lecture ecrivait
+    // `data.country || 'republic'` : un bail dont le pays manquait faisait chercher le terrain
+    // de MEME buildingId en Republia -- et les identifiants de batiment sont partages entre les
+    // quatre empires. Le proprietaire ainsi trouve pouvait donc etre un joueur de Republia, a qui
+    // le cron aurait envoye le courrier de loyer d'un bail d'un autre empire. On rend null : pas
+    // de pays, pas de titulaire, pas de courrier -- et le loyer lui-meme n'est pas concerne, la
+    // RPC prelever_loyer_bail derivant sa destination par ses propres moyens.
+    if (!VILLES_SERVEUR[data.country]) return null;
     const rows = await sbGet('terrains_etat',
-      `country=eq.${encodeURIComponent(data.country || 'republic')}&building_id=eq.${encodeURIComponent(data.buildingId)}`).catch(() => null);
+      `country=eq.${encodeURIComponent(data.country)}&building_id=eq.${encodeURIComponent(data.buildingId)}`).catch(() => null);
     if (rows && rows[0]) {
       try { titulaire = (JSON.parse(rows[0].data) || {}).proprietaire || null; } catch (e) { titulaire = null; }
     }
@@ -5394,7 +5417,7 @@ async function traiterPretsHelvetiaServeur() {
 // masque, et n'empeche pas de tenter les autres pays.
 async function reglerCreancesHelvetiaServeur() {
   const resultats = { ok: true, traites: 0, actions: [] };
-  for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+  for (const pays of Object.keys(VILLES_SERVEUR)) {   // referentiel des empires, pas liste en dur (4G)
     const res = await sbRpc('regler_creances_helvetia_quotidien', { p_pays: pays });
     if (res === null) {
       console.error('regler_creances_helvetia_quotidien a echoue pour ' + pays + ' -- retente au prochain cron.');
@@ -6218,7 +6241,7 @@ export default async function handler(req, res) {
     // que gerer les effectifs. Aucune horloge nouvelle : la temporalite est celle de cette passe.
     const payeDouane = await tacheQuotidienne('paye_douane', async function () {
       const parPays = {};
-      for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+      for (const pays of Object.keys(VILLES_SERVEUR)) {   // referentiel des empires, pas liste en dur (4G)
         const r = await sbRpc('douane_payer_effectifs', { p_pays: pays });
         parPays[pays] = r || { ok: false, raison: 'rpc_indisponible' };
       }
@@ -6236,7 +6259,7 @@ export default async function handler(req, res) {
     // son propre marqueur de jour -- un seul prelevement par ville et par jour.
     const payePolice = await tacheQuotidienne('paye_police', async function () {
       const parPays = {};
-      for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+      for (const pays of Object.keys(VILLES_SERVEUR)) {   // referentiel des empires, pas liste en dur (4G)
         const r = await sbRpc('police_payer_effectifs', { p_pays: pays });
         parPays[pays] = r || { ok: false, raison: 'rpc_indisponible' };
       }

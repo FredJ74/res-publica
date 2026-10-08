@@ -20,6 +20,7 @@ qui est une décision de game design (posée en question, jamais inventée).
 | `AUDIT-CHANTIER-5-FAIL-SILENT.md` | chantier 5 | 1 335 avaleurs d'erreur, dont **813** pertinents et **19** interventions qui couvrent tout l'argent |
 | `AUDIT-DISK-IO.md` | performance | suspects classés A/B/C, avec **la requête de mesure** de chacun. Aucune optimisation avant mesure |
 | `AUDIT-EMPIRES-4G.md` | chantier 4G | ce qui est déjà fail-closed hors Républia, et les trois questions de game design qui bloquent le reste |
+| `AUDIT-FALLBACKS-REPUBLIC.md` | chantier 4G | les **287 replis implicites** vers Républia, classés A–E — et pourquoi 253 d'entre eux se corrigent par **deux gardes à la racine** |
 
 ## Les tableaux d'arbitrage de l'état initial
 
@@ -113,12 +114,27 @@ réserve — il lui faut exister et ne pas être à zéro le premier jour. Son c
 l'alimente ensuite : répartition nocturne, distribution municipale, ou sa propre
 activité.
 
+> **Arbitrage du 8 octobre 2026 — quatre équipements n'ont que la première.** Le
+> centre multimodal, le stade, le marché et le dispensaire reçoivent cette
+> dotation de départ, puis **aucun financement municipal récurrent** : ils
+> doivent s'autofinancer par leurs propres recettes. La répartition municipale
+> automatique ne connaît que trois bénéficiaires — commissariat 40 %, entrepôt
+> municipal 40 %, mairie 20 % — et le maire n'a aucune obligation envers eux. Un
+> virement ponctuel reste possible, et reste **distinct** de leur financement
+> structurel.
+
 **Les trois clubs sont isolés, et c'est volontaire.** 200 FR y seraient
 trompeurs : un club paie 100 FR par titulaire, 50 par remplaçant et 150 de prime
 de victoire — 200 FR ne couvrent pas une rencontre. Et l'audit a établi que la
 subvention municipale aux clubs lit une clé qui n'existe pas, donc vaut toujours
 0 : un club n'a **aucune** recette automatique aujourd'hui. Appliquer le plancher
 créerait trois clubs insolvables dès la première journée de championnat.
+
+> **Au 8 octobre 2026, cette clé n'existe plus du tout** : `allocation` a été
+> supprimée avec le chantier des budgets municipaux, et le montant est désormais
+> explicitement nul dans le code, avec sa raison écrite. Subventionner les clubs
+> serait une ligne de `repartitions_budgetaires` décidée par le maire — donc un
+> arbitrage, pas un correctif. Le constat sur leur insolvabilité tient inchangé.
 
 ## Ce que l'observation apporte à la décision
 

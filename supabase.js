@@ -161,6 +161,21 @@ async function sbUpsert(table, ligne) {
   return sbInsert(table, ligne, 'merge-duplicates');
 }
 
+// LE PAYS NE SE DEVINE PLUS A LA FRONTIERE (chantier 4G, 8 octobre 2026). Les six helpers de
+// l'Assemblee ecrivaient `country || 'republic'` : un appel sans pays interrogeait donc
+// l'Assemblee de Republia, et un joueur d'un autre empire se voyait appliquer SES lois
+// d'interdiction. Le defaut etait symetrique cote serveur -- onze fonctions SQL portaient
+// `p_country text DEFAULT 'republic'` -- et la migration qui les retire est ecrite.
+//
+// `exigerPays` est la porte unique : elle leve si le pays est absent ou n'est pas un empire
+// declare. Lever plutot que rendre `null` est voulu ici : ces helpers sont appeles dans des
+// chemins qui lisent une loi d'INTERDICTION, et une liste vide y serait interpretee comme
+// « rien n'est interdit ». Une exception, elle, est attrapee par l'appelant et se voit.
+function exigerPays(pays, ou) {
+  if (typeof empireDeclare === 'function' ? empireDeclare(pays) : !!pays) return pays;
+  throw new Error('pays_non_declare:' + (ou || '?') + ':' + JSON.stringify(pays));
+}
+
 // CONTRAT HISTORIQUE, INCHANGE -- exactement le choix fait pour sbRpc le 28 septembre 2026.
 // Mille deux cent quatre-vingt-quatorze appels metier lisent ces quatre fonctions : 2xx -> corps
 // analyse, erreur HTTP -> `null`. En changer le sens ferait changer de sens, en silence, chaque
@@ -2333,9 +2348,17 @@ async function sbUploadOrgAvatar(orgaId, file) {
 // =====================
 // PLAINTES EN COURS (commissariat/tribunal, partage entre joueurs)
 // =====================
+// LE PAYS D'UNE PLAINTE EST SA JURIDICTION (chantier 4G, 8 octobre 2026). Cette ligne ecrivait
+// `plainte.country || 'republic'` : une plainte dont le pays n'etait pas renseigne etait donc
+// deposee devant les juridictions de REPUBLIA, quel que soit l'empire ou l'acte avait eu lieu.
+// Ce n'est pas un defaut d'affichage -- c'est le tribunal competent, et le pays de la victime est
+// GELE a la creation precisement pour qu'il ne puisse plus bouger ensuite.
+//
+// Une plainte sans juridiction n'est pas deposable : exigerPays leve, et l'appelant le voit.
 async function sbSavePlainte(plainte) {
   return sbUpsert('plaintes_en_cours',
-    { id: plainte.id, country: plainte.country || 'republic', city: plainte.city || null,
+    { id: plainte.id, country: exigerPays(plainte && plainte.country, 'sbSavePlainte'),
+      city: (plainte && plainte.city) || null,
       data: JSON.stringify(plainte) });
 }
 
@@ -5201,12 +5224,12 @@ function _assembleeResultatRpc(rows) {
 // reelle se derive de personnages.poste_depute (voir assembleeOccupationSieges).
 async function sbGetAssembleeSieges(country) {
   return (await sbGet('assemblee_sieges',
-    `country=eq.${encodeURIComponent(country || 'republic')}&order=city.asc,rang.asc`)) || [];
+    `country=eq.${encodeURIComponent(exigerPays(country, 'sbGetAssembleeSieges'))}&order=city.asc,rang.asc`)) || [];
 }
 
 // Propositions par statut. statuts = tableau ('debat','session','adoptee',...).
 async function sbGetAssembleePropositions(country, statuts) {
-  let filtre = `country=eq.${encodeURIComponent(country || 'republic')}`;
+  let filtre = `country=eq.${encodeURIComponent(exigerPays(country, 'sbGetAssembleePropositions'))}`;
   if (Array.isArray(statuts) && statuts.length) {
     filtre += `&statut=in.(${statuts.map(encodeURIComponent).join(',')})`;
   }
@@ -5240,7 +5263,7 @@ async function sbGetAssembleeScrutins(propositionId) {
 // projets encore en cours. Une seule requete, filtrage cote appelant.
 async function sbGetAssembleeRegistre(country) {
   return (await sbGet('assemblee_propositions',
-    `country=eq.${encodeURIComponent(country || 'republic')}&order=depose_ts.desc`)) || [];
+    `country=eq.${encodeURIComponent(exigerPays(country, 'sbGetAssembleeRegistre'))}&order=depose_ts.desc`)) || [];
 }
 
 // Interdictions mecaniques EN VIGUEUR (§34/§36). Requete la plus chaude une fois les lois
@@ -5261,7 +5284,7 @@ async function sbGetAssembleeRegistre(country) {
 //    le navigateur ne peut pas calculer la meme chose que le serveur.
 async function sbGetAssembleeInterdictions(country) {
   return (await sbGet('assemblee_propositions',
-    `country=eq.${encodeURIComponent(country || 'republic')}&type=eq.mecanique&statut=eq.adoptee`
+    `country=eq.${encodeURIComponent(exigerPays(country, 'sbGetAssembleeInterdictions'))}&type=eq.mecanique&statut=eq.adoptee`
     + `&appliquee_ts=not.is.null&select=id,titre,categorie,adoptee_ts,appliquee_ts,data`)) || [];
 }
 
@@ -5320,7 +5343,8 @@ async function sbAssembleeMettreEnApplication(requete, acteur, loiId) {
 // (`maintenant`) : l'ecran ne calcule jamais une echeance avec l'horloge du
 // navigateur.
 async function sbAssembleeRegistreExecution(country) {
-  const rows = await sbRpc('assemblee_registre_execution', { p_country: country || 'republic' });
+  const rows = await sbRpc('assemblee_registre_execution',
+    { p_country: exigerPays(country, 'sbAssembleeRegistreExecution') });
   const v = Array.isArray(rows) ? rows[0] : rows;
   return Array.isArray(v) ? v : [];
 }
@@ -5406,7 +5430,7 @@ async function sbAssembleeVerserIndemnite(nom) {
 // ou null si injoignable (l'appelant refuse alors la vente : fail-closed).
 async function sbAssembleeVerifierVente(objets, country) {
   return _assembleeResultatRpc(await sbRpc('assemblee_verifier_vente', {
-    p_objets: objets || [], p_country: country || 'republic'
+    p_objets: objets || [], p_country: exigerPays(country, 'sbAssembleeVerifierVente')
   }));
 }
 

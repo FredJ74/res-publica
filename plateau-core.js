@@ -1656,9 +1656,35 @@ function migrerCareerId(char) {
 
 function applyCharToState(char) {
   if (!char) return;
+  // UN PERSONNAGE SANS EMPIRE DECLARE N'EST PLUS NATURALISE (chantier 4G, 8 octobre 2026).
+  //
+  // Cette fonction ecrivait `state.country = char.country || 'republic'`. C'etait LA RACINE de
+  // tous les replis vers Republia du navigateur : les 227 `state.country || 'republic'` repartis
+  // dans le jeu sont en aval de cette seule ligne, et ils ne font que propager ce qu'elle decide.
+  // Un personnage dont le pays arrivait absent ou illisible devenait donc Republien -- et avec
+  // lui, il heritait de l'Assemblee de Republia, de ses lois d'interdiction et de son circuit
+  // fiscal.
+  //
+  // ON REFUSE L'HYDRATATION PLUTOT QUE D'INVENTER. Un personnage qui n'appartient a aucun empire
+  // declare ne peut pas etre joue : il n'y a ni ville, ni loi, ni caisse qui le concerne. Mieux
+  // vaut ne rien charger et le dire bruyamment que de le faire jouer dans un empire qui n'est pas
+  // le sien. empireDeclare() interroge le MEME referentiel que villeEstReelle -- VILLES, engendre
+  // depuis la base -- donc aucune liste d'empires n'est recopiee ici.
+  //
+  // CE CAS EST AUJOURD'HUI INATTEIGNABLE EN BASE, et c'est mesure : personnages_donnees.country
+  // est NOT NULL, les huit lignes vivantes portent toutes `republic`, et aucune ne sort du
+  // referentiel. Ce qui manque encore est la garde STRUCTURELLE -- NOT NULL n'interdit pas la
+  // chaine vide, et aucun CHECK ne borne la colonne : la migration qui la pose est ecrite et
+  // attend l'instance (voir migrations/).
+  if (!(typeof empireDeclare === 'function' ? empireDeclare(char.country) : !!char.country)) {
+    console.error('applyCharToState : personnage « ' + (char.name || '?') + ' » sans empire '
+      + 'declare (country = ' + JSON.stringify(char.country) + '). Hydratation REFUSEE : on ne '
+      + 'naturalise pas un personnage faute de savoir d\'ou il vient.');
+    return;
+  }
   migrerCareerId(char);
   state.char = char;
-  state.country = char.country || 'republic';
+  state.country = char.country;
   state.currentCity = char.currentCity || 'capitale';
   state.arg = char.arg || 4250;
   if (char.poste) state.poste = char.poste;
