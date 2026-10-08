@@ -161,6 +161,48 @@ async function sbUpsert(table, ligne) {
   return sbInsert(table, ligne, 'merge-duplicates');
 }
 
+// FUSIONNER DANS UN BLOB SANS L'ECRASER (chantier 5, 9 octobre 2026).
+//
+// LE MOTIF, ET CE QU'IL COUTAIT. Sept fonctions modifiaient une sous-cle d'une colonne `data`
+// en la relisant d'abord :
+//
+//     const rows = await sbGet(table, `id=eq.${id}`);
+//     const data = { ...(rows?.[0]?.data || {}), ...patch };
+//     return sbUpdate(table, `id=eq.${id}`, { data });
+//
+// `?.` et `|| {}` ont l'air prudents. Ils sont exactement le contraire : quand la lecture
+// ECHOUE -- `sbGet` rend `null` sur toute erreur HTTP -- `data` devient le PATCH SEUL, et
+// l'UPDATE remplace le blob entier par ce patch. Tout ce que la ligne contenait est perdu,
+// sans erreur, sans trace. Le meme `|| {}` traite de la meme facon une ligne ABSENTE, qu'on
+// ne devrait pas patcher du tout.
+//
+// DEUX des sept etaient deja gardees (`sbNommerAmbassadeur`, `sbFixerEcheanceExpulsion`) :
+// la bonne reponse existait donc dans le fichier, a cote des cinq qui ne l'avaient pas. C'est
+// la signature d'un motif recopie plutot que factorise -- d'ou cette fonction unique.
+//
+// ELLE DISTINGUE LES DEUX CAUSES, ce que `sbGet` ne permettait pas : une panne est journalisee
+// comme telle, une ligne absente est un refus silencieux et legitime. Dans les deux cas elle
+// rend `null` et n'ECRIT RIEN -- fail-closed : mieux vaut un patch perdu qu'un blob detruit.
+//
+// `colonnes` accepte un objet, ou une FONCTION de la ligne lue pour les cas qui calculent une
+// colonne a partir de l'existant (sbMajPropositionDiplomatique replie son statut sur celui
+// deja en base).
+async function sbPatcherBlob(table, id, fusionData, colonnes) {
+  const filtre = `id=eq.${encodeURIComponent(id)}`;
+  const r = await sbGetVerdict(table, filtre);
+  if (!r.ok) {
+    console.error('sbPatcherBlob : lecture de ' + table + ' impossible, aucune ecriture tentee',
+                  r.raison, r.transport);
+    return null;
+  }
+  const rows = r.donnees;
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const ligne = rows[0];
+  const data = { ...(ligne.data || {}), ...(fusionData || {}) };
+  const extra = (typeof colonnes === 'function') ? (colonnes(ligne) || {}) : (colonnes || {});
+  return sbUpdate(table, filtre, { ...extra, data });
+}
+
 // LE PAYS NE SE DEVINE PLUS A LA FRONTIERE (chantier 4G, 8 octobre 2026). Les six helpers de
 // l'Assemblee ecrivaient `country || 'republic'` : un appel sans pays interrogeait donc
 // l'Assemblee de Republia, et un joueur d'un autre empire se voyait appliquer SES lois
@@ -2940,9 +2982,7 @@ async function sbGetDemandesManifestationPays(pays) {
 }
 
 async function sbMajDemandeManifestation(id, statut, patch) {
-  const rows = await sbGet('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
-  return sbUpdate('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+  return sbPatcherBlob('demandes_manifestation', id, patch, { statut });
 }
 
 async function sbCreerDemandeGrace(data) {
@@ -3297,9 +3337,8 @@ async function sbCreerPropositionDiplomatique(data) {
 }
 
 async function sbMajPropositionDiplomatique(id, patch) {
-  const rows = await sbGet('propositions_diplomatiques', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), ...patch };
-  return sbUpdate('propositions_diplomatiques', `id=eq.${encodeURIComponent(id)}`, { statut: patch.statut || rows?.[0]?.statut || 'en_attente', data });
+  return sbPatcherBlob('propositions_diplomatiques', id, patch,
+    ligne => ({ statut: patch.statut || ligne.statut || 'en_attente' }));
 }
 
 // =====================
@@ -3322,10 +3361,7 @@ async function sbOuvrirAmbassade(paysHote, empire, jour) {
 // de la meme ligne, pour permettre de restreindre les ordres du bureau a cette seule personne.
 async function sbNommerAmbassadeur(paysHote, empire, nomAmbassadeur) {
   const id = paysHote + '-' + empire;
-  const rows = await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`);
-  if (!rows || rows.length === 0) return null;
-  const data = { ...(rows[0].data || {}), ambassadeur: nomAmbassadeur };
-  return sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`, { data });
+  return sbPatcherBlob('ambassades_ouvertes', id, { ambassadeur: nomAmbassadeur });
 }
 
 // Renvoi d'un ambassadeur — ancien mécanisme, conservé pour compatibilité mais plus utilisé
@@ -3657,10 +3693,7 @@ async function sbReserverSalleReception(paysHote, jour, empireReservant, reserve
 // (arrestation automatique si l'echeance est depassee) doit se faire au passage au jour suivant.
 async function sbFixerEcheanceExpulsion(paysHote, empire, jourEcheance) {
   const id = paysHote + '-' + empire;
-  const rows = await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`);
-  if (!rows || rows.length === 0) return null;
-  const data = { ...(rows[0].data || {}), expulsionEcheance: jourEcheance };
-  return sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`, { data });
+  return sbPatcherBlob('ambassades_ouvertes', id, { expulsionEcheance: jourEcheance });
 }
 
 // LES ECRITURES SUR guerres PASSENT PAR LE SERVEUR (§6.3, 20 septembre 2026).
@@ -3719,9 +3752,7 @@ async function sbGetPrisonniersQHS(pays) {
 }
 
 async function sbMajPrisonnierQHS(id, statut, patch) {
-  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
-  return sbUpdate('prisonniers_qhs', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+  return sbPatcherBlob('prisonniers_qhs', id, patch, { statut });
 }
 
 async function sbCreerRapportRenseignement(data) {
@@ -3744,9 +3775,7 @@ async function sbGetRapportsRenseignementNonRemontes(lieutenantNom) {
 }
 
 async function sbMarquerRapportRemonte(id) {
-  const rows = await sbGet('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), remonte: true };
-  return sbUpdate('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`, { data });
+  return sbPatcherBlob('rapports_renseignement', id, { remonte: true });
 }
 
 // PLUS APPELEE depuis le 18 septembre 2026 : engagements_militaires n'accepte plus d'ecriture
@@ -3774,9 +3803,7 @@ async function sbGetEngagementsPays(pays, statut) {
 // PLUS APPELEE depuis le 18 septembre 2026 : les transitions de statut passent par les RPC
 // attestees sbMilitaireEngagementAffecterCompagnie / _Section.
 async function sbMajEngagement(id, statut, patch) {
-  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
-  return sbUpdate('engagements_militaires', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+  return sbPatcherBlob('engagements_militaires', id, patch, { statut });
 }
 
 async function sbCreerFaitArmes(data) {

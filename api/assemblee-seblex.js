@@ -30,6 +30,7 @@
 // ===========================================================================
 
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
+import { sbRpcVerdict, sbGetVerdict } from './_supabase.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 
@@ -41,32 +42,34 @@ const MAX_CONTENU_TOUR = 1200;
 const MAX_TOKENS       = 700;   // une synthese + une portee, pas un memoire
 const TIMEOUT_MS       = 25000;
 
-const SUPABASE_URL  = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
-const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
+// LA CONFIGURATION SUPABASE VIENT DESORMAIS DE api/_supabase.js (chantier 5, 9 octobre 2026).
+// Elle etait recopiee ici, comme dans huit autres fonctions de api/ : neuf exemplaires de la
+// meme URL et de la meme cle, qu'il fallait penser a changer neuf fois.
 
 // ---------------------------------------------------------------------------
 // LE CATALOGUE — LU EN BASE, SOUS L'IDENTITE DU JOUEUR
 // ---------------------------------------------------------------------------
+// LE JETON DU JOUEUR, PAS LA CLE ANON, et c'est structurel : la RLS doit voir SON auth.uid()
+// pour ne lui montrer que ce que la loi de SON empire autorise. Le socle porte cette identite
+// explicitement (`{ jeton }`), au lieu que chaque appelant recompose ses en-tetes a la main.
+//
+// LE CONTRAT DE RETOUR EST INCHANGE : `null` des que le catalogue n'est pas exploitable, quelle
+// qu'en soit la cause. C'est voulu ici, et c'est un fail-closed : l'appelant est Seb Lex, qui
+// propose des lois a deposer. Un catalogue partiel lui ferait proposer des categories qui
+// n'existent pas. En revanche, la cause de l'echec n'est plus PERDUE -- `r.transport` la porte,
+// et elle est journalisee au lieu de disparaitre dans un `catch` muet.
 async function catalogueLegislatif(jeton) {
-  try {
-    const r = await fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/assemblee_catalogue_legislatif', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + jeton
-      },
-      body: '{}'
-    });
-    if (!r.ok) return null;
-    const c = await r.json();
-    if (!c || typeof c !== 'object') return null;
-    if (!Array.isArray(c.categories) || !Array.isArray(c.matieres)) return null;
-    if (c.categories.length === 0) return null;
-    return c;
-  } catch (e) {
+  const r = await sbRpcVerdict('assemblee_catalogue_legislatif', {}, { jeton })
+                  .catch(e => ({ ok: false, raison: 'exception', transport: { message: e && e.message } }));
+  if (!r.ok) {
+    console.error('assemblee-seblex : catalogue legislatif indisponible', r.raison, r.transport);
     return null;
   }
+  const c = r.donnees;
+  if (!c || typeof c !== 'object') return null;
+  if (!Array.isArray(c.categories) || !Array.isArray(c.matieres)) return null;
+  if (c.categories.length === 0) return null;
+  return c;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,19 +81,19 @@ async function catalogueLegislatif(jeton) {
 // lecture REST : la table porte une policy de SELECT pour tout joueur, aucune RPC
 // nouvelle n'est necessaire.
 async function loisAbrogeables(jeton) {
-  try {
-    const q = '?statut=eq.adoptee&select=id,titre,type,categorie,adoptee_ts,appliquee_ts'
-            + '&order=adoptee_ts.desc&limit=60';
-    const r = await fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/assemblee_propositions' + q, {
-      method: 'GET',
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + jeton }
-    });
-    if (!r.ok) return [];
-    const l = await r.json();
-    return Array.isArray(l) ? l : [];
-  } catch (e) {
+  const q = 'statut=eq.adoptee&select=id,titre,type,categorie,adoptee_ts,appliquee_ts'
+          + '&order=adoptee_ts.desc&limit=60';
+  const r = await sbGetVerdict('assemblee_propositions', q, { jeton })
+                  .catch(e => ({ ok: false, raison: 'exception', transport: { message: e && e.message } }));
+  if (!r.ok) {
+    // LISTE VIDE, MAIS PLUS EN SILENCE. Le contrat est conserve -- Seb ne proposera aucune
+    // abrogation -- et c'est le bon sens de defaut : proposer d'abroger une loi dont on n'a
+    // pas pu lire l'existence serait pire. Ce qui change, c'est que la panne LAISSE UNE TRACE
+    // au lieu d'etre indistinguable d'un parlement qui n'a encore rien vote.
+    console.error('assemblee-seblex : lois abrogeables illisibles', r.raison, r.transport);
     return [];
   }
+  return Array.isArray(r.donnees) ? r.donnees : [];
 }
 
 // ---------------------------------------------------------------------------
