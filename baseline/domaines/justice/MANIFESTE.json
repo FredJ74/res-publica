@@ -872,6 +872,7 @@
    "tbl": "detentions"
   }
  ],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
   "20_fonctions.sql": "1b7bf2daf416e445335e69f466ffb6ec",

@@ -46,6 +46,12 @@ DOMAINE_DES_VUES = {
 }
 
 SERIALS = {"bigint": "bigserial", "integer": "serial", "smallint": "smallserial"}
+
+# Les codes de pg_default_acl.defaclobjtype, traduits dans la syntaxe d'ALTER DEFAULT
+# PRIVILEGES. Ils ne coincident PAS avec ceux d'acldefault() -- 'S' contre 's', 'T' contre
+# 't' -- et la requete d'extraction fait la conversion de son cote.
+TYPES_DEFAUT = {"r": "TABLES", "S": "SEQUENCES", "f": "FUNCTIONS",
+                "T": "TYPES", "n": "SCHEMAS"}
 TAILLE_MAX_FICHIER = 150_000      # au-dela, un fichier de phase est subdivise
 
 ENTETE = """-- {titre}
@@ -338,6 +344,112 @@ def phase_droits(objets, man, exp):
     return out
 
 
+def phase_defauts(objets, man, exp):
+    """Les PRIVILEGES PAR DEFAUT : ce que recevra un objet qui n'existe pas encore.
+
+    POURQUOI UNE PHASE A PART, ET POURQUOI LA DERNIERE. Un default privilege ne touche
+    AUCUN objet existant : il ne vaut que pour ce qui sera cree APRES lui. Le poser en
+    tete de reconstruction serait donc un contresens doublement dangereux -- les 664
+    fonctions et les 254 tables naitraient avec ces droits, puis la phase 70 ajouterait
+    leurs GRANT exacts SANS retirer les surnumeraires, et la base reconstruite serait
+    PLUS PERMISSIVE que la vraie. Place en fin, ce bloc ne change rien a ce qui vient
+    d'etre reconstruit et regle seulement le comportement FUTUR -- ce qui est
+    exactement sa semantique.
+
+    POURQUOI DEUX NIVEAUX QU'IL NE FAUT PAS APLATIR. PostgreSQL distingue l'entree
+    GLOBALE (`FOR ROLE x`, sans IN SCHEMA) de l'entree PAR SCHEMA (`IN SCHEMA s`), et
+    les deux se COMBINENT. Mesure du 9 octobre 2026 : le `PUBLIC EXECUTE` que PostgreSQL
+    donne nativement a toute fonction ne se retire QUE par l'entree globale -- un
+    `REVOKE ... IN SCHEMA public ... FROM PUBLIC` est purement inoperant, il ne modifie
+    meme pas la ligne stockee. Confondre les deux niveaux, c'est donc produire un rendu
+    qui a l'air juste et qui ne ferme rien.
+
+    POURQUOI LES REVOCATIONS SONT DERIVEES. Une ACL stockee n'exprime que des GRANT :
+    elle ne dit jamais « PUBLIC n'a rien », elle se contente de ne pas le mentionner. La
+    requete d'extraction compare donc l'ACL stockee a `acldefault()` et rend dans
+    `revoque_du_natif` ce que le natif accorde et que l'ACL ne contient pas. Sans cela,
+    un rendu fidele aux seuls GRANT recreerait une base ou PUBLIC garde son EXECUTE.
+
+    POURQUOI postgres ET service_role RESTENT ECRITS. Si l'on revoquait tout jusqu'a ne
+    laisser que le proprietaire, PostgreSQL SUPPRIMERAIT la ligne de pg_default_acl, et
+    l'ACL d'un objet neuf repasserait a `proacl = NULL` -- c'est-a-dire au defaut natif,
+    PUBLIC compris. Garder un beneficiaire non proprietaire est ce qui maintient
+    l'entree en vie : fermer trop rouvre.
+    """
+    # Les privileges par defaut ne vivent que dans UN domaine -- le socle. Pour les
+    # dix-sept autres, la phase ne produit rien et la boucle de production la saute :
+    # un fichier « aucun privilege par defaut ici » par domaine metier serait du bruit,
+    # puisque ce n'est pas une notion de domaine. Et l'ABSENCE d'entree n'est surtout
+    # pas un etat neutre a signaler en commentaire : c'est au CONTROLE de lever, parce
+    # que sans entree PostgreSQL applique son defaut natif, PUBLIC compris.
+    if not objets["droits_par_defaut"]:
+        return []
+    out = []
+    retenus = [d for d in objets["droits_par_defaut"]
+               if d["administrable"] and (d["portee"] is None or d["portee"] == "public")]
+    ecartes = [d for d in objets["droits_par_defaut"]
+               if not (d["administrable"] and (d["portee"] is None or d["portee"] == "public"))]
+    # L'ENSEMBLE DES ROLES A REVOQUER, derive de l'etat capture et non invente : tous les
+    # beneficiaires observes dans pg_default_acl, proprietaires confondus, plus PUBLIC.
+    # Borne, deterministe, et il s'elargit tout seul si la plateforme introduit un role.
+    roles = {"PUBLIC"}
+    for d in objets["droits_par_defaut"]:
+        for g in (d.get("accorde") or []):
+            roles.add(g["beneficiaire"])
+        for g in (d.get("revoque_du_natif") or []):
+            roles.add(g["beneficiaire"])
+
+    for d in sorted(retenus, key=lambda x: (x["proprietaire"], x["portee"] or "",
+                                            TYPES_DEFAUT.get(x["type_objet"], x["type_objet"]))):
+        genre = TYPES_DEFAUT.get(d["type_objet"], d["type_objet"])
+        cible = ("FOR ROLE %s IN SCHEMA %s" % (d["proprietaire"], d["portee"])) if d["portee"] \
+                else ("FOR ROLE %s" % d["proprietaire"])
+        out.append("\n-- %s / %s%s"
+                   % (d["proprietaire"], genre,
+                      " / schema %s" % d["portee"] if d["portee"] else " / NIVEAU GLOBAL (sans IN SCHEMA)"))
+        # ON REVOQUE TOUT, PUIS ON ACCORDE L'ETAT CANONIQUE. Un rendu qui se contenterait
+        # des GRANT ne serait pas CONVERGENT : applique sur une base dont le defaut est
+        # deja ouvert -- et c'est le cas d'une base Supabase NEUVE, qui porte
+        # `authenticated` dans ce meme reglage -- il ne retirerait rien et ne fermerait
+        # rien. Eprouve au banc : parti d'un etat ouvert a PUBLIC, anon ET authenticated,
+        # ce rendu aboutit exactement a {postgres, service_role}.
+        for ro in sorted(roles):
+            out.append("ALTER DEFAULT PRIVILEGES %s REVOKE ALL ON %s FROM %s;"
+                       % (cible, genre, ro))
+        for g in sorted(d["accorde"], key=lambda x: x["beneficiaire"]):
+            out.append("ALTER DEFAULT PRIVILEGES %s GRANT %s ON %s TO %s;"
+                       % (cible, g["privileges"], genre, g["beneficiaire"]))
+        man["droits_par_defaut"].append(dict(d, rendu=True))
+    # LES ENTREES ADMINISTRABLES NON RENDUES SONT INVENTORIEES QUAND MEME, avec rendu=False :
+    # le manifeste doit compter la meme unite que le controle global -- l'ENTREE de
+    # pg_default_acl administrable par notre role -- sinon les deux chiffres ne sont pas
+    # comparables et le controle ne controle rien. Celles des autres roles n'y figurent pas :
+    # elles ne sont pas a nous, et les compter ferait rougir le baseline au rythme de la
+    # plateforme.
+    for d in ecartes:
+        if d["administrable"]:
+            man["droits_par_defaut"].append(dict(d, rendu=False))
+    if ecartes:
+        out.append("\n-- ECARTES DU RENDU, ET NOMMES PLUTOT QUE TUS :")
+        for d in sorted(ecartes, key=lambda x: (x["proprietaire"], x["portee"] or "", x["type_objet"])):
+            raison = ("appartient a %s, que notre role de reconstruction n'administre pas"
+                      % d["proprietaire"]) if not d["administrable"] \
+                     else ("schema %s, hors du perimetre reconstruit par ce baseline" % d["portee"])
+            out.append("--   %s / %s / %s -- %s"
+                       % (d["proprietaire"], d["portee"] or "(global)",
+                          TYPES_DEFAUT.get(d["type_objet"], d["type_objet"]), raison))
+        out.append("--")
+        out.append("-- DEUX SORTS DIFFERENTS, et il ne faut pas les confondre. Les entrees")
+        out.append("-- ADMINISTRABLES mais hors perimetre -- celles de storage -- sont inventoriees")
+        out.append("-- dans MANIFESTE.json avec rendu=false, et comptees au controle global : le")
+        out.append("-- baseline en repond. Celles des AUTRES ROLES ne sont ni au manifeste ni au")
+        out.append("-- compte, et c'est voulu : elles ne sont pas a nous, elles changent au rythme")
+        out.append("-- de la plateforme, et les compter ferait rougir le controle pour une cause")
+        out.append("-- sur laquelle nous n'avons aucune prise. Elles sont nommees ICI, et nulle")
+        out.append("-- part ailleurs -- observees, jamais rejouees.")
+    return out
+
+
 def phase_commentaires(objets, man, exp):
     if not objets["commentaires"]:
         # Un fichier qui dit « rien ici » vaut mieux qu'un fichier absent : sans
@@ -377,11 +489,13 @@ PHASES = [
     (60, "rls-policies", "Activation RLS et policies", phase_rls, "\n"),
     (70, "droits", "GRANT sur tables, colonnes et fonctions", phase_droits, "\n"),
     (80, "commentaires", "Commentaires d'objets", phase_commentaires, "\n"),
+    (85, "default-privileges", "Privileges par defaut des objets a venir",
+     phase_defauts, "\n"),
 ]
 
 VIDE = {"colonnes": [], "fonctions": [], "contraintes": [], "index": [], "vues": [],
         "triggers": [], "rls": [], "policies": [], "droits": [], "droits_colonnes": [],
-        "commentaires": [], "sequences": []}
+        "commentaires": [], "sequences": [], "droits_par_defaut": []}
 
 
 def ecrire(chemin, contenu):
@@ -490,6 +604,11 @@ def main():
         if d["tbl"] in exclues:
             continue
         boite(dom_de_table(d["tbl"]) or "socle")["droits_colonnes"].append(d)
+    # LES PRIVILEGES PAR DEFAUT NE SONT ATTACHES A AUCUN OBJET, donc a aucun domaine
+    # metier : ce sont des reglages de schema. Ils vont au socle, en entier, et la phase
+    # 90 tranche elle-meme ce qu'elle rejoue et ce qu'elle se contente d'inventorier.
+    for d in exp.get("droits_par_defaut") or []:
+        boite("socle")["droits_par_defaut"].append(d)
 
     for c in exp["commentaires"]:
         if c["genre"] == "FUNCTION":
@@ -518,7 +637,8 @@ def main():
         man = {"domaine": d, "tables": [], "fonctions": [], "contraintes": [],
                "index_autonomes": [], "index_portes": [], "vues": [], "triggers": [],
                "rls": [], "policies": [], "droits": [], "droits_colonnes": [],
-               "commentaires": [], "sequences": [], "sequences_autonomes": [],
+               "commentaires": [], "sequences": [], "droits_par_defaut": [],
+               "sequences_autonomes": [],
                "fichiers": {}, "ordre": []}
         total = 0
         for num, cat, lib, fonc, sep in PHASES:
@@ -554,7 +674,7 @@ def main():
             json.dump(man, fh, indent=1, ensure_ascii=False, sort_keys=True)
         inventaire["domaines"][d] = {k: len(man[k]) for k in
             ("tables", "fonctions", "contraintes", "index_autonomes", "vues",
-             "triggers", "policies", "droits", "commentaires")}
+             "triggers", "policies", "droits", "commentaires", "droits_par_defaut")}
         inventaire["fichiers"].update({d + "/" + k: v for k, v in man["fichiers"].items()})
         print("  %-26s %2d fichiers %8d octets | %3d tables %3d fn %3d policies"
               % (d, len(man["fichiers"]), total, len(man["tables"]),
@@ -565,7 +685,7 @@ def main():
 
     tot = {k: sum(v[k] for v in inventaire["domaines"].values()) for k in
            ("tables", "fonctions", "contraintes", "index_autonomes", "vues",
-            "triggers", "policies", "droits", "commentaires")}
+            "triggers", "policies", "droits", "commentaires", "droits_par_defaut")}
     print("\nTOTAL rendu : " + " | ".join("%s=%d" % (k, v) for k, v in sorted(tot.items())))
     print("Ecarte (hors_baseline) : %d tables, %d colonnes, %d policies, %d droits"
           % (len(ecartes["tables"]), ecartes["colonnes"], ecartes["policies"], ecartes["droits"]))

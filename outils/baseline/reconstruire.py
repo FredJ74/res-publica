@@ -48,8 +48,15 @@ BASE = os.path.join(RACINE, "baseline")
 DOM = os.path.join(BASE, "domaines")
 SEEDS = os.path.join(BASE, "seeds")
 
+# 85 vient APRES 80 et AVANT les seeds, et ce n'est pas un detail d'ordre : un
+# privilege par defaut ne touche AUCUN objet existant, seulement ceux qui seront crees
+# plus tard. Le poser en tete ferait naitre les 664 fonctions et les 254 tables avec ces
+# droits, puis la phase 70 ajouterait leurs GRANT exacts SANS retirer les surnumeraires
+# -- et la base reconstruite serait PLUS PERMISSIVE que la vraie. Place en fin, le bloc
+# ne change rien au monde qu'on vient de reconstruire et regle son comportement FUTUR.
 PHASES = ["10_tables", "20_fonctions", "30_contraintes", "35_index", "40_vues",
-          "50_triggers", "60_rls-policies", "70_droits", "80_commentaires"]
+          "50_triggers", "60_rls-policies", "70_droits", "80_commentaires",
+          "85_default-privileges"]
 LOTS_SEEDS = ["90_socle", "91_empire", "92_mixte"]
 
 # Objets que le baseline ne cree pas et suppose presents : ils sont fournis par
@@ -442,6 +449,19 @@ def simuler(morceaux):
 
             elif genre == "AlterSeqStmt":
                 pass
+
+            elif genre == "AlterDefaultPrivilegesStmt":
+                # UN PRIVILEGE PAR DEFAUT NE DEPEND D'AUCUN OBJET, et c'est tout son
+                # interet : il regle ce que recevront les objets qui n'existent pas encore.
+                # Il ne suppose que l'existence du ROLE et, le cas echeant, du SCHEMA --
+                # deux choses que le baseline ne cree pas et qui sont declarees externes.
+                # Rien a simuler, donc, mais il faut le dire EXPLICITEMENT : le simulateur
+                # refuse par defaut tout ordre qu'il ne connait pas, et c'est cette
+                # severite qui a fait apparaitre la phase 85 comme treize dependances
+                # manquantes au lieu de la laisser passer en silence. Un simulateur qui
+                # ignore ce qu'il ne comprend pas ne simule rien.
+                pass
+
             else:
                 pbs.append((origine, rang, "ordre non simule : " + genre))
 

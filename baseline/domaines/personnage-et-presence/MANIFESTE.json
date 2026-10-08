@@ -1567,6 +1567,7 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "17980d86dcd01212515d3ce61d98234b",
   "20_fonctions.sql": "6448fc6a4f10f0f6d68978ab7fb178c9",

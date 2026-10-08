@@ -745,6 +745,7 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d341852b751536f74b05e46444766e78",
   "20_fonctions.sql": "22ae23cccc6f5813cf238234a7dfb03f",

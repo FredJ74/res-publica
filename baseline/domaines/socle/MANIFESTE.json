@@ -918,12 +918,192 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [
+  {
+   "accorde": [
+    {
+     "beneficiaire": "postgres",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "administrable": true,
+   "portee": null,
+   "proprietaire": "postgres",
+   "rendu": true,
+   "revoque_du_natif": [
+    {
+     "beneficiaire": "PUBLIC",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "type_objet": "f"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "postgres",
+     "privileges": "EXECUTE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "administrable": true,
+   "portee": "public",
+   "proprietaire": "postgres",
+   "rendu": true,
+   "revoque_du_natif": [
+    {
+     "beneficiaire": "PUBLIC",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "type_objet": "f"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "anon",
+     "privileges": "SELECT, USAGE"
+    },
+    {
+     "beneficiaire": "authenticated",
+     "privileges": "SELECT, USAGE"
+    },
+    {
+     "beneficiaire": "postgres",
+     "privileges": "SELECT, UPDATE, USAGE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "SELECT, UPDATE, USAGE"
+    }
+   ],
+   "administrable": true,
+   "portee": "public",
+   "proprietaire": "postgres",
+   "rendu": true,
+   "revoque_du_natif": [],
+   "type_objet": "S"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "anon",
+     "privileges": "SELECT"
+    },
+    {
+     "beneficiaire": "authenticated",
+     "privileges": "SELECT"
+    },
+    {
+     "beneficiaire": "postgres",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    }
+   ],
+   "administrable": true,
+   "portee": "public",
+   "proprietaire": "postgres",
+   "rendu": true,
+   "revoque_du_natif": [],
+   "type_objet": "r"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "anon",
+     "privileges": "SELECT, UPDATE, USAGE"
+    },
+    {
+     "beneficiaire": "authenticated",
+     "privileges": "SELECT, UPDATE, USAGE"
+    },
+    {
+     "beneficiaire": "postgres",
+     "privileges": "SELECT, UPDATE, USAGE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "SELECT, UPDATE, USAGE"
+    }
+   ],
+   "administrable": true,
+   "portee": "storage",
+   "proprietaire": "postgres",
+   "rendu": false,
+   "revoque_du_natif": [],
+   "type_objet": "S"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "anon",
+     "privileges": "EXECUTE"
+    },
+    {
+     "beneficiaire": "authenticated",
+     "privileges": "EXECUTE"
+    },
+    {
+     "beneficiaire": "postgres",
+     "privileges": "EXECUTE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "administrable": true,
+   "portee": "storage",
+   "proprietaire": "postgres",
+   "rendu": false,
+   "revoque_du_natif": [
+    {
+     "beneficiaire": "PUBLIC",
+     "privileges": "EXECUTE"
+    }
+   ],
+   "type_objet": "f"
+  },
+  {
+   "accorde": [
+    {
+     "beneficiaire": "anon",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    },
+    {
+     "beneficiaire": "authenticated",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    },
+    {
+     "beneficiaire": "postgres",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    },
+    {
+     "beneficiaire": "service_role",
+     "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+    }
+   ],
+   "administrable": true,
+   "portee": "storage",
+   "proprietaire": "postgres",
+   "rendu": false,
+   "revoque_du_natif": [],
+   "type_objet": "r"
+  }
+ ],
  "fichiers": {
   "20_fonctions.sql": "252ebba64530dbc1d057119c7f1bfbf2",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
   "70_droits.sql": "acd34a414645e3f9670bbe449ea56452",
-  "80_commentaires.sql": "27b79b0bd8aef05b5930a67496105584"
+  "80_commentaires.sql": "27b79b0bd8aef05b5930a67496105584",
+  "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
  "fonctions": [
   {
@@ -1149,7 +1329,8 @@
   "35_index.sql",
   "60_rls-policies.sql",
   "70_droits.sql",
-  "80_commentaires.sql"
+  "80_commentaires.sql",
+  "85_default-privileges.sql"
  ],
  "policies": [],
  "rls": [],

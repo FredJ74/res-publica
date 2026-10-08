@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-09T00:25:04 Europe/Paris",
- "empreintes_relevees_le": "2026-10-09T00:25:04 Europe/Paris",
+ "releve_le": "2026-10-09T00:48:02 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-09T00:48:02 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 260,
@@ -21,7 +21,8 @@
   "droits_relations": 944,
   "droits_fonctions": 1844,
   "droits_colonnes": 20,
-  "commentaires": 206
+  "commentaires": 206,
+  "droits_par_defaut": 7
  },
  "_droits_relations_detail": "928 = 818 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
  "ecartes": {
@@ -60,7 +61,8 @@
   "rls_actives": 254,
   "droits": 2776,
   "droits_colonnes": 20,
-  "commentaires": 202
+  "commentaires": 202,
+  "droits_par_defaut": 7
  },
  "_colonnes_calcul": "2020 = 2148 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
  "_droits_calcul": "2774 = 944 droits de relation + 1842 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
@@ -82,7 +84,8 @@
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
    "commentaires": "Premiere valeur 2af96723c19b0df74b2742a073c121a6. Cause : dans l'UNION ALL qui rassemble les commentaires, la premiere branche renvoyait pg_class.relname, de type `name`. Le type de la colonne de l'union etait donc resolu a `name`, long de 63 octets au plus, et les branches suivantes y etaient converties EN SILENCE. Trois signatures de fonction etaient tronquees a 63 caracteres (assemblee_deposer_projet, assemblee_palier_atteint, fonds_matiere_parametres). Le controle aurait valide une identite amputee, et deux fonctions partageant leurs 63 premiers caracteres auraient ete confondues. Corrige par des ::text explicites ; verifie ensuite : 0 signature de longueur 63."
-  }
+  },
+  "droits_par_defaut": "859cd268d66ac0f43411ad776e6af7cc"
  },
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 7 octobre 2026, apres les SIX migrations des chantiers 4E et 4F.",
@@ -195,7 +198,8 @@
    "salaires_religieux_verses",
    "ventes_snapshots",
    "villes"
-  ]
+  ],
+  "defaut_fonctions_ferme_aux_clients": true
  },
  "releve_de_cloture": {
   "_commentaire": "Le chantier 2E a relevé la base DEUX FOIS : au point de coupe, avant l'extraction, et à la clôture, après. Le second relevé a été produit par la MEME requête, celle du dépôt (python3 outils/baseline/requetes.py --controle-global), et non par une variante improvisée. Les deux relevés sont identiques sur TOUT : les 16 totaux, les 11 lignes d'écartés, les 10 empreintes, les 3 valeurs du registre, les 3 chiffres de sécurité. Aucun changement structurel n'est survenu pendant le chantier.",
@@ -358,5 +362,15 @@
   "_limite_de_reconstructibilite": "pg_default_acl n'est extrait par AUCUN des quatre exports, et reconstruire.py ne pose aucun default privilege. Un monde RECONSTRUIT de zero depuis le baseline naitrait donc AVEC LE DEFAUT OUVERT. La migration archivee est en l'etat la seule trace reconstructible du durcissement ; elle est idempotente et rejouable telle quelle. Etendre l'extraction est un chantier d'outillage, hors du perimetre de ce lot.",
   "_une_dette_evitee_au_passage": "rendre.py annoncait les reloptions d'une vue EN COMMENTAIRE sans emettre l'instruction. CREATE OR REPLACE VIEW n'en pose aucune : rejoue, le baseline aurait reconstruit catalogue_generiques_raccordes en SECURITY DEFINER, soit exactement l'alerte qu'on venait de fermer. Le generateur emet desormais ALTER VIEW ... SET (...) quand une vue porte des reloptions. Sans correction, ce lot aurait cree lui-meme la divergence qu'il pretendait supprimer.",
   "_la_vue_et_la_vue_qu_on_ne_touche_pas": "catalogue_generiques_raccordes : zero consommateur revalide sur la base, tables sous-jacentes deja lisibles par anon et authenticated avec policy USING (true), et 84 lignes rendues AVANT comme APRES la bascule pour postgres, anon et authenticated. public.personnages n'a PAS ete modifiee : son SECURITY DEFINER est structurel, personnages_donnees etant ferme aux clients. L'alerte qui subsiste sur elle est un faux positif par construction."
+ },
+ "_chantier_reproductibilite_des_defauts": {
+  "_commentaire": "9 octobre 2026. Le baseline capture, controle et restitue desormais pg_default_acl. AUCUNE migration : ce lot ne touche pas la base, il repare l'invariant de reproductibilite que le lot precedent avait laisse rompu.",
+  "la_lacune_reparee": "Les quatre exports ne capturaient que les GRANT objet par objet -- relations, fonctions, colonnes. pg_default_acl n'apparaissait nulle part et reconstruire.py ne posait aucun ALTER DEFAULT PRIVILEGES. La base live etait fail-closed depuis le registre 561, mais un monde RECONSTRUIT depuis le baseline renaissait avec le defaut natif de PostgreSQL, ouvert a PUBLIC sur toute fonction neuve.",
+  "representation": "Generique, sans cas particulier code en dur : par (proprietaire, portee, type d'objet, beneficiaire, privilege). `portee` NULL = niveau global, sans IN SCHEMA. Deux champs sont DERIVES et non lus : `administrable` (l'entree appartient-elle a notre role de reconstruction ?) et `revoque_du_natif` (ce que acldefault() accorde et que l'ACL stockee ne contient PAS). Ce second champ est indispensable : une ACL stockee n'exprime que des GRANT, elle ne dit jamais « PUBLIC n'a rien ».",
+  "pourquoi_global_et_in_schema_restent_distincts": "Les deux niveaux se COMBINENT, ils ne se remplacent pas. Le EXECUTE que PostgreSQL accorde nativement a PUBLIC sur toute fonction ne se retire QUE par l'entree globale : un REVOKE ... IN SCHEMA public ... FROM PUBLIC est inoperant, il ne modifie meme pas la ligne stockee. Les aplatir produirait un rendu qui a l'air juste et qui ne ferme rien. L'empreinte ecrit donc '(global)' et jamais la chaine vide.",
+  "pourquoi_la_phase_85_vient_en_dernier": "Un privilege par defaut ne touche AUCUN objet existant. Le poser en tete ferait naitre les 664 fonctions et les 254 tables avec ces droits, puis la phase 70 ajouterait leurs GRANT exacts SANS retirer les surnumeraires : la base reconstruite serait PLUS PERMISSIVE que la vraie. Place apres 80 et avant les seeds, le bloc ne change rien au monde reconstruit et regle son comportement FUTUR.",
+  "observe_contre_reconstructible": "25 entrees existent, 7 sont administrables par notre role. Le manifeste et le compte ne portent que ces 7 : 4 sont RENDUES (portee public ou globale, le perimetre du baseline) et 3 sont inventoriees avec rendu=false (schema storage, hors perimetre). Les 18 autres -- supabase_admin, supabase_auth_admin -- sont NOMMEES dans le fichier rendu et nulle part ailleurs : postgres n'est ni superuser ni membre de ces roles, et les compter ferait rougir le controle au rythme de la plateforme.",
+  "le_controle_ajoute": "DEUX questions separees, parce qu'un baseline peut etre parfaitement fidele a un etat devenu permissif. 1. Le baseline DECRIT-il l'etat du jour ? -- totaux.droits_par_defaut et empreintes.droits_par_defaut. 2. Cet etat est-il encore FAIL-CLOSED ? -- securite.defaut_fonctions_ferme_aux_clients, qui exige que les DEUX entrees de fonction existent et qu'aucune ne nomme PUBLIC, anon ni authenticated. Si une entree disparait, le defaut natif revient : l'existence fait partie du controle, pas seulement le contenu.",
+  "_fermer_trop_rouvre": "Revoquer aussi service_role de l'entree par schema ne laisserait que le proprietaire, PostgreSQL SUPPRIMERAIT la ligne, et l'ACL d'un objet neuf repasserait a proacl = NULL -- donc au defaut natif, PUBLIC compris. C'est pourquoi postgres et service_role restent explicitement ecrits dans le rendu."
  }
 }

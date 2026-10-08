@@ -75,11 +75,77 @@ objet d'un autre sans imposer d'ordre entre les domaines.
 | 60 | `60_rls-policies.sql` | activation RLS puis policies | les policies exigent les fonctions qu'elles invoquent |
 | 70 | `70_droits.sql` | `GRANT` table, colonne, fonction | exigent tous les objets |
 | 80 | `80_commentaires.sql` | `COMMENT ON` | sans dépendance |
+| 85 | `85_default-privileges.sql` | `ALTER DEFAULT PRIVILEGES` | **doit venir en dernier**, voir ci-dessous |
 
 Cet ordre n'est pas supposé : il vient de l'observation des catalogues. Le graphe
 d'appel des fonctions a été parcouru exhaustivement et **ne contient aucun cycle**
 (profondeur maximale 9 pour un plafond de 12, donc l'exploration s'est arrêtée
 d'elle-même), et il n'y a aucun cycle de clés étrangères.
+
+### La phase 85, et les quatre choses qu'il faut savoir à son sujet
+
+Elle ne crée aucun objet : elle règle ce que recevra un objet **qui n'existe pas
+encore**. Ajoutée le 9 octobre 2026, parce que sans elle une base reconstruite
+depuis ce baseline renaissait avec le défaut PostgreSQL **ouvert à `PUBLIC`** sur
+toute fonction neuve — alors que la base vivante, elle, venait d'être fermée.
+
+**1. Pourquoi en dernier.** Un privilège par défaut ne touche aucun objet
+existant. Le poser en tête ferait naître les 664 fonctions et les 254 tables avec
+ces droits, puis la phase 70 ajouterait leurs `GRANT` exacts **sans retirer les
+surnuméraires** : la base reconstruite serait *plus permissive* que la vraie.
+Placée en fin, la phase ne change rien au monde qu'on vient de reconstruire et
+règle seulement son comportement futur.
+
+**2. Pourquoi « global » et « IN SCHEMA » sont deux choses distinctes.**
+PostgreSQL stocke séparément l'entrée de niveau **rôle** (`FOR ROLE x`, sans
+`IN SCHEMA`) et l'entrée **par schéma**, et les deux se **combinent**. Mesure :
+le `EXECUTE` que PostgreSQL accorde nativement à `PUBLIC` sur toute fonction ne
+se retire **que** par l'entrée globale — un `REVOKE … IN SCHEMA public … FROM
+PUBLIC` est purement **inopérant**, il ne modifie même pas la ligne stockée. Les
+aplatir produirait un rendu qui a l'air juste et qui ne ferme rien. Le rendu écrit
+donc `(global)` et jamais la chaîne vide, y compris dans l'empreinte.
+
+**3. Pourquoi `postgres` et `service_role` restent écrits.** Si l'on révoquait
+tout jusqu'à ne laisser que le propriétaire, PostgreSQL **supprimerait** la ligne
+de `pg_default_acl`, et l'ACL d'un objet neuf repasserait à `proacl = NULL` —
+c'est-à-dire au défaut natif, `PUBLIC` compris. **Fermer trop rouvre.** Garder un
+bénéficiaire non propriétaire est ce qui maintient l'entrée en vie.
+
+**4. Pourquoi les révocations sont déduites et non lues.** Une ACL stockée
+n'exprime que des `GRANT` : elle ne dit jamais « `PUBLIC` n'a rien », elle se
+contente de ne pas le mentionner. La requête compare donc l'ACL stockée à
+`acldefault()` et rend dans `revoque_du_natif` ce que le natif accorde et que
+l'ACL ne contient pas. Un rendu fidèle aux seuls `GRANT` recréerait une base où
+`PUBLIC` garde son `EXECUTE`.
+
+**5. Pourquoi le rendu révoque *tout* avant d'accorder.** C'est le défaut que le
+banc de reconstruction a attrapé, et il était grave. Un rendu qui se contenterait
+d'accorder l'état canonique n'est pas **convergent** : appliqué sur une base dont
+le défaut est *déjà* ouvert, il ne retire rien. Et c'est exactement le cas d'une
+base Supabase **neuve**, qui porte `authenticated` dans ce même réglage — donc le
+cas réel d'une reconstruction. Le banc l'a montré : parti d'un témoin ouvert, le
+premier rendu laissait `{postgres, authenticated, service_role}`. Chaque entrée
+commence donc par `REVOKE ALL` adressé à l'ensemble des rôles **observés dans
+`pg_default_acl`** — un ensemble borné, dérivé de l'état capturé et non inventé,
+qui s'élargit de lui-même si la plateforme introduit un rôle — puis accorde
+l'état canonique. Éprouvé depuis un témoin ouvert à `PUBLIC`, `anon` *et*
+`authenticated` : le résultat est exactement `{postgres, service_role}`.
+
+**Ce qui est rendu, et ce qui est seulement inventorié.** Le rendu ne rejoue que
+les entrées **administrables par le rôle de reconstruction** et de portée `public`
+ou globale — le périmètre du baseline. Les entrées de `supabase_admin` et
+`supabase_auth_admin` sont *observées* pour la fidélité d'inventaire mais jamais
+rejouées : `postgres` n'est ni superuser ni membre de ces rôles, et la tentative
+rend `permission denied to change default privileges`. Celles du schéma `storage`
+sont administrables mais hors du périmètre reconstruit. Les deux cas sont **nommés
+en commentaire** dans le fichier rendu, avec leur raison.
+
+**Le contrôle.** `verifier-baseline.py` pose deux questions séparées : le baseline
+*décrit*-il l'état du jour (compte et empreinte), et cet état est-il encore
+*fail-closed* (`securite.defaut_fonctions_ferme_aux_clients`) ? Un baseline peut
+être parfaitement fidèle à un état devenu permissif — le premier contrôle serait
+vert et la porte ouverte. L'empreinte ne porte que sur les entrées administrables,
+pour ne pas rougir au rythme de la plateforme.
 
 ## Arborescence
 

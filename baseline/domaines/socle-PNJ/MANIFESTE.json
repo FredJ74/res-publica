@@ -1633,6 +1633,7 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "987060db29b2631a083fdfbf017b1cb7",
   "20_fonctions.sql": "1d11a43291231c06156b60e073f48205",

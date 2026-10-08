@@ -353,6 +353,50 @@ def main():
     r.verif("lignes de droits", nb("droits"), att["droits"])
     r.verif("droits au niveau colonne", nb("droits_colonnes"), att["droits_colonnes"])
 
+    # ------------------------------------- LES PRIVILEGES PAR DEFAUT, A PART
+    # POURQUOI CE CONTROLE EXISTE. Jusqu'au 9 octobre 2026, pg_default_acl etait HORS
+    # EMPREINTE : le defaut des fonctions pouvait se rouvrir a PUBLIC ou a authenticated
+    # sans qu'un seul controle du baseline bronche. Or c'est precisement ce qui s'est
+    # produit -- trois fois -- et chaque fois c'est la relecture du diff qui l'a vu.
+    #
+    # DEUX QUESTIONS DISTINCTES, ET IL FAUT LES DEUX :
+    #   . le baseline DECRIT-IL l'etat du jour ? (le compte, et l'empreinte)
+    #   . cet etat est-il encore FAIL-CLOSED ? (le booleen rendu par la base)
+    # Un baseline peut etre parfaitement fidele a un etat devenu permissif : le premier
+    # controle serait vert et la porte serait ouverte. D'ou le second.
+    if tot.get("droits_par_defaut") is None:
+        # Un releve anterieur au 9 octobre 2026 ne porte pas cette cle. On le DIT plutot
+        # que de lever : un controle qui plante sur un vieux releve empeche de diagnostiquer
+        # autre chose, et un controle qui se taiserait laisserait croire qu'il a verifie.
+        r.note("privileges par defaut : absents du controle global (releve anterieur au 9 oct. 2026)")
+    else:
+        r.verif("privileges par defaut inventories", nb("droits_par_defaut"),
+                tot["droits_par_defaut"])
+    # L'EMPREINTE, recomposee avec la MEME formule que la base : une ligne par
+    # (proprietaire, portee, type, beneficiaire, privilege), triee en COLLATE "C". La
+    # portee NULL devient '(global)' -- jamais la chaine vide -- pour qu'un reglage de
+    # niveau global ne puisse pas se confondre avec un reglage de schema : les deux se
+    # combinent et n'ont pas le meme effet sur le PUBLIC natif des fonctions.
+    lignes_dpa = []
+    for _, d in tous("droits_par_defaut"):
+        for g in d.get("accorde") or []:
+            for priv in [p.strip() for p in (g.get("privileges") or "").split(",") if p.strip()]:
+                lignes_dpa.append("%s:%s:%s:%s:%s" % (
+                    d["proprietaire"], d["portee"] or "(global)", d["type_objet"],
+                    g["beneficiaire"], priv))
+    emp_dpa = (hashlib.md5("|".join(sorted(lignes_dpa)).encode("utf-8")).hexdigest()
+               if lignes_dpa else "aucun")
+    if emp.get("droits_par_defaut"):
+        r.emp("empreinte des privileges par defaut", emp_dpa, emp["droits_par_defaut"])
+    if sec.get("defaut_fonctions_ferme_aux_clients") is None:
+        r.note("defaut des fonctions : le controle global ne le mesure pas (releve trop ancien)")
+    else:
+        # 1 = PUBLIC, anon et authenticated sont absents des DEUX niveaux de
+        # pg_default_acl -- le global et le IN SCHEMA public -- et les deux entrees
+        # existent. Une seule qui disparaitrait rendrait son defaut natif a PostgreSQL.
+        r.verif("defaut des fonctions ferme aux roles clients",
+                1 if sec["defaut_fonctions_ferme_aux_clients"] else 0, 1)
+
     avec_policy = {p["tbl"] for _, p in tous("policies")}
     actives = {x["tbl"] for _, x in tous("rls") if x["active"]}
     fermees = actives - avec_policy

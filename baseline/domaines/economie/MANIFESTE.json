@@ -2797,6 +2797,7 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
   "20_fonctions-1.sql": "1100975a5562ec801d8c90fabb91b6c6",

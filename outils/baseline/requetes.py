@@ -430,6 +430,20 @@ com as (select 'TABLE' as genre, t.relname::text as objet, ''::text as sous,
         select 'CONSTRAINT', c.conrelid::regclass::text, c.conname::text, d.description
           from pg_description d join pg_constraint c on c.oid = d.objoid
           join tab t on t.oid = c.conrelid)
+, dpa as (
+        -- LES PRIVILEGES PAR DEFAUT, limites a ceux que NOTRE role administre. Les
+        -- entrees de supabase_admin / supabase_auth_admin sont volontairement hors de
+        -- cette CTE : elles changent au rythme de la plateforme, et les inclure ferait
+        -- rougir le controle pour une cause sur laquelle nous n'avons aucune prise.
+        select pg_get_userbyid(d.defaclrole) as prop, n.nspname as portee,
+               d.defaclobjtype::text as typ,
+               coalesce(rr.rolname, 'PUBLIC') as benef,
+               ae.privilege_type as priv
+          from pg_default_acl d
+          left join pg_namespace n on n.oid = d.defaclnamespace
+          cross join lateral aclexplode(d.defaclacl) ae
+          left join pg_roles rr on rr.oid = ae.grantee
+         where pg_get_userbyid(d.defaclrole) = current_user)
 select jsonb_build_object(
  'totaux', jsonb_build_object(
    'tables', (select count(*) from tab),
@@ -439,6 +453,10 @@ select jsonb_build_object(
    'contraintes', (select count(*) from kon),
    'index', (select count(*) from idx),
    'index_portes', (select count(*) from idx where portee),
+   -- LE COMPTE PORTE SUR LES ENTREES de pg_default_acl administrables par notre role,
+   -- pas sur les couples (entree x beneficiaire) : c'est l'unite que le manifeste du
+   -- baseline inventorie, et deux unites differentes rendraient le controle incomparable.
+   'droits_par_defaut', (select count(*) from (select distinct prop, portee, typ from dpa) q),
    'index_autonomes', (select count(*) from idx where not portee),
    'fonctions', (select count(*) from fon),
    'triggers', (select count(*) from trg),
@@ -521,8 +539,29 @@ select jsonb_build_object(
       from drc c where c.relname not in (select t from hors)) z),
    'commentaires', (select md5(string_agg(x, '|' order by x collate "C")) from (
       select o.genre || ':' || o.objet || ':' || o.sous || ':' || md5(o.txt) as x
-      from com o where o.objet not in (select t from hors)) z)),
+      from com o where o.objet not in (select t from hors)) z),
+   -- L'EMPREINTE DES PRIVILEGES PAR DEFAUT. Sans elle, une reouverture de PUBLIC ou
+   -- d'authenticated sur les fonctions a venir restait HORS EMPREINTE : le baseline
+   -- pouvait rester vert pendant que le defaut redevenait permissif. La portee NULL
+   -- (niveau global) est rendue comme '(global)' pour qu'elle ne se confonde jamais
+   -- avec une portee de schema -- les deux niveaux se combinent et n'ont pas le meme
+   -- effet, notamment sur le PUBLIC natif des fonctions.
+   'droits_par_defaut', (select coalesce(md5(string_agg(x, '|' order by x collate "C")), 'aucun') from (
+      select d.prop || ':' || coalesce(d.portee, '(global)') || ':' || d.typ
+             || ':' || d.benef || ':' || d.priv as x from dpa d) z)),
  'securite', jsonb_build_object(
+   -- LE DEFAUT DES FONCTIONS EST-IL FERME AUX ROLES CLIENTS ? Deux conditions, et il
+   -- faut les DEUX : l'entree de niveau GLOBAL doit exister -- c'est la seule qui
+   -- retire le PUBLIC que PostgreSQL accorde nativement a toute fonction -- et ni elle
+   -- ni l'entree IN SCHEMA public ne doivent nommer PUBLIC, anon ou authenticated. Si
+   -- l'une des entrees disparait, le defaut natif revient : l'existence fait donc
+   -- partie du controle, pas seulement le contenu.
+   'defaut_fonctions_ferme_aux_clients', (
+      (select count(*) from dpa where portee is null and typ = 'f') > 0
+      and (select count(*) from dpa where portee = 'public' and typ = 'f') > 0
+      and not exists (select 1 from dpa
+                       where typ = 'f' and (portee is null or portee = 'public')
+                         and benef in ('PUBLIC', 'anon', 'authenticated'))),
    'fonctions_security_definer', (select count(*) from pg_proc p
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public' and p.prokind in ('f','p') and p.prosecdef),
@@ -681,7 +720,27 @@ EXPORTS = {
      select c.relname as t, a.attname as col, coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
      from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace and n.nspname='public'
      cross join lateral aclexplode(a.attacl) ae left join pg_roles rr on rr.oid=ae.grantee
-     where a.attacl is not null group by c.relname, a.attname, coalesce(rr.rolname,'PUBLIC')) y)
+     where a.attacl is not null group by c.relname, a.attname, coalesce(rr.rolname,'PUBLIC')) y),
+ 'droits_par_defaut', (select coalesce(jsonb_agg(z.x order by z.prop collate "C", coalesce(z.portee,'') collate "C", z.typ collate "C"), '[]'::jsonb) from (
+     select pg_get_userbyid(d.defaclrole) as prop, n.nspname as portee, d.defaclobjtype::text as typ,
+            jsonb_build_object(
+              'proprietaire', pg_get_userbyid(d.defaclrole),
+              'portee', n.nspname,
+              'type_objet', d.defaclobjtype::text,
+              'administrable', pg_get_userbyid(d.defaclrole) = current_user,
+              'accorde', (select coalesce(jsonb_agg(jsonb_build_object('beneficiaire',q.ben,'privileges',q.privs) order by q.ben collate "C"), '[]'::jsonb)
+                            from (select coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
+                                    from aclexplode(d.defaclacl) ae left join pg_roles rr on rr.oid=ae.grantee
+                                   group by coalesce(rr.rolname,'PUBLIC')) q),
+              'revoque_du_natif', (select coalesce(jsonb_agg(jsonb_build_object('beneficiaire',q2.ben,'privileges',q2.privs) order by q2.ben collate "C"), '[]'::jsonb)
+                            from (select coalesce(rr.rolname,'PUBLIC') as ben, string_agg(ae.privilege_type,', ' order by ae.privilege_type) as privs
+                                    from aclexplode(acldefault(case d.defaclobjtype when 'S' then 's' when 'T' then 't' else d.defaclobjtype end, d.defaclrole)) ae
+                                    left join pg_roles rr on rr.oid=ae.grantee
+                                   where not exists (select 1 from aclexplode(d.defaclacl) a2
+                                                      where a2.grantee=ae.grantee and a2.privilege_type=ae.privilege_type)
+                                   group by coalesce(rr.rolname,'PUBLIC')) q2)
+            ) as x
+     from pg_default_acl d left join pg_namespace n on n.oid=d.defaclnamespace) z)
 ) as export_droits;""",
 
 }
@@ -690,7 +749,7 @@ EXPORTS_NOTES = {
     'export_structure': "colonnes, contraintes, index, sequences. relkind in ('r','v') ici : les sequences ont leur propre bloc.",
     'export_fonctions': 'la plus grosse des quatre, environ 1,5 Mo. Part sur disque sans perte.',
     'export_logique': 'vues, declencheurs, RLS, policies, commentaires.',
-    'export_droits': "relations, fonctions, colonnes. relkind in ('r','v','S') : LES SEQUENCES SONT INDISPENSABLES, et le genre doit etre distingue -- rendre.py ecrit un bloc « DROITS SUR LES SEQUENCES » a partir de ce champ.",
+    'export_droits': "relations, fonctions, colonnes, ET LES PRIVILEGES PAR DEFAUT. relkind in ('r','v','S') : LES SEQUENCES SONT INDISPENSABLES, et le genre doit etre distingue -- rendre.py ecrit un bloc « DROITS SUR LES SEQUENCES » a partir de ce champ. `droits_par_defaut` porte pg_default_acl, ajoute le 9 octobre 2026 : sans lui, un monde reconstruit renaissait avec le defaut PostgreSQL ouvert a PUBLIC sur toute fonction neuve. Deux champs y sont derives et non lus : `administrable` (le proprietaire de l'entree est-il notre role de reconstruction ?) et `revoque_du_natif` (ce que acldefault() donne et que l'ACL stockee ne contient PAS -- c'est la SEULE facon de representer une revocation, qu'une ACL stockee n'exprime jamais). `portee` NULL = niveau global, sans IN SCHEMA : les deux niveaux se COMBINENT et ne doivent jamais etre aplatis.",
 }
 
 

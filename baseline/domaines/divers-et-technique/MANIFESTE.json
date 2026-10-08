@@ -216,6 +216,7 @@
   }
  ],
  "droits_colonnes": [],
+ "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "6d8f527476775fd542299d636ef89108",
   "30_contraintes.sql": "05f4199f822a8dfe724c8df9341ed389",
