@@ -6712,11 +6712,38 @@ async function debiterCitoyenPlafonne(nomCible, montantVise) {
     updateUI();
     return preleve;
   }
-  if (typeof sbGet !== 'function') return 0;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg`).catch(() => []);
-  const argActuel = rows?.[0]?.arg ?? 0;
+  // UN PRELEVEMENT NON ECRIT NE DOIT PLUS ETRE ANNONCE (chantier 5, 9 octobre 2026).
+  //
+  // Cette fonction rend le montant preleve, et TOUS ses appelants le reversent ailleurs -- au
+  // Tresor, a une caisse. L'ecriture etait avalee par `.catch(() => {})` et le montant rendu
+  // quand meme : quand elle echouait, l'argent etait credite d'un cote sans etre debite de
+  // l'autre. De l'argent CREE a partir de rien, en silence.
+  //
+  // Et la lecture `.catch(() => [])` puis `?? 0` avait son propre defaut : une panne faisait
+  // lire un solde de zero, donc prelever zero, et le prelevement comptait comme applique.
+  //
+  // Les deux sont fermes en rendant 0 -- rien preleve, donc rien a reverser -- des que
+  // l'operation n'est pas PROUVEE. sbEcrireSoldePersonnage ecrit sous condition du solde lu :
+  // si une autre ecriture est passee entre-temps, zero ligne touchee, et on le sait.
+  if (typeof sbGetVerdict !== 'function' || typeof sbEcrireSoldePersonnage !== 'function') return 0;
+  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg`)
+    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!v.ok) {
+    console.error('debiterCitoyenPlafonne : solde de ' + nomCible + ' illisible (' + v.raison
+                  + ') -- aucun prelevement');
+    return 0;
+  }
+  const rows = v.donnees;
+  if (!Array.isArray(rows) || rows.length === 0) return 0;   // personnage absent : rien a prelever
+  const argActuel = rows[0].arg ?? 0;
   const preleve = Math.min(argActuel, montantVise);
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCible)}`, { arg: argActuel - preleve }).catch(() => {});
+  if (preleve <= 0) return 0;
+  const w = await sbEcrireSoldePersonnage(nomCible, argActuel, argActuel - preleve);
+  if (!w.ok) {
+    console.error('debiterCitoyenPlafonne : prelevement de ' + preleve + ' sur ' + nomCible
+                  + ' non ecrit (' + w.raison + ') -- rien n\'est reverse');
+    return 0;
+  }
   return preleve;
 }
 
@@ -6845,7 +6872,20 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
 
   if (typeCible === 'citoyen') {
     if (idCible === state.char?.name) { state.arg = (state.arg||0) + montantReel; updateUI(); }
-    else await sbUpdate('personnages', `name=eq.${encodeURIComponent(idCible)}`, { arg: soldeActuel + montantReel }).catch(() => {});
+    else {
+      // MEME DEFAUT QUE debiterCitoyenPlafonne, ET MEME CONSEQUENCE (chantier 5, 9 octobre
+      // 2026). La lecture avait deja ete corrigee le 7 octobre -- getSoldeCibleFiscale rend
+      // `null` et l'appelante renonce -- mais l'ECRITURE restait avalee, et la fonction rendait
+      // `montantReel` quand meme. L'appelant reversait donc au Tresor un redressement qui
+      // n'avait pas eu lieu. Corriger la lecture sans corriger l'ecriture ne fermait que la
+      // moitie du chemin.
+      const w = await sbEcrireSoldePersonnage(idCible, soldeActuel, soldeActuel + montantReel);
+      if (!w.ok) {
+        console.error('ajusterSoldeCibleFiscale : ' + idCible + ' non ajuste de ' + montantReel
+                      + ' (' + w.raison + ') -- rien n\'est reverse');
+        return null;
+      }
+    }
   } else if (typeCible === 'club_sportif') {
     await crediterBudgetClub(idCible, montantReel, montantReel >= 0 ? 'Subvention ministérielle' : 'Redressement fiscal');
   } else if (typeCible === 'entreprise') {
@@ -7256,7 +7296,37 @@ function executerOrdreContact(action, nomCible) {
         ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant)
         : 0;
       if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
-      if (typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(nomCible, montantVerse).catch(() => {});
+      // ON N'ANNONCE PLUS UNE SUBVENTION QUE PERSONNE N'A RECUE (chantier 5, 9 octobre 2026).
+      //
+      // La caisse du Ministere est debitee JUSTE AU-DESSUS. Le credit du beneficiaire etait
+      // ensuite avale par `.catch(() => {})`, et la suite s'executait quand meme : toast
+      // « Subvention accordee », entree au journal, et un MAIL au beneficiaire lui annoncant un
+      // argent qu'il n'avait pas recu. L'argent sortait de la caisse sans entrer nulle part, et
+      // le jeu affirmait le contraire aux deux parties.
+      //
+      // CE QUI N'EST PAS FAIT ICI, ET POURQUOI. On ne RECREDITE PAS la caisse. Un verdict
+      // d'echec de transport ne permet pas d'affirmer que l'ecriture n'est pas partie
+      // (`envoyee: true` le dit explicitement) : recrediter sur un credit qui aurait finalement
+      // abouti CREERAIT de l'argent, c'est-a-dire le defaut symetrique et pire. La seule
+      // correction propre est une RPC transactionnelle qui debite et credite dans la MEME
+      // transaction -- elle est consignee comme prochain lot. En attendant, l'incoherence est
+      // VISIBLE au lieu d'etre affirmee comme un succes.
+      const rSub = (typeof sbAppliquerSalaire === 'function')
+        ? await sbAppliquerSalaire(nomCible, montantVerse)
+                .catch(e => ({ ok: false, raison: 'exception', message: e && e.message }))
+        : { ok: false, raison: 'helper_absent' };
+      if (!rSub || rSub.ok !== true) {
+        console.error('subvention : caisse debitee de ' + montantVerse + ' mais ' + nomCible
+                      + ' n\'a pas ete credite', rSub);
+        addJournalEntry('Subvention à ' + nomCible + ' : le versement n\'a pas abouti ('
+                        + ((rSub && rSub.raison) || 'cause inconnue')
+                        + '). Le Ministère des Finances a été débité : signaler l\'incident.',
+                        'event-bad');
+        showToast('Versement non abouti',
+                  'La caisse a été débitée mais ' + nomCible + ' n\'a pas été crédité. '
+                  + 'Rien n\'a été annoncé au bénéficiaire. Signalez l\'incident.', false, true);
+        return;
+      }
       if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
       updateUI();
       showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);

@@ -1186,13 +1186,41 @@ async function sbGetParisJourneeNonResolus(journeeNumero, saisonNumero) {
   return rows.filter(r => r.data?.journeeNumero === journeeNumero && r.data?.saisonNumero === saisonNumero).map(r => ({ id: r.id, ...r.data }));
 }
 
+// LE DRAPEAU ANTI-REJEU DOIT ETRE PROUVE AVANT DE PAYER (chantier 5, 9 octobre 2026).
+//
+// Deux defauts tenaient dans ces six lignes. D'abord `resolu: true` n'etait pas verifie : un
+// echec de cette ecriture laissait le pari NON resolu et le gain etait credite quand meme --
+// donc recredite au prochain passage. Ensuite le credit portait le motif
+// `rows?.[0]?.arg ?? 0`, qui REMPLACE le solde du gagnant par son seul gain quand la lecture
+// echoue (voir sbEcrireSoldePersonnage).
+//
+// AUCUN APPELANT AUJOURD'HUI -- le championnat ne passe plus par ici. Corrigee tout de meme :
+// une fonction qui porte ce motif est une fonction que le prochain appelant heritera cassee.
 async function sbResoudrePari(id, joueurNom, gain) {
-  await sbUpdate('paris_sportifs', `id=eq.${encodeURIComponent(id)}`, { resolu: true });
-  if (gain > 0) {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(joueurNom)}&select=arg`);
-    const argActuel = rows?.[0]?.arg ?? 0;
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(joueurNom)}`, { arg: argActuel + gain });
+  const marque = await sbUpdateVerdict('paris_sportifs', `id=eq.${encodeURIComponent(id)}&resolu=is.false`,
+                                       { resolu: true })
+    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!marque.ok) return { ok: false, raison: marque.raison };
+  // Zero ligne : le pari etait DEJA resolu, ou n'existe pas. Dans les deux cas on ne paie pas.
+  if (!Array.isArray(marque.donnees) || marque.donnees.length !== 1) {
+    return { ok: false, raison: 'pari_deja_resolu_ou_absent' };
   }
+  if (gain <= 0) return { ok: true, gain: 0 };
+  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(joueurNom)}&select=arg`)
+    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!v.ok || !Array.isArray(v.donnees) || v.donnees.length === 0) {
+    console.error('sbResoudrePari : pari ' + id + ' marque resolu mais le gain de ' + gain
+                  + ' n\'a pas pu etre credite a ' + joueurNom);
+    return { ok: false, raison: 'gain_non_credite' };
+  }
+  const argActuel = v.donnees[0].arg ?? 0;
+  const w = await sbEcrireSoldePersonnage(joueurNom, argActuel, argActuel + gain);
+  if (!w.ok) {
+    console.error('sbResoudrePari : pari ' + id + ' marque resolu mais le gain de ' + gain
+                  + ' n\'a pas pu etre credite a ' + joueurNom, w.raison);
+    return { ok: false, raison: 'gain_non_credite' };
+  }
+  return { ok: true, gain };
 }
 
 async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
@@ -1297,10 +1325,89 @@ async function sbSaveEntreprise(id) {
   return null;
 }
 
+// ECRIRE LE SOLDE D'UN AUTRE PERSONNAGE, SANS JAMAIS LE DEVINER NI L'ECRASER
+// (chantier 5, 9 octobre 2026).
+//
+// LE MOTIF QU'ELLE REMPLACE, PRESENT A CINQ ENDROITS, ET CE QU'IL DETRUISAIT :
+//
+//     const rows = await sbGet('personnages', `name=eq.${nom}&select=arg`);
+//     const argActuel = rows?.[0]?.arg ?? 0;
+//     await sbUpdate('personnages', `name=eq.${nom}`, { arg: argActuel + montant });
+//
+// DEUX DEFAUTS DISTINCTS, et le premier est le plus grave de ceux trouves cette nuit.
+//
+//   1. `?? 0` SUR UNE LECTURE QUI A ECHOUE REMPLACE LE SOLDE. sbGet rend `null` sur toute
+//      erreur HTTP -- 500, 401, un 42501 de la RLS. `argActuel` vaut alors 0, et l'ecriture
+//      pose `arg = 0 + montant`. Un joueur qui avait 50 000 FR et recoit un salaire de 200 FR
+//      se retrouve a 200 FR. Ce n'est pas un credit manque : c'est une DESTRUCTION de solde,
+//      silencieuse, proportionnelle a la fortune de la victime.
+//   2. L'ECRITURE ETAIT AVALEE, et le montant rendu quand meme. L'appelant reversait alors au
+//      Tresor un prelevement qui n'avait pas eu lieu -- de l'argent CREE a partir de rien.
+//
+// CE QU'ELLE FAIT A LA PLACE : une ECRITURE CONDITIONNELLE. Le filtre porte le solde ATTENDU
+// (`arg=eq.<lu>`), donc PostgREST n'ecrit que si la ligne vaut encore ce qu'on a lu. Cela ferme
+// les deux defauts d'un coup, et un troisieme par la meme occasion :
+//
+//   . une lecture ratee ne peut plus servir de base, puisque l'appelant doit fournir le solde
+//     qu'il a REELLEMENT lu et que la fonction refuse `null` ou `undefined` ;
+//   . un echec de transport est rendu, jamais avale ;
+//   . et si un autre joueur -- ou le cron -- a modifie ce solde entre la lecture et l'ecriture,
+//     ZERO ligne est touchee : la course est detectee au lieu d'etre perdue en silence.
+//
+// `arg` EST `integer` NULLABLE DE DEFAUT 0 (verifie en base le 9 octobre 2026). Un solde a NULL
+// ne serait donc pas trouve par `arg=eq.0` : quand le solde attendu est zero, le filtre accepte
+// explicitement les deux ecritures possibles de « rien ».
+//
+// ELLE REND UN VERDICT, jamais un montant : c'est a l'appelant de decider ce qu'il fait d'un
+// echec, et il ne peut plus l'ignorer sans le voir.
+async function sbEcrireSoldePersonnage(nom, soldeAttendu, nouveauSolde) {
+  if (typeof soldeAttendu !== 'number' || !Number.isFinite(soldeAttendu)) {
+    // On REFUSE d'ecrire sur un solde qu'on n'a pas lu. C'est le defaut n'1, ferme a la porte.
+    console.error('sbEcrireSoldePersonnage : solde attendu illisible pour ' + nom, soldeAttendu);
+    return { ok: false, raison: 'solde_attendu_illisible' };
+  }
+  if (typeof nouveauSolde !== 'number' || !Number.isFinite(nouveauSolde)) {
+    console.error('sbEcrireSoldePersonnage : nouveau solde invalide pour ' + nom, nouveauSolde);
+    return { ok: false, raison: 'nouveau_solde_invalide' };
+  }
+  const cible = `name=eq.${encodeURIComponent(nom)}`;
+  const garde = soldeAttendu === 0
+    ? `&or=(arg.eq.0,arg.is.null)`
+    : `&arg=eq.${encodeURIComponent(String(soldeAttendu))}`;
+  const v = await sbUpdateVerdict('personnages', cible + garde, { arg: Math.round(nouveauSolde) })
+    .catch(e => ({ ok: false, raison: 'reseau_indisponible',
+                   transport: { message: (e && e.message) || null } }));
+  if (!v.ok) {
+    console.error('sbEcrireSoldePersonnage : ecriture refusee pour ' + nom, v.raison, v.transport);
+    return { ok: false, raison: v.raison, transport: v.transport };
+  }
+  // 2xx, mais PostgREST rend les lignes REELLEMENT touchees. Zero ligne = le solde a change
+  // entre la lecture et l'ecriture, ou le personnage n'existe pas. Dans les deux cas rien n'a
+  // ete ecrit, et c'est exactement ce qu'il faut dire a l'appelant.
+  const touchees = Array.isArray(v.donnees) ? v.donnees.length : 0;
+  if (touchees !== 1) {
+    return { ok: false, raison: 'solde_modifie_entre_temps', touchees };
+  }
+  return { ok: true, solde: Math.round(nouveauSolde) };
+}
+
+// LE SALAIRE N'ECRASE PLUS LE SOLDE DE CELUI QU'IL PAIE (chantier 5, 9 octobre 2026).
+// Voir sbEcrireSoldePersonnage ci-dessus pour le defaut exact. Elle rend desormais un verdict :
+// son appelant (plateau-politique.js, subvention ministerielle) ne peut plus annoncer
+// « Subvention accordee » apres avoir debite une caisse sans que personne n'ait rien recu.
 async function sbAppliquerSalaire(nomJoueur, montant) {
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=arg`);
-  const argActuel = rows?.[0]?.arg ?? 0;
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { arg: argActuel + montant });
+  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=arg`)
+    .catch(e => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!v.ok) {
+    console.error('sbAppliquerSalaire : solde de ' + nomJoueur + ' illisible (' + v.raison + ')');
+    return { ok: false, raison: v.raison };
+  }
+  const rows = v.donnees;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, raison: 'personnage_absent' };
+  }
+  const argActuel = rows[0].arg ?? 0;   // vide REEL : la colonne vaut NULL, zero est juste
+  return sbEcrireSoldePersonnage(nomJoueur, argActuel, argActuel + montant);
 }
 
 // Ajuste a distance la popularite d'UN AUTRE personnage (chantier "football live", 28 aout 2026) --
@@ -1326,10 +1433,25 @@ async function sbAjusterPopularite(nomJoueur, delta, cause) {
       p_inf: null, p_cause: cause || null });
 }
 
+// MEME MOTIF, MEME CORRECTION, ET LE DEBIT EST ENCORE PLUS SENSIBLE QUE LE CREDIT
+// (chantier 5, 9 octobre 2026). `rows?.[0]?.arg ?? 0` sur une lecture ratee faisait ecrire
+// `arg = 0 - montant`, c'est-a-dire un solde NEGATIF pour un joueur qui pouvait etre riche --
+// le jeu n'autorise nulle part une dette implicite de cette forme.
+//
+// AUCUN APPELANT AUJOURD'HUI. Corrigee comme sbResoudrePari, et pour la meme raison.
 async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}&select=arg`);
-  const argActuel = rows?.[0]?.arg ?? 0;
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}`, { arg: argActuel - montant });
+  const v = await sbGetVerdict('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}&select=arg`)
+    .catch(() => ({ ok: false, raison: 'reseau_indisponible' }));
+  if (!v.ok) {
+    console.error('sbAppliquerRachatEntreprise : solde de ' + nomAcheteur + ' illisible');
+    return { ok: false, raison: v.raison };
+  }
+  if (!Array.isArray(v.donnees) || v.donnees.length === 0) {
+    return { ok: false, raison: 'personnage_absent' };
+  }
+  const argActuel = v.donnees[0].arg ?? 0;
+  if (argActuel < montant) return { ok: false, raison: 'fonds_insuffisants', solde: argActuel };
+  return sbEcrireSoldePersonnage(nomAcheteur, argActuel, argActuel - montant);
 }
 
 async function sbGetJoueurClub(nomJoueur) {
