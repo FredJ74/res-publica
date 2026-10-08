@@ -475,8 +475,12 @@ def controles_du_monde(cat):
     # d'entree d'une recette communale), budget_municipal_cascade (la passe de minuit),
     # mairie_virement_batiment (le virement atomique du maire), entrepot_caisse_id (la SEULE
     # regle qui nomme la caisse d'un entrepot) et entrepot_caisse_mouvement (sa porte serveur).
-    att("signatures de fonction creees", cat.n_fonctions, 663)
-    att("noms de fonction distincts", len(cat.fonctions), 659,
+    # 664 le 8 octobre 2026 au soir : +1 au chantier 4G -- personnage_pays_declare(), la garde
+    # qui refuse un personnage dont le pays est absent, vide ou etranger au referentiel `villes`.
+    # Les onze fonctions de l'Assemblee qui portaient `DEFAULT 'republic'` ont ete DETRUITES ET
+    # RECREEES sans ce defaut : leur nombre ne bouge donc pas, seule la garde s'ajoute.
+    att("signatures de fonction creees", cat.n_fonctions, 664)
+    att("noms de fonction distincts", len(cat.fonctions), 660,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -487,7 +491,10 @@ def controles_du_monde(cat):
     # qu'aucune fonction ne pourra jamais s'en servir comme d'une bourse.
     att("contraintes posees", len(cat.contraintes), 438)
     att("index autonomes crees", len(cat.index), 147)
-    att("declencheurs crees", len(cat.triggers), 40)
+    # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
+    # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
+    # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
+    att("declencheurs crees", len(cat.triggers), 41)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.

@@ -1038,6 +1038,24 @@ BEGIN
 END;
 $function$;
 
+-- personnage_pays_declare() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnage_pays_declare()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF coalesce(btrim(NEW.country), '') = '' THEN
+    RAISE EXCEPTION 'pays_absent : un personnage doit appartenir a un empire declare';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.villes v WHERE v.pays = NEW.country) THEN
+    RAISE EXCEPTION 'pays_non_declare : % n''est pas un empire du referentiel', NEW.country;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
 -- personnages_archiver_suppression() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnages_archiver_suppression()
  RETURNS trigger

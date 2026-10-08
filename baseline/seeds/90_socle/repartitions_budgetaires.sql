@@ -13,18 +13,22 @@
 -- JUSTIFICATION DU SEED (chantier 2C)
 -- La cle de repartition budgetaire : quelle source verse quelle part a quel
 -- beneficiaire, et quel poste peut la modifier. C'est la REGLE, pas un
--- historique -- elle doit naitre avec le monde. Les seize lignes de Republia
--- sont celles des arbitrages du 8 octobre 2026 : dix caisses nationales
--- (neuf a 9 %, l'Assemblee a 19 %), Defense -> Caserne 65 %, Interieur ->
--- Douanes 35 %, QHS 0 % (beneficiaire reconnu de l'Interieur, sans
--- financement recurrent au demarrage -- a ne pas confondre avec une part non
--- arbitree), et les trois tribunaux a UN TIERS chacun. LA PART EST UNE
--- FRACTION EXACTE (part_numerateur sur part_denominateur) et non un
--- pourcentage : trois parts rigoureusement egales s'ecrivent 1/3, ce
--- qu'aucun pourcentage decimal ne sait faire sans creer une preference
--- permanente. Les trois autres empires n'ont AUCUNE ligne, et c'est voulu :
--- sans ligne declaree, la cascade ne verse rien plutot que d'appliquer la
--- cle de Republia.
+-- historique -- elle doit naitre avec le monde. Les vingt-cinq lignes de
+-- Republia sont celles des arbitrages du 8 octobre 2026. NEUF SONT
+-- MUNICIPALES, ajoutees par le chantier des budgets municipaux : trois
+-- villes x trois beneficiaires -- commissariat 40/100, entrepot 40/100, et
+-- la mairie elle-meme 20/100, dont la part est journalisee mais jamais
+-- transferee, comme celle du Ministere de l'Economie. Les seize autres sont
+-- nationales ou ministerielles : dix caisses nationales (neuf a 9 %,
+-- l'Assemblee a 19 %), Defense -> Caserne 65 %, Interieur -> Douanes 35 %,
+-- QHS 0 % (beneficiaire reconnu de l'Interieur, sans financement recurrent
+-- au demarrage -- a ne pas confondre avec une part non arbitree), et les
+-- trois tribunaux a UN TIERS chacun. LA PART EST UNE FRACTION EXACTE
+-- (part_numerateur sur part_denominateur) et non un pourcentage : trois
+-- parts rigoureusement egales s'ecrivent 1/3, ce qu'aucun pourcentage
+-- decimal ne sait faire sans creer une preference permanente. Les trois
+-- autres empires n'ont AUCUNE ligne, et c'est voulu : sans ligne declaree,
+-- la cascade ne verse rien plutot que d'appliquer la cle de Republia.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- ARBITRE LE 7 OCTOBRE 2026 : les trois tribunaux sont a PARTS EGALES au

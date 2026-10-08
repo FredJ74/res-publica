@@ -288,7 +288,7 @@ END;
 $function$;
 
 -- assemblee_cloturer_echues(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_cloturer_echues(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_cloturer_echues(p_country text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -973,7 +973,7 @@ END;
 $function$;
 
 -- assemblee_marquer_convocations_echues(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_marquer_convocations_echues(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_marquer_convocations_echues(p_country text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -1255,7 +1255,7 @@ AS $function$
 $function$;
 
 -- assemblee_occupation_sieges(text) -> TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean) | sql | SECURITY INVOKER
-CREATE OR REPLACE FUNCTION public.assemblee_occupation_sieges(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_occupation_sieges(p_country text)
  RETURNS TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean)
  LANGUAGE sql
  STABLE
@@ -1349,7 +1349,7 @@ END;
 $function$;
 
 -- assemblee_ouvrir_sessions_eligibles(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_ouvrir_sessions_eligibles(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_ouvrir_sessions_eligibles(p_country text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -1395,7 +1395,7 @@ AS $function$
 $function$;
 
 -- assemblee_peut_deposer(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_peut_deposer(p_nom text, p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_peut_deposer(p_nom text, p_country text)
  RETURNS boolean
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
@@ -1524,7 +1524,7 @@ END;
 $function$;
 
 -- assemblee_registre_execution(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_registre_execution(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_registre_execution(p_country text)
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
@@ -1667,7 +1667,7 @@ AS $function$
 $function$;
 
 -- assemblee_reveil_minuit(text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_reveil_minuit(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_reveil_minuit(p_country text)
  RETURNS integer
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -1756,7 +1756,7 @@ END;
 $function$;
 
 -- assemblee_sanctionner_lois_non_appliquees(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_sanctionner_lois_non_appliquees(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_sanctionner_lois_non_appliquees(p_country text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -1891,7 +1891,7 @@ AS $function$
 $function$;
 
 -- assemblee_tracer_vente_interdite(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_tracer_vente_interdite(p_commerce_id text, p_categorie text, p_libelle text, p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_tracer_vente_interdite(p_commerce_id text, p_categorie text, p_libelle text, p_country text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -1962,7 +1962,7 @@ END;
 $function$;
 
 -- assemblee_verifier_vente(jsonb,text) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_verifier_vente(p_objets jsonb, p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.assemblee_verifier_vente(p_objets jsonb, p_country text)
  RETURNS jsonb
  LANGUAGE sql
  STABLE
@@ -2083,7 +2083,7 @@ END;
 $function$;
 
 -- depute_presence(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.depute_presence(p_country text DEFAULT 'republic'::text)
+CREATE OR REPLACE FUNCTION public.depute_presence(p_country text)
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER

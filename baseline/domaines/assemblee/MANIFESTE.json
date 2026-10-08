@@ -1359,7 +1359,7 @@
  "droits_colonnes": [],
  "fichiers": {
   "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
-  "20_fonctions.sql": "80feb5e82c9f37f753f0551566624d7f",
+  "20_fonctions.sql": "1278ff22306b8e6fa6086c21a4d1ef99",
   "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
   "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
@@ -1394,7 +1394,7 @@
    "signature": "assemblee_cloturer(text)"
   },
   {
-   "empreinte": "1e282c9b183c98e9d4e6aa246ebb7c63",
+   "empreinte": "bffda19b211ff0a0f8c111537c695047",
    "security_definer": true,
    "signature": "assemblee_cloturer_echues(text)"
   },
@@ -1489,7 +1489,7 @@
    "signature": "assemblee_marchander(text,text,text,text,text)"
   },
   {
-   "empreinte": "64671bcc2c697c93bcbff03d2fad52ef",
+   "empreinte": "4e4b0aac5d6f0a5f93de52a743ee9296",
    "security_definer": true,
    "signature": "assemblee_marquer_convocations_echues(text)"
   },
@@ -1509,7 +1509,7 @@
    "signature": "assemblee_objet_vise(text,jsonb,jsonb)"
   },
   {
-   "empreinte": "4082c9625fcdea71dd4b574ba6fbdece",
+   "empreinte": "bd6e9d7eba000c25a5c60cdb47ab0bac",
    "security_definer": false,
    "signature": "assemblee_occupation_sieges(text)"
   },
@@ -1519,7 +1519,7 @@
    "signature": "assemblee_ouvrir_session(text)"
   },
   {
-   "empreinte": "636295d7927b80ad6c47446193706ddc",
+   "empreinte": "73ce608a1c148a48c4eff223bbf33283",
    "security_definer": true,
    "signature": "assemblee_ouvrir_sessions_eligibles(text)"
   },
@@ -1529,7 +1529,7 @@
    "signature": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)"
   },
   {
-   "empreinte": "89163ba53dc379570e46641ed9a5eae7",
+   "empreinte": "c3d9f7f0a8cf119fc98857d123e683eb",
    "security_definer": true,
    "signature": "assemblee_peut_deposer(text,text)"
   },
@@ -1554,7 +1554,7 @@
    "signature": "assemblee_proposition_immuable()"
   },
   {
-   "empreinte": "50d77fceb4c3f6ef6dde3a43229e31b2",
+   "empreinte": "e2aaac2a9646f72c20f9f717afa5b7cb",
    "security_definer": true,
    "signature": "assemblee_registre_execution(text)"
   },
@@ -1579,7 +1579,7 @@
    "signature": "assemblee_retirer_une_unite(jsonb,text)"
   },
   {
-   "empreinte": "e2e980c9a4bceac9cc1b0f0abbeeb772",
+   "empreinte": "e8efeee4f60ca6133c1b4c72c239846a",
    "security_definer": true,
    "signature": "assemblee_reveil_minuit(text)"
   },
@@ -1589,7 +1589,7 @@
    "signature": "assemblee_reveiller_depute(text,text,text)"
   },
   {
-   "empreinte": "d60f690891b0691f74e477e9cda47b04",
+   "empreinte": "766a141d0a926dcea327b4347f26afac",
    "security_definer": true,
    "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
   },
@@ -1614,7 +1614,7 @@
    "signature": "assemblee_taux_neutralisation(text,jsonb,text)"
   },
   {
-   "empreinte": "fe7cdf6fe4a1bd866459032dae3a0147",
+   "empreinte": "46d42f428af9dca322803ec7447f8ec7",
    "security_definer": true,
    "signature": "assemblee_tracer_vente_interdite(text,text,text,text)"
   },
@@ -1624,7 +1624,7 @@
    "signature": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)"
   },
   {
-   "empreinte": "63a8d34fc88f9a3459caaaf652df84a9",
+   "empreinte": "e711e25044d41cd0f8e53ececea71dbd",
    "security_definer": false,
    "signature": "assemblee_verifier_vente(jsonb,text)"
   },
@@ -1639,7 +1639,7 @@
    "signature": "assemblee_voter(text,text,text)"
   },
   {
-   "empreinte": "ed7d00e61a7076a613865bccc5de470d",
+   "empreinte": "b6127bda0dc6041e7c2edfef6ff55c27",
    "security_definer": true,
    "signature": "depute_presence(text)"
   }

@@ -21,12 +21,21 @@ tout a été appliqué, dans l'ordre, et mesuré après.
 
 ## Ce qu'elles contiennent
 
+**Ce tableau ne décrit que le cycle de l'autorité** (registre 540 à 543) et la
+dernière entrée en date. Les 21 fichiers de ce répertoire ne sont donc pas tous
+listés ici : les migrations des chantiers 4B à 4F et des budgets municipaux
+portent leur résumé **dans leur propre en-tête**, qui est la source à lire. Le
+tableau n'a jamais été complété au fil de l'eau ; c'est une lacune
+documentaire, pas une incertitude sur ce qui a été appliqué — le registre
+Supabase, lui, est complet.
+
 | Fichier | Registre | Effet mesuré après application |
 |---|---|---|
 | `20261005214500_autorite_defauts_fermes.sql` | 540 | privilèges de maintenance aux rôles clients 547 → 0 · `UPDATE` de séquence 40 → 0 · défaut d'une table neuve réduit à `SELECT` |
 | `20261005214600_autorite_socle_acteur_identifie.sql` | 541 | `acteur_identifie()` créée · tables sans RLS 27 → 0 · policies 213 → 284 (28 permissives retirées, 99 posées) · droits d'écriture clients 233 → 132 |
 | `20261006013000_autorite_rpc_sans_anon.sql` | 542 | fonctions mutantes appelables par `anon` 34 → 0 |
 | `20261006160000_autorite_declencheurs_public.sql` | 543 | fonctions de déclencheur appelables par un rôle client 24 → 0 |
+| `20261008214206_pays_declare_et_retrait_des_defauts_republic.sql` | 560 | `personnage_pays_declare()` + son déclencheur créés · `p_country text DEFAULT 'republic'` 11 → 0 · signatures 663 → 664 · droits EXECUTE des onze **restitués à l'identique**, ni perdu ni apparu · 3 commentaires reposés · `authenticated` sur les 7 fonctions de cron 7 → 0 |
 
 La quatrième répare la première. La migration 1 avait révoqué `EXECUTE` sur ces
 24 fonctions « FROM anon, authenticated » en laissant le `GRANT` à **PUBLIC**,

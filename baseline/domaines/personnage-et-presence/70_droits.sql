@@ -69,6 +69,8 @@ GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,text,integer,in
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,text,integer,integer,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,text,integer,integer,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,text,integer,integer,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.personnage_pays_declare() TO postgres;
+GRANT EXECUTE ON FUNCTION public.personnage_pays_declare() TO service_role;
 GRANT EXECUTE ON FUNCTION public.personnages_archiver_suppression() TO postgres;
 GRANT EXECUTE ON FUNCTION public.personnages_archiver_suppression() TO service_role;
 GRANT EXECUTE ON FUNCTION public.personnages_attester_poste() TO postgres;

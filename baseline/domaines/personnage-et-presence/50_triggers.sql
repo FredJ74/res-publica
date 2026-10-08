@@ -13,6 +13,7 @@
 CREATE TRIGGER trg_personnages_vue_inserer INSTEAD OF INSERT ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_inserer();
 CREATE TRIGGER trg_personnages_vue_modifier INSTEAD OF UPDATE ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_modifier();
 CREATE TRIGGER trg_personnages_vue_supprimer INSTEAD OF DELETE ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_supprimer();
+CREATE TRIGGER trg_personnage_pays_declare BEFORE INSERT OR UPDATE OF country ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnage_pays_declare();
 CREATE TRIGGER trg_personnages_archiver_suppression BEFORE DELETE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_archiver_suppression();
 CREATE TRIGGER trg_personnages_attester_poste BEFORE INSERT OR UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_attester_poste();
 CREATE TRIGGER trg_personnages_borner_jour BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_borner_jour();

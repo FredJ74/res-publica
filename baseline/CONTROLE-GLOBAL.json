@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-08T09:44:06 Europe/Paris",
- "empreintes_relevees_le": "2026-10-08T09:44:06 Europe/Paris",
+ "releve_le": "2026-10-08T23:49:50 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-08T23:49:50 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 260,
@@ -14,14 +14,14 @@
   "index": 414,
   "index_portes": 267,
   "index_autonomes": 147,
-  "fonctions": 663,
-  "triggers": 40,
+  "fonctions": 664,
+  "triggers": 41,
   "policies": 285,
   "rls_actives": 260,
   "droits_relations": 944,
-  "droits_fonctions": 1842,
+  "droits_fonctions": 1844,
   "droits_colonnes": 20,
-  "commentaires": 205
+  "commentaires": 206
  },
  "_droits_relations_detail": "928 = 818 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les 102 lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
  "ecartes": {
@@ -54,13 +54,13 @@
   "contraintes": 438,
   "index_portes": 265,
   "index_autonomes": 147,
-  "fonctions": 663,
-  "triggers": 40,
+  "fonctions": 664,
+  "triggers": 41,
   "policies": 285,
   "rls_actives": 254,
-  "droits": 2774,
+  "droits": 2776,
   "droits_colonnes": 20,
-  "commentaires": 201
+  "commentaires": 202
  },
  "_colonnes_calcul": "2020 = 2148 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
  "_droits_calcul": "2774 = 944 droits de relation + 1842 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
@@ -70,14 +70,14 @@
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
   "contraintes": "2315f05519d24847960b0f7437086b6d",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "16461056a99a592a9faafa6c965f2562",
+  "fonctions": "9feffba0d8ac348c797a605c306abc49",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
-  "triggers": "019505ce88c072c754432d39d7505d78",
+  "triggers": "5cf4e2d0f5165aa3f6310aebc9359b45",
   "policies": "73ef7d488c61397872390ddec4fa7b20",
   "policies_avec_roles": "d236b19fe59b93ce8913cec91c33740a",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "e9799ed4c49a4cbca1fed64b2b1eac72",
-  "commentaires": "35b03bfed851d7ee985aafd462b26905",
+  "droits": "e35c498b840c91b2fa4b7044c2ebcdfd",
+  "commentaires": "c34d5c687ac9a6f09cd25f87f5ff5ecd",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
@@ -86,7 +86,7 @@
  },
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 7 octobre 2026, apres les SIX migrations des chantiers 4E et 4F.",
-  "fonctions_security_definer": 552,
+  "fonctions_security_definer": 553,
   "fonctions_security_invoker": 111,
   "tables_rls_active_sans_policy": 101,
   "tables_sans_rls": 0,
@@ -205,12 +205,12 @@
  },
  "registre": {
   "_commentaire": "Point de coupe du 7 octobre 2026, apres les SIX migrations des chantiers 4E et 4F. Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction, et cinq d'entre eux commencent par 20261008 -- voir _horodatage.\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers",
-  "entrees": 559,
-  "derniere_version": "20261008072422",
+  "entrees": 560,
+  "derniere_version": "20261008214206",
   "empreinte_versions_et_noms": "788e54435b364912b51399cdf2c5f0d2",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0",
   "_empreinte_contenu_2d": "Non remesuree : elle porte sur l'archive 2D, qui est CLOSE. verifier-archive-registre.py la verifie et passe.",
-  "empreinte": "58a9bc28c1b6fea99d4e5a1637f787f8"
+  "empreinte": "32130dda05bd648acfbf9375848023a8"
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -330,5 +330,21 @@
   "le_piege_evite_a_l_ecriture_pour_la_premiere_fois": "budget_part_totale est nee avec ses TROIS REVOKE (PUBLIC, anon, authenticated). Le diff de 70_droits.sql le confirme : elle ne porte que postgres et service_role. C'est la sixieme occurrence possible du piege des privileges par defaut Supabase, et la premiere ou il est evite a la redaction plutot que rattrape par la relecture du diff.",
   "aucun_solde_touche": "L'empreinte des 147 caisses est identique avant et apres l'application : 7f32b55325c5895b0a16a2cd9dab82cf, 1 223 164 FR au total. Le journal des versements est reste vide : aucun versement retroactif. La migration ne contient aucun ordre d'ecriture sur caisses_batiments -- ni INSERT, ni UPDATE, ni DELETE, ni appel a une primitive de mouvement."
  },
- "_chantier_municipal": "RELEVE DU 8 OCTOBRE 2026, apres les DEUX migrations du chantier des budgets municipaux (registre 20261008071350 et 20261008072422, portant le registre a 559 entrees). Ce que les chiffres doivent montrer, et rien d'autre : +1 table (recettes_municipales, le COMPTEUR des recettes du jour -- une mesure, pas une tresorerie : son CHECK montant > 0 l'interdit), +5 fonctions (recette_municipale, budget_municipal_cascade, mairie_virement_batiment, entrepot_caisse_id, entrepot_caisse_mouvement), +5 contraintes (la cle primaire a quatre colonnes de la nouvelle table et ses quatre CHECK), +1 policy (lecture publique assumee des recettes d'une commune, qui sont une donnee de finances publiques comme ses taux le sont deja), +1 RLS active, +6 colonnes et +7 commentaires. Si un diff ulterieur montrait autre chose, c'est le diff qu'il faudrait expliquer, pas ce releve."
+ "_chantier_municipal": "RELEVE DU 8 OCTOBRE 2026, apres les DEUX migrations du chantier des budgets municipaux (registre 20261008071350 et 20261008072422, portant le registre a 559 entrees). Ce que les chiffres doivent montrer, et rien d'autre : +1 table (recettes_municipales, le COMPTEUR des recettes du jour -- une mesure, pas une tresorerie : son CHECK montant > 0 l'interdit), +5 fonctions (recette_municipale, budget_municipal_cascade, mairie_virement_batiment, entrepot_caisse_id, entrepot_caisse_mouvement), +5 contraintes (la cle primaire a quatre colonnes de la nouvelle table et ses quatre CHECK), +1 policy (lecture publique assumee des recettes d'une commune, qui sont une donnee de finances publiques comme ses taux le sont deja), +1 RLS active, +6 colonnes et +7 commentaires. Si un diff ulterieur montrait autre chose, c'est le diff qu'il faudrait expliquer, pas ce releve.",
+ "_chantier_4g": {
+  "_commentaire": "Releve du 8 octobre 2026 au soir, apres la migration 20261008214206 pays_declare_et_retrait_des_defauts_republic. Chantier 4G : Republia cesse d'etre le repli implicite d'un pays absent, vide ou inconnu.",
+  "migration_appliquee": "pays_declare_et_retrait_des_defauts_republic (registre 560)",
+  "ce_qui_a_change": {
+   "fonctions": "663 -> 664 : personnage_pays_declare() ajoutee. Les onze fonctions de l'Assemblee sont DETRUITES ET RECREEES sans leur defaut, donc leur nombre ne bouge pas.",
+   "triggers": "40 -> 41 : trg_personnage_pays_declare, BEFORE INSERT OR UPDATE OF country sur personnages_donnees. Pose sur la TABLE et non sur la vue, donc il couvre aussi service_role et les fonctions SECURITY DEFINER.",
+   "commentaires": "205 -> 206 : celui de la garde. Les trois commentaires des onze fonctions refaites sont REPOSES a l'identique -- un DROP les perd, et le baseline aurait compte trois commentaires de moins sans que rien ne bronche.",
+   "droits_fonctions": "1842 -> 1844 : l'ACL de la garde apres ses trois REVOKE (PUBLIC, anon, authenticated), soit postgres et service_role.",
+   "defauts_republic": "11 -> 0. Les onze portaient p_country text DEFAULT 'republic' : dix assemblee_* et depute_presence. Un appelant qui oubliait le pays se voyait servir Republia en silence.",
+   "fonctions_security_definer": "552 -> 553 : la garde en est une, comme les onze refaites."
+  },
+  "ce_qui_n_a_pas_change": "Aucune donnee. Les neuf tables qui portent de l'argent ont une empreinte md5 identique avant et apres : caisses_batiments, comptes_bancaires, budgets_nationaux, budgets_municipaux, budgets_clubs, entreprises, batiments_etat, terrains_etat, villes. Ni table, ni colonne, ni contrainte, ni index, ni policy, ni vue ne bouge. Les 8 personnages de la beta sont intacts et aucun n'a ete mis dehors par la garde : zero porte un pays non declare.",
+  "ce_que_le_banc_a_attrape": "La premiere version retirait les defauts par CREATE OR REPLACE FUNCTION. PostgreSQL le refuse -- 42P13, cannot remove parameter defaults from existing function. CREATE OR REPLACE peut AJOUTER un defaut et le CHANGER, jamais le RETIRER. Il a donc fallu DROP puis CREATE, ce qui ne transporte ni les droits ni le commentaire.",
+  "le_piege_du_privilege_par_defaut": "pg_default_acl declare, pour les fonctions creees par postgres dans le schema public, {postgres=X, authenticated=X, service_role=X}. Une fonction RECREEE arrive donc ouverte a `authenticated` -- or sept des onze sont des fonctions de cron que seul le serveur doit appeler. Le banc l'a vu : 0 droit perdu mais 7 APPARUS. La migration retire desormais tout role que la recreation introduit et qui n'etait pas memorise, puis repose exactement ceux qui l'etaient. Verifie apres application : 0 droit `authenticated` sur ces sept fonctions.",
+  "_lecon_de_methode": "pglast valide la grammaire SQL de l'ENVELOPPE, pas l'interieur d'un bloc DO $$ ... $$. Une grammaire validee localement ne dit donc rien du PL/pgSQL qu'elle contient : seul un banc en transaction annulee le dit. La premiere version de cette migration etait grammaticalement valide et fonctionnellement impossible."
+ }
 }
