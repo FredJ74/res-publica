@@ -121,7 +121,7 @@ Conséquence du choix : si c'est un comptoir, ces caisses sont légitimes et
 doivent recevoir un financement ; si c'est un artefact, elles doivent être
 supprimées, et il faut d'abord vérifier qu'elles ne portent pas d'argent.
 
-### Q2 — Quelles sont les recettes fiscales de Républia : 24 600 ou 52 200 FR ?
+### ~~Q2~~ — TRANCHÉE LE 8 OCTOBRE 2026 : **24 600 FR/jour est la valeur voulue**
 
 `RECETTES_FISCALES_JOUR_SERVEUR` déclare pour Républia
 `{ capitale: 18000, ville_a: 2400, ville_b: 4200 }`, soit **24 600 FR/jour**.
@@ -134,13 +134,21 @@ Deux faits rendent ce chiffre suspect :
   la population de Républia produirait. Le chiffre semble avoir été recopié
   d'un empire à l'autre.
 
-C'est un paramètre économique : je ne le corrige pas, et je ne choisis pas entre
-les deux. La question est : **quelle est la recette fiscale quotidienne de
-Républia, et de chacune de ses trois villes ?**
+**Arbitrage de Fred, 8 octobre 2026 : les 24 600 FR/jour sont la valeur voulue.**
+Ce montant est une décision de game design, pas une erreur de recopie. **Ne pas
+le recalculer depuis la population ; 52 200 FR n'est pas la valeur à utiliser.**
 
-Elle est d'autant plus urgente que le chantier municipal va asseoir la
-redistribution des mairies sur les recettes du jour : une assiette fausse
-donnerait trois caisses municipales fausses, proprement réparties.
+Le rapprochement avec la ventilation d'El Estado était donc une coïncidence de
+lecture, pas une preuve. Ce qui restait de ce constat — la cohérence entre
+`CITY_POPULATION` et le barème — est une question de modèle économique, pas un
+défaut à corriger : si les deux doivent concorder un jour, c'est le barème ou la
+population qu'on bougera, consciemment.
+
+Conséquence pour le chantier municipal, maintenant clos : ces 24 600 FR partent
+**intégralement au circuit national** et ne touchent aucune caisse municipale.
+L'assiette municipale, elle, est la somme des recettes du jour mesurées par
+`recettes_municipales` — taxe foncière, loyers, taxe locale sur les
+transactions. Les deux circuits ne se croisent pas.
 
 ### Q3 — Les trois autres empires ont-ils un état fiscal ?
 
