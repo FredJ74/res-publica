@@ -21,6 +21,7 @@ qui est une décision de game design (posée en question, jamais inventée).
 | `AUDIT-DISK-IO.md` | performance | suspects classés A/B/C, avec **la requête de mesure** de chacun. Aucune optimisation avant mesure |
 | `AUDIT-EMPIRES-4G.md` | chantier 4G | ce qui est déjà fail-closed hors Républia, et les trois questions de game design qui bloquent le reste |
 | `AUDIT-FALLBACKS-REPUBLIC.md` | chantier 4G | les **287 replis implicites** vers Républia, classés A–E — et pourquoi 253 d'entre eux se corrigent par **deux gardes à la racine** |
+| `AUDIT-PERFORMANCE-MESUREE.md` | performance | ce que la base mesure, sur 4,5 mois : le suspect « index absents » est **infondé** (tables de 8 lignes), le vrai sujet est la **fréquence des sondages** et les 81 436 `UPDATE` de `personnages_donnees` |
 | `AUDIT-PAYLOAD-VERCEL.md` | infrastructure | ce qu'un déploiement transporte vraiment : **400,2 → 310,0 Mo**, les assets classés A–F, et les 75,9 Mo de PNG que **la base** empêche de récupérer |
 
 ## Les tableaux d'arbitrage de l'état initial
