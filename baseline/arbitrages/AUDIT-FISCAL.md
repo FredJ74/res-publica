@@ -4,6 +4,17 @@
 > 641 corps de fonction PostgreSQL, `api/cron-minuit.js`, et les modules clients.
 > Aucune écriture en base. Aucune intention n'est prise pour un fait : chaque
 > affirmation ci-dessous cite la fonction ou la ligne qui l'établit.
+>
+> ## ⚠ CE DOCUMENT EST UN INSTANTANÉ DU 5 OCTOBRE, ET LE CIRCUIT MUNICIPAL A CHANGÉ DEPUIS
+>
+> Les observations ci-dessous ne sont **pas** réécrites : elles disent ce que le
+> code faisait ce jour-là, et c'est leur valeur. Trois d'entre elles sont
+> aujourd'hui **périmées**, et sont signalées à leur place par un « ⟶ 8 oct. ».
+> Ce qui a changé, en une phrase : le chantier des budgets municipaux
+> (8 octobre 2026) a supprimé les clés `caisse` et `allocation` de
+> `budgets_municipaux`, retiré la distribution cliente, et déplacé le circuit au
+> serveur avec **trois** bénéficiaires et non six. L'état courant est décrit dans
+> [`AUDIT-MUNICIPAL.md`](AUDIT-MUNICIPAL.md) §8.
 
 ## Le circuit, tel qu'il tourne
 
@@ -48,6 +59,13 @@ RÉPARTITION MUNICIPALE — distribuerBudgetMunicipalVersBatiments(pays, ville)
            commissariat 20 · dispensaire 20 · multimodal 15 · stade 15 · marché 15 · tribunal 15
            ⚠ CLIENT SEULEMENT : aucun miroir serveur. Ne se déclenche que si un
              joueur de cette ville passe minuit en ligne.
+           ⟶ 8 oct. PÉRIMÉ. Le serveur fait foi : budget_municipal_cascade, sous
+             la tâche 'budgets_municipaux' du cron. Base = recettes du jour
+             mesurées par recettes_municipales. TROIS bénéficiaires, pas six :
+             commissariat 40 % · entrepôt municipal 40 % · mairie 20 % (conservée).
+             Le tribunal relevait déjà du min_just depuis le 4F — c'était un doublon.
+             Multimodal, stade, marché et dispensaire gardent leur dotation de
+             départ et s'autofinancent ensuite (arbitrage du 8 octobre).
 
 DÉPENSES AUTOMATIQUES
 ├── virement gouvernement → caserne       virementCaserneServeur() — cron, chaque nuit
@@ -116,12 +134,12 @@ est fiscalement centralisé sur sa capitale.
 | `tauxFoncier` | **ACTIF** | lu chaque nuit par `preleverTaxeFonciere()` (cron), défaut 0,05. **Correction de mon rapport précédent** : aucune fonction SQL ne le lit, mais le cron si |
 | `reserveJour` | **ACTIF, compte de transit** | crédité par la taxe et le cron, remis à 0 chaque nuit par `distribuerFiscaliteServeur` |
 | `repartition` (national) | **ACTIF** | lu par `distribuerFiscaliteServeur`, autorité verrouillée par `budget_national_epingler` |
-| `allocation` (municipal) | **ACTIF MAIS CLIENT SEULEMENT** | `distribuerBudgetMunicipalVersBatiments`, appelée depuis `plateau-personnage.js`. **Aucun miroir serveur** : une ville sans joueur connecté à minuit ne distribue pas |
+| `allocation` (municipal) | **ACTIF MAIS CLIENT SEULEMENT** — ⟶ 8 oct. **SUPPRIMÉ** | `distribuerBudgetMunicipalVersBatiments`, appelée depuis `plateau-personnage.js`. **Aucun miroir serveur** : une ville sans joueur connecté à minuit ne distribue pas. **La clé et la fonction ont été supprimées le 8 octobre 2026** : la règle canonique est `repartitions_budgetaires`, appliquée par le serveur |
 | `virementJournalierCaserne` | **ACTIF** | `caserne_virement_journalier_fixer` (configure) + `virementCaserneServeur` (exécute), défaut 0 |
 | Indemnités de député | **ACTIF** | `assemblee_verser_indemnite`, 250 FR, plafonné par la caisse |
 | Part du notaire | **ACTIF** | cron, sur les successions, écriture vérifiée |
 | Solde des soldats | **MORT, vidé exprès** | `payerSoldeServeur` ne fait plus que `return;` — arbitrage du 18 septembre 2026 |
-| Subvention municipale aux clubs | **BRANCHÉ SUR UNE CLÉ INEXISTANTE** | lit `budgetMairie.allocation.associatif`, or `associatif` vit dans `data.indices`, pas dans `data.allocation` → toujours `undefined` → **montant toujours 0**. C'est pourquoi les 12 caisses de club sont à 0 et `derniereSubventionJour` n'avance jamais |
+| Subvention municipale aux clubs | **BRANCHÉ SUR UNE CLÉ INEXISTANTE** — ⟶ 8 oct. **CLOS** | lit `budgetMairie.allocation.associatif`, or `associatif` vit dans `data.indices`, pas dans `data.allocation` → toujours `undefined` → **montant toujours 0**. C'est pourquoi les 12 caisses de club sont à 0 et `derniereSubventionJour` n'avance jamais. **Le 8 octobre, `allocation` disparaît** : le montant est désormais explicitement nul dans le code, avec sa raison écrite. Subventionner les clubs serait une ligne de `repartitions_budgetaires` — donc un arbitrage, pas un correctif |
 | `contributions_piete` | **ACTIF, CLIENT SEULEMENT** | écrite par `sbInsert` depuis `supabase.js` ; l'indice de piété en est **dérivé** (`recalculerPieteVille`). **Correction** : aucun écrivain SQL, mais la table n'est pas morte |
 | `fiscalite_journal` | **MORTE** | aucun lecteur, aucun écrivain — ni SQL, ni client, ni cron. Aucune occurrence dans le dépôt |
 | `dotations_amorcage_caisses` | **JOURNAL CLOS** | 159 lignes du 11 septembre 2026, qui ont porté 103 caisses à exactement 200. Dit ce qui *a été* versé, jamais ce qui *doit* l'être |
@@ -184,7 +202,7 @@ Huit caisses : `commissariat`, `commissariat-local`, `tribunal`, `tribunal-local
 
 | | |
 |---|---|
-| **Marchés** | **Pas une double comptabilité.** La caisse `marche_<ville>` est l'équipement municipal, alimenté par la part `marche` de la répartition municipale. L'entreprise `marche-republic-<ville>-marche` est le **fonds de commerce des étals**. Deux fonctions économiques distinctes, deux caisses légitimes |
+| **Marchés** | **Pas une double comptabilité.** La caisse `marche_<ville>` est l'équipement municipal, alimenté par la part `marche` de la répartition municipale. L'entreprise `marche-republic-<ville>-marche` est le **fonds de commerce des étals**. Deux fonctions économiques distinctes, deux caisses légitimes. ⟶ 8 oct. : la conclusion tient, sa cause change — il n'y a plus de « part `marche` ». Le marché garde sa dotation de départ et **s'autofinance** par son activité |
 | **Buvette** | **Vestige daté.** Le code le dit : « *Buvette : pas de caisse autonome (A3, lot finition financière locale, 17 août 2026) — affiche le solde de la caisse du stade de cette ville* ». Ses 88 FR sont l'état d'avant ce lot |
 | **Cible** | Retirer `stade-buvette`. Laisser les marchés en place |
 

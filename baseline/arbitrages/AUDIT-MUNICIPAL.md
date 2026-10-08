@@ -405,17 +405,36 @@ dedans ; et la passe de livraisons repliait sur `{ caisse: 8500 }`, c'est-à-dir
 **fabriquait 8 500 FR** chaque fois que le blob n'avait pas la clé. Les deux
 passent par `entrepot_caisse_mouvement`, en delta et non en valeur absolue.
 
-### 8d. Ce que les quatre équipements perdent, et où ils le retrouvent
+### 8d. Les quatre équipements : dotation de départ, puis autofinancement
+
+> **Arbitrage de Fred, 8 octobre 2026.** Le centre multimodal, le stade, le
+> marché et le dispensaire reçoivent une **dotation de départ** à
+> l'initialisation du monde, puis **aucun financement municipal récurrent
+> automatique**. Ils doivent s'autofinancer par leurs propres recettes et
+> mécaniques. Le maire n'a **aucune obligation** de financement récurrent envers
+> eux.
 
 L'ancienne clé `allocation` finançait six bénéficiaires : commissariat 20,
 multimodal 15, stade 15, marché 15, dispensaire 20, tribunal 15. Le tribunal
 était un **doublon** — le Ministère de la Justice le finance depuis le chantier
-4F, à un tiers chacun. Les quatre autres passent d'un financement **récurrent
-automatique** à un financement **discrétionnaire par le maire**, depuis les 20 %
-qu'il conserve : l'écran « Financer un bâtiment communal » existe déjà et propose
-exactement ces catégories, et il est devenu atomique dans ce lot
-(`mairie_virement_batiment`). Ce n'est donc pas une suppression de financement,
-c'est un déplacement de la décision vers l'élu.
+4F, à un tiers chacun. Les quatre autres sortent donc du financement récurrent,
+et la répartition municipale automatique s'arrête à trois bénéficiaires :
+commissariat 40 %, entrepôt municipal 40 %, mairie 20 %.
+
+**Ce n'est pas « le maire les financera à la place ».** J'avais d'abord écrit que
+ces quatre-là passaient à un financement discrétionnaire depuis les 20 % de la
+mairie ; l'arbitrage le corrige. Un virement ponctuel reste **possible** quand
+une mécanique générique existante l'autorise — l'écran « Financer un bâtiment
+communal » propose exactement ces catégories, et il est devenu atomique dans ce
+lot (`mairie_virement_batiment`) — mais cette possibilité est **distincte de leur
+financement structurel**, qui est leur propre activité. Le maire peut aider ; il
+ne le doit pas.
+
+**Rien à migrer : la base y était déjà.** Les neuf lignes municipales de
+`repartitions_budgetaires` ne nomment que le commissariat, l'entrepôt et la
+mairie, et les quatre équipements ne figurent comme bénéficiaires **nulle part**
+dans la table. Leurs caisses existent avec leur dotation d'amorçage. Seule la
+documentation prétendait encore le contraire ; elle est corrigée.
 
 Le **soutien municipal ad hoc** de l'entrepôt par sa ville est supprimé pour la
 même raison : c'était une seconde règle de financement, décidée par le cron et

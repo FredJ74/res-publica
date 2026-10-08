@@ -48,6 +48,19 @@ VILLES = {"capitale": "Luthecia", "ville_a": "Port-Sainte-Marie", "ville_b": "Mo
 
 # Valeurs DEJA ARBITREES par le game designer. Elles sont preremplies ; tout le
 # reste est laisse vide. Aucune autre valeur n'est proposee.
+REMARQUE_ENTREPOT = (
+    "LA CAISSE A DEMENAGE LE 8 OCTOBRE 2026, ET LE MONTANT ARBITRE NE CHANGE PAS. L'audit du 5 "
+    "octobre avait tranche que la tresorerie de l'entrepot vivait dans le blob de batiments_etat, "
+    "et que le motif `entrepot` de caisses_autorites etait INERTE faute d'appelant. Les deux "
+    "constats etaient justes a cette date ; le chantier des budgets municipaux les a rendus faux. "
+    "La tresorerie est desormais une VRAIE caisse, caisses_batiments.<pays>_entrepot_<ville>, "
+    "pilotable par les primitives verrouillees, journalisee, et beneficiaire declare de 40 % des "
+    "recettes municipales du jour. Le motif `entrepot` (directeur_entrepot, maire_adjoint) est "
+    "devenu vivant. DOTATION D'AMORCAGE DE 5 000 FR, inchangee depuis l'arbitrage du 5 octobre "
+    "2026 : les entrepots amorcent la chaine economique, qui prend ensuite le relais. C'est aussi "
+    "le fonds de roulement que entrepot_reverser conserve (c_roulement), ce qui rend les deux "
+    "chiffres coherents par construction.")
+
 DECIDE = {
     # Dotations CANONIQUES D'AMORCAGE, arbitrees le 5 octobre 2026. Ce ne sont pas
     # des budgets durables : ensuite, l'economie produit les recettes publiques et
@@ -85,9 +98,14 @@ DECIDE = {
     ("Municipalites", "republic_mairie-capitale"): ("5000", None),
     ("Municipalites", "republic_mairie_ville_a"): ("5000", None),
     ("Municipalites", "republic_mairie_ville_b"): ("5000", None),
-    ("Entrepots", "capitale/entrepot-logistique-luthecia#entrepot"): ("5000", None),
-    ("Entrepots", "ville_a/entrepot-logistique-psm#entrepot"): ("5000", None),
-    ("Entrepots", "ville_b/entrepot-logistique-montrouge#entrepot"): ("5000", None),
+    # LA CAISSE D'ENTREPOT A DEMENAGE LE 8 OCTOBRE 2026, et le montant arbitre ne
+    # change pas. L'adresse etait un volet de blob -- batiments_etat.data.entrepot.caisse,
+    # d'ou la forme « <ville>/<batiment>#entrepot » -- elle est maintenant une vraie
+    # caisse de caisses_batiments. Le « # » excluait d'ailleurs ces lignes du seed :
+    # seeds.py ne retient que les identifiants sans « # » ni « . ».
+    ("Entrepots", "republic_entrepot_capitale"): ("5000", REMARQUE_ENTREPOT),
+    ("Entrepots", "republic_entrepot_ville_a"): ("5000", REMARQUE_ENTREPOT),
+    ("Entrepots", "republic_entrepot_ville_b"): ("5000", REMARQUE_ENTREPOT),
 }
 
 # Montant complementaire attache a certaines cles de DECIDE : quand la remarque
@@ -115,6 +133,21 @@ JUSTIFICATION_PLANCHER = (
     "200 FR. Une caisse d'equipement n'a pas besoin d'une reserve : il lui faut "
     "exister et ne pas etre a zero le premier jour. Son circuit l'alimente ensuite "
     "-- repartition nocturne, distribution municipale, ou sa propre activite.")
+
+# ARBITRAGE DU 8 OCTOBRE 2026, et il ne concerne QUE quatre familles. Il serait faux
+# de l'ajouter au plancher generique ci-dessus : le commissariat est lui aussi dote au
+# plancher, et il recoit bel et bien 40 % de la repartition municipale. Seules les
+# caisses de ces quatre equipements portent cette note.
+EQUIPEMENTS_SANS_RECURRENT = ("multinodal", "multimodal", "stade", "marche", "dispensaire")
+ARBITRAGE_SANS_RECURRENT = (
+    " ARBITRAGE DU 8 OCTOBRE 2026 -- DOTATION DE DEPART, PUIS AUCUN FINANCEMENT MUNICIPAL "
+    "RECURRENT. Le centre multimodal, le stade, le marche et le dispensaire recoivent cette "
+    "dotation a l'initialisation du monde, et rien ensuite : ils doivent s'autofinancer par "
+    "leurs propres recettes et mecaniques. La repartition municipale automatique ne connait "
+    "que trois beneficiaires -- commissariat 40 %, entrepot municipal 40 %, mairie 20 % -- et "
+    "le maire n'a AUCUNE obligation de financement recurrent envers ces quatre equipements. Un "
+    "virement ponctuel depuis la mairie, quand une mecanique generique existante l'autorise, "
+    "reste DISTINCT de leur financement structurel.")
 
 # Familles dont la consequence de jeu est REELLEMENT differente : elles ne
 # recoivent pas le plancher, et aucun montant n'est invente a leur place.
@@ -349,7 +382,7 @@ ROLES = {
    'oui',
    "CAISSE ACTIVE DU LIEU MUNICIPAL, tranche par l'audit. Ce n'est PAS unedouble"
       "comptabilite avec l'entreprise `marche-republic-capitale-marche` : lacaisse"
-      "du lieu recoit la part `marche` de la repartition municipale,l'entreprise"
+      "du lieu est alimentee par l'activite du marche,l'entreprise"
       'est le fonds de commerce des etals. Deux fonctions economiquesdistinctes,'
       'deux caisses legitimes.'),
  'marche_ville_b': ('Commerce public', 'Marche de Montrouge',
@@ -495,7 +528,7 @@ ROLES = {
    "CAISSE PROPRE DU MAIRE, tranche par l'audit : ce n'est PAS un doublon du"
       "compte de collecte budgets_municipaux, c'est l'etape AVAL d'un autre"
       'circuit. Le compte de collecte recoit les recettes LOCALES et les'
-      'redistribue aux six equipements ; cette caisse-ci recoit une part de la'
+      'redistribue ; cette caisse-ci recoit une part de la'
       'repartition NATIONALE nocturne. Elle recoit 12 % par defaut (part `mairie`).'
       'ASYMETRIE A SIGNALER : la table de repartition nationale'
       '(CAISSE_PAR_POSTE_BUDGET_SERVEUR) ne connait que `mairie-capitale`.'
@@ -509,7 +542,7 @@ ROLES = {
    "CAISSE PROPRE DU MAIRE, tranche par l'audit : ce n'est PAS un doublon du"
       "compte de collecte budgets_municipaux, c'est l'etape AVAL d'un autre"
       'circuit. Le compte de collecte recoit les recettes LOCALES et les'
-      'redistribue aux six equipements ; cette caisse-ci recoit une part de la'
+      'redistribue ; cette caisse-ci recoit une part de la'
       'repartition NATIONALE nocturne. Elle ne recoit RIEN de la repartition'
       'nationale. ASYMETRIE A SIGNALER : la table de repartition nationale'
       '(CAISSE_PAR_POSTE_BUDGET_SERVEUR) ne connait que `mairie-capitale`.'
@@ -523,7 +556,7 @@ ROLES = {
    "CAISSE PROPRE DU MAIRE, tranche par l'audit : ce n'est PAS un doublon du"
       "compte de collecte budgets_municipaux, c'est l'etape AVAL d'un autre"
       'circuit. Le compte de collecte recoit les recettes LOCALES et les'
-      'redistribue aux six equipements ; cette caisse-ci recoit une part de la'
+      'redistribue ; cette caisse-ci recoit une part de la'
       'repartition NATIONALE nocturne. Elle ne recoit RIEN de la repartition'
       'nationale. ASYMETRIE A SIGNALER : la table de repartition nationale'
       '(CAISSE_PAR_POSTE_BUDGET_SERVEUR) ne connait que `mairie-capitale`.'
@@ -719,6 +752,10 @@ def tableau_financier(d):
         elif doter == "oui":
             decide = PLANCHER_AMORCAGE
             remarque = (JUSTIFICATION_PLANCHER + " " + remarque).strip()
+            # Les quatre equipements qui ne recoivent plus rien apres leur dotation de
+            # depart le disent sur leur propre ligne, et nulle part ailleurs.
+            if any(f in ident for f in EQUIPEMENTS_SANS_RECURRENT):
+                remarque = (remarque + ARBITRAGE_SANS_RECURRENT).strip()
         a_arbitrer = {"oui": "", "non": "0", "vestige": "0", "ambigu": ""}[doter]
         # Le prefixe n'est ajoute que si la remarque ne porte pas DEJA son propre
         # verdict en tete : sinon il le repeterait en l'aplatissant, alors que la
@@ -827,13 +864,18 @@ def tableau_financier(d):
                        "Compte de COLLECTE des recettes locales : taxe sur les "
                        "transactions (tauxLocal), taxe fonciere et loyers y tombent.",
                        "non",
-                       ("COMPTE DE TRANSIT, tranche par l'audit : ce n'est PAS un doublon "
-                        "de republic_mairie_*, c'est l'etape AMONT du meme circuit. "
-                        "distribuerBudgetMunicipalVersBatiments() le vide chaque jour vers "
-                        "les six equipements de la ville (commissariat, tribunal, "
-                        "dispensaire, stade, marche, centre multimodal) selon les "
-                        "pourcentages d'`allocation` fixes par le maire, puis fait "
-                        "`caisse = 0`. Un solde initial serait distribue puis efface. 0.")
+                       ("CETTE CAISSE N'EXISTE PLUS depuis le 8 octobre 2026, et la ligne "
+                        "est conservee pour que le lecteur du tableau ne la cherche pas. "
+                        "budgets_municipaux.data.caisse etait un COMPTE DE TRANSIT -- "
+                        "l'audit du 5 octobre l'avait tranche ainsi -- vide chaque jour par "
+                        "distribuerBudgetMunicipalVersBatiments() vers six equipements, "
+                        "selon les pourcentages d'`allocation` fixes par le maire. Le "
+                        "chantier des budgets municipaux a supprime les trois a la fois : la "
+                        "cle `caisse` (une seconde bourse), la cle `allocation` (une seconde "
+                        "regle de repartition) et la distribution cliente. La tresorerie "
+                        "d'une mairie est desormais caisses_batiments.<pays>_mairie_<ville>, "
+                        "et elle seule ; la mesure des recettes du jour est la table "
+                        "recettes_municipales. Aucune dotation : rien a doter. 0.")
                        if est_ville else
                        ("ARTEFACT TECHNIQUE : la caserne est une zone speciale, pas une "
                         "ville, mais getVilleKey() lit state.currentCity sans filtrer. "
