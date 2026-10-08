@@ -2803,7 +2803,7 @@
   "20_fonctions-2.sql": "fb308ad1b89a2bab637984162d0b3a7d",
   "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
   "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
-  "40_vues.sql": "f497a75227aaca997f101cf901f5e423",
+  "40_vues.sql": "01bd762acf63b663d56e70c65f065976",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
   "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
   "70_droits.sql": "9f9287b5c778eb6de829714850ecd44c",
@@ -3981,7 +3981,9 @@
   {
    "empreinte": "966e817b9c99a16f27874fe4694ca3be",
    "nom": "catalogue_generiques_raccordes",
-   "reloptions": null
+   "reloptions": [
+    "security_invoker=true"
+   ]
   }
  ]
 }

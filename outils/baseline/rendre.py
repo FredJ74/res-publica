@@ -269,6 +269,17 @@ def phase_vues(objets, man, exp):
             out.append("-- Intentionnel ou vestigial ? La reponse est dans")
             out.append("-- baseline/DIFFERENCES-DELIBEREES.json, cle vues_security_definer.")
         out.append("CREATE OR REPLACE VIEW public.%s AS\n%s" % (v["vue"], v["definition"].rstrip()))
+        if opts:
+            # LE COMMENTAIRE NE SUFFIT PAS : IL FAUT L'INSTRUCTION (corrige le 9 octobre 2026).
+            #
+            # `CREATE OR REPLACE VIEW` ne pose AUCUNE reloption. Jusqu'ici le rendu se contentait
+            # de les annoncer en commentaire -- ce qui etait sans consequence tant qu'aucune vue
+            # n'en portait. Des que `catalogue_generiques_raccordes` est passee en
+            # `security_invoker = true`, le baseline s'est mis a DIRE une chose qu'il ne savait
+            # pas REFAIRE : rejoue, il aurait reconstruit la vue en SECURITY DEFINER, c'est-a-dire
+            # exactement l'alerte qu'on venait de fermer. Un baseline doit pouvoir rejouer ce
+            # qu'il decrit, sinon il n'est qu'une description.
+            out.append("ALTER VIEW public.%s SET (%s);" % (v["vue"], ", ".join(opts)))
         out.append("")
         man["vues"].append({"nom": v["vue"], "empreinte": v["empreinte"], "reloptions": opts})
     return out

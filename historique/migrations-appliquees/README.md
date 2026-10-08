@@ -36,6 +36,7 @@ Supabase, lui, est complet.
 | `20261006013000_autorite_rpc_sans_anon.sql` | 542 | fonctions mutantes appelables par `anon` 34 → 0 |
 | `20261006160000_autorite_declencheurs_public.sql` | 543 | fonctions de déclencheur appelables par un rôle client 24 → 0 |
 | `20261008214206_pays_declare_et_retrait_des_defauts_republic.sql` | 560 | `personnage_pays_declare()` + son déclencheur créés · `p_country text DEFAULT 'republic'` 11 → 0 · signatures 663 → 664 · droits EXECUTE des onze **restitués à l'identique**, ni perdu ni apparu · 3 commentaires reposés · `authenticated` sur les 7 fonctions de cron 7 → 0 |
+| `20261008221846_defaut_des_privileges_de_fonction_ferme.sql` | 561 | ACL d'une fonction **neuve** : `PUBLIC authenticated postgres service_role` → **`postgres service_role`** · `has_function_privilege` rend désormais `false` pour `anon` et `authenticated` · droits des 664 fonctions existantes **inchangés** (37 / 58 / 421 / 664) · `catalogue_generiques_raccordes` passée en `security_invoker` (84 lignes avant comme après, pour les trois rôles) · `personnages` **non modifiée** |
 
 La quatrième répare la première. La migration 1 avait révoqué `EXECUTE` sur ces
 24 fonctions « FROM anon, authenticated » en laissant le `GRANT` à **PUBLIC**,

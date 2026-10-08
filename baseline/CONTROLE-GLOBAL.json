@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-08T23:49:50 Europe/Paris",
- "empreintes_relevees_le": "2026-10-08T23:49:50 Europe/Paris",
+ "releve_le": "2026-10-09T00:25:04 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-09T00:25:04 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 260,
@@ -205,12 +205,12 @@
  },
  "registre": {
   "_commentaire": "Point de coupe du 7 octobre 2026, apres les SIX migrations des chantiers 4E et 4F. Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction, et cinq d'entre eux commencent par 20261008 -- voir _horodatage.\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers",
-  "entrees": 560,
-  "derniere_version": "20261008214206",
+  "entrees": 561,
+  "derniere_version": "20261008221846",
   "empreinte_versions_et_noms": "788e54435b364912b51399cdf2c5f0d2",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0",
   "_empreinte_contenu_2d": "Non remesuree : elle porte sur l'archive 2D, qui est CLOSE. verifier-archive-registre.py la verifie et passe.",
-  "empreinte": "32130dda05bd648acfbf9375848023a8"
+  "empreinte": "606fc4daec0d8da3db94aec1c17b48b0"
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -346,5 +346,17 @@
   "ce_que_le_banc_a_attrape": "La premiere version retirait les defauts par CREATE OR REPLACE FUNCTION. PostgreSQL le refuse -- 42P13, cannot remove parameter defaults from existing function. CREATE OR REPLACE peut AJOUTER un defaut et le CHANGER, jamais le RETIRER. Il a donc fallu DROP puis CREATE, ce qui ne transporte ni les droits ni le commentaire.",
   "le_piege_du_privilege_par_defaut": "pg_default_acl declare, pour les fonctions creees par postgres dans le schema public, {postgres=X, authenticated=X, service_role=X}. Une fonction RECREEE arrive donc ouverte a `authenticated` -- or sept des onze sont des fonctions de cron que seul le serveur doit appeler. Le banc l'a vu : 0 droit perdu mais 7 APPARUS. La migration retire desormais tout role que la recreation introduit et qui n'etait pas memorise, puis repose exactement ceux qui l'etaient. Verifie apres application : 0 droit `authenticated` sur ces sept fonctions.",
   "_lecon_de_methode": "pglast valide la grammaire SQL de l'ENVELOPPE, pas l'interieur d'un bloc DO $$ ... $$. Une grammaire validee localement ne dit donc rien du PL/pgSQL qu'elle contient : seul un banc en transaction annulee le dit. La premiere version de cette migration etait grammaticalement valide et fonctionnellement impossible."
+ },
+ "_chantier_privileges_par_defaut": {
+  "_commentaire": "Releve du 9 octobre 2026, apres la migration 20261008221846 defaut_des_privileges_de_fonction_ferme. Le defaut des privileges de fonction devient fail-closed : une fonction creee dans public n'accorde plus EXECUTE qu'a postgres et service_role.",
+  "migration_appliquee": "defaut_des_privileges_de_fonction_ferme (registre 561)",
+  "ce_qui_a_change": "RIEN AU CATALOGUE, et c'est voulu. Aucune table, colonne, contrainte, index, fonction, policy, trigger ni commentaire ne bouge. Les seuls changements sont les DEUX entrees de pg_default_acl -- que le baseline ne capture pas -- et les reloptions de la vue catalogue_generiques_raccordes, qui passe en security_invoker=true.",
+  "la_cause_etait_a_deux_etages": "Les roles NOMMES (authenticated) venaient de l'entree pg_default_acl POUR LE SCHEMA public. PUBLIC, lui, venait du DEFAUT NATIF de PostgreSQL : une entree par schema S'AJOUTE a ce defaut au lieu de le remplacer, si bien que REVOKE ... IN SCHEMA public ... FROM PUBLIC est INOPERANT -- il ne modifie meme pas la ligne stockee. Seule une entree SANS IN SCHEMA, au niveau du role, retire le PUBLIC natif. Et comme PUBLIC englobe anon et authenticated, la correction par schema seule n'aurait rien ferme : le premier banc l'a montre, le temoin portait encore « PUBLIC postgres service_role ».",
+  "fermer_trop_rouvre": "Revoquer AUSSI service_role de l'entree par schema ne laisse que le proprietaire, PostgreSQL SUPPRIME la ligne, et l'ACL d'une fonction neuve repasse a proacl = NULL -- donc au defaut natif, PUBLIC compris. service_role doit rester dans l'entree par schema.",
+  "verifie_en_production": "has_function_privilege sur une fonction neuve rend FALSE pour anon, FALSE pour authenticated, TRUE pour service_role, et TRUE pour authenticated apres un GRANT explicite. Interroger PostgreSQL plutot que lire l'ACL est la preuve qui vaut.",
+  "aucun_droit_existant_retire": "Les 664 fonctions gardent exactement leurs droits : PUBLIC sur 37, anon sur 58, authenticated sur 421, service_role et postgres sur 664. Un default privilege ne vaut que pour l'avenir, et c'est ce qui rend ce durcissement sans risque en pleine beta.",
+  "_limite_de_reconstructibilite": "pg_default_acl n'est extrait par AUCUN des quatre exports, et reconstruire.py ne pose aucun default privilege. Un monde RECONSTRUIT de zero depuis le baseline naitrait donc AVEC LE DEFAUT OUVERT. La migration archivee est en l'etat la seule trace reconstructible du durcissement ; elle est idempotente et rejouable telle quelle. Etendre l'extraction est un chantier d'outillage, hors du perimetre de ce lot.",
+  "_une_dette_evitee_au_passage": "rendre.py annoncait les reloptions d'une vue EN COMMENTAIRE sans emettre l'instruction. CREATE OR REPLACE VIEW n'en pose aucune : rejoue, le baseline aurait reconstruit catalogue_generiques_raccordes en SECURITY DEFINER, soit exactement l'alerte qu'on venait de fermer. Le generateur emet desormais ALTER VIEW ... SET (...) quand une vue porte des reloptions. Sans correction, ce lot aurait cree lui-meme la divergence qu'il pretendait supprimer.",
+  "_la_vue_et_la_vue_qu_on_ne_touche_pas": "catalogue_generiques_raccordes : zero consommateur revalide sur la base, tables sous-jacentes deja lisibles par anon et authenticated avec policy USING (true), et 84 lignes rendues AVANT comme APRES la bascule pour postgres, anon et authenticated. public.personnages n'a PAS ete modifiee : son SECURITY DEFINER est structurel, personnages_donnees etant ferme aux clients. L'alerte qui subsiste sur elle est un faux positif par construction."
  }
 }
