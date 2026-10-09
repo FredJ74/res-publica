@@ -229,6 +229,66 @@ la suit. Quand une migration d'autorité attend son application, les invariants
 qu'elle ferme sont listés dans `en_attente_d_application` — le contrôle les
 rapporte sans échouer, et refuse qu'on y laisse un invariant déjà satisfait.
 
+## Une tâche de minuit revendique sa journée avant d'agir
+
+Règle ajoutée par le chantier 6, le 9 octobre 2026. Toute tâche nocturne qui
+produit un effet **non idempotent** — un débit, un crédit, un `+1` sur un
+compteur, un cran d'escalade — doit **revendiquer sa journée avant de l'ap­pli­quer**,
+et lire le verdict de cette revendication.
+
+**Deux formes, et il faut choisir la bonne.**
+
+**1. L'effet peut descendre en SQL → `actes_nocturnes`.** C'est la forme forte,
+celle à préférer. Une RPC par mécanisme, qui verrouille son sujet
+(`SELECT … FOR UPDATE`), appelle `acte_nocturne_revendiquer(pays, mecanisme,
+sujet)`, renonce si elle rend `false`, puis produit l'effet — le tout dans sa
+seule transaction. Deux conditions pour que ce soit vrai :
+
+- le mécanisme doit être **déclaré** dans `actes_nocturnes_mecanismes`, par une
+  migration, avec une `note` disant ce qu'un rejeu produirait. Un nom non
+  déclaré lève ;
+- la revendication n'est **appelable par aucun rôle réseau** — `EXECUTE` retiré à
+  `anon`, `authenticated` et `service_role`. Ne jamais le lui rendre : c'est ce
+  qui interdit de revendiquer dans une requête HTTP et d'agir dans une autre.
+
+**2. L'effet reste en JavaScript → l'écriture conditionnelle.** La garde du jour
+va dans le **filtre** de l'écriture, pas seulement dans son corps :
+
+```js
+const cible = `id=eq.${id}&or=(col.is.null,col.neq.${jour})`;
+const revendique = await sbUpdate(table, cible, { col: jour }).catch(() => null);
+if (revendique === null) { /* panne : on ne fait rien */ }
+if (!Array.isArray(revendique) || revendique.length !== 1) { /* déjà pris */ }
+```
+
+`or=(… .is.null, … .neq.jour)` et non `neq` seul : dans PostgREST, **`neq`
+exclut les NULL**, donc un sujet jamais traité ne serait jamais revendiqué.
+
+**Ce qu'on échange, et il faut l'assumer :** si la revendication aboutit et qu'un
+effet échoue ensuite, l'effet du jour est perdu. C'est le bon côté — perdre une
+journée de prélèvement est sans commune mesure avec la rejouer indéfiniment. Avec
+la forme 1, l'échange disparaît même : une panne annule l'effet *et* la
+revendication, et la journée reste à prendre.
+
+**Ce qui ne compte pas comme une protection :** un marqueur écrit **après**
+l'effet ; un marqueur dont l'échec d'écriture est avalé par un `.catch(() => {})` ;
+un marqueur relu dans une requête séparée de celle qui l'écrit.
+
+## Un courrier n'est pas l'autorité de l'acte
+
+Autre règle du 9 octobre. L'échec d'une notification ne doit **ni** annuler une
+opération métier correctement acquise, **ni** être avalé.
+
+- En SQL, l'`INSERT` d'un courrier vit dans son propre bloc
+  `BEGIN … EXCEPTION WHEN others`, qui consigne l'incident dans
+  `mails_envois_systeme.echec` avec son SQLSTATE. Un bloc `EXCEPTION` ouvre une
+  **sous-transaction** : l'insert est annulé, la transaction de l'appelant reste
+  vivante. C'est ce qui permet aux deux moitiés de la règle d'être vraies en même
+  temps.
+- En JavaScript, la brique d'envoi **ne lève pas**, rend un verdict explicite, et
+  signale l'échec elle-même — une fois, dans la brique, plutôt que dans chaque
+  appelant.
+
 ## Ce qui reste à faire une fois
 
 Appliquer le baseline sur un **vrai moteur PostgreSQL neuf**. Aucun n'est

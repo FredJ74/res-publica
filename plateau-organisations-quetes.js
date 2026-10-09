@@ -8806,10 +8806,33 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
+  // L'OFFRE EST LA CONTREPARTIE DES PA, ET SON IDENTIFIANT N'ETAIT JAMAIS RELU
+  // (chantier 5, 9 octobre 2026).
+  //
+  // `sbCreerTransfert` rend `null` quand l'INSERT n'aboutit pas -- c'est le correctif du
+  // 7 octobre sur les douze fonctions qui fabriquaient un identifiant credible pour une ligne
+  // inexistante. Ici, `transfertId` etait affecte et plus jamais lu : les PA et le cout etaient
+  // deja preleves, le courrier partait au president du club vendeur en lui annoncant une offre
+  // chiffree, et le toast disait « Le président a été notifié » -- pour une offre qui n'existait
+  // dans aucune table. Le president invite a repondre ne trouvait rien a repondre.
+  //
+  // Les PA ne sont pas rembourses, et ce n'est pas un oubli : `deduireCoutOrdre` est le point
+  // d'execution irreversible de l'ordre, par doctrine du projet. On cesse simplement d'annoncer
+  // une offre qui n'a pas ete enregistree.
   const transfertId = await sbCreerTransfert({
     joueur: nomJoueur, clubDepartId: clubVenteId, clubArriveeId: clubAchatId,
     prixClub: prix, statut: 'propose', proposePar: state.char?.name
-  });
+  }).catch(() => null);
+  if (!transfertId) {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    console.error('doProposerTransfert : offre pour ' + nomJoueur + ' a ' + prix
+                  + ' FR NON enregistree, les PA sont pourtant engages');
+    showToast('Offre non enregistrée',
+      'L\'offre pour ' + nomJoueur + ' n\'a pas pu être enregistrée. Le président de '
+      + clubVente.nom + ' n\'a pas été notifié, et les PA restent engagés.', false);
+    addJournalEntry('Offre de transfert pour ' + nomJoueur + ' NON enregistrée.', 'event-bad');
+    return;
+  }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';

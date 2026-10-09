@@ -16,19 +16,29 @@
 >   n'avait touché que la grève ordinaire. Son marqueur était écrit en dernier,
 >   dans un `.catch(() => {})`. **Corrigé le 9 octobre.**
 >
-> **Trois mécaniques sont fermées depuis** — la famille 4 (ardoise des loyers),
-> **toute** la famille 9 (les deux chemins de mensualités) et la **grève
-> générale** du groupe B — et elles le sont par le même patron, qui est celui à
-> reprendre pour les suivantes : une **revendication par compare-and-swap**. La
-> garde du jour vit dans le *filtre* de l'écriture, pas seulement dans son corps,
-> et son verdict est **lu** : une ligne touchée = journée acquise, zéro ligne =
-> quelqu'un d'autre l'a déjà prise, panne = on ne fait rien. Deux invocations
-> vraiment simultanées ne peuvent donc pas prendre la même journée, ce qu'un
-> marqueur relu dans une requête séparée ne garantit pas.
+> **QUATRE MÉCANIQUES SONT FERMÉES DEPUIS, PAR DEUX PATRONS DIFFÉRENTS — et le
+> second est celui à reprendre.**
 >
-> Trois bancs les tiennent, chacun avec sa contre-épreuve contre la version
+> **Patron 1, la revendication par compare-and-swap**, quand l'effet vit en
+> JavaScript : la garde du jour vit dans le *filtre* de l'écriture et son verdict
+> est **lu** — une ligne touchée = journée acquise, zéro ligne = déjà prise,
+> panne = on ne fait rien. Deux invocations simultanées ne peuvent pas prendre la
+> même journée, ce qu'un marqueur relu dans une requête séparée ne garantit pas.
+> Appliqué à la **grève générale** et aux **mensualités de prêts** (famille 9).
+>
+> **Patron 2, la brique `actes_nocturnes`**, quand l'effet peut descendre en SQL,
+> et c'est le meilleur : `actes_nocturnes(pays, mecanisme, sujet, jour)` en clé
+> primaire, et une revendication **qu'aucun rôle réseau ne peut appeler** —
+> `EXECUTE` retiré à `anon`, `authenticated` **et** `service_role`. Revendiquer
+> une journée hors de la transaction qui porte l'effet devient *structurellement
+> impossible*. Appliqué aux **préemptions** (famille 6). L'**ardoise des loyers**
+> (famille 4), elle, est descendue dans sa RPC existante, qui est atomique par
+> nature.
+>
+> Cinq bancs les tiennent, chacun avec sa contre-épreuve contre la version
 > précédente : `banc-greve-generale.js` (20 cas), `banc-prets-bancaires.js`
-> (25 cas), et les cinq preuves en transaction annulée de l'ardoise des loyers.
+> (25 cas), `banc-preemptions.js` (20 + 3 cas), les huit preuves en transaction
+> annulée de la brique et de son client, et les cinq de l'ardoise des loyers.
 
 ---
 
@@ -66,15 +76,21 @@ Classées par **coût d'un rejeu**, ce qui est l'ordre d'attaque :
 | 3 | **Taxe foncière** | **Aucun marqueur par terrain**, registre seul. Une double exécution avance de deux crans dans avertissement → pénalité 10 % → **saisie municipale** |
 | 4 | ~~**Ardoise d'impayé des loyers**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : la branche `expulsion_requise` était la seule sortie à effet à ne pas poser `jourPaiement`, et la dette doublait à chaque passe. **Corrigé par la migration 20261009005012 + `api/cron-minuit.js`, dans le même commit.** Et le correctif a appris quelque chose que l'audit n'avait pas vu : poser le marqueur **n'aurait pas suffi**, parce que l'appelant réécrivait le blob entier depuis une lecture antérieure à la RPC et l'aurait effacé dans la foulée. Le calcul de l'ardoise est donc **descendu dans la RPC**, où revendication et effet sont atomiques |
 | 5 | **Votes de confiance** | Le dépouillement **tire au sort** les sièges PNJ ; la clôture `statut = 'termine'` est avalée. Si elle mord après que l'événement public et le mail au Premier ministre ont annoncé le verdict, le rejeu **re-tire** : le même vote passe de confiance à censure, **publiquement, deux fois** |
-| 6 | **Remboursement des préemptions d'État** | **Aucun marqueur propre.** La caisse est débitée, puis `preemption.montantRestant` est écrit — deux requêtes. Une interruption entre les deux débite sans réduire la dette, et le registre, posé avant, **interdit la reprise** : l'argent est perdu silencieusement. Le pire des sept, parce qu'**aucun joueur ne se plaint d'une dette qui ne baisse pas assez vite** |
+| 6 | ~~**Remboursement des préemptions d'État**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste, et c'était bien le pire des sept. **Corrigé par les migrations 20261009093112 (la brique) + 20261009130649 (la RPC) et `api/cron-minuit.js`, dans le même commit.** Les quatre allers-retours deviennent une transaction unique, ouverte par une revendication d'acte nocturne ; la fonction JavaScript n'écrit plus rien elle-même. **La preuve qui compte** : au banc, une exception levée après l'acquisition ramène la caisse, la dette *et* la ligne de revendication — un état économique partiel n'est plus représentable |
 | 7 | **Successions** | Fenêtre étroite, montant élevé. Le code est par ailleurs bien construit (voir §3) |
 | 8 | **Calendrier électoral** | `cycle.resultatsTraites` est un champ de blob écrit **en dernier**, sans vérification, après que `evenements_globaux` et `chronique_nationale` ont été insérés. Un échec → **re-dépouillement**, et `resoudreScrutinSimple` est aléatoire : deux proclamations contradictoires |
 | 9 | ~~**Mensualités de prêts**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : marqueur sur une vraie colonne, posé avant l'effet, mais en `.catch(() => {})` — l'échec de pose était avalé et le débit partait quand même. **Les deux chemins sont désormais sûrs** : le chemin Helvetia par la migration 20261008235521 (marqueur dans la transaction de la RPC), le chemin *legacy* par une **revendication conditionnelle** dont le verdict est lu — garde dans le filtre, donc compare-and-swap. Banc `banc-prets-bancaires.js`, 25 cas, dont la preuve qui compte : **aucun `PATCH` sur `personnages`** quand la revendication n'aboutit pas |
 | 10 | **Cotisations d'organisation** | Réparé partiellement le 7 octobre (persisté après **chaque** membre). Le code reconnaît lui-même que ce n'est pas la réparation complète : « Débiter un personnage et marquer son adhésion sont deux écritures sur deux tables » |
 
-### La brique générique — elle existe déjà dans le dépôt
+### La brique générique — ÉCRITE ET BRANCHÉE LE 9 OCTOBRE 2026
 
-`repartitions_versements(pays, source, beneficiaire, jour)` en clé primaire est
+> **Cette section était une proposition. Elle décrit maintenant ce qui existe :
+> migrations `20261009093112` (la brique) et `20261009130649` (son premier
+> consommateur, les préemptions). Ce qui suit a été conservé parce que le
+> raisonnement d'origine était juste — mais trois choses ont changé en le
+> réalisant, et elles sont signalées en place.**
+
+`repartitions_versements(pays, source, beneficiaire, jour)` en clé primaire était
 le patron, et son commentaire énonce la doctrine : « L'idempotence vit dans la
 clé primaire. Un second passage lève une violation d'unicité et ne verse rien.
 Ce n'est plus un champ qu'une écriture avalée peut perdre. »
@@ -85,10 +101,35 @@ Généralisée :
 actes_nocturnes(pays, mecanisme, sujet, jour)   PRIMARY KEY
 ```
 
-et une convention : **toute RPC nocturne commence par un `INSERT INTO
-actes_nocturnes` et laisse la violation d'unicité annuler sa propre
-transaction.** Le rejeu ne devient pas « détecté », il devient **impossible** —
-et impossible sans que personne ait à se souvenir de poser un marqueur.
+et une convention : **toute RPC nocturne commence par revendiquer son acte et
+renonce si la journée est déjà prise.** Le rejeu ne devient pas « détecté », il
+devient **impossible** — et impossible sans que personne ait à se souvenir de
+poser un marqueur.
+
+> **Trois écarts entre la proposition et ce qui a été construit.**
+>
+> **1. La revendication ne lève pas, elle rend un booléen.** La proposition
+> disait « laisse la violation d'unicité annuler sa propre transaction ».
+> `acte_nocturne_revendiquer()` fait un `ON CONFLICT DO NOTHING` et rend `false`
+> : une journée déjà prise est un **fait métier normal**, pas une erreur. Laisser
+> lever aurait annulé la transaction entière — y compris les effets *idempotents*
+> qui doivent tourner chaque nuit, comme l'expiration d'un accord de
+> rééchelonnement. La leçon vient de l'ardoise des loyers : on protège ce qui
+> n'est pas idempotent, on laisse passer ce qui l'est.
+>
+> **2. Il a fallu une seconde table.** `actes_nocturnes_mecanismes`, liste
+> blanche reliée par clé étrangère. Sans elle, un mécanisme mal orthographié
+> ouvre un second espace de noms en silence — et ne protège donc plus rien.
+> Ajouter un mécanisme devient une migration, ce qui rend la liste des tâches de
+> minuit lisible en un endroit au lieu de se reconstituer depuis 6 400 lignes.
+>
+> **3. Le point qui compte n'est pas dans la table, il est dans les droits.**
+> `acte_nocturne_revendiquer()` n'a `EXECUTE` **pour personne d'autre que son
+> propriétaire** : retiré à `anon`, `authenticated` *et* `service_role`. Sans
+> cela, le cron aurait pu revendiquer par PostgREST dans un aller-retour et
+> produire l'effet dans un autre — le défaut d'origine, avec une table de plus.
+> **L'architecture n'est pas une convention qu'on documente, c'est un droit qu'on
+> retire.**
 
 **Mais une clé primaire ne protège que ce qui commit avec elle.** La brique est
 donc en deux temps : (1) la table et la convention, communes ; (2) **une RPC par

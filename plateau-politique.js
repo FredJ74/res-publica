@@ -6584,7 +6584,34 @@ async function confirmerPropositionGrace(idx, pa, cost) {
   }
   const montantVerse = Number(rMin.verse || 0);
 
-  await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
+  // LE DOSSIER EST LA CONTREPARTIE DES FRAIS, ET SON ECRITURE ETAIT LA SEULE DE CETTE CHAINE
+  // DONT LE RESULTAT N'ETAIT PAS LU (chantier 5, 9 octobre 2026).
+  //
+  // L'ordre des operations est bon -- les frais d'abord, sous verdict, puis le dossier -- mais
+  // `sbCreerDemandeGrace` rend `null` quand l'INSERT n'aboutit pas, et personne ne regardait.
+  // Un refus RLS, un 500 ou une coupure laissaient donc 300 FR debites de la caisse de la
+  // Justice, AUCUNE demande en base, un courrier au President l'invitant a traiter un dossier
+  // inexistant, et un toast affirmant « Le Président a été notifié ».
+  //
+  // CE QU'ON NE PEUT PAS FAIRE, ET POURQUOI ON NE FAIT PAS SEMBLANT : rembourser. La porte
+  // `caisse_ministere_mouvement` refuse les montants negatifs -- par construction, pour qu'une
+  // caisse ne puisse pas etre creditee depuis le navigateur. Il n'existe donc aucun chemin
+  // client pour annuler ce debit, et en inventer un ouvrirait exactement la faille que cette
+  // porte ferme. On dit donc la verite, avec le montant et le nom, pour que l'ecart soit
+  // reparable -- plutot que d'annoncer un dossier qui n'existe pas.
+  const dossier = await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom,
+    raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name })
+    .catch(() => null);
+  if (!dossier) {
+    console.error('confirmerGrace : frais de ' + cout + ' FR debites sur la caisse de la Justice '
+                  + 'mais la demande de grace de ' + condamne.nom + ' n\'a PAS ete enregistree');
+    showToast('Dossier non enregistré',
+      'Les ' + cout + ' FR de frais ont été prélevés, mais la recommandation de grâce de '
+      + condamne.nom + ' n\'a pas pu être enregistrée. Le Président n\'a pas été notifié.', false);
+    addJournalEntry('Recommandation de grâce de ' + condamne.nom + ' NON enregistrée malgré les '
+                    + cout + ' FR de frais.', 'event-bad');
+    return;
+  }
 
   const presidentInfoGrace = await getTitulaireActuel('president');
   const presidentNom = presidentInfoGrace?.estPJ ? presidentInfoGrace.nom : null;
@@ -6705,6 +6732,21 @@ function confirmerNationalisation(idx) {
   addExternalEvent('NATIONALISATION : ' + e.nom + ' placee sous controle de l\'Etat par decret presidentiel.');
 }
 
+// SANS AUCUN APPELANT DEPUIS LE 9 OCTOBRE 2026, ET CONSERVEE EXPRES.
+//
+// Son unique appelant etait la branche `redressement_fiscal` de executerOrdreContact, alignee ce
+// jour-la sur le chemin arbitre -- qui REFUSE le prelevement sur la fortune d'un particulier,
+// l'arbitrage restant a rendre. Elle ne vit donc plus aucun chemin du jeu.
+//
+// POURQUOI ELLE RESTE. Elle porte le resultat d'une analyse qu'il serait couteux de refaire :
+// c'est le seul precedent ecrit d'une mutation cross-joueur lue sous verdict (sbGetVerdict pour
+// le solde, sbEcrireSoldePersonnage pour l'ecriture conditionnelle), et deux autres endroits du
+// depot la citent comme reference. Si l'arbitrage autorise un jour la ponction d'un particulier,
+// elle dit deja ce qu'il faut verifier -- mais la bonne forme sera alors une RPC, comme pour les
+// clubs, les entreprises et les organisations, et non une ecriture cliente.
+//
+// NE PAS LA REBRANCHER SANS CET ARBITRAGE : la vue `personnages` masque `arg` d'un tiers et son
+// declencheur INSTEAD OF refuse l'ecriture, donc elle rend toujours 0 pour une cible distante.
 async function debiterCitoyenPlafonne(nomCible, montantVise) {
   if (nomCible === state.char?.name) {
     const preleve = Math.min(state.arg || 0, montantVise);
@@ -7275,18 +7317,42 @@ function executerOrdreContact(action, nomCible) {
     }
     showToast('PM nomme', nomCible + ' est le nouveau Premier Ministre.', true, true);
   } else if (action === 'redressement_fiscal') {
-    const montant = 2000;
-    document.getElementById('modal-postes')?.classList.remove('open');
-    debiterCitoyenPlafonne(nomCible, montant).then(async (montantPreleve) => {
-      const budgetNat = await chargerBudgetNational(state.country);
-      budgetNat.reserveJour = (budgetNat.reserveJour || 0) + montantPreleve;
-      await sbSaveBudgetNational(state.country, budgetNat).catch(() => {});
-      INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
-      updateUI();
-      showToast('Redressement', 'Redressement fiscal contre ' + nomCible + ' : ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' prélevés pour le Trésor. -3 IE.', true, true);
-      addJournalEntry('Redressement fiscal contre ' + nomCible + ' (+' + montantPreleve + ' FR pour l\'État).', 'event-info');
-      if (typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', nomCible, 'Redressement fiscal', 'Un redressement fiscal de ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' vous a été notifié et prélevé par le Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    });
+    // ==========================================================================================
+    // LE MEME ACTE EXISTAIT EN DEUX EXEMPLAIRES, ET UN SEUL AVAIT ETE REPARE
+    // (chantier 5, 9 octobre 2026).
+    //
+    // Deux portes menent au redressement fiscal :
+    //   . `redressement_fiscal` depuis le panneau du gouvernement -> ouvrirChoixTypeCibleFiscale
+    //     -> executerOrdreFiscalCible, repare le 17 septembre 2026 : autorite min_fin exigee par
+    //     le serveur, montant hors de portee du navigateur, debit et versement au Tresor dans UNE
+    //     transaction, et REFUS EXPLICITE de la cible « citoyen » ;
+    //   . `redressement_cible` depuis le repertoire de contacts -> ouvrirModalCibleRepertoire
+    //     -> ICI, resté dans son etat d'origine, qui est exactement celui que la reparation a
+    //     condamne : aucun controle d'autorite, montant 2000 decide par le navigateur, debit du
+    //     citoyen et versement au Tresor en DEUX ecritures clientes dont la seconde etait avalee
+    //     par un `.catch(() => {})`.
+    //
+    // ET LES DEUX SE CONTREDISAIENT SUR UN ARBITRAGE EXPLICITEMENT PENDANT. Le chemin repare dit
+    // au joueur : « Le prélèvement sur la fortune d'un particulier n'est pas en vigueur », et son
+    // commentaire precise que l'activer « serait un choix de game design, pas un correctif :
+    // l'arbitrage reste a rendre ». Celui-ci, au contraire, annoncait un prelevement, le portait
+    // au journal et en notifiait la cible par courrier.
+    //
+    // CE QUE LE PRELEVEMENT FAISAIT REELLEMENT : RIEN. La vue `personnages` masque la colonne
+    // `arg` d'un tiers -- lue null, ramenee a 0 -- et son declencheur INSTEAD OF refuse
+    // l'ecriture. `debiterCitoyenPlafonne` rendait donc toujours 0. Le toast annoncait
+    // « 0 FR prélevés pour le Trésor », le journal portait « +0 FR pour l'État », et la cible
+    // recevait un courrier lui notifiant un redressement de 0 FR.
+    //
+    // ON ALIGNE DONC CETTE PORTE SUR CELLE QUI A ETE ARBITREE, et c'est bien un correctif et non
+    // une decision : zero franc bougeait avant, zero franc bouge apres. Ce qui change est le
+    // DISCOURS -- on cesse d'annoncer un prelevement qui n'a pas lieu -- et la disparition d'une
+    // ecriture de blob avalee sur `budgets_nationaux`. L'arbitrage « faut-il reellement pouvoir
+    // ponctionner la fortune d'un joueur ? » reste entier, et le jour ou il sera rendu, il n'y
+    // aura plus qu'UN endroit a ouvrir.
+    // ==========================================================================================
+    showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur.', false);
+    addJournalEntry('Redressement fiscal contre ' + nomCible + ' : aucun prélèvement possible sur un particulier.', 'event-bad');
   } else if (action === 'subvention') {
     const montant = 500;
     document.getElementById('modal-postes')?.classList.remove('open');

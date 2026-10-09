@@ -18,6 +18,7 @@ qui est une décision de game design (posée en question, jamais inventée).
 | `AUDIT-CRON-MINUIT.md` | chantier 6 | cartographie de la passe de minuit et découpage proposé. **Trois affirmations corrigées le 8 octobre** |
 | `AUDIT-CHANTIER-6-IDEMPOTENCE.md` | chantier 6 | ce qui rejoue, par **coût d'un rejeu** ; la brique `actes_nocturnes` ; ce qu'il ne faut **pas** toucher |
 | `AUDIT-CHANTIER-5-FAIL-SILENT.md` | chantier 5 | 1 335 avaleurs d'erreur, dont **813** pertinents et **19** interventions qui couvrent tout l'argent |
+| `AUDIT-CHANTIER-5-ECRITURES-PLATEAU.md` | chantier 5 | les **396 écritures** de `plateau-*.js`, croisées sensibilité × traitement de l'échec : **156 sensibles avalées**, 20 chaînes sur plusieurs tables sans atomicité, et l'ordre d'attaque. **À lire avant de toucher un `plateau-*.js`** |
 | `AUDIT-DISK-IO.md` | performance | suspects classés A/B/C, avec **la requête de mesure** de chacun. Aucune optimisation avant mesure |
 | `AUDIT-EMPIRES-4G.md` | chantier 4G | ce qui est déjà fail-closed hors Républia, et les trois questions de game design qui bloquent le reste |
 | `AUDIT-FALLBACKS-REPUBLIC.md` | chantier 4G | les **287 replis implicites** vers Républia, classés A–E — et pourquoi 253 d'entre eux se corrigent par **deux gardes à la racine** |
