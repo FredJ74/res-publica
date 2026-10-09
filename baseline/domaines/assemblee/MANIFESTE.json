@@ -498,12 +498,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "service_role",
-   "genre": "FUNCTION",
-   "objet": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_echeance_application(timestamp with time zone)",
@@ -1069,12 +1063,6 @@
   },
   {
    "beneficiaire": "postgres",
-   "genre": "FUNCTION",
-   "objet": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer)",
    "privileges": "EXECUTE"
@@ -1360,12 +1348,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
-  "20_fonctions.sql": "1278ff22306b8e6fa6086c21a4d1ef99",
+  "20_fonctions.sql": "a4cb82031b18d8e59bfdfeb931c961ba",
   "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
   "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
-  "70_droits.sql": "c64b9e24acd70d19c38417d8dd1fc8d5",
+  "70_droits.sql": "d4e9969ba7bb3c1ddb0d99ee49febee0",
   "80_commentaires.sql": "ca1a74666ef3b68b78fdbdbcf8beaa8d"
  },
  "fonctions": [
@@ -1440,7 +1428,7 @@
    "signature": "assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb)"
   },
   {
-   "empreinte": "ced49bc9a1ddf68599612b1da5c0bcd4",
+   "empreinte": "ce23a925b12dba652b4bb5efe6d0e0d5",
    "security_definer": false,
    "signature": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)"
   },
@@ -1490,7 +1478,7 @@
    "signature": "assemblee_marchander(text,text,text,text,text)"
   },
   {
-   "empreinte": "4e4b0aac5d6f0a5f93de52a743ee9296",
+   "empreinte": "aa129b67631cd649005e6354310ee03b",
    "security_definer": true,
    "signature": "assemblee_marquer_convocations_echues(text)"
   },

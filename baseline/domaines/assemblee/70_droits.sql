@@ -50,7 +50,6 @@ GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,te
 GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_detecter_partie(text,text,jsonb,text,integer,boolean) TO postgres;
-GRANT EXECUTE ON FUNCTION public.assemblee_detecter_partie(text,text,jsonb,text,integer,boolean) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO service_role;
@@ -146,7 +145,6 @@ GRANT EXECUTE ON FUNCTION public.assemblee_taux_neutralisation(text,jsonb,text) 
 GRANT EXECUTE ON FUNCTION public.assemblee_tracer_vente_interdite(text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_tracer_vente_interdite(text,text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer) TO postgres;
-GRANT EXECUTE ON FUNCTION public.assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_verifier_vente(jsonb,text) TO anon;
 GRANT EXECUTE ON FUNCTION public.assemblee_verifier_vente(jsonb,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_verifier_vente(jsonb,text) TO postgres;

@@ -31,6 +31,7 @@
    "mail_expediteur_organisation(text)",
    "mail_expediteur_systeme(text)",
    "mail_systeme_envoyer(text,text,text,text,text)",
+   "mail_systeme_poser_interne(text,text,text,text,text)",
    "mails_journaliser_envoi_systeme()"
   ],
   "dependances_externes": {
@@ -152,6 +153,14 @@
    "preemption_mensualite_prelever": [
     "finances publiques",
     "debite la caisse du Ministere des Finances et reduit une dette portee par budgets_nationaux : aucun prefixe ne l'attrape, et c'est bien une fonction de finances publiques. Meme raison que mairie_virement_batiment"
+   ],
+   "election_voter": [
+    "politique et elections",
+    "pose le bulletin dans votes_electoraux ET le blob du cycle, dans une transaction : la regle du domaine attrape `elections_` au pluriel, pas `election_` au singulier"
+   ],
+   "compromis_expire_resoudre": [
+    "banque",
+    "resout un compromis de vente ou de rachat arrive a echeance, tirage du pret bancaire inclus : elle vit a cote de resoudre_compromis_helvetia_expire, qui est son patron, et la regle du domaine attrape `resoudre_compromis` mais pas `compromis_`"
    ]
   }
  },

@@ -101,9 +101,9 @@ BEGIN
 
   v_id := 'co-' || (extract(epoch from clock_timestamp()) * 1000)::bigint
                || '-' || substr(md5(random()::text), 1, 6);
-  INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-  VALUES (v_id, v_passeur.expediteur, (v_orga->>'chef'), 'Quelqu''un à contacter', v_corps,
-          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
+  PERFORM public.mail_systeme_poser_interne(
+          v_passeur.expediteur, (v_orga->>'chef'), 'Quelqu''un à contacter', v_corps,
+          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
 
   INSERT INTO public.contacts_organisations
          (joueur, passeur, type_organisation, derniere_demande, organisations_contactees)

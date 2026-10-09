@@ -10,6 +10,93 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- candidature_poste_tirage_appliquer(text,text,text,text,text[],text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.candidature_poste_tirage_appliquer(p_pays text, p_poste_id text, p_city text, p_label text, p_candidats text[], p_autorite text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_pays text := lower(btrim(coalesce(p_pays,''))); v_poste text := btrim(coalesce(p_poste_id,''));
+  v_city text := nullif(btrim(coalesce(p_city,'')),'');
+  v_lib text; v_sujet text; v_gagnant text; v_titulaire text;
+  v_res jsonb; v_pop_avant numeric; v_pop_apres numeric; v_sanction boolean := false;
+BEGIN
+  -- FAIL-CLOSED : une identite incomplete LEVE. Rendre un verdict voudrait dire « rien a faire ».
+  IF v_pays = '' OR v_poste = '' THEN
+    RAISE EXCEPTION 'candidature_poste_tirage_appliquer : pays et poste sont obligatoires (pays=%, poste=%)', p_pays, p_poste_id;
+  END IF;
+  IF p_candidats IS NULL OR array_length(p_candidats, 1) IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_candidat');
+  END IF;
+  v_lib := coalesce(nullif(btrim(coalesce(p_label,'')),''), v_poste);
+  v_sujet := v_poste || '|' || coalesce(v_city, 'national');
+
+  -- 1. RIEN A FAIRE ? Le registre fait autorite depuis le 15 septembre 2026. Verifie AVANT la
+  --    revendication, pour ne pas consommer la journee d'un dossier qu'on n'a pas traite.
+  SELECT titulaire INTO v_titulaire FROM public.postes_attribues
+   WHERE country = v_pays AND poste_id = v_poste AND city IS NOT DISTINCT FROM v_city FOR UPDATE;
+  IF v_titulaire IS NOT NULL
+     AND EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_titulaire) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_deja_attribue', 'titulaire', v_titulaire);
+  END IF;
+
+  -- 2. LA REVENDICATION, dans cette transaction.
+  IF NOT public.acte_nocturne_revendiquer(v_pays, 'candidature_poste_tirage', v_sujet,
+         jsonb_build_object('poste', v_poste, 'ville', v_city)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_traite_aujourdhui');
+  END IF;
+
+  -- 3. LE TIRAGE. Uniforme, comme Math.random() cote JavaScript, mais ici il est INDISSOCIABLE
+  --    de ses consequences : un rejeu ne l'atteint pas.
+  SELECT d.name INTO v_gagnant FROM public.personnages_donnees d
+   WHERE d.name = ANY (p_candidats) AND d.country = v_pays ORDER BY random() LIMIT 1;
+  IF v_gagnant IS NULL THEN
+    RETURN jsonb_build_object('ok', true, 'gagnant', NULL, 'raison', 'aucun_candidat_eligible');
+  END IF;
+
+  -- 4. LES CONSEQUENCES. REGISTRE D'ABORD : la fiche n'est plus une preuve, c'est
+  --    postes_attribues qui atteste qu'un joueur occupe une fonction nommee.
+  DELETE FROM public.titulaires_pnj
+   WHERE id = v_pays || '_' || v_poste || '_' || coalesce(v_city, 'national');
+  INSERT INTO public.postes_attribues (id, country, poste_id, city, titulaire, source)
+  VALUES (v_pays || '_' || v_poste || '_' || coalesce(v_city,'national'),
+          v_pays, v_poste, v_city, v_gagnant, 'tirage_au_sort_candidature')
+  ON CONFLICT (id) DO UPDATE
+     SET titulaire = EXCLUDED.titulaire, source = EXCLUDED.source, updated_at = now();
+  UPDATE public.personnages_donnees
+     SET poste = jsonb_build_object('id', v_poste, 'name', v_lib, 'city', v_city,
+                   'nommeLe', (extract(epoch from clock_timestamp())*1000)::bigint)
+   WHERE name = v_gagnant;
+  PERFORM public.mail_systeme_envoyer('Système', v_gagnant, 'Nomination automatique — ' || v_lib,
+    'L''autorité de nomination n''a pas tranché dans le délai de 48h imparti. Vous avez été désigné(e) par tirage au sort parmi les candidats éligibles au poste de ' || v_lib || '.');
+
+  -- 5. LA SANCTION DU NOMINATEUR RESTE PASSIF. resources.pop, JAMAIS une colonne racine `pop` :
+  --    ecrire au mauvais endroit ne serait jamais lu par le client.
+  IF nullif(btrim(coalesce(p_autorite,'')),'') IS NOT NULL THEN
+    SELECT resources INTO v_res FROM public.personnages_donnees
+     WHERE name = btrim(p_autorite) FOR UPDATE;
+    IF v_res IS NOT NULL THEN
+      v_pop_avant := coalesce(CASE WHEN jsonb_typeof(v_res->'pop')='number'
+                                   THEN (v_res->>'pop')::numeric END, 0);
+      v_pop_apres := greatest(0, floor(v_pop_avant / 2));
+      UPDATE public.personnages_donnees
+         SET resources = jsonb_set(v_res, '{pop}', to_jsonb(v_pop_apres))
+       WHERE name = btrim(p_autorite);
+      v_sanction := true;
+      PERFORM public.mail_systeme_envoyer('Système', btrim(p_autorite), 'Décision non prise — ' || v_lib,
+        'Vous n''avez pas tranché entre les candidats au poste de ' || v_lib
+        || ' dans le délai de 48h. ' || v_gagnant || ' a été nommé(e) par tirage au sort. '
+        || 'Votre popularité a été divisée par deux (' || round(v_pop_avant)::text
+        || ' → ' || v_pop_apres::text || ').');
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'gagnant', v_gagnant, 'sanction', v_sanction,
+                            'pop_avant', v_pop_avant, 'pop_apres', v_pop_apres);
+END; $function$;
+
 -- candidature_publier(text,text,numeric,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.candidature_publier(p_poste text, p_city text, p_cle_scrutin numeric, p_titre text, p_contenu text)
  RETURNS jsonb
@@ -180,6 +267,134 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+
+-- election_voter(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.election_voter(p_pays text, p_poste_id text, p_ville text, p_candidat text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi      text;
+  v_pays     text := lower(btrim(coalesce(p_pays, '')));
+  v_poste    text := btrim(coalesce(p_poste_id, ''));
+  v_cand     text := btrim(coalesce(p_candidat, ''));
+  v_local    boolean;
+  v_ville    text;
+  v_cle      text;
+  v_id_cycle text;
+  v_brut     text;
+  v_cycle    jsonb;
+  v_ms       numeric := floor(extract(epoch from now()) * 1000);
+  v_domicile text;
+  v_titulaire boolean;
+  v_n        integer;
+BEGIN
+  -- L'IDENTITE N'EST PAS UN PARAMETRE. L'appelant ne dit pas qui vote : le serveur le lit.
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  IF v_pays = '' OR v_poste = '' OR v_cand = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+
+  -- LA LOCALITE DU POSTE VIENT DU REFERENTIEL, pas du navigateur :
+  -- postes_electifs_regles.niveau = 'ville' est exactement la regle de posteEstLocal(). La cle
+  -- du scrutin et l'identifiant du bulletin s'en deduisent, comme getCleCycle() cote client.
+  SELECT (niveau = 'ville') INTO v_local FROM public.postes_electifs_regles WHERE poste_id = v_poste;
+  IF v_local IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_inconnu');
+  END IF;
+  v_ville    := CASE WHEN v_local AND coalesce(btrim(p_ville), '') <> '' THEN btrim(p_ville) END;
+  v_cle      := CASE WHEN v_ville IS NOT NULL THEN v_poste || '_' || v_ville ELSE v_poste END;
+  v_id_cycle := v_pays || '_' || v_cle;
+
+  -- DOMICILE : meme regle que le client -- domicile.country, a defaut le pays du personnage.
+  SELECT coalesce(nullif(d.domicile ->> 'country', ''), d.country) INTO v_domicile
+    FROM public.personnages_donnees d WHERE d.name = v_moi;
+  IF v_domicile IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'non_domicilie');
+  END IF;
+
+  -- VERROU DU CYCLE. C'est lui qui serialise deux electeurs simultanes : le blob etant
+  -- relu-modifie-reecrit, le second ecrasait sinon le bulletin du premier.
+  SELECT data INTO v_brut FROM public.cycles_electoraux WHERE id = v_id_cycle FOR UPDATE;
+  IF NOT FOUND OR v_brut IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_absent');
+  END IF;
+  BEGIN
+    v_cycle := v_brut::jsonb;
+  EXCEPTION WHEN others THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_illisible');
+  END;
+  IF jsonb_typeof(v_cycle) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_illisible');
+  END IF;
+
+  -- FENETRE DE VOTE, transcrite de getPhaseActuelle() sans y rien ajouter. Le client n'accepte
+  -- que VOTE, VOTE2 et VOTE3E_SIEGE, et ces trois phases sont exactement l'intervalle
+  -- [dateVote, dateResultats) -- ce qui les distingue est le tour, jamais les bornes. La garde
+  -- serveur ne peut donc ni ouvrir ni fermer une fenetre que le client n'ouvrait ou ne fermait
+  -- pas. Les dates sont des millisecondes JavaScript.
+  --
+  -- Et le retour anticipe « mandat en cours » est repris tel quel, parce qu'il PRIME sur le
+  -- calcul par dates. Pour depute le signal est cycle.elus (au moins un siege pourvu), pour les
+  -- autres cycle.eluId.
+  v_titulaire := CASE
+    WHEN v_poste = 'depute' THEN EXISTS (
+      SELECT 1 FROM jsonb_array_elements(
+        CASE WHEN jsonb_typeof(v_cycle -> 'elus') = 'array' THEN v_cycle -> 'elus' ELSE '[]'::jsonb END
+      ) e WHERE e IS NOT NULL AND jsonb_typeof(e) <> 'null' AND e::text <> '""')
+    ELSE coalesce(nullif(v_cycle ->> 'eluId', ''), NULL) IS NOT NULL
+  END;
+  IF (v_cycle ->> 'phase') = 'mandat' AND v_titulaire
+     AND jsonb_typeof(v_cycle -> 'dateFinMandat') = 'number'
+     AND v_ms < (v_cycle ->> 'dateFinMandat')::numeric THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'vote_ferme', 'phase', 'mandat');
+  END IF;
+  IF jsonb_typeof(v_cycle -> 'dateVote') <> 'number'
+     OR jsonb_typeof(v_cycle -> 'dateResultats') <> 'number' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_sans_calendrier');
+  END IF;
+  IF v_ms < (v_cycle ->> 'dateVote')::numeric
+     OR v_ms >= (v_cycle ->> 'dateResultats')::numeric THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'vote_ferme');
+  END IF;
+
+  -- LE CANDIDAT DOIT EXISTER, ou etre le vote blanc -- qui n'est jamais un candidat fictif
+  -- ajoute a la liste, mais un choix reel compte a part par le depouillement.
+  IF v_cand <> 'BLANC' AND NOT EXISTS (
+       SELECT 1 FROM jsonb_array_elements(
+         CASE WHEN jsonb_typeof(v_cycle -> 'candidats') = 'array' THEN v_cycle -> 'candidats' ELSE '[]'::jsonb END
+       ) c WHERE c ->> 'nom' = v_cand) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidat_inconnu');
+  END IF;
+
+  -- LE BULLETIN EST LA REVENDICATION. Sa cle primaire porte (pays, cle du scrutin, votant) :
+  -- un second bulletin du meme electeur pour le meme scrutin obtient un conflit et ne produit
+  -- rien. Ce n'est pas un marqueur qu'une ecriture avalee peut perdre.
+  INSERT INTO public.votes_electoraux (id, country, poste_id, city, votant, candidat, created_at)
+  VALUES (v_pays || '_' || v_cle || '_' || v_moi, v_pays, v_poste, v_ville, v_moi, v_cand, now())
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_vote');
+  END IF;
+
+  -- LE BLOB EST CE QUE LE DEPOUILLEMENT COMPTE, et il est ecrit DANS LA MEME TRANSACTION que le
+  -- bulletin.
+  UPDATE public.cycles_electoraux
+     SET data = (v_cycle || jsonb_build_object('votes',
+                   coalesce(CASE WHEN jsonb_typeof(v_cycle -> 'votes') = 'object'
+                                 THEN v_cycle -> 'votes' END, '{}'::jsonb)
+                   || jsonb_build_object(v_moi, v_cand)))::text,
+         updated_at = now()
+   WHERE id = v_id_cycle;
+
+  RETURN jsonb_build_object('ok', true, 'votant', v_moi, 'candidat', v_cand, 'cle', v_cle);
+END; $function$;
 
 -- elections_voix_pnj_enregistrer(text,text,text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.elections_voix_pnj_enregistrer(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_pnj_nom text, p_canal text, p_cle text DEFAULT NULL::text)

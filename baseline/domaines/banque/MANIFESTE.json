@@ -5,6 +5,12 @@
    "genre": "COLUMN",
    "objet": "prets",
    "sous": "jour_dernier_prelevement"
+  },
+  {
+   "empreinte": "c3dd18d9c7566cbd0809ea7d424ef802",
+   "genre": "FUNCTION",
+   "objet": "compromis_expire_resoudre(text,text)",
+   "sous": ""
   }
  ],
  "contraintes": [
@@ -171,6 +177,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "banque_nationale_mouvement(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "compromis_expire_resoudre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "compromis_expire_resoudre(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -760,12 +778,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "e0be54159d7a10d40060f7bfb9423a5e",
-  "20_fonctions.sql": "f91baec774989ab3bd83cf7ea6bfaf6a",
+  "20_fonctions.sql": "457fc9818970c26eb5edf7d981170fd0",
   "30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",
   "35_index.sql": "84e0b651c5bc4296b38c0b4d4b68c024",
   "60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",
-  "70_droits.sql": "b048b2111a7416d5ea9c94fd691119ea",
-  "80_commentaires.sql": "5e9298777dbc1c55637233cb262fd411"
+  "70_droits.sql": "60133b44e1daa48f4dfe14726043a8af",
+  "80_commentaires.sql": "6aa5de153f880a28fcce44054b116eb0"
  },
  "fonctions": [
   {
@@ -777,6 +795,11 @@
    "empreinte": "4cc9a26d654edbe795c818cd96dd74ea",
    "security_definer": true,
    "signature": "banque_nationale_mouvement(text,text,numeric)"
+  },
+  {
+   "empreinte": "22371209f6649745186653365f9eaa28",
+   "security_definer": true,
+   "signature": "compromis_expire_resoudre(text,text)"
   },
   {
    "empreinte": "422e61010cdfc27883168abfd3b1d933",
@@ -814,7 +837,7 @@
    "signature": "fermer_compte_helvetia(text,text)"
   },
   {
-   "empreinte": "ce65a174cf08db93e937694a60f67e31",
+   "empreinte": "ed6260688b84958d6ef6e4bb03682df1",
    "security_definer": true,
    "signature": "finaliser_achat_bien_helvetia(text,text)"
   },
@@ -874,12 +897,12 @@
    "signature": "resoudre_compromis_helvetia_expire(text)"
   },
   {
-   "empreinte": "162766dbf4325d796631b9548e4cefec",
+   "empreinte": "fb15c0a29344914ca918b23795304c37",
    "security_definer": true,
    "signature": "resoudre_placement_helvetia(text)"
   },
   {
-   "empreinte": "f61b2a7cbec7c06a26f25be32171588f",
+   "empreinte": "912a72c669e721eb8dbd50eb7978071d",
    "security_definer": true,
    "signature": "resoudre_placement_national(text,numeric)"
   },
@@ -904,7 +927,7 @@
    "signature": "taux_pret_nationale(text)"
   },
   {
-   "empreinte": "065f60d651a289b7cf7ac1435843963c",
+   "empreinte": "b2bbd5cd3f17ac8ada786e62e7b0c357",
    "security_definer": true,
    "signature": "traiter_prets_helvetia_quotidien()"
   }

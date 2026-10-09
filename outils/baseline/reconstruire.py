@@ -506,8 +506,18 @@ def controles_du_monde(cat):
     # 666 le 9 octobre 2026 : +2 -- acte_nocturne_revendiquer() (la revendication atomique, que
     # son EXECUTE retire a tous les roles clients rend injoignable depuis le reseau) et
     # preemption_mensualite_prelever() (son premier consommateur).
-    att("signatures de fonction creees", cat.n_fonctions, 666)
-    att("noms de fonction distincts", len(cat.fonctions), 662,
+    # 679 le 9 octobre 2026 au soir : +13 pour les QUINZE migrations du chantier justice et
+    # notification (registre 569 a 583). Les nouvelles sont election_voter, les onze portes de
+    # detention et de justice (detention_qhs_poser_interne, detention_prolonger_interne,
+    # detention_prolonger_soi, detention_ouvrir_soi, detention_clore_purgee,
+    # detention_transferer_qhs, detention_reduire_peine, detention_clore_evasion,
+    # justice_prolonger_peine, justice_rendre_sentence, candidature_poste_tirage_appliquer),
+    # compromis_expire_resoudre et mail_systeme_poser_interne ; detention_ouvrir_interne a vu sa
+    # signature passer a 9 parametres, et une vingtaine de fonctions ont ete REMPLACEES sans que
+    # leur nombre bouge. Mesure en base : select count(*), count(distinct proname) from pg_proc
+    # join pg_namespace on ... where nspname='public' and prokind in ('f','p') -> 679 / 675.
+    att("signatures de fonction creees", cat.n_fonctions, 679)
+    att("noms de fonction distincts", len(cat.fonctions), 675,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue

@@ -49,6 +49,7 @@ GRANT EXECUTE ON FUNCTION public.mail_expediteur_systeme(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mail_systeme_envoyer(text,text,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.mail_systeme_envoyer(text,text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.mail_systeme_envoyer(text,text,text,text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mail_systeme_poser_interne(text,text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO postgres;
 GRANT EXECUTE ON FUNCTION public.mails_journaliser_envoi_systeme() TO service_role;
 

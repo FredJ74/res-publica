@@ -7,6 +7,18 @@
    "sous": "echec"
   },
   {
+   "empreinte": "0931c36b82b488d57768bb6624f6aa63",
+   "genre": "FUNCTION",
+   "objet": "mail_systeme_envoyer(text,text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "e6f332713d96293cb17500c80395f109",
+   "genre": "FUNCTION",
+   "objet": "mail_systeme_poser_interne(text,text,text,text,text)",
+   "sous": ""
+  },
+  {
    "empreinte": "4c3b641dafcd86a2f82ab030f253bcb4",
    "genre": "TABLE",
    "objet": "mails_envois_systeme",
@@ -314,6 +326,12 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "mail_systeme_poser_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "mails_journaliser_envoi_systeme()",
    "privileges": "EXECUTE"
   },
@@ -550,13 +568,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "df63a8ee1cf6eba96116250c1f3df90f",
-  "20_fonctions.sql": "bc3faec7d36e76792ba0edcfe12bb267",
+  "20_fonctions.sql": "72f497d5fb029bb62565e11360bb7529",
   "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
   "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
   "60_rls-policies.sql": "7b2500087e51a183ef6bd439f4474a9b",
-  "70_droits.sql": "0d15f5f54bb42b65b7c339d2a9c32ac7",
-  "80_commentaires.sql": "25273ca935ddaea951711c6b152a788f"
+  "70_droits.sql": "e2373296b26179a6d73ebb63b32af663",
+  "80_commentaires.sql": "0204fa2a12a22705ee75d1a4c021a4ea"
  },
  "fonctions": [
   {
@@ -625,9 +643,14 @@
    "signature": "mail_expediteur_systeme(text)"
   },
   {
-   "empreinte": "a5a6ee6f26939843b78d44c53fdd6d27",
+   "empreinte": "4d0c7289bd873beccb3c2d93ed036367",
    "security_definer": true,
    "signature": "mail_systeme_envoyer(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "22e43e3940eb5aedf44a599588d1e148",
+   "security_definer": true,
+   "signature": "mail_systeme_poser_interne(text,text,text,text,text)"
   },
   {
    "empreinte": "99cc2a8c5f145e996b727b1b07538edd",

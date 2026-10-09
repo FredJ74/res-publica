@@ -862,11 +862,9 @@ BEGIN
   END IF;
   IF v_destinataire IS NULL THEN RETURN; END IF;
 
-  INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-  VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' ||
-          substr(md5(random()::text), 1, 6),
+  PERFORM public.mail_systeme_poser_interne(
           'Service de renseignement', v_destinataire, p_sujet, p_corps,
-          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
+          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
 END;
 $function$;
 

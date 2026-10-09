@@ -167,6 +167,39 @@ def surface_du_navigateur():
     return par_table, sites, bruts
 
 
+def cles_de_premier_niveau(bloc):
+    """Les cles du PREMIER niveau de l'objet litteral `bloc`, qui commence par
+    son accolade ouvrante et finit par la fermante correspondante.
+
+    LES CLES D'UN OBJET IMBRIQUE NE SONT PAS DES PARAMETRES (9 octobre 2026).
+    Jusqu'a ce jour, aucun appel sbRpc ne construisait un objet sur place dans
+    sa charge : un `re.findall` a plat suffisait. Les deux appels de detention
+    du chantier justice en passent desormais un -- `p_extras: { ... }` et
+    `p_motifs: [{ ... }]` -- et la lecture a plat presentait alors treize
+    « parametres » (autorite, jour_affaire, reliquat_jours...) a une fonction
+    qui en a six. L'invariant 13 rougissait sur deux appels rigoureusement
+    conformes a leur signature.
+
+    Le comptage de profondeur est volontairement aussi naif que la recherche de
+    l'accolade fermante de l'appelant : il ignore chaines et commentaires. Les
+    deux lectures restent ainsi coherentes entre elles -- une divergence de
+    finesse entre le decoupage du bloc et sa lecture serait pire qu'une
+    naivete partagee."""
+    masque = []
+    prof = 0
+    for ch in bloc:
+        if ch in "{[(":
+            prof += 1
+            masque.append(ch if prof == 1 else " ")
+        elif ch in "}])":
+            masque.append(ch if prof == 1 else " ")
+            prof -= 1
+        else:
+            masque.append(ch if prof == 1 else " ")
+    return frozenset(
+        re.findall(r"[{,]\s*([A-Za-z_][A-Za-z_0-9]*)\s*:", "".join(masque)))
+
+
 def rpc_du_navigateur():
     """Les RPC appelees par le navigateur, FORME PAR FORME.
 
@@ -189,8 +222,7 @@ def rpc_du_navigateur():
                     if prof == 0:
                         break
                 j += 1
-            passes = frozenset(
-                re.findall(r"[{,]\s*([A-Za-z_][A-Za-z_0-9]*)\s*:", texte[i:j + 1]))
+            passes = cles_de_premier_niveau(texte[i:j + 1])
             formes[m.group(1)][passes].append(
                 "%s:%d" % (court, texte[:m.start()].count("\n") + 1))
     return formes

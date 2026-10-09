@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-09T15:29:31 Europe/Paris",
- "empreintes_relevees_le": "2026-10-09T15:29:31 Europe/Paris",
+ "releve_le": "2026-10-09T18:00:13 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-09T18:00:13 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 262,
@@ -14,14 +14,14 @@
   "index": 416,
   "index_portes": 269,
   "index_autonomes": 147,
-  "fonctions": 666,
+  "fonctions": 679,
   "triggers": 41,
   "policies": 285,
   "rls_actives": 262,
   "droits_relations": 948,
-  "droits_fonctions": 1847,
+  "droits_fonctions": 1878,
   "droits_colonnes": 20,
-  "commentaires": 217,
+  "commentaires": 232,
   "droits_par_defaut": 7
  },
  "_droits_relations_detail": "948 = 838 lignes sur les tables + 102 sur les 31 sequences + 8 sur les 2 vues. Les lignes de sequence avaient ete oubliees par la requete DROITS du chantier 2B ; c'est ce controle global qui l'a attrape. Sans elles, une base reconstruite refuse tout nextval() aux roles clients.",
@@ -55,31 +55,31 @@
   "contraintes": 444,
   "index_portes": 267,
   "index_autonomes": 147,
-  "fonctions": 666,
+  "fonctions": 679,
   "triggers": 41,
   "policies": 285,
   "rls_actives": 256,
-  "droits": 2783,
+  "droits": 2814,
   "droits_colonnes": 20,
-  "commentaires": 213,
+  "commentaires": 228,
   "droits_par_defaut": 7
  },
  "_colonnes_calcul": "2030 = 2158 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 55 colonnes des 6 tables ecartees.",
- "_droits_calcul": "2783 = 948 droits de relation + 1847 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
+ "_droits_calcul": "2814 = 948 droits de relation + 1878 droits de fonction - 12 droits portes par les tables ecartees. Les 20 droits au niveau colonne sont comptes separement, comme au chantier 2B.",
  "empreintes": {
   "_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = « cle : md5(definition) ». COLLATE \"C\" OBLIGATOIRE : sans lui le tri suit la collation de la base, qui ignore la ponctuation au premier rang, et tout recalcul hors de PostgreSQL (qui trie par point de code) donne une autre valeur alors que les definitions sont identiques. Piege rencontre et corrige le 5 octobre 2026.",
   "colonnes": "16d5b848b3ca0fcbd6319112843c072f",
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
   "contraintes": "29d46f4375344a1d50bb858bf34b42cd",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "9f783d03f14c66a88eff5d44c5f3c6fe",
+  "fonctions": "4567e1a67a6f11b323fa1499d9aabb3d",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "triggers": "5cf4e2d0f5165aa3f6310aebc9359b45",
   "policies": "73ef7d488c61397872390ddec4fa7b20",
   "policies_avec_roles": "d236b19fe59b93ce8913cec91c33740a",
   "_policies_deux_empreintes": "La formule heritee du chantier 2B (USING, WITH CHECK, commande, permissive) a un angle mort : elle ignore le role vise par le TO. Un « TO anon » devenu « TO authenticated » y passerait inapercu. policies_avec_roles porte sur l'ordre CREATE POLICY complet. Les deux sont controlees ; la premiere est conservee pour que les controles 2B restent comparables.",
-  "droits": "ef24b1cde74fea3c6d3c6f6a6ff0eda4",
-  "commentaires": "414face26522dc29b81c800ab009ad11",
+  "droits": "c6ca2d5b171ad4a955c771fd2f75335b",
+  "commentaires": "a798db3415ee4554ff7ed475e8c8ea84",
   "_deux_valeurs_corrigees": {
    "_commentaire": "Ces deux empreintes ont d'abord ete relevees a une valeur fausse, non parce que la base avait change, mais parce que la requete de controle etait fautive. Les deux fautes ont ete corrigees dans requetes.py, la requete a ete rejouee, et la base a confirme les valeurs ci-dessus. Elles sont consignees ici parce qu'elles decrivent deux pieges durables.",
    "triggers": "Premiere valeur ec94542f893eeb9273519a96cd0e0639, obtenue avec pg_get_triggerdef(oid). Le baseline ecrit la forme « pretty », pg_get_triggerdef(oid, true). Le controle comparait deux formes differentes du MEME declencheur : il rougissait alors que rien ne divergeait.",
@@ -89,7 +89,7 @@
  },
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 7 octobre 2026, apres les SIX migrations des chantiers 4E et 4F.",
-  "fonctions_security_definer": 555,
+  "fonctions_security_definer": 568,
   "fonctions_security_invoker": 111,
   "tables_rls_active_sans_policy": 103,
   "tables_sans_rls": 0,
@@ -210,14 +210,14 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "_commentaire": "Point de coupe du 9 octobre 2026 a 15h29, apres la migration 20261009132222 (notification_ne_casse_plus_l_acte), 568e entree du registre. Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction -- voir _horodatage.\n  Les SIX migrations des chantiers 4E et 4F, point de coupe du 7 octobre :\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers\n  Puis, les unes apres les autres :\n  20261008071350  budgets_municipaux_serveur_et_brique_generique\n  20261008072422  entrepot_caisse_canonique_unique_consommateurs\n  20261008214206  pays_declare_et_retrait_des_defauts_republic        (chantier 4G)\n  20261008221846  defaut_des_privileges_de_fonction_ferme\n  20261008235521  idempotence_prets_helvetia                          (chantier 6)\n  20261009003201  mails_portent_leur_identite                         (chantier 6)\n  20261009005012  ardoise_impaye_atomique                             (chantier 6)\n  20261009073456  restitution_arg_arnie_effet_de_bord_des_preuves     (donnees)\n  20261009093112  actes_nocturnes_brique                              (chantier 6)\n  20261009130649  preemption_mensualite_atomique                      (chantier 6)\n  20261009132222  notification_ne_casse_plus_l_acte                   (chantier 5)",
-  "entrees": 568,
-  "derniere_version": "20261009132222",
-  "empreinte_versions_et_noms": "e6b1891f9f729ebce8a1a48e73022429",
+  "_commentaire": "Point de coupe du 9 octobre 2026 a 18h00, apres la migration 20261009155036 (detention_reduction_avocat_et_evasion_atomiques), 583e entree du registre.\n  LES QUINZE MIGRATIONS DU LOT JUSTICE-NOTIFICATION, registre 569 a 583 :\n  20261009140303  election_voter_porte_atomique\n  20261009141441  detention_moteur_partage_et_drapeau_qhs\n  20261009142500  detention_porte_du_detenu_sur_lui_meme\n  20261009142903  detention_clore_et_transferer_au_qhs\n  20261009143302  justice_rendre_sentence_porte_atomique\n  20261009150819  candidature_poste_tirage_appartient_au_serveur\n  20261009152210  compromis_expire_une_transaction_deux_familles\n  20261009152949  mail_systeme_un_seul_ecrivain_et_son_poseur_interne\n  20261009153547  mails_routes_militaire_et_renseignement\n  20261009153653  mails_routes_assemblee\n  20261009153746  mails_routes_banque_et_notariat\n  20261009153817  mails_routes_contact_organisation\n  20261009153925  mails_routes_prets_helvetia\n  20261009154659  mails_routes_placement_helvetia_et_arete_assemblee\n  20261009155036  detention_reduction_avocat_et_evasion_atomiques\n  Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction -- voir _horodatage.\n  Les SIX migrations des chantiers 4E et 4F, point de coupe du 7 octobre :\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers\n  Puis, les unes apres les autres :\n  20261008071350  budgets_municipaux_serveur_et_brique_generique\n  20261008072422  entrepot_caisse_canonique_unique_consommateurs\n  20261008214206  pays_declare_et_retrait_des_defauts_republic        (chantier 4G)\n  20261008221846  defaut_des_privileges_de_fonction_ferme\n  20261008235521  idempotence_prets_helvetia                          (chantier 6)\n  20261009003201  mails_portent_leur_identite                         (chantier 6)\n  20261009005012  ardoise_impaye_atomique                             (chantier 6)\n  20261009073456  restitution_arg_arnie_effet_de_bord_des_preuves     (donnees)\n  20261009093112  actes_nocturnes_brique                              (chantier 6)\n  20261009130649  preemption_mensualite_atomique                      (chantier 6)\n  20261009132222  notification_ne_casse_plus_l_acte                   (chantier 5)",
+  "entrees": 583,
+  "derniere_version": "20261009155036",
+  "empreinte_versions_et_noms": "ac1ea446738f76d58760bd3701090ed6",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0",
   "_empreinte_contenu_2d": "Non remesuree : elle porte sur l'archive 2D, qui est CLOSE. verifier-archive-registre.py la verifie et passe.",
-  "empreinte": "9ea32d046289cd4c021098e152702819",
-  "_empreinte_versions_et_noms": "Formule : md5(string_agg(version || '_' || name, ',' order by version)), sur les 564 entrees. Elle est ecrite ici depuis le 9 octobre 2026, et c'est nouveau : la valeur precedente (788e5443...) n'avait ni formule consignee, ni consommateur, ni correspondance dans historique/registre-supabase/empreintes.json -- personne ne pouvait la reverifier. Une empreinte sans formule n'est pas une preuve."
+  "empreinte": "3aafacb3822feaae9e8229bc797402c5",
+  "_empreinte_versions_et_noms": "Formule : md5(string_agg(version || '_' || name, ',' order by version)), sur les 583 entrees -- 564 quand cette formule a ete consignee, le 9 octobre 2026 au matin. Elle est ecrite ici depuis le 9 octobre 2026, et c'est nouveau : la valeur precedente (788e5443...) n'avait ni formule consignee, ni consommateur, ni correspondance dans historique/registre-supabase/empreintes.json -- personne ne pouvait la reverifier. Une empreinte sans formule n'est pas une preuve."
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -420,5 +420,15 @@
   "doctrine_de_notification": "mail_systeme_envoyer enferme son INSERT dans un bloc d'exception et consigne l'incident dans mails_envois_systeme.echec avec son SQLSTATE : un courrier perdu n'annule plus l'acte metier, et ne se perd plus en silence. Cote JavaScript, envoyerMailSysteme ne leve plus et signale elle-meme -- une fois, dans la brique, au lieu de seize .catch(() => {}) disperses.",
   "donnees_beta": "Une seule donnee modifiee, et exprès : arg d'Arnie 8428 -> 9428, restitution de l'effet de bord des preuves de la migration 562. Tout le reste est identique par empreinte -- caisses_batiments 150/f72fd8bb, comptes_bancaires 18/0fe6e3ab, mails 28/3d1b87e4. actes_nocturnes arrive VIDE, son registre porte UNE ligne.",
   "_vestige_de_rendu_corrige": "Le controle d'integrite a attrape un vestige : `finances publiques` a franchi le seuil de taille de fichier et son 20_fonctions.sql a ete remplace par deux morceaux, l'ancien restant sur le disque avec une copie perimee de toutes les fonctions du domaine. rendre.py possede desormais son repertoire et retire ce qu'il n'a pas ecrit."
+ },
+ "_chantier_5_justice_et_notification": {
+  "_commentaire": "Releve du 9 octobre 2026 a 18h00, apres les QUINZE migrations du registre 569 a 583 : les portes atomiques du vote et de la detention, le tirage des postes nommes, la resolution des compromis, et le routage de tous les courriers systeme par un seul ecrivain. Le registre passe de 568 a 583 entrees.",
+  "ce_qui_bouge_au_catalogue": "fonctions 666 -> 679, commentaires 217 -> 232, droits de fonction 1847 -> 1878, SECURITY DEFINER 555 -> 568. ET RIEN D'AUTRE : tables 262, vues 2, sequences 31, colonnes 2158, contraintes 446, index 416, declencheurs 41, policies 285, RLS actives 262, droits de relation 948, droits de colonne 20, droits par defaut 7 -- tous identiques. Les empreintes des colonnes, contraintes, index, vues, declencheurs et policies (dans les deux formules) sont rigoureusement inchangees.",
+  "_fonctions_le_compte_exact": "+14 signatures nouvelles et -1 disparue, soit +13. Nouvelles : election_voter(text,text,text,text) ; les dix portes de detention et de justice -- detention_qhs_poser_interne(text,text,text), detention_prolonger_interne(text,jsonb,boolean), detention_prolonger_soi(jsonb,boolean), detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb), detention_clore_purgee(), detention_transferer_qhs(text,integer,text,jsonb), detention_reduire_peine(boolean), detention_clore_evasion(), justice_rendre_sentence(jsonb,text), candidature_poste_tirage_appliquer(text,text,text,text,text[],text) ; compromis_expire_resoudre(text,text) ; mail_systeme_poser_interne(text,text,text,text,text) ; et detention_ouvrir_interne a 9 parametres. La disparue est detention_ouvrir_interne a 8 parametres : p_extras est un parametre NOUVEAU, donc une SIGNATURE nouvelle, et l'ancienne a ete supprimee plutot que laissee en surcharge -- deux moteurs d'incarceration auraient ete deux verites.",
+  "_fonctions_remplacees_sans_changer_le_compte": "TREIZE, verifiees une par une par comparaison des empreintes du manifeste : mail_systeme_envoyer (devient la seule porte RESEAU et delegue son INSERT), justice_prolonger_peine (passe par le moteur partage), et les onze dont seul l'INSERT de courrier a change -- militaire_affectations_expirer, militaire_candidatures_relancer, militaire_candidature_accepter, cellule_alerter_ministre, assemblee_marquer_convocations_echues, assemblee_detecter_partie, resoudre_placement_national, resoudre_placement_helvetia, finaliser_achat_bien_helvetia, contact_organisation_demander, traiter_prets_helvetia_quotidien. AUCUNE AUTRE definition du schema n'a bouge.",
+  "_droits_le_compte_exact": "+35 lignes posees et -4 retirees, soit +31. Les 35 sont les ACL des 14 signatures neuves (postgres et service_role partout ; `authenticated` en plus sur les huit portes que le navigateur appelle -- election_voter, detention_ouvrir_soi, detention_prolonger_soi, detention_transferer_qhs, detention_reduire_peine, detention_clore_purgee, detention_clore_evasion, justice_rendre_sentence). Les 4 retirees : les deux GRANT de l'ancienne signature de detention_ouvrir_interne, et le EXECUTE de `service_role` sur assemblee_detecter_partie et assemblee_transaction_interdite_interne. mail_systeme_poser_interne n'a QUE postgres -- une seule ligne : meme a service_role son EXECUTE est refuse, comme pour acte_nocturne_revendiquer. L'unique ecrivain des courriers n'est donc joignable que depuis une fonction SECURITY DEFINER du serveur.",
+  "_commentaires_le_compte_exact": "+15, et aucun retire : un COMMENT par signature neuve (14) plus celui de mail_systeme_envoyer, qui n'en portait aucun.",
+  "une_ligne_de_seed": "actes_nocturnes_mecanismes passe de 1 a 2 lignes : le mecanisme `candidature_poste_tirage` rejoint `preemption_mensualite` dans la liste blanche. C'est le SEUL changement de donnees de tout le lot, et il est structurel -- sans sa ligne, la cle etrangere d'actes_nocturnes refuse la revendication et la passe de minuit s'arrete. Le total des seeds passe de 933 a 934 lignes, dans 66 tables.",
+  "_un_faux_positif_d_outil_corrige": "L'invariant 13 (toute RPC appelee par le navigateur existe, avec ces parametres-la) rougissait sur detention_ouvrir_soi et detention_transferer_qhs, deux appels RIGOUREUSEMENT conformes a leur signature. La cause etait dans l'outil : rpc_du_navigateur() lisait les cles de la charge sbRpc par un re.findall a plat, qui descendait dans les objets imbriques. Les deux appels construisent un objet sur place -- p_extras: { ... } et p_motifs: [{ ... }] -- et l'outil presentait donc treize « parametres » (autorite, jour_affaire, reliquat_jours, type, source...) a une fonction qui en a six. Aucun appel n'avait jamais fait cela avant ce lot. verifier-autorite.py masque desormais tout ce qui est a une profondeur superieure a un avant de lire les cles ; verifie sur l'ensemble des appels du jeu, exactement DEUX sites changent de lecture, et ce sont ces deux-la."
  }
 }

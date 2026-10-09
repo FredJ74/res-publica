@@ -11,6 +11,8 @@
 -- ============================================================================
 
 -- DROITS SUR LES FUNCTIONS
+GRANT EXECUTE ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.candidature_publier(text,text,numeric,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.candidature_publier(text,text,numeric,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.candidature_publier(text,text,numeric,text,text) TO service_role;
@@ -20,6 +22,9 @@ GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp
 GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) TO service_role;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO postgres;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO service_role;
+GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.elections_voix_pnj_enregistrer(text,text,text,text,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.elections_voix_pnj_enregistrer(text,text,text,text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.elections_voix_pnj_enregistrer(text,text,text,text,text,text,text) TO service_role;

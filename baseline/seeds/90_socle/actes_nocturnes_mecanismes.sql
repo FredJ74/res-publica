@@ -4,7 +4,7 @@
 -- Domaine    : divers et technique
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 1
+-- Lignes     : 2
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -24,4 +24,5 @@
 -- monde neuf, pas de son etat vivant.
 -- ============================================================================
 
+INSERT INTO public.actes_nocturnes_mecanismes (mecanisme, sujet_singleton, note) VALUES ('candidature_poste_tirage', 'false', 'Nomination par tirage au sort d''une candidature a un poste nomme dont l''autorite n''a pas tranche dans les 48h. Un rejeu redesignerait un gagnant et rediviserait par deux la POP du nominateur. Un sujet par poste : « <poste_id>|<ville ou national> ».');
 INSERT INTO public.actes_nocturnes_mecanismes (mecanisme, sujet_singleton, note) VALUES ('preemption_mensualite', 'true', 'Mensualite de la preemption d''Etat : debit de la caisse du Ministere des Finances et reduction de la dette. Un rejeu debiterait une seconde mensualite. Un sujet par pays : une seule preemption a la fois.');

@@ -17,6 +17,8 @@ GRANT EXECUTE ON FUNCTION public.accepter_accord_helvetia(text,text) TO service_
 GRANT EXECUTE ON FUNCTION public.banque_nationale_mouvement(text,text,numeric) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.banque_nationale_mouvement(text,text,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.banque_nationale_mouvement(text,text,numeric) TO service_role;
+GRANT EXECUTE ON FUNCTION public.compromis_expire_resoudre(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.compromis_expire_resoudre(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.compte_bancaire_initial(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.compte_bancaire_initial(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.compte_bancaire_initial(text) TO service_role;

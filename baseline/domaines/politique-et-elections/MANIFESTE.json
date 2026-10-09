@@ -7,6 +7,18 @@
    "sous": "canal"
   },
   {
+   "empreinte": "e40142c4db213d3fb0411f40f9ad8754",
+   "genre": "FUNCTION",
+   "objet": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ae4ffcb93246da22faf5723dd31f37c0",
+   "genre": "FUNCTION",
+   "objet": "election_voter(text,text,text,text)",
+   "sous": ""
+  },
+  {
    "empreinte": "92c02919acff91db5096992f381c3e8e",
    "genre": "FUNCTION",
    "objet": "postes_nommes_regles_empreinte_reelle()",
@@ -132,6 +144,18 @@
  "domaine": "politique et elections",
  "droits": [
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "candidature_publier(text,text,numeric,text,text)",
@@ -183,6 +207,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "cycles_electoraux_dimanche()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "election_voter(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "election_voter(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "election_voter(text,text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -748,15 +790,20 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d341852b751536f74b05e46444766e78",
-  "20_fonctions.sql": "22ae23cccc6f5813cf238234a7dfb03f",
+  "20_fonctions.sql": "61b18cb58176105186f90d6e187a6893",
   "30_contraintes.sql": "74b60f013ac9da92adbec51b9abb6a9f",
   "35_index.sql": "b5f2cff596e2b8bb0e41dc89148bbe98",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
   "60_rls-policies.sql": "4ff4ee091c383af9c50c0e135029dd8d",
-  "70_droits.sql": "2315addc9d5ec4d3c48acfddddaeaebb",
-  "80_commentaires.sql": "e2b52bf9c19a374ee8423ba90e68b0e0"
+  "70_droits.sql": "f5f46fb5379c23ec28597f857de530e3",
+  "80_commentaires.sql": "ab3b79c7ec244e9f601c286448526422"
  },
  "fonctions": [
+  {
+   "empreinte": "bb9dccbde8ee3b6728ede8534bf61b19",
+   "security_definer": true,
+   "signature": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)"
+  },
   {
    "empreinte": "9e14d069bcafcd6b2c3de632a7d3d469",
    "security_definer": true,
@@ -776,6 +823,11 @@
    "empreinte": "19fc5dd0f693ad27a99e6e09ee380ffa",
    "security_definer": true,
    "signature": "cycles_electoraux_dimanche()"
+  },
+  {
+   "empreinte": "bb76671c91a8c5e574818bdd8b12ddad",
+   "security_definer": true,
+   "signature": "election_voter(text,text,text,text)"
   },
   {
    "empreinte": "a40bbfdbe6eba0a47ca3364f92e32d2a",

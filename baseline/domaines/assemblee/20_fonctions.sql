@@ -717,20 +717,14 @@ BEGIN
    WHERE name = p_nom;
 
   IF v_conv IS NOT NULL THEN
-    BEGIN
-      INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-      VALUES (
-        'mail-' || md5(random()::text || clock_timestamp()::text),
+    PERFORM public.mail_systeme_poser_interne(
         'Commissariat', p_nom, 'Convocation officielle',
         CASE WHEN p_role = 'vente'
           THEN 'Une vente portant sur une marchandise interdite (« ' || (p_loi ->> 'titre') || ' ») a été constatée dans votre commerce. '
           ELSE 'Une transaction portant sur une marchandise interdite (« ' || (p_loi ->> 'titre') || ' ») vous a été imputée. ' END
         || 'Présentez-vous au commissariat sous 36 heures pour vous justifier. '
         || 'Passé ce délai sans vous présenter, vous serez arrêté(e) et détenu(e) deux jours.',
-        to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY'), false);
-    EXCEPTION WHEN OTHERS THEN
-      NULL;
-    END;
+        to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY'));
   END IF;
 
   RETURN jsonb_build_object('role', p_role, 'detecte', v_detecte, 'taux', v_taux, 'jet', v_jet,
@@ -1019,20 +1013,13 @@ BEGIN
       UPDATE public.personnages SET convocations = v_convs WHERE name = v_perso.name;
       v_noms := v_noms || jsonb_build_array(v_perso.name);
 
-      -- Notification isolee : un echec d'envoi ne doit JAMAIS annuler le verdict (voir la RPC
-      -- vendeur ci-dessus pour la meme justification).
-      BEGIN
-        INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-        VALUES (
-          'mail-' || md5(random()::text || clock_timestamp()::text),
+      -- Notification isolee : un echec d'envoi ne doit JAMAIS annuler le verdict. C'est le
+      -- poseur systeme qui le garantit maintenant — il ne leve pas et consigne son echec.
+      PERFORM public.mail_systeme_poser_interne(
           'Commissariat', v_perso.name, 'Non-présentation à convocation',
           'Vous ne vous êtes pas présenté(e) dans le délai de 36 heures qui vous était imparti. '
           || 'Vous serez placé(e) en détention pour deux jours à votre prochaine présence.',
-          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY'), false
-        );
-      EXCEPTION WHEN OTHERS THEN
-        NULL;
-      END;
+          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY'));
     END IF;
   END LOOP;
 

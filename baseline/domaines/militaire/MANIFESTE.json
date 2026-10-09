@@ -3328,7 +3328,7 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "b0cbce6e6da2f36f4251613bc672a672",
-  "20_fonctions-1.sql": "1c6dfa40f72ae0a7e8895f64a6884f9d",
+  "20_fonctions-1.sql": "f1737bd4f240e9aacef36bf616e2c652",
   "20_fonctions-2.sql": "008bc9e4975120669d4e3700bd237ce4",
   "20_fonctions-3.sql": "418f2d11546caef22030ac484f322758",
   "30_contraintes.sql": "9a10c64eb8a2aac583fb828422059ab8",
@@ -3465,7 +3465,7 @@
    "signature": "militaire_affectation_decouvrir()"
   },
   {
-   "empreinte": "d25c1a9fd7a7fae2ac800846b84f901f",
+   "empreinte": "3441fb66e417f4e508015cf72525d356",
    "security_definer": true,
    "signature": "militaire_affectations_expirer()"
   },
@@ -3620,7 +3620,7 @@
    "signature": "militaire_candidater_soldat(text,text)"
   },
   {
-   "empreinte": "bc014e9dd4c25fe16870244ad3c72c4e",
+   "empreinte": "2cb2edcf9ef5bffe1cf0678f33bbd166",
    "security_definer": true,
    "signature": "militaire_candidature_accepter(text,text,text)"
   },
@@ -3650,7 +3650,7 @@
    "signature": "militaire_candidatures_a_traiter()"
   },
   {
-   "empreinte": "b1b3bbc6d549085a49dfd86e66d37d31",
+   "empreinte": "0e578282bbe5ff651871b9f8d3b4b2e9",
    "security_definer": true,
    "signature": "militaire_candidatures_relancer()"
   },

@@ -107,6 +107,145 @@ BEGIN
     'liquide', v_liquide, 'solde', v_solde, 'arg', v_arg, 'compte', v_compte_id);
 END; $function$;
 
+-- compromis_expire_resoudre(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.compromis_expire_resoudre(p_type text, p_cible text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_type text := lower(btrim(coalesce(p_type,''))); v_data jsonb;
+  v_pays text; v_bat text; v_prefixe text; v_expire bigint;
+  v_ms bigint := (extract(epoch from now())*1000)::bigint;
+  v_pret jsonb; v_refus boolean := false; v_gele boolean := false; v_existe boolean;
+  v_detail text[] := ARRAY[]::text[]; v_montant numeric; v_arg numeric;
+  v_acompte numeric; v_par text; v_perm text;
+  v_jour text := to_char((now() AT TIME ZONE 'Europe/Paris')::date, 'YYYY-MM-DD');
+BEGIN
+  -- FAIL-CLOSED : un type ou une cible absents LEVENT. Rendre un verdict voudrait dire
+  -- « rien a resoudre », et le cron reposerait un drapeau qu'il n'a pas gagne.
+  IF v_type NOT IN ('terrain','entreprise') THEN
+    RAISE EXCEPTION 'compromis_expire_resoudre : type inconnu « % »', p_type; END IF;
+  IF btrim(coalesce(p_cible,'')) = '' THEN
+    RAISE EXCEPTION 'compromis_expire_resoudre : la cible est obligatoire'; END IF;
+
+  -- LE VERROU SUR LE BIEN est ce qui serialise deux passes simultanees.
+  IF v_type = 'terrain' THEN
+    SELECT t.data::jsonb, t.country, t.building_id INTO v_data, v_pays, v_bat
+      FROM public.terrains_etat t WHERE t.id = p_cible FOR UPDATE;
+    v_prefixe := 'compromis-';
+  ELSE
+    -- Le pays d'une entreprise : son blob d'abord, sinon le DEUXIEME segment de l'identifiant
+    -- (« <type>-<pays>-<ville> »). C'est exactement ce que lisait `split('-').slice(1)[0]`.
+    SELECT e.data,
+           nullif(coalesce(e.data->>'country', split_part(coalesce(e.data->>'id', e.id),'-',2)),''), e.id
+      INTO v_data, v_pays, v_bat FROM public.entreprises e WHERE e.id = p_cible FOR UPDATE;
+    v_prefixe := 'compromis-entreprise-';
+  END IF;
+  IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'action','non_applicable'); END IF;
+  -- Un bien Helvetia garde sa propre RPC : on ne reimplemente pas sa decision ici.
+  IF v_type = 'terrain' AND (v_data->>'proprietaire') = 'Helvetia' THEN
+    RETURN jsonb_build_object('ok', false, 'action','helvetia'); END IF;
+  IF coalesce((v_data->>'compromis')::boolean, false) IS NOT TRUE
+     OR (v_data->>'compromisExpireAt') IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'action','non_applicable'); END IF;
+  v_expire := (v_data->>'compromisExpireAt')::bigint;
+  IF v_expire > v_ms THEN RETURN jsonb_build_object('ok', false, 'action','pas_encore_expire'); END IF;
+
+  -- UN PRET DEJA ACCORDE GELE LE COMPROMIS (correctif du 10 aout 2026) : sans cette garde, la
+  -- meme ligne se ferait perdre son acompte a chaque passage du cron, chaque nuit.
+  v_pret := v_data->'pretDemande';
+  IF jsonb_typeof(v_pret) = 'object' AND v_pret->>'statut' = 'accorde' THEN
+    RETURN jsonb_build_object('ok', true, 'action','pret_accorde_compromis_gele'); END IF;
+
+  -- PERMIS DU MAIRE : terrain seulement. Pas de reponse = positif, maintenant.
+  IF v_type = 'terrain' THEN
+    v_perm := v_data #>> '{permis,statut}';
+    IF v_perm = 'attente_validation' THEN
+      v_data := jsonb_set(jsonb_set(v_data, '{permis,statut}', '"valide"'),
+                          '{permis,autoValide}', 'true');
+      v_data := jsonb_set(v_data, '{constructionAutorisee}', 'true', true);
+      v_detail := array_append(v_detail, 'permis validé (sans réponse du maire)');
+    ELSIF v_perm = 'valide' THEN
+      v_data := jsonb_set(v_data, '{constructionAutorisee}', 'true', true);
+      v_detail := array_append(v_detail, 'permis validé par le maire');
+    ELSIF v_perm = 'refuse' THEN
+      v_refus := true; v_detail := array_append(v_detail, 'permis refusé par le maire');
+    END IF;
+  END IF;
+
+  -- LE TIRAGE DU PRET EST ICI, pas chez l'appelant : un rejeu ne peut plus le rejouer.
+  IF jsonb_typeof(v_pret) = 'object' AND v_pret->>'statut' = 'attente_validation' THEN
+    v_montant := coalesce((v_pret->>'montant')::numeric, 0);
+    SELECT true, coalesce(arg,0) INTO v_existe, v_arg FROM public.personnages
+     WHERE name = v_pret->>'demandeur' FOR UPDATE;
+    v_arg := coalesce(v_arg, 0);
+    IF v_arg >= v_montant * 0.10 OR random() < 0.5 THEN
+      v_data := jsonb_set(v_data, '{pretDemande,statut}', '"accorde"');
+      IF coalesce(v_existe, false) THEN
+        UPDATE public.personnages SET arg = coalesce(arg,0) + v_montant
+         WHERE name = v_pret->>'demandeur';
+        INSERT INTO public.prets (id, emprunteur, country, building_id, type_banque,
+            montant_initial, montant_restant, duree_jours, mensualite, jours_impayes, statut)
+        VALUES ('pret-' || v_type || '-' || p_cible || '-' || v_jour, v_pret->>'demandeur',
+            v_pays, v_bat, 'nationale', v_montant, (v_pret->>'montantTotal')::numeric,
+            (v_pret->>'duree')::integer, (v_pret->>'mensualite')::numeric, 0, 'en_cours')
+        ON CONFLICT (id) DO NOTHING;
+      END IF;
+      v_detail := array_append(v_detail, 'prêt accordé (+' || v_montant::text || ' FR virés)');
+      v_gele := true;
+    ELSE
+      v_data := jsonb_set(v_data, '{pretDemande,statut}', '"refuse"');
+      v_refus := true; v_detail := array_append(v_detail, 'prêt refusé par la banque');
+    END IF;
+  END IF;
+
+  -- Pret accorde a l'instant, aucune autre clause refusee : le compromis reste actif, ni
+  -- rembourse ni perdu -- le joueur finalisera plus tard avec l'argent prete.
+  IF v_gele AND NOT v_refus THEN
+    IF v_type = 'terrain' THEN
+      UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = p_cible;
+    ELSE
+      UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_cible;
+    END IF;
+    RETURN jsonb_build_object('ok', true, 'action','pret_en_attente_finalisation',
+                              'detail', array_to_string(v_detail,' · '));
+  END IF;
+
+  v_acompte := coalesce((v_data->>'acompte')::numeric, 0);
+  v_par := v_data->>'compromisPar';
+  IF v_refus AND v_par IS NOT NULL AND v_acompte > 0 THEN
+    UPDATE public.personnages SET arg = coalesce(arg,0) + v_acompte WHERE name = v_par;
+    v_detail := array_append(v_detail, 'acompte remboursé (' || v_acompte::text || ' FR)');
+  ELSE
+    v_detail := array_append(v_detail, 'acompte perdu (' || v_acompte::text || ' FR)');
+  END IF;
+
+  INSERT INTO public.compromis_historique (id, country, building_id, demandeur, resultat, detail)
+  VALUES (v_prefixe || p_cible || '-' || v_jour, v_pays, v_bat, coalesce(v_par,'inconnu'),
+          CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu' END,
+          coalesce(nullif(array_to_string(v_detail,' · '),''),
+                   CASE WHEN v_type='entreprise'
+                        THEN 'compromis de rachat d''entreprise expiré sans finalisation'
+                        ELSE '' END))
+  ON CONFLICT (id) DO NOTHING;
+
+  -- `pretDemande` est efface aussi (10 aout 2026) : un {statut:'refuse'} laisse accroche aurait
+  -- bloque a tort le pretOk d'un futur compromis n'ayant rien demande.
+  v_data := v_data - 'compromis' - 'compromisPar' - 'acompte' - 'compromisAt'
+                   - 'compromisExpireAt' - 'pretDemande';
+  IF v_type = 'terrain' THEN
+    UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = p_cible;
+  ELSE
+    UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_cible;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true,
+    'action', CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu' END,
+    'acompte', v_acompte, 'detail', array_to_string(v_detail,' · '));
+END; $function$;
+
 -- compte_bancaire_initial(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.compte_bancaire_initial(p_acteur text)
  RETURNS jsonb
@@ -689,10 +828,10 @@ BEGIN
       VALUES ('obl-coprop-'||v_bien.id, v_bien.country, v_bien.coproprietaire, v_bien.quote_part_coproprietaire,
               'quote_part_coproprietaire', v_bien.id, v_bien.pret_id, 'liquide');
 
-    INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-      VALUES (v_bien.coproprietaire, 'Banque Privée Helvetia', 'Revente de votre bien en copropriété',
+    PERFORM public.mail_systeme_poser_interne(
+        'Banque Privée Helvetia', v_bien.coproprietaire, 'Revente de votre bien en copropriété',
         'Le bien a été revendu. Votre quote-part protégée (' || v_bien.quote_part_coproprietaire || ') vous sera réglée dès que possible.',
-        now()::text, false, false);
+        now()::text);
 
     v_reste_debiteur := GREATEST(0, v_bien.prix_notaire - v_bien.quote_part_coproprietaire);
 
@@ -709,10 +848,10 @@ BEGIN
       ELSE
         UPDATE public.prets SET montant_restant = montant_restant - v_reste_debiteur WHERE id = v_pret.id;
       END IF;
-      INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-        VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Revente de votre bien en copropriété',
+      PERFORM public.mail_systeme_poser_interne(
+          'Banque Privée Helvetia', v_pret.emprunteur, 'Revente de votre bien en copropriété',
           'Le bien a été revendu. Après règlement de la quote-part de votre copropriétaire, ' || v_reste_debiteur ||
-          ' ont été appliqués à votre dette.', now()::text, false, false);
+          ' ont été appliqués à votre dette.', now()::text);
     END IF;
   END IF;
 
@@ -1433,20 +1572,9 @@ begin
   where id = v_placement.id
   returning * into v_placement;
 
-  insert into public.mails (
-    id,
-    to_player,
-    from_player,
-    subject,
-    body,
-    time,
-    read,
-    archived
-  )
-  values (
-    'mail-helvetia-' || extract(epoch from now())::bigint,
-    v_placement.personnage,
+  perform public.mail_systeme_poser_interne(
     'Banque Privée Helvetia',
+    v_placement.personnage,
     'Placement Helvetia arrivé à échéance',
     'Montant placé : ' || v_placement.montant ||
       ' FR. Gain brut (8%) : ' || v_gain_brut ||
@@ -1462,9 +1590,7 @@ begin
       'Gain net : ' || v_gain_net ||
       ' FR. Montant crédité sur votre compte : ' ||
       v_montant_final || ' FR.',
-    now()::text,
-    false,
-    false
+    now()::text
   );
 
   return v_placement;
@@ -1579,20 +1705,9 @@ BEGIN
       ELSE 'Perte'
     END;
 
-  INSERT INTO mails (
-    id,
-    to_player,
-    from_player,
-    subject,
-    body,
-    time,
-    read,
-    archived
-  )
-  VALUES (
-    v_mail_id,
-    v_placement.personnage,
+  PERFORM public.mail_systeme_poser_interne(
     'Banque Nationale',
+    v_placement.personnage,
     'Placement Banque nationale arrivé à échéance',
     'Montant placé : ' ||
       v_placement.montant::text || ' FR. ' ||
@@ -1603,9 +1718,7 @@ BEGIN
       v_signe || v_delta::text || ' FR. ' ||
     'Montant crédité : ' ||
       v_montant_final::text || ' FR.',
-    now(),
-    false,
-    false
+    (now())::text
   );
 
   RETURN v_placement;
@@ -1795,10 +1908,10 @@ BEGIN
         UPDATE public.prets SET accord_actif = false WHERE id = v_pret.id;
       ELSIF now() >= v_pret.accord_fin_le - interval '1 day' AND NOT v_pret.accord_avertissement_envoye THEN
         UPDATE public.prets SET accord_avertissement_envoye = true WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Dernier délai',
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Dernier délai',
             'Réglez l''intégralité de votre dette avant minuit demain, faute de quoi le recouvrement reprendra.',
-            now()::text, false, false);
+            now()::text);
         pret_id := v_pret.id; action := 'avertissement_accord'; RETURN NEXT;
         CONTINUE;
       ELSE
@@ -1851,15 +1964,15 @@ BEGIN
 
       IF v_pret.jours_impayes + 1 >= 2 THEN
         UPDATE public.prets SET jours_impayes = jours_impayes + 1, statut = 'contentieux' WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Mise en demeure',
-            'La totalité du capital restant dû est désormais exigible immédiatement.', now()::text, false, false);
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Mise en demeure',
+            'La totalité du capital restant dû est désormais exigible immédiatement.', now()::text);
         pret_id := v_pret.id; action := 'passe_contentieux'; RETURN NEXT;
       ELSE
         UPDATE public.prets SET jours_impayes = jours_impayes + 1 WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Avertissement',
-            'Votre échéance n''a pas pu être prélevée.', now()::text, false, false);
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Avertissement',
+            'Votre échéance n''a pas pu être prélevée.', now()::text);
         pret_id := v_pret.id; action := 'avertissement'; RETURN NEXT;
         CONTINUE;
       END IF;
@@ -1947,16 +2060,16 @@ BEGIN
 
       IF FOUND THEN
         UPDATE public.prets SET bien_cible_id = v_bien.id, proposition_en_attente = true WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Bien ciblé — proposition d''accord',
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Bien ciblé — proposition d''accord',
             'À défaut de règlement, le bien ' || v_bien.id || ' sera saisi. Un accord amiable reste possible.',
-            now()::text, false, false);
+            now()::text);
         pret_id := v_pret.id; action := 'bien_cible_et_propose'; RETURN NEXT;
       ELSE
         UPDATE public.prets SET proposition_en_attente = true WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Proposition d''accord',
-            'Un bien pourrait être saisi. Un accord amiable reste possible.', now()::text, false, false);
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Proposition d''accord',
+            'Un bien pourrait être saisi. Un accord amiable reste possible.', now()::text);
         pret_id := v_pret.id; action := 'proposition_sans_bien'; RETURN NEXT;
       END IF;
       CONTINUE;
@@ -2048,14 +2161,14 @@ BEGIN
           VALUES (v_bien_id, v_terrain_row.id, v_pret.id, v_pret.country, v_terrain_data->>'city',
                   v_valeur, v_coprop, v_quote_part, v_valeur);
         UPDATE public.prets SET bien_cible_id = NULL, proposition_en_attente = false WHERE id = v_pret.id;
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_pret.emprunteur, 'Banque Privée Helvetia', 'Bien en copropriété saisi',
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_pret.emprunteur, 'Bien en copropriété saisi',
             'Le bien est saisi et mis en vente. Sa quote-part protégée sera réglée à votre copropriétaire à la revente.',
-            now()::text, false, false);
-        INSERT INTO public.mails (to_player, from_player, subject, body, time, read, archived)
-          VALUES (v_coprop, 'Banque Privée Helvetia', 'Bien en copropriété saisi',
+            now()::text);
+        PERFORM public.mail_systeme_poser_interne(
+            'Banque Privée Helvetia', v_coprop, 'Bien en copropriété saisi',
             'Un bien que vous détenez en copropriété avec ' || v_pret.emprunteur || ' a été saisi au titre d''une dette qui ne vous concerne pas. Votre quote-part (' || v_quote_part || ') est protégée et vous sera réglée à la revente.',
-            now()::text, false, false);
+            now()::text);
         pret_id := v_pret.id; action := 'saisie_bien_copropriete_en_vente'; RETURN NEXT;
       END IF;
     END;

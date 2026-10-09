@@ -5,6 +5,66 @@
    "genre": "COLUMN",
    "objet": "detentions",
    "sous": "provenance"
+  },
+  {
+   "empreinte": "fa7609a076729e2e174a76b317e105b1",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_evasion()",
+   "sous": ""
+  },
+  {
+   "empreinte": "3211ca4181f37d0a0264a0ca76a1777e",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_purgee()",
+   "sous": ""
+  },
+  {
+   "empreinte": "aaea29d90b2643bd96f0405d106627cf",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "91eae2cc3bf065ea1f3473879ad62dbd",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "d2832e1b48eb684ed40ea82a36a6a897",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_interne(text,jsonb,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "201df7fad1e7a96f117927f3a5714f5c",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_soi(jsonb,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f3d3b3b32e29ff006227ecb6899d699d",
+   "genre": "FUNCTION",
+   "objet": "detention_qhs_poser_interne(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "a604cf8f80d79ae28afbc3888876fbc3",
+   "genre": "FUNCTION",
+   "objet": "detention_reduire_peine(boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "d12e5e8c902f5830b66ac9f13a5d68a7",
+   "genre": "FUNCTION",
+   "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "dd224bc610a059f032d18e4f7c8729ec",
+   "genre": "FUNCTION",
+   "objet": "justice_rendre_sentence(jsonb,text)",
+   "sous": ""
   }
  ],
  "contraintes": [
@@ -210,15 +270,147 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_evasion()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)",
+   "objet": "detention_clore_evasion()",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)",
+   "objet": "detention_clore_evasion()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_purgee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_purgee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_purgee()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_interne(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_interne(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_soi(jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_soi(jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_prolonger_soi(jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_qhs_poser_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_qhs_poser_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_reduire_peine(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_reduire_peine(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_reduire_peine(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -393,6 +585,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_recherches(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_rendre_sentence(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_rendre_sentence(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_rendre_sentence(jsonb,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -875,13 +1085,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
-  "20_fonctions.sql": "1b7bf2daf416e445335e69f466ffb6ec",
+  "20_fonctions.sql": "ec34277ca3d8810400bc7186fb600ea4",
   "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
   "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
-  "70_droits.sql": "2e1e63b75e39f0ab553a2dde1d6c28cb",
-  "80_commentaires.sql": "dd675689f39a5ef555c1fe4e0e79fc70"
+  "70_droits.sql": "d9db11cf574d2e7534a36c7ff2a1555f",
+  "80_commentaires.sql": "a406c81c28d3778b64c051d98b9b19ac"
  },
  "fonctions": [
   {
@@ -920,9 +1130,49 @@
    "signature": "detention_cible_pnj(text,text)"
   },
   {
-   "empreinte": "f4de64d1d758396076334a32fedbc268",
+   "empreinte": "9b9c3587db894e933e8258e293c244f4",
    "security_definer": true,
-   "signature": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text)"
+   "signature": "detention_clore_evasion()"
+  },
+  {
+   "empreinte": "0031e92db49310bd239874d6d8084622",
+   "security_definer": true,
+   "signature": "detention_clore_purgee()"
+  },
+  {
+   "empreinte": "b1ba30d418cf84bfe2533d3371349f36",
+   "security_definer": true,
+   "signature": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)"
+  },
+  {
+   "empreinte": "c6f0f416cbd6151b5f3498b9b0bb61f4",
+   "security_definer": true,
+   "signature": "detention_ouvrir_soi(text,integer,text,jsonb,boolean,jsonb)"
+  },
+  {
+   "empreinte": "3efe8bb402543c4b43dbcd97f2d7965a",
+   "security_definer": true,
+   "signature": "detention_prolonger_interne(text,jsonb,boolean)"
+  },
+  {
+   "empreinte": "511d6e99e4f8ff2b6e4d643f519198a0",
+   "security_definer": true,
+   "signature": "detention_prolonger_soi(jsonb,boolean)"
+  },
+  {
+   "empreinte": "8e4f03823aa37ff12030ba433683a06c",
+   "security_definer": true,
+   "signature": "detention_qhs_poser_interne(text,text,text)"
+  },
+  {
+   "empreinte": "b884f750a6fd6bca2989fc4ee501b8cc",
+   "security_definer": true,
+   "signature": "detention_reduire_peine(boolean)"
+  },
+  {
+   "empreinte": "be553e6c1a115f9530c5611153f57076",
+   "security_definer": true,
+   "signature": "detention_transferer_qhs(text,integer,text,jsonb)"
   },
   {
    "empreinte": "573e30d1266dd4c6aa7dab59fb258d92",
@@ -965,7 +1215,7 @@
    "signature": "justice_executer_condamnation(text,text)"
   },
   {
-   "empreinte": "079b9f859fda10bc7856a9c354444fe4",
+   "empreinte": "451cce8ee501292cd206b5e388684c19",
    "security_definer": true,
    "signature": "justice_prolonger_peine(text,jsonb,boolean)"
   },
@@ -973,6 +1223,11 @@
    "empreinte": "9f34fd4454bd5d401a6449f388aba411",
    "security_definer": true,
    "signature": "justice_recherches(text)"
+  },
+  {
+   "empreinte": "514f98d55a49da05ee666977764a456e",
+   "security_definer": true,
+   "signature": "justice_rendre_sentence(jsonb,text)"
   },
   {
    "empreinte": "c5e9a98d56562d91e9f0c25319d9cb5d",

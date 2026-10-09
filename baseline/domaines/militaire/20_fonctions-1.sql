@@ -1461,14 +1461,13 @@ BEGIN
             WHERE statut = 'acceptee' AND echeance <= now() FOR UPDATE
   LOOP
     UPDATE public.candidatures_militaires SET statut = 'expiree' WHERE id = r.id;
-    INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-    VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
+    PERFORM public.mail_systeme_poser_interne(
             'État-major', r.candidat,
             'Engagement caduc — délai dépassé',
             'Vous ne vous êtes pas présenté(e) à la Caserne Militaire dans les 48 heures. ' ||
             'Votre engagement au grade de ' || r.grade_vise || ' est caduc et la place a été rendue. ' ||
             'Vous pouvez déposer une nouvelle candidature à la Caserne.',
-            to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
+            to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
     v_n := v_n + 1;
   END LOOP;
   RETURN jsonb_build_object('ok', true, 'expirees', v_n);
@@ -2845,14 +2844,13 @@ BEGIN
 
   -- COURRIER AU CANDIDAT — et rien sur le lieu ni sur le recruteur : la decouverte se fait a la
   -- caserne, en personne. C'est tout l'interet de la scene.
-  INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-  VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
+  PERFORM public.mail_systeme_poser_interne(
           'État-major', v.candidat,
           'Votre engagement est accepté',
           'Votre candidature au grade de ' || v.grade_vise || ' a été retenue. ' ||
           'Présentez-vous à la Caserne Militaire dans les 48 heures pour découvrir votre affectation. ' ||
           'Passé ce délai, votre engagement sera caduc et la place rendue.',
-          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
+          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
 
   RETURN jsonb_build_object('ok', true, 'id', p_id, 'candidat', v.candidat,
     'grade', v.grade_vise, 'echeance', v_echeance, 'autres_annulees', v_annulees);
@@ -3115,14 +3113,13 @@ BEGIN
               AND coalesce(derniere_relance, cree_le) <= now() - interval '7 days'
             FOR UPDATE
   LOOP
-    INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-    VALUES ('ce-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text),1,6),
+    PERFORM public.mail_systeme_poser_interne(
             'État-major', r.candidat,
             'Votre candidature est toujours à l''étude',
             'Votre candidature au grade de ' || r.grade_vise || ', déposée le ' ||
             to_char(r.cree_le AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY') ||
             ', reste enregistrée et sera examinée. Vous pouvez la retirer à tout moment à la Caserne Militaire.',
-            to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'), false);
+            to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
     UPDATE public.candidatures_militaires SET derniere_relance = now() WHERE id = r.id;
     v_n := v_n + 1;
   END LOOP;
