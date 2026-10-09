@@ -11,19 +11,24 @@
 > - **les familles 1, 2, 4 et la plupart du groupe B ne sont PAS enveloppées**
 >   par `tacheQuotidienne` : elles sont appelées nues dans le handler et n'ont
 >   donc aucune protection de registre, seulement leurs gardes internes ;
-> - la **grève générale** prétend en commentaire suivre « la même doctrine que
->   la grève ordinaire » : c'est faux depuis le correctif du 7 octobre, qui n'a
->   touché que la grève ordinaire. Son marqueur est écrit en dernier, dans un
->   `.catch(() => {})`.
+> - la **grève générale** prétendait en commentaire suivre « la même doctrine que
+>   la grève ordinaire » : c'était faux depuis le correctif du 7 octobre, qui
+>   n'avait touché que la grève ordinaire. Son marqueur était écrit en dernier,
+>   dans un `.catch(() => {})`. **Corrigé le 9 octobre.**
 >
-> **Trois mécaniques sont fermées depuis.** La famille 4 (ardoise des loyers),
-> les mensualités Helvetia de la famille 9, et la **grève générale** du groupe B
-> — cette dernière avec une revendication par **compare-and-swap** : la garde du
-> jour est dans le *filtre* de l'écriture, donc deux invocations vraiment
-> simultanées ne peuvent pas prendre la même journée. C'est plus fort qu'un
-> marqueur relu dans une requête séparée, et c'est le patron à reprendre pour
-> les suivantes. Banc : `outils/bancs/banc-greve-generale.js`, 20 cas, avec sa
-> contre-épreuve contre la version précédente.
+> **Trois mécaniques sont fermées depuis** — la famille 4 (ardoise des loyers),
+> **toute** la famille 9 (les deux chemins de mensualités) et la **grève
+> générale** du groupe B — et elles le sont par le même patron, qui est celui à
+> reprendre pour les suivantes : une **revendication par compare-and-swap**. La
+> garde du jour vit dans le *filtre* de l'écriture, pas seulement dans son corps,
+> et son verdict est **lu** : une ligne touchée = journée acquise, zéro ligne =
+> quelqu'un d'autre l'a déjà prise, panne = on ne fait rien. Deux invocations
+> vraiment simultanées ne peuvent donc pas prendre la même journée, ce qu'un
+> marqueur relu dans une requête séparée ne garantit pas.
+>
+> Trois bancs les tiennent, chacun avec sa contre-épreuve contre la version
+> précédente : `banc-greve-generale.js` (20 cas), `banc-prets-bancaires.js`
+> (25 cas), et les cinq preuves en transaction annulée de l'ardoise des loyers.
 
 ---
 
@@ -64,7 +69,7 @@ Classées par **coût d'un rejeu**, ce qui est l'ordre d'attaque :
 | 6 | **Remboursement des préemptions d'État** | **Aucun marqueur propre.** La caisse est débitée, puis `preemption.montantRestant` est écrit — deux requêtes. Une interruption entre les deux débite sans réduire la dette, et le registre, posé avant, **interdit la reprise** : l'argent est perdu silencieusement. Le pire des sept, parce qu'**aucun joueur ne se plaint d'une dette qui ne baisse pas assez vite** |
 | 7 | **Successions** | Fenêtre étroite, montant élevé. Le code est par ailleurs bien construit (voir §3) |
 | 8 | **Calendrier électoral** | `cycle.resultatsTraites` est un champ de blob écrit **en dernier**, sans vérification, après que `evenements_globaux` et `chronique_nationale` ont été insérés. Un échec → **re-dépouillement**, et `resoudreScrutinSimple` est aléatoire : deux proclamations contradictoires |
-| 9 | **Mensualités de prêts** | Marqueur sur une **vraie colonne**, posé avant l'effet — mais en `.catch(() => {})` : l'échec de pose est avalé et le débit part quand même. C'est l'**inverse exact** de `tacheQuotidienne`, qui relit et renonce |
+| 9 | ~~**Mensualités de prêts**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : marqueur sur une vraie colonne, posé avant l'effet, mais en `.catch(() => {})` — l'échec de pose était avalé et le débit partait quand même. **Les deux chemins sont désormais sûrs** : le chemin Helvetia par la migration 20261008235521 (marqueur dans la transaction de la RPC), le chemin *legacy* par une **revendication conditionnelle** dont le verdict est lu — garde dans le filtre, donc compare-and-swap. Banc `banc-prets-bancaires.js`, 25 cas, dont la preuve qui compte : **aucun `PATCH` sur `personnages`** quand la revendication n'aboutit pas |
 | 10 | **Cotisations d'organisation** | Réparé partiellement le 7 octobre (persisté après **chaque** membre). Le code reconnaît lui-même que ce n'est pas la réparation complète : « Débiter un personnage et marquer son adhésion sont deux écritures sur deux tables » |
 
 ### La brique générique — elle existe déjà dans le dépôt

@@ -2113,9 +2113,46 @@ async function preleverPretsBancairesServeur() {
         continue;
       }
       if (pret.jour_dernier_prelevement === jourPrets) continue;
-      // Marqueur pose AVANT tout mouvement : une interruption apres le debit ne doit jamais
-      // laisser la porte ouverte a un second prelevement le meme jour.
-      await sbUpdatePret(pret.id, { jour_dernier_prelevement: jourPrets }).catch(() => {});
+
+      // REVENDICATION DU JOUR, AVANT TOUT MOUVEMENT, ET CONDITIONNELLE
+      // (chantier 6, 9 octobre 2026).
+      //
+      // Le marqueur etait deja pose en premier -- c'etait juste -- MAIS son echec etait avale
+      // par un `.catch(() => {})`, et la mensualite partait quand meme. C'est l'inverse exact
+      // de la doctrine de tacheQuotidienne(), qui relit son marqueur et RENONCE s'il n'a pas
+      // pris : ici, une panne reseau d'une seconde laissait un debit sans sa garde, donc un
+      // second prelevement possible la nuit suivante, sur de l'argent reel.
+      //
+      // Deux changements, et le second est le plus fort. Le verdict est desormais LU : une
+      // panne de transport interrompt le traitement de ce pret. Et la garde du jour vit dans
+      // le FILTRE de l'ecriture, ce qui en fait un compare-and-swap resolu par PostgreSQL en
+      // une seule instruction : deux invocations du cron vraiment simultanees ne peuvent pas
+      // revendiquer la meme journee pour le meme pret -- la premiere touche une ligne, la
+      // seconde en touche ZERO et renonce. La relecture dans une requete separee, elle,
+      // laisserait la fenetre entre la lecture et l'ecriture.
+      //
+      // `or=(... .is.null, ... .neq.jour)` et non `neq` seul : dans PostgREST, `neq` EXCLUT
+      // les NULL, donc un pret dont la colonne est vide n'aurait jamais ete revendique.
+      //
+      // Ce qu'on echange, sciemment : si la revendication aboutit et qu'un mouvement echoue
+      // ensuite, la mensualite de ce jour est perdue -- l'echeancier reprend le lendemain, et
+      // le capital restant du n'a pas bouge. Perdre un appel de mensualite est sans commune
+      // mesure avec le prelever deux fois.
+      const cibleRevendication = `id=eq.${encodeURIComponent(pret.id)}`
+        + `&or=(jour_dernier_prelevement.is.null,`
+        + `jour_dernier_prelevement.neq.${encodeURIComponent(jourPrets)})`;
+      const revendique = await sbUpdate('prets', cibleRevendication,
+        { jour_dernier_prelevement: jourPrets }).catch(() => null);
+      if (revendique === null) {
+        // Panne de transport : on ne sait pas si la garde a pris. Aucun mouvement.
+        resultats.marqueurs_non_poses = (resultats.marqueurs_non_poses || 0) + 1;
+        continue;
+      }
+      if (!Array.isArray(revendique) || revendique.length !== 1) {
+        // Zero ligne touchee : la journee de ce pret etait deja prise.
+        resultats.deja_revendiques = (resultats.deja_revendiques || 0) + 1;
+        continue;
+      }
 
       const empRows = await sbGet('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`);
       const emprunteur = empRows && empRows[0];
