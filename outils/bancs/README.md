@@ -18,11 +18,11 @@ par `readFile`. On peut toujours les donner à la main
 (`lancer-banc.py <banc> supabase.js`), ce qui sert à éprouver un banc contre une
 **version antérieure** d'une source.
 
-Les quatre bancs JavaScript en une commande :
+Les cinq bancs JavaScript en une commande :
 
 ```bash
-for b in banc-api-supabase banc-patcher-blob banc-solde-personnage banc-transport-rest; do
-  python3 outils/bancs/lancer-banc.py outils/bancs/$b.js || echo "ROUGE : $b"
+for b in outils/bancs/banc-*.js; do
+  python3 outils/bancs/lancer-banc.py "$b" >/dev/null || echo "ROUGE : $b"
 done
 ```
 
@@ -53,6 +53,7 @@ done
 | `banc-api-supabase.js` | Les **six états** que le socle serverless (`api/_supabase.js`) doit distinguer ; les trois identités (anon, jeton du joueur, service) et leur exclusion mutuelle ; l'absence de clé service **échoue au lieu de se rabattre**. 28 cas. |
 | `banc-patcher-blob.js` | `sbPatcherBlob` **n'émet aucun PATCH** dès que la relecture du blob n'a pas abouti — la preuve porte sur l'absence de requête, pas sur la valeur de retour, parce qu'une fonction qui rend `null` après avoir écrit n'a rien corrigé. 24 cas. |
 | `banc-solde-personnage.js` | `sbEcrireSoldePersonnage` est une **écriture conditionnelle** : solde attendu illisible refusé, garde `arg=eq.<lu>` posée, zéro ligne touchée signalé comme `solde_modifie_entre_temps`, et aucun succès annoncé sans preuve. 23 cas. |
+| `banc-greve-generale.js` | `appliquerEffetsGreveGenerale` **revendique la journée avant tout effet**, par compare-and-swap : la garde du jour est dans le **filtre** et pas seulement dans le corps, la revendication est la **première écriture** de la passe, et **zéro requête** la suit quand elle n'aboutit pas — journée déjà prise comme panne de transport. 20 cas. |
 | `banc-budget-cascade.sql` | La cascade budgétaire ne perd aucun FR à l'arrondi, ne boucle pas sur le répartiteur, n'invente aucune part là où le pourcentage n'est pas arbitré, et **ne peut pas distribuer deux fois le même jour**. L'autorité et les bornes sont relues en base, pas dans le formulaire. 3 épreuves. |
 
 ## Le banc SQL : un banc qui écrit, et qu'une exception annule

@@ -2502,8 +2502,15 @@ async function appliquerEffetsGrevesOrdinaires() {
 // Effets QUOTIDIENS de la greve GENERALE (cahier des charges §6/§7) : paliers de puissance +
 // retournement d'opinion (-5 INF/jour/syndicat participant a partir du seuil propre a chaque
 // niveau) -- le retournement NE diminue JAMAIS les effets eux-memes (les deux continuent en
-// parallele, cf. §7 "IMPORTANT"). Idempotence par date (derniere_application_jour), meme
-// doctrine que la greve ordinaire ci-dessus.
+// parallele, cf. §7 "IMPORTANT"). Idempotence par date (derniere_application_jour), posee
+// AVANT les effets et par ECRITURE CONDITIONNELLE -- voir le bloc de revendication ci-dessous.
+//
+// CE COMMENTAIRE A MENTI PENDANT DEUX JOURS, et c'est la raison du correctif du 9 octobre 2026.
+// Il annoncait « meme doctrine que la greve ordinaire ci-dessus ». C'etait vrai jusqu'au
+// 7 octobre, date a laquelle la greve ordinaire a recu son marqueur-avant-effet -- et pas
+// celle-ci. La greve generale ecrivait donc encore son marqueur en DERNIER, dans un
+// `.catch(() => {})`, apres avoir debite la POP de tout un gouvernement. Un commentaire qui
+// affirme une protection absente est pire qu'un code sans commentaire : il eteint la question.
 async function appliquerEffetsGreveGenerale() {
   const resultats = { traitees: 0 };
   // Cle CRON-SEULEMENT (derniereApplicationJour / derniere_application_jour) :
@@ -2517,6 +2524,50 @@ async function appliquerEffetsGreveGenerale() {
       const participants = gg.participants || [];
       const actifs = participants.filter(p => p.statut === 'accepte');
       if (actifs.length === 0) continue;
+
+      const joursDepuisEntreeVigueur = (gg.jours_actifs || 0) + 1;
+
+      // REVENDICATION DU JOUR, AVANT TOUT EFFET, ET PAR ECRITURE CONDITIONNELLE
+      // (chantier 6, 9 octobre 2026).
+      //
+      // Le marqueur etait pose EN DERNIER, par un sbUpdate dont l'echec etait avale. Entre-temps
+      // la POP de tout le gouvernement et celle des autres elus etaient debitees, le Social du
+      // pays reduit, les coefficients economiques ecrits et -5 INF retires a chaque syndicat
+      // participant. Si cette derniere ecriture mordait, la nuit suivante recommencait tout --
+      // sur les memes personnes, et sans que rien ne le signale.
+      //
+      // Le filtre ne vise pas seulement la ligne : il exige que le jour n'y soit PAS DEJA. C'est
+      // un compare-and-swap, et PostgreSQL le resout en une seule instruction. Deux invocations
+      // du cron vraiment simultanees ne peuvent donc pas revendiquer la meme journee : la
+      // premiere touche une ligne, la seconde en touche ZERO et renonce. Un marqueur relu dans
+      // une requete separee n'offre pas cette garantie -- il laisse la fenetre entre la lecture
+      // et l'ecriture. Meme motif que l'ecriture conditionnelle du solde d'un personnage.
+      //
+      // `or=(... .is.null, ... .neq.jour)` et non `neq` seul : dans PostgREST, `neq` EXCLUT les
+      // NULL, donc une greve qui n'a jamais tourne n'aurait jamais ete revendiquee.
+      //
+      // CE QU'ON ECHANGE, sciemment, et c'est la doctrine de la greve ordinaire et de
+      // tacheQuotidienne : si la revendication aboutit et qu'un effet echoue ensuite, la greve
+      // de ce jour est perdue. Perdre une journee de malus est sans commune mesure avec la
+      // rejouer indefiniment sur les memes joueurs.
+      const cibleRevendication = `id=eq.${encodeURIComponent(gg.id)}`
+        + `&or=(derniere_application_jour.is.null,`
+        + `derniere_application_jour.neq.${encodeURIComponent(aujourdHui)})`;
+      const revendique = await sbUpdate('greves_generales', cibleRevendication, {
+        jours_actifs: joursDepuisEntreeVigueur,
+        derniere_application_jour: aujourdHui
+      }).catch(() => null);
+      if (revendique === null) {
+        // Panne de transport : on ne sait pas si le marqueur a pris. Aucun effet.
+        resultats.marqueurs_non_poses = (resultats.marqueurs_non_poses || 0) + 1;
+        continue;
+      }
+      if (!Array.isArray(revendique) || revendique.length !== 1) {
+        // Zero ligne touchee : la journee etait deja revendiquee. Rien a faire, et surtout
+        // rien a refaire.
+        resultats.deja_revendiquees = (resultats.deja_revendiquees || 0) + 1;
+        continue;
+      }
 
       const { gouvernement, autresElus } = await resoudrePostesPaysServeur(gg.country);
       for (const nom of gouvernement) await ajusterPopJoueurServeur(nom, -niveau.gouvernementPop);
@@ -2538,7 +2589,6 @@ async function appliquerEffetsGreveGenerale() {
         }
       }
 
-      const joursDepuisEntreeVigueur = (gg.jours_actifs || 0) + 1;
       let retournementDeclenche = false;
       if (joursDepuisEntreeVigueur >= niveau.retournementJour) {
         retournementDeclenche = true;
@@ -2552,10 +2602,9 @@ async function appliquerEffetsGreveGenerale() {
         }
       }
 
-      await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(gg.id)}`, {
-        jours_actifs: joursDepuisEntreeVigueur,
-        derniere_application_jour: aujourdHui
-      }).catch(() => {});
+      // Le marqueur et le compteur de jours sont deja ecrits : ils ont ete POSES AVANT les
+      // effets, par la revendication conditionnelle en tete de boucle. Il n'y a plus rien a
+      // ecrire ici -- et c'etait precisement l'ecriture dont l'echec faisait tout rejouer.
       resultats.traitees++;
       if (retournementDeclenche) resultats.retournements = (resultats.retournements || 0) + 1;
     }

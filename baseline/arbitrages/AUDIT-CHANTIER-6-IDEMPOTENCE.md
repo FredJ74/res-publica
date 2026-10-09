@@ -16,8 +16,14 @@
 >   touché que la grève ordinaire. Son marqueur est écrit en dernier, dans un
 >   `.catch(() => {})`.
 >
-> **Deux lignes sont fermées depuis.** La famille 4 (ardoise des loyers) et les
-> mensualités Helvetia de la famille 9 — voir leurs entrées.
+> **Trois mécaniques sont fermées depuis.** La famille 4 (ardoise des loyers),
+> les mensualités Helvetia de la famille 9, et la **grève générale** du groupe B
+> — cette dernière avec une revendication par **compare-and-swap** : la garde du
+> jour est dans le *filtre* de l'écriture, donc deux invocations vraiment
+> simultanées ne peuvent pas prendre la même journée. C'est plus fort qu'un
+> marqueur relu dans une requête séparée, et c'est le patron à reprendre pour
+> les suivantes. Banc : `outils/bancs/banc-greve-generale.js`, 20 cas, avec sa
+> contre-épreuve contre la version précédente.
 
 ---
 
