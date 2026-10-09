@@ -1781,6 +1781,9 @@ DECLARE
   v_a_prelever numeric;
   v_seize numeric;
   v_bien record;
+  -- Le jour de reference, en Europe/Paris : meme format que jourParisISO() cote JS, qui
+  -- ecrit la MEME colonne pour les prets non-Helvetia.
+  v_jour text := to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD');
 BEGIN
   FOR v_pret IN
     SELECT * FROM public.prets
@@ -1804,6 +1807,15 @@ BEGIN
       END IF;
     END IF;
 
+    -- MARQUEUR ANTI-REJEU (chantier 6, 9 octobre 2026). Pose APRES le bloc des accords,
+    -- dont les effets sont idempotents et doivent tourner chaque nuit, et AVANT le
+    -- prelevement, qui est un delta. Une RPC etant une seule transaction, poser le
+    -- marqueur en premier est sans risque : un echec plus loin l'annule avec le reste.
+    IF v_pret.jour_dernier_prelevement = v_jour THEN
+      pret_id := v_pret.id; action := 'deja_traite_aujourdhui'; RETURN NEXT;
+      CONTINUE;
+    END IF;
+    UPDATE public.prets SET jour_dernier_prelevement = v_jour WHERE id = v_pret.id;
     SELECT * INTO v_perso FROM public.personnages WHERE name = v_pret.emprunteur FOR UPDATE;
     IF NOT FOUND THEN CONTINUE; END IF;
     SELECT * INTO v_compte_helvetia FROM public.comptes_bancaires

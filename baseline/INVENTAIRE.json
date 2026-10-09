@@ -233,7 +233,7 @@
   "assemblee/70_droits.sql": "c64b9e24acd70d19c38417d8dd1fc8d5",
   "assemblee/80_commentaires.sql": "ca1a74666ef3b68b78fdbdbcf8beaa8d",
   "banque/10_tables.sql": "e0be54159d7a10d40060f7bfb9423a5e",
-  "banque/20_fonctions.sql": "e921afe2e4f453298ad21de9df5bddaa",
+  "banque/20_fonctions.sql": "f91baec774989ab3bd83cf7ea6bfaf6a",
   "banque/30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",
   "banque/35_index.sql": "84e0b651c5bc4296b38c0b4d4b68c024",
   "banque/60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",

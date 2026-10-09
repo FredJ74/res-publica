@@ -37,6 +37,7 @@ Supabase, lui, est complet.
 | `20261006160000_autorite_declencheurs_public.sql` | 543 | fonctions de déclencheur appelables par un rôle client 24 → 0 |
 | `20261008214206_pays_declare_et_retrait_des_defauts_republic.sql` | 560 | `personnage_pays_declare()` + son déclencheur créés · `p_country text DEFAULT 'republic'` 11 → 0 · signatures 663 → 664 · droits EXECUTE des onze **restitués à l'identique**, ni perdu ni apparu · 3 commentaires reposés · `authenticated` sur les 7 fonctions de cron 7 → 0 |
 | `20261008221846_defaut_des_privileges_de_fonction_ferme.sql` | 561 | ACL d'une fonction **neuve** : `PUBLIC authenticated postgres service_role` → **`postgres service_role`** · `has_function_privilege` rend désormais `false` pour `anon` et `authenticated` · droits des 664 fonctions existantes **inchangés** (37 / 58 / 421 / 664) · `catalogue_generiques_raccordes` passée en `security_invoker` (84 lignes avant comme après, pour les trois rôles) · `personnages` **non modifiée** |
+| `20261008235521_idempotence_prets_helvetia.sql` | 562 | `traiter_prets_helvetia_quotidien` porte un marqueur de journée · trois appels le même jour prélèvent **une seule** mensualité (5000 → 4500 → 4500), le lendemain reprend (→ 4000) · verdict `deja_traite_aujourdhui` rendu · **et ses propres preuves ont laissé 1 000 FR dans `republic_banque-privee`, restitués dans la minute** — lire son en-tête |
 
 La quatrième répare la première. La migration 1 avait révoqué `EXECUTE` sur ces
 24 fonctions « FROM anon, authenticated » en laissant le `GRANT` à **PUBLIC**,
@@ -46,5 +47,22 @@ qui l'a vu — il lit les droits tels qu'ils sont, pas tels qu'on a cru les
 écrire. **Révoquer sur une fonction, c'est toujours `FROM PUBLIC` en plus des
 rôles nommés.**
 
-Aucune n'a touché une donnée : ni `INSERT`, ni `UPDATE` de ligne, ni `DELETE`,
-ni `TRUNCATE`, ni `DROP TABLE`. Les 7 personnages de la bêta sont intacts.
+Les six premières n'ont touché aucune donnée : ni `INSERT`, ni `UPDATE` de
+ligne, ni `DELETE`, ni `TRUNCATE`, ni `DROP TABLE`. Les 7 personnages de la bêta
+sont intacts.
+
+> **La septième, si — et il faut le dire ici et non seulement dans son en-tête.**
+> `20261008235521_idempotence_prets_helvetia` a prouvé son effet en **faisant
+> tourner la mécanique** : prêt témoin créé, RPC appelée quatre fois, témoin
+> supprimé. Mais cette RPC crédite aussi la caisse de la banque privée à chaque
+> prélèvement, et une migration **commite** — y compris les effets de bord de
+> ses preuves, sur des tables auxquelles on ne pensait pas. 1 000 FR sont restés
+> dans `republic_banque-privee` ; détectés par l'empreinte des caisses, qui ne
+> correspondait plus, et restitués dans la minute à `{"solde": 0}`.
+>
+> **La règle qui en sort, et qui vaut pour toute migration future :** dans une
+> migration, les preuves sont **structurelles** — lire le corps d'une fonction,
+> compter des droits, vérifier une contrainte. L'épreuve **comportementale**
+> appartient au banc en transaction annulée, avant application, et à lui seul.
+> Les six premières respectaient déjà cette règle sans qu'elle soit écrite ;
+> elle l'est maintenant.

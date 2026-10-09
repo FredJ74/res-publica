@@ -12,6 +12,22 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**L'échéancier Helvetia ne s'exécute plus qu'une fois par jour.**
+`idempotence_prets_helvetia` est passée le 9 octobre 2026, registre
+**20261008235521**, qui porte le registre de 561 à **562** entrées — première
+migration du chantier 6. `traiter_prets_helvetia_quotidien` n'avait aucun
+marqueur de journée : un second appel le même soir prélevait une **seconde
+mensualité entière** et faisait avancer l'escalade du contentieux de deux crans
+en une nuit. Elle vit maintenant dans `../historique/migrations-appliquees/`.
+
+> **Elle a coûté un incident de données, et c'est la leçon à retenir d'elle.**
+> Ses preuves faisaient tourner la RPC pour de vrai sur un prêt témoin. Or cette
+> RPC crédite aussi la caisse de la banque privée à chaque prélèvement : 1 000 FR
+> sont restés dans `republic_banque-privee` après la suppression du témoin.
+> Détectés par l'empreinte des caisses, restitués dans la minute. **Une
+> migration commite, y compris les effets de bord de ses propres preuves** —
+> voir la règle 3 ci-dessous.
+
 **Le défaut des privilèges de fonction est fermé.**
 `defaut_des_privileges_de_fonction_ferme` est passée le 9 octobre 2026, registre
 **20261008221846**, qui porte le registre de 560 à **561** entrées. Une fonction
@@ -79,7 +95,7 @@ après coup**.
 
 ### Ce que la prochaine migration doit respecter
 
-Deux règles, apprises à ce chantier :
+Trois règles, apprises à ces chantiers :
 
 1. **Être postérieure au point de coupe du baseline**
    (`../baseline/CONTROLE-GLOBAL.json`, clé `releve_le`). L'invariant 4 du
@@ -91,6 +107,14 @@ Deux règles, apprises à ce chantier :
    C'est ce qui a sauvé le chantier de la Justice : la première version sommait
    trois tiers par division et obtenait `0,99999999999999999999` ; son assertion
    l'a refusée, et **rien n'a été appliqué**.
+3. **Ne prouver que du structurel dans la migration.** Une migration **commite**.
+   Si ses contrôles font *tourner* le mécanisme qu'elle corrige, ils en commitent
+   aussi les effets — et un mécanisme touche presque toujours plus de tables que
+   celles qu'on surveille. Dans la migration : lire le corps d'une fonction,
+   compter des droits, vérifier une contrainte, un ordre d'instructions. La
+   démonstration **comportementale** — « trois appels ne prélèvent qu'une fois »
+   — appartient au banc en transaction annulée, avant application. Cette règle
+   est née de `idempotence_prets_helvetia`, qui a laissé 1 000 FR en bêta.
 
 ## Les trois règles
 

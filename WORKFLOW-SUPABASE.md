@@ -65,6 +65,25 @@ Pour une bascule lourde, le banc va plus loin : monter l'ensemble dans un
 **schéma jetable** et jouer les cas dessus. `historique/sql-racine/non-appliquees/`
 en garde trois exemples écrits de cette façon.
 
+> **C'est ICI, et nulle part ailleurs, qu'on fait tourner le mécanisme.** Le banc
+> est annulé : il peut créer un prêt témoin, appeler la RPC quatre fois, vérifier
+> que la deuxième ne prélève rien. La **migration**, elle, commite — donc elle ne
+> doit prouver que du **structurel** : le corps d'une fonction contient la garde,
+> l'ordre des blocs est le bon, un droit a disparu, une contrainte tient.
+>
+> La raison est coûteuse : `idempotence_prets_helvetia` (registre 562) a prouvé
+> son effet en appelant la RPC pour de vrai depuis la migration. Cette RPC
+> crédite aussi la caisse de la banque privée à chaque prélèvement — une table
+> à laquelle les preuves ne pensaient pas. 1 000 FR sont restés en bêta après la
+> suppression du prêt témoin. Détectés par l'empreinte des caisses, restitués
+> dans la minute. **Un mécanisme touche presque toujours plus de tables que
+> celles qu'on surveille.**
+>
+> Corollaire pratique : avant d'appliquer, prendre l'**empreinte** des tables de
+> données que le mécanisme pourrait toucher, et la recomparer après. C'est ce qui
+> a permis de voir l'écart tout de suite au lieu de le découvrir des semaines
+> plus tard.
+
 ### 4. L'appliquer
 
 **L'agent applique, jamais le game designer.** Fred n'exécute pas de SQL : lui
