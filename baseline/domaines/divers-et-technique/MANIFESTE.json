@@ -1,6 +1,61 @@
 {
- "commentaires": [],
+ "commentaires": [
+  {
+   "empreinte": "972abea6f009d6039719b17cb10cff5d",
+   "genre": "COLUMN",
+   "objet": "actes_nocturnes",
+   "sous": "details"
+  },
+  {
+   "empreinte": "8dc72067d9cbdcaf13a24c7b0995f689",
+   "genre": "COLUMN",
+   "objet": "actes_nocturnes",
+   "sous": "jour"
+  },
+  {
+   "empreinte": "8249110db3cc8be7e1bd82d7ad2e5d15",
+   "genre": "COLUMN",
+   "objet": "actes_nocturnes",
+   "sous": "sujet"
+  },
+  {
+   "empreinte": "5c58e6392f9f454f0f9410cc5f37c96b",
+   "genre": "COLUMN",
+   "objet": "actes_nocturnes_mecanismes",
+   "sous": "note"
+  },
+  {
+   "empreinte": "bac44fd57b5ed49efb33f63c28e86c17",
+   "genre": "COLUMN",
+   "objet": "actes_nocturnes_mecanismes",
+   "sous": "sujet_singleton"
+  },
+  {
+   "empreinte": "af9cd055afac445c4ef60d9fd25d1b3d",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes",
+   "sous": ""
+  },
+  {
+   "empreinte": "4f867de422b1490ecd0477032aa4bb0a",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes_mecanismes",
+   "sous": ""
+  }
+ ],
  "contraintes": [
+  {
+   "empreinte": "a07c6885db9627ca3086f4743d6c9f03",
+   "genre": "p",
+   "nom": "actes_nocturnes_pkey",
+   "tbl": "actes_nocturnes"
+  },
+  {
+   "empreinte": "dfd44625419c545c1b170464c7810764",
+   "genre": "p",
+   "nom": "actes_nocturnes_mecanismes_pkey",
+   "tbl": "actes_nocturnes_mecanismes"
+  },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
@@ -38,10 +93,34 @@
    "tbl": "registre_ventes_armes"
   },
   {
+   "empreinte": "95e5b16cd1aecbc59c3cb50441bee12a",
+   "genre": "c",
+   "nom": "actes_nocturnes_pays_non_vide",
+   "tbl": "actes_nocturnes"
+  },
+  {
+   "empreinte": "f17f21f29f9cd7309131cda0ed9b58b7",
+   "genre": "c",
+   "nom": "actes_nocturnes_sujet_non_vide",
+   "tbl": "actes_nocturnes"
+  },
+  {
+   "empreinte": "a83b747a3ebac5fff56c30ceaf89d469",
+   "genre": "c",
+   "nom": "actes_nocturnes_mecanismes_slug",
+   "tbl": "actes_nocturnes_mecanismes"
+  },
+  {
    "empreinte": "db5c575c6264ef9076bce4f38125d799",
    "genre": "c",
    "nom": "cron_journal_statut_check",
    "tbl": "cron_journal"
+  },
+  {
+   "empreinte": "aba4c51219e690d2aae1d555f907e3e6",
+   "genre": "f",
+   "nom": "actes_nocturnes_mecanisme_fkey",
+   "tbl": "actes_nocturnes"
   }
  ],
  "domaine": "divers et technique",
@@ -93,6 +172,30 @@
    "genre": "SEQUENCE",
    "objet": "registre_ventes_armes_id_seq",
    "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes_mecanismes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "actes_nocturnes_mecanismes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
    "beneficiaire": "authenticated",
@@ -218,12 +321,12 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "6d8f527476775fd542299d636ef89108",
-  "30_contraintes.sql": "05f4199f822a8dfe724c8df9341ed389",
-  "35_index.sql": "88464593997ac9d1216d75aea9278e29",
-  "60_rls-policies.sql": "061637ab36ff5c8d8bd8ac3ce2060496",
-  "70_droits.sql": "9b1ee8e37cad0f5c5944cca173e3ac12",
-  "80_commentaires.sql": "51ec70ff5c6ec15c1a83dd342d8422ac"
+  "10_tables.sql": "16248e3baa6a3f31ea03416979605bb0",
+  "30_contraintes.sql": "10db70ff310e38c24ec0889c3177db32",
+  "35_index.sql": "5502d739cbffdc7a0e5635ffcb615df6",
+  "60_rls-policies.sql": "adc09996096f0740f15bfab289bd23f3",
+  "70_droits.sql": "0b968b2b4b70d178a494eebef4d2b1d4",
+  "80_commentaires.sql": "8e9895aaf6c1099bbd2419f1a1028a8a"
  },
  "fonctions": [],
  "index_autonomes": [
@@ -253,6 +356,8 @@
   }
  ],
  "index_portes": [
+  "actes_nocturnes_mecanismes_pkey",
+  "actes_nocturnes_pkey",
   "ambassades_ouvertes_pkey",
   "cron_journal_pkey",
   "etats_urgence_pkey",
@@ -352,6 +457,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "actes_nocturnes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "actes_nocturnes_mecanismes"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "ambassades_ouvertes"
   },
   {
@@ -396,6 +511,18 @@
   "registre_ventes_armes_id_seq"
  ],
  "tables": [
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "1cca6c6aeb9735a423a5eb72b8103d64",
+   "empreinte_texte": "3d549fd67e6e3600589f272f633a9a85",
+   "nom": "actes_nocturnes"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "c9a23b4dd871344f764d0b9b07bbd513",
+   "empreinte_texte": "91eb8cabfdc1894f82513a87ca3cd71f",
+   "nom": "actes_nocturnes_mecanismes"
+  },
   {
    "colonnes": 5,
    "empreinte_catalogue": "19c7e3e293b2278a6045ce42ba271934",

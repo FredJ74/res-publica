@@ -19,6 +19,7 @@
   "villes": "data.js (constante VILLES)"
  },
  "fichiers": {
+  "90_socle/actes_nocturnes_mecanismes.sql": "3673c8fca7b24dfaff81747cce424a5a",
   "90_socle/assemblee_catalogue_illegal.sql": "309ec5b5afbdb010a51455c5705fa396",
   "90_socle/assemblee_categories_interdiction.sql": "6b83c9717a7bfb0f923808ed384b6241",
   "90_socle/budget_national_champs_regles.sql": "5a0748599821164e7e867573b5c4f28f",
@@ -101,6 +102,7 @@
   "99_a-construire/terrains_etat.sql": "6546ea034e786013db2290081ec60d44"
  },
  "lignes_par_table": {
+  "actes_nocturnes_mecanismes": 1,
   "armureries_dotations": 3,
   "assemblee_catalogue_illegal": 7,
   "assemblee_categories_interdiction": 22,

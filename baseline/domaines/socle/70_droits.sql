@@ -11,6 +11,7 @@
 -- ============================================================================
 
 -- DROITS SUR LES FUNCTIONS
+GRANT EXECUTE ON FUNCTION public.acte_nocturne_revendiquer(text,text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO anon;
 GRANT EXECUTE ON FUNCTION public.acteur_identifie() TO authenticated;

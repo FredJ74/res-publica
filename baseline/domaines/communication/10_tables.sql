@@ -86,7 +86,8 @@ CREATE TABLE public.mails_envois_systeme (
   expediteur text NOT NULL,
   destinataire text,
   sujet text,
-  vu_le timestamp with time zone DEFAULT now() NOT NULL
+  vu_le timestamp with time zone DEFAULT now() NOT NULL,
+  echec text
 );
 
 CREATE TABLE public.mails_expediteurs_systeme (

@@ -1,11 +1,11 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, releve par introspection au moment de l'extraction. A confronter a MANIFESTE.json, qui dit CE QUI A ETE RENDU. outils/baseline/verifier.py compare les deux, puis compare les fichiers .sql a leurs empreintes. Les trois doivent concorder.",
  "domaine": "communication",
- "releve_le": "2026-10-06",
+ "releve_le": "2026-10-09",
  "source": "catalogues PostgreSQL du projet jxpwoosmmhohoihxpbuc, via outils/baseline/requetes.py communication inventaire",
  "attendu": {
   "tables": 10,
-  "colonnes": 83,
+  "colonnes": 84,
   "contraintes": 11,
   "index": 11,
   "index_autonomes": 1,
@@ -17,7 +17,7 @@
   "lignes_droits": 77
  },
  "_correction_2e": "lignes_droits valait 91 au chantier 2B. Ce n'etait pas la base qui disait 91 : c'etait la requete DROITS qui ne regardait ni les sequences ni les vues. Le controle global du chantier 2E a trouve 927 lignes de droits de relation dans le schema contre 825 extraites, soit les 102 lignes des 31 sequences. Pour la communication, les 2 lignes manquantes portent sur mails_envois_systeme_id_seq, accordee a postgres et service_role SEULEMENT -- ni anon ni authenticated. C'est coherent : cette table n'est ecrite que par le declencheur mails_journaliser_envoi_systeme, qui est SECURITY DEFINER et s'execute donc avec les droits du proprietaire. La valeur corrigee est la verite relevee en base le 5 octobre 2026 ; le controle n'a pas ete relache, il a ete rendu complet.",
- "empreinte_fonctions": "aae9cafeca0f3af9c827a5b260e75bf9",
+ "empreinte_fonctions": "0910cfbdec03d7b228dc39ed1a589401",
  "empreinte_fonctions_formule": "md5(string_agg(x, '|' order by x collate \"C\")) ou x = signature || ':' || md5(pg_get_functiondef(oid))",
  "empreinte_fonctions_piege": "Le COLLATE \"C\" n'est pas cosmetique. Sans lui, PostgreSQL trie avec la collation de la base, qui ignore la ponctuation au premier rang : mail_expediteur_autorise_strict(...) passe AVANT mail_expediteur_autorise(...). Python, lui, trie par point de code, ou '(' precede '_'. Les deux empreintes divergent alors que les definitions sont identiques. Valeur obtenue sans COLLATE \"C\" sur cette base, conservee pour memoire : a32458d97c32a6055fa06799e87039d3.",
  "securite_attendue": {
@@ -37,5 +37,6 @@
    "mails"
   ]
  },
- "_correction_chantier_3": "Releve deux fois le 6 octobre 2026, apres les quatre migrations d'autorite. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une de moins, deux de plus. lignes_droits : 93 -> 82 -> 77. Les 11 premieres lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation ; les 5 suivantes sont les GRANT EXECUTE a PUBLIC des 5 fonctions de declencheur du domaine (forum_verrou_compte_rendu_journee, forum_verrou_local_territorial, forum_verrou_message_ligue, forum_verrou_programme_officiel, mails_journaliser_envoi_systeme), fermes par la migration 4. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune definition n'a ete touchee, seuls leurs droits. Mesure independamment en base, pas deduit du rendu."
+ "_correction_chantier_3": "Releve deux fois le 6 octobre 2026, apres les quatre migrations d'autorite. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une de moins, deux de plus. lignes_droits : 93 -> 82 -> 77. Les 11 premieres lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation ; les 5 suivantes sont les GRANT EXECUTE a PUBLIC des 5 fonctions de declencheur du domaine (forum_verrou_compte_rendu_journee, forum_verrou_local_territorial, forum_verrou_message_ligue, forum_verrou_programme_officiel, mails_journaliser_envoi_systeme), fermes par la migration 4. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune definition n'a ete touchee, seuls leurs droits. Mesure independamment en base, pas deduit du rendu.",
+ "_correction_chantier_5": "Releve une troisieme fois le 9 octobre 2026, apres la migration 20261009132222 (notification_ne_casse_plus_l_acte). DEUX valeurs bougent, et les deux pour la meme raison : colonnes 83 -> 84 -- mails_envois_systeme recoit `echec`, qui distingue un refus d'autorite (NULL) d'un envoi techniquement impossible (SQLSTATE + message) ; empreinte_fonctions aae9cafe... -> 0910cfbd... -- mail_systeme_envoyer enferme desormais son INSERT dans un bloc d'exception, pour qu'un courrier perdu n'annule plus l'acte metier de l'appelant. LES DEUX VALEURS SONT RELEVEES DANS LA BASE, par la requete de la formule ci-dessus, et non recopiees depuis le baseline : les poser depuis le rendu rendrait ce controle circulaire."
 }

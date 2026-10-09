@@ -10,6 +10,34 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- acte_nocturne_revendiquer(text,text,text,jsonb) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.acte_nocturne_revendiquer(p_pays text, p_mecanisme text, p_sujet text DEFAULT '-'::text, p_details jsonb DEFAULT NULL::jsonb)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_pays   text := lower(btrim(coalesce(p_pays, '')));
+  v_meca   text := lower(btrim(coalesce(p_mecanisme, '')));
+  v_sujet  text := btrim(coalesce(p_sujet, ''));
+  v_n      integer;
+BEGIN
+  -- FAIL-CLOSED : une identite incomplete LEVE. Rendre false voudrait dire « deja fait ».
+  IF v_pays = '' OR v_meca = '' THEN
+    RAISE EXCEPTION 'acte_nocturne_revendiquer : pays et mecanisme sont obligatoires (pays=%, mecanisme=%)', p_pays, p_mecanisme;
+  END IF;
+  IF v_sujet = '' THEN
+    v_sujet := '-';
+  END IF;
+  -- LE JOUR N'EST PAS UN PARAMETRE. Europe/Paris, comme jourParisISO() cote JavaScript.
+  INSERT INTO public.actes_nocturnes (pays, mecanisme, sujet, jour, details)
+  VALUES (v_pays, v_meca, v_sujet, (now() AT TIME ZONE 'Europe/Paris')::date, p_details)
+  ON CONFLICT (pays, mecanisme, sujet, jour) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  RETURN v_n = 1;
+END; $function$;
+
 -- acteur_identifie() -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.acteur_identifie()
  RETURNS boolean

@@ -13,6 +13,8 @@
 -- Activation de la RLS. Une table dont la RLS est active SANS policy est
 -- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.
 
+ALTER TABLE public.actes_nocturnes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.actes_nocturnes_mecanismes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ambassades_ouvertes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cron_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.etats_urgence ENABLE ROW LEVEL SECURITY;

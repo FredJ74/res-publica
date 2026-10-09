@@ -10,6 +10,21 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TABLE public.actes_nocturnes (
+  pays text NOT NULL,
+  mecanisme text NOT NULL,
+  sujet text NOT NULL,
+  jour date NOT NULL,
+  acquis_le timestamp with time zone DEFAULT now() NOT NULL,
+  details jsonb
+);
+
+CREATE TABLE public.actes_nocturnes_mecanismes (
+  mecanisme text NOT NULL,
+  sujet_singleton boolean DEFAULT false NOT NULL,
+  note text NOT NULL
+);
+
 CREATE TABLE public.ambassades_ouvertes (
   id text NOT NULL,
   pays_hote text NOT NULL,

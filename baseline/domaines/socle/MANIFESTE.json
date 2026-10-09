@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "60690f288db0bfc00e067c3682eb6831",
+   "genre": "FUNCTION",
+   "objet": "acte_nocturne_revendiquer(text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "506c3f2fc9673142c2e9dbe854e4a8aa",
    "genre": "FUNCTION",
    "objet": "acteur_identifie()",
@@ -40,6 +46,12 @@
  "contraintes": [],
  "domaine": "socle",
  "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acte_nocturne_revendiquer(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
   {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
@@ -1098,14 +1110,19 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "252ebba64530dbc1d057119c7f1bfbf2",
+  "20_fonctions.sql": "72743fd9aa2c62ef56bd7034d3c15ecd",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "acd34a414645e3f9670bbe449ea56452",
-  "80_commentaires.sql": "27b79b0bd8aef05b5930a67496105584",
+  "70_droits.sql": "0a0f51ca7acaa6ff09f6356e9637e86a",
+  "80_commentaires.sql": "fe2bbfafcfebed690a8b5367759ca335",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
  "fonctions": [
+  {
+   "empreinte": "6033771d8c51487c9d5718674b9867b6",
+   "security_definer": true,
+   "signature": "acte_nocturne_revendiquer(text,text,text,jsonb)"
+  },
   {
    "empreinte": "087e7a2283b98e2fd03ec492ef170afd",
    "security_definer": true,

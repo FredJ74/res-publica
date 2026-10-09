@@ -55,6 +55,15 @@ done
 | `banc-solde-personnage.js` | `sbEcrireSoldePersonnage` est une **écriture conditionnelle** : solde attendu illisible refusé, garde `arg=eq.<lu>` posée, zéro ligne touchée signalé comme `solde_modifie_entre_temps`, et aucun succès annoncé sans preuve. 23 cas. |
 | `banc-greve-generale.js` | `appliquerEffetsGreveGenerale` **revendique la journée avant tout effet**, par compare-and-swap : la garde du jour est dans le **filtre** et pas seulement dans le corps, la revendication est la **première écriture** de la passe, et **zéro requête** la suit quand elle n'aboutit pas — journée déjà prise comme panne de transport. 20 cas. |
 | `banc-prets-bancaires.js` | `preleverPretsBancairesServeur` n'émet **aucun débit sans sa garde**. La preuve porte sur l'absence de `PATCH` sur `personnages`, pas sur un compteur : un compteur à zéro n'empêche pas un débit déjà parti. Vérifie aussi que le gel des prêts d'avant le 14 septembre tient toujours. 25 cas. |
+| `banc-preemptions.js` | `preleverPreemptionsServeur` n'émet plus **aucune écriture directe** : tout passe par une RPC atomique. Vérifie l'identité serveur, la consommation de chaque verdict, et qu'une panne n'est jamais comptée comme un prélèvement. **Deux modes** — avec et sans le décor d'identité serveur, le second exigeant zéro requête. 20 + 3 cas. |
+| `banc-mail-systeme.js` | `envoyerMailSysteme` **ne lève jamais** — c'est par là qu'un courrier perdu ne peut plus annuler un acte économique — **et ne perd jamais l'échec en silence** : chaque panne nomme le courrier dans `ECHECS_PASSE`. Éprouvé sur HTTP non-2xx, rejet de promesse et levée **synchrone** de `fetch`. 20 cas. |
+
+> **`decor-env-serveur.js` n'est pas un banc**, c'est un décor : il pose une identité serveur
+> **avant** le chargement des modules de `api/`, parce que `cron-minuit.js` lit sa clé au
+> chargement (`const SUPABASE_SERVICE_ROLE = process.env...`). Un banc qui la poserait depuis son
+> propre corps arriverait trop tard, et toutes les passes à identité serveur se rabattraient sur
+> leur repli fail-closed sans émettre une seule requête. Il doit être la **première** source.
+> Le retirer est précisément la façon d'éprouver le chemin fail-closed.
 | `banc-budget-cascade.sql` | La cascade budgétaire ne perd aucun FR à l'arrondi, ne boucle pas sur le répartiteur, n'invente aucune part là où le pourcentage n'est pas arbitré, et **ne peut pas distribuer deux fois le même jour**. L'autorité et les bornes sont relues en base, pas dans le formulaire. 3 épreuves. |
 
 ## Le banc SQL : un banc qui écrit, et qu'une exception annule

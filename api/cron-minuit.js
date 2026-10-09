@@ -218,18 +218,56 @@ async function sbUpdatePret(id, patch) {
 // en demeure, ni ultimatum, ni avis de saisie. Le correctif P0-1 rend le contentieux des prets
 // reellement executant ; l'expedier muet aurait saisi des biens sans le moindre avis prealable.
 // Toute nouvelle notification du cron passe par ici, jamais par un sbInsert('mails') direct.
+//
+// DOCTRINE DE LA NOTIFICATION (arbitrage technique du 9 octobre 2026). Trois regles, et elles
+// tiennent ensemble :
+//   1. UNE NOTIFICATION N'EST PAS L'AUTORITE DE L'ACTE. Un mail qui ne part pas ne doit ni
+//      annuler une operation economique correctement acquise, ni la rendre rejouable. Les
+//      appelants continuent donc leur passe quoi qu'il arrive -- c'est voulu, pas negligent.
+//   2. MAIS L'ECHEC NE DOIT JAMAIS ETRE AVALE. Il l'etait : seize des dix-huit appels portent un
+//      `.catch(() => {})`, aucun ne lisait le verdict, et `sbInsert` rendait `null` en silence.
+//      Un avis de saisie qui ne part pas ne laissait aucune trace. L'echec est desormais
+//      SIGNALE ICI, dans la brique, donc il remonte dans ECHECS_PASSE, dans le journal durable
+//      du cron et dans le code HTTP de la passe -- sans que l'appelant ait a s'en occuper.
+//   3. CETTE FONCTION NE LEVE PLUS. Elle rend un verdict explicite. C'est ce qui permet a la
+//      regle 1 d'etre vraie SANS que chaque appelant ait a se proteger : un `.catch` oublie ne
+//      peut plus faire tomber une passe nocturne pour un courrier.
+//
+// Le verdict est { ok: true, id } ou { ok: false, raison }. Aucun appelant ne le lisait au
+// moment de ce changement ; il existe pour que celui qui voudra reessayer puisse le faire.
 async function envoyerMailSysteme(destinataire, expediteur, sujet, corps) {
-  if (!destinataire || !expediteur) return null;
-  return await sbInsert('mails', {
-    id: 'mail-cron-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
-    to_player: destinataire,
-    from_player: expediteur,
-    subject: sujet,
-    body: corps,
-    time: new Date().toLocaleDateString('fr-FR'),
-    read: false,
-    archived: false
-  });
+  if (!destinataire || !expediteur) {
+    // Pas un echec de transport : une demande incomplete. Tracee quand meme, parce qu'un
+    // destinataire absent veut dire qu'un appelant a perdu son acteur en route.
+    signalerEchec('mail:destinataire_ou_expediteur_absent',
+                  'sujet=' + String(sujet).slice(0, 80));
+    return { ok: false, raison: 'parametres_invalides' };
+  }
+  const id = 'mail-cron-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+  let insere = null;
+  try {
+    insere = await sbInsert('mails', {
+      id,
+      to_player: destinataire,
+      from_player: expediteur,
+      subject: sujet,
+      body: corps,
+      time: new Date().toLocaleDateString('fr-FR'),
+      read: false,
+      archived: false
+    });
+  } catch (e) {
+    // sbInsert ne devrait pas lever (il rend null sur HTTP non-2xx), mais une panne de fetch
+    // le fait. On absorbe ici, une fois, plutot que dans dix-huit `.catch` disperses.
+    signalerEchec('mail:' + expediteur + '->' + destinataire, e);
+    return { ok: false, raison: 'reseau_indisponible' };
+  }
+  if (insere === null) {
+    signalerEchec('mail:' + expediteur + '->' + destinataire,
+                  'sbInsert a refuse l\'ecriture (sujet=' + String(sujet).slice(0, 80) + ')');
+    return { ok: false, raison: 'ecriture_refusee' };
+  }
+  return { ok: true, id };
 }
 
 // Manquait cote cron (seuls sbGet/sbInsert/sbUpdate existaient) -- necessaire pour nettoyer
@@ -2276,41 +2314,53 @@ async function preleverPretsBancairesServeur() {
 // Finances est insuffisante, sans penalite.
 async function preleverPreemptionsServeur() {
   const resultats = { payes: 0, reportes: 0, soldes: 0 };
+  // FAIL-CLOSED sur l'identite serveur : la RPC n'est executable que par service_role. Sans la
+  // variable d'environnement, on n'envoie meme pas la requete -- elle finirait en 401, mais on
+  // trace la cause exacte plutot qu'un compteur d'erreurs opaque. Aucun argent ne bouge.
+  if (!SUPABASE_SERVICE_ROLE) {
+    console.error('preleverPreemptionsServeur : SUPABASE_SERVICE_ROLE_KEY absente, aucune mensualite prelevee');
+    resultats.erreurs = 1;
+    return resultats;
+  }
   try {
+    // TOUT LE TRAITEMENT EST DESCENDU DANS UNE RPC (chantier 6, 9 octobre 2026).
+    //
+    // Cette fonction faisait QUATRE allers-retours par pays : lire le budget, lire la caisse,
+    // ECRIRE la caisse, ECRIRE le budget. Les deux ecritures etaient deux transactions : une
+    // interruption entre elles debitait la caisse du Ministere des Finances SANS reduire la
+    // dette de la preemption -- et le marqueur de tacheQuotidienne, deja pose, interdisait la
+    // reprise. L'argent disparaissait sans que personne ne s'en plaigne, parce qu'aucun joueur
+    // ne reclame une dette qui ne baisse pas assez vite.
+    //
+    // preemption_mensualite_prelever fait les deux dans UNE transaction, ouverte par une
+    // revendication d'acte nocturne -- actes_nocturnes(pays, mecanisme, sujet, jour), dont la
+    // cle primaire rend le rejeu impossible par construction. Et la revendication n'etant pas
+    // appelable depuis le reseau, elle ne PEUT PAS se retrouver dans un autre aller-retour que
+    // l'effet : c'est la garantie que ce fichier ne pouvait pas donner.
+    //
+    // Il ne reste ici que la boucle sur les empires et la lecture des verdicts.
+    //
     // LES EMPIRES VIENNENT DU REFERENTIEL (chantier 4G), plus d'une liste recopiee a la main --
     // le commentaire d'un de ces quatre sites avouait d'ailleurs « meme liste de pays codee en dur
     // que le reste de ce cron ». Un cinquieme empire declare dans VILLES serait traite sans qu'on y
-    // pense, et un empire retire cesserait de l'etre. Ces passes LISENT un etat par empire et
-    // appellent des RPC fail-closed : elles ne declenchent aucune economie chez un empire qui n'en
-    // a pas.
+    // pense, et un empire retire cesserait de l'etre. La RPC est fail-closed : elle ne declenche
+    // aucune economie chez un empire qui n'en a pas.
     for (const pays of Object.keys(VILLES_SERVEUR)) {
-      const budgetRows = await sbGet('budgets_nationaux', `id=eq.${pays}`);
-      const budgetRow = budgetRows && budgetRows[0];
-      const preemption = budgetRow?.data?.preemption;
-      if (!preemption) continue;
-
-      const mensualite = Math.min(preemption.mensualite, preemption.montantRestant);
-      const caisseKey = pays + '_gouvernement-min_fin';
-      const caisseRows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`);
-      const caisse = caisseRows?.[0]?.data || { solde: 0 };
-
-      if ((caisse.solde || 0) >= mensualite) {
-        caisse.solde -= mensualite;
-        preemption.montantRestant -= mensualite;
-        await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisse, updated_at: new Date().toISOString() });
-        resultats.payes++;
-
-        const nouvelleData = { ...budgetRow.data };
-        if (preemption.montantRestant <= 0) {
-          delete nouvelleData.preemption;
-          resultats.soldes++;
-        } else {
-          nouvelleData.preemption = preemption;
-        }
-        await sbUpdate('budgets_nationaux', `id=eq.${pays}`, { data: nouvelleData, updated_at: new Date().toISOString() });
-      } else {
-        resultats.reportes++;
+      const rows = await sbRpc('preemption_mensualite_prelever', { p_pays: pays }, HEADERS_SERVICE);
+      // sbRpc rend null sur echec HTTP. Une exception PL/pgSQL signifie que la transaction a ete
+      // ANNULEE : ni debit, ni reduction de dette, ni journee revendiquee -- rien a reprendre.
+      if (rows === null) { resultats.erreurs = (resultats.erreurs || 0) + 1; continue; }
+      const v = Array.isArray(rows) ? rows[0] : rows;
+      if (!v || v.ok !== true) {
+        // Verdict de refus explicite (preemption illisible, parametres) : signale, jamais avale.
+        console.error('preleverPreemptionsServeur : refus pour ' + pays, v && v.raison);
+        resultats.refus = (resultats.refus || 0) + 1;
+        continue;
       }
+      if (v.action === 'preleve')      resultats.payes++;
+      else if (v.action === 'solde') { resultats.payes++; resultats.soldes++; }
+      else if (v.action === 'reporte') resultats.reportes++;
+      else if (v.action === 'deja_traite') resultats.deja_traites = (resultats.deja_traites || 0) + 1;
     }
   } catch(e) { console.error('preleverPreemptionsServeur error', e); }
   return resultats;

@@ -670,6 +670,23 @@ def main():
                 # des le dixieme morceau : « -10 » se trie avant « -2 ».
                 man["ordre"].append(nom)
                 total += len(corps)
+        # LE GENERATEUR POSSEDE SON REPERTOIRE : tout .sql qu'il n'a pas ecrit cette fois-ci
+        # est un vestige du rendu precedent, et il part.
+        #
+        # POURQUOI, ET CE QUE CA A COUTE DE NE PAS LE FAIRE. Le 9 octobre 2026, une fonction de
+        # plus a fait franchir a `finances publiques` le seuil de TAILLE_MAX_FICHIER : le rendu
+        # a donc produit `20_fonctions-1.sql` et `20_fonctions-2.sql` la ou il y avait
+        # `20_fonctions.sql`. L'ancien fichier est reste sur le disque -- non declare au
+        # manifeste, mais present, et portant une copie PERIMEE de toutes les fonctions du
+        # domaine. Le controle d'integrite l'a vu (« fichier present mais non declare »), et il
+        # avait raison : un repertoire annonce « GENERE, ne pas editer a la main » qui conserve
+        # une version d'hier n'est plus une source de verite, c'est un piege. Le seuil se
+        # franchit dans les deux sens -- une fonction supprimee referait l'inverse.
+        for vestige in sorted(glob.glob(os.path.join(rep_d, "*.sql"))):
+            if os.path.basename(vestige) not in man["fichiers"]:
+                os.remove(vestige)
+                print("  %-26s vestige du rendu precedent retire : %s"
+                      % (d, os.path.basename(vestige)))
         with open(os.path.join(rep_d, "MANIFESTE.json"), "w", encoding="utf-8") as fh:
             json.dump(man, fh, indent=1, ensure_ascii=False, sort_keys=True)
         inventaire["domaines"][d] = {k: len(man[k]) for k in

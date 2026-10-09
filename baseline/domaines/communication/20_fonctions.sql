@@ -272,7 +272,7 @@ CREATE OR REPLACE FUNCTION public.mail_systeme_envoyer(p_expediteur text, p_dest
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_id text;
+DECLARE v_moi text; v_id text; v_etat text; v_msg text;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL AND NOT public.est_appel_serveur() THEN
@@ -290,9 +290,28 @@ BEGIN
 
   v_id := 'mail-' || (extract(epoch from clock_timestamp())*1000)::bigint
                   || '-' || substr(md5(random()::text), 1, 6);
-  INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
-  VALUES (v_id, p_expediteur, p_destinataire, p_sujet, p_corps,
-          coalesce(p_heure, to_char(now() AT TIME ZONE 'Europe/Paris', 'HH24') || 'h'), false);
+
+  -- UNE NOTIFICATION N'EST PAS L'AUTORITE DE L'ACTE (doctrine du 9 octobre 2026). Cet INSERT
+  -- est enferme dans son propre bloc : une erreur ici ne doit PAS annuler l'operation metier
+  -- de l'appelant, qui est peut-etre un debit, une saisie ou une nomination deja acquise. Une
+  -- RPC etant une seule transaction, une exception non rattrapee emportait tout -- c'est
+  -- exactement ce qui se passait quand mails.id n'avait pas de valeur par defaut : la branche
+  -- « debiteur a sec » des prets Helvetia levait 23502 et tuait la passe entiere.
+  --
+  -- MAIS L'ECHEC N'EST PAS AVALE : il est consigne dans mails_envois_systeme, avec son SQLSTATE
+  -- et son message. Le courrier perdu est donc nommable, et le verdict rendu dit ok=false.
+  BEGIN
+    INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
+    VALUES (v_id, p_expediteur, p_destinataire, p_sujet, p_corps,
+            coalesce(p_heure, to_char(now() AT TIME ZONE 'Europe/Paris', 'HH24') || 'h'), false);
+  EXCEPTION WHEN others THEN
+    GET STACKED DIAGNOSTICS v_etat = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO public.mails_envois_systeme (auteur_reel, expediteur, destinataire, sujet, echec)
+    VALUES (v_moi, p_expediteur, p_destinataire, left(coalesce(p_sujet,''),200),
+            v_etat || ' ' || left(coalesce(v_msg,''), 300));
+    RETURN jsonb_build_object('ok', false, 'raison', 'envoi_impossible', 'sqlstate', v_etat);
+  END;
+
   RETURN jsonb_build_object('ok', true, 'id', v_id);
 END;
 $function$;

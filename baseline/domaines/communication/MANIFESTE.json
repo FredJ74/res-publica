@@ -1,5 +1,18 @@
 {
- "commentaires": [],
+ "commentaires": [
+  {
+   "empreinte": "059f57627dc977510f02b4eca9447ba8",
+   "genre": "COLUMN",
+   "objet": "mails_envois_systeme",
+   "sous": "echec"
+  },
+  {
+   "empreinte": "4c3b641dafcd86a2f82ab030f253bcb4",
+   "genre": "TABLE",
+   "objet": "mails_envois_systeme",
+   "sous": ""
+  }
+ ],
  "contraintes": [
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -536,14 +549,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "f047d391cbe6e4ef452702871a231456",
-  "20_fonctions.sql": "50a082bd56e17e695e656a5e19eb949b",
+  "10_tables.sql": "df63a8ee1cf6eba96116250c1f3df90f",
+  "20_fonctions.sql": "bc3faec7d36e76792ba0edcfe12bb267",
   "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
   "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
   "60_rls-policies.sql": "7b2500087e51a183ef6bd439f4474a9b",
   "70_droits.sql": "0d15f5f54bb42b65b7c339d2a9c32ac7",
-  "80_commentaires.sql": "8ec239a96f165d4b8d36dd57f9bcf9bd"
+  "80_commentaires.sql": "25273ca935ddaea951711c6b152a788f"
  },
  "fonctions": [
   {
@@ -612,7 +625,7 @@
    "signature": "mail_expediteur_systeme(text)"
   },
   {
-   "empreinte": "d5865159c2a1f2a4bde0f5c73dd56130",
+   "empreinte": "a5a6ee6f26939843b78d44c53fdd6d27",
    "security_definer": true,
    "signature": "mail_systeme_envoyer(text,text,text,text,text)"
   },
@@ -888,9 +901,9 @@
    "nom": "mails"
   },
   {
-   "colonnes": 6,
-   "empreinte_catalogue": "9734529bd778b328f107c12c3a8c2258",
-   "empreinte_texte": "37685ec3b247e948b1d7582592684e3d",
+   "colonnes": 7,
+   "empreinte_catalogue": "0288a9cb536d8e9760223e0b405b0a13",
+   "empreinte_texte": "9e31d53b0648b9d5f557f673ab6f31c0",
    "nom": "mails_envois_systeme"
   },
   {

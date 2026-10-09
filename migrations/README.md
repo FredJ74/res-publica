@@ -12,6 +12,25 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**L'idempotence nocturne a enfin sa brique, et un vrai consommateur.**
+Quatre migrations le 9 octobre 2026, registre **565 → 568** :
+
+| Registre | Nom | Ce qu'elle fait |
+|---|---|---|
+| **565** | `restitution_arg_arnie_effet_de_bord_des_preuves` | rend 1 000 FR au personnage témoin de la nuit — **une donnée de joueur, modifiée exprès et par le canal normal** |
+| **566** | `actes_nocturnes_brique` | `actes_nocturnes(pays, mecanisme, sujet, jour)` en clé primaire, et sa liste blanche de mécanismes |
+| **567** | `preemption_mensualite_atomique` | débit de caisse **et** réduction de dette dans une seule transaction |
+| **568** | `notification_ne_casse_plus_l_acte` | un courrier qui ne part pas n'annule plus l'acte, et ne se perd plus en silence |
+
+> **Le choix d'architecture qui porte tout le reste** : `acte_nocturne_revendiquer()`
+> n'est **appelable par personne d'autre que son propriétaire** — `EXECUTE` retiré
+> à `anon`, `authenticated` **et** `service_role`. Seules les fonctions
+> `SECURITY DEFINER` du serveur peuvent la joindre, donc il est *structurellement
+> impossible* de revendiquer une journée dans une requête HTTP distincte de celle
+> qui porte l'effet. C'était le défaut commun aux dix familles de tâches
+> nocturnes. L'architecture n'est pas une convention qu'on documente, c'est un
+> droit qu'on retire.
+
 **Une ardoise d'impayé ne double plus à chaque rejeu du cron.**
 `ardoise_impaye_atomique` est passée le 9 octobre 2026, registre
 **20261009005012**, qui porte le registre de 563 à **564** entrées. La branche

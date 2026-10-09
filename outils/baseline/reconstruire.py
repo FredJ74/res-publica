@@ -484,7 +484,11 @@ def controles_du_monde(cat):
     # 254 le 8 octobre 2026 : +1 pour recettes_municipales, le COMPTEUR des recettes du jour.
     # Ce n'est pas une tresorerie -- son CHECK montant > 0 l'interdit structurellement -- mais la
     # mesure que la cascade municipale prend pour base.
-    att("tables creees", len(cat.tables), 254)
+    # 256 le 9 octobre 2026 : +2 pour la brique d'idempotence nocturne -- actes_nocturnes, dont
+    # la cle primaire (pays, mecanisme, sujet, jour) EST l'idempotence, et
+    # actes_nocturnes_mecanismes, sa liste blanche. Un monde neuf nait avec le registre des
+    # mecanismes SEME (sans sa ligne, la RPC leve) et le journal des actes VIDE.
+    att("tables creees", len(cat.tables), 256)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -499,8 +503,11 @@ def controles_du_monde(cat):
     # qui refuse un personnage dont le pays est absent, vide ou etranger au referentiel `villes`.
     # Les onze fonctions de l'Assemblee qui portaient `DEFAULT 'republic'` ont ete DETRUITES ET
     # RECREEES sans ce defaut : leur nombre ne bouge donc pas, seule la garde s'ajoute.
-    att("signatures de fonction creees", cat.n_fonctions, 664)
-    att("noms de fonction distincts", len(cat.fonctions), 660,
+    # 666 le 9 octobre 2026 : +2 -- acte_nocturne_revendiquer() (la revendication atomique, que
+    # son EXECUTE retire a tous les roles clients rend injoignable depuis le reseau) et
+    # preemption_mensualite_prelever() (son premier consommateur).
+    att("signatures de fonction creees", cat.n_fonctions, 666)
+    att("noms de fonction distincts", len(cat.fonctions), 662,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -509,7 +516,10 @@ def controles_du_monde(cat):
     # 438 le 8 octobre 2026 : +5 pour recettes_municipales -- sa cle primaire a quatre colonnes
     # (pays, ville, jour, canal) et ses quatre CHECK, dont `montant > 0` qui est ce qui garantit
     # qu'aucune fonction ne pourra jamais s'en servir comme d'une bourse.
-    att("contraintes posees", len(cat.contraintes), 438)
+    # 444 le 9 octobre 2026 : +6 pour la brique nocturne -- deux cles primaires (celle
+    # d'actes_nocturnes porte quatre colonnes), une cle etrangere vers la liste blanche, et
+    # trois CHECK (slug du mecanisme, pays et sujet non vides).
+    att("contraintes posees", len(cat.contraintes), 444)
     att("index autonomes crees", len(cat.index), 147)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,

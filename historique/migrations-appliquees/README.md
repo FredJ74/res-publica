@@ -37,6 +37,10 @@ Supabase, lui, est complet.
 | `20261006160000_autorite_declencheurs_public.sql` | 543 | fonctions de déclencheur appelables par un rôle client 24 → 0 |
 | `20261008214206_pays_declare_et_retrait_des_defauts_republic.sql` | 560 | `personnage_pays_declare()` + son déclencheur créés · `p_country text DEFAULT 'republic'` 11 → 0 · signatures 663 → 664 · droits EXECUTE des onze **restitués à l'identique**, ni perdu ni apparu · 3 commentaires reposés · `authenticated` sur les 7 fonctions de cron 7 → 0 |
 | `20261008221846_defaut_des_privileges_de_fonction_ferme.sql` | 561 | ACL d'une fonction **neuve** : `PUBLIC authenticated postgres service_role` → **`postgres service_role`** · `has_function_privilege` rend désormais `false` pour `anon` et `authenticated` · droits des 664 fonctions existantes **inchangés** (37 / 58 / 421 / 664) · `catalogue_generiques_raccordes` passée en `security_invoker` (84 lignes avant comme après, pour les trois rôles) · `personnages` **non modifiée** |
+| `20261009073456_restitution_arg_arnie_effet_de_bord_des_preuves.sql` | 565 | **première migration qui modifie une donnée de joueur**, et elle répare un écart que l'agent a causé : `arg` 8428 → 9428 pour Arnie, `liquide` inchangé, `updated_at` relevé — sans quoi la session du joueur aurait réécrit l'ancienne valeur · 7 autres personnages intacts par empreinte comparée dans la transaction |
+| `20261009093112_actes_nocturnes_brique.sql` | 566 | `actes_nocturnes(pays, mecanisme, sujet, jour)` en clé primaire + sa **liste blanche** de mécanismes · `acte_nocturne_revendiquer()` **injoignable depuis le réseau** (EXECUTE retiré à `anon`, `authenticated` **et** `service_role`) : revendiquer hors de la transaction de l'effet devient structurellement impossible · RLS active, aucun droit client, zéro mécanisme à l'arrivée |
+| `20261009130649_preemption_mensualite_atomique.sql` | 567 | débit de caisse **et** réduction de dette dans **une** transaction, ouverte par une revendication · 4 allers-retours HTTP → 1 RPC · une panne après acquisition annule les deux écritures **et** la revendication · les 4 caisses ministérielles comparées à leur valeur exacte d'avant |
+| `20261009132222_notification_ne_casse_plus_l_acte.sql` | 568 | `mail_systeme_envoyer` **ne lève plus** : l'`INSERT` du courrier est dans son propre bloc, l'incident est consigné dans `mails_envois_systeme.echec` avec son SQLSTATE · la transaction de l'appelant survit à la perte d'un courrier (prouvé par une contrainte réelle au banc) · refus métier et droits intacts |
 | `20261009005012_ardoise_impaye_atomique.sql` | 564 | la branche `expulsion_requise` de `prelever_loyer_bail` pose enfin `jourPaiement` — **6 poses au lieu de 5** · l'ardoise de l'impayé est **calculée dans la RPC**, atomique avec sa revendication, au lieu d'être recalculée par un appelant qui réécrivait le blob depuis une lecture périmée · deux verdicts distincts pour l'avis · droits et `search_path` intacts · bail de la bêta inchangé · **va par paire avec `api/cron-minuit.js`** |
 | `20261009003201_mails_portent_leur_identite.sql` | 563 | `mails.id` reçoit un `DEFAULT` aligné sur `mail_systeme_envoyer` · les **9 sites** de 2 fonctions qui levaient `23502` traversent · `NOT NULL` et `PRIMARY KEY (id)` intacts · **4 empreintes de données identiques avant et après** · corrige un relevé faux de la ligne précédente : 2 fonctions concernées, pas dix |
 | `20261008235521_idempotence_prets_helvetia.sql` | 562 | `traiter_prets_helvetia_quotidien` porte un marqueur de journée · trois appels le même jour prélèvent **une seule** mensualité (5000 → 4500 → 4500), le lendemain reprend (→ 4000) · verdict `deja_traite_aujourdhui` rendu · **et ses propres preuves ont laissé 1 000 FR dans `republic_banque-privee`, restitués dans la minute** — lire son en-tête |
@@ -68,3 +72,21 @@ sont intacts.
 > appartient au banc en transaction annulée, avant application, et à lui seul.
 > Les six premières respectaient déjà cette règle sans qu'elle soit écrite ;
 > elle l'est maintenant.
+
+> **Et une huitième touche une donnée EXPRÈS :**
+> `20261009073456_restitution_arg_arnie_effet_de_bord_des_preuves` rend les
+> 1 000 FR que les preuves ci-dessus avaient aussi retirés du solde du
+> personnage témoin — effet de bord vu seulement après, en relisant *toutes* les
+> écritures de la branche exécutée. Elle est passée par le canal normal,
+> `apply_migration`, **précisément pour que le registre en garde la trace** : une
+> correction de données hors registre serait exactement le trou que le chantier
+> de reproductibilité a rebouché.
+>
+> **Ce qu'elle apprend en plus, et qui n'était pas évident** : il a fallu
+> **relever `updated_at`**. `sbVerifierEtSauvegarderPersonnage` (supabase.js)
+> compare l'horodatage serveur au dernier qu'elle a écrit ; s'ils sont égaux,
+> elle republie sa copie en mémoire. Une session tenant encore l'ancienne valeur
+> aurait donc écrasé la restitution en silence — le commentaire de cette
+> fonction nomme exactement ce cas, « une correction serveur directe a écrit
+> entretemps ». Relever l'horodatage n'est pas une coquetterie, c'est le
+> mécanisme par lequel une correction serveur survit.

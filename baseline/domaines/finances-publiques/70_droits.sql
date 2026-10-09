@@ -158,6 +158,8 @@ GRANT EXECUTE ON FUNCTION public.pa_repos_nocturne(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.percevoir_salaire_directeur(text,text,text,text,text,text,numeric) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.percevoir_salaire_directeur(text,text,text,text,text,text,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.percevoir_salaire_directeur(text,text,text,text,text,text,numeric) TO service_role;
+GRANT EXECUTE ON FUNCTION public.preemption_mensualite_prelever(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.preemption_mensualite_prelever(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.recette_municipale(text,text,numeric,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.recette_municipale(text,text,numeric,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.redressement_fiscal_appliquer(text,text) TO authenticated;

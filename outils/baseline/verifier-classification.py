@@ -25,17 +25,19 @@ import sys
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
-# Mesure du 8 octobre 2026, apres la migration 20261008071350 du chantier des budgets
-# municipaux, qui porte le catalogue de 259 a 260 tables : recettes_municipales, le COMPTEUR des
-# recettes du jour -- une mesure, pas une tresorerie. (Pour memoire, 255 -> 259 le 7 octobre :
-# villes et villes_empreinte au chantier 4E, repartitions_budgetaires et repartitions_versements
-# au 4F.)
+# Mesure du 9 octobre 2026, apres la migration 20261009093112 de la brique d'idempotence
+# nocturne, qui porte le catalogue de 260 a 262 tables : actes_nocturnes -- le verrou ET le
+# journal des taches de minuit, dont la cle primaire (pays, mecanisme, sujet, jour) porte
+# l'idempotence -- et actes_nocturnes_mecanismes, sa liste blanche.
+# (Pour memoire : 259 -> 260 le 8 octobre avec recettes_municipales, le COMPTEUR des recettes du
+# jour ; et 255 -> 259 le 7 octobre avec villes, villes_empreinte, repartitions_budgetaires et
+# repartitions_versements aux chantiers 4E et 4F.)
 #
 # LES DEUX VALEURS VIENNENT DE LA BASE, pas du CSV, et c'est tout le point de ce controle : elles
 # sont relevees par la requete citee en commentaire, puis comparees a ce que le CSV recalcule. Les
 # poser depuis le CSV rendrait la verification circulaire -- elle ne dirait plus rien.
-TABLES_ATTENDUES = 260
-EMPREINTE_LISTE = "ce03ae70750e119504b02630b4d6cc48"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 262
+EMPREINTE_LISTE = "a2bb13a4de34b3ad644fdb205ac57057"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",
