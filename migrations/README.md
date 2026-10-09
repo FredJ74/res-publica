@@ -12,6 +12,22 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**Un mail porte son identité.** `mails_portent_leur_identite` est passée le
+9 octobre 2026, registre **20261009003201**, qui porte le registre de 562 à
+**563** entrées. `mails.id` est clé primaire `text NOT NULL` et n'avait aucune
+valeur par défaut : **neuf sites d'écriture, dans deux fonctions**, insèrent sans
+le fournir et levaient `23502`. Une RPC étant une seule transaction, la passe
+nocturne des prêts Helvetia mourait **entière** au premier emprunteur insolvable.
+Le défaut posé est, au caractère près, celui que la porte générique
+`mail_systeme_envoyer` produit depuis toujours — et sa preuve 2 lève si les deux
+divergent un jour.
+
+> **Première migration écrite sous la règle 3**, et elle montre ce que la règle
+> change : ses cinq preuves ne lisent que le catalogue, et les quatre empreintes
+> de données relevées **avant et après** l'application sont identiques. L'épreuve
+> comportementale — la branche « débiteur à sec » qui traverse enfin — est restée
+> au banc, en transaction annulée.
+
 **L'échéancier Helvetia ne s'exécute plus qu'une fois par jour.**
 `idempotence_prets_helvetia` est passée le 9 octobre 2026, registre
 **20261008235521**, qui porte le registre de 561 à **562** entrées — première

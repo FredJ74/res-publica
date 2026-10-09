@@ -536,7 +536,7 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "d720c1c10a9761ab30a89a1116da811b",
+  "10_tables.sql": "f047d391cbe6e4ef452702871a231456",
   "20_fonctions.sql": "50a082bd56e17e695e656a5e19eb949b",
   "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
@@ -883,8 +883,8 @@
   },
   {
    "colonnes": 12,
-   "empreinte_catalogue": "0b784a5b719f5c3ab53ddd96f8f83c7f",
-   "empreinte_texte": "09e215886e248d70f07cf5b97bc96521",
+   "empreinte_catalogue": "7ea5732d966d83501720bd85d5ebc641",
+   "empreinte_texte": "7f745fd54f3ea1396d7643bff684bff6",
    "nom": "mails"
   },
   {

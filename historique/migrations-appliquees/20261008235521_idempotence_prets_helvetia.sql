@@ -84,10 +84,20 @@
 -- `23502 null value in column "id" of relation "mails"`. Comme une RPC est une transaction,
 -- l'exception annule TOUT le traitement, pas seulement le mail.
 --
--- DIX fonctions SQL partagent ce defaut, dont la porte generique `mail_systeme_envoyer`. Il est
--- latent parce que `prets` est vide, mais il se declencherait au premier emprunteur Helvetia
--- insolvable. Non corrige ici : dix fonctions, une convention d'identifiant a etablir, des
--- bancs par fonction -- c'est un lot a part, consigne comme tel.
+-- CORRECTION DU 9 OCTOBRE 2026, 02h40. Cette ligne annoncait « DIX fonctions SQL partagent ce
+-- defaut, dont la porte generique mail_systeme_envoyer ». C'ETAIT FAUX, et le compte a ete
+-- refait fonction par fonction sur les 664 : elles sont DEUX --
+-- `traiter_prets_helvetia_quotidien` (7 sites) et `finaliser_achat_bien_helvetia` (2 sites),
+-- les deux du domaine `banque`, les deux Helvetia. `mail_systeme_envoyer` fait partie des HUIT
+-- qui fournissent leur `id` correctement : elle a toujours eu raison. Le chiffre de dix
+-- melangeait deux familles -- celles qui inserent sans id et celles qui touchent `mails` tout
+-- court. La ligne fausse n'est pas effacee en silence : elle est corrigee, datee, et le lot
+-- qui a ferme le defaut est l'archive `20261009003201_mails_portent_leur_identite.sql`.
+--
+-- Le defaut etait latent parce que `prets` est vide, mais il se declenchait au premier
+-- emprunteur Helvetia insolvable. Il est FERME depuis le 9 octobre 2026 a 02h32, non pas en
+-- reecrivant les neuf sites, mais en donnant a `mails.id` la valeur par defaut que la porte
+-- generique fabriquait deja : un invariant de table appartient a la table.
 --
 -- -----------------------------------------------------------------------------
 -- CE QUI A ETE PROUVE AVANT APPLICATION, en transaction annulee

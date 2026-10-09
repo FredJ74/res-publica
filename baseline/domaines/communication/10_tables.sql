@@ -66,7 +66,7 @@ CREATE TABLE public.lectures_chat (
 );
 
 CREATE TABLE public.mails (
-  id text NOT NULL,
+  id text DEFAULT ((('mail-'::text || ((EXTRACT(epoch FROM clock_timestamp()) * (1000)::numeric))::bigint) || '-'::text) || substr(md5((random())::text), 1, 6)) NOT NULL,
   from_player text NOT NULL,
   to_player text NOT NULL,
   subject text NOT NULL,

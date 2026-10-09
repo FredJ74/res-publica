@@ -239,7 +239,7 @@
   "banque/60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",
   "banque/70_droits.sql": "b048b2111a7416d5ea9c94fd691119ea",
   "banque/80_commentaires.sql": "5e9298777dbc1c55637233cb262fd411",
-  "communication/10_tables.sql": "d720c1c10a9761ab30a89a1116da811b",
+  "communication/10_tables.sql": "f047d391cbe6e4ef452702871a231456",
   "communication/20_fonctions.sql": "50a082bd56e17e695e656a5e19eb949b",
   "communication/30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "communication/35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
