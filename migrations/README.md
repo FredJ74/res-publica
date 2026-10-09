@@ -12,6 +12,24 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**Une ardoise d'impayé ne double plus à chaque rejeu du cron.**
+`ardoise_impaye_atomique` est passée le 9 octobre 2026, registre
+**20261009005012**, qui porte le registre de 563 à **564** entrées. La branche
+« locataire déjà averti et toujours insolvable » de `prelever_loyer_bail` était
+**la seule sortie à effet** à ne pas poser son marqueur de journée : un second
+passage la même nuit rajoutait un jour et un loyer à la dette. Et poser le
+marqueur n'aurait pas suffi — l'appelant réécrivait le blob entier depuis une
+lecture **antérieure** à la RPC, et l'aurait effacé dans la foulée. Le calcul de
+l'ardoise est donc descendu **dans** la RPC, où revendication et effet sont
+atomiques.
+
+> **Deux refus avant l'application, et les deux étaient des preuves qui font
+> leur travail.** La preuve 1 interdisait une séquence que le code *neuf*
+> contient aussi ; la preuve 3 annonçait quatre poses du marqueur alors qu'il y
+> en avait cinq. Chaque refus a laissé la base intacte — registre à 563,
+> fonction inchangée, bail inchangé. Une assertion fausse est une assertion qui
+> marche.
+
 **Un mail porte son identité.** `mails_portent_leur_identite` est passée le
 9 octobre 2026, registre **20261009003201**, qui porte le registre de 562 à
 **563** entrées. `mails.id` est clé primaire `text NOT NULL` et n'avait aucune

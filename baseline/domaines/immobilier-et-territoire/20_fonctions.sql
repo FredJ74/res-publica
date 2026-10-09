@@ -534,6 +534,10 @@ DECLARE
   v_orga_data   text;
   v_maj         integer;
   v_rec         jsonb;
+  -- L'ardoise de l'impaye, desormais calculee ET posee ici : voir le bloc de la
+  -- branche « expulsion_requise ».
+  v_imp         jsonb;
+  v_avise       boolean;
 BEGIN
   SELECT *
   INTO v_bail
@@ -602,6 +606,36 @@ BEGIN
   -- Impayé.
   IF COALESCE(v_arg, 0) < v_prix THEN
     IF COALESCE((v_data ->> 'avertissement')::boolean, false) THEN
+      -- ARDOISE ATOMIQUE (chantier 6, 9 octobre 2026). Cette branche etait LA SEULE sortie
+      -- a effet a ne pas poser jourPaiement : un rejeu du cron la meme nuit rendait de
+      -- nouveau « expulsion_requise », et l'appelant rajoutait un jour et un loyer a
+      -- l'ardoise. La dette DOUBLAIT a chaque passe.
+      --
+      -- Poser le marqueur ne suffisait pas : l'appelant reecrivait le blob entier depuis
+      -- une lecture ANTERIEURE a cet appel, et effacait donc le marqueur dans la foulee.
+      -- Le calcul de l'ardoise descend ici, ou il devient atomique avec sa revendication :
+      -- une RPC est une seule transaction, et v_data a ete lu FOR UPDATE.
+      --
+      -- La regle, elle, ne change pas (arbitrage du 8 septembre 2026) : aucune expulsion
+      -- automatique, un impaye est un FAIT qu'on chiffre et qu'on conserve, et un seul
+      -- avis a l'ouverture de l'ardoise. Aucun argent ne bouge : le loyer reste du.
+      v_imp := CASE WHEN jsonb_typeof(v_data -> 'impaye') = 'object'
+                    THEN v_data -> 'impaye' ELSE '{}'::jsonb END;
+      v_avise := COALESCE((v_imp ->> 'avisEnvoye')::boolean, false);
+      UPDATE locations_actives
+         SET data = v_data || jsonb_build_object(
+               'jourPaiement', v_jour,
+               'impaye', jsonb_build_object(
+                  'depuis',     COALESCE(v_imp ->> 'depuis', v_jour),
+                  'jours',      COALESCE((v_imp ->> 'jours')::numeric, 0) + 1,
+                  'montantDu',  COALESCE((v_imp ->> 'montantDu')::numeric, 0) + v_prix,
+                  'avisEnvoye', true))
+       WHERE id = p_bail_id;
+      -- Deux verdicts distincts, parce que l'appelant n'a plus qu'une chose a faire et
+      -- qu'elle depend de celui-ci : poster l'avis UNE fois, a l'ouverture.
+      IF v_avise THEN
+        RETURN 'expulsion_requise_deja_avise';
+      END IF;
       RETURN 'expulsion_requise';
     END IF;
 

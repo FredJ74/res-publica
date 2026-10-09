@@ -20,6 +20,23 @@ Usage :
 
 Les sources sont concatenees AVANT le banc, dans l'ordre donne. Code de sortie 0 si le banc
 annonce son verdict vert, 1 dans tous les autres cas -- y compris s'il n'annonce rien.
+
+LE BANC DECLARE SES PROPRES INGREDIENTS. Quand aucune source n'est donnee sur la ligne de
+commande, le lanceur lit dans les 20 premieres lignes du banc une ligne de la forme
+
+    SOURCES: supabase.js
+    SOURCES: api/_supabase.js api/autre.js     (plusieurs, separees par des espaces)
+    SOURCES: aucune                            (le banc lit lui-meme ses fichiers)
+
+Pourquoi la declaration vit DANS le banc et pas dans un script d'appel par banc : le 9 octobre
+2026, trois des quatre bancs n'avaient aucune enveloppe, et rien dans le depot ne disait de
+quelle source ils avaient besoin. Lances sans source, ils affichaient leur titre et s'arretaient
+-- jsc rend 0 quand une exception meurt dans une promesse. Le lanceur refusait bien de les
+declarer verts, mais personne ne pouvait deviner comment les relancer. Un banc qu'on ne sait
+plus invoquer est un banc mort.
+
+Un banc SANS ligne SOURCES et sans source sur la ligne de commande est REFUSE : mieux vaut
+echouer en nommant ce qui manque que tourner a vide.
 """
 
 import os
@@ -63,6 +80,21 @@ def forme_script(src):
     return out
 
 
+def sources_declarees(chemin_banc):
+    """Lit la ligne « SOURCES: ... » que le banc porte en tete. Rend None si absente."""
+    with open(chemin_banc, encoding="utf-8") as fh:
+        for _ in range(20):
+            ligne = fh.readline()
+            if not ligne:
+                break
+            m = re.search(r"SOURCES:\s*(.+?)\s*$", ligne)
+            if m:
+                # Tout ce qui suit « -- » est un commentaire pour l'humain, pas un chemin.
+                valeur = m.group(1).split("--")[0].strip()
+                return [] if valeur == "aucune" else valeur.split()
+    return None
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -70,7 +102,15 @@ def main():
     if not os.path.exists(JSC):
         raise SystemExit("lancer-banc : JavaScriptCore introuvable a %s" % JSC)
     banc = sys.argv[1]
+    chemin_banc = banc if os.path.isabs(banc) else os.path.join(RACINE, banc)
     sources = sys.argv[2:]
+    if not sources:
+        sources = sources_declarees(chemin_banc)
+        if sources is None:
+            raise SystemExit(
+                "lancer-banc : %s ne declare aucune ligne « SOURCES: » et aucune source n'a ete "
+                "donnee. Ajouter dans l'en-tete du banc « SOURCES: <fichiers> », ou « SOURCES: "
+                "aucune » si le banc lit lui-meme ses fichiers." % banc)
     morceaux = [PREAMBULE]
     for s in sources:
         chemin = s if os.path.isabs(s) else os.path.join(RACINE, s)
@@ -87,10 +127,18 @@ def main():
             sys.stderr.write(p.stderr)
         if p.returncode != 0:
             return p.returncode
-        if "ECHEC" in p.stdout:
+        # LE VERDICT EST UNE LIGNE, PAS UN MOT QUI TRAINE. La version precedente cherchait
+        # « ECHEC » n'importe ou dans la sortie : le libelle de cas « la panne est un ECHEC »
+        # du banc du transport REST suffisait a declarer rouge un banc dont les 24 cas
+        # passaient. Un banc a le droit de PARLER d'un echec sans en etre un.
+        vert = re.compile(r"^LES \d+ EPREUVES SONT VERTES\.$")
+        verdicts = [l.strip() for l in p.stdout.split("\n")
+                    if l.strip().startswith("ECHEC") or vert.match(l.strip())]
+        if not verdicts:
+            sys.stderr.write("lancer-banc : aucune ligne de verdict dans la sortie -- le banc n'a "
+                             "pas tourne jusqu'au bout\n")
             return 1
-        if "EPREUVES SONT VERTES" not in p.stdout:
-            sys.stderr.write("lancer-banc : aucun verdict dans la sortie -- le banc n'a pas tourne\n")
+        if any(v.startswith("ECHEC") for v in verdicts):
             return 1
         return 0
     finally:

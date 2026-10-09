@@ -4,14 +4,55 @@ Un banc charge le **vrai fichier du dépôt**, en extrait la fonction à tester,
 l'exécute dans JavaScriptCore avec des dépendances simulées. Il ne teste jamais
 une copie : le texte évalué est celui qui part en production.
 
+## Lancer un banc
+
+**Un seul nom suffit, et c'est nouveau.**
+
 ```bash
-JSC=/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc
-$JSC outils/bancs/banc-transport-rest.js
+python3 outils/bancs/lancer-banc.py outils/bancs/banc-patcher-blob.js
 ```
+
+Le lanceur lit dans l'en-tête du banc la ligne `SOURCES:` qui dit de quels
+fichiers du jeu il a besoin — `SOURCES: aucune` quand le banc les lit lui-même
+par `readFile`. On peut toujours les donner à la main
+(`lancer-banc.py <banc> supabase.js`), ce qui sert à éprouver un banc contre une
+**version antérieure** d'une source.
+
+Les quatre bancs JavaScript en une commande :
+
+```bash
+for b in banc-api-supabase banc-patcher-blob banc-solde-personnage banc-transport-rest; do
+  python3 outils/bancs/lancer-banc.py outils/bancs/$b.js || echo "ROUGE : $b"
+done
+```
+
+> **Deux défauts du lanceur, trouvés le 9 octobre 2026 en voulant simplement
+> rejouer les bancs, et corrigés.**
+>
+> **1. Aucun banc ne disait de quelle source il avait besoin.** Un seul des
+> quatre avait une enveloppe (`banc-api-supabase.py`). Lancés sans source, les
+> trois autres affichaient leur titre puis s'arrêtaient — `jsc` rend **0** quand
+> une exception meurt dans une promesse. Le lanceur refusait bien de les
+> déclarer verts, mais personne ne pouvait deviner comment les relancer. La
+> déclaration vit désormais **dans le banc**, et un banc sans déclaration est
+> refusé en nommant ce qui manque.
+>
+> **2. Le lanceur cherchait le mot `ECHEC` n'importe où dans la sortie.** Le
+> libellé de cas « la panne est un ECHEC » du banc du transport REST suffisait à
+> le déclarer rouge alors que ses 24 cas passaient. Le verdict est maintenant
+> une **ligne** : `LES N EPREUVES SONT VERTES.` ou une ligne qui *commence* par
+> `ECHEC`. Un banc a le droit de parler d'un échec sans en être un. Les quatre
+> bancs formulent désormais leur verdict de la même façon.
+>
+> Les deux corrections ont leurs contre-épreuves : un banc dont on retire le
+> verdict rend un code non nul, et un banc dont un cas casse rend 1.
 
 | Banc | Ce qu'il établit |
 |---|---|
 | `banc-transport-rest.js` | Les cinq états de `sbTransportRest` (supabase.js) sont nommés et distincts ; un **vide réel** (2xx avec `[]`) n'est plus confondu avec une **panne** ; le contrat historique des quatre primitives `sbGet`/`sbInsert`/`sbUpdate`/`sbDelete` est intact, rejet réseau compris ; `sbUpsert` ne fait plus de lecture de contrôle. 24 cas. |
+| `banc-api-supabase.js` | Les **six états** que le socle serverless (`api/_supabase.js`) doit distinguer ; les trois identités (anon, jeton du joueur, service) et leur exclusion mutuelle ; l'absence de clé service **échoue au lieu de se rabattre**. 28 cas. |
+| `banc-patcher-blob.js` | `sbPatcherBlob` **n'émet aucun PATCH** dès que la relecture du blob n'a pas abouti — la preuve porte sur l'absence de requête, pas sur la valeur de retour, parce qu'une fonction qui rend `null` après avoir écrit n'a rien corrigé. 24 cas. |
+| `banc-solde-personnage.js` | `sbEcrireSoldePersonnage` est une **écriture conditionnelle** : solde attendu illisible refusé, garde `arg=eq.<lu>` posée, zéro ligne touchée signalé comme `solde_modifie_entre_temps`, et aucun succès annoncé sans preuve. 23 cas. |
 | `banc-budget-cascade.sql` | La cascade budgétaire ne perd aucun FR à l'arrondi, ne boucle pas sur le répartiteur, n'invente aucune part là où le pourcentage n'est pas arbitré, et **ne peut pas distribuer deux fois le même jour**. L'autorité et les bornes sont relues en base, pas dans le formulaire. 3 épreuves. |
 
 ## Le banc SQL : un banc qui écrit, et qu'une exception annule

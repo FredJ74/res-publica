@@ -3,6 +3,21 @@
 > **Audit statique du 8 octobre 2026**, en contre-lecture de
 > [`AUDIT-CRON-MINUIT.md`](AUDIT-CRON-MINUIT.md). Aucun accès à Supabase.
 > `api/cron-minuit.js` : **6 304 lignes**, **18** `tacheQuotidienne(...)`.
+>
+> **REVALIDÉ LIGNE À LIGNE LE 9 OCTOBRE 2026**, cette fois contre le code réel
+> et la base. Les dix constats du tableau ci-dessous tiennent. Trois précisions
+> que la revalidation ajoute :
+> - `tacheQuotidienne` est appelée **21 fois**, pas 18 ;
+> - **les familles 1, 2, 4 et la plupart du groupe B ne sont PAS enveloppées**
+>   par `tacheQuotidienne` : elles sont appelées nues dans le handler et n'ont
+>   donc aucune protection de registre, seulement leurs gardes internes ;
+> - la **grève générale** prétend en commentaire suivre « la même doctrine que
+>   la grève ordinaire » : c'est faux depuis le correctif du 7 octobre, qui n'a
+>   touché que la grève ordinaire. Son marqueur est écrit en dernier, dans un
+>   `.catch(() => {})`.
+>
+> **Deux lignes sont fermées depuis.** La famille 4 (ardoise des loyers) et les
+> mensualités Helvetia de la famille 9 — voir leurs entrées.
 
 ---
 
@@ -38,7 +53,7 @@ Classées par **coût d'un rejeu**, ce qui est l'ordre d'attaque :
 | 1 | **Candidatures aux postes nommés** | Les marqueurs `dossier.traitee` sont posés **en mémoire** et persistés **une seule fois pour toute la passe**. Un échec avalé annule le marquage de **tous** les dossiers. Or chacun a déjà produit un titulaire PNJ supprimé, un upsert dans `postes_attribues`, une fiche réécrite, un mail de nomination, et **la POP du nominateur divisée par deux**. Le rejeu retire au hasard → **autre gagnant**, et **redivise la POP par deux** : la sanction n'est pas idempotente, elle est **multiplicative** |
 | 2 | **Compromis de vente / d'entreprise** | Trois scénarios : double crédit de prêt (le tirage `random()` est rejoué) ; argent sans dette (seul l'`INSERT prets` échoue) ; double remboursement d'acompte, avec une **seconde** ligne d'historique que la clé primaire ne refuse pas — elle porte un `Date.now()` |
 | 3 | **Taxe foncière** | **Aucun marqueur par terrain**, registre seul. Une double exécution avance de deux crans dans avertissement → pénalité 10 % → **saisie municipale** |
-| 4 | **Ardoise d'impayé des loyers** | Le prélèvement est sûr (verrou + `jourPaiement` en transaction). Mais la branche `expulsion_requise` **est la seule des cinq sorties de la RPC qui ne pose pas le marqueur** : au rejeu elle rend de nouveau `expulsion_requise`, et le JS recalcule `jours + 1` et `montantDu + prix`. **La dette double à chaque passe** — et c'est la pièce du dossier de récupération du local, donc elle est opposable |
+| 4 | ~~**Ardoise d'impayé des loyers**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : la branche `expulsion_requise` était la seule sortie à effet à ne pas poser `jourPaiement`, et la dette doublait à chaque passe. **Corrigé par la migration 20261009005012 + `api/cron-minuit.js`, dans le même commit.** Et le correctif a appris quelque chose que l'audit n'avait pas vu : poser le marqueur **n'aurait pas suffi**, parce que l'appelant réécrivait le blob entier depuis une lecture antérieure à la RPC et l'aurait effacé dans la foulée. Le calcul de l'ardoise est donc **descendu dans la RPC**, où revendication et effet sont atomiques |
 | 5 | **Votes de confiance** | Le dépouillement **tire au sort** les sièges PNJ ; la clôture `statut = 'termine'` est avalée. Si elle mord après que l'événement public et le mail au Premier ministre ont annoncé le verdict, le rejeu **re-tire** : le même vote passe de confiance à censure, **publiquement, deux fois** |
 | 6 | **Remboursement des préemptions d'État** | **Aucun marqueur propre.** La caisse est débitée, puis `preemption.montantRestant` est écrit — deux requêtes. Une interruption entre les deux débite sans réduire la dette, et le registre, posé avant, **interdit la reprise** : l'argent est perdu silencieusement. Le pire des sept, parce qu'**aucun joueur ne se plaint d'une dette qui ne baisse pas assez vite** |
 | 7 | **Successions** | Fenêtre étroite, montant élevé. Le code est par ailleurs bien construit (voir §3) |

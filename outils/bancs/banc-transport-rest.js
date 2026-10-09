@@ -1,5 +1,6 @@
 // Banc du transport REST : on extrait les VRAIES fonctions de supabase.js et on leur donne un
 // faux fetch. On ne teste pas une copie : on teste le texte qui part en production.
+// SOURCES: aucune -- ce banc lit supabase.js lui-meme, par readFile.
 var src = readFile('/Users/fredericjasseron/ResPublica/supabase.js');
 function bloc(nom) {
   var i = src.indexOf('async function ' + nom + '(');
@@ -106,5 +107,9 @@ att("un seul aller-retour, pas de lecture prealable", APPELS.length === 1);
 att("et c est un POST",                               APPELS[0].methode === 'POST');
 
 print('');
+// Le verdict est formule comme celui des trois autres bancs : lancer-banc.py le reconnait a
+// « EPREUVES SONT VERTES », et ce banc disait « BANC TRANSPORT REST VERT » -- le lanceur le
+// comptait donc en echec alors que ses 24 cas passaient. Un verdict qu'un seul lecteur
+// comprend n'est pas un verdict.
 print(ko ? 'ECHEC : ' + ko + ' cas sur ' + attendus
-         : 'BANC TRANSPORT REST VERT (' + attendus + ' cas)');
+         : 'LES ' + attendus + ' EPREUVES SONT VERTES.');

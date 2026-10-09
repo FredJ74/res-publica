@@ -4494,7 +4494,7 @@ async function preleverLoyersBaux() {
         resultats.avertissements++;
         await envoyerMailSysteme(data.locataire, 'Gestionnaire immobilier', 'Loyer impayé — ' + (data.localLabel || 'votre local'), 'Votre loyer de ' + (data.prix || 0) + ' FR pour ' + (data.localLabel || 'votre local')
                  + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).").catch(() => {});
-      } else if (verdict === 'expulsion_requise') {
+      } else if (verdict === 'expulsion_requise' || verdict === 'expulsion_requise_deja_avise') {
         // IMPAYE CONSTATE, JAMAIS D'EXPULSION AUTOMATIQUE (arbitrage du 8 septembre 2026).
         //
         // Ce cron SUPPRIMAIT le bail a minuit apres un seul avertissement : le locataire perdait
@@ -4504,25 +4504,27 @@ async function preleverLoyersBaux() {
         // recuperation que n'importe quel autre motif (accord amiable ou justice) ; il ne la
         // remplace pas.
         //
-        // L'ardoise est cumulee sur le bail lui-meme : c'est elle qui servira de piece au dossier.
-        // Aucun argent ne bouge ici -- le loyer n'a pas ete preleve, il reste du.
-        const impaye = (data.impaye && typeof data.impaye === 'object') ? { ...data.impaye } : null;
-        const prixDu = Number(data.prix) || 0;
-        const majImpaye = impaye
-          ? { depuis: impaye.depuis || jourParisISO(), jours: (Number(impaye.jours) || 0) + 1,
-              montantDu: (Number(impaye.montantDu) || 0) + prixDu, avisEnvoye: impaye.avisEnvoye === true }
-          : { depuis: jourParisISO(), jours: 1, montantDu: prixDu, avisEnvoye: false };
-
-        const premier = !majImpaye.avisEnvoye;
-        majImpaye.avisEnvoye = true;
-        const ecrit = await sbUpdate('locations_actives', `id=eq.${encodeURIComponent(row.id)}`,
-          { data: { ...data, impaye: majImpaye } }).catch(() => null);
-        if (ecrit === null) { resultats.erreurs++; continue; }
+        // L'ARDOISE EST CALCULEE ET POSEE PAR LA RPC DEPUIS LE 9 OCTOBRE 2026, et ce bloc ne
+        // l'ecrit plus. Il la calculait ici, puis reecrivait le bail avec `{ ...data, impaye }`
+        // -- or `data` avait ete lu AVANT l'appel de la RPC. Deux consequences, et la seconde
+        // etait la pire :
+        //   . la branche « expulsion_requise » etait la seule sortie a effet de la RPC a ne pas
+        //     poser `jourPaiement`, donc un rejeu du cron la meme nuit rendait de nouveau ce
+        //     verdict et la dette DOUBLAIT ;
+        //   . et meme une fois le marqueur pose cote SQL, cette reecriture du blob entier
+        //     depuis une lecture perimee l'aurait efface dans la foulee.
+        // La revendication et l'effet sont donc descendus ENSEMBLE dans la RPC, qui est une
+        // seule transaction et lit le bail FOR UPDATE. Migration 20261009005012.
+        //
+        // Il ne reste ici que le courrier, qui n'est pas un effet comptable, et le verdict dit
+        // lequel des deux cas on a : `expulsion_requise` = l'ardoise vient de s'ouvrir, avis a
+        // poster ; `expulsion_requise_deja_avise` = elle courait deja, silence.
+        // Aucun argent ne bouge -- le loyer n'a pas ete preleve, il reste du.
         resultats.impayes++;
 
         // Un seul courrier a l'ouverture de l'ardoise, puis silence : le bailleur consulte l'etat
         // du bail quand il veut, on n'inonde pas deux boites tous les soirs.
-        if (premier) {
+        if (verdict === 'expulsion_requise') {
           await envoyerMailSysteme(data.locataire, 'Gestionnaire immobilier', 'Loyer impaye — ' + (data.localLabel || 'votre local'), 'Votre loyer sur ' + (data.localLabel || 'votre local') + " n'est plus paye et la dette s'accumule."
                    + " Votre bail reste en vigueur : vous n'etes pas expulse. Le proprietaire peut toutefois engager"
                    + ' une procedure de recuperation du local. Regularisez pour l\'eviter.').catch(() => {});

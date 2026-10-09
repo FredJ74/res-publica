@@ -1,8 +1,8 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-09T02:34:02 Europe/Paris",
- "empreintes_relevees_le": "2026-10-09T02:34:02 Europe/Paris",
+ "releve_le": "2026-10-09T02:53:47 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-09T02:53:47 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "tables": 260,
@@ -72,7 +72,7 @@
   "_colonnes_formule": "Deux niveaux, pour rester decomposable par table : x = relname || ':' || md5(liste des colonnes « attnum:attname:type:notnull:identity:defaut » triee par attnum). Les colonnes sont la SEULE famille dont l'empreinte porte sur les faits du catalogue et non sur le texte ecrit, parce que le fichier applique la regle du bigserial. Cette regle ne vit qu'a un endroit, rendre.py, et n'est deliberement pas reecrite en SQL.",
   "contraintes": "2315f05519d24847960b0f7437086b6d",
   "index": "ec2f02af0f6f7392439ba22787d0ecd6",
-  "fonctions": "b02b3ac2415ab9d0073be9f874233375",
+  "fonctions": "717fca6fe4f7afb6180a1448f5e955ca",
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "triggers": "5cf4e2d0f5165aa3f6310aebc9359b45",
   "policies": "73ef7d488c61397872390ddec4fa7b20",
@@ -208,14 +208,14 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "_commentaire": "Point de coupe du 9 octobre 2026 a 02h34, apres la migration 20261009003201 (mails_portent_leur_identite), 563e entree du registre. Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction -- voir _horodatage.\n  Les SIX migrations des chantiers 4E et 4F, point de coupe du 7 octobre :\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers\n  Puis, les unes apres les autres :\n  20261008071350  budgets_municipaux_serveur_et_brique_generique\n  20261008072422  entrepot_caisse_canonique_unique_consommateurs\n  20261008214206  pays_declare_et_retrait_des_defauts_republic        (chantier 4G)\n  20261008221846  defaut_des_privileges_de_fonction_ferme\n  20261008235521  idempotence_prets_helvetia                          (chantier 6)\n  20261009003201  mails_portent_leur_identite                         (chantier 6)",
-  "entrees": 563,
-  "derniere_version": "20261009003201",
-  "empreinte_versions_et_noms": "647b08c655770ead49c94a14735979d9",
+  "_commentaire": "Point de coupe du 9 octobre 2026 a 02h53, apres la migration 20261009005012 (ardoise_impaye_atomique), 564e entree du registre. Les numeros du registre sont ceux de l'APPLICATION ; les noms de fichier gardent leur horodatage de redaction -- voir _horodatage.\n  Les SIX migrations des chantiers 4E et 4F, point de coupe du 7 octobre :\n  20261007150217  villes_referentiel_et_caisses_fail_closed\n  20261007150749  repartitions_budgetaires\n  20261007153134  revoquer_authenticated_cinq_fonctions_serveur\n  20261007181335  qhs_releve_de_l_interieur\n  20261007182523  virement_qhs_declaration_dit_la_verite\n  20261007191006  parts_exactes_et_justice_en_tiers\n  Puis, les unes apres les autres :\n  20261008071350  budgets_municipaux_serveur_et_brique_generique\n  20261008072422  entrepot_caisse_canonique_unique_consommateurs\n  20261008214206  pays_declare_et_retrait_des_defauts_republic        (chantier 4G)\n  20261008221846  defaut_des_privileges_de_fonction_ferme\n  20261008235521  idempotence_prets_helvetia                          (chantier 6)\n  20261009003201  mails_portent_leur_identite                         (chantier 6)\n  20261009005012  ardoise_impaye_atomique                             (chantier 6)",
+  "entrees": 564,
+  "derniere_version": "20261009005012",
+  "empreinte_versions_et_noms": "e6b1891f9f729ebce8a1a48e73022429",
   "empreinte_contenu_2d": "9e74c0eb5adbddc8b61de2b1532cbef0",
   "_empreinte_contenu_2d": "Non remesuree : elle porte sur l'archive 2D, qui est CLOSE. verifier-archive-registre.py la verifie et passe.",
-  "empreinte": "46f24ea571c1b821a2b887685ac79378",
-  "_empreinte_versions_et_noms": "Formule : md5(string_agg(version || '_' || name, ',' order by version)), sur les 563 entrees. Elle est ecrite ici depuis le 9 octobre 2026, et c'est nouveau : la valeur precedente (788e5443...) n'avait ni formule consignee, ni consommateur, ni correspondance dans historique/registre-supabase/empreintes.json -- personne ne pouvait la reverifier. Une empreinte sans formule n'est pas une preuve."
+  "empreinte": "e5bdc90658a5625fa76292c0d10ceaed",
+  "_empreinte_versions_et_noms": "Formule : md5(string_agg(version || '_' || name, ',' order by version)), sur les 564 entrees. Elle est ecrite ici depuis le 9 octobre 2026, et c'est nouveau : la valeur precedente (788e5443...) n'avait ni formule consignee, ni consommateur, ni correspondance dans historique/registre-supabase/empreintes.json -- personne ne pouvait la reverifier. Une empreinte sans formule n'est pas une preuve."
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -396,5 +396,16 @@
   "_releve_corrige": "L'en-tete de la migration precedente annoncait DIX fonctions concernees, dont mail_systeme_envoyer. C'est FAUX : le compte refait sur les 664 fonctions en donne DEUX, et mail_systeme_envoyer a toujours fourni son id. La correction est ecrite dans l'archive de cette migration.",
   "donnees_inchangees_prouve_par_empreinte": "Releve avant et apres application, identique : mails 28/3d1b87e46a523d2b4fcff9b8a54ebbc0, personnages_donnees 8/3bc9771a1d46eb2b1703c230657cc5a6, caisses_batiments 150/f72fd8bb0eafba13af4382eb838a767e, comptes_bancaires 18/0fe6e3ab38905aad02e3204a2c6c69cf.",
   "preuves": "CINQ, toutes STRUCTURELLES. L'epreuve comportementale est restee au banc, en transaction annulee -- premiere migration ecrite sous la regle 3."
+ },
+ "_chantier_6_ardoise_des_loyers": {
+  "_commentaire": "Releve du 9 octobre 2026 a 02h53, apres la migration 20261009005012 ardoise_impaye_atomique, troisieme du chantier 6. Le registre passe de 563 a 564 entrees. UNE SEULE fonction change de corps : prelever_loyer_bail. Aucune donnee.",
+  "fonction_modifiee": "prelever_loyer_bail(text)",
+  "ce_que_cela_ferme": "La branche « locataire deja averti et toujours insolvable » etait LA SEULE sortie a effet a ne pas poser jourPaiement. Un rejeu du cron la meme nuit rendait de nouveau expulsion_requise, et l'appelant rajoutait un jour et un loyer a l'ardoise : la dette DOUBLAIT. Avec un loyer de 400 FR, deux passes ecrivaient 800 FR dus des le premier soir.",
+  "pourquoi_le_marqueur_seul_ne_suffisait_pas": "L'appelant ecrivait { ...data, impaye } depuis une lecture ANTERIEURE a la RPC : il aurait efface le marqueur dans la foulee. Revendication et effet descendent donc ENSEMBLE dans la RPC, qui est une seule transaction et lit le bail FOR UPDATE.",
+  "poses_du_marqueur": "6 dans le corps, la ou il y en avait 5 -- compte verifie par la preuve 3",
+  "verdicts": "expulsion_requise (l'ardoise s'ouvre, avis a poster) et expulsion_requise_deja_avise (elle courait deja, silence)",
+  "regle_de_jeu_inchangee": "Arbitrage du 8 septembre 2026 : aucune expulsion automatique, un impaye est un fait qu'on chiffre, un seul avis a l'ouverture. Seul le LIEU du calcul change.",
+  "_deux_refus_avant_application": "La preuve 1 interdisait d'abord une sequence que le code NEUF contient aussi ; la preuve 3 annoncait 4 poses de jourPaiement alors qu'il y en avait 5. Les deux refus ont laisse la base intacte -- registre a 563, fonction et bail inchanges. Une assertion fausse est une assertion qui marche.",
+  "code_mort_signale_non_touche": "prelever_loyer_bail porte DEUX tests identiques et consecutifs de v_dest IS NULL ; le second est inatteignable. Laisse en place : une migration, une intention."
  }
 }
