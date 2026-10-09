@@ -16,8 +16,8 @@
 >   n'avait touché que la grève ordinaire. Son marqueur était écrit en dernier,
 >   dans un `.catch(() => {})`. **Corrigé le 9 octobre.**
 >
-> **QUATRE MÉCANIQUES SONT FERMÉES DEPUIS, PAR DEUX PATRONS DIFFÉRENTS — et le
-> second est celui à reprendre.**
+> **SIX MÉCANIQUES SONT FERMÉES DEPUIS, PAR TROIS PATRONS — et le troisième dit
+> quand ne PAS utiliser les deux premiers.**
 >
 > **Patron 1, la revendication par compare-and-swap**, quand l'effet vit en
 > JavaScript : la garde du jour vit dans le *filtre* de l'écriture et son verdict
@@ -35,10 +35,18 @@
 > (famille 4), elle, est descendue dans sa RPC existante, qui est atomique par
 > nature.
 >
-> Cinq bancs les tiennent, chacun avec sa contre-épreuve contre la version
+> **Patron 3, ne rien forcer** : les compromis sont déjà sûrs par transition
+> d'état, et un transfert au QHS n'a pas à être idempotent — c'est une action de
+> jeu répétable. Voir §1 bis : la brique protège ce qu'une *journée* ne doit
+> produire qu'une fois, pas ce qu'un *joueur* a le droit de refaire.
+>
+> Sept bancs les tiennent, chacun avec sa contre-épreuve contre la version
 > précédente : `banc-greve-generale.js` (20 cas), `banc-prets-bancaires.js`
-> (25 cas), `banc-preemptions.js` (20 + 3 cas), les huit preuves en transaction
-> annulée de la brique et de son client, et les cinq de l'ardoise des loyers.
+> (25 cas), `banc-preemptions.js` (20 + 3 cas), `banc-candidatures-nocturnes.js`
+> (32 cas, 21 tombent sans le correctif), `banc-compromis-nocturnes.js` (34 cas,
+> 23 tombent sans le correctif), les huit preuves en transaction annulée de la
+> brique et de son client, les cinq de l'ardoise des loyers, les sept du tirage
+> des candidatures et les douze du compromis.
 
 ---
 
@@ -71,8 +79,8 @@ Classées par **coût d'un rejeu**, ce qui est l'ordre d'attaque :
 
 | # | Famille | Ce qu'un rejeu produit |
 |---|---|---|
-| 1 | **Candidatures aux postes nommés** | Les marqueurs `dossier.traitee` sont posés **en mémoire** et persistés **une seule fois pour toute la passe**. Un échec avalé annule le marquage de **tous** les dossiers. Or chacun a déjà produit un titulaire PNJ supprimé, un upsert dans `postes_attribues`, une fiche réécrite, un mail de nomination, et **la POP du nominateur divisée par deux**. Le rejeu retire au hasard → **autre gagnant**, et **redivise la POP par deux** : la sanction n'est pas idempotente, elle est **multiplicative** |
-| 2 | **Compromis de vente / d'entreprise** | Trois scénarios : double crédit de prêt (le tirage `random()` est rejoué) ; argent sans dette (seul l'`INSERT prets` échoue) ; double remboursement d'acompte, avec une **seconde** ligne d'historique que la clé primaire ne refuse pas — elle porte un `Date.now()` |
+| 1 | ~~**Candidatures aux postes nommés**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste jusqu'au dernier mot : les marqueurs `dossier.traitee` étaient posés en mémoire et persistés **une seule fois pour toute la passe**, et le rejeu retirait au hasard → autre gagnant, POP **re**divisée par deux. **Corrigé par la migration `candidature_poste_tirage_appliquer` + `api/cron-minuit.js`, dans le même commit.** Le tirage est descendu **dans** la transaction, revendiquée par `acte_nocturne_revendiquer('candidature_poste_tirage', '<poste>|<ville>')` : un rejeu n'atteint plus le `ORDER BY random()`. Et le drapeau est désormais persisté **dossier par dossier**. Un détail d'ordre compte : le poste déjà tenu par un joueur est vérifié **avant** la revendication — ce n'est pas « déjà fait aujourd'hui », c'est « il n'y a rien à faire », donc la journée reste ouverte. Banc `banc-candidatures-nocturnes.js`, 32 cas ; contre-épreuve : **21 tombent** sur la version précédente |
+| 2 | ~~**Compromis de vente / d'entreprise**~~ **FERMÉ le 9 octobre 2026** | Les trois scénarios étaient tous atteignables, et ils sont fermés par la migration `compromis_expire_resoudre` + `api/cron-minuit.js`. **Une seule fonction pour les deux familles** : les deux passes JavaScript ne différaient que par la table, l'encodage du blob (`terrains_etat.data` est du texte portant du JSON, `entreprises.data` est du jsonb natif), la clause « permis du maire » propre au terrain et la source du pays — le reste était deux fois le même code. Les deux identifiants deviennent **datés** (`compromis-<bien>-<jour>`, `pret-<type>-<bien>-<jour>`) avec `ON CONFLICT DO NOTHING` : une horloge produisait un identifiant neuf à chaque rejeu, une date n'en produit qu'un par jour. **La brique `actes_nocturnes` n'est volontairement PAS utilisée ici** — voir §1 bis. Banc en transaction annulée : 12 épreuves ; banc `banc-compromis-nocturnes.js`, 34 cas, dont **23 tombent** sur la version précédente |
 | 3 | **Taxe foncière** | **Aucun marqueur par terrain**, registre seul. Une double exécution avance de deux crans dans avertissement → pénalité 10 % → **saisie municipale** |
 | 4 | ~~**Ardoise d'impayé des loyers**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : la branche `expulsion_requise` était la seule sortie à effet à ne pas poser `jourPaiement`, et la dette doublait à chaque passe. **Corrigé par la migration 20261009005012 + `api/cron-minuit.js`, dans le même commit.** Et le correctif a appris quelque chose que l'audit n'avait pas vu : poser le marqueur **n'aurait pas suffi**, parce que l'appelant réécrivait le blob entier depuis une lecture antérieure à la RPC et l'aurait effacé dans la foulée. Le calcul de l'ardoise est donc **descendu dans la RPC**, où revendication et effet sont atomiques |
 | 5 | **Votes de confiance** | Le dépouillement **tire au sort** les sièges PNJ ; la clôture `statut = 'termine'` est avalée. Si elle mord après que l'événement public et le mail au Premier ministre ont annoncé le verdict, le rejeu **re-tire** : le même vote passe de confiance à censure, **publiquement, deux fois** |
@@ -81,6 +89,26 @@ Classées par **coût d'un rejeu**, ce qui est l'ordre d'attaque :
 | 8 | **Calendrier électoral** | `cycle.resultatsTraites` est un champ de blob écrit **en dernier**, sans vérification, après que `evenements_globaux` et `chronique_nationale` ont été insérés. Un échec → **re-dépouillement**, et `resoudreScrutinSimple` est aléatoire : deux proclamations contradictoires |
 | 9 | ~~**Mensualités de prêts**~~ **FERMÉ le 9 octobre 2026** | Le constat était juste : marqueur sur une vraie colonne, posé avant l'effet, mais en `.catch(() => {})` — l'échec de pose était avalé et le débit partait quand même. **Les deux chemins sont désormais sûrs** : le chemin Helvetia par la migration 20261008235521 (marqueur dans la transaction de la RPC), le chemin *legacy* par une **revendication conditionnelle** dont le verdict est lu — garde dans le filtre, donc compare-and-swap. Banc `banc-prets-bancaires.js`, 25 cas, dont la preuve qui compte : **aucun `PATCH` sur `personnages`** quand la revendication n'aboutit pas |
 | 10 | **Cotisations d'organisation** | Réparé partiellement le 7 octobre (persisté après **chaque** membre). Le code reconnaît lui-même que ce n'est pas la réparation complète : « Débiter un personnage et marquer son adhésion sont deux écritures sur deux tables » |
+
+### 1 bis. Quand la brique `actes_nocturnes` ne doit PAS être utilisée
+
+**La brique empêche le rejeu d'une TÂCHE DE NUIT. Elle n'est pas un vernis
+d'idempotence à passer partout.** Deux cas rencontrés le 9 octobre le montrent, et
+ils tirent dans des directions opposées :
+
+- **Les compromis n'en ont pas besoin, et elle leur nuirait.** Le rejeu y est déjà
+  impossible *par transition d'état* : le drapeau `compromis` disparaît du blob
+  dans la même transaction que ses conséquences. Ajouter une revendication par jour
+  empêcherait en plus de résoudre deux compromis du **même bien** à deux jours
+  différents — une règle de jeu inventée par un garde-fou technique.
+- **Le transfert au QHS n'est pas idempotent, et il ne doit pas l'être.** Un second
+  appel n'est pas un rejeu : c'est une seconde rébellion, et le jeu la permet. Ce
+  qu'il faut tenir là n'est pas l'unicité mais la **cohérence** : quel que soit le
+  nombre d'appels, exactement une peine en cours, chaînée à la précédente, aucune
+  ligne à demi fermée, une seule ligne au registre du QHS.
+
+> **Le critère : la brique protège ce qu'une JOURNÉE ne doit produire qu'une fois.
+> Elle n'a rien à dire sur ce qu'un JOUEUR a le droit de refaire.**
 
 ### La brique générique — ÉCRITE ET BRANCHÉE LE 9 OCTOBRE 2026
 

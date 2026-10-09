@@ -56,7 +56,11 @@ done
 | `banc-greve-generale.js` | `appliquerEffetsGreveGenerale` **revendique la journée avant tout effet**, par compare-and-swap : la garde du jour est dans le **filtre** et pas seulement dans le corps, la revendication est la **première écriture** de la passe, et **zéro requête** la suit quand elle n'aboutit pas — journée déjà prise comme panne de transport. 20 cas. |
 | `banc-prets-bancaires.js` | `preleverPretsBancairesServeur` n'émet **aucun débit sans sa garde**. La preuve porte sur l'absence de `PATCH` sur `personnages`, pas sur un compteur : un compteur à zéro n'empêche pas un débit déjà parti. Vérifie aussi que le gel des prêts d'avant le 14 septembre tient toujours. 25 cas. |
 | `banc-preemptions.js` | `preleverPreemptionsServeur` n'émet plus **aucune écriture directe** : tout passe par une RPC atomique. Vérifie l'identité serveur, la consommation de chaque verdict, et qu'une panne n'est jamais comptée comme un prélèvement. **Deux modes** — avec et sans le décor d'identité serveur, le second exigeant zéro requête. 20 + 3 cas. |
-| `banc-mail-systeme.js` | `envoyerMailSysteme` **ne lève jamais** — c'est par là qu'un courrier perdu ne peut plus annuler un acte économique — **et ne perd jamais l'échec en silence** : chaque panne nomme le courrier dans `ECHECS_PASSE`. Éprouvé sur HTTP non-2xx, rejet de promesse et levée **synchrone** de `fetch`. 20 cas. |
+| `banc-mail-systeme.js` | `envoyerMailSysteme` **ne lève jamais** — c'est par là qu'un courrier perdu ne peut plus annuler un acte économique — **et ne perd jamais l'échec en silence** : chaque panne nomme le courrier dans `ECHECS_PASSE`. Éprouvé sur HTTP non-2xx, rejet de promesse et levée **synchrone** de `fetch`. Depuis le 9 octobre, prouve aussi que la brique passe **par la porte des courriers et jamais par la table**. 21 cas. |
+| `banc-candidatures-nocturnes.js` | `traiterCandidaturesPostesExpirees` **ne tire plus au sort** et n'émet **aucune écriture directe** : registre des postes, titulaires PNJ, fiches et courriers sont descendus dans `candidature_poste_tirage_appliquer`. Prouve que chaque verdict est consommé, que le drapeau `traitee` est persisté **dossier par dossier**, et qu'une panne ne pose **ni drapeau ni sanction**. 32 cas — **21 tombent** sur la version précédente. |
+| `banc-compromis-nocturnes.js` | `resoudreCompromisExpires` et `resoudreCompromisEntreprisesExpires` passent par une **porte unique pour les deux familles**, et le tirage du prêt est dedans. Prouve l'absence totale d'écriture directe, le bon comptage de chaque verdict, et que le cas Helvetia garde **sa** RPC. 34 cas — **23 tombent** sur la version précédente. |
+| `banc-detention-plateau.js` | Les **cinq chaînes judiciaires** de `plateau-justice-economie.js` (ouverture, prolongation, fin de peine, transfert au QHS, sentence). Extrait les **vraies fonctions** du fichier de production par `readFile` : on n'éprouve pas une copie. Prouve qu'il ne reste **aucune écriture cliente** sur `detentions`, `personnages`, `prisonniers_qhs`, `jugements` ni `plaintes_en_cours`, et que **chaque verdict est consommé** — sans verdict, le jeu n'annonce rien et ne pose aucun état local. 61 cas. |
+| `banc-vote-electoral.js` | `voterPour` **n'annonce jamais « Vote enregistré ! » sans écriture autoritaire**. Les sept motifs de refus sont dits honnêtement, les trois pannes qui faisaient annoncer un succès sont couvertes, et les gardes clientes subsistantes n'ajoutent **aucune** règle électorale. 39 cas. |
 
 > **`decor-env-serveur.js` n'est pas un banc**, c'est un décor : il pose une identité serveur
 > **avant** le chargement des modules de `api/`, parce que `cron-minuit.js` lit sa clé au
@@ -101,4 +105,32 @@ Vérifié pour `banc-transport-rest.js` le 7 octobre 2026 : exécuté contre le
 git show HEAD~1:supabase.js > /tmp/avant.js
 sed 's#.*/supabase.js#/tmp/avant.js#' outils/bancs/banc-transport-rest.js > /tmp/banc-avant.js
 $JSC /tmp/banc-avant.js    # doit échouer
+```
+
+## Les contre-épreuves comme outil, pas comme geste manuel
+
+Depuis le 9 octobre 2026, deux bancs ont leurs contre-épreuves **automatisées** :
+
+```
+python3 outils/bancs/contre-epreuves-chantier5.py
+```
+
+Ce script réinjecte **douze régressions** nommées — chacune étant exactement le
+défaut que le lot a fermé — dans une **copie temporaire** du fichier de
+production, relance le banc sur cette copie, et exige non seulement qu'il
+rougisse, mais qu'il rougisse **sur l'épreuve attendue**. Un banc qui tombe
+ailleurs est signalé comme ne prouvant pas ce qu'il prétend.
+
+Le fichier de production n'est jamais modifié : les bancs
+`banc-detention-plateau.js` et `banc-vote-electoral.js` lisent leur source par
+`readFile`, et acceptent une variable `CHEMIN_SOURCE` que le script leur pose.
+C'est ce qui rend la contre-épreuve rejouable sans manipulation de dépôt.
+
+Pour un banc du cron, la contre-épreuve reste une ligne de commande, parce que
+la version d'avant est déjà dans Git :
+
+```bash
+git show HEAD:api/cron-minuit.js > /tmp/avant.js
+python3 outils/bancs/lancer-banc.py outils/bancs/banc-compromis-nocturnes.js \
+        outils/bancs/decor-env-serveur.js api/_referentiels-generes.js /tmp/avant.js
 ```

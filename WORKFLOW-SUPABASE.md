@@ -289,6 +289,104 @@ opération métier correctement acquise, **ni** être avalé.
   signale l'échec elle-même — une fois, dans la brique, plutôt que dans chaque
   appelant.
 
+**Et il n'y a plus qu'un seul écrivain de `public.mails`** :
+`mail_systeme_poser_interne`. Deux chemins y mènent, et la différence entre eux
+est le point à comprendre :
+
+| Chemin | Qui l'emprunte | Contrôle d'expéditeur |
+|---|---|---|
+| `mail_systeme_envoyer` | le navigateur, le cron | identité **et** liste blanche `mails_expediteurs_systeme` |
+| `mail_systeme_poser_interne` | les fonctions SQL `SECURITY DEFINER` | **aucun** |
+
+Ce n'est pas une porte dérobée. Les identités institutionnelles des fonctions
+métier — « Commissariat », « État-major », « Service de renseignement »,
+« Banque Nationale » — **ne figurent pas** dans la liste blanche, et plusieurs de
+ces fonctions sont appelées par un navigateur. Les router vers la porte réseau
+aurait refusé leurs courriers en silence ; inscrire ces identités en « libre »
+aurait donné à n'importe quel joueur le droit d'écrire « État-major ». Le moteur
+n'a donc aucun contrôle d'expéditeur **parce que son appelant a déjà vérifié sa
+propre autorité pour faire son acte** — et il n'a `EXECUTE` pour personne d'autre
+que son propriétaire, `service_role` compris.
+
+## Modifier une grosse fonction : patcher en place, jamais retaper
+
+Le canal MCP refuse une migration au-delà d'environ **12 500 caractères** —
+« Invalid or expired requestState ». Or `traiter_prets_helvetia_quotidien` fait
+**16 039 caractères** à elle seule, et sept de ses lignes devaient changer. Un
+`CREATE OR REPLACE` complet est impossible, et retaper un corps de cette taille
+est une erreur en attente.
+
+**La migration ne porte alors que le patch, pas le corps :**
+
+```sql
+DO $mig$
+DECLARE v_def text; v_new text;
+BEGIN
+  v_def := pg_get_functiondef('public.ma_fonction(text,integer)'::regprocedure);
+  v_new := replace(v_def, $ancien$<fragment exact>$ancien$,
+                          $nouveau$<remplacement>$nouveau$);
+  IF v_new = v_def THEN
+    RAISE EXCEPTION 'patch non applique : le fragment ne correspond pas';
+  END IF;
+  EXECUTE v_new;
+END $mig$;
+```
+
+Trois propriétés, et c'est la première qui compte :
+
+1. **Un fragment inexact fait échouer la migration bruyamment.** Il ne corrompt
+   rien, il ne passe pas en silence. C'est l'inverse d'un corps retapé, où une
+   faute de frappe s'applique sans broncher.
+2. **Le corps n'est jamais retranscrit**, donc jamais altéré par accident. Le
+   diff de l'archive montre le patch, ce qui est exactement ce qu'un relecteur
+   veut voir.
+3. **`CREATE OR REPLACE` préserve les droits** — vérifié par une preuve qui
+   compare l'ACL relevée avant le patch, en dur, triée.
+
+Dix-sept `INSERT` répartis dans onze fonctions ont été routés ainsi le 9 octobre
+2026, sans qu'un seul libellé de courrier bouge.
+
+> **Et un inventaire par motif textuel doit être insensible à la casse, ou il
+> mentira.** Le relevé disait dix fonctions ; il y en avait onze. La onzième
+> écrivait `insert into public.mails` en minuscules, et `INSERT INTO` ne
+> l'attrapait pas. Balayer avec `~*`, toujours.
+
+## Une porte d'autorité, un moteur sans autorité
+
+Règle d'architecture, dégagée trois fois en une journée — détention, courriers,
+prolongation de peine — et c'est la même chaque fois.
+
+**Quand deux chemins font le même acte sous deux autorités différentes, ils
+partagent un MOTEUR et portent chacun leur PORTE.** Le moteur fait l'acte et n'a
+aucun contrôle ; la porte vérifie qui agit et délègue. Trois raisons, dans
+l'ordre de nos priorités :
+
+1. **Architecture.** `justice_prolonger_peine` (un juge, sur un tiers) et
+   `detention_prolonger_soi` (le détenu, sur lui-même) avaient *divergé* : la
+   première posait le drapeau QHS et le registre, la seconde non. Deux copies
+   d'une séquence divergent toujours, et le jour où elles divergent, personne ne
+   le remarque.
+2. **Lisibilité.** Une porte de dix lignes dit *qui a le droit*. Un moteur de
+   cinquante dit *ce qui se passe*. Mélangés, ni l'un ni l'autre ne se lit.
+3. **Un droit, pas une convention.** Le moteur n'est pas « à ne pas appeler
+   directement » : il est **injoignable** depuis le réseau. `EXECUTE` retiré à
+   `anon`, `authenticated` et `service_role`. Les portes l'atteignent parce
+   qu'elles sont `SECURITY DEFINER` et s'exécutent sous son propriétaire.
+
+**Le piège à connaître** : `exiger_poste()` rend `NULL` **sans lever** pour un
+appel serveur — « le serveur traverse ». Un refus d'autorité ne s'observe donc
+jamais depuis `postgres`. Pour l'éprouver, le banc doit se poser en client :
+
+```sql
+PERFORM set_config('request.jwt.claims',
+  '{"sub":"<uuid>","role":"authenticated"}', true);
+PERFORM set_config('role', 'authenticated', true);
+```
+
+`affaire_autorite_de()`, elle, s'appuie sur `auth.uid()` : elle est fermée
+*aussi* pour un appel serveur. Les deux comportements sont légitimes, mais ils
+sont **opposés** — vérifier lequel on utilise avant d'écrire la preuve.
+
 ## Ce qui reste à faire une fois
 
 Appliquer le baseline sur un **vrai moteur PostgreSQL neuf**. Aucun n'est

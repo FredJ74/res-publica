@@ -12,6 +12,33 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**Les chaînes sensibles sont passées derrière des portes serveur.**
+Quinze migrations le 9 octobre 2026, registre **568 → 583**. Toutes archivées
+dans `../historique/migrations-appliquees/`, corps exacts vérifiés par empreinte.
+
+| Registre | Nom | Ce qu'elle ferme |
+|---|---|---|
+| **569** | `election_voter_porte_atomique` | le bulletin **et** le blob du cycle dans une transaction, sous verrou. C'était le seul acte du jeu annoncé sans qu'aucune table ne le confirme |
+| **570** | `detention_moteur_partage_et_drapeau_qhs` | un moteur de prolongation, deux portes d'autorité — elles avaient divergé. Et le drapeau QHS n'a plus qu'un seul écrivain |
+| **571** | `detention_porte_du_detenu_sur_lui_meme` | la septième porte de `detention_ouvrir_interne`, qui existait **sans appelant** ; `p_extras` lui apporte les six métadonnées judiciaires du client |
+| **572** | `detention_clore_et_transferer_au_qhs` | la fin de peine et la bascule au QHS ; `est_emprisonne` est enfin vidé **en base** |
+| **573** | `justice_rendre_sentence_porte_atomique` | jugement et affaire ensemble, sous `affaire_autorite_de`, et le magistrat nommé par le serveur |
+| **574** | `candidature_poste_tirage_appartient_au_serveur` | le tirage au sort **dans** la transaction qui l'applique, revendiquée par `actes_nocturnes` |
+| **575** | `compromis_expire_une_transaction_deux_familles` | une seule fonction pour terrains et entreprises, tirage du prêt inclus, identifiants datés |
+| **576** | `mail_systeme_un_seul_ecrivain_et_son_poseur_interne` | `mail_systeme_poser_interne`, l'unique écriture de `public.mails`, injoignable depuis le réseau |
+| **577** → **581** | `mails_routes_*` (5) | quinze `INSERT` de courrier routés **par patch en place**, sans qu'un libellé bouge |
+| **582** | `mails_routes_placement_helvetia_et_arete_assemblee` | la onzième fonction, que `INSERT INTO` manquait parce qu'elle écrivait en minuscules ; et l'arête d'autorité que le routage avait créée |
+| **583** | `detention_reduction_avocat_et_evasion_atomiques` | deux chaînes de détention que l'inventaire avait manquées, portant le même défaut que la fin de peine |
+
+> **La règle d'architecture que ce lot a dégagée trois fois** : quand deux chemins
+> font le même acte sous deux autorités différentes, ils partagent un **moteur**
+> et portent chacun leur **porte**. Le moteur fait l'acte et n'a aucun contrôle ;
+> la porte vérifie qui agit et délègue. Et le moteur n'est pas « à ne pas appeler
+> directement » : il est **injoignable** depuis le réseau. Détention, courriers,
+> prolongation de peine — la même forme chaque fois, pour la même raison : deux
+> copies d'une séquence divergent toujours, et le jour où elles divergent,
+> personne ne le remarque.
+
 **L'idempotence nocturne a enfin sa brique, et un vrai consommateur.**
 Quatre migrations le 9 octobre 2026, registre **565 → 568** :
 
@@ -148,7 +175,7 @@ après coup**.
 
 ### Ce que la prochaine migration doit respecter
 
-Trois règles, apprises à ces chantiers :
+Quatre règles, apprises à ces chantiers :
 
 1. **Être postérieure au point de coupe du baseline**
    (`../baseline/CONTROLE-GLOBAL.json`, clé `releve_le`). L'invariant 4 du
@@ -168,6 +195,15 @@ Trois règles, apprises à ces chantiers :
    démonstration **comportementale** — « trois appels ne prélèvent qu'une fois »
    — appartient au banc en transaction annulée, avant application. Cette règle
    est née de `idempotence_prets_helvetia`, qui a laissé 1 000 FR en bêta.
+4. **Ne jamais retaper le corps d'une fonction qu'on modifie.** Le canal
+   d'application refuse au-delà d'environ 12 500 caractères, et
+   `traiter_prets_helvetia_quotidien` en fait 16 039 à elle seule. La migration
+   ne porte alors que le **patch** : `pg_get_functiondef` → `replace()` →
+   `EXECUTE`, avec un `RAISE EXCEPTION` si la substitution n'a pas eu lieu. Un
+   fragment inexact fait donc échouer la migration **bruyamment**, là où un corps
+   retapé applique la faute de frappe sans broncher. Dix-sept `INSERT` de
+   courrier ont été routés ainsi le 9 octobre 2026, sans qu'un libellé bouge. Le
+   patron complet est dans `../WORKFLOW-SUPABASE.md`.
 
 ## Les trois règles
 

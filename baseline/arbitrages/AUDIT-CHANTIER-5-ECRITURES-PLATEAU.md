@@ -102,11 +102,11 @@ test supplémentaire.
 
 | # | Où | Ce qui se passe |
 |---|---|---|
-| 9 | `plateau-justice-economie.js:10806 → 10847` | `sbCreerDetention` (retour **lu mais jamais testé**) puis `personnages.est_emprisonne` avalé. Un détenu peut exister dans une table et pas dans l'autre — et `detentionId: null` est alors écrit dans `est_emprisonne` |
-| 10 | `plateau-justice-economie.js:1893 → 1897 → 1900` | Transfert au QHS : `detentions`, `prisonniers_qhs`, `personnages`. **Trois tables, trois `.catch(() => {})`** |
-| 11 | `plateau-justice-economie.js:1300 → 1310` | Fin de détention : `mode_fin='purgee'` puis `detention_qhs=false`, les deux avalées |
-| 12 | `plateau-justice-economie.js:10950 → 10959` | Prolongation de peine : `detentions` puis `personnages`, les deux avalées, `return true` final |
-| 13 | `plateau-justice-economie.js:2494 → 2506` | `jugements` (insert avalé) puis `plaintes_en_cours` (upsert avalé), et `addExternalEvent('JUGEMENT : …')` part ensuite sans condition |
+| 9 | ~~`plateau-justice-economie.js:10806 → 10847`~~ **FERMÉ le 9/10** | `sbCreerDetention` (retour **lu mais jamais testé**) puis `personnages.est_emprisonne` avalé. Un détenu pouvait exister dans une table et pas dans l'autre — et `detentionId: null` était alors écrit dans `est_emprisonne`. `enregistrerDetention` passe par **`detention_ouvrir_soi`**, septième porte de `detention_ouvrir_interne` ; `sbCreerDetention` est **supprimée** |
+| 10 | ~~`plateau-justice-economie.js:1893 → 1897 → 1900`~~ **FERMÉ le 9/10** | Transfert au QHS : `detentions`, `prisonniers_qhs`, `personnages`. **Trois tables, trois `.catch(() => {})`** — et une quatrième écriture pour la nouvelle peine. **`detention_transferer_qhs`** fait les quatre en une transaction, chaînées par `detention_precedente_id` |
+| 11 | ~~`plateau-justice-economie.js:1300 → 1310`~~ **FERMÉ le 9/10** | Fin de détention : `mode_fin='purgee'` puis `detention_qhs=false`, les deux avalées. **Et l'inventaire avait manqué le pire : `est_emprisonne = null` n'était JAMAIS persisté** — seul `state.estEmprisonne` était vidé. Un joueur libéré qui fermait son onglet restait incarcéré en base. **`detention_clore_purgee`** fait les quatre écritures ensemble |
+| 12 | ~~`plateau-justice-economie.js:10950 → 10959`~~ **FERMÉ le 9/10** | Prolongation de peine : `detentions` puis `personnages`, les deux avalées, `return true` final. Et les motifs étaient relus avec `.catch(() => [])` : **un échec de lecture écrasait tous les motifs existants**. **`detention_prolonger_soi`** partage le moteur `detention_prolonger_interne` avec la porte du juge, qui avait divergé |
+| 13 | ~~`plateau-justice-economie.js:2494 → 2506`~~ **FERMÉ le 9/10** | `jugements` (insert avalé) puis `plaintes_en_cours` (upsert avalé), et `addExternalEvent('JUGEMENT : …')` partait ensuite sans condition. L'affaire était en outre écrite **deux fois**, dont une en tête de fonction. **`justice_rendre_sentence`** archive et clôt en une transaction, sous `affaire_autorite_de(ville)` — et **nomme elle-même le magistrat**, que le navigateur dictait |
 | 14 | `plateau-justice-economie.js:10996` | Avis de recherche écrit en direct sur `personnages.recherche` — et le commentaire du code note lui-même que `sbSavePersonnage` republie `state.recherche` **en bloc** : deux écrivains concurrents de la même colonne |
 | 15 | `plateau-politique.js:12473+12475` et `12569+12571` | `sbSavePersonnage` (48 colonnes) immédiatement suivi d'un `sbUpdate('personnages', …)` ciblé, les deux avalés : deux écritures en course sur la même ligne |
 
@@ -114,7 +114,7 @@ test supplémentaire.
 
 | # | Où | Ce qui se passe |
 |---|---|---|
-| 16 | `plateau-politique.js:1878-1879` | **Le pire de l'inventaire.** `sbVoterPour` (`votes_electoraux`) est enveloppé dans un `try { } catch(e) {}` **vide, sans aucun retour**, puis `sbSaveCycleElectoral` avalé, puis toast « Vote enregistré ! ». Aucune des deux tables ne confirme quoi que ce soit : c'est le seul endroit où un acte électoral est annoncé sans la moindre preuve, nulle part |
+| 16 | ~~`plateau-politique.js:1878-1879`~~ **FERMÉ le 9/10** | **C'était le pire de l'inventaire.** `sbVoterPour` (`votes_electoraux`) était enveloppé dans un `try { } catch(e) {}` **vide, sans aucun retour**, puis `sbSaveCycleElectoral` avalé, puis toast « Vote enregistré ! » — la fonction n'était même pas `async`. **`election_voter`** écrit le bulletin ET le blob du cycle dans une transaction, sous verrou du cycle. `sbVoterPour` est **supprimée** |
 | 17 | `plateau-politique.js:5479/5504/5673 → 5663` | Nomination confirmée par RPC (bien), **puis** révocation de l'ancien titulaire (`poste: null`) avalée : deux personnes peuvent porter le même poste |
 | 18 | `plateau-politique.js:5911-5954` | Dissolution : cycle électoral, puis `poste_depute = null` en boucle, puis relance par circonscription. Trois vagues, aucune preuve |
 | 19 | `plateau-politique.js:1797 → 1817` | Candidature : `sbDeposerCandidature` **testé** (bien) puis `sbSaveCycleElectoral` avalé. Le code assume explicitement le blob comme « cache best-effort » — **c'est le cas le mieux documenté de l'inventaire**, et il reste acceptable tel quel |
@@ -144,6 +144,46 @@ prélevé** pouvait rester sans contrepartie :
 **Dans les trois cas, le chemin nominal est inchangé au caractère près.** Seul le
 chemin d'échec cesse de mentir. C'est la seule façon de corriger ce défaut sans
 toucher au game design : un succès annoncé à tort n'est pas une fonctionnalité.
+
+## 4 bis. Le second lot du 9 octobre 2026 — les cinq chaînes judiciaires et le vote
+
+Les six chaînes 9 à 13 et 16 sont fermées. Elles l'ont été **par factorisation,
+pas par correctif** : `detention_ouvrir_interne` existait déjà et portait
+exactement la séquence « ligne de détention + état du personnage, en une
+transaction, avec sa garde de rejeu ». Il lui manquait une porte d'autorité pour
+le cas « sur soi-même ». On n'a donc pas écrit une primitive de plus : on lui a
+ouvert sa septième porte.
+
+| Chaîne | Porte serveur | Ce que la fermeture a révélé en plus |
+|---|---|---|
+| 9 — ouverture | `detention_ouvrir_soi` | la primitive ne savait pas porter six métadonnées judiciaires du client (`ville_condamnation` distincte, `jour_affaire`, `detention_precedente_id`, `reliquat_jours`, `retour_ville`). Un seul paramètre `p_extras` les transporte, au lieu de six |
+| 10 — transfert au QHS | `detention_transferer_qhs` | le drapeau partait en `JSON.stringify` sur une colonne **jsonb** : un scalaire de type string, que `pa_repos_nocturne` ne sait pas lire. **Le plafond de PA du quartier ne s'est jamais appliqué aux QHS posés par un navigateur** |
+| 11 — fin de peine | `detention_clore_purgee` | `est_emprisonne = null` n'était **jamais** persisté. Une peine purgée se « relibérait » à chaque session, et la ligne du registre du QHS restait « détenu » |
+| 12 — prolongation | `detention_prolonger_soi` | les deux chemins (juge / soi-même) avaient **divergé** : la RPC posait le drapeau QHS et le registre, le client non. Un moteur partagé, `detention_prolonger_interne`, les réunit |
+| 13 — sentence | `justice_rendre_sentence` | le **nom du juge** était une chaîne composée par le navigateur et inscrite telle quelle au registre. Et la peine était appliquée sans que son verdict soit lu : le registre pouvait porter « Prison 3 jours » sans aucune peine prolongée |
+| 16 — vote | `election_voter` | **les deux écritures comptent**, et c'est le point le moins évident du mécanisme : le client reconstruit `cycle.votes` depuis la table, mais le dépouillement de minuit ne lit **que le blob**. Un bulletin écrit sans son blob disparaissait du décompte |
+
+**Et le drapeau QHS n'a plus qu'un seul écrivain au moment de l'acte** :
+`detention_qhs_poser_interne`. L'ensemble des fonctions qui assignent
+`detention_qhs` est désormais connu, nommé et éprouvé par la migration
+elle-même : le poseur, `qhs_pouvoir` (les actes du ministre),
+`pa_repos_nocturne` (qui consomme `paLimite1Jour`) et
+`personnages_vue_modifier` (le déclencheur de la vue, qui recopie toutes les
+colonnes).
+
+**Bancs** : `outils/bancs/banc-detention-plateau.js` (61 épreuves) et
+`banc-vote-electoral.js` (39 épreuves) extraient les **vraies fonctions** des
+fichiers de production par `readFile` et leur donnent un faux `sbRpc` — on
+n'éprouve pas une copie. `outils/bancs/contre-epreuves-chantier5.py` réinjecte
+douze régressions dans une **copie** du fichier et exige que le banc rougisse sur
+l'épreuve attendue : un banc qui passerait aussi sans le correctif ne prouverait
+rien.
+
+**Deux défauts trouvés par les bancs eux-mêmes**, et corrigés :
+`Number(null)` vaut 0, qui est fini — la garde « une peine sans terme est
+refusée » laissait donc passer une peine de zéro jour ; et un rejet de transport
+sur `election_voter` ne donnait **aucun** message à l'électeur, ni succès ni
+refus, faute d'un `.catch`. Un silence n'est pas un verdict.
 
 ## 5. Le doublon du redressement fiscal — à lire, le motif se reproduira
 
@@ -189,12 +229,12 @@ ouvrir.
 1. **Les chaînes 4 à 8** (argent sur deux tables) — chacune demande une RPC, pas
    un test. Les plus simples d'abord : les taux d'imposition (#8), qui n'ont
    besoin que d'un compare-and-swap, le patron existant dans ce dépôt.
-2. **Les chaînes 9 à 13** (dossier judiciaire) — une RPC `detention_ouvrir` /
-   `detention_clore` fermerait les cinq d'un coup. C'est le meilleur rapport
-   effort/effet de la liste.
-3. **La chaîne 16** (le vote électoral sans aucune preuve) — à traiter séparément
-   et vite : c'est le seul acte du jeu annoncé sans qu'aucune table ne le
-   confirme.
+2. ~~**Les chaînes 9 à 13** (dossier judiciaire)~~ — **FAIT le 9/10**, voir §4 bis.
+   Le pari était juste : une porte d'ouverture et une de clôture ferment les cinq
+   d'un coup, et c'était bien le meilleur rapport effort/effet de la liste. Ce que
+   le pari n'avait pas vu, c'est qu'il n'y avait **pas de primitive à écrire** —
+   elle existait déjà, sans appelant.
+3. ~~**La chaîne 16** (le vote électoral sans aucune preuve)~~ — **FAIT le 9/10**.
 4. **Les 25 `sbSetTerrainState(...).catch(() => {})`** — mécanique, mais à faire
    après les chaînes : seul, un test n'empêche pas l'incohérence entre deux
    tables.
