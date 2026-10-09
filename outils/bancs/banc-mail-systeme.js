@@ -60,9 +60,12 @@ globalThis.fetch = function (url, options) {
       text: function () { return Promise.resolve('boom'); }
     });
   }
+  // LE CONTRAT A CHANGE LE 9 OCTOBRE 2026. La brique n'INSERE plus la ligne elle-meme : elle
+  // appelle la RPC mail_systeme_envoyer, qui delegue a mail_systeme_poser_interne -- l'unique
+  // ecrivain de `mails`. Le decor rend donc un VERDICT, pas une ligne inseree.
   return Promise.resolve({
     ok: true, status: 201,
-    json: function () { return Promise.resolve([{ id: 'mail-pose' }]); },
+    json: function () { return Promise.resolve([{ ok: true, id: 'mail-pose' }]); },
     text: function () { return Promise.resolve('[]'); }
   });
 };
@@ -94,8 +97,8 @@ function envoyer(mode, dest, exp) {
   return r;
 }
 
-// DEUX TRACES POUR UN ECHEC HTTP, ET C'EST VOULU. sbInsert signale deja le transport
-// (« sbInsert:mails »), ce qui dit QUE l'appel a echoue ; la brique ajoute « mail:<exp>-><dest> »,
+// DEUX TRACES POUR UN ECHEC HTTP, ET C'EST VOULU. sbRpc signale deja le transport
+// (« sbRpc:mail_systeme_envoyer »), ce qui dit QUE l'appel a echoue ; la brique ajoute « mail:<exp>-><dest> »,
 // qui dit QUEL COURRIER a ete perdu. La seconde ne se deduit pas de la premiere -- une passe
 // nocturne emet des dizaines d'ecritures -- et c'est precisement celle qui manquait. Le banc
 // verifie donc la PRESENCE de la trace qui nomme le courrier, pas un compte.
@@ -114,11 +117,19 @@ print('=========================================================================
 var r = envoyer('ok');
 verifier('succes : ne leve pas', r.leve, false);
 verifier('succes : verdict ok', r.valeur && r.valeur.ok, true);
-vrai('succes : l identifiant du courrier est rendu',
-     r.valeur && typeof r.valeur.id === 'string' && r.valeur.id.indexOf('mail-cron-') === 0,
-     r.valeur && r.valeur.id);
+// L'IDENTIFIANT VIENT MAINTENANT DE LA BASE (9 octobre 2026). La brique fabriquait le sien
+// (« mail-cron-… ») AVANT d'ecrire, et le rendait meme quand l'ecriture echouait ; il est
+// desormais celui que mail_systeme_poser_interne a reellement inscrit, donc la preuve qu'une
+// ligne existe. Le banc n'exige plus un prefixe, il exige que l'identifiant vienne du verdict.
+vrai('succes : l identifiant rendu est celui que la base a inscrit',
+     r.valeur && r.valeur.id === 'mail-pose', r.valeur && r.valeur.id);
 verifier('succes : aucune trace d echec', r.traces.length, 0);
 verifier('succes : une seule requete emise', APPELS.length, 1);
+// LA PREUVE DU ROUTAGE : la brique n'ecrit plus la table, elle appelle la porte. C'est ce qui
+// fait de mail_systeme_poser_interne l'UNIQUE ecrivain de `mails`.
+vrai('la brique passe par la porte des courriers, jamais par la table',
+     APPELS.length === 1 && APPELS[0].url.indexOf('/rpc/mail_systeme_envoyer') >= 0,
+     APPELS.length === 1 ? APPELS[0].url : JSON.stringify(APPELS));
 
 // 2. HTTP non-2xx -- le cas que sbInsert rendait en null silencieux
 r = envoyer('http500');

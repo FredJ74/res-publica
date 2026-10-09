@@ -243,31 +243,42 @@ async function envoyerMailSysteme(destinataire, expediteur, sujet, corps) {
                   'sujet=' + String(sujet).slice(0, 80));
     return { ok: false, raison: 'parametres_invalides' };
   }
-  const id = 'mail-cron-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
-  let insere = null;
+  // 4. ET IL N'Y A PLUS QU'UN SEUL ECRIVAIN DE `mails` (9 octobre 2026). Cette brique faisait
+  //    encore son propre INSERT par PostgREST. Elle passe desormais par mail_systeme_envoyer,
+  //    qui delegue a mail_systeme_poser_interne -- l'unique ecriture de la table cote serveur.
+  //    Deux gains concrets : un echec est aussi consigne dans `mails_envois_systeme` avec son
+  //    SQLSTATE, donc nommable depuis la base et pas seulement depuis le journal du cron ; et le
+  //    droit d'INSERT direct sur `mails` devient retirable a `service_role` le jour ou plus aucun
+  //    chemin ne l'utilise.
+  //
+  //    L'heure affichee est PRESERVEE telle quelle : sans p_heure, la porte ecrirait « 23h »
+  //    (heure de Paris) au lieu de la date du jour que le cron inscrivait.
+  let verdict = null;
   try {
-    insere = await sbInsert('mails', {
-      id,
-      to_player: destinataire,
-      from_player: expediteur,
-      subject: sujet,
-      body: corps,
-      time: new Date().toLocaleDateString('fr-FR'),
-      read: false,
-      archived: false
-    });
+    verdict = await sbRpc('mail_systeme_envoyer', {
+      p_expediteur: expediteur,
+      p_destinataire: destinataire,
+      p_sujet: sujet,
+      p_corps: corps,
+      p_heure: new Date().toLocaleDateString('fr-FR')
+    // HEADERS_SERVICE EXPLICITE, et ce n'est pas de la redondance : sbRpc retombe sur la cle
+    // ANON quand aucune cle de service n'est configuree, et mail_systeme_envoyer rendrait alors
+    // « acteur_non_authentifie » pour CHAQUE courrier du cron. L'exiger ici fait echouer
+    // franchement une configuration incomplete, au lieu de rendre la passe muette.
+    }, HEADERS_SERVICE).then(rows => Array.isArray(rows) ? rows[0] : rows);
   } catch (e) {
-    // sbInsert ne devrait pas lever (il rend null sur HTTP non-2xx), mais une panne de fetch
-    // le fait. On absorbe ici, une fois, plutot que dans dix-huit `.catch` disperses.
+    // sbRpc ne devrait pas lever (il rend null sur HTTP non-2xx), mais une panne de fetch le
+    // fait. On absorbe ici, une fois, plutot que dans dix-huit `.catch` disperses.
     signalerEchec('mail:' + expediteur + '->' + destinataire, e);
     return { ok: false, raison: 'reseau_indisponible' };
   }
-  if (insere === null) {
+  if (!verdict || verdict.ok !== true) {
     signalerEchec('mail:' + expediteur + '->' + destinataire,
-                  'sbInsert a refuse l\'ecriture (sujet=' + String(sujet).slice(0, 80) + ')');
-    return { ok: false, raison: 'ecriture_refusee' };
+                  'la porte des courriers a refuse l\'ecriture (' + ((verdict && verdict.raison) || 'aucun verdict')
+                  + ', sujet=' + String(sujet).slice(0, 80) + ')');
+    return { ok: false, raison: (verdict && verdict.raison) || 'ecriture_refusee' };
   }
-  return { ok: true, id };
+  return { ok: true, id: verdict.id };
 }
 
 // Manquait cote cron (seuls sbGet/sbInsert/sbUpdate existaient) -- necessaire pour nettoyer
@@ -795,12 +806,46 @@ async function preleverTaxeFonciere() {
 // (Commentaire historique orphelin : il decrivait preleverLoyersLots, qui vivait ~1850 lignes
 // plus bas et a ete remplacee par preleverLoyersBaux au Lot 1.4 -- voir sa documentation sur
 // place. Laisse ici pour ne pas toucher a du code sans rapport.)
-// Resolution ATOMIQUE d'un compromis de vente arrive a echeance (J+7). Tranche en un seul
-// passage, dans le meme calcul, le permis ET le pret eventuellement demandes — pas de
-// minuteurs separes qui pourraient se decaler. Regle : refus explicite (maire ou tirage
-// pret) = remboursement de l'acompte, sans faute du joueur. Sinon (accepte ou non demande)
-// = le compromis arrive simplement a echeance sans que le joueur ait acheté = acompte perdu.
-// Chaque resolution est archivee dans compromis_historique.
+// LA RESOLUTION D'UN COMPROMIS EST UNE TRANSACTION SERVEUR (chantier 6, 9 octobre 2026).
+//
+// CE QUI SE PASSAIT. `Math.random() < 0.5` decidait du pret ICI, puis QUATRE ecritures
+// independantes et avalees appliquaient la decision : credit de l'emprunteur, ligne `prets`, blob
+// du bien, ligne `compromis_historique`. Les trois scenarios que l'audit du chantier 6 avait
+// nommes etaient tous atteignables : double credit de pret (le tirage etait rejoue), argent sans
+// dette (seul l'INSERT prets echouait), double remboursement d'acompte avec une seconde ligne
+// d'historique que la cle primaire ne refusait pas -- son identifiant portait un `Date.now()`.
+//
+// compromis_expire_resoudre fait tout dans un seul BEGIN, tirage inclus, avec des identifiants
+// DATES (un par bien et par jour) proteges par ON CONFLICT. Elle sert les DEUX familles --
+// terrain et entreprise -- qui etaient deux fois le meme code ici.
+//
+// Les deux passes ci-dessous ne gardent que ce qui leur est propre : le balayage de leur table,
+// le pre-filtre (compromis actif et echu), et la delegation du cas Helvetia a sa RPC dediee.
+function compterVerdictCompromis(v, resultats) {
+  if (v.action === 'pret_en_attente_finalisation') { resultats.pretsEnAttenteFinalisation++; return; }
+  if (v.action === 'rembourse') { resultats.rembourses++; resultats.resolus++; return; }
+  if (v.action === 'perdu') { resultats.perdus++; resultats.resolus++; }
+  // 'pret_accorde_compromis_gele' : le compromis reste actif, rien a compter -- c'est deja ce
+  // que faisait le `continue` du code d'avant ce lot.
+}
+
+async function resoudreUnCompromis(type, cible, resultats) {
+  const v = await sbRpc('compromis_expire_resoudre', { p_type: type, p_cible: cible }, HEADERS_SERVICE)
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v) {
+    signalerEchec('compromis_' + type, cible + ' : aucun verdict rendu -- retente au prochain cron');
+    return;
+  }
+  if (v.ok !== true) {
+    // Ces trois refus ne sont pas des echecs : le pre-filtre et la porte ont vu le monde a deux
+    // instants differents, ou le bien releve de la RPC Helvetia.
+    if (v.action === 'non_applicable' || v.action === 'pas_encore_expire' || v.action === 'helvetia') return;
+    signalerEchec('compromis_' + type, cible + ' : ' + (v.action || 'refus sans motif'));
+    return;
+  }
+  compterVerdictCompromis(v, resultats);
+}
+
 async function resoudreCompromisExpires() {
   const resultats = { resolus: 0, rembourses: 0, perdus: 0, pretsEnAttenteFinalisation: 0, helvetiaDelegues: 0 };
   try {
@@ -819,116 +864,12 @@ async function resoudreCompromisExpires() {
       // pretDemande en attente) que ce cron ne doit pas reimplementer cote client.
       if (etat.proprietaire === 'Helvetia') {
         const res = await sbRpc('resoudre_compromis_helvetia_expire', { p_terrain_id: row.id });
-        if (res === null) console.error('resoudre_compromis_helvetia_expire a echoue pour ' + row.id + ' -- retente au prochain cron.');
+        if (res === null) signalerEchec('compromis_helvetia', row.id + ' : la RPC a echoue -- retente au prochain cron');
         else resultats.helvetiaDelegues++;
         continue;
       }
 
-      // Fix du 10 aout 2026 : un pret deja accorde lors d'une precedente passe gele le
-      // compromis indefiniment (pas de nouvelle echeance a fixer) -- en attente que le joueur
-      // finalise via acte_vente_terrain (le controle pretOk existant, mort jusqu'ici, redevient
-      // utile). Sans ce garde-fou, compromisExpireAt reste dans le passe et cette meme ligne
-      // se ferait perdre/wiper a chaque passage du cron, chaque nuit, indefiniment.
-      if (etat.pretDemande && etat.pretDemande.statut === 'accorde') continue;
-
-      let refusExplicite = false;
-      let detail = [];
-      let pretVientDetreAccorde = false;
-
-      // --- Permis : decision du maire si donnee, sinon "pas de reponse = positif" MAINTENANT ---
-      if (etat.permis && etat.permis.statut === 'attente_validation') {
-        etat.permis.statut = 'valide';
-        etat.permis.autoValide = true;
-        etat.constructionAutorisee = true;
-        detail.push('permis validé (sans réponse du maire)');
-      } else if (etat.permis && etat.permis.statut === 'valide') {
-        etat.constructionAutorisee = true;
-        detail.push('permis validé par le maire');
-      } else if (etat.permis && etat.permis.statut === 'refuse') {
-        refusExplicite = true;
-        detail.push('permis refusé par le maire');
-      }
-
-      // --- Pret : evaluation algorithmique si en attente ---
-      if (etat.pretDemande && etat.pretDemande.statut === 'attente_validation') {
-        const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(etat.pretDemande.demandeur)}`);
-        const demandeur = demRows && demRows[0];
-        const argActuel = demandeur ? (demandeur.arg || 0) : 0;
-        const risque = argActuel < etat.pretDemande.montant * 0.10;
-        const accorde = !risque || Math.random() < 0.5;
-
-        if (accorde) {
-          etat.pretDemande.statut = 'accorde';
-          pretVientDetreAccorde = true;
-          if (demandeur) {
-            await sbUpdate('personnages', `name=eq.${encodeURIComponent(etat.pretDemande.demandeur)}`, { arg: argActuel + etat.pretDemande.montant });
-            await sbInsert('prets', {
-              id: 'pret-' + Date.now(),
-              emprunteur: etat.pretDemande.demandeur,
-              country: row.country,
-              building_id: row.building_id,
-              type_banque: 'nationale',
-              montant_initial: etat.pretDemande.montant,
-              montant_restant: etat.pretDemande.montantTotal,
-              duree_jours: etat.pretDemande.duree,
-              mensualite: etat.pretDemande.mensualite,
-              jours_impayes: 0,
-              statut: 'en_cours'
-            }).catch(() => {});
-          }
-          detail.push('prêt accordé (+' + etat.pretDemande.montant + ' FR virés)');
-        } else {
-          etat.pretDemande.statut = 'refuse';
-          refusExplicite = true;
-          detail.push('prêt refusé par la banque');
-        }
-      }
-
-      // Pret accorde a l'instant, aucune autre clause (permis) refusee en meme temps : le
-      // compromis reste actif, ni rembourse ni perdu -- le joueur finalisera plus tard avec
-      // l'argent prete. On sauvegarde juste la decision du pret et on passe au suivant.
-      if (pretVientDetreAccorde && !refusExplicite) {
-        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-        resultats.pretsEnAttenteFinalisation++;
-        continue;
-      }
-
-      // --- Issue : rembourser si refus explicite, sinon l'acompte est perdu (compromis
-      // arrive simplement a echeance sans achat) ---
-      const proprietaireActuel = etat.compromisPar;
-      if (refusExplicite && proprietaireActuel && etat.acompte) {
-        const propRows = await sbGet('personnages', `name=eq.${encodeURIComponent(proprietaireActuel)}`);
-        const proprio = propRows && propRows[0];
-        if (proprio) {
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(proprietaireActuel)}`, { arg: (proprio.arg || 0) + etat.acompte });
-        }
-        resultats.rembourses++;
-        detail.push('acompte remboursé (' + etat.acompte + ' FR)');
-      } else {
-        resultats.perdus++;
-        detail.push('acompte perdu (' + (etat.acompte || 0) + ' FR)');
-      }
-
-      await sbInsert('compromis_historique', {
-        id: 'compromis-' + row.id + '-' + Date.now(),
-        country: row.country,
-        building_id: row.building_id,
-        demandeur: proprietaireActuel || 'inconnu',
-        resultat: refusExplicite ? 'rembourse' : 'perdu',
-        detail: detail.join(' · ')
-      }).catch(() => {});
-
-      // Libere le terrain (le compromis est termine, quelle que soit l'issue). pretDemande
-      // efface aussi desormais (10 aout 2026) : un {statut:'refuse'} laisse accroche aurait
-      // bloque a tort le pretOk d'un futur compromis n'ayant rien demande.
-      delete etat.compromis;
-      delete etat.compromisPar;
-      delete etat.acompte;
-      delete etat.compromisAt;
-      delete etat.compromisExpireAt;
-      delete etat.pretDemande;
-      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-      resultats.resolus++;
+      await resoudreUnCompromis('terrain', row.id, resultats);
     }
   } catch(e) { console.error('resoudreCompromisExpires error', e); }
   return resultats;
@@ -953,91 +894,11 @@ async function resoudreCompromisEntreprisesExpires() {
       if (!data || !data.compromis || !data.compromisExpireAt) continue;
       if (Date.now() < data.compromisExpireAt) continue; // pas encore echu
 
-      // Meme garde-fou que le terrain : un pret deja accorde a une precedente passe ne doit
-      // plus jamais faire wiper/perdre ce compromis.
-      if (data.pretDemande && data.pretDemande.statut === 'accorde') continue;
-
-      let refusExplicite = false;
-      let detail = [];
-      let pretVientDetreAccorde = false;
-      // A2 (16 aout 2026) : le pays est lu directement dans les donnees de l'entreprise, plus
-      // jamais parse depuis l'id -- 'armurerie-<country>-<city>' rendait l'ancien parsing
-      // (split('-').slice(1).join('-')) faux des qu'une ville s'ajoutait a l'id (retournait
-      // 'republic-ville_b' au lieu de 'republic'). Repli sur l'ancien format id sans ville
-      // (compatibilite avec d'anciennes lignes qui n'auraient pas encore le champ country).
-      const country = data.country || (data.id || row.id || '').split('-').slice(1)[0] || null;
-
-      if (data.pretDemande && data.pretDemande.statut === 'attente_validation') {
-        const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(data.pretDemande.demandeur)}`);
-        const demandeur = demRows && demRows[0];
-        const argActuel = demandeur ? (demandeur.arg || 0) : 0;
-        const risque = argActuel < data.pretDemande.montant * 0.10;
-        const accorde = !risque || Math.random() < 0.5;
-
-        if (accorde) {
-          data.pretDemande.statut = 'accorde';
-          pretVientDetreAccorde = true;
-          if (demandeur) {
-            await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.pretDemande.demandeur)}`, { arg: argActuel + data.pretDemande.montant });
-            await sbInsert('prets', {
-              id: 'pret-' + Date.now(),
-              emprunteur: data.pretDemande.demandeur,
-              country,
-              building_id: row.id,
-              type_banque: 'nationale',
-              montant_initial: data.pretDemande.montant,
-              montant_restant: data.pretDemande.montantTotal,
-              duree_jours: data.pretDemande.duree,
-              mensualite: data.pretDemande.mensualite,
-              jours_impayes: 0,
-              statut: 'en_cours'
-            }).catch(() => {});
-          }
-          detail.push('prêt accordé (+' + data.pretDemande.montant + ' FR virés)');
-        } else {
-          data.pretDemande.statut = 'refuse';
-          refusExplicite = true;
-          detail.push('prêt refusé par la banque');
-        }
-      }
-
-      if (pretVientDetreAccorde && !refusExplicite) {
-        await sbUpdate('entreprises', `id=eq.${encodeURIComponent(row.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
-        resultats.pretsEnAttenteFinalisation++;
-        continue;
-      }
-
-      const demandeurActuel = data.compromisPar;
-      if (refusExplicite && demandeurActuel && data.acompte) {
-        const propRows = await sbGet('personnages', `name=eq.${encodeURIComponent(demandeurActuel)}`);
-        const proprio = propRows && propRows[0];
-        if (proprio) {
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(demandeurActuel)}`, { arg: (proprio.arg || 0) + data.acompte });
-        }
-        resultats.rembourses++;
-        detail.push('acompte remboursé (' + data.acompte + ' FR)');
-      } else {
-        resultats.perdus++;
-        detail.push('acompte perdu (' + (data.acompte || 0) + ' FR)');
-      }
-
-      await sbInsert('compromis_historique', {
-        id: 'compromis-entreprise-' + row.id + '-' + Date.now(),
-        country,
-        building_id: row.id,
-        demandeur: demandeurActuel || 'inconnu',
-        resultat: refusExplicite ? 'rembourse' : 'perdu',
-        detail: detail.join(' · ') || ('compromis de rachat d\'entreprise expiré sans finalisation')
-      }).catch(() => {});
-
-      delete data.compromis;
-      delete data.compromisPar;
-      delete data.acompte;
-      delete data.compromisAt;
-      delete data.compromisExpireAt;
-      delete data.pretDemande;
-      await sbUpdate('entreprises', `id=eq.${encodeURIComponent(row.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
-      resultats.resolus++;
+      // LE PAYS N'EST PLUS DEDUIT ICI (9 octobre 2026) : la porte le lit elle-meme, avec la
+      // meme regle -- le blob d'abord, sinon le DEUXIEME segment de l'identifiant
+      // (« <type>-<pays>-<ville> », correctif A2 du 16 aout 2026). Et la garde « un pret deja
+      // accorde gele le compromis » y est aussi, sous verrou cette fois.
+      await resoudreUnCompromis('entreprise', row.id, resultats);
     }
   } catch(e) { console.error('resoudreCompromisEntreprisesExpires error', e); }
   return resultats;
@@ -5201,71 +5062,72 @@ async function traiterCandidaturesPostesExpirees() {
         continue; // plus personne d'eligible, rien a nommer, pas de sanction (aucun candidat valide a ignorer)
       }
 
-      // Tirage au sort — aucun avantage au premier candidat (§2 du lot).
-      const gagnant = candidatsEligibles[Math.floor(Math.random() * candidatsEligibles.length)];
+      // ======================================================================================
+      // LE TIRAGE AU SORT N'EST PLUS FAIT ICI (chantier 6, 9 octobre 2026).
+      //
+      // CE QUI SE PASSAIT. `candidatsEligibles[Math.floor(Math.random() * ...)]` choisissait le
+      // gagnant en JavaScript, puis SIX ecritures independantes, toutes avalees, appliquaient la
+      // decision : titulaire PNJ retire, registre postes_attribues, fiche du gagnant, courrier au
+      // gagnant, POP du nominateur divisee par deux, courrier au nominateur. Une coupure au
+      // milieu laissait un gagnant inscrit au registre mais sans poste sur sa fiche, ou nomme
+      // sans que son nominateur soit sanctionne, ou l'inverse.
+      //
+      // ET LE DRAPEAU `traitee` N'ETAIT ECRIT QU'APRES LA BOUCLE ENTIERE. Une coupure perdait
+      // TOUS les drapeaux de la passe : la nuit suivante retirait au sort une seconde fois,
+      // pouvait designer quelqu'un d'AUTRE, et divisait la POP du nominateur une seconde fois.
+      //
+      // candidature_poste_tirage_appliquer fait le tirage ET ses six consequences dans UNE
+      // transaction, revendiquee par acte_nocturne_revendiquer -- la brique du chantier 6. Un
+      // rejeu n'atteint jamais le tirage. Aucune regle de candidature ne change : tirage uniforme,
+      // POP divisee par deux avec le meme plancher a zero, memes courriers, meme source au
+      // registre.
+      //
+      // CE QUI RESTE ICI : le filtre d'eligibilite ci-dessus, parce qu'il lit `regle.compatibles`,
+      // absent du miroir postes_nommes_regles -- le serveur ne pourrait pas le reconstituer sans
+      // qu'on l'invente. Le CHOIX, lui, n'est plus fait dehors.
+      // ======================================================================================
+      const vTirage = await sbRpc('candidature_poste_tirage_appliquer', {
+        p_pays: 'republic',
+        p_poste_id: dossier.posteId,
+        p_city: dossier.city || null,
+        p_label: regle.label,
+        p_candidats: candidatsEligibles,
+        p_autorite: nomAutoriteActuelle || null
+      }, HEADERS_SERVICE).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
 
-      await sbSupprimerTitulairePnjServeur('republic', dossier.posteId, dossier.city || null);
-      // REGISTRE D'ABORD (chantier « autorite des postes », 15 septembre 2026). Depuis ce
-      // chantier, la fiche n'est plus une preuve : c'est postes_attribues qui atteste qu'un
-      // joueur occupe une fonction nommee. Le tirage au sort est un chemin d'attribution
-      // legitime a part entiere -- il doit donc inscrire le gagnant au registre, sans quoi sa
-      // nomination serait affichee mais jamais opposable, et la moindre reecriture de sa fiche
-      // la lui reprendrait.
-      // Upsert explicite : sbInsert n'accepte pas d'en-tete Prefer, et une ligne de registre
-      // peut deja exister pour ce poste (titulaire precedent).
-      await fetch(`${SUPABASE_URL}/rest/v1/postes_attribues`, {
-        method: 'POST',
-        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({
-          id: 'republic_' + dossier.posteId + '_' + (dossier.city || 'national'),
-          country: 'republic', poste_id: dossier.posteId, city: dossier.city || null,
-          titulaire: gagnant, source: 'tirage_au_sort_candidature'
-        })
-      }).catch(() => {});
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(gagnant)}`, {
-        poste: { id: dossier.posteId, name: regle.label, city: dossier.city || null, nommeLe: now }
-      }).catch(() => {});
-      resultats.nominationsAuto++;
-
-      await sbInsert('mails', {
-        id: 'mail-' + now + '-' + Math.floor(Math.random() * 1000),
-        from_player: 'Système', to_player: gagnant,
-        subject: 'Nomination automatique — ' + regle.label,
-        body: "L'autorité de nomination n'a pas tranché dans le délai de 48h imparti. Vous avez été désigné(e) par tirage au sort parmi les candidats éligibles au poste de " + regle.label + '.',
-        time: new Date().toISOString(), read: false
-      }).catch(() => {});
-
-      // Sanction POP/2 du nominateur reste passif (§4 du lot) -- vraie statistique resources.pop
-      // (PAS un champ top-level 'pop' : verifie que le client lit/ecrit pop dans personnages.
-      // resources.pop, jamais une colonne racine -- ecrire au mauvais endroit aurait reproduit
-      // silencieusement le bug deja trouve dans appliquerEffetsBlocusActifs ci-dessus, jamais lu
-      // par le client, hors perimetre de ce lot, signale au rapport). Arrondi : Math.floor,
-      // convention deja utilisee partout ailleurs pour un delta de POP fractionnaire.
-      if (nomAutoriteActuelle) {
-        const rowsAutorite = await sbGet('personnages', `name=eq.${encodeURIComponent(nomAutoriteActuelle)}&select=name,resources`);
-        const autoritePerso = rowsAutorite && rowsAutorite[0];
-        if (autoritePerso) {
-          const popActuelle = (autoritePerso.resources && autoritePerso.resources.pop) || 0;
-          const nouvellePop = Math.max(0, Math.floor(popActuelle / 2));
-          const resourcesMaj = { ...(autoritePerso.resources || {}), pop: nouvellePop };
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomAutoriteActuelle)}`, { resources: resourcesMaj }).catch(() => {});
-          resultats.sanctions++;
-
-          await sbInsert('mails', {
-            id: 'mail-' + now + '-' + Math.floor(Math.random() * 1000 + 1000),
-            from_player: 'Système', to_player: nomAutoriteActuelle,
-            subject: 'Décision non prise — ' + regle.label,
-            body: "Vous n'avez pas tranché entre les candidats au poste de " + regle.label + " dans le délai de 48h. " + gagnant + " a été nommé(e) par tirage au sort. Votre popularité a été divisée par deux (" + Math.round(popActuelle) + ' → ' + nouvellePop + ').',
-            time: new Date().toISOString(), read: false
-          }).catch(() => {});
+      if (!vTirage || vTirage.ok !== true) {
+        const raison = vTirage ? vTirage.raison : 'indisponible';
+        if (raison === 'poste_deja_attribue') {
+          // Le poste a ete pourvu entre-temps : le systeme n'a pas eu a trancher (§7 du lot).
+          dossier.traitee = true; modifie = true; resultats.annuleesSansSanction++;
+        } else if (raison === 'deja_traite_aujourdhui') {
+          // Le dossier a DEJA ete traite cette nuit : son drapeau avait ete perdu. On le repose,
+          // et surtout on ne retire pas au sort.
+          dossier.traitee = true; modifie = true;
+        } else {
+          // Ni drapeau, ni sanction, ni nomination : la nuit suivante retentera. C'est le seul
+          // comportement qui ne laisse rien a moitie fait.
+          signalerEchec('candidatures_postes_expirees',
+            'tirage refuse pour ' + cle + ' : ' + raison);
+          continue;
         }
+      } else if (!vTirage.gagnant) {
+        // Plus aucun candidat eligible selon le serveur : rien a nommer, pas de sanction.
+        dossier.traitee = true; modifie = true;
+      } else {
+        resultats.nominationsAuto++;
+        if (vTirage.sanction) resultats.sanctions++;
+        dossier.traitee = true; modifie = true; resultats.traitees++;
       }
 
-      dossier.traitee = true;
-      modifie = true;
-      resultats.traitees++;
+      // LE DRAPEAU EST PERSISTE DOSSIER PAR DOSSIER (9 octobre 2026), plus apres la boucle : une
+      // coupure ne perd desormais que le dossier en cours, jamais ceux deja traites.
+      await sbSetBatimentEtat('republic', 'national', 'candidatures_postes', { candidatures }).catch(() => {});
     }
 
+    // Filet pour les dossiers sortis de la boucle par `continue` AVANT le tirage : annulation
+    // sans sanction, regle inconnue, autorite changee (fenetre repartie a zero). Les dossiers
+    // passes par le tirage ont deja ete persistes un par un.
     if (modifie) {
       await sbSetBatimentEtat('republic', 'national', 'candidatures_postes', { candidatures }).catch(() => {});
     }
@@ -5273,12 +5135,12 @@ async function traiterCandidaturesPostesExpirees() {
   return resultats;
 }
 
-// Duplique minimal de sbSupprimerTitulairePnj (supabase.js), necessaire ici en plus de la
-// logique deja inline dans pourvoirPnj/verifierPostesVacantsEtAutoPourvoir ci-dessous.
-async function sbSupprimerTitulairePnjServeur(country, posteId, city) {
-  const id = country + '_' + posteId + '_' + (city || 'national');
-  return sbDelete('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
-}
+// sbSupprimerTitulairePnjServeur A ETE SUPPRIMEE LE 9 OCTOBRE 2026. Son unique appelant etait le
+// tirage au sort des candidatures expirees, qui retirait le PNJ sortant par une requete separee
+// des cinq autres ecritures de la nomination. Le retrait vit maintenant DANS
+// candidature_poste_tirage_appliquer, donc dans la transaction de la nomination : un PNJ ne peut
+// plus etre retire d'un poste que personne ne finit par occuper. La logique de
+// pourvoirPnj/verifierPostesVacantsEtAutoPourvoir ci-dessous est inchangee et reste inline.
 
 async function verifierPostesVacantsEtAutoPourvoir() {
   const resultats = { pourvus: [] };

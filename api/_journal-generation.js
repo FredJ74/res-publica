@@ -84,6 +84,21 @@ async function sbInsert(table, data, headers) {
   return { ok: true };
 }
 
+// LA SOLLICITATION D'INTERVIEW PASSE PAR LA PORTE DES COURRIERS (9 octobre 2026). Ce module
+// ecrivait `mails` en direct, avec un `.catch(() => {})` : une sollicitation qui ne partait pas ne
+// laissait aucune trace, et la boucle continuait comme si Jodie avait ecrit. L'ecriture descend
+// desormais dans mail_systeme_envoyer -- donc dans mail_systeme_poser_interne, l'unique ecrivain
+// de la table -- et l'echec est consigne en base.
+async function sbRpc(fn, params, headers) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { ...(headers || SB_HEADERS) },
+    body: JSON.stringify(params || {})
+  });
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
+}
+
 async function sbUpdate(table, filtre, data, headers) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filtre}`, {
     method: 'PATCH',
@@ -1534,13 +1549,21 @@ async function solliciterInterviewsProactives(pays, contenu, index, maintenant) 
     ).catch(() => []);
     if (relanceRecente && relanceRecente.length > 0) continue; // deja sollicite recemment
 
-    await sbInsert('mails', {
-      id: 'mail-jodie-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
-      from_player: 'Jodie Moitout', to_player: nom,
-      subject: JODIE_SUJET_SOLLICITATION,
-      body: "Jodie Moitout de L'Autruche Entravée aimerait vous interviewer suite à l'actualité récente vous concernant. Rendez-vous auprès d'elle pour « Donner une interview » si vous acceptez.",
-      time: dateEditionPourPays(pays, maintenant), read: false
-    }, SB_HEADERS_SERVICE).catch(() => {});
+    const vMail = await sbRpc('mail_systeme_envoyer', {
+      p_expediteur: 'Jodie Moitout',
+      p_destinataire: nom,
+      p_sujet: JODIE_SUJET_SOLLICITATION,
+      p_corps: "Jodie Moitout de L'Autruche Entravée aimerait vous interviewer suite à l'actualité récente vous concernant. Rendez-vous auprès d'elle pour « Donner une interview » si vous acceptez.",
+      p_heure: dateEditionPourPays(pays, maintenant)
+    }, SB_HEADERS_SERVICE).catch(() => null);
+    const verdictMail = Array.isArray(vMail) ? vMail[0] : vMail;
+    if (!verdictMail || verdictMail.ok !== true) {
+      // La sollicitation n'a pas ete envoyee. On le DIT, au lieu de laisser croire que Jodie a
+      // ecrit : la garde anti-relance ci-dessus relit `mails`, donc une sollicitation perdue
+      // sera retentee demain -- ce qui est le comportement souhaitable.
+      console.error('journal : sollicitation Jodie non envoyee a ' + nom + ' ('
+                    + ((verdictMail && verdictMail.raison) || 'aucun verdict') + ')');
+    }
   }
 }
 
