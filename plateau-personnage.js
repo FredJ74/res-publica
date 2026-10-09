@@ -2322,7 +2322,9 @@ async function doDormir() {
     traiterPlaintes();
     traiterEnquetes();
     traiterConvocations();
-    verifierLiberationPrisonniers();
+    // Attendue depuis le 9 octobre 2026 : la liberation est prononcee par le serveur
+    // (detention_clore_purgee), et checkArrestationAuReveil lit state.estEmprisonne juste apres.
+    await verifierLiberationPrisonniers();
     verifierDecouverteCrimesPasses();
     checkArrestationAuReveil();
     verifierProgressionHospitalisation();

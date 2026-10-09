@@ -1254,62 +1254,78 @@ async function placerAuQHS(pays, jours, raison, villeRetour) {
   const motif = { type: raison, jour_fait: state.day, city: state.currentCity,
                   jours: j, source: 'flagrant_delit', date_evenement: maintenant };
 
+  // LE PLACEMENT AU QHS EST UNE TRANSACTION SERVEUR (9 octobre 2026). La ligne du registre du
+  // QHS et le drapeau de la fiche etaient deux ecritures clientes avalees, posees APRES coup et
+  // dans les DEUX branches -- et le drapeau partait en JSON.stringify sur une colonne jsonb, donc
+  // sous une forme que pa_repos_nocturne ne sait pas lire : le plafond de PA du quartier ne
+  // s'appliquait jamais aux QHS poses par le navigateur. Les deux portes serveur les posent
+  // desormais elles-memes, dans la transaction de la peine : detention_prolonger_soi quand la
+  // sanction s'AJOUTE a une peine en cours, detention_ouvrir_soi quand elle en ouvre une.
+  // Aucune des deux regles ne change : la bascule reste additive sur un detenu, une peine neuve
+  // de j jours sur une personne libre.
+  let ok = false;
   if (state.estEmprisonne && state.estEmprisonne.detentionId && typeof prolongerDetentionActive === 'function') {
-    // Deja detenu : la sanction s'AJOUTE a la peine en cours et la bascule en haute securite.
-    await prolongerDetentionActive(nom, [motif], true).catch(() => {});
-    state.estEmprisonne.qhs = true;
-    if (!state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = villeRetour || null;
-  } else {
-    const jourFin = (state.day || 1) + j;
-    state.estEmprisonne = { jours: j, jourFin: jourFin, raison: raison, qhs: true,
-                            retourVille: villeRetour || null };
-    if (typeof enregistrerDetention === 'function') {
-      await enregistrerDetention(nom, raison, jourFin, true, 'qhs',
-        { country: pays, motifs: [motif] }).catch(() => {});
+    ok = await prolongerDetentionActive(nom, [motif], true);
+    if (ok) {
+      state.estEmprisonne.qhs = true;
+      if (!state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = villeRetour || null;
     }
+  } else if (typeof enregistrerDetention === 'function') {
+    const jourFin = (state.day || 1) + j;
+    ok = !!(await enregistrerDetention(nom, raison, jourFin, true, 'qhs',
+      { country: pays, motifs: [motif], retourVille: villeRetour || null }));
   }
-
-  // Ligne QHS visible par le Ministre de la Justice, et plafond de PA du quartier : deux
-  // mecaniques deja existantes, reutilisees telles quelles.
-  if (typeof sbCreerPrisonnierQHS === 'function') {
-    await sbCreerPrisonnierQHS({ pays: pays, nom: nom, raison: raison,
-      photoUrl: state.char?.photoUrl || null, jourDebut: state.day || 1,
-      jourFin: (state.estEmprisonne.jourFin || ((state.day || 1) + j)) }).catch(() => {});
+  // VERDICT CONSOMME : sans peine en base, personne n'est teleporte au quartier de haute
+  // securite -- un joueur enferme dans une zone speciale sans peine n'aurait aucune sortie.
+  if (!ok) {
+    showToast('Transfert impossible', 'Le quartier de haute securite n\'a pas enregistre votre arrivee. Aucune peine n\'a ete ouverte.', false);
+    return;
   }
-  if (typeof sbUpdate === 'function' && nom) {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
-      { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
-  }
+  state.detentionQHS = { enQHS: true, paLimite1Jour: false };
 
   teleporterVersCellule(state.estEmprisonne);
   updateUI();
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 
-function verifierLiberationPrisonniers() {
+// LA FIN D'UNE PEINE EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction ecrivait
+// `detentions.mode_fin` puis `personnages.detention_qhs`, les deux avalees -- et SURTOUT elle ne
+// persistait JAMAIS `est_emprisonne = null` : elle se contentait de vider state.estEmprisonne en
+// memoire, en comptant sur un sbSavePersonnage ulterieur. Un joueur libere qui fermait son onglet
+// restait donc incarcere en base : la peine purgee se « reliberait » a chaque session, le drapeau
+// QHS restait leve et le plafond de PA du quartier de haute securite continuait de s'appliquer.
+//
+// Le drapeau tombait de plus sous la forme JSON.stringify({enQHS:false}), donc un SCALAIRE de type
+// string sur une colonne jsonb -- illisible pour pa_repos_nocturne, qui exige un objet.
+//
+// detention_clore_purgee fait les quatre ecritures en une transaction, et c'est ELLE qui decide :
+// le jour de reference est celui de la colonne `day`, pas state.day. La fonction devient donc
+// asynchrone, et ses deux appelants (plateau-core, plateau-personnage) l'attendent.
+async function verifierLiberationPrisonniers() {
   if (!state.estEmprisonne) return;
   // Compte les jours reellement passes en detention comme deserteur : c'est ce compteur qui
   // alimente le bonus d'evasion (+10/jour, plafond +50). Pose ici parce que c'est l'unique
   // passage quotidien deja garanti pour un detenu (runMidnightUpdate et doDormir).
   if (typeof incrementerDetentionDeserteur === 'function') incrementerDetentionDeserteur();
   if (state.day >= state.estEmprisonne.jourFin) {
-    const detentionId = state.estEmprisonne.detentionId || null;
-    const sortaitDuQHS = state.estEmprisonne.qhs === true;
-    const retourVille = state.estEmprisonne.retourVille || null;
-    if (detentionId && typeof sbUpdate === 'function') {
-      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'purgee', jour_fin_effective: state.day, date_fin_effective: new Date().toISOString() }).catch(() => {});
-    }
+    if (typeof sbRpc !== 'function') return;
+    const vFin = await sbRpc('detention_clore_purgee', {})
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    // VERDICT CONSOMME : tant que la base n'a pas libere, le jeu n'annonce pas de liberation et
+    // ne rend pas la circulation. « peine_non_purgee » signifie que la colonne `day` de la fiche
+    // n'a pas encore atteint le terme -- l'etat local etait en avance, il le reste.
+    if (!vFin || vFin.ok !== true) return;
+
+    const sortaitDuQHS = vFin.sortait_du_qhs === true;
+    const retourVille = vFin.retour_ville || state.estEmprisonne.retourVille || null;
     state.estEmprisonne = null;
 
     // SORTIE DE QHS (13 septembre 2026) : jusqu'ici le drapeau detention_qhs n'etait jamais
     // leve autrement que par un transfert manuel du Ministre de la Justice -- un detenu dont la
     // peine expirait restait plafonne a 3 PA indefiniment. Une peine purgee lève le drapeau.
+    // C'est desormais la porte qui l'abaisse, en OBJET, et qui passe la ligne du registre du QHS
+    // a « libere » -- sans quoi un detenu libere restait affiche comme detenu au ministere.
     if (sortaitDuQHS) {
-      const nom = state.char?.name;
-      if (typeof sbUpdate === 'function' && nom) {
-        sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
-          { detention_qhs: JSON.stringify({ enQHS: false }) }).catch(() => {});
-      }
       state.detentionQHS = null;
       // Retour au lieu d'origine quand il a ete memorise (sortie de QHS apres un vol a la
       // caserne) : sans cela le joueur serait relache dans une zone speciale sans domicile.
@@ -1647,35 +1663,55 @@ async function confirmerRequeteAvocat(pa, cost) {
   if (!rAvocat.ok) { signalerRefusCout(rAvocat); return; }
 
   state.arg -= cout;
-  state.estEmprisonne.avocatUtilise = true;
 
+  // LA PLAIDOIRIE EST TIREE ICI, LA REDUCTION EST APPLIQUEE LA-BAS (chantier 5, 9 octobre 2026).
+  //
+  // CE QUI SE PASSAIT. Le patch de `detentions` etait avale, et quand la peine tombait a zero la
+  // liberation se reduisait a `state.estEmprisonne = null` EN MEMOIRE : un joueur libere par son
+  // avocat qui fermait son onglet restait incarcere en base. C'est exactement le defaut de la
+  // chaine 11, que l'inventaire des ecritures n'avait pas vu ici.
+  //
+  // Et `avocatUtilise` n'etait pas une garde : pose dans state, il ne touchait la base qu'a la
+  // sauvegarde suivante, donc un rechargement bien place rendait une seconde requete possible.
+  // C'est le serveur qui refuse desormais la seconde, et la porte consomme l'avocat dans les
+  // DEUX cas -- requete acceptee ou refusee -- comme la regle d'origine le voulait.
+  //
+  // LE TIRAGE RESTE ICI, et c'est assume : il lit la DUP EFFECTIVE du joueur, valeur qui vit dans
+  // l'etat client. Le descendre exigerait d'en recopier le calcul cote serveur, donc de creer la
+  // divergence que ce chantier supprime partout ailleurs. Ce que la porte reprend, c'est le
+  // MONTANT de la reduction -- moitie du reliquat arrondie au superieur, plancher d'un jour --
+  // que le navigateur ne dicte plus.
   const dup = getStatEffective('DUP');
   const taux = Math.min(85, 40 + Math.floor(dup * 1.5));
   const roll = Math.floor(Math.random() * 100) + 1;
-  const detentionId = state.estEmprisonne.detentionId || null;
+  const acceptee = roll <= taux;
 
-  if (roll <= taux) {
-    const joursRestants = Math.max(1, state.estEmprisonne.jourFin - (state.day || 1));
-    const reduction = Math.max(1, Math.ceil(joursRestants / 2));
-    state.estEmprisonne.jourFin = Math.max(state.day, state.estEmprisonne.jourFin - reduction);
-    state.estEmprisonne.jours = Math.max(0, joursRestants - reduction);
+  const vAvocat = (typeof sbRpc === 'function')
+    ? await sbRpc('detention_reduire_peine', { p_requete_acceptee: acceptee })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vAvocat || vAvocat.ok !== true) {
+    // VERDICT CONSOMME : sans ecriture, aucune reduction n'est annoncee. Les 800 FR et le PA sont
+    // deja partis -- `deduireCoutOrdre` est le point d'execution irreversible de l'ordre, par
+    // doctrine du projet -- mais le jeu ne pretend pas que l'avocat a plaide.
+    showToast('Requête non déposée', vAvocat?.raison === 'avocat_deja_utilise'
+      ? 'Votre avocat est déjà intervenu pour cette peine.'
+      : 'Le greffe n\'a pas enregistré la requête de votre avocat.', false);
+    updateUI();
+    return;
+  }
+  state.estEmprisonne.avocatUtilise = true;
+
+  if (vAvocat.acceptee === true) {
+    const reduction = Number(vAvocat.reduction || 0);
     addMailNotification('Cabinet juridique', 'Réduction obtenue', 'Votre avocat a plaidé un vice de procédure. Votre peine est réduite de ' + reduction + ' jour(s).');
-
-    // Registre carcerale : la reduction ne reecrit jamais motifs[].jours (la peine d'origine par
-    // motif reste historiquement identifiable) -- elle est conservee a part, dans
-    // reduction_jours, a cote de jour_fin desormais aligne sur la nouvelle date.
-    const libereParAvocat = state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin;
-    if (detentionId && typeof sbUpdate === 'function') {
-      const patch = { reduction_jours: reduction, jour_fin: state.estEmprisonne.jourFin };
-      if (libereParAvocat) { patch.mode_fin = 'anticipee_avocat'; patch.jour_fin_effective = state.day; patch.date_fin_effective = new Date().toISOString(); }
-      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, patch).catch(() => {});
-    }
-
-    if (libereParAvocat) {
+    if (vAvocat.libere === true) {
       state.estEmprisonne = null;
       showToast('Libéré(e) !', 'La réduction de peine vous rend votre liberté.', true, true);
       addJournalEntry('Vous êtes libéré(e) suite à la réduction de peine obtenue par votre avocat.', 'event-good');
     } else {
+      state.estEmprisonne.jourFin = vAvocat.jour_fin;
+      state.estEmprisonne.jours = vAvocat.jours;
       showToast('Réduction obtenue !', '-' + reduction + ' jour(s) de détention.', true, true);
       addJournalEntry('Votre avocat obtient une réduction de peine de ' + reduction + ' jour(s). -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
     }
@@ -1776,24 +1812,34 @@ async function doTentativeEvasion(pa, cost) {
     // personne en recherche avec : les motifs d'origine conserves comme historique + un motif
     // "Evasion" distinct de 2 jours + le reliquat calcule -- jamais reparti dans les anciens
     // motifs. La continuite avec la detention interrompue est portee par detention_precedente_id.
-    const detentionId = state.estEmprisonne.detentionId || null;
-    const jourFinPrevu = (state.estEmprisonne.jourFin != null) ? state.estEmprisonne.jourFin : state.day;
-    const reliquat = Math.max(0, jourFinPrevu - state.day);
-
-    let motifsOrigine = [];
-    let countryOrigine = state.country;
-    if (detentionId && typeof sbGet === 'function') {
-      const detRows = await sbGet('detentions', `id=eq.${encodeURIComponent(detentionId)}&select=motifs,country`).catch(() => []);
-      motifsOrigine = detRows?.[0]?.motifs || [];
-      countryOrigine = detRows?.[0]?.country || state.country;
+    // LA CLOTURE PAR EVASION EST UNE TRANSACTION SERVEUR (chantier 5, 9 octobre 2026). Ce bloc
+    // lisait les motifs, patchait `detentions` en avalant l'echec, puis se contentait de
+    // `state.estEmprisonne = null` EN MEMOIRE : un evade qui fermait son onglet restait detenu en
+    // base -- alors que l'evasion est precisement le moment ou la fiche doit cesser de dire
+    // « detenu ». Meme defaut que la chaine 11, dans un endroit que l'inventaire n'avait pas vu.
+    //
+    // detention_clore_evasion fait les trois ecritures ensemble et RECALCULE elle-meme ce que ce
+    // bloc deduisait : le reliquat, les motifs d'origine et le pays. jour_fin n'est JAMAIS
+    // reecrit -- la peine d'origine reste identifiable telle quelle.
+    // date_fin_effective (lot « dates reelles », 26 aout 2026) est capturee par la porte, a
+    // l'instant de l'evasion, jamais deduite de jour_fin_effective.
+    const vEvasion = (typeof sbRpc === 'function')
+      ? await sbRpc('detention_clore_evasion', {})
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (!vEvasion || vEvasion.ok !== true) {
+      // VERDICT CONSOMME : la detention n'est pas close, donc l'evasion n'a pas eu lieu. Le jeu ne
+      // libere pas un detenu que la base tient toujours -- il resterait enferme par la navigation
+      // sans aucun avis de recherche pour le rattraper.
+      showToast('Evasion manquee', 'Les geoles n\'ont pas enregistre votre sortie. Vous etes toujours detenu(e).', false);
+      updateUI();
+      return;
     }
+    const detentionId = vEvasion.detention_id || null;
+    const reliquat = Number(vEvasion.reliquat_jours || 0);
+    const motifsOrigine = Array.isArray(vEvasion.motifs) ? vEvasion.motifs : [];
+    const countryOrigine = vEvasion.country || state.country;
     const dateEvasion = new Date().toISOString();
-    if (detentionId && typeof sbUpdate === 'function') {
-      // date_fin_effective (lot "dates reelles", 26 aout 2026) : jour_fin_effective (jour de jeu)
-      // reste utilise en interne, date_fin_effective est le pendant reel affiche au joueur --
-      // capture directe a l'instant de l'evasion, jamais deduite de jour_fin_effective.
-      await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'evasion', jour_fin_effective: state.day, date_fin_effective: dateEvasion }).catch(() => {});
-    }
 
     const motifsRecherche = motifsOrigine.concat([
       { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion', date_evenement: dateEvasion }
@@ -1887,25 +1933,32 @@ async function doSeRebeller(pa, cost) {
     // duree qui n'existe pas ici. L'ancienne ligne DOIT etre cloturee explicitement (mode_fin =
     // 'transfert_qhs') -- la laisser a NULL la ferait apparaitre comme encore en cours dans le
     // registre, ce qui est faux : elle est bien terminee, juste pas par une liberation.
-    const detentionPrecedenteId = state.estEmprisonne?.detentionId || null;
-    const dateTransfertQhs = new Date().toISOString();
-    if (detentionPrecedenteId && typeof sbUpdate === 'function') {
-      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionPrecedenteId)}`, { mode_fin: 'transfert_qhs', jour_fin_effective: state.day, date_fin_effective: dateTransfertQhs }).catch(() => {});
+    // LE TRANSFERT EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette bascule tenait en QUATRE
+    // ecritures independantes, dont trois avalees : cloture de l'ancienne ligne, inscription au
+    // registre du QHS, drapeau sur la fiche, puis ouverture de la nouvelle peine. Le detenu
+    // pouvait donc se retrouver sans peine en cours, avec deux, ou au QHS sans peine -- et le
+    // drapeau partait en JSON.stringify sur une colonne jsonb, donc sous une forme que
+    // pa_repos_nocturne ne sait pas lire : le plafond de PA du QHS ne s'appliquait pas.
+    const vQhs = (typeof sbRpc === 'function')
+      ? await sbRpc('detention_transferer_qhs', {
+          p_raison: 'Rebellion en cellule matee - transfert QHS',
+          p_jours: 30,
+          p_city: ville,
+          p_motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention', date_evenement: new Date().toISOString() }]
+        }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (!vQhs || vQhs.ok !== true) {
+      // VERDICT CONSOMME : sans transfert en base, la peine en cours reste celle qui vaut et le
+      // jeu n'annonce pas un QHS qui n'existe pas. Les points de vie et la discretion perdus plus
+      // haut sont deja des consequences locales de la rebellion elle-meme, qui a bien eu lieu.
+      updateUI();
+      showToast('Rebellion matee', 'Les gardiens vous ont maitrise. -25 PV, -15 DIS.', false);
+      addJournalEntry('Rebellion en cellule matee par les gardiens. Grilles endommagees (-' + degats + ').', 'event-bad');
+      return;
     }
-    state.estEmprisonne = null;
-    if (typeof sbCreerPrisonnierQHS === 'function') {
-      await sbCreerPrisonnierQHS({ pays, nom: state.char?.name, raison: 'Rebellion en cellule', photoUrl: state.char?.photoUrl || null, jourDebut: state.day, jourFin: (state.day || 1) + 30 }).catch(() => {});
-    }
-    if (typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char?.name)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
-    }
-    if (typeof enregistrerDetention === 'function') {
-      await enregistrerDetention(state.char?.name, 'Rebellion en cellule matee - transfert QHS', (state.day || 1) + 30, true, ville, {
-        country: pays,
-        motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention', date_evenement: dateTransfertQhs }],
-        detentionPrecedenteId: detentionPrecedenteId
-      }).catch(() => {});
-    }
+    state.estEmprisonne = { jours: 30, jourFin: vQhs.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
+                            detentionId: vQhs.detention_id, qhs: true, city: ville, country: pays };
+    state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     updateUI();
     showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
     addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
@@ -2365,10 +2418,33 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     return;
   }
 
+  // L'AUTORITE SE VERIFIE AVANT LA SANCTION, PAS APRES (9 octobre 2026). La porte du greffe,
+  // `justice_rendre_sentence`, verifie la competence -- mais elle est appelee a la FIN, quand le
+  // libelle de la peine est connu. Sans ce pre-controle, un magistrat incompetent voyait sa
+  // sanction APPLIQUEE (peine prolongee, POP a zero) puis son archivage refuse : l'affaire
+  // retombait « deposee », donc rejugeable, et la peine pouvait etre infligee deux fois.
+  //
+  // `affaire_autorite_de` est la MEME regle que celle de la porte -- juge ou commissaire de la
+  // ville de l'affaire -- lue en base, jamais dans l'etat local. Elle s'appuie sur auth.uid(),
+  // donc elle est fermee pour un appel serveur : c'est volontaire, aucun serveur ne juge.
+  const vAutorite = (typeof sbRpc === 'function')
+    ? await sbRpc('affaire_autorite_de', { p_city: affaire.city || null })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (vAutorite !== true) {
+    showToast('Compétence refusée', "Vous n'êtes pas juge ou commissaire de "
+      + (affaire.city || 'cette ville') + '. Aucune sanction n\'a été appliquée.', false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
+  // L'AFFAIRE N'EST PLUS MARQUEE « JUGEE » ICI (9 octobre 2026). Cette ecriture avalee visait a
+  // empecher un second jugement, mais rien ne garantissait qu'elle aboutisse -- et l'affaire etait
+  // ecrite DEUX fois, une premiere fois ici et une seconde a la fin de la fonction. C'est
+  // desormais justice_rendre_sentence qui clot l'affaire, dans la meme transaction que le
+  // jugement, et qui refuse une affaire deja jugee.
   affaire.status = 'jugee';
-  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let details = '';
@@ -2389,6 +2465,13 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   // jamais "date des faits".
   const factCommun = { cible: affaire.victime || null, jour_fait: (affaire.jourFait != null ? affaire.jourFait : affaire.jour), city: affaire.city, ref_type: affaire.refType || null, ref_id: affaire.refId || null };
 
+  // LA SANCTION DOIT ETRE APPLIQUEE AVANT D'ETRE ARCHIVEE (9 octobre 2026). Chaque branche
+  // ci-dessous rendait sa consequence sans jamais lire le verdict de la RPC qui l'applique : le
+  // registre pouvait porter « Prison 3 jours » sans qu'aucune peine ait ete prolongee, ni aucun
+  // avis de recherche emis. Les branches « amende » et « amenagement » n'ont, elles, aucune
+  // consequence mecanique -- ce sont des mentions au registre, et c'etait deja le cas.
+  let peineAppliquee = true;
+
   if (type === 'amende') {
     const montant = 500;
     details = 'Amende de ' + montant + ' ' + cur;
@@ -2401,9 +2484,9 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     const motifsPrison = [Object.assign({ type: affaire.motif, jours: duree, detail: note || null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
 
     if (await estActuellementDetenu(affaire.cible)) {
-      await prolongerDetentionActive(affaire.cible, motifsPrison);
+      peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsPrison);
     } else {
-      await ajouterCondamnationRecherche(affaire.cible, {
+      const rRecherche = await ajouterCondamnationRecherche(affaire.cible, {
         id: 'rech-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         type: 'condamnation',
         country: state.country || 'republic',
@@ -2415,6 +2498,10 @@ async function appliquerSentence(affaireId, type, pa, cost) {
         autorite: autoriteJugement,
         jour_condamnation: state.day
       });
+      // ajouterCondamnationRecherche rend un verdict pour un TIERS (justice_condamner) ; sur sa
+      // propre fiche elle reste sur le chemin local, qui n'en rend pas -- c'est la chaine 14 de
+      // l'audit, hors de ce lot. On ne pretend donc pas verifier ce qu'on ne peut pas verifier.
+      peineAppliquee = (affaire.cible === state.char?.name) ? true : !!rRecherche;
     }
   } else if (type === 'amenagement') {
     details = 'Amenagement : pointage quotidien au commissariat';
@@ -2425,21 +2512,12 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     // la personne est necessairement deja detenue : on ne fait qu'etendre/escalader sa detention.
     details = 'Envoi au QHS';
     const motifsQhs = [Object.assign({ type: affaire.motif, jours: 30, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
-    await prolongerDetentionActive(affaire.cible, motifsQhs, true);
-    if (typeof sbCreerPrisonnierQHS === 'function') {
-      let photoUrl = null;
-      if (typeof sbGet === 'function') {
-        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(affaire.cible)}&select=photoUrl`).catch(() => []);
-        photoUrl = rows?.[0]?.photoUrl || null;
-      }
-      // Le registre du QHS est desormais tenu par justice_prolonger_peine, dans la meme
-      // transaction que la detention (16 septembre 2026). L'inscription depuis le navigateur du
-      // juge visait la fiche d'un tiers : prisonniers_qhs n'accepte plus que les inscriptions
-      // qu'un joueur fait pour lui-meme.
-      // Le drapeau QHS de la fiche est pose par justice_prolonger_peine, dans la meme
-      // transaction que la peine et le registre (16 septembre 2026). Cette ecriture visait la
-      // fiche d'un tiers et etait refusee depuis le chantier B.
-    }
+    // Le registre du QHS, le drapeau de la fiche et la photo du detenu sont tenus par
+    // justice_prolonger_peine -- plus exactement par detention_qhs_poser_interne, son unique
+    // ecrivain -- dans la meme transaction que la peine (16 septembre 2026, photo ajoutee le
+    // 9 octobre 2026). Le bloc client qui subsistait ici ne faisait plus que lire une photoUrl
+    // dans une variable inutilisee : il est retire.
+    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsQhs, true);
   } else if (type === 'torture') {
     // Torture suppose egalement une personne deja detenue -- verifie en amont (voir garde en
     // tete de fonction), ne fait donc qu'etendre la detention existante, jamais de creation
@@ -2455,7 +2533,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     const duree = 3 * (nbPrecedentes + 1);
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
     const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
-    await prolongerDetentionActive(affaire.cible, motifsTorture);
+    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsTorture);
     // Perte totale de popularite appliquee au personnage reel (peut ne pas etre le joueur
     // actuellement connecte).
     // CORRIGE LE 17 SEPTEMBRE 2026 (audit des frontieres d'autorite). Cette ligne etait un
@@ -2466,11 +2544,16 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     // On passe par la primitive atomique deja existante, celle qu'utilisent deja les rumeurs.
     // -100 met la POP exactement a zero : la RPC borne le resultat a [0,100], donc pour toute
     // valeur de depart dans cet intervalle, pop - 100 est ramene a 0. Aucune regle nouvelle.
-    if (typeof sbAjusterPopJoueur === 'function') {
+    //
+    // LES DEUX CONSEQUENCES SUIVANTES SONT SUBORDONNEES A LA PEINE (9 octobre 2026) : sans
+    // prolongation effective, la popularite n'est pas mise a zero et la condamnation n'est pas
+    // comptee au cumul. Sinon une sentence refusee abaissait quand meme la POP de l'accuse et
+    // alourdissait sa prochaine peine.
+    if (peineAppliquee && typeof sbAjusterPopJoueur === 'function') {
       await sbAjusterPopJoueur(affaire.cible, -100, 'sentence_torture');
     }
     // Enregistrer cette condamnation pour permettre le cumul des peines a l'avenir
-    if (typeof sbTracerAction === 'function') {
+    if (peineAppliquee && typeof sbTracerAction === 'function') {
       await sbTracerAction({
         id: 'condamnation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         auteur: affaire.cible, cible: null, type_action: 'condamnation_torture',
@@ -2480,34 +2563,57 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     }
   }
 
-  if (!state.archivesJugements) state.archivesJugements = [];
-  const nouveauJugement = {
-    accuse: affaire.cible,
-    motif: affaire.motif,
-    peine: details,
-    juge: state.char?.name || 'PNJ',
-    jour: state.day,
-    executee: false
-  };
-  state.archivesJugements.push(nouveauJugement);
-  if (typeof sbCreerJugement === 'function') {
-    await sbCreerJugement({
-      country: state.country || 'republic',
-      city: affaire.city || state.currentCity || 'capitale',
-      accuse: nouveauJugement.accuse,
-      motif: nouveauJugement.motif,
-      peine: nouveauJugement.peine,
-      juge: nouveauJugement.juge,
-      jour: nouveauJugement.jour,
-      executee: nouveauJugement.executee
-    }).catch(() => {});
+  // SANS PEINE APPLIQUEE, AUCUN JUGEMENT N'EST ARCHIVE. L'affaire reste « deposee », donc
+  // rejugeable -- c'est exactement ce que le code faisait deja quand la cible n'etait pas
+  // detenue pour un QHS ou une torture (garde en tete de fonction).
+  if (!peineAppliquee) {
+    affaire.status = 'deposee';
+    showToast('Sentence non rendue', 'La peine n\'a pas pu etre appliquee a ' + affaire.cible
+      + '. L\'affaire reste au role.', false);
+    return;
   }
 
-  if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+  // LE REGISTRE DES JUGEMENTS ET L'AFFAIRE SONT UNE SEULE ECRITURE (9 octobre 2026). C'etaient
+  // deux appels avales -- `sbCreerJugement` puis `sbSavePlainte` -- suivis sans condition du
+  // toast « Sentence rendue », de l'evenement public « JUGEMENT : … » et du courrier au condamne.
+  // Le tribunal pouvait donc annoncer une condamnation dont il ne restait aucune trace : ni au
+  // registre, ni sur l'affaire, qui retombait en « deposee ».
+  //
+  // Le juge n'est plus un parametre non plus : le client envoyait `state.char?.name || 'PNJ'`,
+  // une chaine librement composee par le navigateur. C'est le serveur qui nomme le magistrat,
+  // apres avoir verifie sa competence avec affaire_autorite_de -- juge ou commissaire DE LA VILLE
+  // de l'affaire, la regle qui existait deja.
+  const vSentence = (typeof sbRpc === 'function')
+    ? await sbRpc('justice_rendre_sentence', { p_affaire: affaire, p_peine: details })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vSentence || vSentence.ok !== true) {
+    // LA SANCTION EST DEJA APPLIQUEE A CE STADE, et le dire est le seul comportement honnete.
+    // La competence a ete verifiee AVANT toute consequence (voir en tete de fonction), donc il ne
+    // reste ici que deux cas : l'affaire a ete jugee entre-temps par quelqu'un d'autre, ou le
+    // greffe n'a pas repondu. Dans les deux cas la peine EST tombee sur l'accuse. On laisse
+    // l'affaire « deposee » -- elle doit rester visible -- mais on nomme l'ecart au magistrat,
+    // au lieu de lui laisser croire que rien ne s'est passe.
+    affaire.status = 'deposee';
+    const motif = vSentence?.raison === 'affaire_deja_jugee'
+        ? 'Cette affaire a déjà été jugée. La sanction que vous venez de prononcer, elle, a bien été appliquée : signalez-le.'
+      : vSentence?.raison === 'autorite_refusee'
+        ? "Votre compétence a été refusée par le greffe alors qu'elle venait d'être vérifiée : signalez-le."
+      : vSentence?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
+      : "Le greffe n'a pas enregistré la sentence, alors que la sanction a été appliquée. Signalez-le.";
+    showToast('Sentence non enregistrée', motif, false);
+    return;
+  }
+
+  if (!state.archivesJugements) state.archivesJugements = [];
+  state.archivesJugements.push({
+    accuse: affaire.cible, motif: affaire.motif, peine: details,
+    juge: vSentence.juge, jour: vSentence.jour, executee: false
+  });
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
-  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
+  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + vSentence.juge + ')');
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
@@ -10795,66 +10901,80 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
     date_evenement: new Date().toISOString()
   }];
 
-  if (!state.prisonniers) state.prisonniers = [];
-  const entree = { nom, depuis: 'Jour ' + jourDebut, raison };
-  if (jourFin !== undefined && jourFin !== null) entree.jourFin = jourFin;
-  if (qhs) entree.qhs = true;
-  state.prisonniers.push(entree);
-
-  let detentionId = null;
-  if (typeof sbCreerDetention === 'function') {
-    const rows = await sbCreerDetention({
-      country,
-      city: villeReelle,
-      nom, raison,
-      jour_debut: jourDebut,
-      jour_fin: jourFin !== undefined ? jourFin : null,
-      qhs: !!qhs,
-      motifs,
+  // UNE INCARCERATION EST UNE TRANSACTION SERVEUR (9 octobre 2026). Cette fonction enchainait
+  // deux ecritures independantes -- `detentions` (dont le retour etait lu mais jamais teste) puis
+  // `personnages.est_emprisonne` (avalee). Un detenu pouvait donc exister dans une table et pas
+  // dans l'autre, et quand c'etait l'insertion qui echouait, `detentionId: null` partait quand
+  // meme sur la fiche : la peine devenait introuvable pour toute prolongation ou liberation.
+  //
+  // detention_ouvrir_soi fait les deux dans la meme transaction. Sa cible est TOUJOURS le joueur
+  // courant -- c'est deja le cas de tous les appelants de cette fonction, l'incarceration d'un
+  // tiers passant par justice_executer_condamnation depuis le 16 septembre 2026 -- et le serveur
+  // la lit par mon_personnage() plutot que de la recevoir.
+  //
+  // Ce qui est desormais construit PAR LE SERVEUR et non plus ici :
+  // - city/country sur est_emprisonne (lot "salle des geoles", 26 aout 2026), qui permettent a la
+  //   salle des geoles de savoir QUELLE prison heberge reellement chaque detenu, independamment
+  //   de la ville de condamnation ;
+  // - debutTs, l'ANCRE TEMPS REEL (chantier A / P0-3, 14 septembre 2026) : jourFin s'exprime en
+  //   state.day, compteur PRIVE de chaque personnage, dont le serveur ne peut rien deduire. Sans
+  //   cette ancre, une peine n'expirait que si son detenu revenait se connecter. Le filet de
+  //   securite nocturne (libererDetentionsEchuesServeur) libere a debutTs + jours x 24 h ;
+  // - jour_debut, pris sur la colonne `day` de la fiche plutot que sur state.day, dont elle est
+  //   le miroir : le jour de la peine n'est plus a la main du navigateur.
+  // `jourFin == null` AVANT isFinite : Number(null) vaut 0, qui est fini -- une peine sans terme
+  // aurait donc traverse la garde et ouvert une peine de zero jour, purgeable le jour meme.
+  // Defaut trouve par banc-detention-plateau, 9 octobre 2026.
+  if (jourFin === null || jourFin === undefined || !Number.isFinite(Number(jourFin))) {
+    // Aucun appelant ne fait cela aujourd'hui, et une peine sans terme n'expirerait jamais
+    // (state.day >= null est faux) : on refuse plutot que d'inventer une duree.
+    console.warn('enregistrerDetention : jourFin absent, aucune peine ouverte', nom, raison);
+    return null;
+  }
+  if (typeof sbRpc !== 'function') return null;
+  const vOuv = await sbRpc('detention_ouvrir_soi', {
+    p_raison: raison,
+    p_jours: Math.max(0, Number(jourFin) - jourDebut),
+    p_city: villeReelle,
+    p_motifs: motifs,
+    p_qhs: !!qhs,
+    p_extras: {
       jour_affaire: (opts.jourAffaire !== undefined) ? opts.jourAffaire : null,
       issue_judiciaire: opts.issueJudiciaire || null,
       autorite: opts.autorite || null,
       ville_condamnation: opts.villeCondamnation || null,
       detention_precedente_id: opts.detentionPrecedenteId || null,
-      reliquat_jours: (opts.reliquatJours !== undefined) ? opts.reliquatJours : null
-    }).catch(() => null);
-    detentionId = rows?.[0]?.id || null;
-  }
+      reliquat_jours: (opts.reliquatJours !== undefined) ? opts.reliquatJours : null,
+      retour_ville: opts.retourVille || null
+    }
+  }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
 
-  // city/country portes directement sur est_emprisonne (lot "salle des geoles", 26 aout 2026) :
-  // c'est ce qui permet a la salle des geoles de savoir QUELLE prison (ville) heberge reellement
-  // chaque detenu, independamment de la ville de condamnation -- sans ca, impossible de scoper
-  // une liste de detenus actifs par commissariat sans deviner.
-  const estEmprisonneValue = {
-    jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
-    jourFin: jourFin !== undefined ? jourFin : null,
-    raison,
-    detentionId,
-    qhs: !!qhs,
-    city: villeReelle,
-    country,
-    // ANCRE TEMPS REEL (chantier A / P0-3, 14 septembre 2026). jourFin s'exprime en state.day,
-    // compteur PRIVE de chaque personnage : le serveur ne peut donc rien en deduire, et une peine
-    // n'expirait que si son detenu revenait se connecter. Un joueur absent restait incarcere sans
-    // limite. debutTs est le seul repere partage : le filet de securite nocturne
-    // (libererDetentionsEchuesServeur, api/cron-minuit.js) libere a debutTs + jours x 24 h.
-    // INVARIANT REUTILISE, PAS INVENTE : 'jours' est deja maintenu a jour par TOUS les chemins qui
-    // modifient une peine -- prolongerDetentionActive (+jours), reduction avocat (-jours), evasion
-    // ratee et rebellion (+1) -- l'echeance reelle suit donc automatiquement chaque mutation.
-    debutTs: Date.now()
-  };
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneValue }).catch(() => {});
-  }
+  // VERDICT CONSOMME : sans peine en base, rien n'est pose localement. Le cas « cible_deja_detenue »
+  // n'est pas un echec de transport mais la garde de rejeu de la primitive : la peine en cours
+  // reste celle qui vaut.
+  if (!vOuv || vOuv.ok !== true) return null;
+
+  const detentionId = vOuv.detention_id || null;
+  const jourFinReel = (vOuv.jour_fin != null) ? vOuv.jour_fin : Number(jourFin);
+  const joursReels = jourFinReel - ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut);
+
+  if (!state.prisonniers) state.prisonniers = [];
+  const entree = { nom, depuis: 'Jour ' + ((vOuv.jour_debut != null) ? vOuv.jour_debut : jourDebut), raison, jourFin: jourFinReel };
+  if (qhs) entree.qhs = true;
+  state.prisonniers.push(entree);
+
   if (nom === state.char?.name) {
     // Fusion, jamais ecrasement : si l'appelant (ex. procederArrestation) a deja positionne
     // state.estEmprisonne de facon synchrone pour que l'UI/la navigation reagisse
     // immediatement (avant meme que cette fonction async ait fini), on ne fait qu'y ajouter
     // detentionId plutot que de remplacer l'objet.
-    if (!state.estEmprisonne) state.estEmprisonne = { jours: estEmprisonneValue.jours, jourFin: estEmprisonneValue.jourFin, raison };
+    if (!state.estEmprisonne) state.estEmprisonne = { raison };
+    state.estEmprisonne.jours = joursReels;
+    state.estEmprisonne.jourFin = jourFinReel;
     state.estEmprisonne.detentionId = detentionId;
     state.estEmprisonne.city = villeReelle;
     state.estEmprisonne.country = country;
+    if (opts.retourVille && !state.estEmprisonne.retourVille) state.estEmprisonne.retourVille = opts.retourVille;
     if (qhs) state.estEmprisonne.qhs = true;
   }
 
@@ -10913,52 +11033,39 @@ async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
   // requiresPost:'juge' (data.js).
   //
   // Le cas « je prolonge MA PROPRE detention » (rebellion en cellule, placement au QHS apres un
-  // flagrant delit) reste sur le chemin direct : le joueur ecrit sur sa ligne, ce que les policies
-  // autorisent, et aucun pouvoir n'est en jeu.
-  if (nom && nom !== state.char?.name) {
-    if (typeof sbRpc !== 'function') return false;
-    const rows = await sbRpc('justice_prolonger_peine', {
-      p_cible: nom,
-      p_motifs: motifsSupplementaires || [],
-      p_forcer_qhs: !!forcerQhs
-    });
-    const r = Array.isArray(rows) ? rows[0] : rows;
-    if (!r || r.ok !== true) {
-      // Refus d'autorite (42501) ou cible non detenue : sbRpc a deja journalise le detail.
-      return false;
-    }
-    return true;
+  // flagrant delit) a SA PROPRE PORTE depuis le 9 octobre 2026 : detention_prolonger_soi. Les deux
+  // portes partagent desormais UN SEUL MOTEUR -- detention_prolonger_interne -- au lieu de
+  // dupliquer la sequence de chaque cote. Elles avaient d'ailleurs deja DIVERGE : la RPC du juge
+  // posait le drapeau QHS et inscrivait au registre du QHS, le chemin client ne le faisait pas.
+  //
+  // Et ce chemin client relisait les motifs de la detention avec `.catch(() => [])` avant de les
+  // reecrire : un echec de lecture ECRASAIT tous les motifs deja enregistres. Le moteur les relit
+  // sous verrou, dans la transaction qui les concatene.
+  if (typeof sbRpc !== 'function') return false;
+  const rows = (nom && nom !== state.char?.name)
+    ? await sbRpc('justice_prolonger_peine', {
+        p_cible: nom,
+        p_motifs: motifsSupplementaires || [],
+        p_forcer_qhs: !!forcerQhs
+      })
+    : await sbRpc('detention_prolonger_soi', {
+        p_motifs: motifsSupplementaires || [],
+        p_forcer_qhs: !!forcerQhs
+      });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || r.ok !== true) {
+    // Refus d'autorite (42501), cible non detenue ou motifs absents : sbRpc a deja journalise le
+    // detail. Aucun etat local n'est touche -- la peine affichee reste celle que la base porte.
+    return false;
   }
 
-  const estCourant = (nom === state.char?.name) ? state.estEmprisonne : null;
-  let estEmprisonne = estCourant;
-  if (!estEmprisonne && typeof sbGet === 'function') {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=est_emprisonne`).catch(() => []);
-    estEmprisonne = rows?.[0]?.est_emprisonne || null;
+  if (nom === state.char?.name && state.estEmprisonne) {
+    const joursSupp = Number(r.jours_ajoutes || 0);
+    state.estEmprisonne.jours = (state.estEmprisonne.jours || 0) + joursSupp;
+    if (r.jour_fin != null) state.estEmprisonne.jourFin = r.jour_fin;
+    if (forcerQhs) state.estEmprisonne.qhs = true;
+    if (!state.estEmprisonne.detentionId && r.detention_id) state.estEmprisonne.detentionId = r.detention_id;
   }
-  if (!estEmprisonne || !estEmprisonne.detentionId) return false;
-
-  const joursSupp = motifsSupplementaires.reduce((s, m) => s + (m.jours || 0), 0);
-  const jourFinActuel = (estEmprisonne.jourFin != null) ? estEmprisonne.jourFin : (state.day || 1);
-  const nouveauJourFin = jourFinActuel + joursSupp;
-
-  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-    const detRows = await sbGet('detentions', `id=eq.${encodeURIComponent(estEmprisonne.detentionId)}&select=motifs`).catch(() => []);
-    const motifsActuels = detRows?.[0]?.motifs || [];
-    const patch = { motifs: motifsActuels.concat(motifsSupplementaires), jour_fin: nouveauJourFin };
-    if (forcerQhs) patch.qhs = true;
-    await sbUpdate('detentions', `id=eq.${encodeURIComponent(estEmprisonne.detentionId)}`, patch).catch(() => {});
-  }
-
-  const estEmprisonneMaj = Object.assign({}, estEmprisonne, {
-    jours: (estEmprisonne.jours || 0) + joursSupp,
-    jourFin: nouveauJourFin,
-    qhs: forcerQhs ? true : estEmprisonne.qhs
-  });
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneMaj }).catch(() => {});
-  }
-  if (nom === state.char?.name) state.estEmprisonne = estEmprisonneMaj;
   return true;
 }
 

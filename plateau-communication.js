@@ -1072,10 +1072,14 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
         const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
         state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
         if (typeof enregistrerDetention === 'function') {
+          // L'assignation synchrone ci-dessus est un PARI : si le serveur n'ouvre pas la peine,
+          // il est defait (9 octobre 2026). Sans cela le joueur restait enferme par la navigation
+          // alors qu'aucune detention n'existait en base -- et aucune liberation ne viendrait
+          // jamais, le filet nocturne n'ayant aucune ligne a liberer.
           enregistrerDetention(state.char?.name, 'Distribution de tracts calomnieux', (state.day || 1) + 1, undefined, state.currentCity, {
             country: state.country,
             motifs: motifsTracts
-          }).catch(() => {});
+          }).then(id => { if (!id) state.estEmprisonne = null; }).catch(() => { state.estEmprisonne = null; });
         }
         showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
         addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');

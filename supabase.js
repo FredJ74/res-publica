@@ -3143,10 +3143,16 @@ async function sbSetEtatUrgence(country, actif, activePar, jour) {
   return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
 }
 
-async function sbCreerDetention(data) {
-  const id = 'det-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-  return sbInsert('detentions', { id, ...data });
-}
+// sbCreerDetention A ETE SUPPRIMEE LE 9 OCTOBRE 2026. C'etait le dernier INSERT direct du
+// navigateur dans `detentions` : il ouvrait une peine sans poser est_emprisonne, les deux
+// ecritures etant independantes et toutes deux avalees. Toute incarceration passe desormais par
+// detention_ouvrir_interne, qui fait les deux en une transaction, et par l'une de ses sept portes
+// d'autorite -- detention_ouvrir_soi pour la cible « soi-meme », qui est le seul cas que ce
+// navigateur avait le droit d'ouvrir.
+//
+// Le GRANT d'INSERT de `authenticated` sur `detentions` n'est PAS encore revoque : la base ne doit
+// pas passer devant le code deploye. La revocation est un lot a elle seule, apres constat que plus
+// aucun client en service n'ecrit cette table.
 
 // Le registre du commissariat est local : city obligatoire des que connue (le repli sans city
 // existe uniquement pour ne pas casser un appelant qui l'ignorerait encore).
@@ -3185,10 +3191,12 @@ async function sbGetDetenusActifs(country, city) {
                           est_emprisonne: { qhs: !!r.qhs, city, country } }));
 }
 
-async function sbCreerJugement(data) {
-  const id = 'jug-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-  return sbInsert('jugements', { id, ...data });
-}
+// sbCreerJugement A ETE SUPPRIMEE LE 9 OCTOBRE 2026. Son seul appelant, appliquerSentence,
+// l'invoquait avec un `.catch(() => {})` puis annoncait la condamnation sans condition -- et lui
+// dictait le nom du juge. justice_rendre_sentence archive le jugement et clot son affaire en une
+// transaction, sous affaire_autorite_de(ville), et nomme elle-meme le magistrat. Son identifiant
+// derive de celui de l'affaire, la ou celui-ci derivait d'une horloge : deux clics produisaient
+// deux jugements.
 
 async function sbLoadJugements(country) {
   return sbGet('jugements', `country=eq.${encodeURIComponent(country)}&order=jour.desc`);
@@ -3854,18 +3862,18 @@ async function sbGetCompagnies(pays) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
-async function sbCreerPrisonnierQHS(data) {
-  const id = 'qhs-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  const ecrit = await sbInsert('prisonniers_qhs', { id, statut: 'detenu', data });
-  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
-  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
-  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
-  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
-  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
-  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
-  if (!ecrit) return null;
-  return id;
-}
+// sbCreerPrisonnierQHS A ETE SUPPRIMEE LE 9 OCTOBRE 2026. Elle etait le dernier INSERT direct du
+// navigateur dans `prisonniers_qhs`, et ses trois appelants la posaient APRES coup, en plus de la
+// peine : le registre du quartier de haute securite pouvait donc avoir une ligne sans detention,
+// ou une detention QHS sans ligne au registre.
+//
+// Le registre est desormais tenu par detention_qhs_poser_interne, dans la transaction de la peine,
+// et ce poseur est l'UNIQUE ecrivain du caractere QHS -- registre, drapeau de la fiche et
+// `detentions.qhs`. Il porte aussi la photo du detenu, la seule donnee que cette fonction
+// transmettait et que le poseur ne savait pas encore lire.
+//
+// Le GRANT d'INSERT de `authenticated` sur `prisonniers_qhs` n'est PAS encore revoque, meme raison
+// que pour `detentions` : la base ne doit pas passer devant le code deploye.
 
 async function sbGetPrisonniersQHS(pays) {
   const rows = await sbGet('prisonniers_qhs', `statut=eq.detenu&select=id,data`);

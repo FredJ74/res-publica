@@ -951,18 +951,22 @@ async function sbLoadCyclesElectoraux(country) {
   } catch(e) { return null; }
 }
 
-async function sbVoterPour(country, posteId, votant, candidat, city) {
-  if (typeof sbInsert !== 'function') return;
-  const cle = getCleCycle(posteId, city);
-  try {
-    await sbInsert('votes_electoraux', {
-      id: country + '_' + cle + '_' + votant,
-      country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
-      votant, candidat,
-      created_at: new Date().toISOString()
-    });
-  } catch(e) {}
-}
+// sbVoterPour A ETE SUPPRIMEE LE 9 OCTOBRE 2026, ET C'ETAIT LE POINT DU LOT.
+//
+// Elle inserait le bulletin depuis le navigateur, dans un try{}catch{} vide sans retour. Le
+// bulletin est desormais pose par la porte serveur `election_voter`, qui ecrit la ligne de
+// `votes_electoraux` ET le blob du cycle dans une seule transaction (voir voterPour()).
+//
+// LA GARDER AURAIT ETE UNE ARME CHARGEE : c'etait la derniere ecriture cliente directe dans
+// `votes_electoraux`, donc un chemin qui contourne la fenetre de vote, le controle de domicile
+// et la liste des candidats -- toutes verifications que la porte applique. La doctrine du
+// chantier 3 le dit : « la liste des ecritures directes ne doit que RETRECIR ».
+//
+// Le droit d'INSERT de `authenticated` sur cette table n'est PAS encore revoque : la base ne
+// doit pas passer devant le code deploye. Il le sera une fois ce commit en production -- voir
+// baseline/arbitrages/AUDIT-CHANTIER-5-ECRITURES-PLATEAU.md. La policy
+// `votes_electoraux_vote_soi` (votant = mon_personnage()) reste, et doit rester : si ce droit
+// etait un jour re-accorde par accident, elle empeche encore de voter au nom d'un autre.
 
 async function sbGetVotes(country, posteId, city) {
   if (typeof sbGet !== 'function') return [];
@@ -1841,7 +1845,7 @@ async function confirmerCandidature(el) {
 }
 
 // Vote PJ
-function voterPour(candidatNom, posteId, country, city) {
+async function voterPour(candidatNom, posteId, country, city) {
   const votant = state.char?.name;
   if (!votant) return;
 
@@ -1873,10 +1877,54 @@ function voterPour(candidatNom, posteId, country, city) {
   // Vote blanc (chantier "Hotel de Ville / elections", 4 septembre 2026) : choix reel au meme
   // titre qu'un candidat, jamais un candidat fictif ajoute a cycle.candidats -- comptabilise a
   // part par le depouillement serveur (calculerResultatsServer, api/cron-minuit.js).
+  // ==========================================================================================
+  // LE BULLETIN EST DESORMAIS POSE PAR UNE PORTE SERVEUR (chantier 5, 9 octobre 2026).
+  //
+  // CE QUI SE PASSAIT. Deux ecritures clientes independantes, puis une annonce :
+  //   1. sbVoterPour  -> la ligne de `votes_electoraux`, dans un try{}catch{} VIDE sans retour ;
+  //   2. sbSaveCycleElectoral -> le blob du cycle, en `.catch(() => {})` ;
+  //   3. « Vote enregistre ! », sans attendre ni lire quoi que ce soit -- cette fonction
+  //      n'etait meme pas async.
+  // Aucune des deux tables ne confirmait rien, et le joueur etait remercie quand meme.
+  //
+  // ET LES DEUX COMPTENT, ce qui est le point le moins evident de ce mecanisme. Le client
+  // reconstruit `cycle.votes` depuis la TABLE a chaque synchronisation (syncCyclesDepuisSupabase
+  // ci-dessus), mais le depouillement de minuit (calculerScoresBaseCycle, api/cron-minuit.js) ne
+  // lit QUE LE BLOB. Un bulletin ecrit sans son blob existait donc pour l'affichage et
+  // disparaissait du decompte -- jusqu'a ce qu'un autre client resynchronise, ou jamais.
+  //
+  // election_voter ecrit les deux dans UNE transaction, sous verrou du cycle -- ce qui regle
+  // aussi la perte de bulletin entre deux electeurs simultanes, le blob etant relu-modifie-
+  // reecrit. Elle refait toutes les verifications ci-dessus cote serveur, et n'en ajoute
+  // AUCUNE : fenetre de vote, domicile et liste des candidats sont les memes conditions,
+  // transcrites sur les champs que le blob porte lui-meme.
+  //
+  // ON NE TOUCHE PLUS A cycle.votes AVANT LA CONFIRMATION : le marquer tot aurait fait croire a
+  // cette session qu'elle avait vote, et bloque une seconde tentative legitime.
+  // ==========================================================================================
+  //
+  // LE REJET DE TRANSPORT EST CANALISE VERS LE MEME REFUS (9 octobre 2026) : sans ce `.catch`,
+  // une coupure reseau faisait rejeter voterPour, et l'electeur n'obtenait AUCUN message -- ni
+  // succes, ni refus. Un silence n'est pas un verdict. Defaut trouve par banc-vote-electoral.
+  const rVote = typeof sbRpc === 'function'
+    ? await sbRpc('election_voter', { p_pays: country, p_poste_id: posteId,
+                                      p_ville: city || null, p_candidat: candidatNom })
+        .catch(() => null)
+    : null;
+  const vVote = Array.isArray(rVote) ? rVote[0] : rVote;
+  if (!vVote || vVote.ok !== true) {
+    const motif = vVote?.raison || 'indisponible';
+    showToast('Vote non enregistré',
+      motif === 'deja_vote' ? 'Vous avez déjà voté pour ce poste.'
+      : motif === 'vote_ferme' ? 'Le vote n\'est pas ouvert actuellement.'
+      : motif === 'non_domicilie' ? 'Vous ne pouvez pas voter dans cet empire.'
+      : motif === 'candidat_inconnu' ? 'Ce candidat ne figure pas sur ce scrutin.'
+      : motif === 'acteur_non_authentifie' ? 'Session non reconnue : reconnectez-vous.'
+      : 'Votre bulletin n\'a pas pu être enregistré (' + motif + ').', false);
+    return;
+  }
+
   cycle.votes[votant] = candidatNom; // candidatNom peut valoir le sentinel 'BLANC'
-  // Persister en Supabase
-  sbVoterPour(country, posteId, votant, candidatNom, city).catch(() => {});
-  sbSaveCycleElectoral(country, posteId, cycle, city).catch(() => {});
   const libelleVote = candidatNom === 'BLANC' ? 'blanc' : candidatNom;
   showToast('Vote enregistré !', 'Vous avez voté ' + (candidatNom === 'BLANC' ? 'blanc' : ('pour ' + candidatNom)) + '.', true);
   addJournalEntry('🗳️ Vote enregistré : ' + libelleVote + (city ? ' (' + city + ')' : '') + '.', 'event-info');
@@ -2452,15 +2500,19 @@ async function emprisonnerPourFraude(joursPlafond, raison, liberationElection) {
   // La sanction ne change pas d'un jour. liberationElection est simplement REPOSE apres coup :
   // c'est lui qui permet au cron de liberer des que CE scrutin est clos, avant le plafond.
   const jourFin = (state.day || 1) + joursPlafond;
-  if (typeof enregistrerDetention === 'function') {
-    await enregistrerDetention(state.char?.name, raison, jourFin, undefined, state.currentCity, {
-      country: state.country || 'republic',
-      source: 'fraude_electorale',
-      motifs: [{ type: raison, jour_fait: state.day || 1, city: state.currentCity || 'capitale',
-                 jours: joursPlafond, source: 'fraude_electorale',
-                 date_evenement: new Date().toISOString() }]
-    }).catch(() => {});
-  }
+  const idDetention = (typeof enregistrerDetention === 'function')
+    ? await enregistrerDetention(state.char?.name, raison, jourFin, undefined, state.currentCity, {
+        country: state.country || 'republic',
+        source: 'fraude_electorale',
+        motifs: [{ type: raison, jour_fait: state.day || 1, city: state.currentCity || 'capitale',
+                   jours: joursPlafond, source: 'fraude_electorale',
+                   date_evenement: new Date().toISOString() }]
+      }).catch(() => null)
+    : null;
+  // VERDICT CONSOMME (9 octobre 2026) : sans peine ouverte en base, aucun etat de detention n'est
+  // pose localement. Sinon le fraudeur se retrouvait enferme par la navigation sans aucune ligne
+  // a liberer -- ni par le scrutin, ni par le filet nocturne.
+  if (!idDetention) return;
   if (!state.estEmprisonne) state.estEmprisonne = { jours: joursPlafond, jourFin, raison };
   state.estEmprisonne.liberationElection = liberationElection || null;
   if (state.char) state.char.estEmprisonne = state.estEmprisonne;

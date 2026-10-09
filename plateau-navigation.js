@@ -2184,7 +2184,14 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
 
 
 // Wrappers pour les onclick électoraux
-function voterPourCandidat(el) { voterPour(el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
+// ATTENDRE LE BULLETIN AVANT DE REAFFICHER (chantier 5, 9 octobre 2026). voterPour() est
+// devenue asynchrone : son bulletin est maintenant pose par une porte serveur et `cycle.votes`
+// n'est renseigne QU'APRES confirmation. Sans ce `await`, le bureau de vote se redessinait avant
+// la reponse et montrait l'electeur comme n'ayant pas vote -- puis le toast arrivait par-dessus.
+async function voterPourCandidat(el) {
+  await voterPour(el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city);
+  ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city);
+}
 // Les relais du prospectus ont ete retires le 12 septembre 2026 avec la mecanique elle-meme
 // (ancienne generation du tract electoral, voir plateau-politique.js).
 function ouvrirBureauDeVoteBtn(el) { ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
