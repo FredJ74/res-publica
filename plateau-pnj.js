@@ -4352,8 +4352,18 @@ async function doAcheterTerrain() {
 // Finalise reellement l'acquisition d'un terrain (proprietaire, surface, valeur, Supabase,
 // copropriete du conjoint). Reutilisee par la signature chez le notaire, que ce soit a
 // l'issue d'un compromis ou d'un achat direct avec rendez-vous.
-async function finaliserAchatTerrain(id, prix, surface, aPermis) {
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Finaliser l'achat")) return;
+// `titre` nomme AU SERVEUR le droit invoque : 'compromis' ou 'achat_direct'. Le serveur le
+// verifie contre l'etat reel du terrain -- un client ne peut plus se declarer acheteur d'un bien
+// qu'il n'a ni reserve ni promis. Rend true si la propriete a reellement mute, false sinon : les
+// deux appelants s'en servent pour ne PAS purger la reservation d'un acte qui n'a pas eu lieu.
+//
+// `purge` porte les cles de la RESERVATION CONSOMMEE par l'acte ({ achatDirect: null } ou les cinq
+// cles du compromis). Elles voyagent dans LE MEME patch que la mutation, donc dans la meme
+// transaction : c'etait la seconde moitie du defaut. Avant, la reservation etait purgee par un
+// deuxieme sbSetTerrainState avale -- et si celui-la se perdait, doActeVenteTerrain reproposait
+// l'acte, que le joueur repayait, solde compris.
+async function finaliserAchatTerrain(id, prix, surface, aPermis, titre, purge) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Finaliser l'achat")) return false;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const b = BUILDINGS[id];
   const localName = b?.shortName || b?.name || id;
@@ -4368,7 +4378,19 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
     } catch(e) {}
   }
 
-  const nouvelEtat = setTerrainState(id, {
+  // LA MUTATION DE PROPRIETE EST UNE PORTE SERVEUR (chantier 5, 10 octobre 2026).
+  //
+  // CE QUI SE PASSAIT. Le solde du prix etait deja parti cote serveur (deduireCoutOrdre ->
+  // payer_ordre, chez les deux appelants) quand on arrivait ici, et l'ecriture du terrain etait
+  // AVALEE : l'acheteur pouvait payer et ne rien recevoir. L'historique public de la vente, ecrit
+  // juste apres et avale lui aussi, pouvait de son cote acter une vente qui n'existe pas -- avec
+  // un identifiant portant Date.now(), donc jamais dedoublonnable.
+  //
+  // terrain_proprietaire_muter fait les deux dans UNE transaction, verifie le TITRE invoque
+  // (compromis a mon nom, ou achat direct a mon nom), refuse un terrain gele par une succession, et
+  // -- point d'architecture -- recoit un PATCH qu'elle fusionne sur l'etat REEL lu sous verrou,
+  // plus un blob entier relu dans le cache du navigateur qui pouvait ecraser le serveur.
+  const patch = {
     proprietaire: state.char?.name,
     coproprietaire: coproprietaire,
     acheteAt: Date.now(),
@@ -4380,13 +4402,24 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
     // terrain -- ne jamais deduire la ville d'un terrain de state.currentCity (A2, audit du 16
     // aout 2026). getVilleTerrain (plateau-justice-economie.js) fait autorite via l'id du terrain.
     city: typeof getVilleTerrain === 'function' ? getVilleTerrain(id) : (state.currentCity || 'capitale')
-  });
-  if (typeof sbSetTerrainState === 'function') {
-    await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  };
+  for (const k in (purge || {})) patch[k] = purge[k];
+  const vMut = typeof sbRpc === 'function'
+    ? await sbRpc('terrain_proprietaire_muter', {
+        p_terrain_id: id, p_titre: titre, p_patch: patch, p_reference: null
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  // SANS VERDICT, LE TERRAIN N'A PAS CHANGE DE MAIN -- et on ne l'annonce pas.
+  if (!vMut || vMut.ok !== true) {
+    showToast('Transfert non enregistré',
+      "Le paiement a été prélevé, mais la mutation de propriété n'a pas pu être enregistrée. "
+      + "Présentez-vous à nouveau à l'Office Notarial : le titre est toujours à votre nom.", false);
+    addJournalEntry("Mutation de propriété non enregistrée (" + ((vMut && vMut.raison) || 'appel non abouti')
+      + ") : le terrain n'a pas changé de main.", 'event-bad');
+    return false;
   }
-  if (typeof sbEnregistrerVenteTerrain === 'function') {
-    await sbEnregistrerVenteTerrain(state.country, id, state.char?.name, prix).catch(() => {});
-  }
+  // On recopie dans le cache l'etat arrete par le SERVEUR, jamais un calcul local.
+  if (typeof setTerrainState === 'function' && vMut.etat) setTerrainState(id, vMut.etat);
 
   updateUI();
   if (coproprietaire) {
@@ -4400,6 +4433,7 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
     addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. Permis valide.', 'event-good');
     showToast('Terrain acheté !', 'Avec permis. Construction autorisée.', true);
   }
+  return true;
 }
 
 // Accelere (reduit de moitie le delai restant) le rendez-vous notarial d'un achat direct en

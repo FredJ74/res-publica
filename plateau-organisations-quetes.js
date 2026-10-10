@@ -350,23 +350,41 @@ async function remettreRecompenseQuete(quete) {
         const squatterProfiles = profiles.filter(p => p.id === 'squatter_cool' || p.id === 'squatter_agr');
         const squatterChoisi = squatterProfiles[Math.floor(Math.random() * squatterProfiles.length)] || null;
 
-        const nouvelEtat = {
+        // UN PATCH, PAS UN BLOB (chantier 5, 10 octobre 2026). Ces quatre cles partaient telles
+        // quelles a sbSetTerrainState -- qui ecrit `data` EN ENTIER. Ce terrain perdait donc
+        // surface, valeur, ville et tout le reste a l'instant ou il etait gagne. Le correctif de ce
+        // patron, revendique ailleurs dans le depot (« Lot 1.5.0 »), n'avait jamais ete propage
+        // jusqu'ici. terrain_proprietaire_muter fusionne maintenant le patch sur l'etat REEL lu
+        // sous verrou, et verifie que cette quete est bien la mienne et bien resolue.
+        const patchQuete = {
           proprietaire: state.char?.name,
           pnj: squatterChoisi?.id || null,
           pnjData: squatterChoisi || null,
           dateGeneration: Date.now()
         };
-
-        // Systeme unifie : cache local (state.terrainsState) + Supabase
-        if (typeof setTerrainState === 'function') {
-          setTerrainState(terrainInfo.buildingId, nouvelEtat);
-        }
-        if (typeof sbSetTerrainState === 'function') {
-          await sbSetTerrainState(state.country, terrainInfo.buildingId, nouvelEtat).catch(() => {});
-        }
-
+        const vTerrain = typeof sbRpc === 'function'
+          ? await sbRpc('terrain_proprietaire_muter', {
+              p_terrain_id: terrainInfo.buildingId, p_titre: 'recompense_quete',
+              p_patch: patchQuete, p_reference: quete.id
+            }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+          : null;
         const villeNom = WORLD[state.country]?.[terrainInfo.cityId]?.name || terrainInfo.cityId;
-        msg = '🏛️ Vous gagnez un TERRAIN À BÂTIR à ' + villeNom + ' (' + terrainInfo.buildingId + ') ! Attention : des squatteurs s\'y sont déjà installés...';
+        if (vTerrain && vTerrain.ok === true) {
+          // Le cache local recopie l'etat arrete par le SERVEUR, jamais le patch.
+          if (typeof setTerrainState === 'function' && vTerrain.etat) {
+            setTerrainState(terrainInfo.buildingId, vTerrain.etat);
+          }
+          msg = '🏛️ Vous gagnez un TERRAIN À BÂTIR à ' + villeNom + ' (' + terrainInfo.buildingId + ') ! Attention : des squatteurs s\'y sont déjà installés...';
+        } else {
+          // LA QUETE EST DEJA CONSOMMEE (sbReclamerQuete est un compare-and-swap irreversible) :
+          // on ne peut pas la rendre. On dit la verite plutot que d'annoncer un terrain qui n'a
+          // pas change de main -- et la compensation est celle, deja arbitree, du terrain pris.
+          const montantCompensation = 1500;
+          state.arg = (state.arg || 0) + montantCompensation;
+          msg = 'Le transfert du terrain promis à ' + villeNom + " n'a pas pu être enregistré ("
+              + ((vTerrain && vTerrain.raison) || 'appel non abouti') + '). En compensation : +'
+              + montantCompensation + ' ' + cur + '.';
+        }
       } else {
         // Terrain plus disponible -> fallback sur de l'argent consequent en compensation
         const montantCompensation = 1500;

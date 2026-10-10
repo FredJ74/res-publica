@@ -27,6 +27,11 @@ BANC_DESERTION = os.path.join(RACINE, "outils", "bancs", "banc-desertion-liberat
 CRON = os.path.join(RACINE, "api", "cron-minuit.js")
 BANC_COTISATIONS = os.path.join(RACINE, "outils", "bancs", "banc-cotisations-organisations.js")
 BANC_SUCCESSIONS = os.path.join(RACINE, "outils", "bancs", "banc-successions-reglement.js")
+BANC_IMPOTS = os.path.join(RACINE, "outils", "bancs", "banc-taux-imposition.js")
+ILLEGALES = os.path.join(RACINE, "plateau-actions-illegales-rumeurs.js")
+BANC_TOURNEE = os.path.join(RACINE, "outils", "bancs", "banc-tournee-cloture.js")
+PNJ = os.path.join(RACINE, "plateau-pnj.js")
+BANC_TERRAIN = os.path.join(RACINE, "outils", "bancs", "banc-mutation-terrain.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -111,6 +116,86 @@ REGRESSIONS_SUCCESSIONS = [
      "      if (toutesResolues) {",
      "      if (true) {",
      "la porte n est pas appelee"),
+]
+
+REGRESSIONS_TERRAIN = [
+    ("terrain -- le verdict de la mutation n'est plus lu",
+     "  if (!vMut || vMut.ok !== true) {",
+     "  if (false) {",
+     # Sans la lecture du verdict, `vMut.etat` leve sur un verdict nul : la promesse est rejetee et
+     # la fonction ne rend plus false. C'est cette epreuve-la qui tombe la premiere.
+     "verdict absent : la fonction rend false"),
+
+    ("terrain -- l'ecriture directe du blob revient",
+     "  const vMut = typeof sbRpc === 'function'",
+     "  await sbSetTerrainState(state.country, id, patch).catch(() => {});\n"
+     "  const vMut = typeof sbRpc === 'function'",
+     "finaliserAchatTerrain ne fait plus aucune ecriture directe de terrain"),
+
+    ("terrain -- la purge de la reservation retombe hors du patch",
+     "  for (const k in (purge || {})) patch[k] = purge[k];",
+     "  if (false) { for (const k in (purge || {})) patch[k] = purge[k]; }",
+     "LA PURGE DE LA RESERVATION EST DANS LE MEME PATCH"),
+
+    ("terrain -- le cache local reprend le patch au lieu de l'etat serveur",
+     "  if (typeof setTerrainState === 'function' && vMut.etat) setTerrainState(id, vMut.etat);",
+     "  if (typeof setTerrainState === 'function') setTerrainState(id, patch);",
+     "le cache local recopie l'etat RENDU PAR LE SERVEUR"),
+]
+
+REGRESSIONS_TOURNEE = [
+    ("tournee -- le verdict de la cloture n'est plus lu",
+     "  const close = await cloturer(true);\n  if (!close) {",
+     "  const close = await cloturer(true);\n  if (false) {",
+     "verdict absent : le joueur est averti que la cloture n a pas pris"),
+
+    ("tournee -- la suppression ligne par ligne revient dans la resolution",
+     "  const close = await cloturer(true);\n  if (!close) {",
+     "  await sbSupprimerInvitationDiner(1);\n"
+     "  const close = await cloturer(true);\n  if (!close) {",
+     "aucune suppression d invitation ligne par ligne ne subsiste dans la resolution"),
+
+    ("tournee -- le gain local est pose AVANT la cloture",
+     "  const close = await cloturer(true);\n  if (!close) {",
+     "  state.moral = Math.min(100, (state.moral || 0) + 2);\n"
+     "  const close = await cloturer(true);\n  if (!close) {",
+     "verdict absent : le gain local n est pas pose"),
+
+    ("tournee -- une vente refusee est cloturee comme SERVIE",
+     "  if (!vente.ok) {\n    await cloturer(false);",
+     "  if (!vente.ok) {\n    await cloturer(true);",
+     "la porte est appelee une fois avec servie=false"),
+]
+
+REGRESSIONS_IMPOTS = [
+    ("impots -- le succes redevient inconditionnel",
+     "  if (r.ok !== true) { signalerRefusTauxImposition(r); return null; }",
+     "  if (false) { signalerRefusTauxImposition(r); return null; }",
+     "refus \u00ab autorite_insuffisante \u00bb : nomme au joueur, aucun succes"),
+
+    ("impots -- un verdict absent redevient un taux fixe",
+     "  if (!r) {\n"
+     "    showToast('Action impossible', \"L'ordre n'a pas abouti : le taux n'a pas \u00e9t\u00e9 "
+     "modifi\u00e9.\", false);\n"
+     "    return null;\n"
+     "  }",
+     "  if (false) {\n"
+     "    showToast('Action impossible', \"L'ordre n'a pas abouti : le taux n'a pas \u00e9t\u00e9 "
+     "modifi\u00e9.\", false);\n"
+     "    return null;\n"
+     "  }",
+     "verdict absent : le refus est dit"),
+
+    ("impots -- le taux annonce redevient celui du curseur",
+     "  showToast('Imp\u00f4ts locaux fix\u00e9s', 'Nouveau taux : ' + r.taux + '%.', true, true);",
+     "  showToast('Imp\u00f4ts locaux fix\u00e9s', 'Nouveau taux : '"
+     " + parseInt(document.getElementById('taux-local-input')?.value || '5') + '%.', true, true);",
+     "le curseur disait 31, le serveur a arrete 7"),
+
+    ("impots -- la cle du budget redevient transmise par le client",
+     "    p_portee: portee, p_taux: nouveauTaux,",
+     "    p_portee: portee, p_taux: nouveauTaux, p_cle: 'republic_capitale',",
+     "AUCUNE cle de budget n est transmise"),
 ]
 
 REGRESSIONS = [
@@ -255,8 +340,13 @@ def main():
           lanceur=lancer_sources)
     serie("REGLEMENT DES SUCCESSIONS", BANC_SUCCESSIONS, CRON, REGRESSIONS_SUCCESSIONS, echecs,
           lanceur=lancer_sources)
+    serie("TAUX D'IMPOSITION", BANC_IMPOTS, JUSTICE, REGRESSIONS_IMPOTS, echecs)
+    serie("CLOTURE D'UNE TOURNEE", BANC_TOURNEE, ILLEGALES, REGRESSIONS_TOURNEE, echecs)
+    serie("MUTATION DE PROPRIETE D'UN TERRAIN", BANC_TERRAIN, PNJ, REGRESSIONS_TERRAIN, echecs)
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
-             + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS))
+             + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
+             + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
+             + len(REGRESSIONS_TERRAIN))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

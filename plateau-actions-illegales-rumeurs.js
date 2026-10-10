@@ -5608,29 +5608,25 @@ async function confirmerOffrirTourneeUI(commerceType, buildingId, roomId, recett
   }
 }
 
-// Credit MORAL/ENT d'un invite ayant reellement accepte (section 13). Meme niveau de fiabilite
-// que le seul precedent existant de mutation cross-joueur (debiterCitoyenPlafonne,
-// plateau-politique.js:3841) : lecture puis ecriture non atomiques, dette transactionnelle
-// acceptee explicitement par Fred pour ce lot (aucune RPC ajoutee). ENT reutilise le plafond dur
-// de appliquerGainENT (20) mais PAS sa limite "une fois par jour" -- cette derniere repose sur
-// state.char.dernierGainENTJour, un champ jamais persiste cote serveur (absent de
-// sbSavePersonnage/sbLoadPersonnage, verifie) : il n'existe donc aucune donnee fiable a lire pour
-// l'appliquer a un joueur distant. Seul le plafond dur (verifiable via stats.ENT, reellement
-// persiste) est donc applique ici.
-async function crediterTourneeInviteAcceptant(nomCible) {
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=moral,stats`).catch(() => []);
-  const row = rows?.[0];
-  if (!row) return;
-  const moralActuel = row.moral ?? 75;
-  const stats = row.stats || {};
-  const entActuel = stats.ENT || 0;
-  const nouveauStats = entActuel < 20 ? { ...stats, ENT: Math.min(20, entActuel + 1) } : stats;
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCible)}`, {
-    moral: Math.min(100, moralActuel + 2),
-    stats: nouveauStats
-  }).catch(() => {});
-}
+// crediterTourneeInviteAcceptant A ETE SUPPRIMEE (chantier 5, chaine 6, 10 octobre 2026).
+//
+// ELLE N'A JAMAIS RIEN CREDITE, ET VOICI LA MESURE. Elle creditait +2 Moral et +1 ENT a chaque
+// invite ayant accepte, par un sbUpdate client sur la fiche de L'AUTRE JOUEUR, avec
+// .catch(() => {}). Mesure faite en base le 10 octobre 2026 : un tel UPDATE ne rend pas
+// « 0 ligne », il LEVE « personnage_non_possede » (ERRCODE 42501) depuis le trigger
+// personnages_vue_modifier de la vue public.personnages -- la politique RLS personnages_maj_soi
+// reserve l'UPDATE a user_id = auth.uid(). Le catch avalait donc cette exception a chaque passage :
+// depuis le chantier B, AUCUN invite n'a recu le gain que le jeu lui annonce.
+//
+// Le commentaire d'origine se trompait sur un point et il faut le dire : il parlait de « lecture
+// puis ecriture non atomiques » et d'une « dette transactionnelle ». Le probleme n'etait pas
+// l'atomicite, c'etait l'AUTORITE -- l'ecriture etait tout simplement interdite.
+//
+// Le credit vit maintenant dans tournee_cloturer, qui vise la TABLE personnages_donnees et non la
+// vue, dans la meme transaction que le nettoyage des invitations et la cloture. Les deux plafonds
+// de la regle (moral 100, ENT 20) y sont repris, et la limite « une fois par jour » reste
+// volontairement NON appliquee, pour la raison deja consignee : dernierGainENTJour n'est jamais
+// persiste cote serveur, il n'existe donc aucune donnee fiable a lire.
 
 // Resolution tout-ou-rien (section 10) d'une tournee deja claim (statut en_resolution, voir
 // verifierTourneesActivesOffreur ci-dessous qui seul appelle cette fonction, uniquement pour ses
@@ -5644,15 +5640,25 @@ async function resoudreTournee(tournee) {
   const pnjAcceptants = (tournee.pnj_resultats || []).filter(p => p.accepte);
   const N = pjAcceptants.length + pnjAcceptants.length;
 
-  async function nettoyerInvitations() {
-    for (const row of invitationsPJ) { await sbSupprimerInvitationDiner(row.id).catch(() => {}); }
-  }
-
   const estMoi = tournee.offreur === state.char?.name;
 
+  // LA CLOTURE EST UNE SEULE PORTE, POUR LES QUATRE SORTIES (chantier 5, chaine 6, 10 octobre
+  // 2026). Avant : nettoyerInvitations() supprimait les invitations une par une avec un catch
+  // avale, puis sbMarquerTourneeResolue etait attendu sans que son retour soit lu. Si ce dernier
+  // echouait, la ligne restait en 'en_resolution' -- et trente secondes plus tard le polling la
+  // RECLAMAIT, donc resoudreTournee RECOMMENCAIT TOUT : vente, PA, stock, caisse. Le
+  // compare-and-swap sur statut, dans tournee_cloturer, rend ce rejeu impossible.
+  // Rend true si la cloture a pris ; false sinon, et alors on n'annonce rien de definitif.
+  async function cloturer(servie) {
+    if (typeof sbRpc !== 'function') return false;
+    const v = await sbRpc('tournee_cloturer', { p_tournee_id: tournee.id, p_servie: !!servie })
+      .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+      .catch(function () { return null; });
+    return !!(v && v.ok === true);
+  }
+
   if (N === 0) {
-    await nettoyerInvitations();
-    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    await cloturer(false);
     if (estMoi) {
       showToast('Tournée déclinée', 'Personne n\'a accepté votre offre.', false);
       addJournalEntry('Tournée proposée : personne n\'a accepté.', 'event-info');
@@ -5669,8 +5675,7 @@ async function resoudreTournee(tournee) {
 
   // Echec total (section 10) : une seule ressource manquante suffit, aucun service partiel.
   if (!data || !recette || prixReel == null || stockActuel < quantite || argentDispo < prixReel * quantite) {
-    await nettoyerInvitations();
-    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    await cloturer(false);
     if (estMoi) {
       showToast('Tournée annulée', 'Les ressources nécessaires ne sont plus réunies au moment de servir la tournée.', false);
       addJournalEntry('Tournée annulée à la résolution : stock, prix ou fonds insuffisants.', 'event-bad');
@@ -5701,8 +5706,7 @@ async function resoudreTournee(tournee) {
                   [{ produit: tournee.recette_id, qte: quantite }], 'comptoir', null, 0, 0,
                   tournee.pa_debite ? null : 'pa_tournee');
   if (!vente.ok) {
-    await nettoyerInvitations();
-    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    await cloturer(false);
     if (estMoi) {
       showToast('Tournée annulée',
         vente.raison === 'pa_insuffisants' ? 'Plus assez de PA pour offrir la tournée.'
@@ -5714,7 +5718,9 @@ async function resoudreTournee(tournee) {
     }
     return;
   }
-  if (!tournee.pa_debite) await sbMarquerTourneePaDebite(tournee.id).catch(() => {});
+  // sbMarquerTourneePaDebite A DISPARU D'ICI : tournee_cloturer pose pa_debite=true dans la meme
+  // transaction que statut='resolue'. Un marqueur intermediaire avale n'apportait rien de plus et
+  // pouvait se perdre seul.
   const net = vente.net;
 
   // Effets (section 13) : offreur une seule fois, chaque invite PJ ayant reellement accepte de
@@ -5722,15 +5728,25 @@ async function resoudreTournee(tournee) {
   // chaque ligne d'invitation (et non une boucle de credit separee de la suppression) : c'est ce
   // qui rend une reprise apres crash idempotente sans colonne de suivi supplementaire -- une ligne
   // deja supprimee ne peut plus jamais etre recreditee lors d'une reprise ulterieure.
-  state.moral = Math.min(100, (state.moral || 0) + 2);
-  if (typeof appliquerGainENT === 'function') appliquerGainENT(1);
-
-  for (const row of invitationsPJ) {
-    if (row.statut === 'acceptee') await crediterTourneeInviteAcceptant(row.invite);
-    await sbSupprimerInvitationDiner(row.id).catch(() => {});
+  // LA CLOTURE D'ABORD, L'ANNONCE ENSUITE. Elle porte le credit des invites, la suppression des
+  // invitations et le marqueur, dans une seule transaction. Si elle n'aboutit pas, la vente a bien
+  // eu lieu -- on ne peut pas la defaire -- mais on ne pretend pas que la tournee est servie : la
+  // reprise a 30 s la reprendra, et le joueur le sait.
+  const close = await cloturer(true);
+  if (!close) {
+    if (estMoi) {
+      showToast('Tournée non confirmée',
+        "Les consommations ont été payées, mais la tournée n'a pas pu être clôturée. Elle sera "
+        + "reprise automatiquement.", false);
+      addJournalEntry('Tournée : clôture non confirmée, reprise automatique en attente.',
+        'event-bad');
+      updateUI();
+    }
+    return;
   }
 
-  await sbMarquerTourneeResolue(tournee.id, true);
+  state.moral = Math.min(100, (state.moral || 0) + 2);
+  if (typeof appliquerGainENT === 'function') appliquerGainENT(1);
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
   updateUI();
   showToast('Tournée servie !', quantite + ' ' + recette.label + ' servi(e)s. -' + montantTotal.toLocaleString('fr-FR') + ' FR. +2 Moral +1 ENT.', true, true);

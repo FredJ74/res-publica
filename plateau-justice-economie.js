@@ -273,29 +273,25 @@ async function confirmerRachat(btn, pa, cost) {
   showToast('Offre envoyée !', proprietaire + ' a reçu votre proposition.', true);
 }
 
-async function accepterRachat(acheteur, buildingId, prix) {
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Accepter ce rachat')) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const b = BUILDINGS[buildingId];
-  const localName = b?.shortName || b?.name || buildingId;
-
-  // Transférer le terrain (systeme unifie : cache local + Supabase)
-  const nouvelEtatRachat = setTerrainState(buildingId, { proprietaire: acheteur, coproprietaire: null });
-  if (typeof sbSetTerrainState === 'function') {
-    sbSetTerrainState(state.country, buildingId, nouvelEtatRachat).catch(() => {});
-  }
-  state.arg += prix;
-  updateUI();
-
-  addJournalEntry('Terrain "' + localName + '" vendu à ' + acheteur + ' pour ' + prix.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
-  showToast('Terrain vendu !', '+' + prix.toLocaleString('fr-FR') + ' ' + cur, true);
-
-  // Notifier l'acheteur
-  if (typeof sendMail === 'function') {
-    sendMail(acheteur, 'Transfert de propriété — ' + localName,
-      'Votre offre a été acceptée. Le terrain "' + localName + '" vous appartient désormais.');
-  }
-}
+// accepterRachat A ETE SUPPRIMEE (chantier 5, 10 octobre 2026).
+//
+// ELLE N'AVAIT AUCUN APPELANT -- mesure faite sur tout le depot, HTML compris : la seule
+// occurrence de son nom etait sa propre declaration. Le courrier emis par confirmerRachat
+// ci-dessus dit « répondez à ce mail en indiquant "J'accepte". Le transfert sera effectué par la
+// mairie », et il n'existe nulle part de lecteur de cette reponse. Le mecanisme n'a donc jamais
+// fonctionne : une offre de rachat part, le proprietaire la lit, et rien ne peut l'accepter.
+//
+// Elle etait de plus une TROISIEME porte d'entree pour muter le proprietaire d'un terrain, avec
+// deux defauts de son cru : elle creditait le vendeur par `state.arg += prix` -- un credit
+// purement client, sans aucune contrepartie debitee chez l'acheteur -- et elle appelait
+// getTerrainState SANS chargerTerrainState, donc son blob entier pouvait etre un squelette par
+// defaut qui aurait ecrase surface, valeur, permis et chantier.
+//
+// La supprimer ne retire AUCUNE possibilite de jeu, puisqu'elle n'etait pas atteignable. Le jour
+// ou le rachat entre joueurs sera reellement construit, il passera par
+// terrain_proprietaire_muter -- avec un titre et un paiement, comme les deux autres chemins.
+// confirmerRachat ci-dessus est conservee telle quelle : elle envoie une offre, ce qui reste un
+// acte de jeu valide meme sans mecanisme d'acceptation.
 
 // ===========================================================================
 // ARRESTATION D'URGENCE (refonte du 15 septembre 2026)
@@ -2043,33 +2039,19 @@ function verifierBudgetInstitution(inst) {
 // c'est une decision de game design, consignee, pas un effet de bord de ce lot.
 
 
-function ouvrirFixerImpotsLocaux() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const taux = state.tauxImpositionLocal || 15;
-  document.getElementById('postes-modal-title').textContent = 'Fixer les impôts locaux';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux actuel : ' + taux + '%. Impact direct sur les recettes municipales et la popularité.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">NOUVEAU TAUX (%)</div>';
-  html += '<input id="taux-local-input" type="range" min="5" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-local-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
-  html += '<div id="taux-local-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
-  html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.8rem">En dessous de 10% : budget serré mais populaire. Au dessus de 25% : recettes élevées mais impopulaire.</div>';
-  html += '<button onclick="validerImpotsLocaux()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function validerImpotsLocaux() {
-  const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '15');
-  const ancienTaux = state.tauxImpositionLocal || 15;
-  state.tauxImpositionLocal = nouveauTaux;
-  const delta = nouveauTaux - ancienTaux;
-  state.pop = Math.max(0, Math.min(100, state.pop - Math.floor(delta * 0.5)));
-  document.getElementById('modal-postes').classList.remove('open');
-  updateUI();
-  showToast('Impôts locaux fixés', 'Taux : ' + nouveauTaux + '%. ' + (delta > 0 ? '-' + Math.floor(delta*0.5) + ' POP' : '+' + Math.floor(Math.abs(delta)*0.5) + ' POP'), delta > 0 ? false : true);
-  addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '% par le Maire.');
-}
+// ouvrirFixerImpotsLocaux / validerImpotsLocaux ONT ETE SUPPRIMEES (chantier 5, chaine 8,
+// 10 octobre 2026).
+//
+// C'ETAIT UNE SECONDE PORTE D'ENTREE POUR LE MEME ACTE, et elle etait un fantome. Le routeur
+// (plateau-router.js, fn 'fixer_impots_locaux') n'appelle que ouvrirFixerImpotsLocauxReel ; cette
+// paire-ci n'avait AUCUN appelant -- verifie dans tout le depot, HTML compris. Elle ecrivait
+// `state.tauxImpositionLocal`, un champ que personne d'autre qu'elle ne lisait, deplacait la
+// popularite de la moitie du delta, et annoncait « Impots locaux fixes » : un maire qui l'aurait
+// atteinte aurait vu son taux confirme, sa POP bouger, et RIEN n'aurait ete ecrit en base.
+//
+// Le bareme 5-40 % qu'elle portait n'etait d'ailleurs plus celui du jeu (les deux curseurs en
+// service vont de 0 a 40 %), et l'effet sur la popularite n'existe nulle part ailleurs : aucune
+// regle de jeu ne disparait avec elle, puisqu'elle n'en appliquait aucune.
 
 async function doCampagneSecurite() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4503,15 +4485,19 @@ async function traiterActeVente(candidat) {
     // avant la premiere mutation irreversible (finalisation de l'achat).
     const rAd = await deduireCoutOrdre({ pa: 1, cost: solde });
     if (!rAd.ok) { showToast(rAd.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rAd.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-    await finaliserAchatTerrain(id, ad.prix, ad.surface, false);
-    // Lot 1.5.0 : sbSetTerrainState ECRIT LE BLOB ENTIER (data = JSON.stringify(etat)), ce n'est
-    // pas un patch. Passer { achatDirect: null } ecrasait donc tout l'etat du terrain -- proprietaire
-    // (remis a null par la colonne), surface, valeur, permis, subdivisions, chantier -- juste apres
-    // que finaliserAchatTerrain venait de l'ecrire. On envoie desormais l'etat COMPLET fusionne
-    // renvoye par setTerrainState. Le cache local est frais et complet a ce point : doActeVenteTerrain
-    // a appele chargerTerrainState(id) sur chaque terrain avant de construire les candidats.
-    const etatApresAchatDirect = setTerrainState(id, { achatDirect: null });
-    if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, etatApresAchatDirect).catch(() => {});
+    // LA MUTATION ET LA PURGE DE LA RESERVATION SONT UN SEUL ACTE (chantier 5, 10 octobre 2026).
+    //
+    // Le commentaire « Lot 1.5.0 » qui vivait ici decrivait un vrai defaut -- sbSetTerrainState
+    // ECRIT LE BLOB ENTIER, donc { achatDirect: null } effacait tout -- et sa correction consistait
+    // a renvoyer l'etat COMPLET fusionne depuis le cache. Ce correctif tenait, mais il laissait
+    // DEUX ecritures : la mutation, puis la purge, toutes deux avalees. Si la seconde se perdait,
+    // ts.achatDirect survivait, doActeVenteTerrain (qui filtre sur achatDirect.demandeur sans
+    // jamais regarder ts.proprietaire) reproposait l'acte, et le joueur REPAYAIT LE SOLDE.
+    // Les deux cles voyagent desormais dans le MEME patch, vers la meme transaction serveur, qui
+    // fusionne sur l'etat reel -- plus de blob de cache, plus de seconde ecriture.
+    const mute = await finaliserAchatTerrain(id, ad.prix, ad.surface, false, 'achat_direct',
+                                            { achatDirect: null });
+    if (!mute) return;
     document.getElementById('modal-postes')?.classList.remove('open');
     showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '.', true, true);
     return;
@@ -4568,13 +4554,12 @@ async function traiterActeVente(candidat) {
   // avant la premiere mutation irreversible (finalisation de l'achat).
   const rCompromis = await deduireCoutOrdre({ pa: 1, cost: solde });
   if (!rCompromis.ok) { showToast(rCompromis.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCompromis.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-  await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface, ts.constructionAutorisee);
-  // Lot 1.5.0 : meme correction que pour l'achat direct ci-dessus -- `clear` est un patch destine a
-  // setTerrainState, jamais un etat complet. L'envoyer tel quel a sbSetTerrainState remplacait
-  // l'integralite du terrain par ces cinq cles nulles.
-  const clear = { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null };
-  const etatApresCompromis = setTerrainState(id, clear);
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, etatApresCompromis).catch(() => {});
+  // MEME TRAITEMENT QUE L'ACHAT DIRECT CI-DESSUS, pour la meme raison : les cinq cles du compromis
+  // consomme voyagent dans le MEME patch que la mutation de propriete, vers la meme transaction.
+  const muteC = await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface,
+    ts.constructionAutorisee, 'compromis',
+    { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null });
+  if (!muteC) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '. Acompte déduit du prix.', true, true);
 }
@@ -12371,22 +12356,78 @@ async function ouvrirFixerImpotsLocauxReel(pa, cost) {
   html += '<input id="taux-local-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-local-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
   html += '<div id="taux-local-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
   html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
-  html += '<button onclick="validerImpotsLocauxReel(\'' + budgetMuni.key + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  // LA CLE DU BUDGET N'EST PLUS TRANSMISE AU BOUTON (chantier 5, chaine 8). Elle l'etait, et la
+  // porte la recevait telle quelle : un maire de Luthecia pouvait fixer le taux de
+  // Port-Sainte-Marie. Le serveur derive maintenant la ville du poste reel.
+  html += '<button onclick="validerImpotsLocauxReel(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function validerImpotsLocauxReel(key, pa, cost) {
-  const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '5');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const budgetMuni = await sbGetBudgetMunicipal(key);
-  budgetMuni.tauxLocal = nouveauTaux;
-  await sbSaveBudgetMunicipal(key, budgetMuni);
+// FIXER UN TAUX D'IMPOSITION — UN SEUL ACTE, UNE SEULE TRANSACTION (chantier 5, chaine 8,
+// 10 octobre 2026).
+//
+// CE QUI SE PASSAIT. deduireCoutOrdre prelevait 2 PA, PUIS le blob du budget etait relu, modifie
+// et REECRIT EN ENTIER -- sans condition de version, et sans que le retour soit lu. Trois defauts
+// en un : (a) toute modification concurrente d'un autre champ du budget (une recette, un
+// virement) etait perdue ; (b) la cle du budget venait du client ; (c) le toast « Impots locaux
+// fixes » etait inconditionnel, donc un maire pouvait payer 2 PA, ne rien changer, et le croire.
+//
+// taux_imposition_fixer fait les trois dans une seule transaction serveur : elle verifie le poste
+// REEL de l'acteur, en derive le territoire, preleve par payer_ordre (meme attestation du cout
+// contre le miroir ordres_couts qu'avant), et ne touche QU'UNE CLE du blob par jsonb_set. Si
+// l'ecriture n'aboutit pas, le paiement est annule avec elle.
+//
+// Le refus est toujours NOMME : les motifs propres a cet acte ici, les motifs de paiement par
+// signalerRefusCout, qui les nomme deja pour les 268 ordres du jeu.
+function signalerRefusTauxImposition(r) {
+  const motifs = {
+    autorite_insuffisante: ["Accès refusé",
+      r.poste_requis === 'min_fin' ? "Réservé au Ministre des Finances."
+                                   : "Réservé au Maire de la ville."],
+    maire_sans_ville: ["Ville indéterminée",
+      "Votre poste de Maire n'est rattaché à aucune ville : le taux n'a pas été modifié."],
+    budget_introuvable: ["Budget introuvable",
+      "Le budget de ce territoire n'existe pas. Rien n'a été modifié, et rien n'a été prélevé."],
+    taux_hors_bornes: ["Taux refusé", "Le taux doit être compris entre 0 et 40 %."],
+    portee_inconnue: ["Ordre inconnu", "Cette portée de taxation n'existe pas."]
+  };
+  const m = motifs[r.raison];
+  if (m) { showToast(m[0], m[1], false); return; }
+  signalerRefusCout(r);
+}
+
+async function fixerTauxImposition(portee, idInput, pa, cost) {
+  const nouveauTaux = parseInt(document.getElementById(idInput)?.value || '5');
+  if (typeof sbRpc !== 'function') {
+    showToast('Action impossible', "L'ordre n'a pas pu être transmis. Rien n'a été prélevé.", false);
+    return null;
+  }
+  const r = await sbRpc('taux_imposition_fixer', {
+    p_portee: portee, p_taux: nouveauTaux,
+    // Le MEME nom d'ordre que deduireCoutOrdre aurait transmis : le serveur attestera le couple
+    // (pa, cost) contre son miroir, exactement comme avant.
+    p_fn: state._ordreEnCours || null, p_pa: pa, p_cost: cost
+  }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  // UN APPEL QUI N'ABOUTIT PAS N'EST PAS UN TAUX FIXE. Sans cette branche, une coupure reseau
+  // affichait « Impots locaux fixes » sur un taux jamais ecrit.
+  if (!r) {
+    showToast('Action impossible', "L'ordre n'a pas abouti : le taux n'a pas été modifié.", false);
+    return null;
+  }
+  if (r.ok !== true) { signalerRefusTauxImposition(r); return null; }
+  // On recopie l'etat arrete par le SERVEUR, jamais un calcul local.
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r);
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Impôts locaux fixés', 'Nouveau taux : ' + nouveauTaux + '%.', true, true);
-  addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '%.');
+  return r;
+}
+
+async function validerImpotsLocauxReel(pa, cost) {
+  const r = await fixerTauxImposition('local', 'taux-local-input', pa, cost);
+  if (!r) return;
+  showToast('Impôts locaux fixés', 'Nouveau taux : ' + r.taux + '%.', true, true);
+  addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + r.taux + '%.');
 }
 
 async function ouvrirFixerImpotNational(pa, cost) {
@@ -12401,23 +12442,19 @@ async function ouvrirFixerImpotNational(pa, cost) {
   html += '<input id="taux-national-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-national-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
   html += '<div id="taux-national-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
-  html += '<button onclick="validerImpotNational(\'' + pays + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '<button onclick="validerImpotNational(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function validerImpotNational(pays, pa, cost) {
-  const nouveauTaux = parseInt(document.getElementById('taux-national-input')?.value || '5');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.tauxNational = nouveauTaux;
-  await sbSaveBudgetNational(pays, budgetNat);
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Impôts nationaux fixés', 'Nouveau taux : ' + nouveauTaux + '%.', true, true);
-  addJournalEntry('Taux d\'imposition national fixé à ' + nouveauTaux + '% par le Ministre des Finances.', 'event-info');
-  addExternalEvent('FINANCES : Le taux d\'imposition national est fixé à ' + nouveauTaux + '%.');
+// Le pays n'est plus transmis : comme la ville du maire, il vient du poste reel de l'acteur.
+async function validerImpotNational(pa, cost) {
+  const r = await fixerTauxImposition('national', 'taux-national-input', pa, cost);
+  if (!r) return;
+  showToast('Impôts nationaux fixés', 'Nouveau taux : ' + r.taux + '%.', true, true);
+  addJournalEntry('Taux d\'imposition national fixé à ' + r.taux + '% par le Ministre des Finances.', 'event-info');
+  addExternalEvent('FINANCES : Le taux d\'imposition national est fixé à ' + r.taux + '%.');
 }
 
 // =====================

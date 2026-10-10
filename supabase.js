@@ -4445,13 +4445,15 @@ async function sbReclaimResolutionTourneeExpiree(id, seuilIso) {
     { statut: 'en_resolution', resolution_started_at: new Date().toISOString() });
 }
 
-async function sbMarquerTourneePaDebite(id) {
-  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}`, { pa_debite: true });
-}
-
-async function sbMarquerTourneeResolue(id, paDebite) {
-  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}`, { statut: 'resolue', pa_debite: !!paDebite });
-}
+// sbMarquerTourneePaDebite ET sbMarquerTourneeResolue ONT ETE SUPPRIMEES (chantier 5, chaine 6,
+// 10 octobre 2026). Elles ecrivaient `tournees.statut` et `tournees.pa_debite` SANS condition :
+// deux chemins clients pour la cloture d'une tournee, en plus de la porte. La cloture passe
+// desormais exclusivement par tournee_cloturer, qui pose les deux champs par compare-and-swap sur
+// statut='en_resolution', dans la meme transaction que le credit des invites et le nettoyage des
+// invitations. Leur unique appelant (resoudreTournee) est passe a la porte le meme jour ; les
+// laisser en place aurait maintenu une seconde maniere de clore -- sans verrou, celle-la.
+// sbClaimResolutionTournee et sbReclaimResolutionTourneeExpiree ci-dessus RESTENT : ce sont les
+// deux revendications conditionnelles, et c'est elles qui amenent une tournee en 'en_resolution'.
 
 async function sbCreerInvitationsTournee(rows) {
   return sbInsert('invitations_diner', rows);
