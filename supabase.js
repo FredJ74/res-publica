@@ -4583,16 +4583,39 @@ async function sbGetDerniereQueteResolue(country) {
 // =====================
 // ETAT DES TERRAINS A BATIR (proprietaire, squatteurs, etc.) - persiste reellement
 // =====================
-async function sbSetTerrainState(country, buildingId, etat) {
-  const data = {
-    id: country + '_' + buildingId,
-    country, building_id: buildingId,
-    proprietaire: etat.proprietaire || null,
-    data: JSON.stringify(etat),
-    updated_at: new Date().toISOString()
-  };
-  return sbUpsert('terrains_etat', data);
-}
+// sbSetTerrainState A ETE SUPPRIMEE (chantier 5, 10 octobre 2026).
+//
+// C'ETAIT LA PLUS GROSSE SURFACE D'ECRITURE CLIENTE DU JEU. Vingt-deux sites l'appelaient, DIX-NEUF
+// avalaient son resultat, et elle ecrivait la colonne `data` EN ENTIER depuis le cache du
+// navigateur -- un blob qui porte ensemble le proprietaire, le compromis, l'achat direct, le
+// permis, le chantier, le decoupage en lots, les locataires et le gel successoral.
+//
+// QUATRE DEFAUTS CUMULES, tous mesures :
+//   * un patch partiel compose cote client effacait le reste de l'etat ;
+//   * un cache perime ecrasait ce que le serveur avait arrete -- le cron de minuit fait avancer
+//     `chantier.progressionJours`, `permis.joursInstructionFaits` et les stocks dans CETTE ligne ;
+//   * trois acteurs differents (proprietaire, locataire, visiteur) reecrivaient le MEME tableau de
+//     lots : le second ecrasait le premier, et personne ne le voyait ;
+//   * et la policy d'UPDATE de `terrains_etat` est `acteur_identifie()` : tout joueur connecte
+//     pouvait reecrire l'etat entier de n'importe quel terrain -- reprendre un compromis, trancher
+//     un permis, geler un bien.
+//
+// HUIT PORTES SERVEUR LA REMPLACENT, une par MECANISME et non une par site :
+//   `terrain_compromis_acte`   compromis, pret, transfert, achat direct (6 actes)
+//   `terrain_permis_acte`      depot, instruction, decision, acceleration, plan (5 actes)
+//   `terrain_chantier_acte`    acceleration par corruption, vol de materiaux (2 actes)
+//   `terrain_lots_acte`        decoupage, agrandissement, bail (6 actes)
+//   `terrain_reamenagement_poser`, `terrain_succession_geler`,
+//   `terrain_succession_annuler_compromis`, et `terrain_proprietaire_muter` (deja la)
+// Toutes passent par un ECRIVAIN INTERNE unique, injoignable depuis le reseau, qui fusionne sous
+// verrou et tient la colonne `proprietaire`.
+//
+// LES DROITS CLIENTS SUR LA TABLE NE SONT PAS ENCORE RETIRES, et c'est deliberement consigne : le
+// precedent du depot (registre 584) veut qu'on ne retire une surface d'ecriture qu'APRES avoir
+// prouve octet par octet que le code deploye est celui qui n'en a plus besoin. C'est la premiere
+// action du lot suivant.
+//
+// sbGetTerrainState et sbGetTerrainsPossedesPar RESTENT : elles ne font que lire.
 
 async function sbGetTerrainState(country, buildingId) {
   const rows = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(country + '_' + buildingId)}`);

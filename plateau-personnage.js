@@ -1367,11 +1367,17 @@ async function ouvrirSuccession(defunt, country) {
   // arret immediat au premier echec (section 2 des arbitrages).
   for (const d of dispositions) {
     if (d.type === 'terrain') {
-      await chargerTerrainState(d.id);
-      const ts = getTerrainState(d.id);
-      if (!ts) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
-      const r = await sbSetTerrainState(country, d.id, { ...ts, succession_gel: successionId });
-      if (!r) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
+      // LE GEL D'UN TERRAIN A ENFIN LA MEME PORTE QUE CELUI D'UNE ENTREPRISE (10 octobre 2026).
+      // Cette ligne reecrivait le blob ENTIER depuis le cache, sans aucun controle -- le defaut
+      // que le chantier C avait ferme sur l'entreprise juste en dessous, et qui est RESTE ouvert
+      // ici. Il y est pire depuis ce lot : `succession_gel` est la cle que les quatre portes des
+      // terrains consultent pour refuser toute action, donc un gel invente paralysait le terrain
+      // d'autrui. `terrain_succession_geler` exige une succession EN ATTENTE et verifie que le
+      // terrain est bien celui du defunt. Rejouable a l'identique, comme la reprise l'exige.
+      const r = await sbRpc('terrain_succession_geler',
+        { p_terrain_id: d.id, p_succession: successionId })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!r || r.ok !== true) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
     } else if (d.type === 'entreprise') {
       // CHANTIER C / PHASE 3 : le gel etait pose en reecrivant le blob entier, sans aucun
       // controle -- un succession_gel invente suffisait a geler l'entreprise d'autrui. La RPC
@@ -1422,11 +1428,13 @@ async function ouvrirSuccession(defunt, country) {
   // 11. Nettoyage des engagements du defunt sur des biens qui ne sont pas les siens (section 6 +
   // transfertPropose === defunt, section 4 des arbitrages).
   for (const id of compromisTerrainsAAnnuler) {
-    await chargerTerrainState(id);
-    const ts = getTerrainState(id);
-    const nettoye = { ...ts, compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null, achatDirect: null, transfertPropose: null, transfertProposePar: null };
-    const r = await sbSetTerrainState(country, id, nettoye);
-    if (!r) return { ok: false, raison: 'echec_nettoyage_compromis_terrain', detail: id };
+    // MEME JUMELAGE QUE LE GEL (10 octobre 2026) : l'entreprise avait
+    // `entreprise_succession_annuler_compromis`, le terrain ecrivait son blob entier depuis le
+    // cache. La porte verifie que l'engagement annule est bien celui du DEFUNT.
+    const r = await sbRpc('terrain_succession_annuler_compromis',
+      { p_terrain_id: id, p_succession: successionId })
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (!r || r.ok !== true) return { ok: false, raison: 'echec_nettoyage_compromis_terrain', detail: id };
   }
   for (const id of compromisEntreprisesAAnnuler) {
     // CHANTIER C / PHASE 3 : meme raison. Seul un compromis dont le DEFUNT est l'acheteur peut

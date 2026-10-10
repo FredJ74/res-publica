@@ -34,6 +34,8 @@ PNJ = os.path.join(RACINE, "plateau-pnj.js")
 BANC_TERRAIN = os.path.join(RACINE, "outils", "bancs", "banc-mutation-terrain.js")
 SUPABASE = os.path.join(RACINE, "supabase.js")
 BANC_PLAINTES = os.path.join(RACINE, "outils", "bancs", "banc-cycle-plaintes.js")
+PERSONNAGE = os.path.join(RACINE, "plateau-personnage.js")
+BANC_TERRAIN_ETAT = os.path.join(RACINE, "outils", "bancs", "banc-etat-terrain.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -336,6 +338,59 @@ REGRESSIONS_PLAINTES_SUPABASE = [
 ]
 
 
+# ---------------------------------------------------------------------------------------------
+# ETAT D'UN TERRAIN (chantier 5, les 22 `sbSetTerrainState`, 10 octobre 2026).
+REGRESSIONS_TERRAIN_SUPABASE = [
+    ("terrain -- la plus grosse surface d'ecriture cliente revient dans supabase.js",
+     "async function sbGetTerrainState(country, buildingId) {",
+     "async function sbSetTerrainState(country, buildingId, etat) {\n"
+     "  return sbUpsert('terrains_etat', { id: country + '_' + buildingId });\n}\n"
+     "async function sbGetTerrainState(country, buildingId) {",
+     "sbSetTerrainState n existe plus dans supabase.js"),
+]
+
+REGRESSIONS_TERRAIN_JUSTICE = [
+    ("terrain -- le verdict du transfert de compromis n'est plus lu",
+     "  if (!vTr || vTr.ok !== true) {",
+     "  if (false) {",
+     "les dix-neuf appels nommes lisent tous leur verdict"),
+
+    ("terrain -- la decision du permis renvoie l'etat ENTIER au serveur",
+     "    p_patch: valide\n      ? { permis: etat.permis, constructionAutorisee: true }\n"
+     "      : { permis: etat.permis }",
+     "    p_patch: etat",
+     "la decision du permis ne transmet que `permis`"),
+
+    ("terrain -- l'acceleration du chantier redevient calculee dans le navigateur",
+     "    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1",
+     "    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1,\n"
+     "    p_patch: { chantier: appliquerVerrouPlan(ch, state.day || 1) }",
+     "l'acceleration n'envoie ni progression, ni gain, ni duree"),
+
+    ("terrain -- le vol credite la quantite calculee ici, pas celle que le serveur a arretee",
+     "    qte = Number(vVol.quantite) || 0;",
+     "    void vVol;",
+     "le vol credite la quantite REELLEMENT emportee"),
+
+    ("terrain -- l'ajout d'un lot renvoie le tableau entier",
+     "    p_terrain_id: id, p_acte: 'lot_ajouter', p_lots: [lotNeuf]",
+     "    p_terrain_id: id, p_acte: 'lot_ajouter', p_lots: (ts.subdivisions || []).concat([lotNeuf])",
+     "doAjouterSubdivision n ecrit plus le tableau entier"),
+
+    ("terrain -- le lot absorbe est de nouveau designe par un indice",
+     "  const idVide = prop.idVide || (subdivisions[prop.idxVide] || {}).id || null;",
+     "  const idVide = null; subdivisions.splice(prop.idxVide, 1);",
+     "le lot absorbe est designe par son IDENTIFIANT"),
+]
+
+REGRESSIONS_TERRAIN_PERSONNAGE = [
+    ("terrain -- le gel successoral redevient une ecriture de blob",
+     "      const r = await sbRpc('terrain_succession_geler',",
+     "      const r = await sbRpcAbsente('terrain_succession_geler',",
+     "le gel passe par sa porte, et son verdict est lu"),
+]
+
+
 def lancer(banc, chemin_source):
     """Lance le banc sur la source donnee. Rend (code_de_sortie, sortie)."""
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
@@ -433,11 +488,19 @@ def main():
           REGRESSIONS_PLAINTES_POLITIQUE, echecs, lanceur=lancer_cible("plateau-politique.js"))
     serie("CYCLE D'UNE AFFAIRE -- supabase", BANC_PLAINTES, SUPABASE,
           REGRESSIONS_PLAINTES_SUPABASE, echecs, lanceur=lancer_cible("supabase.js"))
+    serie("ETAT D'UN TERRAIN -- supabase", BANC_TERRAIN_ETAT, SUPABASE,
+          REGRESSIONS_TERRAIN_SUPABASE, echecs, lanceur=lancer_cible("supabase.js"))
+    serie("ETAT D'UN TERRAIN -- justice", BANC_TERRAIN_ETAT, JUSTICE,
+          REGRESSIONS_TERRAIN_JUSTICE, echecs, lanceur=lancer_cible("plateau-justice-economie.js"))
+    serie("ETAT D'UN TERRAIN -- personnage", BANC_TERRAIN_ETAT, PERSONNAGE,
+          REGRESSIONS_TERRAIN_PERSONNAGE, echecs, lanceur=lancer_cible("plateau-personnage.js"))
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
              + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_PLAINTES_JUSTICE)
-             + len(REGRESSIONS_PLAINTES_POLITIQUE) + len(REGRESSIONS_PLAINTES_SUPABASE))
+             + len(REGRESSIONS_PLAINTES_POLITIQUE) + len(REGRESSIONS_PLAINTES_SUPABASE)
+             + len(REGRESSIONS_TERRAIN_SUPABASE) + len(REGRESSIONS_TERRAIN_JUSTICE)
+             + len(REGRESSIONS_TERRAIN_PERSONNAGE))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

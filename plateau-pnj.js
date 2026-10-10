@@ -4205,17 +4205,25 @@ async function doConfirmerCompromis(pa, cost) {
     if (demandePret) {
       const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
       const montantTotal = Math.round(montantPret * (1 + taux / 100));
-      const nouvelEtat = setTerrainState(id, {
-        pretDemande: {
+      // LA DEMANDE DE PRET PASSE PAR LA PORTE DU COMPROMIS (10 octobre 2026). Le serveur verifie
+      // que le compromis est bien le NOTRE -- `pas_mon_compromis` -- et fusionne sous verrou :
+      // l'etat que la RPC Helvetia vient d'ecrire n'est plus ecrase par ce cache.
+      const vPret = await sbTerrainActe('terrain_compromis_acte', {
+        p_terrain_id: id, p_acte: 'compromis_pret_demander',
+        p_patch: { pretDemande: {
           demandeur: state.char?.name,
           montant: montantPret,
           montantTotal: montantTotal,
           duree: dureePret,
           mensualite: Math.ceil(montantTotal / dureePret),
           statut: 'attente_validation'
-        }
+        } }
       });
-      if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+      if (!vPret || vPret.ok !== true) {
+        signalerRefusTerrain(vPret, 'La demande de prêt');
+      } else {
+        remplacerTerrainState(id, vPret.etat);
+      }
     }
 
     document.getElementById('modal-postes')?.classList.remove('open');
@@ -4270,8 +4278,17 @@ async function doConfirmerCompromis(pa, cost) {
     };
   }
 
-  const nouvelEtat = setTerrainState(id, patch);
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // LE COMPROMIS EST UNE PORTE (10 octobre 2026). `compromisPar` n'est plus dicte par ce
+  // navigateur : le serveur le pose lui-meme, refuse un terrain deja sous compromis d'autrui --
+  // la regle que son jumeau Helvetia appliquait deja -- et refuse tout champ etranger a l'acte.
+  const vSign = await sbTerrainActe('terrain_compromis_acte', {
+    p_terrain_id: id, p_acte: 'compromis_signer', p_patch: patch
+  });
+  if (!vSign || vSign.ok !== true) {
+    signalerRefusTerrain(vSign, 'La signature du compromis');
+    return;
+  }
+  remplacerTerrainState(id, vSign.etat);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -4326,17 +4343,24 @@ async function doAcheterTerrain() {
   const dateAchat = Date.now() + delaiJours * 86400000;
   const dateLimite = dateAchat + 24 * 3600000;
 
-  const nouvelEtat = setTerrainState(id, {
-    achatDirect: {
+  // LE DEPOT DE GARANTIE EST UNE PORTE (10 octobre 2026). Le serveur pose lui-meme le demandeur
+  // et refuse un terrain deja sous compromis ou deja promis a quelqu'un d'autre.
+  const vDep = await sbTerrainActe('terrain_compromis_acte', {
+    p_terrain_id: id, p_acte: 'achat_direct_deposer',
+    p_patch: { achatDirect: {
       demandeur: state.char?.name,
       acompte: ACOMPTE_ACHAT_DIRECT,
       prix: prix,
       surface: surface,
       dateAchat: dateAchat,
       dateLimite: dateLimite
-    }
+    } }
   });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  if (!vDep || vDep.ok !== true) {
+    signalerRefusTerrain(vDep, 'Le dépôt de garantie');
+    return;
+  }
+  remplacerTerrainState(id, vDep.etat);
 
   const dateTxt = new Date(dateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   updateUI();
@@ -4456,8 +4480,16 @@ async function doCorrompreRdvNotaire(pa, cost) {
   if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   const nouvelleDateAchat = maintenant + Math.floor(restant / 2);
   const achatDirect = { ...ts.achatDirect, dateAchat: nouvelleDateAchat, dateLimite: nouvelleDateAchat + 24 * 3600000 };
-  const nouvelEtat = setTerrainState(id, { achatDirect });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // LA MEME REGLE QU'ICI, MAIS EN BASE (10 octobre 2026) : `ts.achatDirect.demandeur !== moi`
+  // etait verifie sur ce cache, donc sur rien. Le serveur rend `pas_mon_achat_direct`.
+  const vAcc = await sbTerrainActe('terrain_compromis_acte', {
+    p_terrain_id: id, p_acte: 'achat_direct_accelerer', p_patch: { achatDirect }
+  });
+  if (!vAcc || vAcc.ok !== true) {
+    signalerRefusTerrain(vAcc, "L'accélération du rendez-vous");
+    return;
+  }
+  remplacerTerrainState(id, vAcc.etat);
 
   const dateTxt = new Date(nouvelleDateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   updateUI();

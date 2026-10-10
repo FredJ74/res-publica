@@ -4324,6 +4324,87 @@ function setTerrainState(buildingId, patch) {
   return actuel;
 }
 
+// L'ETAT D'UN TERRAIN A QUATRE PORTES SERVEUR ET PLUS AUCUNE ECRITURE CLIENTE (10 oct. 2026).
+//
+// CE QUI A ETE MESURE. `sbSetTerrainState` ecrivait la colonne `data` EN ENTIER, depuis ce cache.
+// Vingt-deux sites l'appelaient, DIX-NEUF avalaient son resultat. Trois familles de defauts, et
+// une quatrieme qui les surplombe :
+//
+//   * un patch partiel composé ici effacait le reste de l'etat ;
+//   * un cache perime ecrasait ce que le serveur avait arrete -- le cron de minuit fait avancer
+//     `chantier.progressionJours`, `permis.joursInstructionFaits` et les stocks dans CETTE ligne ;
+//   * deux joueurs agissant sur le meme terrain se detruisaient mutuellement, sans que personne
+//     ne le voie, parce que `subdivisions`, `permis`, `chantier` et `compromis` sont un seul blob ;
+//   * et la policy d'UPDATE de `terrains_etat` est `acteur_identifie()` : TOUT joueur connecte
+//     pouvait reecrire l'etat entier de N'IMPORTE QUEL terrain du jeu. L'exemple le plus net etait
+//     `doAccepterTransfertCompromis`, qui posait `compromisPar` a son propre nom sans jamais
+//     verifier que le transfert LUI avait ete propose.
+//
+// LES QUATRE PORTES, UNE PAR MECANISME -- et non dix-neuf rustines :
+//   `terrain_compromis_acte`  compromis, pret, transfert, achat direct   (6 actes)
+//   `terrain_permis_acte`     depot, instruction, decision, acceleration, plan   (5 actes)
+//   `terrain_chantier_acte`   acceleration par corruption, vol de materiaux   (2 actes)
+//   `terrain_lots_acte`       decoupage, agrandissement, bail   (6 actes)
+// Toutes passent par un ECRIVAIN INTERNE unique, injoignable depuis le reseau, qui fusionne le
+// patch sur l'etat relu SOUS VERROU et tient la colonne `proprietaire`.
+async function sbTerrainActe(porte, args) {
+  if (typeof sbRpc !== 'function') return null;
+  return await sbRpc(porte, args)
+    .then(rows => Array.isArray(rows) ? rows[0] : rows)
+    .catch(() => null);
+}
+
+// LE CACHE RECOPIE L'ETAT ARRETE PAR LE SERVEUR, il ne le recalcule pas. Remplacement EN BLOC et
+// non fusion : si le serveur a retire une cle, elle doit disparaitre ici aussi.
+function remplacerTerrainState(buildingId, etat) {
+  if (!etat || typeof etat !== 'object') return getTerrainState(buildingId);
+  if (!state.terrainsState) state.terrainsState = {};
+  state.terrainsState[buildingId] = etat;
+  return etat;
+}
+
+// UN REFUS DE PORTE EST NOMME AU JOUEUR, jamais avale. Les motifs sont ceux des quatre portes ;
+// un verdict absent est une panne de transport, et se dit comme telle.
+function signalerRefusTerrain(v, action) {
+  const quoi = action || 'Cette action';
+  const MOTIFS = {
+    terrain_gele: "ce bien est gelé le temps du règlement d'une succession.",
+    autorite_refusee: "vous n'avez pas l'autorité requise.",
+    hors_juridiction: "ce terrain n'est pas dans votre juridiction.",
+    pas_proprietaire: "vous n'êtes pas propriétaire de ce terrain.",
+    pas_mon_compromis: "vous ne détenez pas le compromis sur ce terrain.",
+    deja_sous_compromis: 'ce terrain est déjà sous compromis.',
+    transfert_non_propose: "aucun transfert de compromis ne vous a été proposé ici.",
+    transfert_a_soi_meme: 'on ne se transfère pas un compromis à soi-même.',
+    destinataire_absent: 'indiquez le nom du nouveau détenteur.',
+    pas_mon_achat_direct: "vous n'avez pas de rendez-vous notarial en attente ici.",
+    terrain_indisponible: "ce terrain n'est pas disponible à l'achat direct.",
+    aucune_instruction: "aucune instruction de permis n'est en cours ici.",
+    dossier_deja_decide: 'ce dossier a déjà été tranché.',
+    motif_requis: 'un refus de permis doit être motivé (10 caractères minimum).',
+    decision_invalide: 'décision de permis invalide.',
+    aucun_permis: 'aucun permis ne rattache un plan à ce terrain.',
+    chantier_absent: 'aucun chantier en cours ici.',
+    chantier_a_son_terme: 'le chantier est déjà arrivé à son terme.',
+    financement_insuffisant: "complétez le financement avant d'accélérer le chantier.",
+    progression_plafonnee: 'le financement versé ne permet pas d\'avancer davantage.',
+    stock_vide: 'le stock a été vidé entre-temps.',
+    matiere_inconnue: 'matière inconnue.',
+    pas_proprietaire_lot: "vous n'êtes pas propriétaire de ce terrain.",
+    aucune_proposition_sur_mon_lot: "aucune proposition d'agrandissement ne vous concerne ici.",
+    pas_mon_bail: "ce bail n'est pas le vôtre.",
+    liberation_qui_installe: "libération de bail incohérente : signalez-le.",
+    cle_hors_acte: "cette action a tenté d'écrire un champ qui ne lui appartient pas : signalez-le.",
+    terrain_introuvable: "ce terrain n'existe pas.",
+    acteur_non_authentifie: 'votre personnage n\'a pas été reconnu.'
+  };
+  const raison = v && v.raison;
+  const detail = (raison && MOTIFS[raison])
+    || (v ? 'le serveur a refusé : ' + (raison || 'motif inconnu') + '.'
+          : "le serveur n'a pas répondu — rien n'a été enregistré.");
+  if (typeof showToast === 'function') showToast(quoi + ' impossible', detail.charAt(0).toUpperCase() + detail.slice(1), false);
+}
+
 async function chargerTerrainState(buildingId) {
   if (typeof sbGetTerrainState !== 'function') return getTerrainState(buildingId);
   const distant = await sbGetTerrainState(state.country, buildingId).catch(() => null);
@@ -4825,8 +4906,17 @@ async function doInitierTransfertCompromis(id, pa, cost) {
   if (!rTransfert.ok) { signalerRefusCout(rTransfert); return; }
 
   const ts = getTerrainState(id);
-  const nouvelEtat = setTerrainState(id, { transfertPropose: destinataire, transfertProposePar: state.char?.name });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // LA PROPOSITION PASSE PAR LA PORTE (10 octobre 2026) : le serveur verifie que le compromis est
+  // bien le notre et pose lui-meme `transfertProposePar`.
+  const vProp = await sbTerrainActe('terrain_compromis_acte', {
+    p_terrain_id: id, p_acte: 'compromis_transfert_proposer',
+    p_patch: { transfertPropose: destinataire }
+  });
+  if (!vProp || vProp.ok !== true) {
+    signalerRefusTerrain(vProp, 'La proposition de transfert');
+    return;
+  }
+  remplacerTerrainState(id, vProp.etat);
 
   if (typeof sendMail === 'function') {
     await sendMail(destinataire, 'Office Notarial', 'Transfert de compromis proposé',
@@ -4884,8 +4974,18 @@ async function doAccepterTransfertCompromis(id, pa, cost) {
   if (ts.permis) patch.permis = { ...ts.permis, demandeur: nouveauDetenteur };
   if (ts.pretDemande) patch.pretDemande = { ...ts.pretDemande, demandeur: nouveauDetenteur };
 
-  const nouvelEtat = setTerrainState(id, patch);
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // LA REGLE QUI N'EXISTAIT QUE DANS L'ECRAN (10 octobre 2026). Cette fonction posait
+  // `compromisPar: moi` sans jamais verifier que le transfert LUI avait ete propose -- et la
+  // policy d'UPDATE de `terrains_etat` laisse ecrire tout joueur connecte. N'importe qui pouvait
+  // donc reprendre le compromis de n'importe qui. Le serveur rend `transfert_non_propose`.
+  const vTr = await sbTerrainActe('terrain_compromis_acte', {
+    p_terrain_id: id, p_acte: 'compromis_transfert_accepter', p_patch: patch
+  });
+  if (!vTr || vTr.ok !== true) {
+    signalerRefusTerrain(vTr, "L'acceptation du transfert");
+    return;
+  }
+  remplacerTerrainState(id, vTr.etat);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Transfert validé !', 'Vous détenez désormais le compromis sur ' + (BUILDINGS[id]?.shortName || id) + '.', true, true);
@@ -6422,11 +6522,20 @@ async function doAjouterSubdivision() {
   }
   if (!loyer || loyer < 1) { showToast('Loyer manquant', 'Indiquez un loyer journalier.', false); return; }
 
-  const subdivisions = ts.subdivisions || [];
-  subdivisions.push({ id: 'lot-' + Date.now(), label: label, surface: verdict.surface,
-                      destination: verdict.destination, locataire: null, loyer: loyer });
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  // LA PORTE NE PREND PLUS LE TABLEAU ENTIER (10 octobre 2026). Elle prend LE LOT, et le fusionne
+  // par son identifiant dans le tableau relu sous verrou : un lot cree au meme moment par le
+  // locataire d'un autre local ne disparait plus. L'autorite -- etre proprietaire -- est verifiee
+  // en base, pas seulement a l'ouverture de l'ecran.
+  const lotNeuf = { id: 'lot-' + Date.now(), label: label, surface: verdict.surface,
+                    destination: verdict.destination, locataire: null, loyer: loyer };
+  const vLot = await sbTerrainActe('terrain_lots_acte', {
+    p_terrain_id: id, p_acte: 'lot_ajouter', p_lots: [lotNeuf]
+  });
+  if (!vLot || vLot.ok !== true) {
+    signalerRefusTerrain(vLot, "L'ajout du lot");
+    return;
+  }
+  remplacerTerrainState(id, vLot.etat);
 
   showToast('Lot ajouté', label + ' (' + surface + ' m²) créé.', true);
   doOuvrirDivisionTerrain();
@@ -6546,9 +6655,20 @@ async function doFusionnerLot(idxOccupe, idxVide) {
   const lotVide = subdivisions[idxVide];
   if (!lotOccupe || !lotVide || lotEstLoue(id, lotVide)) return;
 
-  lotOccupe.propositionAgrandissement = { idxVide: idxVide, surfaceAjoutee: lotVide.surface, labelVide: lotVide.label };
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  lotOccupe.propositionAgrandissement = { idxVide: idxVide, surfaceAjoutee: lotVide.surface, labelVide: lotVide.label,
+                                          idVide: lotVide.id || null };
+  // LA PROPOSITION NE TOUCHE QU'UN LOT (10 octobre 2026) : on envoie CE lot, pas le tableau.
+  // `idVide` est ajoute parce qu'un INDICE ne survit pas a une fusion par identifiant -- et il ne
+  // survivait deja pas a l'ajout d'un lot par quelqu'un d'autre entre la proposition et sa
+  // reponse. L'indice reste lu en repli pour les propositions anterieures a ce lot.
+  const vFus = await sbTerrainActe('terrain_lots_acte', {
+    p_terrain_id: id, p_acte: 'lot_fusion_proposer', p_lots: [lotOccupe]
+  });
+  if (!vFus || vFus.ok !== true) {
+    signalerRefusTerrain(vFus, "La proposition d'agrandissement");
+    return;
+  }
+  remplacerTerrainState(id, vFus.etat);
 
   if (typeof sendMail === 'function') {
     await sendMail(locataireDuLot(id, lotOccupe), "Proposition d'agrandissement — " + lotOccupe.label,
@@ -6575,12 +6695,23 @@ async function doAccepterFusionLot(idxOccupe) {
   const prop = lotOccupe && lotOccupe.propositionAgrandissement;
   if (!prop) return;
 
+  // LE LOT ABSORBE EST DESIGNE PAR SON IDENTIFIANT, PAS PAR SON INDICE (10 octobre 2026) : un
+  // `splice` sur un indice calcule avant la reponse du locataire supprimait le MAUVAIS lot des
+  // qu'un autre lot avait bouge entre-temps. L'indice reste lu en repli pour les propositions
+  // posees avant ce lot.
+  const idVide = prop.idVide || (subdivisions[prop.idxVide] || {}).id || null;
   lotOccupe.surface += prop.surfaceAjoutee;
   delete lotOccupe.propositionAgrandissement;
-  subdivisions.splice(prop.idxVide, 1);
 
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  const vAcc = await sbTerrainActe('terrain_lots_acte', {
+    p_terrain_id: id, p_acte: 'lot_fusion_accepter', p_lots: [lotOccupe],
+    p_retirer: idVide ? [idVide] : null
+  });
+  if (!vAcc || vAcc.ok !== true) {
+    signalerRefusTerrain(vAcc, "L'acceptation de l'agrandissement");
+    return;
+  }
+  remplacerTerrainState(id, vAcc.etat);
 
   showToast('Agrandissement accepté', lotOccupe.label + ' fait désormais ' + lotOccupe.surface + ' m².', true);
   if (typeof addJournalEntry === 'function') addJournalEntry('Vous avez accepté l\'agrandissement de ' + lotOccupe.label + '.', 'event-good');
@@ -6595,8 +6726,14 @@ async function doRefuserFusionLot(idxOccupe) {
   if (!lotOccupe || !lotOccupe.propositionAgrandissement) return;
 
   delete lotOccupe.propositionAgrandissement;
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  const vRef = await sbTerrainActe('terrain_lots_acte', {
+    p_terrain_id: id, p_acte: 'lot_fusion_refuser', p_lots: [lotOccupe]
+  });
+  if (!vRef || vRef.ok !== true) {
+    signalerRefusTerrain(vRef, 'Le refus de la proposition');
+    return;
+  }
+  remplacerTerrainState(id, vRef.etat);
 
   showToast('Proposition refusée', "L'agrandissement n'aura pas lieu.", false);
 }
@@ -6675,8 +6812,19 @@ async function doLouerCeLot(lotId, pa, cost) {
   // lecteur client ne s'en sert), mais preleverLoyersLots (api/cron-minuit.js, Lot 1.4) preleve
   // encore les loyers de lots depuis ce champ. Le retirer maintenant arreterait les loyers.
   lot.locataire = state.char?.name;
-  const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
+  // LE MIROIR NE REECRIT PLUS TOUT LE DECOUPAGE (10 octobre 2026). Le bail lui-meme est deja pris
+  // atomiquement (`sbClaimerLocation`, cle primaire de `locations_actives`) : ce qui suit n'est que
+  // le champ que le cron des loyers lit encore. Il est desormais pose LOT PAR LOT, et le serveur
+  // verifie que le locataire inscrit est bien l'appelant. Un echec ici ne remet pas le bail en
+  // cause -- il est deja signe -- mais il est NOMME, parce qu'il ferait perdre le loyer.
+  const vBail = await sbTerrainActe('terrain_lots_acte', {
+    p_terrain_id: id, p_acte: 'lot_louer', p_lots: [lot]
+  });
+  if (!vBail || vBail.ok !== true) {
+    signalerRefusTerrain(vBail, "L'inscription du locataire au plan");
+  } else {
+    remplacerTerrainState(id, vBail.etat);
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
@@ -6997,13 +7145,25 @@ async function doCorrompreChantier(pa, cost) {
   // approche le terme sans jamais l'atteindre (et l'ecran refuse deja d'agir sur un chantier
   // arrive a son terme). La livraison reste le fait du seul traitement quotidien -- un unique
   // point d'arrivee, pas deux.
-  const chVerrouille = appliquerVerrouPlan(ch, state.day || 1);
-  const avancement = chVerrouille.progressionJours;
-  const nouvelEtat = setTerrainState(id, { chantier: chVerrouille });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // LE SERVEUR CALCULE LA PROGRESSION, LE NAVIGATEUR N'ENVOIE PLUS AUCUN NOMBRE (10 oct. 2026).
+  // `progressionAutorisee` et `appliquerVerrouPlan` tournaient ICI, et leur resultat partait dans
+  // un `sbSetTerrainState` avale qui reecrivait l'objet `chantier` ENTIER -- celui que le cron de
+  // minuit fait avancer chaque nuit. Un chiffre que le client dicte et qui BORNE un avancement est
+  // une faille, meme derriere une RPC. `terrain_chantier_acte` refait le calcul sur l'etat reel,
+  // avec les trois seuils de financement lus en base et semes par le generateur de miroirs ; la
+  // preuve ancien-contre-nouveau tient sur une grille de 184 chantiers.
+  const vCh = await sbTerrainActe('terrain_chantier_acte', {
+    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1
+  });
+  if (!vCh || vCh.ok !== true) {
+    signalerRefusTerrain(vCh, "L'accélération du chantier");
+    return;
+  }
+  remplacerTerrainState(id, vCh.etat);
 
   updateUI();
-  const reste = Math.max(0, ch.dureeJours - avancement);
+  const avancement = Number(vCh.progression) || 0;
+  const reste = Number(vCh.reste) || 0;
   addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Avancement : '
     + avancement.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
   showToast('Chantier accéléré', reste.toFixed(1) + ' jours de travail restants.', true);
@@ -7180,9 +7340,20 @@ async function confirmerModificationPlan() {
   }
 
   const permis = Object.assign({}, ts.permis || {}, { decoupageInitial: decoupage });
-  const nouvelEtat = setTerrainState(id, { permis: permis });
+  // LA PORTE DU PERMIS NE LAISSE TOUCHER QUE `permis` (10 octobre 2026), et verifie en base la
+  // premiere regle de `verdictOuvertureModificationPlan` : etre proprietaire. Les autres regles du
+  // verdict -- chantier present, deux tiers non franchis, palier divisible, surface connue --
+  // restent ici : elles sont le VERDICT UNIQUE du jeu, et en faire une seconde version en SQL
+  // serait exactement le defaut que ce chantier combat.
+  const vPlan = await sbTerrainActe('terrain_permis_acte', {
+    p_terrain_id: id, p_acte: 'permis_plan_modifier', p_patch: { permis: permis }
+  });
   _planModificationEnCours = { buildingId: null, lots: [] };
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  if (!vPlan || vPlan.ok !== true) {
+    signalerRefusTerrain(vPlan, 'La modification du plan');
+    return;
+  }
+  remplacerTerrainState(id, vPlan.etat);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -7375,12 +7546,15 @@ async function confirmerReconfiguration() {
   // rendre atomiques demande une porte chantier_reamenagement_lancer, sur le modele de
   // chantier_lancer -- elle n'existe pas, et l'inventer ici reviendrait a dupliquer un moteur de
   // chantier. En attendant, l'echec est NOMME au joueur au lieu de disparaitre.
-  const nouvelEtat = setTerrainState(id, { chantierReamenagement: ch });
+  // LA PORTE DU REAMENAGEMENT (10 octobre 2026). Cette ecriture lisait deja son resultat -- elle
+  // n'avait pas le defaut des dix-neuf autres -- mais elle envoyait l'etat compose ici, donc elle
+  // pouvait effacer ce que le cron venait d'ecrire. `terrain_reamenagement_poser` n'ecrit QUE la
+  // cle `chantierReamenagement`, sous verrou, apres avoir verifie la propriete EN BASE.
+  setTerrainState(id, { chantierReamenagement: ch });
   _planReconfigEnCours = { buildingId: null, lots: [] };
-  const poseCh = (typeof sbSetTerrainState === 'function')
-    ? await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => null)
-    : null;
-  if (!poseCh) {
+  const poseCh = await sbTerrainActe('terrain_reamenagement_poser',
+    { p_terrain_id: id, p_chantier: ch });
+  if (!poseCh || poseCh.ok !== true) {
     showToast('Travaux non enregistrés',
       "Le financement a été prélevé, mais le chantier n'a pas pu être enregistré. Signalez-le : "
       + "aucun travail n'a commencé.", false);
@@ -7389,6 +7563,7 @@ async function confirmerReconfiguration() {
     updateUI();
     return;
   }
+  remplacerTerrainState(id, poseCh.etat);
 
   // APPROVISIONNEMENT IMMEDIAT, PAR LA MEME PORTE QUE LA CONSTRUCTION. Le navigateur ne transmet
   // plus ni le stock ni la tresorerie du chantier : le serveur les lit dans le blob qu'on vient
@@ -7984,9 +8159,17 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const nouvelEtat = setTerrainState(id, { permis: permisACreer });
+  // LE DEMANDEUR N'EST PLUS DICTE PAR LE NAVIGATEUR (10 octobre 2026) : le serveur le pose
+  // lui-meme sur le dossier, et refuse tout champ etranger a l'acte.
+  const vDepot = await sbTerrainActe('terrain_permis_acte', {
+    p_terrain_id: id, p_acte: 'permis_deposer', p_patch: { permis: permisACreer }
+  });
   _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  if (!vDepot || vDepot.ok !== true) {
+    signalerRefusTerrain(vDepot, 'Le dépôt de la demande');
+    return;
+  }
+  remplacerTerrainState(id, vDepot.etat);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
@@ -8031,8 +8214,19 @@ async function verifierInstructionPermis(buildingId) {
   // Il reste utile de PREVENIR le service d'urbanisme : le maire adjoint doit savoir qu'un dossier
   // arrive a son terme s'il veut encore se prononcer. Le courrier n'est envoye qu'une fois.
   if (!instructionAchevee(ts.permis) || ts.permis.mairePrevenu) return;
-  ts.permis.mairePrevenu = true;
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, buildingId, ts).catch(() => {});
+  // CETTE LIGNE ENVOYAIT `ts` ENTIER -- l'objet du cache -- dans la ligne que le cron de minuit
+  // fait avancer, et elle se declenche a l'entree dans la piece pour N'IMPORTE QUEL joueur. C'etait
+  // la pire des dix-neuf : passive, frequente, et porteuse de tout l'etat. La porte ne pose plus
+  // que le drapeau, et elle le pose ELLE-MEME apres avoir revu les trois conditions sous verrou.
+  const vPrev = await sbTerrainActe('terrain_permis_acte', {
+    p_terrain_id: buildingId, p_acte: 'permis_prevenir_maire'
+  });
+  if (!vPrev || vPrev.ok !== true) {
+    // Acte passif : aucun joueur ne l'a demande, donc aucun toast. `rien_a_signaler` est le cas
+    // NORMAL -- un autre navigateur a prevenu le maire une seconde avant celui-ci.
+    return;
+  }
+  remplacerTerrainState(buildingId, vPrev.etat);
 
   const maireInfo = await getTitulaireActuel('maire', state.currentCity);
   const maireNom = maireInfo?.estPJ ? maireInfo.nom : null;
@@ -8164,8 +8358,23 @@ async function traiterPermis(buildingId, valide, pa, cost, motif) {
     // Jour du refus : point de depart de la carence de trois jours avant un nouveau depot.
     etat.permis.jourRefus = state.day || 1;
   }
+  // L'AUTORITE DE LA DECISION EST ENFIN VERIFIEE (10 octobre 2026). Cette fonction ne verifiait
+  // RIEN : `requiresPost: 'maire_adjoint'` et « dans cette ville uniquement » vivaient dans
+  // data.js, cote navigateur. N'importe quel joueur connecte pouvait donc valider ou refuser
+  // n'importe quel permis du jeu -- la policy d'UPDATE de `terrains_etat` le laisse ecrire. Et
+  // l'ecriture envoyait `etat` ENTIER, donc effacait la nuit du cron.
+  const vDec = await sbTerrainActe('terrain_permis_acte', {
+    p_terrain_id: buildingId, p_acte: 'permis_decider',
+    p_patch: valide
+      ? { permis: etat.permis, constructionAutorisee: true }
+      : { permis: etat.permis }
+  });
+  if (!vDec || vDec.ok !== true) {
+    signalerRefusTerrain(vDec, 'La décision sur ce permis');
+    return;
+  }
   if (valide) etat.constructionAutorisee = true;
-  await sbSetTerrainState(state.country, buildingId, etat).catch(() => {});
+  remplacerTerrainState(buildingId, vDec.etat);
 
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   if (typeof sbSendMail === 'function') {
@@ -8311,7 +8520,16 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
   // l'affichage seul.
   ts.permis.dureeInstruction = Math.max(1, Math.floor(ts.permis.dureeInstruction / 2));
   ts.permis.dateInstructionTerminee = (ts.permis.dateDepot || 0) + ts.permis.dureeInstruction;
-  await sbSetTerrainState(state.country, id, ts).catch(() => {});
+  // ENCORE UN `ts` ENTIER (10 octobre 2026). La porte ne laisse toucher que `permis`, et revoit
+  // sous verrou la condition que ce code lisait sur son cache : un dossier encore en instruction.
+  const vAccP = await sbTerrainActe('terrain_permis_acte', {
+    p_terrain_id: id, p_acte: 'permis_accelerer', p_patch: { permis: ts.permis }
+  });
+  if (!vAccP || vAccP.ok !== true) {
+    signalerRefusTerrain(vAccP, "L'accélération du dossier");
+    return;
+  }
+  remplacerTerrainState(id, vAccP.etat);
 
   updateUI();
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -12100,14 +12318,22 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
     const qte = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
     if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
-    stock[matiere] = Math.max(0, (Number(stock[matiere]) || 0) - qte);
-    ch.stockMateriaux = stock;
-    // Evenement du chantier : le fait est consigne, JAMAIS l'identite du voleur.
-    ch.evenements = (ch.evenements || []).concat([{ cle: 'vol_materiaux', jour: state.day || 1, matiere: matiere, quantite: qte }]);
-    // Aucun retard, aucune regression : si ce prelevement cree une insuffisance, le chantier
-    // ralentira de lui-meme par fractionMateriaux au prochain passage du cron.
-    const nouvelEtat = setTerrainState(id, { chantier: ch });
-    if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(pays, id, nouvelEtat).catch(() => {});
+    // LE STOCK EST REPLAFONNE SUR L'ETAT REEL, SOUS VERROU (10 octobre 2026). `qte` etait
+    // plafonnee par le stock que CE navigateur avait lu : deux voleurs simultanes emportaient donc
+    // chacun tout le stock, et un cache perime pouvait RESSUSCITER un stock que le cron avait
+    // consomme. La porte rend la quantite REELLEMENT emportee -- c'est elle, et non `qte`, que
+    // l'inventaire credite ci-dessous. Elle consigne aussi l'evenement, sans l'identite du voleur.
+    const vVol = await sbTerrainActe('terrain_chantier_acte', {
+      p_terrain_id: id, p_acte: 'chantier_materiaux_voler',
+      p_matiere: matiere, p_quantite: qte, p_jour: state.day || 1
+    });
+    if (!vVol || vVol.ok !== true) {
+      signalerRefusTerrain(vVol, 'Le vol de matériaux');
+      return;
+    }
+    remplacerTerrainState(id, vVol.etat);
+    qte = Number(vVol.quantite) || 0;
+    if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
     const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {};
     if (typeof addToInventory === 'function') {

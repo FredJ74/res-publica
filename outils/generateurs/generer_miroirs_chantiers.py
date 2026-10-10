@@ -83,8 +83,14 @@ for (var j = 1; j <= cycle; j++) {
   var b = g.besoin(j);
   out.besoins_jour.push({ position_cycle: j, bois: b.bois, minerai: b.minerai, metal: b.metal });
 }
+// LES TROIS SEUILS DE FINANCEMENT, et plus seulement le premier (10 octobre 2026). La porte
+// serveur du chantier calcule desormais elle-meme le plafond de progression finance
+// (progressionMaxFinancee) : il lui faut les trois paliers, pas un seul. Ils sont lus dans
+// SEUILS_FINANCEMENT_CONSTRUCTION du vrai plateau-chantiers.js, jamais recopies a la main.
 out.constantes = { chantier_taux_horaire: g.taux, cycle_metal: cycle,
-                   seuil_demarrage_pct: (g.seuils && g.seuils.demarrage) || null };
+                   seuil_demarrage_pct: (g.seuils && g.seuils.demarrage) || null,
+                   seuil_premier_tiers_pct: (g.seuils && g.seuils.premierTiers) || null,
+                   seuil_deux_tiers_pct: (g.seuils && g.seuils.deuxTiers) || null };
 print(JSON.stringify(out));
 """
 

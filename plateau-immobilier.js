@@ -1209,8 +1209,19 @@ function libererMiroirLot(bail) {
   if (!lot || !lot.locataire) return false;
   lot.locataire = null;
   const nouvelEtat = setTerrainState(buildingId, { subdivisions: subdivisions });
-  if (typeof sbSetTerrainState === 'function') {
-    sbSetTerrainState(bail.country || (typeof state !== 'undefined' ? state.country : 'republic'), buildingId, nouvelEtat).catch(function () {});
+  // LA VINGTIEME ECRITURE, ET LA SEULE QUI N'ETAIT MEME PAS ATTENDUE (10 octobre 2026). Elle
+  // reecrivait le decoupage ENTIER, sans `await` et sans lire son resultat, pour vider un seul
+  // champ. Un lot cree pendant ce temps disparaissait. La porte ne pose que ce lot, et refuse une
+  // « liberation » qui installerait quelqu'un.
+  void nouvelEtat;
+  if (typeof sbTerrainActe === 'function' && lot.id) {
+    sbTerrainActe('terrain_lots_acte', {
+      p_terrain_id: buildingId, p_acte: 'lot_bail_libere', p_lots: [lot]
+    }).then(function (v) {
+      if ((!v || v.ok !== true) && typeof console !== 'undefined') {
+        console.warn('libererMiroirLot : le plan n a pas pu etre mis a jour', v && v.raison);
+      }
+    });
   }
   return true;
 }

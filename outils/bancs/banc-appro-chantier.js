@@ -112,14 +112,20 @@ print('5. LES ECRITURES DIRECTES DE TERRAIN DANS CES DEUX BLOCS');
 att("la construction n'ecrit plus le terrain du tout (chantier_lancer l'a deja fait)",
     compte(construction, /await sbSetTerrainState\(/g) === 0,
     compte(construction, /await sbSetTerrainState\(/g) + ' occurrence(s)');
-// On compte l'APPEL, pas le nom : le garde `typeof sbSetTerrainState === 'function'` et l'appel
-// vivent sur deux lignes, et compter le nom nu rendait 2 pour une seule ecriture.
-att("le reamenagement garde UNE ecriture -- il n'a pas de porte de lancement",
-    compte(reconfig, /await sbSetTerrainState\(/g) === 1,
-    compte(reconfig, /await sbSetTerrainState\(/g) + ' occurrence(s)');
-att("et elle n'est PLUS avalee : son resultat est lu",
-    reconfig.indexOf('const poseCh = (typeof sbSetTerrainState') >= 0
-    && reconfig.indexOf('if (!poseCh) {') >= 0);
+// MIS A JOUR LE 10 OCTOBRE 2026 (chantier 5, les 22 ecritures de `terrains_etat`). Ces deux
+// epreuves exigeaient que le reamenagement garde UNE ecriture directe, « faute de porte de
+// lancement ». La porte existe desormais : `terrain_reamenagement_poser`. Elle n'ecrit que la cle
+// `chantierReamenagement`, sous verrou, apres avoir verifie la propriete en base -- donc elle ne
+// peut plus effacer la nuit du cron, ce que l'ancienne ecriture du blob entier pouvait faire.
+// Ce que ces epreuves verifient n'a pas change de NATURE : l'ecriture existe, et son resultat est
+// lu. Ce qui a change, c'est par ou elle passe.
+att('le reamenagement passe par sa porte, et plus par aucune ecriture directe',
+    compte(reconfig, /await sbSetTerrainState\(/g) === 0
+    && compte(reconfig, /sbTerrainActe\('terrain_reamenagement_poser'/g) === 1,
+    compte(reconfig, /sbTerrainActe\('terrain_reamenagement_poser'/g) + ' appel(s) a la porte');
+att("et son verdict est lu : un refus arrete la fonction",
+    reconfig.indexOf('poseCh.ok !== true') >= 0
+    && reconfig.indexOf('remplacerTerrainState(id, poseCh.etat)') >= 0);
 att("son echec est nomme au joueur", reconfig.indexOf('Travaux non enregistrés') >= 0);
 // Celle-ci se lit dans les COMMENTAIRES, c'est le but : la dette doit etre ecrite noir sur blanc
 // a l'endroit ou elle subsiste.
