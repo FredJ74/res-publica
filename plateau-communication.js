@@ -1040,11 +1040,15 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
     const critique = !!res.critique;
     if (critique && res.poursuite === 'mandat') {
       // Faits commis hors du pays competent : aucune poursuite ici, aucun lot detruit. Le mandat a
-      // ete inscrit par le serveur ; on le reflete localement pour que la prochaine sauvegarde de
-      // CE client (qui reecrit recherche en entier) ne l'efface pas.
-      if (res.mandat && typeof res.mandat === 'object') {
-        if (!Array.isArray(state.recherche)) state.recherche = [];
-        if (!state.recherche.some(r => r && r.id === res.mandat.id)) state.recherche.push(res.mandat);
+      // ete inscrit par le serveur (calomnie_inscrire_mandat).
+      //
+      // LE REFLET LOCAL ETAIT UNE RUSTINE (chantier 5, chaine 14, 10 octobre 2026) : il existait
+      // « pour que la prochaine sauvegarde de CE client n'efface pas » le mandat, ce qui disait
+      // exactement le defaut. Depuis que `recherche` est serveur-autoritaire, aucune sauvegarde
+      // ne peut plus l'effacer. On RECOPIE donc l'etat reel au lieu de pousser dans le sien --
+      // `recherche_inscrire` est idempotente par identifiant, l'appeler ici ne cree aucun doublon.
+      if (res.mandat && typeof res.mandat === 'object' && typeof inscrireRecherche === 'function') {
+        await inscrireRecherche(res.mandat);
       }
       showToast('Vous êtes démasqué(e)', pnjName + ' vous dénonce. La plainte est instruite dans le pays de résidence de ' + cible + ' : vous y êtes désormais recherché(e).', false, true);
       addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Mandat d\'arrêt dans le pays de résidence de ' + cible + '.', 'event-bad');

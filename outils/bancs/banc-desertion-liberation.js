@@ -33,6 +33,17 @@ function sbRpc(nom, args) { RPC.push({ nom: nom, args: args });
 function sbUpdate(table, filtre, patch) { ECRITURES.push({ table: table, patch: patch }); return Promise.resolve([{}]); }
 function sbInsert(table) { ECRITURES.push({ table: table }); return Promise.resolve([{}]); }
 function sbSavePersonnage() { TRACES.push('sauvegarde'); return Promise.resolve(true); }
+// LE RETRAIT DE L'AVIS DE RECHERCHE EST UNE PORTE DEPUIS LE 10 OCTOBRE 2026 (chaine 14). Le
+// decor l'enregistre ET applique le filtre serveur, pour que les epreuves qui portent sur
+// `state.recherche` continuent de mesurer un etat et pas seulement un appel.
+var RETRAITS = [];
+function retirerRecherche(actes, pays) {
+  RETRAITS.push({ actes: actes, pays: pays || null });
+  state.recherche = (state.recherche || []).filter(function (e) {
+    return !(actes.indexOf(e.acte) >= 0 && (!pays || !e.country || e.country === pays));
+  });
+  return Promise.resolve(true);
+}
 function showToast(t, m) { TOASTS.push(t + ' | ' + m); }
 function addMailNotification(de, suj, corps) { MAILS.push(suj + ' | ' + corps); }
 function addJournalEntry(m) { JOURNAL.push(m); }
@@ -56,6 +67,7 @@ function sync(p) {
 }
 function neuf(etat) {
   RPC = []; ECRITURES = []; TOASTS = []; MAILS = []; JOURNAL = []; TRACES = []; REPONSES = {};
+  RETRAITS = [];
   state = { char: { name: 'Ben', requisition: { statut: 'deserteur', depuisJour: 2 } },
             country: 'republic', day: 7, mobilisationNationaleCache: true,
             recherche: [{ acte: 'desertion', country: 'republic' }, { acte: 'vol', country: 'republic' }],
@@ -78,6 +90,9 @@ att('aucune ecriture cliente sur detentions', ecrituresSur('detentions').length 
 att('aucune ecriture cliente sur prisonniers_qhs', ecrituresSur('prisonniers_qhs').length === 0);
 att('verdict ok : le detenu est libre localement', state.estEmprisonne === null);
 att('verdict ok : la liberation est annoncee', MAILS.join(' | ').indexOf('Vous êtes libéré(e)') >= 0);
+att("le retrait de l'avis passe par la PORTE, avec l'acte et le pays",
+    RETRAITS.length === 1 && RETRAITS[0].actes.length === 1
+    && RETRAITS[0].actes[0] === 'desertion' && RETRAITS[0].pays === 'republic');
 att("seuls les motifs de desertion sont retires de l'avis de recherche",
     state.recherche.length === 1 && state.recherche[0].acte === 'vol');
 att("l'historique de la requisition est conserve, statut eteinte",

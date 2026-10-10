@@ -12570,9 +12570,10 @@ async function eteindrePoursuitesDesertion(pays) {
     return estMotifDesertion(e) && (!e.country || e.country === pays);
   };
 
-  if (Array.isArray(state.recherche) && state.recherche.some(estMienne)) {
-    state.recherche = state.recherche.filter(function (e) { return !estMienne(e); });
-  }
+  // LE RETRAIT EST UNE PORTE (chantier 5, chaine 14, 10 octobre 2026). `estMienne` reste ecrit
+  // ici parce qu'il documente la regle, mais c'est le SERVEUR qui l'applique : meme filtre,
+  // acte et pays, et l'etat local recopie le verdict au lieu de recalculer le tableau.
+  await retirerRecherche(['desertion'], pays);
   // HISTORIQUE CONSERVE : on trace l'episode, on n'efface pas le souvenir de la desertion.
   if (state.char?.requisition && state.char.requisition.statut === 'deserteur') {
     state.char.requisition = Object.assign({}, state.char.requisition,
@@ -12609,11 +12610,17 @@ async function eteindrePoursuitesDesertion(pays) {
     }
   }
 
+  // LA SECONDE ECRITURE A ETE SUPPRIMEE (chantier 5, chaine 15, 10 octobre 2026). C'etait
+  // exactement le defaut que l'inventaire nommait : `sbSavePersonnage` (48 colonnes) suivi d'un
+  // `sbUpdate` CIBLE sur la meme ligne, les deux avales -- deux ecritures en course, dont la
+  // seconde ne portait qu'une colonne que la premiere envoyait DEJA (verifie : supabase.js
+  // transmet `recherche` et `requisition` dans son blob).
+  //
+  // Elle est devenue inutile pour une seconde raison : depuis que `recherche` est
+  // serveur-autoritaire, cette ecriture ne pouvait de toute facon plus rien poser -- le
+  // declencheur l'ignorait. Le retrait, lui, a deja ete fait par `retirerRecherche` ci-dessus,
+  // dans sa propre transaction.
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  if (nom && typeof sbUpdate === 'function') {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`,
-      { recherche: state.recherche || [] }).catch(() => {});
-  }
 }
 
 // DETENU DESERTEUR : le choix du transfert revient CHAQUE JOUR tant que la mobilisation dure.
@@ -12683,11 +12690,7 @@ async function doAccepterIncorporation() {
   if (!state.mobilisationNationaleCache) { showToast('Mobilisation levée', 'Plus aucune incorporation n\'est possible.', false); return; }
 
   state.char.requisition = Object.assign({}, req, { statut: 'incorpore', incorporeJour: state.day || 1 });
-  if (Array.isArray(state.recherche)) {
-    state.recherche = state.recherche.filter(function (e) {
-      return !(estMotifDesertion(e) && (!e.country || e.country === pays));
-    });
-  }
+  await retirerRecherche(['desertion'], pays);
 
   if (state.estEmprisonne.motifDesertionSeul === true) {
     // LE TRANSFERT EST UNE TRANSACTION SERVEUR (10 octobre 2026). Ce bloc vidait
@@ -12721,13 +12724,12 @@ async function doAccepterIncorporation() {
     state.estEmprisonne.incorporationAcceptee = true;
     showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true);
   }
+  // MEME SUPPRESSION QU'A LA DEMOBILISATION CI-DESSUS (chaine 15). Celle-ci etait pire d'un
+  // cran : elle renvoyait `requisition` SERIALISEE EN CHAINE (`JSON.stringify`) la ou
+  // `sbSavePersonnage` envoie l'objet. Deux ecritures en course sur la meme colonne, avec deux
+  // ENCODAGES differents -- selon laquelle arrivait la derniere, la requisition se lisait comme
+  // un objet ou comme une chaine.
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  if (typeof sbUpdate === 'function' && state.char?.name) {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, {
-      requisition: JSON.stringify(state.char.requisition),
-      recherche: state.recherche || []
-    }).catch(() => {});
-  }
   updateUI();
   addJournalEntry('Transfert vers la caserne accepté : incorporation.', 'event-info');
 }

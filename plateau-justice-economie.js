@@ -831,7 +831,7 @@ function mettreAJourPopulation() {
   });
 }
 
-function checkDetection(fn, resultType) {
+async function checkDetection(fn, resultType) {
   const acte = ACTES_ILLEGAUX[fn];
   if (!acte) return;
   if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
@@ -847,8 +847,10 @@ function checkDetection(fn, resultType) {
   const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
 
   if (roll <= tauxDetect) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: fn, type: acte.type, jour: state.day });
+    // L'INSCRIPTION EST UNE PORTE (chaine 14) : un `||` atomique cote serveur, et l'etat local
+    // recopie le verdict. Deux motifs inscrits dans la meme session survivent desormais tous
+    // les deux -- avant, le dernier `sbSavePersonnage` en effacait un.
+    await inscrireRecherche({ acte: fn, type: acte.type, jour: state.day });
     addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
     state.dis = Math.max(0, state.dis - 10);
     updateUI();
@@ -970,9 +972,9 @@ async function confirmerSeJustifier(pa, cost) {
   const noms = (typeof assembleeConfisquerInterdits === 'function')
     ? await assembleeConfisquerInterdits() : '';
 
-  if (state.recherche) {
-    state.recherche = state.recherche.filter(x => x.acte !== convocation.motif);
-  }
+  // LE RETRAIT EST UNE PORTE (chaine 14) : un filtre cible cote serveur, et l'etat local recopie
+  // le verdict. Se justifier eteint le SEUL motif de la convocation, jamais un autre.
+  await retirerRecherche([convocation.motif]);
   if (typeof sauvegarderPersonnageImmediat === 'function') await sauvegarderPersonnageImmediat();
   updateUI();
 
@@ -1118,7 +1120,7 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
   }
 }
 
-function procederArrestation(acte, resistanceAggravante, demasque) {
+async function procederArrestation(acte, resistanceAggravante, demasque) {
   if (state.immuniteMilitaireActuelle) {
     showToast('Immunité militaire', 'En tant que militaire déployé en zone de guerre ou de mobilisation nationale, vous ne pouvez pas être poursuivi(e) pour cet acte.', true);
     addJournalEntry('Immunité militaire invoquée — aucune poursuite pour : ' + (ACTES_ILLEGAUX[acte]?.label || acte) + '.', 'event-info');
@@ -1136,7 +1138,12 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   // les motifs relevant d'un AUTRE empire, que le reste du code prend pourtant soin de ne jamais
   // traiter hors de sa competence territoriale. Seul le motif reellement juge ici s'eteint ;
   // chaque autre motif continue de vivre pour son propre compte.
-  state.recherche = (state.recherche || []).filter(r => r && r.acte !== acte);
+  // LE RETRAIT EST DEPLACE A LA FIN DE CETTE FONCTION, et c'est deliberе (chantier 5, chaine 14,
+  // 10 octobre 2026). `procederArrestation` devient `async` pour attendre la porte ; or un `await`
+  // rend la main a l'appelant des qu'il est atteint. DEUX de ses onze appelants lisent
+  // `state.estEmprisonne` dans les lignes qui suivent leur appel (mesure faite) : si l'attente
+  // etait ici, ils liraient un etat incomplet. Place en DERNIER, tout ce que les appelants
+  // peuvent observer est deja ecrit quand la main leur revient.
   // Une detention qui ne tient QU'A LA DESERTION peut etre levee par l'incorporation ou par la
   // demobilisation ; une detention qui porte autre chose ne le peut jamais. Le drapeau est pose
   // ici, au seul endroit qui connaisse le motif reellement juge.
@@ -1202,6 +1209,10 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
       resultatHtml: construireResultatArrestationHtml(motifsArrestation, state.currentCity, state.country)
     });
   }
+
+  // LE SEUL MOTIF REELLEMENT JUGE S'ETEINT, et c'est le serveur qui l'applique : un motif n'en
+  // efface jamais un autre, ni celui d'un autre acte, ni celui d'un autre empire.
+  await retirerRecherche([acte]);
 }
 
 // Verification periodique (a minuit / au reveil) : liberation automatique en fin de peine
@@ -1363,7 +1374,7 @@ function tenterFuite() {
   }
 }
 
-function tenterResistance(peineType) {
+async function tenterResistance(peineType) {
   document.getElementById('modal-postes').classList.remove('open');
   const vol = getStatEffective('VOL');
   const taux = Math.min(30, vol * 2);
@@ -1376,8 +1387,7 @@ function tenterResistance(peineType) {
     showToast('Resistance reussie !', 'Vous vous echappez malgre tout. -30 DIS -15 HP.', true);
     addJournalEntry('Vous avez resiste violemment aux forces de l\'ordre. Fortement recherche(e).', 'event-bad');
     // Aggravation du statut
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
+    await inscrireRecherche({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
   } else {
     addExternalEvent('Resistance aux forces de l\'ordre. Arrestation avec chef de rebellion.');
     procederArrestation(peineType, true, false);
@@ -11104,24 +11114,67 @@ async function ajouterCondamnationRecherche(nom, entree) {
   return ajouterCondamnationRechercheLocale(nom, entree);
 }
 
-// Chemin conserve pour SA PROPRE fiche (evasion, fuite ratee) : le joueur ecrit sur sa ligne,
-// ce que les policies autorisent, et aucun pouvoir n'est en jeu.
+// =============================================================================================
+// L'AVIS DE RECHERCHE EST SERVEUR-AUTORITAIRE (chantier 5, chaine 14, 10 octobre 2026)
+// =============================================================================================
+//
+// CE QUI SE PASSAIT, ET L'INVENTAIRE N'EN NOMMAIT QU'UN SITE SUR DIX-HUIT. Treize
+// `state.recherche.push(...)` purement locaux, dans cinq fichiers, comptaient sur un
+// `sbSavePersonnage` ulterieur -- qui republie `recherche` EN BLOC parmi 48 colonnes. Une
+// lecture-modification-ecriture serveur avalee (cette fonction) s'y ajoutait, doublee d'un reflet
+// local que son propre commentaire presentait comme une precaution contre l'ecrasement : une
+// rustine, pas une correction. Quatre retraits par `filter` cote client suivaient le meme chemin.
+// Et le cron en portait une troisieme instance.
+//
+// LE DEFAUT N'ETAIT DONC PAS « une ecriture directe » : C'ETAIT UN DERNIER-ECRIVAIN-GAGNANT. Deux
+// motifs inscrits dans la meme session, ou une inscription suivie d'un simple changement de
+// piece, et l'un des deux disparaissait. Le tableau n'a aucune cle : rien ne permettait de
+// fusionner deux versions.
+//
+// CE QUI EST EN PLACE MAINTENANT. `recherche` est une colonne SERVEUR-AUTORITAIRE, exactement
+// comme les PA depuis le 16 septembre : le declencheur `personnages_preserver_judiciaire` IGNORE
+// toute version entrante qui ne vient pas d'une porte. Le blob de sauvegarde continue de passer
+// pour ses quarante-sept autres colonnes -- on ignore celle-la, on ne casse pas tout.
+//
+// DEUX PORTES, ET DEUX SEULEMENT :
+//   . `recherche_inscrire` -- un `||` atomique, donc deux inscriptions concurrentes aboutissent
+//     TOUTES LES DEUX. Idempotente quand l'entree porte un `id` (le mandat d'arret), repetable
+//     sinon (on peut voler deux fois).
+//   . `recherche_retirer` -- un filtre cible sur l'acte, et sur le pays quand l'entree en porte
+//     un. UN MOTIF N'EN EFFACE JAMAIS UN AUTRE : c'est la regle du 13 septembre, reprise mot pour
+//     mot cote serveur.
+//
+// Les deux rendent le tableau REEL, que le client RECOPIE au lieu de pousser dans le sien.
+
+// Inscrit un motif sur la fiche du joueur courant et recopie l'etat arrete par le SERVEUR.
+// Rend true si l'inscription a abouti. L'appelant qui veut annoncer quelque chose doit lire ce
+// retour : sans lui, il annoncerait un avis de recherche qui n'existe pas.
+async function inscrireRecherche(entree) {
+  if (typeof sbRpc !== 'function') return false;
+  const v = await sbRpc('recherche_inscrire', { p_entree: entree })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) return false;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  return true;
+}
+
+// Retire les motifs dont l'acte figure dans `actes`. `pays` optionnel : quand il est fourni, une
+// entree portant un AUTRE pays est conservee -- aucun acte d'un empire n'efface celui d'un autre.
+async function retirerRecherche(actes, pays) {
+  if (typeof sbRpc !== 'function') return false;
+  const v = await sbRpc('recherche_retirer', { p_actes: actes, p_pays: pays || null })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) return false;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  return true;
+}
+
+// Chemin conserve pour SA PROPRE fiche (evasion, fuite ratee) : le joueur inscrit sur sa ligne,
+// ce que la porte autorise, et aucun pouvoir n'est en jeu. La lecture-modification-ecriture et le
+// reflet local ont disparu ensemble : il n'y a plus rien a refleter, le verdict EST l'etat.
 async function ajouterCondamnationRechercheLocale(nom, entree) {
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=recherche`).catch(() => []);
-  const actuelle = rows?.[0]?.recherche || [];
-  actuelle.push(entree);
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { recherche: actuelle }).catch(() => {});
-  // REFLET LOCAL OBLIGATOIRE (13 septembre 2026). Cette fonction n'ecrivait qu'en base. Or
-  // sbSavePersonnage republie state.recherche EN BLOC (supabase.js) et le trigger serveur
-  // personnages_preserver_judiciaire ne protege que convocations et historique_crimes, pas
-  // recherche : la premiere sauvegarde client venue -- un simple changement de piece -- effacait
-  // donc la condamnation qui vient d'etre inscrite. Meme precaution que le mandat d'arret des
-  // tracts calomnieux (plateau-communication.js), qui reflete deja l'ecriture serveur dans state.
-  if (nom && nom === state.char?.name) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push(entree);
-  }
+  if (nom && nom !== state.char?.name) return false;
+  return inscrireRecherche(entree);
 }
 
 function doMenerEnquete(pa, cost) {
@@ -12003,7 +12056,7 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
     // applique le bareme generique du type -- ici delit_mineur, comme le vol ordinaire.
     const typeActe = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX.vol_materiel_chantier)
       ? ACTES_ILLEGAUX.vol_materiel_chantier.type : 'delit_mineur';
-    state.recherche.push({ acte: 'vol_materiel_chantier', type: typeActe, jour: state.day || 1 });
+    await inscrireRecherche({ acte: 'vol_materiel_chantier', type: typeActe, jour: state.day || 1 });
     if (typeof addExternalEvent === 'function') {
       addExternalEvent((state.char?.name || 'Quelqu\'un') + ' a été pris en flagrant délit de vol de matériel sur un chantier !', 'local');
     }

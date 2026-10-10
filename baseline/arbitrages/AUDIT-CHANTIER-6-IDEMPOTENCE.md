@@ -71,21 +71,41 @@ périmètre sans qu'on y touche.
 
 ## 1. Groupe A — même défaut, dix familles
 
-> **ÉTAT AU 10 OCTOBRE 2026 : LES DIX FAMILLES SONT FERMÉES.** Six l'ont été le
-> 9 octobre (candidatures, compromis, ardoise des loyers, préemptions d'État,
-> mensualités de prêts — et le vote électoral, hors de cette table), quatre le
-> 10 (taxe foncière, votes de confiance, successions, calendrier électoral) plus
-> les cotisations d'organisation, soit cinq.
+> # CHANTIER 6 — CLOS LE 10 OCTOBRE 2026
 >
-> **Le chantier 6 n'est PAS déclaré CLOS pour autant**, et c'est §4 qui
-> l'interdit : les **souvenirs d'accueil** n'ont toujours aucune garde interne —
-> leur seul rempart est le registre `joursCron`, et §5 dit que leur banc est
-> rouge. Chaque fuite est un événement global « SCANDALE » nominatif et
-> irréversible ; la frontière devrait être **le souvenir**, par une colonne
-> `jour_tirage`, pas la passe. Restent aussi les deux contraintes `UNIQUE` que
-> §5 réclame — sur `compromis_historique` par bien et par jour, et sur
-> l'identifiant de chronique électorale. Tant que ces trois points tiennent dans
-> l'inventaire, le chantier reste ouvert.
+> **LES DIX FAMILLES DU GROUPE A SONT FERMÉES.** Six le 9 octobre (candidatures,
+> compromis, ardoise des loyers, préemptions d'État, mensualités de prêts — et le
+> vote électoral, hors de cette table), cinq le 10 (taxe foncière, votes de
+> confiance, successions, calendrier électoral, cotisations d'organisation).
+>
+> **ET LES TROIS RELIQUATS DE §4 ET §5 SONT FERMÉS LE MÊME JOUR.**
+>
+> 1. **Souvenirs d'accueil** (registre 600) — `jour_tirage` est désormais la
+>    frontière exacte que §4 réclamait : « la frontière devrait être LE SOUVENIR
+>    […] pas la passe ». `souvenir_accueil_tirer` tire, marque et annonce dans
+>    une transaction, sous verrou de ligne, avec un compare-and-swap sur `revele`.
+>    L'épreuve que §5 décrivait comme **rouge** — « deux appels en ignorant le
+>    registre → même nombre de lignes SCANDALE » — est **verte** : vingt rejeux
+>    du même jour ne tirent rien et n'annoncent rien.
+> 2. **`UNIQUE` sur `compromis_historique`** (registre 601) — sur
+>    (pays, bien, **résultat**, journée de Paris). `résultat` entre dans la clé
+>    parce qu'un bien peut légitimement produire deux actes distincts le même
+>    jour ; un rejeu, lui, reproduit le même résultat.
+> 3. **`UNIQUE` sur la chronique électorale** (registre 601) — sur la clé
+>    **logique** (pays, ville, scrutin), et non sur la clé technique : la clé
+>    primaire protégeait déjà un rejeu à l'identique, mais rien n'empêchait une
+>    seconde proclamation du même scrutin sous un autre identifiant.
+>
+> **UN DÉFAUT DE PLUS A ÉTÉ TROUVÉ EN POSANT CES CONTRAINTES** (registre 602), et
+> aucun des deux inventaires ne le nommait : `nettoyerAchatsDirectsManques` est le
+> **second écrivain** de `compromis_historique`, avec un `Date.now()` dans son
+> identifiant et ses deux écritures avalées. C'est exactement le défaut que la
+> migration 575 avait fermé sur l'autre écrivain, non propagé jusqu'ici.
+> `achat_direct_manque_resoudre` le ferme.
+>
+> **§2 (groupe B) dit « rien à faire » et §6 dit « aucune décision de game
+> design ».** Il ne subsiste donc aucun défaut connu relevant du périmètre de ce
+> chantier.
 
 **Le défaut, identique partout et sans rapport avec le métier : l'effet et sa
 preuve d'exécution sont dans deux requêtes HTTP distinctes. La fenêtre entre les
@@ -282,13 +302,17 @@ forme : **deux appels, un seul effet.**
 | Votes de confiance | `resultat` identique aux deux appels, **une seule** ligne `evenements_globaux`, second appel `deja_cloture` |
 | Successions | `arg` n'a bougé que d'un `part_nette`, `reserveJour` qu'une fois — **et** relecture établissant que la mutation d'actif et la pose de `regle` sont dans la **même fonction SQL** |
 | Élections | **un test d'égalité sur les 170 lignes de calendrier avant tout déplacement**, puis une seule ligne `chronique_nationale` |
-| Souvenirs | deux appels **en ignorant le registre** — tout l'intérêt est de prouver que la fonction se défend seule → même nombre de lignes « SCANDALE ». Ce banc est rouge aujourd'hui |
+| Souvenirs | ~~deux appels **en ignorant le registre**~~ **VERTE le 10 octobre 2026** — l'épreuve est exactement celle décrite : vingt rejeux du même jour sur le même souvenir, en ignorant le registre, et le nombre de lignes « SCANDALE » ne bouge pas. C'est `jour_tirage` qui la rend verte, pas le registre. |
 | Prêts, préemptions, cotisations, taxe foncière | deux appels, un seul mouvement, et le second appel **lève une violation d'unicité** plutôt que de renvoyer poliment zéro. La violation est préférable : elle apparaît dans `ECHECS_PASSE`, donc dans le code 500 de la passe |
 
-Contraintes à ajouter, pour que la protection soit structurelle et non
-disciplinaire : `UNIQUE` sur `compromis_historique` par bien et par jour, et
-`UNIQUE` sur l'identifiant de chronique électorale, qui est déjà stable mais que
-rien ne protège.
+~~Contraintes à ajouter~~ **POSÉES LE 10 OCTOBRE 2026 (registre 601).** Les deux
+y sont, avec une précision que l'écriture de l'audit ne pouvait pas avoir : sur
+`compromis_historique`, la clé est (pays, bien, **résultat**, journée) — « par
+bien et par jour » seul aurait interdit un acte de jeu légitime, un compromis
+remboursé et un dépôt d'achat direct perdu le même jour sur le même bien. Sur la
+chronique, la contrainte porte sur la clé **logique** (pays, ville, scrutin), car
+la clé primaire couvrait déjà le rejeu à l'identique ; ce qui manquait, c'était
+l'interdiction d'une seconde proclamation sous un autre identifiant.
 
 ---
 

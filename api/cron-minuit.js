@@ -3473,17 +3473,28 @@ async function nettoyerAchatsDirectsManques() {
       if (!etat.achatDirect || !etat.achatDirect.dateLimite) continue;
       if (Date.now() <= etat.achatDirect.dateLimite) continue;
 
-      await sbInsert('compromis_historique', {
-        id: 'achatdirect-' + row.id + '-' + Date.now(),
-        country: row.country,
-        building_id: row.building_id,
-        demandeur: etat.achatDirect.demandeur,
-        resultat: 'perdu',
-        detail: 'Rendez-vous notarial manqué (dépôt de ' + etat.achatDirect.acompte + ' FR perdu)'
-      }).catch(() => {});
-
-      delete etat.achatDirect;
-      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+      // DEUX ECRITURES AVALEES ET UN Date.now() DANS L'IDENTIFIANT (chantier 5/6, 10 octobre
+      // 2026). La consignation publique de la perte portait `'achatdirect-' + row.id + '-' +
+      // Date.now()` : deux passes la meme nuit ecrivaient DEUX lignes pour le meme depot perdu --
+      // exactement le defaut que la migration 575 avait ferme sur l'autre ecrivain de
+      // compromis_historique, et qui n'avait pas ete propage jusqu'ici. Les deux ecritures etaient
+      // de plus avalees : le depot pouvait etre consigne perdu sans que le rendez-vous soit purge
+      // (donc reconsigne la nuit suivante), ou l'inverse.
+      //
+      // `achat_direct_manque_resoudre` fait les deux dans une transaction, sous verrou du terrain,
+      // avec un identifiant DATE et un ON CONFLICT -- et l'index unique pose le meme jour sur
+      // (pays, bien, resultat, journee) est la seconde garde.
+      const v = await sbRpc('achat_direct_manque_resoudre', { p_terrain_id: row.id },
+                            HEADERS_SERVICE)
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!v) { signalerEchec('achat_direct_manque:' + row.id, 'aucun verdict rendu'); continue; }
+      if (v.ok !== true) {
+        // Ces deux refus ne sont pas des echecs : la liste a vieilli entre sa lecture et l'appel.
+        if (v.raison !== 'aucun_achat_direct' && v.raison !== 'pas_echu') {
+          signalerEchec('achat_direct_manque:' + row.id, v.raison || 'refus sans motif');
+        }
+        continue;
+      }
       resultats.manques++;
     }
   } catch(e) { console.error('nettoyerAchatsDirectsManques error', e); }
@@ -3895,14 +3906,25 @@ async function traiterDesertionsServeur(pays) {
         await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`, {
           requisition: { compagnieId: c.id, sectionId: s.id, statut: 'deserteur' }
         }).catch(() => {});
-        // Meme raccord que le client : recherche, jamais condamnation.
-        const fiche = await sbGet('personnages',
-          `name=eq.${encodeURIComponent(entree.nom)}&select=recherche`).catch(() => null);
-        const recherche = (fiche && fiche[0] && fiche[0].recherche) ? fiche[0].recherche : [];
-        recherche.push({ acte: 'desertion', type: 'militaire', country: pays,
-                         compagnieId: c.id, sectionId: s.id, origine: 'requisition_civile' });
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`,
-          { recherche: recherche }).catch(() => {});
+        // TROISIEME INSTANCE DE LA CHAINE 14, ET AUCUN INVENTAIRE NE LA NOMMAIT (10 octobre
+        // 2026). Ces trois lignes etaient une lecture-modification-ecriture du tableau ENTIER,
+        // avec les DEUX ecritures avalees : si la fiche du deserteur etait sauvegardee par son
+        // navigateur entre la lecture et l'ecriture, l'avis de recherche disparaissait. Et un
+        // echec d'ecriture ne laissait aucune trace.
+        //
+        // `recherche_inscrire` fait un `||` atomique. Le serveur nomme sa cible, puisqu'il n'a
+        // pas de personnage : c'est le seul cas ou `p_cible` est exige.
+        const vRech = await sbRpc('recherche_inscrire', {
+          p_entree: { acte: 'desertion', type: 'militaire', country: pays,
+                      compagnieId: c.id, sectionId: s.id, origine: 'requisition_civile' },
+          p_cible: entree.nom
+        }, HEADERS_SERVICE).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+        // UN AVIS DE RECHERCHE QUI NE S'INSCRIT PAS N'EST PAS UNE DESERTION ENREGISTREE : on le
+        // dit, au lieu de laisser un deserteur libre de poursuites sans que personne le sache.
+        if (!vRech || vRech.ok !== true) {
+          signalerEchec('desertion_recherche:' + entree.nom,
+                        (vRech && vRech.raison) || 'aucun verdict rendu');
+        }
       }
     }
     if (modifie) {
@@ -4705,24 +4727,44 @@ async function traiterLicencesSportivesSaison() {
 // qu'annoncaient le nom de la tache et son commentaire d'appel N'EXISTE PAS -- un commentaire
 // interne disait lui-meme « on ignore silencieusement ». Construire ce nettoyage est une
 // decision de game design (que devient un souvenir de plus de 12 jours ?), pas du menage.
+// LE QUATRIEME DEFAUT, ET C'ETAIT LE DERNIER DU CHANTIER 6 (10 octobre 2026).
+//
+// Les trois corrections ci-dessus tenaient, mais le §4 de l'audit canonique le disait sans
+// detour : SON SEUL REMPART ETAIT LE REGISTRE `joursCron` -- une ligne unique, lue-fusionnee-
+// reecrite sans atomicite, ecrite et relue dix-huit fois par nuit. « La frontiere devrait etre LE
+// SOUVENIR -- une colonne jour_tirage -- pas la passe. »
+//
+// Et trois choses restaient fausses ici meme. (1) Le marquage n'etait pas un compare-and-swap :
+// `id=eq.X` sans `revele=eq.false`, donc deux marquages concurrents reussissent tous les deux et
+// chacun annonce son scandale. (2) Le tirage vivait dans ce navigateur, avant toute ecriture
+// autoritaire. (3) Le marquage et l'annonce etaient deux requetes HTTP.
+//
+// `souvenir_accueil_tirer` fait les trois dans une transaction, sous verrou de ligne, et
+// `jour_tirage` est la frontiere exacte que l'audit reclamait : un souvenir est tire au plus une
+// fois par journee, QUE LE REGISTRE AIT TENU OU NON. La probabilite (5 a 10 %), le texte du
+// scandale, son pays, sa ville et son jour sont inchanges.
+//
+// La liste est toujours lue ici : choisir QUELS souvenirs presenter n'est pas une autorite, et la
+// porte refuse d'elle-meme ceux qui ont deja ete tires ou reveles entre-temps.
 async function traiterSouvenirsAccueil() {
-  const resultats = { fuites: 0, marquages_echoues: 0 };
+  const resultats = { fuites: 0, deja_tires: 0, refus: 0 };
   const souvenirs = await sbGet('souvenirs_accueil', 'revele=eq.false');
   if (!souvenirs) return resultats;   // sbGet a deja signale l'echec
 
+  // jourParisISO() est la SEULE definition du jour de ce fichier depuis le 20 septembre 2026, et
+  // le cron est le seul ecrivain de `jour_tirage` : on n'en invente pas une seconde.
+  const jour = jourParisISO();
   for (const s of souvenirs) {
-    const chanceFuite = 0.05 + Math.random() * 0.05; // entre 5% et 10%
-    if (Math.random() >= chanceFuite) continue;
-
-    // LE MARQUAGE D'ABORD, L'ANNONCE ENSUITE. Un scandale annonce sur un souvenir non marque
-    // serait rejoue la nuit suivante.
-    const marque = await sbUpdate('souvenirs_accueil', `id=eq.${encodeURIComponent(s.id)}`,
-                                  { revele: true });
-    if (!marque) { resultats.marquages_echoues++; continue; }
-
-    const texte = `📰 SCANDALE : un journaliste révèle que ${s.pj_nom} a récupéré "${s.objet_nom}" au service des objets trouvés de l'Assemblée.`;
-    await sbInsert('evenements_globaux', { country: 'republic', city: null, texte, jour: null });
-    resultats.fuites++;
+    const v = await sbRpc('souvenir_accueil_tirer', { p_souvenir_id: s.id, p_jour: jour },
+                          HEADERS_SERVICE)
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    // AUCUN VERDICT N'EST JAMAIS UNE FUITE. Sans reponse, on ne sait pas si le scandale est
+    // parti, et on ne le compte pas.
+    if (!v) { signalerEchec('souvenir:' + s.id, 'aucun verdict rendu'); resultats.refus++; continue; }
+    if (v.ok !== true) { signalerEchec('souvenir:' + s.id, v.raison || 'refus sans motif');
+                         resultats.refus++; continue; }
+    if (v.action === 'fuite') resultats.fuites++;
+    else if (v.action === 'deja_tire' || v.action === 'deja_revele') resultats.deja_tires++;
   }
   return resultats;
 }

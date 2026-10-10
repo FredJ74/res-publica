@@ -547,8 +547,7 @@ async function confirmerAssassinatArme(encodedCible, mode) {
     addExternalEvent('Tentative de neutralisation sur ' + cible.name + ' ! Vous avez été identifié(e). Arrestation imminente.');
     // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
     // les autres motifs de poursuite, dont une condamnation en attente d'execution.
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
+    await inscrireRecherche({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
     setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
   }
   updateUI();
@@ -592,8 +591,7 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
     addExternalEvent('Tentative de neutralisation sur le député ' + siege.nom + ' ! L\'auteur a été identifié.');
     // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
     // les autres motifs de poursuite, dont une condamnation en attente d'execution.
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
+    await inscrireRecherche({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
     showToast('Raté', siege.nom + ' esquive maladroitement et hurle. Les huissiers accourent.', false, true);
     addJournalEntry('Tentative de neutralisation ratée sur le député ' + siege.nom + '.', 'event-bad');
     updateUI();
@@ -1661,8 +1659,7 @@ async function confirmerAchatArmeIllegal(armeId) {
 
   if (roll > tauxReussite) {
     // ECHEC — l'armurier refuse et denonce. Rien n'a ete vendu : le stock n'est pas touche.
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'achat_arme_illegal', type: 'delit_mineur', jour: state.day });
+    await inscrireRecherche({ acte: 'achat_arme_illegal', type: 'delit_mineur', jour: state.day });
 
     // Convocation au commissariat — delai fixe 24h (jour+1, meme heure)
     if (!state.convocations) state.convocations = [];
@@ -2101,8 +2098,7 @@ async function confirmerAchatExplosifs(pa, cost) {
 
   if (roll > taux) {
     // ECHEC — le vendeur alerte la police, pas de debit
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'acheter_bombe_illegale', type: 'crime', jour: state.day });
+    await inscrireRecherche({ acte: 'acheter_bombe_illegale', type: 'crime', jour: state.day });
     updateUI();
     showToast('Vente refusée !', 'Le vendeur se méfie et alerte la police. Vous êtes recherché(e).', false, true);
     addJournalEntry('Tentative d\'achat d\'explosifs échouée. Alerte donnée par le vendeur.', 'event-bad');
@@ -2187,8 +2183,7 @@ async function confirmerIncendier() {
   const detectRate = ACTES_ILLEGAUX['incendier']?.detectRate || 70;
   const repere = (Math.floor(Math.random() * 100) + 1) <= detectRate;
   if (repere) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'incendier', type: 'crime', jour: state.day });
+    await inscrireRecherche({ acte: 'incendier', type: 'crime', jour: state.day });
     addExternalEvent('ALERTE : un témoin vous a reconnu près de l\'incendie.');
   } else if (joursFermeture > 0) {
     // Reussi et non repere sur le champ -> reste decouvrable plus tard via enquete
@@ -2298,8 +2293,7 @@ async function confirmerUtiliserExplosifs() {
   const detectRate = ACTES_ILLEGAUX['utiliser_explosifs']?.detectRate || 65;
   const repere = reussi ? ((Math.floor(Math.random() * 100) + 1) <= detectRate) : true;
   if (repere) {
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'utiliser_explosifs', type: 'crime', jour: state.day });
+    await inscrireRecherche({ acte: 'utiliser_explosifs', type: 'crime', jour: state.day });
     addExternalEvent(reussi ? 'ALERTE : un témoin vous a reconnu près de l\'explosion.' : 'ALERTE : l\'échec de l\'attentat a été signalé à la police.');
   } else if (reussi) {
     if (!state.historiqueCrimes) state.historiqueCrimes = [];
@@ -2565,8 +2559,7 @@ async function confirmerEmpoisonnement(cibleNom) {
     // Ce n'est pas une regle nouvelle : c'est la valeur que le jeu declare deja pour cet acte
     // precis, et qui n'etait simplement jamais lue. Signale au rapport pour arbitrage.
     // AJOUT, jamais remplacement (13/09/2026) -- meme correctif que les tentatives d'assassinat.
-    if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte:'tentative_empoisonnement', type:'crime', jour:state.day });
+    await inscrireRecherche({ acte: 'tentative_empoisonnement', type: 'crime', jour: state.day });
     showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false);
     addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
     setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);
