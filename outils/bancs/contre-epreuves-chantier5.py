@@ -32,6 +32,8 @@ ILLEGALES = os.path.join(RACINE, "plateau-actions-illegales-rumeurs.js")
 BANC_TOURNEE = os.path.join(RACINE, "outils", "bancs", "banc-tournee-cloture.js")
 PNJ = os.path.join(RACINE, "plateau-pnj.js")
 BANC_TERRAIN = os.path.join(RACINE, "outils", "bancs", "banc-mutation-terrain.js")
+SUPABASE = os.path.join(RACINE, "supabase.js")
+BANC_PLAINTES = os.path.join(RACINE, "outils", "bancs", "banc-cycle-plaintes.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -270,6 +272,70 @@ REGRESSIONS = [
 ]
 
 
+# ---------------------------------------------------------------------------------------------
+# CYCLE DE VIE D'UNE AFFAIRE (chantier 5, les trois `sbSavePlainte`, 10 octobre 2026).
+# Le banc lit TROIS fichiers : chaque serie dit lequel elle patche, via `lancer_cible`.
+REGRESSIONS_PLAINTES_JUSTICE = [
+    ("transmission -- l'annonce du forum redevient inconditionnelle",
+     "    if (typeof showToast === 'function') showToast('Affaire non transmise', motifRefus, false);\n"
+     "    return false;",
+     "    if (typeof showToast === 'function') showToast('Affaire non transmise', motifRefus, false);",
+     "un refus ARRETE la fonction avant toute publication"),
+
+    ("transmission -- un rejeu republie l'affaire sur le forum",
+     "  if (vAff.deja_transmise === true) return true;",
+     "",
+     "un rejeu ne republie rien sur le forum"),
+
+    ("transmission -- l'etat local ne recopie plus l'affaire du serveur",
+     "  const affaireTransmise = vAff.affaire || {};",
+     "  const affaireTransmise = { id: 'affaire-' + Date.now(), cible: cible, motif: motif };",
+     "l'etat local recopie l'affaire arretee par le serveur"),
+
+    ("transmission -- l'appelant « enquete conclue » n'attend plus la porte",
+     "      const transmise = await transmettreAffaireAuTribunal(",
+     "      const transmise = transmettreAffaireAuTribunal(",
+     "l'appelant \u00ab enquete conclue \u00bb attend la transmission"),
+
+    ("defense -- le verdict de la porte n'est plus lu",
+     "  if (!vDef || vDef.ok !== true) {",
+     "  if (false) {",
+     "le verdict est lu AVANT toute annonce"),
+
+    ("defense -- le statut de l'affaire redevient pose en memoire",
+     "    issue = 'reussite_critique';",
+     "    affaire.status = 'jugee';\n    issue = 'reussite_critique';",
+     "plus aucune pose locale du statut"),
+
+    ("defense -- l'affaire ne recopie plus l'etat arrete par le serveur",
+     "    if (i >= 0) state.plaintesEnCours[i] = vDef.affaire;",
+     "    void i;",
+     "l'affaire recopie l'etat arrete par le serveur"),
+]
+
+REGRESSIONS_PLAINTES_POLITIQUE = [
+    ("classement -- le verdict de la porte n'est plus lu",
+     "      if (!vClass || vClass.ok !== true) {",
+     "      if (false) {",
+     "le verdict est lu, et un refus ARRETE la fonction"),
+
+    ("classement -- l'ecran du ministre redevient structurellement vide",
+     "  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];\n"
+     "  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];",
+     "  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];\n"
+     "  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];",
+     "elle filtre le statut reel d une affaire en cours avant jugement"),
+]
+
+REGRESSIONS_PLAINTES_SUPABASE = [
+    ("cycle -- l'upsert du blob entier revient dans supabase.js",
+     "async function sbLoadPlaintes(country) {",
+     "async function sbSavePlainte(plainte) {\n  return sbUpsert('plaintes_en_cours', {});\n}\n"
+     "async function sbLoadPlaintes(country) {",
+     "sbSavePlainte n existe plus dans supabase.js"),
+]
+
+
 def lancer(banc, chemin_source):
     """Lance le banc sur la source donnee. Rend (code_de_sortie, sortie)."""
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
@@ -292,6 +358,24 @@ def lancer_sources(banc, chemin_source):
                         chemin_source],
                        capture_output=True, text=True)
     return r.returncode, r.stdout + r.stderr
+
+
+def lancer_cible(nom_fichier):
+    """Fabrique un lanceur pour un banc qui lit PLUSIEURS fichiers : il faut dire lequel la copie
+    patchee remplace. Sans cela, `banc-cycle-plaintes.js` lirait la copie a la place du premier
+    fichier de sa liste et la contre-epreuve prouverait n'importe quoi."""
+    def lanceur(banc, chemin_source):
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
+            f.write("var CHEMIN_FICHIER = %r;\nvar CHEMIN_SOURCE = %r;\n"
+                    % (nom_fichier, chemin_source))
+            decor = f.name
+        try:
+            r = subprocess.run([sys.executable, LANCEUR, banc, decor],
+                               capture_output=True, text=True)
+            return r.returncode, r.stdout + r.stderr
+        finally:
+            os.unlink(decor)
+    return lanceur
 
 
 def serie(titre, banc, source, regressions, echecs, lanceur=None):
@@ -343,10 +427,17 @@ def main():
     serie("TAUX D'IMPOSITION", BANC_IMPOTS, JUSTICE, REGRESSIONS_IMPOTS, echecs)
     serie("CLOTURE D'UNE TOURNEE", BANC_TOURNEE, ILLEGALES, REGRESSIONS_TOURNEE, echecs)
     serie("MUTATION DE PROPRIETE D'UN TERRAIN", BANC_TERRAIN, PNJ, REGRESSIONS_TERRAIN, echecs)
+    serie("CYCLE D'UNE AFFAIRE -- justice", BANC_PLAINTES, JUSTICE,
+          REGRESSIONS_PLAINTES_JUSTICE, echecs, lanceur=lancer_cible("plateau-justice-economie.js"))
+    serie("CYCLE D'UNE AFFAIRE -- politique", BANC_PLAINTES, POLITIQUE,
+          REGRESSIONS_PLAINTES_POLITIQUE, echecs, lanceur=lancer_cible("plateau-politique.js"))
+    serie("CYCLE D'UNE AFFAIRE -- supabase", BANC_PLAINTES, SUPABASE,
+          REGRESSIONS_PLAINTES_SUPABASE, echecs, lanceur=lancer_cible("supabase.js"))
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
-             + len(REGRESSIONS_TERRAIN))
+             + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_PLAINTES_JUSTICE)
+             + len(REGRESSIONS_PLAINTES_POLITIQUE) + len(REGRESSIONS_PLAINTES_SUPABASE))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

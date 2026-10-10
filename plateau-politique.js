@@ -7858,7 +7858,13 @@ async function ouvrirModalAffaires(mode, pa, cost) {
   if (typeof sbLoadPlaintes === 'function') {
     try { state.plaintesEnCours = await sbLoadPlaintes(state.country); } catch(e) {}
   }
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];
+  // LE STATUT FILTRE ICI N'EXISTAIT PLUS (10 octobre 2026). Cette liste cherchait `'pending'`,
+  // le statut de l'ancien pipeline de plaintes NEUTRALISE LE 15 SEPTEMBRE 2026 : plus aucune
+  // affaire ne le porte, donc l'ecran du Ministre de la Justice etait STRUCTURELLEMENT VIDE
+  // depuis cette date. Le libelle de l'ordre dit la regle -- `annuler_poursuites` : « Classer une
+  // plainte en cours AVANT JUGEMENT » -- et le statut d'une affaire en cours est « deposee ».
+  // Aucune regle nouvelle : on repointe un filtre sur le nom que le statut porte reellement.
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
 
   let html = '<div style="padding:1rem">';
@@ -7897,8 +7903,35 @@ async function annulerAffaire(refId, mode, pa, cost) {
         return;
       }
 
-      affaire.status = 'annulee';
-      if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+      // LE CLASSEMENT EST UNE PORTE, ET L'ANCIENNE ECRITURE ETAIT REFUSEE A TOUS LES COUPS
+      // (10 octobre 2026). `sbSavePlainte` est un upsert sur `plaintes_en_cours`, dont la policy
+      // d'UPDATE n'a que deux branches : autorite judiciaire de la ville, ou affaire qui me
+      // concerne. Le Ministre de la Justice n'est ni l'une ni l'autre -- mesure faite, l'UPDATE
+      // touchait ZERO ligne. Les 250 FR quittaient la caisse du gouvernement et la plainte
+      // restait ouverte, a chaque classement, depuis toujours.
+      //
+      // L'ORDRE DES DEUX ACTES EST CONSERVE A DESSEIN. Le mouvement de caisse porte DEJA la
+      // verification d'autorite ministerielle ; le deplacer apres le classement permettrait a un
+      // ministre de classer gratuitement quand la caisse est vide. Les frais restent donc
+      // prelevables avant -- et si la porte refuse, on le DIT, au lieu de l'avaler.
+      const vClass = (typeof sbRpc === 'function')
+        ? await sbRpc('plainte_classer_ministere', { p_affaire_id: affaire.id })
+            .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+        : null;
+      if (!vClass || vClass.ok !== true) {
+        const motifRefus = vClass?.raison === 'affaire_non_classable'
+            ? 'Cette affaire n\'est plus en cours avant jugement (' + (vClass.statut || 'statut inconnu') + ').'
+          : vClass?.raison === 'autorite_refusee' ? 'Réservé au Ministre de la Justice en exercice.'
+          : vClass?.raison === 'hors_juridiction' ? 'Cette affaire ne relève pas de vos juridictions.'
+          : vClass?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
+          : "Le greffe n'a pas enregistré le classement.";
+        showToast('Classement non enregistré',
+          motifRefus + ' Les frais de dossier (' + cout + ' FR) ont déjà été prélevés : signalez-le.', false);
+        addJournalEntry('Classement refusé par le greffe alors que les ' + cout + ' FR de frais étaient prélevés.', 'event-bad');
+        return;
+      }
+      const iAff = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaire.id);
+      if (iAff >= 0 && vClass.affaire) state.plaintesEnCours[iAff] = vClass.affaire;
       showToast('Plainte classée', 'La procédure a été classée. -' + cout + ' FR.', false, true);
       addJournalEntry('Classement d\'une plainte par le Ministre de la Justice (-' + cout + ' FR).', 'event-info');
     }

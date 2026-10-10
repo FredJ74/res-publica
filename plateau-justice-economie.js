@@ -711,9 +711,14 @@ async function traiterEnquetes() {
         // Le serveur a refuse : on ne raconte pas une arrestation qui n'a pas eu lieu.
         result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. La garde a vue n'a pas pu etre executee.`;
       }
-      addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
-      // Transmettre au tribunal pour jugement public
-      transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
+      // LA TRANSMISSION EST ATTENDUE, ET ELLE EST ANNONCEE APRES (10 octobre 2026) : l'evenement
+      // public disait « Affaire transmise au tribunal » avant que l'ecriture n'ait abouti, et sans
+      // jamais lire son resultat.
+      const transmise = await transmettreAffaireAuTribunal(
+        e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
+      addExternalEvent(`${e.cible} a ete place(e) en garde a vue.`
+        + (transmise ? ' Affaire transmise au tribunal.' : " L'affaire n'a PAS pu etre transmise au tribunal."), 'local');
+      if (!transmise) result += " L'affaire n'a pas pu etre transmise au tribunal.";
     }
     // Meme correctif que traiterPlaintes : state.mails n'est jamais rendu nulle part, les
     // conclusions d'enquete n'etaient donc lisibles par personne.
@@ -734,27 +739,64 @@ async function traiterEnquetes() {
 // voyager la victime/cible reelle, le jour du fait et la reference technique jusqu'a la
 // condamnation puis, in fine, jusqu'au motif de la detention -- sans quoi ces informations,
 // pourtant connues a cet instant, disparaissent avant appliquerSentence (audit du 26 aout 2026).
-function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
+// LA TRANSMISSION EST UNE PORTE, ET SON IDENTIFIANT N'EST PLUS UNE HORLOGE (10 octobre 2026).
+// Cette fonction composait `'affaire-' + Date.now()`, poussait l'affaire dans l'etat local, puis
+// laissait partir un `sbSavePlainte(...).catch(() => {})`. Deux defauts :
+//
+//   * REJEU. Un double clic, ou un second passage du traitement differe sur la meme enquete,
+//     creait DEUX affaires contre la meme personne pour le meme acte -- et l'accuse devait se
+//     defendre deux fois. `affaire_transmettre` derive l'identifiant de (pays, ville, jour, cible,
+//     motif, reference du fait) : le meme acte rejoue est la MEME ligne.
+//
+//   * ANNONCE SANS ACTE. Le forum du tribunal publiait « AFFAIRE TRANSMISE AU TRIBUNAL » sans
+//     condition, y compris quand l'ecriture avait echoue. La publication est desormais
+//     SUBORDONNEE au verdict de la porte, et ne se fait pas une seconde fois sur un rejeu.
+//
+// Le pays et le jour ne sont plus envoyes : le serveur les lit sur la fiche de l'autorite qui
+// transmet. La ville, elle, reste un parametre -- une affaire appartient a la ville ou elle a ete
+// constatee -- et la porte verifie que c'est bien la juridiction de l'appelant.
+async function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
   const villeReelle = city || state.currentCity || 'capitale';
   const forumKey = 'tribunal_' + villeReelle;
 
-  // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence) — visible par TOUS les juges via Supabase
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  const affaireTransmise = { id: 'affaire-' + Date.now(), country: state.country, city: villeReelle, cible, motif, jour: state.day, status: 'deposee' };
+  const fait = {};
   if (factRef) {
-    if (factRef.victime) affaireTransmise.victime = factRef.victime;
-    if (factRef.jourFait != null) affaireTransmise.jourFait = factRef.jourFait;
-    if (factRef.refType) affaireTransmise.refType = factRef.refType;
-    if (factRef.refId) affaireTransmise.refId = factRef.refId;
+    if (factRef.victime) fait.victime = factRef.victime;
+    if (factRef.jourFait != null) fait.jourFait = factRef.jourFait;
+    if (factRef.refType) fait.refType = factRef.refType;
+    if (factRef.refId) fait.refId = factRef.refId;
   }
-  state.plaintesEnCours.push(affaireTransmise);
-  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaireTransmise).catch(() => {});
+  const vAff = (typeof sbRpc === 'function')
+    ? await sbRpc('affaire_transmettre', {
+        p_cible: cible, p_motif: motif, p_city: villeReelle,
+        p_fait: Object.keys(fait).length ? fait : null
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vAff || vAff.ok !== true) {
+    const motifRefus = vAff && vAff.raison === 'autorite_refusee'
+      ? "Seul le juge ou le commissaire de " + villeReelle + ' peut transmettre une affaire à son tribunal.'
+      : "Le greffe n'a pas enregistré la transmission. L'affaire n'est inscrite à aucun rôle : signalez-le.";
+    if (typeof showToast === 'function') showToast('Affaire non transmise', motifRefus, false);
+    return false;
+  }
+  // L'etat local recopie l'affaire ARRETEE PAR LE SERVEUR, jamais celle que le client a composee.
+  const affaireTransmise = vAff.affaire || {};
+  if (!state.plaintesEnCours.some(p => p && p.id === affaireTransmise.id)) {
+    state.plaintesEnCours.push(affaireTransmise);
+  }
+  // UN REJEU N'ANNONCE RIEN DEUX FOIS : l'affaire existait deja, le forum l'a deja publiee.
+  if (vAff.deja_transmise === true) return true;
 
   // Publier sur le forum tribunal local (visible de tous, transparence judiciaire)
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
   const timeAffaire = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
   FORUM_TOPICS[forumKey].unshift({
-    id: 'affaire-' + Date.now(),
+    // L'IDENTIFIANT DU SUJET DE FORUM N'EST PAS CELUI DE L'AFFAIRE, et il porte desormais un
+    // prefixe qui le dit. Les deux se nommaient `'affaire-' + Date.now()`, ce qui laissait croire
+    // que l'affaire tirait son identite d'une horloge alors que seul ce sujet local le fait --
+    // FORUM_TOPICS n'est qu'une liste en memoire, le forum PARTAGE passe par sbCreateTopic.
+    id: 'topic-affaire-' + Date.now(),
     title: '[AFFAIRE TRANSMISE] ' + cible,
     author: 'Brigade Criminelle',
     time: timeAffaire,
@@ -780,6 +822,7 @@ function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
         }
       }).catch(e => console.warn('Erreur transmission tribunal:', e));
   }
+  return true;
 }
 
 function depenseBudget(institution, montant) {
@@ -1544,36 +1587,71 @@ async function doDefense(pa, cost) {
   const taux = Math.max(5, Math.min(90, 50 + bonusCha - malusPreuve));
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  let titre, message, journal, bon;
+  let titre, message, journal, bon, issue;
 
+  // LES QUATRE ISSUES SONT DESORMAIS NOMMEES, et c'est la porte qui les inscrit (10 octobre 2026).
+  // Ce bloc posait `affaire.status` / `circonstanceAttenuante` / `aggravation` sur l'objet local,
+  // puis laissait partir un `sbSavePlainte(...).catch(() => {})`. Mesure faite : cette ecriture
+  // n'a JAMAIS rien inscrit. `plaintes_en_cours` porte un trigger BEFORE UPDATE,
+  // `plaintes_epingler_verdict`, qui restaure ces trois champs des que l'auteur n'est pas
+  // l'autorite judiciaire de la ville -- et l'accuse n'en est jamais une. La defense coutait donc
+  // 2 PA et 300 FR pour rien, systematiquement, pour tout le monde.
+  //
+  // LE JET, LUI, RESTE ICI, et il faut dire pourquoi. Son taux depend de `getStatEffective('CHA')`,
+  // qui additionne `state.char.bonusFormation` -- un bonus temporaire qui n'est PERSISTE DANS
+  // AUCUNE COLONNE : il vit dans la session du navigateur et disparait au sommeil. Le serveur ne
+  // peut pas le connaitre. Refaire le tirage cote serveur reviendrait soit a supprimer son effet
+  // sur la defense, soit a le rendre persistant : les deux changent la regle de jeu. L'issue est
+  // donc annoncee par le client, dans une LISTE CLOSE de quatre valeurs, sur une affaire dont le
+  // serveur verifie qu'elle est bien la sienne et qu'elle est encore jugeable.
   if (roll <= taux - 30) {
-    affaire.status = 'jugee';
-    affaire.resultatDefense = 'reussite_critique';
+    issue = 'reussite_critique';
     titre = 'Affaire classée !';
     message = 'Votre défense est si convaincante que l\'affaire est classée sur le champ.';
     journal = 'Défense réussie de façon éclatante — affaire classée (jet ' + roll + '/' + taux + '%).';
     bon = true;
   } else if (roll <= taux) {
-    affaire.circonstanceAttenuante = true;
+    issue = 'attenuante';
     titre = 'Défense entendue';
     message = 'Votre défense a porté. Le juge en tiendra compte (peine réduite si prison choisie).';
     journal = 'Défense réussie — circonstance atténuante enregistrée (jet ' + roll + '/' + taux + '%).';
     bon = true;
   } else if (roll > 90) {
-    affaire.aggravation = true;
+    issue = 'aggravation';
     titre = 'Aggravation';
     message = 'Votre défense s\'est retournée contre vous. Le juge en sera informé.';
     journal = 'Défense ratée de façon flagrante — aggravation enregistrée (jet ' + roll + '/' + taux + '%).';
     bon = false;
   } else {
+    issue = 'infructueuse';
     titre = 'Défense infructueuse';
     message = 'Votre défense n\'a pas convaincu. L\'affaire suit son cours normal.';
     journal = 'Défense infructueuse — l\'affaire suit son cours (jet ' + roll + '/' + taux + '%).';
     bon = false;
   }
 
-  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
+  const vDef = (typeof sbRpc === 'function')
+    ? await sbRpc('plainte_defendre', { p_affaire_id: affaire.id, p_issue: issue })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (!vDef || vDef.ok !== true) {
+    // LA DEFENSE EST DEJA PAYEE A CE STADE, et le dire est le seul comportement honnete.
+    const motifRefus = vDef?.raison === 'affaire_non_defendable'
+        ? 'Cette affaire a déjà été jugée ou classée. Votre défense n\'a pas été enregistrée.'
+      : vDef?.raison === 'pas_mon_affaire' ? "Vous n'êtes pas la personne mise en cause dans cette affaire."
+      : vDef?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
+      : "Le greffe n'a pas enregistré votre défense, alors que les frais ont été prélevés. Signalez-le.";
+    showToast('Défense non enregistrée', motifRefus, false);
+    addJournalEntry('Défense plaidée (jet ' + roll + '/' + taux + '%) mais NON enregistrée par le greffe.', 'event-bad');
+    updateUI();
+    return;
+  }
+  // L'affaire recopie l'etat ARRETE PAR LE SERVEUR, jamais celui que ce navigateur a compose.
+  if (vDef.affaire && typeof vDef.affaire === 'object') {
+    const i = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaire.id);
+    if (i >= 0) state.plaintesEnCours[i] = vDef.affaire;
+  }
   showToast(titre, message, bon);
   addJournalEntry(journal, bon ? 'event-good' : 'event-bad');
   updateUI();
@@ -11296,12 +11374,18 @@ async function confirmerMenerEnquete(pa, cost) {
   const motifsEnquete = [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue', date_evenement: new Date().toISOString() }];
   // La detention a deja ete creee par la RPC ci-dessus, avec ces memes motifs cote serveur.
   void motifsEnquete;
-  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage);
+  // LA TRANSMISSION EST ATTENDUE ET SON RESULTAT EST LU (10 octobre 2026) : le journal annoncait
+  // « Affaire transmise au tribunal » sans jamais savoir si elle l'etait.
+  const transmiseDemasquage = (typeof transmettreAffaireAuTribunal === 'function')
+    ? await transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage)
+    : false;
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Enquete de police', 'Une enquete a mis en evidence un acte illegal vous concernant. Vous avez ete place en garde a vue.');
   }
   addExternalEvent('ENQUETE : ' + cible + ' a ete demasque(e) et place(e) en garde a vue.', 'local');
-  addJournalEntry('Enquete reussie contre ' + cible + ' (' + taux + '% de chances). Affaire transmise au tribunal. -250 FR.', 'event-good');
+  addJournalEntry('Enquete reussie contre ' + cible + ' (' + taux + '% de chances). '
+    + (transmiseDemasquage ? 'Affaire transmise au tribunal.' : "L'affaire n'a PAS pu etre transmise au tribunal.")
+    + ' -250 FR.', 'event-good');
   showToast('Enquete reussie', cible + ' a ete demasque(e) et place(e) en garde a vue.', true, true);
 
   // Resolution spectaculaire du point de vue de l'ENQUETEUR (3e personne, meme doctrine que la

@@ -2512,29 +2512,30 @@ async function sbUploadOrgAvatar(orgaId, file) {
 // =====================
 // PLAINTES EN COURS (commissariat/tribunal, partage entre joueurs)
 // =====================
-// LE PAYS D'UNE PLAINTE EST SA JURIDICTION (chantier 4G, 8 octobre 2026). Cette ligne ecrivait
-// `plainte.country || 'republic'` : une plainte dont le pays n'etait pas renseigne etait donc
-// deposee devant les juridictions de REPUBLIA, quel que soit l'empire ou l'acte avait eu lieu.
-// Ce n'est pas un defaut d'affichage -- c'est le tribunal competent, et le pays de la victime est
-// GELE a la creation precisement pour qu'il ne puisse plus bouger ensuite.
+// sbSavePlainte A ETE SUPPRIMEE (chantier 5, 10 octobre 2026), ET sbDeletePlainte AVEC ELLE.
 //
-// Une plainte sans juridiction n'est pas deposable : exigerPays leve, et l'appelant le voit.
-async function sbSavePlainte(plainte) {
-  return sbUpsert('plaintes_en_cours',
-    { id: plainte.id, country: exigerPays(plainte && plainte.country, 'sbSavePlainte'),
-      city: (plainte && plainte.city) || null,
-      data: JSON.stringify(plainte) });
-}
-
+// C'etait l'UNIQUE ecriture cliente du cycle de vie d'une affaire : un upsert du blob ENTIER,
+// appele depuis trois endroits, avale trois fois par un `.catch(() => {})`. Le cycle a desormais
+// cinq portes serveur -- `plainte_deposer` et `plainte_traiter` (deja la), plus
+// `affaire_transmettre`, `plainte_defendre` et `plainte_classer_ministere`.
+//
+// POURQUOI SA SUPPRESSION EST PLUS QU'UN RANGEMENT. Un upsert du blob entier est un
+// DERNIER-ECRIVAIN-GAGNANT sur un objet que plusieurs acteurs modifient : l'accuse (defense), le
+// commissaire (instruction), le juge (sentence) et le ministre (classement). Deux ecrans ouverts
+// en meme temps, et le second ecrasait le premier. Les cinq portes fusionnent chacune SON champ
+// sur l'etat relu sous verrou.
+//
+// `sbDeletePlainte` n'avait, elle, AUCUN appelant dans tout le depot -- un ecrivain orphelin sur
+// une table partagee. Le pays d'une plainte reste sa juridiction (chantier 4G) : c'est desormais
+// le serveur qui le lit sur la fiche de l'acteur, et plus `exigerPays` sur un objet client.
+//
+// sbLoadPlaintes RESTE : elle ne fait que lire, et c'est elle qui apporte au juge, au commissaire
+// et au ministre l'etat arrete par le serveur.
 async function sbLoadPlaintes(country) {
   const filtre = country ? `country=eq.${encodeURIComponent(country)}` : 'select=*';
   const rows = await sbGet('plaintes_en_cours', filtre);
   if (!rows) return [];
   return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
-}
-
-async function sbDeletePlainte(plainteId) {
-  return sbDelete('plaintes_en_cours', `id=eq.${encodeURIComponent(plainteId)}`);
 }
 
 // =====================
