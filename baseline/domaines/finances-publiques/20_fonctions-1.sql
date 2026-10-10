@@ -3202,64 +3202,78 @@ AS $function$
   HAVING count(*) > 0;
 $function$;
 
--- subvention_citoyen_verser(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.subvention_citoyen_verser(p_beneficiaire text, p_montant integer)
- RETURNS jsonb
+-- subvention_beneficiaire_verdict(text,text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_beneficiaire_verdict(p_pays text, p_ville text, p_famille text, p_id text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_eligible boolean; v_pays text; v_ville text;
+BEGIN
+  -- LE VERDICT QUE LA PORTE APPLIQUERA. Il rend NULL quand tout va bien, et un MOTIF NOMME
+  -- sinon. Quatre refus distincts, parce qu'« action impossible » n'apprend rien a un joueur.
+  SELECT f.eligible INTO v_eligible FROM public.subventions_familles f WHERE f.famille = p_famille;
+  IF v_eligible IS NULL THEN RETURN 'famille_inconnue'; END IF;
+  IF NOT v_eligible THEN RETURN 'famille_non_eligible'; END IF;
+
+  SELECT e.pays, e.ville INTO v_pays, v_ville
+    FROM public.subvention_entites(p_famille) e WHERE e.id = p_id;
+  IF v_pays IS NULL THEN RETURN 'beneficiaire_introuvable'; END IF;
+
+  -- STRICTE TERRITORIALITE : le pays ET la ville. Un maire de Luthecia ne subventionne pas un
+  -- club de Montrouge, et encore moins un club d'un autre empire.
+  IF v_pays IS DISTINCT FROM p_pays OR v_ville IS DISTINCT FROM p_ville THEN
+    RETURN 'beneficiaire_hors_commune';
+  END IF;
+  RETURN NULL;
+END $function$;
+
+-- subvention_caisse_crediter(text,text,numeric,text,integer) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_caisse_crediter(p_famille text, p_id text, p_montant numeric, p_motif text, p_jour integer)
+ RETURNS numeric
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE
-  v_acteur text; v_pays text; v_caisse text; v_data jsonb;
-  v_solde numeric; v_verse numeric; v_arg numeric;
+DECLARE v_data jsonb; v_hist jsonb; v_n integer; v_solde numeric;
 BEGIN
-  -- 1. AUTORITE. exiger_poste leve si le compte n'a pas de personnage ou n'est pas min_fin.
-  v_acteur := public.exiger_poste('min_fin');
-  IF v_acteur IS NULL THEN            -- appel serveur (cron) : pas de subvention automatique
-    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  -- BRANCHE 3 SUR 3. LE CREDIT. Reservee au serveur : aucun GRANT n'est accorde, et une fonction
+  -- neuve n'est appelable par personne depuis le registre 561. Elle n'est atteinte que par la
+  -- porte de reponse, dans la meme transaction que le debit de l'enveloppe municipale.
+  IF p_montant IS NULL OR p_montant <= 0 THEN
+    RAISE EXCEPTION 'montant_invalide : %', p_montant;
   END IF;
 
-  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_acteur;
-  IF coalesce(v_pays, '') = '' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pays_indetermine');
+  IF p_famille = 'club_football' THEN
+    -- FOR UPDATE : le credit lit puis reecrit un blob. Sans verrou, deux credits simultanes se
+    -- perdraient l'un l'autre -- c'est la lecon du chantier des blobs.
+    SELECT b.data INTO v_data FROM public.budgets_clubs b WHERE b.id = p_id FOR UPDATE;
+    IF v_data IS NULL THEN
+      RAISE EXCEPTION 'caisse_introuvable : le club % n''a pas de ligne budgets_clubs', p_id;
+    END IF;
+
+    v_solde := greatest(0, coalesce((v_data->>'caisse')::numeric, 0) + p_montant);
+
+    -- L'HISTORIQUE SUIT LA CONVENTION DU JEU, A LA LETTRE : {jour, montant, motif} ajoute en
+    -- queue, puis les 50 derniers conserves -- exactement ce que fait `crediterBudgetClub`
+    -- (plateau-organisations-quetes.js). On ne cree pas une seconde convention d'historique.
+    v_hist := coalesce(v_data->'historique', '[]'::jsonb)
+              || jsonb_build_array(jsonb_build_object(
+                   'jour', p_jour, 'montant', p_montant, 'motif', p_motif));
+    v_n := jsonb_array_length(v_hist);
+    IF v_n > 50 THEN
+      SELECT jsonb_agg(e ORDER BY n) INTO v_hist
+        FROM jsonb_array_elements(v_hist) WITH ORDINALITY t(e, n) WHERE n > v_n - 50;
+    END IF;
+
+    UPDATE public.budgets_clubs
+       SET data = jsonb_set(jsonb_set(v_data, '{caisse}', to_jsonb(v_solde)),
+                            '{historique}', v_hist),
+           updated_at = now()
+     WHERE id = p_id;
+    RETURN v_solde;
   END IF;
 
-  -- 2. MONTANT. Memes bornes que le formulaire : au moins 1, au plus 5000.
-  IF p_montant IS NULL OR p_montant < 1 OR p_montant > 5000 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide');
-  END IF;
-
-  -- 3. BENEFICIAIRE. Il doit exister. La ligne est verrouillee avant tout mouvement.
-  SELECT coalesce(arg, 0) INTO v_arg
-    FROM public.personnages_donnees WHERE name = p_beneficiaire FOR UPDATE;
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable');
-  END IF;
-
-  -- 4. CAISSE. Verrouillee elle aussi : le solde lu est celui qu'on debite.
-  v_caisse := v_pays || '_gouvernement-min_fin';
-  SELECT data INTO v_data FROM public.caisses_batiments WHERE id = v_caisse FOR UPDATE;
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante', 'verse', 0);
-  END IF;
-  v_solde := CASE WHEN jsonb_typeof(v_data->'solde') = 'number'
-                  THEN (v_data->>'solde')::numeric ELSE 0 END;
-  v_verse := least(greatest(v_solde, 0), p_montant);   -- versement partiel tolere, comme avant
-  IF v_verse <= 0 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante', 'verse', 0);
-  END IF;
-
-  -- 5. LES DEUX MOUVEMENTS, ENSEMBLE.
-  UPDATE public.caisses_batiments
-     SET data = coalesce(v_data, '{}'::jsonb) || jsonb_build_object('solde', v_solde - v_verse),
-         updated_at = now()
-   WHERE id = v_caisse;
-
-  -- INCREMENT, jamais « solde relu + montant » : c'est ce calcul qui aurait ecrase la fortune.
-  UPDATE public.personnages_donnees
-     SET arg = coalesce(arg, 0) + v_verse
-   WHERE name = p_beneficiaire;
-
-  RETURN jsonb_build_object('ok', true, 'verse', v_verse, 'beneficiaire', p_beneficiaire,
-                            'acteur', v_acteur, 'caisse', v_caisse);
-END; $function$;
+  RAISE EXCEPTION 'famille_sans_branche_de_credit : %', p_famille;
+END $function$;

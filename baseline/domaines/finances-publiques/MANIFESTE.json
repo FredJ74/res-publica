@@ -43,6 +43,30 @@
    "sous": "pays"
   },
   {
+   "empreinte": "24f5aad009b6f1c9a2100131014e5a56",
+   "genre": "COLUMN",
+   "objet": "subventions_familles",
+   "sous": "eligible"
+  },
+  {
+   "empreinte": "0014969fc56086c0e912310c793c7a3d",
+   "genre": "COLUMN",
+   "objet": "subventions_familles",
+   "sous": "registre"
+  },
+  {
+   "empreinte": "1daad5514deb240147c626fbd7740fb3",
+   "genre": "COLUMN",
+   "objet": "subventions_municipales",
+   "sous": "beneficiaire_nom"
+  },
+  {
+   "empreinte": "9ca88ba298d87e7a3cc8824abed8d235",
+   "genre": "COLUMN",
+   "objet": "subventions_municipales",
+   "sous": "clos_par"
+  },
+  {
    "empreinte": "26e3232d18dcdf1847d85f223a8a1cd7",
    "genre": "FUNCTION",
    "objet": "alimenter_caisse_fonds(text,text,integer)",
@@ -265,6 +289,42 @@
    "sous": ""
   },
   {
+   "empreinte": "9b428cc43a21fb6659c7afe8d91da67d",
+   "genre": "FUNCTION",
+   "objet": "subvention_enveloppe_lire()",
+   "sous": ""
+  },
+  {
+   "empreinte": "4c66a8d6faeb9678f9979ca9ce8d43bb",
+   "genre": "FUNCTION",
+   "objet": "subvention_familles_resolues()",
+   "sous": ""
+  },
+  {
+   "empreinte": "df57a3a4e8268b8029262944d855292f",
+   "genre": "FUNCTION",
+   "objet": "subvention_proposer(text,text,numeric)",
+   "sous": ""
+  },
+  {
+   "empreinte": "453247f823bbc37a6c7db792ff35463f",
+   "genre": "FUNCTION",
+   "objet": "subvention_repondre(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "8193df03700380968edc1d76d3326553",
+   "genre": "FUNCTION",
+   "objet": "subventions_expirer(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "bc319d7a494d5d0be84e0e0d251630ee",
+   "genre": "FUNCTION",
+   "objet": "subventions_recues_lire()",
+   "sous": ""
+  },
+  {
    "empreinte": "8c1c287733f0f82f75f1263d8d941cfe",
    "genre": "FUNCTION",
    "objet": "taxe_fonciere_prelever(text)",
@@ -304,6 +364,18 @@
    "empreinte": "d7e8c71854cb57112a4dfd489230ac66",
    "genre": "TABLE",
    "objet": "repartitions_versements",
+   "sous": ""
+  },
+  {
+   "empreinte": "fd517e75a08ca903d52beb2258de3c72",
+   "genre": "TABLE",
+   "objet": "subventions_familles",
+   "sous": ""
+  },
+  {
+   "empreinte": "ced1ccca6971f636178670f79b9d1139",
+   "genre": "TABLE",
+   "objet": "subventions_municipales",
    "sous": ""
   }
  ],
@@ -465,6 +537,18 @@
    "tbl": "salaires_religieux_verses"
   },
   {
+   "empreinte": "2ca0fb5e194d15e120e00cb315f1555e",
+   "genre": "p",
+   "nom": "subventions_familles_pkey",
+   "tbl": "subventions_familles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "subventions_municipales_pkey",
+   "tbl": "subventions_municipales"
+  },
+  {
    "empreinte": "db80daef9547f736c8800b0b407243b1",
    "genre": "u",
    "nom": "fonds_credits_uniques_ref",
@@ -601,6 +685,42 @@
    "genre": "c",
    "nom": "salaires_religieux_declares_montant_check",
    "tbl": "salaires_religieux_declares"
+  },
+  {
+   "empreinte": "20b63e29c862ba0fc50de867505dc44e",
+   "genre": "c",
+   "nom": "subventions_familles_registre_check",
+   "tbl": "subventions_familles"
+  },
+  {
+   "empreinte": "02ed34472eea813eb08db453934b4256",
+   "genre": "c",
+   "nom": "subventions_cloture_coherente",
+   "tbl": "subventions_municipales"
+  },
+  {
+   "empreinte": "9f253f0917f031a9e457b6fc9172f36a",
+   "genre": "c",
+   "nom": "subventions_delai_de_trois_jours",
+   "tbl": "subventions_municipales"
+  },
+  {
+   "empreinte": "392265e1211b9461d0094a0736f71b2b",
+   "genre": "c",
+   "nom": "subventions_municipales_montant_check",
+   "tbl": "subventions_municipales"
+  },
+  {
+   "empreinte": "ae27cf72118e004a8d0f4eaa0188e892",
+   "genre": "c",
+   "nom": "subventions_municipales_statut_check",
+   "tbl": "subventions_municipales"
+  },
+  {
+   "empreinte": "586c19f7431a0da5f4c9d0fbd674a6da",
+   "genre": "f",
+   "nom": "subventions_municipales_famille_fkey",
+   "tbl": "subventions_municipales"
   }
  ],
  "domaine": "finances publiques",
@@ -1632,6 +1752,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_beneficiaire_verdict(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_beneficiaire_verdict(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_caisse_crediter(text,text,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_caisse_crediter(text,text,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "subvention_citoyen_verser(text,integer)",
@@ -1647,6 +1791,156 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "subvention_citoyen_verser(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_entites(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_entites(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_enveloppe_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_enveloppe_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_enveloppe_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_familles_resolues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_familles_resolues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_gestionnaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_gestionnaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_organisations_locales(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_organisations_locales(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_organisations_locales(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_proposer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_proposer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_proposer(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_repondre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_repondre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_repondre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subventions_expirer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subventions_expirer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subventions_famille_a_son_resolveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subventions_famille_a_son_resolveur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subventions_recues_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subventions_recues_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subventions_recues_lire()",
    "privileges": "EXECUTE"
   },
   {
@@ -2236,20 +2530,56 @@
    "genre": "TABLE",
    "objet": "salaires_religieux_verses",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "subventions_familles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "subventions_familles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "subventions_municipales",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "subventions_municipales",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "subventions_municipales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "subventions_municipales",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "79e1c0f037aeec8c2a1661608025a4b5",
-  "20_fonctions-1.sql": "f937e50af2c43ac48ee9fdefb90df244",
-  "20_fonctions-2.sql": "c8a1ed361831294bff92d081e99b7e40",
-  "30_contraintes.sql": "ad9c26714715423fc522c3407cfa99b4",
-  "35_index.sql": "84a42ccef20ead05e8f4e25e19897707",
-  "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
-  "60_rls-policies.sql": "5550ba5434e706dc1a502c28b339b4c2",
-  "70_droits.sql": "5aa56ec936c721b82a10e743022dcb67",
-  "80_commentaires.sql": "e7e252a72f5a3e919cbf8995656fb276"
+  "10_tables.sql": "2484574e0d00ddf54b889a87850e608d",
+  "20_fonctions-1.sql": "393bd2ccd607b059fbcbc370536bd8a2",
+  "20_fonctions-2.sql": "6ffd456c4d5a870bd29bd75a42d10f88",
+  "30_contraintes.sql": "b5daf5cc5116df9311bd8f2bdce48602",
+  "35_index.sql": "9920e25ca29d18a076739a73eaec212d",
+  "50_triggers.sql": "a5ec7f7b6666577671c37d3ed45c263a",
+  "60_rls-policies.sql": "f7e1c4f40f9a46f18cb02b2cae03c160",
+  "70_droits.sql": "f611bf0cb65c541af7c74cc347e91c16",
+  "80_commentaires.sql": "40027cc68bacaa3769170558b5f69599"
  },
  "fonctions": [
   {
@@ -2553,9 +2883,69 @@
    "signature": "salaires_coherence()"
   },
   {
+   "empreinte": "5016c47395fe54702d7606368641ff9d",
+   "security_definer": true,
+   "signature": "subvention_beneficiaire_verdict(text,text,text,text)"
+  },
+  {
+   "empreinte": "2a271c7566552980c7922041fdcd075b",
+   "security_definer": true,
+   "signature": "subvention_caisse_crediter(text,text,numeric,text,integer)"
+  },
+  {
    "empreinte": "071cabc8d1636da0e2ba5e386bb241b9",
    "security_definer": true,
    "signature": "subvention_citoyen_verser(text,integer)"
+  },
+  {
+   "empreinte": "3f313fcb6ec31fe1838fa35c7896e482",
+   "security_definer": true,
+   "signature": "subvention_entites(text)"
+  },
+  {
+   "empreinte": "6ae882b3ba5720999f09093ee845e87c",
+   "security_definer": true,
+   "signature": "subvention_enveloppe_lire()"
+  },
+  {
+   "empreinte": "6b37517195b08c8b94d3fbaa54e3ce8f",
+   "security_definer": false,
+   "signature": "subvention_familles_resolues()"
+  },
+  {
+   "empreinte": "a6ba9aef843634e15fec16cff35d89ab",
+   "security_definer": true,
+   "signature": "subvention_gestionnaire(text,text)"
+  },
+  {
+   "empreinte": "dbb1cb4587f7fa3dc82e4918a3f67826",
+   "security_definer": true,
+   "signature": "subvention_organisations_locales(text,text)"
+  },
+  {
+   "empreinte": "0e17f3384b99c63ceab69e950cb8baae",
+   "security_definer": true,
+   "signature": "subvention_proposer(text,text,numeric)"
+  },
+  {
+   "empreinte": "86395a39408c300a1c12d01c5c301dd1",
+   "security_definer": true,
+   "signature": "subvention_repondre(text,text)"
+  },
+  {
+   "empreinte": "9ea4afd4c069aaf48e51657eb37e0cb0",
+   "security_definer": true,
+   "signature": "subventions_expirer(text)"
+  },
+  {
+   "empreinte": "d765455dd48af3b026d3b59f60b5483d",
+   "security_definer": false,
+   "signature": "subventions_famille_a_son_resolveur()"
+  },
+  {
+   "empreinte": "b07a3313a4ceb65404ac07586208a4af",
+   "security_definer": true,
+   "signature": "subventions_recues_lire()"
   },
   {
    "empreinte": "4e767e89c5fbc5bfd5cd12184f96b469",
@@ -2593,6 +2983,14 @@
   {
    "empreinte": "acf4423fbca7c16ff2b9aafb8480e676",
    "nom": "idx_contributions_piete_auteur"
+  },
+  {
+   "empreinte": "75827631a2aca738f69d7e8a076297cb",
+   "nom": "subventions_enveloppe_en_attente"
+  },
+  {
+   "empreinte": "533a6ed48ae9e5acde00a33cea78f680",
+   "nom": "subventions_une_proposition_identique_en_attente"
   }
  ],
  "index_portes": [
@@ -2622,7 +3020,9 @@
   "salaires_civils_declares_pkey",
   "salaires_civils_verses_pkey",
   "salaires_religieux_declares_pkey",
-  "salaires_religieux_verses_pkey"
+  "salaires_religieux_verses_pkey",
+  "subventions_familles_pkey",
+  "subventions_municipales_pkey"
  ],
  "ordre": [
   "10_tables.sql",
@@ -2737,6 +3137,12 @@
    "empreinte_avec_roles": "61775df5e45c4dbfb8a0b51d27c9a674",
    "nom": "recettes_municipales_lecture_publique",
    "tbl": "recettes_municipales"
+  },
+  {
+   "empreinte": "4df74a69a70a3b006fbab8a7d01daa0f",
+   "empreinte_avec_roles": "9a97e36aec6c9d911d245e680fbb19dc",
+   "nom": "subventions_archives_publiques",
+   "tbl": "subventions_municipales"
   }
  ],
  "rls": [
@@ -2874,6 +3280,16 @@
    "active": true,
    "forcee": false,
    "tbl": "salaires_religieux_verses"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "subventions_familles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "subventions_municipales"
   }
  ],
  "sequences": [
@@ -3056,6 +3472,18 @@
    "empreinte_catalogue": "b96530a78a6ae7cd05f26adc53ce1e2a",
    "empreinte_texte": "531f52686ea5bb3af892e22ec14a3c64",
    "nom": "salaires_religieux_verses"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "f6ee9f6197946020110d35f8f4d5c449",
+   "empreinte_texte": "8ebcb6f6127a1ffab6392eb0bc053988",
+   "nom": "subventions_familles"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "79d9844dd218ea4fc4f6b44ebc0b189f",
+   "empreinte_texte": "cc518e4d6922fb34aed6c7f2ae3af7fb",
+   "nom": "subventions_municipales"
   }
  ],
  "triggers": [
@@ -3076,6 +3504,12 @@
    "fonction": "budget_national_epingler()",
    "nom": "trg_budget_national_epingler",
    "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "1ec8faf27a1c6e0090f6fbe28b40cd8b",
+   "fonction": "subventions_famille_a_son_resolveur()",
+   "nom": "subventions_familles_verrou_resolveur",
+   "tbl": "subventions_familles"
   }
  ],
  "vues": []

@@ -7,15 +7,24 @@
 --
 --   * REPRENDRE LE COMPROMIS D'UN AUTRE. `doAccepterTransfertCompromis` posait `compromisPar` a
 --     son propre nom sans jamais verifier que le transfert LUI avait ete propose -- seul l'ecran
---     filtrait. La contre-epreuve refait cet UPDATE a l'identique, en `authenticated`, et montre
---     qu'il ABOUTIT : la policy d'UPDATE de `terrains_etat` est `acteur_identifie()`.
+--     filtrait. La contre-epreuve refait cet UPDATE a l'identique, en `authenticated`.
 --
 --   * TRANCHER LE PERMIS D'UN AUTRE. `traiterPermis` ne verifiait rien du tout. La contre-epreuve
---     montre qu'un joueur sans poste posait `permis.statut = 'valide'` sur le terrain d'autrui.
+--     refait l'UPDATE par lequel un joueur sans poste posait `permis.statut = 'valide'` sur le
+--     terrain d'autrui.
 --
 --   * GELER LE TERRAIN D'UN AUTRE. `succession_gel` est la cle que les quatre portes consultent
---     pour refuser toute action. La contre-epreuve montre qu'un gel INVENTE passait -- le defaut
---     que le chantier C avait ferme sur l'entreprise et laisse ouvert sur le terrain.
+--     pour refuser toute action. La contre-epreuve refait l'UPDATE par lequel un gel INVENTE
+--     passait -- le defaut que le chantier C avait ferme sur l'entreprise et laisse ouvert sur le
+--     terrain.
+--
+-- CE QUE LES TROIS CONTRE-EPREUVES MESURENT DEPUIS LE REGISTRE 634. Elles constataient jusque-la
+-- que l'ancien chemin ABOUTISSAIT (0 refus de la policy, qui n'etait que `acteur_identifie()`), et
+-- que seule la porte le refusait. Le registre 634 a revoque INSERT et UPDATE a `authenticated` sur
+-- `terrains_etat` : les memes UPDATE, conserves mot pour mot, LEVENT maintenant `42501 permission
+-- denied`. Les contre-epreuves attrapent ce refus -- et uniquement celui-la, jamais `others` -- et
+-- c'est desormais l'ABSENCE d'exception qui est l'echec. La garantie mesuree est plus forte : le
+-- chemin client n'est plus seulement inutile, il est ferme.
 --
 -- COMMENT IL A REELLEMENT TOURNE. Tel quel sous psql. Par le canal MCP de ce depot, qui plafonne
 -- a ~12 500 caracteres de SQL, il a ete envoye DEBARRASSE DE SES LIGNES DE COMMENTAIRE.
@@ -23,6 +32,8 @@ BEGIN;
 DO $banc$
 DECLARE
   ko text[] := '{}'; n integer := 0; v jsonb; d jsonb; c integer;
+  -- Vrai quand l'ecriture cliente directe a bien ete refusee par le PRIVILEGE (registre 634).
+  v_refuse boolean;
   BEN constant text := '{"sub":"bafc96b1-1628-4ae2-93d2-78d89f8ac5b5","role":"authenticated"}';
   T constant text := 'zzbanc-terrain';
 BEGIN
@@ -44,17 +55,24 @@ BEGIN
   n := n + 1; IF d ->> 'compromisPar' <> 'May'
     THEN ko := ko || ('2 le detenteur a change malgre le refus : ' || d::text); END IF;
 
-  -- CONTRE-EPREUVE : l'ancien chemin, refait a l'identique.
+  -- CONTRE-EPREUVE 3 : l'ancien chemin, refait a l'identique -- mais il est desormais refuse par
+  -- le DROIT, et plus seulement par la policy. Le registre 634 a revoque INSERT et UPDATE a
+  -- `authenticated` sur `terrains_etat` : l'UPDATE direct ne renvoie plus 0 ligne, il LEVE un
+  -- refus de privilege. On l'attrape, et c'est l'ABSENCE d'exception qui serait l'echec. La preuve
+  -- est plus forte qu'avant : a l'epoque ce chemin ABOUTISSAIT, et seule la porte le refusait.
   PERFORM set_config('role', 'authenticated', true);
-  UPDATE public.terrains_etat
-     SET data = (data::jsonb || '{"compromisPar":"Ben"}'::jsonb)::text
-   WHERE building_id = T;
-  GET DIAGNOSTICS c = ROW_COUNT;
+  v_refuse := false;
+  BEGIN
+    UPDATE public.terrains_etat
+       SET data = (data::jsonb || '{"compromisPar":"Ben"}'::jsonb)::text
+     WHERE building_id = T;
+  EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
+  END;
   PERFORM set_config('role', 'postgres', true);
   SELECT data::jsonb INTO d FROM public.terrains_etat WHERE building_id = T;
-  n := n + 1; IF c <> 1 OR d ->> 'compromisPar' <> 'Ben' THEN
-    ko := ko || ('3 LA CONTRE-EPREUVE NE PROUVE RIEN : l ancien chemin n a pas abouti ('
-                 || c || ' ligne(s), detenteur ' || coalesce(d ->> 'compromisPar', 'NULL') || ')');
+  n := n + 1; IF NOT v_refuse OR d ->> 'compromisPar' <> 'May' THEN
+    ko := ko || ('3 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : refus de privilege '
+                 || v_refuse::text || ', detenteur ' || coalesce(d ->> 'compromisPar', 'NULL'));
   END IF;
 
   -- ------------------------------------------------- 2. LE TRANSFERT REGULIER, LUI, PASSE
@@ -119,20 +137,27 @@ BEGIN
   n := n + 1; IF v ->> 'raison' <> 'dossier_deja_decide'
     THEN ko := ko || ('11 un permis deja tranche se retranche : ' || v::text); END IF;
 
-  -- CONTRE-EPREUVE : sans poste du tout, l'ancien chemin tranchait.
+  -- CONTRE-EPREUVE 12 : sans poste du tout, l'ancien chemin tranchait -- il est maintenant arrete
+  -- un cran plus tot, par le PRIVILEGE (registre 634) et non par la policy. L'UPDATE est conserve
+  -- a l'identique : c'est son refus qui est mesure, et son succes qui serait l'echec.
   PERFORM set_config('role', 'postgres', true);
   UPDATE public.personnages_donnees SET poste = NULL WHERE name = 'Ben';
   UPDATE public.terrains_etat SET data =
     '{"city":"ville_a","proprietaire":"May","permis":{"statut":"instruction"}}' WHERE building_id = T;
   PERFORM set_config('role', 'authenticated', true);
-  UPDATE public.terrains_etat
-     SET data = (data::jsonb || '{"permis":{"statut":"valide"},"constructionAutorisee":true}'::jsonb)::text
-   WHERE building_id = T;
-  GET DIAGNOSTICS c = ROW_COUNT;
+  v_refuse := false;
+  BEGIN
+    UPDATE public.terrains_etat
+       SET data = (data::jsonb || '{"permis":{"statut":"valide"},"constructionAutorisee":true}'::jsonb)::text
+     WHERE building_id = T;
+  EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
+  END;
   PERFORM set_config('role', 'postgres', true);
   SELECT data::jsonb INTO d FROM public.terrains_etat WHERE building_id = T;
-  n := n + 1; IF c <> 1 OR (d -> 'permis' ->> 'statut') <> 'valide' THEN
-    ko := ko || ('12 LA CONTRE-EPREUVE NE PROUVE RIEN : un joueur sans poste n a pas pu valider');
+  n := n + 1; IF NOT v_refuse OR (d -> 'permis' ->> 'statut') <> 'instruction' THEN
+    ko := ko || ('12 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : un joueur sans poste a '
+                 || 'touche le permis (refus de privilege ' || v_refuse::text || ', statut '
+                 || coalesce(d -> 'permis' ->> 'statut', 'NULL') || ')');
   END IF;
 
   -- ------------------------------------------------- 5. GELER LE TERRAIN D'UN AUTRE
@@ -141,16 +166,28 @@ BEGIN
   n := n + 1; IF v ->> 'raison' <> 'succession_inconnue'
     THEN ko := ko || ('13 une succession inventee gele un terrain : ' || v::text); END IF;
 
-  -- CONTRE-EPREUVE : l'ancien chemin posait le gel sans rien verifier.
+  -- CONTRE-EPREUVE 14 : l'ancien chemin posait le gel sans rien verifier. Depuis le registre 634
+  -- il ne pose plus rien du tout : l'UPDATE, conserve a l'identique, leve un refus de privilege
+  -- avant meme d'atteindre la policy. On l'attrape, et l'absence d'exception serait l'echec.
+  v_refuse := false;
+  BEGIN
+    UPDATE public.terrains_etat
+       SET data = (data::jsonb || '{"succession_gel":"zzbanc-succession-inventee"}'::jsonb)::text
+     WHERE building_id = T;
+  EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
+  END;
+  PERFORM set_config('role', 'postgres', true);
+  SELECT data::jsonb INTO d FROM public.terrains_etat WHERE building_id = T;
+  n := n + 1; IF NOT v_refuse OR coalesce(d ->> 'succession_gel', '') <> '' THEN
+    ko := ko || ('14 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : le gel invente a ete pose '
+                 || 'par le client (refus de privilege ' || v_refuse::text || ')');
+  END IF;
+  -- LE GEL EST DONC POSE ICI SOUS `postgres` : il n'est pas la preuve, il n'est que le DECOR de
+  -- l'epreuve 15. Le client ne peut plus l'ecrire, mais un gel legitime existe en jeu, et c'est
+  -- l'arret des portes devant lui qu'on mesure ensuite.
   UPDATE public.terrains_etat
      SET data = (data::jsonb || '{"succession_gel":"zzbanc-succession-inventee"}'::jsonb)::text
    WHERE building_id = T;
-  GET DIAGNOSTICS c = ROW_COUNT;
-  PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.terrains_etat WHERE building_id = T;
-  n := n + 1; IF c <> 1 OR coalesce(d ->> 'succession_gel', '') = '' THEN
-    ko := ko || ('14 LA CONTRE-EPREUVE NE PROUVE RIEN : le gel invente n a pas ete pose');
-  END IF;
   -- ET LE GEL BLOQUE BIEN LES QUATRE PORTES -- c'est ce qui rendait le defaut grave.
   PERFORM set_config('role', 'authenticated', true);
   v := public.terrain_permis_acte(T, 'permis_accelerer', '{"permis":{"dureeInstruction":1}}'::jsonb);

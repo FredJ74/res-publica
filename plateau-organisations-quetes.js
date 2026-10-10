@@ -8227,7 +8227,7 @@ async function chargerBudgetClub(clubId) {
   if (typeof sbGetBudgetClub !== 'function') return null;
   let data = await sbGetBudgetClub(clubId).catch(() => null);
   if (!data) {
-    data = { clubId, caisse: 0, historique: [], derniereSubventionJour: state.day || 1, salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
+    data = { clubId, caisse: 0, historique: [], salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
     if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
   }
   if (!data.salaires) data.salaires = { titulaire: 100, remplacant: 50, primeVictoire: 150 };
@@ -8245,71 +8245,41 @@ async function crediterBudgetClub(clubId, montant, motif) {
   return data;
 }
 
-// Reverse une partie de l'allocation "associatif" du budget municipal vers la caisse du club local, une fois par jour
+// LA SUBVENTION MUNICIPALE A CHANGE D'ETAGE (10 octobre 2026) -- L'ANCIENNE CHAINE EST RESORBEE.
 //
-// IDENTITE PARTAGEE DE LA JOURNEE (25 septembre 2026). Dernier survivant d'un motif deja corrige
-// trois fois ailleurs -- solde des effectifs de police, distribution fiscale nationale,
-// distribution du budget municipal. Le marqueur `derniereSubventionJour` vit dans une ligne
-// PARTAGEE (budgets_clubs) et etait compare a `state.day`, compteur PROPRE A CHAQUE PERSONNAGE.
+// Il y avait ici `verifierSubventionMairie(club)`, et son auxiliaire `joursEcoulesDepuisMarqueurISO`.
+// Ce chemin etait GELE depuis le 8 octobre, en attente d'un arbitrage de game design : il lisait
+// une categorie « associatif » qui n'a jamais existe dans une cle `allocation` elle-meme
+// supprimee, son montant valait `0` ecrit en dur, et aucun club n'a jamais touche un franc par la.
 //
-// ICI C'ETAIT PIRE QU'UN SIMPLE DOUBLON, parce que le montant depend de l'ecart : un habitant au
-// jour 47 croisant un marqueur pose par un joueur au jour 3 calculait 44 jours ecoules, plafonnes
-// a 14 -- soit QUATORZE jours de subvention verses d'un coup, sur la seule foi de son propre
-// calendrier. Et le joueur au jour 3 passant ensuite trouvait un ecart negatif et ne versait rien.
-// Le montant reellement verse a un club ne dependait donc pas du temps, mais de qui passait.
+// L'ARBITRAGE EST RENDU, ET IL NE RESSEMBLE PAS A CE CHEMIN. Une commune subventionne desormais
+// les organisations eligibles de son territoire en DEUX ETAGES : une ligne budgetaire
+// « Subventions » que le maire dote d'un pourcentage comme les autres, qui alimente une caisse
+// municipale CUMULATIVE ; puis des propositions PONCTUELLES, en francs bruts, que l'organisation
+// accepte ou refuse en trois jours. Rien de tout cela n'est automatique, et rien n'est quotidien.
 //
-// jourPartageISO() rend la date reelle Europe/Paris, la meme pour tous et pour le cron. L'ecart
-// se calcule desormais en JOURS REELS, ce qui est exactement ce qu'une subvention municipale
-// quotidienne veut dire. Ni le montant par jour, ni le plafond de 14 jours ne changent.
+// POURQUOI SUPPRIMER PLUTOT QUE REBRANCHER. Garder cette fonction aurait laisse DEUX mecaniques
+// de subvention municipale en parallele -- l'une fantome et quotidienne, l'autre reelle et
+// deliberee. La consigne est explicite sur ce point. La preuve a ete faite avant de supprimer :
+// `verifierSubventionMairie` n'avait qu'UN appelant (`doConsulterBudgetClub`, un ecran de
+// consultation), `joursEcoulesDepuisMarqueurISO` n'etait appele que par elle, et le marqueur
+// `derniereSubventionJour` n'etait lu par aucun autre fichier, aucun cron, aucun generateur.
 //
-// MARQUEURS ANCIENS : les valeurs deja en base sont des entiers (issus de state.day) et ne sont
-// pas des dates. On les traite comme « deja verse aujourd'hui » -- zero franc -- et le premier
-// versement au nouveau regime a lieu le lendemain reel. C'est le choix qui ne cree pas un
-// centime : l'alternative (les lire comme « jamais verse ») declencherait un rattrapage immediat.
-function joursEcoulesDepuisMarqueurISO(marqueur, aujourdhuiISO) {
-  if (typeof marqueur !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(marqueur)) return 0;
-  const ecart = (Date.parse(aujourdhuiISO + 'T00:00:00Z') - Date.parse(marqueur + 'T00:00:00Z')) / 86400000;
-  return Number.isFinite(ecart) ? Math.max(0, Math.round(ecart)) : 0;
-}
-
-async function verifierSubventionMairie(club) {
-  const budgetMairie = await chargerBudgetMunicipal().catch(() => null);
-  if (!budgetMairie) return;
-  const budgetClub = await chargerBudgetClub(club.id);
-  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
-  if (!jour) return;
-  const joursEcoules = joursEcoulesDepuisMarqueurISO(budgetClub.derniereSubventionJour, jour);
-  if (joursEcoules <= 0) {
-    // Marqueur absent ou herite de l'ancien regime : on l'aligne sans rien verser.
-    if (budgetClub.derniereSubventionJour !== jour) {
-      budgetClub.derniereSubventionJour = jour;
-      if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(club.id, budgetClub).catch(() => {});
-    }
-    return;
-  }
-
-  // CE CALCUL ETAIT DEJA MORT, ET IL EST MAINTENANT IMPOSSIBLE (8 octobre 2026). Il lisait
-  // `budgetMairie.allocation.associatif` -- une categorie « associatif » qui n'a JAMAIS existe
-  // dans la cle `allocation` (ses six categories etaient commissariat, multimodal, stade,
-  // marche, dispensaire et tribunal). Le `|| 0` rendait donc toujours zero, et la subvention
-  // valait toujours zero : aucun club n'a jamais touche un franc par ce chemin.
-  //
-  // La cle `allocation` elle-meme a disparu avec le chantier des budgets municipaux : la
-  // repartition canonique est repartitions_budgetaires, et elle ne connait pas de ligne
-  // associative. Lire une categorie inexistante dans une cle supprimee serait deux erreurs
-  // superposees, donc le montant est explicitement nul et le reste du chemin -- le marqueur de
-  // jour, la sauvegarde -- est conserve tel quel pour ne rien changer d'autre.
-  //
-  // SI LES CLUBS DOIVENT ETRE SUBVENTIONNES PAR LEUR COMMUNE, cela se declarera comme une ligne
-  // de repartitions_budgetaires, decidee par le maire, pas par une categorie fantome lue dans un
-  // blob. C'est une decision de game design, pas un correctif : elle n'est pas prise ici.
-  const montantTotal = 0;
-
-  if (montantTotal > 0) await crediterBudgetClub(club.id, montantTotal, 'Subvention municipale');
-  budgetClub.derniereSubventionJour = jour;
-  if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(club.id, budgetClub).catch(() => {});
-}
-
+// LA NOUVELLE CHAINE EST ENTIEREMENT AU SERVEUR : `subvention_proposer`, `subvention_repondre`,
+// `subventions_expirer`, `subvention_enveloppe_lire`, `subventions_recues_lire`. Un navigateur ne
+// decide plus ni l'eligibilite, ni la domiciliation, ni le montant disponible, ni qui peut
+// repondre. Voir `baseline/arbitrages/CHAINE-7-SUBVENTIONS-MUNICIPALES.md`.
+//
+// LA LECON DU 25 SEPTEMBRE 2026 SURVIT A SON CODE, parce qu'elle peut encore frapper ailleurs :
+// le marqueur `derniereSubventionJour` vivait dans une ligne PARTAGEE (budgets_clubs) et etait
+// compare a `state.day`, un compteur PROPRE A CHAQUE PERSONNAGE. Un habitant au jour 47 croisant
+// un marqueur pose par un joueur au jour 3 calculait 44 jours ecoules : le versement ne dependait
+// pas du temps, mais de QUI passait. Le meme motif avait deja frappe le solde des effectifs de
+// police et deux distributions budgetaires. La nouvelle chaine n'a plus de marqueur de journee du
+// tout -- le jour vient de `jour_de_jeu_pays()`, au serveur, le meme pour tous.
+//
+// L'ANCIEN COMMENTAIRE DE RESORPTION (8 octobre 2026) disparait avec son code : il expliquait
+// pourquoi le montant valait zero. La question qu'il laissait ouverte a recu sa reponse.
 async function doConsulterBudgetClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
@@ -8318,11 +8288,42 @@ async function doConsulterBudgetClub() {
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  await verifierSubventionMairie(clubLocal);
   const data = await chargerBudgetClub(clubLocal.id);
 
   let html = '<div style="padding:1rem">';
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + (data.caisse || 0).toLocaleString('fr-FR') + ' FR</div>';
+
+  // LES SUBVENTIONS MUNICIPALES RECUES (10 octobre 2026). C'est l'ecran ou le dirigeant vient
+  // deja voir la caisse : c'est donc la que la proposition d'une commune doit l'attendre, plutot
+  // que dans un ecran neuf qu'il n'aurait aucune raison d'ouvrir.
+  //
+  // CE N'EST PAS CET ECRAN QUI DECIDE QUI PEUT REPONDRE. `subventions_recues_lire` ne rend que
+  // les propositions dont l'appelant est le GESTIONNAIRE DE CAISSE, et c'est le meme resolveur
+  // que la porte appliquera : un bouton affiche ici est un bouton que le serveur accepte.
+  const recu = (typeof sbSubventionsRecuesLire === 'function')
+    ? await sbSubventionsRecuesLire().catch(() => null) : null;
+  const mesPropositions = (recu && recu.ok === true && Array.isArray(recu.recues))
+    ? recu.recues.filter(p => p.beneficiaire === clubLocal.id) : [];
+  if (mesPropositions.length) {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Subventions proposées par la mairie</div>';
+    mesPropositions.forEach(p => {
+      const j = Number(p.jours_restants);
+      html += '<div style="border:1px solid #8a6a20;padding:.5rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.8rem;color:#C9A84C;font-family:Bebas Neue,sans-serif">'
+            + Number(p.montant).toLocaleString('fr-FR') + ' FR</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.35rem">Proposés par ' + p.maire
+            + ', maire de la commune — '
+            + (j > 1 ? j + ' jours pour répondre' : (j === 1 ? 'dernier jour pour répondre' : 'échéance atteinte'))
+            + '.</div>';
+      html += '<div style="display:flex;gap:.3rem">';
+      html += '<button onclick="repondreSubventionMunicipale(\'' + p.id + '\',\'accepter\')"'
+            + ' style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem;border:1px solid #4a7a3a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="repondreSubventionMunicipale(\'' + p.id + '\',\'refuser\')"'
+            + ' style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem;border:1px solid #7a3a2a;background:transparent;color:#cc6a44;cursor:pointer">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Dernières opérations</div>';
   html += '<div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem">';
   if (!data.historique || data.historique.length === 0) {
@@ -8335,6 +8336,48 @@ async function doConsulterBudgetClub() {
   }
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// LA REPONSE A UNE SUBVENTION MUNICIPALE (10 octobre 2026).
+//
+// Le navigateur envoie un identifiant et un VERBE pris dans une liste close -- jamais un statut,
+// jamais un montant. Le serveur verifie l'autorite sur la caisse, l'echeance, et surtout qu'une
+// seule reponse gagne : si deux dirigeants cliquent en meme temps, le second recoit
+// `course_perdue` et rien n'est deplace deux fois.
+async function repondreSubventionMunicipale(id, reponse) {
+  if (typeof sbSubventionRepondre !== 'function') {
+    showToast('Indisponible', 'La mairie ne répond pas.', false); return;
+  }
+  const r = await sbSubventionRepondre(id, reponse).catch(() => null);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
+      proposition_introuvable: 'Cette proposition n\'existe plus.',
+      deja_close: 'Cette proposition a déjà reçu une réponse' + (r && r.clos_par ? ' de ' + r.clos_par : '') + '.',
+      proposition_echue: 'Le délai de trois jours est écoulé : la proposition a expiré et les fonds sont retournés à la commune.',
+      aucun_gestionnaire: 'Personne ne dirige la caisse de cette organisation.',
+      pas_gestionnaire_caisse: 'Vous ne dirigez pas la caisse de cette organisation.',
+      course_perdue: 'Un autre dirigeant a répondu avant vous.',
+      reponse_invalide: 'Réponse non reconnue.'
+    };
+    showToast('Refusé', motifs[(r && r.raison)] || 'La réponse a été refusée.', false);
+    if (typeof doConsulterBudgetClub === 'function') await doConsulterBudgetClub();
+    return;
+  }
+
+  if (r.statut === 'acceptee') {
+    showToast('Subvention acceptée',
+      Number(r.montant).toLocaleString('fr-FR') + ' FR versés par la mairie. Caisse : '
+      + Number(r.caisse_organisation).toLocaleString('fr-FR') + ' FR.', true, true);
+    addJournalEntry('Subvention municipale acceptée : +'
+      + Number(r.montant).toLocaleString('fr-FR') + ' FR pour ' + r.beneficiaire_nom + '.', 'event-good');
+  } else {
+    showToast('Subvention refusée',
+      'Les ' + Number(r.montant_libere).toLocaleString('fr-FR') + ' FR retournent à la commune.', true);
+    addJournalEntry('Subvention municipale de ' + Number(r.montant_libere).toLocaleString('fr-FR')
+      + ' FR refusée.', 'event-info');
+  }
+  if (typeof doConsulterBudgetClub === 'function') await doConsulterBudgetClub();
 }
 
 // =====================

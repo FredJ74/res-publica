@@ -6002,6 +6002,26 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // 5b. SUBVENTIONS MUNICIPALES ARRIVEES A ECHEANCE (10 octobre 2026).
+    //
+    //    APRES la cascade, et ce n'est pas indifferent : la cascade alimente l'enveloppe, cette
+    //    tache libere ce qui y etait immobilise. Dans cet ordre, le maire retrouve au reveil une
+    //    enveloppe dotee ET degagee de ses propositions mortes.
+    //
+    //    IDEMPOTENCE : aucune revendication nocturne n'est posee, parce qu'elle n'apporterait
+    //    rien. L'UPDATE de subventions_expirer ne trouve que les propositions encore `proposee`
+    //    dont l'echeance est atteinte ; un second passage n'en trouve aucune. Et l'expiration ne
+    //    deplace AUCUN argent -- la reserve est la somme des propositions en attente, donc
+    //    changer leur statut suffit a la liberer.
+    const subventionsExpirees = await tacheQuotidienne('subventions_expirees', async () => {
+      const rows = await sbRpc('subventions_expirer', { p_pays: 'republic' }, HEADERS_SERVICE);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || r.ok !== true) {
+        signalerEchec('subventions_expirees', (r && r.raison) || 'verdict_absent');
+      }
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
@@ -6235,7 +6255,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

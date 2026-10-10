@@ -8,7 +8,12 @@
 --   * LE DERNIER-ECRIVAIN-GAGNANT SUR LE TABLEAU DE LOTS. Un lot cree par un autre acteur entre
 --     la lecture et l'ecriture n'est plus perdu : la porte fusionne par `lot.id`. La
 --     contre-epreuve refait l'ancien chemin -- un UPDATE du tableau ENTIER depuis un cache
---     perime -- et montre deux lots disparaitre.
+--     perime. Elle montrait deux lots disparaitre ; depuis le registre 634, qui a revoque INSERT
+--     et UPDATE a `authenticated` sur `terrains_etat`, le meme UPDATE conserve mot pour mot LEVE
+--     `42501 permission denied` au lieu d'ecraser. La contre-epreuve attrape ce refus -- et lui
+--     seul, jamais `others` -- et c'est l'ABSENCE d'exception qui est desormais l'echec : la
+--     garantie mesuree est plus forte, le chemin client n'est plus seulement perdant, il est
+--     ferme.
 --
 --   * LE PROPRIETAIRE NOTE `pj:<nom>`. `estTitulaire` reconnait trois formes de reference ; la
 --     premiere version de la porte du permis comparait au nom nu et aurait refuse un proprietaire
@@ -30,6 +35,8 @@ BEGIN;
 DO $banc$
 DECLARE
   ko text[] := '{}'; n integer := 0; v jsonb; d jsonb; lots jsonb;
+  -- Vrai quand l'ecriture cliente directe a bien ete refusee par le PRIVILEGE (registre 634).
+  v_refuse boolean;
   BEN constant text := '{"sub":"bafc96b1-1628-4ae2-93d2-78d89f8ac5b5","role":"authenticated"}';
   T constant text := 'zzbanc-terrain';
 BEGIN
@@ -66,15 +73,25 @@ BEGIN
   n := n+1; IF jsonb_array_length(lots) <> 4
     THEN ko := ko||('4 la porte a perdu un lot cree entre-temps : '||lots::text); END IF;
 
-  -- 5. CONTRE-EPREUVE : l'ancien chemin, un UPDATE du tableau ENTIER depuis un cache perime.
+  -- 5. CONTRE-EPREUVE : l'ancien chemin, un UPDATE du tableau ENTIER depuis un cache perime. Il
+  -- ecrasait les quatre lots par deux ; depuis le registre 634 -- qui a revoque INSERT et UPDATE a
+  -- `authenticated` sur `terrains_etat` -- il n'ecrase plus rien : le refus ne vient plus de la
+  -- policy mais du DROIT, et il LEVE au lieu de renvoyer 0 ligne. On attrape ce refus-la et lui
+  -- seul ; c'est l'ABSENCE d'exception qui serait l'echec. L'UPDATE est conserve mot pour mot, et
+  -- la lecture qui suit verifie que les quatre lots sont intacts.
   PERFORM set_config('role','authenticated',true);
-  UPDATE public.terrains_etat
-     SET data = (data::jsonb || '{"subdivisions":[{"id":"lot-A"},{"id":"lot-E"}]}'::jsonb)::text
-   WHERE building_id = T;
+  v_refuse := false;
+  BEGIN
+    UPDATE public.terrains_etat
+       SET data = (data::jsonb || '{"subdivisions":[{"id":"lot-A"},{"id":"lot-E"}]}'::jsonb)::text
+     WHERE building_id = T;
+  EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
+  END;
   PERFORM set_config('role','postgres',true);
   SELECT data::jsonb->'subdivisions' INTO lots FROM public.terrains_etat WHERE building_id = T;
-  n := n+1; IF jsonb_array_length(lots) <> 2 THEN
-    ko := ko||('5 LA CONTRE-EPREUVE NE PROUVE RIEN : l ancien chemin n a pas ecrase le tableau : '||lots::text);
+  n := n+1; IF NOT v_refuse OR jsonb_array_length(lots) <> 4 THEN
+    ko := ko||('5 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : le tableau de lots a pu etre '
+      ||'ecrase depuis un cache (refus de privilege '||v_refuse::text||') : '||lots::text);
   END IF;
 
   -- 6 et 7. Les deux refus propres aux actes du locataire.

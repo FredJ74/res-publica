@@ -183,12 +183,13 @@
         "table_empreinte": "ordres_couts_empreinte",
         "fonction_reelle": "ordres_couts_empreinte_reelle",
         "fonction_reelle_en_base": true,
-        "data_js": "7c3a0e66846fb92b",
-        "lignes": 402,
+        "data_js": "00be684a051abdb9",
+        "lignes": 406,
         "posee": "6de4a84c58ed9b2b",
-        "reelle": "a9ee71d9294ffaa8",
+        "reelle": "4551755be51a72a4",
         "verdict": "TROIS valeurs differentes",
-        "_mesure_du_7_octobre_2026": "data.js a change DEUX fois ce jour-la, et l'empreinte du miroir avec : l'arbitrage du QHS a ajoute l'ordre `gerer_budget_interieur`, puis celui de la Justice l'ordre `gerer_budget_justice`. 55038ed4d716d140 -> 5f16f8865fca8827 -> 7c3a0e66846fb92b. Le generateur compte 402 triples pour 378 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT DE DEUX LIGNES, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Les deux nouveaux sont le vingtieme et le vingt-et-unieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier."
+        "_mesure_du_7_octobre_2026": "data.js a change DEUX fois ce jour-la, et l'empreinte du miroir avec : l'arbitrage du QHS a ajoute l'ordre `gerer_budget_interieur`, puis celui de la Justice l'ordre `gerer_budget_justice`. 55038ed4d716d140 -> 5f16f8865fca8827 -> 7c3a0e66846fb92b. Le generateur compte 402 triples pour 378 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT DE DEUX LIGNES, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Les deux nouveaux sont le vingtieme et le vingt-et-unieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier.",
+        "_remesure_du_10_octobre_2026": "UNE LIGNE A ETE INSEREE, ET UNE SEULE : (subvention_proposer, 2, 0), registre 631. Les trois valeurs sont donc remesurees -- data.js 7c3a0e66846fb92b -> 00be684a051abdb9, reelle a9ee71d9294ffaa8 -> 4551755be51a72a4, lignes 405 -> 406 ; la posee ne bouge pas, et ne DOIT pas bouger. CE N'EST PAS UNE REGENERATION, et l'interdit du lot 4D est respecte a la lettre : aucune des 405 lignes existantes n'a ete modifiee, ce que la preuve P3 du registre 631 verifie par le compte exact. Inserer un ordre NEUF n'est pas reparer le miroir : c'est declarer le cout d'un acte qui n'avait pas de cout parce qu'il n'existait pas. Et il FALLAIT le declarer : subvention_proposer coute 2 PA, donc deduireCoutOrdre l'envoie a payer_ordre, qui refuse ordre_inconnu -- contrairement aux 21 ordres gratuits non declares, qui ne traversent jamais cette verification. Le generateur compte desormais 403 triples pour 379 ordres distincts, contre 406 lignes en base."
       },
       "villes": {
         "generateur": "outils/generateurs/generer_villes.py",
@@ -216,12 +217,12 @@
   "_cles_de_divergence": "Deux axes, donc deux familles de cles, et le controle les verifie separement. « <miroir>/base » declare que data.js ne dit pas la meme chose que le contenu reel de la table -- le miroir est perime. « <miroir>/posee » declare que la valeur inscrite dans <miroir>_empreinte ne correspond pas au contenu reel -- la sentinelle elle-meme est fausse. Un miroir peut avoir les deux, et ordres_couts les a.",
   "divergences_empreintes": {
     "ordres_couts/posee": {
-      "constat": "posee 6de4a84c58ed9b2b contre reelle a9ee71d9294ffaa8 : la table a bouge depuis sa derniere generation sans que la sentinelle soit remise a jour.",
+      "constat": "posee 6de4a84c58ed9b2b contre reelle 4551755be51a72a4 (remesuree le 10 octobre 2026, apres l'insertion de l'ordre subvention_proposer) : la table a bouge depuis sa derniere generation sans que la sentinelle soit remise a jour.",
       "ferme_par": "lot 4D",
       "arbitrage_requis": "aucun pour la sentinelle elle-meme, mais elle ne doit etre reposee QU'APRES l'arbitrage sur le contenu : reposer d'abord graverait la derive."
     },
     "ordres_couts/base": {
-      "constat": "Les trois valeurs different sur 405 lignes : posee 6de4a84c58ed9b2b, reelle a9ee71d9294ffaa8, data.js 55038ed4d716d140. La table a donc bouge depuis sa derniere generation (posee != reelle) ET elle ne dit plus ce que dit le jeu (reelle != data.js). C'est coherent avec l'angle mort roomsExtra corrige le 5 octobre 2026 et avec les 24 lignes mortes / 19 gratuits non declares deja inventories.",
+      "constat": "Les trois valeurs different sur 406 lignes : posee 6de4a84c58ed9b2b, reelle 4551755be51a72a4, data.js 00be684a051abdb9 (remesurees le 10 octobre 2026). La table a donc bouge depuis sa derniere generation (posee != reelle) ET elle ne dit plus ce que dit le jeu (reelle != data.js). C'est coherent avec l'angle mort roomsExtra corrige le 5 octobre 2026 et avec les 24 lignes mortes / 19 gratuits non declares deja inventories.",
       "ferme_par": "lot 4D",
       "arbitrage_requis": "regenerer le miroir est une ecriture de contenu : elle change ce que le serveur fait payer. Elle doit etre decidee, pas subie -- et surtout pas faite pour verdir une empreinte.",
       "_interdit": "Ne pas regenerer ce miroir dans 4C. Faire concorder une empreinte en touchant au contenu, c'est fabriquer le resultat du controle."

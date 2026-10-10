@@ -98,7 +98,7 @@
    ],
    [
     "finances publiques",
-    "^(caisse_|caisses_|budget_|budgets_|salaire_|salaires_|fonds_|dotation_|subvention_|pa_|debiter_fonds|retirer_caisse|alimenter_caisse|appliquer_taxe|redressement_fiscal|vente_structure_encaisser|percevoir_salaire)"
+    "^(caisse_|caisses_|budget_|budgets_|salaire_|salaires_|fonds_|dotation_|subvention_|subventions_|pa_|debiter_fonds|retirer_caisse|alimenter_caisse|appliquer_taxe|redressement_fiscal|vente_structure_encaisser|percevoir_salaire)"
    ],
    [
     "economie",

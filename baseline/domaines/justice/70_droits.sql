@@ -156,7 +156,7 @@ GRANT SELECT ON TABLE public.niveaux_prison TO anon;
 GRANT INSERT, SELECT, UPDATE ON TABLE public.niveaux_prison TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.niveaux_prison TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.niveaux_prison TO service_role;
-GRANT INSERT, SELECT, UPDATE ON TABLE public.plaintes_en_cours TO authenticated;
+GRANT SELECT ON TABLE public.plaintes_en_cours TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.plaintes_en_cours TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.plaintes_en_cours TO service_role;
 GRANT SELECT ON TABLE public.prisonniers_qhs TO authenticated;

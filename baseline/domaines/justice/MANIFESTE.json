@@ -1011,7 +1011,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "plaintes_en_cours",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1215,8 +1215,8 @@
   "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
-  "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
-  "70_droits.sql": "ea76b53f0da509980bfa91b0c095df53",
+  "60_rls-policies.sql": "fa6dc4a99251b76823e655ef97878425",
+  "70_droits.sql": "10bc50178c150f3015fdf74f53101f95",
   "80_commentaires.sql": "b0ad951c175ff4bdced69d8ad6389629"
  },
  "fonctions": [
@@ -1569,18 +1569,6 @@
    "empreinte": "c976d517a98be0806c0f7d73585b7214",
    "empreinte_avec_roles": "42cc87c601d6cd77ec9ee82d3f800e68",
    "nom": "affaire lue par les parties, l autorite, ou publique une fois j",
-   "tbl": "plaintes_en_cours"
-  },
-  {
-   "empreinte": "b07b31f2782311357d2a0dd88343a041",
-   "empreinte_avec_roles": "aac9b8150dbe6353825209e0947e4320",
-   "nom": "plaintes_insertion_affaires",
-   "tbl": "plaintes_en_cours"
-  },
-  {
-   "empreinte": "a1920518329db6b9c3e0a11320d134e3",
-   "empreinte_avec_roles": "457eff5e500400e1586e186a45945edf",
-   "nom": "plaintes_maj_affaires",
    "tbl": "plaintes_en_cours"
   },
   {

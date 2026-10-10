@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 27 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 29 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   budgets_clubs_pkey  (contrainte budgets_clubs_pkey)
 --   budgets_municipaux_pkey  (contrainte budgets_municipaux_pkey)
 --   budgets_nationaux_pkey  (contrainte budgets_nationaux_pkey)
@@ -38,6 +38,8 @@
 --   salaires_civils_verses_pkey  (contrainte salaires_civils_verses_pkey)
 --   salaires_religieux_declares_pkey  (contrainte salaires_religieux_declares_pkey)
 --   salaires_religieux_verses_pkey  (contrainte salaires_religieux_verses_pkey)
+--   subventions_familles_pkey  (contrainte subventions_familles_pkey)
+--   subventions_municipales_pkey  (contrainte subventions_municipales_pkey)
 
 -- Index autonomes :
 CREATE UNIQUE INDEX budget_national_champs_regles_cle ON public.budget_national_champs_regles USING btree (champ, COALESCE(sous_champ, ''::text));
@@ -45,3 +47,5 @@ CREATE INDEX caisses_mouvements_clients_idx ON public.caisses_mouvements_clients
 CREATE UNIQUE INDEX fiscalite_journal_idempotence ON public.fiscalite_journal USING btree (personnage, type, jour);
 CREATE INDEX fonds_debits_acteur_idx ON public.fonds_debits USING btree (acteur, debite_le DESC);
 CREATE INDEX idx_contributions_piete_auteur ON public.contributions_piete USING btree (pays, auteur, created_at);
+CREATE INDEX subventions_enveloppe_en_attente ON public.subventions_municipales USING btree (pays, ville) WHERE (statut = 'proposee'::text);
+CREATE UNIQUE INDEX subventions_une_proposition_identique_en_attente ON public.subventions_municipales USING btree (pays, ville, famille, beneficiaire, montant, jour) WHERE (statut = 'proposee'::text);

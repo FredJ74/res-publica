@@ -4936,6 +4936,52 @@ async function sbBudgetRepartitionFixer(source, beneficiaire, part) {
   return r || null;
 }
 
+// =============================================================================================
+// SUBVENTIONS MUNICIPALES -- L'ENVELOPPE ET SES PROPOSITIONS (10 octobre 2026)
+// =============================================================================================
+// L'etage 1 n'a AUCUN helper ici, et c'est le signe que l'architecture a tenu : la ligne
+// budgetaire « Subventions » est une ligne de `repartitions_budgetaires` comme les trois autres,
+// donc sbBudgetRepartitionLire / sbBudgetRepartitionFixer la servent deja. Pas une ligne de code.
+//
+// L'etage 2 ne transmet JAMAIS : le poste du maire, sa commune, l'eligibilite du beneficiaire, le
+// solde de l'enveloppe, la somme deja reservee, le jour de jeu, ni le cout en PA de l'acte. Le
+// serveur relit tout cela. Le navigateur ne nomme qu'une famille, un beneficiaire et un montant
+// -- et pour une reponse, un identifiant de proposition et un VERBE pris dans une liste close.
+async function sbSubventionEnveloppeLire() {
+  const rows = await sbRpc('subvention_enveloppe_lire', {});
+  return (Array.isArray(rows) ? rows[0] : rows) || null;
+}
+
+async function sbSubventionProposer(famille, beneficiaire, montant) {
+  const rows = await sbRpc('subvention_proposer', {
+    p_famille: famille, p_beneficiaire: beneficiaire, p_montant: Number(montant)
+  });
+  return (Array.isArray(rows) ? rows[0] : rows) || null;
+}
+
+async function sbSubventionsRecuesLire() {
+  const rows = await sbRpc('subventions_recues_lire', {});
+  return (Array.isArray(rows) ? rows[0] : rows) || null;
+}
+
+// `reponse` vaut 'accepter' ou 'refuser' -- jamais un statut. Le serveur refuse toute autre valeur
+// et c'est lui qui en deduit l'issue, pour qu'un client modifie ne puisse pas ecrire 'expiree'.
+async function sbSubventionRepondre(id, reponse) {
+  const rows = await sbRpc('subvention_repondre', { p_id: id, p_reponse: reponse });
+  return (Array.isArray(rows) ? rows[0] : rows) || null;
+}
+
+// LES ARCHIVES SONT UNE LECTURE DIRECTE, et c'est volontaire : la policy de la table ne laisse
+// voir que les propositions CLOSES (acceptee / refusee / expiree), ce qui est exactement ce que
+// l'arbitrage rend public. Une porte de lecture n'ajouterait aucune garantie et ferait croire
+// qu'il y a un secret a garder.
+async function sbSubventionsArchives(pays, ville) {
+  const rows = await sbGet('subventions_municipales',
+    'pays=eq.' + encodeURIComponent(pays) + '&ville=eq.' + encodeURIComponent(ville)
+    + '&statut=neq.proposee&order=created_at.desc&limit=50');
+  return Array.isArray(rows) ? rows : [];
+}
+
 // VIREMENT COMMUNAL ATOMIQUE (8 octobre 2026). La caisse de la mairie est debitee et celle du
 // batiment creditee DANS LA MEME TRANSACTION serveur : il n'existe plus de fenetre ou l'argent a
 // quitte la commune sans arriver, ni l'inverse. Remplace la sequence « crediter puis sauvegarder

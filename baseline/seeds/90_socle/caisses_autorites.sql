@@ -4,7 +4,7 @@
 -- Domaine    : finances publiques
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 17
+-- Lignes     : 18
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -12,7 +12,10 @@
 --
 -- JUSTIFICATION DU SEED (chantier 2C)
 -- Quel poste controle quelle caisse. Regle d'autorite, aucune fonction ne
--- l'ecrit.
+-- l'ecrit. LA DIX-HUITIEME LIGNE est le motif `subventions` (registre 624) :
+-- prefixe, et liste de postes VIDE -- ce qui vaut
+-- caisse_reservee_au_serveur. L'enveloppe municipale des subventions ne se
+-- debite donc que par la porte de reponse, jamais a la main par le maire.
 -- ============================================================================
 
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('agence-', 'true', '{}', 'Agences privees (Grobras Securite et suivantes) : caisse reservee au serveur. Aucun poste public ne debite la caisse d''une entreprise privee.');
@@ -30,5 +33,6 @@ INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VA
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('qhs-prison', 'false', '{min_int,min_just}', 'quartier haute securite');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('raffinerie', 'true', '{directeur_raffinerie,min_fin}', 'raffinerie');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('reserve-nationale', 'false', '{min_fin}', 'reserve nationale');
+INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('subventions', 'true', '{}', 'Enveloppe municipale des subventions aux organisations eligibles. Liste de postes VIDE = caisse_reservee_au_serveur : le maire ne la debite jamais a la main, seulement par la porte des subventions. Prefixe pour que subventions_<ville> soit de portee VILLE.');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('tribunal', 'true', '{juge,min_just}', 'tribunaux');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('usine-pharma', 'true', '{directeur_pharma,min_fin}', 'pharmacie nationale');

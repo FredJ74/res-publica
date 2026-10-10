@@ -12,6 +12,10 @@
 -- Ministre de la Justice n'est ni juge ni commissaire de la ville, et une affaire ne le
 -- « concerne » pas au sens de `affaire_me_concerne` -- les deux seules branches de la policy
 -- d'UPDATE. Les 250 FR quittaient donc la caisse et la plainte restait ouverte, a chaque fois.
+-- Depuis le registre 634 ce refus ne vient plus de la policy mais du DROIT -- INSERT et UPDATE
+-- revoques a `authenticated` sur `plaintes_en_cours` -- et le meme UPDATE, conserve mot pour mot,
+-- LEVE `42501 permission denied` au lieu de toucher 0 ligne. La contre-epreuve attrape ce refus-la
+-- et lui seul, et c'est l'ABSENCE d'exception qui est maintenant l'echec.
 --
 -- L'autorite, elle, EXISTAIT DEJA en base a deux endroits : la policy de LECTURE de cette table
 -- nomme `min_just`, et la caisse ministerielle refuse le mouvement a qui n'est pas le ministre en
@@ -26,6 +30,8 @@ DO $banc$
 DECLARE
   ko text[] := '{}'; n integer := 0;
   v jsonb; c integer; d jsonb;
+  -- Vrai quand l'ecriture cliente directe a bien ete refusee par le PRIVILEGE (registre 634).
+  v_refuse boolean;
   BEN constant text := '{"sub":"bafc96b1-1628-4ae2-93d2-78d89f8ac5b5","role":"authenticated"}';
   AFF constant text := 'aff-may';
   AILLEURS constant text := 'aff-ailleurs';
@@ -99,21 +105,30 @@ BEGIN
 
   -- ------------------------------------------------- 5. CONTRE-EPREUVE
   -- L'ANCIEN CHEMIN, REFAIT A L'IDENTIQUE : le ministre upsert le blob avec `status: 'annulee'`.
-  -- La policy d'UPDATE n'a que deux branches -- autorite judiciaire de la ville, ou affaire qui me
-  -- concerne -- et il n'est ni l'une ni l'autre.
+  -- La policy d'UPDATE n'avait que deux branches -- autorite judiciaire de la ville, ou affaire qui
+  -- me concerne -- et il n'etait ni l'une ni l'autre : l'ecriture touchait 0 ligne, en silence.
+  -- Depuis le registre 634, qui a revoque INSERT et UPDATE a `authenticated` sur
+  -- `plaintes_en_cours` et supprime ses policies d'ecriture, elle ne touche plus 0 ligne : elle
+  -- LEVE `42501 permission denied`. L'UPDATE est conserve mot pour mot, on attrape ce refus-la et
+  -- lui seul -- jamais `others`, qui ferait passer l'epreuve sur une faute de frappe ou une table
+  -- absente -- et c'est l'ABSENCE d'exception qui est desormais l'echec. La garantie est plus
+  -- forte : le chemin client n'est plus seulement sans effet, il est ferme.
   PERFORM set_config('role', 'postgres', true);
   UPDATE public.plaintes_en_cours SET data =
     '{"id":"aff-may","country":"republic","city":"ville_a","cible":"May","motif":"Vol","jour":1,"status":"deposee"}'
    WHERE id = AFF;
   PERFORM set_config('request.jwt.claims', BEN, true);
   PERFORM set_config('role', 'authenticated', true);
-  UPDATE public.plaintes_en_cours
-     SET data = (data::jsonb || '{"status":"annulee"}'::jsonb)::text
-   WHERE id = AFF;
-  GET DIAGNOSTICS c = ROW_COUNT;
-  n := n + 1; IF c <> 0 THEN
-    ko := ko || ('14 LA CONTRE-EPREUVE NE REPRODUIT PAS LE DEFAUT : l ecriture ministerielle a '
-      || 'touche ' || c || ' ligne(s) alors qu elle etait censee etre refusee par la RLS');
+  v_refuse := false;
+  BEGIN
+    UPDATE public.plaintes_en_cours
+       SET data = (data::jsonb || '{"status":"annulee"}'::jsonb)::text
+     WHERE id = AFF;
+  EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
+  END;
+  n := n + 1; IF NOT v_refuse THEN
+    ko := ko || ('14 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : l ecriture ministerielle n a '
+      || 'pas ete refusee par le privilege -- les 250 FR partaient pour rien');
   END IF;
   PERFORM set_config('role', 'postgres', true);
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;

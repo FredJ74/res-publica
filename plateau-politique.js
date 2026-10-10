@@ -9803,6 +9803,154 @@ async function confirmerRepartitionBudget(pa, cost) {
   addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
 }
 
+// =============================================================================================
+// L'ENVELOPPE DES SUBVENTIONS -- ETAGE 2 (10 octobre 2026)
+// =============================================================================================
+// L'ETAGE 1 N'A DEMANDE AUCUN CODE ICI. La ligne « Subventions » est une ligne de
+// `repartitions_budgetaires` comme les trois autres, et doRepartirBudgetMunicipal les lit en base
+// depuis le 8 octobre : elle apparait donc dans l'ecran de repartition sans qu'on y touche. C'est
+// ce que l'architecture promettait -- « ajouter un beneficiaire sera une ligne de donnee, pas une
+// modification de cet ecran » -- et c'est verifie.
+//
+// CET ECRAN NE CALCULE RIEN. Le solde, la somme reservee, le disponible reel, le jour de jeu, la
+// liste des organisations localement eligibles et le droit d'y proposer viennent tous d'un seul
+// appel serveur. Un navigateur modifie qui gonflerait le « disponible » affiche n'obtiendrait
+// rien : `subvention_proposer` recalcule tout sous verrou avant d'ecrire.
+//
+// AUCUN COUT N'EST DEDUIT ICI, et ce n'est pas un oubli. La porte appelle `payer_ordre` elle-meme,
+// avec un cout EN DUR (2 PA). Passer en plus par deduireCoutOrdre prelverait deux fois. C'est le
+// patron de `employeur_embaucher` : quand la porte facture, l'ecran ne facture pas.
+async function doProposerSubvention() {
+  document.getElementById('postes-modal-title').textContent = 'Subventions municipales';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const e = (typeof sbSubventionEnveloppeLire === 'function')
+    ? await sbSubventionEnveloppeLire().catch(() => null) : null;
+  if (!e || e.ok !== true) {
+    const motif = (e && e.raison) ? e.raison : 'indisponible';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;color:#cc6a44;font-size:.85rem">L\'enveloppe n\'a pas pu être lue ('
+      + motif + '). Rien n\'a été engagé.</div>';
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const fr = n => Number(n || 0).toLocaleString('fr-FR');
+  let html = '<div style="padding:1rem">';
+
+  html += '<div style="display:flex;gap:.5rem;margin-bottom:.8rem">';
+  [['Solde', e.solde, '#C9A84C'], ['Réservé', e.reserve, '#cc9a44'], ['Disponible', e.disponible, '#6ab858']]
+    .forEach(([lab, val, col]) => {
+      html += '<div style="flex:1;text-align:center;border:1px solid #2a2010;padding:.4rem">'
+            + '<div style="font-size:.65rem;color:#8a8060;letter-spacing:.06em">' + lab + '</div>'
+            + '<div style="font-family:Bebas Neue,sans-serif;font-size:1.05rem;color:' + col + '">'
+            + fr(val) + ' ' + cur + '</div></div>';
+    });
+  html += '</div>';
+
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Cette caisse est alimentée chaque nuit par '
+        + Number(e.part_budgetaire_pct || 0).toLocaleString('fr-FR') + ' % des recettes municipales'
+        + (Number(e.part_budgetaire_pct || 0) === 0
+            ? ' — soit rien pour l\'instant : ouvrez « Répartir le budget municipal » pour doter la ligne « Subventions ».'
+            : '. Ce qui n\'est pas dépensé reste acquis à la commune.')
+        + '</div>';
+
+  // LES PROPOSITIONS EN ATTENTE. Elles ne sont pas « de l'argent depense » : elles sont de
+  // l'argent IMMOBILISE, qui revient si l'organisation refuse ou ne repond pas.
+  const attente = Array.isArray(e.en_attente) ? e.en_attente : [];
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">En attente de réponse</div>';
+  if (!attente.length) {
+    html += '<div style="font-size:.75rem;color:#5a5040;font-style:italic;margin-bottom:.8rem">Aucune proposition en cours.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.2rem;margin-bottom:.8rem">';
+    attente.forEach(p => {
+      const j = Number(p.jours_restants);
+      html += '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.2rem 0;border-bottom:1px solid #1a1208">'
+            + '<span style="color:#c0b090">' + p.beneficiaire_nom + '</span>'
+            + '<span style="color:#cc9a44">' + fr(p.montant) + ' ' + cur
+            + ' <span style="color:#8a8060">— ' + (j > 1 ? j + ' jours' : (j === 1 ? 'dernier jour' : 'échue')) + '</span></span></div>';
+    });
+    html += '</div>';
+  }
+
+  // LES ELIGIBLES LOCAUX. La liste vient du serveur, filtree par commune : cet ecran ne sait pas
+  // ce qu'est un club ni ce qu'est une organisation eligible, et c'est voulu.
+  const elig = Array.isArray(e.eligibles) ? e.eligibles : [];
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">Organisations éligibles de la commune</div>';
+  if (!elig.length) {
+    html += '<div style="font-size:.75rem;color:#5a5040;font-style:italic">Aucune organisation éligible n\'est domiciliée ici.</div>';
+  } else {
+    elig.forEach((o, i) => {
+      html += '<div style="border:1px solid #2a2010;padding:.5rem;margin-bottom:.4rem">';
+      html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.25rem">' + o.nom
+            + ' <span style="color:#5a5040;font-size:.68rem">— ' + o.libelle_famille + '</span></div>';
+      if (o.peut_repondre !== true) {
+        html += '<div style="font-size:.68rem;color:#cc6a44;margin-bottom:.25rem">Personne ne dirige actuellement '
+              + 'la caisse de cette organisation : une proposition resterait sans réponse et expirerait au bout de trois jours.</div>';
+      }
+      html += '<div style="display:flex;gap:.3rem">';
+      html += '<input type="number" step="1" min="1" id="subv-montant-' + i + '" placeholder="Montant en ' + cur + '"'
+            + ' style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-family:Crimson Pro,serif;font-size:.8rem;outline:none;box-sizing:border-box"/>';
+      html += '<button onclick="confirmerPropositionSubvention(\'' + o.famille + '\',\'' + o.id + '\',' + i + ')"'
+            + ' style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer (2 PA)</button>';
+      html += '</div></div>';
+    });
+  }
+
+  html += '<div id="subv-avertissement" style="font-size:.72rem;color:#cc6a44;margin-top:.5rem"></div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerPropositionSubvention(famille, beneficiaire, index) {
+  const champ = document.getElementById('subv-montant-' + index);
+  const avert = document.getElementById('subv-avertissement');
+  const montant = Math.trunc(Number(champ && champ.value) || 0);
+  if (!(montant > 0)) {
+    if (avert) avert.textContent = 'Indiquez un montant en francs, supérieur à zéro.';
+    return;
+  }
+
+  const r = (typeof sbSubventionProposer === 'function')
+    ? await sbSubventionProposer(famille, beneficiaire, montant).catch(() => null) : null;
+
+  if (!r || r.ok !== true) {
+    const motifs = {
+      autorite_insuffisante: 'Seul le maire de cette commune peut proposer une subvention.',
+      beneficiaire_hors_commune: 'Cette organisation n\'est pas domiciliée dans votre commune.',
+      beneficiaire_introuvable: 'Cette organisation n\'existe pas.',
+      famille_non_eligible: 'Cette catégorie d\'organisation n\'est pas éligible aux subventions municipales.',
+      famille_inconnue: 'Catégorie d\'organisation inconnue.',
+      fonds_insuffisants: 'L\'enveloppe ne couvre pas ce montant : ' + Number(r && r.disponible).toLocaleString('fr-FR')
+                          + ' FR disponibles, réserves déduites.',
+      montant_invalide: 'Le montant doit être un nombre entier de francs, supérieur à zéro.',
+      proposition_identique_en_attente: 'Une proposition identique est déjà en attente de réponse.',
+      enveloppe_absente: 'Cette commune n\'a pas d\'enveloppe de subventions.',
+      ville_indeterminee: 'Votre poste n\'est rattaché à aucune commune.',
+      pa_insuffisants: 'Il vous faut 2 points d\'action.',
+      ordre_inconnu: 'Cet ordre n\'est pas déclaré au serveur.'
+    };
+    const motif = (r && r.raison) || 'refus_serveur';
+    if (avert) avert.textContent = motifs[motif] || ('Proposition refusée (' + motif + ').');
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const fin = r.gestionnaire_connu === true
+    ? 'Elle a trois jours pour accepter ou refuser.'
+    : 'Attention : personne ne dirige sa caisse, la proposition expirera sans réponse.';
+  showToast('Subvention proposée',
+    Number(r.montant).toLocaleString('fr-FR') + ' ' + cur + ' proposés à ' + r.beneficiaire_nom + '. ' + fin,
+    true, true);
+  addJournalEntry('Subvention de ' + Number(r.montant).toLocaleString('fr-FR') + ' ' + cur
+                  + ' proposée à ' + r.beneficiaire_nom + '.', 'event-good');
+  // L'ETAT CLIENT N'EST QU'UNE PROJECTION de ce que le serveur vient d'ecrire : les 2 PA ont ete
+  // preleves par la porte, et on recopie ce qu'elle rend plutot que de les deduire soi-meme.
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+}
+
 // =====================
 // SYSTEME MILITAIRE — guerre partagee, chaine de commandement, compagnies, detachements
 // =====================

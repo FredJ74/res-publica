@@ -37,6 +37,8 @@ ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_decla
 ALTER TABLE public.salaires_civils_verses ADD CONSTRAINT salaires_civils_verses_pkey PRIMARY KEY (id);
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_pkey PRIMARY KEY (cle);
 ALTER TABLE public.salaires_religieux_verses ADD CONSTRAINT salaires_religieux_verses_pkey PRIMARY KEY (id);
+ALTER TABLE public.subventions_familles ADD CONSTRAINT subventions_familles_pkey PRIMARY KEY (famille);
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_municipales_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES D'UNICITE
 ALTER TABLE public.fonds_credits_uniques ADD CONSTRAINT fonds_credits_uniques_ref UNIQUE (source, reference);
@@ -64,3 +66,11 @@ ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetai
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_categorie_check CHECK ((categorie = ANY (ARRAY['poste'::text, 'emploi'::text, 'universel'::text])));
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_montant_check CHECK ((montant >= 0));
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_montant_check CHECK ((montant > 0));
+ALTER TABLE public.subventions_familles ADD CONSTRAINT subventions_familles_registre_check CHECK ((registre = ANY (ARRAY['organisation'::text, 'club_football'::text])));
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_cloture_coherente CHECK ((((statut = 'proposee'::text) AND (clos_par IS NULL) AND (clos_le IS NULL)) OR ((statut = ANY (ARRAY['acceptee'::text, 'refusee'::text])) AND (clos_par IS NOT NULL) AND (clos_le IS NOT NULL)) OR ((statut = 'expiree'::text) AND (clos_par IS NULL) AND (clos_le IS NOT NULL))));
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_delai_de_trois_jours CHECK ((jour_echeance = (jour + 3)));
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_municipales_montant_check CHECK (((montant > (0)::numeric) AND (montant = trunc(montant))));
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_municipales_statut_check CHECK ((statut = ANY (ARRAY['proposee'::text, 'acceptee'::text, 'refusee'::text, 'expiree'::text])));
+
+-- CLES ETRANGERES
+ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_municipales_famille_fkey FOREIGN KEY (famille) REFERENCES subventions_familles(famille);

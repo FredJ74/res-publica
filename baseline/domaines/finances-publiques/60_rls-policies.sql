@@ -40,6 +40,8 @@ ALTER TABLE public.salaires_civils_declares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_civils_verses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_religieux_declares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_religieux_verses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subventions_familles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subventions_municipales ENABLE ROW LEVEL SECURITY;
 
 -- budgets_clubs
 CREATE POLICY "Lecture publique du budget club" ON public.budgets_clubs FOR SELECT TO PUBLIC
@@ -97,3 +99,7 @@ CREATE POLICY pa_credits_sources_lecture_publique ON public.pa_credits_sources F
 -- recettes_municipales
 CREATE POLICY recettes_municipales_lecture_publique ON public.recettes_municipales FOR SELECT TO PUBLIC
   USING (true);
+
+-- subventions_municipales
+CREATE POLICY subventions_archives_publiques ON public.subventions_municipales FOR SELECT TO PUBLIC
+  USING (statut <> 'proposee'::text);

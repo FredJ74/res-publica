@@ -236,3 +236,29 @@ CREATE TABLE public.salaires_religieux_verses (
   montant numeric NOT NULL,
   verse_le timestamp with time zone DEFAULT now() NOT NULL
 );
+
+CREATE TABLE public.subventions_familles (
+  famille text NOT NULL,
+  libelle text NOT NULL,
+  registre text NOT NULL,
+  eligible boolean DEFAULT false NOT NULL,
+  arbitrage text NOT NULL,
+  note text
+);
+
+CREATE TABLE public.subventions_municipales (
+  id text NOT NULL,
+  pays text NOT NULL,
+  ville text NOT NULL,
+  maire text NOT NULL,
+  famille text NOT NULL,
+  beneficiaire text NOT NULL,
+  beneficiaire_nom text NOT NULL,
+  montant numeric NOT NULL,
+  statut text DEFAULT 'proposee'::text NOT NULL,
+  jour integer NOT NULL,
+  jour_echeance integer NOT NULL,
+  clos_par text,
+  clos_le timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);

@@ -494,8 +494,14 @@ def controles_du_monde(cat):
     # l'archive qui rend une purge reversible (registre 623 : la ligne entiere y est copiee dans
     # la MEME transaction que sa suppression). Un monde neuf nait avec le miroir SEME -- il se
     # regenere -- et l'archive des purges VIDE : il n'a encore rien purge.
-    # Les 6 tables hors_baseline ne sont jamais creees : 264 au catalogue, 258 ici.
-    att("tables creees", len(cat.tables), 258)
+    # 260 le 10 octobre 2026 au soir : +2 pour les subventions municipales -- subventions_familles,
+    # le REGISTRE d'eligibilite par famille d'organisation (categorie A, seme : sans ses lignes la
+    # mecanique entiere est inerte), et subventions_municipales, les propositions et leur issue
+    # (categorie C, etat vivant pur : un monde neuf nait sans aucun engagement municipal).
+    # Les tables hors_baseline ne sont jamais creees. Elles etaient SIX ; la migration 20261010183124
+    # (registre 633) a detruit zz_snap_cka_membres apres l'avoir archivee, il en reste CINQ :
+    # 265 au catalogue, 260 ici. La ligne du CSV de classification reste a retirer.
+    att("tables creees", len(cat.tables), 260)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -547,8 +553,15 @@ def controles_du_monde(cat):
     # les deux portes successorales. `assemblee_dissoudre_revoquer_deputes` a ete SUPPRIMEE le
     # meme jour (registre 611) : elle n'avait vecu que quelques minutes, et la supersession est
     # ecrite dans l'archive de la 608. L'ecart de 4 reste celui des quatre surcharges historiques.
-    att("signatures de fonction creees", cat.n_fonctions, 710)
-    att("noms de fonction distincts", len(cat.fonctions), 706,
+    # 722 / 718 le 10 octobre 2026 au soir : +12 signatures et +12 noms pour les subventions
+    # municipales (registre 624 a 632). Les douze : subvention_familles_resolues,
+    # subventions_famille_a_son_resolveur (fonction de declencheur), subvention_entites,
+    # subvention_gestionnaire, subvention_caisse_crediter, subvention_organisations_locales,
+    # subvention_beneficiaire_verdict, subvention_proposer, subvention_repondre,
+    # subventions_expirer, subvention_enveloppe_lire, subventions_recues_lire. Aucune surcharge
+    # ajoutee : l'ecart de 4 reste celui des quatre surcharges historiques.
+    att("signatures de fonction creees", cat.n_fonctions, 722)
+    att("noms de fonction distincts", len(cat.fonctions), 718,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -564,16 +577,30 @@ def controles_du_monde(cat):
     # offres_emploi_bne (le miroir des offres du BNE, registre 609) et purges_residus_bancs
     # (l'archive qui rend la purge reversible, registre 623). Mesure en base :
     # offres_emploi_bne_pkey et purges_residus_bancs_pkey, contype = 'p'.
-    att("contraintes posees", len(cat.contraintes), 446)
+    # 454 le 10 octobre 2026 au soir : +8 pour les subventions municipales. DEUX sur
+    # subventions_familles (sa cle primaire et le CHECK du slug de registre) et SIX sur
+    # subventions_municipales -- cle primaire, cle etrangere vers le registre des familles
+    # (c'est elle qui rend l'eligibilite fail-closed : on ne propose pas a une famille absente),
+    # CHECK du montant, CHECK du statut, CHECK de coherence de cloture (une proposition close
+    # porte sa date et son repondant, une proposition en attente n'en porte aucun) et CHECK du
+    # delai de trois jours.
+    att("contraintes posees", len(cat.contraintes), 454)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
     # l'audit du chantier 6 reclamait pour rendre l'anti-rejeu STRUCTUREL et non disciplinaire.
-    att("index autonomes crees", len(cat.index), 149)
+    # 151 le 10 octobre 2026 au soir : +2 index UNIQUE partiels sur subventions_municipales --
+    # subventions_enveloppe_en_attente et subventions_une_proposition_identique_en_attente. Ils
+    # portent l'unicite de ce qui est ENCORE PROPOSE, et c'est la raison pour laquelle la reserve
+    # n'est pas une colonne : elle se calcule, elle ne se duplique pas.
+    att("index autonomes crees", len(cat.index), 151)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
-    att("declencheurs crees", len(cat.triggers), 41)
+    # 42 le 10 octobre 2026 au soir : +1, subventions_familles_verrou_resolveur. Il refuse de
+    # declarer eligible une famille que subvention_familles_resolues() ne sait pas traiter : on ne
+    # peut pas declarer sans implementer.
+    att("declencheurs crees", len(cat.triggers), 42)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -584,7 +611,19 @@ def controles_du_monde(cat):
     # national de l'emploi est lisible par les clients -- c'est un CATALOGUE, pas un etat : les
     # offres sont deja dans data.js, cote navigateur. Ce qui ne peut PAS venir du navigateur, et
     # qui est la raison d'etre de ce miroir, c'est le nombre de PLACES : il borne une autorisation.
-    att("policies creees", len(cat.policies), 286)
+    # 287 le 10 octobre 2026 au soir : +1, subventions_archives_publiques. Lecture publique des
+    # seules propositions CLOSES : ce qui est encore propose immobilise une reserve et ne se lit
+    # que par RPC attestee. subventions_familles, elle, a la RLS active SANS AUCUNE POLICY --
+    # fail closed : un navigateur ne lit pas le registre d'eligibilite, donc il ne l'invente pas.
+    # 283 le meme soir, et c'est une BAISSE VOULUE : -4 au registre 634, quand le navigateur perd
+    # l'ecriture sur les terrains et les plaintes. Les quatre policies d'ecriture tombent --
+    # terrains_etat_ecriture_acteur, terrains_etat_maj_acteur, plaintes_insertion_affaires,
+    # plaintes_maj_affaires -- en meme temps que le REVOKE INSERT, UPDATE a `authenticated` sur
+    # les deux tables. Les deux policies de SELECT restent : la lecture n'a jamais ete le sujet.
+    # Un compte de policies qui DESCEND n'est pas une regression ; une porte serveur qui remplace
+    # une policy d'ecriture en retire une, c'est le signe attendu. S'il remontait a 287 sans
+    # migration, ce serait l'ecriture cliente qui serait revenue.
+    att("policies creees", len(cat.policies), 283)
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
     att("sequences disponibles", len(cat.sequences), 32)
@@ -633,10 +672,15 @@ def controles_du_monde(cat):
     # de chaque ville a pour beneficiaire SA PROPRE SOURCE : la part est journalisee mais jamais
     # transferee, exactement comme celle du Ministere de l'Economie. C'est ce qui empeche la
     # boucle, et c'est pourquoi la part conservee par la mairie n'a demande aucun mecanisme neuf.
+    # 28 le 10 octobre 2026 au soir : +3 pour les subventions municipales -- une ligne par
+    # commune (mairie-capitale -> subventions_capitale, et les deux autres villes), part a 0/100
+    # PAR DEFAUT. Meme precedent que le QHS : la ligne existe et est editable, elle ne deplace
+    # rien tant que le maire ne l'a pas decidee. Si ce compte retombait a 25, ce serait le signe
+    # qu'une part a zero a de nouveau ete prise pour une absence de regle et effacee.
     att("lignes de repartition budgetaire seedees",
-        cat.lignes.get("repartitions_budgetaires", 0), 25,
+        cat.lignes.get("repartitions_budgetaires", 0), 28,
         "10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, "
-        "QHS 0/100, 3 tribunaux a 1/3, et 3 x 3 municipales a 40/40/20")
+        "QHS 0/100, 3 tribunaux a 1/3, 3 x 3 municipales a 40/40/20, et 3 subventions a 0/100")
     att("versements budgetaires seedes", cat.lignes.get("repartitions_versements", 0), 0,
         "journal des versements reels : un monde neuf nait sans historique, sinon le premier "
         "minuit croirait avoir deja verse")

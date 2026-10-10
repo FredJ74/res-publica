@@ -42,8 +42,8 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # LES DEUX VALEURS VIENNENT DE LA BASE, pas du CSV, et c'est tout le point de ce controle : elles
 # sont relevees par la requete citee en commentaire, puis comparees a ce que le CSV recalcule. Les
 # poser depuis le CSV rendrait la verification circulaire -- elle ne dirait plus rien.
-TABLES_ATTENDUES = 264
-EMPREINTE_LISTE = "c643ad7eb2b4e18ba9cf0410263ef6ef"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 265
+EMPREINTE_LISTE = "782a89e55e57c9b6e6015bd240fb3efa"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

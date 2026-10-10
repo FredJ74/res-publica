@@ -251,7 +251,7 @@ après coup**.
 
 ### Ce que la prochaine migration doit respecter
 
-Quatre règles, apprises à ces chantiers :
+Cinq règles, apprises à ces chantiers :
 
 1. **Être postérieure au point de coupe du baseline**
    (`../baseline/CONTROLE-GLOBAL.json`, clé `releve_le`). L'invariant 4 du
@@ -280,6 +280,28 @@ Quatre règles, apprises à ces chantiers :
    retapé applique la faute de frappe sans broncher. Dix-sept `INSERT` de
    courrier ont été routés ainsi le 9 octobre 2026, sans qu'un libellé bouge. Le
    patron complet est dans `../WORKFLOW-SUPABASE.md`.
+5. **Dans une porte, un refus rendu après une écriture laisse l'écriture.** Ce
+   n'est pas une règle de migration mais de *porte*, et elle a sa place ici
+   parce qu'elle décide de l'ordre des instructions qu'une migration dépose. Une
+   fonction appelée par PostgREST qui **retourne** normalement voit sa
+   transaction **commiter** : rendre `{ok: false}` après avoir inséré une ligne
+   la laisse en base. Trois réponses, et une seule par cas :
+   - **ordonner** pour que les refus probables tombent avant la première
+     écriture — c'est pour cela que la porte des subventions insère la
+     proposition *avant* de facturer les 2 PA : un rejeu est ainsi refusé sans
+     rien coûter ;
+   - **défaire explicitement** avant de refuser, comme
+     `budget_repartition_fixer` restaure l'ancienne part avant de rendre
+     `somme_depasse_cent`, ou comme la porte des subventions supprime la
+     proposition qu'elle vient de créer si le paiement échoue ;
+   - **lever** quand le refus ne serait pas un refus métier mais une
+     incohérence : un débit d'enveloppe refusé alors que la réserve le
+     garantissait annule toute la transaction, parce qu'une proposition acceptée
+     sans transfert serait pire qu'une erreur affichée.
+
+   Le symptôme à reconnaître : une porte qui rend un refus *après* un `INSERT`,
+   un `UPDATE` ou un `PERFORM` d'écriture, sans `DELETE` compensatoire ni
+   `RAISE`. Elle a l'air prudente et elle écrit quand même.
 
 ## Les trois règles
 

@@ -4,7 +4,7 @@
 -- Domaine    : finances publiques
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 25
+-- Lignes     : 28
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -28,7 +28,12 @@
 -- parts rigoureusement egales s'ecrivent 1/3, ce qu'aucun pourcentage
 -- decimal ne sait faire sans creer une preference permanente. Les trois
 -- autres empires n'ont AUCUNE ligne, et c'est voulu : sans ligne declaree,
--- la cascade ne verse rien plutot que d'appliquer la cle de Republia.
+-- la cascade ne verse rien plutot que d'appliquer la cle de Republia. DOUZE
+-- SONT MUNICIPALES depuis le 10 octobre 2026 : une QUATRIEME ligne par
+-- ville, libellee Subventions, a 0/100 -- part a 0 % PAR DEFAUT selon le
+-- precedent du QHS, donc la ligne existe et est editable sans deplacer un
+-- franc tant que le maire ne l'a pas decidee. Les trois sommes municipales
+-- restent a 100 % exactement (40/40/20/0).
 --
 -- ARBITRAGE DE GAME DESIGN
 -- ARBITRE LE 7 OCTOBRE 2026 : les trois tribunaux sont a PARTS EGALES au
@@ -56,9 +61,12 @@ INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_a
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_a', 'commissariat_ville_a', 'maire', '1', 'Commissariat — Port-Sainte-Marie', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_a', 'entrepot_ville_a', 'maire', '2', 'Entrepôt municipal — Port-Sainte-Marie', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_a', 'mairie_ville_a', 'maire', '3', 'Caisse propre de la mairie — Port-Sainte-Marie', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '20', '100');
+INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_a', 'subventions_ville_a', 'maire', '4', 'Subventions', 'ARBITRAGE DU 10 OCTOBRE 2026 : voir la ligne de Luthecia. Part a 0 % par defaut.', '0', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_b', 'commissariat_ville_b', 'maire', '1', 'Commissariat — Montrouge', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_b', 'entrepot_ville_b', 'maire', '2', 'Entrepôt municipal — Montrouge', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_b', 'mairie_ville_b', 'maire', '3', 'Caisse propre de la mairie — Montrouge', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '20', '100');
+INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie_ville_b', 'subventions_ville_b', 'maire', '4', 'Subventions', 'ARBITRAGE DU 10 OCTOBRE 2026 : voir la ligne de Luthecia. Part a 0 % par defaut.', '0', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie-capitale', 'commissariat_capitale', 'maire', '1', 'Commissariat — Luthécia', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie-capitale', 'entrepot_capitale', 'maire', '2', 'Entrepôt municipal — Luthécia', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '40', '100');
 INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie-capitale', 'mairie-capitale', 'maire', '3', 'Caisse propre de la mairie — Luthécia', 'ARBITRAGE DU 8 OCTOBRE 2026 : valeurs INITIALES de Republia, 40/40/20. Le maire modifie librement les trois parts, la sienne comprise ; la seule contrainte est une somme de 100 % exactement.', '20', '100');
+INSERT INTO public.repartitions_budgetaires (pays, source, beneficiaire, poste_autorite, rang, libelle, note, part_numerateur, part_denominateur) VALUES ('republic', 'mairie-capitale', 'subventions_capitale', 'maire', '4', 'Subventions', 'ARBITRAGE DU 10 OCTOBRE 2026 : la commune peut subventionner les organisations eligibles de son territoire. Part a 0 % PAR DEFAUT -- meme precedent que le QHS : la ligne existe et est editable, elle ne deplace rien tant que le maire ne l''a pas decidee. La caisse est CUMULATIVE et appartient a la commune, pas au maire.', '0', '100');

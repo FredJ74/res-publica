@@ -36,6 +36,10 @@ SUPABASE = os.path.join(RACINE, "supabase.js")
 BANC_PLAINTES = os.path.join(RACINE, "outils", "bancs", "banc-cycle-plaintes.js")
 PERSONNAGE = os.path.join(RACINE, "plateau-personnage.js")
 BANC_TERRAIN_ETAT = os.path.join(RACINE, "outils", "bancs", "banc-etat-terrain.js")
+ORGANISATIONS = os.path.join(RACINE, "plateau-organisations-quetes.js")
+ROUTEUR = os.path.join(RACINE, "plateau-router.js")
+DATA = os.path.join(RACINE, "data.js")
+BANC_SUBVENTIONS = os.path.join(RACINE, "outils", "bancs", "banc-subventions-client.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -470,6 +474,80 @@ def serie(titre, banc, source, regressions, echecs, lanceur=None):
     print("")
 
 
+
+# =============================================================================================
+# SUBVENTIONS MUNICIPALES -- CHAINE 7 (10 octobre 2026)
+# =============================================================================================
+# Chaque regression retire UNE discipline du cote navigateur, et nomme l'epreuve qui doit la
+# surveiller. Si l'epreuve reste verte, c'est elle qu'il faut reecrire -- pas le code.
+
+REGRESSIONS_SUBVENTIONS_ORGA = [
+    ("l'ancienne mecanique gelee ressuscite",
+     "async function repondreSubventionMunicipale(id, reponse) {",
+     "async function verifierSubventionMairie(club) { return; }\n"
+     "async function repondreSubventionMunicipale(id, reponse) {",
+     "verifierSubventionMairie n existe plus"),
+    ("un bouton envoie un STATUT au lieu d'un verbe",
+     "repondreSubventionMunicipale(\\'' + p.id + '\\',\\'refuser\\')",
+     "repondreSubventionMunicipale(\\'' + p.id + '\\',\\'expiree\\')",
+     "les boutons n envoient que les deux verbes"),
+    ("l'ecran du club credite la caisse lui-meme",
+     "  const r = await sbSubventionRepondre(id, reponse).catch(() => null);",
+     "  await crediterBudgetClub('x', 1, 'y');\n"
+     "  const r = await sbSubventionRepondre(id, reponse).catch(() => null);",
+     "aucun ecran de subvention ne credite une caisse de club"),
+    ("l'ecran ne demande plus au serveur de quoi je suis gestionnaire",
+     "    ? await sbSubventionsRecuesLire().catch(() => null) : null;",
+     "    ? null : null;",
+     "il demande au serveur de quelles propositions je suis gestionnaire"),
+]
+
+REGRESSIONS_SUBVENTIONS_POLITIQUE = [
+    ("l'ecran facture les PA que la porte facture deja",
+     "  const r = (typeof sbSubventionProposer === 'function')",
+     "  await deduireCoutOrdre({ pa: 2, cost: 0 });\n"
+     "  const r = (typeof sbSubventionProposer === 'function')",
+     "aucun des deux ecrans n appelle deduireCoutOrdre"),
+    ("l'ecran recalcule le disponible au lieu de le recevoir",
+     "[['Solde', e.solde, '#C9A84C'], ['Réservé', e.reserve, '#cc9a44'], ['Disponible', e.disponible, '#6ab858']]",
+     "[['Solde', e.solde, '#C9A84C'], ['Réservé', e.reserve, '#cc9a44'], ['Disponible', e.solde - e.reserve, '#6ab858']]",
+     "il n invente ni le disponible ni la reserve"),
+    ("l'ecran n applique plus le paiement rendu par le serveur",
+     "  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);",
+     "  // paiement non applique",
+     "l ecran recopie le paiement que le serveur a reellement ecrit"),
+    ("une panne de lecture devient une enveloppe vide",
+     "  if (!e || e.ok !== true) {\n    const motif = (e && e.raison) ? e.raison : 'indisponible';",
+     "  if (false) {\n    const motif = (e && e.raison) ? e.raison : 'indisponible';",
+     "une panne de lecture n est pas affichee comme une enveloppe vide"),
+]
+
+REGRESSIONS_SUBVENTIONS_SUPABASE = [
+    ("le navigateur annonce la commune du maire",
+     "async function sbSubventionEnveloppeLire() {\n  const rows = await sbRpc('subvention_enveloppe_lire', {});",
+     "async function sbSubventionEnveloppeLire() {\n  const rows = await sbRpc('subvention_enveloppe_lire', { p_ville: 'capitale' });",
+     "sbSubventionEnveloppeLire ne transmet AUCUN argument"),
+    ("les archives exposent les negociations en cours",
+     "&statut=neq.proposee&order=created_at.desc&limit=50');",
+     "&order=created_at.desc&limit=50');",
+     "les archives publiques ne demandent que les propositions CLOSES"),
+]
+
+REGRESSIONS_SUBVENTIONS_ROUTEUR = [
+    ("le routeur retransmet pa et cost, invitant au double prelevement",
+     "if (fn === 'subvention_proposer'){ doProposerSubvention(); return; }",
+     "if (fn === 'subvention_proposer'){ doProposerSubvention(pa, cost); return; }",
+     "il ne lui transmet NI pa NI cost"),
+]
+
+REGRESSIONS_SUBVENTIONS_CRON = [
+    ("la passe de minuit n expire plus rien",
+     "      const rows = await sbRpc('subventions_expirer', { p_pays: 'republic' }, HEADERS_SERVICE);",
+     "      const rows = null;",
+     "le cron appelle subventions_expirer"),
+]
+
+
 def main():
     echecs = []
     serie("DETENTION", BANC_DETENTION, JUSTICE, REGRESSIONS, echecs)
@@ -494,13 +572,27 @@ def main():
           REGRESSIONS_TERRAIN_JUSTICE, echecs, lanceur=lancer_cible("plateau-justice-economie.js"))
     serie("ETAT D'UN TERRAIN -- personnage", BANC_TERRAIN_ETAT, PERSONNAGE,
           REGRESSIONS_TERRAIN_PERSONNAGE, echecs, lanceur=lancer_cible("plateau-personnage.js"))
+    serie("SUBVENTIONS MUNICIPALES -- organisations", BANC_SUBVENTIONS, ORGANISATIONS,
+          REGRESSIONS_SUBVENTIONS_ORGA, echecs,
+          lanceur=lancer_cible("plateau-organisations-quetes.js"))
+    serie("SUBVENTIONS MUNICIPALES -- politique", BANC_SUBVENTIONS, POLITIQUE,
+          REGRESSIONS_SUBVENTIONS_POLITIQUE, echecs, lanceur=lancer_cible("plateau-politique.js"))
+    serie("SUBVENTIONS MUNICIPALES -- supabase", BANC_SUBVENTIONS, SUPABASE,
+          REGRESSIONS_SUBVENTIONS_SUPABASE, echecs, lanceur=lancer_cible("supabase.js"))
+    serie("SUBVENTIONS MUNICIPALES -- routeur", BANC_SUBVENTIONS, ROUTEUR,
+          REGRESSIONS_SUBVENTIONS_ROUTEUR, echecs, lanceur=lancer_cible("plateau-router.js"))
+    serie("SUBVENTIONS MUNICIPALES -- cron", BANC_SUBVENTIONS, CRON,
+          REGRESSIONS_SUBVENTIONS_CRON, echecs, lanceur=lancer_cible("api/cron-minuit.js"))
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
              + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_PLAINTES_JUSTICE)
              + len(REGRESSIONS_PLAINTES_POLITIQUE) + len(REGRESSIONS_PLAINTES_SUPABASE)
              + len(REGRESSIONS_TERRAIN_SUPABASE) + len(REGRESSIONS_TERRAIN_JUSTICE)
-             + len(REGRESSIONS_TERRAIN_PERSONNAGE))
+             + len(REGRESSIONS_TERRAIN_PERSONNAGE)
+             + len(REGRESSIONS_SUBVENTIONS_ORGA) + len(REGRESSIONS_SUBVENTIONS_POLITIQUE)
+             + len(REGRESSIONS_SUBVENTIONS_SUPABASE) + len(REGRESSIONS_SUBVENTIONS_ROUTEUR)
+             + len(REGRESSIONS_SUBVENTIONS_CRON))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

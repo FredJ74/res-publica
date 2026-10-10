@@ -13,3 +13,4 @@
 CREATE TRIGGER budgets_armurerie_verrou BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budgets_armurerie_verrou();
 CREATE TRIGGER budgets_virement_caserne_verrou BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budgets_virement_caserne_verrou();
 CREATE TRIGGER trg_budget_national_epingler BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budget_national_epingler();
+CREATE TRIGGER subventions_familles_verrou_resolveur BEFORE INSERT OR UPDATE ON subventions_familles FOR EACH ROW EXECUTE FUNCTION subventions_famille_a_son_resolveur();

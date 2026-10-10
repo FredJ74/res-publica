@@ -81,13 +81,8 @@ CREATE POLICY "salle reservee par un ambassadeur accredite" ON public.reservatio
   WHERE a.pays_hote = reservations_salle_reception.pays_hote AND a.empire = (a.data ->> 'empire'::text) AND (a.data ->> 'ambassadeur'::text) = (( SELECT mon_personnage() AS mon_personnage)))));
 
 -- terrains_etat
-CREATE POLICY terrains_etat_ecriture_acteur ON public.terrains_etat FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
 CREATE POLICY terrains_etat_lecture_publique ON public.terrains_etat FOR SELECT TO anon, authenticated
   USING (true);
-CREATE POLICY terrains_etat_maj_acteur ON public.terrains_etat FOR UPDATE TO authenticated
-  USING (acteur_identifie())
-  WITH CHECK (acteur_identifie());
 
 -- terrains_historique_ventes
 CREATE POLICY terrains_historique_ventes_ecriture_acteur ON public.terrains_historique_ventes FOR INSERT TO authenticated

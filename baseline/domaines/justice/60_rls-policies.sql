@@ -74,11 +74,6 @@ CREATE POLICY niveaux_prison_maj_acteur ON public.niveaux_prison FOR UPDATE TO a
 -- plaintes_en_cours
 CREATE POLICY "affaire lue par les parties, l autorite, ou publique une fois j" ON public.plaintes_en_cours FOR SELECT TO authenticated
   USING (affaire_statut(data) = 'jugee'::text OR affaire_autorite_de(city) OR mon_poste_est_dans('min_just'::text, country) OR mon_poste_est_dans('min_int'::text, country) OR affaire_me_concerne(data));
-CREATE POLICY plaintes_insertion_affaires ON public.plaintes_en_cours FOR INSERT TO authenticated
-  WITH CHECK ((data IS NULL OR "left"(btrim(data), 1) <> '{'::text OR NOT data::jsonb ? 'commissaire_pj'::text) AND (affaire_autorite_de(city) OR affaire_me_concerne(data)));
-CREATE POLICY plaintes_maj_affaires ON public.plaintes_en_cours FOR UPDATE TO authenticated
-  USING ((data IS NULL OR "left"(btrim(data), 1) <> '{'::text OR NOT data::jsonb ? 'commissaire_pj'::text) AND (affaire_autorite_de(city) OR affaire_me_concerne(data)))
-  WITH CHECK ((data IS NULL OR "left"(btrim(data), 1) <> '{'::text OR NOT data::jsonb ? 'commissaire_pj'::text) AND (affaire_autorite_de(city) OR affaire_me_concerne(data)));
 
 -- prisonniers_qhs
 CREATE POLICY prisonniers_qhs_insertion_soi ON public.prisonniers_qhs FOR INSERT TO anon, authenticated

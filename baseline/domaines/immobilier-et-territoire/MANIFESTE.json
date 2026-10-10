@@ -765,7 +765,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "terrains_etat",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -848,8 +848,8 @@
   "30_contraintes.sql": "a5a5bf05e55f51602249819fcb875cd2",
   "35_index.sql": "3d319f664a45b587249753e4ef607bed",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
-  "60_rls-policies.sql": "c51fbae86e985e66aeeaeac3aa2ca050",
-  "70_droits.sql": "1d1f7637af7d31a6fd6050c91ec9a724",
+  "60_rls-policies.sql": "d75e548ae702eda3a2c074c1f8afeef5",
+  "70_droits.sql": "0a78c5eda4ce7879acf31d132f5a534b",
   "80_commentaires.sql": "1f3a2950e2af35ad3e61470a1ae940a7"
  },
  "fonctions": [
@@ -1160,21 +1160,9 @@
    "tbl": "reservations_salle_reception"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "10df4197b1f317cdbbcb5c44c9ebd7ef",
-   "nom": "terrains_etat_ecriture_acteur",
-   "tbl": "terrains_etat"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "37d7e97ba2ac76fd1e2e5ac3a357463f",
    "nom": "terrains_etat_lecture_publique",
-   "tbl": "terrains_etat"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "9c5fc97e21c1700a9cd17ff19845ee3a",
-   "nom": "terrains_etat_maj_acteur",
    "tbl": "terrains_etat"
   },
   {

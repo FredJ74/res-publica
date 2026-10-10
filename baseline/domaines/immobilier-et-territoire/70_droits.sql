@@ -125,7 +125,7 @@ GRANT INSERT, SELECT ON TABLE public.reservations_salle_reception TO authenticat
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.reservations_salle_reception TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.reservations_salle_reception TO service_role;
 GRANT SELECT ON TABLE public.terrains_etat TO anon;
-GRANT INSERT, SELECT, UPDATE ON TABLE public.terrains_etat TO authenticated;
+GRANT SELECT ON TABLE public.terrains_etat TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrains_etat TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrains_etat TO service_role;
 GRANT SELECT ON TABLE public.terrains_historique_ventes TO anon;
