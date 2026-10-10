@@ -113,17 +113,30 @@ async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
 
 const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','directeur_pharma','directeur_tabac_alcools','directeur_raffinerie','directeur_entrepot','chef_douanes'];
 // Note : commissaire/juge/commandant sont volontairement exclus -- ces PNJ restent affiches
-// en permanence pour l'ambiance du plateau, puisqu'aucune prerogative de jeu n'est encore
-// codee sur ces postes (a construire plus tard). Chef des Douanes AJOUTE a la liste (24 aout
+// en permanence pour l'ambiance du plateau. Chef des Douanes AJOUTE a la liste (24 aout
 // 2026) car il a, des ce lot, de vraies prerogatives operationnelles (recruter_douanier/
 // gerer_effectifs_douane) -- Pascal Paguevite doit donc disparaitre de l'affichage des lors
 // qu'un vrai titulaire (PJ ou PNJ via la cascade) est enregistre, comme les ministres.
+//
+// LA RAISON D'ORIGINE DE CETTE EXCLUSION ETAIT « aucune prerogative de jeu n'est encore codee
+// sur ces postes (a construire plus tard) ». ELLE EST FAUSSE DEPUIS SEPTEMBRE 2026 pour le
+// Commandant, et la corriger fait partie de la cloture de la caserne (10 octobre 2026) : il
+// cree les compagnies (militaire_compagnie_creer), recrute les Capitaines
+// (militaire_proposer_capitaine), engage la caisse de la caserne, peut la reverser au ministere,
+// lance la recherche d'armement, touche 400 FR de solde, et le serveur verifie chacun de ces
+// actes par exiger_poste('commandant').
+//
+// IL RESTE POURTANT EXCLU, et pour une raison neuve : son PNJ, Commandant Tom Hawak, porte
+// `resteApresPourvoi` et DOIT rester visible meme quand un joueur occupe le poste -- il devient
+// alors Commandant adjoint, referent militaire de la caserne. Le masquer serait exactement
+// l'inverse de ce que l'arbitrage demande. Ce filtre ne le verrait de toute facon pas : le
+// drapeau sort avant le test de la liste.
 
 // resteApresPourvoi (22 septembre 2026). Un PNJ peut porter le `job` d'un poste SANS etre
 // interchangeable avec son titulaire : Martial Bouterin est le referent militaire permanent du
 // ministere de la Defense, et doit rester dans le bureau quand un joueur devient ministre --
 // comme aide de camp, jamais comme ministre. C'etait deja l'intention du code
-// (ajusterAttacheMinisteriel, plateau-navigation.js, le renomme « Attaché ministériel »), mais ce
+// (ajusterTitrePnjDePoste, plateau-navigation.js, le renomme « Attaché ministériel »), mais ce
 // filtre le supprimait AVANT l'affichage : le renommage etait du code mort.
 //
 // Le drapeau est DECLARATIF et porte par le PNJ lui-meme dans data.js : aucun nom en dur ici,

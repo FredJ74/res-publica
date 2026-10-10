@@ -4,7 +4,7 @@
 -- Domaine    : socle PNJ
 -- Categorie  : B (contenu initial d'empire)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 18
+-- Lignes     : 19
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -17,6 +17,7 @@
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alain_bordage', 'voyages internationaux', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alfredo_mifassole', 'role social et politique du club — Luthecia', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('caporal_alouche', 'militaire — intendance et refectoire', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('commandant_tom_hawak', 'militaire — commandement, compagnies, grades et caisse', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('eve_toahemarch', 'militaire — sante, blessures et soins', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gaspard_ferriere', 'militaire — engagement, formation, troupe', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gretta_delieu', 'centre d''affaires — bureaux, location et equipements', 'republic');

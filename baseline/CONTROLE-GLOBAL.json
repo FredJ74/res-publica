@@ -1,26 +1,26 @@
 {
  "_commentaire": "CE QUE LA BASE DIT, pour TOUT le schema public. Relevé par introspection, sans aucune écriture. A confronter aux MANIFESTE.json des domaines par outils/baseline/verifier-baseline.py. Produit par la requête CONTROLE_GLOBAL de outils/baseline/requetes.py (python3 outils/baseline/requetes.py --controle-global) : la requête qui a produit ces chiffres est dans le dépôt, relisible et rejouable.",
  "projet": "jxpwoosmmhohoihxpbuc",
- "releve_le": "2026-10-10T21:26:14 Europe/Paris",
- "empreintes_relevees_le": "2026-10-10T21:26:14 Europe/Paris",
+ "releve_le": "2026-10-10T23:51:41 Europe/Paris",
+ "empreintes_relevees_le": "2026-10-10T23:51:41 Europe/Paris",
  "_lecture": "Deux questions distinctes et separees. COMPLETUDE : chaque total du catalogue se decompose exactement en « rendu dans le baseline » + « ecarte, nomme et justifie ». Aucun objet ne peut disparaitre en silence. FIDELITE : les empreintes calculees par la base correspondent-elles a ce que le depot contient.",
  "totaux": {
   "vues": 2,
   "index": 424,
   "tables": 265,
   "colonnes": 2167,
-  "policies": 283,
+  "policies": 282,
   "triggers": 42,
-  "fonctions": 722,
+  "fonctions": 725,
   "sequences": 32,
   "contraintes": 456,
   "rls_actives": 265,
-  "commentaires": 251,
+  "commentaires": 254,
   "index_portes": 273,
   "droits_colonnes": 20,
   "index_autonomes": 151,
-  "droits_fonctions": 1987,
-  "droits_relations": 961,
+  "droits_fonctions": 1996,
+  "droits_relations": 960,
   "droits_par_defaut": 7,
   "colonnes_de_vues": 73
  },
@@ -54,13 +54,13 @@
   "contraintes": 454,
   "index_portes": 271,
   "index_autonomes": 151,
-  "fonctions": 722,
+  "fonctions": 725,
   "triggers": 42,
-  "policies": 283,
+  "policies": 282,
   "rls_actives": 260,
-  "droits": 2938,
+  "droits": 2946,
   "droits_colonnes": 20,
-  "commentaires": 248,
+  "commentaires": 251,
   "droits_par_defaut": 7
  },
  "_colonnes_calcul": "2063 = 2167 colonnes du catalogue - 73 colonnes de vues (les vues sont rendues par pg_get_viewdef, pas colonne par colonne) - 31 colonnes des 5 tables ecartees.",
@@ -68,21 +68,21 @@
  "empreintes": {
   "vues": "be98d3a7391c4a235e78282204fd29d4",
   "index": "20ec47cee79a34d6eb4818fbec645b64",
-  "droits": "b5955fcb3401dc775d9a37d037fa7b86",
+  "droits": "8d0185682bba740e8a16bab0481aac4e",
   "colonnes": "bd5d38df7e10eac6e379c1b97895e764",
-  "policies": "a877db7eaf5fd667aa01ce926f6e2496",
+  "policies": "c221e05119849db2795829e7fd9eb06a",
   "triggers": "184b6f27cab00618574f9610548ea528",
-  "fonctions": "1da0401577bdcc516da1888950af42fe",
+  "fonctions": "6e329fec4652366a30a4d94ea53fd243",
   "contraintes": "dfcad68083e116536a73ab5ab64160a8",
-  "commentaires": "6ab5218775e2b2c86e9a8dd5b7923c28",
+  "commentaires": "be64d6b28160a91979b7c106001acc9c",
   "droits_par_defaut": "859cd268d66ac0f43411ad776e6af7cc",
-  "policies_avec_roles": "f9eb0bfd669ee0096caf05a3bd6a9586"
+  "policies_avec_roles": "f18bf5afcbbc7cf8bbd8045066de2072"
  },
  "securite": {
   "_commentaire": "Controles de securite separes des controles de structure : une reconstruction peut etre structurellement parfaite et fonctionnellement ouverte. Ces chiffres decrivent l'etat REEL de la base au 10 octobre 2026 au soir, apres les NEUF migrations des subventions municipales (registre 624 a 632), le DROP de l'instantane de compagnie (registre 633), le retrait de l'ecriture cliente sur les terrains et les plaintes (registre 634) et la declaration explicite des droits des deux tables neuves (registre 635). `fonctions_security_invoker` et `tables_sans_rls` sont DERIVES ici et non releves : la requete de controle global rend le nombre de SECURITY DEFINER et la liste des tables sans RLS, pas leurs complements.",
-  "fonctions_security_definer": 609,
+  "fonctions_security_definer": 612,
   "fonctions_security_invoker": 113,
-  "tables_rls_active_sans_policy": 105,
+  "tables_rls_active_sans_policy": 106,
   "tables_sans_rls": 0,
   "_tables_sans_rls": "ZERO. C'etait 25 au chantier 2E, et c'etait le trou : leur seule garde etait le GRANT. Le chantier 3 a mis la RLS sur les 27 dernieres tables du schema (25 du perimetre, 2 ecartees) -- migration 20261005214600_autorite_socle_acteur_identifie.sql.",
   "_tables_rls_active_sans_policy": "105 tables ont la RLS active et aucune policy : elles sont donc fermees a tout role soumis a la RLS, et accessibles uniquement par une fonction SECURITY DEFINER. C'est un etat VOULU dans la majorite des cas, pas un oubli. La derniere entree est subventions_familles, registre d'eligibilite du meme genre que caisses_autorites : un navigateur ne le lit pas et ne peut donc pas inventer une eligibilite. subventions_municipales, elle, porte une policy de lecture des seules propositions CLOSES -- c'est l'issue publique, pas la reserve en cours. Les trois precedentes sont villes (chantier 4E), repartitions_budgetaires et repartitions_versements (chantier 4F) : la regle budgetaire et son journal ne se lisent que par RPC attestee.",
@@ -111,6 +111,7 @@
    "cellules_renseignement",
    "championnat_tentatives",
    "clubs_sportifs_regles",
+   "compagnies_militaires",
    "compromis_historique",
    "confiscations_douanieres",
    "contacts_militaires",
@@ -203,9 +204,9 @@
   "_une_empreinte_a_du_etre_corrigee_en_route": "Le premier relevé de clôture, à 16 h 08, donnait pour les droits a0201108753ac039e8e8fca3b8f395e9 au lieu de fe5bd12036316fdf833bc047761d37bc. Ce n'était pas la base qui avait changé : la requête du DEPOT résolvait encore le bénéficiaire par grantee::regrole::text, alors que la valeur enregistrée venait d'une variante utilisant la lecture de pg_roles -- celle que les fichiers du baseline emploient. Les deux formes ne disent pas la même chose : regrole rend « - » pour l'OID 0 et peut mettre des guillemets autour d'un nom de rôle. requetes.py a été corrigé, la requête rejouée, et la base a confirmé. C'est précisément à cela que sert un relevé de clôture fait avec la requête du dépôt plutôt qu'avec celle qu'on a sous la main : il attrape la dérive entre ce qu'on a mesuré et ce qu'on a rangé."
  },
  "registre": {
-  "entrees": 635,
-  "empreinte": "6b2c11db4c3e4b6a0398e3376c0254ac",
-  "derniere_version": "20261010192001"
+  "entrees": 637,
+  "empreinte": "1d139dcba51392eba8b31ecac51ea11d",
+  "derniere_version": "20261010215442"
  },
  "_chantier_3": {
   "_commentaire": "Releve d'apres les trois migrations d'autorite, appliquees le 6 octobre 2026. Le baseline SUIT la base : il a ete reextrait APRES application, jamais avant.",
@@ -436,5 +437,20 @@
   "registre_635": "Les deux tables neuves declarent leurs droits au lieu de les heriter. REVOKE SELECT a `anon` et `authenticated` sur subventions_familles : le registre d'eligibilite n'est plus lisible par un client, ce que le depot affirmait depuis sa naissance. Le SELECT de subventions_municipales est CONSERVE pour les deux roles et desormais assume PAR ECRIT -- sans lui la policy subventions_archives_publiques serait inerte -- et le COMMENT ON TABLE a ete reecrit pour le dire, d'ou l'empreinte des commentaires qui bouge a compte constant (251).",
   "_les_droits_le_compte_exact": "-2 LIGNES et DEUX LIGNES RETRECIES, et la distinction compte. Les deux lignes disparues sont les SELECT d'anon et d'authenticated sur subventions_familles : c'etait leur SEUL privilege, l'entree d'ACL s'efface donc entierement. Les deux lignes retrecies sont les authenticated de terrains_etat et de plaintes_en_cours, qui passent de « INSERT, SELECT, UPDATE » a « SELECT » : le beneficiaire garde un privilege, sa ligne subsiste, et seul son contenu change. Un compteur de lignes ne voit que les deux premieres -- c'est l'empreinte des droits, qui porte la liste des privileges, qui voit les quatre.",
   "_pourquoi_le_compte_des_commentaires_ne_bouge_pas": "Un COMMENT reecrit n'est pas un COMMENT ajoute. Le total reste a 251 et l'empreinte change : c'est exactement ce qu'un controle doit montrer, et c'est pourquoi l'empreinte porte sur le md5 du TEXTE et non sur le nombre d'objets commentes."
+ },
+ "_chantier_caserne": {
+  "_commentaire": "RELEVE DU 10 OCTOBRE 2026 AU SOIR, apres la migration de cloture de la caserne (registre 636, version 20261010213509). Une seule migration, et elle ne cree aucune table : elle resserre une autorite, en ajoute une, ferme une lecture et pose trois fonctions.",
+  "migration_appliquee": "DEUX migrations : 20261010213509 caserne_autorite_caisse_inspection_et_ordre_de_bataille (registre 636) et 20261010215442 caserne_tom_hawak_rejoint_la_liste_des_referents (registre 637).",
+  "ce_qui_a_change": {
+   "fonctions": "722 -> 725. caserne_reverser_au_ministere, militaire_compagnies_lisibles, militaire_inspection_perimetre. Les trois sont SECURITY DEFINER a search_path fige : security_definer passe de 609 a 612, et security_invoker ne bouge pas.",
+   "policies": "283 -> 282. compagnies_lecture_mon_pays est SUPPRIMEE. Elle ouvrait compagnies_militaires en SELECT a tout joueur authentifie du pays -- matricules, PA, armes, positions, missions, reserve. La lecture passe desormais par militaire_compagnies_lisibles(), qui projette selon la place de l'appelant dans la chaine militaire.",
+   "droits_relations": "961 -> 960. Le SELECT de `authenticated` sur compagnies_militaires est REVOQUE. La policy et le droit tombent ENSEMBLE : une policy supprimee sans revocation laisserait la table lisible le jour ou une policy permissive reviendrait.",
+   "droits_fonctions": "1987 -> 1996, soit neuf lignes pour trois fonctions. Chacune porte postgres, service_role et authenticated -- et rien pour anon ni PUBLIC, le defaut ferme depuis le registre 561 s'en chargeant deja.",
+   "commentaires": "251 -> 254 : un COMMENT ON FUNCTION par fonction neuve.",
+   "tables_rls_active_sans_policy": "105 -> 106. compagnies_militaires rejoint la liste, et ce n'est PAS un oubli : c'est l'etat cible. RLS active, aucune policy, aucun SELECT client -- la table ne se lit plus que par une fonction SECURITY DEFINER qui decide quoi montrer a qui."
+  },
+  "ce_qui_n_a_pas_change": "Aucune table, aucune colonne, aucune contrainte, aucun index, aucun declencheur, aucune vue. Les comptes de tables (265), de colonnes (2167) et de contraintes (456) sont identiques au releve du matin.",
+  "_une_donnee_de_reference_modifiee": "caisses_autorites, ligne 'caserne-militaire' : postes_debit passe de {commandant, min_def} a {commandant}. C'est une LIGNE DE SEED, pas un objet de schema -- elle ne change donc aucun total, et c'est le seed baseline/seeds/90_socle/caisses_autorites.sql qui en porte la trace. Le ministre de la Defense ALIMENTE la caserne ; il ne la depense plus.",
+  "_la_seconde_migration": "Une seule ligne, dans pnj_referents, et elle n'etait pas decorative : cette table est la LISTE FERMEE qui autorise la memoire pedagogique d'un referent. referent_pedagogie_noter rend `referent: false` sans rien ecrire quand l'identifiant n'y figure pas. Sans elle, le Commandant Tom Hawak aurait eu une voix et aucun souvenir : il aurait reexplique tout depuis le debut a chaque visite, la ou les dix-huit autres referents enchainent. Ils sont dix-neuf desormais."
  }
 }

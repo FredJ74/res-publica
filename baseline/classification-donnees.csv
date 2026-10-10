@@ -186,7 +186,7 @@ pnj_metiers_profils;socle PNJ;A;seed_complet;10;non;4;7;Caracteristiques FIXES p
 pnj_militants_metier;socle PNJ;C;structure_seule;0;non;1;1;Militants recrutes en jeu.;
 pnj_mouvement_individuel;socle PNJ;A;seed_complet;8;non;3;1;Regle de mouvement par famille. Aucune fonction ne l'ecrit.;
 pnj_possessions;socle PNJ;C;structure_seule;7;non;2;18;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : etat produit par un mecanisme. Les 7 lignes portent toutes l'horodatage de la compagnie de beta dans pnj_id : ce sont des objets acquis en partie. Cinq fonctions y inserent.;Aucune reprise des possessions issues de la beta.
-pnj_referents;socle PNJ;B;seed_complet;18;oui;8;1;18 referents de Republia, identifiants et domaine. Colonne pays presente.;
+pnj_referents;socle PNJ;B;seed_complet;19;oui;9;1;19 referents de Republia, identifiants et domaine. Colonne pays presente. LE DIX-NEUVIEME est commandant_tom_hawak (registre 637, migration 20261010215442) : le Commandant de la caserne devient referent militaire a la cloture du batiment. Cette table est la LISTE FERMEE qui autorise la memoire pedagogique -- referent_pedagogie_noter rend `referent: false` sans rien ecrire pour un identifiant absent -- donc une voix sans ligne ici serait une voix sans souvenir. Compte RELEVE EN BASE.;
 pnj_referents_pedagogie;socle PNJ;C;structure_seule;5;non;0;3;Memoire pedagogique d'un referent envers un joueur.;
 pnj_referents_sujets_connus;socle PNJ;A;seed_complet;8;non;2;2;Vocabulaire FERME des sujets memorisables. Le serveur refuse ce qui n'y est pas.;
 pnj_social_escort_choisi;socle PNJ;C;structure_seule;0;non;0;2;Confidente choisie par un joueur.;

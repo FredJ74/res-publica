@@ -12066,12 +12066,40 @@ const NIVEAUX_INSPECTION_TROUPES = {
   detaillee: { fn: 'inspecter_troupes', label: 'Inspecter les unités', pa: 2, cost: 0, inf: 5, desc: 'Vue synthetique + detail par compagnie/section (officiers, moyennes, equipement, mission) et budget de la caserne.' }
 };
 
-function accesInspectionTroupes() {
-  return ['min_def', 'commandant'].includes(state.poste?.id);
+// L'ACCES EST DESORMAIS UN VERDICT DU SERVEUR (10 octobre 2026, cloture de la caserne).
+//
+// Cette fonction testait `state.poste?.id` -- une valeur du navigateur. Elle restait vraie pour
+// qui savait l'ecrire : la console donnait l'ecran, les points d'influence et la lecture de
+// l'armee. Elle demande maintenant son verdict a `militaire_inspection_perimetre`, qui relit le
+// poste en base et rend AUSSI le perimetre -- parce qu'« inspecter les troupes » ne veut pas dire
+// la meme chose pour un chef de section et pour un ministre.
+//
+// REGLE DE JEU ARBITREE LE 10 OCTOBRE 2026 : la chaine inspecte a partir du Lieutenant --
+// Lieutenant, Capitaine, Commandant, ministre de la Defense. Le soldat, non. Chacun dans son
+// perimetre : sa section, sa compagnie, l'armee.
+//
+// LE REFUS EST NOMME PAR LE SERVEUR, jamais devine ici : un message d'interface qui pretendrait
+// connaitre la raison du refus finirait par mentir.
+const LIBELLES_REFUS_INSPECTION = {
+  hors_chaine_d_inspection: 'Réservé à la chaîne de commandement, du Lieutenant au Ministre de la Défense.',
+  acteur_non_authentifie:   'Session perdue : reconnectez-vous.',
+  pays_inconnu:             'Votre personnage n\'a pas de pays.',
+  rpc_indisponible:         'Le serveur n\'a pas répondu.'
+};
+
+async function perimetreInspectionTroupes() {
+  if (typeof sbInspectionPerimetre !== 'function') return { ok: false, raison: 'rpc_indisponible' };
+  return await sbInspectionPerimetre().catch(() => ({ ok: false, raison: 'rpc_indisponible' }));
+}
+
+function signalerRefusInspection(r) {
+  showToast('Inspection impossible',
+    LIBELLES_REFUS_INSPECTION[r && r.raison] || 'Action refusée par le serveur.', false);
 }
 
 async function ouvrirInspecterTroupes() {
-  if (!accesInspectionTroupes()) { showToast('Réservé au Ministre de la Défense ou au Commandant', '', false); return; }
+  const perim = await perimetreInspectionTroupes();
+  if (!perim.ok) { signalerRefusInspection(perim); return; }
   document.getElementById('postes-modal-title').textContent = 'Inspecter les troupes';
   let html = '<div style="padding:1rem">';
   Object.entries(NIVEAUX_INSPECTION_TROUPES).forEach(([niveau, cfg]) => {
@@ -12087,7 +12115,10 @@ async function ouvrirInspecterTroupes() {
 }
 
 async function confirmerInspectionTroupes(niveau) {
-  if (!accesInspectionTroupes()) { showToast('Réservé au Ministre de la Défense ou au Commandant', '', false); return; }
+  // LE VERDICT EST REDEMANDE ICI, et ce n'est pas une precaution de style : cette fonction est
+  // globale, donc appelable directement. Le controle de l'ouverture ne protege que l'ouverture.
+  const perim = await perimetreInspectionTroupes();
+  if (!perim.ok) { signalerRefusInspection(perim); return; }
   const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
   if (!cfg) return;
   // `fn` explicite : ne jamais dependre de state._ordreEnCours, qui porte le dernier ordre route
@@ -12103,9 +12134,13 @@ async function confirmerInspectionTroupes(niveau) {
   state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
   updateUI();
 
-  const pays = state.country || 'republic';
-  const etat = await construireEtatArmee(pays);
-  document.getElementById('postes-modal-title').textContent = cfg.label;
+  // LE PERIMETRE VIENT DU SERVEUR. Un Lieutenant inspecte sa section, un Capitaine sa compagnie,
+  // les echelons superieurs l'armee : c'est la liste rendue par la porte qui le decide, jamais
+  // une deduction locale.
+  const etat = await construireEtatArmee(perim.pays || state.country || 'republic', perim);
+  document.getElementById('postes-modal-title').textContent = cfg.label
+    + (perim.portee === 'section' ? ' — ma section'
+       : perim.portee === 'compagnie' ? ' — ma compagnie' : '');
   document.getElementById('postes-body').innerHTML = niveau === 'detaillee' ? renderInspectionDetaillee(etat) : renderInspectionRevue(etat);
   document.getElementById('modal-postes').classList.add('open');
   showToast(cfg.label, 'Inspection effectuée (+' + cfg.inf + ' INF).', true, true);
@@ -12115,8 +12150,19 @@ async function confirmerInspectionTroupes(niveau) {
 // Lecture consolidee de l'etat militaire reel du pays -- aucune mutation, aucune ecriture.
 // Reutilise integralement les structures existantes (sbGetCompagnies, chargerStockArmurerieMilitaire,
 // chargerCaisseBatiment, getTitulaireActuel) : pas de deuxieme representation de l'armee.
-async function construireEtatArmee(pays) {
-  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+async function construireEtatArmee(pays, perimetre) {
+  let compagnies = await sbGetCompagnies(pays).catch(() => []);
+  // RESTREINT AU PERIMETRE RENDU PAR LE SERVEUR, quand il en rend un. Les compagnies sont deja
+  // projetees par la porte de lecture ; ce second tri ne cache rien de plus, il evite d'AFFICHER
+  // a un chef de section des unites qui ne sont pas les siennes.
+  if (perimetre && Array.isArray(perimetre.compagnies)) {
+    compagnies = compagnies.filter(c => perimetre.compagnies.includes(c.id));
+    if (Array.isArray(perimetre.sections) && perimetre.sections.length > 0) {
+      compagnies = compagnies.map(c => Object.assign({}, c, {
+        sections: (c.sections || []).filter(s => perimetre.sections.includes(s.id))
+      }));
+    }
+  }
   const budgetNat = await chargerStockArmurerieMilitaire(pays).catch(() => null) || {};
   const stockArmurerie = budgetNat.stockArmurerieMilitaire || { arme_de_poing: 0, mitraillette: 0 };
   const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire').catch(() => ({ solde: 0 })) : { solde: 0 };
@@ -13173,6 +13219,71 @@ async function confirmerRechercheMilitaire(arme, pa, cost) {
 }
 
 const PRENOMS_CHERCHEUR_MIL = ['Adalbert Cossinus', 'Hortense Ballistik', 'Théodule Percussion'];
+
+// ============================================================================================
+// LA CAISSE DE LA CASERNE — L'ECRAN DU COMMANDANT (10 octobre 2026, cloture de la caserne)
+// ============================================================================================
+// TROIS FLUX, ET UN SEUL INTERDIT. Le ministre de la Defense ALIMENTE la caserne depuis son
+// budget (part nocturne ou virement ponctuel, ecran « Gérer le budget militaire ») ; le
+// Commandant DEPENSE a la caserne ; le Commandant peut REVERSER au ministere. Ce que personne
+// ne peut faire, c'est puiser dans la caserne depuis le ministere : l'autorite de debit a ete
+// resserree a {commandant} en base, et un appel direct est refuse par le serveur.
+//
+// LE REVERSEMENT N'EST PAS PLAFONNE, ET C'EST VOULU : un virement partiel sur une decision
+// volontaire serait une surprise. Solde insuffisant = refus, rien n'est ecrit -- le banc le
+// verifie en comparant les DEUX soldes avant et apres un refus.
+async function ouvrirCaisseCaserne() {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant de la Caserne', '', false); return; }
+  const pays = state.country || 'republic';
+  const caisse = typeof chargerCaisseBatiment === 'function'
+    ? await chargerCaisseBatiment(pays, 'caserne-militaire').catch(() => ({ solde: 0 })) : { solde: 0 };
+  const solde = Math.max(0, Math.floor(Number(caisse && caisse.solde) || 0));
+
+  document.getElementById('postes-modal-title').textContent = 'Caisse de la caserne';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C;letter-spacing:.06em">'
+        + solde.toLocaleString('fr-FR') + ' FR</div>';
+  html += '<div style="font-size:.76rem;color:#8a8060;margin:.2rem 0 .9rem">Alimentée par le Ministère de la '
+        + 'Défense. Vous seul l\'engagez — le ministre ne peut pas y puiser.</div>';
+  if (solde <= 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">Caisse vide : rien à reverser.</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.4rem">Reverser au Ministère de la Défense :</div>';
+    html += '<input id="caserne-reversement-montant" type="number" min="1" max="' + solde + '" step="1" '
+          + 'placeholder="Montant en FR" style="width:100%;padding:.5rem;background:#0f0d05;border:1px solid #2a2010;'
+          + 'color:#e0d5b8;font-size:.85rem;margin-bottom:.5rem">';
+    html += '<button onclick="confirmerReversementCaserne()" style="width:100%;font-family:Bebas Neue,sans-serif;'
+          + 'font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;'
+          + 'color:#C9A84C;cursor:pointer">Reverser au Ministère</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerReversementCaserne() {
+  const champ = document.getElementById('caserne-reversement-montant');
+  const montant = Math.floor(Number(champ && champ.value) || 0);
+  if (montant <= 0) { showToast('Montant invalide', 'Indiquez un montant supérieur à zéro.', false); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbCaserneReverserAuMinistere !== 'function') { showToast('Action impossible', '', false); return; }
+
+  // AUCUNE VERIFICATION DE SOLDE ICI. Le serveur verrouille la caisse, compare, et refuse sans
+  // rien ecrire : un test cote navigateur ne serait qu'une politesse d'affichage, et deux
+  // sources de verite sur le meme solde finiraient par diverger.
+  const r = await sbCaserneReverserAuMinistere(montant).catch(() => null);
+  if (!r || r.ok !== true) {
+    const raison = r && r.raison;
+    showToast('Reversement refusé',
+      raison === 'solde_insuffisant' ? 'La caisse de la caserne ne couvre pas ce montant.'
+      : raison === 'parametres_invalides' ? 'Montant invalide.'
+      : 'Réservé au Commandant de la Caserne en exercice.', false);
+    return;
+  }
+  showToast('Reversé au Ministère', montant.toLocaleString('fr-FR') + ' FR transférés.', true, true);
+  addJournalEntry('Reversement de ' + montant.toLocaleString('fr-FR')
+    + ' FR de la caserne vers le Ministère de la Défense.', 'event-info');
+}
 
 // Retourne le coefficient de tir actuel d'une arme pour un pays (defaut + ameliorations acquises)
 async function getCoefArmeMilitaire(pays, arme) {

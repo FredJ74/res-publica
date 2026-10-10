@@ -55,6 +55,12 @@
    "sous": ""
   },
   {
+   "empreinte": "576dad45d787bac549cda7e2393b023b",
+   "genre": "FUNCTION",
+   "objet": "caserne_reverser_au_ministere(numeric)",
+   "sous": ""
+  },
+  {
    "empreinte": "01e9a95093cc9e4f25e9d5bdd71f6c03",
    "genre": "FUNCTION",
    "objet": "effort_commande_annuler(text)",
@@ -85,9 +91,21 @@
    "sous": ""
   },
   {
+   "empreinte": "3178878d12571d36f272ad463a14c365",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnies_lisibles()",
+   "sous": ""
+  },
+  {
    "empreinte": "706e639a366d989b816cf256cdc90cbc",
    "genre": "FUNCTION",
    "objet": "militaire_equiper_soldat(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "8cbec1a16dfb6745de9ca47aac593a48",
+   "genre": "FUNCTION",
+   "objet": "militaire_inspection_perimetre()",
    "sous": ""
   },
   {
@@ -600,6 +618,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "caserne_reverser_au_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caserne_reverser_au_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caserne_reverser_au_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "caserne_stock_mouvement(text,text,integer,text)",
@@ -1496,6 +1532,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "militaire_compagnies_lisibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnies_lisibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_compagnies_lisibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "militaire_competences(text)",
    "privileges": "EXECUTE"
   },
@@ -1845,6 +1899,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "militaire_groupe_sous_seuil(bigint,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "militaire_inspection_perimetre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "militaire_inspection_perimetre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "militaire_inspection_perimetre()",
    "privileges": "EXECUTE"
   },
   {
@@ -3028,12 +3100,6 @@
    "genre": "TABLE",
    "objet": "commandes_militaires",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "TABLE",
-   "objet": "compagnies_militaires",
-   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3328,15 +3394,15 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "b0cbce6e6da2f36f4251613bc672a672",
-  "20_fonctions-1.sql": "f1737bd4f240e9aacef36bf616e2c652",
-  "20_fonctions-2.sql": "b68728a4f2ac9995676cd06dc10e5ae8",
-  "20_fonctions-3.sql": "418f2d11546caef22030ac484f322758",
+  "20_fonctions-1.sql": "00e622331df99d7dcddfc6e680beb46b",
+  "20_fonctions-2.sql": "1cf6d625505aaa650614da1e3059da7b",
+  "20_fonctions-3.sql": "0dc0fe56c0b4fb924a5ce01f49a330e6",
   "30_contraintes.sql": "9a10c64eb8a2aac583fb828422059ab8",
   "35_index.sql": "8568b7cc2cb218862092890a659544f9",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
-  "60_rls-policies.sql": "a69a00a36442f628813ba5faf99bb8c6",
-  "70_droits.sql": "4a6509cb04684fd09d7189e940d4b880",
-  "80_commentaires.sql": "3a3aa4a324ad719098f76831e32ed717"
+  "60_rls-policies.sql": "7164a16baff1c60a64b1b52ad4df340f",
+  "70_droits.sql": "9ae5a972553e578550415a8cbde884cb",
+  "80_commentaires.sql": "f7f48f224ed60174296874614ec4af1c"
  },
  "fonctions": [
   {
@@ -3383,6 +3449,11 @@
    "empreinte": "a2693742735c77b72f4c45b783c40ee6",
    "security_definer": true,
    "signature": "camions_ici(text,text,text,text)"
+  },
+  {
+   "empreinte": "1bbc2c7b42611b717ad6c86effd7ffd2",
+   "security_definer": true,
+   "signature": "caserne_reverser_au_ministere(numeric)"
   },
   {
    "empreinte": "5ad51300d7b029d4ccc45c1d64c44dc8",
@@ -3665,6 +3736,11 @@
    "signature": "militaire_compagnie_creer()"
   },
   {
+   "empreinte": "1720433e48012a024791946903223e36",
+   "security_definer": true,
+   "signature": "militaire_compagnies_lisibles()"
+  },
+  {
    "empreinte": "501b4b215475e665c1f41b64c5f0fa0e",
    "security_definer": true,
    "signature": "militaire_competences(text)"
@@ -3773,6 +3849,11 @@
    "empreinte": "7009305dda75139d70a6c6177287c0f6",
    "security_definer": true,
    "signature": "militaire_groupe_sous_seuil(bigint,text)"
+  },
+  {
+   "empreinte": "215575c2fbdbd7167f29726455fc5797",
+   "security_definer": true,
+   "signature": "militaire_inspection_perimetre()"
   },
   {
    "empreinte": "25c8c986007ff52233b834f721835255",
@@ -4195,12 +4276,6 @@
    "empreinte_avec_roles": "cf8b629e83ebf53eddfef18588d0c52b",
    "nom": "commandes_militaires_lecture",
    "tbl": "commandes_militaires"
-  },
-  {
-   "empreinte": "9a3cfb3d8beb7971f382b17182146d03",
-   "empreinte_avec_roles": "a3a06f50ba84fde46ab810c285a05dc1",
-   "nom": "compagnies_lecture_mon_pays",
-   "tbl": "compagnies_militaires"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",

@@ -12,6 +12,26 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**La caserne de Républia est close.**
+Deux migrations le 10 octobre 2026, registre **636 → 637**, archivées dans
+`../historique/migrations-appliquees/` et vérifiées par empreinte.
+
+| Registre | Nom | Ce qu'elle ferme |
+|---|---|---|
+| **636** | `caserne_autorite_caisse_inspection_et_ordre_de_bataille` | quatre choses d'un coup : le ministre de la Défense **ne débite plus** la caisse de la caserne, le Commandant peut lui **reverser** de l'argent (ce flux n'existait pas), l'**ordre de bataille** cesse d'être lisible par tout joueur du pays, et l'**inspection des troupes** est gardée au serveur avec son périmètre |
+| **637** | `caserne_tom_hawak_rejoint_la_liste_des_referents` | une seule ligne, et pas décorative : `pnj_referents` est la liste fermée qui **autorise la mémoire pédagogique**. Sans elle, le Commandant aurait eu une voix et aucun souvenir |
+
+> **Ce que ce lot ajoute à la doctrine** : une **policy et son `GRANT` tombent
+> ensemble**. Retirer la policy de lecture sans révoquer le `SELECT` laisserait la
+> table ouverte le jour où une policy permissive reviendrait — et ce jour-là,
+> personne ne chercherait la cause dans un `GRANT` oublié.
+>
+> Et une **fermeture n'est pas un filtre** : fermer `compagnies_militaires` à un
+> civil aurait aussi supprimé sa capacité à voir qu'un détachement tient une
+> pièce, c'est-à-dire une observation légitime du monde et le déclencheur des
+> missions d'entrée. La porte **projette** donc au lieu de filtrer : le blob
+> entier pour la chaîne militaire, la présence seule pour les autres.
+
 **Le chantier 7 n'a produit aucune migration, et c'est normal.** Les fonctions
 recopiees entre `api/` et le navigateur vivent entierement dans le depot : la base
 n'a rien a y voir, le baseline est donc inchange. Ce que ce chantier a ajoute est

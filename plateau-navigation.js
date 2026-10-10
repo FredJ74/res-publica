@@ -719,9 +719,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   // reste en place et devient Attache ministeriel -- il perd le titre, jamais sa presence. Le
   // titre est donc recalcule a chaque entree dans la piece, jamais fige dans data.js : c'est ce
   // qui garantit qu'aucun doublon Ministre/Attache ne puisse exister.
-  if (buildingId === 'palais-gouvernement' && roomId === 'bureau_min_def') {
-    ajusterAttacheMinisteriel(buildingId, roomId);
-  }
+  // LA CONDITION DE LIEU A DISPARU, et c'est le point (10 octobre 2026). Elle nommait une piece
+  // et un batiment ; la regle, elle, ne depend que de ce que la piece DECLARE. Un PNJ qui porte
+  // un poste et ses deux libelles voit son titre recalcule, ou qu'il soit -- le bureau du
+  // ministre de la Defense comme la Salle de Commandement de la caserne. La fonction sort
+  // immediatement quand aucun PNJ de la piece ne declare rien, c'est-a-dire presque toujours.
+  ajusterTitrePnjDePoste(buildingId, roomId);
 
   // LE BUREAU DU MINISTRE DE LA DEFENSE, nomme une seule fois. C'est le lieu ou un agent
   // convoque ne collecte PAS encore : la regle est la meme cote serveur (agent_au_bureau_min_def),
@@ -1096,24 +1099,39 @@ function enterRoom(buildingId, roomId, tabEl) {
 //
 // On ne pose donc PAS un crochet militaire de plus : on pose l'evenement d'entree manquant, une
 // fois, la ou la position devient canonique, et on y branche les consommateurs.
-// Recalcule le titre du PNJ du ministere de la Defense selon qui detient reellement le poste.
-// LECTURE SEULE de l'autorite canonique : getTitulaireActuel interroge le registre serveur, jamais
-// state.poste. Un joueur qui se croirait ministre ne changerait donc rien a l'affichage.
-async function ajusterAttacheMinisteriel(buildingId, roomId) {
+// Recalcule le titre affiche d'un PNJ qui PORTE un poste, selon qui detient reellement ce poste.
+//
+// LECTURE SEULE DE L'AUTORITE CANONIQUE : getTitulaireActuel interroge le registre serveur,
+// jamais state.poste. Un joueur qui se croirait ministre ne changerait donc rien a l'affichage.
+//
+// GENERALISEE LE 10 OCTOBRE 2026 (cloture de la caserne). Elle ne connaissait que le ministere de
+// la Defense, avec ses deux libelles ECRITS ICI. La caserne avait besoin de la meme mecanique
+// pour le Commandant, et la recopier aurait fait deux fonctions a maintenir pour une seule regle.
+//
+// LES DEUX LIBELLES SONT DESORMAIS DECLARES PAR LE PNJ LUI-MEME, dans data.js
+// (`roleSiPnjTitulaire` / `roleSiPjTitulaire`) : aucun nom, aucun poste et aucun titre en dur
+// dans ce fichier, et la regle vaut pour tout PNJ futur qui porterait un poste. C'est la meme
+// doctrine que `resteApresPourvoi`, pose au 22 septembre pour la meme raison.
+//
+// Martial Bouterin conserve EXACTEMENT ses deux libelles d'origine, au caractere pres : ils ont
+// simplement demenage de ce fichier vers sa fiche.
+async function ajusterTitrePnjDePoste(buildingId, roomId) {
   const room = BUILDINGS[buildingId]?.rooms?.[roomId];
-  const martial = (room?.persons || []).find(p => p.job === 'min_def');
-  if (!martial) return;
-  let titulaire = null;
-  try {
-    titulaire = (typeof getTitulaireActuel === 'function')
-      ? await getTitulaireActuel('min_def', null) : null;
-  } catch (e) { return; }               // en cas de doute, on ne touche a rien
-  if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+  const porteurs = (room?.persons || []).filter(
+    p => p.job && p.roleSiPnjTitulaire && p.roleSiPjTitulaire);
+  if (porteurs.length === 0) return;
+  if (typeof getTitulaireActuel !== 'function') return;
 
-  const tenuParUnJoueur = !!(titulaire && titulaire.estPJ);
-  martial.role = tenuParUnJoueur
-    ? 'PNJ - Attaché ministériel — Spécialiste des forces armées'
-    : 'PNJ - Ministre de la Defense';
+  for (const porteur of porteurs) {
+    let titulaire = null;
+    try {
+      titulaire = await getTitulaireActuel(porteur.job, porteur.posteCity || null);
+    } catch (e) { continue; }           // en cas de doute, on ne touche a rien
+    if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+    porteur.role = (titulaire && titulaire.estPJ)
+      ? porteur.roleSiPjTitulaire
+      : porteur.roleSiPnjTitulaire;
+  }
   if (typeof renderPersonsList === 'function') renderPersonsList(room.persons || []);
 }
 

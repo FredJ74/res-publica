@@ -491,6 +491,82 @@ BEGIN
   ), '[]'::jsonb));
 END; $function$;
 
+-- caserne_reverser_au_ministere(numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caserne_reverser_au_ministere(p_montant numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text;
+  v_source text; v_dest text;
+  v_src_data jsonb; v_dst_data jsonb;
+  v_src_solde numeric; v_dst_solde numeric;
+  v_existe_dest boolean;
+BEGIN
+  IF p_montant IS NULL OR p_montant <= 0 OR p_montant > 100000000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+
+  -- AUTORITE : leve si le compte connecte n'est pas le Commandant.
+  v_moi := public.exiger_poste('commandant');
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+
+  v_source := v_pays || '_caserne-militaire';
+  v_dest   := v_pays || '_gouvernement-min_def';
+
+  -- Verrous dans l'ordre de l'identifiant, independamment du sens du flux.
+  PERFORM 1 FROM public.caisses_batiments
+   WHERE id IN (v_source, v_dest) ORDER BY id FOR UPDATE;
+
+  SELECT data INTO v_src_data FROM public.caisses_batiments WHERE id = v_source;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_caserne_absente');
+  END IF;
+  v_src_solde := CASE WHEN jsonb_typeof(v_src_data->'solde') = 'number'
+                      THEN (v_src_data->>'solde')::numeric ELSE 0 END;
+  IF v_src_solde < p_montant THEN
+    INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+    VALUES (v_moi, v_source, -p_montant, 'reversement_ministere', false, 'solde_insuffisant');
+    RETURN jsonb_build_object('ok', false, 'raison', 'solde_insuffisant', 'solde', v_src_solde);
+  END IF;
+
+  SELECT data INTO v_dst_data FROM public.caisses_batiments WHERE id = v_dest;
+  v_existe_dest := FOUND;
+  v_dst_solde := CASE WHEN v_existe_dest AND jsonb_typeof(v_dst_data->'solde') = 'number'
+                      THEN (v_dst_data->>'solde')::numeric ELSE 0 END;
+
+  UPDATE public.caisses_batiments
+     SET data = coalesce(v_src_data,'{}'::jsonb) || jsonb_build_object('solde', v_src_solde - p_montant),
+         updated_at = now()
+   WHERE id = v_source;
+
+  IF v_existe_dest THEN
+    UPDATE public.caisses_batiments
+       SET data = coalesce(v_dst_data,'{}'::jsonb) || jsonb_build_object('solde', v_dst_solde + p_montant),
+           updated_at = now()
+     WHERE id = v_dest;
+  ELSE
+    INSERT INTO public.caisses_batiments (id, data, updated_at)
+    VALUES (v_dest, jsonb_build_object('solde', p_montant), now());
+  END IF;
+
+  INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+  VALUES (v_moi, v_source, -p_montant, 'reversement_ministere', true, NULL);
+
+  RETURN jsonb_build_object('ok', true, 'verse', p_montant,
+                            'solde_caserne', v_src_solde - p_montant,
+                            'solde_ministere', v_dst_solde + p_montant);
+END;
+$function$;
+
 -- caserne_stock_mouvement(text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.caserne_stock_mouvement(p_pays text, p_produit text, p_delta integer, p_lot text DEFAULT NULL::text)
  RETURNS jsonb
@@ -3041,88 +3117,3 @@ BEGIN
     'effectif', jsonb_array_length(v_sols),
     'reserve', jsonb_array_length(v_reserve));
 END; $function$;
-
--- militaire_candidatures_a_traiter() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_candidatures_a_traiter()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE r record; v_places jsonb; v_cands jsonb;
-BEGIN
-  SELECT * INTO r FROM public.militaire_recruteur_de_moi();
-  IF r.o_raison IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', r.o_raison); END IF;
-
-  -- LES PLACES OUVERTES. Le calcul retranche deja les acceptations vivantes, si bien qu'un
-  -- Capitaine ne peut pas promettre deux fois la meme section.
-  IF r.o_grade_recrute = 'capitaine' THEN
-    SELECT coalesce(jsonb_agg(jsonb_build_object(
-             'compagnie_id', c.id, 'compagnie_nom', coalesce(c.data->>'nom', c.id),
-             'section_id', NULL, 'libre',
-             public.militaire_places_libres_grade(r.o_pays, 'capitaine', c.id, NULL))
-             ORDER BY c.id), '[]'::jsonb) INTO v_places
-      FROM public.compagnies_militaires c
-     WHERE c.data->>'pays' = r.o_pays
-       AND public.militaire_places_libres_grade(r.o_pays, 'capitaine', c.id, NULL) > 0;
-
-  ELSIF r.o_grade_recrute = 'lieutenant' THEN
-    SELECT coalesce(jsonb_agg(jsonb_build_object(
-             'compagnie_id', c.id, 'compagnie_nom', coalesce(c.data->>'nom', c.id),
-             'section_id', s->>'id', 'section_nom', coalesce(s->>'nom', s->>'id'), 'libre',
-             public.militaire_places_libres_grade(r.o_pays, 'lieutenant', c.id, s->>'id'))
-             ORDER BY s->>'id'), '[]'::jsonb) INTO v_places
-      FROM public.compagnies_militaires c, jsonb_array_elements(c.data->'sections') s
-     WHERE c.id = r.o_compagnie
-       AND public.militaire_places_libres_grade(r.o_pays, 'lieutenant', c.id, s->>'id') > 0;
-
-  ELSE
-    SELECT jsonb_build_array(jsonb_build_object(
-             'compagnie_id', c.id, 'compagnie_nom', coalesce(c.data->>'nom', c.id),
-             'section_id', s->>'id', 'section_nom', coalesce(s->>'nom', s->>'id'), 'libre',
-             public.militaire_places_libres_grade(r.o_pays, 'soldat', c.id, s->>'id')))
-      INTO v_places
-      FROM public.compagnies_militaires c, jsonb_array_elements(c.data->'sections') s
-     WHERE c.id = r.o_compagnie AND s->>'id' = r.o_section;
-  END IF;
-
-  -- LES CANDIDATS. On masque ceux que J'AI deja ecartes -- pas ceux que d'autres ont ecartes.
-  SELECT coalesce(jsonb_agg(jsonb_build_object(
-           'id', cm.id, 'candidat', cm.candidat, 'depuis', cm.cree_le) ORDER BY cm.cree_le),
-         '[]'::jsonb) INTO v_cands
-    FROM public.candidatures_militaires cm
-   WHERE cm.pays = r.o_pays AND cm.grade_vise = r.o_grade_recrute AND cm.statut = 'active'
-     AND NOT (cm.refus ? r.o_moi);
-
-  RETURN jsonb_build_object('ok', true, 'grade_recrute', r.o_grade_recrute,
-    'places', coalesce(v_places, '[]'::jsonb), 'candidatures', v_cands);
-END;
-$function$;
-
--- militaire_candidatures_relancer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_candidatures_relancer()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE v_n integer := 0; r record;
-BEGIN
-  FOR r IN SELECT * FROM public.candidatures_militaires
-            WHERE statut = 'active'
-              AND coalesce(derniere_relance, cree_le) <= now() - interval '7 days'
-            FOR UPDATE
-  LOOP
-    PERFORM public.mail_systeme_poser_interne(
-            'État-major', r.candidat,
-            'Votre candidature est toujours à l''étude',
-            'Votre candidature au grade de ' || r.grade_vise || ', déposée le ' ||
-            to_char(r.cree_le AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY') ||
-            ', reste enregistrée et sera examinée. Vous pouvez la retirer à tout moment à la Caserne Militaire.',
-            to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
-    UPDATE public.candidatures_militaires SET derniere_relance = now() WHERE id = r.id;
-    v_n := v_n + 1;
-  END LOOP;
-  RETURN jsonb_build_object('ok', true, 'relancees', v_n);
-END;
-$function$;

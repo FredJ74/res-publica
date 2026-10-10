@@ -172,7 +172,19 @@ function corpusRiche(id) {
   return [r.savoirs, r.pedagogie].filter(Boolean).join('\n\n') || undefined;
 }
 
+// LE COMMANDANT TOM HAWAK — TOUTE LA CHAINE (10 octobre 2026). Il recoit le socle, l'institution
+// ET la troupe, plus l'equipement et les deux resumes : c'est le seul referent dont le domaine
+// arbitre est la chaine ENTIERE, de l'engagement du simple soldat au financement de la caserne.
+// Il ne recoit NI le combat NI le renseignement : la conduite d'une bataille et le renseignement
+// d'Etat restent le rayon de Martial Bouterin, au ministere -- et le combat est hors perimetre
+// par arbitrage. Un referent qui sait tout n'oriente plus personne.
+const SAVOIR_COMMANDEMENT = [
+  SOCLE_MILITAIRE, BIBLE_INSTITUTION, BIBLE_TROUPE, BIBLE_EQUIPEMENT,
+  BIBLE_INTENDANCE_RESUME, BIBLE_SANTE_RESUME, CE_QUI_N_EXISTE_PAS
+].join('\n\n');
+
 const CORPUS_REFERENT = {
+  commandant_tom_hawak: SAVOIR_COMMANDEMENT,
   martial_bouterin: SAVOIR_MILITAIRE,
   gaspard_ferriere: SAVOIR_TROUPE,
   caporal_alouche:  [SOCLE_MILITAIRE, SAVOIR_REFECTOIRE].join('\n\n'),

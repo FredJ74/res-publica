@@ -46,7 +46,12 @@ function inferAge(role, seed) {
 
 function inferStyle(role, seed) {
   const r = role.toLowerCase();
-  if (r.includes('militaire') || r.includes('general') || r.includes('officier') || r.includes('garde')) return 'military';
+  // 'commandant' ajoute le 10 octobre 2026 : le Commandant de la Caserne est un officier, et sans
+  // ce mot son portrait genere tombait dans la famille civile par defaut. Les autres PNJ dont le
+  // role contient « Commandant » (Marcel Ancre, Commandant du Port) portent une vraie photo :
+  // leur portrait ne passe pas par ce generateur.
+  if (r.includes('militaire') || r.includes('general') || r.includes('officier') || r.includes('garde')
+      || r.includes('commandant')) return 'military';
   if (r.includes('juge') || r.includes('procureur') || r.includes('avocat') || r.includes('magistrat')) return 'formal';
   if (r.includes('journaliste') || r.includes('redacteur')) return 'casual';
   if (r.includes('criminel') || r.includes('parrain') || r.includes('gang')) return 'street';

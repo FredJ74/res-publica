@@ -2525,15 +2525,22 @@ const BUILDINGS = {
         requiresPostId: 'min_def',
         // MEME PNJ que precedemment, simplement nomme : « Le Ministre de la Défense (PNJ) »
         // devient Martial Bouterin. Son titre affiche est recalcule a l'entree dans la piece
-        // (ajusterAttacheMinisteriel, plateau-navigation.js) : Ministre tant que le poste est
+        // (ajusterTitrePnjDePoste, plateau-navigation.js) : Ministre tant que le poste est
         // tenu par le PNJ, Attaché ministériel des qu'un joueur l'occupe. Jamais deux PNJ.
         // resteApresPourvoi (22 septembre 2026) : Martial est le referent militaire PERMANENT du
         // ministere, pas un bouche-trou. Sans ce drapeau, filtrerPnjPostesPourvus le supprimait
         // de la liste des presents des qu'un PJ prenait min_def -- et le renommage en attache
-        // ministeriel fait juste au-dessus par ajusterAttacheMinisteriel ne s'affichait jamais.
+        // ministeriel ne s'affichait jamais.
         // Le drapeau ne dit PAS qu'il detient le poste : son titre reste recalcule a l'entree.
+        //
+        // LES DEUX LIBELLES ONT DEMENAGE ICI le 10 octobre 2026, au caractere pres. Ils vivaient
+        // en dur dans plateau-navigation.js, ce qui obligeait a y retourner pour chaque nouveau
+        // PNJ porteur de poste -- la caserne en a eu besoin le meme jour. La regle est desormais
+        // generique et les TITRES appartiennent a celui qui les porte.
         persons: [{name:'Martial Bouterin (PNJ)', role:'PNJ - Ministre de la Defense', rel:'neutral', job:'min_def',
                    resteApresPourvoi: true,
+                   roleSiPnjTitulaire: 'PNJ - Ministre de la Defense',
+                   roleSiPjTitulaire:  'PNJ - Attaché ministériel — Spécialiste des forces armées',
                    photoUrl:'images/martial-bouterin.webp',
                    photoPos:'50% 25%'}],
         orders: [
@@ -5052,21 +5059,67 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#060f06,#0a180a)",
         desc: "Le centre nerveux operationnel. Cartes, ecrans, officiers. Acces officiers superieurs.",
         imageUrl: "images/caserne-luthecia-salle-commandement.webp",
-        // requiresPostId : METADONNEE MORTE, ET ICI CONTRADICTOIRE (audit du 21 septembre 2026).
-        // Aucun code ne lit ce champ (ni enterRoom, ni renderRoomActions, ni doOrder) : c'est
-        // `requiresPost`, porte par chaque ordre, qui restreint reellement. Dans les six bureaux
-        // ministeriels les deux disent la meme chose, la restriction y est donc bien appliquee.
-        // ICI NON : 9 des 15 ordres de cette piece sont reserves au Lieutenant ou au Commandant,
-        // pas au Ministre de la Defense. Appliquer 'min_def' a la piece FERMERAIT la salle a tout
-        // chef de section, qui n'y atteindrait plus ses propres ordres. Ce n'est pas une decision
-        // que ce lot prend : le champ est laisse inerte et l'arbitrage est remonte au GD.
-        requiresPostId: 'min_def',
+        // requiresPostId A ETE RETIRE (arbitrage du 10 octobre 2026, cloture de la caserne).
+        //
+        // Le champ etait inerte -- aucun code ne le lit, c'est `requiresPost` porte par chaque
+        // ordre qui restreint reellement -- et il disait le CONTRAIRE de ce que fait la piece :
+        // 9 de ses 15 ordres appartiennent au Lieutenant ou au Commandant, pas au ministre de la
+        // Defense. Le laisser aurait fini par etre pris pour la regle, et un jour applique : la
+        // salle se serait alors fermee a tout chef de section. L'arbitrage tranche que la Salle
+        // de Commandement n'est PAS la salle du ministre, et le champ disparait avec l'ambiguite.
+        //
+        // LE CHEF MILITAIRE VISIBLE EST LE TITULAIRE DU POSTE (meme arbitrage).
+        //
+        // Cette piece affichait « General Faure, Chef d'etat-major » -- un grade qui n'existe
+        // dans AUCUN referentiel du jeu : ni POSTES_NOMMES_EXCLUSIFS, ni POSTES_ELECTIFS, ni
+        // `candidatures_militaires`, et zero occurrence dans les 11 domaines SQL du serveur. Le
+        // joueur voyait donc un General sans pouvoir, pendant que l'autorite militaire reelle
+        // appartenait a « Commandant Tom Hawak », titulaire PNJ du poste `commandant`, qui
+        // n'existait QUE comme chaine de caracteres dans le cron et une ligne de
+        // `titulaires_pnj` : invisible, muet, introuvable.
+        //
+        // Faure est retire. Tom Hawak prend sa place, avec un corps, un portrait et une voix.
+        // Le metier technique `general` n'est PAS supprime de PNJ_STATS_PAR_JOB : il sert de
+        // famille d'avatar et peut servir de casting ailleurs. C'est l'ECHELON fantome qui
+        // disparait, pas le mot.
+        //
+        // roleSiPnjTitulaire / roleSiPjTitulaire : le titre affiche est RECALCULE a l'entree
+        // (ajusterTitrePnjDePoste, plateau-navigation.js) selon qui detient vraiment le poste.
+        // Tant que le PNJ l'occupe, il EST le Commandant de la Caserne. Des qu'un joueur est
+        // nomme, Tom Hawak reste en place et devient Commandant adjoint -- il perd le titre,
+        // jamais sa presence, et il n'y a jamais deux Commandants dans la piece. Meme mecanique
+        // que Martial Bouterin au ministere, declaree sur le PNJ et non codee en dur.
+        //
+        // « Commandant adjoint » N'EST PAS UN POSTE : il n'est ni candidatable, ni nommable, ni
+        // connu du serveur. C'est la fonction narrative d'un aide de camp, et aucune prerogative
+        // n'y est attachee -- l'autorite suit le poste `commandant`, et lui seul.
+        // LE NOM EST CELUI DU REGISTRE, AU CARACTERE PRES, et sans le suffixe « (PNJ) » :
+        // `titulaires_pnj` porte « Commandant Tom Hawak » et c'est ce que le cron y ecrit
+        // (PNJ_PAR_DEFAUT_POSTE, api/cron-minuit.js). Deux orthographes auraient donne deux
+        // identites -- une pour l'affichage, une pour le registre -- et le dialogue serveur, qui
+        // derive son identifiant du nom affiche, serait tombe a cote. Le Caporal Alouche et Pat
+        // Hounette n'ont pas davantage ce suffixe : il n'est pas le marqueur d'un PNJ.
         persons: [
-          {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
+          {name:'Commandant Tom Hawak', role:'PNJ - Commandant de la Caserne', rel:'neutral',
+           job:'commandant', resteApresPourvoi: true,
+           roleSiPnjTitulaire: 'PNJ - Commandant de la Caserne',
+           roleSiPjTitulaire:  'PNJ - Commandant adjoint'}
         ],
         orders: [
           {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:0, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
           {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
+          // LA CAISSE DE LA CASERNE EST CELLE DU COMMANDANT (arbitrage du 10 octobre 2026). Le
+          // ministre de la Defense l'ALIMENTE depuis son budget ; il ne peut plus la depenser --
+          // l'autorite de debit est passee de {commandant, min_def} a {commandant} en base
+          // (caisses_autorites). Ce qui manquait etait le retour : la caserne pouvait recevoir et
+          // jamais rendre. Le Commandant peut desormais reverser au ministere.
+          //
+          // 0 PA ET 0 FR, comme les deux autres ecrans institutionnels de cette piece (budget
+          // militaire, tableau de l'effort de guerre) : gerer une caisse n'est pas un acte de
+          // jeu, c'est l'ecran ou l'on en decide. Aucun cout n'est donc invente, et cet ordre ne
+          // traverse pas le miroir des couts -- deduireCoutOrdre n'appelle payer_ordre que si
+          // `pa > 0 || cost > 0`.
+          {fn:'caisse_caserne', label:'Gérer la caisse de la caserne', pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Solde de la caserne et reversement au Ministere de la Defense.'},
           {fn:'repartir_armement', label:'Doter ma section en armement', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Transferer des armes entre le stock de l\'Armurerie Militaire et sa propre section. Le Capitaine ne retire plus du magasin (arbitrage du 17 septembre 2026).'},
           {fn:'recruter_compagnie', label:'Recruter une compagnie',     pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'commandant', desc:'96 soldats (4 sections de 24). Coute a la caisse de la caserne. Prerogative du Commandant, pas du ministre.'},
           // ORDRE SUPPRIME (21 septembre 2026). « Recompléter une section » (recruter_section)

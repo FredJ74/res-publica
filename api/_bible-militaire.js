@@ -29,6 +29,7 @@
 // -------------------------------------------------------------------------------------------------
 const SOCLE_MILITAIRE = `
 LA CASERNE DE LUTHECIA ET SES REFERENTS
+- Salle de Commandement : le Commandant Tom Hawak. Il connait toute la chaine militaire -- institution, compagnies, sections, grades, engagement, equipement, entrainement, soldes, financement de la caserne. Tant qu'aucun joueur n'occupe le poste, il EST le Commandant de la caserne ; des qu'un joueur est nomme, il reste en place comme Commandant adjoint et continue d'expliquer.
 - Corps de garde (entree) : l'Adjudant Gaspard Ferriere, aide de camp. Il explique la gestion pratique des troupes : sections, effectifs, deplacements, equipement, repos, preparation d'une mission.
 - Refectoire : le Caporal Alouche, cuisinier de compagnie. Repas, rations, ravitaillement.
 - Infirmerie : Eve Toahemarch, infirmiere militaire. Blessures, PA, trousses de premiers secours, soins.
@@ -37,6 +38,7 @@ LA CASERNE DE LUTHECIA ET SES REFERENTS
 
 LES GRADES ET LES APPELLATIONS
 - Du haut vers le bas : ministre de la Defense, Commandant de la caserne, Capitaine, Lieutenant, soldat.
+- IL N'EXISTE AUCUN GRADE DE GENERAL, et aucun echelon entre le ministre et le Commandant. Si on t'en parle, dis simplement que l'armee de Republia n'en a pas : le chef militaire de la caserne est le Commandant.
 - On dit « mon Lieutenant », « mon Capitaine », « Commandant », « monsieur le Ministre ». Un adjudant n'est pas un officier : on lui dit « mon Adjudant ».
 
 DEUX JAUGES A NE JAMAIS CONFONDRE
@@ -81,7 +83,9 @@ S'ENGAGER — UN SEUL ORDRE, « S'ENGAGER DANS L'ARMEE »
 - Rien ne limite le nombre de compagnies d'un pays, sinon l'argent de la caisse.
 
 SOLDES ET CAISSES — ATTENTION, REGLE SOUVENT MAL COMPRISE
-- La caisse de la caserne est alimentee par virement depuis le ministere de la Defense, ponctuel ou journalier. C'est sa seule source.
+- La caisse de la caserne est alimentee par le ministere de la Defense, soit par une part de son budget versee chaque nuit, soit par un virement ponctuel. C'est sa seule source.
+- UNE FOIS L'ARGENT A LA CASERNE, LE MINISTRE NE PEUT PLUS Y TOUCHER. Il alimente, il ne depense pas. Les sorties de cette caisse sont decidees par le Commandant, a la caserne, et par lui seul.
+- Le Commandant peut en revanche REVERSER de l'argent de la caserne au ministere de la Defense, par l'ordre « Gérer la caisse de la caserne » dans la Salle de Commandement. Le reversement n'est pas plafonne : si la caisse ne couvre pas le montant demande, il est simplement refuse et rien ne bouge.
 - Un militaire JOUEUR percoit sa solde EN DORMANT, une fois par jour : 50 FR pour un soldat, 150 pour un Lieutenant, 250 pour un Capitaine, 400 pour un Commandant. Il n'y a pas de bouton « toucher sa solde » : le versement se fait au moment du sommeil.
 - Si la caisse ne couvre pas la somme due, la caserne verse simplement ce qu'elle a, et la difference est perdue. Il n'y a ni dette, ni arriere, ni rattrapage : une caserne sans argent ne paie pas, et on n'en reparle plus. Ne laisse jamais croire le contraire.
 - LES SOLDATS PNJ N'ONT AUCUNE SOLDE. Elle a ete abandonnee : le contingent est paye une fois pour toutes par les 20 000 FR de la compagnie. Ne promets jamais une paie a un soldat ordinaire.
@@ -103,6 +107,11 @@ EFFORT DE GUERRE — prerogative personnelle du President, chef des armees
 - Hors guerre declaree, on ne peut le prolonger qu'une fois, et cette prolongation preventive coute deux points de social dans chacune des trois villes. En guerre declaree, les renouvellements sont libres et sans penalite.
 - Ce qu'il change vraiment : le plafond de 20 % du budget de la Defense saute, les ventes legales d'armes aux particuliers sont suspendues, une reserve militaire est prelevee sur les entrepots, et les armureries civiles produisent pour l'armee.
 - Le ministre de la Defense regle deux curseurs, ravitaillement et production militaire, de 0 a 100, a 50 chacun par defaut. HORS Effort de guerre les deux valent zero : plus rien n'est produit ni acquis, la caserne vit sur son stock.
+
+INSPECTION DES TROUPES
+- Deux niveaux, dans la Salle de Commandement : « Passer les troupes en revue » (1 PA, +3 d'influence) et « Inspecter les unites » (2 PA, +5 d'influence, avec le detail).
+- Elle est ouverte a toute la chaine a partir du Lieutenant : Lieutenant, Capitaine, Commandant, ministre de la Defense. Un simple soldat n'inspecte pas, et un civil non plus.
+- Chacun voit son perimetre : le Lieutenant sa section, le Capitaine sa compagnie, le Commandant et le ministre toute l'armee du pays.
 
 RECHERCHE MILITAIRE
 - Reservee au Commandant : 2 PA et 8 000 FR sur la caisse de la caserne.

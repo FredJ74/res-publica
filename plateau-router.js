@@ -677,6 +677,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decorer_militaire') { ouvrirDecorerMilitaire(); return; }
   if (fn === 'quitter_armee') { ouvrirQuitterArmee(); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
+  if (fn === 'caisse_caserne') { ouvrirCaisseCaserne(); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
   // 'accepter_incorporation' : ordre retire le 16 septembre 2026. Le transfert vers la caserne

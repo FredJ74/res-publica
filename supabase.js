@@ -3857,10 +3857,51 @@ async function sbActiverCessezLeFeu(guerreId) {
   return Array.isArray(rows) ? rows[0] : rows;
 }
 
+// LES DEUX AUTRES PORTES DE LA CLOTURE DE LA CASERNE (10 octobre 2026).
+//
+// `militaire_inspection_perimetre` rend le VERDICT de l'inspection des troupes et le perimetre
+// qui va avec. L'acces n'etait garde qu'en JavaScript (`accesInspectionTroupes`) : la console
+// suffisait a passer outre, et a encaisser les points d'influence. C'est desormais le serveur
+// qui tranche, et lui seul sait de quel perimetre on parle -- sa section, sa compagnie, l'armee.
+async function sbInspectionPerimetre() {
+  const rows = await sbRpc('militaire_inspection_perimetre');
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// `caserne_reverser_au_ministere` est le flux que le game design reclamait et qui n'existait
+// pas : la caserne pouvait recevoir, jamais rendre. Debit et credit dans une seule transaction,
+// autorite relue en base -- le Commandant decide, personne d'autre, pas meme le ministre.
+async function sbCaserneReverserAuMinistere(montant) {
+  const rows = await sbRpc('caserne_reverser_au_ministere', { p_montant: Math.floor(Number(montant) || 0) });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// L'ORDRE DE BATAILLE PASSE PAR UNE PORTE (10 octobre 2026, cloture de la caserne).
+//
+// CETTE FONCTION FAISAIT UN SELECT DIRECT, et la policy `compagnies_lecture_mon_pays` l'ouvrait a
+// TOUT joueur authentifie du pays : matricules, PA, armes, positions, missions, reserve,
+// contingent, tresorerie. Un civil lisait l'armee entiere. La policy est supprimee, le SELECT
+// revoque, et la lecture passe par `militaire_compagnies_lisibles()`.
+//
+// LA PORTE NE FILTRE PAS, ELLE PROJETTE. Le ministre de la Defense et le Commandant recoivent
+// toutes les compagnies du pays ; un Capitaine, un Lieutenant ou un soldat joueur recoivent la
+// leur -- dans les deux cas le blob ENTIER, exactement comme avant. Tout le reste recoit une
+// projection de PRESENCE : qui mene, ou sont les hommes, combien, quelle consigne. Ce n'est pas
+// une concession : un civil doit continuer a voir qu'un detachement tient une piece, c'est ce
+// qu'il observe dans le monde et c'est ce qui declenche les missions d'entree.
+//
+// LA FORME DE SORTIE N'A PAS BOUGE D'UN CARACTERE -- un tableau de `{id, ...data}` -- et c'est
+// voulu : trente-trois sites d'appel la consomment. Le chemin change, pas les ecrans.
+//
+// LE FILTRE PAR PAYS RESTE, et il est desormais fait DEUX FOIS : la porte ne rend que le pays de
+// l'appelant, et l'argument est conserve pour les appelants qui passent un pays explicite. Deux
+// gardes d'accord valent mieux qu'une garde deplacee.
 async function sbGetCompagnies(pays) {
-  const rows = await sbGet('compagnies_militaires', `select=id,data`);
+  const rows = await sbRpc('militaire_compagnies_lisibles');
   if (!rows) return [];
-  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+  return rows.filter(r => !pays || r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
 // sbCreerPrisonnierQHS A ETE SUPPRIMEE LE 9 OCTOBRE 2026. Elle etait le dernier INSERT direct du

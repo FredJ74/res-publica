@@ -61,10 +61,6 @@ CREATE POLICY batailles_groupes_lecture ON public.batailles_groupes FOR SELECT T
 CREATE POLICY commandes_militaires_lecture ON public.commandes_militaires FOR SELECT TO PUBLIC
   USING (true);
 
--- compagnies_militaires
-CREATE POLICY compagnies_lecture_mon_pays ON public.compagnies_militaires FOR SELECT TO authenticated
-  USING ((data ->> 'pays'::text) = militaire_mon_pays());
-
 -- decorations_militaires
 CREATE POLICY decorations_lecture_publique ON public.decorations_militaires FOR SELECT TO authenticated
   USING (true);

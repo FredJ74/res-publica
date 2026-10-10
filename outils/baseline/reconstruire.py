@@ -560,8 +560,15 @@ def controles_du_monde(cat):
     # subvention_beneficiaire_verdict, subvention_proposer, subvention_repondre,
     # subventions_expirer, subvention_enveloppe_lire, subventions_recues_lire. Aucune surcharge
     # ajoutee : l'ecart de 4 reste celui des quatre surcharges historiques.
-    att("signatures de fonction creees", cat.n_fonctions, 722)
-    att("noms de fonction distincts", len(cat.fonctions), 718,
+    # 725 / 721 le 10 octobre 2026 au soir, a la cloture de la caserne (registre 636) : +3
+    # signatures et +3 noms. Les trois : caserne_reverser_au_ministere (le flux
+    # Caserne -> Ministere, qui n'existait pas), militaire_compagnies_lisibles (la porte qui
+    # PROJETTE l'ordre de bataille selon la place de l'appelant dans la chaine militaire, et qui
+    # remplace le SELECT direct) et militaire_inspection_perimetre (le verdict serveur de
+    # l'inspection des troupes, qui n'etait gardee qu'en JavaScript). Aucune surcharge ajoutee :
+    # l'ecart de 4 reste celui des quatre surcharges historiques.
+    att("signatures de fonction creees", cat.n_fonctions, 725)
+    att("noms de fonction distincts", len(cat.fonctions), 721,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -623,7 +630,16 @@ def controles_du_monde(cat):
     # Un compte de policies qui DESCEND n'est pas une regression ; une porte serveur qui remplace
     # une policy d'ecriture en retire une, c'est le signe attendu. S'il remontait a 287 sans
     # migration, ce serait l'ecriture cliente qui serait revenue.
-    att("policies creees", len(cat.policies), 283)
+    # 282 a la cloture de la caserne (registre 636), et c'est encore une BAISSE VOULUE :
+    # compagnies_lecture_mon_pays est SUPPRIMEE. Elle ouvrait l'ordre de bataille complet en
+    # SELECT a tout joueur authentifie du pays -- matricules, PA, armes, positions, missions,
+    # reserve. La lecture passe desormais par militaire_compagnies_lisibles(), et le SELECT de
+    # `authenticated` sur la table est revoque en meme temps : une policy retiree sans revocation
+    # laisserait la table lisible le jour ou une policy permissive reviendrait.
+    # compagnies_militaires rejoint donc les tables a RLS active SANS AUCUNE POLICY -- l'etat
+    # cible, pas un oubli. S'il remontait a 283 sans migration, ce serait la fuite qui serait
+    # revenue.
+    att("policies creees", len(cat.policies), 282)
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
     att("sequences disponibles", len(cat.sequences), 32)

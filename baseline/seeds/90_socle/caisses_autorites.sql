@@ -20,7 +20,7 @@
 
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('agence-', 'true', '{}', 'Agences privees (Grobras Securite et suivantes) : caisse reservee au serveur. Aucun poste public ne debite la caisse d''une entreprise privee.');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('assemblee', 'false', '{}', 'assemblee : chemin serveur dedie (assemblee_debiter_caisse_plafonne)');
-INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('caserne-militaire', 'false', '{commandant,min_def}', 'caserne');
+INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('caserne-militaire', 'false', '{commandant}', 'caserne : le ministre ALIMENTE, le Commandant DEPENSE (arbitrage du 10 octobre 2026)');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('commissariat', 'true', '{commissaire,min_int}', 'commissariats');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('douane', 'false', '{chef_douanes,min_int}', 'Caisse du service des douanes. Geree par le Chef des Douanes, financee par le Ministere de l''Interieur qui garde autorite dessus -- meme couple que commissariat et caserne.');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('entrepot', 'true', '{directeur_entrepot,maire_adjoint}', 'entrepots logistiques');

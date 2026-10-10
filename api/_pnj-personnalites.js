@@ -178,7 +178,14 @@ CE DONT TU NE PARLES PAS : comment on entre chez toi, ce que cela rapporte, ce q
     style: `posé, économe de mots, phrases courtes et nettes ; tu vouvoies, tu ne plaisantes guère, et tu ne hausses jamais le ton` },
   'gaston_retard':                 { nom: "Gaston Retard", role: "Chef de gare", lieu: "Centre Multinodal de Luthecia", trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
   'gaston_sauceblanche':           { nom: "Gaston Sauceblanche", role: "Maitre d'hotel", lieu: "Hotel-Restaurant La Republica" },
-  'general_faure':                 { nom: "General Faure", role: "PNJ - Chef d'etat-major", lieu: "Caserne Militaire de Republia" },
+  // 'general_faure' A ETE RETIRE (arbitrage du 10 octobre 2026, cloture de la caserne). Il etait
+  // affiche dans la Salle de Commandement sous le titre de « Chef d'etat-major », un grade qui
+  // n'existe dans aucun referentiel du jeu -- ni poste nomme, ni poste electif, ni grade
+  // militaire, et zero occurrence cote serveur. Le joueur voyait donc un General au-dessus du
+  // Commandant, qui est le vrai chef militaire. Sa place est tenue par le Commandant Tom Hawak,
+  // titulaire PNJ du poste, devenu referent militaire de la caserne.
+  // Le metier technique `general` de PNJ_STATS_PAR_JOB n'est PAS supprime : il sert de famille
+  // d'avatar et peut servir de casting ailleurs. C'est l'echelon qui disparait, pas le mot.
   'gerard_armurier':               { nom: "Gerard (Armurier)", role: "PNJ - Vendeur", lieu: "Armurerie Legale Martinon" },
   'gerard_bretellewood':           { nom: "Gérard Bretellewood", role: "Juge de Montrouge" },
   'gerard_bricoleau':              { nom: "Gérard Bricoleau", role: "Entraineur Adjoint" },
