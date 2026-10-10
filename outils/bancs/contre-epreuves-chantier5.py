@@ -3,7 +3,7 @@
 """Contre-epreuves de banc-detention-plateau.js.
 
 POURQUOI CE FICHIER EXISTE. Un banc qui passe AUSSI sans le correctif ne prouve rien. Chacune des
-treize regressions ci-dessous reinjecte, dans une COPIE de plateau-justice-economie.js, exactement
+seize regressions ci-dessous reinjecte, dans une COPIE de plateau-justice-economie.js, exactement
 le defaut que le lot du 9 octobre 2026 a ferme -- puis relance le banc sur cette copie et exige
 qu'il ROUGISSE, en nommant l'epreuve qui doit tomber.
 
@@ -23,6 +23,10 @@ JUSTICE = os.path.join(RACINE, "plateau-justice-economie.js")
 POLITIQUE = os.path.join(RACINE, "plateau-politique.js")
 BANC_DETENTION = os.path.join(RACINE, "outils", "bancs", "banc-detention-plateau.js")
 BANC_VOTE = os.path.join(RACINE, "outils", "bancs", "banc-vote-electoral.js")
+BANC_DESERTION = os.path.join(RACINE, "outils", "bancs", "banc-desertion-liberation.js")
+CRON = os.path.join(RACINE, "api", "cron-minuit.js")
+BANC_COTISATIONS = os.path.join(RACINE, "outils", "bancs", "banc-cotisations-organisations.js")
+BANC_SUCCESSIONS = os.path.join(RACINE, "outils", "bancs", "banc-successions-reglement.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -42,6 +46,71 @@ REGRESSIONS_VOTE = [
      "  const rVote = typeof sbRpc === 'function'",
      "  cycle.votes[votant] = candidatNom;\n  const rVote = typeof sbRpc === 'function'",
      "aucun bulletin local"),
+]
+
+REGRESSIONS_DESERTION = [
+    ("demobilisation -- le verdict de la cloture n'est plus lu",
+     "    if (vFin && vFin.ok === true) {",
+     "    if (true) {",
+     "refus : le detenu reste detenu"),
+
+    ("incorporation -- le verdict de la cloture n'est plus lu",
+     "    if (!vInc || vInc.ok !== true) {",
+     "    if (false) {",
+     "refus : il n est PAS conduit a la caserne"),
+
+    # Sans le retour en arriere, un refus laisse un SOLDAT DETENU : la requisition dit
+    # « incorpore » alors que la peine court toujours.
+    ("incorporation -- l'incorporation posee en memoire n'est plus annulee",
+     "      state.char.requisition = req;\n      showToast('Transfert impossible'",
+     "      showToast('Transfert impossible'",
+     "l'incorporation posee en memoire est REVENUE en arriere"),
+]
+
+# Les deux series du cron (famille D du chantier 6) ne peuvent PAS passer par CHEMIN_SOURCE : leurs
+# bancs n'extraient pas le code par readFile, ils CHARGENT api/cron-minuit.js comme module. La copie
+# patchee leur est donc donnee en derniere source sur la ligne de commande, a la place du fichier de
+# production -- voir lancer_sources() plus bas.
+REGRESSIONS_COTISATIONS = [
+    ("cotisations -- la fiche du membre est a nouveau relue avant la porte",
+     "        const etape = 'cotisation:' + row.id + ':' + membre.nom;",
+     "        await sbGet('personnages', `name=eq.${encodeURIComponent(membre.nom)}`);\n"
+     "        const etape = 'cotisation:' + row.id + ':' + membre.nom;",
+     "la fiche du membre n est plus relue ici"),
+
+    ("cotisations -- le debit redevient une ecriture directe",
+     "        const etape = 'cotisation:' + row.id + ':' + membre.nom;",
+     "        await sbUpdate('personnages', `name=eq.${encodeURIComponent(membre.nom)}`,"
+     " { arg: 0 });\n"
+     "        const etape = 'cotisation:' + row.id + ':' + membre.nom;",
+     "aucune ecriture directe"),
+
+    ("cotisations -- un verdict absent redevient un succes",
+     "        if (!v) { signalerEchec(etape, 'aucun verdict rendu'); continue; }",
+     "        if (!v) { resultats.renouvellements++; continue; }",
+     "verdict absent : rien compte"),
+
+    ("cotisations -- la saison n'est plus transmise a la porte",
+     "          p_saison: orga.type === 'supporters' ? saisonActuelle.numero : null",
+     "          p_saison: null",
+     "avec l organisation, le membre et la saison"),
+]
+
+REGRESSIONS_SUCCESSIONS = [
+    ("successions -- un verdict absent redevient une cloture",
+     "  if (!v) { signalerEchec(etape, 'aucun verdict rendu'); return false; }",
+     "  if (!v) { return true; }",
+     "verdict absent : aucune cloture"),
+
+    ("successions -- les etapes refusees redeviennent silencieuses",
+     "  if (Array.isArray(v.echecs) && v.echecs.length > 0) {",
+     "  if (false) {",
+     "l etape refusee est NOMMEE"),
+
+    ("successions -- une succession non tranchee est quand meme presentee a la porte",
+     "      if (toutesResolues) {",
+     "      if (true) {",
+     "la porte n est pas appelee"),
 ]
 
 REGRESSIONS = [
@@ -129,9 +198,21 @@ def lancer(banc, chemin_source):
         os.unlink(decor)
 
 
-def serie(titre, banc, source, regressions, echecs):
+def lancer_sources(banc, chemin_source):
+    """Lance un banc a SOURCES (celui-ci charge le fichier de production comme module) en lui
+    substituant la copie patchee en derniere source. Rend (code_de_sortie, sortie)."""
+    r = subprocess.run([sys.executable, LANCEUR, banc,
+                        os.path.join(RACINE, "outils", "bancs", "decor-env-serveur.js"),
+                        os.path.join(RACINE, "api", "_referentiels-generes.js"),
+                        chemin_source],
+                       capture_output=True, text=True)
+    return r.returncode, r.stdout + r.stderr
+
+
+def serie(titre, banc, source, regressions, echecs, lanceur=None):
+    lanceur = lanceur or lancer
     texte = open(source, encoding="utf-8").read()
-    code, sortie = lancer(banc, source)
+    code, sortie = lanceur(banc, source)
     if code != 0:
         echecs.append("%s : le banc n'est pas vert sur le fichier de production" % titre)
         print("  ***  %s : banc NON vert sur la production" % titre)
@@ -148,10 +229,11 @@ def serie(titre, banc, source, regressions, echecs):
             f.write(texte.replace(cherche, remplace))
             copie = f.name
         try:
-            code, sortie = lancer(banc, copie)
+            code, sortie = lanceur(banc, copie)
         finally:
             os.unlink(copie)
-        tombee = any(epreuve in l for l in sortie.splitlines() if l.startswith("  *** "))
+        tombee = any(epreuve in l for l in sortie.splitlines()
+                     if l.startswith("  *** ") or l.startswith("  NON "))
         if code == 0:
             echecs.append("%s : le banc reste VERT malgre la regression" % nom)
             print("  ***  %-62s banc vert -- il ne prouve rien" % nom)
@@ -168,7 +250,13 @@ def main():
     echecs = []
     serie("DETENTION", BANC_DETENTION, JUSTICE, REGRESSIONS, echecs)
     serie("VOTE ELECTORAL", BANC_VOTE, POLITIQUE, REGRESSIONS_VOTE, echecs)
-    total = len(REGRESSIONS) + len(REGRESSIONS_VOTE)
+    serie("LIBERATIONS DE DESERTION", BANC_DESERTION, POLITIQUE, REGRESSIONS_DESERTION, echecs)
+    serie("COTISATIONS D'ORGANISATION", BANC_COTISATIONS, CRON, REGRESSIONS_COTISATIONS, echecs,
+          lanceur=lancer_sources)
+    serie("REGLEMENT DES SUCCESSIONS", BANC_SUCCESSIONS, CRON, REGRESSIONS_SUCCESSIONS, echecs,
+          lanceur=lancer_sources)
+    total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
+             + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

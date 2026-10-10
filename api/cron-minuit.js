@@ -235,7 +235,12 @@ async function sbUpdatePret(id, patch) {
 //
 // Le verdict est { ok: true, id } ou { ok: false, raison }. Aucun appelant ne le lisait au
 // moment de ce changement ; il existe pour que celui qui voudra reessayer puisse le faire.
-async function envoyerMailSysteme(destinataire, expediteur, sujet, corps) {
+// `heure` est OPTIONNELLE et n'existe que pour les appelants qui en portaient DEJA une (10
+// octobre 2026) : trois courriers du cron ecrivaient `mails` en direct avec leur propre valeur de
+// `time` -- un horodatage ISO pour l'un, une date courte pour l'autre, rien du tout pour le
+// troisieme. Les router sans ce parametre aurait change un champ affiche. Par defaut, la brique
+// garde la date du jour, comme avant.
+async function envoyerMailSysteme(destinataire, expediteur, sujet, corps, heure) {
   if (!destinataire || !expediteur) {
     // Pas un echec de transport : une demande incomplete. Tracee quand meme, parce qu'un
     // destinataire absent veut dire qu'un appelant a perdu son acteur en route.
@@ -260,7 +265,7 @@ async function envoyerMailSysteme(destinataire, expediteur, sujet, corps) {
       p_destinataire: destinataire,
       p_sujet: sujet,
       p_corps: corps,
-      p_heure: new Date().toLocaleDateString('fr-FR')
+      p_heure: (heure === undefined) ? new Date().toLocaleDateString('fr-FR') : heure
     // HEADERS_SERVICE EXPLICITE, et ce n'est pas de la redondance : sbRpc retombe sur la cle
     // ANON quand aucune cle de service n'est configuree, et mail_systeme_envoyer rendrait alors
     // « acteur_non_authentifie » pour CHAQUE courrier du cron. L'exiger ici fait echouer
@@ -707,97 +712,49 @@ async function libererDetentionsEchuesServeur() {
   return resultats;
 }
 
+// LA TAXE FONCIERE EST UNE TRANSACTION PAR TERRAIN (chantier 6, 10 octobre 2026).
+//
+// CE QUI SE PASSAIT. Cette passe debitait le proprietaire PUIS ecrivait le blob du terrain -- deux
+// requetes HTTP -- et creditait les mairies APRES la boucle, par commune. Trois consequences,
+// toutes atteignables :
+//
+//   1. AUCUN MARQUEUR PAR TERRAIN. Une seconde execution le meme jour redebitait la taxe, et pour
+//      un insolvable faisait avancer de DEUX crans la progression avertissement -> penalite de
+//      10 % -> SAISIE MUNICIPALE.
+//   2. DEUX MOITIES D'ACTE. Une interruption entre le debit et l'ecriture du blob prelevait sans
+//      remettre `dette_fonciere` a zero : la passe suivante redebitait, et la dette restait.
+//   3. L'ARGENT POUVAIT DISPARAITRE. Le debit des proprietaires et le credit des mairies etaient
+//      separes par toute la boucle.
+//
+// taxe_fonciere_prelever impose UN terrain par transaction, revendiquee par la brique des actes
+// nocturnes, debit et credit inclus. Il ne reste ici que le balayage et le comptage des verdicts.
+// Le cache des budgets municipaux et l'agregation par commune ont disparu avec le defaut :
+// `recette_municipale` etant additive, un credit par terrain donne le meme total au compteur.
 async function preleverTaxeFonciere() {
   const resultats = { collecte: 0, avertissements: 0, saisies: 0 };
+  // Ces cinq refus ne sont pas des echecs : ils disent qu'il n'y avait rien a faire sur ce
+  // terrain, ou que la journee etait deja prise. Tout autre refus remonte dans ECHECS_PASSE.
+  const RIEN_A_FAIRE = ['hors_assiette', 'terrain_introuvable', 'budget_municipal_absent',
+                        'proprietaire_introuvable', 'deja_prelevee_aujourdhui'];
   try {
-    const terrains = await sbGet('terrains_etat', '');
+    const terrains = await sbGet('terrains_etat', 'select=id');
     if (!terrains) return resultats;
-
-    const collectesParMairie = {};
-    const budgetsCache = {};
-
-    async function getBudgetMuni(villeKey) {
-      if (budgetsCache[villeKey] !== undefined) return budgetsCache[villeKey];
-      const rows = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(villeKey)}`);
-      const budget = (rows && rows[0]) ? rows[0].data : null;
-      budgetsCache[villeKey] = budget;
-      return budget;
-    }
-
     for (const row of terrains) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch(e) { continue; }
-      if (!etat.proprietaire || !etat.surface) continue;
-
-      const country = row.country;
-      const city = etat.city || 'capitale';
-      const villeKey = country + '_' + city;
-
-      const budgetMuni = await getBudgetMuni(villeKey);
-      if (!budgetMuni) continue;
-      const tauxFoncier = budgetMuni.tauxFoncier ?? 0.05;
-      const taxeDue = Math.round(etat.surface * tauxFoncier * 100) / 100;
-      const valeurBien = etat.valeur_totale || (etat.surface * 12);
-
-      const persoRows = await sbGet('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`);
-      const perso = persoRows && persoRows[0];
-      if (!perso) continue;
-
-      const argActuel = perso.arg || 0;
-
-      if (argActuel >= taxeDue) {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`, { arg: argActuel - taxeDue });
-        etat.dette_fonciere = 0;
-        collectesParMairie[villeKey] = (collectesParMairie[villeKey] || 0) + taxeDue;
-      } else {
-        const nouvelleDette = (etat.dette_fonciere || 0) + taxeDue;
-        const ratio = valeurBien > 0 ? nouvelleDette / valeurBien : 0;
-
-        if (ratio >= 0.25) {
-          etat.proprietaire = null;
-          etat.coproprietaire = null;
-          etat.enVenteParMairie = true;
-          etat.prixVenteMairie = Math.round(valeurBien * 0.7);
-          etat.dette_fonciere = 0;
-          resultats.saisies++;
-          await sbInsert('evenements_globaux', { country, city, texte: '🏛️ SAISIE MUNICIPALE : un bien a été saisi pour non-paiement de la taxe foncière et sera remis en vente.', jour: null });
-        } else {
-          etat.dette_fonciere = (ratio >= 0.15) ? Math.round(nouvelleDette * 1.10) : nouvelleDette;
-          resultats.avertissements++;
+      const v = await sbRpc('taxe_fonciere_prelever', { p_terrain_id: row.id }, HEADERS_SERVICE)
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!v) {
+        signalerEchec('taxe_fonciere:' + row.id, 'aucun verdict rendu');
+        continue;
+      }
+      if (v.ok !== true) {
+        if (!RIEN_A_FAIRE.includes(v.action)) {
+          signalerEchec('taxe_fonciere:' + row.id, v.action || 'refus sans motif');
         }
+        continue;
       }
-
-      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() });
-    }
-
-    // LA TAXE FONCIERE PASSE PAR LE POINT D'ENTREE UNIQUE (8 octobre 2026). Cette boucle ecrivait
-    // `budgetMuni.caisse` -- la seconde bourse municipale, supprimee par le chantier des budgets
-    // municipaux -- en reecrivant le blob entier par un sbUpdate en `.catch(() => {})`. Deux
-    // defauts dans la meme ligne : l'echec etait avale, alors que les proprietaires venaient
-    // D'ETRE DEBITES plus haut -- la collecte de la nuit disparaissait sans trace ; et
-    // `resultats.collecte` etait incremente quoi qu'il arrive, donc le rapport de passe affirmait
-    // une recette qui n'existait pas.
-    //
-    // recette_municipale credite la vraie tresorerie -- caisses_batiments.<pays>_mairie_<ville> --
-    // et incremente le compteur du jour dans UNE SEULE transaction. Son verdict est LU : une
-    // commune qui n'a pas pu encaisser remonte dans ECHECS_PASSE, donc la passe rend 500.
-    for (const [villeKey, montant] of Object.entries(collectesParMairie)) {
-      if (!(montant > 0)) continue;
-      // `villeKey` vaut <pays>_<ville>, et la ville peut contenir un souligne (ville_a) : on
-      // coupe au PREMIER separateur, jamais avec un split sur tous.
-      const sep = villeKey.indexOf('_');
-      const pays = sep > 0 ? villeKey.slice(0, sep) : '';
-      const ville = sep > 0 ? villeKey.slice(sep + 1) : '';
-      const rows = await sbRpc('recette_municipale', {
-        p_pays: pays, p_ville: ville, p_montant: montant, p_canal: 'taxe_fonciere'
-      }, HEADERS_SERVICE);
-      const r = Array.isArray(rows) ? rows[0] : rows;
-      if (r && r.ok === true) {
-        resultats.collecte += montant;
-      } else {
-        signalerEchec('taxe_fonciere:encaissement:' + villeKey,
-          (r && r.raison) || 'verdict_absent');
-      }
+      if (v.action === 'collectee') resultats.collecte += Number(v.montant || 0);
+      else if (v.action === 'avertissement') resultats.avertissements++;
+      else if (v.action === 'saisie') resultats.saisies++;
     }
   } catch(e) { console.error('preleverTaxeFonciere error', e); }
   return resultats;
@@ -964,117 +921,49 @@ async function determinerEtapeSuivanteServeur(disposition, roleActuel, conjointN
 // rejouer sa mutation : aucun transfert, credit heritier, credit Etat ou credit notaire ne peut
 // s'executer deux fois par cette voie.
 //
-// Limite assumee (documentee, non corrigee ici -- aucune transaction multi-table reelle possible
-// via l'API REST Supabase, deja le cas partout ailleurs dans ce projet) : pour chaque etape, la
-// mutation reelle et la pose du marqueur qui la protege restent deux appels HTTP SEPARES et
-// SEQUENTIELS. Si le premier reussit et que le second echoue (fenetre tres etroite, deux appels
-// consecutifs vers le meme backend), CETTE etape precise sera rejouee le lendemain -- un risque
-// de double credit reduit a une seule etape a la fois, plus jamais a l'ensemble du dossier comme
-// avant ce correctif. Ordre mutation-puis-marqueur choisi deliberement (jamais l'inverse) : le
-// risque symetrique (marquer "fait" avant que ce ne soit reellement fait) serait pire, un
-// heritier ne recevant alors jamais son du sans aucune trace d'echec.
+// LA FENETRE EST FERMEE (chantier 6, famille D, 10 octobre 2026).
+//
+// CE QUI RESTAIT, EXACTEMENT. Tout ce qui est decrit ci-dessus etait vrai et bien construit : la
+// garde par disposition, chaque ecriture verifiee, le marqueur pose par disposition, les deux
+// marqueurs fiscaux independants, la cloture en dernier. Le defaut residuel etait UNE FENETRE, pas
+// une passoire : entre le credit reel et la pose du marqueur il restait DEUX requetes HTTP. Un
+// depassement du maxDuration: 120 ou un plantage dans cet intervalle laissait un beneficiaire
+// credite sans `regle` -- donc RECREDITE la nuit suivante. Probabilite faible, montant eleve : un
+// heritage entier, ou la part de l'Etat.
+//
+// succession_regler met chaque mutation et le marqueur qui la protege DANS LA MEME TRANSACTION.
+// Et elle preserve ce qui faisait la valeur de l'architecture v4 -- l'independance des
+// dispositions -- en enfermant chaque etape dans sa propre SOUS-TRANSACTION : un terrain
+// introuvable annule sa seule etape (mutation ET marqueur ensemble, jamais l'un sans l'autre) et
+// laisse les autres acquises, exactement comme avant. Un seul aller-retour la ou il en fallait
+// deux par etape.
+//
+// POURQUOI PAS actes_nocturnes : le verrou juste existe deja et il est METIER
+// (dispositions[].regle, part_etat_reglee, part_notaire_reglee). Une cle de journee serait un
+// second verrou pour le meme travail -- et elle serait fausse, puisqu'une etape en echec doit
+// pouvoir etre reprise des le lendemain.
+//
+// LA PHASE DE DECISION RESTE AU-DESSUS, cote JS (chaine de convocations, renonciation tacite,
+// cascade) : elle est persistee AVANT tout reglement, et aucune mutation n'a lieu sur un etat non
+// confirme en base. Rien de cette separation ne change.
 //
 // Retourne true si la succession a ete effectivement cloturee (statut='resolue') lors de CET
-// appel, false sinon (reglement partiel ou deja termine avant cet appel) -- utilise par
-// resoudreSuccessionsExpirees() pour ne compter dans ses statistiques que les clotures reelles.
-async function reglerSuccession(s, dispositions) {
-  for (const d of dispositions) {
-    if (d.regle) continue; // deja mutee lors d'une passe precedente -- ne jamais rejouer
-
-    if (d.type === 'terrain') {
-      const tRows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(s.country)}&building_id=eq.${encodeURIComponent(d.id)}`).catch(() => null);
-      const tRow = tRows && tRows[0];
-      if (!tRow) return false;
-      let etat; try { etat = JSON.parse(tRow.data); } catch(e) { return false; }
-      etat.proprietaire = d.resultat.beneficiaire || null;
-      etat.coproprietaire = null;
-      etat.succession_gel = null;
-      const r = await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(tRow.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => null);
-      if (!r) return false;
-    } else if (d.type === 'entreprise') {
-      const eRows = await sbGet('entreprises', `id=eq.${encodeURIComponent(d.id)}`).catch(() => null);
-      const eRow = eRows && eRows[0];
-      if (!eRow) return false;
-      const data = eRow.data || {};
-      data.proprietaire = d.resultat.beneficiaire || 'PNJ';
-      data.succession_gel = null;
-      const r = await sbUpdate('entreprises', `id=eq.${encodeURIComponent(eRow.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => null);
-      if (!r) return false;
-    } else if (d.type === 'argent' && d.part_nette > 0) {
-      let credite = false;
-      if (d.resultat.beneficiaire) {
-        const bRows = await sbGet('personnages', `name=eq.${encodeURIComponent(d.resultat.beneficiaire)}`).catch(() => null);
-        const beneficiaire = bRows && bRows[0];
-        if (beneficiaire) {
-          const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(d.resultat.beneficiaire)}`, { arg: (beneficiaire.arg || 0) + d.part_nette }).catch(() => null);
-          if (!r) return false;
-          credite = true;
-        }
-      }
-      // Devolution a l'Etat : soit d'emblee (aucun beneficiaire, chaine epuisee), soit en repli
-      // si le beneficiaire resolu a lui-meme disparu entre l'acceptation et le reglement (plutot
-      // que de laisser la somme silencieusement disparaitre).
-      if (!credite) {
-        const budgetRows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`).catch(() => null);
-        const budgetData = budgetRows?.[0]?.data || { reserveJour: 0 };
-        budgetData.reserveJour = (budgetData.reserveJour || 0) + d.part_nette;
-        const r = await sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`, { data: budgetData, updated_at: new Date().toISOString() }).catch(() => null);
-        if (!r) return false;
-      }
-    }
-
-    // Marqueur pose IMMEDIATEMENT apres la mutation reelle de CETTE disposition (ecriture
-    // individuelle, pas d'attente du lot complet) -- protege cette disposition precise contre
-    // tout rejeu, meme si une disposition suivante echoue juste apres.
-    d.regle = true;
-    const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { dispositions }).catch(() => null);
-    if (!rMarque) return false;
+// appel, false sinon -- utilise par resoudreSuccessionsExpirees() pour ne compter dans ses
+// statistiques que les clotures reelles.
+async function reglerSuccession(s) {
+  const etape = 'succession:' + s.id;
+  const v = await sbRpc('succession_regler', { p_succession_id: s.id }, HEADERS_SERVICE)
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  // AUCUN VERDICT N'EST JAMAIS UNE CLOTURE : sans reponse de la porte, on ne sait pas ce qui a
+  // ete regle, et on ne compte rien.
+  if (!v) { signalerEchec(etape, 'aucun verdict rendu'); return false; }
+  if (v.ok !== true) { signalerEchec(etape, v.raison || 'refus sans motif'); return false; }
+  // Les etapes refusees sont NOMMEES : elles seront reprises demain, mais elles ne disparaissent
+  // pas dans le silence. Une succession partiellement reglee n'est pas un succes.
+  if (Array.isArray(v.echecs) && v.echecs.length > 0) {
+    signalerEchec(etape, 'etapes non reglees : ' + v.echecs.join(' ; '));
   }
-
-  // Fiscalite globale -- deux marqueurs INDEPENDANTS (Etat / notaire), chacun pose immediatement
-  // apres son propre credit reel, jamais recredite si deja marque.
-  if (s.droits_total > 0) {
-    if (!s.part_etat_reglee) {
-      const budgetRows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`).catch(() => null);
-      const budgetData = budgetRows?.[0]?.data || { reserveJour: 0 };
-      budgetData.reserveJour = (budgetData.reserveJour || 0) + s.part_etat;
-      const r = await sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`, { data: budgetData, updated_at: new Date().toISOString() }).catch(() => null);
-      if (!r) return false;
-      const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { part_etat_reglee: true }).catch(() => null);
-      if (!rMarque) return false;
-      s.part_etat_reglee = true;
-    }
-    if (!s.part_notaire_reglee) {
-      // Ecriture directe (sbGet/sbUpdate/sbInsert propres a ce fichier), PAS via
-      // crediterCaisseBatiment() (plateau-justice-economie.js) : cette primitive partagee est de
-      // toute facon inaccessible depuis ce runtime serverless (code client uniquement, jamais
-      // importe ici -- meme raison que tout le reste de ce cron dispose de ses propres sbGet/
-      // sbUpdate/sbInsert dupliques). Elle serait de plus impropre a un usage financier verifie :
-      // elle avale les echecs Supabase et renvoie le solde local optimiste MEME si l'ecriture
-      // reelle a echoue (limite deja documentee ailleurs dans ce projet). Ici au contraire,
-      // l'ecriture est verifiee (r falsy = echec reel, jamais de succes fictif) avant de poser le
-      // marqueur -- une primitive serveur dediee et verifiee, pas la primitive partagee.
-      const caisseKey = s.country + '_office-notarial';
-      const caisseRows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`).catch(() => null);
-      const caisseData = caisseRows?.[0]?.data || { solde: 0 };
-      caisseData.solde = (caisseData.solde || 0) + s.part_notaire;
-      const r = (caisseRows && caisseRows.length > 0)
-        ? await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisseData, updated_at: new Date().toISOString() }).catch(() => null)
-        : await sbInsert('caisses_batiments', { id: caisseKey, data: caisseData, updated_at: new Date().toISOString() }).catch(() => null);
-      if (!r) return false;
-      const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { part_notaire_reglee: true }).catch(() => null);
-      if (!rMarque) return false;
-      s.part_notaire_reglee = true;
-    }
-  }
-
-  const toutesReglees = dispositions.every(d => d.regle);
-  const fiscaliteReglee = s.droits_total === 0 || (s.part_etat_reglee && s.part_notaire_reglee);
-  if (toutesReglees && fiscaliteReglee) {
-    const r = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { statut: 'resolue', resolved_at: new Date().toISOString() }).catch(() => null);
-    return !!r;
-  }
-  return false;
+  return v.cloturee === true;
 }
 
 // Passe quotidienne : fait avancer chaque disposition independamment (silence a l'echeance =
@@ -1152,7 +1041,9 @@ async function resoudreSuccessionsExpirees() {
 
       const toutesResolues = dispositions.every(d => !!d.resultat);
       if (toutesResolues) {
-        const cloturee = await reglerSuccession(s, dispositions);
+        // La porte relit les dispositions en base -- celles qui viennent d'etre persistees juste
+        // au-dessus. Plus rien ne lui est transmis en memoire : la base est la seule source.
+        const cloturee = await reglerSuccession(s);
         if (cloturee) resultats.successions_reglees++;
       }
 
@@ -4396,12 +4287,11 @@ async function envoyerFactureMilitaireServeur(pays, armurerieId, ville, produit,
     + 'TOTAL CREDITE A VOTRE CAISSE : ' + total + ' FR\n\n'
     + 'La production et la livraison ont ete automatiques : vous n\'aviez rien a faire.';
 
-  await sbInsert('mails', {
-    id: 'facture-mil-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
-    from_player: 'Ministère de la Guerre', to_player: proprio,
-    subject: 'Facture — commande militaire (' + rec.label + ')',
-    body: corps, read: false
-  }).catch(() => {});
+  // LA FACTURE PASSE PAR LA BRIQUE (10 octobre 2026). Cet INSERT direct etait avale : une facture
+  // qui ne partait pas ne laissait aucune trace, alors que la caisse du proprietaire venait d'etre
+  // creditee. `p_heure: null` conserve exactement son champ `time` d'origine -- il n'en avait pas.
+  await envoyerMailSysteme(proprio, 'Ministère de la Guerre',
+    'Facture — commande militaire (' + rec.label + ')', corps, null);
 }
 
 // --- ORCHESTRATION -----------------------------------------------------------
@@ -4577,27 +4467,24 @@ const COTISATION_MONTANT = 50;
 const COTISATION_SYNDICAT_MOIS = 3;
 const ID_SYNDICAT_DOCKERS_PSM = 'orga_syndicat_dockers_republic_ville_a';
 // CLUBS_SPORTIFS_SERVEUR est importee du module genere : une projection de CLUBS_SPORTIFS
-// (data.js) sur id/country/city/nom. id, country et city servent a retrouver la caisse du club
-// (budgets_clubs) associee a un club de supporters local ; nom part en clair dans les messages
-// de Journal de traiterLicencesSportivesSaison, et c'est pour cela qu'il doit venir de data.js
-// plutot que d'une copie -- le 5 septembre 2026, une copie perimee a publie des noms de clubs
-// qui n'existaient plus.
+// (data.js) sur id/country/city/nom. Son `nom` part en clair dans les messages de Journal de
+// traiterLicencesSportivesSaison, et c'est pour cela qu'il doit venir de data.js plutot que d'une
+// copie -- le 5 septembre 2026, une copie perimee a publie des noms de clubs qui n'existaient plus.
+// DEPUIS LE 10 OCTOBRE 2026, elle ne sert plus a retrouver la caisse d'un club a partir de
+// (country, city) : cette resolution a suivi le credit dans cotisation_renouveler, qui lit
+// `clubs_football` -- le miroir SQL genere de CLUBS_SPORTIFS, surveille par une empreinte. Ici, on
+// ne la consulte plus que par identifiant de licence.
 
 // Ligne canonique du championnat -- doit rester synchronisee avec CHAMPIONNAT_ROW_ID
 // (supabase.js). Deplacee de id=1 vers id=2 le 5 septembre 2026, voir supabase.js.
 const CHAMPIONNAT_FILTRE_ID = 'id=eq.2';
 
-async function crediterBudgetClubServeur(clubId, montant, motif) {
-  const rows = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
-  let data = rows && rows[0] ? rows[0].data : null;
-  if (!data) data = { clubId, caisse: 0, historique: [], derniereSubventionJour: null, salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
-  data.caisse = Math.max(0, (data.caisse || 0) + montant);
-  data.historique = data.historique || [];
-  data.historique.push({ jour: null, montant, motif });
-  if (data.historique.length > 50) data.historique = data.historique.slice(-50);
-  if (rows && rows[0]) await sbUpdate('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
-  else await sbInsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() }).catch(() => {});
-}
+// crediterBudgetClubServeur A ETE SUPPRIMEE (chantier 6, famille D, 10 octobre 2026). Elle etait
+// une lecture-modification-ecriture de budgets_clubs avec ses deux catch avales, et son unique
+// appelant etait la branche 'supporters' de renouvellerCotisationsOrganisations. Le credit de la
+// caisse du club vit desormais DANS cotisation_renouveler, dans la meme transaction que le debit
+// du membre. Aucune autre passe ne la nommait : elle est partie avec son appelant plutot que de
+// rester une seconde maniere de crediter un club.
 
 async function renouvellerCotisationsOrganisations() {
   const resultats = { renouvellements: 0, resiliations: 0 };
@@ -4622,29 +4509,30 @@ async function renouvellerCotisationsOrganisations() {
       if (orga.type !== 'supporters' && !estSyndicatDockersPSM) continue;
       if (!orga.membres || orga.membres.length === 0) continue;
 
-      // LE MARQUEUR ETAIT PERSISTE UNE SEULE FOIS, A LA FIN, ET SON ECHEC ETAIT AVALE
-      // (chantier 6, 7 octobre 2026). Les 50 FR etaient debites du membre, le marqueur
-      // (derniereCotisationSaison ou derniereCotisationDate) etait pose EN MEMOIRE, et tout
-      // etait persiste apres la boucle par un `sbUpdate(...).catch(() => {})`. Si cette unique
-      // ecriture echouait, AUCUN marqueur de la passe n'etait enregistre : l'echeance restait
-      // depassee, et chaque nuit suivante reprelevait 50 FR a chacun, indefiniment, pendant que
-      // resultats.renouvellements comptait des succes.
+      // LA DETTE CONSIGNEE LE 7 OCTOBRE EST PAYEE (chantier 6, famille D, 10 octobre 2026).
       //
-      // Trois changements, et un seul objectif : borner la perte et la rendre visible.
-      //   . le marqueur est persiste APRES CHAQUE membre, plus une fois pour tous : un echec
-      //     ne concerne plus qu'un membre au lieu de toute l'organisation ;
-      //   . son echec n'est plus avale -- il remonte dans ECHECS_PASSE, donc la passe rend 500 ;
-      //   . et il INTERROMPT l'organisation : on ne continue pas a debiter des membres dont on
-      //     sait deja qu'on n'arrive plus a enregistrer qu'ils ont paye.
+      // CE QUI SE PASSAIT ICI. Une cotisation etait TROIS requetes HTTP : debit du membre
+      // (sbUpdate personnages), credit de la contrepartie (crediterBudgetClubServeur, elle-meme
+      // une lecture-modification-ecriture avec catch avale, ou orga.caisse en memoire), puis
+      // ecriture du blob portant le marqueur. Le code le disait lui-meme : « Debiter un personnage
+      // et marquer son adhesion sont deux ecritures sur deux tables : les rendre atomiques demande
+      // une RPC. Dette consignee. » Une panne au milieu laissait 50 FR sortis du personnage sans
+      // arriver nulle part, ou une adhesion payee mais non marquee, donc redebitee la nuit
+      // suivante. Tout l'echafaudage qui bornait cette perte -- marqueur pose apres chaque membre,
+      // instantane de la liste, persistanceRompue qui interrompait l'organisation -- existait
+      // uniquement parce que l'acte n'etait pas atomique. Il disparait avec la cause.
       //
-      // Ce n'est PAS la reparation complete. Debiter un personnage et marquer son adhesion sont
-      // deux ecritures sur deux tables : les rendre atomiques demande une RPC. Dette consignee.
-      let modifie = false;
-      const membresConserves = [];
-      let persistanceRompue = false;
-
+      // CE QUI RESTE ICI, ET SEULEMENT CELA : qui est DU. La regle d'echeance est inchangee --
+      // supporters a chaque nouvelle saison lue sur saison.numero, syndicat tous les trois mois
+      // calendaires -- et c'est bien une decision d'appelant. cotisation_renouveler, elle, rend
+      // l'acte indivisible : verrou sur l'organisation, verrou sur la fiche, puis debit + marqueur
+      // + credit de la contrepartie ensemble, ou rien. Le marqueur metier (derniereCotisationSaison
+      // / derniereCotisationDate) reste le verrou d'idempotence : la brique actes_nocturnes serait
+      // un second verrou pour le meme travail.
+      //
+      // Le courrier de fin d'adhesion part de la porte, par mail_systeme_poser_interne, avec le
+      // meme sujet, le meme corps et le meme horodatage ISO qu'avant.
       for (const membre of orga.membres) {
-        if (persistanceRompue) { membresConserves.push(membre); continue; }
         let doitRenouveler = false;
         if (orga.type === 'supporters') {
           doitRenouveler = !!saisonActuelle && membre.derniereCotisationSaison !== saisonActuelle.numero;
@@ -4654,65 +4542,28 @@ async function renouvellerCotisationsOrganisations() {
           doitRenouveler = maintenant >= echeance.getTime();
         }
 
-        if (!doitRenouveler) { membresConserves.push(membre); continue; }
+        if (!doitRenouveler) continue;
 
-        const persoRows = await sbGet('personnages', `name=eq.${encodeURIComponent(membre.nom)}`);
-        const perso = persoRows && persoRows[0];
-        const argActuel = perso ? (perso.arg || 0) : 0;
+        const etape = 'cotisation:' + row.id + ':' + membre.nom;
+        const v = await sbRpc('cotisation_renouveler', {
+          p_orga_id: row.id, p_membre: membre.nom,
+          p_saison: orga.type === 'supporters' ? saisonActuelle.numero : null
+        }, HEADERS_SERVICE).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
 
-        if (perso && argActuel >= COTISATION_MONTANT) {
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(membre.nom)}`, { arg: argActuel - COTISATION_MONTANT });
-          if (orga.type === 'supporters') {
-            membre.derniereCotisationSaison = saisonActuelle.numero;
-            const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.country === orga.country && c.city === orga.city);
-            if (club) await crediterBudgetClubServeur(club.id, COTISATION_MONTANT, 'Cotisation supporter (renouvellement)').catch(() => {});
-          } else {
-            membre.derniereCotisationDate = new Date().toISOString();
-            // CORRECTIF (Lot 4.3) : les 50 FR preleves au membre disparaissaient. La branche
-            // 'supporters' crediterBudgetClubServeur son club, mais le syndicat n'avait AUCUNE
-            // contrepartie -- l'argent quittait le personnage sans arriver nulle part. La
-            // cotisation alimente desormais la caisse de l'organisation, ce que sa logique
-            // supposait deja.
-            orga.caisse = (orga.caisse || 0) + COTISATION_MONTANT;
+        // AUCUN VERDICT N'EST JAMAIS UN SUCCES : sans reponse de la porte, on ne sait pas si le
+        // membre a paye, et on ne le compte pas.
+        if (!v) { signalerEchec(etape, 'aucun verdict rendu'); continue; }
+        if (v.ok !== true) {
+          // Ces deux refus ne sont pas des echecs : la liste lue en debut de passe peut avoir
+          // vieilli (organisation dissoute, membre parti entre-temps).
+          if (v.action !== 'organisation_introuvable' && v.action !== 'membre_introuvable') {
+            signalerEchec(etape, v.action || 'refus sans motif');
           }
-          membresConserves.push(membre);
-          resultats.renouvellements++;
-          modifie = true;
-          // LE MARQUEUR, IMMEDIATEMENT. On ecrit la liste telle qu'elle est a cet instant :
-          // les membres pas encore traites y figurent inchanges, ce qui est exact.
-          const instantane = { ...orga, membres: [...membresConserves,
-            ...orga.membres.slice(orga.membres.indexOf(membre) + 1)] };
-          const pose = await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`,
-                                      { data: JSON.stringify(instantane) });
-          if (!pose) {
-            resultats.marqueurs_non_poses = (resultats.marqueurs_non_poses || 0) + 1;
-            persistanceRompue = true;
-          }
-        } else {
-          resultats.resiliations++;
-          modifie = true;
-          // Correctif du 25 aout 2026 (audit postes nommes, decouverte adjacente) : le schema
-          // reellement lu par le client est to_player/from_player/subject/body (voir sbSendMail,
-          // supabase.js) -- destinataire/expediteur/sujet/corps (utilise par erreur ici avant ce
-          // correctif, et par de nombreux autres mails cron pre-existants non touches, hors
-          // perimetre de ce lot) ne sont jamais interroges par sbGetMailsFor, rendant ce mail
-          // invisible en pratique.
-          await sbInsert('mails', {
-            id: 'mail-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-            from_player: orga.nom, to_player: membre.nom,
-            subject: "Fin d'adhésion — cotisation non renouvelée",
-            body: 'Votre adhésion à "' + orga.nom + '" a pris fin automatiquement : la cotisation de ' + COTISATION_MONTANT + " FR n'a pas pu être prélevée. Aucune dette n'est créée.",
-            time: new Date().toISOString(), read: false
-          }).catch(() => {});
+          continue;
         }
-      }
-
-      // L'ECRITURE FINALE RESTE : elle porte les RESILIATIONS (membres retires de la liste),
-      // qui n'ont fait l'objet d'aucun debit et dont la perte ne coute donc rien d'autre qu'un
-      // retard d'un jour. Son echec n'est plus avale pour autant.
-      if (modifie && !persistanceRompue) {
-        orga.membres = membresConserves;
-        await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(orga) });
+        if (v.action === 'renouvellement') resultats.renouvellements++;
+        else if (v.action === 'resiliation') resultats.resiliations++;
+        else signalerEchec(etape, 'verdict sans action : ' + JSON.stringify(v));
       }
     }
   } catch(e) { console.error('renouvellerCotisationsOrganisations error', e); }
@@ -5222,6 +5073,9 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       if (posteId === 'maire') {
         cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(PAYS_CASCADE, ville).catch(() => null);
       }
+      // ECRITURE DIRECTE ASSUMEE : la garde `if (!cycle.resultatsTraites || cycle.eluId) return`
+      // ci-dessus est la transition d'etat elle-meme -- une fois `eluId` pose, un rejeu sort
+      // immediatement. Ce n'est pas une proclamation d'election mais une cascade de secours.
       await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(cycle), updated_at: new Date().toISOString() });
       occupePJ.add(cle(posteId, ville));
       resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: PNJ_PAR_DEFAUT_POSTE[posteId] });
@@ -5517,16 +5371,12 @@ async function verifierConflitsEmploiBNE() {
           'Si vous conservez votre poste politique : rendez-vous au Bureau National de l\'Emploi pour démissionner de votre emploi BNE (immédiat, gratuit).<br>' +
           'Si vous préférez garder l\'emploi BNE : démissionnez de votre poste politique par les moyens habituels. Votre emploi BNE reste actif et payé en attendant votre décision.';
 
-        await sbInsert('mails', {
-          id: 'mail-bne-conflit-' + Date.now() + '-' + occ.pjNom,
-          to_player: occ.pjNom,
-          from_player: 'Bureau National de l\'Emploi',
-          subject: 'Poste politique et emploi BNE en même temps',
-          body: corps,
-          time: new Date().toLocaleDateString('fr-FR'),
-          read: false,
-          archived: false
-        }).catch(() => {});
+        // PAR LA BRIQUE (10 octobre 2026). `archived: false` est le DEFAUT de la colonne : rien
+        // n'est perdu en ne le passant plus. La garde anti-renvoi ci-dessus relit `mails`, donc
+        // un courrier perdu sera retente la nuit suivante -- ce qui est le comportement voulu.
+        await envoyerMailSysteme(occ.pjNom, 'Bureau National de l\'Emploi',
+          'Poste politique et emploi BNE en même temps', corps,
+          new Date().toLocaleDateString('fr-FR'));
         resultats.notifies.push({ pjNom: occ.pjNom, poste: poste.id, offre: offreId });
       }
     }
@@ -5543,78 +5393,42 @@ async function verifierConflitsEmploiBNE() {
 // secours) est tranche par un tirage pondere par l'ISN, exactement comme avant, recalibre sur 9.
 // =====================
 async function resoudreVotesConfianceEchusServeur(nowMs) {
+  // LE DEPOUILLEMENT EST UNE TRANSACTION SERVEUR (chantier 6, 10 octobre 2026).
+  //
+  // CE QUI SE PASSAIT. Les sieges PNJ restants etaient tires ICI, par `Math.random()`, puis la
+  // cloture (`statut = 'termine'`, `resultat`) etait ecrite dans un `.catch(() => {})`, suivie de
+  // l'evenement public et du courrier de censure -- avales aussi. Si la cloture mordait APRES
+  // l'annonce publique, le rejeu REDEPOUILLAIT : le meme vote pouvait passer de confiance a
+  // censure, publiquement, deux fois, avec deux evenements contradictoires dans la chronique.
+  //
+  // vote_confiance_resoudre fait le tirage, la cloture, l'evenement et le courrier dans un seul
+  // BEGIN, sous verrou du vote. La transition d'etat EST le verrou -- pas besoin de la brique des
+  // actes nocturnes, qui serait d'ailleurs fausse ici : un vote de confiance se depouille une
+  // fois dans sa vie, pas une fois par jour.
+  //
+  // Il ne reste ici que le balayage, le pre-filtre d'echeance et la collecte des verdicts.
   const resultats = [];
+  // Ces trois refus ne sont pas des echecs : le pre-filtre et la porte ont vu le monde a deux
+  // instants differents, ou une autre passe a deja depouille.
+  const RIEN_A_FAIRE = ['pas_echu', 'deja_resolu', 'vote_introuvable'];
   try {
-    const votes = await sbGet('votes_confiance', 'statut=eq.en_cours') || [];
+    const votes = await sbGet('votes_confiance', 'statut=eq.en_cours&select=id,cloture_ts') || [];
     for (const vote of votes) {
       if (nowMs < new Date(vote.cloture_ts).getTime()) continue; // pas encore echu
-
-      const joueurs = await sbGet('personnages', `country=eq.${encodeURIComponent(vote.country)}&select=name,poste_depute`) || [];
-      const deputesPJ = joueurs.filter(j => {
-        let pd = j.poste_depute;
-        if (typeof pd === 'string') { try { pd = JSON.parse(pd); } catch(e) { pd = null; } }
-        return pd?.id === 'depute';
-      }).map(j => j.name);
-
-      const bulletins = vote.bulletins || {};
-      let pour = 0, contre = 0;
-      const votantsPJ = new Set();
-      deputesPJ.forEach(nom => {
-        if (bulletins[nom]) {
-          votantsPJ.add(nom);
-          if (bulletins[nom] === 'pour') pour++; else contre++;
+      const v = await sbRpc('vote_confiance_resoudre', { p_vote_id: vote.id }, HEADERS_SERVICE)
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!v) {
+        signalerEchec('vote_confiance:' + vote.id, 'aucun verdict rendu');
+        continue;
+      }
+      if (v.ok !== true) {
+        if (!RIEN_A_FAIRE.includes(v.raison)) {
+          signalerEchec('vote_confiance:' + vote.id, v.raison || 'refus sans motif');
         }
-      });
-
-      // Pas d'ISN "national" persiste cote serveur (INDICES_NATIONAUX est une constante en
-      // memoire CLIENT uniquement -- voir commentaire de modifierIndiceVilleServeur plus haut
-      // dans ce fichier, ecart d'architecture deja identifie et sciemment non traite). Utilise
-      // l'ISN de la capitale (indices_villes, Republic uniquement) comme meilleur proxy
-      // disponible ; repli sur 30 (meme valeur neutre que le reste du fichier) sinon.
-      let isn = 30;
-      if (vote.country === 'republic') {
-        const isnRows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(vote.country + '_capitale')}`).catch(() => []);
-        const isnRow = isnRows && isnRows[0];
-        if (isnRow && isnRow.data && typeof isnRow.data.isn === 'number') isn = isnRow.data.isn;
+        continue;
       }
-      const chanceContrePnj = Math.min(85, 30 + isn / 2);
-      const NB_SIEGES_ASSEMBLEE = 9; // 3 sieges reels par ville (chantier legislatives, 4 septembre 2026)
-      const siegesRestants = Math.max(0, NB_SIEGES_ASSEMBLEE - votantsPJ.size);
-      for (let i = 0; i < siegesRestants; i++) {
-        if (Math.random() * 100 < chanceContrePnj) contre++; else pour++;
-      }
-
-      const confianceAccordee = pour > contre;
-      const resultat = confianceAccordee ? 'confiance' : 'censure';
-
-      await sbUpdate('votes_confiance', `id=eq.${encodeURIComponent(vote.id)}`, {
-        statut: 'termine', resultat,
-        // Delai politique de 48h reelles (arbitrage du 4 septembre 2026) : le PM n'est PLUS
-        // destitue automatiquement -- seule une consequence differee (POP=0) s'applique s'il
-        // n'a toujours pas demissionne a l'echeance (voir bloc dedie plus bas dans le handler).
-        demission_limite_ts: confianceAccordee ? null : new Date(nowMs + 48 * 60 * 60 * 1000).toISOString()
-      }).catch(() => {});
-
-      await sbInsert('evenements_globaux', {
-        country: vote.country, city: null,
-        texte: `🏛 Vote de confiance : ${pour} POUR / ${contre} CONTRE. ` +
-          (confianceAccordee
-            ? `Le gouvernement de ${vote.pm_nom} obtient la confiance.`
-            : `Le gouvernement de ${vote.pm_nom} est CENSURÉ. Le Premier Ministre est politiquement appelé à démissionner sous 48h.`),
-        jour: null
-      }).catch(() => {});
-
-      if (!confianceAccordee) {
-        await sbInsert('mails', {
-          id: 'mail-censure-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-          from_player: 'Assemblée Nationale', to_player: vote.pm_nom,
-          subject: 'Motion de censure adoptée',
-          body: `L'Assemblée Nationale a retiré sa confiance à votre gouvernement (${pour} pour / ${contre} contre). Vous êtes politiquement appelé(e) à démissionner sous 48h réelles. Passé ce délai sans démission, votre popularité et celle de tout le gouvernement tomberont à zéro -- vos postes ne seront cependant jamais retirés automatiquement.`,
-          time: new Date(nowMs).toLocaleDateString('fr-FR'), read: false
-        }).catch(() => {});
-      }
-
-      resultats.push({ vote_id: vote.id, country: vote.country, resultat, pour, contre });
+      resultats.push({ vote_id: v.vote_id, country: v.country, resultat: v.resultat,
+                       pour: v.pour, contre: v.contre });
     }
   } catch(e) { console.error('resoudreVotesConfianceEchusServeur error', e); }
   return resultats;
@@ -5907,6 +5721,12 @@ export default async function handler(req, res) {
           const debutTs = cycle.dateDebutMandatTs || (cycle.dateFinMandat - MANDAT_SEMAINES * SEMAINE_MS);
           await archiverMandatMaireTermine(country, ville, cycle.eluId, estPJ, debutTs, cycle.dateFinMandat, cycle.indicateursDebutMandat);
         }
+        // CETTE ECRITURE RESTE DIRECTE, ET C'EST LE BON CHOIX (10 octobre 2026). Elle n'est pas
+        // une proclamation : c'est un RENOUVELLEMENT, et la transition d'etat le garde deja --
+        // le nouveau cycle porte `phase: 'candidatures'`, donc un rejeu ne satisfait plus la
+        // condition `phase === 'mandat'` juste au-dessus. La passer par
+        // election_resultats_consigner serait meme FAUX : son compare-and-swap exige
+        // `resultatsTraites = false`, et un cycle en mandat l'a a vrai.
         const nouveauCycle = construireNouveauCycleElectoral(posteId, ville, now.getTime());
         await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycle), updated_at: now.toISOString() });
         results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle' });
@@ -5921,6 +5741,9 @@ export default async function handler(req, res) {
       // pour tenter de pourvoir le poste (president/maire) avant de relancer un cycle frais --
       // jamais le meme soir que la vacance elle-meme, pour ne jamais court-circuiter cette cascade.
       if (cycle.phase === 'vacant' && cycle.resultatsTraites && cycle.relancePossibleApres && now.getTime() >= cycle.relancePossibleApres) {
+        // MEME RAISON QUE LE RENOUVELLEMENT CI-DESSUS : relancer un cycle vacant n'est pas
+        // proclamer, la transition d'etat garde (`phase` repasse a 'candidatures'), et le
+        // compare-and-swap de la porte refuserait puisque `resultatsTraites` est a vrai ici.
         const nouveauCycleVacant = construireNouveauCycleElectoral(posteId, ville, now.getTime());
         await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleVacant), updated_at: now.toISOString() });
         results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle_apres_vacance' });
@@ -5933,6 +5756,12 @@ export default async function handler(req, res) {
 
       // Fraudes non revelees de CE scrutin precis (cle = date de creation du cycle, stable a
       // travers les renouvellements -- voir chargerFraudesActivesServer).
+      // UNE SEULE CONSIGNATION PAR SCRUTIN (chantier 6, 10 octobre 2026). Chaque branche se
+      // contente desormais de DECIDER : elle mute `cycle` en memoire et depose son annonce dans
+      // ces trois variables. L'ecriture -- blob du cycle, evenement public et chronique -- est
+      // faite une seule fois, en bas de la boucle, par election_resultats_consigner, qui garde
+      // par compare-and-swap sur `resultatsTraites`.
+      let blobAEcrire = null, evenementAPoser = null, chroniqueAPoser = null;
       const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
       const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
       await attacherEffetsTractsServer(row.id, cycle);
@@ -5965,11 +5794,9 @@ export default async function handler(req, res) {
             cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
             results.push({ poste: 'depute', country, city: ville, statut: 'vacant' });
           } else if (resultatDepute.blancMajoritaire) {
-            const nouveauCycleBlanc = construireNouveauCycleElectoral('depute', ville, now.getTime());
-            await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleBlanc), updated_at: now.toISOString() });
-            await sbInsert('evenements_globaux', { country, city: ville, texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées, un nouveau cycle est lancé.`, jour: null }).catch(() => {});
+            blobAEcrire = construireNouveauCycleElectoral('depute', ville, now.getTime());
+            evenementAPoser = { country, city: ville, texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées, un nouveau cycle est lancé.` };
             results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
-            continue;
           } else {
             let elusFinaux2 = resultatDepute.elus.slice();
             if (elusFinaux2.length < 3) {
@@ -5981,15 +5808,14 @@ export default async function handler(req, res) {
             cycle.phase = 'mandat';
             cycle.dateDebutMandatTs = now.getTime();
             cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
-            const texte2 = `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).`;
-            await sbInsert('evenements_globaux', { country, city: ville, texte: texte2, jour: null }).catch(() => {});
-            await sbInsert('chronique_nationale', {
+            evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).` };
+            chroniqueAPoser = {
               id: `election-${row.id}-${cycle.dateResultats}`,
               country, city: ville, type: 'election_resultat',
               personnages: elusFinaux2,
               libelle: `Assemblée de ${ville} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
               data: { poste_id: 'depute', elus: elusFinaux2, cycle_row_id: row.id }, source_ref: row.id
-            }).catch(() => {});
+            };
             results.push({ poste: 'depute', country, city: ville, statut: 'elu', elus: elusFinaux2 });
           }
         }
@@ -6002,11 +5828,9 @@ export default async function handler(req, res) {
           cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
           results.push({ poste: posteId, country, city: ville, statut: 'vacant' });
         } else if (resultatSimple.blancMajoritaire) {
-          const nouveauCycleBlanc2 = construireNouveauCycleElectoral(posteId, ville, now.getTime());
-          await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleBlanc2), updated_at: now.toISOString() });
-          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée, un nouveau cycle est lancé.`, jour: null }).catch(() => {});
+          blobAEcrire = construireNouveauCycleElectoral(posteId, ville, now.getTime());
+          evenementAPoser = { country, city: scope === 'local' ? ville : null, texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée, un nouveau cycle est lancé.` };
           results.push({ poste: posteId, country, city: ville, statut: 'invalide_vote_blanc' });
-          continue;
         } else if (resultatSimple.elu) {
           cycle.eluId = resultatSimple.elu;
           cycle.resultatsTraites = true;
@@ -6018,13 +5842,13 @@ export default async function handler(req, res) {
           }
           const villeLabel = ville ? ` (${ville})` : '';
           const pourcentageVoix = Math.round((resultatSimple.scores[resultatSimple.elu] / resultatSimple.totalExprimes) * 100);
-          const texte = `🗳️ RÉSULTATS : ${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`;
-          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte, jour: null });
+          evenementAPoser = { country, city: scope === 'local' ? ville : null,
+            texte: `🗳️ RÉSULTATS : ${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.` };
           // chronique_nationale (chantier "refonte Tribune", 4 septembre 2026) : historisation
           // permanente du resultat -- cycles_electoraux ecrase l'etat precedent au cycle suivant,
           // seule cette ligne d'historique survit pour le Journal (source cle stable
           // country+poste_id+city+row.id pour eviter tout doublon si ce passage de cron est rejoue).
-          await sbInsert('chronique_nationale', {
+          chroniqueAPoser = {
             id: `election-${row.id}-${cycle.dateResultats}`,
             country, city: scope === 'local' ? ville : null,
             type: 'election_resultat',
@@ -6032,7 +5856,7 @@ export default async function handler(req, res) {
             libelle: `${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`,
             data: { poste_id: posteId, elu: resultatSimple.elu, pourcentage_voix: pourcentageVoix, cycle_row_id: row.id },
             source_ref: row.id
-          }).catch(e => console.error('chronique_nationale (election_resultat) error', e));
+          };
           results.push({ poste: posteId, country, city: ville, statut: 'elu', gagnant: resultatSimple.elu });
         } else if (resultatSimple.secondTour.length >= 2) {
           const candidatsExistantsSimple = cycle.candidats || [];
@@ -6048,17 +5872,30 @@ export default async function handler(req, res) {
           cycle.dateResultats = calST.dateResultats;
           cycle.phase = 'second_tour';
           const villeLabel2 = ville ? ` (${ville})` : '';
-          const texteST = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}.`;
-          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte: texteST, jour: null });
+          evenementAPoser = { country, city: scope === 'local' ? ville : null,
+            texte: `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}.` };
           results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour });
         }
       }
 
-      // Sauvegarder le cycle mis à jour
-      await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, {
-        data: JSON.stringify(cycle),
-        updated_at: now.toISOString()
-      });
+      // LA CONSIGNATION UNIQUE. Le blob, l'evenement public et la chronique partent ensemble ou
+      // pas du tout, sous compare-and-swap sur `resultatsTraites` : un rejeu lit zero ligne et
+      // n'annonce donc PAS une seconde fois. C'etait le defaut reel de cette famille -- la
+      // chronique etait deja protegee par sa cle, l'evenement public ne l'etait pas du tout.
+      const vCons = await sbRpc('election_resultats_consigner', {
+        p_cycle_id: row.id,
+        p_data: blobAEcrire || cycle,
+        p_evenement: evenementAPoser,
+        p_chronique: chroniqueAPoser
+      }, HEADERS_SERVICE).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (!vCons || vCons.ok !== true) {
+        // `deja_traite` n'est pas un echec : une autre passe a proclame ce scrutin, et c'est
+        // exactement ce que la garde doit produire. Tout le reste en est un.
+        if (!vCons || vCons.raison !== 'deja_traite') {
+          signalerEchec('election_resultats:' + row.id,
+            (vCons && vCons.raison) || 'aucun verdict rendu');
+        }
+      }
     }
 
     // 1b. Cascade de nomination automatique — installe un PNJ sur les postes nommes dont
