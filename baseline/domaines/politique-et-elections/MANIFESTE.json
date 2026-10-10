@@ -13,6 +13,12 @@
    "sous": ""
   },
   {
+   "empreinte": "b681fd5cd3a7ea8db5f4bbf4f0668f20",
+   "genre": "FUNCTION",
+   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "ae4ffcb93246da22faf5723dd31f37c0",
    "genre": "FUNCTION",
    "objet": "election_voter(text,text,text,text)",
@@ -22,6 +28,12 @@
    "empreinte": "92c02919acff91db5096992f381c3e8e",
    "genre": "FUNCTION",
    "objet": "postes_nommes_regles_empreinte_reelle()",
+   "sous": ""
+  },
+  {
+   "empreinte": "54d9087fbf38b3dd206d289e45900fd7",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_resoudre(text)",
    "sous": ""
   }
  ],
@@ -207,6 +219,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "cycles_electoraux_dimanche()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -456,6 +480,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "elections_tracts_pnj_id_seq",
@@ -771,7 +807,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "votes_electoraux",
-   "privileges": "DELETE, INSERT, SELECT"
+   "privileges": "DELETE, SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -790,13 +826,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d341852b751536f74b05e46444766e78",
-  "20_fonctions.sql": "61b18cb58176105186f90d6e187a6893",
+  "20_fonctions.sql": "91c624ebf7c3b5332a325520bade8699",
   "30_contraintes.sql": "74b60f013ac9da92adbec51b9abb6a9f",
   "35_index.sql": "b5f2cff596e2b8bb0e41dc89148bbe98",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
   "60_rls-policies.sql": "4ff4ee091c383af9c50c0e135029dd8d",
-  "70_droits.sql": "f5f46fb5379c23ec28597f857de530e3",
-  "80_commentaires.sql": "ab3b79c7ec244e9f601c286448526422"
+  "70_droits.sql": "7bf991e12fe412e2ea06a8e3a759a041",
+  "80_commentaires.sql": "e8ea1ed92a8a4e738206ad47e1324469"
  },
  "fonctions": [
   {
@@ -823,6 +859,11 @@
    "empreinte": "19fc5dd0f693ad27a99e6e09ee380ffa",
    "security_definer": true,
    "signature": "cycles_electoraux_dimanche()"
+  },
+  {
+   "empreinte": "4d80752d4eadbf66b58bf796203b8e61",
+   "security_definer": true,
+   "signature": "election_resultats_consigner(text,jsonb,jsonb,jsonb)"
   },
   {
    "empreinte": "bb76671c91a8c5e574818bdd8b12ddad",
@@ -893,6 +934,11 @@
    "empreinte": "b3e0acd553fb6c217d080e54edee57ae",
    "security_definer": true,
    "signature": "postes_nommes_regles_empreinte_reelle()"
+  },
+  {
+   "empreinte": "a853d25f8e73abf480bb069ffa5479bc",
+   "security_definer": true,
+   "signature": "vote_confiance_resoudre(text)"
   }
  ],
  "index_autonomes": [

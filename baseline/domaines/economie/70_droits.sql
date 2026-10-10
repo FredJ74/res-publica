@@ -26,12 +26,14 @@ GRANT EXECUTE ON FUNCTION public.acheter_produit_manufacture(text,text,text) TO 
 GRANT EXECUTE ON FUNCTION public.acheter_vente_directe_usine(text,text,text,text,jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.acheter_vente_directe_usine(text,text,text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.acheter_vente_directe_usine(text,text,text,text,jsonb) TO service_role;
-GRANT EXECUTE ON FUNCTION public.approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric) TO service_role;
 GRANT EXECUTE ON FUNCTION public.capacite_entrepot() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.capacite_entrepot() TO postgres;
 GRANT EXECUTE ON FUNCTION public.capacite_entrepot() TO service_role;
+GRANT EXECUTE ON FUNCTION public.chantier_approvisionner(text,text,text,jsonb,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.chantier_approvisionner(text,text,text,jsonb,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.chantier_approvisionner(text,text,text,jsonb,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.chantier_lancer(text,text,text,text,numeric) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.chantier_lancer(text,text,text,text,numeric) TO postgres;
 GRANT EXECUTE ON FUNCTION public.chantier_lancer(text,text,text,text,numeric) TO service_role;

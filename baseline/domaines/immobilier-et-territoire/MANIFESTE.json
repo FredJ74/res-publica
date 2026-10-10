@@ -342,6 +342,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_proprietaire_muter(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_proprietaire_muter(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_proprietaire_muter(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "ville_est_reelle(text,text)",
@@ -658,12 +676,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "66b1fea54fa7c394f1b301c5738dc9a4",
-  "20_fonctions.sql": "1d0f92c172706c4fb077fd231e0273ea",
+  "20_fonctions.sql": "2e250105fe1c4d078f71ef6b74750051",
   "30_contraintes.sql": "a5a5bf05e55f51602249819fcb875cd2",
   "35_index.sql": "3d319f664a45b587249753e4ef607bed",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
   "60_rls-policies.sql": "c51fbae86e985e66aeeaeac3aa2ca050",
-  "70_droits.sql": "31c17572a6c42a24d4dfe0c7a0bdf16f",
+  "70_droits.sql": "83544a7c2b5eb1d06d19797be43d6a54",
   "80_commentaires.sql": "1f3a2950e2af35ad3e61470a1ae940a7"
  },
  "fonctions": [
@@ -736,6 +754,11 @@
    "empreinte": "41b7b75a7ddfc61b4896d765e092f0e4",
    "security_definer": false,
    "signature": "terrain_etat_lire(text)"
+  },
+  {
+   "empreinte": "83828b5cfb01e32e80e0f9def57e8fd0",
+   "security_definer": true,
+   "signature": "terrain_proprietaire_muter(text,text,jsonb,text)"
   },
   {
    "empreinte": "ebe2b9c8ceca60f0f9dd2a7e7e114a1e",

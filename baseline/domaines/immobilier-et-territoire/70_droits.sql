@@ -51,6 +51,9 @@ GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO postgr
 GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO postgres;

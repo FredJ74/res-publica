@@ -15,6 +15,16 @@ COMMENT ON FUNCTION public.detention_clore_evasion() IS 'Clot SA PROPRE detentio
 abaisse et ligne du registre du QHS liberee -- en une transaction. jour_fin n''est JAMAIS reecrit :
 une evasion n''est pas une liberation. Rend les motifs d''origine, le pays et le reliquat, pour que
 l''appelant construise l''avis de recherche. Verdicts : acteur_non_authentifie, non_detenu, puis ok.';
+COMMENT ON FUNCTION public.detention_clore_interne(text,text,integer) IS 'MOTEUR de fin de detention : clot la ligne du registre avec son mode de fin, vide est_emprisonne,
+abaisse le drapeau QHS en OBJET s''il etait leve et passe la ligne du registre du QHS a libere --
+les quatre ecritures, en une transaction. AUCUNE precondition, AUCUN controle d''autorite : c''est
+le role de ses cinq portes (detention_clore_purgee, detention_clore_evasion,
+detention_reduire_peine, detention_clore_motif_eteint, presidence_gracier). Non appelable depuis
+le reseau.';
+COMMENT ON FUNCTION public.detention_clore_motif_eteint(text) IS 'Clot SA PROPRE detention quand son motif est administrativement eteint : « poursuites_eteintes »
+(demobilisation) ou « incorporation » (transfert a la caserne). Ne libere que si la detention ne
+tenait qu''a la desertion -- regle de jeu existante, qui n''etait verifiee que par le navigateur.
+Verdicts : acteur_non_authentifie, non_detenu, peine_pas_seulement_desertion, puis ok avec mode.';
 COMMENT ON FUNCTION public.detention_clore_purgee() IS 'Clot SA PROPRE peine quand elle est purgee : mode_fin = purgee, est_emprisonne vide, drapeau QHS
 abaisse en OBJET et ligne du registre du QHS passee a libere -- en une transaction. Le jour de
 reference vient de la fiche, jamais de l''appelant. Idempotente : rejouee, elle rend non_detenu.

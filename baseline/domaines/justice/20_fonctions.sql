@@ -223,7 +223,7 @@ CREATE OR REPLACE FUNCTION public.detention_clore_evasion()
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_jour integer; v_peine jsonb; v_det record;
+DECLARE v_moi text; v_det record; v_jour integer; v_peine jsonb;
         v_fin integer; v_reliquat integer; v_motifs jsonb; v_pays text;
 BEGIN
   v_moi := public.mon_personnage();
@@ -233,31 +233,82 @@ BEGIN
   IF v_peine IS NULL OR jsonb_typeof(v_peine) <> 'object' THEN
     RETURN jsonb_build_object('ok',false,'raison','non_detenu'); END IF;
   SELECT * INTO v_det FROM public.detention_active(v_moi);
+  -- EVASION REUSSIE N'EST PAS UNE LIBERATION : la peine n'est pas purgee, et `jour_fin` n'est
+  -- JAMAIS reecrit. Le reliquat et les motifs d'origine sont rendus, pour l'avis de recherche.
   v_fin := coalesce((v_peine->>'jourFin')::integer, v_jour);
   v_reliquat := greatest(0, v_fin - v_jour);
   IF v_det.id IS NOT NULL THEN
     SELECT coalesce(motifs,'[]'::jsonb), coalesce(country, v_pays) INTO v_motifs, v_pays
       FROM public.detentions WHERE id = v_det.id FOR UPDATE;
-    -- EVASION REUSSIE N'EST PAS UNE LIBERATION : la peine n'est pas purgee, et jour_fin n'est
-    -- JAMAIS reecrit. Le reliquat est rendu a part, pour l'avis de recherche.
-    UPDATE public.detentions
-       SET mode_fin='evasion', jour_fin_effective=v_jour, date_fin_effective=now()
-     WHERE id = v_det.id AND mode_fin IS NULL;
   ELSE
     v_motifs := '[]'::jsonb;
   END IF;
+  RETURN public.detention_clore_interne(v_moi, 'evasion')
+         || jsonb_build_object('ok',true,'reliquat_jours',v_reliquat,'motifs',v_motifs,'country',v_pays);
+END; $function$;
+
+-- detention_clore_interne(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.detention_clore_interne(p_nom text, p_mode text, p_jour integer DEFAULT NULL::integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_jour integer; v_peine jsonb; v_det record; v_qhs boolean;
+BEGIN
+  IF coalesce(btrim(p_mode),'') = '' THEN
+    RAISE EXCEPTION 'detention_clore_interne : le mode de fin est obligatoire';
+  END IF;
+  SELECT coalesce(day,1), est_emprisonne INTO v_jour, v_peine
+    FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  SELECT * INTO v_det FROM public.detention_active(p_nom);
+  -- Le caractere QHS se lit des DEUX cotes : la fiche peut le porter sans la ligne, et l'inverse.
+  v_qhs := coalesce((v_peine->>'qhs')::boolean,false) OR coalesce(v_det.qhs,false);
+  -- 1. La ligne. `AND mode_fin IS NULL` : une ligne deja close n'est pas reecrite.
+  IF v_det.id IS NOT NULL THEN
+    UPDATE public.detentions
+       SET mode_fin = p_mode, jour_fin_effective = coalesce(p_jour, v_jour),
+           date_fin_effective = now()
+     WHERE id = v_det.id AND mode_fin IS NULL;
+  END IF;
+  -- 2. et 3. La fiche, et le drapeau en OBJET -- la forme que pa_repos_nocturne sait lire.
   UPDATE public.personnages_donnees
      SET est_emprisonne = NULL,
-         detention_qhs = CASE WHEN coalesce((v_peine->>'qhs')::boolean,false) OR coalesce(v_det.qhs,false)
-                              THEN jsonb_build_object('enQHS', false, 'paLimite1Jour', false)
-                              ELSE detention_qhs END
-   WHERE name = v_moi;
-  IF coalesce((v_peine->>'qhs')::boolean,false) OR coalesce(v_det.qhs,false) THEN
+         detention_qhs = CASE WHEN v_qhs
+           THEN jsonb_build_object('enQHS', false, 'paLimite1Jour', false) ELSE detention_qhs END
+   WHERE name = p_nom;
+  -- 4. Le registre du QHS, sans quoi le Ministere voit un detenu libre.
+  IF v_qhs THEN
     UPDATE public.prisonniers_qhs SET statut='libere'
-     WHERE data ->> 'nom' = v_moi AND coalesce(statut,'') = 'detenu';
+     WHERE data ->> 'nom' = p_nom AND coalesce(statut,'') = 'detenu';
   END IF;
-  RETURN jsonb_build_object('ok',true,'detention_id',v_det.id,'reliquat_jours',v_reliquat,
-                            'motifs',v_motifs,'country',v_pays,'jour',v_jour);
+  RETURN jsonb_build_object('detention_id', v_det.id, 'sortait_du_qhs', v_qhs,
+                            'jour', coalesce(p_jour, v_jour),
+                            'retour_ville', v_peine ->> 'retourVille');
+END; $function$;
+
+-- detention_clore_motif_eteint(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.detention_clore_motif_eteint(p_mode text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_peine jsonb; v_r jsonb;
+BEGIN
+  -- LISTE FERMEE : la porte ne sert que ces deux actes administratifs.
+  IF p_mode NOT IN ('poursuites_eteintes','incorporation') THEN
+    RAISE EXCEPTION 'detention_clore_motif_eteint : mode inconnu « % »', p_mode;
+  END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+  SELECT est_emprisonne INTO v_peine FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF v_peine IS NULL OR jsonb_typeof(v_peine) <> 'object' THEN
+    RETURN jsonb_build_object('ok',false,'raison','non_detenu'); END IF;
+  IF coalesce((v_peine->>'motifDesertionSeul')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok',false,'raison','peine_pas_seulement_desertion'); END IF;
+  v_r := public.detention_clore_interne(v_moi, p_mode);
+  RETURN v_r || jsonb_build_object('ok', true, 'mode', p_mode);
 END; $function$;
 
 -- detention_clore_purgee() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -267,41 +318,22 @@ CREATE OR REPLACE FUNCTION public.detention_clore_purgee()
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_det record; v_jour integer; v_peine jsonb; v_fin integer; v_qhs boolean;
+DECLARE v_moi text; v_det record; v_jour integer; v_peine jsonb; v_fin integer;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
-  -- LE JOUR DE REFERENCE EST CELUI DE LA FICHE, jamais un parametre : sinon la liberation serait
-  -- a la main du navigateur. C'est exactement la condition du client (state.day >= jourFin),
-  -- lue sur la colonne dont state.day est le miroir.
   SELECT coalesce(day,1), est_emprisonne INTO v_jour, v_peine
     FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
   IF v_peine IS NULL OR jsonb_typeof(v_peine) <> 'object' THEN
     RETURN jsonb_build_object('ok',false,'raison','non_detenu'); END IF;
   SELECT * INTO v_det FROM public.detention_active(v_moi);
+  -- LE JOUR DE REFERENCE EST CELUI DE LA FICHE, jamais un parametre : sinon la liberation serait
+  -- a la main du navigateur. C'est exactement la condition du client (state.day >= jourFin).
   v_fin := coalesce((v_peine ->> 'jourFin')::integer, v_det.jour_fin);
   IF v_fin IS NULL OR v_jour < v_fin THEN
     RETURN jsonb_build_object('ok',false,'raison','peine_non_purgee','jour',v_jour,'jour_fin',v_fin);
   END IF;
-  v_qhs := coalesce((v_peine ->> 'qhs')::boolean, false) OR coalesce(v_det.qhs, false);
-  IF v_det.id IS NOT NULL THEN
-    UPDATE public.detentions
-       SET mode_fin='purgee', jour_fin_effective=v_jour, date_fin_effective=now()
-     WHERE id = v_det.id AND mode_fin IS NULL;
-  END IF;
-  UPDATE public.personnages_donnees
-     SET est_emprisonne = NULL,
-         -- Le drapeau tombe en OBJET, et seulement s'il etait leve : une peine ordinaire ne doit
-         -- pas poser un drapeau QHS absent.
-         detention_qhs = CASE WHEN v_qhs
-           THEN jsonb_build_object('enQHS', false, 'paLimite1Jour', false) ELSE detention_qhs END
-   WHERE name = v_moi;
-  IF v_qhs THEN
-    UPDATE public.prisonniers_qhs SET statut='libere'
-     WHERE data ->> 'nom' = v_moi AND coalesce(statut,'') = 'detenu';
-  END IF;
-  RETURN jsonb_build_object('ok',true,'detention_id',v_det.id,'jour',v_jour,
-                            'sortait_du_qhs',v_qhs,'retour_ville',v_peine ->> 'retourVille');
+  RETURN public.detention_clore_interne(v_moi, 'purgee') || jsonb_build_object('ok', true);
 END; $function$;
 
 -- detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -499,7 +531,7 @@ CREATE OR REPLACE FUNCTION public.detention_reduire_peine(p_requete_acceptee boo
 AS $function$
 DECLARE v_moi text; v_jour integer; v_peine jsonb; v_det record;
         v_fin integer; v_restants integer; v_reduction integer; v_nouveau integer;
-        v_jours integer; v_libere boolean;
+        v_jours integer; v_libere boolean; v_r jsonb;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
@@ -509,16 +541,13 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','non_detenu'); END IF;
   IF coalesce((v_peine->>'avocatUtilise')::boolean,false) THEN
     RETURN jsonb_build_object('ok',false,'raison','avocat_deja_utilise'); END IF;
-
-  -- L'AVOCAT EST CONSOMME MEME QUAND LE JUGE REFUSE. Regle d'origine ; elle etait posee en
-  -- memoire puis persistee seulement a la sauvegarde suivante.
+  -- L'AVOCAT EST CONSOMME MEME QUAND LE JUGE REFUSE. Regle d'origine, rendue fiable.
   IF NOT coalesce(p_requete_acceptee, false) THEN
     UPDATE public.personnages_donnees
        SET est_emprisonne = v_peine || jsonb_build_object('avocatUtilise', true)
      WHERE name = v_moi;
     RETURN jsonb_build_object('ok',true,'acceptee',false,'reduction',0,'libere',false);
   END IF;
-
   SELECT * INTO v_det FROM public.detention_active(v_moi);
   v_fin := coalesce((v_peine->>'jourFin')::integer, v_det.jour_fin);
   IF v_fin IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','peine_sans_terme'); END IF;
@@ -528,33 +557,22 @@ BEGIN
   v_nouveau   := greatest(v_jour, v_fin - v_reduction);
   v_jours     := greatest(0, v_restants - v_reduction);
   v_libere    := v_jours <= 0 OR v_jour >= v_nouveau;
-
-  -- La reduction ne reecrit JAMAIS motifs[].jours : la peine d'origine par motif reste
-  -- historiquement identifiable, et la reduction vit a part dans reduction_jours.
+  -- La reduction ne reecrit JAMAIS motifs[].jours : elle vit a part, dans reduction_jours.
   IF v_det.id IS NOT NULL THEN
-    UPDATE public.detentions
-       SET reduction_jours = v_reduction, jour_fin = v_nouveau,
-           mode_fin = CASE WHEN v_libere THEN 'anticipee_avocat' ELSE mode_fin END,
-           jour_fin_effective = CASE WHEN v_libere THEN v_jour ELSE jour_fin_effective END,
-           date_fin_effective = CASE WHEN v_libere THEN now() ELSE date_fin_effective END
+    UPDATE public.detentions SET reduction_jours = v_reduction, jour_fin = v_nouveau
      WHERE id = v_det.id AND mode_fin IS NULL;
   END IF;
-  UPDATE public.personnages_donnees
-     SET est_emprisonne = CASE WHEN v_libere THEN NULL
-           ELSE v_peine || jsonb_build_object('jourFin', v_nouveau, 'jours', v_jours,
-                                              'avocatUtilise', true) END,
-         detention_qhs = CASE WHEN v_libere AND (coalesce((v_peine->>'qhs')::boolean,false)
-                                                 OR coalesce(v_det.qhs,false))
-                              THEN jsonb_build_object('enQHS', false, 'paLimite1Jour', false)
-                              ELSE detention_qhs END
-   WHERE name = v_moi;
-  IF v_libere AND (coalesce((v_peine->>'qhs')::boolean,false) OR coalesce(v_det.qhs,false)) THEN
-    UPDATE public.prisonniers_qhs SET statut='libere'
-     WHERE data ->> 'nom' = v_moi AND coalesce(statut,'') = 'detenu';
+  IF v_libere THEN
+    v_r := public.detention_clore_interne(v_moi, 'anticipee_avocat');
+  ELSE
+    UPDATE public.personnages_donnees
+       SET est_emprisonne = v_peine || jsonb_build_object('jourFin', v_nouveau, 'jours', v_jours,
+                                                          'avocatUtilise', true)
+     WHERE name = v_moi;
+    v_r := jsonb_build_object('detention_id', v_det.id);
   END IF;
-  RETURN jsonb_build_object('ok',true,'acceptee',true,'reduction',v_reduction,
-                            'jour_fin',v_nouveau,'jours',v_jours,'libere',v_libere,
-                            'detention_id',v_det.id);
+  RETURN v_r || jsonb_build_object('ok',true,'acceptee',true,'reduction',v_reduction,
+                                   'jour_fin',v_nouveau,'jours',v_jours,'libere',v_libere);
 END; $function$;
 
 -- detention_transferer_qhs(text,integer,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -1477,31 +1495,18 @@ CREATE OR REPLACE FUNCTION public.presidence_gracier(p_condamne text, p_jour int
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_president text; v_peine jsonb; v_detention_id text;
+DECLARE v_president text; v_peine jsonb; v_r jsonb;
 BEGIN
   v_president := public.exiger_poste('president');
-
   SELECT est_emprisonne INTO v_peine FROM public.personnages_donnees
-  WHERE name = p_condamne FOR UPDATE;
+   WHERE name = p_condamne FOR UPDATE;
   IF v_peine IS NULL OR jsonb_typeof(v_peine) <> 'object' THEN
     RETURN jsonb_build_object('ok', true, 'libere', false, 'raison', 'non_detenu');
   END IF;
-
-  v_detention_id := v_peine->>'detentionId';
-  UPDATE public.personnages_donnees SET est_emprisonne = NULL WHERE name = p_condamne;
-
-  IF v_detention_id IS NOT NULL THEN
-    UPDATE public.detentions
-    SET mode_fin = 'grace_presidentielle',
-        jour_fin_effective = p_jour,
-        date_fin_effective = now()
-    WHERE id = v_detention_id AND mode_fin IS NULL;
-  END IF;
-
+  v_r := public.detention_clore_interne(p_condamne, 'grace_presidentielle', p_jour);
   RETURN jsonb_build_object('ok', true, 'libere', true,
-                            'president', v_president, 'condamne', p_condamne);
-END;
-$function$;
+                            'president', v_president, 'condamne', p_condamne) || v_r;
+END; $function$;
 
 -- qhs_pouvoir(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.qhs_pouvoir(p_prisonnier_id text, p_acte text)

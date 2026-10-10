@@ -19,6 +19,8 @@ GRANT EXECUTE ON FUNCTION public.contact_organisation_demander(text,text) TO ser
 GRANT EXECUTE ON FUNCTION public.contact_organisation_etat(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.contact_organisation_etat(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.contact_organisation_etat(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.cotisation_renouveler(text,text,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.cotisation_renouveler(text,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.cron_journal_ecrire(text,date,text,text,jsonb,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.cron_journal_ecrire(text,date,text,text,jsonb,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.don_argent_deposer(text,text,integer) TO authenticated;
@@ -106,6 +108,11 @@ GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.succession_regler(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.succession_regler(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.tournee_cloturer(text,boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.tournee_cloturer(text,boolean) TO postgres;
+GRANT EXECUTE ON FUNCTION public.tournee_cloturer(text,boolean) TO service_role;
 
 -- DROITS SUR LES SEQUENCES
 GRANT SELECT, USAGE ON SEQUENCE public.dons_en_attente_id_seq TO anon;

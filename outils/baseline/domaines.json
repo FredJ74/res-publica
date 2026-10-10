@@ -158,6 +158,34 @@
     "politique et elections",
     "pose le bulletin dans votes_electoraux ET le blob du cycle, dans une transaction : la regle du domaine attrape `elections_` au pluriel, pas `election_` au singulier"
    ],
+   "cotisation_renouveler": [
+    "personnage et presence",
+    "renouvelle la cotisation d'un membre d'organisation : elle ecrit organisations (domaine personnage et presence en 2C), la fiche du membre et, pour un club de supporters, budgets_clubs. Aucun prefixe ne l'attrape, et c'est la table de l'ORGANISATION qui porte l'acte"
+   ],
+   "election_resultats_consigner": [
+    "politique et elections",
+    "consigne le depouillement d'un scrutin dans cycles_electoraux, par compare-and-swap sur resultatsTraites, plus l'evenement et la chronique : meme raison qu'election_voter, la regle du domaine attrape `elections_` au pluriel et non `election_` au singulier"
+   ],
+   "succession_regler": [
+    "personnage et presence",
+    "regle une succession ouverte : la table successions est classee personnage et presence en 2C. Elle mute des actifs et credite des heritiers, mais c'est l'etat civil qui porte l'acte -- comme ouvrirSuccession cote client"
+   ],
+   "taux_imposition_fixer": [
+    "finances publiques",
+    "pose le taux local dans budgets_municipaux ou le taux national dans budgets_nationaux, paiement de l'ordre inclus : les deux tables sont finances publiques, et aucun prefixe ne l'attrape (`taux_pret_nationale` est a la banque, pas ici)"
+   ],
+   "taxe_fonciere_prelever": [
+    "finances publiques",
+    "preleve la taxe fonciere d'un terrain et la verse a la recette municipale : la regle economie attrape `terrain_` pour l'immobilier, mais cet acte est une RECETTE PUBLIQUE -- meme raison que recette_municipale, a cote de laquelle elle vit"
+   ],
+   "tournee_cloturer": [
+    "personnage et presence",
+    "clot une tournee offerte : tournees et invitations_diner sont classees personnage et presence en 2C, et elle credite le moral et l'ENT des invites -- un acte social, pas un acte de commerce (la vente, elle, reste a commerce_vendre_produit)"
+   ],
+   "vote_confiance_resoudre": [
+    "politique et elections",
+    "resout un vote de confiance echu, tirage des deputes absents inclus : votes_confiance et votes_confiance_bulletins sont classees politique et elections en 2C. Elle n'est pas `assemblee_` : c'est un scrutin, pas un acte legislatif"
+   ],
    "compromis_expire_resoudre": [
     "banque",
     "resout un compromis de vente ou de rachat arrive a echeance, tirage du pret bancaire inclus : elle vit a cote de resoudre_compromis_helvetia_expire, qui est son patron, et la regle du domaine attrape `resoudre_compromis` mais pas `compromis_`"

@@ -265,6 +265,12 @@
    "sous": ""
   },
   {
+   "empreinte": "8c1c287733f0f82f75f1263d8d941cfe",
+   "genre": "FUNCTION",
+   "objet": "taxe_fonciere_prelever(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "09935c69152ac6eb9c14f63b95bfb7c7",
    "genre": "TABLE",
    "objet": "budgets_municipaux",
@@ -1646,6 +1652,36 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "taux_imposition_fixer(text,integer,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "taux_imposition_fixer(text,integer,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "taux_imposition_fixer(text,integer,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "taxe_fonciere_prelever(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "taxe_fonciere_prelever(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "vente_structure_encaisser(text,integer,integer,text,text)",
    "privileges": "EXECUTE"
   },
@@ -2207,13 +2243,13 @@
  "fichiers": {
   "10_tables.sql": "79e1c0f037aeec8c2a1661608025a4b5",
   "20_fonctions-1.sql": "f937e50af2c43ac48ee9fdefb90df244",
-  "20_fonctions-2.sql": "84e6e77461bfec180e72379a4c4e2d10",
+  "20_fonctions-2.sql": "c8a1ed361831294bff92d081e99b7e40",
   "30_contraintes.sql": "ad9c26714715423fc522c3407cfa99b4",
   "35_index.sql": "84a42ccef20ead05e8f4e25e19897707",
   "50_triggers.sql": "067150f9f5869ca7c1347437c1f5f6c4",
   "60_rls-policies.sql": "5550ba5434e706dc1a502c28b339b4c2",
-  "70_droits.sql": "75c9cccef802f019f2cdc8d1faea6d9d",
-  "80_commentaires.sql": "3383664e53ce9259d82fe9ecf64acd15"
+  "70_droits.sql": "5aa56ec936c721b82a10e743022dcb67",
+  "80_commentaires.sql": "e7e252a72f5a3e919cbf8995656fb276"
  },
  "fonctions": [
   {
@@ -2520,6 +2556,16 @@
    "empreinte": "071cabc8d1636da0e2ba5e386bb241b9",
    "security_definer": true,
    "signature": "subvention_citoyen_verser(text,integer)"
+  },
+  {
+   "empreinte": "4e767e89c5fbc5bfd5cd12184f96b469",
+   "security_definer": true,
+   "signature": "taux_imposition_fixer(text,integer,text,integer,integer)"
+  },
+  {
+   "empreinte": "d42145292864a17d8254b50f9f840969",
+   "security_definer": true,
+   "signature": "taxe_fonciere_prelever(text)"
   },
   {
    "empreinte": "50cbd75871b9bb5b447895a52455c465",

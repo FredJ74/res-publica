@@ -10,6 +10,52 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- fixer_prix_vente_directe(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.fixer_prix_vente_directe(p_acteur text, p_pays text, p_prix jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_poste text; v_ville text; v_bat text; v_produits jsonb; v_id text;
+  v_etat jsonb; v_usine jsonb; v_pm jsonb := '{}'::jsonb;
+  v_cle text; v_val numeric; v_base numeric; v_min numeric; v_max numeric;
+BEGIN
+  PERFORM public.exiger_acteur(p_acteur);
+  SELECT poste->>'id' INTO v_poste FROM public.personnages_donnees WHERE name = p_acteur;
+  SELECT ville, building_id, produits INTO v_ville, v_bat, v_produits
+  FROM public.directeurs_usine WHERE poste_id = v_poste;
+  IF v_bat IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_detenu', 'poste_reel', v_poste);
+  END IF;
+
+  FOR v_cle, v_val IN SELECT key, (value #>> '{}')::numeric FROM jsonb_each(coalesce(p_prix,'{}'::jsonb)) LOOP
+    IF NOT (v_produits ? v_cle) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'produit_hors_usine', 'cle', v_cle);
+    END IF;
+    SELECT prix_base INTO v_base FROM public.ressources_economie WHERE cle = v_cle;
+    IF v_base IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'ressource_inconnue', 'cle', v_cle); END IF;
+    -- Fourchette +/-40 %, arrondie au centime, exactement comme cote client.
+    v_min := round(v_base * 0.6, 2); v_max := round(v_base * 1.4, 2);
+    IF v_val IS NULL OR v_val < v_min OR v_val > v_max THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'prix_hors_fourchette',
+                                'cle', v_cle, 'min', v_min, 'max', v_max);
+    END IF;
+    v_pm := jsonb_set(v_pm, ARRAY[v_cle], to_jsonb(round(v_val, 2)));
+  END LOOP;
+
+  v_id := p_pays || '_' || v_ville || '_' || v_bat;
+  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
+  IF v_etat IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'usine_introuvable'); END IF;
+  v_usine := coalesce(v_etat->'usine', '{}'::jsonb);
+  UPDATE public.batiments_etat
+     SET data = to_jsonb((v_etat || jsonb_build_object('usine',
+           v_usine || jsonb_build_object('prixManuel', v_pm)))::text), updated_at = now()
+   WHERE id = v_id;
+  RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
+END; $function$;
+
 -- fixer_repartition_port(text,numeric,numeric,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.fixer_repartition_port(p_cle text, p_capitale numeric, p_ville_a numeric, p_ville_b numeric)
  RETURNS jsonb

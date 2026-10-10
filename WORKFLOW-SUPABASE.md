@@ -387,6 +387,136 @@ PERFORM set_config('role', 'authenticated', true);
 *aussi* pour un appel serveur. Les deux comportements sont légitimes, mais ils
 sont **opposés** — vérifier lequel on utilise avant d'écrire la preuve.
 
+## Un acte à plusieurs étapes : une sous-transaction par étape
+
+Un acte économique qui porte sur plusieurs représentations ne doit pas pouvoir
+être **partiellement appliqué**. La réponse réflexe est une transaction unique,
+tout ou rien. Elle est souvent juste — et parfois elle **détruit une propriété de
+conception**.
+
+Le règlement d'une succession en est l'exemple. Son architecture tient à
+l'**indépendance des dispositions** : un marqueur par disposition, deux
+marqueurs fiscaux distincts, précisément pour qu'une étape qui échoue n'en
+bloque aucune autre. Une transaction tout ou rien ferait qu'un terrain
+introuvable empêcherait indéfiniment le règlement de l'argent.
+
+Le patron qui tient les deux exigences est la **sous-transaction** : chaque étape
+dans son propre bloc `BEGIN … EXCEPTION WHEN others THEN …`.
+
+```sql
+FOR i IN 0 .. n LOOP
+  BEGIN
+    <mutation de l'étape i>
+    <pose du marqueur de l'étape i>     -- dans le MÊME bloc : jamais l'un sans l'autre
+  EXCEPTION WHEN others THEN
+    v_echecs := array_append(v_echecs, i::text || ':' || sqlerrm);
+  END;
+END LOOP;
+```
+
+Son échec annule **sa** mutation **et son** marqueur, laisse acquises les étapes
+déjà réussies, et la transaction externe commite celles-là. Un seul aller-retour
+HTTP là où il en fallait deux par étape.
+
+**Deux pièges mesurés.** (1) Les affectations de variables PL/pgSQL ne sont
+**pas** transactionnelles : une variable modifiée avant l'exception garde sa
+nouvelle valeur. Il faut écrire dans une variable temporaire et ne l'affecter à
+la variable de travail qu'**après** l'`UPDATE` réussi. (2) Les étapes refusées
+doivent être **nommées** dans le verdict, sinon on a remplacé un `catch` avalé
+par un silence plus propre.
+
+## Le client transmet un PATCH ; le serveur fusionne sur l'état réel
+
+`sbSetTerrainState` et ses pareilles écrivent `data` **en entier**. D'où deux
+défauts qui se ressemblent peu et qui ont la même cause :
+
+- un appelant qui lui passe un **patch partiel** de quatre clés **efface tout le
+  reste** du blob ;
+- un appelant qui lui passe l'**état fusionné de son cache** écrase ce que le
+  serveur a écrit entretemps — cron de minuit, RPC d'un autre joueur — dès que ce
+  cache n'a pas été rafraîchi juste avant.
+
+Le second est le plus traître : le code paraît correct, et il l'est tant que
+personne d'autre n'écrit.
+
+La porte prend donc un **patch** et le fusionne elle-même, sur l'état lu `FOR
+UPDATE` :
+
+```sql
+SELECT t.data::jsonb INTO v_data FROM public.terrains_etat t
+ WHERE t.id = p_id FOR UPDATE;
+v_data := coalesce(v_data,'{}'::jsonb) || p_patch;     -- le reste survit, par construction
+```
+
+Le client ne décide plus de ce qu'il **conserve**, seulement de ce qu'il
+**change**. Et le verdict lui rend l'état arrêté par le serveur, qu'il recopie
+dans son cache — jamais un calcul local.
+
+## Un paramètre que le client dicte et qui borne une autorisation est une faille
+
+`approvisionner_chantier` recevait `p_tresorerie` du navigateur. Elle est
+`SECURITY DEFINER`, elle relit le stock réel de l'entrepôt, elle applique les
+prix du miroir : tout paraît côté serveur. Mais c'est `p_tresorerie` qui calcule
+le pouvoir d'achat —
+
+```sql
+v_abordable := floor(greatest(0, coalesce(p_tresorerie,0) - v_depense) / v_prix);
+```
+
+— et un client modifié annonçant une trésorerie énorme **vidait l'entrepôt sans
+rien payer**, puisque le débit du chantier, lui, n'était écrit par personne.
+
+**La règle :** dans une porte, tout paramètre qui **borne** un droit, un montant
+ou une quantité doit être **lu en base**, jamais reçu. Un paramètre reçu ne peut
+être qu'une **intention** (quoi faire, sur quoi) ou une **donnée inoffensive**
+(un besoin qui sera de toute façon plafonné par le réel). Et quand une porte
+cesse d'accepter un tel paramètre, l'ancien chemin doit perdre son `EXECUTE`
+client — sinon il reste la faille, à côté de sa correction.
+
+## Une écriture cliente sur la fiche d'autrui LÈVE, elle ne rend pas zéro ligne
+
+Mesure faite le 10 octobre 2026, et elle change le diagnostic de toute une
+famille de défauts. Un `sbUpdate('personnages', …)` visant **un autre joueur**
+ne renvoie pas « 0 ligne modifiée » : il **lève** `personnage_non_possede`
+(`ERRCODE 42501`), depuis le déclencheur `personnages_vue_modifier` de la vue
+`public.personnages` — la politique `personnages_maj_soi` réservant l'`UPDATE` à
+`user_id = auth.uid()`.
+
+Conséquence pratique : **un `.catch(() => {})` sur un tel appel ne masque pas un
+échec rare, il masque un échec SYSTÉMATIQUE.** Le crédit social des invités d'une
+tournée n'est jamais arrivé depuis le chantier B — le jeu l'annonçait pourtant
+dans un toast et dans le Journal.
+
+Quand un commentaire parle de « dette transactionnelle » à propos d'une écriture
+cross-joueur, se méfier : le problème n'est probablement pas l'atomicité, c'est
+l'**autorité**. Et la correction n'est pas une RPC qui refait la même écriture :
+c'est une porte qui vise la **table** `personnages_donnees`, pas la vue.
+
+## Résoudre sur le miroir généré, jamais sur un doublon
+
+`clubs_sportifs_regles` et `clubs_football` portent les **mêmes douze clubs**.
+Seule la seconde est **générée** depuis `CLUBS_SPORTIFS` (`data.js`) par
+`outils/generateurs/generer_clubs_football.py` et surveillée par une empreinte.
+
+Une porte qui résout « quel club pour cette ville ? » doit lire **le miroir
+généré**. Lire le doublon marche aujourd'hui — 12/12 lignes coïncident, vérifié —
+et fera divergere la règle du jeu le jour où un club bougera dans `data.js`.
+Avant d'appuyer une résolution sur une table, vérifier qu'un **générateur** la
+recalcule ; `baseline/CLASSIFICATION.md` nomme les doublons connus.
+
+## Deux détails de catalogue qui ont fait échouer une preuve
+
+**`pg_get_function_identity_arguments` rend les NOMS des paramètres**, pas
+seulement les types : `p_orga_id text, p_membre text, p_saison integer`, et non
+`text, text, integer`. Une preuve qui filtre une fonction sur ce champ en
+croyant n'y trouver que des types ne trouve rien, et déclare la fonction absente.
+
+**La limite de transport du canal de migration** est d'environ 12 500 caractères
+de SQL. Quand un corps de fonction plus ses preuves la dépassent, les séparer en
+**deux migrations** — la seconde ne portant que les preuves structurelles — et
+**dire dans son en-tête que la séparation est technique**, pour qu'on ne cherche
+pas une raison de conception qui n'existe pas.
+
 ## Ce qui reste à faire une fois
 
 Appliquer le baseline sur un **vrai moteur PostgreSQL neuf**. Aucun n'est

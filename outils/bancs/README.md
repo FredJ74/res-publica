@@ -61,6 +61,15 @@ done
 | `banc-compromis-nocturnes.js` | `resoudreCompromisExpires` et `resoudreCompromisEntreprisesExpires` passent par une **porte unique pour les deux familles**, et le tirage du prêt est dedans. Prouve l'absence totale d'écriture directe, le bon comptage de chaque verdict, et que le cas Helvetia garde **sa** RPC. 34 cas — **23 tombent** sur la version précédente. |
 | `banc-detention-plateau.js` | Les **cinq chaînes judiciaires** de `plateau-justice-economie.js` (ouverture, prolongation, fin de peine, transfert au QHS, sentence). Extrait les **vraies fonctions** du fichier de production par `readFile` : on n'éprouve pas une copie. Prouve qu'il ne reste **aucune écriture cliente** sur `detentions`, `personnages`, `prisonniers_qhs`, `jugements` ni `plaintes_en_cours`, et que **chaque verdict est consommé** — sans verdict, le jeu n'annonce rien et ne pose aucun état local. 61 cas. |
 | `banc-vote-electoral.js` | `voterPour` **n'annonce jamais « Vote enregistré ! » sans écriture autoritaire**. Les sept motifs de refus sont dits honnêtement, les trois pannes qui faisaient annoncer un succès sont couvertes, et les gardes clientes subsistantes n'ajoutent **aucune** règle électorale. 39 cas. |
+| `banc-desertion-liberation.js` | Les **deux libérations de désertion** de `plateau-politique.js` vidaient `state.estEmprisonne` sans jamais clore la ligne `detentions` : le registre carcéral déclarait détenu, indéfiniment, un personnage libre. Prouve qu'une seule porte est appelée, avec le **bon mode de fin**, et que son verdict est consommé — sans lui, personne n'est libéré et personne n'est conduit à la caserne. 32 cas. |
+| `banc-taxe-fonciere.js` | `preleverTaxeFonciere` n'émet plus **aucune écriture directe** et ne relit ni le budget municipal ni la fiche du propriétaire. Les cinq refus « rien à faire » ne sont **pas** signalés comme des échecs, un refus inconnu l'est, et **aucun verdict n'est jamais une collecte**. 29 cas — **25 tombent** sur la version précédente. |
+| `banc-calendrier-electoral.js` | Banc **structurel** : le dépouillement est un bloc inline dans le gestionnaire du cron, qu'on ne peut extraire sans rejouer la passe entière. Prouve qu'il n'y a plus aucune annonce écrite en direct, exactement **une** consignation, que chaque branche **décide sans écrire**, et que `resoudreScrutinSimple` / `resoudreScrutinDepute` ne tirent **rien** au sort — ce que l'audit affirmait à tort. 21 cas — **18 tombent** sur la version précédente. |
+| `banc-cotisations-organisations.js` | `renouvellerCotisationsOrganisations` n'émet plus aucune écriture directe et ne relit plus la fiche du membre. Prouve surtout que la **règle d'échéance est inchangée** — saison pour les supporters, trois mois calendaires pour le Syndicat des Dockers, jamais pour les autres organisations — et qu'un membre qui n'est pas dû n'est même pas présenté à la porte. 33 cas — **24 tombent** sur la version précédente. |
+| `banc-successions-reglement.js` | `reglerSuccession` n'émet plus aucune écriture de règlement, mais **garde** la persistance de la phase de décision — et le banc l'exige, écrite **avant** l'appel : la supprimer ferait muter des actifs sur une décision jamais enregistrée. Prouve qu'un règlement partiel n'est pas un succès silencieux : l'étape refusée est nommée même quand le reste a abouti. 25 cas — **18 tombent** sur la version précédente. |
+| `banc-taux-imposition.js` | Les deux chemins de fixation d'un taux n'appellent plus **aucune** ancienne primitive, ne transmettent **aucune clé de budget** ni aucun pays, et le taux annoncé est **celui rendu par le serveur**, jamais celui du curseur. Les cinq refus propres à l'acte sont nommés, les motifs de paiement délégués au nommeur déjà en place. Prouve aussi que le **doublon mort** a disparu du fichier. 42 cas. |
+| `banc-tournee-cloture.js` | Les **quatre sorties** de `resoudreTournee` passent par **une** porte, avec le bon drapeau `servie`. Prouve que sans clôture confirmée la tournée n'est **pas** annoncée servie et que le gain local n'est pas posé — le joueur est averti que la reprise automatique s'en chargera. Prouve enfin que les trois anciennes primitives ont quitté le fichier. 34 cas. |
+| `banc-mutation-terrain.js` | `finaliserAchatTerrain` transmet un **patch** et un **titre**, jamais un blob de cache — avec un **témoin que seul le serveur connaît**, sans quoi l'épreuve du cache ne prouverait rien. La **purge de la réservation** voyage dans le même patch : c'était la seconde moitié du défaut, et sa perte faisait repayer le solde. Sans verdict, l'acheteur n'est pas annoncé propriétaire et le cache n'est pas touché. 46 cas. |
+| `banc-appro-chantier.js` | Banc **structurel** : les deux approvisionnements vivent au milieu de deux fonctions de plus de cent lignes. Prouve que le moteur de l'entrepôt n'est plus appelé par le navigateur, que ni la trésorerie ni le stock du chantier ne sont plus transmis, que le repli `|| { depense: 0 }` a disparu, et que la **dette restante est consignée dans le code** à l'endroit où elle subsiste. 23 cas — **22 tombent** sur la version précédente. |
 
 > **`decor-env-serveur.js` n'est pas un banc**, c'est un décor : il pose une identité serveur
 > **avant** le chargement des modules de `api/`, parce que `cron-minuit.js` lit sa clé au
@@ -109,25 +118,37 @@ $JSC /tmp/banc-avant.js    # doit échouer
 
 ## Les contre-épreuves comme outil, pas comme geste manuel
 
-Depuis le 9 octobre 2026, deux bancs ont leurs contre-épreuves **automatisées** :
+Depuis le 9 octobre 2026, les contre-épreuves sont **automatisées** :
 
 ```
 python3 outils/bancs/contre-epreuves-chantier5.py
 ```
 
-Ce script réinjecte **douze régressions** nommées — chacune étant exactement le
-défaut que le lot a fermé — dans une **copie temporaire** du fichier de
-production, relance le banc sur cette copie, et exige non seulement qu'il
-rougisse, mais qu'il rougisse **sur l'épreuve attendue**. Un banc qui tombe
-ailleurs est signalé comme ne prouvant pas ce qu'il prétend.
+Ce script réinjecte **trente-huit régressions** nommées, en **huit séries** —
+détention, vote électoral, libérations de désertion, cotisations d'organisation,
+règlement des successions, taux d'imposition, clôture de tournée et mutation de
+propriété d'un terrain. Chacune est exactement le défaut que le lot a fermé. Il
+les pose dans une **copie temporaire** du fichier de production, relance le banc
+sur cette copie, et exige non seulement qu'il rougisse, mais qu'il rougisse
+**sur l'épreuve attendue**. Un banc qui tombe ailleurs est signalé comme ne
+prouvant pas ce qu'il prétend.
 
-Le fichier de production n'est jamais modifié : les bancs
-`banc-detention-plateau.js` et `banc-vote-electoral.js` lisent leur source par
-`readFile`, et acceptent une variable `CHEMIN_SOURCE` que le script leur pose.
-C'est ce qui rend la contre-épreuve rejouable sans manipulation de dépôt.
+Le fichier de production n'est jamais modifié. Deux mécanismes de substitution
+coexistent, parce que les bancs ne chargent pas leur source de la même manière :
 
-Pour un banc du cron, la contre-épreuve reste une ligne de commande, parce que
-la version d'avant est déjà dans Git :
+- les bancs qui **extraient** les fonctions par `readFile` acceptent une
+  variable `CHEMIN_SOURCE` que le script leur pose (`lancer()`) ;
+- les bancs du cron **chargent** leur fichier comme un module : la copie patchée
+  leur est donnée en **dernière source** sur la ligne de commande
+  (`lancer_sources()`), à la place du fichier de production.
+
+Un détail qui a coûté une fausse alerte : les deux familles de bancs ne
+préfixent pas leurs échecs de la même façon — `  *** ` pour les uns, `  NON `
+pour les autres. Le script reconnaît les deux.
+
+Pour un banc dont on veut la contre-épreuve **complète** plutôt qu'une
+régression ciblée, la ligne de commande suffit, parce que la version d'avant est
+déjà dans Git :
 
 ```bash
 git show HEAD:api/cron-minuit.js > /tmp/avant.js

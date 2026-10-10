@@ -22,6 +22,8 @@ GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp
 GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) TO service_role;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO postgres;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO service_role;
+GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO service_role;
@@ -63,6 +65,8 @@ GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO PUBL
 GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO postgres;
 GRANT EXECUTE ON FUNCTION public.postes_nommes_regles_empreinte_reelle() TO service_role;
+GRANT EXECUTE ON FUNCTION public.vote_confiance_resoudre(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.vote_confiance_resoudre(text) TO service_role;
 
 -- DROITS SUR LES SEQUENCES
 GRANT SELECT, USAGE ON SEQUENCE public.elections_tracts_pnj_id_seq TO anon;
@@ -119,6 +123,6 @@ GRANT SELECT ON TABLE public.votes_confiance_bulletins TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.votes_confiance_bulletins TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.votes_confiance_bulletins TO service_role;
 GRANT SELECT ON TABLE public.votes_electoraux TO anon;
-GRANT DELETE, INSERT, SELECT ON TABLE public.votes_electoraux TO authenticated;
+GRANT DELETE, SELECT ON TABLE public.votes_electoraux TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.votes_electoraux TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.votes_electoraux TO service_role;

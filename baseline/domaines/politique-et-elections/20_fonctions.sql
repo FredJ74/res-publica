@@ -268,6 +268,51 @@ BEGIN
 END;
 $function$;
 
+-- election_resultats_consigner(text,jsonb,jsonb,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.election_resultats_consigner(p_cycle_id text, p_data jsonb, p_evenement jsonb DEFAULT NULL::jsonb, p_chronique jsonb DEFAULT NULL::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_n integer; v_ev integer := 0; v_ch integer := 0;
+BEGIN
+  IF coalesce(btrim(p_cycle_id),'') = '' OR p_data IS NULL OR jsonb_typeof(p_data) <> 'object' THEN
+    RAISE EXCEPTION 'election_resultats_consigner : cycle et blob sont obligatoires';
+  END IF;
+  -- COMPARE-AND-SWAP SUR LE DRAPEAU DU CYCLE. La garde est dans le FILTRE, pas dans le corps :
+  -- deux passes simultanees ne peuvent pas proclamer le meme scrutin, et un rejeu lit zero ligne.
+  -- Un cycle inconnu donne aussi zero ligne : aucune annonce ne peut partir sans son cycle.
+  UPDATE public.cycles_electoraux
+     SET data = p_data::text, updated_at = now()
+   WHERE id = p_cycle_id
+     AND coalesce((data::jsonb ->> 'resultatsTraites')::boolean, false) = false;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_traite');
+  END IF;
+
+  IF jsonb_typeof(p_evenement) = 'object' THEN
+    INSERT INTO public.evenements_globaux (country, city, texte, jour)
+    VALUES (p_evenement ->> 'country', p_evenement ->> 'city', p_evenement ->> 'texte', NULL);
+    v_ev := 1;
+  END IF;
+  -- L'identifiant de la chronique vient de l'appelant et est DEJA deterministe
+  -- (election-<cycle>-<dateResultats>) : le ON CONFLICT est une seconde barriere, pas la premiere.
+  IF jsonb_typeof(p_chronique) = 'object' THEN
+    INSERT INTO public.chronique_nationale (id, country, city, type, personnages, libelle, data, source_ref)
+    VALUES (p_chronique ->> 'id', p_chronique ->> 'country', p_chronique ->> 'city',
+            p_chronique ->> 'type',
+            CASE WHEN jsonb_typeof(p_chronique -> 'personnages') = 'array'
+                 THEN p_chronique -> 'personnages' ELSE '[]'::jsonb END,
+            p_chronique ->> 'libelle', p_chronique -> 'data', p_chronique ->> 'source_ref')
+    ON CONFLICT (id) DO NOTHING;
+    GET DIAGNOSTICS v_ch = ROW_COUNT;
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'cycle', p_cycle_id,
+                            'evenement_pose', v_ev = 1, 'chronique_posee', v_ch = 1);
+END; $function$;
+
 -- election_voter(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.election_voter(p_pays text, p_poste_id text, p_ville text, p_candidat text)
  RETURNS jsonb
@@ -925,3 +970,83 @@ AS $function$
       E'\n' ORDER BY poste_id COLLATE "C")), 16)
   FROM public.postes_nommes_regles;
 $function$;
+
+-- vote_confiance_resoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.vote_confiance_resoudre(p_vote_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_vote record; v_bulletins jsonb; v_pour int := 0; v_contre int := 0;
+  v_votants int := 0; v_isn numeric := 30; v_chance numeric; v_sieges int;
+  v_confiance boolean; v_resultat text; v_i int;
+BEGIN
+  -- LE VERROU SUR LE VOTE EST LA REVENDICATION : deux passes simultanees se serialisent ici, et
+  -- la seconde lit 'termine'.
+  SELECT * INTO v_vote FROM public.votes_confiance WHERE id = p_vote_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','vote_introuvable'); END IF;
+  IF coalesce(v_vote.statut,'') <> 'en_cours' THEN
+    RETURN jsonb_build_object('ok',false,'raison','deja_resolu','statut',v_vote.statut); END IF;
+  IF v_vote.cloture_ts IS NULL OR now() < v_vote.cloture_ts THEN
+    RETURN jsonb_build_object('ok',false,'raison','pas_echu'); END IF;
+
+  v_bulletins := coalesce(v_vote.bulletins, '{}'::jsonb);
+  -- LES DEPUTES PJ REELLEMENT EN POSTE, et seuls ceux qui ont vote. Meme regle qu'avant :
+  -- poste_depute.id = 'depute' sur une fiche du pays du vote. Et meme convention de
+  -- depouillement : un bulletin present qui n'est pas « pour » compte CONTRE.
+  SELECT count(*) FILTER (WHERE v_bulletins ->> d.name = 'pour'),
+         count(*) FILTER (WHERE (v_bulletins ? d.name) AND v_bulletins ->> d.name <> 'pour'),
+         count(*) FILTER (WHERE v_bulletins ? d.name)
+    INTO v_pour, v_contre, v_votants
+    FROM public.personnages_donnees d
+   WHERE d.country = v_vote.country
+     AND (d.poste_depute ->> 'id') = 'depute';
+
+  -- Pas d'ISN national persiste cote serveur : l'ISN de la capitale est le meilleur proxy
+  -- disponible, avec 30 en repli -- meme ecart d'architecture qu'avant, sciemment non traite.
+  IF v_vote.country = 'republic' THEN
+    SELECT coalesce(nullif(i.data ->> 'isn','')::numeric, 30) INTO v_isn
+      FROM public.indices_villes i WHERE i.id = v_vote.country || '_capitale';
+    v_isn := coalesce(v_isn, 30);
+  END IF;
+  v_chance := least(85, 30 + v_isn / 2);
+  -- 9 sieges : 3 reels par ville. LE TIRAGE DES SIEGES RESTANTS EST ICI, dans la transaction qui
+  -- ecrit le resultat : un rejeu ne peut plus le refaire.
+  v_sieges := greatest(0, 9 - v_votants);
+  FOR v_i IN 1 .. v_sieges LOOP
+    IF random() * 100 < v_chance THEN v_contre := v_contre + 1; ELSE v_pour := v_pour + 1; END IF;
+  END LOOP;
+
+  v_confiance := v_pour > v_contre;
+  v_resultat  := CASE WHEN v_confiance THEN 'confiance' ELSE 'censure' END;
+
+  -- Le Premier Ministre n'est PLUS destitue automatiquement (arbitrage du 4 septembre 2026) :
+  -- seule une consequence differee s'applique s'il n'a pas demissionne a l'echeance.
+  UPDATE public.votes_confiance
+     SET statut = 'termine', resultat = v_resultat,
+         demission_limite_ts = CASE WHEN v_confiance THEN NULL
+                                    ELSE now() + interval '48 hours' END
+   WHERE id = p_vote_id;
+
+  INSERT INTO public.evenements_globaux (country, city, texte, jour)
+  VALUES (v_vote.country, NULL,
+    '🏛 Vote de confiance : ' || v_pour::text || ' POUR / ' || v_contre::text || ' CONTRE. ' ||
+    CASE WHEN v_confiance
+      THEN 'Le gouvernement de ' || v_vote.pm_nom || ' obtient la confiance.'
+      ELSE 'Le gouvernement de ' || v_vote.pm_nom || ' est CENSURÉ. Le Premier Ministre est politiquement appelé à démissionner sous 48h.'
+    END, NULL);
+
+  IF NOT v_confiance THEN
+    PERFORM public.mail_systeme_poser_interne('Assemblée Nationale', v_vote.pm_nom,
+      'Motion de censure adoptée',
+      'L''Assemblée Nationale a retiré sa confiance à votre gouvernement (' || v_pour::text ||
+      ' pour / ' || v_contre::text || ' contre). Vous êtes politiquement appelé(e) à démissionner sous 48h réelles. Passé ce délai sans démission, votre popularité et celle de tout le gouvernement tomberont à zéro -- vos postes ne seront cependant jamais retirés automatiquement.',
+      to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY'));
+  END IF;
+
+  RETURN jsonb_build_object('ok',true,'vote_id',p_vote_id,'country',v_vote.country,
+                            'resultat',v_resultat,'pour',v_pour,'contre',v_contre,
+                            'sieges_tires',v_sieges);
+END; $function$;

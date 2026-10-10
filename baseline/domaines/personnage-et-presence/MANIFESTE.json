@@ -380,6 +380,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "cotisation_renouveler(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cotisation_renouveler(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "cron_journal_ecrire(text,date,text,text,jsonb,integer)",
    "privileges": "EXECUTE"
   },
@@ -897,6 +909,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "referent_pedagogie_noter_sujet(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "succession_regler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "succession_regler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tournee_cloturer(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_cloturer(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tournee_cloturer(text,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -1570,13 +1612,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "17980d86dcd01212515d3ce61d98234b",
-  "20_fonctions.sql": "46177a9b13251148fe5ea77a7bc042bd",
+  "20_fonctions.sql": "4a7642fe9850e80b0f66792595a9e11c",
   "30_contraintes.sql": "ffb82407241f2ab9009cb2ce2514c1e3",
   "35_index.sql": "4634a1852b44770bf0d1a9fd7ffdf625",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "46bf9e3523c013962906bf1058d61e54",
   "60_rls-policies.sql": "fb39aea624fbe902a64a31b5f687886e",
-  "70_droits.sql": "3602d159095ac705fa13e12270d92d53",
+  "70_droits.sql": "e20933cd36984f3509b804e4501533ca",
   "80_commentaires.sql": "cf9a10b2cad9994f52d458a3b0a84f9e"
  },
  "fonctions": [
@@ -1594,6 +1636,11 @@
    "empreinte": "1bc87d02da0e5995ffe55cd18786c071",
    "security_definer": true,
    "signature": "contact_organisation_etat(text,text)"
+  },
+  {
+   "empreinte": "e5a0366ba94b3c387baf911e70ae7f7b",
+   "security_definer": true,
+   "signature": "cotisation_renouveler(text,text,integer)"
   },
   {
    "empreinte": "6a1393fb9e04754b81b6b0a28fd6e03e",
@@ -1764,6 +1811,16 @@
    "empreinte": "10f1d1bbfcde8c5146fb20f7c9ed457a",
    "security_definer": true,
    "signature": "referent_pedagogie_noter_sujet(text,text)"
+  },
+  {
+   "empreinte": "d9a7dadfac1e0fa61033d9f7741b4df8",
+   "security_definer": true,
+   "signature": "succession_regler(text)"
+  },
+  {
+   "empreinte": "3ab55ed0fe18113871a9ac5d9d5b24cd",
+   "security_definer": true,
+   "signature": "tournee_cloturer(text,boolean)"
   }
  ],
  "index_autonomes": [

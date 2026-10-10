@@ -748,6 +748,73 @@ CREATE OR REPLACE FUNCTION public.capacite_entrepot()
  SET search_path TO 'public', 'pg_temp'
 AS $function$ SELECT 5000; $function$;
 
+-- chantier_approvisionner(text,text,text,jsonb,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.chantier_approvisionner(p_terrain_id text, p_cle_chantier text, p_entrepot text, p_besoin jsonb, p_jour integer DEFAULT NULL::integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_cle text; v_data jsonb; v_ch jsonb; v_pays text; v_ville text;
+  v_plan jsonb; v_dep numeric; v_evts jsonb;
+BEGIN
+  IF p_cle_chantier NOT IN ('chantier','chantierReamenagement') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chantier_inconnu');
+  END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT t.id, t.data::jsonb, t.country INTO v_cle, v_data, v_pays
+    FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1 FOR UPDATE;
+  IF v_cle IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'terrain_introuvable'); END IF;
+  v_data := coalesce(v_data, '{}'::jsonb);
+
+  -- SEUL LE PROPRIETAIRE APPROVISIONNE SON CHANTIER. Rien ne le verifiait.
+  IF (v_data ->> 'proprietaire') IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_terrain');
+  END IF;
+
+  v_ch := v_data -> p_cle_chantier;
+  IF v_ch IS NULL OR jsonb_typeof(v_ch) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_chantier');
+  END IF;
+  v_ville := coalesce(nullif(v_data ->> 'city', ''), 'capitale');
+
+  -- LE STOCK ET LA TRESORERIE VIENNENT DE LA BASE, PLUS DU NAVIGATEUR. C'est le second defaut.
+  v_plan := public.approvisionner_chantier(
+    v_moi, v_pays, v_ville, p_entrepot, coalesce(p_besoin, '{}'::jsonb),
+    coalesce(v_ch -> 'stockMateriaux', '{}'::jsonb),
+    greatest(0, coalesce((v_ch ->> 'tresorerie')::numeric, 0)));
+  IF NOT coalesce((v_plan ->> 'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison',
+                              coalesce(v_plan ->> 'raison','approvisionnement_refuse'));
+  END IF;
+  v_dep := coalesce((v_plan ->> 'depense')::numeric, 0);
+
+  -- LA CONTREPARTIE, DANS LA MEME TRANSACTION QUE LE DEBIT DE L'ENTREPOT.
+  IF v_dep > 0 THEN
+    v_evts := CASE WHEN jsonb_typeof(v_ch -> 'evenements') = 'array'
+                   THEN v_ch -> 'evenements' ELSE '[]'::jsonb END;
+    v_evts := v_evts || jsonb_build_array(jsonb_build_object(
+      'cle', 'approvisionnement', 'jour', coalesce(p_jour, 1),
+      'achats', v_plan -> 'achats', 'cout', v_dep));
+    v_ch := v_ch
+      || jsonb_build_object('stockMateriaux', v_plan -> 'stockChantier',
+           'tresorerie', greatest(0, coalesce((v_ch ->> 'tresorerie')::numeric, 0) - v_dep),
+           'evenements', v_evts);
+    v_data := jsonb_set(v_data, ARRAY[p_cle_chantier], v_ch, true);
+    UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = v_cle;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'depense', v_dep, 'achats', v_plan -> 'achats',
+    'cle', v_cle, 'chantier', v_ch);
+END; $function$;
+
 -- chantier_lancer(text,text,text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.chantier_lancer(p_acteur text, p_pays text, p_batiment text, p_palier text, p_apport numeric)
  RETURNS jsonb
@@ -2916,52 +2983,6 @@ BEGIN
   UPDATE public.batiments_etat
      SET data = to_jsonb((v_etat || jsonb_build_object('entrepot',
            v_entrepot || jsonb_build_object('prixManuel', v_pm)))::text), updated_at = now()
-   WHERE id = v_id;
-  RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
-END; $function$;
-
--- fixer_prix_vente_directe(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.fixer_prix_vente_directe(p_acteur text, p_pays text, p_prix jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_poste text; v_ville text; v_bat text; v_produits jsonb; v_id text;
-  v_etat jsonb; v_usine jsonb; v_pm jsonb := '{}'::jsonb;
-  v_cle text; v_val numeric; v_base numeric; v_min numeric; v_max numeric;
-BEGIN
-  PERFORM public.exiger_acteur(p_acteur);
-  SELECT poste->>'id' INTO v_poste FROM public.personnages_donnees WHERE name = p_acteur;
-  SELECT ville, building_id, produits INTO v_ville, v_bat, v_produits
-  FROM public.directeurs_usine WHERE poste_id = v_poste;
-  IF v_bat IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_detenu', 'poste_reel', v_poste);
-  END IF;
-
-  FOR v_cle, v_val IN SELECT key, (value #>> '{}')::numeric FROM jsonb_each(coalesce(p_prix,'{}'::jsonb)) LOOP
-    IF NOT (v_produits ? v_cle) THEN
-      RETURN jsonb_build_object('ok', false, 'raison', 'produit_hors_usine', 'cle', v_cle);
-    END IF;
-    SELECT prix_base INTO v_base FROM public.ressources_economie WHERE cle = v_cle;
-    IF v_base IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'ressource_inconnue', 'cle', v_cle); END IF;
-    -- Fourchette +/-40 %, arrondie au centime, exactement comme cote client.
-    v_min := round(v_base * 0.6, 2); v_max := round(v_base * 1.4, 2);
-    IF v_val IS NULL OR v_val < v_min OR v_val > v_max THEN
-      RETURN jsonb_build_object('ok', false, 'raison', 'prix_hors_fourchette',
-                                'cle', v_cle, 'min', v_min, 'max', v_max);
-    END IF;
-    v_pm := jsonb_set(v_pm, ARRAY[v_cle], to_jsonb(round(v_val, 2)));
-  END LOOP;
-
-  v_id := p_pays || '_' || v_ville || '_' || v_bat;
-  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
-  IF v_etat IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'usine_introuvable'); END IF;
-  v_usine := coalesce(v_etat->'usine', '{}'::jsonb);
-  UPDATE public.batiments_etat
-     SET data = to_jsonb((v_etat || jsonb_build_object('usine',
-           v_usine || jsonb_build_object('prixManuel', v_pm)))::text), updated_at = now()
    WHERE id = v_id;
   RETURN jsonb_build_object('ok', true, 'prixManuel', v_pm, 'batiment', v_bat);
 END; $function$;

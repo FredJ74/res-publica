@@ -156,6 +156,91 @@ BEGIN
 END;
 $function$;
 
+-- cotisation_renouveler(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.cotisation_renouveler(p_orga_id text, p_membre text, p_saison integer DEFAULT NULL::integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_data jsonb; v_membres jsonb; v_i integer; v_trouve integer := -1;
+  v_type text; v_pays text; v_ville text; v_nom_orga text;
+  v_arg numeric; v_existe boolean; v_club text; v_bc jsonb; v_hist jsonb;
+  v_montant numeric := 50;
+BEGIN
+  SELECT o.data::jsonb INTO v_data FROM public.organisations o
+   WHERE o.id = p_orga_id FOR UPDATE;
+  IF v_data IS NULL THEN RETURN jsonb_build_object('ok',false,'action','organisation_introuvable'); END IF;
+  v_membres := CASE WHEN jsonb_typeof(v_data->'membres')='array' THEN v_data->'membres' ELSE '[]'::jsonb END;
+  FOR v_i IN 0 .. greatest(0, jsonb_array_length(v_membres) - 1) LOOP
+    IF (v_membres -> v_i ->> 'nom') = p_membre THEN v_trouve := v_i; EXIT; END IF;
+  END LOOP;
+  IF v_trouve < 0 THEN RETURN jsonb_build_object('ok',false,'action','membre_introuvable'); END IF;
+  v_type := v_data ->> 'type'; v_pays := v_data ->> 'country'; v_ville := v_data ->> 'city';
+  v_nom_orga := coalesce(v_data ->> 'nom', p_orga_id);
+
+  SELECT true, coalesce(arg,0) INTO v_existe, v_arg FROM public.personnages
+   WHERE name = p_membre FOR UPDATE;
+
+  IF NOT coalesce(v_existe,false) OR v_arg < v_montant THEN
+    -- RESILIATION : le membre quitte la liste, aucune dette n'est creee. Le courrier passe par
+    -- l'unique ecrivain de public.mails ; il notifie, il ne decide pas.
+    v_data := jsonb_set(v_data, '{membres}', v_membres - v_trouve);
+    UPDATE public.organisations SET data = v_data::text WHERE id = p_orga_id;
+    PERFORM public.mail_systeme_poser_interne(v_nom_orga, p_membre,
+      'Fin d''adhésion — cotisation non renouvelée',
+      'Votre adhésion à "' || v_nom_orga || '" a pris fin automatiquement : la cotisation de '
+      || v_montant::text || ' FR n''a pas pu être prélevée. Aucune dette n''est créée.',
+      to_char(now() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+    RETURN jsonb_build_object('ok',true,'action','resiliation','membre',p_membre);
+  END IF;
+
+  UPDATE public.personnages SET arg = v_arg - v_montant WHERE name = p_membre;
+
+  IF v_type = 'supporters' THEN
+    IF p_saison IS NULL THEN
+      RAISE EXCEPTION 'cotisation_renouveler : une organisation de supporters exige la saison';
+    END IF;
+    v_membres := jsonb_set(v_membres, ARRAY[v_trouve::text,'derniereCotisationSaison'], to_jsonb(p_saison));
+    SELECT c.id INTO v_club FROM public.clubs_football c
+     WHERE c.pays = v_pays AND c.ville = v_ville;
+    IF v_club IS NOT NULL THEN
+      SELECT b.data INTO v_bc FROM public.budgets_clubs b WHERE b.id = v_club FOR UPDATE;
+      IF v_bc IS NULL THEN
+        v_bc := jsonb_build_object('clubId', v_club, 'caisse', 0, 'historique', '[]'::jsonb,
+                 'derniereSubventionJour', NULL,
+                 'salaires', jsonb_build_object('titulaire',100,'remplacant',50,'primeVictoire',150));
+      END IF;
+      v_hist := CASE WHEN jsonb_typeof(v_bc->'historique')='array' THEN v_bc->'historique' ELSE '[]'::jsonb END;
+      v_hist := v_hist || jsonb_build_array(jsonb_build_object('jour', NULL, 'montant', v_montant,
+                  'motif', 'Cotisation supporter (renouvellement)'));
+      IF jsonb_array_length(v_hist) > 50 THEN
+        v_hist := (SELECT jsonb_agg(e) FROM (
+          SELECT e FROM jsonb_array_elements(v_hist) WITH ORDINALITY t(e, n)
+           ORDER BY n OFFSET jsonb_array_length(v_hist) - 50) z);
+      END IF;
+      v_bc := v_bc || jsonb_build_object(
+                'caisse', greatest(0, coalesce(nullif(v_bc->>'caisse','')::numeric,0) + v_montant),
+                'historique', v_hist);
+      INSERT INTO public.budgets_clubs (id, data, updated_at) VALUES (v_club, v_bc, now())
+      ON CONFLICT (id) DO UPDATE SET data = excluded.data, updated_at = now();
+    END IF;
+  ELSE
+    v_membres := jsonb_set(v_membres, ARRAY[v_trouve::text,'derniereCotisationDate'],
+                   to_jsonb(to_char(now() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
+    -- Correctif anterieur conserve : la cotisation d'un syndicat alimente SA caisse, sinon les
+    -- 50 FR quittaient le personnage sans arriver nulle part.
+    v_data := jsonb_set(v_data, '{caisse}',
+                to_jsonb(coalesce(nullif(v_data->>'caisse','')::numeric,0) + v_montant), true);
+  END IF;
+
+  v_data := jsonb_set(v_data, '{membres}', v_membres);
+  UPDATE public.organisations SET data = v_data::text WHERE id = p_orga_id;
+  RETURN jsonb_build_object('ok',true,'action','renouvellement','membre',p_membre,
+                            'montant',v_montant,'club',v_club);
+END; $function$;
+
 -- cron_journal_ecrire(text,date,text,text,jsonb,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cron_journal_ecrire(p_tache text, p_jour date, p_statut text, p_erreur text DEFAULT NULL::text, p_contexte jsonb DEFAULT NULL::jsonb, p_duree_ms integer DEFAULT NULL::integer)
  RETURNS jsonb
@@ -1687,3 +1772,203 @@ begin
   return jsonb_build_object('ok', true);
 end;
 $function$;
+
+-- succession_regler(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.succession_regler(p_succession_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  s public.successions; v_disp jsonb; v_nouv jsonb; v_d jsonb; v_i integer;
+  v_benef text; v_reglees integer := 0; v_echecs text[] := '{}'; v_fisc text[] := '{}';
+  v_cloturee boolean := false; v_n integer; v_tid text; v_etat jsonb; v_nat jsonb;
+  v_ok boolean; v_r jsonb;
+BEGIN
+  SELECT * INTO s FROM public.successions WHERE id = p_succession_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'succession_introuvable');
+  END IF;
+  IF s.statut <> 'en_attente' THEN
+    -- Pas une erreur : la cloture a deja eu lieu. Le rejeu ne doit rien faire et le dire.
+    RETURN jsonb_build_object('ok', true, 'raison', 'deja_resolue', 'cloturee', false);
+  END IF;
+
+  v_disp := coalesce(s.dispositions, '[]'::jsonb);
+
+  FOR v_i IN 0 .. greatest(0, jsonb_array_length(v_disp) - 1) LOOP
+    v_d := v_disp -> v_i;
+    CONTINUE WHEN v_d IS NULL;
+    CONTINUE WHEN coalesce((v_d ->> 'regle')::boolean, false);
+    -- Une disposition sans decision tranchee n'est pas reglable. L'appelant ne presente la
+    -- succession que lorsque toutes le sont ; on refuse plutot que de lever.
+    IF v_d -> 'resultat' IS NULL OR jsonb_typeof(v_d -> 'resultat') = 'null' THEN
+      v_echecs := array_append(v_echecs, v_i::text || ':decision_absente');
+      CONTINUE;
+    END IF;
+    v_benef := nullif(v_d -> 'resultat' ->> 'beneficiaire', '');
+
+    BEGIN
+      IF (v_d ->> 'type') = 'terrain' THEN
+        SELECT t.id, t.data::jsonb INTO v_tid, v_etat FROM public.terrains_etat t
+         WHERE t.country = s.country AND t.building_id = (v_d ->> 'id') FOR UPDATE;
+        IF v_tid IS NULL THEN RAISE EXCEPTION 'terrain_introuvable'; END IF;
+        v_etat := jsonb_set(coalesce(v_etat,'{}'::jsonb), '{proprietaire}',
+                            coalesce(to_jsonb(v_benef), 'null'::jsonb), true);
+        v_etat := jsonb_set(v_etat, '{coproprietaire}', 'null'::jsonb, true);
+        v_etat := jsonb_set(v_etat, '{succession_gel}', 'null'::jsonb, true);
+        UPDATE public.terrains_etat SET data = v_etat::text, updated_at = now() WHERE id = v_tid;
+
+      ELSIF (v_d ->> 'type') = 'entreprise' THEN
+        SELECT e.data INTO v_etat FROM public.entreprises e
+         WHERE e.id = (v_d ->> 'id') FOR UPDATE;
+        IF NOT FOUND THEN RAISE EXCEPTION 'entreprise_introuvable'; END IF;
+        v_etat := jsonb_set(coalesce(v_etat,'{}'::jsonb), '{proprietaire}',
+                            to_jsonb(coalesce(v_benef, 'PNJ')), true);
+        v_etat := jsonb_set(v_etat, '{succession_gel}', 'null'::jsonb, true);
+        UPDATE public.entreprises SET data = v_etat, updated_at = now() WHERE id = (v_d ->> 'id');
+
+      ELSIF (v_d ->> 'type') = 'argent' AND coalesce((v_d ->> 'part_nette')::numeric, 0) > 0 THEN
+        v_n := 0;
+        IF v_benef IS NOT NULL THEN
+          UPDATE public.personnages
+             SET arg = coalesce(arg, 0) + (v_d ->> 'part_nette')::numeric
+           WHERE name = v_benef;
+          GET DIAGNOSTICS v_n = ROW_COUNT;
+        END IF;
+        -- Devolution a l'Etat : d'emblee (chaine epuisee) ou en repli si le beneficiaire a
+        -- disparu entre l'acceptation et le reglement, plutot que de laisser la somme disparaitre.
+        IF v_n <> 1 THEN
+          SELECT b.data INTO v_nat FROM public.budgets_nationaux b
+           WHERE b.id = s.country FOR UPDATE;
+          IF NOT FOUND THEN RAISE EXCEPTION 'budget_national_introuvable'; END IF;
+          UPDATE public.budgets_nationaux
+             SET data = jsonb_set(coalesce(v_nat,'{}'::jsonb), '{reserveJour}',
+                   to_jsonb(coalesce((v_nat->>'reserveJour')::numeric, 0)
+                            + (v_d ->> 'part_nette')::numeric), true),
+                 updated_at = now()
+           WHERE id = s.country;
+        END IF;
+      END IF;
+
+      -- LE MARQUEUR, DANS LA MEME SOUS-TRANSACTION QUE LA MUTATION. C'est tout l'objet de ce lot.
+      v_nouv := jsonb_set(v_disp, ARRAY[v_i::text, 'regle'], 'true'::jsonb, true);
+      UPDATE public.successions SET dispositions = v_nouv WHERE id = p_succession_id;
+      v_disp := v_nouv;
+      v_reglees := v_reglees + 1;
+    EXCEPTION WHEN others THEN
+      -- La sous-transaction a annule la mutation ET le marqueur. v_disp n'a pas ete reaffecte.
+      v_echecs := array_append(v_echecs, v_i::text || ':' || sqlerrm);
+    END;
+  END LOOP;
+
+  IF coalesce(s.droits_total, 0) > 0 THEN
+    IF NOT coalesce(s.part_etat_reglee, false) THEN
+      BEGIN
+        SELECT b.data INTO v_nat FROM public.budgets_nationaux b
+         WHERE b.id = s.country FOR UPDATE;
+        IF NOT FOUND THEN RAISE EXCEPTION 'budget_national_introuvable'; END IF;
+        UPDATE public.budgets_nationaux
+           SET data = jsonb_set(coalesce(v_nat,'{}'::jsonb), '{reserveJour}',
+                 to_jsonb(coalesce((v_nat->>'reserveJour')::numeric, 0)
+                          + coalesce(s.part_etat, 0)), true),
+               updated_at = now()
+         WHERE id = s.country;
+        UPDATE public.successions SET part_etat_reglee = true WHERE id = p_succession_id;
+        v_fisc := array_append(v_fisc, 'etat');
+      EXCEPTION WHEN others THEN
+        v_echecs := array_append(v_echecs, 'etat:' || sqlerrm);
+      END;
+    END IF;
+    IF NOT coalesce(s.part_notaire_reglee, false) THEN
+      BEGIN
+        PERFORM set_config('rp.caisse_interne', 'on', true);
+        v_r := public.caisse_institution_mouvement(s.country || '_office-notarial',
+                                                   coalesce(s.part_notaire, 0));
+        v_ok := coalesce((v_r ->> 'ok')::boolean, false);
+        IF NOT v_ok THEN RAISE EXCEPTION 'caisse_notaire:%', coalesce(v_r ->> 'raison','?'); END IF;
+        UPDATE public.successions SET part_notaire_reglee = true WHERE id = p_succession_id;
+        v_fisc := array_append(v_fisc, 'notaire');
+      EXCEPTION WHEN others THEN
+        v_echecs := array_append(v_echecs, 'notaire:' || sqlerrm);
+      END;
+    END IF;
+  END IF;
+
+  -- CLOTURE EN TOUT DERNIER, sur l'etat RELU : statut='resolue' n'est pas une protection contre le
+  -- rejeu, seulement un marqueur de fermeture. Le compare-and-swap sur statut la rend unique.
+  SELECT * INTO s FROM public.successions WHERE id = p_succession_id;
+  IF (SELECT bool_and(coalesce((e ->> 'regle')::boolean, false))
+        FROM jsonb_array_elements(coalesce(s.dispositions, '[]'::jsonb)) e) IS NOT FALSE
+     AND (coalesce(s.droits_total, 0) = 0
+          OR (coalesce(s.part_etat_reglee,false) AND coalesce(s.part_notaire_reglee,false))) THEN
+    UPDATE public.successions SET statut = 'resolue', resolved_at = now()
+     WHERE id = p_succession_id AND statut = 'en_attente';
+    GET DIAGNOSTICS v_n = ROW_COUNT;
+    v_cloturee := (v_n = 1);
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'dispositions_reglees', v_reglees,
+    'fiscalite', to_jsonb(v_fisc), 'cloturee', v_cloturee, 'echecs', to_jsonb(v_echecs));
+END; $function$;
+
+-- tournee_cloturer(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.tournee_cloturer(p_tournee_id text, p_servie boolean)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  t public.tournees; v_moi text; v_credites integer := 0; v_supprimees integer := 0;
+  v_n integer; r record;
+BEGIN
+  SELECT * INTO t FROM public.tournees WHERE id = p_tournee_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'tournee_introuvable'); END IF;
+
+  -- SEUL L'OFFREUR CLOT SA TOURNEE (le serveur traverse : mon_personnage() rend NULL pour lui).
+  v_moi := public.mon_personnage();
+  IF v_moi IS NOT NULL AND v_moi IS DISTINCT FROM t.offreur THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_offre');
+  END IF;
+
+  -- LE COMPARE-AND-SWAP : seule une tournee revendiquee se clot, et une seule fois.
+  IF t.statut <> 'en_resolution' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_en_resolution', 'statut', t.statut);
+  END IF;
+
+  IF coalesce(p_servie, false) THEN
+    -- LE CREDIT DES INVITES, ENFIN APPLIQUE -- et dans la meme transaction que la cloture.
+    -- Il vise la TABLE, pas la vue : c'est la vue qui refusait la fiche d'autrui.
+    FOR r IN SELECT i.invite FROM public.invitations_diner i
+              WHERE i.tournee_id = p_tournee_id AND i.statut = 'acceptee'
+    LOOP
+      UPDATE public.personnages_donnees d
+         SET moral = least(100, coalesce(d.moral, 75) + 2),
+             stats = CASE
+               WHEN coalesce((d.stats ->> 'ENT')::numeric, 0) < 20
+                 THEN jsonb_set(coalesce(d.stats, '{}'::jsonb), '{ENT}',
+                        to_jsonb(least(20, coalesce((d.stats ->> 'ENT')::numeric, 0) + 1)), true)
+               ELSE coalesce(d.stats, '{}'::jsonb) END
+       WHERE d.name = r.invite;
+      GET DIAGNOSTICS v_n = ROW_COUNT;
+      v_credites := v_credites + v_n;
+    END LOOP;
+  END IF;
+
+  DELETE FROM public.invitations_diner WHERE tournee_id = p_tournee_id;
+  GET DIAGNOSTICS v_supprimees = ROW_COUNT;
+
+  UPDATE public.tournees
+     SET statut = 'resolue',
+         pa_debite = CASE WHEN coalesce(p_servie,false) THEN true ELSE coalesce(pa_debite,false) END
+   WHERE id = p_tournee_id AND statut = 'en_resolution';
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RAISE EXCEPTION 'tournee_cloturer : la cloture n''a pas pris sur %', p_tournee_id;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'servie', coalesce(p_servie,false),
+    'credites', v_credites, 'invitations_supprimees', v_supprimees);
+END; $function$;

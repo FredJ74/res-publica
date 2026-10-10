@@ -13,6 +13,18 @@
    "sous": ""
   },
   {
+   "empreinte": "ca2cd2d793499d93c1d46b240d45a0cb",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_interne(text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "65f4125970874f6a1f6068456681415d",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_motif_eteint(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "3211ca4181f37d0a0264a0ca76a1777e",
    "genre": "FUNCTION",
    "objet": "detention_clore_purgee()",
@@ -285,6 +297,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "detention_clore_evasion()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_motif_eteint(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_motif_eteint(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "detention_clore_motif_eteint(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -798,12 +840,6 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "TABLE",
-   "objet": "detentions",
-   "privileges": "INSERT, UPDATE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "detentions",
@@ -843,7 +879,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "jugements",
-   "privileges": "INSERT, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -903,7 +939,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "prisonniers_qhs",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1085,13 +1121,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
-  "20_fonctions.sql": "ec34277ca3d8810400bc7186fb600ea4",
+  "20_fonctions.sql": "11232d891be877fd5174e3457aac17d4",
   "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
   "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
-  "70_droits.sql": "d9db11cf574d2e7534a36c7ff2a1555f",
-  "80_commentaires.sql": "a406c81c28d3778b64c051d98b9b19ac"
+  "70_droits.sql": "daaf6772532830441d8e568b79ed59d3",
+  "80_commentaires.sql": "b0ad951c175ff4bdced69d8ad6389629"
  },
  "fonctions": [
   {
@@ -1130,12 +1166,22 @@
    "signature": "detention_cible_pnj(text,text)"
   },
   {
-   "empreinte": "9b9c3587db894e933e8258e293c244f4",
+   "empreinte": "c09953a2543105713c21b9701ba8777a",
    "security_definer": true,
    "signature": "detention_clore_evasion()"
   },
   {
-   "empreinte": "0031e92db49310bd239874d6d8084622",
+   "empreinte": "03a705a02acfd9342cec5310b72abefa",
+   "security_definer": true,
+   "signature": "detention_clore_interne(text,text,integer)"
+  },
+  {
+   "empreinte": "6d698cb4d211ffb8e5570aa7c08c3ff6",
+   "security_definer": true,
+   "signature": "detention_clore_motif_eteint(text)"
+  },
+  {
+   "empreinte": "343ab20990ee0713541578ece8115b6c",
    "security_definer": true,
    "signature": "detention_clore_purgee()"
   },
@@ -1165,7 +1211,7 @@
    "signature": "detention_qhs_poser_interne(text,text,text)"
   },
   {
-   "empreinte": "b884f750a6fd6bca2989fc4ee501b8cc",
+   "empreinte": "ed6fdf08413922f2273669abea2964e7",
    "security_definer": true,
    "signature": "detention_reduire_peine(boolean)"
   },
@@ -1270,7 +1316,7 @@
    "signature": "police_pnj_id(text,text,text)"
   },
   {
-   "empreinte": "7f13e5d7cd480cc8dd2c9a763eab970d",
+   "empreinte": "ba26049d477dbad8d61e29c9d0ca1f92",
    "security_definer": true,
    "signature": "presidence_gracier(text,integer)"
   },

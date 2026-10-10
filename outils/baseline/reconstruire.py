@@ -516,8 +516,21 @@ def controles_du_monde(cat):
     # signature passer a 9 parametres, et une vingtaine de fonctions ont ete REMPLACEES sans que
     # leur nombre bouge. Mesure en base : select count(*), count(distinct proname) from pg_proc
     # join pg_namespace on ... where nspname='public' and prokind in ('f','p') -> 679 / 675.
-    att("signatures de fonction creees", cat.n_fonctions, 679)
-    att("noms de fonction distincts", len(cat.fonctions), 675,
+    # 690 le 10 octobre 2026 : +11 pour les SEIZE migrations des chantiers 5 et 6 (registre 584
+    # a 599). Les onze nouvelles, dans l'ordre d'application : detention_clore_interne et
+    # detention_clore_motif_eteint (le moteur de cloture et la porte des motifs eteints par la
+    # desertion), taxe_fonciere_prelever, vote_confiance_resoudre, election_resultats_consigner,
+    # cotisation_renouveler, succession_regler, taux_imposition_fixer, tournee_cloturer,
+    # terrain_proprietaire_muter et chantier_approvisionner. AUCUNE SURCHARGE AJOUTEE : +11
+    # signatures pour +11 noms distincts, l'ecart de 4 reste celui des quatre surcharges
+    # historiques. Quatre portes existantes ont ete REMPLACEES pour deleguer au moteur de cloture
+    # (presidence_gracier, detention_clore_purgee, detention_clore_evasion,
+    # detention_reduire_peine) et deux ont ete patchees en place (cotisation_renouveler elle-meme,
+    # approvisionner_chantier n'a perdu qu'un droit) : leur nombre ne bouge pas.
+    # Mesure en base : select count(*), count(distinct proname) from pg_proc join pg_namespace
+    # on ... where nspname='public' and prokind in ('f','p') -> 690 / 686.
+    att("signatures de fonction creees", cat.n_fonctions, 690)
+    att("noms de fonction distincts", len(cat.fonctions), 686,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue

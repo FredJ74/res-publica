@@ -872,6 +872,88 @@ BEGIN
 EXCEPTION WHEN others THEN RETURN NULL;
 END; $function$;
 
+-- terrain_proprietaire_muter(text,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_proprietaire_muter(p_terrain_id text, p_titre text, p_patch jsonb, p_reference text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_data jsonb; v_cle text; v_prix numeric; v_n integer; v_nouveau text;
+BEGIN
+  IF p_titre NOT IN ('compromis','achat_direct','recompense_quete','serveur') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'titre_inconnu');
+  END IF;
+  IF p_patch IS NULL OR jsonb_typeof(p_patch) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'patch_invalide');
+  END IF;
+
+  v_moi := public.mon_personnage();
+  IF p_titre = 'serveur' THEN
+    IF v_moi IS NOT NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'titre_reserve_au_serveur');
+    END IF;
+  ELSIF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT t.id, t.data::jsonb INTO v_cle, v_data FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1 FOR UPDATE;
+  IF v_cle IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'terrain_introuvable'); END IF;
+  v_data := coalesce(v_data, '{}'::jsonb);
+
+  -- LE GEL SUCCESSORAL EST REFUSE AU SERVEUR, plus seulement dans le navigateur.
+  IF coalesce(v_data ->> 'succession_gel', '') <> '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+
+  IF p_titre = 'compromis' THEN
+    IF coalesce((v_data ->> 'compromis')::boolean, false) IS NOT TRUE
+       OR (v_data ->> 'compromisPar') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_compromis');
+    END IF;
+  ELSIF p_titre = 'achat_direct' THEN
+    IF (v_data -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_achat_direct');
+    END IF;
+  ELSIF p_titre = 'recompense_quete' THEN
+    IF NOT EXISTS (SELECT 1 FROM public.quetes_actives q
+                    WHERE q.id = p_reference AND q.statut = 'resolue' AND q.resolu_par = v_moi) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_ma_quete');
+    END IF;
+  END IF;
+
+  -- LA FUSION SE FAIT SUR L'ETAT REEL, SOUS VERROU : un patch partiel n'efface plus rien, et un
+  -- cache client perime ne peut plus ecraser le serveur.
+  v_data := v_data || p_patch;
+  v_nouveau := nullif(v_data ->> 'proprietaire', '');
+
+  UPDATE public.terrains_etat
+     SET data = v_data::text, proprietaire = v_nouveau, updated_at = now()
+   WHERE id = v_cle;
+
+  -- L'HISTORIQUE PUBLIC DE LA VENTE, DANS LA MEME TRANSACTION. Son identifiant est DATE et non
+  -- horodate a la milliseconde : un rejeu le meme jour sur le meme terrain ne cree pas une seconde
+  -- ligne, et le registre ne peut plus acter une vente qui n'a pas eu lieu.
+  v_prix := nullif(p_patch ->> 'valeur_totale', '')::numeric;
+  IF p_titre IN ('compromis','achat_direct') AND v_prix IS NOT NULL AND v_nouveau IS NOT NULL THEN
+    INSERT INTO public.terrains_historique_ventes (id, country, building_id, proprietaire, prix)
+    SELECT 'vente-' || t.building_id || '-' || to_char(now() AT TIME ZONE 'UTC','YYYYMMDD')
+             || '-' || v_nouveau,
+           t.country, t.building_id, v_nouveau, v_prix
+      FROM public.terrains_etat t WHERE t.id = v_cle
+    ON CONFLICT (id) DO NOTHING;
+    GET DIAGNOSTICS v_n = ROW_COUNT;
+  ELSE
+    v_n := 0;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'titre', p_titre, 'cle', v_cle,
+    'proprietaire', v_nouveau, 'vente_consignee', v_n = 1, 'etat', v_data);
+END; $function$;
+
 -- ville_est_reelle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ville_est_reelle(p_pays text, p_ville text)
  RETURNS boolean

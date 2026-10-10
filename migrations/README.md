@@ -12,6 +12,37 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**Les chantiers 5 et 6 ferment leurs reliquats.**
+Seize migrations le 10 octobre 2026, registre **583 → 599**. Toutes archivées
+dans `../historique/migrations-appliquees/`, corps exacts relus depuis le
+registre Supabase et vérifiés par empreinte MD5.
+
+| Registre | Nom | Ce qu'elle ferme |
+|---|---|---|
+| **584** | `droits_clients_retires_apres_deploiement` | les quatre surfaces d'écriture clientes devenues inutiles — **après** avoir prouvé octet par octet que le code du lot précédent est bien celui déployé |
+| **585** | `detention_moteur_de_cloture_et_motifs_eteints` | les quatre écritures d'une sortie de geôle dans une transaction, et la porte des deux motifs éteints par la désertion |
+| **586** | `detention_quatre_portes_sur_le_moteur_de_cloture_et_la_grace` | cinq clôtures, une seule implémentation — et la grâce présidentielle, **troisième** instance du défaut du drapeau QHS |
+| **587** | `taxe_fonciere_un_terrain_une_journee_une_transaction` | un rejeu faisait avancer de **deux** crans la progression avertissement → pénalité → saisie |
+| **588** | `vote_confiance_le_tirage_entre_dans_la_transaction` | le tirage des députés absents se faisait dans le navigateur du cron, **avant** l'écriture du résultat |
+| **589** | `election_resultats_une_proclamation_par_scrutin` | l'annonce publique partait avant le drapeau du cycle ; le dépouillement, lui, **n'est pas aléatoire** — l'audit se trompait |
+| **590** | `cotisation_une_adhesion_un_debit_une_transaction` | la dette que le code consignait lui-même : débiter un personnage et marquer son adhésion étaient deux écritures |
+| **591** | `cotisation_horodatage_du_courrier_identique_a_l_original` | un horodatage local introduit par mégarde en déplaçant l'autorité — patch en place d'un seul fragment |
+| **592** | `cotisation_le_club_se_resout_sur_le_miroir_genere` | la porte lisait un **doublon sans générateur** au lieu du miroir de `data.js` |
+| **593** | `succession_le_reglement_et_son_marqueur_sont_indivisibles` | la fenêtre de deux requêtes entre le crédit d'un héritage et son marqueur — **une sous-transaction par étape**, pour ne pas détruire l'indépendance des dispositions |
+| **594** | `taux_imposition_une_cle_un_paiement_une_transaction` | read-modify-write sans version, **clé du budget venue du client**, et toast inconditionnel après un paiement déjà prélevé |
+| **595** | `tournee_la_cloture_et_ses_credits_sont_un_seul_acte` | le crédit social des invités, qui **levait** `personnage_non_possede` depuis le chantier B et n'est donc jamais arrivé |
+| **596** | `tournee_cloturer_preuves_structurelles` | les preuves de la précédente, séparées pour cause de **limite de transport** du canal de migration |
+| **597** | `terrain_un_seul_point_de_mutation_de_propriete` | trois portes d'entrée pour un seul acte, dont celle où **l'acheteur payait et ne recevait rien** |
+| **598** | `terrain_proprietaire_muter_preuves_structurelles` | les preuves de la précédente, séparées pour la même raison |
+| **599** | `chantier_l_approvisionnement_lit_la_tresorerie_en_base` | la marchandise détruite quand la contrepartie se perdait — et le `p_tresorerie` **dicté par le client**, qui bornait le pouvoir d'achat |
+
+> **Ce que ce lot ajoute à la doctrine** (écrit dans `../WORKFLOW-SUPABASE.md`) :
+> la **sous-transaction par étape**, qui rend chaque étape atomique sans détruire
+> l'indépendance des autres ; le **patch fusionné au serveur**, qui remplace le
+> blob entier relu dans un cache client ; et la règle « un paramètre que le
+> client dicte et qui **borne** une autorisation est une faille, même derrière
+> une RPC ».
+
 **Les chaînes sensibles sont passées derrière des portes serveur.**
 Quinze migrations le 9 octobre 2026, registre **568 → 583**. Toutes archivées
 dans `../historique/migrations-appliquees/`, corps exacts vérifiés par empreinte.

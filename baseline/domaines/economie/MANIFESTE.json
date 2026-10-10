@@ -654,12 +654,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
@@ -687,6 +681,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "capacite_entrepot()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chantier_approvisionner(text,text,text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_approvisionner(text,text,text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_approvisionner(text,text,text,jsonb,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -2800,14 +2812,14 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
-  "20_fonctions-1.sql": "1100975a5562ec801d8c90fabb91b6c6",
-  "20_fonctions-2.sql": "fb308ad1b89a2bab637984162d0b3a7d",
+  "20_fonctions-1.sql": "58426ee698fdbbf24e01444c3558e56b",
+  "20_fonctions-2.sql": "5dd23db2228e3cff6d29651bd95d3832",
   "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
   "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
   "40_vues.sql": "01bd762acf63b663d56e70c65f065976",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
   "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
-  "70_droits.sql": "9f9287b5c778eb6de829714850ecd44c",
+  "70_droits.sql": "48d6be44e13afe44c46abb8cadbbc85d",
   "80_commentaires.sql": "0e55a84a8e49402b495076344832ef63"
  },
  "fonctions": [
@@ -2845,6 +2857,11 @@
    "empreinte": "5f93b70bb06bf0020825f54abf2cb9f1",
    "security_definer": false,
    "signature": "capacite_entrepot()"
+  },
+  {
+   "empreinte": "e69efed544d50410f7dd7f045a73f3ac",
+   "security_definer": true,
+   "signature": "chantier_approvisionner(text,text,text,jsonb,integer)"
   },
   {
    "empreinte": "9e4dfd4ad3606590b08ab22c24a774da",
