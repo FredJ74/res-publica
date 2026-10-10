@@ -6775,38 +6775,48 @@ async function confirmerConstruction(niveauKey) {
   // Si l'entrepot ou la tresorerie ne suivent pas, la penurie reste reelle : rien n'est invente.
   const villeTerrain = ts.city || state.currentCity || 'capitale';
   const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
-  if (idEntrepot && typeof sbGetBatimentEtat === 'function') {
-    const etatEnt = await sbGetBatimentEtat(state.country, villeTerrain, idEntrepot).catch(() => ({}));
+  // L'APPROVISIONNEMENT EST UNE SEULE TRANSACTION, DES DEUX COTES (chantier 5, chaine 5,
+  // 10 octobre 2026).
+  //
+  // CE QUI SE PASSAIT, EN DEUX DEFAUTS. (a) approvisionner_chantier debite l'ENTREPOT dans sa
+  // transaction, mais la contrepartie -- le stock livre, la tresorerie depensee -- ne vivait que
+  // dans le sbSetTerrainState avale qui suivait. Perdue, la marchandise etait DETRUITE :
+  // l'entrepot avait vendu, le chantier n'avait rien recu et n'avait rien paye. Et le repli
+  // `|| { depense: 0 }` presentait une panne de la RPC comme « rien a acheter », donc comme un
+  // succes. (b) Plus grave : le navigateur transmettait lui-meme p_tresorerie, qui BORNE le
+  // pouvoir d'achat. Un client modifie annoncant une tresorerie enorme pouvait vider l'entrepot
+  // sans rien payer.
+  //
+  // chantier_approvisionner lit le chantier DANS LE BLOB DU TERRAIN sous verrou -- stock et
+  // tresorerie compris -- delegue a approvisionner_chantier (qui reste l'unique moteur du cote
+  // entrepot, et n'est plus appelable par un client), puis ecrit la contrepartie dans le meme
+  // blob et la meme transaction. Elle verifie aussi que le terrain est bien le mien.
+  //
+  // Le chantier lui-meme est deja persiste par chantier_lancer, appelee plus haut : il n'y a donc
+  // plus aucune ecriture de terrain a faire ici.
+  if (idEntrepot) {
     const besoinJ1 = besoinMateriauxJourChantier(chantier, 1);
-    const prix = {};
-    ['bois', 'minerai', 'metal'].forEach(function (m) {
-      prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
-    });
-    // La reserve militaire de l'Effort de guerre bloque aussi les chantiers : le sixieme
-    // argument retire du disponible ce qui est reserve, sans faire disparaitre la marchandise.
-    // CHANTIER C / PHASE 2 : le plan est recalcule PAR LE SERVEUR a partir du stock reel de
-    // l'entrepot, de ses prix reels et de sa reserve militaire ; c'est lui qui applique le
-    // prelevement. Le stock du chantier et sa tresorerie restent fournis ici : ils vivent dans
-    // terrains_etat, que ce lot ne migre pas, et ne sont meme pas encore ecrits en base a cet
-    // instant. Le cote ENTREPOT, lui, n'est plus dictable par le navigateur.
-    const plan = await sbRpc('approvisionner_chantier', {
-      p_acteur: state.char?.name, p_pays: state.country, p_ville: villeTerrain,
-      p_entrepot: idEntrepot, p_besoin: besoinJ1,
-      p_stock_chantier: chantier.stockMateriaux || {}, p_tresorerie: chantier.tresorerie || 0
-    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-      .catch(function () { return null; }) || { depense: 0, achats: {}, stockChantier: chantier.stockMateriaux || {} };
-    if (plan.depense > 0) {
-      chantier = Object.assign({}, chantier, {
-        stockMateriaux: plan.stockChantier,
-        tresorerie: Math.max(0, chantier.tresorerie - plan.depense),
-        evenements: (chantier.evenements || []).concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
-      });
-      // L'entrepot a deja ete debite par la RPC, dans la meme transaction.
+    const appro = typeof sbRpc === 'function'
+      ? await sbRpc('chantier_approvisionner', {
+          p_terrain_id: id, p_cle_chantier: 'chantier', p_entrepot: idEntrepot,
+          p_besoin: besoinJ1, p_jour: state.day || 1
+        }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+          .catch(function () { return null; })
+      : null;
+    // UNE PANNE N'EST PLUS « RIEN A ACHETER ». On le dit, et on garde le chantier tel que le
+    // serveur le connait : il existe, il n'est simplement pas approvisionne.
+    if (!appro || appro.ok !== true) {
+      showToast('Approvisionnement non confirmé',
+        "Le chantier est ouvert, mais la livraison du premier jour n'a pas pu être enregistrée"
+        + ((appro && appro.raison) ? ' (' + appro.raison + ')' : '')
+        + '. Rien n\'a été prélevé à l\'entrepôt.', false);
+      addJournalEntry("Chantier ouvert, approvisionnement du jour 1 non enregistré.", 'event-bad');
+    } else if (appro.chantier) {
+      // On recopie dans le cache le chantier arrete par le SERVEUR, jamais un calcul local.
+      chantier = appro.chantier;
+      if (typeof setTerrainState === 'function') setTerrainState(id, { chantier: chantier });
     }
   }
-
-  const nouvelEtat = setTerrainState(id, { chantier: chantier });
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -7267,39 +7277,55 @@ async function confirmerReconfiguration() {
   // APPROVISIONNEMENT IMMEDIAT, par la MEME decision d'achat que la construction et que le cron.
   const villeTerrain = ts.city || state.currentCity || 'capitale';
   const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
-  if (idEntrepot && typeof sbGetBatimentEtat === 'function') {
-    const etatEnt = await sbGetBatimentEtat(state.country, villeTerrain, idEntrepot).catch(() => ({}));
-    const besoinJ1 = besoinMateriauxJourChantier(ch, 1);
-    const prix = {};
-    ['bois', 'minerai', 'metal'].forEach(function (m) {
-      prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
-    });
-    // Idem reconfiguration : la reserve militaire est opposable a ce chantier-ci comme a tout
-    // autre usage non militaire.
-    // CHANTIER C / PHASE 2 : le plan est recalcule PAR LE SERVEUR a partir du stock reel de
-    // l'entrepot, de ses prix reels et de sa reserve militaire ; c'est lui qui applique le
-    // prelevement. Le stock du chantier et sa tresorerie restent fournis ici : ils vivent dans
-    // terrains_etat, que ce lot ne migre pas, et ne sont meme pas encore ecrits en base a cet
-    // instant. Le cote ENTREPOT, lui, n'est plus dictable par le navigateur.
-    const plan = await sbRpc('approvisionner_chantier', {
-      p_acteur: state.char?.name, p_pays: state.country, p_ville: villeTerrain,
-      p_entrepot: idEntrepot, p_besoin: besoinJ1,
-      p_stock_chantier: ch.stockMateriaux || {}, p_tresorerie: ch.tresorerie || 0
-    }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-      .catch(function () { return null; }) || { depense: 0, achats: {}, stockChantier: ch.stockMateriaux || {} };
-    if (plan.depense > 0) {
-      ch = Object.assign({}, ch, {
-        stockMateriaux: plan.stockChantier,
-        tresorerie: Math.max(0, ch.tresorerie - plan.depense),
-        evenements: ch.evenements.concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
-      });
-      // L'entrepot a deja ete debite par la RPC, dans la meme transaction.
-    }
-  }
-
+  // LE CHANTIER EST PERSISTE D'ABORD, ET SON ECHEC N'EST PLUS AVALE (chantier 5, chaine 5,
+  // 10 octobre 2026). A la difference de la construction, le reamenagement n'a PAS de
+  // chantier_lancer : le financement integral vient d'etre preleve au serveur, et cette ecriture
+  // est la seule qui fait exister le chantier. Elle etait avalee -- le joueur pouvait payer la
+  // totalite et n'avoir aucun chantier, sans le moindre signal.
+  //
+  // DETTE CONSIGNEE, ET NON MASQUEE : le paiement et cette ecriture restent DEUX appels. Les
+  // rendre atomiques demande une porte chantier_reamenagement_lancer, sur le modele de
+  // chantier_lancer -- elle n'existe pas, et l'inventer ici reviendrait a dupliquer un moteur de
+  // chantier. En attendant, l'echec est NOMME au joueur au lieu de disparaitre.
   const nouvelEtat = setTerrainState(id, { chantierReamenagement: ch });
   _planReconfigEnCours = { buildingId: null, lots: [] };
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  const poseCh = (typeof sbSetTerrainState === 'function')
+    ? await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => null)
+    : null;
+  if (!poseCh) {
+    showToast('Travaux non enregistrés',
+      "Le financement a été prélevé, mais le chantier n'a pas pu être enregistré. Signalez-le : "
+      + "aucun travail n'a commencé.", false);
+    addJournalEntry('Reconfiguration : financement prélevé, chantier NON enregistré.', 'event-bad');
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    return;
+  }
+
+  // APPROVISIONNEMENT IMMEDIAT, PAR LA MEME PORTE QUE LA CONSTRUCTION. Le navigateur ne transmet
+  // plus ni le stock ni la tresorerie du chantier : le serveur les lit dans le blob qu'on vient
+  // d'ecrire, et la contrepartie du debit de l'entrepot est posee dans sa transaction.
+  if (idEntrepot) {
+    const besoinJ1 = besoinMateriauxJourChantier(ch, 1);
+    const appro = typeof sbRpc === 'function'
+      ? await sbRpc('chantier_approvisionner', {
+          p_terrain_id: id, p_cle_chantier: 'chantierReamenagement', p_entrepot: idEntrepot,
+          p_besoin: besoinJ1, p_jour: state.day || 1
+        }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
+          .catch(function () { return null; })
+      : null;
+    if (!appro || appro.ok !== true) {
+      showToast('Approvisionnement non confirmé',
+        "Les travaux sont engagés, mais la livraison du premier jour n'a pas pu être enregistrée"
+        + ((appro && appro.raison) ? ' (' + appro.raison + ')' : '')
+        + '. Rien n\'a été prélevé à l\'entrepôt.', false);
+      addJournalEntry('Reconfiguration engagée, approvisionnement du jour 1 non enregistré.',
+        'event-bad');
+    } else if (appro.chantier) {
+      ch = appro.chantier;
+      if (typeof setTerrainState === 'function') setTerrainState(id, { chantierReamenagement: ch });
+    }
+  }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
