@@ -3881,9 +3881,14 @@ async function sbGetPrisonniersQHS(pays) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
-async function sbMajPrisonnierQHS(id, statut, patch) {
-  return sbPatcherBlob('prisonniers_qhs', id, patch, { statut });
-}
+// sbMajPrisonnierQHS A ETE SUPPRIMEE LE 10 OCTOBRE 2026. Elle etait SANS APPELANT depuis que
+// sbCreerPrisonnierQHS a disparu : les pouvoirs du Ministre de la Justice sur un prisonnier du
+// QHS passent par la RPC `qhs_pouvoir`, qui rend un verdict lu, et le passage d'une ligne a
+// « libere » appartient desormais aux portes de detention, dans la transaction de la peine.
+//
+// Et depuis la revocation du meme jour, le droit d'UPDATE de `authenticated` sur
+// `prisonniers_qhs` n'existe plus : la garder aurait laisse un chemin qui echoue en silence --
+// exactement ce que ce chantier supprime.
 
 async function sbCreerRapportRenseignement(data) {
   const id = 'rens-' + Date.now();

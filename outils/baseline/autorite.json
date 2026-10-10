@@ -23,7 +23,6 @@
   "demandes_manifestation": "IU",
   "demandes_mariage": "IU",
   "demandes_naturalisation": "IU",
-  "detentions": "IU",
   "dons_en_attente": "DU",
   "dossiers_urbanisme": "I",
   "engagements_militaires": "IU",
@@ -38,7 +37,6 @@
   "greves_generales": "IU",
   "indices_villes": "IU",
   "invitations_diner": "DIU",
-  "jugements": "I",
   "lectures_chat": "IU",
   "locations_actives": "DIU",
   "logements_attributions_historique": "I",
@@ -58,7 +56,6 @@
   "presences": "DIU",
   "presidents_clubs": "IU",
   "prets": "IU",
-  "prisonniers_qhs": "IU",
   "propositions_diplomatiques": "IU",
   "quetes_actives": "IU",
   "rapports_renseignement": "IU",
@@ -78,7 +75,7 @@
   "tribune_articles_etouffes": "I",
   "vols_en_attente": "IU",
   "votes_confiance": "IU",
-  "votes_electoraux": "DI"
+  "votes_electoraux": "D"
  },
  "_appels_morts": "Six tables sont appelees en ecriture par le navigateur alors qu'il n'en detient AUCUN droit : l'appel part, PostgREST repond 401/403, sbInsert rend null et le code continue. Elles restent declarees ci-dessus parce que le code les appelle -- les retirer rendrait l'invariant 1 aveugle a ce qu'il doit voir. Elles ne recoivent evidemment aucune policy. Ce sont des mecaniques inachevees ou mortes, pas des failles ; les reparer est du game design, pas de l'autorite.",
  "appels_morts": {

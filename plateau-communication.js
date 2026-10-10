@@ -2019,12 +2019,30 @@ function ouvrirDetailDetention(idx) {
   // n'est plus affiche. Le libelle ne parle de "Libération" que pour les deux modes qui en sont
   // reellement une ; les autres parlent de "Fin effective", pour ne pas laisser croire a une
   // sortie de detention qui n'a pas eu lieu (evasion, transfert QHS).
-  const modeFinLabels = { purgee: 'Peine purgée', anticipee_avocat: 'Libération anticipée (avocat)', evasion: 'Évasion', transfert_qhs: 'Transfert au QHS' };
-  const estUneLiberation = { purgee: true, anticipee_avocat: true, evasion: false, transfert_qhs: false };
+  // SEPT MODES, ET IL EN MANQUAIT TROIS (10 octobre 2026). `grace_presidentielle` existait en base
+  // depuis le chantier de la grâce, et les deux modes de la désertion viennent d'être ajoutés :
+  // aucun des trois n'était ici. Or le code tombe sur « En cours » quand le mode est inconnu de
+  // cette table — **le registre carcéral affichait donc « En cours » pour un gracié**. Le défaut
+  // était bien « le registre déclare détenu un personnage libre », et il avait deux moitiés : la
+  // ligne jamais close, et le libellé jamais écrit. Celle-ci est l'autre moitié.
+  const modeFinLabels = { purgee: 'Peine purgée', anticipee_avocat: 'Libération anticipée (avocat)',
+    evasion: 'Évasion', transfert_qhs: 'Transfert au QHS',
+    grace_presidentielle: 'Grâce présidentielle',
+    poursuites_eteintes: 'Poursuites éteintes (démobilisation)',
+    incorporation: 'Incorporation (transfert à la caserne)' };
+  // « Libération » ou « Fin effective » : seuls les modes qui rendent réellement la liberté de
+  // circuler sont une libération. L'incorporation n'en est pas une — l'intéressé part à la
+  // caserne, il ne rentre pas chez lui — pas plus que l'évasion ou le transfert au QHS.
+  const estUneLiberation = { purgee: true, anticipee_avocat: true, evasion: false,
+    transfert_qhs: false, grace_presidentielle: true, poursuites_eteintes: true,
+    incorporation: false };
   let statutTexte, statutCouleur;
   if (d.mode_fin && modeFinLabels[d.mode_fin]) {
     statutTexte = modeFinLabels[d.mode_fin];
-    statutCouleur = d.mode_fin === 'evasion' ? '#cc4444' : (d.mode_fin === 'transfert_qhs' ? '#9a8a4a' : '#6a9a6a');
+    // Rouge pour l'evasion, ambre pour les deux TRANSFERTS -- QHS et caserne : l'interesse n'est
+    // pas libre. Vert pour tout ce qui rend reellement la liberte de circuler.
+    statutCouleur = d.mode_fin === 'evasion' ? '#cc4444'
+      : ((d.mode_fin === 'transfert_qhs' || d.mode_fin === 'incorporation') ? '#9a8a4a' : '#6a9a6a');
   } else if (!motifs) {
     // Ancienne ligne (anterieure au lot registre carceral) : l'absence de mode_fin signifie
     // seulement que l'ancien systeme n'enregistrait jamais la sortie reelle -- PAS que la

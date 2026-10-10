@@ -12581,11 +12581,32 @@ async function eteindrePoursuitesDesertion(pays) {
   // Le bonus d'evasion est PROPRE A L'EPISODE : une nouvelle mobilisation repart de zero.
   if (state.char) state.char.joursDetenuDeserteur = 0;
 
-  // Liberation UNIQUEMENT si la detention ne tenait qu'a la desertion.
+  // LA LIBERATION EST UNE TRANSACTION SERVEUR (10 octobre 2026). Ce bloc vidait
+  // `state.estEmprisonne` et comptait sur le sbSavePersonnage ci-dessous pour le persister --
+  // mais il NE CLOSAIT JAMAIS la ligne `detentions`. Le registre carceral declarait donc detenu,
+  // indefiniment, un personnage que la demobilisation avait libere.
+  //
+  // detention_clore_motif_eteint fait les quatre ecritures que toute fin de detention doit faire
+  // -- ligne close par `poursuites_eteintes`, fiche videe, drapeau QHS abaisse, ligne du registre
+  // du QHS liberee -- et verifie elle-meme la regle de jeu : on ne libere QUE si la detention ne
+  // tenait qu'a la desertion. La condition reste donc exactement celle qui etait ici.
   if (state.estEmprisonne && state.estEmprisonne.motifDesertionSeul === true) {
-    state.estEmprisonne = null;
-    addMailNotification('Caserne', 'Poursuites éteintes',
-      'La démobilisation met fin aux poursuites pour désertion. Vous êtes libéré(e).');
+    const vFin = (typeof sbRpc === 'function')
+      ? await sbRpc('detention_clore_motif_eteint', { p_mode: 'poursuites_eteintes' })
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (vFin && vFin.ok === true) {
+      state.estEmprisonne = null;
+      addMailNotification('Caserne', 'Poursuites éteintes',
+        'La démobilisation met fin aux poursuites pour désertion. Vous êtes libéré(e).');
+    } else {
+      // VERDICT CONSOMME : le registre tient toujours la peine, donc le jeu ne libere pas. Les
+      // autres effets de la demobilisation -- requisition eteinte, avis de recherche retires --
+      // sont acquis et restent acquis : ils ne dependent pas de la detention.
+      addMailNotification('Caserne', 'Poursuites éteintes',
+        'La démobilisation met fin aux poursuites pour désertion. Votre détention, elle, reste '
+        + 'enregistrée : présentez-vous au commissariat.');
+    }
   }
 
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
@@ -12669,7 +12690,23 @@ async function doAccepterIncorporation() {
   }
 
   if (state.estEmprisonne.motifDesertionSeul === true) {
-    // La detention ne tenait qu'a la desertion : transfert immediat a la caserne.
+    // LE TRANSFERT EST UNE TRANSACTION SERVEUR (10 octobre 2026). Ce bloc vidait
+    // `state.estEmprisonne` sans JAMAIS clore la ligne `detentions` : un incorpore restait
+    // detenu au registre carceral, indefiniment. Meme porte que la demobilisation, autre mode
+    // de fin -- c'est le registre qui dit lequel des deux actes a mis fin a la peine.
+    const vInc = (typeof sbRpc === 'function')
+      ? await sbRpc('detention_clore_motif_eteint', { p_mode: 'incorporation' })
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (!vInc || vInc.ok !== true) {
+      // VERDICT CONSOMME : sans cloture, personne n'est conduit a la caserne. On REVIENT sur
+      // l'incorporation posee quelques lignes plus haut -- la laisser ferait un soldat detenu.
+      state.char.requisition = req;
+      showToast('Transfert impossible', 'Les geoles n\'ont pas enregistre votre sortie : vous '
+        + 'restez detenu(e). Reessayez.', false);
+      updateUI();
+      return;
+    }
     state.estEmprisonne = null;
     state.currentCity = 'caserne';
     state.currentBuilding = 'caserne-militaire';

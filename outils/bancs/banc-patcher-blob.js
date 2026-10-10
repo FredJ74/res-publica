@@ -129,14 +129,17 @@ async function principal() {
   verifier('8. ligne sans blob -> le patch devient le blob', corps.data, { neuf: true });
 
   print('');
-  print('LES SEPT APPELANTS PASSENT-ILS BIEN PAR LA PORTE UNIQUE ?');
+  print('LES SIX APPELANTS PASSENT-ILS BIEN PAR LA PORTE UNIQUE ?');
   print('-'.repeat(76));
 
-  // Chacune des sept fonctions doit, sur une panne de LECTURE, ne rien ecrire du tout.
+  // Chacune des six fonctions doit, sur une panne de LECTURE, ne rien ecrire du tout.
+  //
+  // ELLES ETAIENT SEPT JUSQU'AU 10 OCTOBRE 2026. sbMajPrisonnierQHS a ete supprimee : elle etait
+  // sans appelant, et le droit d'UPDATE de `authenticated` sur `prisonniers_qhs` a ete revoque le
+  // meme jour. La garder aurait laisse un chemin qui echoue en silence.
   var sept = [
     ['sbMajDemandeManifestation', function () { return sbMajDemandeManifestation('x', 'acceptee', { a: 1 }); }],
     ['sbMajPropositionDiplomatique', function () { return sbMajPropositionDiplomatique('x', { statut: 'acceptee' }); }],
-    ['sbMajPrisonnierQHS', function () { return sbMajPrisonnierQHS('x', 'libere', { a: 1 }); }],
     ['sbMarquerRapportRemonte', function () { return sbMarquerRapportRemonte('x'); }],
     ['sbMajEngagement', function () { return sbMajEngagement('x', 'clos', { a: 1 }); }],
     ['sbNommerAmbassadeur', function () { return sbNommerAmbassadeur('republic', 'soviet', 'Jean'); }],
