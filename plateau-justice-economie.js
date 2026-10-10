@@ -12690,6 +12690,30 @@ async function ouvrirOffresEmploiBNE() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Chaque refus de la porte du BNE est NOMME au joueur. Sans cela, un poste complet et une panne
+// reseau se ressembleraient -- et c'est exactement ce que la version precedente faisait, en
+// annoncant un succes dans les deux cas.
+function signalerRefusBNE(v) {
+  if (!v) {
+    showToast('Action impossible', "L'opération n'a pas abouti : rien n'a été modifié.", false);
+    return;
+  }
+  const motifs = {
+    poste_complet: ['Poste complet', "Il n'y a plus de place disponible pour cette offre."],
+    arbitrage_en_attente: ['Candidature en attente',
+      "Tranchez d'abord la candidature en attente reçue par mail."],
+    deja_en_poste: ['Déjà en poste', 'Vous occupez déjà cette offre.'],
+    aucun_emploi: ['Aucun emploi', "Vous n'occupez actuellement aucun poste du BNE."],
+    offre_inconnue: ['Offre inconnue', "Cette offre n'existe pas au Bureau de l'emploi."],
+    acteur_non_authentifie: ['Personnage non chargé',
+      "Votre personnage n'est pas chargé : rien n'a été enregistré. Rechargez la page."]
+  };
+  const m = motifs[v.raison];
+  showToast(m ? m[0] : 'Opération refusée',
+            m ? m[1] : "Le Bureau de l'emploi a refusé l'opération (" + (v.raison || 'motif inconnu') + ').',
+            false);
+}
+
 async function postulerOffreEmploiBNE(offreId) {
   const offre = OFFRES_EMPLOI_BNE[offreId];
   if (!offre) return;
@@ -12698,36 +12722,40 @@ async function postulerOffreEmploiBNE(offreId) {
     return;
   }
   const pjNom = state.char?.name;
-  const etat = await sbGetEtatBNE(state.country);
-  const reservationEnAttente = trouverReservationEnAttenteBNE(etat.offres, pjNom);
-  if (reservationEnAttente) {
-    showToast('Candidature en attente', 'Tranchez d\'abord la candidature en attente reçue par mail.', false);
+  // LE BLOB DU BNE EST PARTAGE, ET SON PLAFOND N'EST PLUS VERIFIE SUR UNE LECTURE PERIMEE
+  // (chantier 5, chaine 20, 10 octobre 2026). Les quatre chemins du BNE lisaient le blob ENTIER,
+  // en modifiaient une copie et le reecrivaient, sans lire le retour. Deux joueurs qui prenaient
+  // un poste en meme temps : le second ecrasait le premier. Et le test `placesPrises >=
+  // offre.places` portait sur une lecture faite AVANT l'ecriture -- deux joueurs pouvaient prendre
+  // LA MEME DERNIERE PLACE.
+  //
+  // `bne_agir` verrouille le blob, relit le plafond DANS LE MIROIR GENERE (jamais celui que le
+  // client annonce -- un plafond transmis n'est pas un plafond) et mute en une transaction.
+  // L'emploi actuel decide seul entre prise immediate et reservation : c'est le serveur qui le
+  // lit, plus le navigateur.
+  const avant = await sbGetEtatBNE(state.country);
+  const emploiAvant = trouverEmploiActuelBNE(avant.offres, pjNom);
+  const vBne = typeof sbRpc === 'function'
+    ? await sbRpc('bne_agir', { p_acte: emploiAvant ? 'reserver' : 'prendre', p_offre: offreId })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vBne || vBne.ok !== true) {
+    signalerRefusBNE(vBne);
     return;
   }
-  const placesPrises = compterPlacesPrisesBNE(etat.offres, offreId);
-  if (placesPrises >= offre.places) {
-    showToast('Poste complet', 'Il n\'y a plus de place disponible pour cette offre.', false);
-    return;
-  }
+  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
 
-  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
-  const offres = { ...etat.offres };
-
-  if (!emploiActuel) {
-    // Aucune situation en cours : prise immediate
-    offres[offreId] = [...(offres[offreId] || []), { pjNom, statut: 'actif' }];
-    await sbSetEtatBNE(state.country, offres);
-    state.emploiBNE = { offreId };
+  if (!emploiAvant) {
     document.getElementById('modal-postes')?.classList.remove('open');
     showToast('Poste obtenu !', 'Vous occupez désormais : ' + offre.label + '. Salaire versé chaque jour à l\'ordre Dormir.', true, true);
     addJournalEntry('Poste obtenu au Bureau National de l\'Emploi : ' + offre.label + '.', 'event-good');
     return;
   }
 
-  // Situation deja en cours (autre emploi BNE) : reservation + mail d'arbitrage, rien n'est ecrase
+  // Situation deja en cours (autre emploi BNE) : la reservation est posee, le poste actuel reste
+  // actif -- rien n'est ecrase, et c'est le courrier qui fait trancher.
+  const emploiActuel = emploiAvant;
   const ancienneOffre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
-  offres[offreId] = [...(offres[offreId] || []), { pjNom, statut: 'en_attente_arbitrage' }];
-  await sbSetEtatBNE(state.country, offres);
 
   const corps = 'Vous occupez déjà le poste de <strong>' + (ancienneOffre?.label || emploiActuel.offreId) + '</strong> et avez postulé pour <strong>' + offre.label + '</strong>.<br><br>' +
     'Votre poste actuel reste actif tant que vous n\'avez pas tranché. La nouvelle offre vous est réservée en attendant votre réponse.<br><br>' +
@@ -12746,27 +12774,21 @@ async function postulerOffreEmploiBNE(offreId) {
 // Appelee depuis les 2 boutons du mail d'arbitrage (postulerOffreEmploiBNE et
 // verifierConflitsEmploiBNE cote cron envoient le meme format de mail).
 async function trancherEmploiBNE(garderActuel, ancienOffreId, nouvelOffreId) {
-  const pjNom = state.char?.name;
-  const etat = await sbGetEtatBNE(state.country);
-  const offres = { ...etat.offres };
+  // MEME PORTE QUE LA PRISE DE POSTE (chaine 20) : l'arbitrage est une mutation du meme blob
+  // partage, et il avait la meme lecture-modification-ecriture avalee.
+  const vBne = typeof sbRpc === 'function'
+    ? await sbRpc('bne_agir', {
+        p_acte: garderActuel ? 'trancher_garder' : 'trancher_prendre',
+        p_offre: nouvelOffreId, p_offre_ancienne: ancienOffreId || null
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vBne || vBne.ok !== true) { signalerRefusBNE(vBne); return; }
+  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
 
   if (garderActuel) {
-    // Libere juste la reservation en attente sur la nouvelle offre
-    offres[nouvelOffreId] = (offres[nouvelOffreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'en_attente_arbitrage'));
-    await sbSetEtatBNE(state.country, offres);
-    state.emploiBNE = ancienOffreId ? { offreId: ancienOffreId } : null;
     showToast('Poste conservé', 'Vous gardez votre poste actuel.', true);
     addJournalEntry('Arbitrage BNE : poste actuel conservé.', 'event-info');
   } else {
-    // Retire l'ancien poste (si emploi BNE), confirme le nouveau
-    if (ancienOffreId && OFFRES_EMPLOI_BNE[ancienOffreId]) {
-      offres[ancienOffreId] = (offres[ancienOffreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'actif'));
-    }
-    offres[nouvelOffreId] = (offres[nouvelOffreId] || []).map(o =>
-      (o.pjNom === pjNom && o.statut === 'en_attente_arbitrage') ? { ...o, statut: 'actif' } : o
-    );
-    await sbSetEtatBNE(state.country, offres);
-    state.emploiBNE = { offreId: nouvelOffreId };
     const offre = OFFRES_EMPLOI_BNE[nouvelOffreId];
     showToast('Nouveau poste confirmé', 'Vous occupez désormais : ' + (offre?.label || nouvelOffreId) + '.', true, true);
     addJournalEntry('Arbitrage BNE : nouveau poste confirmé (' + (offre?.label || nouvelOffreId) + ').', 'event-good');
@@ -12783,10 +12805,14 @@ async function demissionnerEmploiBNE() {
     showToast('Aucun emploi', 'Vous n\'occupez actuellement aucun poste du BNE.', false);
     return;
   }
-  const offres = { ...etat.offres };
-  offres[emploiActuel.offreId] = (offres[emploiActuel.offreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'actif'));
-  await sbSetEtatBNE(state.country, offres);
-  state.emploiBNE = null;
+  // MEME PORTE (chaine 20). Le serveur relit l'emploi en cours sous verrou : si la demission
+  // arrive apres un arbitrage concurrent, il refuse au lieu de reecrire un blob perime.
+  const vBne = typeof sbRpc === 'function'
+    ? await sbRpc('bne_agir', { p_acte: 'demissionner', p_offre: emploiActuel.offreId })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vBne || vBne.ok !== true) { signalerRefusBNE(vBne); return; }
+  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
   const offre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
   showToast('Démission effective', 'Vous ne travaillez plus comme ' + (offre?.label || emploiActuel.offreId) + '.', true);
   addJournalEntry('Démission du poste : ' + (offre?.label || emploiActuel.offreId) + '.', 'event-info');

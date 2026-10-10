@@ -929,12 +929,16 @@ async function sbSaveCycleElectoral(country, posteId, cycle, city) {
       data: JSON.stringify(cycle),
       updated_at: new Date().toISOString()
     };
+    // ELLE NE RENDAIT RIEN (chantier 5, chaine 18, 10 octobre 2026). `async function` sans
+    // `return`, plus un `catch(e) {}` vide : succes et echec rendaient tous les deux `undefined`.
+    // Aucun appelant ne POUVAIT verifier cette ecriture, meme en le voulant -- c'est ce qui rendait
+    // la troisieme vague de la dissolution invérifiable par construction. Elle rend desormais le
+    // resultat de l'ecriture, ou `null` si elle n'a pas abouti.
     if (existing && existing.length > 0) {
-      await sbUpdate('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`, payload);
-    } else {
-      await sbInsert('cycles_electoraux', payload);
+      return await sbUpdate('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`, payload);
     }
-  } catch(e) {}
+    return await sbInsert('cycles_electoraux', payload);
+  } catch(e) { return null; }
 }
 
 async function sbLoadCyclesElectoraux(country) {
@@ -1000,21 +1004,12 @@ async function sbGetVotes(country, posteId, city) {
 // unique lecteur (idSource, api/_journal-collecte.js) la traite comme un identifiant OPAQUE de
 // fait pour le Journal. Le format s'allonge, rien ne le parse. Les lignes anterieures gardent leur
 // ancien id sans risque de conflit : le nouveau format ajoute un suffixe.
-async function sbDeposerCandidature(country, posteId, candidat, city, cleScrutin) {
-  if (typeof sbInsert !== 'function') return null;
-  const cle = getCleCycle(posteId, city);
-  const suffixeScrutin = (cleScrutin !== undefined && cleScrutin !== null && isFinite(Number(cleScrutin)))
-    ? '_' + Number(cleScrutin) : '';
-  try {
-    return await sbInsert('candidatures', {
-      id: country + '_' + cle + '_' + candidat.nom + suffixeScrutin,
-      country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
-      nom: candidat.nom, programme: candidat.programme,
-      archetype: candidat.archetype,
-      created_at: new Date().toISOString()
-    });
-  } catch(e) { return null; }
-}
+// sbDeposerCandidature A ETE SUPPRIMEE (chantier 5, chaine 19, 10 octobre 2026). Elle inserait la
+// ligne `candidatures` seule, et le blob du cycle -- que le depouillement de minuit est le SEUL a
+// lire -- etait ecrit ensuite par un appel avale. Son unique appelant passe desormais par
+// `candidature_deposer`, qui ecrit les deux representations dans une transaction.
+// sbGetCandidatures ci-dessous RESTE : lire les candidatures pour les afficher n'est pas une
+// autorite.
 
 async function sbGetCandidatures(country, posteId, city) {
   if (typeof sbGet !== 'function') return [];
@@ -1798,8 +1793,28 @@ async function confirmerCandidature(el) {
   // jamais la source de verite.
   // La cle de scrutin est prise sur le cycle en cours : c'est elle qui distingue deux
   // candidatures du meme joueur au meme poste a deux scrutins differents.
-  const ecritureReussie = await sbDeposerCandidature(country, posteId, nouveauCandidat, city,
-    (typeof cleEcheanceElectorale === 'function') ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures);
+  // LE DEPOT EST UNE SEULE TRANSACTION, LES DEUX REPRESENTATIONS COMPRISES (chantier 5, chaine
+  // 19, 10 octobre 2026).
+  //
+  // L'inventaire disait que le blob du cycle etait « un cache best-effort », et le commentaire
+  // ci-dessus l'affirmait aussi. LES DEUX SE TROMPAIENT, et la mesure le montre : le
+  // depouillement de minuit ne lit QUE le blob -- `resoudreScrutinSimple` et
+  // `resoudreScrutinDepute` lisent `cycle.candidats`, et la table `candidatures` n'est JAMAIS lue
+  // dans api/cron-minuit.js. Pour le scrutin, le blob EST la source. Un candidat qui avait paye
+  // ses 2 PA, dont la ligne etait bien ecrite et attestee, etait donc ABSENT DU BULLETIN si
+  // l'ecriture avalee du blob se perdait -- sans qu'il puisse s'en apercevoir.
+  //
+  // `candidature_deposer` ecrit la ligne ET le bulletin sous un verrou du cycle. Le nom du
+  // candidat est relu au serveur : on ne se porte candidat que pour soi.
+  const vCand = (typeof sbRpc === 'function')
+    ? await sbRpc('candidature_deposer', {
+        p_poste: posteId, p_city: city || null,
+        p_cle_scrutin: (typeof cleEcheanceElectorale === 'function')
+          ? cleEcheanceElectorale(cycle) : cycle?.dateDebutCandidatures,
+        p_candidat: nouveauCandidat
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  const ecritureReussie = !!(vCand && vCand.ok === true);
   if (!ecritureReussie) {
     // Refus serveur (cloture atteinte entre-temps) ou erreur : les 2 PA sont rendus.
     // Remboursement ATTESTE (16 septembre 2026) : le montant est celui que l'ordre coute
@@ -1817,8 +1832,13 @@ async function confirmerCandidature(el) {
     showToast('Échec de l\'inscription', candidaturesOuvertes(cycle) ? 'La candidature n\'a pas pu être enregistrée. Réessayez.' : 'Les candidatures à ce scrutin sont closes.', false);
     return;
   }
-  cycle.candidats.push(nouveauCandidat);
-  sbSaveCycleElectoral(country, posteId, cycle, city).catch(() => {});
+  // LE BULLETIN EST CELUI QUE LE SERVEUR A ARRETE, jamais un `push` local suivi d'une ecriture
+  // avalee. La seconde ecriture a disparu avec la cause : il n'y a plus qu'une transaction.
+  if (vCand.cycle && typeof vCand.cycle === 'object') {
+    CYCLES_ELECTORAUX[country] = CYCLES_ELECTORAUX[country] || {};
+    CYCLES_ELECTORAUX[country][getCleCycle(posteId, city)] = vCand.cycle;
+    if (Array.isArray(vCand.cycle.candidats)) cycle.candidats = vCand.cycle.candidats;
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Candidature enregistrée !', 'Vous êtes candidat à ' + posteId + (city ? ' (' + city + ')' : '') + '.', true);
@@ -5711,9 +5731,18 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
         showToast('Titulaire protégé', raison, false);
         return { ok: false, raison };
       }
-      if (typeof sbUpdate === 'function') {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
-      }
+      // CETTE ECRITURE A ETE SUPPRIMEE (chantier 5, chaine 17, 10 octobre 2026), et elle etait
+      // MORTE DEUX FOIS. (1) C'est une ecriture cliente sur la fiche d'autrui : mesure faite, un
+      // tel UPDATE ne rend pas « 0 ligne », il LEVE `personnage_non_possede` (42501) -- le catch
+      // l'avalait, elle n'a jamais deloge personne. (2) Elle etait de toute facon REDONDANTE : la
+      // porte appelee juste apres, `poste_attribuer_candidature`, delegue a
+      // `poste_attribuer_interne`, qui fait elle-meme `UPDATE personnages_donnees SET poste = NULL`
+      // sur l'ancien titulaire, dans la MEME transaction que l'attribution. Le commentaire
+      // ci-dessous le disait deja -- « la RPC les fait toutes les trois » -- mais le code mort
+      // etait reste au-dessus.
+      //
+      // La protection de sept jours, elle, RESTE verifiee ici : elle refuse l'ordre avant tout
+      // effet de bord, et la porte la revalide de son cote.
     }
   }
   // ATTRIBUTION SERVEUR (15 septembre 2026). Les trois ecritures precedentes -- delogement du
@@ -5960,27 +5989,53 @@ async function doDissoudreAssemblee(pa, cost) {
   // le cycle PRESIDENTIEL lui-meme : un nouveau mandat (construireNouveauCycleElectoral/
   // initCycleElectoral produisent un objet neuf) repart naturellement sans ce champ, aucune
   // reinitialisation manuelle necessaire.
-  const cyclePresidentMaj = { ...cyclePresident, dissolutionUtilisee: true };
-  CYCLES_ELECTORAUX[pays]['president'] = cyclePresidentMaj;
-  if (typeof sbSaveCycleElectoral === 'function') await sbSaveCycleElectoral(pays, 'president', cyclePresidentMaj, null).catch(() => {});
 
   // 1. Vider IMMEDIATEMENT poste_depute pour tous les deputes en fonction de ce pays -- lecture
   // fiable (poste_depute?.id === 'depute'), jamais le filtre errone preexistant de
   // notifierDeputesPourVoteConfiance (lit poste au lieu de poste_depute, motif 'depute_' avec un
   // suffixe qui n'existe pas -- dette technique deja identifiee, non touchee ici).
+  // LA DISSOLUTION N'AVAIT JAMAIS REVOQUE PERSONNE (chantier 5, chaine 18, 10 octobre 2026).
+  // Ce bloc lisait tous les personnages du pays, puis faisait un
+  // `sbUpdate('personnages', ..., { poste_depute: null }).catch(() => {})` par depute. C'est une
+  // ecriture CLIENTE SUR LA FICHE D'AUTRUI : mesure faite, un tel UPDATE ne rend pas « 0 ligne »,
+  // il LEVE `personnage_non_possede` (42501) depuis le declencheur de la vue. Le catch l'avalait,
+  // et le compteur `nbDeputesRevoques++` s'incrementait quand meme.
+  //
+  // CONSEQUENCE REELLE : le President payait son ordre, le drapeau `dissolutionUtilisee` etait
+  // pose -- une dissolution par mandat, consommee -- les cycles electoraux etaient relances, et
+  // les anciens deputes GARDAIENT leur mandat. L'Assemblee se retrouvait avec deux generations de
+  // deputes.
+  //
+  // `assemblee_dissoudre_revoquer_deputes` revoque TOUS les deputes du pays en UNE instruction,
+  // sur la TABLE, apres avoir relu l'autorite presidentielle au serveur. Le pays n'est plus celui
+  // que le client annonce.
   let nbDeputesRevoques = 0;
-  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-    try {
-      const joueursPays = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=name,poste_depute`) || [];
-      for (const j of joueursPays) {
-        let pd = j.poste_depute;
-        if (typeof pd === 'string') { try { pd = JSON.parse(pd); } catch (e) { pd = null; } }
-        if (pd?.id === 'depute') {
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(j.name)}`, { poste_depute: null }).catch(() => {});
-          nbDeputesRevoques++;
-        }
-      }
-    } catch (e) {}
+  const vRevoc = (typeof sbRpc === 'function')
+    ? await sbRpc('assemblee_dissoudre', { p_pays: pays })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!vRevoc || vRevoc.ok !== true) {
+    // UNE DISSOLUTION QUI NE REVOQUE PAS N'EST PAS UNE DISSOLUTION. On le dit, au lieu de
+    // relancer des scrutins par-dessus une Assemblee toujours en place.
+    if (vRevoc && vRevoc.raison === 'dissolution_deja_utilisee') {
+      showToast('Dissolution déjà utilisée',
+        'Votre mandat ne permet qu\'une seule dissolution, et elle a déjà été prononcée.', false);
+    } else {
+      showToast('Dissolution non enregistrée',
+        "La dissolution n'a pas pu être enregistrée"
+        + ((vRevoc && vRevoc.raison) ? ' (' + vRevoc.raison + ')' : '')
+        + '. Aucun scrutin n\'a été relancé.', false);
+      addJournalEntry('Dissolution refusée : la révocation des députés n\'a pas abouti.', 'event-bad');
+    }
+    return;
+  }
+  nbDeputesRevoques = Number(vRevoc.revoques) || 0;
+  // LE DRAPEAU EST POSE PAR LA PORTE, dans la meme transaction que la revocation -- et par
+  // compare-and-swap, donc un rejeu est refuse AVANT de revoquer quoi que ce soit. On recopie
+  // l'etat arrete par le serveur.
+  if (vRevoc.cycle_president && typeof vRevoc.cycle_president === 'object') {
+    CYCLES_ELECTORAUX[pays] = CYCLES_ELECTORAUX[pays] || {};
+    CYCLES_ELECTORAUX[pays]['president'] = vRevoc.cycle_president;
   }
   // Reconciliation locale immediate pour le President agissant lui-meme, s'il cumulait aussi un
   // mandat de depute (posteDepute distinct de poste, cumul possible) -- sa propre session doit
@@ -5995,6 +6050,7 @@ async function doDissoudreAssemblee(pa, cost) {
   // devinee) -- candidatures -> campagne -> vote -> resultats -> mandat, exactement le moteur
   // normal, repris par le cron quotidien comme n'importe quel autre cycle.
   let nbCirconscriptionsRelancees = 0;
+  const circonscriptionsNonRelancees = [];
   if (typeof sbGet === 'function') {
     try {
       const lignesDepute = await sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(pays)}&poste_id=eq.depute`) || [];
@@ -6003,14 +6059,36 @@ async function doDissoudreAssemblee(pa, cost) {
         const cycleFrais = construireNouveauCycleElectoral('depute', ville, Date.now());
         const cle = getCleCycle('depute', ville);
         CYCLES_ELECTORAUX[pays][cle] = cycleFrais;
-        if (typeof sbSaveCycleElectoral === 'function') await sbSaveCycleElectoral(pays, 'depute', cycleFrais, ville).catch(() => {});
+        // TROISIEME VAGUE : son echec n'est plus avale (chaine 18). Elle reste au client parce
+        // que `construireNouveauCycleElectoral` vit dans data.js et que le serveur ne connait pas
+        // le calendrier electoral -- dette consignee dans l'en-tete de la migration.
+        const posee = (typeof sbSaveCycleElectoral === 'function')
+          ? await sbSaveCycleElectoral(pays, 'depute', cycleFrais, ville).catch(() => null)
+          : null;
+        if (!posee) {
+          circonscriptionsNonRelancees.push(ville);
+          continue;
+        }
         nbCirconscriptionsRelancees++;
       }
     } catch (e) {}
   }
 
   updateUI();
-  showToast('Assemblée dissoute !', nbDeputesRevoques + ' député(s) ont immédiatement perdu leur mandat. Élections législatives anticipées lancées (' + nbCirconscriptionsRelancees + ' circonscription(s)).', true, true);
+  // LE COMPTE RENDU DIT LA VERITE, Y COMPRIS QUAND ELLE EST PARTIELLE (chaine 18). Les deputes
+  // sont revoques -- la porte l'a fait, dans la meme transaction que le drapeau. Si une
+  // circonscription n'a pas pu etre relancee, on la NOMME au lieu de l'inclure dans un total
+  // flatteur : le compteur comptait les tours de boucle, pas les ecritures reussies.
+  if (circonscriptionsNonRelancees.length > 0) {
+    showToast('Dissolution partielle',
+      nbDeputesRevoques + ' député(s) ont perdu leur mandat, mais '
+      + circonscriptionsNonRelancees.length + ' circonscription(s) n\'ont pas pu être relancées ('
+      + circonscriptionsNonRelancees.join(', ') + '). Signalez-le.', false);
+    addJournalEntry('Dissolution : ' + nbDeputesRevoques + ' mandat(s) révoqué(s), '
+      + circonscriptionsNonRelancees.length + ' circonscription(s) non relancée(s).', 'event-bad');
+  } else {
+    showToast('Assemblée dissoute !', nbDeputesRevoques + ' député(s) ont immédiatement perdu leur mandat. Élections législatives anticipées lancées (' + nbCirconscriptionsRelancees + ' circonscription(s)).', true, true);
+  }
   addJournalEntry('Dissolution de l\'Assemblée nationale. Élections législatives anticipées convoquées.', 'event-info');
   addExternalEvent('🏛 Le Président ' + (state.char?.name || '') + ' dissout l\'Assemblée nationale ! Élections législatives anticipées dans tout le pays.');
 }

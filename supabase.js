@@ -4672,9 +4672,12 @@ async function sbGetEtatBNE(country) {
   return etat.offres ? etat : { offres: {} };
 }
 
-async function sbSetEtatBNE(country, offres) {
-  return sbSetBatimentEtat(country, 'national', 'bne', { offres });
-}
+// sbSetEtatBNE A ETE SUPPRIMEE (chantier 5, chaine 20, 10 octobre 2026). Elle reecrivait le blob
+// PARTAGE des affectations du Bureau de l'emploi -- celui de TOUS les joueurs -- a partir d'une
+// copie lue plus tot, et son retour n'etait jamais lu. Deux joueurs qui prenaient un poste en meme
+// temps : le second ecrasait le premier. Ses quatre appelants passent desormais par `bne_agir`,
+// qui verrouille le blob et relit le plafond de places dans son miroir genere.
+// sbGetEtatBNE ci-dessus RESTE : lire le blob pour l'afficher n'est pas une autorite.
 
 async function sbCreerPret(pret) {
   return await sbInsert('prets', pret);
