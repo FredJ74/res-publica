@@ -22,6 +22,9 @@ GRANT EXECUTE ON FUNCTION public.affaire_statut(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.affaire_statut(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.affaire_statut(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.affaire_statut(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.affaire_transmettre(text,text,text,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.affaire_transmettre(text,text,text,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.affaire_transmettre(text,text,text,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.arrestation_urgence(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.arrestation_urgence(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.arrestation_urgence(text,text) TO service_role;
@@ -94,6 +97,12 @@ GRANT EXECUTE ON FUNCTION public.justice_recherches(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.justice_rendre_sentence(jsonb,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.justice_rendre_sentence(jsonb,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.justice_rendre_sentence(jsonb,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.plainte_classer_ministere(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.plainte_classer_ministere(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.plainte_classer_ministere(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.plainte_defendre(text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.plainte_defendre(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.plainte_defendre(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.plainte_deposer(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.plainte_deposer(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.plainte_deposer(text,text) TO service_role;
@@ -119,6 +128,12 @@ GRANT EXECUTE ON FUNCTION public.presidence_gracier(text,integer) TO service_rol
 GRANT EXECUTE ON FUNCTION public.qhs_pouvoir(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.qhs_pouvoir(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.qhs_pouvoir(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.recherche_inscrire(jsonb,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.recherche_inscrire(jsonb,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.recherche_inscrire(jsonb,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.recherche_retirer(text[],text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.recherche_retirer(text[],text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.recherche_retirer(text[],text,text) TO service_role;
 
 -- DROITS SUR LES TABLES
 GRANT SELECT ON TABLE public.actions_tracables TO anon;

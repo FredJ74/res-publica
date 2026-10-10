@@ -189,9 +189,11 @@ BEGIN
     'issue_judiciaire', 'Mandat d''arret pour calomnie envers un resident (faits commis a l''etranger)',
     'autorite', 'Parquet',
     'jour_condamnation', null);
+  PERFORM set_config('rp.recherche_interne', 'on', true);
   UPDATE public.personnages
      SET recherche = CASE WHEN jsonb_typeof(recherche) = 'array' THEN recherche ELSE '[]'::jsonb END || v_entree
    WHERE name = p_auteur;
+  PERFORM set_config('rp.recherche_interne', '', true);   -- la portee s'arrete ici
   IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'auteur_introuvable');
   END IF;

@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 43 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 44 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   apports_matieres_pkey  (contrainte apports_matieres_pkey)
 --   caisses_fret_pkey  (contrainte caisses_fret_pkey)
 --   catalogue_correspondance_legacy_motif_valeur_key  (contrainte catalogue_correspondance_legacy_motif_valeur_key)
@@ -39,6 +39,7 @@
 --   imprimeries_declarees_pkey  (contrainte imprimeries_declarees_pkey)
 --   investissements_pkey  (contrainte investissements_pkey)
 --   oeuvres_pkey  (contrainte oeuvres_pkey)
+--   offres_emploi_bne_pkey  (contrainte offres_emploi_bne_pkey)
 --   offres_pkey  (contrainte offres_pkey)
 --   ordres_couts_ecarts_pkey  (contrainte ordres_couts_ecarts_pkey)
 --   ordres_couts_empreinte_pkey  (contrainte ordres_couts_empreinte_pkey)

@@ -11,6 +11,8 @@
 -- ============================================================================
 
 -- DROITS SUR LES FUNCTIONS
+GRANT EXECUTE ON FUNCTION public.achat_direct_manque_resoudre(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.achat_direct_manque_resoudre(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_de(jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_de(jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.bail_autorite_de(jsonb) TO service_role;
@@ -38,6 +40,9 @@ GRANT EXECUTE ON FUNCTION public.batiment_etat_lire(jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.bne_agir(text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.bne_agir(text,text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.bne_agir(text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.eviction_indemniser(text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.eviction_indemniser(text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.eviction_indemniser(text,text,text) TO service_role;
@@ -49,11 +54,34 @@ GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO postgres
 GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terminer_bail(text,text,text,integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_chantier_acte(text,text,text,integer,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_chantier_acte(text,text,text,integer,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_chantier_acte(text,text,text,integer,integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_compromis_acte(text,text,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_compromis_acte(text,text,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_compromis_acte(text,text,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_etat_fusionner_interne(text,jsonb,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_etat_lire(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_etat_verrouiller_interne(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_reamenagement_poser(text,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_reamenagement_poser(text,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_reamenagement_poser(text,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_annuler_compromis(text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_annuler_compromis(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_annuler_compromis(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO postgres;

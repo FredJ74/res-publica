@@ -127,6 +127,12 @@
    "sous": ""
   },
   {
+   "empreinte": "e12eb1c2d41c0d53e32dab87e6de10b5",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "sous": ""
+  },
+  {
    "empreinte": "cb3ec728fd0c2438806be17bf4d248eb",
    "genre": "TABLE",
    "objet": "ordres_couts",
@@ -307,6 +313,12 @@
    "genre": "p",
    "nom": "offres_pkey",
    "tbl": "offres"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "offres_emploi_bne_pkey",
+   "tbl": "offres_emploi_bne"
   },
   {
    "empreinte": "51cf27f5b78ea23774e621eabdcecd90",
@@ -2534,6 +2546,30 @@
   {
    "beneficiaire": "anon",
    "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
    "objet": "ordres_couts",
    "privileges": "SELECT"
   },
@@ -2811,16 +2847,16 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "5223f43b8685a5e721330afee597d29e",
+  "10_tables.sql": "8728043945f6448240dab36618099f83",
   "20_fonctions-1.sql": "58426ee698fdbbf24e01444c3558e56b",
   "20_fonctions-2.sql": "5dd23db2228e3cff6d29651bd95d3832",
-  "30_contraintes.sql": "1ef34b82d98ba522c0ce210d4cd195d4",
-  "35_index.sql": "0f990d93de97a99d0bbae4d6785bac14",
+  "30_contraintes.sql": "b6b99c95edac5201152c00687c51c1e1",
+  "35_index.sql": "cc2024c4ff4fe07a94fb9c546826186e",
   "40_vues.sql": "01bd762acf63b663d56e70c65f065976",
   "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
-  "60_rls-policies.sql": "a2597f16f57276d4d2c08f24356b9ac4",
-  "70_droits.sql": "48d6be44e13afe44c46abb8cadbbc85d",
-  "80_commentaires.sql": "0e55a84a8e49402b495076344832ef63"
+  "60_rls-policies.sql": "ce2f1a6be3bc5b2cccb452e6dd9ea2db",
+  "70_droits.sql": "be12a7ec838a672c15a1173b7a7ef2f2",
+  "80_commentaires.sql": "c247518ae114ab3f7d49f3c948d17bcc"
  },
  "fonctions": [
   {
@@ -3290,6 +3326,7 @@
   "imprimeries_declarees_pkey",
   "investissements_pkey",
   "oeuvres_pkey",
+  "offres_emploi_bne_pkey",
   "offres_pkey",
   "ordres_couts_ecarts_pkey",
   "ordres_couts_empreinte_pkey",
@@ -3489,6 +3526,12 @@
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "f692bf459e17aa290cd049243201a99e",
+   "nom": "offres_emploi_bne_lecture",
+   "tbl": "offres_emploi_bne"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "9b991dfb4c31696ade7737f752f17e9b",
    "nom": "produits_manufactures_lecture",
    "tbl": "produits_manufactures"
@@ -3659,6 +3702,11 @@
    "active": true,
    "forcee": false,
    "tbl": "offres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "offres_emploi_bne"
   },
   {
    "active": true,
@@ -3901,6 +3949,12 @@
    "empreinte_catalogue": "3a8a2ec4de909a3c568f01ca8dc27d3c",
    "empreinte_texte": "9b36d8724c2422dd870d784d0fe89755",
    "nom": "offres"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "81943f8b336ffd5c59fc2a9dbaf21e92",
+   "empreinte_texte": "9e34e16bb9d78318563ab152079f1e81",
+   "nom": "offres_emploi_bne"
   },
   {
    "colonnes": 3,

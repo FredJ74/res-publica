@@ -62,7 +62,7 @@
   "regles": [
    [
     "socle",
-    "^(acte_nocturne_|mon_personnage|mon_poste_est|est_appel_serveur|est_mon_personnage|exiger_acteur|exiger_poste|acteur_identifie|acteur_poste_courant|acteur_present_sur_site|jour_de_jeu|jsonb_|is_national|rp_transition_active|inventaire_|objet_fiche_officielle|objet_sas_deposer|generique_de_objet|generique_recettes_systeme|ref_patrimoine_existe|eg_etat_|embargo_actif|deplacement_enregistrer|rattacher_personnage|personnage_fantome_declarer|restaurer_personnage_sauvegarde|mouvement_titulaire)"
+    "^(acte_nocturne_|mon_personnage|mon_poste_est|est_appel_serveur|est_mon_personnage|exiger_acteur|exiger_poste|acteur_identifie|acteur_poste_courant|acteur_present_sur_site|jour_de_jeu|jsonb_|is_national|rp_transition_active|inventaire_|objet_fiche_officielle|objet_sas_deposer|generique_de_objet|generique_recettes_systeme|ref_patrimoine_existe|eg_etat_|embargo_actif|deplacement_enregistrer|rattacher_personnage|personnage_fantome_declarer|restaurer_personnage_sauvegarde|mouvement_titulaire|titulaire_est_moi)"
    ],
    [
     "socle PNJ",
@@ -189,6 +189,26 @@
    "compromis_expire_resoudre": [
     "banque",
     "resout un compromis de vente ou de rachat arrive a echeance, tirage du pret bancaire inclus : elle vit a cote de resoudre_compromis_helvetia_expire, qui est son patron, et la regle du domaine attrape `resoudre_compromis` mais pas `compromis_`"
+   ],
+   "achat_direct_manque_resoudre": [
+    "immobilier et territoire",
+    "consigne un rendez-vous notarial manque dans compromis_historique et purge la cle achatDirect du blob du terrain : l'acte porte sur terrains_etat, et aucun prefixe ne l'attrape -- la regle economie prend `acheter_`, pas `achat_`"
+   ],
+   "bne_agir": [
+    "immobilier et territoire",
+    "les cinq actes du Bureau national de l'emploi ecrivent le blob PARTAGE de batiments_etat, classee immobilier et territoire en 2C. C'est la table qui porte l'acte : la fiche du personnage n'en recoit que le reflet, et le plafond de places est lu dans offres_emploi_bne"
+   ],
+   "recherche_inscrire": [
+    "justice",
+    "inscrit une entree a l'avis de recherche (personnages_donnees.recherche). C'est un acte JUDICIAIRE -- condamnation, desertion, mandat -- et la regle justice attrape `arrestation_` et `police_`, pas `recherche_`"
+   ],
+   "recherche_retirer": [
+    "justice",
+    "retrait cible du meme avis de recherche : meme raison que recherche_inscrire"
+   ],
+   "souvenir_accueil_tirer": [
+    "personnage et presence",
+    "tire la fuite d'un souvenir d'accueil : souvenirs_accueil est classee personnage et presence en 2C, et le SCANDALE qui en decoule nomme un personnage"
    ]
   }
  },

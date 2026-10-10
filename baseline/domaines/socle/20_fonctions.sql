@@ -1234,3 +1234,23 @@ CREATE OR REPLACE FUNCTION public.rp_transition_active(p_cle text)
 AS $function$
   SELECT coalesce((SELECT t.actif FROM public.rp_transitions t WHERE t.cle = p_cle), false);
 $function$;
+
+-- titulaire_est_moi(text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.titulaire_est_moi(p_ref text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_brut text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN false; END IF;
+  v_brut := btrim(coalesce(p_ref, ''));
+  IF v_brut = '' THEN RETURN false; END IF;
+  -- `orga:` et `ville:` ne sont jamais « moi » : titulaireCourant() est toujours un `pj:`.
+  IF left(v_brut, 5) = 'orga:' OR left(v_brut, 6) = 'ville:' THEN RETURN false; END IF;
+  IF left(v_brut, 3) = 'pj:' THEN RETURN btrim(substr(v_brut, 4)) = v_moi; END IF;
+  -- Chaine non typee : donnee historique, toujours un nom de personnage aujourd'hui.
+  RETURN v_brut = v_moi;
+END; $function$;

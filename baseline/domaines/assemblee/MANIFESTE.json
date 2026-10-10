@@ -500,6 +500,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "assemblee_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "assemblee_echeance_application(timestamp with time zone)",
    "privileges": "EXECUTE"
   },
@@ -1348,12 +1366,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
-  "20_fonctions.sql": "a4cb82031b18d8e59bfdfeb931c961ba",
+  "20_fonctions.sql": "7f0171a2922e89ea429d1b27fd896df9",
   "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
   "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
-  "70_droits.sql": "d4e9969ba7bb3c1ddb0d99ee49febee0",
+  "70_droits.sql": "b29ea866534ab620fcf9b55afe3a5f36",
   "80_commentaires.sql": "ca1a74666ef3b68b78fdbdbcf8beaa8d"
  },
  "fonctions": [
@@ -1431,6 +1449,11 @@
    "empreinte": "ce23a925b12dba652b4bb5efe6d0e0d5",
    "security_definer": false,
    "signature": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)"
+  },
+  {
+   "empreinte": "2d06f96c4a8dc28c81af917e05e0a10c",
+   "security_definer": true,
+   "signature": "assemblee_dissoudre(text)"
   },
   {
    "empreinte": "ee34b01e1bf44bcf7913e5f96a420f29",

@@ -102,6 +102,18 @@
  "domaine": "immobilier et territoire",
  "droits": [
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "achat_direct_manque_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "achat_direct_manque_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "bail_autorite_de(jsonb)",
@@ -266,6 +278,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "bne_agir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "bne_agir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "bne_agir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "eviction_indemniser(text,text,text)",
    "privileges": "EXECUTE"
   },
@@ -330,6 +360,48 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_chantier_acte(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_chantier_acte(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_chantier_acte(text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_compromis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_compromis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_compromis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_etat_fusionner_interne(text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "terrain_etat_lire(text)",
@@ -339,6 +411,48 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "terrain_etat_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_etat_verrouiller_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_lots_acte(text,text,jsonb,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_lots_acte(text,text,jsonb,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_lots_acte(text,text,jsonb,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_acte(text,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -357,6 +471,60 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "terrain_proprietaire_muter(text,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_reamenagement_poser(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_reamenagement_poser(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_reamenagement_poser(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_annuler_compromis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_annuler_compromis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_annuler_compromis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_geler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_geler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_succession_geler(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -676,15 +844,20 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "66b1fea54fa7c394f1b301c5738dc9a4",
-  "20_fonctions.sql": "2e250105fe1c4d078f71ef6b74750051",
+  "20_fonctions.sql": "e29e93dca0732cc18251fdcc03ef0783",
   "30_contraintes.sql": "a5a5bf05e55f51602249819fcb875cd2",
   "35_index.sql": "3d319f664a45b587249753e4ef607bed",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
   "60_rls-policies.sql": "c51fbae86e985e66aeeaeac3aa2ca050",
-  "70_droits.sql": "83544a7c2b5eb1d06d19797be43d6a54",
+  "70_droits.sql": "1d1f7637af7d31a6fd6050c91ec9a724",
   "80_commentaires.sql": "1f3a2950e2af35ad3e61470a1ae940a7"
  },
  "fonctions": [
+  {
+   "empreinte": "0e270054cd5b349ce5b9e4254d2eb325",
+   "security_definer": true,
+   "signature": "achat_direct_manque_resoudre(text)"
+  },
   {
    "empreinte": "9eaad0c03a7c6c7763eaa60cfc792275",
    "security_definer": true,
@@ -731,6 +904,11 @@
    "signature": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)"
   },
   {
+   "empreinte": "9c7d42ad24f46554c3620ab779a9e4b4",
+   "security_definer": true,
+   "signature": "bne_agir(text,text,text)"
+  },
+  {
    "empreinte": "9f0f32bb04a0eaf2825629b7d6c44f9c",
    "security_definer": true,
    "signature": "eviction_indemniser(text,text,text)"
@@ -751,14 +929,59 @@
    "signature": "terminer_bail(text,text,text,integer)"
   },
   {
+   "empreinte": "6d23e30c45c02e5aaccfa0604efac392",
+   "security_definer": true,
+   "signature": "terrain_chantier_acte(text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "5a66604129e922343b37ec7c9643110f",
+   "security_definer": true,
+   "signature": "terrain_compromis_acte(text,text,jsonb)"
+  },
+  {
+   "empreinte": "cd2317e5e105edc2be5628aa17a9e502",
+   "security_definer": true,
+   "signature": "terrain_etat_fusionner_interne(text,jsonb,text)"
+  },
+  {
    "empreinte": "41b7b75a7ddfc61b4896d765e092f0e4",
    "security_definer": false,
    "signature": "terrain_etat_lire(text)"
   },
   {
+   "empreinte": "f1350337425788a055d9fbc597d2fd6f",
+   "security_definer": true,
+   "signature": "terrain_etat_verrouiller_interne(text)"
+  },
+  {
+   "empreinte": "b6381c0a6b8f1775144d57c62bacb340",
+   "security_definer": true,
+   "signature": "terrain_lots_acte(text,text,jsonb,text[])"
+  },
+  {
+   "empreinte": "a04b1403d408db28c4e51135026df7de",
+   "security_definer": true,
+   "signature": "terrain_permis_acte(text,text,jsonb)"
+  },
+  {
    "empreinte": "83828b5cfb01e32e80e0f9def57e8fd0",
    "security_definer": true,
    "signature": "terrain_proprietaire_muter(text,text,jsonb,text)"
+  },
+  {
+   "empreinte": "aeebef2166da28242f07e573c6a84e7d",
+   "security_definer": true,
+   "signature": "terrain_reamenagement_poser(text,jsonb)"
+  },
+  {
+   "empreinte": "75ecf0646b92304661c3328745859fd2",
+   "security_definer": true,
+   "signature": "terrain_succession_annuler_compromis(text,text)"
+  },
+  {
+   "empreinte": "6335e138c31d491d3bcfc9ad6a19213e",
+   "security_definer": true,
+   "signature": "terrain_succession_geler(text,text)"
   },
   {
    "empreinte": "ebe2b9c8ceca60f0f9dd2a7e7e114a1e",

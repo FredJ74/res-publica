@@ -40,6 +40,7 @@ ALTER TABLE public.imprimeries_declarees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investissements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oeuvres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.offres_emploi_bne ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ordres_couts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ordres_couts_ecarts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ordres_couts_empreinte ENABLE ROW LEVEL SECURITY;
@@ -158,6 +159,10 @@ CREATE POLICY oeuvres_select ON public.oeuvres FOR SELECT TO PUBLIC
 
 -- offres
 CREATE POLICY offres_select ON public.offres FOR SELECT TO PUBLIC
+  USING (true);
+
+-- offres_emploi_bne
+CREATE POLICY offres_emploi_bne_lecture ON public.offres_emploi_bne FOR SELECT TO anon, authenticated
   USING (true);
 
 -- produits_manufactures

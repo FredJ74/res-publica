@@ -38,6 +38,7 @@ ALTER TABLE public.imprimeries_declarees ADD CONSTRAINT imprimeries_declarees_pk
 ALTER TABLE public.investissements ADD CONSTRAINT investissements_pkey PRIMARY KEY (id);
 ALTER TABLE public.oeuvres ADD CONSTRAINT oeuvres_pkey PRIMARY KEY (id);
 ALTER TABLE public.offres ADD CONSTRAINT offres_pkey PRIMARY KEY (id);
+ALTER TABLE public.offres_emploi_bne ADD CONSTRAINT offres_emploi_bne_pkey PRIMARY KEY (id);
 ALTER TABLE public.ordres_couts ADD CONSTRAINT ordres_couts_pkey PRIMARY KEY (fn, pa, cost);
 ALTER TABLE public.ordres_couts_ecarts ADD CONSTRAINT ordres_couts_ecarts_pkey PRIMARY KEY (fn, pa, cost);
 ALTER TABLE public.ordres_couts_empreinte ADD CONSTRAINT ordres_couts_empreinte_pkey PRIMARY KEY (seul);

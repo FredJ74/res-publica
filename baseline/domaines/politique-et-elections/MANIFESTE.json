@@ -156,6 +156,24 @@
  "domaine": "politique et elections",
  "droits": [
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "candidature_deposer(text,text,numeric,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidature_deposer(text,text,numeric,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidature_deposer(text,text,numeric,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)",
@@ -826,15 +844,20 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d341852b751536f74b05e46444766e78",
-  "20_fonctions.sql": "91c624ebf7c3b5332a325520bade8699",
+  "20_fonctions.sql": "41a8235252089896aa7c87d0ce3a9c66",
   "30_contraintes.sql": "74b60f013ac9da92adbec51b9abb6a9f",
   "35_index.sql": "b5f2cff596e2b8bb0e41dc89148bbe98",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
   "60_rls-policies.sql": "4ff4ee091c383af9c50c0e135029dd8d",
-  "70_droits.sql": "7bf991e12fe412e2ea06a8e3a759a041",
+  "70_droits.sql": "8cb6b95e00871e0d34b2cd61eb608815",
   "80_commentaires.sql": "e8ea1ed92a8a4e738206ad47e1324469"
  },
  "fonctions": [
+  {
+   "empreinte": "1a5bc49f6adbdd9ca0f970378721ee98",
+   "security_definer": true,
+   "signature": "candidature_deposer(text,text,numeric,jsonb)"
+  },
   {
    "empreinte": "bb9dccbde8ee3b6728ede8534bf61b19",
    "security_definer": true,

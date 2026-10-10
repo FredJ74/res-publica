@@ -34,6 +34,7 @@
 -- Index autonomes :
 CREATE INDEX calomnies_actes_cible ON public.calomnies_actes USING btree (cible, cree_le DESC);
 CREATE UNIQUE INDEX calomnies_actes_verrou ON public.calomnies_actes USING btree (pnj_cle, cible, jour_paris) WHERE (resultat = 'reussite'::text);
+CREATE UNIQUE INDEX chronique_nationale_une_proclamation_par_scrutin ON public.chronique_nationale USING btree (country, COALESCE(city, ''::text), source_ref) WHERE (type = 'election_resultat'::text);
 CREATE INDEX corruptions_presse_affaire ON public.corruptions_presse USING btree (affaire_ref) WHERE reussite;
 CREATE INDEX fuites_journalistiques_cible ON public.fuites_journalistiques USING btree (cible, cree_le DESC);
 CREATE INDEX idx_journal_articles_en_attente_country ON public.journal_articles_en_attente USING btree (country) WHERE (integree_le IS NULL);

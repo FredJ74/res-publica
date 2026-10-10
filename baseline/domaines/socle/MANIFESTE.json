@@ -927,6 +927,24 @@
    "genre": "FUNCTION",
    "objet": "rp_transition_active(text)",
    "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "titulaire_est_moi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "titulaire_est_moi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "titulaire_est_moi(text)",
+   "privileges": "EXECUTE"
   }
  ],
  "droits_colonnes": [],
@@ -1110,10 +1128,10 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "72743fd9aa2c62ef56bd7034d3c15ecd",
+  "20_fonctions.sql": "3adfe15227fd377701196eeea8eb8c05",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "0a0f51ca7acaa6ff09f6356e9637e86a",
+  "70_droits.sql": "ea5eb16a6b57f97cb5c5fb42c4b3f1bf",
   "80_commentaires.sql": "fe2bbfafcfebed690a8b5367759ca335",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
@@ -1337,6 +1355,11 @@
    "empreinte": "9092282e55d36158a68382defe744a17",
    "security_definer": true,
    "signature": "rp_transition_active(text)"
+  },
+  {
+   "empreinte": "3671dcff388f158a5f0196f143144771",
+   "security_definer": true,
+   "signature": "titulaire_est_moi(text)"
   }
  ],
  "index_autonomes": [],

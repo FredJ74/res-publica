@@ -12,6 +12,51 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**La purge : les chantiers 5 et 6 sont clos.**
+Vingt-quatre migrations le 10 octobre 2026, registre **600 → 623**. Toutes
+archivées dans `../historique/migrations-appliquees/`, corps exacts relus depuis
+le registre Supabase et **vérifiés par empreinte MD5 par un outil**, pas à la
+main : `python3 outils/baseline/verifier-archives-migrations.py`.
+
+| Registre | Nom | Ce qu'elle ferme |
+|---|---|---|
+| **600** | `souvenir_accueil_la_fuite_a_sa_cle_de_journee` | la frontière anti-rejeu devient **le souvenir** (`jour_tirage`), plus la passe ; le tirage, le marquage et le SCANDALE nominatif dans une transaction |
+| **601** | `deux_contraintes_qui_rendent_l_anti_rejeu_structurel` | les deux `UNIQUE` réclamés par le §5 de l'audit — et l'inspection a trouvé **pourquoi la première manquait** : un second écrivain avec un `Date.now()` dans l'identifiant |
+| **602** | `achat_direct_manque_une_consignation_et_une_purge` | un rendez-vous notarial manqué pouvait être consigné sans être purgé, puis reconsigné la nuit suivante |
+| **603** | `recherche_un_ajout_atomique_et_un_retrait_cible` | l'avis de recherche : **18 sites**, pas 1, et un dernier-écrivain-gagnant sur un tableau sans clé |
+| **604** | `recherche_est_serveur_autoritaire` | la colonne `recherche` cesse d'être écrivable depuis un navigateur |
+| **605** | `recherche_les_deux_portes_existantes_declarent_leur_laissez_passer` | les deux écritures légitimes déclarent leur laissez-passer |
+| **606** | `recherche_le_laissez_passer_ne_dure_que_son_ecriture` | **c'est le banc qui a trouvé ce défaut** : `set_config(..., true)` vaut pour toute la transaction, donc chaque porte doit REFERMER son laissez-passer |
+| **607** | `candidature_la_table_et_le_scrutin_dans_une_transaction` | le blob du cycle n'était **pas** un cache : le dépouillement ne lit QUE lui |
+| **608** | `dissolution_la_revocation_des_deputes_est_une_porte` | supersédée par la 611 |
+| **609** | `bne_le_miroir_genere_des_offres` | le plafond de places ne vient plus du navigateur : miroir généré depuis `data.js` |
+| **610** | `bne_quatre_actes_une_transaction_chacun` | quatre lectures-modifications-écritures d'un blob **partagé** → une porte, cinq actes |
+| **611** | `dissolution_le_drapeau_et_la_revocation_sont_indivisibles` | **la dissolution n'avait JAMAIS révoqué personne**, alors que le drapeau était consommé et les scrutins relancés |
+| **612** | `affaire_la_transmission_au_tribunal_est_une_porte` | `'affaire-' + Date.now()` : la même enquête rejouée créait deux affaires contre la même personne |
+| **613** | `plaintes_defense_et_classement_ministeriel_portes` | la défense de l'accusé et le classement du Ministre de la Justice |
+| **614** | `verdict_le_trigger_reconnait_les_portes_du_cycle` | **la mesure a renversé l'audit** : un trigger préexistant annulait la défense SYSTÉMATIQUEMENT — et il aurait neutralisé les deux portes neuves |
+| **615** | `terrain_un_seul_ecrivain_interne_et_la_porte_du_compromis` | le socle des terrains : un écrivain interne unique, et la porte du compromis (6 actes) |
+| **616** | `terrain_la_porte_du_permis_et_sa_liste_de_cles` | `traiterPermis` ne vérifiait **rien** : n'importe qui tranchait n'importe quel permis |
+| **617** | `terrain_la_porte_du_chantier_calcule_sa_progression` | le navigateur n'envoie plus aucun nombre : la porte recalcule, et l'accord est prouvé sur **184 chantiers** |
+| **618** | `titulaire_est_moi_et_rectification_de_deux_affirmations` | **une régression que j'avais introduite** (un propriétaire `pj:Nom` aurait été refusé) et **une affirmation non établie** rectifiée |
+| **619** | `terrain_la_porte_du_decoupage_en_lots` | trois acteurs réécrivaient le MÊME tableau de lots : fusion par `lot.id` |
+| **620** | `terrain_chaque_acte_declare_ses_cles` | « signer un compromis » n'a jamais eu à écrire un chantier |
+| **621** | `terrain_le_gel_successoral_a_enfin_son_jumeau` | le défaut fermé sur l'**entreprise** au chantier C était resté ouvert sur le **terrain** — et un gel inventé paralysait le bien d'autrui |
+| **622** | `terrain_reamenagement_et_le_proprietaire_du_depot` | les deux derniers actes ; `sbSetTerrainState` n'a plus aucun appelant |
+| **623** | `purge_des_residus_de_banc_archivee_et_bornee` | **71 lignes de banc dans 19 tables**, archivées puis supprimées — dont le terrain que la passe de minuit traitait chaque nuit |
+
+> **Ce que ce lot ajoute à la doctrine** : le **laissez-passer refermé**, trouvé
+> par un banc et non par une relecture ; la **liste de clés par acte**, qui ferme
+> l'écrasement par cache périmé sans énoncer aucune règle de jeu ; la **fusion
+> par clé d'élément** dans un tableau partagé ; et la **preuve
+> ancien-contre-nouveau par grille**, où le banc JS exécute le code de production
+> pour produire les valeurs attendues du banc SQL — aucune valeur recopiée à la
+> main.
+>
+> **Et deux de mes propres affirmations ont été corrigées par la mesure** (voir
+> 618). Quand une hypothèse est fausse, les faits gagnent — y compris quand
+> l'hypothèse est la mienne.
+
 **Les chantiers 5 et 6 ferment leurs reliquats.**
 Seize migrations le 10 octobre 2026, registre **583 → 599**. Toutes archivées
 dans `../historique/migrations-appliquees/`, corps exacts relus depuis le

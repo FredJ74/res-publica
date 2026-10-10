@@ -4,7 +4,7 @@
 -- Domaine    : economie
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 20
+-- Lignes     : 22
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -42,6 +42,8 @@ INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('references_max_
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('salaire_lot_tracts', '50');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('salaire_production_armurerie', '100');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('seuil_demarrage_pct', '35');
+INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('seuil_deux_tiers_pct', '100');
+INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('seuil_premier_tiers_pct', '70');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('stock_max_commerce', '20');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('stock_max_matiere_republic', '20');
 INSERT INTO public.entreprises_constantes (cle, valeur) VALUES ('types_commerce_max_base', '2');

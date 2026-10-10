@@ -79,8 +79,8 @@ demandes_manifestation;politique et elections;C;structure_seule;0;non;0;0;Demand
 demandes_mariage;personnage et presence;C;structure_seule;0;oui;0;0;Demandes en mariage.;
 demandes_naturalisation;personnage et presence;C;structure_seule;0;non;0;1;Demandes de naturalisation.;
 detentions;justice;C;structure_seule;0;oui;0;9;Detentions en cours.;
-directions_etablissements;finances publiques;A;seed_complet;6;oui;1;0;Quel etablissement chaque poste de direction dirige, ou, et pour quel salaire quotidien. Miroir de DIRECTEUR_USINE_INFO, ENTREPOT_PAR_VILLE et SALAIRE_DIRECTEUR (plateau-justice-economie.js). Lue par percevoir_salaire_directeur, qui n'accepte plus ni ville ni batiment ni montant du navigateur. Seul Republia y figure : aucun etablissement de production n'est declare pour les trois autres empires, et en inventer serait du game design.;
 directeurs_usine;economie;B;seed_complet;3;non;1;2;ARBITRAGE RENDU : un monde neuf commence avec les directeurs PNJ des usines deja en poste. C'est donc de l'etat initial authored, pas une nomination produite par le jeu.;
+directions_etablissements;finances publiques;A;seed_complet;6;oui;1;0;Quel etablissement chaque poste de direction dirige, ou, et pour quel salaire quotidien. Miroir de DIRECTEUR_USINE_INFO, ENTREPOT_PAR_VILLE et SALAIRE_DIRECTEUR (plateau-justice-economie.js). Lue par percevoir_salaire_directeur, qui n'accepte plus ni ville ni batiment ni montant du navigateur. Seul Republia y figure : aucun etablissement de production n'est declare pour les trois autres empires, et en inventer serait du game design.;
 dons_en_attente;personnage et presence;C;structure_seule;0;non;0;2;Dons en attente d'acceptation.;
 dons_requetes;personnage et presence;C;structure_seule;0;non;0;1;Garde d'idempotence des dons.;
 dossiers_urbanisme;immobilier et territoire;C;structure_seule;0;oui;0;1;Dossiers d'urbanisme deposes.;
@@ -93,7 +93,7 @@ entrepot_transits;economie;C;structure_seule;0;non;1;3;Transits en cours.;
 entrepots_par_ville;economie;D;seed_complet;5;non;1;2;"5 entrepots. Contenu de Republia dans une table sans colonne pays ; le prix y est mute en jeu.";Separation moteur/contenu, et le prix releve-t-il de l'initial ?
 entrepots_reversements;economie;C;structure_seule;0;non;0;1;Reversements d'excedent.;
 entreprises;economie;D;reconstruction_explicite;20;non;0;36;"20 commerces. L'identite et l'implantation sont du contenu initial ; stock, caisse, prix et matieres vivent dans le meme blob data, mutes par 36 fonctions.";L'etat initial voulu d'un commerce (stock de depart, caisse) doit etre decrit.
-entreprises_constantes;economie;A;seed_complet;20;non;11;14;20 constantes economiques pures (cout horaire, plafonds). Aucune fonction ne l'ecrit.;
+entreprises_constantes;economie;A;seed_complet;22;non;11;14;20 constantes economiques pures (cout horaire, plafonds). Aucune fonction ne l'ecrit.;
 entreprises_prix_rachat;economie;A;seed_complet;6;non;1;1;Prix de rachat par type d'entreprise.;
 escort_evenements_commerciaux;personnage et presence;C;structure_seule;0;non;0;0;Evenements commerciaux d'escort.;
 escorts_agences;personnage et presence;B;seed_complet;1;oui;2;2;Agence d'escorts, une par empire. Contenu, jamais mutualise.;
@@ -155,6 +155,7 @@ objets_recus;personnage et presence;C;structure_seule;8;non;1;6;Objets recus en 
 obligations_helvetia;banque;C;structure_seule;0;oui;0;3;Obligations emises.;
 oeuvres;economie;C;structure_seule;0;oui;0;2;Oeuvres creees en jeu.;
 offres;economie;C;structure_seule;0;non;0;4;Offres commerciales posees en jeu.;
+offres_emploi_bne;economie;A;seed_complet;7;non;1;0;MIROIR SERVEUR des offres du Bureau national de l'emploi, genere depuis OFFRES_EMPLOI_BNE (data.js) par outils/generateurs/generer_offres_emploi_bne.py. Le nombre de PLACES borne une autorisation : le transmettre depuis le navigateur serait la faille fermee le meme jour sur l'approvisionnement de chantier. Seules les valeurs qui BORNENT une decision serveur sont miroitees -- le libelle part en clair dans les messages du jeu.;Aucun : c'est un miroir. Il se REGENERE, il ne se decide pas.
 ordres_couts;economie;A;reconstruction_explicite;405;non;9;7;405 couts en PA et en argent, miroir de data.js. Aucune fonction ne l'ecrit.;A REGENERER par .scratch/generer_ordres_couts.py depuis data.js, jamais a copier depuis la base.
 ordres_couts_ecarts;economie;C;structure_seule;20;non;0;1;Journal des divergences de cout entre client et serveur.;
 ordres_couts_empreinte;economie;A;structure_seule;1;non;1;0;Empreinte du miroir, recalculee a la pose du seed.;
@@ -206,6 +207,7 @@ prisonniers_qhs;justice;C;structure_seule;1;non;0;2;Prisonniers au QHS.;
 productions_references;economie;C;structure_seule;2;non;0;1;Journal idempotent des productions de references.;
 produits_manufactures;economie;B;reconstruction_explicite;1;non;1;2;ARBITRAGE RENDU LE 5 OCTOBRE 2026 : c'est un CATALOGUE, pas un stock, a la granularite VILLE. La structure le permet deja -- la table porte une colonne ville -- donc il n'y a PAS de dette de dimensionnement ici, contrairement a recettes_production. L'unique ligne est l'armoire a souvenirs de Port-Sainte-Marie (zone-production), recette bois 2 / minerai 2, prix 390, 3 PA.;Reste a decider QUELS produits manufactures chaque ville de Republia propose au premier jour. Une seule ligne pour un empire entier est vraisemblablement un contenu incomplet. NE PAS lire une ligne de catalogue comme une quantite disponible, et NE PAS inventer de stock initial de produits manufactures : les quantites initiales ne concernent que les MATIERES PREMIERES, arbitrees dans baseline/arbitrages/.
 propositions_diplomatiques;divers et technique;C;structure_seule;0;non;0;0;Propositions diplomatiques.;
+purges_residus_bancs;divers et technique;C;structure_seule;71;non;1;0;ARCHIVE DES PURGES de residus de banc. Une purge n'est acceptable que si elle est reversible : la ligne entiere est copiee ici dans la MEME transaction que sa suppression. Aucun role client n'y a acces. Les 71 lignes du 10 octobre 2026 sont les residus (zztest|zzville|zzbanc) de 19 tables de jeu, dont le terrain que la passe de minuit traitait chaque nuit.;ETAT VIVANT PUR : un monde neuf naît sans aucune purge a son actif.
 quetes_actives;personnage et presence;C;structure_seule;2;oui;0;0;Instances de quete en cours.;
 rapports_cellules;renseignement;C;structure_seule;12;non;0;2;Rapports produits.;
 rapports_cellules_artefacts_20260926;renseignement;C;hors_baseline;1;non;0;0;Artefact de la bascule du 26 septembre 2026.;

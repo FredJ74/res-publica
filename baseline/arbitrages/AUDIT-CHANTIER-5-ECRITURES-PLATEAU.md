@@ -252,3 +252,228 @@ pas d'outil : l'inventaire a été fait à la lecture, parce que la colonne
 ce qu'un `grep` ne sait pas dire. Le refaire coûte une relecture des 22 fichiers
 qui écrivent ; les compteurs ci-dessus permettent de vérifier qu'on n'a rien
 manqué.
+
+---
+
+## 7. CLÔTURE DU CHANTIER 5 — 10 octobre 2026
+
+> **Ce qui suit est la relecture de clôture.** Elle remplace le §6 (« ce qui
+> reste ») pour tout ce qu'elle couvre, et elle corrige trois affirmations de
+> l'inventaire : quand la mesure contredit l'audit, **les faits gagnent**.
+
+### 7.1 Les vingt chaînes, une par une
+
+| Chaîne | Mécanisme | État | Porte(s) serveur / raison |
+|---|---|---|---|
+| 1 | Redressement fiscal | **CLOSE** 9/10 | + doublon `redressement_cible` supprimé (§5) |
+| 2 | Demande de grâce | **CLOSE** 9/10 | verdict lu ; pas de remboursement **par construction** |
+| 3 | Offre de transfert de joueur | **CLOSE** 9/10 | identifiant relu |
+| 4 | Acceptation de rachat de terrain | **CLOSE** 10/10 | `accepterRachat` **n'avait aucun appelant** — supprimée (reg. 597) |
+| 5 | Approvisionnement de chantier | **CLOSE** 10/10 | `chantier_approvisionner` (reg. 599) ; `p_tresorerie` dicté par le client supprimé |
+| 6 | Tournée (crédit social des invités) | **CLOSE** 10/10 | `tournee_cloturer` (reg. 595-596). **Preuves du 10/10 : 12 épreuves comportementales** — voir 7.4 |
+| 7 | Budgets de clubs | **GELÉE — ATTENTE GAME DESIGN** | inertie **prouvée en base**, voir 7.3 |
+| 8 | Taux d'imposition | **CLOSE** 10/10 | `taux_imposition_fixer` (reg. 594) ; clé du budget dérivée du POSTE ; doublon mort supprimé |
+| 9 | Ouverture de détention | **CLOSE** 9/10 | `detention_ouvrir_soi` |
+| 10 | Transfert au QHS | **CLOSE** 9/10 | `detention_transferer_qhs` |
+| 11 | Fin de peine | **CLOSE** 9/10 | `detention_clore_purgee` |
+| 12 | Prolongation de peine | **CLOSE** 9/10 | `detention_prolonger_soi` |
+| 13 | Sentence | **CLOSE** 9/10 | `justice_rendre_sentence` |
+| 14 | Avis de recherche | **CLOSE** 10/10 | `recherche_inscrire` / `recherche_retirer` (reg. 603-606) ; **18 sites, pas 1** |
+| 15 | Deux écritures en course sur la fiche | **CLOSE** 10/10 | mêmes fonctions que la 14 : les deux sites étaient les deux chemins de désertion |
+| 16 | Vote électoral | **CLOSE** 9/10 | `election_voter` |
+| 17 | Nomination : révocation de l'ancien titulaire | **CLOSE** 10/10 | **code mort** : écriture sur la fiche d'autrui, qui lève depuis le chantier B, et `poste_attribuer_interne` le faisait déjà |
+| 18 | Dissolution de l'Assemblée | **CLOSE** 10/10 | `assemblee_dissoudre` (reg. 608 puis 611). **La dissolution n'avait JAMAIS révoqué personne** |
+| 19 | Candidature | **CLOSE** 10/10 | `candidature_deposer` (reg. 607). Le blob n'était **pas** un cache : le dépouillement ne lit QUE lui |
+| 20 | Bureau national de l'emploi | **CLOSE** 10/10 | `bne_agir` (reg. 609-610) ; plafond de places lu dans un **miroir généré** |
+
+**Trois constats de l'inventaire étaient faux, et c'est la mesure qui l'a dit :**
+
+- la chaîne 17 décrivait une révocation « avalée » : elle était **morte**, et
+  redondante ;
+- la chaîne 19 affirmait que le blob du cycle était un « cache best-effort »
+  « acceptable tel quel » : c'est la **seule source** que le dépouillement lit ;
+- la chaîne 14 nommait **un** site ; le relevé exhaustif en a trouvé **dix-huit**,
+  et le défaut n'était pas « une écriture directe » mais un
+  **dernier-écrivain-gagnant** sur un tableau sans clé.
+
+### 7.2 Les plaintes — le cycle de vie complet
+
+Les trois `sbSavePlainte` restants sont fermés par `affaire_transmettre`,
+`plainte_defendre` et `plainte_classer_ministere` (reg. 612-614), qui s'arrêtent
+là où commence `justice_rendre_sentence` : **aucune seconde logique de sentence**.
+
+**Et l'inspection a renversé deux hypothèses :**
+
+1. `plaintes_en_cours` porte un trigger `BEFORE UPDATE`,
+   `plaintes_epingler_verdict`, qui **restaure** `status`, `sentence`, `peine`,
+   `jugement`, `juge`, `circonstanceAttenuante` et `aggravation` dès que l'auteur
+   n'est pas l'autorité judiciaire de la ville. L'accusé n'en est jamais une :
+   **la défense n'a donc JAMAIS rien inscrit**, pour 2 PA et 300 FR, à chaque
+   fois, pour tout le monde. Ce n'était pas « une écriture parfois perdue ».
+2. Le classement ministériel était **refusé par la RLS à tous les coups** (la
+   policy d'UPDATE n'a que deux branches, et le Ministre de la Justice n'en
+   remplit aucune) : les 250 FR partaient, la plainte restait ouverte. Son écran
+   filtrait de surcroît le statut `'pending'`, que **plus aucune affaire ne porte
+   depuis le 15 septembre** — il était structurellement vide.
+
+**Et ce même trigger aurait neutralisé deux des trois portes neuves.**
+`est_appel_serveur()` lit le GUC `role`, que `SECURITY DEFINER` ne change pas :
+la porte rendait `ok: true` avec un blob complet, et la base ne gardait rien.
+**C'est la mesure qui l'a trouvé, pas la relecture.** D'où le laissez-passer
+`rp.verdict_interne`, ouvert juste avant chaque écriture et **refermé juste
+après** — la fermeture n'est pas un détail de style : `set_config(..., true)`
+vaut pour toute la transaction, et c'est le banc du lot précédent qui l'a montré
+sur `rp.recherche_interne`.
+
+**Ce qui reste au navigateur, et pourquoi.** Le **jet** de la défense. Son taux
+est `50 + (getStatEffective('CHA') − 8) × 3 − 35 si preuve réelle`, et
+`getStatEffective` additionne `state.char.bonusFormation` — un bonus temporaire
+**persisté dans aucune colonne** : il vit dans la session du navigateur et
+disparaît au sommeil. Le serveur ne peut pas le connaître. Refaire le tirage
+côté serveur reviendrait soit à supprimer l'effet de ce bonus sur la défense,
+soit à le rendre persistant : **les deux changent la règle de jeu**. L'issue est
+donc annoncée par le client, dans une **liste close de quatre valeurs**, sur une
+affaire dont le serveur vérifie qu'elle est bien la sienne et qu'elle est encore
+jugeable — strictement moins que ce qu'il pouvait faire avant.
+
+### 7.3 Chaîne 7 — l'inertie, prouvée et non supposée
+
+L'inventaire disait « inoffensif aujourd'hui (`montantTotal = 0` en dur), mais le
+chemin est en place ». La clôture le **mesure**, à cinq niveaux :
+
+1. `const montantTotal = 0;` est écrit en dur
+   (`plateau-organisations-quetes.js`), donc `if (montantTotal > 0)` est toujours
+   faux et `crediterBudgetClub` n'est **jamais** appelé par ce chemin ;
+2. la fonction qui le porte, `verifierSubventionMairie`, n'a **qu'un seul
+   appelant** (`doConsulterBudgetClub`) — un écran de consultation ;
+3. `repartitions_budgetaires` ne contient **aucune ligne** associative, de club
+   ou de sport : aucune source de subvention n'existe en base ;
+4. **en base, les 12 clubs ont `caisse: 0`**, et le seul `historique` non vide
+   (`olympique-luthecia`) ne porte que des cotisations, des ventes de boutique et
+   des salaires — **aucune ligne « Subvention municipale », jamais** ;
+5. les 12 clubs portent `derniereSubventionJour: 16` : le chemin **a bien été
+   parcouru**, et il n'a rien versé. C'est la définition d'une inertie
+   technique, pas d'une supposition.
+
+**Verdict : GELÉE — ATTENTE GAME DESIGN.** La question à arbitrer est une et
+précise : *une commune subventionne-t-elle les clubs sportifs de son territoire,
+et si oui par quelle ligne de `repartitions_budgetaires` ?* Le jour où elle sera
+tranchée, il n'y aura qu'un endroit à ouvrir, et le crédit devra passer par une
+porte — pas par un upsert de blob.
+
+### 7.4 Chaîne 6 — les trois preuves demandées sur le crédit de tournée
+
+`outils/bancs/banc-credit-tournee.sql`, **12 épreuves vertes** en transaction
+annulée :
+
+- **l'organisateur ne choisit pas ses bénéficiaires** : `tournee_cloturer` a
+  **deux** paramètres (l'identifiant et « servie ou non »), et la liste est lue
+  en base — `invitations_diner` de cette tournée, statut `acceptee`. Un invité
+  qui a **refusé** n'est pas crédité ; un tiers ne clôt rien (`pas_mon_offre`) ;
+- **le bonus ne se duplique pas par rejeu** : compare-and-swap sur
+  `statut = 'en_resolution'` et purge des invitations dans la même transaction —
+  le second appel rend `pas_en_resolution` et aucune caractéristique ne bouge ;
+- **le serveur applique la règle existante à l'identique** : +2 moral et +1 ENT,
+  moral borné à 100, ENT borné à 20 et le +1 posé **seulement sous 20**. Une
+  tournée **non servie** ne crédite personne.
+
+### 7.5 `sbSetTerrainState` — les comptes exacts
+
+L'inventaire annonçait « 25 appels, dont 19 avalés, 11 autoritaires ». Le relevé
+exhaustif par fonction englobante donne :
+
+| | |
+|---|---:|
+| sites d'appel réels (hors définition, hors commentaires) | **22** |
+| dont **avalés** (`.catch(() => {})` sans lecture du verdict) | **19** |
+| dont lisant déjà leur verdict | 3 |
+| **routés par ce lot** | **22** |
+| **conservés** | **0** |
+| `sbSetTerrainState` elle-même | **supprimée** |
+
+**Et le compte d'écritures AUTORITAIRES est bien plus élevé que 11**, parce que
+la policy d'UPDATE de `terrains_etat` est `acteur_identifie()` : *tout* joueur
+connecté pouvait réécrire l'état entier de *n'importe quel* terrain du jeu.
+
+Trois exemples mesurés, chacun avec sa contre-épreuve dans
+`banc-etat-terrain-1.sql` :
+
+- `doAccepterTransfertCompromis` posait `compromisPar` à son propre nom **sans
+  jamais vérifier que le transfert lui avait été proposé** — seul l'écran
+  filtrait. N'importe qui reprenait le compromis de n'importe qui.
+- `traiterPermis` ne vérifiait **rien** : `requiresPost: 'maire_adjoint'` et
+  « dans cette ville uniquement » vivaient dans `data.js`, côté navigateur.
+- le gel successoral d'une **entreprise** avait sa porte depuis le chantier C
+  (« un `succession_gel` inventé suffisait à geler l'entreprise d'autrui ») ;
+  celui d'un **terrain** écrivait encore le blob. Le même défaut était resté
+  ouvert sur la moitié des actifs — et il y est pire depuis ce lot, puisque
+  `succession_gel` est la clé que les quatre portes consultent pour refuser toute
+  action.
+
+**Le traitement est PAR MÉCANISME, pas par site** — huit portes pour vingt-deux
+écritures, dix-neuf actes en listes closes, et **un écrivain interne unique**
+injoignable depuis le réseau :
+
+| Porte | Actes | Mécanisme |
+|---|---:|---|
+| `terrain_compromis_acte` | 6 | compromis, prêt, transfert, achat direct |
+| `terrain_permis_acte` | 5 | dépôt, instruction, décision, accélération, plan |
+| `terrain_chantier_acte` | 2 | accélération par corruption, vol de matériaux |
+| `terrain_lots_acte` | 6 | découpage, agrandissement, bail |
+| `terrain_reamenagement_poser` | 1 | chantier de réaménagement |
+| `terrain_succession_geler` | 1 | gel successoral (jumelle de l'entreprise) |
+| `terrain_succession_annuler_compromis` | 1 | engagements du défunt |
+| `terrain_proprietaire_muter` | — | déjà là (reg. 597) |
+
+**Deux garde-fous génériques** valent au-delà de ce mécanisme :
+
+1. **la liste de clés par acte** — la porte refuse tout patch qui nomme une clé
+   de premier niveau étrangère à l'acte demandé. Ce n'est pas une règle de jeu :
+   c'est la constatation que « décider un permis » n'a jamais eu à réécrire un
+   chantier. Elle ferme d'un coup l'écrasement par cache périmé ;
+2. **la fusion par clé de lot** — `terrain_lots_acte` ne prend plus le tableau
+   des lots, elle prend *les lots à poser* et *les identifiants à retirer*. Deux
+   acteurs qui touchent deux lots différents ne se détruisent plus.
+
+**Et l'accélération de chantier ne reçoit plus aucun nombre du navigateur.** La
+porte recalcule `progressionMaxFinancee`, `progressionAutorisee` et
+`appliquerVerrouPlan` sur l'état réel, avec les **trois seuils de financement
+semés par le générateur** depuis le vrai `plateau-chantiers.js`. L'accord est
+prouvé **ancien-contre-nouveau sur une grille de 184 chantiers**
+(`outils/bancs/banc-chantier-progression-serveur.js` produit la grille en
+exécutant le code de production ; `comparer-progression-chantier.py` en
+fabrique le banc SQL — aucune valeur attendue n'est recopiée à la main).
+
+### 7.6 Deux rectifications de mes propres affirmations
+
+- **`terrain_permis_acte` comparait `data.proprietaire` au nom nu**, alors que
+  `estTitulaire` reconnaît trois formes (`pj:<nom>`, `orga:<id>`, chaîne nue). Un
+  propriétaire noté `pj:Ben` aurait été refusé sur sa propre modification de
+  plan. La bêta ne porte aujourd'hui aucun propriétaire préfixé — le défaut
+  n'aurait frappé qu'au premier terrain acheté après ce lot. D'où
+  `titulaire_est_moi`, jumeau SQL exact, **une seule implémentation**.
+- **L'en-tête de `terrain_chantier_acte` dit que l'arithmétique
+  `double precision` est nécessaire.** La contre-épreuve a été faite : la même
+  grille de 184 chantiers recalculée en `numeric` exact donne **exactement** le
+  même résultat sur les cinq grandeurs, y compris aux durées à tiers non
+  binaires. Le choix reste le bon — il recopie l'arithmétique du client au lieu
+  de parier sur une équivalence — mais c'est une **précaution**, pas une
+  nécessité mesurée, et le corps archivé dit le contraire.
+
+### 7.7 Ce qui n'est PAS fait, et qui est consigné
+
+1. **Les droits clients sur `terrains_etat` ne sont pas retirés.** Le précédent
+   du dépôt (registre 584) veut qu'on ne retire une surface d'écriture
+   qu'**après** avoir prouvé octet par octet que le code déployé est celui qui
+   n'en a plus besoin. Le code de ce lot n'est pas encore déployé : c'est la
+   première action du lot suivant.
+2. **Le réaménagement : paiement et création du chantier restent deux appels.**
+   Les rendre atomiques demande une porte `chantier_reamenagement_lancer` sur le
+   modèle de `chantier_lancer` ; l'inventer dupliquerait un moteur de chantier.
+   L'échec est nommé au joueur.
+3. **La ville d'un terrain n'est pas une colonne.** Elle vit dans le blob
+   (`data.city`) et **manque sur une ligne de la bêta sur cinq**. Quand elle
+   manque, la juridiction de ville n'est pas opposable : la porte du permis exige
+   alors le portefeuille et le **pays**, et le dit dans son verdict
+   (`ville_inconnue`). Refuser rendrait ces permis indécidables à jamais.
+4. **Le jet de la défense d'une plainte reste au navigateur** — voir 7.2.

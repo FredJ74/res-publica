@@ -69,6 +69,15 @@ CREATE TABLE public.propositions_diplomatiques (
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.purges_residus_bancs (
+  id bigserial NOT NULL,
+  table_source text NOT NULL,
+  cle text,
+  contenu jsonb NOT NULL,
+  motif text NOT NULL,
+  purge_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.registre_ventes_armes (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   joueur text NOT NULL,

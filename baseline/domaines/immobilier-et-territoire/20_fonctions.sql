@@ -10,6 +10,54 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- achat_direct_manque_resoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.achat_direct_manque_resoudre(p_terrain_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_cle text; v_pays text; v_bat text; v_data jsonb; v_ad jsonb;
+  v_jour text := to_char((now() AT TIME ZONE 'Europe/Paris')::date, 'YYYY-MM-DD');
+  v_n integer;
+BEGIN
+  SELECT t.id, t.country, t.building_id, t.data::jsonb
+    INTO v_cle, v_pays, v_bat, v_data
+    FROM public.terrains_etat t WHERE t.id = p_terrain_id FOR UPDATE;
+  IF v_cle IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_introuvable');
+  END IF;
+  v_data := coalesce(v_data, '{}'::jsonb);
+  v_ad := v_data -> 'achatDirect';
+  IF v_ad IS NULL OR jsonb_typeof(v_ad) <> 'object' OR (v_ad ->> 'dateLimite') IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_achat_direct');
+  END IF;
+
+  -- MEME CONDITION D'ECHEANCE QU'AVANT : dateLimite est un horodatage en millisecondes.
+  IF (v_ad ->> 'dateLimite')::numeric >= (extract(epoch from now()) * 1000) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_echu');
+  END IF;
+
+  -- L'IDENTIFIANT EST DATE, PLUS HORODATE A LA MILLISECONDE. Deux gardes pour le meme rejeu :
+  -- la cle primaire, et l'index unique (pays, bien, resultat, journee).
+  INSERT INTO public.compromis_historique (id, country, building_id, demandeur, resultat, detail)
+  VALUES ('achatdirect-' || v_cle || '-' || v_jour, v_pays, v_bat,
+          coalesce(nullif(v_ad ->> 'demandeur', ''), 'inconnu'), 'perdu',
+          'Rendez-vous notarial manqué (dépôt de '
+            || coalesce(v_ad ->> 'acompte', '0') || ' FR perdu)')
+  ON CONFLICT DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+
+  -- LA PURGE, DANS LA MEME TRANSACTION QUE LA CONSIGNATION.
+  UPDATE public.terrains_etat
+     SET data = (v_data - 'achatDirect')::text, updated_at = now()
+   WHERE id = v_cle;
+
+  RETURN jsonb_build_object('ok', true, 'consigne', v_n = 1, 'jour', v_jour,
+                            'demandeur', v_ad ->> 'demandeur');
+END; $function$;
+
 -- bail_autorite_de(jsonb) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.bail_autorite_de(p_data jsonb)
  RETURNS boolean
@@ -405,6 +453,128 @@ BEGIN
    WHERE id = v_id;
 
   RETURN jsonb_build_object('ok', true, 'valeur', p_valeur);
+END; $function$;
+
+-- bne_agir(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.bne_agir(p_acte text, p_offre text, p_offre_ancienne text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_id text; v_etat jsonb; v_offres jsonb;
+  v_places integer; v_prises integer; v_actuel text; v_n integer; v_liste jsonb;
+BEGIN
+  IF p_acte NOT IN ('prendre','reserver','trancher_garder','trancher_prendre','demissionner') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
+  END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu'); END IF;
+
+  -- LE BLOB EST PARTAGE : il porte les affectations de TOUS les joueurs. Verrou de ligne.
+  v_id := v_pays || '_national_bne';
+  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat
+   WHERE id = v_id FOR UPDATE;
+  v_offres := CASE WHEN jsonb_typeof(coalesce(v_etat,'{}'::jsonb) -> 'offres') = 'object'
+                   THEN v_etat -> 'offres' ELSE '{}'::jsonb END;
+
+  -- L'EMPLOI ACTUEL ET LA RESERVATION EN ATTENTE, LUS DANS LE BLOB VERROUILLE.
+  SELECT cle INTO v_actuel FROM (
+    SELECT o.key AS cle FROM jsonb_each(v_offres) o,
+           jsonb_array_elements(CASE WHEN jsonb_typeof(o.value)='array' THEN o.value ELSE '[]'::jsonb END) e
+     WHERE e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'actif' LIMIT 1) z;
+
+  IF p_acte IN ('prendre','reserver') THEN
+    IF EXISTS (SELECT 1 FROM jsonb_each(v_offres) o,
+                 jsonb_array_elements(CASE WHEN jsonb_typeof(o.value)='array' THEN o.value ELSE '[]'::jsonb END) e
+                WHERE e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'en_attente_arbitrage') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'arbitrage_en_attente');
+    END IF;
+
+    -- LE PLAFOND VIENT DU MIROIR, PAS DU CLIENT, ET IL EST LU DANS LA TRANSACTION.
+    SELECT places INTO v_places FROM public.offres_emploi_bne WHERE id = p_offre;
+    IF v_places IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'offre_inconnue');
+    END IF;
+    SELECT count(*) INTO v_prises
+      FROM jsonb_array_elements(
+             CASE WHEN jsonb_typeof(v_offres -> p_offre)='array'
+                  THEN v_offres -> p_offre ELSE '[]'::jsonb END) e
+     WHERE e ->> 'statut' IN ('actif','en_attente_arbitrage');
+    IF v_prises >= v_places THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'poste_complet',
+                                'places', v_places, 'prises', v_prises);
+    END IF;
+    IF v_actuel IS NOT NULL AND v_actuel = p_offre THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'deja_en_poste');
+    END IF;
+
+    v_liste := CASE WHEN jsonb_typeof(v_offres -> p_offre)='array'
+                    THEN v_offres -> p_offre ELSE '[]'::jsonb END;
+    v_liste := v_liste || jsonb_build_array(jsonb_build_object(
+      'pjNom', v_moi,
+      'statut', CASE WHEN v_actuel IS NULL THEN 'actif' ELSE 'en_attente_arbitrage' END));
+    v_offres := jsonb_set(v_offres, ARRAY[p_offre], v_liste, true);
+
+  ELSIF p_acte = 'trancher_garder' THEN
+    -- La reservation en attente est liberee, le poste actuel est conserve.
+    v_liste := (SELECT coalesce(jsonb_agg(e), '[]'::jsonb)
+                  FROM jsonb_array_elements(
+                         CASE WHEN jsonb_typeof(v_offres -> p_offre)='array'
+                              THEN v_offres -> p_offre ELSE '[]'::jsonb END) e
+                 WHERE NOT (e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'en_attente_arbitrage'));
+    v_offres := jsonb_set(v_offres, ARRAY[p_offre], v_liste, true);
+
+  ELSIF p_acte = 'trancher_prendre' THEN
+    -- L'ancien poste est quitte, la reservation devient active.
+    IF p_offre_ancienne IS NOT NULL
+       AND EXISTS (SELECT 1 FROM public.offres_emploi_bne WHERE id = p_offre_ancienne) THEN
+      v_liste := (SELECT coalesce(jsonb_agg(e), '[]'::jsonb)
+                    FROM jsonb_array_elements(
+                           CASE WHEN jsonb_typeof(v_offres -> p_offre_ancienne)='array'
+                                THEN v_offres -> p_offre_ancienne ELSE '[]'::jsonb END) e
+                   WHERE NOT (e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'actif'));
+      v_offres := jsonb_set(v_offres, ARRAY[p_offre_ancienne], v_liste, true);
+    END IF;
+    v_liste := (SELECT coalesce(jsonb_agg(
+                   CASE WHEN e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'en_attente_arbitrage'
+                        THEN e || jsonb_build_object('statut','actif') ELSE e END), '[]'::jsonb)
+                  FROM jsonb_array_elements(
+                         CASE WHEN jsonb_typeof(v_offres -> p_offre)='array'
+                              THEN v_offres -> p_offre ELSE '[]'::jsonb END) e);
+    v_offres := jsonb_set(v_offres, ARRAY[p_offre], v_liste, true);
+
+  ELSE  -- demissionner
+    IF v_actuel IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'aucun_emploi');
+    END IF;
+    v_liste := (SELECT coalesce(jsonb_agg(e), '[]'::jsonb)
+                  FROM jsonb_array_elements(
+                         CASE WHEN jsonb_typeof(v_offres -> v_actuel)='array'
+                              THEN v_offres -> v_actuel ELSE '[]'::jsonb END) e
+                 WHERE NOT (e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'actif'));
+    v_offres := jsonb_set(v_offres, ARRAY[v_actuel], v_liste, true);
+  END IF;
+
+  INSERT INTO public.batiments_etat (id, country, city, building_id, data, updated_at)
+  VALUES (v_id, v_pays, 'national', 'bne',
+          to_jsonb((coalesce(v_etat,'{}'::jsonb) || jsonb_build_object('offres', v_offres))::text),
+          now())
+  ON CONFLICT (id) DO UPDATE SET data = excluded.data, updated_at = now();
+
+  -- L'EMPLOI ACTUEL RELU APRES MUTATION : c'est lui que le client recopie dans son cache.
+  SELECT cle INTO v_actuel FROM (
+    SELECT o.key AS cle FROM jsonb_each(v_offres) o,
+           jsonb_array_elements(CASE WHEN jsonb_typeof(o.value)='array' THEN o.value ELSE '[]'::jsonb END) e
+     WHERE e ->> 'pjNom' = v_moi AND e ->> 'statut' = 'actif' LIMIT 1) z;
+
+  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'offres', v_offres,
+                            'emploi_actuel', v_actuel);
 END; $function$;
 
 -- eviction_indemniser(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
@@ -861,6 +1031,253 @@ BEGIN
 END;
 $function$;
 
+-- terrain_chantier_acte(text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_chantier_acte(p_terrain_id text, p_acte text, p_matiere text DEFAULT NULL::text, p_quantite integer DEFAULT NULL::integer, p_jour integer DEFAULT NULL::integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_ch jsonb; v_final jsonb;
+  v_d double precision; v_total double precision; v_verse double precision; v_prog double precision;
+  v_s1 double precision; v_s2 double precision; v_s3 double precision;
+  v_requis double precision; v_plafond double precision; v_gain double precision; v_neuf double precision;
+  v_stock jsonb; v_dispo integer; v_qte integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_acte NOT IN ('chantier_accelerer', 'chantier_materiaux_voler') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
+  END IF;
+  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;
+
+  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
+  v_etat := v_lu -> 'etat';
+  IF (v_lu ->> 'gele')::boolean THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+  v_ch := v_etat -> 'chantier';
+  IF v_ch IS NULL OR jsonb_typeof(v_ch) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chantier_absent');
+  END IF;
+
+  IF p_acte = 'chantier_accelerer' THEN
+    SELECT valeur::double precision INTO v_s1 FROM public.entreprises_constantes WHERE cle = 'seuil_demarrage_pct';
+    SELECT valeur::double precision INTO v_s2 FROM public.entreprises_constantes WHERE cle = 'seuil_premier_tiers_pct';
+    SELECT valeur::double precision INTO v_s3 FROM public.entreprises_constantes WHERE cle = 'seuil_deux_tiers_pct';
+    IF v_s1 IS NULL OR v_s2 IS NULL OR v_s3 IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'seuils_indisponibles');
+    END IF;
+    v_d     := greatest(0, coalesce((v_ch ->> 'dureeJours')::double precision, 0));
+    v_total := greatest(0, coalesce((v_ch ->> 'coutTotal')::double precision, 0));
+    v_verse := greatest(0, coalesce((v_ch ->> 'totalVerse')::double precision, 0));
+    v_prog  := greatest(0, coalesce((v_ch ->> 'progressionJours')::double precision, 0));
+
+    -- peutProgresser : montantManquant(...) <= 0, avec seuilFinancementRequis par palier de tiers.
+    v_requis := ceil(v_total * (CASE WHEN v_d <= 0 THEN v_s3
+                                     WHEN v_prog < v_d * 1 / 3 THEN v_s1
+                                     WHEN v_prog < v_d * 2 / 3 THEN v_s2
+                                     ELSE v_s3 END) / 100);
+    IF greatest(0, v_requis - v_verse) > 0 THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'financement_insuffisant',
+                                'manquant', greatest(0, v_requis - v_verse));
+    END IF;
+    IF greatest(0, v_d - v_prog) <= 0 THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'chantier_a_son_terme');
+    END IF;
+
+    -- progressionMaxFinancee, puis progressionAutorisee avec un gain de la MOITIE du travail
+    -- restant -- la regle exacte de `doCorrompreChantier`, inchangee.
+    v_plafond := CASE WHEN v_d <= 0 THEN 0
+                      WHEN v_total <= 0 THEN v_d
+                      WHEN v_verse * 100 >= v_s3 * v_total THEN v_d
+                      WHEN v_verse * 100 >= v_s2 * v_total THEN v_d * 2 / 3
+                      WHEN v_verse * 100 >= v_s1 * v_total THEN v_d * 1 / 3
+                      ELSE 0 END;
+    v_gain := greatest(0, least(v_prog + greatest(0, (v_d - v_prog) / 2), v_plafond) - v_prog);
+    IF v_gain <= 0 THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'progression_plafonnee', 'plafond', v_plafond);
+    END IF;
+    v_neuf := least(v_d, v_prog + v_gain);
+    v_ch := v_ch || jsonb_build_object('progressionJours', v_neuf);
+    -- appliquerVerrouPlan : le plan se fige aux deux tiers, et une seule fois.
+    IF coalesce((v_ch ->> 'planVerrouille')::boolean, false) IS NOT TRUE
+       AND v_d > 0 AND v_neuf >= v_d * 2 / 3 THEN
+      v_ch := v_ch || jsonb_build_object('planVerrouille', true, 'jourVerrouPlan', p_jour);
+    END IF;
+    v_final := public.terrain_etat_fusionner_interne(p_terrain_id,
+                 jsonb_build_object('chantier', v_ch), v_pays);
+    RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final, 'chantier', v_ch,
+      'progression', v_neuf, 'reste', greatest(0, v_d - v_neuf), 'gain', v_gain);
+  END IF;
+
+  -- VOL DE MATERIAUX
+  IF p_matiere NOT IN ('bois', 'minerai', 'metal') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'matiere_inconnue');
+  END IF;
+  IF coalesce(p_quantite, 0) <= 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'quantite_invalide');
+  END IF;
+  v_stock := coalesce(v_ch -> 'stockMateriaux', '{}'::jsonb);
+  v_dispo := greatest(0, coalesce((v_stock ->> p_matiere)::numeric, 0))::integer;
+  IF v_dispo <= 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'stock_vide', 'matiere', p_matiere);
+  END IF;
+  -- LE PLAFOND EST LE STOCK REEL, PAS CELUI QUE LE CLIENT AVAIT LU.
+  v_qte := least(p_quantite, v_dispo);
+  v_ch := v_ch
+    || jsonb_build_object('stockMateriaux', v_stock || jsonb_build_object(p_matiere, v_dispo - v_qte))
+    || jsonb_build_object('evenements', coalesce(v_ch -> 'evenements', '[]'::jsonb)
+         || jsonb_build_array(jsonb_build_object('cle', 'vol_materiaux', 'jour', p_jour,
+              'matiere', p_matiere, 'quantite', v_qte)));
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,
+               jsonb_build_object('chantier', v_ch), v_pays);
+  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final, 'chantier', v_ch,
+    'matiere', p_matiere, 'quantite', v_qte, 'stock_restant', v_dispo - v_qte);
+END; $function$;
+
+-- terrain_compromis_acte(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_compromis_acte(p_terrain_id text, p_acte text, p_patch jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_patch jsonb; v_final jsonb;
+  v_cles text[]; v_k text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_acte NOT IN ('compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',
+                    'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
+  END IF;
+  IF p_patch IS NULL OR jsonb_typeof(p_patch) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'patch_invalide');
+  END IF;
+  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;
+
+  -- LISTE DE CLES PAR ACTE (10 octobre 2026). Meme regle que `terrain_permis_acte` : un acte
+  -- ne touche que les cles qu'il declare. Relevees sur les six chemins du navigateur.
+  v_cles := CASE p_acte
+    WHEN 'compromis_signer' THEN ARRAY['compromis', 'compromisPar', 'acompte',
+                                        'compromisAt', 'compromisExpireAt', 'pretDemande', 'permis']
+    WHEN 'compromis_pret_demander' THEN ARRAY['pretDemande']
+    WHEN 'compromis_transfert_proposer' THEN ARRAY['transfertPropose', 'transfertProposePar']
+    WHEN 'compromis_transfert_accepter' THEN ARRAY['compromisPar', 'transfertPropose',
+                                        'transfertProposePar', 'permis', 'pretDemande']
+    ELSE ARRAY['achatDirect'] END;
+  FOR v_k IN SELECT jsonb_object_keys(p_patch) LOOP
+    IF NOT (v_k = ANY (v_cles)) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cle_hors_acte', 'cle', v_k);
+    END IF;
+  END LOOP;
+
+  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
+  v_etat := v_lu -> 'etat';
+  -- LE GEL SUCCESSORAL EST LA MEME REGLE QUE DANS `terrain_proprietaire_muter`, lue en base.
+  IF (v_lu ->> 'gele')::boolean THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+  v_patch := p_patch;
+
+  IF p_acte = 'compromis_signer' THEN
+    -- LA REGLE EXISTAIT DEJA, cote serveur, pour le jumeau Helvetia : `signer_compromis_bien_helvetia`
+    -- refuse « bien deja sous compromis ». Le chemin ordinaire ne la verifiait que dans l'ecran.
+    IF coalesce((v_etat ->> 'compromis')::boolean, false)
+       AND (v_etat ->> 'compromisPar') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'deja_sous_compromis',
+                                'detenteur', v_etat ->> 'compromisPar');
+    END IF;
+    -- LE DETENTEUR N'EST PLUS DICTE PAR LE NAVIGATEUR.
+    v_patch := v_patch || jsonb_build_object('compromis', true, 'compromisPar', v_moi);
+
+  ELSIF p_acte IN ('compromis_pret_demander', 'compromis_transfert_proposer') THEN
+    IF coalesce((v_etat ->> 'compromis')::boolean, false) IS NOT TRUE
+       OR (v_etat ->> 'compromisPar') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_compromis');
+    END IF;
+    IF p_acte = 'compromis_transfert_proposer' THEN
+      IF nullif(btrim(coalesce(v_patch ->> 'transfertPropose', '')), '') IS NULL THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'destinataire_absent');
+      END IF;
+      IF (v_patch ->> 'transfertPropose') = v_moi THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'transfert_a_soi_meme');
+      END IF;
+      v_patch := v_patch || jsonb_build_object('transfertProposePar', v_moi);
+    END IF;
+
+  ELSIF p_acte = 'compromis_transfert_accepter' THEN
+    -- LA REGLE QUI N'EXISTAIT QUE DANS L'ECRAN. Sans elle, n'importe quel joueur connecte posait
+    -- son nom dans `compromisPar` et reprenait le compromis d'un autre.
+    IF (v_etat ->> 'transfertPropose') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'transfert_non_propose');
+    END IF;
+    v_patch := v_patch || jsonb_build_object('compromisPar', v_moi,
+      'transfertPropose', NULL, 'transfertProposePar', NULL);
+
+  ELSIF p_acte = 'achat_direct_deposer' THEN
+    IF coalesce((v_etat ->> 'compromis')::boolean, false)
+       OR ((v_etat -> 'achatDirect') IS NOT NULL
+           AND (v_etat -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'terrain_indisponible');
+    END IF;
+    IF jsonb_typeof(v_patch -> 'achatDirect') <> 'object' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'achat_direct_absent');
+    END IF;
+    v_patch := jsonb_set(v_patch, '{achatDirect,demandeur}', to_jsonb(v_moi));
+
+  ELSIF p_acte = 'achat_direct_accelerer' THEN
+    -- REGLE RECOPIEE MOT POUR MOT DU CLIENT :
+    --   if (!ts.achatDirect || ts.achatDirect.demandeur !== state.char?.name)
+    IF (v_etat -> 'achatDirect') IS NULL
+       OR (v_etat -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_achat_direct');
+    END IF;
+    v_patch := jsonb_set(v_patch, '{achatDirect,demandeur}', to_jsonb(v_moi));
+  END IF;
+
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id, v_patch, v_pays);
+  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final);
+END; $function$;
+
+-- terrain_etat_fusionner_interne(text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_etat_fusionner_interne(p_terrain_id text, p_patch jsonb, p_pays text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_cle text; v_data jsonb; v_pays text; v_bat text;
+BEGIN
+  SELECT t.id, coalesce(t.data::jsonb, '{}'::jsonb), t.country, t.building_id
+    INTO v_cle, v_data, v_pays, v_bat
+    FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1
+     FOR UPDATE;
+
+  IF v_cle IS NULL THEN
+    -- PREMIERE ECRITURE SUR UN TERRAIN VIERGE. La cle est celle que `sbSetTerrainState` composait
+    -- deja : pays + '_' + batiment. Le pays vient de l'appelant serveur, jamais du navigateur.
+    v_pays := coalesce(p_pays, 'republic');
+    v_bat := p_terrain_id;
+    v_cle := v_pays || '_' || v_bat;
+    v_data := coalesce(p_patch, '{}'::jsonb);
+    INSERT INTO public.terrains_etat (id, country, building_id, proprietaire, data, updated_at)
+    VALUES (v_cle, v_pays, v_bat, nullif(v_data ->> 'proprietaire', ''), v_data::text, now())
+    ON CONFLICT (id) DO NOTHING;
+    RETURN v_data;
+  END IF;
+
+  v_data := v_data || coalesce(p_patch, '{}'::jsonb);
+  UPDATE public.terrains_etat
+     SET data = v_data::text, proprietaire = nullif(v_data ->> 'proprietaire', ''), updated_at = now()
+   WHERE id = v_cle;
+  RETURN v_data;
+END; $function$;
+
 -- terrain_etat_lire(text) -> jsonb | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.terrain_etat_lire(p_data text)
  RETURNS jsonb
@@ -870,6 +1287,245 @@ AS $function$
 BEGIN
   RETURN p_data::jsonb;
 EXCEPTION WHEN others THEN RETURN NULL;
+END; $function$;
+
+-- terrain_etat_verrouiller_interne(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_etat_verrouiller_interne(p_terrain_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_cle text; v_data jsonb;
+BEGIN
+  SELECT t.id, coalesce(t.data::jsonb, '{}'::jsonb) INTO v_cle, v_data
+    FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1
+     FOR UPDATE;
+  IF v_cle IS NULL THEN
+    RETURN jsonb_build_object('trouve', false, 'etat', '{}'::jsonb, 'gele', false);
+  END IF;
+  RETURN jsonb_build_object('trouve', true, 'cle', v_cle, 'etat', v_data,
+    'gele', coalesce(v_data ->> 'succession_gel', '') <> '');
+END; $function$;
+
+-- terrain_lots_acte(text,text,jsonb,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_lots_acte(p_terrain_id text, p_acte text, p_lots jsonb DEFAULT NULL::jsonb, p_retirer text[] DEFAULT NULL::text[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_lots jsonb; v_final jsonb;
+  v_neuf jsonb; v_lot jsonb; v_remplacant jsonb; v_id text; v_i integer; v_n integer := 0;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_acte NOT IN ('lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter',
+                    'lot_fusion_refuser', 'lot_louer', 'lot_bail_libere') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
+  END IF;
+  IF p_lots IS NOT NULL AND jsonb_typeof(p_lots) <> 'array' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'lots_invalides');
+  END IF;
+  IF coalesce(jsonb_array_length(coalesce(p_lots, '[]'::jsonb)), 0) = 0
+     AND coalesce(array_length(p_retirer, 1), 0) = 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'rien_a_ecrire');
+  END IF;
+  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;
+
+  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
+  v_etat := v_lu -> 'etat';
+  IF (v_lu ->> 'gele')::boolean THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+  v_lots := coalesce(v_etat -> 'subdivisions', '[]'::jsonb);
+  IF jsonb_typeof(v_lots) <> 'array' THEN v_lots := '[]'::jsonb; END IF;
+
+  -- AUTORITE PAR ACTE. Les deux actes du proprietaire passent par le jumeau SQL de `estTitulaire`,
+  -- qui reconnait `pj:<nom>` comme la chaine nue. Les autres sont le fait du locataire ou du
+  -- visiteur : les ecrans ne leur demandaient rien d'autre que de concerner leur propre lot, et
+  -- c'est ce que la porte verifie lot par lot.
+  IF p_acte IN ('lot_ajouter', 'lot_fusion_proposer') THEN
+    IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+    END IF;
+  ELSIF p_acte IN ('lot_fusion_accepter', 'lot_fusion_refuser') THEN
+    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP
+      v_id := v_lot ->> 'id';
+      IF NOT EXISTS (
+        SELECT 1 FROM jsonb_array_elements(v_lots) e
+         WHERE (e.value ->> 'id') = v_id
+           AND (e.value -> 'propositionAgrandissement') IS NOT NULL
+           AND public.titulaire_est_moi(e.value ->> 'locataire')) THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'aucune_proposition_sur_mon_lot', 'lot', v_id);
+      END IF;
+    END LOOP;
+  ELSIF p_acte = 'lot_louer' THEN
+    -- Le bail est pris ATOMIQUEMENT ailleurs (`locations_actives`, cle primaire). Cette ecriture
+    -- n'est que le miroir transitoire que le cron des loyers lit encore : la porte verifie donc
+    -- seulement que le locataire pose est bien l'appelant.
+    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP
+      IF NOT public.titulaire_est_moi(v_lot ->> 'locataire') THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_bail', 'lot', v_lot ->> 'id');
+      END IF;
+    END LOOP;
+  ELSIF p_acte = 'lot_bail_libere' THEN
+    -- Fin de bail : le miroir se vide. Le champ pose doit etre NUL -- on ne liberera jamais un lot
+    -- en y INSTALLANT quelqu'un.
+    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP
+      IF nullif(btrim(coalesce(v_lot ->> 'locataire', '')), '') IS NOT NULL THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'liberation_qui_installe', 'lot', v_lot ->> 'id');
+      END IF;
+    END LOOP;
+  END IF;
+
+  -- FUSION PAR IDENTIFIANT DE LOT. Un lot dont l'identifiant existe est REMPLACE ; sinon il est
+  -- ajoute. Les identifiants de `p_retirer` disparaissent. Le reste du tableau n'est pas touche.
+  v_neuf := '[]'::jsonb;
+  FOR v_i IN 0 .. greatest(0, jsonb_array_length(v_lots) - 1) LOOP
+    v_lot := v_lots -> v_i;
+    v_id := v_lot ->> 'id';
+    IF v_id IS NOT NULL AND p_retirer IS NOT NULL AND v_id = ANY (p_retirer) THEN
+      v_n := v_n + 1;
+      CONTINUE;
+    END IF;
+    IF v_id IS NOT NULL THEN
+      v_remplacant := NULL;
+      SELECT e.value INTO v_remplacant FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) e
+       WHERE (e.value ->> 'id') = v_id LIMIT 1;
+      IF v_remplacant IS NOT NULL THEN v_lot := v_remplacant; END IF;
+    END IF;
+    v_neuf := v_neuf || jsonb_build_array(v_lot);
+  END LOOP;
+  -- Les lots envoyes qui n'existaient pas encore sont AJOUTES, dans l'ordre d'arrivee.
+  FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP
+    IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(v_neuf) e
+                    WHERE (e.value ->> 'id') = (v_lot ->> 'id')) THEN
+      v_neuf := v_neuf || jsonb_build_array(v_lot);
+    END IF;
+  END LOOP;
+
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,
+               jsonb_build_object('subdivisions', v_neuf), v_pays);
+  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final,
+    'lots', v_neuf, 'retires', v_n);
+END; $function$;
+
+-- terrain_permis_acte(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_permis_acte(p_terrain_id text, p_acte text, p_patch jsonb DEFAULT NULL::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text; v_poste_ville text;
+  v_lu jsonb; v_etat jsonb; v_patch jsonb; v_final jsonb; v_permis jsonb;
+  v_ville text; v_ville_inconnue boolean := false; v_cles text[]; v_k text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_acte NOT IN ('permis_deposer', 'permis_prevenir_maire', 'permis_decider',
+                    'permis_accelerer', 'permis_plan_modifier') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
+  END IF;
+  v_patch := coalesce(p_patch, '{}'::jsonb);
+  IF jsonb_typeof(v_patch) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'patch_invalide');
+  END IF;
+
+  -- LISTE DE CLES PAR ACTE. Seule la decision touche `constructionAutorisee` ; aucun acte de ce
+  -- mecanisme ne touche `chantier`, `subdivisions`, `proprietaire` ni le compromis.
+  v_cles := CASE WHEN p_acte = 'permis_decider' THEN ARRAY['permis', 'constructionAutorisee']
+                 ELSE ARRAY['permis'] END;
+  FOR v_k IN SELECT jsonb_object_keys(v_patch) LOOP
+    IF NOT (v_k = ANY (v_cles)) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cle_hors_acte', 'cle', v_k);
+    END IF;
+  END LOOP;
+
+  SELECT a.nom, a.poste_id, a.poste_city, a.pays
+    INTO v_moi, v_poste, v_poste_ville, v_pays FROM public.acteur_poste_courant() a;
+
+  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
+  v_etat := v_lu -> 'etat';
+  IF (v_lu ->> 'gele')::boolean THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+  v_permis := v_etat -> 'permis';
+  v_ville := nullif(btrim(coalesce(v_etat ->> 'city', '')), '');
+  v_ville_inconnue := (v_ville IS NULL);
+
+  IF p_acte = 'permis_deposer' THEN
+    IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+    END IF;
+    IF jsonb_typeof(v_patch -> 'permis') <> 'object' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'permis_absent');
+    END IF;
+    -- LE DEMANDEUR N'EST PLUS DICTE PAR LE NAVIGATEUR.
+    v_patch := jsonb_set(v_patch, '{permis,demandeur}', to_jsonb(v_moi));
+
+  ELSIF p_acte = 'permis_prevenir_maire' THEN
+    -- ACTE PASSIF : il se declenche a l'entree dans la piece, pour N'IMPORTE QUEL joueur. Il n'a
+    -- donc aucune autorite a verifier -- mais il ne doit poser QUE ce drapeau, et la porte le pose
+    -- elle-meme plutot que de recopier un patch. Les trois conditions sont celles du client :
+    --   if (!instructionAchevee(ts.permis) || ts.permis.mairePrevenu) return;
+    IF v_permis IS NULL OR (v_permis ->> 'statut') IS DISTINCT FROM 'instruction'
+       OR coalesce((v_permis ->> 'dureeInstruction')::numeric, 0) <= 0
+       OR coalesce((v_permis ->> 'joursInstructionFaits')::numeric, 0)
+          < coalesce((v_permis ->> 'dureeInstruction')::numeric, 0)
+       OR coalesce((v_permis ->> 'mairePrevenu')::boolean, false) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'rien_a_signaler');
+    END IF;
+    v_patch := jsonb_build_object('permis', v_permis || '{"mairePrevenu": true}'::jsonb);
+
+  ELSIF p_acte = 'permis_decider' THEN
+    IF v_poste IS DISTINCT FROM 'maire_adjoint' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee');
+    END IF;
+    IF NOT v_ville_inconnue AND v_poste_ville IS DISTINCT FROM v_ville THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'hors_juridiction',
+                                'ville_terrain', v_ville, 'ville_poste', v_poste_ville);
+    END IF;
+    -- LA MEME REGLE QUE `verdictDecisionPermis` : un dossier deja tranche ne se retranche pas.
+    IF v_permis IS NULL OR (v_permis ->> 'statut') IS DISTINCT FROM 'instruction' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'dossier_deja_decide',
+                                'statut', v_permis ->> 'statut');
+    END IF;
+    IF (v_patch -> 'permis' ->> 'statut') NOT IN ('valide', 'refuse') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'decision_invalide');
+    END IF;
+    IF (v_patch -> 'permis' ->> 'statut') = 'refuse'
+       AND length(btrim(coalesce(v_patch -> 'permis' ->> 'motifRefus', ''))) < 10 THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'motif_requis');
+    END IF;
+
+  ELSIF p_acte = 'permis_accelerer' THEN
+    -- REGLE RECOPIEE DU CLIENT : if (!ts.permis || ts.permis.statut !== 'instruction')
+    IF v_permis IS NULL OR (v_permis ->> 'statut') IS DISTINCT FROM 'instruction' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'aucune_instruction');
+    END IF;
+
+  ELSIF p_acte = 'permis_plan_modifier' THEN
+    -- PREMIERE REGLE DE `verdictOuvertureModificationPlan`, et la seule qui soit une AUTORITE :
+    --   if (!estTitulaire(ts && ts.proprietaire)) return { ok:false, ... }
+    -- Les autres (chantier present, deux tiers non franchis, palier divisible, surface connue)
+    -- restent au verdict unique du client : les porter ici en ferait une SECONDE version.
+    IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+    END IF;
+    IF v_permis IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'aucun_permis');
+    END IF;
+  END IF;
+
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id, v_patch, v_pays);
+  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final,
+                            'ville_inconnue', v_ville_inconnue);
 END; $function$;
 
 -- terrain_proprietaire_muter(text,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -952,6 +1608,130 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'titre', p_titre, 'cle', v_cle,
     'proprietaire', v_nouveau, 'vente_consignee', v_n = 1, 'etat', v_data);
+END; $function$;
+
+-- terrain_reamenagement_poser(text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_reamenagement_poser(p_terrain_id text, p_chantier jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_final jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_chantier IS NULL OR jsonb_typeof(p_chantier) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chantier_absent');
+  END IF;
+  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;
+
+  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
+  v_etat := v_lu -> 'etat';
+  IF (v_lu ->> 'gele')::boolean THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+  -- LA REGLE DES DEUX ECRANS DE RECONFIGURATION, lue en base :
+  --   if (!estTitulaire(ts.proprietaire)) « Vous n'etes pas proprietaire de ce batiment. »
+  IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+  END IF;
+  -- LISTE DE CLES, en dur : cette porte n'ecrit QUE son propre chantier. Elle ne peut donc pas
+  -- effacer `chantier`, `permis`, `subdivisions` ni le compromis, meme appelee par un client
+  -- modifie ou par un ecran reste ouvert pendant la nuit du cron.
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,
+               jsonb_build_object('chantierReamenagement', p_chantier), v_pays);
+  RETURN jsonb_build_object('ok', true, 'etat', v_final);
+END; $function$;
+
+-- terrain_succession_annuler_compromis(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_succession_annuler_compromis(p_terrain_id text, p_succession text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_defunt text; v_cle text; v_data jsonb; v_final jsonb; v_concerne boolean;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT defunt INTO v_defunt FROM public.successions
+   WHERE id = p_succession AND statut = 'en_attente';
+  IF v_defunt IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'succession_inconnue');
+  END IF;
+
+  SELECT t.id, coalesce(t.data::jsonb, '{}'::jsonb) INTO v_cle, v_data
+    FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1 FOR UPDATE;
+  IF v_cle IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'introuvable'); END IF;
+
+  -- LES TROIS ENGAGEMENTS QUE LE CLIENT NETTOYAIT, et les trois seules raisons de le faire : le
+  -- defunt detenait le compromis, avait un achat direct en cours, ou s'etait vu proposer un
+  -- transfert. Rien d'autre n'est touche.
+  v_concerne := (v_data ->> 'compromisPar') = v_defunt
+             OR (v_data -> 'achatDirect' ->> 'demandeur') = v_defunt
+             OR (v_data ->> 'transfertPropose') = v_defunt
+             OR (v_data ->> 'transfertProposePar') = v_defunt;
+  IF NOT v_concerne THEN
+    -- Un engagement deja nettoye n'apparait plus dans le scan du client : on repond ok sans rien
+    -- ecrire, exactement comme le jumeau des entreprises.
+    IF NOT (v_data ? 'compromisPar' OR v_data ? 'achatDirect' OR v_data ? 'transfertPropose') THEN
+      RETURN jsonb_build_object('ok', true, 'deja_nettoye', true);
+    END IF;
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_l_engagement_du_defunt');
+  END IF;
+
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id, jsonb_build_object(
+    'compromis', NULL, 'compromisPar', NULL, 'acompte', NULL, 'compromisAt', NULL,
+    'compromisExpireAt', NULL, 'achatDirect', NULL,
+    'transfertPropose', NULL, 'transfertProposePar', NULL), NULL);
+  RETURN jsonb_build_object('ok', true, 'etat', v_final);
+END; $function$;
+
+-- terrain_succession_geler(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_succession_geler(p_terrain_id text, p_succession text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_defunt text; v_cle text; v_data jsonb; v_final jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT defunt INTO v_defunt FROM public.successions
+   WHERE id = p_succession AND statut = 'en_attente';
+  IF v_defunt IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'succession_inconnue');
+  END IF;
+
+  SELECT t.id, coalesce(t.data::jsonb, '{}'::jsonb) INTO v_cle, v_data
+    FROM public.terrains_etat t
+   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id
+   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1 FOR UPDATE;
+  IF v_cle IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'introuvable'); END IF;
+
+  -- LE TERRAIN DOIT ETRE CELUI DU DEFUNT. `titulaire_est_moi` ne sert pas ici : on compare au
+  -- DEFUNT, pas a l'appelant -- mais on reconnait les memes trois formes de reference.
+  IF NOT (coalesce(v_data ->> 'proprietaire', '') IN (v_defunt, 'pj:' || v_defunt)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_du_defunt',
+                              'proprietaire', v_data ->> 'proprietaire');
+  END IF;
+
+  -- Rejouable sans risque : reposer le MEME gel est un no-op. Un gel par une AUTRE succession est
+  -- en revanche refuse -- deux successions ne se disputent pas un bien.
+  IF coalesce(v_data ->> 'succession_gel', '') NOT IN ('', p_succession) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_gele_par_une_autre_succession',
+                              'gel', v_data ->> 'succession_gel');
+  END IF;
+
+  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,
+               jsonb_build_object('succession_gel', p_succession), NULL);
+  RETURN jsonb_build_object('ok', true, 'gel', p_succession, 'etat', v_final);
 END; $function$;
 
 -- ville_est_reelle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp

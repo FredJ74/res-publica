@@ -108,6 +108,8 @@ GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.referent_pedagogie_noter_sujet(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.souvenir_accueil_tirer(text,date) TO postgres;
+GRANT EXECUTE ON FUNCTION public.souvenir_accueil_tirer(text,date) TO service_role;
 GRANT EXECUTE ON FUNCTION public.succession_regler(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.succession_regler(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.tournee_cloturer(text,boolean) TO authenticated;

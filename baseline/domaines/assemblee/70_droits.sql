@@ -50,6 +50,9 @@ GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,te
 GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_deposer_projet(text,text,text,text,text,text,text,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_detecter_partie(text,text,jsonb,text,integer,boolean) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_dissoudre(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assemblee_dissoudre(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_dissoudre(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_echeance_application(timestamp with time zone) TO service_role;

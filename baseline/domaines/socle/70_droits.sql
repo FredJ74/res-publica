@@ -158,3 +158,6 @@ GRANT EXECUTE ON FUNCTION public.restaurer_personnage_sauvegarde(text,text) TO s
 GRANT EXECUTE ON FUNCTION public.rp_transition_active(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.rp_transition_active(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.rp_transition_active(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.titulaire_est_moi(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.titulaire_est_moi(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.titulaire_est_moi(text) TO service_role;

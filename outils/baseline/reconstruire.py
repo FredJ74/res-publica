@@ -488,7 +488,14 @@ def controles_du_monde(cat):
     # la cle primaire (pays, mecanisme, sujet, jour) EST l'idempotence, et
     # actes_nocturnes_mecanismes, sa liste blanche. Un monde neuf nait avec le registre des
     # mecanismes SEME (sans sa ligne, la RPC leve) et le journal des actes VIDE.
-    att("tables creees", len(cat.tables), 256)
+    # 258 le 10 octobre 2026 : +2 pour la purge des chantiers 5 et 6 -- offres_emploi_bne, le
+    # MIROIR des offres du Bureau national de l'emploi (registre 609 : la colonne `places` BORNE
+    # une autorisation, elle ne pouvait plus venir du navigateur), et purges_residus_bancs,
+    # l'archive qui rend une purge reversible (registre 623 : la ligne entiere y est copiee dans
+    # la MEME transaction que sa suppression). Un monde neuf nait avec le miroir SEME -- il se
+    # regenere -- et l'archive des purges VIDE : il n'a encore rien purge.
+    # Les 6 tables hors_baseline ne sont jamais creees : 264 au catalogue, 258 ici.
+    att("tables creees", len(cat.tables), 258)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -529,8 +536,19 @@ def controles_du_monde(cat):
     # approvisionner_chantier n'a perdu qu'un droit) : leur nombre ne bouge pas.
     # Mesure en base : select count(*), count(distinct proname) from pg_proc join pg_namespace
     # on ... where nspname='public' and prokind in ('f','p') -> 690 / 686.
-    att("signatures de fonction creees", cat.n_fonctions, 690)
-    att("noms de fonction distincts", len(cat.fonctions), 686,
+    # 710 / 706 le 10 octobre 2026, apres la purge des chantiers 5 et 6 : +20 signatures nettes.
+    # Mesure en base : select count(*), count(distinct proname) from pg_proc join pg_namespace
+    # on ... where nspname='public' and prokind in ('f','p') -> 710 / 706.
+    # Les vingt : souvenir_accueil_tirer, achat_direct_manque_resoudre, recherche_inscrire,
+    # recherche_retirer, candidature_deposer, assemblee_dissoudre, bne_agir, affaire_transmettre,
+    # plainte_defendre, plainte_classer_ministere, titulaire_est_moi, les deux primitives internes
+    # des terrains (terrain_etat_verrouiller_interne, terrain_etat_fusionner_interne), leurs
+    # quatre portes a actes (compromis, permis, chantier, lots), terrain_reamenagement_poser et
+    # les deux portes successorales. `assemblee_dissoudre_revoquer_deputes` a ete SUPPRIMEE le
+    # meme jour (registre 611) : elle n'avait vecu que quelques minutes, et la supersession est
+    # ecrite dans l'archive de la 608. L'ecart de 4 reste celui des quatre surcharges historiques.
+    att("signatures de fonction creees", cat.n_fonctions, 710)
+    att("noms de fonction distincts", len(cat.fonctions), 706,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -542,8 +560,16 @@ def controles_du_monde(cat):
     # 444 le 9 octobre 2026 : +6 pour la brique nocturne -- deux cles primaires (celle
     # d'actes_nocturnes porte quatre colonnes), une cle etrangere vers la liste blanche, et
     # trois CHECK (slug du mecanisme, pays et sujet non vides).
-    att("contraintes posees", len(cat.contraintes), 444)
-    att("index autonomes crees", len(cat.index), 147)
+    # 446 le 10 octobre 2026 : +2 cles primaires, celles des deux tables neuves du cycle --
+    # offres_emploi_bne (le miroir des offres du BNE, registre 609) et purges_residus_bancs
+    # (l'archive qui rend la purge reversible, registre 623). Mesure en base :
+    # offres_emploi_bne_pkey et purges_residus_bancs_pkey, contype = 'p'.
+    att("contraintes posees", len(cat.contraintes), 446)
+    # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
+    # compromis_historique_un_resultat_par_bien_et_par_jour et
+    # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
+    # l'audit du chantier 6 reclamait pour rendre l'anti-rejeu STRUCTUREL et non disciplinaire.
+    att("index autonomes crees", len(cat.index), 149)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -554,8 +580,14 @@ def controles_du_monde(cat):
     # 285 le 8 octobre 2026 : +1 pour la lecture publique de recettes_municipales. Les recettes
     # d'une commune sont une donnee de finances publiques, comme le sont deja ses taux : c'est une
     # ouverture VOULUE, en lecture seule, et non une policy dormante oubliee en USING(true).
-    att("policies creees", len(cat.policies), 285)
-    att("sequences disponibles", len(cat.sequences), 31)
+    # 286 le 10 octobre 2026 : +1, offres_emploi_bne_lecture. Le miroir des offres du Bureau
+    # national de l'emploi est lisible par les clients -- c'est un CATALOGUE, pas un etat : les
+    # offres sont deja dans data.js, cote navigateur. Ce qui ne peut PAS venir du navigateur, et
+    # qui est la raison d'etre de ce miroir, c'est le nombre de PLACES : il borne une autorisation.
+    att("policies creees", len(cat.policies), 286)
+    # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
+    # des purges.
+    att("sequences disponibles", len(cat.sequences), 32)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

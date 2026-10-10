@@ -20,6 +20,7 @@ ALTER TABLE public.cron_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.etats_urgence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evenements_globaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.propositions_diplomatiques ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purges_residus_bancs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registre_ventes_armes ENABLE ROW LEVEL SECURITY;
 
 -- ambassades_ouvertes

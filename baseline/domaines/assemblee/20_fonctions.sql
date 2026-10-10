@@ -732,6 +732,65 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_dissoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_dissoudre(p_pays text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_id text; v_data jsonb; v_n integer; v_revoques integer;
+BEGIN
+  -- SEUL LE PRESIDENT DISSOUT. exiger_poste leve pour un client sans le poste, et rend NULL pour
+  -- un appel serveur -- le cron n'a pas de personnage et traverse, comme partout ailleurs.
+  v_moi := public.exiger_poste('president');
+
+  IF v_moi IS NULL THEN
+    IF coalesce(btrim(coalesce(p_pays, '')), '') = '' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pays_manquant');
+    END IF;
+    v_pays := p_pays;
+  ELSE
+    SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+    IF v_pays IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu'); END IF;
+    IF p_pays IS NOT NULL AND p_pays <> v_pays THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pays_hors_autorite');
+    END IF;
+  END IF;
+
+  -- PREMIERE VAGUE : le drapeau, par COMPARE-AND-SWAP, et AVANT toute revocation.
+  v_id := v_pays || '_president';
+  SELECT c.data::jsonb INTO v_data FROM public.cycles_electoraux c WHERE c.id = v_id FOR UPDATE;
+  IF v_data IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_presidentiel_introuvable');
+  END IF;
+  IF coalesce((v_data ->> 'dissolutionUtilisee')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'dissolution_deja_utilisee');
+  END IF;
+
+  UPDATE public.cycles_electoraux
+     SET data = jsonb_set(v_data, '{dissolutionUtilisee}', 'true'::jsonb, true)::text,
+         updated_at = now()
+   WHERE id = v_id
+     AND coalesce((data::jsonb ->> 'dissolutionUtilisee')::boolean, false) = false;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'dissolution_deja_utilisee');
+  END IF;
+
+  -- DEUXIEME VAGUE : tous les deputes du pays, en UNE instruction, sur la TABLE. La vue
+  -- refuserait la fiche d'autrui -- c'est precisement le defaut ferme.
+  UPDATE public.personnages_donnees
+     SET poste_depute = NULL
+   WHERE country = v_pays
+     AND poste_depute IS NOT NULL
+     AND (poste_depute ->> 'id') = 'depute';
+  GET DIAGNOSTICS v_revoques = ROW_COUNT;
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'revoques', v_revoques,
+    'cycle_president', jsonb_set(v_data, '{dissolutionUtilisee}', 'true'::jsonb, true));
+END; $function$;
+
 -- assemblee_echeance_application(timestamp with time zone) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_echeance_application(p_adoptee_ts timestamp with time zone)
  RETURNS timestamp with time zone

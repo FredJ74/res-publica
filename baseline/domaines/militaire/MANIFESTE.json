@@ -3329,7 +3329,7 @@
  "fichiers": {
   "10_tables.sql": "b0cbce6e6da2f36f4251613bc672a672",
   "20_fonctions-1.sql": "f1737bd4f240e9aacef36bf616e2c652",
-  "20_fonctions-2.sql": "008bc9e4975120669d4e3700bd237ce4",
+  "20_fonctions-2.sql": "b68728a4f2ac9995676cd06dc10e5ae8",
   "20_fonctions-3.sql": "418f2d11546caef22030ac484f322758",
   "30_contraintes.sql": "9a10c64eb8a2aac583fb828422059ab8",
   "35_index.sql": "8568b7cc2cb218862092890a659544f9",
@@ -3855,7 +3855,7 @@
    "signature": "militaire_position_repli(text,text,text,text)"
   },
   {
-   "empreinte": "45ac45ac525735f49b0784e149e002ab",
+   "empreinte": "30db622d576c48ffb11afcda83d6850a",
    "security_definer": true,
    "signature": "militaire_presentation_affectation()"
   },

@@ -205,10 +205,11 @@
       }
     },
     "generes_sans_surveillance": {
-      "_constat": "Ces miroirs ont un generateur qui sait calculer une empreinte, mais aucune table <miroir>_empreinte en base pour la confronter. Rien ne detecterait leur derive. Les doter d'une table et d'une fonction est du SQL hors perimetre 4C.",
+      "_constat": "Ces miroirs ont un generateur qui sait calculer une empreinte, mais aucune table <miroir>_empreinte en base pour la confronter. Rien ne detecterait leur derive. Les doter d'une table et d'une fonction est du SQL hors perimetre 4C. REMESURE LE 10 OCTOBRE 2026 : miroirs_chantiers passe de f03159cd4194e53e a 6f16826f81bad98a, et ce n'est pas une derive -- le generateur mirroite desormais les TROIS seuils de financement (SEUILS_FINANCEMENT_CONSTRUCTION : 35 / 70 / 100) et plus seulement le premier, parce que la porte serveur du chantier calcule elle-meme le plafond de progression finance. Et offres_emploi_bne rejoint la liste : son generateur est ne le 10 octobre 2026 avec la porte du Bureau national de l'emploi, et la colonne `places` BORNE une autorisation -- elle ne pouvait donc plus venir du navigateur.",
       "clubs_football": "2c2f8d0fe578a8bb",
-      "miroirs_chantiers": "f03159cd4194e53e",
+      "miroirs_chantiers": "6f16826f81bad98a",
       "miroirs_entreprises": "e2b15dda50c9a640",
+      "offres_emploi_bne": "2cf0edcba2fa05fc",
       "postes_electifs": "2390eb52a42ae6a6"
     }
   },

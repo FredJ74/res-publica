@@ -10,6 +10,73 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- candidature_deposer(text,text,numeric,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.candidature_deposer(p_poste text, p_city text, p_cle_scrutin numeric, p_candidat jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_cle text; v_id_cand text; v_id_cycle text;
+  v_data jsonb; v_cands jsonb; v_n integer; v_city text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  IF p_candidat IS NULL OR jsonb_typeof(p_candidat) <> 'object'
+     OR coalesce(p_candidat ->> 'nom', '') <> v_moi THEN
+    -- ON NE SE PORTE CANDIDAT QUE POUR SOI. Le client transmettait son propre nom dans l'objet :
+    -- le serveur le relit, et refuse qu'il en nomme un autre.
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_nom');
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+
+  -- LA CLE DU CYCLE EST CELLE DU CLIENT, A LA LETTRE : <poste> ou <poste>_<ville>. Elle est
+  -- reconstruite ici, et non recue, pour qu'un client ne puisse pas viser un autre scrutin.
+  v_city := nullif(btrim(coalesce(p_city, '')), '');
+  v_cle := p_poste || CASE WHEN v_city IS NOT NULL THEN '_' || v_city ELSE '' END;
+  v_id_cycle := v_pays || '_' || v_cle;
+
+  SELECT c.data::jsonb INTO v_data FROM public.cycles_electoraux c
+   WHERE c.id = v_id_cycle FOR UPDATE;
+  IF v_data IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cycle_introuvable', 'cle', v_id_cycle);
+  END IF;
+
+  v_cands := CASE WHEN jsonb_typeof(v_data -> 'candidats') = 'array'
+                  THEN v_data -> 'candidats' ELSE '[]'::jsonb END;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_cands) e WHERE e ->> 'nom' = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_candidat');
+  END IF;
+
+  v_id_cand := v_pays || '_' || v_cle || '_' || v_moi
+    || CASE WHEN p_cle_scrutin IS NOT NULL THEN '_' || trim(to_char(p_cle_scrutin, 'FM999999999999999'))
+            ELSE '' END;
+
+  INSERT INTO public.candidatures (id, country, poste_id, city, nom, programme, archetype, created_at)
+  VALUES (v_id_cand, v_pays, p_poste, v_city, v_moi,
+          p_candidat ->> 'programme', p_candidat ->> 'archetype', now())
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_candidat');
+  END IF;
+
+  -- LE BULLETIN, DANS LA MEME TRANSACTION QUE LA LIGNE ATTESTEE.
+  v_data := jsonb_set(v_data, '{candidats}', v_cands || jsonb_build_array(p_candidat), true);
+  UPDATE public.cycles_electoraux SET data = v_data::text, updated_at = now()
+   WHERE id = v_id_cycle;
+
+  RETURN jsonb_build_object('ok', true, 'action', 'deposee', 'cycle', v_data,
+                            'id_candidature', v_id_cand);
+END; $function$;
+
 -- candidature_poste_tirage_appliquer(text,text,text,text,text[],text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.candidature_poste_tirage_appliquer(p_pays text, p_poste_id text, p_city text, p_label text, p_candidats text[], p_autorite text)
  RETURNS jsonb

@@ -18,6 +18,7 @@ ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_pkey PRIMARY KEY (id
 ALTER TABLE public.etats_urgence ADD CONSTRAINT etats_urgence_pkey PRIMARY KEY (country);
 ALTER TABLE public.evenements_globaux ADD CONSTRAINT evenements_globaux_pkey PRIMARY KEY (id);
 ALTER TABLE public.propositions_diplomatiques ADD CONSTRAINT propositions_diplomatiques_pkey PRIMARY KEY (id);
+ALTER TABLE public.purges_residus_bancs ADD CONSTRAINT purges_residus_bancs_pkey PRIMARY KEY (id);
 ALTER TABLE public.registre_ventes_armes ADD CONSTRAINT registre_ventes_armes_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES DE VALIDATION

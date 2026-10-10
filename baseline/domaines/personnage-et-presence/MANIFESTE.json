@@ -19,6 +19,12 @@
    "sous": "user_id"
   },
   {
+   "empreinte": "55caceb32e290ec01c082ed8355361a8",
+   "genre": "COLUMN",
+   "objet": "souvenirs_accueil",
+   "sous": "jour_tirage"
+  },
+  {
    "empreinte": "bbbc37c93e3b086e18bf85e1f6dbdbab",
    "genre": "FUNCTION",
    "objet": "contact_organisation_choisir(text,text,jsonb)",
@@ -914,6 +920,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "souvenir_accueil_tirer(text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "souvenir_accueil_tirer(text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "succession_regler(text)",
    "privileges": "EXECUTE"
   },
@@ -1611,15 +1629,15 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "17980d86dcd01212515d3ce61d98234b",
-  "20_fonctions.sql": "4a7642fe9850e80b0f66792595a9e11c",
+  "10_tables.sql": "2a2446ba8931c5d9d6d22bd8fcce1f6e",
+  "20_fonctions.sql": "8544288c862e8ca5962a82c4698c7c56",
   "30_contraintes.sql": "ffb82407241f2ab9009cb2ce2514c1e3",
   "35_index.sql": "4634a1852b44770bf0d1a9fd7ffdf625",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "46bf9e3523c013962906bf1058d61e54",
   "60_rls-policies.sql": "fb39aea624fbe902a64a31b5f687886e",
-  "70_droits.sql": "e20933cd36984f3509b804e4501533ca",
-  "80_commentaires.sql": "cf9a10b2cad9994f52d458a3b0a84f9e"
+  "70_droits.sql": "4d2b78dfcbc08c30188c91392f21dc63",
+  "80_commentaires.sql": "a7444b4d8b5b95c7cbefe7920868b559"
  },
  "fonctions": [
   {
@@ -1778,7 +1796,7 @@
    "signature": "personnages_poste_perdu()"
   },
   {
-   "empreinte": "cde42ca2aa0a961c6c87e4e9a41b5a76",
+   "empreinte": "cccffd2d3b372bd138379f88f03a2355",
    "security_definer": false,
    "signature": "personnages_preserver_judiciaire()"
   },
@@ -1811,6 +1829,11 @@
    "empreinte": "10f1d1bbfcde8c5146fb20f7c9ed457a",
    "security_definer": true,
    "signature": "referent_pedagogie_noter_sujet(text,text)"
+  },
+  {
+   "empreinte": "705eec237d03463b93c3a6d5fa928531",
+   "security_definer": true,
+   "signature": "souvenir_accueil_tirer(text,date)"
   },
   {
    "empreinte": "d9a7dadfac1e0fa61033d9f7741b4df8",
@@ -2569,9 +2592,9 @@
    "nom": "reconciliation_fantomes"
   },
   {
-   "colonnes": 7,
-   "empreinte_catalogue": "f52ffe96f01d227b20faee4eb8f570f5",
-   "empreinte_texte": "16171ab08cdf1f0f0dbb0c7c0062261c",
+   "colonnes": 8,
+   "empreinte_catalogue": "340154b7dc3dc47a68f46ac1beddf3f6",
+   "empreinte_texte": "fbe0f2f2efc6c1c6d66fbc730c178a6c",
    "nom": "souvenirs_accueil"
   },
   {

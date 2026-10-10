@@ -11,6 +11,9 @@
 -- ============================================================================
 
 -- DROITS SUR LES FUNCTIONS
+GRANT EXECUTE ON FUNCTION public.candidature_deposer(text,text,numeric,jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.candidature_deposer(text,text,numeric,jsonb) TO postgres;
+GRANT EXECUTE ON FUNCTION public.candidature_deposer(text,text,numeric,jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.candidature_publier(text,text,numeric,text,text) TO authenticated;

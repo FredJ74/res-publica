@@ -292,6 +292,15 @@ CREATE TABLE public.offres (
   resolu_a timestamp with time zone
 );
 
+CREATE TABLE public.offres_emploi_bne (
+  id text NOT NULL,
+  job text NOT NULL,
+  portee text NOT NULL,
+  ville text,
+  salaire integer NOT NULL,
+  places integer NOT NULL
+);
+
 CREATE TABLE public.ordres_couts (
   fn text NOT NULL,
   pa integer NOT NULL,

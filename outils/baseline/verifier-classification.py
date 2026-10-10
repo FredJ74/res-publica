@@ -26,6 +26,12 @@ RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 
 # Mesure du 9 octobre 2026, apres la migration 20261009093112 de la brique d'idempotence
+# 262 -> 264 le 10 octobre 2026, avec la purge des chantiers 5 et 6 : offres_emploi_bne -- le
+# MIROIR des offres du Bureau national de l'emploi, dont la colonne `places` BORNE une
+# autorisation et ne pouvait donc plus venir du navigateur -- et purges_residus_bancs, l'archive
+# qui rend une purge reversible (la ligne entiere y est copiee dans la MEME transaction que sa
+# suppression).
+#
 # nocturne, qui porte le catalogue de 260 a 262 tables : actes_nocturnes -- le verrou ET le
 # journal des taches de minuit, dont la cle primaire (pays, mecanisme, sujet, jour) porte
 # l'idempotence -- et actes_nocturnes_mecanismes, sa liste blanche.
@@ -36,8 +42,8 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # LES DEUX VALEURS VIENNENT DE LA BASE, pas du CSV, et c'est tout le point de ce controle : elles
 # sont relevees par la requete citee en commentaire, puis comparees a ce que le CSV recalcule. Les
 # poser depuis le CSV rendrait la verification circulaire -- elle ne dirait plus rien.
-TABLES_ATTENDUES = 262
-EMPREINTE_LISTE = "a2bb13a4de34b3ad644fdb205ac57057"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 264
+EMPREINTE_LISTE = "c643ad7eb2b4e18ba9cf0410263ef6ef"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

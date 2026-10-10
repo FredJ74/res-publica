@@ -29,6 +29,32 @@ résumé **dans leur propre en-tête**, la source à lire. Cette lacune est
 documentaire, pas une incertitude sur ce qui a été appliqué — le registre
 Supabase, lui, est complet.
 
+> **Recompté le 10 octobre 2026, au soir** : 60 → **83 fichiers**, la purge des
+> chantiers 5 et 6 ayant ajouté les registres **600 à 623**. Ces 24 en-têtes
+> portent, comme les seize précédents, le md5 et la longueur du corps relus
+> depuis le registre Supabase — et cette fois **un outil les vérifie** :
+>
+> ```
+> python3 outils/baseline/verifier-archives-migrations.py
+> ```
+>
+> Il isole le corps au marqueur `-- >>> DEBUT DU SQL HISTORIQUE`, recalcule
+> l'empreinte et refuse le moindre écart. Il a d'ailleurs commencé par rougir sur
+> les dix archives du matin, et il avait tort : sa première version comptait les
+> lignes de tirets au lieu de chercher le marqueur, et dérivait de **79
+> caractères** — exactement la longueur de ce marqueur. Un vérificateur qui se
+> trompe sur la frontière est pire qu'aucun vérificateur : il est corrigé, et la
+> raison est écrite dans son en-tête.
+>
+> **Deux de ces vingt-quatre en-têtes portent un avertissement**, et c'est
+> délibéré : le corps archivé doit rester celui qui a été appliqué, même quand il
+> dit quelque chose de faux. Le registre 612 affirme qu'un client modifié pouvait
+> poser `status = 'jugee'` sur sa propre affaire — un trigger préexistant le lui
+> reprenait, et le registre 614 le rectifie. Le registre 617 affirme que
+> l'arithmétique `double precision` est nécessaire — la contre-épreuve en
+> `numeric` exact donne le même résultat sur les 184 cas de la grille, et le
+> registre 618 le rectifie. **On ne réécrit pas l'histoire : on l'annote.**
+
 > **Recompté le 10 octobre 2026** : 44 → **60 fichiers**, le lot des chantiers 5
 > et 6 ayant ajouté les registres 584 à 599. Les seize en-têtes portent le md5 et
 > la longueur du corps **relus depuis le registre Supabase**, et un contrôle

@@ -218,6 +218,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "affaire_transmettre(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "affaire_transmettre(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "affaire_transmettre(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "arrestation_urgence(text,text)",
    "privileges": "EXECUTE"
   },
@@ -650,6 +668,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "plainte_classer_ministere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plainte_classer_ministere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plainte_classer_ministere(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "plainte_defendre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "plainte_defendre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plainte_defendre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "plainte_deposer(text,text)",
    "privileges": "EXECUTE"
   },
@@ -795,6 +849,42 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "qhs_pouvoir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "recherche_inscrire(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recherche_inscrire(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recherche_inscrire(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "recherche_retirer(text[],text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recherche_retirer(text[],text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recherche_retirer(text[],text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1121,12 +1211,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
-  "20_fonctions.sql": "11232d891be877fd5174e3457aac17d4",
+  "20_fonctions.sql": "c0ab3d76d2733483c4fcddc34709fe5c",
   "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
   "35_index.sql": "35101f33980b68952e56850552b2d06a",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
   "60_rls-policies.sql": "2e5dcefa61feab8d981755b0a667354e",
-  "70_droits.sql": "daaf6772532830441d8e568b79ed59d3",
+  "70_droits.sql": "ea76b53f0da509980bfa91b0c095df53",
   "80_commentaires.sql": "b0ad951c175ff4bdced69d8ad6389629"
  },
  "fonctions": [
@@ -1144,6 +1234,11 @@
    "empreinte": "f62055310b4f66095ee714f1a1591e57",
    "security_definer": false,
    "signature": "affaire_statut(text)"
+  },
+  {
+   "empreinte": "18d77c6635383efacfdb124b4ee24288",
+   "security_definer": true,
+   "signature": "affaire_transmettre(text,text,text,jsonb)"
   },
   {
    "empreinte": "6b17ab43f171bc4f493ec29555d2199e",
@@ -1276,6 +1371,16 @@
    "signature": "justice_rendre_sentence(jsonb,text)"
   },
   {
+   "empreinte": "5addae1f30aefe186e66c39164b8f299",
+   "security_definer": true,
+   "signature": "plainte_classer_ministere(text)"
+  },
+  {
+   "empreinte": "c56bac065f88b07b1286f0a0be2d5c5b",
+   "security_definer": true,
+   "signature": "plainte_defendre(text,text)"
+  },
+  {
    "empreinte": "c5e9a98d56562d91e9f0c25319d9cb5d",
    "security_definer": true,
    "signature": "plainte_deposer(text,text)"
@@ -1291,7 +1396,7 @@
    "signature": "plainte_traiter(text,text)"
   },
   {
-   "empreinte": "739d1aa177fbf39f8c0733686d7b8e46",
+   "empreinte": "a78d4ae892dfbf6249edca88157cf523",
    "security_definer": true,
    "signature": "plaintes_epingler_verdict()"
   },
@@ -1324,6 +1429,16 @@
    "empreinte": "cf977591cd94943b952f3356d6d702a1",
    "security_definer": true,
    "signature": "qhs_pouvoir(text,text)"
+  },
+  {
+   "empreinte": "7878dcb36cc4deec6a834b4fc085fd8a",
+   "security_definer": true,
+   "signature": "recherche_inscrire(jsonb,text)"
+  },
+  {
+   "empreinte": "7bc90e8afcfb7f0f01ac9a12faacfd74",
+   "security_definer": true,
+   "signature": "recherche_retirer(text[],text,text)"
   }
  ],
  "index_autonomes": [

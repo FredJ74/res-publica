@@ -1788,9 +1788,11 @@ BEGIN
      WHERE NOT (coalesce(e->>'acte', '') = 'desertion'
                 AND coalesce(e->>'country', v_pays) = v_pays);
   END IF;
+  PERFORM set_config('rp.recherche_interne', 'on', true);
   UPDATE public.personnages_donnees
      SET requisition = v_req, recherche = v_recherche2
    WHERE name = v_moi;
+  PERFORM set_config('rp.recherche_interne', '', true);   -- la portee s'arrete ici
 
   -- 3. LE PAIEMENT, en dernier et sous le meme verrou : payer_ordre relit le cout dans le
   -- miroir declare. Un refus a ce stade annule TOUT (exception = rollback), jamais un effet

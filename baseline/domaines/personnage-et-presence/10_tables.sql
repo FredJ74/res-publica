@@ -338,7 +338,8 @@ CREATE TABLE public.souvenirs_accueil (
   jour_creation integer NOT NULL,
   jour_expiration integer NOT NULL,
   revele boolean DEFAULT false,
-  created_at timestamp with time zone DEFAULT now()
+  created_at timestamp with time zone DEFAULT now(),
+  jour_tirage date
 );
 
 CREATE TABLE public.successions (

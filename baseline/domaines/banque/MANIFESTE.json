@@ -780,7 +780,7 @@
   "10_tables.sql": "e0be54159d7a10d40060f7bfb9423a5e",
   "20_fonctions.sql": "457fc9818970c26eb5edf7d981170fd0",
   "30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",
-  "35_index.sql": "84e0b651c5bc4296b38c0b4d4b68c024",
+  "35_index.sql": "186dcb1c0d4e9d8184540b1331b403a8",
   "60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",
   "70_droits.sql": "60133b44e1daa48f4dfe14726043a8af",
   "80_commentaires.sql": "6aa5de153f880a28fcce44054b116eb0"
@@ -933,6 +933,10 @@
   }
  ],
  "index_autonomes": [
+  {
+   "empreinte": "8055465a9bd6c1b5d8c7c588de9042b7",
+   "nom": "compromis_historique_un_resultat_par_bien_et_par_jour"
+  },
   {
    "empreinte": "f3476c720f93738d469b6fbd0b47b690",
    "nom": "comptes_bancaires_perso_banque"

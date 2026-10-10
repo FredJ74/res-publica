@@ -62,7 +62,7 @@ BASELINE = os.path.join(RACINE, "baseline")
 MIGRATIONS_HISTORIQUES = 184
 NON_APPLIQUEES = 3
 PATCHS_PONCTUELS = 342       # 289 patch_*.py + 53 fix_*.py, archives au 2H
-GENERATEURS = 11             # 8 miroirs de data.js (sortis de .scratch/ au 2H),
+GENERATEURS = 12             # 9 miroirs de data.js (sortis de .scratch/ au 2H),
                              # + generer_referentiels_serveur.py (api/_referentiels-generes.js,
                              # chantier 4B), + generer_recettes_militaires.py (miroir SQL des
                              # recettes, chantier 4D), + generer_villes.py (miroir des douze
@@ -205,26 +205,38 @@ def main():
         if os.path.dirname(rel) == bancs:
             texte = open(chemin, encoding="utf-8").read()
             nu = re.sub(r"(?m)^\s*--.*$", "", texte)
-            blocs  = len(re.findall(r"(?mi)^\s*DO\s*\$\$", nu))
+            # LE DOLLAR-QUOTING PEUT ETRE NOMME, et c'est meme preferable : `DO $banc$ ... $banc$`
+            # laisse le corps utiliser `$$` librement. La premiere version de ce controle ne
+            # reconnaissait que `DO $$` et declarait « applicable tel quel » six bancs du
+            # 10 octobre 2026 qui s'annulaient PARFAITEMENT -- une regle trop etroite accuse le
+            # code correct, et c'est la pire sorte de faux positif.
+            blocs  = len(re.findall(r"(?mi)^\s*DO\s*\$[A-Za-z_][A-Za-z0-9_]*\$|(?mi)^\s*DO\s*\$\$", nu))
             raises = len(re.findall(r"(?i)RAISE\s+EXCEPTION", nu))
+            # ET L'ENVELOPPE `BEGIN; ... ROLLBACK;` EST UNE GARANTIE PLUS FORTE QUE LE BLOC DO :
+            # elle annule TOUT, y compris les ordres nus du decor. Un banc qui la porte n'a plus
+            # besoin qu'on compte ses ordres nus -- ils ne survivront pas davantage.
+            enveloppe = (re.search(r"(?mi)^\s*BEGIN\s*;", nu) is not None
+                         and re.search(r"(?mi)^\s*ROLLBACK\s*;", nu) is not None)
             # Les ordres a l'INTERIEUR d'un bloc DO sont annules avec lui : ce qu'on cherche,
             # ce sont les ordres NUS, ceux qui s'executeraient seuls. On retire donc les corps
             # des blocs avant de regarder. Premier jet de ce controle : il comptait l'INSERT de
             # l'epreuve 3 comme un ordre nu, alors qu'il est dans un bloc qui leve.
-            dehors = re.sub(r"(?si)\bDO\s*\$\$.*?\$\$\s*;", "", nu)
+            dehors = re.sub(r"(?si)\bDO\s*(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$).*?\1\s*;", "", nu)
             hors = [m.group(1) for m in
                     re.finditer(r"(?mi)^\s*(INSERT|UPDATE|DELETE|TRUNCATE|DROP|ALTER|GRANT|REVOKE|CREATE)\b", dehors)]
-            if blocs == 0:
-                r.anomalie("banc sans bloc DO, donc applicable tel quel : " + rel)
+            if blocs == 0 and not enveloppe:
+                r.anomalie("banc sans bloc DO ni enveloppe BEGIN/ROLLBACK, donc applicable tel "
+                           "quel : " + rel)
             elif raises < blocs:
                 r.anomalie("banc dont %d bloc(s) sur %d ne levent pas : %s -- ce qu'ils "
                            "ecrivent resterait ecrit" % (blocs - raises, blocs, rel))
-            elif hors:
+            elif hors and not enveloppe:
                 r.anomalie("banc portant %d ordre(s) nu(s) hors d'un bloc DO (%s) : %s"
                            % (len(hors), ", ".join(sorted(set(hors))), rel))
             else:
-                print("  %-14s %4d blocs DO, %d RAISE, 0 ordre nu  %s"
-                      % (bancs + "/", blocs, raises, os.path.basename(rel)))
+                print("  %-14s %4d blocs DO, %d RAISE, %d ordre(s) nu(s)%s  %s"
+                      % (bancs + "/", blocs, raises, len(hors),
+                         " sous BEGIN/ROLLBACK" if enveloppe else "", os.path.basename(rel)))
             continue
         egares.append(rel)
     r.verif("fichiers .sql hors des trois maisons", len(egares), 0)

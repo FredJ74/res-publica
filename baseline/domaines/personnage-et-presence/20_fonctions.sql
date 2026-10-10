@@ -1484,6 +1484,16 @@ BEGIN
     NEW.historique_crimes := v_hist;
   END IF;
 
+  -- ---------------------------------------------------------------- AVIS DE RECHERCHE
+  -- SERVEUR-AUTORITAIRE depuis le 10 octobre 2026 (chantier 5, chaine 14). `recherche` n'a
+  -- aucune cle : deux versions du tableau ne peuvent pas etre fusionnees, et le dernier ecrivain
+  -- gagnait. Toute version entrante qui ne vient pas d'une porte est donc IGNOREE -- et seule
+  -- cette colonne l'est, les quarante-sept autres du blob passent normalement.
+  IF NEW.recherche IS DISTINCT FROM OLD.recherche
+     AND coalesce(current_setting('rp.recherche_interne', true), '') <> 'on' THEN
+    NEW.recherche := OLD.recherche;
+  END IF;
+
   RETURN NEW;
 END;
 $function$;
@@ -1772,6 +1782,66 @@ begin
   return jsonb_build_object('ok', true);
 end;
 $function$;
+
+-- souvenir_accueil_tirer(text,date) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.souvenir_accueil_tirer(p_souvenir_id text, p_jour date)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  s public.souvenirs_accueil; v_chance numeric; v_jet numeric; v_n integer;
+BEGIN
+  IF p_jour IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'jour_manquant');
+  END IF;
+
+  SELECT * INTO s FROM public.souvenirs_accueil WHERE id = p_souvenir_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'souvenir_introuvable');
+  END IF;
+
+  -- Un souvenir deja revele ne refuit pas. Ce n'est pas une erreur : c'est le cas normal d'une
+  -- liste lue avant qu'une autre passe ne la consomme.
+  IF coalesce(s.revele, false) THEN
+    RETURN jsonb_build_object('ok', true, 'action', 'deja_revele');
+  END IF;
+
+  -- LA GARDE QUE L'AUDIT RECLAMAIT : la frontiere est le souvenir, pas la passe.
+  IF s.jour_tirage = p_jour THEN
+    RETURN jsonb_build_object('ok', true, 'action', 'deja_tire');
+  END IF;
+
+  -- LE HASARD EST DANS LA TRANSACTION QUI EN PORTE LES CONSEQUENCES. Memes deux tirages, memes
+  -- bornes, meme comparaison que dans le navigateur : 5 % a 10 %.
+  v_chance := 0.05 + random() * 0.05;
+  v_jet := random();
+
+  IF v_jet >= v_chance THEN
+    UPDATE public.souvenirs_accueil SET jour_tirage = p_jour
+     WHERE id = p_souvenir_id AND revele IS NOT TRUE;
+    GET DIAGNOSTICS v_n = ROW_COUNT;
+    IF v_n <> 1 THEN RAISE EXCEPTION 'souvenir_accueil_tirer : marquage de journee non pris'; END IF;
+    RETURN jsonb_build_object('ok', true, 'action', 'pas_de_fuite');
+  END IF;
+
+  -- LE MARQUAGE EST UN COMPARE-AND-SWAP, et l'annonce est dans la meme transaction que lui.
+  UPDATE public.souvenirs_accueil SET revele = true, jour_tirage = p_jour
+   WHERE id = p_souvenir_id AND revele IS NOT TRUE;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', true, 'action', 'deja_revele');
+  END IF;
+
+  INSERT INTO public.evenements_globaux (country, city, texte, jour)
+  VALUES ('republic', NULL,
+          '📰 SCANDALE : un journaliste révèle que ' || s.pj_nom || ' a récupéré "'
+            || s.objet_nom || '" au service des objets trouvés de l''Assemblée.',
+          NULL);
+
+  RETURN jsonb_build_object('ok', true, 'action', 'fuite', 'pj', s.pj_nom, 'objet', s.objet_nom);
+END; $function$;
 
 -- succession_regler(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.succession_regler(p_succession_id text)

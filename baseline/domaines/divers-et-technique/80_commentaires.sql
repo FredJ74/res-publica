@@ -30,3 +30,4 @@ COMMENT ON TABLE public.actes_nocturnes_mecanismes IS 'LISTE BLANCHE des mecanis
 violation de cle etrangere : un nom mal orthographie ne peut pas ouvrir un second espace de noms
 en silence, ce qui reviendrait a ne plus proteger le vrai. Ajouter un mecanisme est une
 migration, et c''est voulu -- la liste des taches nocturnes devient lisible en un endroit.';
+COMMENT ON TABLE public.purges_residus_bancs IS 'Archive des lignes de banc purgees du schema public. Une purge n''est acceptable que si elle est reversible : la ligne entiere est copiee ici dans la MEME transaction que sa suppression. Aucun role client n''y a acces -- c''est une table d''administration.';

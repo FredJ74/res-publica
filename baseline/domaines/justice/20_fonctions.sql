@@ -64,6 +64,65 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $function$;
 
+-- affaire_transmettre(text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.affaire_transmettre(p_cible text, p_motif text, p_city text, p_fait jsonb DEFAULT NULL::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_nom text; v_pays text; v_jour integer; v_ville text;
+  v_cible text; v_motif text; v_id text; v_data jsonb; v_n integer;
+BEGIN
+  v_nom := public.mon_personnage();
+  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  v_cible := nullif(btrim(coalesce(p_cible, '')), '');
+  v_motif := nullif(btrim(coalesce(p_motif, '')), '');
+  IF v_cible IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'cible_absente'); END IF;
+  IF v_motif IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'motif_absent'); END IF;
+  v_ville := coalesce(nullif(btrim(coalesce(p_city, '')), ''), 'capitale');
+
+  -- MEME REGLE QUE LA POLICY D'INSERT, lue en base : seule l'autorite judiciaire de la ville de
+  -- l'affaire transmet au tribunal. Les deux appelants verifient deja leur juridiction cote
+  -- client (`commissaireLocalValide`) -- ce qui etait verifie nulle part, c'est que l'ecriture
+  -- avait abouti.
+  IF NOT public.affaire_autorite_de(v_ville) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee', 'ville', v_ville);
+  END IF;
+
+  SELECT d.country, coalesce(d.day, 1) INTO v_pays, v_jour
+    FROM public.personnages_donnees d WHERE d.name = v_nom LIMIT 1;
+  v_pays := coalesce(v_pays, 'republic');
+
+  -- L'IDENTIFIANT EST DERIVE DE L'ACTE, jamais d'une horloge : la meme affaire transmise deux
+  -- fois le meme jour est la MEME ligne. La reference du fait demasque entre dans la cle quand
+  -- elle existe, parce que deux actes traces distincts de la meme personne sont deux affaires.
+  v_id := 'affaire-' || v_pays || '-' || v_ville || '-' || v_jour || '-'
+          || substr(md5(v_cible || '|' || v_motif || '|' || coalesce(p_fait ->> 'refId', '')), 1, 12);
+
+  v_data := jsonb_build_object('id', v_id, 'country', v_pays, 'city', v_ville,
+                               'cible', v_cible, 'motif', v_motif, 'jour', v_jour,
+                               'status', 'deposee', 'transmise_par', v_nom);
+  IF p_fait IS NOT NULL AND jsonb_typeof(p_fait) = 'object' THEN
+    IF nullif(p_fait ->> 'victime', '') IS NOT NULL THEN v_data := v_data || jsonb_build_object('victime', p_fait ->> 'victime'); END IF;
+    IF p_fait ? 'jourFait' AND p_fait ->> 'jourFait' IS NOT NULL THEN v_data := v_data || jsonb_build_object('jourFait', (p_fait ->> 'jourFait')::integer); END IF;
+    IF nullif(p_fait ->> 'refType', '') IS NOT NULL THEN v_data := v_data || jsonb_build_object('refType', p_fait ->> 'refType'); END IF;
+    IF nullif(p_fait ->> 'refId', '') IS NOT NULL THEN v_data := v_data || jsonb_build_object('refId', p_fait ->> 'refId'); END IF;
+  END IF;
+
+  INSERT INTO public.plaintes_en_cours (id, country, city, data)
+  VALUES (v_id, v_pays, v_ville, v_data::text)
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n = 0 THEN
+    SELECT CASE WHEN data IS NULL THEN NULL ELSE data::jsonb END INTO v_data
+      FROM public.plaintes_en_cours WHERE id = v_id;
+    RETURN jsonb_build_object('ok', true, 'deja_transmise', true, 'affaire', v_data, 'id', v_id);
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'deja_transmise', false, 'affaire', v_data, 'id', v_id);
+END; $function$;
+
 -- arrestation_urgence(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.arrestation_urgence(p_cible text, p_motif text)
  RETURNS jsonb
@@ -1099,6 +1158,108 @@ BEGIN
                             'juge',v_juge,'jour',v_jour,'jugement_cree',v_n = 1);
 END; $function$;
 
+-- plainte_classer_ministere(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.plainte_classer_ministere(p_affaire_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_nom text; v_pays text; v_brut text; v_pays_aff text; v_data jsonb;
+BEGIN
+  v_nom := public.mon_personnage();
+  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_nom LIMIT 1;
+  -- L'AUTORITE EXISTAIT DEJA EN BASE, a deux endroits : la policy de lecture de cette table
+  -- nomme `min_just`, et `caisse_ministere_mouvement` refuse les frais de dossier a qui n'est pas
+  -- le ministre en exercice. Elle n'etait simplement appliquee par aucune ecriture.
+  IF NOT public.mon_poste_est_dans('min_just', v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee');
+  END IF;
+
+  SELECT data, country INTO v_brut, v_pays_aff
+    FROM public.plaintes_en_cours WHERE id = p_affaire_id FOR UPDATE;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente');
+  END IF;
+  v_data := v_brut::jsonb;
+  IF v_pays_aff IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_juridiction');
+  END IF;
+  -- « Classer une plainte EN COURS AVANT JUGEMENT » -- le libelle de l'ordre `annuler_poursuites`
+  -- dit la regle, et elle borne le statut : une affaire jugee, classee ou deja annulee ne se
+  -- classe pas.
+  IF coalesce(v_data ->> 'status', '') IS DISTINCT FROM 'deposee' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_non_classable',
+                              'statut', v_data ->> 'status');
+  END IF;
+
+  v_data := v_data || jsonb_build_object('status', 'annulee', 'classee_par', v_nom,
+    'classee_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
+  -- Le laissez-passer ne dure que cette ecriture (voir le trigger `plaintes_epingler_verdict`).
+  PERFORM set_config('rp.verdict_interne', 'on', true);
+  UPDATE public.plaintes_en_cours SET data = v_data::text WHERE id = p_affaire_id;
+  PERFORM set_config('rp.verdict_interne', '', true);
+  RETURN jsonb_build_object('ok', true, 'affaire', v_data);
+END; $function$;
+
+-- plainte_defendre(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.plainte_defendre(p_affaire_id text, p_issue text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_nom text; v_brut text; v_data jsonb; v_maj jsonb;
+BEGIN
+  v_nom := public.mon_personnage();
+  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  -- LISTE CLOSE DES QUATRE ISSUES de la formule de defense de `data.js` : reussite eclatante
+  -- (classe l'affaire), reussite simple (circonstance attenuante), echec flagrant (aggravation),
+  -- echec simple (aucun effet).
+  IF p_issue NOT IN ('reussite_critique', 'attenuante', 'aggravation', 'infructueuse') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'issue_inconnue');
+  END IF;
+
+  SELECT data INTO v_brut FROM public.plaintes_en_cours WHERE id = p_affaire_id FOR UPDATE;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente');
+  END IF;
+  v_data := v_brut::jsonb;
+  -- `affaire_me_concerne` accordait l'ecriture a la cible ET au plaignant, sur le blob entier.
+  -- Se defendre est le fait de l'ACCUSE, et de lui seul.
+  IF coalesce(v_data ->> 'cible', '') IS DISTINCT FROM v_nom THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_affaire');
+  END IF;
+  -- LA MEME CONDITION QUE LE CLIENT POSAIT DEJA (`p.status === 'deposee'`), mais arretee sous
+  -- verrou : un dossier deja juge ou deja classe ne peut plus etre rouvert par une defense
+  -- partie d'un ecran perime.
+  IF coalesce(v_data ->> 'status', '') IS DISTINCT FROM 'deposee' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_non_defendable',
+                              'statut', v_data ->> 'status');
+  END IF;
+
+  -- UNE DEFENSE PEUT ETRE RETENTEE, et c'est la regle existante : les trois issues qui ne
+  -- classent pas l'affaire la laissent « deposee », et l'ordre est payant a chaque fois (2 PA et
+  -- 300 FR, preleves par `deduireCoutOrdre` avant l'appel). On ne la verrouille donc pas.
+  v_maj := jsonb_build_object('defendue_par', v_nom, 'defendue_le',
+                              to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
+  IF p_issue = 'reussite_critique' THEN
+    v_maj := v_maj || jsonb_build_object('status', 'jugee', 'resultatDefense', 'reussite_critique');
+  ELSIF p_issue = 'attenuante' THEN
+    v_maj := v_maj || jsonb_build_object('circonstanceAttenuante', true);
+  ELSIF p_issue = 'aggravation' THEN
+    v_maj := v_maj || jsonb_build_object('aggravation', true);
+  END IF;
+
+  v_data := v_data || v_maj;
+  -- Le laissez-passer ne dure que cette ecriture (voir le trigger `plaintes_epingler_verdict`).
+  PERFORM set_config('rp.verdict_interne', 'on', true);
+  UPDATE public.plaintes_en_cours SET data = v_data::text WHERE id = p_affaire_id;
+  PERFORM set_config('rp.verdict_interne', '', true);
+  RETURN jsonb_build_object('ok', true, 'issue', p_issue, 'affaire', v_data);
+END; $function$;
+
 -- plainte_deposer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plainte_deposer(p_cible text, p_motif text)
  RETURNS jsonb
@@ -1306,6 +1467,13 @@ DECLARE
                                      'circonstanceAttenuante','aggravation'];
 BEGIN
   IF public.est_appel_serveur() THEN RETURN NEW; END IF;
+  -- LAISSEZ-PASSER DES PORTES DU CYCLE (10 octobre 2026). Deux portes ecrivent des champs de
+  -- verdict pour le compte de quelqu'un qui n'est PAS l'autorite de la ville : la defense de
+  -- l'accuse et le classement du Ministre de la Justice. Elles sont SECURITY DEFINER, mais
+  -- `est_appel_serveur()` lit le GUC `role`, que SECURITY DEFINER ne change pas : sans ce
+  -- drapeau, ce trigger effacait ce qu'elles venaient d'ecrire. Chacune l'ouvre juste avant
+  -- son UPDATE et le referme juste apres -- il ne couvre donc jamais une autre ecriture.
+  IF coalesce(current_setting('rp.verdict_interne', true), '') = 'on' THEN RETURN NEW; END IF;
   IF public.affaire_autorite_de(NEW.city) THEN RETURN NEW; END IF;
 
   -- L'auteur n'est pas l'autorite judiciaire : on restaure les champs de verdict
@@ -1584,4 +1752,118 @@ BEGIN
          detention_qhs = jsonb_build_object('enQHS', true, 'paLimite1Jour', true)
    WHERE name = v_nom;
   RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'cible', v_nom);
+END; $function$;
+
+-- recherche_inscrire(jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.recherche_inscrire(p_entree jsonb, p_cible text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_cible text; v_id text; v_apres jsonb; v_n integer;
+BEGIN
+  IF p_entree IS NULL OR jsonb_typeof(p_entree) <> 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'entree_invalide');
+  END IF;
+
+  v_moi := public.mon_personnage();
+  IF v_moi IS NOT NULL THEN
+    -- UN JOUEUR N'INSCRIT QUE SUR SA PROPRE FICHE. Condamner autrui est un pouvoir, et il a sa
+    -- porte : justice_condamner, qui relit le poste de l'appelant.
+    IF p_cible IS NOT NULL AND p_cible <> v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_ma_fiche');
+    END IF;
+    v_cible := v_moi;
+  ELSE
+    IF coalesce(btrim(coalesce(p_cible, '')), '') = '' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cible_manquante');
+    END IF;
+    v_cible := p_cible;
+  END IF;
+
+  PERFORM set_config('rp.recherche_interne', 'on', true);
+
+  -- IDEMPOTENCE PAR IDENTIFIANT, quand l'entree en porte un. C'est le cas du mandat d'arret des
+  -- tracts calomnieux, dont le client verifiait deja l'absence avant de le refleter. Un crime
+  -- ordinaire, lui, n'a pas d'identifiant : il peut etre commis deux fois, et doit s'inscrire
+  -- deux fois.
+  v_id := nullif(p_entree ->> 'id', '');
+  IF v_id IS NOT NULL THEN
+    SELECT count(*) INTO v_n FROM public.personnages_donnees d,
+           jsonb_array_elements(CASE WHEN jsonb_typeof(d.recherche)='array'
+                                     THEN d.recherche ELSE '[]'::jsonb END) e
+     WHERE d.name = v_cible AND e ->> 'id' = v_id;
+    IF v_n > 0 THEN
+      SELECT coalesce(recherche, '[]'::jsonb) INTO v_apres
+        FROM public.personnages_donnees WHERE name = v_cible;
+      RETURN jsonb_build_object('ok', true, 'action', 'deja_inscrite',
+                                'recherche', coalesce(v_apres, '[]'::jsonb));
+    END IF;
+  END IF;
+
+  -- L'AJOUT EST ATOMIQUE : aucune relecture, donc aucune fenetre de perte.
+  UPDATE public.personnages_donnees
+     SET recherche = (CASE WHEN jsonb_typeof(recherche) = 'array'
+                           THEN recherche ELSE '[]'::jsonb END) || jsonb_build_array(p_entree)
+   WHERE name = v_cible
+  RETURNING recherche INTO v_apres;
+  PERFORM set_config('rp.recherche_interne', '', true);   -- la portee s'arrete ici
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'action', 'inscrite',
+                            'recherche', coalesce(v_apres, '[]'::jsonb));
+END; $function$;
+
+-- recherche_retirer(text[],text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.recherche_retirer(p_actes text[], p_pays text DEFAULT NULL::text, p_cible text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_cible text; v_avant jsonb; v_apres jsonb;
+BEGIN
+  IF p_actes IS NULL OR array_length(p_actes, 1) IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'actes_manquants');
+  END IF;
+
+  v_moi := public.mon_personnage();
+  IF v_moi IS NOT NULL THEN
+    IF p_cible IS NOT NULL AND p_cible <> v_moi THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_ma_fiche');
+    END IF;
+    v_cible := v_moi;
+  ELSE
+    IF coalesce(btrim(coalesce(p_cible, '')), '') = '' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cible_manquante');
+    END IF;
+    v_cible := p_cible;
+  END IF;
+
+  SELECT CASE WHEN jsonb_typeof(recherche)='array' THEN recherche ELSE '[]'::jsonb END
+    INTO v_avant FROM public.personnages_donnees WHERE name = v_cible FOR UPDATE;
+  IF v_avant IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  PERFORM set_config('rp.recherche_interne', 'on', true);
+
+  -- LE FILTRE EST EXACTEMENT `estMienne` DU CLIENT : l'acte, et le pays quand l'entree en porte
+  -- un. UN MOTIF N'EN EFFACE JAMAIS UN AUTRE -- ni celui d'un autre acte, ni celui d'un autre
+  -- empire. C'est la regle posee le 13 septembre 2026, reprise ici sans un mot de plus.
+  SELECT coalesce(jsonb_agg(e), '[]'::jsonb) INTO v_apres
+    FROM jsonb_array_elements(v_avant) e
+   WHERE NOT ( (e ->> 'acte') = ANY (p_actes)
+               AND ( p_pays IS NULL
+                     OR coalesce(nullif(e ->> 'country', ''), p_pays) = p_pays ) );
+
+  UPDATE public.personnages_donnees SET recherche = v_apres WHERE name = v_cible;
+  PERFORM set_config('rp.recherche_interne', '', true);   -- la portee s'arrete ici
+
+  RETURN jsonb_build_object('ok', true, 'action', 'retires',
+    'retires', jsonb_array_length(v_avant) - jsonb_array_length(v_apres),
+    'recherche', v_apres);
 END; $function$;

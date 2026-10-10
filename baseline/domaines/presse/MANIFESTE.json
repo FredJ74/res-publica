@@ -1269,9 +1269,9 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "f18a7d7e7abfcdf6b8eade3bf2954db3",
-  "20_fonctions.sql": "75c3aa157da35883a7cf0ee0f10fbf7a",
+  "20_fonctions.sql": "a857ea60155880ef5161d5e1f713a41f",
   "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
-  "35_index.sql": "6f50c630734d8b7962501564dc16c984",
+  "35_index.sql": "6d12103196b5434748c11d96cbbb7e4b",
   "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
   "60_rls-policies.sql": "3eaf79a8204cc1b5a3d7296f6bc728da",
   "70_droits.sql": "03da62361d2622b3db06212cce3049de",
@@ -1294,7 +1294,7 @@
    "signature": "calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone)"
   },
   {
-   "empreinte": "27829d7140edfd14f01df34213c8c895",
+   "empreinte": "43b8db7b804868609a5aed1eae72117f",
    "security_definer": true,
    "signature": "calomnie_inscrire_mandat(text,text,text,text,timestamp with time zone)"
   },
@@ -1467,6 +1467,10 @@
   {
    "empreinte": "c7d631fa662ab7ca61bf6ce0f77ac442",
    "nom": "calomnies_actes_verrou"
+  },
+  {
+   "empreinte": "7a559f4febb894f5a87d8bb33efe96f3",
+   "nom": "chronique_nationale_une_proclamation_par_scrutin"
   },
   {
    "empreinte": "ab82d40a2a89b2d3afd9f39fae5bea44",

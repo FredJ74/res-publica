@@ -21,6 +21,7 @@
 --   prets_pkey  (contrainte prets_pkey)
 
 -- Index autonomes :
+CREATE UNIQUE INDEX compromis_historique_un_resultat_par_bien_et_par_jour ON public.compromis_historique USING btree (country, building_id, resultat, ((timezone('Europe/Paris'::text, created_at))::date));
 CREATE UNIQUE INDEX comptes_bancaires_perso_banque ON public.comptes_bancaires USING btree (personnage, banque);
 CREATE INDEX comptes_bancaires_personnage ON public.comptes_bancaires USING btree (personnage);
 CREATE INDEX idx_biens_saisis_helvetia_statut ON public.biens_saisis_helvetia USING btree (statut);
