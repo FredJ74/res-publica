@@ -12,6 +12,13 @@ baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
 ## Aucune migration en attente
 
+**Le chantier 7 n'a produit aucune migration, et c'est normal.** Les fonctions
+recopiees entre `api/` et le navigateur vivent entierement dans le depot : la base
+n'a rien a y voir, le baseline est donc inchange. Ce que ce chantier a ajoute est
+un **onzieme controle**, `verifier-fonctions.py`, et sa declaration
+`outils/baseline/fonctions.json`. Voir
+`../baseline/arbitrages/AUDIT-CHANTIER-7-FONCTIONS-RECOPIEES.md`.
+
 **La purge : les chantiers 5 et 6 sont clos.**
 Vingt-quatre migrations le 10 octobre 2026, registre **600 → 623**. Toutes
 archivées dans `../historique/migrations-appliquees/`, corps exacts relus depuis

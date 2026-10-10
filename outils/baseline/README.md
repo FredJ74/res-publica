@@ -17,7 +17,9 @@ Un module, une responsabilité.
 | `verifier-monde-neuf.py` | **le contrôle du monde neuf** : aucune donnée de bêta, aucun vestige canonisé |
 | `reconstruire.py` | **la reconstruction** : assemble le baseline, le soumet à la grammaire réelle de PostgreSQL et simule son application |
 | `verifier-workflow.py` | **le garde-fou du processus** : huit invariants qui empêchent la régression du workflow |
-| `controler-tout.py` | **le lanceur unique** : enchaîne les huit contrôles et rend un verdict d'ensemble |
+| `controler-tout.py` | **le lanceur unique** : enchaîne les **onze** contrôles et rend un verdict d'ensemble |
+| `fonctions.json` | **les fonctions recopiées** (chantier 7) : quelle fonction du navigateur fait foi, où `api/` en détient un exemplaire, et sur quelle grille les deux sont confrontés |
+| `verifier-fonctions.py` | **le contrôle des fonctions recopiées** : charge les deux côtés pour de vrai — le module serveur dans une portée isolée — et les exécute sur les grilles déclarées |
 | `verifier.py` | **le contrôle du domaine pilote** `communication` (chantier 2B) |
 | `arbitrages.py` | **les tableaux d'arbitrage** de l'état initial, préparés pour être remplis |
 | `verifier-classification.py` | **le contrôle de la classification** 2C |

@@ -23,6 +23,7 @@ qui est une décision de game design (posée en question, jamais inventée).
 | `AUDIT-EMPIRES-4G.md` | chantier 4G | ce qui est déjà fail-closed hors Républia, et les trois questions de game design qui bloquent le reste |
 | `AUDIT-FALLBACKS-REPUBLIC.md` | chantier 4G | les **287 replis implicites** vers Républia, classés A–E — et pourquoi 253 d'entre eux se corrigent par **deux gardes à la racine** |
 | `AUDIT-PERFORMANCE-MESUREE.md` | performance | ce que la base mesure, sur 4,5 mois : le suspect « index absents » est **infondé** (tables de 8 lignes), le vrai sujet est la **fréquence des sondages** et les 81 436 `UPDATE` de `personnages_donnees` |
+| `AUDIT-CHANTIER-7-FONCTIONS-RECOPIEES.md` | chantier 7 | les **55 copies de fonctions** entre `api/` et le navigateur, mesurées : 42 exécutées des deux côtés sur **1 870 cas**, zéro divergence de formule ; deux chemins d'argent non atomiques sans appelant supprimés, un libellé faux fermé. **À lire avant de toucher à `api/cron-minuit.js`** |
 | `AUDIT-PAYLOAD-VERCEL.md` | infrastructure | ce qu'un déploiement transporte vraiment : **400,2 → 310,0 Mo**, les assets classés A–F, et les 75,9 Mo de PNG que **la base** empêche de récupérer |
 
 ## Les tableaux d'arbitrage de l'état initial

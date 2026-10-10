@@ -1340,6 +1340,17 @@ async function archiverEvenementUrbanismeServeur(doc) {
     signalerEchec('urbanisme:pays_non_declare', JSON.stringify(doc && doc.pays));
     return false;
   }
+  // LE LIBELLE NE SAIT ECRIRE QU'UN ACCORD TACITE (chantier 7, 10 octobre 2026). Mesure :
+  // libelleAccordTaciteServeur rend « Accord tacite au benefice de ... » POUR TOUTE nature, la
+  // ou son canon libelleEvenementUrbanisme distingue depot, refus et acceptation. Le seul
+  // appelant d'aujourd'hui passe 'accord_tacite', donc rien n'est faux en base -- mais une
+  // nature nouvelle serait archivee sous un libelle mensonger, dans une table append-only qui
+  // ne se corrige pas. On refuse plutot que d'ecrire un libelle qu'on sait faux : le jour ou
+  // une autre nature arrivera, elle arrivera avec sa traduction.
+  if (doc.nature !== 'accord_tacite') {
+    signalerEchec('urbanisme:nature_sans_libelle', JSON.stringify(doc.nature));
+    return false;
+  }
   const rows = await sbInsert('dossiers_urbanisme', {
     id: 'urb-' + doc.nature + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
     country: doc.pays,
@@ -3768,40 +3779,19 @@ function caisseTerritorialeServeur(famille, ville) {
 // entre les trois par la meme brique generique que tous les autres ministeres. L'Etat ne finance
 // plus d'institution territoriale en direct, donc il n'a plus de prorata a calculer.
 //
-// Ce qui subsiste de cette nuit-la : villesDeServeur et caisseTerritorialeServeur, employes par
-// les greves et les armureries.
-
-// Credit d'une caisse de batiment. Meme forme que les credits deja pratiques par ce fichier
-// (successions, chantiers) : lecture, addition, UPDATE ou INSERT selon l'existence.
-async function crediterCaisseBatimentServeur(pays, buildingId, montant) {
-  const m = Math.floor(Number(montant) || 0);
-  if (m <= 0) return 0;
-  const cle = pays + '_' + buildingId;
-  const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`).catch(() => null);
-  const data = (rows && rows[0] && rows[0].data) ? rows[0].data : { solde: 0 };
-  data.solde = (data.solde || 0) + m;
-  const r = (rows && rows.length > 0)
-    ? await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`, { data: data, updated_at: new Date().toISOString() }).catch(() => null)
-    : await sbInsert('caisses_batiments', { id: cle, data: data, updated_at: new Date().toISOString() }).catch(() => null);
-  return r ? m : 0;
-}
-
-// Debit PLAFONNE : verse ce que la caisse peut, jamais plus -- comportement de
-// debiterCaisseBatimentPlafonne cote client, volontairement tolerant au partiel.
-async function debiterCaisseBatimentPlafonneServeur(pays, buildingId, montant) {
-  const m = Math.floor(Number(montant) || 0);
-  if (m <= 0) return 0;
-  const cle = pays + '_' + buildingId;
-  const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`).catch(() => null);
-  if (!rows || rows.length === 0) return 0;
-  const data = rows[0].data || { solde: 0 };
-  const verse = Math.max(0, Math.min(m, data.solde || 0));
-  if (verse <= 0) return 0;
-  data.solde = (data.solde || 0) - verse;
-  const r = await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(cle)}`,
-    { data: data, updated_at: new Date().toISOString() }).catch(() => null);
-  return r ? verse : 0;
-}
+// CE QUI SUBSISTE DE CETTE NUIT-LA, MESURE le 10 octobre 2026 (chantier 7) et non suppose :
+// villesDeServeur seule. Ces lignes annoncaient aussi caisseTerritorialeServeur « employee par
+// les greves et les armureries » : c'est FAUX, elle n'a aucun appelant dans le depot, et un
+// commentaire qui affirme un usage inexistant est plus trompeur qu'une absence de commentaire.
+// Elle reste ici, non supprimee, parce qu'elle est le seul lecteur du referentiel genere
+// CAISSES_LEGACY_SERVEUR : la retirer demande de retirer aussi sa generation, ce qui releve du
+// chantier des referentiels et non de celui-ci.
+//
+// LES DEUX AUTRES SURVIVANTES SONT PARTIES. crediterCaisseBatimentServeur et
+// debiterCaisseBatimentPlafonneServeur etaient les auxiliaires de ce calcul retire : aucun
+// appelant nulle part, et chacune faisait une lecture-modification-ecriture d'une caisse depuis
+// ce cron, sans transaction. Un chemin d'argent non atomique sans appelant est
+// un piege en attente d'un appelant -- leurs equivalents clients, eux, passent par une RPC.
 
 // --- 1. LA CASCADE BUDGETAIRE QUOTIDIENNE -----------------------------------
 //

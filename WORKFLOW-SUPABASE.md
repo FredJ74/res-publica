@@ -102,7 +102,7 @@ python3 outils/baseline/requetes.py --export export_droits
 python3 outils/baseline/requetes.py --controle-global     # imprime la requête
 python3 outils/baseline/rendre.py <répertoire_des_exports>
 python3 outils/baseline/seeds.py  --rendre <répertoire> <résultat>
-python3 outils/baseline/controler-tout.py                 # les 10 contrôles
+python3 outils/baseline/controler-tout.py                 # les 11 contrôles
 ```
 
 **Les quatre requêtes d'extraction sont dans `requetes.py`, et il faut les
@@ -157,7 +157,7 @@ jamais l'être : 162 des 184 dépendent d'une table qu'aucun d'eux ne crée.
 **Plus de baseline édité à la main.** Une correction passe par une migration,
 puis par une réextraction. Jamais par un `.sql` du baseline retouché.
 
-## Les dix contrôles
+## Les onze contrôles
 
 Une seule commande les enchaîne :
 
@@ -171,6 +171,7 @@ python3 outils/baseline/controler-tout.py
 | `verifier-baseline.py` | la fidélité au catalogue, en quatre familles séparées |
 | `verifier-autorite.py` | les **treize invariants** d'autorité : qui peut écrire quoi depuis un navigateur, et par quelle porte |
 | `verifier-referentiels.py` | que le serveur dit la même chose que le jeu, sur ses **trois** chemins : `data.js` confronté aux ressaisies de `api/` en chargeant le vrai code, `data.js` confronté aux tables miroir par empreinte, et l'artefact serveur généré confronté à sa regénération |
+| `verifier-fonctions.py` | que le serveur **calcule** la même chose que le jeu : les **55 copies de fonctions** déclarées dans `fonctions.json`, dont 42 exécutées des deux côtés sur des grilles de cas réels, et la liste des copies tenue **exhaustive** — une copie neuve non déclarée fait échouer le contrôle le jour de sa naissance |
 | `verifier-monde-neuf.py` | ni donnée de bêta, ni vestige, dans les seeds |
 | `assembler.py` | les dépendances, à vide |
 | `reconstruire.py` | la grammaire réelle de PostgreSQL, et la simulation d'application |
@@ -206,6 +207,48 @@ qui divergent de leur canon restent écrites à la main, et la divergence est
 déclarée dans `outils/generateurs/referentiels-serveur.json`. Régénérer une
 copie divergente trancherait un arbitrage de game design en le faisant passer
 pour de l'outillage.
+
+Le 10e contrôle est, lui aussi, cité par son numéro dans tout le dépôt ; depuis
+le chantier 7 il y en a onze, et c'est le **11e** qui rejoue la génération et
+celui-ci qui compare les **fonctions**. Les textes antérieurs qui parlent des
+« dix contrôles » décrivent un état daté, et on ne les réécrit pas.
+
+## Le serveur recopie encore des FONCTIONS, et elles sont surveillées
+
+Règle ajoutée par le chantier 7, le 10 octobre 2026. Le chantier 4B avait fermé
+l'axe des **données** ; il restait l'autre moitié, et le dépôt l'avouait à trois
+endroits de `api/cron-minuit.js` : « AUCUN TEST NE LE VERIFIE AUJOURD'HUI ».
+
+**Toute fonction de jeu dont un module de `api/` détient un exemplaire doit être
+déclarée dans `outils/baseline/fonctions.json`.** Une copie neuve qui ne l'est
+pas fait échouer le contrôle le jour de sa naissance — c'est cette règle-là, et
+pas la liste, qui empêche la déclaration de vieillir en silence.
+
+```
+python3 outils/baseline/verifier-fonctions.py            # le verdict
+python3 outils/baseline/verifier-fonctions.py --poser    # les empreintes à écrire
+```
+
+**Quatre mécanismes, et le bon dépend de la copie.** `comparee` : fonction pure,
+les deux côtés sont exécutés sur la grille déclarée et doivent rendre exactement
+la même chose. `divergence_declaree` : la copie est volontairement plus étroite,
+et **l'étendue** de l'écart est déclarée — trop, c'est une régression ; moins,
+c'est une déclaration périmée. `homonyme` : même nom, question différente, ce
+n'est pas une copie. `epinglee` : la copie fait des entrées-sorties, on ne peut
+pas l'exécuter hors base sans mentir — les deux côtés sont alors épinglés par
+l'empreinte de leur texte, et toute retouche demande un nouveau jugement.
+
+**Ce qui a rendu ce contrôle possible : la portée isolée.** Les deux côtés ne
+peuvent pas être chargés ensemble tels quels — `FUSEAU_ELECTORAL`,
+`SUPABASE_URL`, `RESSOURCES_ECONOMIE` sont des `const` déclarées des deux côtés,
+et JavaScript refuse la redéclaration. Le module serveur est donc chargé **dans
+une fonction qui n'expose que les symboles déclarés**. Il n'est ni transformé ni
+recopié : c'est le vrai fichier, celui que Vercel déploie.
+
+**Une copie n'est pas supprimée par ce chantier.** Elle existe parce qu'un module
+serverless ne peut pas charger un script de navigateur ; la faire disparaître
+demande la couche de référentiels pure, qui est un changement de runtime. Ce
+qu'on ferme ici, c'est la **dérive silencieuse** — pas la duplication.
 
 ## Écrire depuis le navigateur : une déclaration, pas un réflexe
 

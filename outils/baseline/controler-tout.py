@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Enchaine les dix controles du baseline, dans l'ordre utile (chantier 2G).
+"""Enchaine les onze controles du baseline, dans l'ordre utile (chantier 2G).
 
 UNE SEULE COMMANDE, pour une seule raison : un agent qui doit se souvenir de
 dix commandes en oubliera une, et ce sera celle qui aurait trouve le defaut.
@@ -15,6 +15,7 @@ L'ORDRE N'EST PAS ALPHABETIQUE, il va du plus structurant au plus fin :
   3. le BASELINE est-il fidele        verifier-baseline.py
   4. l'AUTORITE tient-elle            verifier-autorite.py
   5. les REFERENTIELS concordent-ils  verifier-referentiels.py
+  5 bis. les FONCTIONS concordent-elles verifier-fonctions.py
   6. le MONDE NEUF est-il propre      verifier-monde-neuf.py
   7. l'ASSEMBLAGE se tient-il         assembler.py
   8. la RECONSTRUCTION passe-t-elle   reconstruire.py
@@ -31,6 +32,14 @@ importer data.js, donc le serveur ressaisit a la main ce que le jeu declare, et
 une ressaisie derive. Il ne regarde pas la base du tout -- c'est le role des
 tables *_empreinte -- mais l'axe qu'elles ne couvrent jamais.
 
+Le cinquieme bis est son jumeau, et il est arrive au chantier 7 : le serveur ne
+ressaisit pas que des DONNEES, il reecrit aussi des FONCTIONS -- quarante-deux
+formules de jeu dont il detient un second exemplaire. Celui-la les execute des
+deux cotes sur des grilles de cas et exige la meme reponse. Il vient juste apres
+les referentiels parce qu'une fonction qui lit un referentiel derive deja si le
+referentiel derive : savoir lequel des deux a bouge suppose de poser les deux
+questions, dans cet ordre.
+
 Un echec en 1 rend les suivants peu interessants : si le depot n'est plus range
 comme le processus l'exige, la fidelite du baseline n'est pas la question. Mais
 tout est joue quand meme, et tout est rapporte : un diagnostic partiel coute
@@ -41,7 +50,7 @@ Aucun de ces outils n'accede a la base. L'ensemble est rejouable hors ligne.
 Usage :
     python3 outils/baseline/controler-tout.py
     python3 outils/baseline/controler-tout.py --detail   # sortie complete
-Code de sortie 0 si les dix passent, 1 sinon.
+Code de sortie 0 si les onze passent, 1 sinon.
 """
 
 import os
@@ -57,6 +66,7 @@ CONTROLES = [
     ("le baseline est fidele au catalogue", [os.path.join(ICI, "verifier-baseline.py")]),
     ("l'autorite tient", [os.path.join(ICI, "verifier-autorite.py")]),
     ("les referentiels concordent", [os.path.join(ICI, "verifier-referentiels.py")]),
+    ("les fonctions concordent", [os.path.join(ICI, "verifier-fonctions.py")]),
     ("le monde neuf est propre", [os.path.join(ICI, "verifier-monde-neuf.py")]),
     ("l'assemblage se tient", [os.path.join(ICI, "assembler.py")]),
     ("la reconstruction passe", [os.path.join(ICI, "reconstruire.py")]),
@@ -97,8 +107,8 @@ def main():
         return 1
     print("LES %d CONTROLES SONT VERTS." % len(resultats))
     print("Le processus tient, le baseline est fidele, l'autorite est declaree,")
-    print("les referentiels concordent, le monde neuf est propre, et le script de")
-    print("reconstruction passe la grammaire de PostgreSQL 17.")
+    print("les referentiels ET les fonctions concordent, le monde neuf est propre,")
+    print("et le script de reconstruction passe la grammaire de PostgreSQL 17.")
     return 0
 
 

@@ -1,0 +1,811 @@
+{
+ "_titre": "LES FONCTIONS RECOPIEES -- chantier 7, 10 octobre 2026",
+ "_commentaire": "Ce fichier declare, copie par copie, quelle fonction du navigateur fait foi et ou un module de api/ en detient un exemplaire. verifier-fonctions.py charge les deux cotes POUR DE VRAI -- le module serveur dans une portee isolee, sans quoi les `const` homonymes des deux cotes empechent le chargement -- et les execute sur les grilles declarees ici. Aucune valeur attendue n'est ecrite dans ce fichier : les grilles ne contiennent que des ENTREES, et ce qui est exige est que les deux cotes repondent la meme chose.",
+ "_pourquoi_ce_chantier": "Le chantier 4B/4C a ferme l'axe des DONNEES et l'a dit : « La duplication de FONCTIONS est inventoriee et reportee au chantier 7 ; le 4B n'a traite que les donnees. » Trois endroits de api/cron-minuit.js portaient en plus l'aveu « AUCUN TEST NE LE VERIFIE AUJOURD'HUI ». C'est cet axe-la, et ces trois aveux sont desormais faux : les formules de chantier qu'ils designaient sont comparees a chaque passage du controle.",
+ "_ce_que_ce_fichier_ne_fait_pas": "Il ne supprime aucune copie et n'en deplace aucune. Une copie serveur existe parce qu'un module serverless ne peut pas charger un script de navigateur : la supprimer demanderait la couche de referentiels pure (voie B de l'audit 4B), qui est un changement de runtime. Ce chantier rend la derive IMPOSSIBLE A PASSER INAPERCUE, ce qui est le defaut qu'elle avait.",
+ "sources_navigateur": [
+  "data.js",
+  "plateau-chantiers.js",
+  "plateau-immobilier.js",
+  "plateau-politique.js",
+  "plateau-personnage.js",
+  "plateau-effort-guerre.js",
+  "plateau-gouvernement.js",
+  "plateau-divers.js",
+  "plateau-commerce.js",
+  "plateau-actions-illegales-rumeurs.js",
+  "plateau-justice-economie.js",
+  "api/_referentiels-generes.js"
+ ],
+ "_sources_navigateur_pourquoi": "L'ordre compte : plateau-justice-economie.js a besoin de plateau-chantiers.js. plateau-commerce.js et plateau-actions-illegales-rumeurs.js ne portent aucune copie : ils sont charges parce que deux constantes du militaire y vivent (COUT_HORAIRE_TRAVAIL, PA_PRODUCTION_ARMURERIE). api/_referentiels-generes.js est l'artefact genere que les modules serveur importent. plateau-core.js est volontairement ABSENT : trois lignes de premier niveau y touchent `window`, constat du chantier 4B, et aucune copie n'y vit.",
+ "modules_serveur": [
+  {
+   "fichier": "api/cron-minuit.js",
+   "portee": "CRON"
+  },
+  {
+   "fichier": "api/_journal-collecte.js",
+   "portee": "JOURNAL"
+  }
+ ],
+ "decor_des_grilles": "// LE DECOR DES GRILLES. Aucune valeur attendue n'est ecrite ici : seulement des\n// ENTREES. Ce qui est attendu, c'est que les deux cotes repondent pareil -- et\n// personne, ici, ne dit ce que cette reponse doit etre.\n//\n// Les grilles encadrent les seuils a la case pres : des durees de 6 jours (tiers\n// exacts) ET de 7 (tiers non representables en binaire), des fractions de\n// financement a 0,34 / 0,35 / 0,70 / 0,71, des permis dont l'instruction est\n// echue d'un jour ou pas encore, des stocks juste au-dessus et juste au-dessous\n// du besoin. C'est la ou deux implementations d'une meme regle se separent.\nvar CH_DUREES = [[0],[1],[6],[7],[10],[30],[-5],[null],[undefined],[\"7\"]];\nvar CH_CHANTIERS = [];\n[0,1,6,7,10,30].forEach(function (d) {\n  [0, Math.floor(d/3), Math.ceil(2*d/3), d].forEach(function (p) {\n    [0, 30000].forEach(function (cm) {\n      CH_CHANTIERS.push({ type:'construction', dureeJours:d, progressionJours:p,\n        coutMateriaux:cm, coutTravail:21000, heuresFaites:0, tresorerie:5000,\n        stockMateriaux:{}, planVerrouille:false });\n      CH_CHANTIERS.push({ type:'reamenagement', dureeJours:d, progressionJours:p,\n        coutMateriaux:cm, coutTravail:0, heuresFaites:10, tresorerie:0,\n        stockMateriaux:{bois:5}, planVerrouille:true });\n    });\n  });\n});\nvar CH_UN = CH_CHANTIERS.map(function (c) { return [c]; });\nvar CH_FIN = [];\n[0,30000].forEach(function (t) { [0,0.34,0.35,0.70,0.71,1].forEach(function (f) {\n  [0,1,6,7,10,30].forEach(function (d) { CH_FIN.push([t*f, d, t]); }); }); });\nvar CH_MAT = [];\n[{},{bois:0},{bois:10},{bois:10,minerai:5},{bois:10,minerai:5,metal:2}].forEach(function (b) {\n  [{},{bois:5},{bois:10,minerai:10,metal:10},{bois:100,minerai:100,metal:100}].forEach(function (s) {\n    CH_MAT.push([s,b]); }); });\nvar CH_PLANS = [[[]],[null],\n  [[{id:'a',label:'A',surface:10,destination:'appartement'}]],\n  [[{id:'a',surface:0},{surface:5},{id:'a',label:' ',surface:7,destination:'commerce'}]]];\nvar APPRO = [];\n[{},{bois:10},{bois:10,minerai:5,metal:2}].forEach(function (b) {\n  [{},{bois:3}].forEach(function (sc) {\n    [{},{bois:100,minerai:100,metal:100},{bois:1}].forEach(function (se) {\n      [0,50,100000].forEach(function (tr) { APPRO.push([b,sc,se,tr]); }); }); }); });\nvar PERMIS = [null, {}, {statut:'instruction'}, {statut:'attente'}, {statut:'accorde'},\n  {statut:'instruction',dureeInstruction:3,joursInstructionFaits:0},\n  {statut:'instruction',dureeInstruction:3,joursInstructionFaits:3},\n  {statut:'attente',dureeInstruction:3},\n  {statut:'instruction',dureeInstruction:0,joursInstructionFaits:5},\n  {statut:'instruction',dureeInstruction:-2,joursInstructionFaits:1},\n  {statut:'instruction',dureeInstruction:2.7,joursInstructionFaits:1.9}];\nvar PERMIS_UN = PERMIS.map(function (p) { return [p]; });\nvar ETATS = [null, {}, {permis:null}];\nPERMIS.forEach(function (p) {\n  ETATS.push({permis:p});\n  ETATS.push({permis:p, suspensionAdministrative:true});\n  ETATS.push({permis:p, suspenduAdministrativement:true});\n});\nvar ETATS_UN = ETATS.map(function (e) { return [e]; });\nvar DOCS = [];\n[null,{},{city:'capitale',surface:120}].forEach(function (t) {\n  PERMIS.forEach(function (p) {\n    DOCS.push([t, p, 'accord_tacite',\n               {jour:5, pays:'republic', ville:'capitale', buildingId:'b1'}]); }); });\nvar DOCS_NATURES = [];\n['accord_tacite','refus','depot','inconnu'].forEach(function (n) {\n  DOCS_NATURES.push([{ nature:n, numeroDossier:'URB-1', demandeur:'Arnie',\n    palier:'commerce_standard', palierLabel:'Commerce', ville:'capitale',\n    pays:'republic', batimentLabel:'b1', jour:5, jourDepot:2,\n    surfaceExploitable:120, decoupage:[], motifRefus:null }]); });\nvar PRIX = [];\nObject.keys(RESSOURCES_ECONOMIE).forEach(function (c) {\n  [0,1,50,1000,100000,-5].forEach(function (q) { PRIX.push([c,q]); }); });\nPRIX.push(['inexistant',10]);\nvar MEMBRES = [[0],[1],[5],[10],[25],[50],[100],[1000],[-1],[null]];\nvar MILITAIRES = PRODUITS_MILITAIRES.map(function (p) { return [p]; })\n                 .concat([['inconnu'],[null]]);\nvar ECHEANCES = [];\n[0, 1793000000000, 1793000000000 + 86400000*20].forEach(function (e) {\n  [null, 1793000000000].forEach(function (d) { ECHEANCES.push([e,d]); }); });\n// Instants choisis pour traverser les deux changements d'heure, un 29 fevrier\n// (annee bissextile), un dimanche 00 h 30 et un lundi exact.\nvar INSTANTS = [Date.UTC(2026,0,1,3,0), Date.UTC(2026,5,21,22,30), Date.UTC(2026,9,10,0,0),\n                Date.UTC(2026,2,29,1,30), Date.UTC(2026,9,25,0,30), Date.UTC(2024,1,29,12,0)];\nvar INSTANTS_UN = INSTANTS.map(function (t) { return [t]; });\nvar JOURS_PLUS = [];\n[{a:2026,m:1,j:1},{a:2026,m:3,j:29},{a:2026,m:12,j:31},{a:2024,m:2,j:29}].forEach(function (d) {\n  [0,1,7,-3,30,365].forEach(function (n) { JOURS_PLUS.push([d,n]); }); });\nvar SEMAINES = INSTANTS.map(function (t) { return [t,1]; })\n               .concat(INSTANTS.map(function (t) { return [t,3]; }))\n               .concat(INSTANTS.map(function (t) { return [t,0]; }));\nvar CYCLES = [['president',null,INSTANTS[0]],['maire','capitale',INSTANTS[1]],\n              ['depute','ville_a',INSTANTS[2]],['chef_syndicat','capitale',INSTANTS[3]],\n              ['inconnu','ville_b',INSTANTS[4]]];\nvar DEPARTAGES = [[[]],[null],[[{nom:'A',score:5}]],\n                  [[{nom:'A',score:5},{nom:'B',score:5}]],\n                  [[{nom:'A',score:3},{nom:'B',score:9},{nom:'C',score:9}]]];\nvar SCRUTINS = [];\n[[],[{nom:'A'}],[{nom:'A'},{nom:'B'}],[{nom:'A'},{nom:'B'},{nom:'C'}]].forEach(function (cands) {\n  [{},{A:3},{A:3,B:3},{A:1,B:2,C:3}].forEach(function (votes) {\n    SCRUTINS.push([{ candidats:cands, votes:votes, votesPNJ:{}, tour:1,\n                     posteId:'maire', city:'capitale' }]); }); });\nvar TRACTS = SCRUTINS.map(function (s) {\n  return [s[0], { tour:1, parCandidat:{A:2,B:-1} }]; });\n",
+ "copies": [
+  {
+   "cle": "chantiers/seuil-deux-tiers",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "seuilDeuxTiersServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "seuilDeuxTiers",
+   "mecanisme": "comparee",
+   "grille": "CH_DUREES",
+   "_pourquoi": "Le seuil des deux tiers commande le verrou du plan. Le serveur ecrit d*2/3, le canon passe par seuilTiers(d,2) : la grille inclut 6 et 7 jours, c'est-a-dire le cas ou l'arithmetique binaire separe les deux ecritures si elles ne sont pas equivalentes."
+  },
+  {
+   "cle": "chantiers/progression-atteint-deux-tiers",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "progressionAtteintDeuxTiersServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "progressionAtteintDeuxTiers",
+   "mecanisme": "comparee",
+   "grille": "CH_UN",
+   "_pourquoi": "Meme seuil, applique a un chantier reel."
+  },
+  {
+   "cle": "chantiers/chantier-termine",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "chantierTermineServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "chantierTermine",
+   "mecanisme": "comparee",
+   "grille": "CH_UN",
+   "_pourquoi": "Un chantier de duree nulle n'est jamais termine : les deux cotes doivent le dire pareil."
+  },
+  {
+   "cle": "chantiers/numero-jour",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "numeroJourChantierServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "numeroJourChantier",
+   "mecanisme": "comparee",
+   "grille": "CH_UN",
+   "_pourquoi": "Le numero de jour choisit le panier de materiaux du jour : une case d'ecart decale tout l'approvisionnement."
+  },
+  {
+   "cle": "chantiers/capacite-heures-jour",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "capaciteHeuresJourServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "capaciteHeuresJourChantier",
+   "mecanisme": "comparee",
+   "grille": "CH_UN",
+   "_pourquoi": "Nom de base different des deux cotes -- cette paire n'est donc PAS trouvee par le detecteur de doublons, elle est declaree a la main. C'est la capacite de travail d'une journee, donc le plafond des heures payees a des ouvriers PNJ."
+  },
+  {
+   "cle": "chantiers/fraction-travail",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "fractionTravailServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "(function (ch, h) { return fractionTravail(Math.max(0, Number(ch && ch.heuresFaites) || 0) + Math.max(0, Number(h) || 0), capaciteHeuresJourChantier(ch)); })",
+   "mecanisme": "comparee",
+   "grille": "CH_CHANTIERS.map(function (x) { return [x, 0]; }).concat(CH_CHANTIERS.map(function (x) { return [x, 40]; }))",
+   "_pourquoi": "LA COPIE SERVEUR FUSIONNE DEUX FONCTIONS DU CANON : elle prend un chantier et des heures PNJ la ou le canon prend des heures et une capacite. Le cote canon est donc une COMPOSITION des deux vraies fonctions du jeu -- aucune formule n'est reecrite ici, seules deux fonctions de production sont appelees l'une dans l'autre."
+  },
+  {
+   "cle": "chantiers/fraction-materiaux",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "fractionMateriauxServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "fractionMateriaux",
+   "mecanisme": "comparee",
+   "grille": "CH_MAT",
+   "_pourquoi": "La matiere la plus manquante commande. Le serveur parcourt MATERIAUX_SERVEUR, le canon les cles du besoin : la grille comprend des besoins partiels et un besoin vide, ou les deux parcours pourraient se separer."
+  },
+  {
+   "cle": "chantiers/materiaux-du-jour",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "materiauxDuJourServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "materiauxDuJourConstruction",
+   "mecanisme": "comparee",
+   "grille": "[[1],[2],[3],[7],[0],[30],[-1]]",
+   "_pourquoi": "Nom de base different, paire declaree a la main. Le panier d'un jour de construction."
+  },
+  {
+   "cle": "chantiers/materiaux-du-jour-reamenagement",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "materiauxDuJourReamenagementServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "materiauxDuJourReamenagement",
+   "mecanisme": "comparee",
+   "grille": "CH_UN",
+   "_pourquoi": "Le canon passe par panierMateriauxPourValeur et budgetMateriauxParJourChantier, le serveur divise le budget par le nombre de matieres. Les deux arrondis sont compares sur 96 chantiers."
+  },
+  {
+   "cle": "chantiers/besoin-materiaux-jour",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "besoinMateriauxJourServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "besoinMateriauxJourChantier",
+   "mecanisme": "comparee",
+   "grille": "CH_CHANTIERS.map(function (x) { return [x, 1]; }).concat(CH_CHANTIERS.map(function (x) { return [x, 4]; }))",
+   "_pourquoi": "Nom de base different, paire declaree a la main. Aiguillage construction / reamenagement."
+  },
+  {
+   "cle": "chantiers/reliquat-npc",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "reliquatNPCServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "reliquatNPC",
+   "mecanisme": "comparee",
+   "grille": "CH_CHANTIERS.map(function (x) { return [x, 0.5]; }).concat(CH_CHANTIERS.map(function (x) { return [x, 1]; }))",
+   "_pourquoi": "DE L'ARGENT : les heures payees a des ouvriers PNJ et le montant verse. Quatre bornes simultanees, dont la tresorerie du chantier."
+  },
+  {
+   "cle": "chantiers/progression-max-financee",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "progressionMaxFinanceeServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "progressionMaxFinancee",
+   "mecanisme": "comparee",
+   "grille": "CH_FIN",
+   "_pourquoi": "DE L'ARGENT ET DU TEMPS : jusqu'ou un chantier peut avancer pour ce qui a ete verse. Le serveur ecrit d*2/3 et d/3, le canon appelle seuilDeuxTiers et seuilPremierTiers. 72 cas traversent les trois paliers par le haut et par le bas."
+  },
+  {
+   "cle": "chantiers/planifier-approvisionnement",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "planifierApprovisionnementServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "planifierApprovisionnement",
+   "mecanisme": "comparee",
+   "grille": "APPRO",
+   "_pourquoi": "DE L'ARGENT ET DE LA MATIERE. Deux faits a connaitre : (1) le canon accepte deux arguments de plus -- un prix par matiere et une RESERVE d'entrepot -- que la copie serveur ne connait pas ; la concordance est donc prouvee pour un appel SANS reserve declaree, ce qui est le seul appel qui existe aujourd'hui ; (2) le canon n'a plus aucun appelant au navigateur, la regle ne tourne donc QUE dans le cron et dans la porte SQL chantier_approvisionner (registre 599). La copie serveur est devenue l'implementation, pas le miroir."
+  },
+  {
+   "cle": "chantiers/lots-livrables",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "lotsLivrablesDepuisPlanServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "lotsLivrablesDepuisPlan",
+   "mecanisme": "comparee",
+   "grille": "CH_PLANS",
+   "_pourquoi": "L'identite des lots livres doit etre DETERMINISTE : deux livraisons du meme plan doivent rendre les memes lots. Le canon n'a plus d'appelant au navigateur."
+  },
+  {
+   "cle": "chantiers/verrou-du-plan",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "appliquerVerrouPlanServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "(function (ch, j) { var m = appliquerVerrouPlan(ch, j); return (m !== ch && m && m.planVerrouille === true) ? true : false; })",
+   "mecanisme": "comparee",
+   "grille": "CH_CHANTIERS.map(function (x) { return [x, 5]; })",
+   "_pourquoi": "DIFFERENCE D'IDIOME, PAS DE REGLE : le canon rend une COPIE modifiee, le serveur MUTE l'objet en place et rend un booleen (le cron travaille sur l'objet qu'il vient de parser). Le cote canon est donc projete dans la forme du serveur par une expression declaree ici, qui n'appelle que la vraie fonction du jeu. Ce qui est prouve est la DECISION -- verrouiller ou non -- pas la forme du retour."
+  },
+  {
+   "cle": "urbanisme/permis-en-instruction",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "permisEnInstructionServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "permisEnInstruction",
+   "mecanisme": "comparee",
+   "grille": "PERMIS_UN",
+   "_pourquoi": "Le serveur ecrit le litteral 'instruction', le canon lit PERMIS_STATUT_INSTRUCTION. La grille contient les deux statuts et le statut historique."
+  },
+  {
+   "cle": "urbanisme/duree-instruction",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "dureeInstructionPermisServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "dureeInstructionPermis",
+   "mecanisme": "comparee",
+   "grille": "PERMIS_UN",
+   "_pourquoi": "Duree declaree, plancher et arrondi."
+  },
+  {
+   "cle": "urbanisme/jours-instruction-faits",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "joursInstructionFaitsServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "joursInstructionFaits",
+   "mecanisme": "comparee",
+   "grille": "PERMIS_UN",
+   "_pourquoi": "Le repli sur un dossier anterieur a la numerotation : un permis au statut historique est repute instruit."
+  },
+  {
+   "cle": "urbanisme/instruction-achevee",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "instructionAcheveeServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "instructionAchevee",
+   "mecanisme": "comparee",
+   "grille": "PERMIS_UN",
+   "_pourquoi": "C'est cette fonction qui declenche l'accord tacite : un jour d'ecart accorde un permis une nuit trop tot."
+  },
+  {
+   "cle": "urbanisme/verdict-accord-tacite",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "verdictAccordTaciteServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "verdictAccordTacite",
+   "mecanisme": "comparee",
+   "grille": "ETATS_UN",
+   "_pourquoi": "Le verdict complet, raison comprise. Le canon appelle terrainSuspenduAdministrativement, le serveur terrainSuspenduServeur : les deux sont compares separement aussi."
+  },
+  {
+   "cle": "urbanisme/terrain-suspendu",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "terrainSuspenduServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "terrainSuspenduAdministrativement",
+   "mecanisme": "comparee",
+   "grille": "ETATS_UN",
+   "_pourquoi": "Nom de base different, paire declaree a la main. Une suspension administrative gele l'accord tacite."
+  },
+  {
+   "cle": "urbanisme/construire-document",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "construireDocumentUrbanismeServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "construireDocumentUrbanisme",
+   "mecanisme": "comparee",
+   "grille": "DOCS",
+   "_pourquoi": "Le document archive dans dossiers_urbanisme, piece justificative d'un accord tacite. Son identifiant porte Date.now() et un alea : le comparateur le remplace par un marqueur des DEUX cotes, et rien d'autre n'est masque."
+  },
+  {
+   "cle": "urbanisme/libelle",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "libelleAccordTaciteServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "libelleEvenementUrbanisme",
+   "mecanisme": "divergence_declaree",
+   "grille": "DOCS_NATURES",
+   "cas_divergents_attendus": 3,
+   "_pourquoi": "MIROIR VOLONTAIREMENT RESSERRE : la copie serveur ne sait ecrire que le libelle d'un ACCORD TACITE, et son unique appelant ne lui passe jamais autre chose. Sur les trois autres natures de la grille elle ecrirait donc « Accord tacite » a tort. Depuis ce lot, archiverEvenementUrbanismeServeur REFUSE toute nature autre qu'accord_tacite : la copie n'est plus atteignable hors de son domaine. La divergence reste declaree pour que son etendue soit surveillee -- si elle grandissait, c'est qu'une nature nouvelle est arrivee sans sa traduction."
+  },
+  {
+   "cle": "urbanisme/texte",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "texteAccordTaciteServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "texteDocumentUrbanisme",
+   "mecanisme": "divergence_declaree",
+   "grille": "DOCS_NATURES",
+   "cas_divergents_attendus": 4,
+   "_pourquoi": "MIROIR VOLONTAIREMENT RESSERRE, et la difference est factuelle : le serveur n'imprime pas la ligne « Etabli le jour N (depot : jour M) » du canon, qui depend de catalogues du navigateur. Les quatre cas de la grille divergent donc, y compris l'accord tacite. Ce n'est pas une derive : c'est le texte qu'un module serverless peut ecrire."
+  },
+  {
+   "cle": "urbanisme/archiver",
+   "famille": "urbanisme",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "archiverEvenementUrbanismeServeur",
+   "canon_fichier": "plateau-immobilier.js",
+   "symbole_canon": "archiverEvenementUrbanisme",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "a53b2c4e153e3bf9",
+   "empreinte_canon": "1c9a2ca054165ad2",
+   "_pourquoi": "ECRIT EN BASE, et dans une table append-only : on ne peut pas l'executer hors base sans mentir. Deux differences voulues, toutes deux plus strictes au serveur : le pays non declare est REFUSE au lieu d'etre replie sur Republia (chantier 4G), et la nature autre qu'accord_tacite est refusee depuis ce lot. Les deux cotes sont donc epingles par empreinte : toute retouche rougit et demande un nouveau jugement."
+  },
+  {
+   "cle": "elections/parties-heure-paris",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "partiesHeureParis",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "partiesHeureParis",
+   "mecanisme": "comparee",
+   "grille": "INSTANTS_UN",
+   "_pourquoi": "Decoupage d'un instant en heure de Paris, changements d'heure compris."
+  },
+  {
+   "cle": "elections/instant-heure-paris",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "instantHeureParis",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "instantHeureParis",
+   "mecanisme": "comparee",
+   "grille": "[[2026,10,10,0,0],[2026,1,1,12,30],[2026,12,31,23,59],[2026,3,29,2,30],[2026,10,25,2,30]]",
+   "_pourquoi": "Reconstruction d'un instant depuis une date de Paris : les deux heures qui n'existent pas ou existent deux fois sont dans la grille."
+  },
+  {
+   "cle": "elections/date-calendaire-plus-jours",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "dateCalendairePlusJours",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "dateCalendairePlusJours",
+   "mecanisme": "comparee",
+   "grille": "JOURS_PLUS",
+   "_pourquoi": "Arithmetique de calendrier, annee bissextile comprise."
+  },
+  {
+   "cle": "elections/lundi-semaine-paris",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "lundiSemaineParis",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "lundiSemaineParis",
+   "mecanisme": "comparee",
+   "grille": "INSTANTS_UN",
+   "_pourquoi": "Le lundi de la semaine : c'est lui qui ancre tout le calendrier electoral."
+  },
+  {
+   "cle": "elections/dates-scrutin-semaine",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "datesScrutinSemaine",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "datesScrutinSemaine",
+   "mecanisme": "comparee",
+   "grille": "INSTANTS_UN",
+   "_pourquoi": "Les dates du dimanche de vote et de la proclamation."
+  },
+  {
+   "cle": "elections/calendrier-premier-tour",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "calendrierPremierTour",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "calendrierPremierTour",
+   "mecanisme": "comparee",
+   "grille": "INSTANTS_UN",
+   "_pourquoi": "Le calendrier complet d'un premier tour."
+  },
+  {
+   "cle": "elections/calendrier-tour-suivant",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "calendrierTourSuivant",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "calendrierTourSuivant",
+   "mecanisme": "comparee",
+   "grille": "INSTANTS_UN",
+   "_pourquoi": "Celui d'un second tour. Le canon n'a plus d'appelant au navigateur : le calendrier du tour suivant est pose par le cron seul."
+  },
+  {
+   "cle": "elections/lundi-minuit-apres-semaines",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "lundiMinuitParisApresSemaines",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "lundiMinuitParisApresSemaines",
+   "mecanisme": "comparee",
+   "grille": "SEMAINES",
+   "_pourquoi": "Le lundi minuit apres N semaines. Canon sans appelant au navigateur."
+  },
+  {
+   "cle": "elections/construire-cycle",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "construireNouveauCycleElectoral",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "construireNouveauCycleElectoral",
+   "mecanisme": "comparee",
+   "grille": "CYCLES",
+   "_pourquoi": "LE CYCLE ELECTORAL LUI-MEME. Deux differences d'ecriture : le serveur teste l'appartenance a POSTES_ELECTIFS_LOCAUX quand le canon appelle posteEstLocal, et il ecrit le litteral 'candidatures' quand le canon lit PHASES_ELECTORALES. Un cycle national qui porterait une ville a ete un vrai defaut, le 12 septembre 2026 : la grille contient donc un poste national, deux postes de ville et un poste inconnu."
+  },
+  {
+   "cle": "elections/scores-de-base",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "calculerScoresBaseCycle",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "calculerScoresBaseCycle",
+   "mecanisme": "comparee",
+   "grille": "SCRUTINS",
+   "_pourquoi": "Les scores avant depouillement : c'est la base du resultat."
+  },
+  {
+   "cle": "elections/scrutin-simple",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "resoudreScrutinSimple",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "resoudreScrutinSimple",
+   "mecanisme": "comparee",
+   "grille": "SCRUTINS",
+   "_pourquoi": "LE DEPOUILLEMENT d'un scrutin a un siege."
+  },
+  {
+   "cle": "elections/scrutin-depute",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "resoudreScrutinDepute",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "resoudreScrutinDepute",
+   "mecanisme": "comparee",
+   "grille": "SCRUTINS",
+   "_pourquoi": "Le depouillement a plusieurs sieges."
+  },
+  {
+   "cle": "elections/departage",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "departageCandidats",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "departageCandidats",
+   "mecanisme": "comparee",
+   "grille": "DEPARTAGES",
+   "_pourquoi": "L'egalite parfaite : qui est departage, et comment."
+  },
+  {
+   "cle": "elections/effets-tracts",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "appliquerEffetsTracts",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "appliquerEffetsTracts",
+   "mecanisme": "comparee",
+   "grille": "TRACTS",
+   "_pourquoi": "L'effet des tracts sur les scores."
+  },
+  {
+   "cle": "elections/attacher-effets-tracts",
+   "famille": "elections",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "attacherEffetsTractsServer",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "attacherEffetsTracts",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "2a39fc87be9a720c",
+   "empreinte_canon": "b6b2fea7a2814549",
+   "_pourquoi": "LIT LA BASE : la copie serveur va chercher les tracts en base puis pose la propriete non enumerable, la ou le canon recoit les effets deja calcules. Signature differente et entree-sortie : epinglee par empreinte des deux cotes."
+  },
+  {
+   "cle": "successions/personnage-existe",
+   "famille": "successions",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "personnageExisteReellementServeur",
+   "canon_fichier": "plateau-personnage.js",
+   "symbole_canon": "personnageExisteReellement",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "fc14f57c00d6ede0",
+   "empreinte_canon": "d5dcc1665bf5a862",
+   "_pourquoi": "LIT LA BASE. Les deux textes sont identiques a la garde `typeof sbGet` pres, que le serveur n'a pas besoin de poser."
+  },
+  {
+   "cle": "successions/etape-suivante",
+   "famille": "successions",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "determinerEtapeSuivanteServeur",
+   "canon_fichier": "plateau-personnage.js",
+   "symbole_canon": "determinerEtapeSuivante",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "c5127b8e5cfcc3c2",
+   "empreinte_canon": "edd84a342cfe3edc",
+   "_pourquoi": "LIT LA BASE (par personnageExisteReellement). Determine qui est convoque apres un refus de succession : le delai de 10 jours est ecrit des deux cotes sous deux noms (DELAI_CONVOCATION_MS et DELAI_CONVOCATION_MS_SUCCESSION), mesures egaux. Epinglee parce qu'elle ne peut pas s'executer hors base."
+  },
+  {
+   "cle": "economie/prix-ressource",
+   "famille": "economie",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "getPrixRessourceServeur",
+   "canon_fichier": "data.js",
+   "symbole_canon": "getPrixRessource",
+   "mecanisme": "comparee",
+   "grille": "PRIX",
+   "_pourquoi": "DE L'ARGENT : le prix de vente directe d'une usine. La grille parcourt les seize ressources du referentiel a six niveaux de stock, plus une cle inexistante."
+  },
+  {
+   "cle": "economie/prix-ressource-journal",
+   "famille": "economie",
+   "module": "api/_journal-collecte.js",
+   "portee": "JOURNAL",
+   "symbole_serveur": "getPrixRessource",
+   "canon_fichier": "data.js",
+   "symbole_canon": "getPrixRessource",
+   "mecanisme": "divergence_declaree",
+   "grille": "PRIX",
+   "cas_divergents_attendus": 103,
+   "_pourquoi": "SECONDE COPIE, dans le module de collecte du Journal, et LES 103 CAS DE LA GRILLE DIVERGENT. Ce n'est pas la FONCTION qui derive -- son texte ne differe du canon que par un `null` au lieu de 0 sur une cle inconnue, ce qui est volontaire (le Journal distingue « pas de prix » de « prix nul ») -- c'est sa DONNEE : ce module porte sa propre table RESSOURCES_ECONOMIE, et elle diverge du canon de 33 ecarts, dont des prix de base DE MOITIE (bois 2,5 contre 5, alcool 7 contre 14) et une matiere absente (textile). Cette divergence est deja declaree dans referentiels.json et attribuee au LOT 4D : elle n'appartient pas a ce chantier-ci, qui ne touche pas aux referentiels. Elle est reportee ici parce que c'est elle qui fait diverger la fonction, et pour que la mesure soit la meme des deux cotes du depot. QUAND LE LOT 4D FERMERA LA TABLE, ce compte tombera a 1 et le controle rougira en annoncant une declaration perimee : c'est le signal attendu, et c'est a ce moment-la qu'on ramenera cette ligne a 1."
+  },
+  {
+   "cle": "economie/palier-greve-ordinaire",
+   "famille": "economie",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "palierGreveOrdinaireServeur",
+   "canon_fichier": "data.js",
+   "symbole_canon": "palierGreveOrdinaire",
+   "mecanisme": "comparee",
+   "grille": "MEMBRES",
+   "_pourquoi": "Le palier d'une greve ordinaire selon le nombre de membres. Le canon n'a plus d'appelant au navigateur : la greve est devenue nocturne."
+  },
+  {
+   "cle": "economie/niveau-greve-generale",
+   "famille": "economie",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "niveauGreveGeneraleServeur",
+   "canon_fichier": "data.js",
+   "symbole_canon": "palierGreveGenerale",
+   "mecanisme": "homonyme",
+   "_pourquoi": "PAS UNE COPIE, et la difference n'est pas un defaut : la fonction serveur cherche le palier PAR SON NUMERO (greves_generales.puissance_niveau, pose en base), le canon le DEDUIT du nombre d'adherents et rend null sous le minimum. Deux questions differentes sur la meme table generee. Declaree ici pour qu'un renommage de l'un ou l'autre se voie."
+  },
+  {
+   "cle": "economie/charger-budget-national",
+   "famille": "economie",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "chargerBudgetNationalServeur",
+   "canon_fichier": "plateau-justice-economie.js",
+   "symbole_canon": "chargerBudgetNational",
+   "mecanisme": "homonyme",
+   "_pourquoi": "PAS UNE COPIE : le serveur LIT la ligne et rend null si elle manque ; le canon la CREE avec un taux par defaut si elle manque. Ce n'est pas une derive, c'est la difference entre lire et amorcer -- et le serveur n'a pas a amorcer un budget national."
+  },
+  {
+   "cle": "economie/villes-de",
+   "famille": "economie",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "villesDeServeur",
+   "canon_fichier": "data.js",
+   "symbole_canon": "villesDe",
+   "mecanisme": "homonyme",
+   "_pourquoi": "PAS UNE COPIE : le serveur rend la LISTE DES IDENTIFIANTS de ville d'un empire, le canon rend des objets {id, nom, capitale}. Meme source (le referentiel genere), deux formes. Declaree pour qu'un renommage se voie."
+  },
+  {
+   "cle": "indices/modifier-indice-ville",
+   "famille": "indices",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "modifierIndiceVilleServeur",
+   "canon_fichier": "plateau-divers.js",
+   "symbole_canon": "modifierIndiceVille",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "fd4e1d3324798569",
+   "empreinte_canon": "1f3ac5a10ab76592",
+   "_pourquoi": "ECRIT EN BASE. Deux differences voulues : la copie serveur accepte un PLANCHER en argument, et elle REFUSE explicitement tout empire autre que Republia la ou le canon mute INDICES_NATIONAUX en memoire -- les trois autres empires n'ont aucune persistance d'indices (constat du chantier 4G, non referme). Le blob par defaut du serveur est le meme objet que INDICE_VILLE_DEFAUT, verifie valeur par valeur. Epinglee parce qu'elle ecrit."
+  },
+  {
+   "cle": "militaire/pa-travail",
+   "famille": "militaire",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "paTravailMilitaireServeur",
+   "canon_fichier": "plateau-effort-guerre.js",
+   "symbole_canon": "paTravailMilitaire",
+   "mecanisme": "comparee",
+   "grille": "MILITAIRES",
+   "_pourquoi": "Les PA d'un lot militaire, donc son cout de main-d'oeuvre."
+  },
+  {
+   "cle": "militaire/cout-de-revient",
+   "famille": "militaire",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "coutRevientLotMilitaireServeur",
+   "canon_fichier": "plateau-effort-guerre.js",
+   "symbole_canon": "coutRevientLotMilitaire",
+   "mecanisme": "comparee",
+   "grille": "MILITAIRES",
+   "_pourquoi": "DE L'ARGENT : le cout de revient facture au Ministere de la Defense. Le serveur lit le prix de base du referentiel, le canon appelle getPrixRessourceEntrepot -- qui rend exactement ce prix de base, mesure. Le canon n'a plus d'appelant au navigateur."
+  },
+  {
+   "cle": "militaire/ressources-eligibles",
+   "famille": "militaire",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "ressourcesMilitairesEligiblesServeur",
+   "canon_fichier": "plateau-effort-guerre.js",
+   "symbole_canon": "ressourcesMilitairesEligibles",
+   "mecanisme": "comparee",
+   "grille": "[[]]",
+   "_pourquoi": "La liste des matieres qu'une armurerie consomme. Le serveur parcourt les cles des recettes, le canon la liste PRODUITS_MILITAIRES : les deux parcours doivent rendre le meme ensemble trie."
+  },
+  {
+   "cle": "gouvernement/echeance-effective",
+   "famille": "gouvernement",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "echeanceEffectiveServeur",
+   "canon_fichier": "plateau-gouvernement.js",
+   "symbole_canon": "echeanceEffective",
+   "mecanisme": "comparee",
+   "grille": "ECHEANCES",
+   "_pourquoi": "Le plafond absolu d'un regime d'exception : une prolongation ne peut jamais repousser l'echeance au-dela du neuvieme jour."
+  },
+  {
+   "cle": "nocturne/desertions",
+   "famille": "nocturne",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "traiterDesertionsServeur",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "verifierDesertionsQuotidien",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "708b4c66aa0ac6a6",
+   "empreinte_canon": "61000ec1c2905a26",
+   "_pourquoi": "MIROIR D'UN TRAITEMENT QUOTIDIEN, qui lit et ecrit la base. Son canon existe toujours au navigateur mais n'y est PLUS APPELE (plateau-core.js le dit : « retiree ici : miroir serveur »). Le canon est donc une reference conservee, pas un second executant. Epinglee des deux cotes."
+  },
+  {
+   "cle": "nocturne/expulsions-ambassadeurs",
+   "famille": "nocturne",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "traiterExpulsionsAmbassadeursServeur",
+   "canon_fichier": "plateau-politique.js",
+   "symbole_canon": "verifierExpulsionsAmbassadeursQuotidien",
+   "mecanisme": "epinglee",
+   "empreinte_serveur": "ea9ad27fc33daebe",
+   "empreinte_canon": "9ac899fef513d180",
+   "_pourquoi": "MIROIR D'UN TRAITEMENT QUOTIDIEN, et le seul de la famille dont LES DEUX COTES TOURNENT ENCORE : le navigateur met a jour l'ambassade (ecriture idempotente, effet immediat pour le joueur present) et le serveur emet l'avis d'expulsion. Le partage est ecrit dans les deux fichiers et date du 20 septembre 2026 : ce n'est pas un doublon oublie. Epinglee pour qu'un deplacement de cette frontiere ne passe pas inapercu."
+  }
+ ],
+ "constantes_homonymes": [
+  {
+   "symbole": "FUSEAU_ELECTORAL",
+   "portee": "CRON",
+   "canon_fichier": "plateau-politique.js"
+  },
+  {
+   "symbole": "CANDIDATURES_MIN_MS",
+   "portee": "CRON",
+   "canon_fichier": "plateau-politique.js"
+  },
+  {
+   "symbole": "REPARTITION_PORT_DEFAUT",
+   "portee": "CRON",
+   "canon_fichier": "plateau-justice-economie.js"
+  }
+ ],
+ "_constantes_homonymes_pourquoi": "CES TROIS CONSTANTES ETAIENT UN ANGLE MORT COMPLET. Le controle des referentiels (chantier 4C) ne surveille que les copies qui portent un nom en _SERVEUR ; celles-ci portent EXACTEMENT le meme nom des deux cotes, et n'etaient donc declarees nulle part. Elles sont mesurees egales aujourd'hui. La quatrieme de la famille, CHAMPIONNAT_FILTRE_ID, n'est pas comparable par valeur : le navigateur la calcule depuis CHAMPIONNAT_ROW_ID (supabase.js) et les deux copies serveur ecrivent 'id=eq.2' en dur -- elle est nommee dans l'audit, avec sa dette.",
+ "hors_perimetre": [
+  [
+   "api/cron-minuit.js",
+   "sbGet"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbInsert"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbUpdate"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbUpdatePret"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbDelete"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbRpc"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbGetBatimentEtat"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbSetBatimentEtat"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbLoadOrganisationsServeur"
+  ],
+  [
+   "api/cron-minuit.js",
+   "sbSaveOrganisationServeur"
+  ],
+  [
+   "api/_journal-collecte.js",
+   "sbGet"
+  ],
+  [
+   "api/_journal-generation.js",
+   "sbGet"
+  ],
+  [
+   "api/_journal-generation.js",
+   "sbInsert"
+  ],
+  [
+   "api/_journal-generation.js",
+   "sbUpdate"
+  ],
+  [
+   "api/_journal-generation.js",
+   "sbRpc"
+  ],
+  [
+   "api/cron-assemblee.js",
+   "sbGet"
+  ],
+  [
+   "api/cron-assemblee.js",
+   "sbInsert"
+  ],
+  [
+   "api/cron-assemblee.js",
+   "sbRpc"
+  ],
+  [
+   "api/journal-interview.js",
+   "sbGet"
+  ],
+  [
+   "api/journal-interview.js",
+   "sbInsert"
+  ],
+  [
+   "api/journal-interview.js",
+   "sbUpdate"
+  ]
+ ],
+ "_hors_perimetre_pourquoi": "LA COUCHE D'ACCES POSTGREST N'EST PAS UNE REGLE DE JEU. Ces vingt-et-une fonctions sont sbGet/sbInsert/sbUpdate/sbRpc et leurs variantes, redeclarees dans cinq modules de api/ parce qu'un module serverless n'a pas acces a supabase.js. Les comparer n'apprendrait rien : elles ne calculent rien, elles transportent. Leur mutualisation a deja commence ailleurs (api/_supabase.js a absorbe la configuration recopiee neuf fois) et c'est un chantier d'architecture, pas de concordance. Elles sont NOMMEES ici une par une, et le controle echoue si l'une disparait : une liste d'exclusions qui pourrit est pire que pas de liste.",
+ "_ce_qui_n_est_plus_une_paire": {
+  "distribuerFiscaliteServeur": "Son canon, verifierEffetsEtDistributionFiscale, A ETE SUPPRIME du navigateur (plateau-justice-economie.js le dit : « vivaient ici »). La distribution fiscale quotidienne ne vit plus qu'au serveur, et dans la cascade SQL. Il n'y a donc plus rien a comparer -- et c'est l'etat cible, pas une dette.",
+  "payerSoldeQuotidienne": "Retiree des DEUX cotes le 7 octobre 2026 (chantier 6, lot 1), parce que la solde recurrente des PNJ militaires a ete abandonnee par arbitrage. Le souvenir est garde ici pour qu'on ne la cherche pas.",
+  "coutParSoldat": "Le commentaire de COUT_SOLDE_PAR_SOLDAT_SERVEUR annoncait « miroir de coutParSoldat (plateau-politique.js) ». CE SYMBOLE N'EXISTE NULLE PART dans le depot, verifie : le commentaire designait un canon disparu."
+ }
+}
