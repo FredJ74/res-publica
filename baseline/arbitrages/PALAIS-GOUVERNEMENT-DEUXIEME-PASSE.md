@@ -250,6 +250,15 @@ une par une au compte réel : **zéro écart**.
    avec `cout_non_declare` : `doReceptionAvecBonus` demande le triplet
    `(reception_etat, 2, 0)`, que le miroir ne déclare pas — il déclare `(2, 1000)`.
    Constaté au Palais présidentiel, qui est CLOS : signalé, non corrigé.
-4. **La chronique nationale reste écrite depuis le navigateur.** Le jour où ses
+4. **La matière attend son point d'entrée côté joueur, et c'est un arbitrage, pas un oubli.**
+   `conference_matiere()` existe, est gardée par le droit de presse, et la porte cliente
+   `sbConferenceMatiere` est écrite. Mais **La Tribune n'a aucun outil par lequel un journaliste
+   joueur écrit lui-même un article à partir d'une source** : la salle de rédaction ne porte que
+   des ordres de **lobbying** — placer un article favorable, étouffer un article, déposer une
+   petite annonce. L'arbitrage interdit de construire un nouveau système de journal si les outils
+   existent ; ils n'existent pas. Y brancher un ordre neuf demanderait de décider **son coût, sa
+   pièce et sa portée** — les trois antennes de La Tribune, ou la seule de Luthécia — soit trois
+   décisions de game design qui n'ont pas été rendues. Elles ne sont pas inventées ici.
+5. **La chronique nationale reste écrite depuis le navigateur.** Le jour où ses
    écritures publiques passeront par des portes serveur, elle pourra redevenir une
    source de la mémoire présidentielle. L'obstacle est consigné en base.

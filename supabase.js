@@ -3964,6 +3964,19 @@ async function sbConferenceLire(conferenceId) {
 // LA MATIERE DE LA REDACTION. Les conferences CLOSES du pays, avec leur transcription complete,
 // reservees aux membres d'un groupe de presse -- le droit existant, pas un nouveau. Elle ne porte
 // ni titre d'article, ni angle, ni commentaire : ce travail appartient au journaliste joueur.
+//
+// CETTE PORTE N'A PAS ENCORE D'APPELANT, ET CE N'EST PAS UN OUBLI (11 octobre 2026). L'arbitrage
+// dit que la conference devient une MATIERE mise a disposition de la redaction de La Tribune, et
+// il interdit de construire un nouveau systeme de journal si les outils existent. Or ils
+// n'existent PAS : la salle de redaction ne porte aujourd'hui que des ordres de LOBBYING -- placer
+// un article favorable, etouffer un article, deposer une petite annonce -- et aucun outil par
+// lequel un journaliste joueur ECRIT lui-meme un article a partir d'une source.
+//
+// Y brancher un ordre neuf demanderait de decider son cout, sa piece et sa portee -- les trois
+// antennes de La Tribune ou la seule de Luthecia -- c'est-a-dire trois arbitrages de game design
+// qui n'ont pas ete rendus. On ne les invente pas. La porte serveur existe, elle est gardee par le
+// droit de presse, et elle attend son point d'entree : voir
+// baseline/arbitrages/PALAIS-GOUVERNEMENT-DEUXIEME-PASSE.md.
 async function sbConferenceMatiere(limite) {
   const rows = await sbRpc('conference_matiere', {
     p_limite: Math.floor(Number(limite) || 10)
