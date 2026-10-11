@@ -1223,6 +1223,23 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
       }
     } catch (e) { /* une Garde qui n'a pas pu se prononcer ne bloque jamais la navigation */ }
   }
+
+  // 6. L'ELECTION DU PRESIDENT DE L'ASSEMBLEE (11 octobre 2026). SIXIEME consommateur du
+  // meme evenement d'entree : on ne pose toujours pas un crochet de plus.
+  //
+  // UN JOUEUR ABSENT A 23 HEURES decouvre a son retour qu'il y a eu egalite, et peut
+  // assister au tirage a la courte paille -- dont le resultat est ecrit en base depuis la
+  // cloture. Il ne le voit qu'UNE FOIS : l'etat « deja vu » est enregistre au serveur, donc
+  // il survit a un rafraichissement, a un changement de machine, et a un onglet ferme trop
+  // vite. Aucune nouvelle randomisation n'a lieu : l'animation rejoue, elle ne tire pas.
+  //
+  // No-op immediat hors des deux pieces de l'Assemblee : deux comparaisons de chaines,
+  // aucun appel reseau. Et comme les cinq consommateurs precedents : un echec ne retient
+  // jamais le joueur.
+  if (typeof presidenceEntreeZone === 'function') {
+    try { await presidenceEntreeZone(buildingId, roomId); }
+    catch (e) { /* un tirage qui n'a pas pu etre rejoue ne bloque jamais la navigation */ }
+  }
 }
 
 // Le serveur n'envoie que ce qui a ete reellement vu, deja degrade. L'affichage se contente donc

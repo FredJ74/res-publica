@@ -102,6 +102,9 @@ async function seanceRafraichir() {
     return;
   }
   RP_SEANCE_ETAT = etat;
+  // L'ELECTION DU PRESIDENT EST UN MOMENT DE LA SEANCE, pas un ecran a part : son etat se
+  // charge avec elle, et le bloc de scrutin s'affiche dans le meme panneau.
+  if (typeof presidenceRafraichir === 'function') await presidenceRafraichir().catch(() => {});
   // Les textes en session servent au report presidentiel. Lecture REST, autorisee par la
   // policy SELECT historique de assemblee_propositions.
   if (etat.je_suis_le_president && typeof sbGetAssembleePropositions === 'function') {
@@ -214,14 +217,31 @@ function seanceDessiner(e) {
 
   // --- alerte de suspension. UN FAIT, PAS UN JUGEMENT : on dit combien de deputes
   // qualifies sont dehors et quel est le seuil, sans qualifier leur depart.
+  // --- alerte de suspension. DEUX SUSPENSIONS DISTINCTES, ET ELLES NE DISENT PAS LA MEME
+  // CHOSE : le boycott empeche un vote de conclure, la suspension presidentielle arrete la
+  // seance elle-meme. Quand les deux courent, on annonce les deux.
   const al = document.getElementById('sc-alerte');
   al.textContent = '';
   al.className = '';
+  const alertes = [];
+  if (e.suspendue_par_la_presidence) {
+    const sp = e.suspension_presidence || {};
+    alertes.push('SÉANCE SUSPENDUE PAR LA PRÉSIDENCE'
+      + (sp.president ? ' (' + sp.president + ')' : '')
+      + (sp.motif ? ' — « ' + sp.motif + ' »' : '')
+      + '. Elle le reste jusqu\'à ce que le Président la reprenne : on n\'y prend pas la parole.');
+  }
   if (e.suspendue) {
-    al.className = 'sc-alerte';
-    al.textContent = 'SÉANCE SUSPENDUE — ' + (e.protestataires_qualifies || 0)
+    alertes.push('SÉANCE SUSPENDUE PAR BOYCOTT — ' + (e.protestataires_qualifies || 0)
       + ' députés protestataires sont hors de l\'hémicycle (seuil : ' + (e.seuil_suspension || 5)
-      + '). Aucun vote ne peut être conclu tant que la suspension dure.';
+      + '). Aucun vote ne peut être conclu tant que la suspension dure.');
+  }
+  if (e.election_presidentielle_due) {
+    alertes.push('La présidence est remise en jeu : une élection est due et sera convoquée lundi.');
+  }
+  if (alertes.length) {
+    al.className = 'sc-alerte';
+    al.textContent = alertes.join(' · ');
   }
 
   seanceDessinerCote(e, moi);
@@ -350,7 +370,11 @@ function seanceDessinerBas(e, moi) {
   // en meme temps qu'un discours.
   if (RP_SEANCE_FORMULAIRE) { seanceDessinerFormulaire(b, e); return; }
 
-  const jeParle = e.je_suis_le_president || (e.je_suis_depute && e.je_suis_dans_hemicycle);
+  // UNE SEANCE SUSPENDUE PAR SA PRESIDENCE NE DISTRIBUE PAS LA PAROLE -- pas meme au
+  // President, qui a « Reprendre la séance » pour la rouvrir. Le serveur refuse de toute
+  // facon ; l'ecran ne propose donc pas un bouton qui serait refuse.
+  const jeParle = !e.suspendue_par_la_presidence
+    && (e.je_suis_le_president || (e.je_suis_depute && e.je_suis_dans_hemicycle));
 
   // --- LA ZONE D'INTERVENTION
   if (jeParle) {
@@ -392,6 +416,9 @@ function seanceDessinerBas(e, moi) {
     b.appendChild(seanceVide('Vous assistez à la séance. Seuls les députés et le Président y prennent la parole.'));
   }
 
+  // --- L'ELECTION DU PRESIDENT. Rendue dans le meme panneau : elle appartient a la seance.
+  if (typeof presidenceDessinerBloc === 'function') presidenceDessinerBloc(b);
+
   // --- LES PREROGATIVES DU PRESIDENT
   if (e.je_suis_le_president) {
     const boite = document.createElement('div');
@@ -400,6 +427,16 @@ function seanceDessinerBas(e, moi) {
     t.style.cssText = 'font-family:Bebas Neue,sans-serif;letter-spacing:.11em;font-size:.78rem;color:#8a7d4a;margin-bottom:.4rem';
     t.textContent = 'PRÉROGATIVES DE LA PRÉSIDENCE';
     boite.appendChild(t);
+
+    // SUSPENDRE OU REPRENDRE, JAMAIS LES DEUX. L'etat est serveur : c'est lui qui decide
+    // lequel des deux boutons existe.
+    if (e.suspendue_par_la_presidence) {
+      boite.appendChild(seanceBouton('Reprendre la séance', seanceReprendre));
+      boite.appendChild(seanceVide('La séance est suspendue. La reprendre ne coûte rien : '
+        + 'vous avez déjà payé pour la suspendre.'));
+      b.appendChild(boite);
+      return;   // une seance suspendue n'a ni file, ni orateur, ni discipline a exercer
+    }
 
     const premier = (Array.isArray(e.file) && e.file.length) ? e.file[0].depute : null;
     boite.appendChild(seanceBouton(
@@ -617,6 +654,18 @@ function seanceNaviguerVers(piece) {
   if (typeof state === 'undefined') return;
   state.currentRoom = piece;
   if (typeof enterRoom === 'function') enterRoom('assemblee', piece, null);
+  if (typeof updateUI === 'function') updateUI();
+}
+
+// REPRENDRE LA SEANCE. Le President seul, et sans cout : il a paye pour suspendre.
+async function seanceReprendre() {
+  const r = await assembleeActionServeur((rq) => sbAssembleeReprendreSeance(rq));
+  if (!assembleeIssueAction(r)) { await seanceRafraichir(); return; }
+  if (r.res.rejeu !== true) {
+    showToast('Séance reprise', 'La séance reprend. La parole peut être demandée de nouveau.', true);
+    addJournalEntry('Vous reprenez la séance.', '');
+  }
+  await seanceRafraichir();
   if (typeof updateUI === 'function') updateUI();
 }
 

@@ -10,6 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TRIGGER trg_organisations_politique_autorite BEFORE INSERT OR DELETE OR UPDATE ON organisations FOR EACH ROW EXECUTE FUNCTION organisations_politique_autorite();
 CREATE TRIGGER trg_personnages_vue_inserer INSTEAD OF INSERT ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_inserer();
 CREATE TRIGGER trg_personnages_vue_modifier INSTEAD OF UPDATE ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_modifier();
 CREATE TRIGGER trg_personnages_vue_supprimer INSTEAD OF DELETE ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_supprimer();

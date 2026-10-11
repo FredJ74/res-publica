@@ -522,7 +522,15 @@ def controles_du_monde(cat):
     # presidentielles, assemblee_reports les reports de vote. LES SIX SONT SOUS RLS SANS AUCUNE
     # POLICY : le navigateur ne peut ni les lire ni les ecrire, et c'est l'etat VOULU -- le compte
     # des tables sans policy passe de 116 a 122.
-    att("tables creees", len(cat.tables), 276)
+    # 276 -> 280 le 11 octobre 2026, troisieme passe de l'Assemblee : les QUATRE TABLES DE
+    # L'ELECTION PRESIDENTIELLE. assemblee_presidence_scrutins porte le scrutin, ses neuf
+    # eligibles figes et le vainqueur tire par le serveur ; _bulletins une voix par depute JOUEUR
+    # (les neuf PNJ s'abstiennent toujours) ; _tirage_vu ce que chaque joueur a deja vu -- un etat
+    # SERVEUR, sans quoi il reverrait l'annonce a chaque visite ; _dues les elections
+    # exceptionnelles en attente, inscrites par un deuxieme episode de boycott distinct. LES
+    # QUATRE SONT SOUS RLS SANS AUCUNE POLICY : un navigateur qui pourrait ecrire un bulletin
+    # elirait qui il veut. Le compte des tables sans policy passe donc de 122 a 126.
+    att("tables creees", len(cat.tables), 280)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -614,8 +622,12 @@ def controles_du_monde(cat):
     # route -- elles ont recu un identifiant de requete -- mais leurs anciennes versions ont ete
     # SUPPRIMEES et non laissees en surcharge : une porte sans clef d'idempotence a cote d'une
     # porte avec clef aurait ete le defaut intact, appelable par son nom.
-    att("signatures de fonction creees", cat.n_fonctions, 765)
-    att("noms de fonction distincts", len(cat.fonctions), 761,
+    # 765 -> 776 / 761 -> 772 le 11 octobre 2026, troisieme passe : +11, sans surcharge. Sept
+    # portes d'election (eligibles, prochaine cloture, fenetre de convocation, convoquer, voter,
+    # depouiller, etat, tirage vu), la reprise de seance, la question « suspendue par la
+    # presidence ? », et le declencheur d'autorite des partis politiques.
+    att("signatures de fonction creees", cat.n_fonctions, 776)
+    att("noms de fonction distincts", len(cat.fonctions), 772,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -662,7 +674,12 @@ def controles_du_monde(cat):
     # CHECK qui portent les regles elles-memes : un motif ne peut pas etre vide, un rappel ne
     # porte ni amende ni rappel consomme, une sanction porte les deux, un report repousse
     # vraiment, et une cause de suspension est connue.
-    att("contraintes posees", len(cat.contraintes), 493)
+    # 493 -> 505 le 11 octobre 2026, troisieme passe : +12 pour les quatre tables du scrutin.
+    # Quatre cles primaires, trois cles etrangeres vers le scrutin, et cinq CHECK qui portent les
+    # regles : une cause connue, un statut connu, et surtout `presidence_clos_coherent` -- un
+    # scrutin clos A un elu, et il n'existe pas d'etat intermediaire. Un scrutin « clos sans elu »
+    # laisserait la presidence vacante sans que personne l'ait decide.
+    att("contraintes posees", len(cat.contraintes), 505)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -686,7 +703,10 @@ def controles_du_monde(cat):
     # qu'une fois, un seul episode de boycott ouvert, et une requete joueur n'est honoree qu'une
     # fois (quatre index d'unicite partielle, un par table d'effet). Les autres sont des index de
     # lecture : le debat par pays et par date, la discipline par cible.
-    att("index autonomes crees", len(cat.index), 164)
+    # 164 -> 169 le 11 octobre 2026, troisieme passe : +5, et QUATRE portent des REGLES. Un seul
+    # scrutin ouvert par pays, une seule requete de vote honoree, une seule election exceptionnelle
+    # en attente, une seule suspension presidentielle ouverte, une seule reprise par requete.
+    att("index autonomes crees", len(cat.index), 169)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -707,7 +727,12 @@ def controles_du_monde(cat):
     # porte sur la MEMOIRE et non sur la chronique : fermer l'INSERT client casserait une dizaine
     # de chemins de jeu legitimes, donc c'est la memoire qui cesse de croire une table que le
     # client ecrit. La source a rejoint presidence_memoire_sources_absentes avec son obstacle reel.
-    att("declencheurs crees", len(cat.triggers), 43)
+    # 43 -> 44 le 11 octobre 2026 : `trg_organisations_politique_autorite`. Il ferme la faille
+    # trouvee a la deuxieme passe -- un depute s'inscrivant dans le parti d'un depute sanctionne
+    # pour devenir « protestataire qualifie ». Il garde la VERITE et non la porte : pour les
+    # organisations POLITIQUES et les seules ecritures CLIENTES, on n'entre dans un parti que si
+    # son chef l'a voulu.
+    att("declencheurs crees", len(cat.triggers), 44)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.

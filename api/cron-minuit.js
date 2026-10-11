@@ -5944,6 +5944,58 @@ export default async function handler(req, res) {
     const votesConfianceResolus = await resoudreVotesConfianceEchusServeur(now.getTime());
     const consequencesCensure = await appliquerConsequencesCensureEchues(now.getTime());
 
+    // 1e. ASSEMBLEE NATIONALE — CONVOCATION DE L'ELECTION PRESIDENTIELLE (11 octobre 2026)
+    //
+    // APRES LE DEPOUILLEMENT LEGISLATIF, ET C'EST TOUT L'INTERET DE LA PLACE.
+    //
+    // ET APRES L'ANCRE « 1b » PARCE QU'UN BANC L'EXIGE : banc-calendrier-electoral.js surveille
+    // tout ce qui se trouve entre la lecture des cycles et cette ancre, et y interdit toute
+    // annonce ecrite en direct -- c'est la lecon d'un defaut reel ou le depouillement
+    // reannoncait a chaque rejeu. La convocation n'appartient pas au depouillement ; la poser
+    // dans sa portee aurait fait rougir ce banc pour une bonne raison. La convocation lit
+    // les NEUF SIEGES pour figer la liste des eligibles : appelee avant, elle aurait convoque
+    // l'ancienne Assemblee. Ici, les neuf deputes de la semaine viennent d'etre proclames.
+    //
+    // LE CALENDRIER EST EN BASE, PAS ICI. `assemblee_presidence_convoquer` refuse hors du lundi
+    // de Paris (`hors_fenetre_convocation`) et refuse un second scrutin le meme jour : ce cron
+    // tourne chaque nuit, et c'est la base qui decide s'il y a lieu d'ouvrir une election. Un
+    // refus de calendrier n'est donc PAS un echec -- c'est le cas normal six nuits sur sept.
+    //
+    // LES DEUX CAUSES PASSENT PAR LA MEME PORTE : le renouvellement hebdomadaire, et l'election
+    // exceptionnelle due apres un DEUXIEME episode de boycott distinct sous une meme presidence.
+    // Si une election est due, c'est elle qu'on convoque -- elle n'attend pas le renouvellement
+    // general, seulement le prochain lundi.
+    try {
+      // sbGet lit deja sous l'identite du cron (HEADERS vaut HEADERS_SERVICE des que la cle est
+      // presente) ; service_role traverse la RLS, et cette table n'a aucune policy.
+      const dues = await sbGet('assemblee_presidence_dues',
+        'pays=eq.republic&honore_le=is.null&select=cause').catch(() => null);
+      const cause = (Array.isArray(dues) && dues.length > 0) ? 'deux_boycotts' : 'renouvellement';
+      const conv = await sbRpc('assemblee_presidence_convoquer',
+        { p_pays: 'republic', p_cause: cause }, HEADERS_SERVICE)
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      if (conv && conv.ok === true) {
+        results.push({ tache: 'assemblee_presidence_convoquer', cause,
+                       scrutin: conv.scrutin, cloture_ts: conv.cloture_ts,
+                       convoques: conv.convoques });
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 ASSEMBLÉE NATIONALE — les neuf députés sont convoqués pour élire leur Président. '
+               + 'Scrutin ouvert jusqu\'à 23h00.',
+          jour: null
+        }).catch(() => {});
+      } else if (conv && conv.ok === false
+                 && conv.raison !== 'hors_fenetre_convocation'
+                 && conv.raison !== 'scrutin_deja_ouvert'
+                 && conv.raison !== 'scrutin_deja_tenu_aujourd_hui') {
+        // UN REFUS DE CALENDRIER EST NORMAL ; TOUT AUTRE REFUS EST UN FAIT A SIGNALER -- une
+        // composition incomplete, par exemple, voudrait dire que l'Assemblee n'a plus neuf sieges.
+        signalerEchec('assemblee_presidence_convoquer', conv.raison || 'aucun verdict rendu');
+      } else if (!conv) {
+        signalerEchec('assemblee_presidence_convoquer', 'porte_injoignable');
+      }
+    } catch (e) { console.error('assemblee_presidence_convoquer', e); }
+
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 

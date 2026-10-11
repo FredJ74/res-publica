@@ -2742,7 +2742,7 @@ const BUILDINGS = {
     icon: "ti-building-arch",
     bgColor: "#101820",
     capitaleOnly: true,
-    desc: "Les 25 sieges de l\'Assemblee Nationale de Republia. Actuellement majoritairement occupes par des PNJ.",
+    desc: "Les neuf sieges de l\'Assemblee Nationale de Republia -- trois par ville. Actuellement majoritairement occupes par des PNJ.",
     rooms: {
       accueil_assemblee: {
         name: "Accueil",

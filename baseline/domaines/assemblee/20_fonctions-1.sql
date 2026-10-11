@@ -458,6 +458,10 @@ BEGIN
   IF v_t IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'texte_vide'); END IF;
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  -- ON NE PARLE PAS DANS UNE SEANCE SUSPENDUE -- pas meme le President : c'est lui qui l'a
+  -- suspendue, et il a « Reprendre la seance » pour la rouvrir.
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
 
   -- LE PRESIDENT PARLE TOUJOURS DE DROIT : il preside la seance. Un depute, lui, doit etre dans
   -- l'hemicycle -- on ne parle pas en seance depuis le hall.
@@ -1560,6 +1564,9 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
   IF NOT public.assemblee_dans_hemicycle(v_pays, v_moi) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_dans_hemicycle'); END IF;
+  -- UNE SEANCE SUSPENDUE NE DISTRIBUE PAS LA PAROLE.
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
 
   -- IDEMPOTENT PAR CONSTRUCTION : un double clic ne cree pas deux demandes et ne repousse pas la
   -- place deja acquise dans la file. On ne touche a rien si une demande existe.
@@ -1592,6 +1599,8 @@ BEGIN
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
 
   -- LE VERROU EST PRIS SUR LA FILE ENTIERE : deux « donner la parole » concurrents ne peuvent pas
   -- lire le meme premier et produire deux orateurs.
@@ -1628,6 +1637,8 @@ BEGIN
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
 
   SELECT depute INTO v_orateur FROM public.assemblee_paroles
    WHERE pays = v_pays AND a_la_parole FOR UPDATE;
@@ -1741,6 +1752,365 @@ BEGIN
     'sous_types',     CASE WHEN v_st IS NULL OR jsonb_typeof(v_st) = 'null'
                            THEN NULL ELSE v_st END));
 END $function$;
+
+-- assemblee_presidence_convoquer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_convoquer(p_pays text, p_cause text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_id text; v_cloture timestamptz; v_elig jsonb; v_pres text; v_n integer := 0;
+  v_d record; v_heure text;
+BEGIN
+  IF NOT public.est_appel_serveur() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_au_serveur');
+  END IF;
+  IF coalesce(p_cause,'') NOT IN ('renouvellement','deux_boycotts') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cause_inconnue');
+  END IF;
+  -- LE CALENDRIER EST UNE REGLE DE BASE. Sans elle, un cron quotidien ouvrirait une election par
+  -- jour -- celle du lundi venant de se clore a 23 heures.
+  IF NOT public.assemblee_presidence_fenetre_convocation(now()) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_fenetre_convocation');
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM public.assemblee_presidence_scrutins
+              WHERE pays = p_pays AND statut = 'ouvert') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_deja_ouvert');
+  END IF;
+  -- UN SEUL SCRUTIN PAR LUNDI. Deux passes du cron le meme jour ne doivent pas rouvrir une
+  -- election qui vient d'etre depouillee -- ni effacer son resultat.
+  IF EXISTS (SELECT 1 FROM public.assemblee_presidence_scrutins
+              WHERE pays = p_pays
+                AND (ouvert_le AT TIME ZONE 'Europe/Paris')::date
+                    = (now() AT TIME ZONE 'Europe/Paris')::date) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_deja_tenu_aujourd_hui');
+  END IF;
+
+  -- LES NEUF, FIGES A L'OUVERTURE. Si un siege change de main pendant la semaine, le scrutin garde
+  -- la liste devant laquelle les deputes ont vote : on ne deplace pas les regles en cours de route.
+  SELECT coalesce(jsonb_agg(jsonb_build_object('depute', e.depute, 'ville', e.ville,
+                                               'rang', e.rang, 'est_pnj', e.est_pnj)
+                            ORDER BY e.ville, e.rang), '[]'::jsonb)
+    INTO v_elig FROM public.assemblee_presidence_eligibles(p_pays) e;
+  IF jsonb_array_length(v_elig) <> 9 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'composition_incomplete',
+                              'sieges', jsonb_array_length(v_elig));
+  END IF;
+
+  v_cloture := public.assemblee_presidence_prochaine_cloture();
+  v_pres := public.assemblee_president(p_pays);
+  v_id := 'presidence-' || p_pays || '-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISS');
+
+  INSERT INTO public.assemblee_presidence_scrutins
+    (id, pays, cause, cloture_ts, eligibles, president_sortant)
+  VALUES (v_id, p_pays, p_cause, v_cloture, v_elig, v_pres);
+
+  -- L'ELECTION EXCEPTIONNELLE EN ATTENTE EST HONOREE PAR CELLE-CI, quelle que soit sa cause : la
+  -- presidence vient d'etre remise en jeu, il n'y a plus rien a rattraper.
+  UPDATE public.assemblee_presidence_dues
+     SET honore_le = clock_timestamp(), scrutin_id = v_id
+   WHERE pays = p_pays AND honore_le IS NULL;
+
+  -- LE COURRIER DE CONVOCATION. Il part aux neuf -- mais seuls les deputes JOUEURS ont une boite :
+  -- les PNJ n'ont aucune fiche de personnage, et leur ecrire serait ecrire a personne.
+  v_heure := to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+  FOR v_d IN SELECT e.depute, e.ville FROM public.assemblee_presidence_eligibles(p_pays) e
+              WHERE NOT e.est_pnj
+  LOOP
+    PERFORM public.mail_systeme_poser_interne(
+      'Secrétariat de l''Assemblée nationale', v_d.depute,
+      'Convocation — élection du Président de l''Assemblée',
+      'L''Assemblée nationale élit son Président. Les neuf députés sont éligibles : vous pouvez '
+      || 'voter pour n''importe lequel d''entre eux, y compris vous-même. Le scrutin est ouvert '
+      || 'jusqu''au lundi 23h00, à un seul tour, et le décompte est visible pendant toute sa '
+      || 'durée. En cas d''égalité en tête, le départage se fera à la courte paille.',
+      v_heure);
+    v_n := v_n + 1;
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'scrutin', v_id, 'cause', p_cause,
+                            'cloture_ts', v_cloture, 'convoques', v_n,
+                            'eligibles', jsonb_array_length(v_elig));
+END;
+$function$;
+
+-- assemblee_presidence_depouiller(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_depouiller(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  s record; v_max integer; v_tete jsonb; v_elu text; v_pnj boolean;
+  v_decompte jsonb; v_chron text; v_heure text; v_d record; v_sortant text;
+BEGIN
+  IF NOT public.est_appel_serveur() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_au_serveur');
+  END IF;
+
+  SELECT * INTO s FROM public.assemblee_presidence_scrutins
+   WHERE pays = p_pays AND statut = 'ouvert' FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'depouille', false, 'raison', 'aucun_scrutin_ouvert');
+  END IF;
+  IF now() < s.cloture_ts THEN
+    RETURN jsonb_build_object('ok', true, 'depouille', false, 'raison', 'pas_encore_echu',
+                              'cloture_ts', s.cloture_ts);
+  END IF;
+
+  -- LE DECOMPTE PORTE SUR LES NEUF, zero voix comprise : un eligible sans voix doit apparaitre,
+  -- sinon l'egalite a zero serait invisible.
+  SELECT coalesce(jsonb_agg(jsonb_build_object('depute', x.depute, 'voix', x.voix)
+                            ORDER BY x.voix DESC, x.depute), '[]'::jsonb)
+    INTO v_decompte
+    FROM (SELECT e ->> 'depute' AS depute,
+                 (SELECT count(*) FROM public.assemblee_presidence_bulletins b
+                   WHERE b.scrutin_id = s.id AND b.pour = e ->> 'depute')::integer AS voix
+            FROM jsonb_array_elements(s.eligibles) e) x;
+
+  SELECT max((d ->> 'voix')::integer) INTO v_max FROM jsonb_array_elements(v_decompte) d;
+  SELECT coalesce(jsonb_agg(d ->> 'depute' ORDER BY d ->> 'depute'), '[]'::jsonb)
+    INTO v_tete FROM jsonb_array_elements(v_decompte) d WHERE (d ->> 'voix')::integer = v_max;
+
+  IF jsonb_array_length(v_tete) = 1 THEN
+    v_elu := v_tete ->> 0;
+    v_tete := NULL;                       -- aucune egalite : rien a tirer, rien a rejouer
+  ELSE
+    -- LA COURTE PAILLE, TIREE PAR LE SERVEUR. Le resultat est ecrit ici et ne bougera plus.
+    SELECT t INTO v_elu FROM jsonb_array_elements_text(v_tete) t ORDER BY random() LIMIT 1;
+  END IF;
+
+  SELECT e.est_pnj INTO v_pnj FROM public.assemblee_presidence_eligibles(p_pays) e
+   WHERE e.depute = v_elu;
+  v_sortant := public.assemblee_president(p_pays);
+  v_chron := 'chronique-presidence-' || s.id;
+
+  -- LA PROCLAMATION : le registre des postes nommes change de titulaire. C'est la SEULE ligne que
+  -- la seance regarde -- les pouvoirs suivent donc immediatement, et l'ancien President les perd
+  -- dans la meme transaction. Son siege de depute, lui, ne vient pas d'ici et reste intact.
+  DELETE FROM public.postes_attribues
+   WHERE country = p_pays AND poste_id = 'president_assemblee' AND city IS NULL;
+  INSERT INTO public.postes_attribues (id, country, poste_id, city, titulaire, source)
+  VALUES ('presidence-assemblee-' || p_pays, p_pays, 'president_assemblee', NULL, v_elu,
+          'election_assemblee');
+
+  UPDATE public.assemblee_presidence_scrutins
+     SET statut = 'clos', elu = v_elu, elu_est_pnj = coalesce(v_pnj, true),
+         egalite = v_tete, decompte = v_decompte,
+         clos_le = clock_timestamp(), chronique_id = v_chron
+   WHERE id = s.id;
+
+  -- LA TRACE PUBLIQUE EST FACTUELLE : qui a ete elu, avec combien de voix, et s'il a fallu tirer.
+  -- Aucune appreciation, aucun commentaire.
+  INSERT INTO public.chronique_nationale
+    (id, country, type, city, personnages, libelle, data, source_ref)
+  VALUES (v_chron, p_pays, 'assemblee_presidence', 'capitale',
+          jsonb_build_array(v_elu) || coalesce(jsonb_build_array(v_sortant), '[]'::jsonb),
+          v_elu || ' est elu President de l''Assemblee nationale'
+          || CASE WHEN v_tete IS NULL THEN '.' ELSE ' apres un tirage a la courte paille.' END,
+          jsonb_build_object('scrutin', s.id, 'cause', s.cause, 'elu', v_elu,
+                             'voix', v_max, 'decompte', v_decompte, 'egalite', v_tete,
+                             'president_sortant', v_sortant),
+          s.id);
+
+  -- LE RESULTAT PAR COURRIER AUX DEPUTES JOUEURS. Les PNJ n'ont pas de boite.
+  v_heure := to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+  FOR v_d IN SELECT e.depute FROM public.assemblee_presidence_eligibles(p_pays) e
+              WHERE NOT e.est_pnj
+  LOOP
+    PERFORM public.mail_systeme_poser_interne(
+      'Secrétariat de l''Assemblée nationale', v_d.depute,
+      'Résultat — élection du Président de l''Assemblée',
+      v_elu || ' est élu Président de l''Assemblée nationale avec ' || v_max || ' voix'
+      || CASE WHEN v_tete IS NULL THEN '.'
+              ELSE ', après un départage à la courte paille entre '
+                   || jsonb_array_length(v_tete) || ' députés à égalité.' END,
+      v_heure);
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'depouille', true, 'scrutin', s.id,
+                            'elu', v_elu, 'elu_est_pnj', coalesce(v_pnj, true),
+                            'voix', v_max, 'egalite', v_tete, 'decompte', v_decompte,
+                            'president_sortant', v_sortant);
+END;
+$function$;
+
+-- assemblee_presidence_eligibles(text) -> TABLE(depute text, ville text, rang integer, est_pnj boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_eligibles(p_pays text)
+ RETURNS TABLE(depute text, ville text, rang integer, est_pnj boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(o.pj_nom, o.pnj_nom), o.city, o.rang, o.est_pnj
+    FROM public.assemblee_occupation_sieges(p_pays) o
+   ORDER BY o.city, o.rang;
+$function$;
+
+-- assemblee_presidence_etat() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_etat()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; s record; v_depute boolean; v_revoir jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  v_depute := public.assemblee_est_depute(v_pays, v_moi);
+
+  SELECT * INTO s FROM public.assemblee_presidence_scrutins
+   WHERE pays = v_pays AND statut = 'ouvert';
+
+  SELECT to_jsonb(z) INTO v_revoir FROM (
+    SELECT c.id, c.elu, c.egalite, c.decompte, c.cause, c.clos_le, c.eligibles
+      FROM public.assemblee_presidence_scrutins c
+     WHERE c.pays = v_pays AND c.statut = 'clos' AND c.egalite IS NOT NULL
+       AND NOT EXISTS (SELECT 1 FROM public.assemblee_presidence_tirage_vu v
+                        WHERE v.scrutin_id = c.id AND v.personnage = v_moi)
+     ORDER BY c.clos_le DESC LIMIT 1) z;
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays,
+    'je_suis_depute', v_depute,
+    'president', public.assemblee_president(v_pays),
+    'eligibles', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', e.depute,
+                           'ville', e.ville, 'rang', e.rang, 'est_pnj', e.est_pnj)
+                         ORDER BY e.ville, e.rang), '[]'::jsonb)
+                    FROM public.assemblee_presidence_eligibles(v_pays) e),
+    'scrutin', CASE WHEN s.id IS NULL THEN NULL ELSE jsonb_build_object(
+        'id', s.id, 'cause', s.cause, 'ouvert_le', s.ouvert_le, 'cloture_ts', s.cloture_ts,
+        'eligibles', s.eligibles,
+        'mon_bulletin', (SELECT b.pour FROM public.assemblee_presidence_bulletins b
+                          WHERE b.scrutin_id = s.id AND b.votant = v_moi),
+        -- LE DECOMPTE EN DIRECT, zero voix comprise : sans les zeros, l'egalite serait illisible.
+        'decompte', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', x.depute, 'voix', x.voix)
+                             ORDER BY x.voix DESC, x.depute), '[]'::jsonb)
+                       FROM (SELECT e ->> 'depute' AS depute,
+                                    (SELECT count(*) FROM public.assemblee_presidence_bulletins b
+                                      WHERE b.scrutin_id = s.id AND b.pour = e ->> 'depute')::integer AS voix
+                               FROM jsonb_array_elements(s.eligibles) e) x),
+        'bulletins', (SELECT count(*) FROM public.assemblee_presidence_bulletins b
+                       WHERE b.scrutin_id = s.id)) END,
+    'a_revoir', v_revoir,
+    -- UNE ELECTION EXCEPTIONNELLE EST-ELLE DUE ? Un fait, pas une menace.
+    'election_due', (SELECT to_jsonb(y) FROM (
+        SELECT u.cause, u.du_le FROM public.assemblee_presidence_dues u
+         WHERE u.pays = v_pays AND u.honore_le IS NULL LIMIT 1) y));
+END;
+$function$;
+
+-- assemblee_presidence_fenetre_convocation(timestamp with time zone) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_fenetre_convocation(p_instant timestamp with time zone)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT extract(isodow FROM (p_instant AT TIME ZONE 'Europe/Paris')) = 1;
+$function$;
+
+-- assemblee_presidence_prochaine_cloture() -> timestamp with time zone | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_prochaine_cloture()
+ RETURNS timestamp with time zone
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_local timestamp; v_cible timestamp;
+BEGIN
+  v_local := now() AT TIME ZONE 'Europe/Paris';
+  -- le lundi de la semaine courante a 23h00 (isodow : 1 = lundi)
+  v_cible := date_trunc('day', v_local)
+             - make_interval(days => extract(isodow from v_local)::integer - 1)
+             + interval '23 hours';
+  IF v_cible <= v_local THEN v_cible := v_cible + interval '7 days'; END IF;
+  RETURN v_cible AT TIME ZONE 'Europe/Paris';
+END;
+$function$;
+
+-- assemblee_presidence_tirage_vu(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_tirage_vu(p_scrutin_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.assemblee_presidence_scrutins
+                  WHERE id = p_scrutin_id AND statut = 'clos') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_inconnu'); END IF;
+
+  INSERT INTO public.assemblee_presidence_tirage_vu (scrutin_id, personnage)
+  VALUES (p_scrutin_id, v_moi)
+  ON CONFLICT (scrutin_id, personnage) DO NOTHING;
+  RETURN jsonb_build_object('ok', true, 'scrutin', p_scrutin_id);
+END;
+$function$;
+
+-- assemblee_presidence_voter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_voter(p_pour text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; s record; d record; v_n integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  -- LA GARDE, AVANT TOUTE ECRITURE : une reponse perdue et rejouee ne depose pas deux bulletins.
+  SELECT * INTO d FROM public.assemblee_presidence_bulletins WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'pour', d.pour);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF NOT public.assemblee_est_depute(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
+
+  SELECT * INTO s FROM public.assemblee_presidence_scrutins
+   WHERE pays = v_pays AND statut = 'ouvert' FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_scrutin_ouvert'); END IF;
+  -- L'HEURE DU SERVEUR, ET ELLE SEULE. Un bulletin arrive apres 23h00 est refuse meme si le
+  -- depouillement n'a pas encore tourne.
+  IF now() >= s.cloture_ts THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_clos', 'cloture_ts', s.cloture_ts); END IF;
+
+  -- LE NOM VOTE DOIT ETRE L'UN DES NEUF FIGES A L'OUVERTURE. C'est ce qui interdit d'elire un
+  -- dixieme parlementaire, ou quelqu'un qui n'est pas depute du tout.
+  IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(s.eligibles) e
+                  WHERE e ->> 'depute' = p_pour) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_eligible', 'pour', p_pour); END IF;
+
+  -- UN SEUL BULLETIN. Le double vote est REFUSE, et la voix deja deposee reste celle qui compte.
+  IF EXISTS (SELECT 1 FROM public.assemblee_presidence_bulletins
+              WHERE scrutin_id = s.id AND votant = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_vote'); END IF;
+
+  INSERT INTO public.assemblee_presidence_bulletins (scrutin_id, votant, pour, requete)
+  VALUES (s.id, v_moi, p_pour, p_requete);
+
+  SELECT count(*) INTO v_n FROM public.assemblee_presidence_bulletins WHERE scrutin_id = s.id;
+  RETURN jsonb_build_object('ok', true, 'scrutin', s.id, 'pour', p_pour, 'bulletins', v_n);
+END;
+$function$;
 
 -- assemblee_president(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_president(p_pays text)
@@ -1873,7 +2243,6 @@ BEGIN
   IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
 
-  -- LA GARDE, AVANT TOUTE ECRITURE. Un rappel rejoue rendait 30 points de popularite au lieu de 15.
   SELECT * INTO d FROM public.assemblee_disciplines WHERE requete = p_requete;
   IF FOUND THEN
     RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
@@ -1883,6 +2252,8 @@ BEGIN
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
   v_m := nullif(btrim(coalesce(p_motif, '')), '');
   IF v_m IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'motif_obligatoire'); END IF;
@@ -1890,14 +2261,9 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'cible_invalide'); END IF;
   IF NOT public.assemblee_est_depute(v_pays, p_depute) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cible_pas_deputee'); END IF;
-  -- UNIQUEMENT CONTRE UN DEPUTE PHYSIQUEMENT PRESENT. On ne rappelle pas au reglement quelqu'un
-  -- qui a quitte l'hemicycle.
   IF NOT public.assemblee_dans_hemicycle(v_pays, p_depute) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cible_absente_de_l_hemicycle'); END IF;
 
-  -- LA POPULARITE D'ABORD, PAR LE REGISTRE DES CAUSES. Tous les refus legitimes sont derriere
-  -- nous : si le registre refuse ici, c'est une incoherence, et on annule TOUT plutot que
-  -- d'inscrire un rappel que personne n'a paye.
   v_pop := public.personnage_ajuster_pop_inf(v_moi, p_depute, POP_RAPPEL, NULL, 'assemblee_rappel');
   IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
     RAISE EXCEPTION 'assemblee_rappel_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
@@ -1912,9 +2278,6 @@ BEGIN
   VALUES (v_id, v_pays, 'rappel', v_moi, 'president_assemblee', p_depute, 'depute', v_m,
           POP_RAPPEL, v_chron, p_requete);
 
-  -- LA TRACE PUBLIQUE EST FACTUELLE, ECRITE PAR LE SERVEUR, DANS LA MEME TRANSACTION. Elle dit QUI
-  -- a rappele QUI, et rien de plus : aucun adjectif, aucune appreciation. Le motif exact voyage
-  -- dans `data`, verbatim, pour que la presse puisse le CITER sans que personne l'ait reecrit.
   INSERT INTO public.chronique_nationale
     (id, country, type, city, personnages, libelle, data, source_ref)
   VALUES (v_chron, v_pays, 'assemblee_rappel', 'capitale',
@@ -1939,6 +2302,7 @@ AS $function$
 DECLARE
   SEUIL constant integer := 5;
   v_qualifies integer; v_dehors integer; v_ouvert text; v_id text; v_pres text;
+  v_episodes integer; v_due boolean := false;
 BEGIN
   SELECT count(*) FILTER (WHERE qualifie), count(*)
     INTO v_qualifies, v_dehors
@@ -1954,8 +2318,8 @@ BEGIN
     v_ouvert := NULL;
   ELSIF v_ouvert IS NULL AND v_qualifies >= SEUIL THEN
     -- DISSOLUTION COMPLETE EXIGEE : s'il reste un protestataire qualifie depuis l'episode
-    -- precedent, on est dans le MEME boycott et on ne l'ouvre pas une seconde fois. Sans cette
-    -- regle, un seul depute faisant hall -> hemicycle -> hall fabriquerait des episodes a volonte.
+    -- precedent, on est dans le MEME boycott et on ne l'ouvre pas une seconde fois. 5 -> 4 -> 5,
+    -- 5 -> 3 -> 1 -> 5 : meme episode. Seul un retour a ZERO le termine.
     IF EXISTS (SELECT 1 FROM public.assemblee_suspensions s
                 WHERE s.pays = p_pays AND s.cause = 'boycott' AND s.close_le IS NOT NULL
                   AND EXISTS (SELECT 1 FROM public.assemblee_protestations p
@@ -1971,11 +2335,27 @@ BEGIN
                  FROM public.assemblee_protestations
                 WHERE pays = p_pays AND qualifie));
       v_ouvert := v_id;
+
+      -- LE DEUXIEME EPISODE DISTINCT SOUS UNE MEME PRESIDENCE REMET LA PRESIDENCE EN JEU. On
+      -- inscrit que l'election est DUE ; la convocation du lundi l'ouvrira. Ouvrir le scrutin ici
+      -- reviendrait a declencher une election dans la transaction du clic d'un depute.
+      SELECT count(*) INTO v_episodes FROM public.assemblee_suspensions s
+       WHERE s.pays = p_pays AND s.cause = 'boycott'
+         AND s.president IS NOT DISTINCT FROM v_pres;
+      IF v_episodes >= 2
+         AND NOT EXISTS (SELECT 1 FROM public.assemblee_presidence_dues u
+                          WHERE u.pays = p_pays AND u.honore_le IS NULL) THEN
+        INSERT INTO public.assemblee_presidence_dues (id, pays, cause, episode_id)
+        VALUES ('due-' || p_pays || '-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISSUS'),
+                p_pays, 'deux_boycotts', v_id);
+        v_due := true;
+      END IF;
     END IF;
   END IF;
 
   RETURN jsonb_build_object('suspendue', v_ouvert IS NOT NULL, 'episode', v_ouvert,
-                            'qualifies', v_qualifies, 'dehors', v_dehors, 'seuil', SEUIL);
+                            'qualifies', v_qualifies, 'dehors', v_dehors, 'seuil', SEUIL,
+                            'election_presidentielle_due', v_due);
 END;
 $function$;
 
@@ -2220,6 +2600,46 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_reprendre_seance(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_reprendre_seance(p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_id text; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  -- LA GARDE : sans elle, un rejeu repondrait « aucune suspension » a un President dont la reprise
+  -- venait d'aboutir.
+  SELECT * INTO d FROM public.assemblee_suspensions WHERE reprise_requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'suspension', d.id);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+
+  SELECT id INTO v_id FROM public.assemblee_suspensions
+   WHERE pays = v_pays AND cause = 'presidence' AND close_le IS NULL FOR UPDATE;
+  IF v_id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucune_suspension'); END IF;
+
+  UPDATE public.assemblee_suspensions
+     SET close_le = clock_timestamp(), reprise_le = clock_timestamp(), reprise_requete = p_requete
+   WHERE id = v_id;
+
+  RETURN jsonb_build_object('ok', true, 'suspension', v_id, 'reprise', true, 'pop', 0);
+END;
+$function$;
+
 -- assemblee_requete_clore(text,jsonb) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_requete_clore(p_requete text, p_resultat jsonb)
  RETURNS jsonb
@@ -2461,7 +2881,6 @@ BEGIN
   IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
 
-  -- LA GARDE, AVANT TOUT DEBIT. Une sanction rejouee prelevait 200 FR et 40 points.
   SELECT * INTO d FROM public.assemblee_disciplines WHERE requete = p_requete;
   IF FOUND THEN
     RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
@@ -2473,14 +2892,14 @@ BEGIN
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'seance_suspendue'); END IF;
   v_m := nullif(btrim(coalesce(p_motif, '')), '');
   IF v_m IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'motif_obligatoire'); END IF;
   IF NOT public.assemblee_est_depute(v_pays, p_depute) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cible_pas_deputee'); END IF;
 
-  -- LE RAPPEL PREALABLE, NON ENCORE CONSOMME, LE PLUS ANCIEN D'ABORD. Verrouille : deux sanctions
-  -- simultanees ne peuvent pas elire le meme rappel.
   SELECT x.id INTO v_rappel FROM public.assemblee_disciplines x
    WHERE x.pays = v_pays AND x.genre = 'rappel' AND x.cible = p_depute
      AND x.president = v_moi
@@ -2491,8 +2910,6 @@ BEGIN
   IF v_rappel IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'aucun_rappel_a_consommer'); END IF;
 
-  -- L'ARGENT D'ABORD, SUR LA POCHE DU DEPUTE. Primitive generique du jeu : liquide puis Banque
-  -- nationale, ecriture directe, et `false` sans rien toucher si les fonds manquent.
   v_paye := public.helvetia_debiter_fonds_ordinaires(p_depute, AMENDE);
   IF v_paye IS NOT TRUE THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants',
@@ -2501,8 +2918,6 @@ BEGIN
   v_caisse := v_pays || '_assemblee';
   PERFORM public.assemblee_crediter_caisse(v_caisse, AMENDE);
 
-  -- PUIS LA POPULARITE, par le registre des causes. Un refus ici est une incoherence, pas une
-  -- regle : on annule tout, donc l'amende repart dans la poche du depute et la caisse ne garde rien.
   v_pop := public.personnage_ajuster_pop_inf(v_moi, p_depute, POP_SANCTION, NULL, 'assemblee_sanction');
   IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
     RAISE EXCEPTION 'assemblee_sanction_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
@@ -2634,16 +3049,18 @@ BEGIN
     'je_suis_dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, v_moi),
     'mon_parti', public.assemblee_parti_de(v_pays, v_moi),
     'suspendue', public.assemblee_suspendue(v_pays),
-    -- LES DEPUTES JOUEURS, AVEC LEUR PRESENCE RELUE EN BASE. Les neuf sieges peuvent etre tenus
-    -- par des PNJ, qui n'ont aucune fiche de personnage : eux n'apparaissent pas ici, et ne
-    -- peuvent par construction ni parler, ni etre rappeles, ni protester.
+    -- DEUX SUSPENSIONS DISTINCTES, ET ELLES NE SE CONFONDENT JAMAIS. Le boycott empeche un vote de
+    -- conclure ; la suspension presidentielle arrete la seance elle-meme.
+    'suspendue_par_la_presidence', public.assemblee_suspendue_par_la_presidence(v_pays),
+    'suspension_presidence', (SELECT to_jsonb(z) FROM (
+        SELECT s.id, s.president, s.motif, s.ouverte_le FROM public.assemblee_suspensions s
+         WHERE s.pays = v_pays AND s.cause = 'presidence' AND s.close_le IS NULL LIMIT 1) z),
     'deputes', (SELECT coalesce(jsonb_agg(jsonb_build_object(
                    'depute', o.pj_nom, 'ville', o.city,
                    'dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, o.pj_nom),
                    'parti', public.assemblee_parti_de(v_pays, o.pj_nom))
                  ORDER BY o.city, o.rang), '[]'::jsonb)
        FROM public.assemblee_occupation_sieges(v_pays) o WHERE o.pj_nom IS NOT NULL),
-    -- LA FILE, DANS SON ORDRE CHRONOLOGIQUE EXACT. C'est elle que le President doit respecter.
     'file', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', q.depute, 'depuis', q.demande_le)
               ORDER BY q.demande_le, q.depute), '[]'::jsonb)
        FROM public.assemblee_paroles q WHERE q.pays = v_pays AND NOT q.a_la_parole),
@@ -2661,19 +3078,19 @@ BEGIN
     'protestataires_qualifies', (SELECT count(*) FROM public.assemblee_protestations p
                                   WHERE p.pays = v_pays AND p.qualifie),
     'seuil_suspension', 5,
-    -- CE QUE LE PRESIDENT PEUT SANCTIONNER : les rappels non encore consommes. C'est un fait de
-    -- procedure, pas un conseil.
     'rappels_consommables', (SELECT coalesce(jsonb_agg(d.cible ORDER BY d.cible), '[]'::jsonb)
        FROM public.assemblee_disciplines d
       WHERE d.pays = v_pays AND d.genre = 'rappel' AND d.president IS NOT DISTINCT FROM v_pres
         AND NOT EXISTS (SELECT 1 FROM public.assemblee_disciplines s WHERE s.rappel_id = d.id)),
-    -- LES TEXTES AYANT DEJA CONSOMME LA PREROGATIVE DE REPORT. La table est fermee au navigateur :
-    -- sans cette liste, l'ecran proposerait un report impossible.
     'textes_reportes', (SELECT coalesce(jsonb_agg(r.proposition_id ORDER BY r.proposition_id), '[]'::jsonb)
        FROM public.assemblee_reports r WHERE r.pays = v_pays),
     'episodes_sous_cette_presidence', (SELECT count(*) FROM public.assemblee_suspensions s
        WHERE s.pays = v_pays AND s.cause = 'boycott'
-         AND s.president IS NOT DISTINCT FROM v_pres));
+         AND s.president IS NOT DISTINCT FROM v_pres),
+    -- UNE ELECTION EXCEPTIONNELLE EST-ELLE DUE ? Un fait rendu, et c'est la convocation du lundi
+    -- qui l'ouvrira -- pas cet ecran.
+    'election_presidentielle_due', EXISTS (SELECT 1 FROM public.assemblee_presidence_dues u
+       WHERE u.pays = v_pays AND u.honore_le IS NULL));
 END;
 $function$;
 
@@ -2727,30 +3144,36 @@ BEGIN
   IF FOUND THEN
     RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
                               'suspension', d.id, 'pop', POP_SUSPENSION,
-                              'compte_pour_le_boycott', false);
+                              'compte_pour_le_boycott', false,
+                              'ouverte', d.close_le IS NULL);
   END IF;
 
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  -- ON NE SUSPEND PAS UNE SEANCE DEJA SUSPENDUE : ce serait payer deux fois pour le meme etat.
+  IF public.assemblee_suspendue_par_la_presidence(v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_suspendue'); END IF;
 
   -- LE MOTIF EST CONSERVE S'IL EST DONNE, ET N'EST NI EXIGE NI JUGE : l'arbitrage ne le rend pas
   -- obligatoire pour cette prerogative, contrairement au rappel et a la sanction.
   v_m := nullif(btrim(coalesce(p_motif, '')), '');
   v_id := 'suspension-pres-' || left(md5(p_requete), 20);
 
-  -- IL SE PAIE LUI-MEME, et le registre des causes le verifie : `assemblee_suspension_seance`
-  -- refuse toute cible autre que l'acteur. Un refus ici annule tout : pas de suspension gratuite.
+  -- IL SE PAIE LUI-MEME, et le registre des causes le verifie. Un refus annule tout : pas de
+  -- suspension gratuite.
   v_pop := public.personnage_ajuster_pop_inf(v_moi, v_moi, POP_SUSPENSION, NULL, 'assemblee_suspension_seance');
   IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
     RAISE EXCEPTION 'assemblee_suspension_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
   END IF;
 
-  INSERT INTO public.assemblee_suspensions (id, pays, cause, president, motif, close_le, requete)
-  VALUES (v_id, v_pays, 'presidence', v_moi, v_m, clock_timestamp(), p_requete);
+  -- `close_le` RESTE NUL : l'etat PERSISTE jusqu'a la reprise. C'est tout l'arbitrage neuf.
+  INSERT INTO public.assemblee_suspensions (id, pays, cause, president, motif, requete)
+  VALUES (v_id, v_pays, 'presidence', v_moi, v_m, p_requete);
 
   RETURN jsonb_build_object('ok', true, 'suspension', v_id, 'pop', POP_SUSPENSION,
-                            'compte_pour_le_boycott', false, 'pop_president', v_pop -> 'pop');
+                            'compte_pour_le_boycott', false, 'ouverte', true,
+                            'pop_president', v_pop -> 'pop');
 END;
 $function$;
 
@@ -2763,6 +3186,17 @@ CREATE OR REPLACE FUNCTION public.assemblee_suspendue(p_pays text)
 AS $function$
   SELECT EXISTS (SELECT 1 FROM public.assemblee_suspensions
                   WHERE pays = p_pays AND cause = 'boycott' AND close_le IS NULL);
+$function$;
+
+-- assemblee_suspendue_par_la_presidence(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_suspendue_par_la_presidence(p_pays text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.assemblee_suspensions
+                  WHERE pays = p_pays AND cause = 'presidence' AND close_le IS NULL);
 $function$;
 
 -- assemblee_taux_marchandage(jsonb,boolean) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
@@ -2931,81 +3365,4 @@ BEGIN
 
   RETURN v_credit || jsonb_build_object('ok', true, 'montant', v_verse, 'vise', c_montant);
 END;
-$function$;
-
--- assemblee_voter(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_voter(p_id text, p_votant text, p_choix text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_row   public.assemblee_propositions%ROWTYPE;
-  v_perso public.personnages%ROWTYPE;
-  v_city  text;
-BEGIN
-  PERFORM public.exiger_acteur(p_votant);
-  IF p_choix IS NULL OR p_choix NOT IN ('POUR', 'CONTRE', 'ABSTENTION') THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'choix_invalide');
-  END IF;
-
-  -- FOR SHARE : un vote ne chevauche jamais le depouillement (qui prend FOR UPDATE).
-  SELECT * INTO v_row FROM public.assemblee_propositions WHERE id = p_id FOR SHARE;
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'introuvable');
-  END IF;
-  IF v_row.statut <> 'session' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'hors_session');
-  END IF;
-  IF v_row.cloture_ts IS NULL OR now() >= v_row.cloture_ts THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_clos');
-  END IF;
-
-  SELECT * INTO v_perso FROM public.personnages WHERE name = p_votant;
-  IF NOT FOUND OR NOT (v_perso.country = v_row.country AND v_perso.current_building = 'assemblee'
-                       AND v_perso.current_room = 'hemicycle') THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'hors_lieu');
-  END IF;
-
-  -- Le votant doit occuper reellement l'un des neuf sieges MAINTENANT.
-  SELECT o.city INTO v_city
-    FROM public.assemblee_occupation_sieges(v_row.country) o
-   WHERE o.pj_nom = p_votant
-   LIMIT 1;
-  IF v_city IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute');
-  END IF;
-
-  INSERT INTO public.assemblee_votes (id, proposition_id, session_num, votant, city, choix)
-  VALUES (p_id || ':' || v_row.session_num || ':' || p_votant, p_id, v_row.session_num, p_votant, v_city, p_choix)
-  ON CONFLICT (id) DO UPDATE SET choix = EXCLUDED.choix, updated_at = now();
-
-  RETURN jsonb_build_object('ok', true, 'choix', p_choix);
-END;
-$function$;
-
--- depute_presence(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.depute_presence(p_country text)
- RETURNS jsonb
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-  SELECT jsonb_build_object('ok', true, 'pays', p_country,
-    'sieges', COALESCE((SELECT jsonb_agg(jsonb_build_object(
-        'siege_id', o.siege_id, 'ville', o.city, 'rang', o.rang,
-        -- IDENTITE GAMMA, conservee en toute circonstance.
-        'pnj_id', o.pnj_id, 'pnj_nom', o.pnj_nom, 'fonction', 'depute', 'classe', 'gamma',
-        -- PRESENCE : 1 present, 0 absent. Derivee, jamais stockee.
-        'present', CASE WHEN o.est_pnj THEN 1 ELSE 0 END,
-        'occupe_par_pj', o.pj_nom,
-        -- L'endormissement est une entrave METIER, distincte de l'absence : un depute endormi est
-        -- PRESENT mais empeche de voter. Il ne disparait pas.
-        'endormi', COALESCE(o.endormi, false))
-      ORDER BY o.city, o.rang)
-      FROM public.assemblee_occupation_sieges(p_country) o), '[]'::jsonb),
-    'presents', (SELECT count(*) FROM public.assemblee_occupation_sieges(p_country) o WHERE o.est_pnj),
-    'absents',  (SELECT count(*) FROM public.assemblee_occupation_sieges(p_country) o
-                  WHERE NOT o.est_pnj));
 $function$;

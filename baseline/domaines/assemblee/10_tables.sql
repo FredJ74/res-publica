@@ -79,6 +79,47 @@ CREATE TABLE public.assemblee_paroles (
   donnee_le timestamp with time zone
 );
 
+CREATE TABLE public.assemblee_presidence_bulletins (
+  scrutin_id text NOT NULL,
+  votant text NOT NULL,
+  pour text NOT NULL,
+  vote_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  requete text
+);
+
+CREATE TABLE public.assemblee_presidence_dues (
+  id text NOT NULL,
+  pays text NOT NULL,
+  cause text NOT NULL,
+  du_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  episode_id text,
+  scrutin_id text,
+  honore_le timestamp with time zone
+);
+
+CREATE TABLE public.assemblee_presidence_scrutins (
+  id text NOT NULL,
+  pays text NOT NULL,
+  cause text NOT NULL,
+  ouvert_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  cloture_ts timestamp with time zone NOT NULL,
+  eligibles jsonb NOT NULL,
+  statut text DEFAULT 'ouvert'::text NOT NULL,
+  elu text,
+  elu_est_pnj boolean,
+  egalite jsonb,
+  decompte jsonb,
+  president_sortant text,
+  chronique_id text,
+  clos_le timestamp with time zone
+);
+
+CREATE TABLE public.assemblee_presidence_tirage_vu (
+  scrutin_id text NOT NULL,
+  personnage text NOT NULL,
+  vu_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL
+);
+
 CREATE TABLE public.assemblee_propositions (
   id text NOT NULL,
   country text DEFAULT 'republic'::text NOT NULL,
@@ -181,7 +222,9 @@ CREATE TABLE public.assemblee_suspensions (
   protestataires jsonb DEFAULT '[]'::jsonb NOT NULL,
   ouverte_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
   close_le timestamp with time zone,
-  requete text
+  requete text,
+  reprise_requete text,
+  reprise_le timestamp with time zone
 );
 
 CREATE TABLE public.assemblee_votes (

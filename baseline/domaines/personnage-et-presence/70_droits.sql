@@ -64,6 +64,8 @@ GRANT EXECUTE ON FUNCTION public.escorts_agence() TO service_role;
 GRANT EXECUTE ON FUNCTION public.naturalisation_traiter(text,boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.naturalisation_traiter(text,boolean) TO postgres;
 GRANT EXECUTE ON FUNCTION public.naturalisation_traiter(text,boolean) TO service_role;
+GRANT EXECUTE ON FUNCTION public.organisations_politique_autorite() TO postgres;
+GRANT EXECUTE ON FUNCTION public.organisations_politique_autorite() TO service_role;
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,integer,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,integer,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.personnage_ajuster_pop_inf(text,text,integer,integer) TO postgres;

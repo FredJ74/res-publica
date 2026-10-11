@@ -4621,9 +4621,10 @@ async function ouvrirOrganigramme() {
 // Deputes : POSTES_ELECTIFS.departemental['depute'] a bien nbParVille:3 declare, mais ce champ
 // n'est utilise nulle part (verifie) -- getCleCycle ne construit qu'UNE cle par ville
 // (posteId+'_'+city), donc un seul siege reellement elu par ville existe aujourd'hui (3 au
-// total). C'est ce mecanisme reel qui est affiche ici, pas le champ non implemente ni l'ancien
-// "Annuaire des Deputes" (consulterAnnuaireDeputes, 25 sieges decoratifs sur state.postes,
-// jamais connecte au systeme electoral reel) qui reste hors perimetre, inchange.
+// total). C'est ce mecanisme reel qui est affiche ici, pas le champ non implemente.
+// L'« Annuaire des Deputes » (consulterAnnuaireDeputes) a ete recale le 11 octobre 2026 : il
+// listait 25 sieges DECORATIFS lus sur state.postes, jamais connectes au systeme electoral ; il
+// lit desormais les NEUF sieges reels par la meme fonction de rang que l'hemicycle.
 function renderTitreSectionOrganigramme(titre) {
   return `<div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${escapeHtmlText(titre)}</div>`;
 }
@@ -5601,19 +5602,63 @@ async function appliquerNaturalisationAcceptee() {
 
 // ANNUAIRE DES DEPUTES
 // =====================
-function consulterAnnuaireDeputes() {
+// NEUF SIEGES, TROIS PAR VILLE -- ET ILS SONT DESORMAIS LES VRAIS (11 octobre 2026).
+//
+// CET ECRAN ANNONCAIT 25 SIEGES et en listait 25, lus sur `state.postes['depute_1'..25]` : des
+// cles DECORATIVES que rien n'alimentait, jamais connectees au systeme electoral. Il affichait
+// donc « Occupé par un PNJ » vingt-cinq fois, pour une Assemblee qui en compte NEUF -- trois par
+// ville -- et dont l'occupation reelle se derive de `assemblee_sieges` et des mandats de depute.
+//
+// Il lit maintenant la MEME source que l'hemicycle, par la MEME fonction de rang
+// (`assembleeCalculerOccupation`) : le depute joueur s'il y en a un, sinon le PNJ qui tient le
+// siege. La presidence n'y figure pas comme un siege, parce qu'elle n'en est pas un : c'est une
+// FONCTION portee par l'un des neuf, et l'annuaire le dit en toutes lettres.
+async function consulterAnnuaireDeputes() {
   const country = state.country;
   const co = COUNTRIES[country];
-  const titulairesConnus = state.postes?.[country] || {};
+
+  let occupation = [];
+  let president = null;
+  try {
+    if (typeof rafraichirAssemblee === 'function') await rafraichirAssemblee();
+    if (typeof assembleeOccupation === 'function') occupation = assembleeOccupation() || [];
+    if (typeof sbAssembleeSeance === 'function') {
+      const e = await sbAssembleeSeance(1).catch(() => null);
+      if (e && e.ok === true) president = e.president || null;
+    }
+  } catch (e) { occupation = []; }
+
+  const VILLES = { capitale: 'Luthécia', ville_a: 'Montrouge', ville_b: 'Port-Sainte-Marie' };
+  const nomVille = (v) => (typeof CITY_LABELS !== 'undefined' && CITY_LABELS[v])
+    || VILLES[v] || v;
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">25 sieges a l\'Assemblee Nationale de ' + (co?.n||country) + '.</div>';
-  for (let i = 1; i <= 25; i++) {
-    const titulaire = titulairesConnus['depute_' + i] || 'Occupé par un PNJ';
-    html += '<div style="display:flex;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
-    html += '<span style="font-size:.78rem;color:#6a5a30">Siege ' + i + '</span>';
-    html += '<span style="font-size:.8rem;color:#c0b090">' + titulaire + '</span>';
-    html += '</div>';
+  if (occupation.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a3a2a;font-style:italic">L\'Assemblée est '
+          + 'momentanément injoignable : sa composition ne peut pas être affichée.</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">'
+          + occupation.length + ' sièges à l\'Assemblée nationale de ' + escapeHtmlText(co?.n||country)
+          + ' — trois par ville. Le Président est l\'un des neuf : la présidence est une fonction, '
+          + 'pas un siège de plus.</div>';
+    let villeCourante = null;
+    occupation.forEach(o => {
+      if (o.city !== villeCourante) {
+        villeCourante = o.city;
+        html += renderTitreSectionOrganigramme(nomVille(o.city));
+      }
+      const qui = o.pjNom || o.pnjNom || '(siège vide)';
+      const estPres = president && qui === president;
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
+      html += '<span style="font-size:.78rem;color:#6a5a30">Siège ' + o.rang + '</span>';
+      html += '<span style="font-size:.8rem;color:' + (estPres ? '#E8C97A' : '#c0b090') + ';text-align:right">'
+            + escapeHtmlText(qui)
+            + (o.pjNom ? '' : ' <span style="font-size:.7rem;color:#6a5a30">(PNJ)</span>')
+            + (estPres ? '<br><span style="font-size:.7rem;color:#C9A84C">Président de l\'Assemblée nationale</span>' : '')
+            + (o.endormi ? ' <span style="font-size:.7rem;color:#8a3a2a">· assommé</span>' : '')
+            + '</span>';
+      html += '</div>';
+    });
   }
   html += '</div>';
   document.getElementById('postes-modal-title').textContent = 'Annuaire des Députés';

@@ -570,13 +570,23 @@ function appliquerDeputesAssemblee(persons) {
     const villeNom = (typeof WORLD !== 'undefined' && WORLD.republic && WORLD.republic[s.city])
       ? WORLD.republic[s.city].name : s.city;
 
+    // LA PRESIDENCE EST UNE FONCTION PORTEE PAR L'UN DES NEUF, jamais un dixieme siege
+    // (arbitrage du 11 octobre 2026). Quand le titulaire REEL du registre -- lu au serveur, pas
+    // devine ici -- est le depute de ce siege, sa carte porte ses DEUX qualites. Et quand il
+    // cesse d'etre President, il reste depute : seul le suffixe disparait.
+    const presidentReel = (typeof RP_PRESIDENCE_ETAT !== 'undefined' && RP_PRESIDENCE_ETAT
+                           && RP_PRESIDENCE_ETAT.president) || null;
+    const qui = estPnj ? (s.nom + ' (PNJ)') : o.pjNom;
+    const estPresident = !!presidentReel && presidentReel === qui;
+    const suffixePresidence = estPresident ? ' — Président de l\'Assemblée nationale' : '';
+
     let role;
     if (!estPnj) {
       role = 'Assistant parlementaire de ' + o.pjNom + ' (PNJ)';
     } else if (endormi) {
-      role = 'Député de ' + villeNom + ' — Endormi (PNJ)';
+      role = 'Député de ' + villeNom + suffixePresidence + ' — Endormi (PNJ)';
     } else {
-      role = 'Député de ' + villeNom + ' (PNJ)';
+      role = 'Député de ' + villeNom + suffixePresidence + ' (PNJ)';
     }
 
     return {

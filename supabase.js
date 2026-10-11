@@ -6002,6 +6002,38 @@ async function sbAssembleeReporterVote(propositionId, requete) {
     { p_proposition_id: propositionId, p_requete: requete }));
 }
 
+// ---- L'ELECTION DU PRESIDENT DE L'ASSEMBLEE (11 octobre 2026) ----
+// QUATRE PORTES, ET LE NAVIGATEUR N'EN DECIDE AUCUNE. Il ne depose pas de candidature -- il n'y en
+// a pas, les neuf deputes sont eligibles d'office --, il ne compte pas les voix, et il ne tire
+// JAMAIS la courte paille : le vainqueur est deja ecrit en base quand l'animation commence.
+
+// Tout l'etat du scrutin : les neuf eligibles, le decompte EN DIRECT, mon bulletin, et -- si je ne
+// l'ai jamais vu -- le dernier tirage a la courte paille a rejouer.
+async function sbAssembleePresidenceEtat() {
+  return _assembleeResultatRpc(await sbRpc('assemblee_presidence_etat', {}));
+}
+
+// Une voix, pour l'un des neuf, y compris soi-meme et y compris un PNJ. Le double vote est REFUSE :
+// une voix deposee ne se reprend pas.
+async function sbAssembleePresidenceVoter(pour, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_presidence_voter',
+    { p_pour: pour, p_requete: requete }));
+}
+
+// Ce joueur a vu le tirage. L'etat est SERVEUR : il survit a un rafraichissement, a un changement
+// de machine, et a un onglet ferme trop vite -- et il ne se revoit pas deux fois.
+async function sbAssembleePresidenceTirageVu(scrutinId) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_presidence_tirage_vu',
+    { p_scrutin_id: scrutinId }));
+}
+
+// ---- REPRENDRE LA SEANCE (11 octobre 2026) ----
+// Le President seul, et sans nouveau cout : il a paye pour suspendre, reprendre n'est pas un second
+// acte. La suspension PERSISTE jusqu'a cet appel -- c'est l'arbitrage de la troisieme passe.
+async function sbAssembleeReprendreSeance(requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_reprendre_seance', { p_requete: requete }));
+}
+
 // ---- LA MATIERE DE LA PRESSE ----
 // Les actes de discipline avec leur motif EXACT, reserves aux membres d'un groupe de presse par le
 // droit EXISTANT (presse_membres). Aucune qualification : ni « abusif », ni « justifie », ni

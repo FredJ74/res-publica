@@ -924,6 +924,172 @@ BEGIN
 END;
 $function$;
 
+-- organisations_politique_autorite() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisations_politique_autorite()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi        text;
+  v_av         jsonb;   -- le blob AVANT (NULL a l'insertion)
+  v_ap         jsonb;   -- le blob APRES
+  v_politique  boolean;
+  v_chef_avant text;
+  v_est_chef   boolean;
+  v_m          text;
+  v_election   boolean;
+BEGIN
+  -- LE SERVEUR N'EST PAS CONCERNE. Les crons et les RPC reservees a service_role -- la cotisation,
+  -- le contact d'organisation, l'observation d'un agent -- ecrivent legitimement, et ce garde-fou
+  -- ne protege pas la base d'elle-meme.
+  IF public.est_appel_serveur() THEN
+    RETURN CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+
+  v_av := CASE WHEN TG_OP = 'INSERT' OR OLD.data IS NULL OR NOT (OLD.data IS JSON OBJECT)
+               THEN NULL ELSE OLD.data::jsonb END;
+  v_ap := CASE WHEN TG_OP = 'DELETE' OR NEW.data IS NULL OR NOT (NEW.data IS JSON OBJECT)
+               THEN NULL ELSE NEW.data::jsonb END;
+
+  -- CE GARDE-FOU NE CONCERNE QUE LES PARTIS POLITIQUES. Une organisation qui l'est AVANT ou APRES
+  -- est gardee : sans le « avant », on changerait le type pour echapper au controle.
+  v_politique := (v_av ->> 'type') = 'politique' OR (v_ap ->> 'type') = 'politique';
+  IF NOT v_politique THEN
+    RETURN CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RAISE EXCEPTION 'parti_acteur_non_authentifie' USING ERRCODE = '42501';
+  END IF;
+
+  -- UN BLOB DE PARTI DOIT RESTER LISIBLE. Ecrire du texte non-JSON effacerait la composition du
+  -- parti pour tout le monde -- y compris pour la regle de solidarite.
+  IF TG_OP <> 'DELETE' AND v_ap IS NULL THEN
+    RAISE EXCEPTION 'parti_donnees_illisibles' USING ERRCODE = '42501';
+  END IF;
+
+  v_chef_avant := v_av ->> 'chef';
+  v_est_chef   := (v_chef_avant IS NOT NULL AND v_chef_avant = v_moi);
+
+  -- ---------------------------------------------------------------------------- DISSOLUTION
+  IF TG_OP = 'DELETE' THEN
+    IF NOT v_est_chef AND (v_av ->> 'fondateur') IS DISTINCT FROM v_moi THEN
+      RAISE EXCEPTION 'parti_dissolution_non_autorisee' USING ERRCODE = '42501';
+    END IF;
+    RETURN OLD;
+  END IF;
+
+  -- ---------------------------------------------------------------------------- CREATION
+  IF TG_OP = 'INSERT' THEN
+    -- ON NE FONDE UN PARTI QU'EN SON PROPRE NOM, et on n'y place personne d'autre que soi.
+    IF (v_ap ->> 'fondateur') IS DISTINCT FROM v_moi THEN
+      RAISE EXCEPTION 'parti_fondateur_usurpe' USING ERRCODE = '42501';
+    END IF;
+    IF EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_ap -> 'membres', '[]'::jsonb)) m
+                WHERE m ->> 'nom' IS DISTINCT FROM v_moi) THEN
+      RAISE EXCEPTION 'parti_fonde_avec_des_membres' USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  -- ---------------------------------------------------------------------------- LE CHEF DECIDE
+  IF v_est_chef THEN
+    RETURN NEW;   -- son parti, sa composition
+  END IF;
+
+  -- ---------------------------------------------------------------------------- LA DIRECTION
+  -- Seule une election interne REELLEMENT en cours peut faire changer la direction sans que le
+  -- chef l'ecrive -- c'est la resolution d'election, qui tourne dans le navigateur de n'importe
+  -- quel joueur. Et le nouveau chef doit avoir ete DEJA membre : sans cela, on se couronnerait
+  -- chef d'un parti ou l'on n'est pas, puis on s'y ajouterait au titre de chef.
+  IF (v_ap ->> 'chef') IS DISTINCT FROM v_chef_avant THEN
+    v_election := coalesce((v_av -> 'election' ->> 'enCours')::boolean, false)
+                  AND (v_av -> 'election' ->> 'phase') = 'vote';
+    IF NOT v_election THEN
+      RAISE EXCEPTION 'parti_direction_non_autorisee' USING ERRCODE = '42501';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'membres', '[]'::jsonb)) m
+                    WHERE m ->> 'nom' = (v_ap ->> 'chef')) THEN
+      RAISE EXCEPTION 'parti_direction_hors_du_parti' USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  -- ---------------------------------------------------------------------------- LES ADHESIONS
+  -- CHAQUE NOM AJOUTE A LA LISTE DES MEMBRES est examine. C'est ici que l'attaque est fermee.
+  FOR v_m IN
+    SELECT m ->> 'nom' FROM jsonb_array_elements(coalesce(v_ap -> 'membres', '[]'::jsonb)) m
+     WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'membres', '[]'::jsonb)) a
+                        WHERE a ->> 'nom' = m ->> 'nom')
+  LOOP
+    IF v_m = v_moi THEN
+      -- ON NE S'INVITE PAS SOI-MEME : il faut que le chef l'ait fait, et la liste des invitations
+      -- est gardee plus bas.
+      IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'invitationsEnvoyees', '[]'::jsonb)) i
+                      WHERE i ->> 'nom' = v_moi) THEN
+        RAISE EXCEPTION 'parti_adhesion_non_invitee' USING ERRCODE = '42501';
+      END IF;
+    ELSIF EXISTS (SELECT 1 FROM public.personnages_donnees pd WHERE pd.name = v_m) THEN
+      -- UN AUTRE JOUEUR : seul le chef peut le faire entrer.
+      RAISE EXCEPTION 'parti_adhesion_non_autorisee' USING ERRCODE = '42501';
+    ELSE
+      -- UN PNJ RECRUTE : permis a un membre du parti, jamais a un etranger.
+      IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'membres', '[]'::jsonb)) a
+                      WHERE a ->> 'nom' = v_moi) THEN
+        RAISE EXCEPTION 'parti_recrutement_hors_du_parti' USING ERRCODE = '42501';
+      END IF;
+    END IF;
+  END LOOP;
+
+  -- CHAQUE NOM RETIRE. On quitte un parti quand on veut ; on n'en exclut pas un autre.
+  FOR v_m IN
+    SELECT a ->> 'nom' FROM jsonb_array_elements(coalesce(v_av -> 'membres', '[]'::jsonb)) a
+     WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_ap -> 'membres', '[]'::jsonb)) m
+                        WHERE m ->> 'nom' = a ->> 'nom')
+  LOOP
+    IF v_m IS DISTINCT FROM v_moi THEN
+      RAISE EXCEPTION 'parti_exclusion_non_autorisee' USING ERRCODE = '42501';
+    END IF;
+  END LOOP;
+
+  -- ---------------------------------------------------------------------------- LES INVITATIONS
+  -- LA PORTE DE L'ADHESION DE SOI-MEME. Si n'importe qui pouvait y poser son nom, le controle des
+  -- adhesions ci-dessus ne vaudrait rien.
+  IF EXISTS (
+    SELECT 1 FROM jsonb_array_elements(coalesce(v_ap -> 'invitationsEnvoyees', '[]'::jsonb)) i
+     WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'invitationsEnvoyees', '[]'::jsonb)) j
+                        WHERE j ->> 'nom' = i ->> 'nom')) THEN
+    RAISE EXCEPTION 'parti_invitation_non_autorisee' USING ERRCODE = '42501';
+  END IF;
+  -- On refuse une invitation qui nous concerne ; on ne retire pas celle d'un autre.
+  FOR v_m IN
+    SELECT j ->> 'nom' FROM jsonb_array_elements(coalesce(v_av -> 'invitationsEnvoyees', '[]'::jsonb)) j
+     WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_ap -> 'invitationsEnvoyees', '[]'::jsonb)) i
+                        WHERE i ->> 'nom' = j ->> 'nom')
+  LOOP
+    IF v_m IS DISTINCT FROM v_moi THEN
+      RAISE EXCEPTION 'parti_retrait_invitation_non_autorise' USING ERRCODE = '42501';
+    END IF;
+  END LOOP;
+
+  -- ---------------------------------------------------------------------------- LES DEMANDES
+  -- On demande pour soi, on retire sa propre demande. Le chef, lui, est passe bien plus haut.
+  FOR v_m IN
+    SELECT d ->> 'nom' FROM jsonb_array_elements(coalesce(v_ap -> 'demandesAdhesion', '[]'::jsonb)) d
+     WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av -> 'demandesAdhesion', '[]'::jsonb)) e
+                        WHERE e ->> 'nom' = d ->> 'nom')
+  LOOP
+    IF v_m IS DISTINCT FROM v_moi THEN
+      RAISE EXCEPTION 'parti_demande_pour_autrui' USING ERRCODE = '42501';
+    END IF;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$function$;
+
 -- personnage_ajuster_pop_inf(text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnage_ajuster_pop_inf(p_cible text, p_pop integer, p_inf integer DEFAULT NULL::integer)
  RETURNS jsonb

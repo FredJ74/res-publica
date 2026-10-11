@@ -25,6 +25,12 @@
    "sous": "appliquee_ts"
   },
   {
+   "empreinte": "f1342051c946b8c54001370ec8ca1f0d",
+   "genre": "COLUMN",
+   "objet": "assemblee_suspensions",
+   "sous": "reprise_requete"
+  },
+  {
    "empreinte": "dcd558a608925307e662538c691e1246",
    "genre": "FUNCTION",
    "objet": "assemblee_catalogue_legislatif()",
@@ -97,6 +103,18 @@
    "sous": ""
   },
   {
+   "empreinte": "44038659fada2e6b0837d72b3d9c0ea5",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_eligibles(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "84af10a69d6e6e6fd41372517b9345b3",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fenetre_convocation(timestamp with time zone)",
+   "sous": ""
+  },
+  {
    "empreinte": "2538f4ad47d3ff0c3309f78fc6ef2ef9",
    "genre": "FUNCTION",
    "objet": "assemblee_president(text)",
@@ -148,6 +166,24 @@
    "empreinte": "c33aa21c3682f86064a8396dc134c715",
    "genre": "TABLE",
    "objet": "assemblee_paroles",
+   "sous": ""
+  },
+  {
+   "empreinte": "1bbd05ba4923e0c23003b2aec681e563",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_bulletins",
+   "sous": ""
+  },
+  {
+   "empreinte": "caf4eb96600cf4e90d69d8053c805ac4",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_dues",
+   "sous": ""
+  },
+  {
+   "empreinte": "378aa57b851c6131b65543944983941b",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_scrutins",
    "sous": ""
   },
   {
@@ -223,6 +259,30 @@
    "genre": "p",
    "nom": "assemblee_paroles_pkey",
    "tbl": "assemblee_paroles"
+  },
+  {
+   "empreinte": "7f036bd304651660fc5d762b74d05cea",
+   "genre": "p",
+   "nom": "assemblee_presidence_bulletins_pkey",
+   "tbl": "assemblee_presidence_bulletins"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_presidence_dues_pkey",
+   "tbl": "assemblee_presidence_dues"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_presidence_scrutins_pkey",
+   "tbl": "assemblee_presidence_scrutins"
+  },
+  {
+   "empreinte": "72e34df6311030c9f069a82273380975",
+   "genre": "p",
+   "nom": "assemblee_presidence_tirage_vu_pkey",
+   "tbl": "assemblee_presidence_tirage_vu"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -315,6 +375,36 @@
    "tbl": "assemblee_paroles"
   },
   {
+   "empreinte": "44d3357d0cd7f93dd897c4b7bab6e65c",
+   "genre": "c",
+   "nom": "presidence_due_cause_connue",
+   "tbl": "assemblee_presidence_dues"
+  },
+  {
+   "empreinte": "513ba2e2a0726abf4732c74118ec4f29",
+   "genre": "c",
+   "nom": "presidence_due_honoree_coherente",
+   "tbl": "assemblee_presidence_dues"
+  },
+  {
+   "empreinte": "44d3357d0cd7f93dd897c4b7bab6e65c",
+   "genre": "c",
+   "nom": "presidence_cause_connue",
+   "tbl": "assemblee_presidence_scrutins"
+  },
+  {
+   "empreinte": "c334caedbe953b7039adb5b683624b90",
+   "genre": "c",
+   "nom": "presidence_clos_coherent",
+   "tbl": "assemblee_presidence_scrutins"
+  },
+  {
+   "empreinte": "5c49a43a9d488c9a3a9724b18a780542",
+   "genre": "c",
+   "nom": "presidence_statut_connu",
+   "tbl": "assemblee_presidence_scrutins"
+  },
+  {
    "empreinte": "b27805059e33c4e57c50a2d8f5a058c1",
    "genre": "c",
    "nom": "assemblee_prop_abrogation_coherente",
@@ -391,6 +481,24 @@
    "genre": "f",
    "nom": "assemblee_intentions_siege_id_fkey",
    "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "78f82f5366595d1fa5ca407aa035037e",
+   "genre": "f",
+   "nom": "assemblee_presidence_bulletins_scrutin_id_fkey",
+   "tbl": "assemblee_presidence_bulletins"
+  },
+  {
+   "empreinte": "78f82f5366595d1fa5ca407aa035037e",
+   "genre": "f",
+   "nom": "assemblee_presidence_dues_scrutin_id_fkey",
+   "tbl": "assemblee_presidence_dues"
+  },
+  {
+   "empreinte": "78f82f5366595d1fa5ca407aa035037e",
+   "genre": "f",
+   "nom": "assemblee_presidence_tirage_vu_scrutin_id_fkey",
+   "tbl": "assemblee_presidence_tirage_vu"
   },
   {
    "empreinte": "4e276f3d9faeb699742cf62210dc344b",
@@ -1182,6 +1290,138 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_convoquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_convoquer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_depouiller(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_depouiller(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_eligibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fenetre_convocation(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fenetre_convocation(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fenetre_convocation(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_prochaine_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_prochaine_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_prochaine_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_tirage_vu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_tirage_vu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_tirage_vu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_voter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_voter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_voter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "assemblee_president(text)",
@@ -1335,6 +1575,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_reporter_vote(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reprendre_seance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reprendre_seance(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reprendre_seance(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1545,6 +1803,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_suspendue(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue_par_la_presidence(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue_par_la_presidence(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue_par_la_presidence(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1820,6 +2096,102 @@
   {
    "beneficiaire": "anon",
    "genre": "TABLE",
+   "objet": "assemblee_presidence_bulletins",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_bulletins",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_bulletins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_bulletins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_dues",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_dues",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_dues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_dues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_scrutins",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_scrutins",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_scrutins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_scrutins",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_tirage_vu",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_tirage_vu",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_tirage_vu",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_presidence_tirage_vu",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
    "objet": "assemblee_propositions",
    "privileges": "SELECT"
   },
@@ -2013,14 +2385,15 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "5905d28669f18aba20130f3cd9af31c7",
-  "20_fonctions.sql": "327a327a68e2c11eb93a54c193d60a93",
-  "30_contraintes.sql": "9ae0dbbfa78872938c675ff172566d32",
-  "35_index.sql": "0d2aeff2d264071206454e7279cd9981",
+  "10_tables.sql": "47667167f3cca3d8b281761ce9328caf",
+  "20_fonctions-1.sql": "814e890c479ca7da7fa482994707240a",
+  "20_fonctions-2.sql": "cf734387e275200e0ca2c7e73b4a180e",
+  "30_contraintes.sql": "0248da8d14c0e2c695c8707fb48ccc6d",
+  "35_index.sql": "dc61fbacdbcf457f55c9effd5060805d",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
-  "60_rls-policies.sql": "a175adf1164c75d58de364fdd8b1e981",
-  "70_droits.sql": "8c795787cfdc3c733bd29d690d6d11dd",
-  "80_commentaires.sql": "d52edd15f51ee970933330b1bab077d9"
+  "60_rls-policies.sql": "87c7ef5ea10b9375557c74e10fbedba9",
+  "70_droits.sql": "dec18affbc5c0f632ac5f19ecf08a893",
+  "80_commentaires.sql": "3f2aeb728a0b388b1570c69cd774ab25"
  },
  "fonctions": [
   {
@@ -2079,7 +2452,7 @@
    "signature": "assemblee_dans_hemicycle(text,text)"
   },
   {
-   "empreinte": "9c5964db2f3abb3b128042448734ee33",
+   "empreinte": "c19df72fec7c660b3ae78fd1201e2524",
    "security_definer": true,
    "signature": "assemblee_debat_dire(text,text)"
   },
@@ -2209,17 +2582,17 @@
    "signature": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)"
   },
   {
-   "empreinte": "a34c248fc4e00946567c36506fed78b2",
+   "empreinte": "aa7f989b40321930e623d2070a315d1c",
    "security_definer": true,
    "signature": "assemblee_parole_demander()"
   },
   {
-   "empreinte": "2f25ee23b58a4901cc47a3d42647cf94",
+   "empreinte": "2b81bfb0c0513e5e1ca4550bb8accbb5",
    "security_definer": true,
    "signature": "assemblee_parole_donner(text)"
   },
   {
-   "empreinte": "1b5770c18e75f3fdddf8a0a5a81e9c3c",
+   "empreinte": "e04040841c95261bc501e55f72ae3a45",
    "security_definer": true,
    "signature": "assemblee_parole_retirer()"
   },
@@ -2244,6 +2617,46 @@
    "signature": "assemblee_portee_valider(jsonb)"
   },
   {
+   "empreinte": "64b6943a52a8afa778f0bae8654eb997",
+   "security_definer": true,
+   "signature": "assemblee_presidence_convoquer(text,text)"
+  },
+  {
+   "empreinte": "899352a7dcdae61718d0469348e12fc1",
+   "security_definer": true,
+   "signature": "assemblee_presidence_depouiller(text)"
+  },
+  {
+   "empreinte": "087b260642accdc745b1e331274834f2",
+   "security_definer": true,
+   "signature": "assemblee_presidence_eligibles(text)"
+  },
+  {
+   "empreinte": "de28916b78cad1bb63f86e3e9c1ed2d9",
+   "security_definer": true,
+   "signature": "assemblee_presidence_etat()"
+  },
+  {
+   "empreinte": "fb643e444b38025ce3e483f25c865da4",
+   "security_definer": false,
+   "signature": "assemblee_presidence_fenetre_convocation(timestamp with time zone)"
+  },
+  {
+   "empreinte": "5b0c122ae7e4659a854392dcec913a17",
+   "security_definer": true,
+   "signature": "assemblee_presidence_prochaine_cloture()"
+  },
+  {
+   "empreinte": "2f86b5b12b31b428f033ada88cf32069",
+   "security_definer": true,
+   "signature": "assemblee_presidence_tirage_vu(text)"
+  },
+  {
+   "empreinte": "2492d9517ba7d5b33568b2f1095c9220",
+   "security_definer": true,
+   "signature": "assemblee_presidence_voter(text,text)"
+  },
+  {
    "empreinte": "fc24ef26ee31e82970d8b3c4c12e833b",
    "security_definer": true,
    "signature": "assemblee_president(text)"
@@ -2264,12 +2677,12 @@
    "signature": "assemblee_protester()"
   },
   {
-   "empreinte": "3f3278f07d2a7d2a031f5953cbe05879",
+   "empreinte": "2ca5b27840808677bc3c2890b522a3ad",
    "security_definer": true,
    "signature": "assemblee_rappeler(text,text,text)"
   },
   {
-   "empreinte": "bc61e194323678ca3dc4dadd4ef53fbb",
+   "empreinte": "208ed8640cc53c18010294d66a1261df",
    "security_definer": true,
    "signature": "assemblee_recalculer_suspension(text)"
   },
@@ -2292,6 +2705,11 @@
    "empreinte": "ac0f434051db5c7bcd009b59e07a9639",
    "security_definer": true,
    "signature": "assemblee_reporter_vote(text,text)"
+  },
+  {
+   "empreinte": "1f946c81070b96cf988aa0e9aa3e3845",
+   "security_definer": true,
+   "signature": "assemblee_reprendre_seance(text)"
   },
   {
    "empreinte": "5f56f40af2601ecb9bc5911a7a745562",
@@ -2329,7 +2747,7 @@
    "signature": "assemblee_revenir()"
   },
   {
-   "empreinte": "8bcde69fcca9b068d9290a7af4527936",
+   "empreinte": "9af0eac55f2e57b629da5aa7af676c26",
    "security_definer": true,
    "signature": "assemblee_sanctionner(text,text,text)"
   },
@@ -2339,7 +2757,7 @@
    "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
   },
   {
-   "empreinte": "e83b1d7d21655601d3b2d7af3b08c7f3",
+   "empreinte": "62b1a071af243e6410b7ac14716ac669",
    "security_definer": true,
    "signature": "assemblee_seance(integer)"
   },
@@ -2354,7 +2772,7 @@
    "signature": "assemblee_stat_base(jsonb,text)"
   },
   {
-   "empreinte": "e175b04dd7a45ddfd5e960a4ac693c55",
+   "empreinte": "f8e8d1032056685557816103e1d0a0db",
    "security_definer": true,
    "signature": "assemblee_suspendre_seance(text,text)"
   },
@@ -2362,6 +2780,11 @@
    "empreinte": "a59768aba54359a93ac7b6bfe688944f",
    "security_definer": true,
    "signature": "assemblee_suspendue(text)"
+  },
+  {
+   "empreinte": "af55649da614983e4d82d354b81ad612",
+   "security_definer": true,
+   "signature": "assemblee_suspendue_par_la_presidence(text)"
   },
   {
    "empreinte": "c76680d943d53b61f24cfa01a72fbe09",
@@ -2422,6 +2845,18 @@
    "nom": "assemblee_disciplines_une_requete"
   },
   {
+   "empreinte": "1ee669dbdd9638750c3a3be635f827c6",
+   "nom": "assemblee_presidence_un_seul_ouvert"
+  },
+  {
+   "empreinte": "4439ebf5b00c59d0c8dd58701f33844c",
+   "nom": "assemblee_presidence_une_requete"
+  },
+  {
+   "empreinte": "283da3c4deebd3d4e9fd4334259fc48e",
+   "nom": "assemblee_presidence_une_seule_due"
+  },
+  {
    "empreinte": "030dcd9c85549b7b02f165bc8888e76e",
    "nom": "assemblee_propositions_a_appliquer_idx"
   },
@@ -2432,6 +2867,10 @@
   {
    "empreinte": "73c67fa1d0be902c1ce2b6b609e91f33",
    "nom": "assemblee_sanctions_paliers_prop_idx"
+  },
+  {
+   "empreinte": "0086965e1157b2d2a91fceb9cdca25d6",
+   "nom": "assemblee_suspensions_une_reprise"
   },
   {
    "empreinte": "5aae0c16ac5856f5f5b9f3ac27688ba9",
@@ -2448,6 +2887,10 @@
   {
    "empreinte": "7dbfa9218f2c8109e1991b054abfa027",
    "nom": "assemblee_un_seul_orateur"
+  },
+  {
+   "empreinte": "cb694b46aab6fb6c7f887492d1b670c1",
+   "nom": "assemblee_une_seule_suspension_presidence"
   },
   {
    "empreinte": "271269b5817ebae194e7b1e8aebcbe57",
@@ -2494,6 +2937,10 @@
   "assemblee_indemnites_pkey",
   "assemblee_intentions_pkey",
   "assemblee_paroles_pkey",
+  "assemblee_presidence_bulletins_pkey",
+  "assemblee_presidence_dues_pkey",
+  "assemblee_presidence_scrutins_pkey",
+  "assemblee_presidence_tirage_vu_pkey",
   "assemblee_propositions_pkey",
   "assemblee_protestations_pkey",
   "assemblee_reports_pkey",
@@ -2507,7 +2954,8 @@
  ],
  "ordre": [
   "10_tables.sql",
-  "20_fonctions.sql",
+  "20_fonctions-1.sql",
+  "20_fonctions-2.sql",
   "30_contraintes.sql",
   "35_index.sql",
   "50_triggers.sql",
@@ -2588,6 +3036,26 @@
    "active": true,
    "forcee": false,
    "tbl": "assemblee_paroles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_presidence_bulletins"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_presidence_dues"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_presidence_scrutins"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_presidence_tirage_vu"
   },
   {
    "active": true,
@@ -2681,6 +3149,30 @@
    "nom": "assemblee_paroles"
   },
   {
+   "colonnes": 5,
+   "empreinte_catalogue": "a0bd4f50b423c015e2a4321fc247df31",
+   "empreinte_texte": "332fb23ee75d79a2702614e7453f1047",
+   "nom": "assemblee_presidence_bulletins"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "19523aa5193f1dc9cba2519e62f151dd",
+   "empreinte_texte": "cb1c63dfb3ff1586a33f2e323a63e367",
+   "nom": "assemblee_presidence_dues"
+  },
+  {
+   "colonnes": 14,
+   "empreinte_catalogue": "4ad4481e2bdeb9c1c356470be86b6f76",
+   "empreinte_texte": "96ec746e52f26cb6982d1c44e65c8247",
+   "nom": "assemblee_presidence_scrutins"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cc1784d292a5ed64de073c90706567fd",
+   "empreinte_texte": "dd831163ed22cbf11150da3c8f68f027",
+   "nom": "assemblee_presidence_tirage_vu"
+  },
+  {
    "colonnes": 22,
    "empreinte_catalogue": "90e69d93d21ba0e56cfd720a97dc20f9",
    "empreinte_texte": "9891b5f6411b583e19d4ae2e51732a42",
@@ -2723,9 +3215,9 @@
    "nom": "assemblee_sieges"
   },
   {
-   "colonnes": 9,
-   "empreinte_catalogue": "63a71bf3c3edfecf1894e41f25be494c",
-   "empreinte_texte": "cd735627e6f995582f6168f94acd70ee",
+   "colonnes": 11,
+   "empreinte_catalogue": "3901efbd53285b81485b6ecdc4fada50",
+   "empreinte_texte": "9f2db44e9e0a5ea018ad97c847e01861",
    "nom": "assemblee_suspensions"
   },
   {

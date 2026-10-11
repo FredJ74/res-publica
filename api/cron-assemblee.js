@@ -150,6 +150,42 @@ export default async function handler(req, res) {
   }
 
   try {
+    // ---- 0 bis. DEPOUILLEMENT DE L'ELECTION PRESIDENTIELLE (arbitrage du 11 octobre 2026) ----
+    //
+    // LE LUNDI A 23 HEURES DE PARIS, ET C'EST POURQUOI CE CRON TOURNE AUSSI LE LUNDI. L'horaire
+    // Vercel est en UTC : 21h00 UTC vaut 23h00 de Paris en heure d'ete, 22h00 UTC en heure
+    // d'hiver. Les DEUX passes sont donc declarees, et la seconde ne fait rien quand la premiere
+    // a deja depouille -- la porte refuse un scrutin qui n'est plus ouvert.
+    //
+    // LA PORTE DECIDE, PAS CE FICHIER. Elle refuse avant l'echeance (`pas_encore_echu`) et quand
+    // il n'y a pas de scrutin (`aucun_scrutin_ouvert`) : ces deux refus sont le cas NORMAL six
+    // jours sur sept, et ne sont donc pas des echecs.
+    const presid = await sbRpc('assemblee_presidence_depouiller', { p_pays: EMPIRES_AVEC_ASSEMBLEE[0] });
+    const presidEtat = Array.isArray(presid) ? presid[0] : presid;
+    if (presidEtat && presidEtat.depouille === true) {
+      resultats.presidence = {
+        scrutin: presidEtat.scrutin, elu: presidEtat.elu, voix: presidEtat.voix,
+        elu_est_pnj: presidEtat.elu_est_pnj,
+        courte_paille: Array.isArray(presidEtat.egalite) ? presidEtat.egalite.length : 0,
+        president_sortant: presidEtat.president_sortant || null
+      };
+      // ON LE DIT PUBLIQUEMENT, EN FAITS. Qui a ete elu, avec combien de voix, et s'il a fallu
+      // tirer a la courte paille. Aucune appreciation : la chronique nationale, elle, est deja
+      // ecrite par la porte, dans la transaction de la proclamation.
+      await sbInsert('evenements_globaux', {
+        country: 'republic', city: null,
+        texte: '🏛 ASSEMBLÉE NATIONALE — ' + presidEtat.elu + ' est élu Président'
+             + ' (' + presidEtat.voix + ' voix'
+             + (Array.isArray(presidEtat.egalite) && presidEtat.egalite.length > 1
+                ? ', après un départage à la courte paille entre ' + presidEtat.egalite.length + ' députés'
+                : '')
+             + ').',
+        jour: null
+      }).catch(() => {});
+    } else if (!presidEtat) {
+      resultats.erreurs.push({ etape: 'presidence', raison: 'porte_injoignable' });
+    }
+
     // ---- 0. L'ASSEMBLEE EST-ELLE ENCORE SUSPENDUE ? (arbitrage du 11 octobre 2026) ----
     // AVANT LE DEPOUILLEMENT, ET C'EST TOUT L'INTERET. Si cinq deputes qualifies sont encore
     // hors de l'hemicycle au moment ou un scrutin devrait etre conclu, ce scrutin ne peut pas

@@ -70,9 +70,17 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # President). LES SIX SONT CLASSEES C, etat vivant pur, et c est plus qu une convention ici : cinq
 # protestataires qualifies semes suspendraient la seance d un monde qui vient de naitre, et un
 # rappel seme rendrait une sanction immediatement possible sans que personne l ait prononcee.
+# 281 -> 285 le 11 octobre 2026, troisieme passe de l Assemblee : les QUATRE TABLES DE
+# L ELECTION PRESIDENTIELLE -- assemblee_presidence_scrutins (le scrutin, ses neuf eligibles
+# figes, et le vainqueur tire par le serveur), assemblee_presidence_bulletins (une voix par
+# depute JOUEUR ; les neuf PNJ s abstiennent toujours), assemblee_presidence_tirage_vu (ce que
+# chaque joueur a deja vu du tirage -- un etat SERVEUR, sans quoi il reverrait l annonce a chaque
+# visite) et assemblee_presidence_dues (les elections exceptionnelles en attente, inscrites par
+# un deuxieme episode de boycott distinct). LES QUATRE SONT CLASSEES C, etat vivant pur : un
+# scrutin seme donnerait un President que personne n a elu.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 281
-EMPREINTE_LISTE = "7ee6bf838740e3c2793de8d13216de27"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 285
+EMPREINTE_LISTE = "407aad70c0052bcbfac141f446bc6756"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",
