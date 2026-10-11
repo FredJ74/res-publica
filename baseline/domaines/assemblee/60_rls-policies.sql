@@ -27,6 +27,7 @@ ALTER TABLE public.assemblee_presidence_tirage_vu ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_propositions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_protestations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_reports_suspension ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_requetes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_sanctions_paliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_scrutins ENABLE ROW LEVEL SECURITY;

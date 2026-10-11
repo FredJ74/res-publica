@@ -37,7 +37,10 @@ if (typeof ASSEMBLEE_RAISONS !== 'undefined') {
     deja_suspendue:         'La séance est déjà suspendue.',
     seance_suspendue:       'La séance est suspendue : le Président doit la reprendre.',
     reserve_au_serveur:     'Cette opération appartient au serveur.',
-    hors_fenetre_convocation: 'Une élection ne se convoque que le lundi.'
+    hors_fenetre_convocation: 'Une élection ne se convoque que le lundi.',
+    // §5 (11 octobre 2026) : on vote le President comme on vote une loi -- en seance.
+    hors_hemicycle:         'On élit le Président dans l\'hémicycle, pas depuis le hall. '
+                            + 'Rejoignez votre siège pour voter.'
   });
 }
 
@@ -71,6 +74,10 @@ async function presidenceRafraichir() {
 // President detenait par ailleurs un poste nomme -- un ministere, par exemple --, l'un des deux
 // titres ne tiendrait pas dans la fiche. On n'ecrase donc JAMAIS un poste existant : on n'adopte
 // la presidence que sur un emplacement libre, et le cumul reste a arbitrer.
+// Dit une seule fois par session : l'etat de presidence est relu a chaque rafraichissement, et
+// repeter le meme avertissement a chaque passage serait du bruit.
+let RP_PRESIDENCE_TITRE_DIT = false;
+
 function presidenceAdopterLeTitre(e) {
   if (typeof state === 'undefined' || !state.char || !state.char.name) return;
   const moi = state.char.name;
@@ -78,7 +85,22 @@ function presidenceAdopterLeTitre(e) {
   const porteDejaLaPresidence = state.poste && state.poste.id === 'president_assemblee';
 
   if (jeSuisPresident && !porteDejaLaPresidence) {
-    if (state.poste) return;    // un autre poste nomme occupe la place : on ne l'ecrase pas
+    if (state.poste) {
+      // ON N'ECRASE RIEN, ET ON NE SE TAIT PLUS. Le joueur detient un autre poste nomme ; ses
+      // POUVOIRS de President sont intacts -- ils suivent `postes_attribues`, lu au serveur par
+      // assemblee_president(), jamais la fiche -- mais sa fiche ne peut afficher qu'un titre
+      // nomme a la fois. Aucune incompatibilite n'est creee, aucun mandat n'est retire, et le
+      // jeu ne choisit pas a sa place lequel garder : il l'apprend, et c'est tout.
+      if (!RP_PRESIDENCE_TITRE_DIT && typeof showToast === 'function') {
+        RP_PRESIDENCE_TITRE_DIT = true;
+        showToast('Président, et déjà en poste',
+          'Vous présidez l\'Assemblée nationale : vos pouvoirs de président sont actifs. '
+          + 'Votre fiche continue d\'afficher « ' + (state.poste.name || state.poste.id)
+          + ' », car elle ne porte qu\'un titre nommé à la fois. Votre siège de député, lui, '
+          + 'est inchangé.', true);
+      }
+      return;
+    }
     state.poste = { id: 'president_assemblee',
                     name: 'Président de l\'Assemblée nationale',
                     city: null, nommeLe: Date.now() };
@@ -143,9 +165,19 @@ function presidenceDessinerBloc(parent) {
   }
 
   const decompte = Array.isArray(s.decompte) ? s.decompte : [];
-  const peutVoter = e.je_suis_depute && !s.mon_bulletin;
+  // §5 (11 octobre 2026) : ON N'ELIT PAS SON PRESIDENT DEPUIS LE HALL. La presence dans
+  // l'hemicycle est lue AU SERVEUR (assemblee_presidence_voter refuse `hors_hemicycle`) ; cet
+  // ecran ne fait que relayer la meme lecture pour pouvoir l'expliquer AVANT le clic, plutot que
+  // de laisser le joueur essuyer un refus. Il n'autorise rien : retirer cette condition ici ne
+  // rendrait pas un bulletin valide.
+  const peutVoter = e.je_suis_depute && e.je_suis_dans_hemicycle && !s.mon_bulletin;
 
-  if (e.je_suis_depute) {
+  if (e.je_suis_depute && !e.je_suis_dans_hemicycle) {
+    boite.appendChild(presidenceLigne(
+      'Vous êtes député, mais vous n\'êtes pas dans l\'hémicycle. On y vote comme on vote une '
+      + 'loi : en séance. Depuis le hall, votre voix n\'est pas recevable.',
+      '#d8a060'));
+  } else if (e.je_suis_depute) {
     boite.appendChild(presidenceLigne(s.mon_bulletin
       ? ('Votre voix est allée à ' + s.mon_bulletin + '. Elle ne se reprend pas.')
       : 'Vous pouvez voter pour n\'importe lequel des neuf, y compris vous-même.',

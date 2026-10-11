@@ -651,7 +651,7 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=322"></script>
+<script src="data.js?v=323"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -804,16 +804,16 @@
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
      qui resout ses handlers. -->
-<script src="plateau-assemblee.js?v=7"></script>
+<script src="plateau-assemblee.js?v=8"></script>
 <!-- Ecran de la seance parlementaire : APRES plateau-assemblee.js (il reutilise
      assembleeActionServeur, assembleeIssueAction et ASSEMBLEE_RAISONS), APRES supabase.js
      (il appelle ses douze portes) et AVANT le routeur, qui resout ouvrirSeanceParlementaire. -->
-<script src="plateau-assemblee-seance.js?v=2"></script>
+<script src="plateau-assemblee-seance.js?v=3"></script>
 <!-- Election du President de l'Assemblee et courte paille : APRES plateau-assemblee.js
      (sa carte de depute lit RP_PRESIDENCE_ETAT) et APRES plateau-assemblee-seance.js, dont
      il complete le panneau. Son crochet de revelation differee est appele par
      declencherEntreeZone (plateau-navigation.js), sixieme consommateur de l'evenement. -->
-<script src="plateau-assemblee-presidence.js?v=1"></script>
+<script src="plateau-assemblee-presidence.js?v=2"></script>
 <!-- Camion militaire : APRES plateau-commerce-pj.js (les deux deposent leur source d'ordres
      dans le meme registre RP_ORDRES_DYNAMIQUES) et AVANT le routeur, qui resout ses handlers. -->
 <!-- PNJ sociaux : APRES plateau-pnj.js (talkToPnj y note les conversations) et APRES

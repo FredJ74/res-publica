@@ -79,8 +79,8 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # un deuxieme episode de boycott distinct). LES QUATRE SONT CLASSEES C, etat vivant pur : un
 # scrutin seme donnerait un President que personne n a elu.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 285
-EMPREINTE_LISTE = "407aad70c0052bcbfac141f446bc6756"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 286    # 285 -> 286 le 11 octobre 2026 : assemblee_reports_suspension (§4)
+EMPREINTE_LISTE = "cab889864450debe0dca42dd52f8cf2e"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

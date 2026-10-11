@@ -186,6 +186,45 @@ export default async function handler(req, res) {
       resultats.erreurs.push({ etape: 'presidence', raison: 'porte_injoignable' });
     }
 
+    // ---- 0 ter. LE SEUIL D'UNE HEURE DE LA SUSPENSION PRESIDENTIELLE (arbitrage §4) ----
+    // AVANT TOUT LE RESTE, ET C'EST LA REGLE ELLE-MEME. Une suspension presidentielle qui a
+    // depasse une heure renvoie les scrutins qu'elle a geles a la prochaine session, suffrages
+    // annules. Si cet appel venait APRES la cloture, le scrutin se serait conclu sur les seuls
+    // bulletins deposes avant la suspension -- exactement ce que l'arbitrage interdit.
+    //
+    // RIEN ICI NE DEPEND D'UN NAVIGATEUR. Le franchissement est calcule en base sur
+    // `ouverte_le` / `close_le` ; ce cron ne fait que donner au serveur une occasion de plus
+    // d'en tirer la consequence, en plus de la reprise de seance et du passage de minuit. Un
+    // President deconnecte, des deputes absents, une page fermee : la regle s'applique quand
+    // meme.
+    //
+    // CE N'EST PAS LE REPORT VOLONTAIRE DU PRESIDENT. La porte n'ecrit pas dans
+    // assemblee_reports : son droit de repousser un vote d'une semaine n'est ni consomme ni
+    // rendu, et il reste verrouille a une fois par texte.
+    const seuil = await sbRpc('assemblee_suspension_appliquer_seuil',
+      { p_pays: EMPIRES_AVEC_ASSEMBLEE[0] });
+    const etatSeuil = Array.isArray(seuil) ? seuil[0] : seuil;
+    if (etatSeuil && etatSeuil.ok) {
+      resultats.seuil_suspension = {
+        reportes: etatSeuil.reportes || 0,
+        bulletins_annules: etatSeuil.bulletins_annules || 0,
+        propositions: etatSeuil.propositions || []
+      };
+      if ((etatSeuil.reportes || 0) > 0) {
+        // DES FAITS, SANS QUALIFICATION. On dit ce qui a eu lieu et ce qu'il a coute ; dire si
+        // c'etait un abus appartient aux joueurs et a la presse.
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 ASSEMBLÉE NATIONALE — séance suspendue plus d\'une heure : '
+               + etatSeuil.reportes + ' scrutin(s) renvoyé(s) à la prochaine session, '
+               + (etatSeuil.bulletins_annules || 0) + ' bulletin(s) annulé(s).',
+          jour: null
+        }).catch(() => {});
+      }
+    } else {
+      resultats.erreurs.push({ etape: 'seuil_suspension', raison: 'porte_injoignable' });
+    }
+
     // ---- 0. L'ASSEMBLEE EST-ELLE ENCORE SUSPENDUE ? (arbitrage du 11 octobre 2026) ----
     // AVANT LE DEPOUILLEMENT, ET C'EST TOUT L'INTERET. Si cinq deputes qualifies sont encore
     // hors de l'hemicycle au moment ou un scrutin devrait etre conclu, ce scrutin ne peut pas

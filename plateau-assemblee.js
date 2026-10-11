@@ -34,7 +34,17 @@
 const ASSEMBLEE_SIEGES = [
   { id: 'republic:capitale:1', city: 'capitale', rang: 1, pnjId: 'dep_vauclerc', nom: 'Étienne Vauclerc' },
   { id: 'republic:capitale:2', city: 'capitale', rang: 2, pnjId: 'dep_marechal', nom: 'Sophie Maréchal' },
-  { id: 'republic:capitale:3', city: 'capitale', rang: 3, pnjId: 'dep_delorme',  nom: 'Benoît Delorme' },
+  // LE PRESIDENT DE L'ASSEMBLEE EST L'UN DES NEUF (arbitrage du 11 octobre 2026, §1). Laroche
+  // n'est plus une dixieme carte posee dans l'hemicycle : il est depute de Luthecia, et c'est
+  // Benoit Delorme qui lui cede le siege de rang 3. Le RANG 3 compte : un depute PJ elu a
+  // Luthecia prend le rang 1, puis 2, puis 3 -- le President en exercice reste donc assis aussi
+  // longtemps qu'il reste un siege PNJ dans sa ville.
+  // Son nom reste « President Laroche » : c'est de ce nom que slugPnj() derive la cle de son
+  // profil de dialogue serveur (`president_laroche`). Le renommer le rendrait muet.
+  // Il est le SEUL des neuf a porter une photo : elle existait deja. On n'en invente aucune pour
+  // les huit autres, et photoUrl reste donc absent de leurs lignes.
+  { id: 'republic:capitale:3', city: 'capitale', rang: 3, pnjId: 'dep_laroche',  nom: 'President Laroche',
+    photoUrl: 'images/president-assemblee-laroche.webp' },
   { id: 'republic:ville_b:1',  city: 'ville_b',  rang: 1, pnjId: 'dep_charron',  nom: 'Nathalie Charron' },
   { id: 'republic:ville_b:2',  city: 'ville_b',  rang: 2, pnjId: 'dep_pichon',   nom: 'Gérard Pichon' },
   { id: 'republic:ville_b:3',  city: 'ville_b',  rang: 3, pnjId: 'dep_vasseur',  nom: 'Élodie Vasseur' },
@@ -576,8 +586,13 @@ function appliquerDeputesAssemblee(persons) {
     // cesse d'etre President, il reste depute : seul le suffixe disparait.
     const presidentReel = (typeof RP_PRESIDENCE_ETAT !== 'undefined' && RP_PRESIDENCE_ETAT
                            && RP_PRESIDENCE_ETAT.president) || null;
-    const qui = estPnj ? (s.nom + ' (PNJ)') : o.pjNom;
-    const estPresident = !!presidentReel && presidentReel === qui;
+    // LE NOM DU SERVEUR EST LE NOM NU. assemblee_occupation_sieges renvoie `pnj_nom` tel qu'il
+    // est en base, SANS le suffixe « (PNJ) » que cet ecran ajoute a l'affichage -- et c'est ce
+    // nom nu que le depouillement inscrit dans postes_attribues, donc celui que rend
+    // assemblee_president(). Comparer le nom AFFICHE au nom SERVEUR ne pouvait jamais coincider
+    // pour un PNJ : la double qualite ne se serait affichee pour aucun President PNJ.
+    const nomServeur = estPnj ? s.nom : o.pjNom;
+    const estPresident = !!presidentReel && presidentReel === nomServeur;
     const suffixePresidence = estPresident ? ' — Président de l\'Assemblée nationale' : '';
 
     let role;
@@ -589,7 +604,7 @@ function appliquerDeputesAssemblee(persons) {
       role = 'Député de ' + villeNom + suffixePresidence + ' (PNJ)';
     }
 
-    return {
+    const carte = {
       name: s.nom + ' (PNJ)',
       role,
       rel: 'neutral',
@@ -602,6 +617,10 @@ function appliquerDeputesAssemblee(persons) {
       // §2 : jamais recrutables. Drapeau lu par la fiche PNJ.
       nonRecrutable: true
     };
+    // Une photo n'est posee que si le siege en declare une ET qu'il est tenu par son PNJ : sur un
+    // siege occupe par un joueur, la carte est celle de son assistant parlementaire.
+    if (estPnj && s.photoUrl) carte.photoUrl = s.photoUrl;
+    return carte;
   });
 
   return [...(persons || []), ...cartes];

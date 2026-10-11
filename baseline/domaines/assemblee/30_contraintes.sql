@@ -25,6 +25,7 @@ ALTER TABLE public.assemblee_presidence_tirage_vu ADD CONSTRAINT assemblee_presi
 ALTER TABLE public.assemblee_propositions ADD CONSTRAINT assemblee_propositions_pkey PRIMARY KEY (id);
 ALTER TABLE public.assemblee_protestations ADD CONSTRAINT assemblee_protestations_pkey PRIMARY KEY (pays, depute);
 ALTER TABLE public.assemblee_reports ADD CONSTRAINT assemblee_reports_pkey PRIMARY KEY (proposition_id);
+ALTER TABLE public.assemblee_reports_suspension ADD CONSTRAINT assemblee_reports_suspension_pkey PRIMARY KEY (id);
 ALTER TABLE public.assemblee_requetes ADD CONSTRAINT assemblee_requetes_pkey PRIMARY KEY (id);
 ALTER TABLE public.assemblee_sanctions_paliers ADD CONSTRAINT assemblee_sanctions_paliers_pkey PRIMARY KEY (id);
 ALTER TABLE public.assemblee_scrutins ADD CONSTRAINT assemblee_scrutins_pkey PRIMARY KEY (id);
@@ -66,5 +67,6 @@ ALTER TABLE public.assemblee_presidence_dues ADD CONSTRAINT assemblee_presidence
 ALTER TABLE public.assemblee_presidence_tirage_vu ADD CONSTRAINT assemblee_presidence_tirage_vu_scrutin_id_fkey FOREIGN KEY (scrutin_id) REFERENCES assemblee_presidence_scrutins(id);
 ALTER TABLE public.assemblee_protestations ADD CONSTRAINT assemblee_protestations_discipline_id_fkey FOREIGN KEY (discipline_id) REFERENCES assemblee_disciplines(id);
 ALTER TABLE public.assemblee_reports ADD CONSTRAINT assemblee_reports_proposition_id_fkey FOREIGN KEY (proposition_id) REFERENCES assemblee_propositions(id);
+ALTER TABLE public.assemblee_reports_suspension ADD CONSTRAINT assemblee_reports_suspension_suspension_id_fkey FOREIGN KEY (suspension_id) REFERENCES assemblee_suspensions(id) ON DELETE CASCADE;
 ALTER TABLE public.assemblee_scrutins ADD CONSTRAINT assemblee_scrutins_proposition_id_fkey FOREIGN KEY (proposition_id) REFERENCES assemblee_propositions(id) ON DELETE CASCADE;
 ALTER TABLE public.assemblee_votes ADD CONSTRAINT assemblee_votes_proposition_id_fkey FOREIGN KEY (proposition_id) REFERENCES assemblee_propositions(id) ON DELETE CASCADE;

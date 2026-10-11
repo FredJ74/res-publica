@@ -31,6 +31,12 @@
    "sous": "reprise_requete"
   },
   {
+   "empreinte": "b4ef290b2c609820742213e0617d6895",
+   "genre": "COLUMN",
+   "objet": "assemblee_suspensions",
+   "sous": "seuil_applique_le"
+  },
+  {
    "empreinte": "dcd558a608925307e662538c691e1246",
    "genre": "FUNCTION",
    "objet": "assemblee_catalogue_legislatif()",
@@ -145,6 +151,12 @@
    "sous": ""
   },
   {
+   "empreinte": "19250d394e57535fe6469aaacdebdbd3",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_seuil()",
+   "sous": ""
+  },
+  {
    "empreinte": "17210a0da39e68b828a39b9c99877092",
    "genre": "FUNCTION",
    "objet": "assemblee_tracer_vente_interdite(text,text,text,text)",
@@ -196,6 +208,12 @@
    "empreinte": "4d833c153aa2756f38ae1cdecb61ff7d",
    "genre": "TABLE",
    "objet": "assemblee_reports",
+   "sous": ""
+  },
+  {
+   "empreinte": "e97e32523ff4d8c7e4abe204b98fbcf8",
+   "genre": "TABLE",
+   "objet": "assemblee_reports_suspension",
    "sous": ""
   },
   {
@@ -301,6 +319,12 @@
    "genre": "p",
    "nom": "assemblee_reports_pkey",
    "tbl": "assemblee_reports"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_reports_suspension_pkey",
+   "tbl": "assemblee_reports_suspension"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -511,6 +535,12 @@
    "genre": "f",
    "nom": "assemblee_reports_proposition_id_fkey",
    "tbl": "assemblee_reports"
+  },
+  {
+   "empreinte": "59b6380f0ce602ddfededf04ca48f81e",
+   "genre": "f",
+   "nom": "assemblee_reports_suspension_suspension_id_fkey",
+   "tbl": "assemblee_reports_suspension"
   },
   {
    "empreinte": "310d15e76ed89a4654e025c1abc977ea",
@@ -1826,6 +1856,54 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "assemblee_suspension_appliquer_seuil(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_appliquer_seuil(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_depassee(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_depassee(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_depassee(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_seuil()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_seuil()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspension_seuil()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "assemblee_taux_marchandage(jsonb,boolean)",
    "privileges": "EXECUTE"
   },
@@ -2262,6 +2340,30 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_reports_suspension",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_reports_suspension",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_reports_suspension",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_reports_suspension",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "assemblee_requetes",
@@ -2385,15 +2487,15 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "47667167f3cca3d8b281761ce9328caf",
-  "20_fonctions-1.sql": "814e890c479ca7da7fa482994707240a",
-  "20_fonctions-2.sql": "cf734387e275200e0ca2c7e73b4a180e",
-  "30_contraintes.sql": "0248da8d14c0e2c695c8707fb48ccc6d",
-  "35_index.sql": "dc61fbacdbcf457f55c9effd5060805d",
+  "10_tables.sql": "210b098ed9c8eb086162776e72bd4b7f",
+  "20_fonctions-1.sql": "119537dc7ddbe0ada8125400f0830411",
+  "20_fonctions-2.sql": "26efc4e0419977599ea4750d08ceed56",
+  "30_contraintes.sql": "be556b5e9133d3e45cb4472c98189a67",
+  "35_index.sql": "87cd93c64d8b58a384bdb826a85d5c93",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
-  "60_rls-policies.sql": "87c7ef5ea10b9375557c74e10fbedba9",
-  "70_droits.sql": "dec18affbc5c0f632ac5f19ecf08a893",
-  "80_commentaires.sql": "3f2aeb728a0b388b1570c69cd774ab25"
+  "60_rls-policies.sql": "bf2be17809004ec98efe6efc686501c9",
+  "70_droits.sql": "7ac010c2da2b9f912304ffb3ec707384",
+  "80_commentaires.sql": "eb1dd91c25df1c0e9d04cd75de2e095b"
  },
  "fonctions": [
   {
@@ -2632,7 +2734,7 @@
    "signature": "assemblee_presidence_eligibles(text)"
   },
   {
-   "empreinte": "de28916b78cad1bb63f86e3e9c1ed2d9",
+   "empreinte": "cac8404e340ff1a59151278254ef66d3",
    "security_definer": true,
    "signature": "assemblee_presidence_etat()"
   },
@@ -2652,7 +2754,7 @@
    "signature": "assemblee_presidence_tirage_vu(text)"
   },
   {
-   "empreinte": "2492d9517ba7d5b33568b2f1095c9220",
+   "empreinte": "f367086be9b528db94851085dc8ae0a2",
    "security_definer": true,
    "signature": "assemblee_presidence_voter(text,text)"
   },
@@ -2707,7 +2809,7 @@
    "signature": "assemblee_reporter_vote(text,text)"
   },
   {
-   "empreinte": "1f946c81070b96cf988aa0e9aa3e3845",
+   "empreinte": "fea3b2251db362b1dfec7c5bb2d27dd2",
    "security_definer": true,
    "signature": "assemblee_reprendre_seance(text)"
   },
@@ -2757,7 +2859,7 @@
    "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
   },
   {
-   "empreinte": "62b1a071af243e6410b7ac14716ac669",
+   "empreinte": "7bf71577f9eb421d65c35fcd6e00f93d",
    "security_definer": true,
    "signature": "assemblee_seance(integer)"
   },
@@ -2785,6 +2887,21 @@
    "empreinte": "af55649da614983e4d82d354b81ad612",
    "security_definer": true,
    "signature": "assemblee_suspendue_par_la_presidence(text)"
+  },
+  {
+   "empreinte": "ced65aad33830f1df41ac0b05c6ba21e",
+   "security_definer": true,
+   "signature": "assemblee_suspension_appliquer_seuil(text)"
+  },
+  {
+   "empreinte": "dba2a46a2397c91d51a1fd9fd2c1e53a",
+   "security_definer": true,
+   "signature": "assemblee_suspension_depassee(text)"
+  },
+  {
+   "empreinte": "52bd3f91fd315745ed009842709d559b",
+   "security_definer": false,
+   "signature": "assemblee_suspension_seuil()"
   },
   {
    "empreinte": "c76680d943d53b61f24cfa01a72fbe09",
@@ -2861,6 +2978,10 @@
    "nom": "assemblee_propositions_a_appliquer_idx"
   },
   {
+   "empreinte": "1f2260a68c411755a27442da2f2cd272",
+   "nom": "assemblee_reports_suspension_par_texte"
+  },
+  {
    "empreinte": "29d27111f5b9e438cfea03d6a7626501",
    "nom": "assemblee_reports_une_requete"
   },
@@ -2879,6 +3000,10 @@
   {
    "empreinte": "9799d6a77e219dbb87423ae7cf1c1486",
    "nom": "assemblee_un_rappel_une_sanction"
+  },
+  {
+   "empreinte": "797689ae416f7d848dbbb04a66a27799",
+   "nom": "assemblee_un_renvoi_par_session_suspendue"
   },
   {
    "empreinte": "5520e8f4f662c827874a5a496d1f5f29",
@@ -2944,6 +3069,7 @@
   "assemblee_propositions_pkey",
   "assemblee_protestations_pkey",
   "assemblee_reports_pkey",
+  "assemblee_reports_suspension_pkey",
   "assemblee_requetes_pkey",
   "assemblee_sanctions_paliers_pkey",
   "assemblee_scrutins_pkey",
@@ -3075,6 +3201,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "assemblee_reports_suspension"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "assemblee_requetes"
   },
   {
@@ -3191,6 +3322,12 @@
    "nom": "assemblee_reports"
   },
   {
+   "colonnes": 11,
+   "empreinte_catalogue": "9ad6f8b07d96776c7760da813a70055b",
+   "empreinte_texte": "64eb1577fb14d78d83c4fe92a80fcb60",
+   "nom": "assemblee_reports_suspension"
+  },
+  {
    "colonnes": 5,
    "empreinte_catalogue": "34a3593192c01cabd2f28df8d6a7342f",
    "empreinte_texte": "7957b47a8f7dae509b4743b8bbb99e71",
@@ -3215,9 +3352,9 @@
    "nom": "assemblee_sieges"
   },
   {
-   "colonnes": 11,
-   "empreinte_catalogue": "3901efbd53285b81485b6ecdc4fada50",
-   "empreinte_texte": "9f2db44e9e0a5ea018ad97c847e01861",
+   "colonnes": 12,
+   "empreinte_catalogue": "76f1e3d1510ee44c11c3abccbccf7b3f",
+   "empreinte_texte": "f3e880e5cbb7011136eb637d25637e79",
    "nom": "assemblee_suspensions"
   },
   {

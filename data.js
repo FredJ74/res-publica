@@ -2152,7 +2152,10 @@ const PNJ_STATS_NOMMES = {
   // est volontairement absent.
   'Étienne Vauclerc':       { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
   'Sophie Maréchal':        { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
-  'Benoît Delorme':         { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
+  // Laroche a pris le siege de rang 3 de Luthecia (arbitrage du 11 octobre 2026, §1). Il recoit
+  // la ligne des neuf, a l'identique : etre President ne change aucune statistique, et PER = 6
+  // est la seule reellement consommee (formule de Neutraliser).
+  'President Laroche':      { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
   'Nathalie Charron':       { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
   'Gérard Pichon':          { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
   'Élodie Vasseur':         { FOR:3,  CHA:5,  DUP:4,  INT:5,  PER:6, VOL:4, loyaute:45 },
@@ -2786,15 +2789,17 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#101820,#182030)",
         desc: "L'hemicycle principal. Neuf sieges : trois par ville. Les votes se font ici.",
         imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
-        // Les neuf deputes PNJ ne sont PAS listes ici : ils sont injectes dynamiquement par
-        // appliquerDeputesAssemblee (plateau-assemblee.js), parce que leur role depend de
-        // l'occupation reelle des sieges. 'Depute Martin' et 'Depute Chen', deux figurants
-        // statiques sans aucun lien avec le systeme electoral, sont retires -- ils feraient
-        // desormais doublon avec de vrais deputes. Le President de l'Assemblee reste : il preside,
-        // il ne vote pas, et aucun des neuf sieges ne lui appartient.
-        persons: [
-          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'images/president-assemblee-laroche.webp'}
-        ],
+        // AUCUNE CARTE STATIQUE ICI, ET C'EST LA REGLE ENTIERE DE L'HEMICYCLE. Les neuf deputes
+        // sont injectes par appliquerDeputesAssemblee (plateau-assemblee.js), parce que leur role
+        // depend de l'occupation REELLE des sieges, lue au serveur.
+        // 'Depute Martin' et 'Depute Chen' avaient ete retires le 10 septembre : deux figurants
+        // sans lien avec le systeme electoral, qui faisaient doublon avec de vrais deputes.
+        // 'President Laroche' est retire a son tour le 11 octobre (arbitrage §1) : il etait la
+        // DIXIEME carte de la piece, un President sans siege. Il est maintenant l'un des neuf,
+        // depute de Luthecia, et il arrive donc par la meme injection que ses collegues -- avec
+        // sa photo, qui vit desormais sur sa ligne de ASSEMBLEE_SIEGES. Le laisser ici en plus
+        // aurait recree exactement le dixieme parlementaire que l'arbitrage supprime.
+        persons: [],
         orders: [
           // L'ECRAN DE SEANCE (11 octobre 2026) : la parole, la discipline, la protestation. Un
           // ecran, pas une action -- il ne coute ni PA ni argent, et n'ecrit rien par lui-meme.

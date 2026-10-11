@@ -164,6 +164,20 @@ CREATE TABLE public.assemblee_reports (
   requete text
 );
 
+CREATE TABLE public.assemblee_reports_suspension (
+  id text NOT NULL,
+  pays text NOT NULL,
+  proposition_id text NOT NULL,
+  suspension_id text NOT NULL,
+  session_annulee integer NOT NULL,
+  bulletins_annules integer DEFAULT 0 NOT NULL,
+  intentions_annulees integer DEFAULT 0 NOT NULL,
+  cloture_initiale timestamp with time zone,
+  suspension_ouverte_le timestamp with time zone NOT NULL,
+  suspension_duree interval NOT NULL,
+  fait_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.assemblee_requetes (
   id text NOT NULL,
   personnage text NOT NULL,
@@ -224,7 +238,8 @@ CREATE TABLE public.assemblee_suspensions (
   close_le timestamp with time zone,
   requete text,
   reprise_requete text,
-  reprise_le timestamp with time zone
+  reprise_le timestamp with time zone,
+  seuil_applique_le timestamp with time zone
 );
 
 CREATE TABLE public.assemblee_votes (

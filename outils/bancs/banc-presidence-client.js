@@ -169,14 +169,40 @@ att("la carte d'un depute PNJ President porte ses DEUX qualites",
     dans(ASSEM, 'Député de ') && dans(ASSEM, 'Président de l') && dans(ASSEM, 'suffixePresidence'));
 att("le President est lu au SERVEUR, jamais devine",
     dans(ASSEM, 'RP_PRESIDENCE_ETAT.president'));
+// LE NOM DE LAROCHE A LE DROIT D'EXISTER DANS UN SEUL ENDROIT : LA TABLE DES NEUF SIEGES.
+// Depuis l'arbitrage du 11 octobre (§1), il EST l'un des neuf deputes PNJ, et son nom y figure
+// comme ceux de ses huit collegues -- c'est une DONNEE. Ce qui reste interdit, c'est qu'une
+// AUTORISATION en depende : le code de l'election et celui de la seance ne doivent jamais le
+// nommer, et dans le module de l'Assemblee il ne doit apparaitre que sur les lignes de la table.
+att("le nom de Laroche n'apparait que dans la table des sieges",
+    codeSeul(ASSEM).split('\n')
+      .filter(function (l) { return /Laroche/i.test(l); })
+      .every(function (l) { return /pnjId:|photoUrl:/.test(l); }));
 att("aucune autorisation ne repose sur un nom code en dur",
-    !/Laroche/.test(codeSeul(ASSEM)) && !/Laroche/.test(PRES_CODE) && !/Laroche/.test(SEANCE_CODE));
+    !/Laroche/i.test(PRES_CODE) && !/Laroche/i.test(SEANCE_CODE));
+att("et il est bien l'un des neuf, depute de la capitale",
+    ASSEMBLEE_SIEGES.filter(function (s) {
+      return s.nom === 'President Laroche' && s.city === 'capitale';
+    }).length === 1);
+att("il n'existe plus comme carte statique de l'hemicycle",
+    (function () {
+      var h = BUILDINGS.assemblee.rooms.hemicycle;
+      return Array.isArray(h.persons) && h.persons.length === 0;
+    })());
 att("le titre est adopte depuis le registre, et retire quand il tombe",
     dans(PRES_CODE, 'presidenceAdopterLeTitre'));
 att("perdre la presidence ne touche jamais au mandat de depute",
     !/state\.posteDepute\s*=/.test(PRES_CODE));
+// L'ADOPTION N'ECRASE JAMAIS UN AUTRE POSTE NOMME, et elle ne se tait plus : le joueur apprend
+// que ses pouvoirs sont actifs et que sa fiche, elle, ne porte qu'un titre a la fois (§6).
 att("et l'adoption n'ecrase jamais un autre poste nomme",
-    dans(PRES_CODE, 'if (state.poste) return;'));
+    /if \(state\.poste\)\s*\{/.test(PRES_CODE)
+    && PRES_CODE.indexOf('state.poste = ') > PRES_CODE.indexOf('if (state.poste)'));
+att("l'emplacement unique du titre est DIT, pas tranche en silence",
+    dans(PRES_CODE, 'RP_PRESIDENCE_TITRE_DIT')
+    && /ne porte qu|qu'un titre nomm/.test(PRES));
+att("et aucune incompatibilite n'est creee : le mandat de depute n'est pas touche",
+    !/state\.posteDepute\s*=/.test(PRES_CODE));
 
 print('');
 print('SUSPENDRE ET REPRENDRE');

@@ -1979,6 +1979,9 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'pays', v_pays,
     'je_suis_depute', v_depute,
+    -- §5 : LA MEME LECTURE QUE CELLE DE LA PORTE. L'ecran n'en deduit aucun droit ; il s'en sert
+    -- pour expliquer, et c'est tout.
+    'je_suis_dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, v_moi),
     'president', public.assemblee_president(v_pays),
     'eligibles', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', e.depute,
                            'ville', e.ville, 'rang', e.rang, 'est_pnj', e.est_pnj)
@@ -2083,6 +2086,11 @@ BEGIN
   SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
   IF NOT public.assemblee_est_depute(v_pays, v_moi) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
+
+  -- §5 : LA PRESENCE PHYSIQUE, LUE EN BASE. Le hall ne suffit pas, et la convocation du lundi
+  -- cesse d'etre une formalite : il faut etre assis dans l'hemicycle pour elire son President.
+  IF NOT public.assemblee_dans_hemicycle(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_hemicycle'); END IF;
 
   SELECT * INTO s FROM public.assemblee_presidence_scrutins
    WHERE pays = v_pays AND statut = 'ouvert' FOR UPDATE;
@@ -2607,7 +2615,7 @@ CREATE OR REPLACE FUNCTION public.assemblee_reprendre_seance(p_requete text)
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_pays text; v_id text; d record;
+DECLARE v_moi text; v_pays text; v_id text; d record; v_seuil jsonb; v_duree interval;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -2632,11 +2640,23 @@ BEGIN
   IF v_id IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'aucune_suspension'); END IF;
 
+  -- La duree est lue SUR LA LIGNE QU'ON VIENT D'ECRIRE, pas sur une horloge relue a cote : la
+  -- valeur rendue au President est alors exactement celle que l'application du seuil mesure.
   UPDATE public.assemblee_suspensions
      SET close_le = clock_timestamp(), reprise_le = clock_timestamp(), reprise_requete = p_requete
-   WHERE id = v_id;
+   WHERE id = v_id
+  RETURNING close_le - ouverte_le INTO v_duree;
 
-  RETURN jsonb_build_object('ok', true, 'suspension', v_id, 'reprise', true, 'pop', 0);
+  -- §4 : LA CONSEQUENCE, TOUT DE SUITE. Si la suspension a depasse l'heure, les scrutins qu'elle
+  -- a geles sont renvoyes a la prochaine session et leurs suffrages annules -- sans attendre un
+  -- cron, et sans que le President ait quoi que ce soit a decider. En deca du seuil, cet appel ne
+  -- trouve rien et n'ecrit rien : l'echeance initiale demeure.
+  v_seuil := public.assemblee_suspension_appliquer_seuil(v_pays);
+
+  RETURN jsonb_build_object('ok', true, 'suspension', v_id, 'reprise', true, 'pop', 0,
+                            'duree', v_duree::text,
+                            'seuil_depasse', v_duree > public.assemblee_suspension_seuil(),
+                            'renvois', v_seuil);
 END;
 $function$;
 
@@ -3053,8 +3073,22 @@ BEGIN
     -- conclure ; la suspension presidentielle arrete la seance elle-meme.
     'suspendue_par_la_presidence', public.assemblee_suspendue_par_la_presidence(v_pays),
     'suspension_presidence', (SELECT to_jsonb(z) FROM (
-        SELECT s.id, s.president, s.motif, s.ouverte_le FROM public.assemblee_suspensions s
+        SELECT s.id, s.president, s.motif, s.ouverte_le,
+               (now() - s.ouverte_le)::text AS depuis,
+               (now() - s.ouverte_le) > public.assemblee_suspension_seuil() AS seuil_depasse
+          FROM public.assemblee_suspensions s
          WHERE s.pays = v_pays AND s.cause = 'presidence' AND s.close_le IS NULL LIMIT 1) z),
+    -- §4 : L'HEURE EST UN FAIT PUBLIC. Le seuil est nomme une seule fois en base ; l'ecran le lit
+    -- au lieu de le recopier, et ne compte rien lui-meme : il n'y a aucun minuteur client dans
+    -- cette regle.
+    'seuil_suspension_presidence', public.assemblee_suspension_seuil()::text,
+    'suspension_presidence_depassee', public.assemblee_suspension_depassee(v_pays),
+    -- LES RENVOIS POUR CAUSE DE SUSPENSION, distincts des reports volontaires ci-dessous.
+    'renvois_pour_suspension', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                 'proposition', r.proposition_id, 'session_annulee', r.session_annulee,
+                 'bulletins_annules', r.bulletins_annules, 'duree', r.suspension_duree::text,
+                 'fait_le', r.fait_le) ORDER BY r.fait_le DESC), '[]'::jsonb)
+       FROM public.assemblee_reports_suspension r WHERE r.pays = v_pays),
     'deputes', (SELECT coalesce(jsonb_agg(jsonb_build_object(
                    'depute', o.pj_nom, 'ville', o.city,
                    'dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, o.pj_nom),
@@ -3199,170 +3233,113 @@ AS $function$
                   WHERE pays = p_pays AND cause = 'presidence' AND close_le IS NULL);
 $function$;
 
--- assemblee_taux_marchandage(jsonb,boolean) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_taux_marchandage(p_stats jsonb, p_bonus_lobbyiste boolean)
- RETURNS integer
- LANGUAGE sql
- IMMUTABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-  SELECT GREATEST(0, LEAST(66, round(50 + (public.assemblee_stat_base(p_stats, 'CHA')
-                                           + public.assemblee_stat_base(p_stats, 'ENT')) / 2)::integer))
-         + CASE WHEN p_bonus_lobbyiste THEN 20 ELSE 0 END;
-$function$;
-
--- assemblee_taux_neutralisation(text,jsonb,text) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_taux_neutralisation(p_mode text, p_stats jsonb, p_career text)
- RETURNS integer
- LANGUAGE sql
- IMMUTABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-  SELECT GREATEST(0, LEAST(m.cap, round(m.base
-           + public.assemblee_stat_base(p_stats, m.stat) * 2
-           + CASE WHEN p_career = 'criminal_c' THEN 15 ELSE 0 END
-           - 6 / 2.0)::integer))
-    FROM (VALUES ('mains', 'FOR', 15, 65), ('arme', 'DUP', 25, 75), ('feu', 'PER', 35, 85))
-         AS m(mode, stat, base, cap)
-   WHERE m.mode = p_mode;
-$function$;
-
--- assemblee_tracer_vente_interdite(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_tracer_vente_interdite(p_commerce_id text, p_categorie text, p_libelle text, p_country text)
+-- assemblee_suspension_appliquer_seuil(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_suspension_appliquer_seuil(p_pays text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
-  v_vendeur text;
-  v_loi     jsonb;
-  v_det     jsonb;
+  v_seuil  interval := public.assemblee_suspension_seuil();
+  s        record;
+  p        record;
+  v_duree  interval;
+  v_bull   integer;
+  v_int    integer;
+  v_n      integer := 0;
+  v_tot_b  integer := 0;
+  v_props  jsonb := '[]'::jsonb;
+  v_sus    jsonb := '[]'::jsonb;
+  v_touche boolean;
 BEGIN
-  SELECT NULLIF(e.data ->> 'proprietaire', 'PNJ') INTO v_vendeur FROM public.entreprises e WHERE e.id = p_commerce_id;
-  IF v_vendeur IS NULL OR btrim(v_vendeur) = '' THEN
-    RETURN jsonb_build_object('ok', true, 'vendeur', null, 'raison', 'commerce_pnj_ou_introuvable');
+  IF p_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_absent');
   END IF;
 
-  SELECT jsonb_build_object('id', p.id, 'titre', p.titre, 'categorie', p.categorie, 'adoptee_ts', p.adoptee_ts)
-    INTO v_loi
-    FROM public.assemblee_propositions p
-   WHERE p.country = p_country AND p.type = 'mecanique' AND p.statut = 'adoptee'
-     AND p.categorie = p_categorie AND p.adoptee_ts IS NOT NULL AND p.adoptee_ts <= now()
-   ORDER BY p.adoptee_ts, p.id LIMIT 1;
-  IF v_loi IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'categorie_non_interdite');
-  END IF;
+  FOR s IN
+    SELECT * FROM public.assemblee_suspensions
+     WHERE pays = p_pays
+       AND cause = 'presidence'
+       -- LA DUREE REELLE, close ou non. Reprendre la seance n'efface pas le depassement.
+       AND (coalesce(close_le, now()) - ouverte_le) > v_seuil
+       -- Borne de balayage : une suspension close depuis longtemps n'a plus rien a renvoyer, et
+       -- la relire a chaque passage de cron ne servirait qu'a faire grossir la requete.
+       AND (close_le IS NULL OR close_le > now() - interval '30 days')
+     ORDER BY ouverte_le
+     FOR UPDATE
+  LOOP
+    v_duree  := coalesce(s.close_le, now()) - s.ouverte_le;
+    v_touche := false;
 
-  v_det := public.assemblee_detecter_partie(v_vendeur, 'vente', v_loi, COALESCE(p_libelle, p_categorie), 1, false);
-  IF v_det IS NULL THEN
-    RETURN jsonb_build_object('ok', true, 'vendeur', null, 'raison', 'vendeur_introuvable');
-  END IF;
+    FOR p IN
+      SELECT * FROM public.assemblee_propositions
+       WHERE country = p_pays
+         AND statut = 'session'
+         AND session_ouverte_ts IS NOT NULL
+         -- Le scrutin etait ouvert PENDANT la suspension. Pour une suspension close, cela borne
+         -- l'effet a ce qu'elle a reellement gele ; pour une suspension encore ouverte, cela
+         -- couvre tout ce qui siege aujourd'hui.
+         AND session_ouverte_ts <= coalesce(s.close_le, now())
+       ORDER BY id
+       FOR UPDATE
+    LOOP
+      -- Deja renvoye par CETTE suspension depuis CETTE session : on ne recommence pas.
+      IF EXISTS (SELECT 1 FROM public.assemblee_reports_suspension r
+                  WHERE r.suspension_id = s.id
+                    AND r.proposition_id = p.id
+                    AND r.session_annulee = p.session_num) THEN
+        CONTINUE;
+      END IF;
 
-  RETURN jsonb_build_object('ok', true, 'detecte', v_det -> 'detecte',
-    'convocation_creee', v_det -> 'convocation_creee', 'loi', v_loi ->> 'titre');
-END;
-$function$;
+      SELECT count(*) INTO v_bull FROM public.assemblee_votes
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+      SELECT count(*) INTO v_int FROM public.assemblee_intentions
+       WHERE proposition_id = p.id AND session_num = p.session_num;
 
--- assemblee_transaction_interdite_interne(text,text,text,jsonb,text,integer) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_transaction_interdite_interne(p_country text, p_acheteur text, p_vendeur text, p_objet jsonb, p_libelle text, p_quantite integer DEFAULT 1)
- RETURNS jsonb
- LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_loi     jsonb;
-  v_vendeur text;
-  v_a       jsonb := NULL;
-  v_v       jsonb := NULL;
-BEGIN
-  v_loi := public.assemblee_loi_en_vigueur(p_country, p_objet, now());
-  IF v_loi IS NULL THEN
-    RETURN jsonb_build_object('ok', true, 'interdit', false);
-  END IF;
+      -- LE RENVOI DU §27, MOT POUR MOT. C'est l'ecriture que fait assemblee_cloturer sur une
+      -- egalite ; la prochaine fenetre d'ouverture s'occupe du reste.
+      UPDATE public.assemblee_propositions
+         SET statut = 'renvoyee',
+             cloture_ts = NULL,
+             session_ouverte_ts = NULL,
+             updated_at = now()
+       WHERE id = p.id;
 
-  v_vendeur := NULLIF(NULLIF(btrim(COALESCE(p_vendeur, '')), ''), 'PNJ');
-  IF v_vendeur IS NOT DISTINCT FROM p_acheteur THEN v_vendeur := NULL; END IF;
+      -- « LES SUFFRAGES DEJA EXPRIMES SONT ANNULES. » On ne se contente pas de les rendre inertes
+      -- par le numero de session : on les retire. Un depute qui revient sur l'ecran doit voir un
+      -- scrutin vide, pas sa propre voix dans un decompte qui ne compte plus.
+      DELETE FROM public.assemblee_votes
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+      -- Les intentions PNJ de la session annulee tombent avec elle : l'ouverture suivante en
+      -- retirera de neuves au sort, comme pour n'importe quelle session.
+      DELETE FROM public.assemblee_intentions
+       WHERE proposition_id = p.id AND session_num = p.session_num;
 
-  PERFORM 1 FROM public.personnages
-   WHERE name IN (p_acheteur, v_vendeur) ORDER BY name FOR UPDATE;
+      INSERT INTO public.assemblee_reports_suspension
+        (id, pays, proposition_id, suspension_id, session_annulee, bulletins_annules,
+         intentions_annulees, cloture_initiale, suspension_ouverte_le, suspension_duree)
+      VALUES (s.id || ':' || p.id || ':' || p.session_num, p_pays, p.id, s.id, p.session_num,
+              v_bull, v_int, p.cloture_ts, s.ouverte_le, v_duree);
 
-  IF p_acheteur IS NOT NULL THEN
-    v_a := public.assemblee_detecter_partie(p_acheteur, 'achat', v_loi, p_libelle, p_quantite, true);
-  END IF;
-  IF v_vendeur IS NOT NULL THEN
-    v_v := public.assemblee_detecter_partie(v_vendeur, 'vente', v_loi, p_libelle, p_quantite, false);
-  END IF;
+      v_n      := v_n + 1;
+      v_tot_b  := v_tot_b + v_bull;
+      v_props  := v_props || to_jsonb(p.id);
+      v_touche := true;
+    END LOOP;
 
-  RETURN jsonb_build_object('ok', true, 'interdit', true, 'loi', v_loi, 'acheteur', v_a, 'vendeur', v_v);
-END;
-$function$;
+    IF v_touche THEN
+      UPDATE public.assemblee_suspensions
+         SET seuil_applique_le = clock_timestamp() WHERE id = s.id;
+      v_sus := v_sus || to_jsonb(s.id);
+    END IF;
+  END LOOP;
 
--- assemblee_verifier_vente(jsonb,text) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_verifier_vente(p_objets jsonb, p_country text)
- RETURNS jsonb
- LANGUAGE sql
- STABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-  WITH o AS (
-    SELECT (t.ord - 1)::integer AS idx,
-           public.assemblee_loi_en_vigueur(p_country, t.val, now()) AS loi
-      FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p_objets) = 'array' THEN p_objets ELSE '[]'::jsonb END)
-           WITH ORDINALITY AS t(val, ord)
-  )
-  SELECT CASE WHEN jsonb_typeof(p_objets) IS DISTINCT FROM 'array'
-    THEN jsonb_build_object('ok', false, 'instant', now(), 'raison', 'objets_invalides', 'interdits', '[]'::jsonb)
-    ELSE jsonb_build_object(
-           'ok', NOT EXISTS (SELECT 1 FROM o WHERE loi IS NOT NULL),
-           'instant', now(),
-           'interdits', COALESCE((SELECT jsonb_agg(jsonb_build_object('index', idx, 'loi', loi) ORDER BY idx)
-                                    FROM o WHERE loi IS NOT NULL), '[]'::jsonb))
-  END;
-$function$;
-
--- assemblee_verser_indemnite(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_verser_indemnite(p_nom text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  c_montant CONSTANT integer := 250;
-  v_perso   public.personnages%ROWTYPE;
-  v_jour    date;
-  v_id      text;
-  v_verse   integer := 0;
-  v_credit  jsonb;
-BEGIN
-  PERFORM public.exiger_acteur(p_nom);
-  SELECT * INTO v_perso FROM public.personnages WHERE name = p_nom FOR UPDATE;
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable', 'montant', 0);
-  END IF;
-
-  v_jour := (now() AT TIME ZONE 'Europe/Paris')::date;
-  v_id   := p_nom || ':' || v_jour::text;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM public.assemblee_occupation_sieges(v_perso.country) o WHERE o.pj_nom = p_nom
-  ) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute', 'montant', 0);
-  END IF;
-
-  BEGIN
-    INSERT INTO public.assemblee_indemnites (id, personnage, jour, montant)
-    VALUES (v_id, p_nom, v_jour, 0);
-  EXCEPTION WHEN unique_violation THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'deja_verse_aujourdhui', 'montant', 0);
-  END;
-
-  v_verse := public.assemblee_debiter_caisse_plafonne(v_perso.country || '_assemblee', c_montant);
-  UPDATE public.assemblee_indemnites SET montant = v_verse WHERE id = v_id;
-
-  v_credit := public.assemblee_crediter_joueur(p_nom, v_verse);
-
-  RETURN v_credit || jsonb_build_object('ok', true, 'montant', v_verse, 'vise', c_montant);
+  RETURN jsonb_build_object('ok', true,
+    'seuil', v_seuil::text,
+    'suspensions', v_sus,
+    'reportes', v_n,
+    'propositions', v_props,
+    'bulletins_annules', v_tot_b);
 END;
 $function$;

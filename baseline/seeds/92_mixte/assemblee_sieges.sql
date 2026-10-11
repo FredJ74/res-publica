@@ -36,7 +36,7 @@
 
 INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:capitale:1', 'republic', 'capitale', '1', 'dep_vauclerc', 'Étienne Vauclerc', false, NULL, NULL);
 INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:capitale:2', 'republic', 'capitale', '2', 'dep_marechal', 'Sophie Maréchal', false, NULL, NULL);
-INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:capitale:3', 'republic', 'capitale', '3', 'dep_delorme', 'Benoît Delorme', false, NULL, NULL);
+INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:capitale:3', 'republic', 'capitale', '3', 'dep_laroche', 'President Laroche', false, NULL, NULL);
 INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:ville_a:1', 'republic', 'ville_a', '1', 'dep_legall', 'Yann Legall', false, NULL, NULL);
 INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:ville_a:2', 'republic', 'ville_a', '2', 'dep_leroux', 'Maëlle Leroux', false, NULL, NULL);
 INSERT INTO public.assemblee_sieges (id, country, city, rang, pnj_id, pnj_nom, endormi, endormi_ts, endormi_par) VALUES ('republic:ville_a:3', 'republic', 'ville_a', '3', 'dep_kermeur', 'Loïc Kermeur', false, NULL, NULL);

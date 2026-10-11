@@ -5996,6 +5996,35 @@ export default async function handler(req, res) {
       }
     } catch (e) { console.error('assemblee_presidence_convoquer', e); }
 
+    // 1f. ASSEMBLEE NATIONALE — LE SEUIL D'UNE HEURE DE LA SUSPENSION PRESIDENTIELLE (§4, 11
+    // octobre 2026)
+    //
+    // POURQUOI ICI, ALORS QUE cron-assemblee LE FAIT DEJA. Parce que cron-assemblee ne passe que
+    // le lundi et le mercredi. Une suspension ouverte un mardi matin et jamais reprise doit voir
+    // sa consequence posee sans attendre deux jours : le passage de minuit la constate chaque
+    // nuit. Les deux appels sont idempotents -- l'unicite est garantie par (suspension, texte,
+    // session) en base --, donc les faire tous les deux ne renvoie jamais deux fois le meme
+    // scrutin.
+    //
+    // ET SURTOUT : AUCUN NAVIGATEUR N'EST REQUIS. C'est la moitie serveur de la regle. La duree
+    // est lue sur `ouverte_le` / `close_le` ; ni la presence du President, ni celle des deputes,
+    // ni un minuteur client n'y entrent.
+    try {
+      const seuilSus = await sbRpc('assemblee_suspension_appliquer_seuil', { p_pays: 'republic' });
+      const etatSeuilSus = Array.isArray(seuilSus) ? seuilSus[0] : seuilSus;
+      if (etatSeuilSus && etatSeuilSus.ok && (etatSeuilSus.reportes || 0) > 0) {
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 ASSEMBLÉE NATIONALE — séance suspendue plus d\'une heure : '
+               + etatSeuilSus.reportes + ' scrutin(s) renvoyé(s) à la prochaine session, '
+               + (etatSeuilSus.bulletins_annules || 0) + ' bulletin(s) annulé(s).',
+          jour: null
+        }).catch(() => {});
+      } else if (!etatSeuilSus) {
+        signalerEchec('assemblee_suspension_appliquer_seuil', 'porte_injoignable');
+      }
+    } catch (e) { console.error('assemblee_suspension_appliquer_seuil', e); }
+
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 

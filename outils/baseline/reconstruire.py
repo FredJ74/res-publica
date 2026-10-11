@@ -530,7 +530,15 @@ def controles_du_monde(cat):
     # exceptionnelles en attente, inscrites par un deuxieme episode de boycott distinct. LES
     # QUATRE SONT SOUS RLS SANS AUCUNE POLICY : un navigateur qui pourrait ecrire un bulletin
     # elirait qui il veut. Le compte des tables sans policy passe donc de 122 a 126.
-    att("tables creees", len(cat.tables), 280)
+    # 280 -> 281 le 11 octobre 2026, quatrieme passe : UNE table, assemblee_reports_suspension.
+    # Elle consigne les scrutins renvoyes a la prochaine session parce qu'une suspension
+    # presidentielle a depasse une heure -- quel texte, depuis quelle session, combien de
+    # bulletins annules, et quelle suspension l'a cause. Elle est DISTINCTE de assemblee_reports,
+    # qui est la prerogative volontaire du President : c'est cette distinction qui garantit que le
+    # droit de reporter un vote d'une semaine n'est ni consomme ni rendu par un renvoi. SOUS RLS
+    # SANS AUCUNE POLICY, comme les dix autres tables de seance : le compte des tables sans policy
+    # passe de 126 a 127.
+    att("tables creees", len(cat.tables), 281)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -626,8 +634,14 @@ def controles_du_monde(cat):
     # portes d'election (eligibles, prochaine cloture, fenetre de convocation, convoquer, voter,
     # depouiller, etat, tirage vu), la reprise de seance, la question « suspendue par la
     # presidence ? », et le declencheur d'autorite des partis politiques.
-    att("signatures de fonction creees", cat.n_fonctions, 776)
-    att("noms de fonction distincts", len(cat.fonctions), 772,
+    # 776 -> 779 / 772 -> 775 le 11 octobre 2026, quatrieme passe : +3, sans surcharge. Le SEUIL
+    # (assemblee_suspension_seuil, une heure nommee UNE fois et lue partout), le FAIT
+    # (assemblee_suspension_depassee, une lecture pure pour l'ecran) et l'EFFET
+    # (assemblee_suspension_appliquer_seuil, accorde au seul service_role). Les quatre portes
+    # modifiees -- reprendre_seance, seance, presidence_voter, presidence_etat -- l'ont ete par
+    # CREATE OR REPLACE a signature identique : elles ne changent donc aucun compte.
+    att("signatures de fonction creees", cat.n_fonctions, 779)
+    att("noms de fonction distincts", len(cat.fonctions), 775,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -679,7 +693,11 @@ def controles_du_monde(cat):
     # regles : une cause connue, un statut connu, et surtout `presidence_clos_coherent` -- un
     # scrutin clos A un elu, et il n'existe pas d'etat intermediaire. Un scrutin « clos sans elu »
     # laisserait la presidence vacante sans que personne l'ait decide.
-    att("contraintes posees", len(cat.contraintes), 505)
+    # 505 -> 507 le 11 octobre 2026, quatrieme passe : +2, la cle primaire et la cle etrangere de
+    # assemblee_reports_suspension. La cle etrangere pointe la suspension qui a cause le renvoi,
+    # en ON DELETE CASCADE : une suspension effacee n'est pas censee laisser derriere elle des
+    # renvois orphelins qui parleraient d'un episode introuvable.
+    att("contraintes posees", len(cat.contraintes), 507)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -706,7 +724,12 @@ def controles_du_monde(cat):
     # 164 -> 169 le 11 octobre 2026, troisieme passe : +5, et QUATRE portent des REGLES. Un seul
     # scrutin ouvert par pays, une seule requete de vote honoree, une seule election exceptionnelle
     # en attente, une seule suspension presidentielle ouverte, une seule reprise par requete.
-    att("index autonomes crees", len(cat.index), 169)
+    # 169 -> 171 le 11 octobre 2026, quatrieme passe : +2. Le premier porte une REGLE --
+    # assemblee_un_renvoi_par_session_suspendue, sur (suspension, texte, session) : la meme
+    # session d'un meme texte ne peut pas etre renvoyee deux fois par la meme suspension, sinon un
+    # second passage de cron annulerait des bulletins deposes entre-temps. Le second est un index
+    # de lecture, par pays et par texte.
+    att("index autonomes crees", len(cat.index), 171)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.

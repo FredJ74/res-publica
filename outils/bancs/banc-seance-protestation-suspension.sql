@@ -326,14 +326,22 @@ BEGIN
     ko := ko + 1; v_echecs := v_echecs || E'\nE25 suspension presidentielle : pop ' || v_pop
       || ' -> ' || v_pop2 || ' / ' || v::text; END IF;
 
-  n := n + 1;   -- ELLE N'EST JAMAIS UN BOYCOTT, et ne compte pas parmi les deux episodes.
+  n := n + 1;   -- ELLE N'EST JAMAIS UN BOYCOTT, et ne compte pas parmi les deux episodes. ELLE
+  --              RESTE OUVERTE, aussi : depuis la troisieme passe (11 octobre 2026), la suspension
+  --              presidentielle PERSISTE jusqu'a ce que le President reprenne la seance -- elle
+  --              n'est plus l'acte instantane de la deuxieme passe. Cette epreuve cherchait une
+  --              ligne CLOSE et ne la trouvait plus : elle etait rouge depuis cette passe-la.
+  --              Elle verifie desormais la verite d'aujourd'hui, et elle est plus forte --
+  --              persistance ET non-comptage, au lieu du seul non-comptage.
   SELECT count(*) INTO v_n FROM public.assemblee_suspensions s
-   WHERE s.pays='republic' AND s.cause='presidence' AND s.close_le IS NOT NULL;
+   WHERE s.pays='republic' AND s.cause='presidence' AND s.close_le IS NULL;
   PERFORM pg_temp.je_suis(ARNIE_U); v := public.assemblee_seance(10);
   PERFORM pg_temp.je_suis_le_serveur();
-  IF v_n <> 1 OR (v->>'episodes_sous_cette_presidence')::int <> 2 THEN
-    ko := ko + 1; v_echecs := v_echecs || E'\nE26 la suspension presidentielle compte comme boycott : '
-      || v_n || ' / ' || coalesce(v->>'episodes_sous_cette_presidence','?'); END IF;
+  IF v_n <> 1 OR (v->>'episodes_sous_cette_presidence')::int <> 2
+     OR NOT public.assemblee_suspendue_par_la_presidence('republic') THEN
+    ko := ko + 1; v_echecs := v_echecs || E'\nE26 la suspension presidentielle compte comme boycott '
+      || 'ou ne persiste pas : ' || v_n || ' ouverte(s) / '
+      || coalesce(v->>'episodes_sous_cette_presidence','?') || ' episode(s)'; END IF;
 
   n := n + 1;   -- ET UN REJEU NE COUTE PAS 40 POINTS.
   PERFORM pg_temp.je_suis(ARNIE_U);

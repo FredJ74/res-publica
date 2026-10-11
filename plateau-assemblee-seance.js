@@ -230,11 +230,34 @@ function seanceDessiner(e) {
       + (sp.president ? ' (' + sp.president + ')' : '')
       + (sp.motif ? ' — « ' + sp.motif + ' »' : '')
       + '. Elle le reste jusqu\'à ce que le Président la reprenne : on n\'y prend pas la parole.');
+    // §4 (11 octobre 2026) : AU-DELA D'UNE HEURE, LES SCRUTINS EN COURS SONT RENVOYES. Le fait
+    // est calcule AU SERVEUR et rendu par l'état de séance ; cet écran ne compte rien lui-même
+    // -- il n'y a aucun minuteur dans cette règle, et une page fermée n'y change rien.
+    if (e.suspension_presidence_depassee) {
+      alertes.push('La suspension dépasse une heure : les scrutins qu\'elle a gelés sont renvoyés '
+        + 'à la prochaine session, et les suffrages déjà exprimés sont annulés.');
+    } else {
+      alertes.push('Si elle dépasse une heure, les scrutins en cours seront renvoyés à la '
+        + 'prochaine session et les suffrages déjà exprimés annulés.');
+    }
   }
   if (e.suspendue) {
+    // LE BOYCOTT N'EST PAS UNE SUSPENSION DE SEANCE (arbitrage du 11 octobre 2026, §3) : il
+    // empeche un VOTE de conclure, il n'eteint pas le DEBAT. Les deputes restes dans l'hemicycle
+    // continuent de demander la parole, de parler, d'etre rappeles a l'ordre. C'est toute la
+    // difference avec la suspension presidentielle, et elle est dite ici pour qu'on ne la
+    // confonde pas.
     alertes.push('SÉANCE SUSPENDUE PAR BOYCOTT — ' + (e.protestataires_qualifies || 0)
       + ' députés protestataires sont hors de l\'hémicycle (seuil : ' + (e.seuil_suspension || 5)
-      + '). Aucun vote ne peut être conclu tant que la suspension dure.');
+      + '). Aucun vote ne peut être conclu tant que la suspension dure ; le débat, lui, continue '
+      + 'entre les députés présents.');
+  }
+  const renvois = Array.isArray(e.renvois_pour_suspension) ? e.renvois_pour_suspension : [];
+  if (renvois.length) {
+    const r = renvois[0];
+    alertes.push((renvois.length === 1 ? 'Un texte a été renvoyé' : renvois.length + ' textes ont '
+      + 'été renvoyés') + ' pour cause de suspension de séance — dernier en date : '
+      + r.proposition + ', ' + (r.bulletins_annules || 0) + ' bulletin(s) annulé(s).');
   }
   if (e.election_presidentielle_due) {
     alertes.push('La présidence est remise en jeu : une élection est due et sera convoquée lundi.');
@@ -432,8 +455,15 @@ function seanceDessinerBas(e, moi) {
     // lequel des deux boutons existe.
     if (e.suspendue_par_la_presidence) {
       boite.appendChild(seanceBouton('Reprendre la séance', seanceReprendre));
+      // §4 : ON DIT LE SEUIL AU PRESIDENT, AVANT QU'IL LE FRANCHISSE. La regle n'est pas une
+      // punition cachee : elle est annoncee, et c'est le serveur qui la mesure.
       boite.appendChild(seanceVide('La séance est suspendue. La reprendre ne coûte rien : '
-        + 'vous avez déjà payé pour la suspendre.'));
+        + 'vous avez déjà payé pour la suspendre.'
+        + (e.suspension_presidence_depassee
+            ? ' Elle dépasse une heure : les scrutins qu\'elle a gelés sont renvoyés à la '
+              + 'prochaine session, suffrages annulés.'
+            : ' Au-delà d\'une heure, les scrutins en cours seront renvoyés à la prochaine '
+              + 'session et les suffrages déjà exprimés annulés.')));
       b.appendChild(boite);
       return;   // une seance suspendue n'a ni file, ni orateur, ni discipline a exercer
     }
@@ -662,8 +692,20 @@ async function seanceReprendre() {
   const r = await assembleeActionServeur((rq) => sbAssembleeReprendreSeance(rq));
   if (!assembleeIssueAction(r)) { await seanceRafraichir(); return; }
   if (r.res.rejeu !== true) {
-    showToast('Séance reprise', 'La séance reprend. La parole peut être demandée de nouveau.', true);
-    addJournalEntry('Vous reprenez la séance.', '');
+    // §4 : LA CONSEQUENCE EST POSEE PAR LE SERVEUR DANS LA MEME TRANSACTION QUE LA REPRISE. On
+    // ne la recalcule pas ici : on lit ce qu'il a fait. `renvois.reportes` vaut 0 quand la
+    // suspension n'a pas depasse l'heure -- l'echeance initiale est alors restee en place.
+    const renvois = (r.res.renvois && Number(r.res.renvois.reportes)) || 0;
+    const annules = (r.res.renvois && Number(r.res.renvois.bulletins_annules)) || 0;
+    showToast('Séance reprise',
+      'La séance reprend. La parole peut être demandée de nouveau.'
+      + (renvois
+          ? ' La suspension a dépassé une heure : ' + renvois + (renvois === 1 ? ' texte est '
+            : ' textes sont ') + 'renvoyés à la prochaine session, ' + annules
+            + ' bulletin(s) annulé(s).'
+          : ''), true);
+    addJournalEntry('Vous reprenez la séance.'
+      + (renvois ? ' ' + renvois + ' texte(s) renvoyé(s) à la prochaine session.' : ''), '');
   }
   await seanceRafraichir();
   if (typeof updateUI === 'function') updateUI();
