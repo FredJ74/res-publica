@@ -10,9 +10,11 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 20 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 22 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   candidatures_pkey  (contrainte candidatures_pkey)
 --   communications_salles_pkey  (contrainte communications_salles_pkey)
+--   conferences_presse_echanges_pkey  (contrainte conferences_presse_echanges_pkey)
+--   conferences_presse_pkey  (contrainte conferences_presse_pkey)
 --   cycles_electoraux_pkey  (contrainte cycles_electoraux_pkey)
 --   demandes_manifestation_pkey  (contrainte demandes_manifestation_pkey)
 --   elections_tracts_pnj_cycle_id_tour_pnj_cle_key  (contrainte elections_tracts_pnj_cycle_id_tour_pnj_cle_key)
@@ -33,6 +35,8 @@
 --   votes_electoraux_pkey  (contrainte votes_electoraux_pkey)
 
 -- Index autonomes :
+CREATE INDEX conference_par_pays_et_date ON public.conferences_presse USING btree (pays, ouverte_le DESC);
+CREATE UNIQUE INDEX conference_une_seule_ouverte_par_auteur ON public.conferences_presse USING btree (pays, auteur) WHERE (statut = 'ouverte'::text);
 CREATE INDEX elections_tracts_pnj_cycle_tour ON public.elections_tracts_pnj USING btree (cycle_id, tour);
 CREATE INDEX fraudes_electorales_scrutin_idx ON public.fraudes_electorales USING btree (country, poste_id, city, cycle_debut, type);
 CREATE INDEX idx_greves_generales_country_statut ON public.greves_generales USING btree (country, statut);

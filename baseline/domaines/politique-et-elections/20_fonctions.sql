@@ -307,16 +307,60 @@ BEGIN
 END;
 $function$;
 
--- communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.communication_officielle_publier(p_building_id text, p_room_id text, p_fn text, p_pa integer, p_cost integer, p_titre text, p_contenu text, p_blocs jsonb)
+-- communication_financement(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.communication_financement(p_pays text, p_poste_id text, p_cout numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_info text; v_sien text; v_solde_info numeric := 0; v_solde_sien numeric := 0;
+BEGIN
+  IF coalesce(p_cout, 0) <= 0 THEN
+    -- UNE COMMUNICATION GRATUITE NE POSE AUCUNE QUESTION DE CAISSE. La conference de presse et le
+    -- dementi sont dans ce cas : seuls des PA.
+    RETURN jsonb_build_object('ok', true, 'gratuit', true, 'caisse', NULL, 'cout', 0);
+  END IF;
+
+  v_info := public.salaire_caisse_de('min_info', p_pays, NULL);
+  v_sien := public.salaire_caisse_de(p_poste_id, p_pays, NULL);
+
+  SELECT coalesce((data->>'solde')::numeric, 0) INTO v_solde_info
+    FROM public.caisses_batiments WHERE id = v_info;
+  SELECT coalesce((data->>'solde')::numeric, 0) INTO v_solde_sien
+    FROM public.caisses_batiments WHERE id = v_sien;
+
+  IF v_info IS NOT NULL AND coalesce(v_solde_info, 0) >= p_cout THEN
+    RETURN jsonb_build_object('ok', true, 'gratuit', false, 'caisse', v_info,
+                              'defaut', true, 'cout', p_cout, 'solde', v_solde_info);
+  END IF;
+
+  -- L'INFORMATION NE COUVRE PAS. On NOMME la caisse de repli et son solde, et on ne debite rien :
+  -- c'est au joueur de dire s'il accepte de payer sur sa propre caisse institutionnelle.
+  RETURN jsonb_build_object(
+    'ok', false, 'gratuit', false, 'raison', 'budget_information_insuffisant',
+    'cout', p_cout,
+    'caisse_information', v_info, 'solde_information', coalesce(v_solde_info, 0),
+    'caisse_proposee', v_sien, 'solde_proposee', coalesce(v_solde_sien, 0),
+    -- SUFFISANTE OU PAS : le joueur a droit a l'information avant de repondre, sinon on lui
+    -- demande d'accepter une depense impossible.
+    'proposee_suffisante', (v_sien IS NOT NULL AND coalesce(v_solde_sien, 0) >= p_cout));
+END;
+$function$;
+
+-- communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.communication_officielle_publier(p_building_id text, p_room_id text, p_fn text, p_pa integer, p_cost integer, p_titre text, p_contenu text, p_blocs jsonb, p_accepte_sa_caisse boolean DEFAULT false)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
-  v_moi text; a record; sa record; v_paiement jsonb;
+  v_moi text; a record; sa record; fin jsonb;
   v_topic text; v_post text; v_titre text; v_contenu text; v_temps text;
+  v_conf text; v_chron text; v_caisse text; v_data jsonb; v_solde numeric;
+  v_pa integer; v_poste_libelle text; v_ouverte text;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -332,27 +376,99 @@ BEGIN
   SELECT * INTO sa FROM public.communications_salles
    WHERE building_id = p_building_id AND room_id = p_room_id;
   IF NOT FOUND THEN
-    -- AUCUNE SALLE DECLAREE : on ne publie pas « au nom de l'Etat » depuis un lieu quelconque.
     RETURN jsonb_build_object('ok', false, 'raison', 'salle_sans_tribune');
   END IF;
 
-  -- L'AUTORITE EST RELUE EN BASE, par la porte attestee, et jamais sur la fiche transmise.
   SELECT * INTO a FROM public.acteur_poste_courant() LIMIT 1;
   IF NOT FOUND OR a.poste_id IS NULL OR NOT (a.poste_id = ANY (sa.postes)) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_admis_dans_cette_tribune',
                               'tribune', sa.libelle, 'postes_admis', sa.postes);
   END IF;
 
-  -- LE COUT, PAR LE CHEMIN ATTESTE. payer_ordre refuse un triplet que le miroir ne declare pas.
-  v_paiement := public.payer_ordre(v_moi, p_fn, coalesce(p_pa, 0), coalesce(p_cost, 0));
-  IF coalesce((v_paiement->>'ok')::boolean, false) IS NOT TRUE THEN
-    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paiement->>'raison', 'paiement_refuse'),
-                              'paiement', v_paiement);
+  -- LA TRIBUNE DECLARE CE QU'ON PEUT Y PRONONCER. Sans ce controle, tout ordre declare au miroir
+  -- aurait pu servir de conference de presse.
+  IF NOT (p_fn = ANY (sa.ordres)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ordre_etranger_a_la_tribune',
+                              'ordre', p_fn, 'ordres_admis', sa.ordres);
   END IF;
+
+  -- LE MIROIR DES COUTS FAIT AUTORITE SUR LE COUPLE ANNONCE.
+  IF NOT EXISTS (SELECT 1 FROM public.ordres_couts o
+                  WHERE o.fn = p_fn AND o.pa = coalesce(p_pa,0) AND o.cost = coalesce(p_cost,0)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cout_non_declare',
+                              'fn', p_fn, 'pa', p_pa, 'cost', p_cost);
+  END IF;
+
+  -- UNE SEULE CONFERENCE OUVERTE A LA FOIS. On le dit AVANT de debiter, et on rend l'identifiant
+  -- de celle qui est deja ouverte : le navigateur rouvre sa pop-up au lieu d'en creer une seconde.
+  SELECT id INTO v_ouverte FROM public.conferences_presse
+   WHERE pays = a.pays AND auteur = v_moi AND statut = 'ouverte' LIMIT 1;
+  IF v_ouverte IS NOT NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_deja_ouverte',
+                              'conference', v_ouverte);
+  END IF;
+
+  -- LE FINANCEMENT, DECIDE AVANT TOUT DEBIT.
+  fin := public.communication_financement(a.pays, a.poste_id, coalesce(p_cost, 0));
+  IF coalesce((fin->>'gratuit')::boolean, false) THEN
+    v_caisse := NULL;
+  ELSIF coalesce((fin->>'ok')::boolean, false) THEN
+    v_caisse := fin->>'caisse';
+  ELSE
+    -- L'INFORMATION NE COUVRE PAS. Sans accord explicite, on rend la main SANS RIEN AVOIR DEBITE.
+    IF p_accepte_sa_caisse IS NOT TRUE THEN
+      RETURN fin || jsonb_build_object('ok', false, 'accord_requis', true);
+    END IF;
+    IF coalesce((fin->>'proposee_suffisante')::boolean, false) IS NOT TRUE THEN
+      RETURN fin || jsonb_build_object('ok', false, 'accord_requis', false,
+                                       'raison', 'les_deux_caisses_insuffisantes');
+    END IF;
+    v_caisse := fin->>'caisse_proposee';
+  END IF;
+
+  -- LES PA SONT VERROUILLES ET VERIFIES AVANT LE MOINDRE DEBIT. Le verrou est pris ici et tenu
+  -- jusqu'au bout : entre la verification et le prelevement, personne ne peut depenser ces PA
+  -- ailleurs. Et le refus est STRUCTURE -- un joueur a court de PA recoit une raison, pas une
+  -- erreur de transport.
+  SELECT pa INTO v_pa FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF v_pa IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+  IF v_pa < coalesce(p_pa, 0) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants',
+                              'pa_reel', v_pa, 'requis', coalesce(p_pa, 0));
+  END IF;
+
+  -- LE DEBIT DE LA CAISSE, SOUS VERROU ET EN ENTIER. Tout ou rien : jamais de financement mixte,
+  -- jamais de moitie.
+  IF v_caisse IS NOT NULL THEN
+    SELECT data INTO v_data FROM public.caisses_batiments WHERE id = v_caisse FOR UPDATE;
+    v_solde := CASE WHEN jsonb_typeof(v_data -> 'solde') = 'number'
+                    THEN (v_data ->> 'solde')::numeric ELSE 0 END;
+    IF v_solde < p_cost THEN
+      -- Le solde a bouge entre la lecture et le verrou : on refuse, et rien n'est ecrit.
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante_au_verrou',
+                                'caisse', v_caisse, 'solde', v_solde, 'requis', p_cost);
+    END IF;
+    UPDATE public.caisses_batiments
+       SET data = coalesce(v_data, '{}'::jsonb) || jsonb_build_object('solde', v_solde - p_cost),
+           updated_at = now()
+     WHERE id = v_caisse;
+    INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+    VALUES (v_moi, v_caisse, -p_cost, 'communication_officielle:' || p_fn, true, NULL);
+  END IF;
+
+  -- LE PRELEVEMENT DES PA, APRES le debit financier : un echec de caisse ne doit jamais amputer
+  -- les PA. La suffisance a deja ete verifiee sous le meme verrou, ce debit ne peut pas echouer.
+  UPDATE public.personnages_donnees SET pa = v_pa - coalesce(p_pa, 0) WHERE name = v_moi;
 
   v_temps := to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI');
   v_topic := 'topic-' || (extract(epoch from clock_timestamp()) * 1000)::bigint;
   v_post  := 'post-'  || (extract(epoch from clock_timestamp()) * 1000)::bigint;
+  v_conf  := 'conf-'  || (extract(epoch from clock_timestamp()) * 1000)::bigint;
+  v_chron := 'chronique-conference_presse-' || (extract(epoch from clock_timestamp()) * 1000)::bigint;
+
+  SELECT poste->>'name' INTO v_poste_libelle FROM public.personnages_donnees WHERE name = v_moi;
 
   INSERT INTO public.forum_topics
     (id, forum_id, title, author, country, time, views, replies,
@@ -364,9 +480,32 @@ BEGIN
   VALUES (v_post, v_topic, v_moi, v_contenu, v_temps, false, false,
           CASE WHEN jsonb_typeof(p_blocs) = 'array' THEN p_blocs ELSE '[]'::jsonb END, NULL);
 
+  -- LA CONFERENCE S'OUVRE. `communication` garde le texte DECLARE, verbatim.
+  INSERT INTO public.conferences_presse
+    (id, pays, building_id, room_id, auteur, poste_id, poste_libelle, ordre,
+     titre, communication, statut, cout_fr, caisse_payeuse, chronique_id)
+  VALUES (v_conf, a.pays, p_building_id, p_room_id, v_moi, a.poste_id, v_poste_libelle, p_fn,
+          v_titre, v_contenu, 'ouverte', coalesce(p_cost, 0), v_caisse, v_chron);
+
+  -- LA TRACE PUBLIQUE. Une PHRASE factuelle, dans la couche publique du jeu -- et ECRITE PAR LE
+  -- SERVEUR, dans la meme transaction que la communication. Elle dit QU'UNE conference a eu lieu,
+  -- et rien de son contenu : ni resume, ni jugement, ni transcription.
+  INSERT INTO public.chronique_nationale
+    (id, country, type, city, personnages, libelle, data, source_ref)
+  VALUES (v_chron, a.pays, 'conference_presse', NULL,
+          jsonb_build_array(v_moi),
+          coalesce(v_poste_libelle, v_moi) || ' a tenu une conference de presse : « ' || v_titre || ' ».',
+          jsonb_build_object('conference', v_conf, 'ordre', p_fn, 'tribune', sa.libelle,
+                             'topic', v_topic),
+          v_conf);
+
   RETURN jsonb_build_object('ok', true, 'topic', v_topic, 'post', v_post,
-                            'auteur', v_moi, 'poste', a.poste_id, 'tribune', sa.libelle,
-                            'temps', v_temps, 'paiement', v_paiement);
+                            'conference', v_conf, 'chronique', v_chron,
+                            'auteur', v_moi, 'poste', a.poste_id,
+                            'poste_libelle', v_poste_libelle,
+                            'tribune', sa.libelle, 'temps', v_temps,
+                            'cout', coalesce(p_cost, 0), 'caisse_payeuse', v_caisse,
+                            'pa_preleves', coalesce(p_pa, 0), 'pa', v_pa - coalesce(p_pa, 0));
 END;
 $function$;
 
@@ -388,6 +527,226 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'tribune', true, 'libelle', sa.libelle,
                             'postes_admis', sa.postes,
                             'je_peux', coalesce(a.poste_id = ANY (sa.postes), false));
+END;
+$function$;
+
+-- conference_clore(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_clore(p_conference_id text, p_interrompue boolean)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; c record; v_statut text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL AND NOT public.est_appel_serveur() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT * INTO c FROM public.conferences_presse WHERE id = p_conference_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_inconnue');
+  END IF;
+  IF NOT public.est_appel_serveur() AND c.auteur IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_votre_conference');
+  END IF;
+  IF c.statut <> 'ouverte' THEN
+    -- IDEMPOTENT : refermer une conference close n'est pas une erreur, et un double clic sur la
+    -- croix de la pop-up ne doit pas lever.
+    RETURN jsonb_build_object('ok', true, 'deja_close', true, 'statut', c.statut);
+  END IF;
+
+  v_statut := CASE WHEN p_interrompue IS TRUE THEN 'interrompue' ELSE 'terminee' END;
+  UPDATE public.conferences_presse
+     SET statut = v_statut, close_le = now() WHERE id = p_conference_id;
+
+  RETURN jsonb_build_object('ok', true, 'statut', v_statut,
+    'echanges', (SELECT count(*) FROM public.conferences_presse_echanges
+                  WHERE conference_id = p_conference_id));
+END;
+$function$;
+
+-- conference_lire(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_lire(p_conference_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; c record; v_est_presse boolean := false;
+BEGIN
+  SELECT * INTO c FROM public.conferences_presse WHERE id = p_conference_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_inconnue');
+  END IF;
+
+  v_moi := public.mon_personnage();
+  IF NOT public.est_appel_serveur() THEN
+    IF v_moi IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+    END IF;
+    SELECT EXISTS (SELECT 1 FROM public.presse_membres m
+                     JOIN public.groupes_presse g ON g.id = m.groupe_id
+                    WHERE m.personnage = v_moi AND g.pays = c.pays) INTO v_est_presse;
+    IF c.auteur IS DISTINCT FROM v_moi AND NOT v_est_presse THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'lecture_reservee_a_l_auteur_et_a_la_presse');
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true,
+    'conference', jsonb_build_object(
+      'id', c.id, 'pays', c.pays, 'auteur', c.auteur,
+      'poste', c.poste_id, 'fonction', c.poste_libelle,
+      'ordre', c.ordre, 'titre', c.titre, 'communication', c.communication,
+      'statut', c.statut, 'ouverte_le', c.ouverte_le, 'close_le', c.close_le),
+    'echanges', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+          'rang', e.rang, 'question', e.question, 'reponse', e.reponse,
+          'refus', e.refus, 'pose_le', e.pose_le, 'repondu_le', e.repondu_le) ORDER BY e.rang), '[]'::jsonb)
+       FROM public.conferences_presse_echanges e WHERE e.conference_id = c.id));
+END;
+$function$;
+
+-- conference_matiere(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_matiere(p_limite integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_lim integer := least(greatest(coalesce(p_limite, 10), 1), 30);
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  -- LE DROIT EXISTANT, REUTILISE : etre membre d'un groupe de presse. Un ministre n'a pas acces a
+  -- la matiere des conferences des autres, et un citoyen non plus.
+  SELECT g.pays INTO v_pays FROM public.presse_membres m
+    JOIN public.groupes_presse g ON g.id = m.groupe_id
+   WHERE m.personnage = v_moi LIMIT 1;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_a_la_redaction');
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays,
+    'conferences', (SELECT coalesce(jsonb_agg(x ORDER BY (x->>'ouverte_le') DESC), '[]'::jsonb) FROM (
+      SELECT jsonb_build_object(
+               'id', c.id, 'auteur', c.auteur, 'fonction', c.poste_libelle, 'poste', c.poste_id,
+               'ordre', c.ordre, 'titre', c.titre, 'communication', c.communication,
+               'statut', c.statut, 'ouverte_le', c.ouverte_le, 'close_le', c.close_le,
+               'echanges', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                     'rang', e.rang, 'question', e.question,
+                     'reponse', e.reponse, 'refus', e.refus) ORDER BY e.rang), '[]'::jsonb)
+                  FROM public.conferences_presse_echanges e WHERE e.conference_id = c.id)) AS x
+        FROM public.conferences_presse c
+       WHERE c.pays = v_pays AND c.statut <> 'ouverte'
+       ORDER BY c.ouverte_le DESC LIMIT v_lim) z));
+END;
+$function$;
+
+-- conference_question_poser(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_question_poser(p_conference_id text, p_question text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE c record; v_q text; v_rang integer; v_reste integer;
+BEGIN
+  v_q := nullif(btrim(coalesce(p_question, '')), '');
+  IF v_q IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'question_vide');
+  END IF;
+
+  SELECT * INTO c FROM public.conferences_presse WHERE id = p_conference_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_inconnue');
+  END IF;
+  IF c.statut <> 'ouverte' THEN
+    -- LA POP-UP A ETE FERMEE : plus aucune question ne s'ajoute, et c'est exactement l'arbitrage.
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_close', 'statut', c.statut);
+  END IF;
+
+  -- ON NE POSE PAS UNE QUESTION TANT QUE LA PRECEDENTE N'A PAS DE SUITE. Sans cela, un appel
+  -- repete empilerait des questions sans reponse, et la transcription perdrait son sens.
+  SELECT count(*) INTO v_reste FROM public.conferences_presse_echanges
+   WHERE conference_id = p_conference_id AND reponse IS NULL AND NOT refus;
+  IF v_reste > 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'question_en_attente_de_reponse');
+  END IF;
+
+  SELECT coalesce(max(rang), 0) + 1 INTO v_rang
+    FROM public.conferences_presse_echanges WHERE conference_id = p_conference_id;
+  IF v_rang > 5 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'maximum_de_questions_atteint', 'maximum', 5);
+  END IF;
+
+  INSERT INTO public.conferences_presse_echanges (conference_id, rang, question)
+  VALUES (p_conference_id, v_rang, left(v_q, 600));
+
+  RETURN jsonb_build_object('ok', true, 'rang', v_rang, 'question', left(v_q, 600),
+                            'reste_possible', 5 - v_rang);
+END;
+$function$;
+
+-- conference_repondre(text,integer,text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_repondre(p_conference_id text, p_rang integer, p_reponse text, p_refus boolean)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; c record; e record; v_r text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT * INTO c FROM public.conferences_presse WHERE id = p_conference_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_inconnue');
+  END IF;
+  -- SEUL CELUI QUI A PARLE REPOND. Un autre joueur ne met pas de mots dans sa bouche.
+  IF c.auteur IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_votre_conference');
+  END IF;
+  IF c.statut <> 'ouverte' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'conference_close', 'statut', c.statut);
+  END IF;
+
+  SELECT * INTO e FROM public.conferences_presse_echanges
+   WHERE conference_id = p_conference_id AND rang = p_rang FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'question_inconnue');
+  END IF;
+  IF e.reponse IS NOT NULL OR e.refus THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_repondu');
+  END IF;
+
+  IF p_refus IS TRUE THEN
+    -- UN REFUS NE TERMINE PAS LA CONFERENCE. La porte ne touche pas au statut : les journalistes
+    -- peuvent enchainer, et c'est exactement l'arbitrage.
+    UPDATE public.conferences_presse_echanges
+       SET refus = true, repondu_le = now()
+     WHERE conference_id = p_conference_id AND rang = p_rang;
+    RETURN jsonb_build_object('ok', true, 'rang', p_rang, 'refus', true);
+  END IF;
+
+  v_r := nullif(btrim(coalesce(p_reponse, '')), '');
+  IF v_r IS NULL THEN
+    -- NI REPONSE NI REFUS N'EST PAS UN ETAT : il faut choisir. Un champ vide envoye par megarde
+    -- ne doit pas devenir un refus implicite.
+    RETURN jsonb_build_object('ok', false, 'raison', 'reponse_vide_sans_refus');
+  END IF;
+
+  UPDATE public.conferences_presse_echanges
+     SET reponse = left(v_r, 4000), repondu_le = now()
+   WHERE conference_id = p_conference_id AND rang = p_rang;
+
+  RETURN jsonb_build_object('ok', true, 'rang', p_rang, 'refus', false);
 END;
 $function$;
 
@@ -1164,30 +1523,6 @@ AS $function$
    WHERE pa.poste_id = 'president' AND pa.country = p_pays
      AND pa.titulaire IS NOT NULL
    LIMIT 1;
-$function$;
-
--- presidence_memoire_chronique() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.presidence_memoire_chronique()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
-  IF coalesce(btrim(coalesce(NEW.country, '')), '') = ''
-     OR coalesce(btrim(coalesce(NEW.libelle, '')), '') = '' THEN
-    RETURN NEW;                       -- une chronique sans pays ni libelle n'apprend rien
-  END IF;
-
-  PERFORM public.presidence_memoire_noter(
-    NEW.country, 'contexte', 'chronique_nationale',
-    -- LE LIBELLE DE LA CHRONIQUE, TEL QUEL. Tronque a 300 caracteres pour qu'un libelle demesure
-    -- ne remplisse pas le prompt d'Huguette, jamais reecrit.
-    left(NEW.libelle, 300),
-    jsonb_build_object('chronique', NEW.id, 'type', NEW.type, 'ville', NEW.city),
-    NULL);
-  RETURN NEW;
-END;
 $function$;
 
 -- presidence_memoire_contexte(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp

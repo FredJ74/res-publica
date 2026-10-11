@@ -28,7 +28,37 @@ CREATE TABLE public.communications_salles (
   postes text[] NOT NULL,
   forum_id text NOT NULL,
   libelle text NOT NULL,
-  note text
+  note text,
+  ordres text[] DEFAULT ARRAY[]::text[] NOT NULL
+);
+
+CREATE TABLE public.conferences_presse (
+  id text NOT NULL,
+  pays text NOT NULL,
+  building_id text NOT NULL,
+  room_id text NOT NULL,
+  auteur text NOT NULL,
+  poste_id text NOT NULL,
+  poste_libelle text,
+  ordre text NOT NULL,
+  titre text NOT NULL,
+  communication text NOT NULL,
+  statut text DEFAULT 'ouverte'::text NOT NULL,
+  cout_fr numeric DEFAULT 0 NOT NULL,
+  caisse_payeuse text,
+  chronique_id text,
+  ouverte_le timestamp with time zone DEFAULT now() NOT NULL,
+  close_le timestamp with time zone
+);
+
+CREATE TABLE public.conferences_presse_echanges (
+  conference_id text NOT NULL,
+  rang integer NOT NULL,
+  question text NOT NULL,
+  reponse text,
+  refus boolean DEFAULT false NOT NULL,
+  pose_le timestamp with time zone DEFAULT now() NOT NULL,
+  repondu_le timestamp with time zone
 );
 
 CREATE TABLE public.cycles_electoraux (

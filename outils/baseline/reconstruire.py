@@ -509,7 +509,13 @@ def controles_du_monde(cat):
     # 268 le 11 octobre 2026 : +5 pour la memoire des mandats et les tribunes -- les quatre tables
     # de presidence_memoire* et communications_salles, le registre qui dit quelle piece est une
     # tribune et quels postes y sont admis.
-    att("tables creees", len(cat.tables), 268)
+    # 270 le 11 octobre 2026 au soir : +2 pour la conference de presse. conferences_presse porte
+    # l'en-tete -- qui a parle, en quelle qualite, depuis quelle tribune, ce qu'il a declare, et
+    # comment la conference s'est terminee (normalement, ou parce qu'il a quitte la salle) --, et
+    # conferences_presse_echanges porte la matiere brute : la question posee, la reponse EXACTE, ou
+    # le refus. Les deux sont sous RLS SANS AUCUNE POLICY, et c'est ce qui rend la transcription
+    # inforgeable : aucun joueur n'y ecrit, aucune porte ne reecrit une reponse deja donnee.
+    att("tables creees", len(cat.tables), 270)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -583,8 +589,16 @@ def controles_du_monde(cat):
     # 740 / 736 le 11 octobre 2026 : +7, dont aucune surcharge -- les cinq portes de la memoire
     # des mandats (dont un declencheur) et les deux portes des tribunes officielles. payer_ordre et
     # guerre_declarer ont ete REMPLACEES et non ajoutees.
-    att("signatures de fonction creees", cat.n_fonctions, 740)
-    att("noms de fonction distincts", len(cat.fonctions), 736,
+    # 745 / 741 le 11 octobre 2026 au soir : +6 et -1, dont aucune surcharge. Les SIX neuves sont
+    # communication_financement (le resolveur de lecture seule qui dit quelle caisse paie) et les
+    # cinq portes de la conference de presse -- question_poser, repondre, clore, lire, matiere.
+    # Celle qui DISPARAIT est presidence_memoire_chronique(), le declencheur pose le matin meme :
+    # la chronique nationale est ecrite depuis le navigateur, elle ne pouvait pas attester un fait.
+    # communication_officielle_publier a ete REMPLACEE par une signature a neuf parametres, et son
+    # ancienne forme a huit a ete explicitement supprimee : deux chemins pour un meme acte, dont
+    # l'un sans la regle de financement, auraient laisse le navigateur choisir le mauvais.
+    att("signatures de fonction creees", cat.n_fonctions, 745)
+    att("noms de fonction distincts", len(cat.fonctions), 741,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -616,7 +630,16 @@ def controles_du_monde(cat):
     # version leur donnait le meme nom, ce que PostgreSQL accepte (un nom est unique par table) mais
     # que la simulation de reconstruction a refuse -- a raison, deux regles differentes sous un seul
     # nom sont illisibles dans un message d erreur.
-    att("contraintes posees", len(cat.contraintes), 468)
+    # 477 le 11 octobre 2026 au soir : +9 pour la conference de presse. TROIS sur
+    # conferences_presse -- sa cle primaire, le CHECK des trois statuts et celui qui exige qu'une
+    # conference close porte sa date. CINQ sur conferences_presse_echanges -- cle primaire
+    # (conference_id, rang) qui porte a elle seule l'ordre chronologique, cle etrangere en ON DELETE
+    # CASCADE, le CHECK du plafond de cinq questions, celui qui rend refus et reponse EXCLUSIFS (un
+    # refus n'est pas une reponse vide) et celui qui exige une date des qu'il y a une suite. Et UNE
+    # sur communications_salles : communications_ordres_non_vides, qui empeche une tribune de
+    # n'admettre aucun ordre -- sans cette liste, la porte ne validait que le COUT, et le miroir en
+    # declare 381.
+    att("contraintes posees", len(cat.contraintes), 477)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -628,7 +651,14 @@ def controles_du_monde(cat):
     # 152 le 11 octobre 2026 : +1, garde_effectifs_par_poste, qui porte la lecture par poste --
     # celle que fait la synchronisation a chaque entree dans un hall garde.
     # 153 le 11 octobre 2026 : +1, presidence_memoire_par_mandat, qui porte la lecture par mandat.
-    att("index autonomes crees", len(cat.index), 153)
+    # 155 le 11 octobre 2026 au soir : +2 sur conferences_presse. conference_par_pays_et_date porte
+    # la lecture chronologique du pays, et conference_une_seule_ouverte_par_auteur est la GARDE
+    # ANTI-DOUBLE-CLIC : un index UNIQUE partiel sur (pays, auteur) WHERE statut = 'ouverte'. Deux
+    # appels simultanes ne peuvent pas ouvrir deux conferences -- le second viole l'index et toute
+    # sa transaction est annulee, donc ni PA, ni francs, ni communication en double. Aucun delai
+    # d'expiration n'a ete invente pour cela : une conference abandonnee se referme en fermant la
+    # pop-up, ce qui est exactement ce que l'arbitrage demande.
+    att("index autonomes crees", len(cat.index), 155)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -641,7 +671,15 @@ def controles_du_monde(cat):
     # 44 le 11 octobre 2026 : +1, presidence_memoire_chronique_trg sur chronique_nationale. C est
     # lui qui couvre les TROIS producteurs de faits nationaux publics -- election, fuite, scandale --
     # sans qu aucun des trois soit modifie.
-    att("declencheurs crees", len(cat.triggers), 44)
+    # 43 le 11 octobre 2026 au soir : -1. presidence_memoire_chronique_trg a ete RETIRE le jour
+    # meme ou il avait ete pose. Il avait ete branche sur chronique_nationale en affirmant
+    # qu'aucun navigateur n'y ecrivait ; c'etait faux -- la table porte une policy INSERT ouverte a
+    # authenticated et une dizaine de hooks clients l'alimentent. N'importe quel joueur pouvait donc
+    # fabriquer un fait national et le faire entrer dans la memoire presidentielle. La correction
+    # porte sur la MEMOIRE et non sur la chronique : fermer l'INSERT client casserait une dizaine
+    # de chemins de jeu legitimes, donc c'est la memoire qui cesse de croire une table que le
+    # client ecrit. La source a rejoint presidence_memoire_sources_absentes avec son obstacle reel.
+    att("declencheurs crees", len(cat.triggers), 43)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.

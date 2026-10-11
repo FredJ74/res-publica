@@ -1272,7 +1272,7 @@
   "20_fonctions.sql": "a857ea60155880ef5161d5e1f713a41f",
   "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
   "35_index.sql": "6d12103196b5434748c11d96cbbb7e4b",
-  "50_triggers.sql": "aa7b2985b7412f2ea2c2341eaa4e9118",
+  "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
   "60_rls-policies.sql": "3eaf79a8204cc1b5a3d7296f6bc728da",
   "70_droits.sql": "03da62361d2622b3db06212cce3049de",
   "80_commentaires.sql": "cb9314670b33b7585e440be9ef6e1f84"
@@ -1862,12 +1862,6 @@
   }
  ],
  "triggers": [
-  {
-   "empreinte": "da332d0e0dae8b6a1b3bb3aedb894325",
-   "fonction": "presidence_memoire_chronique()",
-   "nom": "presidence_memoire_chronique_trg",
-   "tbl": "chronique_nationale"
-  },
   {
    "empreinte": "ae07b7663c4b92a73d65896626623a34",
    "fonction": "journal_edition_rattacher_au_titre()",

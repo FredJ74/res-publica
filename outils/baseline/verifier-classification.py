@@ -56,9 +56,14 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # qui nait vide), et ses trois registres fermes : les sources admises, les sources pas encore
 # raccordables, et les actes presidentiels memorables -- plus communications_salles, le registre
 # qui dit quelle piece est une tribune et quels postes y sont admis.
+# 273 -> 275 le 11 octobre 2026 au soir : les DEUX TABLES DE LA CONFERENCE DE PRESSE --
+# conferences_presse (l en-tete : qui a parle, en quelle qualite, depuis quelle tribune, et comment
+# la conference s est terminee) et conferences_presse_echanges (la matiere brute : question posee,
+# reponse EXACTE, ou refus). Les deux sont classees C, etat vivant pur : un monde neuf nait sans
+# aucune conference, et y semer une ligne serait fabriquer une prise de parole qui n a pas eu lieu.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 273
-EMPREINTE_LISTE = "71899f62eb53971fe2fa2e87c07c2771"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 275
+EMPREINTE_LISTE = "e7d83e1f8af4aa585e4387c417f6f6ff"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

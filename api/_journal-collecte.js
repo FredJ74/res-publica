@@ -684,7 +684,19 @@ const TYPES_CHRONIQUE = {
   // `personnages` liste les deputes ayant vote pour ou contre : estPJ est donc vrai des qu'un PJ a
   // pris part au vote. Actualite politique nationale importante par defaut, majeure selon le
   // contexte -- aucune nouvelle mecanique cote journal, lecture pure de l'existant.
-  scrutin_assemblee:           { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 }
+  scrutin_assemblee:           { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 },
+
+  // CONFERENCE DE PRESSE GOUVERNEMENTALE (raccord du 11 octobre 2026). La ligne est ecrite par
+  // `communication_officielle_publier`, DANS LA TRANSACTION de la communication : c'est la trace
+  // publique du jour, et sans ce raccord elle serait jetee ici comme « type non mappe » -- donc
+  // invisible, ce qui est exactement le defaut qu'on cherchait a ne pas reproduire.
+  //
+  // CE QUI ENTRE ICI EST LE LIBELLE, ET RIEN QUE LE LIBELLE : « <fonction> a tenu une conference
+  // de presse : "<titre>" ». La TRANSCRIPTION n'y figure pas, et ne doit jamais y figurer : les
+  // questions et les reponses attendent qu'une redaction vienne les chercher par
+  // `conference_matiere`, puis decide seule d'en publier tout, partie ou rien. Le Journal annonce
+  // qu'une conference a eu lieu ; il ne la resume pas et ne la juge pas.
+  conference_presse:           { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 }
 };
 
 // Phrase attribuee d'un scandale : ce qui est etabli est la PUBLICATION de la mise en cause, jamais

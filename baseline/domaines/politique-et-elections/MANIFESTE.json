@@ -1,6 +1,18 @@
 {
  "commentaires": [
   {
+   "empreinte": "6e1385c4ab8cf38ba163702ab8df13c1",
+   "genre": "COLUMN",
+   "objet": "communications_salles",
+   "sous": "ordres"
+  },
+  {
+   "empreinte": "ac9758f1141f54e3610a18466af6fcad",
+   "genre": "COLUMN",
+   "objet": "conferences_presse",
+   "sous": "poste_libelle"
+  },
+  {
    "empreinte": "5ad47d2fcf6de670f6e77bd3bf8b9527",
    "genre": "COLUMN",
    "objet": "elections_tracts_pnj",
@@ -49,6 +61,18 @@
    "sous": ""
   },
   {
+   "empreinte": "2f8c3ef07f474fda3817110ab84dc791",
+   "genre": "TABLE",
+   "objet": "conferences_presse",
+   "sous": ""
+  },
+  {
+   "empreinte": "94defc342d7bbe07cb9d0807797cf253",
+   "genre": "TABLE",
+   "objet": "conferences_presse_echanges",
+   "sous": ""
+  },
+  {
    "empreinte": "b64b75fd481b92990bf7ea91c9528d53",
    "genre": "TABLE",
    "objet": "presidence_memoire",
@@ -67,6 +91,18 @@
    "genre": "p",
    "nom": "communications_salles_pkey",
    "tbl": "communications_salles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "conferences_presse_pkey",
+   "tbl": "conferences_presse"
+  },
+  {
+   "empreinte": "a6f549f7cd9b6ecd4927d4a7e6f29b8e",
+   "genre": "p",
+   "nom": "conferences_presse_echanges_pkey",
+   "tbl": "conferences_presse_echanges"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -177,10 +213,46 @@
    "tbl": "elections_tracts_pnj"
   },
   {
+   "empreinte": "92b90c07a587bce663e7efa13b1a4825",
+   "genre": "c",
+   "nom": "communications_ordres_non_vides",
+   "tbl": "communications_salles"
+  },
+  {
    "empreinte": "c2dcb454d40bfb3e20a1cc47a70cd3a9",
    "genre": "c",
    "nom": "communications_postes_non_vides",
    "tbl": "communications_salles"
+  },
+  {
+   "empreinte": "56ecc51138647eb4a85fa03fcf5e2da8",
+   "genre": "c",
+   "nom": "conference_close_a_une_date",
+   "tbl": "conferences_presse"
+  },
+  {
+   "empreinte": "27ae09fa34d7c8ede148aa1478ccc021",
+   "genre": "c",
+   "nom": "conference_statut_connu",
+   "tbl": "conferences_presse"
+  },
+  {
+   "empreinte": "eb4c60d626ab84daebb2b86f0033a428",
+   "genre": "c",
+   "nom": "echange_rang_borne",
+   "tbl": "conferences_presse_echanges"
+  },
+  {
+   "empreinte": "46920653c24b326bf41348f0c00515f4",
+   "genre": "c",
+   "nom": "echange_refus_sans_reponse",
+   "tbl": "conferences_presse_echanges"
+  },
+  {
+   "empreinte": "c5af4a36608be9e9956ab74cde1545e6",
+   "genre": "c",
+   "nom": "echange_repondu_a_une_date",
+   "tbl": "conferences_presse_echanges"
   },
   {
    "empreinte": "0612128859141cc9dbb4af0d024f34ae",
@@ -217,6 +289,12 @@
    "genre": "c",
    "nom": "presidence_memoire_sources_genre_connu",
    "tbl": "presidence_memoire_sources"
+  },
+  {
+   "empreinte": "61d88a57af434473c956d4eb9b48f744",
+   "genre": "f",
+   "nom": "conferences_presse_echanges_conference_id_fkey",
+   "tbl": "conferences_presse_echanges"
   },
   {
    "empreinte": "8de64782a6a0a6335582f4033ae0e6fc",
@@ -290,19 +368,37 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb)",
+   "objet": "communication_financement(text,text,numeric)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb)",
+   "objet": "communication_financement(text,text,numeric)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb)",
+   "objet": "communication_financement(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -321,6 +417,90 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "communication_tribune(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "conference_clore(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_clore(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_clore(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "conference_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "conference_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_question_poser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_question_poser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "conference_repondre(text,integer,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_repondre(text,integer,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_repondre(text,integer,text,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -620,18 +800,6 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "presidence_memoire_chronique()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "service_role",
-   "genre": "FUNCTION",
-   "objet": "presidence_memoire_chronique()",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "postgres",
-   "genre": "FUNCTION",
    "objet": "presidence_memoire_contexte(text,integer)",
    "privileges": "EXECUTE"
   },
@@ -777,6 +945,54 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "communications_salles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "conferences_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "conferences_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "conferences_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "conferences_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "conferences_presse_echanges",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "conferences_presse_echanges",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "conferences_presse_echanges",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "conferences_presse_echanges",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1161,14 +1377,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "18c757f29bbee0a90c61b3e5acc2738d",
-  "20_fonctions.sql": "5b013a79e29c396890beb3c59f4fc149",
-  "30_contraintes.sql": "96b4c9a512b4b734a788faafd43a38b6",
-  "35_index.sql": "bfab5b41b5b68669227df4ba26995098",
+  "10_tables.sql": "cfa0062461ae1b59bd1cf0acce6aeda3",
+  "20_fonctions.sql": "9db5f1f3aeb300037b8847f007ba22c9",
+  "30_contraintes.sql": "f08030c1f90cdfee82e8afc0ebf5be37",
+  "35_index.sql": "9ad1626f42fbf2ba296839d854a1fdfe",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
-  "60_rls-policies.sql": "83c4b77672274941f902a6a34c8a2f68",
-  "70_droits.sql": "2ca3a66d746a34ac2279a85490143629",
-  "80_commentaires.sql": "7d6a31839e3a362c62dd6033ad8c5b11"
+  "60_rls-policies.sql": "67200350cc8cb641dfe7b0f332761451",
+  "70_droits.sql": "d5b3846caae83a739f876117e1b2a2b4",
+  "80_commentaires.sql": "a0975ca4dedaa777c23a28daece983d2"
  },
  "fonctions": [
   {
@@ -1192,14 +1408,44 @@
    "signature": "candidatures_cloture()"
   },
   {
-   "empreinte": "8bd1d887d359a91cdadc90464b103f28",
+   "empreinte": "bcb1f919f1887ca2e07fc82e38987876",
    "security_definer": true,
-   "signature": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb)"
+   "signature": "communication_financement(text,text,numeric)"
+  },
+  {
+   "empreinte": "7c658e54ea101d648a60046bc77f9919",
+   "security_definer": true,
+   "signature": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean)"
   },
   {
    "empreinte": "d0248284b618b0b18959c5802aa6929f",
    "security_definer": true,
    "signature": "communication_tribune(text,text)"
+  },
+  {
+   "empreinte": "cff4b5bd53351a7b4c89dc6ec003cc7d",
+   "security_definer": true,
+   "signature": "conference_clore(text,boolean)"
+  },
+  {
+   "empreinte": "6e3ff0c318adc866a8007a9cdfb8c82d",
+   "security_definer": true,
+   "signature": "conference_lire(text)"
+  },
+  {
+   "empreinte": "2397af37f0a0b3b12819548038c5e1eb",
+   "security_definer": true,
+   "signature": "conference_matiere(integer)"
+  },
+  {
+   "empreinte": "174048e2e55501fb14dc9136263ca5e4",
+   "security_definer": true,
+   "signature": "conference_question_poser(text,text)"
+  },
+  {
+   "empreinte": "5967ef0a7c23f8cddec1dffd62b7d17f",
+   "security_definer": true,
+   "signature": "conference_repondre(text,integer,text,boolean)"
   },
   {
    "empreinte": "ac07f64d79b3d43e6b4734e9c476f461",
@@ -1292,11 +1538,6 @@
    "signature": "presidence_mandat_courant(text)"
   },
   {
-   "empreinte": "d1d647a62b8087f82e979e8029324c52",
-   "security_definer": true,
-   "signature": "presidence_memoire_chronique()"
-  },
-  {
    "empreinte": "4027766910c55920d1ccd8b6b5ea55e2",
    "security_definer": true,
    "signature": "presidence_memoire_contexte(text,integer)"
@@ -1318,6 +1559,14 @@
   }
  ],
  "index_autonomes": [
+  {
+   "empreinte": "d3beb8b4c3835af8bb5c889fb96cf135",
+   "nom": "conference_par_pays_et_date"
+  },
+  {
+   "empreinte": "aed775e0fd845e7ea510e50b3c58301d",
+   "nom": "conference_une_seule_ouverte_par_auteur"
+  },
   {
    "empreinte": "dd35466a98dafe4dffd7afbc172e6e8e",
    "nom": "elections_tracts_pnj_cycle_tour"
@@ -1350,6 +1599,8 @@
  "index_portes": [
   "candidatures_pkey",
   "communications_salles_pkey",
+  "conferences_presse_echanges_pkey",
+  "conferences_presse_pkey",
   "cycles_electoraux_pkey",
   "demandes_manifestation_pkey",
   "elections_tracts_pnj_cycle_id_tour_pnj_cle_key",
@@ -1569,6 +1820,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "conferences_presse"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "conferences_presse_echanges"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "cycles_electoraux"
   },
   {
@@ -1673,10 +1934,22 @@
    "nom": "candidatures"
   },
   {
-   "colonnes": 6,
-   "empreinte_catalogue": "fb4386b75d069bd6436a7a62c75f5e15",
-   "empreinte_texte": "7f899c8db1a778d5e015cdc5c23538e3",
+   "colonnes": 7,
+   "empreinte_catalogue": "d6c3fe4dbaa41e6d96ca92b421e51182",
+   "empreinte_texte": "a8f6c145866ff1c201c6aac6e6a9533e",
    "nom": "communications_salles"
+  },
+  {
+   "colonnes": 16,
+   "empreinte_catalogue": "f9d99f4502de401cf641645f2bfea39d",
+   "empreinte_texte": "871e7192f6c837b8080e7d55a0f64358",
+   "nom": "conferences_presse"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "23f7af1ed9f63fbff43adf96e1acb9ae",
+   "empreinte_texte": "d328ed4d6365f487c00353c5332c7d7d",
+   "nom": "conferences_presse_echanges"
   },
   {
    "colonnes": 6,

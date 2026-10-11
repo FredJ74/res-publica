@@ -4,7 +4,7 @@
 -- Domaine    : socle PNJ
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 38
+-- Lignes     : 42
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -43,10 +43,14 @@ INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutabl
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('medecin', 'gamma', 'false', 'false', 'dialogue', 'Decor de soin.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('militaire', 'gamma', 'false', 'false', 'decor', 'Decor de caserne. AUCUN lien avec les 96 soldats Alpha, qui vivent au socle.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('policier', 'gamma', 'true', 'false', 'mecanique', 'Le Brigadier Local est du decor. Le METIER policier Beta, lui, est recrute par un Commissaire dans les effectifs de police : meme mot, autre nature.');
+INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('porteparole', 'gamma', 'false', 'false', 'referent', 'Porte-parole presidentiel, en Salle de presse. Gamma fixe et REFERENT de la COMMUNICATION presidentielle : conference de presse, propagande d Etat, dementi. Les ordres restent exerces par le President. Ne pas en faire un referent de toute la politique.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('portier', 'gamma', 'false', 'false', 'acces', 'Gamma fixe. Controle l''acces a la loge maconnique.');
+INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('president', 'gamma', 'false', 'false', 'institutionnel', 'Gamma fixe, fonction remplacable par un PJ. Le President PNJ RESTE present si un joueur est elu : il devient Secretaire general adjoint de la Presidence. Existence et titularite sont deux choses -- meme principe que le Commissaire et le Grand Pretre. Le titre affiche est recalcule a l entree dans la piece.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('professeur', 'gamma', 'false', 'false', 'dialogue', 'Decor.');
+INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('protocole', 'gamma', 'false', 'false', 'referent', 'Gerard Tamponneau, Chef du protocole presidentiel. Gamma fixe et REFERENT du protocole, des receptions, de l art de recevoir et de la diplomatie. Il n explique pas la communication presidentielle : il y envoie.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('redacteur', 'gamma', 'false', 'false', 'dialogue', 'Decor de redaction.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('secretaire', 'gamma', 'false', 'false', 'dialogue', 'Decor administratif.');
+INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('secretaire_general', 'gamma', 'false', 'false', 'referent', 'Huguette Papier, Secretaire generale de la Presidence. Gamma fixe et REFERENTE : la Presidence, ses pouvoirs reels et leurs limites, et la memoire des mandats. Aucune autorite : elle conseille, elle ne decide pas.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('serveur', 'gamma', 'false', 'false', 'dialogue', 'Decor de salle.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('soldat', 'gamma', 'false', 'false', 'decor', 'Decor de caserne. La fonction `soldat` existe aussi comme famille ALPHA (96 hommes au socle), recrutee par la FILIERE MILITAIRE -- candidature, affectation, section -- et jamais comme employe personnel. Le PNJ du decor n''est pas recrutable.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('syndicaliste', 'gamma', 'false', 'false', 'dialogue', 'Decor syndical.');

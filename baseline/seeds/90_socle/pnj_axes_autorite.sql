@@ -4,7 +4,7 @@
 -- Domaine    : socle PNJ
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 40
+-- Lignes     : 45
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -35,6 +35,11 @@ INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('emp
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('employe', 'position_leader', 'socle', 'Bascule du 27/09/2026 : employe_recruter / employe_liberer ecrivent pnj_membres, et la production ne contenait aucun employe a migrer. Les structures clientes (state.employes, escort_active) deviennent des projections d''affichage.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('employe', 'possessions', 'socle', 'Bascule du 27/09/2026 : employe_recruter / employe_liberer ecrivent pnj_membres, et la production ne contenait aucun employe a migrer. Les structures clientes (state.employes, escort_active) deviennent des projections d''affichage.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('employe', 'propriete', 'socle', 'Bascule du 27/09/2026 : employe_recruter / employe_liberer ecrivent pnj_membres, et la production ne contenait aucun employe a migrer. Les structures clientes (state.employes, escort_active) deviennent des projections d''affichage.');
+INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('garde_republicain', 'argent', 'socle', 'Aucun magasin concurrent : la famille nait au socle.');
+INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('garde_republicain', 'pa', 'socle', 'Sans objet en pratique : la classe beta interdit tout debit de PA.');
+INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('garde_republicain', 'position_leader', 'socle', 'AU SOCLE, et non a l institution comme pour le policier et le douanier : un garde n a pas d effectif metier dont on derive sa place. Sa piece est ecrite dans pnj_membres par la synchronisation, il ne suit aucun leader, et personne ne le deplace.');
+INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('garde_republicain', 'possessions', 'socle', 'L arme de service vit dans pnj_possessions, et c est ce qui la rend volable a la mort du garde.');
+INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('garde_republicain', 'propriete', 'socle', 'Institution `garde_republicaine`, perimetre = pays, autorite = ministre de la Defense.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('militant', 'argent', 'socle', 'Bascule du 27/09/2026 : militant_recruter ecrit pnj_membres, et militants_recrutes etait vide -- rien a migrer. Le registre historique reste alimente car sbGetMesMilitants le lit encore. La position du militant est PROPRE (il ne suit personne) et son affichage a l''universite reste pilote par enterRoom.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('militant', 'pa', 'socle', 'Bascule du 27/09/2026 : militant_recruter ecrit pnj_membres, et militants_recrutes etait vide -- rien a migrer. Le registre historique reste alimente car sbGetMesMilitants le lit encore. La position du militant est PROPRE (il ne suit personne) et son affichage a l''universite reste pilote par enterRoom.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('militant', 'position_leader', 'socle', 'Bascule du 27/09/2026 : militant_recruter ecrit pnj_membres, et militants_recrutes etait vide -- rien a migrer. Le registre historique reste alimente car sbGetMesMilitants le lit encore. La position du militant est PROPRE (il ne suit personne) et son affichage a l''universite reste pilote par enterRoom.');

@@ -3886,11 +3886,20 @@ async function sbCaserneReverserAuMinistere(montant) {
 // dur, quelle que soit la salle, ce qui interdisait a tout ministre de s'exprimer depuis la tribune
 // du Gouvernement. La porte relit l'autorite en base, preleve le cout par le chemin atteste, et
 // ecrit le sujet ET le message dans la MEME transaction.
-async function sbCommunicationPublier(buildingId, roomId, fn, pa, cost, titre, contenu, blocs) {
+//
+// `accepteSaCaisse` (11 octobre 2026) EST LE SECOND TEMPS DU FINANCEMENT, ET IL N'EST JAMAIS
+// IMPLICITE. Les francs d'une communication sortent PAR DEFAUT du budget du Ministere de
+// l'Information. S'il ne couvre pas, la porte ne debite RIEN et rend `accord_requis: true` en
+// nommant la caisse de repli -- celle du poste de celui qui parle -- et son solde. Le navigateur
+// repose alors la question a l'humain, et ne rappelle la porte avec `true` que s'il a dit oui.
+// Un refus ne coute ni franc ni point d'action : rien n'a ete ecrit au premier appel.
+async function sbCommunicationPublier(buildingId, roomId, fn, pa, cost, titre, contenu, blocs,
+                                      accepteSaCaisse) {
   const rows = await sbRpc('communication_officielle_publier', {
     p_building_id: buildingId, p_room_id: roomId, p_fn: fn,
     p_pa: Math.floor(Number(pa) || 0), p_cost: Math.floor(Number(cost) || 0),
-    p_titre: titre, p_contenu: contenu, p_blocs: blocs || []
+    p_titre: titre, p_contenu: contenu, p_blocs: blocs || [],
+    p_accepte_sa_caisse: accepteSaCaisse === true
   });
   const r = Array.isArray(rows) ? rows[0] : rows;
   return r || { ok: false, raison: 'rpc_indisponible' };
@@ -3905,6 +3914,91 @@ async function sbCommunicationTribune(buildingId, roomId) {
   }).catch(() => null);
   const r = Array.isArray(rows) ? rows[0] : rows;
   return r || { ok: false, tribune: false };
+}
+
+// ----------------------------------------------------------------------------------------------
+// LA CONFERENCE DE PRESSE (11 octobre 2026)
+// ----------------------------------------------------------------------------------------------
+// QUATRE PORTES, ET AUCUNE N'ECRIT UNE QUESTION. Les deux tables de la conference sont sous RLS
+// sans aucune policy : le navigateur ne peut ni inserer une question, ni retoucher une reponse
+// deja donnee, ni fabriquer une transcription. Il ne fait que trois choses -- repondre, refuser,
+// fermer -- et il lit ce qui a eu lieu.
+//
+// LA QUESTION, ELLE, VIENT DE /api/conference, qui la redige et l'ecrit sous identite de service.
+// Si le navigateur la recevait pour la renvoyer a l'enregistrement, il pourrait l'ecrire
+// autrement : il choisirait ce que les journalistes lui demandent.
+
+// REPONDRE, OU REFUSER DE REPONDRE. Ce sont deux etats distincts, et le refus n'est PAS une
+// reponse vide : la base les separe par contrainte. Un refus ne termine jamais la conference --
+// les journalistes peuvent enchainer, et c'est voulu.
+async function sbConferenceRepondre(conferenceId, rang, reponse, refus) {
+  const rows = await sbRpc('conference_repondre', {
+    p_conference_id: conferenceId, p_rang: Math.floor(Number(rang) || 0),
+    p_reponse: refus === true ? null : String(reponse == null ? '' : reponse),
+    p_refus: refus === true
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// FERMER LA POP-UP, C'EST METTRE FIN A LA CONFERENCE. `interrompue` distingue les deux fins, qui
+// ne se racontent pas pareil : les journalistes n'avaient plus de question, ou le responsable a
+// quitte la salle. Ce qui a eu lieu avant est conserve dans les deux cas -- la porte ne supprime
+// aucun echange. Idempotente : refermer ne leve pas.
+async function sbConferenceClore(conferenceId, interrompue) {
+  const rows = await sbRpc('conference_clore', {
+    p_conference_id: conferenceId, p_interrompue: interrompue === true
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// RELIRE CE QUI A EU LIEU. Sert a rouvrir la pop-up apres un rechargement de page sans rien
+// perdre, et c'est aussi la porte par laquelle une redaction consulte une conference nommee.
+async function sbConferenceLire(conferenceId) {
+  const rows = await sbRpc('conference_lire', { p_conference_id: conferenceId }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// LA MATIERE DE LA REDACTION. Les conferences CLOSES du pays, avec leur transcription complete,
+// reservees aux membres d'un groupe de presse -- le droit existant, pas un nouveau. Elle ne porte
+// ni titre d'article, ni angle, ni commentaire : ce travail appartient au journaliste joueur.
+async function sbConferenceMatiere(limite) {
+  const rows = await sbRpc('conference_matiere', {
+    p_limite: Math.floor(Number(limite) || 10)
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// LA QUESTION SUIVANTE. Le serveur decide s'il en reste une a poser : il ne rend `fin: true` que
+// lorsque la conference est reellement terminee. L'appel est REJOUABLE -- si une question attend
+// deja une reponse, c'est elle qui revient, et rien n'est pose en double.
+//
+// AUCUN COMPTEUR N'EST RENDU A L'AFFICHAGE : le nombre de questions n'est pas decide a l'avance,
+// et un « 3/5 » visible transformerait une conference de presse en formulaire.
+async function sbConferenceQuestion(conferenceId) {
+  const echec = { ok: false, raison: 'salle_de_presse_indisponible' };
+  if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession().catch(() => null);
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  if (!jeton) return echec;
+  try {
+    const resp = await fetch('/api/conference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ conference: conferenceId })
+    });
+    if (!resp.ok) {
+      console.warn('[conference] question indisponible : HTTP ' + resp.status);
+      return echec;
+    }
+    const data = await resp.json();
+    return (data && data.ok === true) ? data : echec;
+  } catch (e) {
+    console.warn('[conference] salle de presse injoignable');
+    return echec;
+  }
 }
 
 // ----------------------------------------------------------------------------------------------

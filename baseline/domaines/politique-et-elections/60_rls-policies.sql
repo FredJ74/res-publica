@@ -15,6 +15,8 @@
 
 ALTER TABLE public.candidatures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.communications_salles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conferences_presse ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conferences_presse_echanges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cycles_electoraux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_manifestation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.elections_tracts_pnj ENABLE ROW LEVEL SECURITY;

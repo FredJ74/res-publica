@@ -20,7 +20,7 @@
 -- MESURES DE DEPART (11 octobre 2026) : memoire vide, aucun President joueur a Republia.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc memoire : LES 21 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc memoire : LES 22 EPREUVES SONT VERTES. -- rien ne doit rester
 
 BEGIN;
 
@@ -209,8 +209,14 @@ BEGIN
   UPDATE public.postes_attribues SET depuis = T2
    WHERE country = 'republic' AND poste_id = 'president';
 
-  v := public.presidence_memoire_noter('republic', 'contexte', 'election_presidentielle',
-         'le second mandat s ouvre', '{}'::jsonb, NULL);
+  -- LA SOURCE A CHANGE LE 11 OCTOBRE 2026, ET CE N'EST PAS UN DETAIL DE BANC. `election_
+  -- presidentielle` a ete RETIREE des sources declarees : elle n'etait alimentee que par le
+  -- declencheur de chronique, lui-meme retire parce que la chronique nationale est ecrite depuis
+  -- le navigateur. Garder ce libelle ici aurait fait rougir l'epreuve pour une bonne raison --
+  -- la source n'existe plus -- et masque ce qu'elle teste vraiment : LA SEPARATION DES MANDATS.
+  -- On la rejoue donc sur une source toujours attestee, et l'epreuve garde son objet.
+  v := public.presidence_memoire_noter('republic', 'contexte', 'guerre_subie',
+         'une seconde guerre, sous le second mandat', '{"attaquant":"kolkhoze"}'::jsonb, NULL);
   n := n + 1;   -- E17 : le fait neuf porte le NOUVEAU mandat
   IF coalesce((v->>'enregistre')::boolean, false) IS NOT TRUE
      OR (v->>'mandat_depuis')::timestamptz <> T2 THEN
@@ -244,11 +250,24 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
 
-  n := n + 1;   -- E21 : mais il peut la LIRE -- c'est ce dont Huguette a besoin
-  v := public.presidence_memoire_contexte('republic', 12);
+  n := n + 1;   -- E21 : mais il peut la LIRE -- c'est ce dont Huguette a besoin.
+                -- PAR LA PORTE SANS PAYS, ET C'EST UNE CORRECTION DE BANC DU 11 OCTOBRE 2026.
+                -- `presidence_memoire_contexte(text,int)` prend le pays en parametre : la laisser
+                -- ouverte au navigateur aurait permis de lire la memoire presidentielle d'un AUTRE
+                -- empire. Elle a donc ete REVOQUEE le jour ou `presidence_memoire_mon_pays()` est
+                -- apparue, qui relit le pays de l'acteur en base. Le banc interrogeait encore
+                -- l'ancienne : il levait un refus de privilege, et personne ne l'avait rejoue.
+  v := public.presidence_memoire_mon_pays();
   IF coalesce((v->>'ok')::boolean, false) IS NOT TRUE THEN
-    ko := ko + 1; v_echecs := v_echecs || E'\nE21 un joueur ne peut pas lire la memoire : ' || v::text;
+    ko := ko + 1; v_echecs := v_echecs || E'\nE21 un joueur ne peut pas lire la memoire de son pays : ' || v::text;
   END IF;
+  n := n + 1;   -- E22 : ET LA PORTE AVEC PAYS EXPLICITE LUI EST FERMEE. Sans cette contre-epreuve,
+                -- E21 passerait aussi si les deux portes etaient ouvertes.
+  BEGIN
+    v := public.presidence_memoire_contexte('narco', 12);
+    ko := ko + 1; v_echecs := v_echecs || E'\nE22 un joueur a lu la memoire d un pays choisi par lui';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
 
   PERFORM pg_temp.je_suis_le_serveur();
 

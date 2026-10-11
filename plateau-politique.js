@@ -4855,7 +4855,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
   const auteur = state.char?.name || 'Le Président';
   const time = formatDateHeureJeu();
 
-  let titre, contenu, blocs = [], topicServeur = null, tempsServeur = null;
+  let titre, contenu, blocs = [], topicServeur = null, tempsServeur = null, conferenceAOuvrir = null;
   if (type === 'referendum') {
     titre = document.getElementById('pres-ref-question')?.value?.trim();
     const rep1 = document.getElementById('pres-ref-rep1')?.value?.trim();
@@ -4883,23 +4883,66 @@ async function publierMessagePresidentiel(type, pa, cost) {
     // partent ensemble -- il n'est plus possible de payer une conference et de n'avoir ni sujet
     // ni message, ce que les deux appels REST separes permettaient.
     if (TYPES_DE_TRIBUNE[type] && typeof sbCommunicationPublier === 'function') {
-      const r = await sbCommunicationPublier(
+      // LE FINANCEMENT SE JOUE EN DEUX TEMPS, ET LE PREMIER N'ECRIT RIEN. Les francs sortent par
+      // defaut du budget du Ministere de l'Information. S'il ne couvre pas, le serveur refuse
+      // SANS RIEN DEBITER et nomme la caisse de repli -- celle de la fonction de celui qui parle.
+      // On repose alors la question ici, et on ne rappelle la porte qu'avec un oui explicite.
+      // Un refus ne coute ni franc ni point d'action.
+      let surSaCaisse = false;
+      let r = await sbCommunicationPublier(
         state.currentBuilding, state.currentRoom, TYPES_DE_TRIBUNE[type],
-        pa, cost, '[' + type.toUpperCase() + '] ' + titre, contenu, blocs).catch(() => null);
+        pa, cost, '[' + type.toUpperCase() + '] ' + titre, contenu, blocs, false).catch(() => null);
+
+      if (r && r.ok !== true && r.accord_requis === true) {
+        const accepte = await demanderAccordFinancementTribune(r);
+        surSaCaisse = accepte === true;
+        if (!accepte) {
+          showToast('Communication annulée', 'Aucun franc et aucun PA n\'ont été prélevés.', false);
+          return;
+        }
+        r = await sbCommunicationPublier(
+          state.currentBuilding, state.currentRoom, TYPES_DE_TRIBUNE[type],
+          pa, cost, '[' + type.toUpperCase() + '] ' + titre, contenu, blocs, true).catch(() => null);
+      }
+
       if (!r || r.ok !== true) {
         const raison = r && r.raison;
+        const fr = v => Number(v || 0).toLocaleString('fr-FR');
         showToast('Publication refusée',
           raison === 'poste_non_admis_dans_cette_tribune'
             ? 'Cette tribune est réservée à ' + (r.libelle || 'd\'autres titulaires') + '.'
           : raison === 'salle_sans_tribune' ? 'On ne prend pas la parole officiellement depuis cette pièce.'
-          : raison === 'pa_insuffisants' ? 'Pas assez de PA.'
+          : raison === 'ordre_etranger_a_la_tribune' ? 'Cette prise de parole n\'a pas sa place dans cette tribune.'
+          : raison === 'pa_insuffisants'
+            ? 'Pas assez de PA (' + fr(r.pa_reel) + ' sur ' + fr(r.requis) + ' requis).'
+          : raison === 'les_deux_caisses_insuffisantes'
+            ? 'Ni le budget de l\'Information (' + fr(r.solde_information) + ' FR) ni la caisse de '
+              + 'votre fonction (' + fr(r.solde_proposee) + ' FR) ne couvrent ' + fr(r.cout) + ' FR.'
+          : raison === 'caisse_insuffisante_au_verrou'
+            ? 'Le solde de la caisse a changé entre-temps : rien n\'a été prélevé.'
+          : raison === 'conference_deja_ouverte'
+            ? 'Vous tenez déjà une conférence de presse. Terminez-la avant d\'en ouvrir une autre.'
           : raison === 'fonds_insuffisants' ? 'Fonds insuffisants.'
           : raison === 'titre_ou_contenu_vide' ? 'Titre et contenu obligatoires.'
           : 'Action impossible.', false);
+        // LA CONFERENCE DEJA OUVERTE N'EST PAS PERDUE : on rouvre sa pop-up au lieu de la laisser
+        // bloquer toute nouvelle prise de parole sans moyen de la terminer.
+        if (raison === 'conference_deja_ouverte' && r.conference) {
+          ouvrirConferenceDePresse(r.conference);
+        }
         return;
       }
       topicServeur = r.topic;
       tempsServeur = r.temps;
+      conferenceAOuvrir = r.conference || null;
+      // QUELLE CAISSE A PAYE : on le sait sans le redemander au serveur, parce que la caisse de
+      // repli n'est utilisee QUE si l'humain a dit oui au second temps du financement.
+      if (r.caisse_payeuse && cost > 0) {
+        addJournalEntry('Communication officielle « ' + titre + ' » — '
+          + Number(r.cout || 0).toLocaleString('fr-FR') + ' FR prélevés sur '
+          + (surSaCaisse ? 'la caisse institutionnelle de votre fonction'
+                         : 'le budget du Ministère de l\'Information') + '.', 'event-info');
+      }
     } else {
       const rMsg = await deduireCoutOrdre({ pa, cost });
       if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
@@ -4944,6 +4987,308 @@ async function publierMessagePresidentiel(type, pa, cost) {
   showToast('Publié !', titre + (efParts.length ? ' · ' + efParts.join(' ') : ''), true, true);
   addJournalEntry('Publication présidentielle : ' + titre, 'event-good');
   addExternalEvent('PRESIDENCE : ' + titre + (type === 'deuil' ? ' — Journée de deuil national.' : ''));
+
+  // LES JOURNALISTES ACCREDITES SONT DEJA DANS LA SALLE. Toute communication gouvernementale
+  // ouvre une conference de presse : ce n'est pas une option, et ce n'est pas le navigateur qui
+  // en decide -- le serveur l'a ouverte dans la MEME transaction que la publication, et nous
+  // rend son identifiant. On ne fait ici que montrer la salle.
+  if (conferenceAOuvrir) ouvrirConferenceDePresse(conferenceAOuvrir);
+}
+
+// =====================
+// LA CONFERENCE DE PRESSE (11 octobre 2026)
+// =====================
+// CE N'EST PAS UN FORMULAIRE DE CINQ QUESTIONS. Rien n'est prepare a l'avance : une question
+// arrive, on y repond ou on refuse d'y repondre, l'echange reste a l'ecran, et les journalistes
+// decident alors s'il leur reste un angle. Entre une et cinq questions ; le nombre n'est connu de
+// personne au moment ou la conference s'ouvre, et AUCUN COMPTEUR N'EST AFFICHE : un « 3/5 » a
+// l'ecran transformerait la salle de presse en questionnaire.
+//
+// UN REFUS DE REPONDRE NE TERMINE RIEN. C'est une reponse politique comme une autre, et les
+// journalistes peuvent enchainer -- c'est le serveur qui le garantit, sa porte ne touche pas au
+// statut de la conference sur un refus.
+//
+// FERMER LA POP-UP MET FIN A LA CONFERENCE, IMMEDIATEMENT. Il n'y a donc qu'une seule sortie, et
+// elle est explicite : pas de clic dans le vide, pas de touche Echap, pas de fermeture
+// accidentelle. Ce qui a eu lieu avant est conserve, et la fin est enregistree comme une
+// INTERRUPTION -- une redaction a le droit de savoir qu'un ministre a quitte la salle.
+//
+// LES PAROLES DU MINISTRE SONT INTANGIBLES. Ce code n'a aucun moyen de modifier une reponse deja
+// envoyee, et ce n'est pas une politesse d'interface : la porte serveur refuse un echange deja
+// renseigne, et les deux tables sont fermees au navigateur.
+let conferenceEnCours = null;
+
+async function ouvrirConferenceDePresse(conferenceId) {
+  if (!conferenceId || typeof sbConferenceLire !== 'function') return;
+  conferenceEnCours = { id: conferenceId, fonction: null, titre: null, echanges: [],
+                        rang: null, question: null, etat: 'chargement', message: null };
+  dessinerConferenceDePresse();
+
+  const lu = await sbConferenceLire(conferenceId).catch(() => null);
+  if (!lu || lu.ok !== true) {
+    conferenceEnCours.etat = 'panne';
+    conferenceEnCours.message = 'La salle de presse est momentanément inaccessible.';
+    dessinerConferenceDePresse();
+    return;
+  }
+  const c = lu.conference || {};
+  conferenceEnCours.fonction = c.fonction || c.auteur || null;
+  conferenceEnCours.titre = c.titre || null;
+  conferenceEnCours.echanges = Array.isArray(lu.echanges) ? lu.echanges : [];
+  if (c.statut && c.statut !== 'ouverte') {
+    conferenceEnCours.etat = 'close';
+    dessinerConferenceDePresse();
+    return;
+  }
+  await avancerConferenceDePresse();
+}
+
+// LA QUESTION SUIVANTE EST DEMANDEE AU SERVEUR, qui seul decide s'il en reste une. Il ne rend
+// `fin` que lorsque la conference est reellement terminee -- soit parce que les journalistes
+// n'ont plus d'angle, soit parce que le maximum est atteint.
+async function avancerConferenceDePresse() {
+  if (!conferenceEnCours) return;
+  conferenceEnCours.etat = 'attente';
+  conferenceEnCours.question = null;
+  conferenceEnCours.rang = null;
+  dessinerConferenceDePresse();
+
+  const r = (typeof sbConferenceQuestion === 'function')
+    ? await sbConferenceQuestion(conferenceEnCours.id).catch(() => null) : null;
+  if (!conferenceEnCours) return;
+
+  if (!r || r.ok !== true) {
+    // LA COMMUNICATION N'EST PAS ANNULEE POUR AUTANT : elle est publiee, payee et enregistree.
+    // Seule la question manque, et on propose de redemander -- jamais de tout recommencer.
+    conferenceEnCours.etat = 'panne';
+    conferenceEnCours.message = 'Les journalistes n\'ont pas pu poser leur question.';
+    dessinerConferenceDePresse();
+    return;
+  }
+  if (Array.isArray(r.echanges)) conferenceEnCours.echanges = r.echanges;
+  if (r.fin === true) {
+    conferenceEnCours.etat = 'close';
+    dessinerConferenceDePresse();
+    return;
+  }
+  conferenceEnCours.rang = r.rang;
+  conferenceEnCours.question = r.question;
+  conferenceEnCours.etat = 'question';
+  dessinerConferenceDePresse();
+  const champ = document.getElementById('conf-reponse');
+  if (champ) champ.focus();
+}
+
+// REPONDRE, OU REFUSER. Les deux passent par la meme porte serveur, qui les distingue : un refus
+// n'est pas une reponse vide, et il ne clot pas la conference.
+async function repondreConferenceDePresse(refus) {
+  if (!conferenceEnCours || conferenceEnCours.etat !== 'question') return;
+  const champ = document.getElementById('conf-reponse');
+  const texte = refus ? '' : String((champ && champ.value) || '').trim();
+  if (!refus && !texte) {
+    showToast('Réponse vide', 'Répondez, ou refusez explicitement de répondre.', false);
+    return;
+  }
+  const rang = conferenceEnCours.rang;
+  conferenceEnCours.etat = 'envoi';
+  dessinerConferenceDePresse();
+
+  const r = (typeof sbConferenceRepondre === 'function')
+    ? await sbConferenceRepondre(conferenceEnCours.id, rang, texte, refus === true).catch(() => null)
+    : null;
+  if (!conferenceEnCours) return;
+  if (!r || r.ok !== true) {
+    const raison = r && r.raison;
+    conferenceEnCours.etat = 'question';
+    dessinerConferenceDePresse();
+    showToast('Réponse non enregistrée',
+      raison === 'deja_repondu' ? 'Cette question a déjà sa réponse.'
+      : raison === 'conference_close' ? 'La conférence est terminée.'
+      : raison === 'pas_votre_conference' ? 'Ce n\'est pas votre conférence.'
+      : 'La salle de presse est momentanément indisponible.', false);
+    return;
+  }
+  // L'ECHANGE EST ACQUIS ET RESTE A L'ECRAN. On le tient localement en attendant que le serveur
+  // renvoie la transcription complete au prochain tour.
+  conferenceEnCours.echanges = (conferenceEnCours.echanges || []).filter(e => e.rang !== rang)
+    .concat([{ rang, question: conferenceEnCours.question,
+               reponse: refus ? null : texte, refus: refus === true }])
+    .sort((a, b) => a.rang - b.rang);
+  await avancerConferenceDePresse();
+}
+
+// QUITTER LA SALLE MET FIN A LA CONFERENCE. Le serveur enregistre une INTERRUPTION, et plus
+// aucune question ne pourra s'y ajouter : sa porte refuse une question sur une conference close.
+async function quitterConferenceDePresse() {
+  const id = conferenceEnCours && conferenceEnCours.id;
+  const avaitDesEchanges = !!(conferenceEnCours && (conferenceEnCours.echanges || []).length);
+  conferenceEnCours = null;
+  const el = document.getElementById('conference-presse-overlay');
+  if (el) el.remove();
+  if (id && typeof sbConferenceClore === 'function') {
+    await sbConferenceClore(id, true).catch(() => null);
+  }
+  showToast('Conférence terminée',
+    avaitDesEchanges ? 'Vous avez quitté la salle de presse.'
+                     : 'Vous avez quitté la salle sans répondre.', true);
+}
+
+// FERMETURE D'UNE CONFERENCE DEJA TERMINEE PAR LES JOURNALISTES. Rien a clore : le serveur l'a
+// deja fait, et rappeler la porte transformerait une fin normale en interruption.
+function fermerConferenceDePresse() {
+  conferenceEnCours = null;
+  const el = document.getElementById('conference-presse-overlay');
+  if (el) el.remove();
+}
+
+function dessinerConferenceDePresse() {
+  let el = document.getElementById('conference-presse-overlay');
+  if (!conferenceEnCours) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'conference-presse-overlay';
+    // AUCUN onclick SUR LE FOND. La pop-up ne se ferme que par un bouton explicite, parce que la
+    // fermer met fin a la conference : un clic a cote ne doit pas couper la parole aux
+    // journalistes.
+    el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;'
+      + 'background:rgba(0,0,0,.92);z-index:99998;display:flex;align-items:center;'
+      + 'justify-content:center;padding:1rem';
+    document.body.appendChild(el);
+  }
+  const esc = (typeof escapeHtmlText === 'function')
+    ? escapeHtmlText : (t => String(t == null ? '' : t));
+  const c = conferenceEnCours;
+
+  let h = '<div style="width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;'
+        + 'background:#0d0e06;border:1px solid #2a2010">';
+  h += '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">';
+  h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;'
+     + 'color:#C9A84C">SALLE DE PRESSE — JOURNALISTES ACCRÉDITÉS</div>';
+  if (c.fonction || c.titre) {
+    h += '<div style="font-size:.72rem;color:#8a8060;margin-top:.2rem">'
+       + esc(c.fonction || '') + (c.titre ? ' · « ' + esc(c.titre) + ' »' : '') + '</div>';
+  }
+  h += '</div>';
+
+  h += '<div id="conf-fil" style="flex:1;overflow-y:auto;padding:1rem">';
+  (c.echanges || []).forEach(e => {
+    h += '<div style="margin-bottom:.9rem">';
+    h += '<div style="font-size:.78rem;color:#9a9ab0;font-style:italic">— ' + esc(e.question) + '</div>';
+    if (e.refus) {
+      h += '<div style="font-size:.78rem;color:#8a6a40;margin-top:.25rem">'
+         + 'Vous avez refusé de répondre.</div>';
+    } else if (e.reponse) {
+      h += '<div style="font-size:.8rem;color:#f0ead6;margin-top:.25rem;white-space:pre-wrap">'
+         + esc(e.reponse) + '</div>';
+    }
+    h += '</div>';
+  });
+
+  if (c.etat === 'question') {
+    h += '<div style="border-top:1px solid #1a1810;padding-top:.8rem">';
+    h += '<div style="font-size:.82rem;color:#E8D880;font-style:italic;margin-bottom:.5rem">— '
+       + esc(c.question) + '</div>';
+    h += '<textarea id="conf-reponse" rows="4" placeholder="Votre réponse..." '
+       + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+       + 'font-family:Crimson Pro,serif;font-size:.84rem;outline:none;resize:vertical"></textarea>';
+    h += '</div>';
+  } else if (c.etat === 'attente' || c.etat === 'envoi' || c.etat === 'chargement') {
+    h += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;padding:.6rem 0">'
+       + (c.etat === 'envoi' ? 'Vous répondez...' : 'Les journalistes se consultent...') + '</div>';
+  } else if (c.etat === 'close') {
+    h += '<div style="border-top:1px solid #1a1810;padding-top:.8rem;font-size:.8rem;color:#8a8060">'
+       + 'Les journalistes n\'ont plus de questions. La conférence est terminée.</div>';
+  } else if (c.etat === 'panne') {
+    h += '<div style="border-top:1px solid #1a1810;padding-top:.8rem;font-size:.8rem;color:#8a6a40">'
+       + esc(c.message || '') + '<br/>Votre communication, elle, est bien publiée.</div>';
+  }
+  h += '</div>';
+
+  const bouton = (action, libelle, couleur) =>
+    '<button onclick="' + action + '" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;'
+    + 'letter-spacing:.08em;padding:.45rem .9rem;border:1px solid ' + couleur + ';'
+    + 'background:transparent;color:' + couleur + ';cursor:pointer">' + libelle + '</button>';
+
+  h += '<div style="padding:.7rem 1rem;border-top:1px solid #1a1810;display:flex;gap:.5rem;'
+     + 'flex-wrap:wrap;align-items:center">';
+  if (c.etat === 'question') {
+    h += bouton('repondreConferenceDePresse(false)', 'Répondre', '#C9A84C');
+    h += bouton('repondreConferenceDePresse(true)', 'Refuser de répondre', '#8a6a40');
+    h += '<div style="margin-left:auto">'
+       + bouton('quitterConferenceDePresse()', 'Quitter la salle', '#7a4a3a') + '</div>';
+  } else if (c.etat === 'close') {
+    h += '<div style="margin-left:auto">'
+       + bouton('fermerConferenceDePresse()', 'Fermer', '#C9A84C') + '</div>';
+  } else if (c.etat === 'panne') {
+    h += bouton('avancerConferenceDePresse()', 'Redemander', '#C9A84C');
+    h += '<div style="margin-left:auto">'
+       + bouton('quitterConferenceDePresse()', 'Quitter la salle', '#7a4a3a') + '</div>';
+  } else {
+    h += '<div style="margin-left:auto">'
+       + bouton('quitterConferenceDePresse()', 'Quitter la salle', '#7a4a3a') + '</div>';
+  }
+  h += '</div></div>';
+  el.innerHTML = h;
+  const fil = document.getElementById('conf-fil');
+  if (fil) fil.scrollTop = fil.scrollHeight;
+}
+
+// =====================
+// LE SECOND TEMPS DU FINANCEMENT D'UNE COMMUNICATION
+// =====================
+// LE SERVEUR A DEJA REFUSE SANS RIEN DEBITER. Cette fenetre ne decide rien : elle pose a l'humain
+// la seule question que le serveur ne peut pas trancher a sa place -- accepte-t-il que la depense
+// soit prise EN ENTIER sur la caisse institutionnelle de sa propre fonction ?
+//
+// PAS DE FINANCEMENT MIXTE, ET LA FENETRE LE DIT. Ce n'est pas un complement : c'est la TOTALITE
+// du cout, sur une seule caisse. Les soldes affiches sont ceux que le serveur vient de lire.
+function demanderAccordFinancementTribune(refus) {
+  return new Promise(resolve => {
+    const fr = v => Number(v || 0).toLocaleString('fr-FR');
+    const cout = fr(refus.cout);
+    const possible = refus.proposee_suffisante === true;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;'
+      + 'background:rgba(0,0,0,.9);z-index:99997;display:flex;align-items:center;'
+      + 'justify-content:center;padding:1rem';
+    let fini = false;
+    const repondre = v => { if (fini) return; fini = true; overlay.remove(); resolve(v); };
+    window.__accordFinancementTribune = repondre;
+
+    let h = '<div style="width:100%;max-width:520px;background:#0d0e06;border:1px solid #2a2010;'
+          + 'padding:1rem">';
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;'
+       + 'color:#C9A84C;margin-bottom:.6rem">FINANCEMENT DE LA COMMUNICATION</div>';
+    h += '<div style="font-size:.8rem;color:#c0b090;line-height:1.5">'
+       + 'Le budget du Ministère de l\'Information ne couvre pas cette communication : '
+       + fr(refus.solde_information) + ' FR disponibles pour ' + cout + ' FR nécessaires.</div>';
+    if (possible) {
+      h += '<div style="font-size:.8rem;color:#c0b090;line-height:1.5;margin-top:.6rem">'
+         + 'La dépense peut être prise <b>en entier</b> sur la caisse institutionnelle de votre '
+         + 'fonction, qui dispose de ' + fr(refus.solde_proposee) + ' FR. Il n\'y a pas de '
+         + 'financement partagé : ce sont ' + cout + ' FR sur cette seule caisse.</div>';
+    } else {
+      h += '<div style="font-size:.8rem;color:#8a6a40;line-height:1.5;margin-top:.6rem">'
+         + 'La caisse institutionnelle de votre fonction ne le couvre pas davantage : '
+         + fr(refus.solde_proposee) + ' FR. La communication est impossible aujourd\'hui.</div>';
+    }
+    h += '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-top:.6rem">'
+       + 'Rien n\'a été prélevé pour l\'instant — ni francs, ni points d\'action.</div>';
+    h += '<div style="display:flex;gap:.5rem;margin-top:.9rem">';
+    if (possible) {
+      h += '<button onclick="window.__accordFinancementTribune(true)" '
+         + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;'
+         + 'padding:.45rem .9rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;'
+         + 'cursor:pointer">Payer ' + cout + ' FR sur ma caisse</button>';
+    }
+    h += '<button onclick="window.__accordFinancementTribune(false)" '
+       + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;'
+       + 'padding:.45rem .9rem;border:1px solid #7a4a3a;background:transparent;color:#7a4a3a;'
+       + 'cursor:pointer;margin-left:auto">' + (possible ? 'Renoncer' : 'Fermer') + '</button>';
+    h += '</div></div>';
+    overlay.innerHTML = h;
+    document.body.appendChild(overlay);
+  });
 }
 
 // =====================

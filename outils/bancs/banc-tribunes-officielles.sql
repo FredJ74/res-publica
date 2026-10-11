@@ -43,7 +43,7 @@ DECLARE
   GOUV text := 'palais-gouvernement'; SPG text := 'salle_presse';
   ELY  text := 'palais-presidentiel';  SPE text := 'salle_presse_elysee';
   v jsonb; n integer := 0; ko integer := 0; v_echecs text := '';
-  v_n integer; v_t integer; v_p integer; v_pa integer;
+  v_n integer; v_t integer; v_p integer; v_pa integer; v_conf text;
 BEGIN
   PERFORM pg_temp.je_suis_le_serveur();
   -- DECOR : Arnie ministre de la Defense (reel), Ben President, Lee simple citoyenne.
@@ -92,6 +92,20 @@ BEGIN
   IF v_pa <> 10 THEN
     ko := ko + 1; v_echecs := v_echecs || E'\nE6 les 2 PA n ont pas ete preleves (pa=' || v_pa::text || ')';
   END IF;
+
+  -- MAINTENANCE DU 11 OCTOBRE 2026. Une communication officielle ouvre desormais une CONFERENCE
+  -- DE PRESSE, et un auteur n'en tient qu'une a la fois -- c'est la garde anti-double-clic. Le
+  -- controle de cette unicite est place AVANT celui des PA dans la porte, volontairement : on ne
+  -- verifie pas la monnaie de quelqu'un a qui on va de toute facon refuser la parole.
+  --
+  -- CONSEQUENCE POUR CE BANC : la conference ouverte par E1 doit etre close ici. Sans cela, le
+  -- refus attendu en E16 -- « pas assez de PA » -- serait masque par « conference deja ouverte »,
+  -- et le banc resterait vert POUR LA MAUVAISE RAISON. C'est exactement le genre de faux succes
+  -- qu'on refuse : on ferme la premisse au lieu d'assouplir l'assertion.
+  FOR v_conf IN SELECT id FROM public.conferences_presse
+                 WHERE auteur = ARNIE AND statut = 'ouverte' LOOP
+    PERFORM public.conference_clore(v_conf, false);
+  END LOOP;
 
   -- ===========================================================================================
   -- B. LES CONTRE-EPREUVES D'AUTORITE
