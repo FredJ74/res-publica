@@ -42,8 +42,17 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # LES DEUX VALEURS VIENNENT DE LA BASE, pas du CSV, et c'est tout le point de ce controle : elles
 # sont relevees par la requete citee en commentaire, puis comparees a ce que le CSV recalcule. Les
 # poser depuis le CSV rendrait la verification circulaire -- elle ne dirait plus rien.
-TABLES_ATTENDUES = 265
-EMPREINTE_LISTE = "782a89e55e57c9b6e6015bd240fb3efa"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 265 -> 268 le 11 octobre 2026, avec la Garde republicaine : garde_republicaine_postes -- la
+# DECLARATION des trois lieux ou la Garde tient faction, qui est ce qui la rend generique plutot
+# que codee batiment par batiment --, garde_republicaine_renfort -- le facteur national et son
+# UNIQUE echeance par pays, celle qui empeche de prolonger la Garde en la tuant -- et
+# garde_republicaine_effectifs, qui dit seulement lequel des gardes est le permanent de son poste.
+# L'etat vivant des gardes eux-memes reste au socle PNJ : aucune de ces trois tables ne duplique
+# pnj_membres.
+# LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee, et
+# non recopiees du CSV.
+TABLES_ATTENDUES = 268
+EMPREINTE_LISTE = "cff06bf475d259ca640e020adf733a26"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

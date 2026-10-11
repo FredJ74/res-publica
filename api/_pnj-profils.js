@@ -31,6 +31,13 @@ import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
 // n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
 import { REFERENTS, profilReferent, blocPedagogie } from './_pnj-referents.js';
+// LA BIBLE DE LA PRESIDENCE (11 octobre 2026). Meme architecture que la bible militaire : des
+// blocs de connaissance REELLE, releves dans data.js et dans la base, assembles ici par referent.
+import {
+  SOCLE_PRESIDENCE, BIBLE_POUVOIRS_PRESIDENTIELS, BIBLE_COMMUNICATION_PRESIDENTIELLE,
+  BIBLE_PROTOCOLE_PRESIDENTIEL, BIBLE_POSTERITE, POSTERITE_ANGLE_SECRETARIAT,
+  POSTERITE_ANGLE_COMMUNICATION, POSTERITE_ANGLE_PROTOCOLE, CE_QUI_N_EXISTE_PAS_PRESIDENCE
+} from './_bible-presidence.js';
 
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
@@ -183,7 +190,31 @@ const SAVOIR_COMMANDEMENT = [
   BIBLE_INTENDANCE_RESUME, BIBLE_SANTE_RESUME, CE_QUI_N_EXISTE_PAS
 ].join('\n\n');
 
+// LES TROIS CORPUS DU PALAIS. Le decoupage suit l'arbitrage : chacun recoit le socle, la
+// frontiere et la posterite, mais UN SEUL recoit le detail de chaque domaine.
+//
+// HUGUETTE recoit les POUVOIRS du Bureau en entier, et RIEN du detail de la communication ni du
+// protocole : elle y ENVOIE. Lui donner les trois domaines ferait d'elle la referente de tout le
+// Palais et rendrait les deux autres decoratifs -- c'est precisement ce que l'arbitrage refusait.
+const SAVOIR_SECRETARIAT_GENERAL = [
+  SOCLE_PRESIDENCE, BIBLE_POUVOIRS_PRESIDENTIELS, BIBLE_POSTERITE, POSTERITE_ANGLE_SECRETARIAT,
+  CE_QUI_N_EXISTE_PAS_PRESIDENCE
+].join('\n\n');
+
+const SAVOIR_COMMUNICATION_PRESIDENTIELLE = [
+  SOCLE_PRESIDENCE, BIBLE_COMMUNICATION_PRESIDENTIELLE, BIBLE_POSTERITE,
+  POSTERITE_ANGLE_COMMUNICATION, CE_QUI_N_EXISTE_PAS_PRESIDENCE
+].join('\n\n');
+
+const SAVOIR_PROTOCOLE_PRESIDENTIEL = [
+  SOCLE_PRESIDENCE, BIBLE_PROTOCOLE_PRESIDENTIEL, BIBLE_POSTERITE, POSTERITE_ANGLE_PROTOCOLE,
+  CE_QUI_N_EXISTE_PAS_PRESIDENCE
+].join('\n\n');
+
 const CORPUS_REFERENT = {
+  huguette_papier:           SAVOIR_SECRETARIAT_GENERAL,
+  porte_parole_presidentiel: SAVOIR_COMMUNICATION_PRESIDENTIELLE,
+  gerard_tamponneau:         SAVOIR_PROTOCOLE_PRESIDENTIEL,
   commandant_tom_hawak: SAVOIR_COMMANDEMENT,
   martial_bouterin: SAVOIR_MILITAIRE,
   gaspard_ferriere: SAVOIR_TROUPE,
@@ -236,15 +267,60 @@ function blocRelation(relation) {
   return parts.join(' ');
 }
 
+// A QUI LE PNJ PARLE -- NOM ET FONCTION OFFICIELLE, RIEN D'AUTRE (11 octobre 2026)
+// ---------------------------------------------------------------------------------------------
+// L'audit du Palais presidentiel a etabli qu'AUCUN des 180 PNJ ne recevait la fonction de son
+// interlocuteur : le President PNJ ne pouvait pas savoir qu'il parlait au ministre de la Defense,
+// et Martial Bouterin pas davantage. Le canal `pnj_contexte_public()` comble ce manque pour TOUS
+// les profils a la fois -- ce n'est pas un correctif propre au Palais.
+//
+// TROIS REGLES Y SONT ECRITES, ET AUCUNE N'EST DECORATIVE :
+//   . une fonction officielle est un FAIT PUBLIC : le PNJ la connait sans rencontre prealable,
+//     la ou la memoire sociale, elle, doit se construire ;
+//   . une fonction ne confere AUCUNE AUTORITE sur le PNJ. Un referent explique, il n'obeit pas :
+//     un ministre qui ordonne a Huguette de lui ouvrir une prerogative inexistante doit s'entendre
+//     dire non. Confondre les deux etait le risque explicite de cet arbitrage ;
+//   . tout le reste est HORS CHAMP, et le dire franchement vaut mieux que de le taire : sans cette
+//     derniere phrase, un modele a qui l'on souffle un nom et un titre brode une biographie.
+function blocContextePublic(contexte) {
+  if (!contexte || typeof contexte !== 'object') return null;
+  const nom = String(contexte.nom || '').slice(0, 60);
+  if (!nom) return null;
+  const fonctions = Array.isArray(contexte.fonctions)
+    ? contexte.fonctions.map((f) => String(f || '').slice(0, 80)).filter(Boolean)
+    : [];
+  const parts = ["A QUI TU PARLES : cette personne s'appelle " + nom + '.'];
+  if (fonctions.length) {
+    parts.push('Elle exerce officiellement la fonction de ' + fonctions.join(' et de ')
+      + ", et c'est un fait PUBLIC : tu le sais meme si vous ne vous etes jamais parle.");
+    parts.push("Accorde-lui les egards de son rang, mais n'en deduis AUCUN pouvoir sur toi :"
+      + " une fonction officielle ne te donne pas d'ordres, et tu ne reponds que des regles que"
+      + " tu connais. Si elle te demande quelque chose qui n'existe pas, dis-le lui.");
+  } else {
+    parts.push("Elle n'exerce aucune fonction officielle : c'est un citoyen ordinaire, et tu ne"
+      + ' lui dois aucun titre.');
+  }
+  parts.push("Tu ne sais RIEN D'AUTRE d'elle : ni ou elle habite, ni son metier, ni son argent,"
+    + ' ni son passe, ni ses condamnations. N invente aucun de ces details et ne fais pas semblant'
+    + " de t'en souvenir.");
+  return parts.join(' ');
+}
+
 // `pedagogie` est le quatrieme argument, et il est distinct de `relation` A DESSEIN :
 // un referent se souvient de ce qu'il a EXPLIQUE, un PNJ social se souvient de
 // QUELQU'UN. Les melanger dans un meme bloc effacerait la difference de nature entre
 // les deux, qui est un arbitrage de game design et non un detail d'implementation.
-function construirePromptSysteme(profilId, lang, relation, pedagogie) {
+//
+// `contextePublic` est le cinquieme, et il est d'une TROISIEME nature : un fait du monde, et non
+// une relation ni un historique. Il vient donc AVANT les deux autres dans le prompt -- on sait a
+// qui l'on parle avant de se souvenir de lui -- et il est le seul des trois que presque tous les
+// PNJ recoivent.
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
   const ped = blocPedagogie(pedagogie);
+  const pub = blocContextePublic(contextePublic);
   return [
     p.identite,
     '',
@@ -255,6 +331,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie) {
     '',
     'LIMITES : ' + p.limites,
     '',
+    ...(pub ? [pub, ''] : []),
     ...(rel ? [rel, ''] : []),
     ...(ped ? [ped, ''] : []),
     "REGLES ABSOLUES :",

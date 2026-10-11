@@ -10,6 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+COMMENT ON COLUMN public.garde_republicaine_postes.vacant_depuis IS 'Instant ou le garde PERMANENT de ce poste est tombe. Il revient quatre heures plus tard, et cette colonne redevient NULL. NULL signifie « le permanent est la, ou il peut arriver tout de suite ».';
 COMMENT ON FUNCTION public.camion_batiment_interieur() IS 'Identifiant de batiment synthetique designant l''interieur d''un camion. La PIECE vaut l''identifiant du camion, la VILLE celle du camion. Nomme une seule fois, ici.';
 COMMENT ON FUNCTION public.camion_deplacer(text,text,boolean,text) IS 'Deplace un camion et ce qu''il transporte, en une transaction. 0 FR, 2 PA par occupant reellement transporte, chacun sur ses propres PA. Refus global si un membre de la section prioritaire ne peut pas payer ; debarquement des seuls opportunistes insolvables. Idempotent par cle de requete.';
 COMMENT ON FUNCTION public.camion_descendre(text) IS 'Descendre d''un camion stationne : on revient dans le lieu ou il se trouve reellement. Gratuit. Les accompagnants suivent par resolution dynamique, sans ecriture.';
@@ -42,4 +43,5 @@ COMMENT ON TABLE public.camions_embarquements IS 'Instant d''embarquement de cha
 COMMENT ON TABLE public.camions_militaires IS 'Parc de vehicules de transport de troupe. Position courante ET caserne de rattachement, distinctes. Ferme au client : toute lecture passe par camions_ici/camion_etat, toute ecriture par camion_deplacer.';
 COMMENT ON TABLE public.camions_ordres IS 'Journal idempotent des ordres donnes a un camion. Ecrit uniquement par les RPC SECURITY DEFINER ; ferme au client.';
 COMMENT ON TABLE public.candidatures_militaires IS 'Candidatures a un grade militaire. Diffusees a tous les recruteurs eligibles ; le premier qui accepte l''emporte. Un refus individuel s''inscrit dans refus et laisse la candidature active.';
+COMMENT ON TABLE public.garde_republicaine_renfort IS 'Renfort national de la Garde republicaine : un facteur de 2 a 5 et UNE SEULE echeance par pays. L echeance appartient au pays et non aux gardes : c est ce qui empeche de prolonger la Garde en la tuant (arbitrage du 11 octobre 2026).';
 COMMENT ON TABLE public.recettes_militaires IS 'MIROIR GENERE de RECETTES_MILITAIRES (plateau-effort-guerre.js). Ne jamais editer a la main : regenerer par outils/generateurs/generer_recettes_militaires.py. Sert au serveur a valider qu''un produit commande appartient au catalogue. Chantier 4D.';

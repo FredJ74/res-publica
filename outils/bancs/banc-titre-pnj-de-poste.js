@@ -62,6 +62,20 @@ att("la Salle de Commandement n'est plus declaree reservee au ministre",
     piece('caserne-militaire', 'salle_commandement').requiresPostId === undefined,
     String(piece('caserne-militaire', 'salle_commandement').requiresPostId));
 
+// LE PALAIS PRESIDENTIEL REUTILISE LA MEME MECANIQUE SANS UNE LIGNE DE CODE (11 octobre 2026).
+// C'est la preuve que la generalisation du 10 octobre etait reelle : le President PNJ n'a recu
+// que trois champs dans data.js.
+var pres = porteur(piece('palais-presidentiel', 'bureau_president'));
+att('le Bureau du President porte un PNJ de poste `president`', pres && pres.job === 'president',
+    pres ? pres.job : '(aucun)');
+att('il declare ses DEUX libelles',
+    pres.roleSiPnjTitulaire === 'PNJ - Président de la République'
+    && pres.roleSiPjTitulaire === 'PNJ - Secrétaire général adjoint de la Présidence',
+    pres.roleSiPnjTitulaire + ' | ' + pres.roleSiPjTitulaire);
+att('il reste en place quand un joueur est elu', pres.resteApresPourvoi === true);
+att('son titre d adjoint ne pretend pas a la Presidence',
+    pres.roleSiPjTitulaire.indexOf('Président de la République') < 0);
+
 var mart = porteur(piece('palais-gouvernement', 'bureau_min_def'));
 att('Martial Bouterin declare aussi ses deux libelles, inchanges',
     mart.roleSiPnjTitulaire === 'PNJ - Ministre de la Defense'
@@ -105,6 +119,24 @@ essai('poste tenu par le PNJ', 'caserne-militaire', 'salle_commandement',
    return essai('ministere pris par un joueur', 'palais-gouvernement', 'bureau_min_def',
       { nom: 'Arnie', estPJ: true },
       'PNJ - Attaché ministériel — Spécialiste des forces armées', 'min_def');
+ })
+ .then(function () {
+   return essai('Presidence tenue par le PNJ', 'palais-presidentiel', 'bureau_president',
+      { nom: 'Le Président (PNJ)', estPJ: false }, 'PNJ - Président de la République', 'president');
+ })
+ .then(function () {
+   return essai('Presidence prise par un joueur elu', 'palais-presidentiel', 'bureau_president',
+      { nom: 'Lee Capene', estPJ: true },
+      'PNJ - Secrétaire général adjoint de la Présidence', 'president');
+ })
+ .then(function () {
+   // LE PRESIDENT PNJ N'A PAS DISPARU DU BUREAU, et Huguette n'a pas bouge non plus.
+   var p = piece('palais-presidentiel', 'bureau_president');
+   var pr = (p.persons || []).filter(function (x) { return x.job === 'president'; });
+   att('un seul PNJ de poste president, jamais deux', pr.length === 1, String(pr.length));
+   att('il est toujours dans le bureau apres l election', !!pr[0] && !!pr[0].name, pr[0] && pr[0].name);
+   att('la Secretaire generale est intacte a cote de lui',
+       (p.persons || []).some(function (x) { return x.job === 'secretaire_general'; }));
  })
  .then(function () {
    // UNE PIECE SANS PNJ DE POSTE NE DOIT RIEN DEMANDER AU SERVEUR : c'est le cas de presque

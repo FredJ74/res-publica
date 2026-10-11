@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "fb53e041e2132f7cb4095313f1d3da2b",
+   "genre": "COLUMN",
+   "objet": "garde_republicaine_postes",
+   "sous": "vacant_depuis"
+  },
+  {
    "empreinte": "763a1c694f25891b35be31ef94ee2bb5",
    "genre": "FUNCTION",
    "objet": "camion_batiment_interieur()",
@@ -193,6 +199,12 @@
    "sous": ""
   },
   {
+   "empreinte": "7d16b6f1b191761da94f8f2325bec396",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_renfort",
+   "sous": ""
+  },
+  {
    "empreinte": "1320f7211c515c6eeb4b48e284e60149",
    "genre": "TABLE",
    "objet": "recettes_militaires",
@@ -289,6 +301,24 @@
    "genre": "p",
    "nom": "engagements_militaires_pkey",
    "tbl": "engagements_militaires"
+  },
+  {
+   "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
+   "genre": "p",
+   "nom": "garde_republicaine_effectifs_pkey",
+   "tbl": "garde_republicaine_effectifs"
+  },
+  {
+   "empreinte": "c50690341296098b4600e5e6af1230a1",
+   "genre": "p",
+   "nom": "garde_republicaine_postes_pkey",
+   "tbl": "garde_republicaine_postes"
+  },
+  {
+   "empreinte": "db363208cf9cb0a9adba07c0a9eb50b7",
+   "genre": "p",
+   "nom": "garde_republicaine_renfort_pkey",
+   "tbl": "garde_republicaine_renfort"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -429,6 +459,12 @@
    "tbl": "decorations_militaires"
   },
   {
+   "empreinte": "9ce7ecc17c3d2778d89d7363a7cb7baf",
+   "genre": "c",
+   "nom": "garde_facteur_borne",
+   "tbl": "garde_republicaine_renfort"
+  },
+  {
    "empreinte": "3c353754e5d09061a0ce23f2d4cf9984",
    "genre": "c",
    "nom": "militaire_armes_bonus_mode_check",
@@ -463,6 +499,12 @@
    "genre": "f",
    "nom": "contacts_militaires_bataille_id_fkey",
    "tbl": "contacts_militaires"
+  },
+  {
+   "empreinte": "92fb4ea211699a2f0f282ee4f4271b55",
+   "genre": "f",
+   "nom": "garde_republicaine_effectifs_pnj_id_fkey",
+   "tbl": "garde_republicaine_effectifs"
   },
   {
    "empreinte": "3cdf74ddfa03abd64db7faa6926bf726",
@@ -746,6 +788,114 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "garde_renfort_national(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_renfort_national(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_renfort_national(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_autorite_de_perimetre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_controle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_controle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_controle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_creer(text,text,boolean,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_creer(text,text,boolean,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_piece(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_piece(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_piece(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_synchroniser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_synchroniser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_vacance()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "garde_republicaine_vacance()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "guerre_acteur_poste(text)",
    "privileges": "EXECUTE"
   },
@@ -3159,6 +3309,78 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "engagements_militaires",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_effectifs",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_effectifs",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_effectifs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_effectifs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_postes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_postes",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_postes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_postes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_renfort",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_renfort",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_renfort",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "garde_republicaine_renfort",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -3393,16 +3615,16 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "b0cbce6e6da2f36f4251613bc672a672",
-  "20_fonctions-1.sql": "00e622331df99d7dcddfc6e680beb46b",
-  "20_fonctions-2.sql": "1cf6d625505aaa650614da1e3059da7b",
-  "20_fonctions-3.sql": "0dc0fe56c0b4fb924a5ce01f49a330e6",
-  "30_contraintes.sql": "9a10c64eb8a2aac583fb828422059ab8",
-  "35_index.sql": "8568b7cc2cb218862092890a659544f9",
+  "10_tables.sql": "f0826587b8ceda2bf9a1a78465ec42e6",
+  "20_fonctions-1.sql": "d318eab28db03469ded8816527322f39",
+  "20_fonctions-2.sql": "1b831c47296388297fc0062259d05f30",
+  "20_fonctions-3.sql": "dd057e37516a988b2fc89b27cf09b263",
+  "30_contraintes.sql": "12c7981d11e5cddf78c717465e397d80",
+  "35_index.sql": "545b5f4baa12c175154d5ae47ac10bc6",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
-  "60_rls-policies.sql": "7164a16baff1c60a64b1b52ad4df340f",
-  "70_droits.sql": "9ae5a972553e578550415a8cbde884cb",
-  "80_commentaires.sql": "f7f48f224ed60174296874614ec4af1c"
+  "60_rls-policies.sql": "292f9ec56a5bf0112ac043201c3f487a",
+  "70_droits.sql": "3a924b796659bb5c0ed25a916017f90b",
+  "80_commentaires.sql": "47496a878ebeb558e76456ca2f5eda2c"
  },
  "fonctions": [
   {
@@ -3489,6 +3711,41 @@
    "empreinte": "ba9ec3e8beb1c4e35ec1678230d444da",
    "security_definer": true,
    "signature": "effort_reserve_appliquer(text,jsonb,text[],numeric)"
+  },
+  {
+   "empreinte": "dfbfdd82cf53e5263c847e479aa1aaba",
+   "security_definer": true,
+   "signature": "garde_renfort_national(integer)"
+  },
+  {
+   "empreinte": "b6fb0e5b14502a4a9052bd7d22c8b1c4",
+   "security_definer": true,
+   "signature": "garde_republicaine_autorite_de_perimetre(text,text)"
+  },
+  {
+   "empreinte": "6f8e2fca2942fbb3bc908eb6ee00a8fe",
+   "security_definer": true,
+   "signature": "garde_republicaine_controle(text,text)"
+  },
+  {
+   "empreinte": "3fecaf991de3de4565cc80f307697609",
+   "security_definer": true,
+   "signature": "garde_republicaine_creer(text,text,boolean,integer)"
+  },
+  {
+   "empreinte": "52fd1d93b4ddfc5b98dec193c60b31d5",
+   "security_definer": true,
+   "signature": "garde_republicaine_piece(text,text,text)"
+  },
+  {
+   "empreinte": "2488b3c0ea5ca8a050dbfbeb161c3ced",
+   "security_definer": true,
+   "signature": "garde_republicaine_synchroniser(text)"
+  },
+  {
+   "empreinte": "afa80cf4264cd0d2bd836ecf7c769c8b",
+   "security_definer": true,
+   "signature": "garde_republicaine_vacance()"
   },
   {
    "empreinte": "10ccf9acf1617380e3f234c4cf21792c",
@@ -4182,6 +4439,10 @@
    "nom": "decorations_militaires_unicite_idx"
   },
   {
+   "empreinte": "888e085872a703325d2459b257bfea69",
+   "nom": "garde_effectifs_par_poste"
+  },
+  {
    "empreinte": "f3628248065fb0381d53220a02b5299c",
    "nom": "mutineries_membres_un_seul_camp"
   },
@@ -4222,6 +4483,9 @@
   "contacts_militaires_pkey",
   "decorations_militaires_pkey",
   "engagements_militaires_pkey",
+  "garde_republicaine_effectifs_pkey",
+  "garde_republicaine_postes_pkey",
+  "garde_republicaine_renfort_pkey",
   "guerres_pkey",
   "militaire_armes_bonus_pkey",
   "militaire_detections_pkey",
@@ -4423,6 +4687,21 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "garde_republicaine_effectifs"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "garde_republicaine_postes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "garde_republicaine_renfort"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "guerres"
   },
   {
@@ -4609,6 +4888,24 @@
    "empreinte_catalogue": "d27fb2bcdea99c845aefec057a192736",
    "empreinte_texte": "d8acafbaca89ef0373d6643cb2f434a1",
    "nom": "engagements_militaires"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "a336411ae3c034f52b074e0b63bb81db",
+   "empreinte_texte": "bbadc5323e69c2f960cba5670449aa4e",
+   "nom": "garde_republicaine_effectifs"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "a11b5744f4e070d33559e2421c99e06e",
+   "empreinte_texte": "bbe4b696d96a926ab50227ece124d8e5",
+   "nom": "garde_republicaine_postes"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "c68b7519d5e5a41d1def0f83ae330e4f",
+   "empreinte_texte": "4108f4d28ea652b104a8b96977cc37e9",
+   "nom": "garde_republicaine_renfort"
   },
   {
    "colonnes": 4,

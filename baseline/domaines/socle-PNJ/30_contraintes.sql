@@ -44,7 +44,7 @@ ALTER TABLE public.pnj_fonctions ADD CONSTRAINT pnj_fonctions_role_fonctionnel_c
 ALTER TABLE public.pnj_force_publique_metier ADD CONSTRAINT pnj_fp_cyno CHECK (((type_unite <> 'cynophile'::text) OR (chien_nom IS NOT NULL)));
 ALTER TABLE public.pnj_force_publique_metier ADD CONSTRAINT pnj_fp_type CHECK ((type_unite = ANY (ARRAY['standard'::text, 'cynophile'::text])));
 ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_car_bornes CHECK ((((COALESCE(car_int, 0) >= 0) AND (COALESCE(car_int, 0) <= 100)) AND ((COALESCE(car_cha, 0) >= 0) AND (COALESCE(car_cha, 0) <= 100)) AND ((COALESCE(car_vol, 0) >= 0) AND (COALESCE(car_vol, 0) <= 100)) AND ((COALESCE(car_per, 0) >= 0) AND (COALESCE(car_per, 0) <= 100)) AND ((COALESCE(car_dup, 0) >= 0) AND (COALESCE(car_dup, 0) <= 100)) AND ((COALESCE(car_ent, 0) >= 0) AND (COALESCE(car_ent, 0) <= 100))));
-ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_famille_connue CHECK ((famille = ANY (ARRAY['soldat'::text, 'employe'::text, 'agent'::text, 'policier'::text, 'douanier'::text, 'militant'::text])));
+ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_famille_connue CHECK ((famille = ANY (ARRAY['soldat'::text, 'employe'::text, 'agent'::text, 'policier'::text, 'douanier'::text, 'militant'::text, 'garde_republicain'::text])));
 ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_membres_classe_connue CHECK (((classe IS NULL) OR (classe = ANY (ARRAY['alpha'::text, 'beta'::text, 'gamma'::text]))));
 ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_mort_sans_leader CHECK (((statut <> 'mort'::text) OR ((leader_pj IS NULL) AND (leader_pnj_id IS NULL))));
 ALTER TABLE public.pnj_membres ADD CONSTRAINT pnj_pa_positif CHECK ((pa >= 0));

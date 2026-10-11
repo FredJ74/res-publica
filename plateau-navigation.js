@@ -1193,6 +1193,36 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
     try { await pnjSocialEntreeZone(buildingId, roomId); }
     catch (e) { /* un PNJ qui n'a rien pu dire ne doit jamais retenir le joueur */ }
   }
+
+  // 5. LA GARDE REPUBLICAINE (11 octobre 2026). CINQUIEME consommateur du meme evenement
+  // d'entree : on ne pose pas un crochet de plus.
+  //
+  // UN SEUL APPEL, ET IL FAIT LES DEUX. `garde_republicaine_controle` synchronise la Garde --
+  // un permanent dont les quatre heures sont ecoulees reprend son poste, les renforts expires
+  // rentrent -- PUIS constate qu'une personne sous jugement non execute se presente devant des
+  // gardes REELLEMENT PRESENTS. L'operation est idempotente : l'appeler a chaque entree est sans
+  // double effet.
+  //
+  // IL N'Y A PAS DE SECOND APPEL DE SYNCHRONISATION ICI. La porte nue a ete revoquee le
+  // 11 octobre 2026 parce qu'elle etait mutante et ouverte a tout joueur sans garde ; le controle
+  // est la porte unique, et il est borne au pays de l'appelant.
+  //
+  // LA CONSEQUENCE N'EST PAS ECRITE ICI. Un joueur reconnu est remis au mecanisme qui existe
+  // deja -- `verifierArrestationRecherchePolice`, celui de la patrouille de police --, qui
+  // calcule la peine, incarcere dans la ville courante, journalise et teleporte. La Garde
+  // fournit l'OCCASION, la justice fournit la SUITE : ecrire une seconde arrestation ici aurait
+  // cree deux mecaniques concurrentes pour un seul fait de jeu.
+  //
+  // Et comme les quatre consommateurs precedents : un echec ne retient jamais le joueur.
+  if (typeof sbGardeControle === 'function') {
+    try {
+      const g = await sbGardeControle(buildingId, roomId);
+      if (g && g.intervention === true && typeof verifierArrestationRecherchePolice === 'function') {
+        showToast('Garde republicaine', 'Les gardes du poste vous ont reconnu(e).', false, true);
+        await verifierArrestationRecherchePolice().catch(() => {});
+      }
+    } catch (e) { /* une Garde qui n'a pas pu se prononcer ne bloque jamais la navigation */ }
+  }
 }
 
 // Le serveur n'envoie que ce qui a ete reellement vu, deja degrade. L'affichage se contente donc

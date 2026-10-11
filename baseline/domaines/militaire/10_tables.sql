@@ -199,6 +199,31 @@ CREATE TABLE public.engagements_militaires (
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.garde_republicaine_effectifs (
+  pnj_id text NOT NULL,
+  pays text NOT NULL,
+  building_id text NOT NULL,
+  permanent boolean DEFAULT false NOT NULL
+);
+
+CREATE TABLE public.garde_republicaine_postes (
+  pays text NOT NULL,
+  building_id text NOT NULL,
+  ville text NOT NULL,
+  room_id text NOT NULL,
+  libelle text NOT NULL,
+  vacant_depuis timestamp with time zone
+);
+
+CREATE TABLE public.garde_republicaine_renfort (
+  pays text NOT NULL,
+  facteur integer NOT NULL,
+  expire_le timestamp with time zone NOT NULL,
+  decide_par text NOT NULL,
+  decide_le timestamp with time zone DEFAULT now() NOT NULL,
+  cout_paye numeric DEFAULT 0 NOT NULL
+);
+
 CREATE TABLE public.guerres (
   id text NOT NULL,
   statut text DEFAULT 'active'::text,

@@ -678,6 +678,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'quitter_armee') { ouvrirQuitterArmee(); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
   if (fn === 'caisse_caserne') { ouvrirCaisseCaserne(); return; }
+  // La Garde republicaine : 0 PA / 0 FR a l'entree, la RPC preleve elle-meme sur la caisse du
+  // Ministere de la Defense (11 octobre 2026).
+  if (fn === 'garde_republicaine') { ouvrirGardeRepublicaine(); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
   // 'accepter_incorporation' : ordre retire le 16 septembre 2026. Le transfert vers la caserne

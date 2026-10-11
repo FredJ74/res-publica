@@ -20,6 +20,7 @@ AS $function$
 DECLARE
   v_moi text; v_pays text; v_cle text; v_id_cand text; v_id_cycle text;
   v_data jsonb; v_cands jsonb; v_n integer; v_city text;
+  v_fiche record; v_poste record; v_inf numeric;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -32,9 +33,37 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_nom');
   END IF;
 
-  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  SELECT * INTO v_fiche FROM public.personnages_donnees WHERE name = v_moi;
+  v_pays := v_fiche.country;
   IF v_pays IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+
+  -- L'ELIGIBILITE EST DESORMAIS VERIFIEE ICI (10 octobre 2026). Elle ne vivait qu'au navigateur
+  -- sur ce chemin : une candidature presidentielle a 0 INF passait par la console. Les trois
+  -- regles sont celles de candidature_publier, a la lettre.
+  SELECT * INTO v_poste FROM public.postes_electifs_regles WHERE poste_id = p_poste;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_inconnu');
+  END IF;
+  IF coalesce(v_fiche.domicile->>'country', v_pays) IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'non_domicilie');
+  END IF;
+  v_inf := CASE WHEN jsonb_typeof(v_fiche.resources->'inf') = 'number'
+                THEN (v_fiche.resources->>'inf')::numeric ELSE 0 END;
+  IF v_inf < v_poste.min_inf THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'influence_insuffisante',
+                              'requis', v_poste.min_inf, 'reel', v_inf);
+  END IF;
+  IF p_poste = 'depute' THEN
+    IF v_fiche.poste_depute IS NOT NULL AND jsonb_typeof(v_fiche.poste_depute) = 'object' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'deja_depute');
+    END IF;
+  ELSIF v_fiche.poste->>'id' IS NOT NULL AND v_fiche.poste->>'id' <> p_poste THEN
+    IF (v_fiche.poste->>'id' = 'president' AND p_poste = 'maire')
+       OR (v_fiche.poste->>'id' = 'maire' AND p_poste = 'president') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cumul_interdit');
+    END IF;
   END IF;
 
   -- LA CLE DU CYCLE EST CELLE DU CLIENT, A LA LETTRE : <poste> ou <poste>_<ville>. Elle est
@@ -73,9 +102,9 @@ BEGIN
   UPDATE public.cycles_electoraux SET data = v_data::text, updated_at = now()
    WHERE id = v_id_cycle;
 
-  RETURN jsonb_build_object('ok', true, 'action', 'deposee', 'cycle', v_data,
-                            'id_candidature', v_id_cand);
-END; $function$;
+  RETURN jsonb_build_object('ok', true, 'id', v_id_cand, 'cycle', v_data);
+END;
+$function$;
 
 -- candidature_poste_tirage_appliquer(text,text,text,text,text[],text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.candidature_poste_tirage_appliquer(p_pays text, p_poste_id text, p_city text, p_label text, p_candidats text[], p_autorite text)

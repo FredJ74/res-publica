@@ -46,6 +46,9 @@ GRANT EXECUTE ON FUNCTION public.pnj_comparer_policiers(text,text,text) TO postg
 GRANT EXECUTE ON FUNCTION public.pnj_comparer_policiers(text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_comparer_soldats(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_comparer_soldats(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pnj_contexte_public() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pnj_contexte_public() TO postgres;
+GRANT EXECUTE ON FUNCTION public.pnj_contexte_public() TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_copier_soldats(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_copier_soldats(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_employe_debaucher(text,text,text) TO authenticated;

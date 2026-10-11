@@ -10,5 +10,6 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TRIGGER garde_republicaine_vacance_trg AFTER UPDATE OF statut ON pnj_membres FOR EACH ROW EXECUTE FUNCTION garde_republicaine_vacance();
 CREATE TRIGGER trg_pnj_garde_suppression BEFORE DELETE ON pnj_membres FOR EACH ROW EXECUTE FUNCTION pnj_garde_suppression();
 CREATE TRIGGER trg_pnj_pas_de_sous_hierarchie BEFORE INSERT OR UPDATE ON pnj_membres FOR EACH ROW EXECUTE FUNCTION pnj_pas_de_sous_hierarchie();

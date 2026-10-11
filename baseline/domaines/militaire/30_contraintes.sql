@@ -26,6 +26,9 @@ ALTER TABLE public.compagnies_militaires ADD CONSTRAINT compagnies_militaires_pk
 ALTER TABLE public.contacts_militaires ADD CONSTRAINT contacts_militaires_pkey PRIMARY KEY (id);
 ALTER TABLE public.decorations_militaires ADD CONSTRAINT decorations_militaires_pkey PRIMARY KEY (id);
 ALTER TABLE public.engagements_militaires ADD CONSTRAINT engagements_militaires_pkey PRIMARY KEY (id);
+ALTER TABLE public.garde_republicaine_effectifs ADD CONSTRAINT garde_republicaine_effectifs_pkey PRIMARY KEY (pnj_id);
+ALTER TABLE public.garde_republicaine_postes ADD CONSTRAINT garde_republicaine_postes_pkey PRIMARY KEY (pays, building_id);
+ALTER TABLE public.garde_republicaine_renfort ADD CONSTRAINT garde_republicaine_renfort_pkey PRIMARY KEY (pays);
 ALTER TABLE public.guerres ADD CONSTRAINT guerres_pkey PRIMARY KEY (id);
 ALTER TABLE public.militaire_armes_bonus ADD CONSTRAINT militaire_armes_bonus_pkey PRIMARY KEY (cle);
 ALTER TABLE public.militaire_detections ADD CONSTRAINT militaire_detections_pkey PRIMARY KEY (id);
@@ -51,6 +54,7 @@ ALTER TABLE public.commandes_militaires ADD CONSTRAINT commandes_militaires_quan
 ALTER TABLE public.commandes_militaires ADD CONSTRAINT commandes_militaires_reliquat CHECK ((quantite_produite <= quantite_demandee));
 ALTER TABLE public.commandes_militaires ADD CONSTRAINT commandes_militaires_statut CHECK ((statut = ANY (ARRAY['en_cours'::text, 'terminee'::text, 'annulee'::text])));
 ALTER TABLE public.decorations_militaires ADD CONSTRAINT decorations_militaires_niveau_check CHECK ((niveau = ANY (ARRAY['compagnie'::text, 'armee'::text, 'etat'::text])));
+ALTER TABLE public.garde_republicaine_renfort ADD CONSTRAINT garde_facteur_borne CHECK (((facteur >= 2) AND (facteur <= 5)));
 ALTER TABLE public.militaire_armes_bonus ADD CONSTRAINT militaire_armes_bonus_mode_check CHECK ((mode = ANY (ARRAY['feu'::text, 'cac'::text])));
 ALTER TABLE public.nominations_militaires ADD CONSTRAINT nominations_militaires_grade_check CHECK ((grade = ANY (ARRAY['capitaine'::text, 'lieutenant'::text])));
 ALTER TABLE public.retraits_materiel_militaire ADD CONSTRAINT retraits_materiel_militaire_quantite_check CHECK ((quantite > 0));
@@ -59,4 +63,5 @@ ALTER TABLE public.retraits_materiel_militaire ADD CONSTRAINT retraits_materiel_
 ALTER TABLE public.batailles_engagements ADD CONSTRAINT batailles_engagements_bataille_id_fkey FOREIGN KEY (bataille_id) REFERENCES batailles(id) ON DELETE CASCADE;
 ALTER TABLE public.batailles_rounds ADD CONSTRAINT batailles_rounds_bataille_id_fkey FOREIGN KEY (bataille_id) REFERENCES batailles(id) ON DELETE CASCADE;
 ALTER TABLE public.contacts_militaires ADD CONSTRAINT contacts_militaires_bataille_id_fkey FOREIGN KEY (bataille_id) REFERENCES batailles(id);
+ALTER TABLE public.garde_republicaine_effectifs ADD CONSTRAINT garde_republicaine_effectifs_pnj_id_fkey FOREIGN KEY (pnj_id) REFERENCES pnj_membres(id) ON DELETE CASCADE;
 ALTER TABLE public.mutineries_membres ADD CONSTRAINT mutineries_membres_camp_fkey FOREIGN KEY (camp) REFERENCES mutineries(camp) ON DELETE CASCADE;

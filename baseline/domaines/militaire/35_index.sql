@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 26 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 29 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   armureries_dotations_pkey  (contrainte armureries_dotations_pkey)
 --   batailles_engagements_pkey  (contrainte batailles_engagements_pkey)
 --   batailles_groupes_pkey  (contrainte batailles_groupes_pkey)
@@ -26,6 +26,9 @@
 --   contacts_militaires_pkey  (contrainte contacts_militaires_pkey)
 --   decorations_militaires_pkey  (contrainte decorations_militaires_pkey)
 --   engagements_militaires_pkey  (contrainte engagements_militaires_pkey)
+--   garde_republicaine_effectifs_pkey  (contrainte garde_republicaine_effectifs_pkey)
+--   garde_republicaine_postes_pkey  (contrainte garde_republicaine_postes_pkey)
+--   garde_republicaine_renfort_pkey  (contrainte garde_republicaine_renfort_pkey)
 --   guerres_pkey  (contrainte guerres_pkey)
 --   militaire_armes_bonus_pkey  (contrainte militaire_armes_bonus_pkey)
 --   militaire_detections_pkey  (contrainte militaire_detections_pkey)
@@ -55,6 +58,7 @@ CREATE INDEX commandes_militaires_fifo ON public.commandes_militaires USING btre
 CREATE INDEX contacts_militaires_ouverts_idx ON public.contacts_militaires USING btree (etabli_le DESC) WHERE (consomme_le IS NULL);
 CREATE INDEX decorations_militaires_decore_idx ON public.decorations_militaires USING btree (decore, decerne_le DESC);
 CREATE UNIQUE INDEX decorations_militaires_unicite_idx ON public.decorations_militaires USING btree (decore, decerne_par, intitule);
+CREATE INDEX garde_effectifs_par_poste ON public.garde_republicaine_effectifs USING btree (pays, building_id);
 CREATE UNIQUE INDEX mutineries_membres_un_seul_camp ON public.mutineries_membres USING btree (personnage);
 CREATE INDEX retraits_materiel_militaire_pays ON public.retraits_materiel_militaire USING btree (pays, created_at DESC);
 CREATE INDEX services_militaires_perso ON public.services_militaires USING btree (personnage, grade);

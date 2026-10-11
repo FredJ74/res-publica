@@ -151,6 +151,12 @@
    "sous": "pnj_propriete_exclusive"
   },
   {
+   "empreinte": "9d1aa20bca749f9a8a09f2246a70a733",
+   "genre": "FUNCTION",
+   "objet": "pnj_contexte_public()",
+   "sous": ""
+  },
+  {
    "empreinte": "22b0e3b2e90d6ab8822aa4954c599541",
    "genre": "FUNCTION",
    "objet": "pnj_social_contexte(text)",
@@ -423,7 +429,7 @@
    "tbl": "pnj_membres"
   },
   {
-   "empreinte": "89d4157de1332def495ea85b78ea8233",
+   "empreinte": "86a008df9bfd2fa59a36ef090d4e6f54",
    "genre": "c",
    "nom": "pnj_famille_connue",
    "tbl": "pnj_membres"
@@ -789,6 +795,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "pnj_comparer_soldats(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_contexte_public()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_contexte_public()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_contexte_public()",
    "privileges": "EXECUTE"
   },
   {
@@ -1636,13 +1660,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "987060db29b2631a083fdfbf017b1cb7",
-  "20_fonctions.sql": "1d11a43291231c06156b60e073f48205",
-  "30_contraintes.sql": "c3505783efdad118e4081622513c5ae7",
+  "20_fonctions.sql": "fd749d58eb14e909d88fc0c5a55c77db",
+  "30_contraintes.sql": "2cae6ce8ea77166da6c00897a811b2d9",
   "35_index.sql": "9cee8070d05ce6f792bb67c136e15fbf",
-  "50_triggers.sql": "b89038660597f60350df81b172a875b0",
+  "50_triggers.sql": "98f9d5e8dafb390316f722536ecd0637",
   "60_rls-policies.sql": "850ce0714f315223f78546b4d814f049",
-  "70_droits.sql": "a41d3f92ec23bfe367ac37c346ec7d80",
-  "80_commentaires.sql": "762d07018c8b6a7bf934291d9e92867f"
+  "70_droits.sql": "70d7fbc4d3057979e7b4eb071386c3ac",
+  "80_commentaires.sql": "a974af1f46541dd256e8be0b893794c1"
  },
  "fonctions": [
   {
@@ -1729,6 +1753,11 @@
    "empreinte": "7dfbbdced03006fc576928592e4272cd",
    "security_definer": true,
    "signature": "pnj_comparer_soldats(text)"
+  },
+  {
+   "empreinte": "7e237302e02b3a6f36b3aad329ded509",
+   "security_definer": true,
+   "signature": "pnj_contexte_public()"
   },
   {
    "empreinte": "44983d4703cf0207b40b43248cb0311a",
@@ -2274,6 +2303,12 @@
   }
  ],
  "triggers": [
+  {
+   "empreinte": "a82cb48f6b15f575fe32c520bbd7caaa",
+   "fonction": "garde_republicaine_vacance()",
+   "nom": "garde_republicaine_vacance_trg",
+   "tbl": "pnj_membres"
+  },
   {
    "empreinte": "ff4108fe35f5c782072a43ea086f4f56",
    "fonction": "pnj_garde_suppression()",

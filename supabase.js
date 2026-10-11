@@ -3878,6 +3878,46 @@ async function sbCaserneReverserAuMinistere(montant) {
   return r || { ok: false, raison: 'rpc_indisponible' };
 }
 
+// ----------------------------------------------------------------------------------------------
+// LA GARDE REPUBLICAINE (11 octobre 2026)
+// ----------------------------------------------------------------------------------------------
+// QUATRE PORTES, ET AUCUN SELECT. Les trois tables de la Garde sont sous RLS sans policy : le
+// navigateur ne peut pas lire la liste nominative des gardes, leurs caracteristiques ni l'identite
+// du ministre qui a paye le renfort. Il obtient un NOMBRE et un etat, ce qui suffit a tout ce que
+// l'interface a besoin de montrer.
+async function sbGardePiece(buildingId, roomId) {
+  const rows = await sbRpc('garde_republicaine_piece', {
+    p_pays: state.country || 'republic', p_building_id: buildingId, p_room_id: roomId
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, gardee: false, gardes: 0, malus: 0 };
+}
+
+// LE CONTROLE A L'ENTREE. Il ne rend qu'un CONSTAT -- `intervention` -- et jamais le motif du
+// jugement : c'est le serveur qui sait pourquoi, et le joueur le sait deja par son propre dossier.
+async function sbGardeControle(buildingId, roomId) {
+  const rows = await sbRpc('garde_republicaine_controle', {
+    p_building_id: buildingId, p_room_id: roomId
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, intervention: false, gardes: 0 };
+}
+
+// LE RENFORT NATIONAL, reserve au ministre de la Defense. L'autorite, le cout et le debit sont
+// verifies et executes au serveur dans une seule transaction : le navigateur ne fait que demander.
+async function sbGardeRenfortNational(facteur) {
+  const rows = await sbRpc('garde_renfort_national', { p_facteur: Math.floor(Number(facteur) || 0) });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// IL N'Y A PAS DE PORTE DE SYNCHRONISATION COTE CLIENT, et c'est volontaire. `garde_republicaine_
+// synchroniser` a ete REVOQUEE a `authenticated` le 11 octobre 2026 : l'invariant 10 l'avait
+// trouvee mutante et ouverte a tout joueur sans garde. Faire avancer la Garde n'etant pas une
+// prerogative mais le temps qui passe, la porte n'a pas recu d'autorite -- elle a ete supprimee,
+// et c'est `garde_republicaine_controle` qui synchronise desormais, bornee au pays de l'appelant.
+// Un `sbGardeSynchroniser()` ici se verrait refuser l'EXECUTE, et aurait fait croire au contraire.
+
 // L'ORDRE DE BATAILLE PASSE PAR UNE PORTE (10 octobre 2026, cloture de la caserne).
 //
 // CETTE FONCTION FAISAIT UN SELECT DIRECT, et la policy `compagnies_lecture_mon_pays` l'ouvrait a

@@ -10,6 +10,318 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- militaire_candidater_soldat(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidater_soldat(p_compagnie_id text, p_section_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_bat text; v_poste text;
+  v_data jsonb; v_sec jsonb; v_id text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT coalesce(country,'republic'), coalesce(current_building,''), coalesce(poste->>'id','')
+    INTO v_pays, v_bat, v_poste FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  -- Presence reelle exigee, comme militaire_retrait et refectoire_repas : on s'engage a la caserne.
+  IF v_bat <> 'caserne-militaire' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF v_poste IN ('lieutenant','capitaine','commandant') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_officier', 'poste', v_poste);
+  END IF;
+
+  SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = p_compagnie_id;
+  IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'compagnie_introuvable'); END IF;
+  IF v_data->>'pays' IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_juridiction'); END IF;
+  SELECT s INTO v_sec FROM jsonb_array_elements(coalesce(v_data->'sections','[]'::jsonb)) s
+   WHERE s->>'id' = p_section_id;
+  IF v_sec IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'section_introuvable'); END IF;
+  IF coalesce(v_sec->>'lieutenantNom','') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'section_sans_lieutenant'); END IF;
+
+  -- Deja soldat quelque part ? On ne sert pas deux sections a la fois.
+  IF EXISTS (SELECT 1 FROM public.compagnies_militaires c,
+                    jsonb_array_elements(coalesce(c.data->'sections','[]'::jsonb)) s,
+                    jsonb_array_elements(coalesce(s->'soldats','[]'::jsonb)) sol
+              WHERE coalesce((sol->>'pj')::boolean,false) AND sol->>'nom' = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_soldat');
+  END IF;
+
+  -- Candidature active deja en cours pour ce meme PJ (tous statuts non finaux).
+  IF EXISTS (SELECT 1 FROM public.engagements_militaires
+              WHERE statut IN ('soldat_attente_lieutenant','soldat_liste_attente')
+                AND data->>'nom' = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidature_en_cours');
+  END IF;
+
+  v_id := 'engsold-' || replace(gen_random_uuid()::text, '-', '');
+  INSERT INTO public.engagements_militaires (id, statut, data)
+  VALUES (v_id, 'soldat_attente_lieutenant', jsonb_build_object(
+    'grade', 'soldat', 'nom', v_moi, 'pays', v_pays,
+    'compagnieId', p_compagnie_id, 'sectionId', p_section_id,
+    'lieutenantNom', v_sec->>'lieutenantNom', 'depuis', to_jsonb(now())));
+
+  RETURN jsonb_build_object('ok', true, 'engagement', v_id,
+                            'lieutenant', v_sec->>'lieutenantNom');
+END; $function$;
+
+-- militaire_candidature_accepter(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidature_accepter(p_id text, p_compagnie_id text, p_section_id text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE r record; v record; v_libre integer; v_echeance timestamptz; v_annulees integer;
+BEGIN
+  SELECT * INTO r FROM public.militaire_recruteur_de_moi();
+  IF r.o_raison IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', r.o_raison); END IF;
+
+  -- LA CIBLE DOIT ETRE LA SIENNE : le client propose, le serveur verifie.
+  IF r.o_compagnie IS NOT NULL AND p_compagnie_id IS DISTINCT FROM r.o_compagnie THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'compagnie_hors_autorite');
+  END IF;
+  IF r.o_section IS NOT NULL AND p_section_id IS DISTINCT FROM r.o_section THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'section_hors_autorite');
+  END IF;
+
+  -- VERROU SUR LA CANDIDATURE D'ABORD. Deux recruteurs qui acceptent le meme candidat a la meme
+  -- seconde se presentent ici l'un apres l'autre : le second trouve `acceptee` et repart avec un
+  -- refus propre. C'est ce qui donne son sens a « le premier qui accepte l'emporte ».
+  SELECT * INTO v FROM public.candidatures_militaires WHERE id = p_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'candidature_introuvable'); END IF;
+  IF v.pays <> r.o_pays OR v.grade_vise <> r.o_grade_recrute THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_perimetre');
+  END IF;
+  IF v.statut <> 'active' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidature_non_active', 'statut', v.statut);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v.candidat) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidat_introuvable');
+  END IF;
+  IF public.militaire_grade_effectif(v.candidat) IS NOT NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidat_deja_militaire');
+  END IF;
+
+  v_libre := public.militaire_places_libres_grade(r.o_pays, v.grade_vise, p_compagnie_id, p_section_id);
+  IF v_libre <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'plus_de_place'); END IF;
+
+  v_echeance := now() + interval '48 hours';
+  UPDATE public.candidatures_militaires
+     SET statut = 'acceptee', accepte_par = r.o_moi, accepte_le = now(),
+         echeance = v_echeance, compagnie_id = p_compagnie_id, section_id = p_section_id
+   WHERE id = p_id;
+
+  -- UNE ACCEPTATION EN ANNULE TOUTES LES AUTRES. On ne sert pas deux armees.
+  UPDATE public.candidatures_militaires
+     SET statut = 'annulee'
+   WHERE candidat = v.candidat AND id <> p_id AND statut = 'active';
+  GET DIAGNOSTICS v_annulees = ROW_COUNT;
+
+  -- COURRIER AU CANDIDAT — et rien sur le lieu ni sur le recruteur : la decouverte se fait a la
+  -- caserne, en personne. C'est tout l'interet de la scene.
+  PERFORM public.mail_systeme_poser_interne(
+          'État-major', v.candidat,
+          'Votre engagement est accepté',
+          'Votre candidature au grade de ' || v.grade_vise || ' a été retenue. ' ||
+          'Présentez-vous à la Caserne Militaire dans les 48 heures pour découvrir votre affectation. ' ||
+          'Passé ce délai, votre engagement sera caduc et la place rendue.',
+          to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
+
+  RETURN jsonb_build_object('ok', true, 'id', p_id, 'candidat', v.candidat,
+    'grade', v.grade_vise, 'echeance', v_echeance, 'autres_annulees', v_annulees);
+END;
+$function$;
+
+-- militaire_candidature_deposer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidature_deposer(p_grade text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_moi text; v_pays text; v_bat text; v_grade_actuel text; v_id text; v_paie jsonb;
+BEGIN
+  IF p_grade NOT IN ('capitaine','lieutenant','soldat') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'grade_invalide');
+  END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT coalesce(country,'republic'), coalesce(current_building,'')
+    INTO v_pays, v_bat FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF v_pays IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  IF v_bat <> 'caserne-militaire' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
+  END IF;
+
+  v_grade_actuel := public.militaire_grade_effectif(v_moi);
+  IF v_grade_actuel IS NOT NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_militaire', 'grade', v_grade_actuel);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM public.candidatures_militaires
+              WHERE candidat = v_moi AND grade_vise = p_grade AND statut IN ('active','acceptee')) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidature_deja_active', 'grade', p_grade);
+  END IF;
+
+  v_paie := public.payer_ordre(v_moi, 's_engager_armee', 2, 0);
+  IF coalesce((v_paie->>'ok')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison','paiement_refuse'));
+  END IF;
+
+  v_id := 'cand-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text), 1, 6);
+  INSERT INTO public.candidatures_militaires (id, pays, candidat, grade_vise, derniere_relance)
+  VALUES (v_id, v_pays, v_moi, p_grade, now());
+
+  RETURN jsonb_build_object('ok', true, 'id', v_id, 'grade', p_grade,
+                            'pa', v_paie->'pa', 'pa_preleves', 2);
+END;
+$function$;
+
+-- militaire_candidature_refuser(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidature_refuser(p_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE r record; v record;
+BEGIN
+  SELECT * INTO r FROM public.militaire_recruteur_de_moi();
+  IF r.o_raison IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', r.o_raison); END IF;
+
+  SELECT * INTO v FROM public.candidatures_militaires WHERE id = p_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'candidature_introuvable'); END IF;
+  IF v.pays <> r.o_pays OR v.grade_vise <> r.o_grade_recrute THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_perimetre');
+  END IF;
+  IF v.statut <> 'active' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidature_non_active', 'statut', v.statut);
+  END IF;
+
+  IF NOT (v.refus ? r.o_moi) THEN
+    UPDATE public.candidatures_militaires
+       SET refus = refus || to_jsonb(r.o_moi) WHERE id = p_id;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'id', p_id);
+END;
+$function$;
+
+-- militaire_candidature_retirer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidature_retirer(p_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_moi text; v_statut text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT statut INTO v_statut FROM public.candidatures_militaires
+   WHERE id = p_id AND candidat = v_moi FOR UPDATE;
+  IF v_statut IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'candidature_introuvable'); END IF;
+  IF v_statut <> 'active' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidature_non_retirable', 'statut', v_statut);
+  END IF;
+
+  UPDATE public.candidatures_militaires SET statut = 'retiree' WHERE id = p_id;
+  RETURN jsonb_build_object('ok', true, 'id', p_id);
+END;
+$function$;
+
+-- militaire_candidature_traiter(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_candidature_traiter(p_engagement_id text, p_accepter boolean)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  c_places constant integer := 24;
+  g record; v_e record; v_nom text; v_sec jsonb; v_sols jsonb;
+  v_total integer; v_pnj_pos integer; v_pnj jsonb; v_reserve jsonb;
+BEGIN
+  SELECT * INTO v_e FROM public.engagements_militaires WHERE id = p_engagement_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'engagement_introuvable'); END IF;
+  IF v_e.statut NOT IN ('soldat_attente_lieutenant','soldat_liste_attente') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'engagement_deja_traite', 'statut', v_e.statut);
+  END IF;
+
+  -- AUTORITE : le Lieutenant structurel de la section visee, verifie sur la compagnie elle-meme.
+  SELECT * INTO g FROM public.militaire_section_de_moi(v_e.data->>'compagnieId', v_e.data->>'sectionId');
+  IF g.o_raison IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', g.o_raison); END IF;
+
+  v_nom := v_e.data->>'nom';
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_nom) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidat_introuvable');
+  END IF;
+
+  IF NOT coalesce(p_accepter, false) THEN
+    UPDATE public.engagements_militaires SET statut = 'soldat_refuse' WHERE id = p_engagement_id;
+    RETURN jsonb_build_object('ok', true, 'resultat', 'refuse', 'nom', v_nom);
+  END IF;
+
+  SELECT s INTO v_sec FROM jsonb_array_elements(g.o_data->'sections') s
+   WHERE s->>'id' = v_e.data->>'sectionId';
+  v_sols := CASE WHEN jsonb_typeof(v_sec->'soldats') = 'array' THEN v_sec->'soldats' ELSE '[]'::jsonb END;
+  v_total := jsonb_array_length(v_sols);
+
+  -- Deja dans la section ? Idempotence.
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_sols) s
+              WHERE coalesce((s->>'pj')::boolean,false) AND s->>'nom' = v_nom) THEN
+    UPDATE public.engagements_militaires SET statut = 'soldat_accepte' WHERE id = p_engagement_id;
+    RETURN jsonb_build_object('ok', true, 'resultat', 'deja_present', 'nom', v_nom);
+  END IF;
+
+  IF v_total < c_places THEN
+    -- Place libre : le PJ l'occupe.
+    v_sols := v_sols || jsonb_build_array(jsonb_build_object('pj', true, 'nom', v_nom));
+    v_reserve := CASE WHEN jsonb_typeof(g.o_data->'reserve') = 'array' THEN g.o_data->'reserve' ELSE '[]'::jsonb END;
+  ELSE
+    -- Section pleine : on cherche un PNJ a remplacer. Le premier venu.
+    SELECT pos, sol INTO v_pnj_pos, v_pnj
+      FROM jsonb_array_elements(v_sols) WITH ORDINALITY AS t(sol, pos)
+     WHERE NOT coalesce((sol->>'pj')::boolean, false) ORDER BY pos LIMIT 1;
+    IF v_pnj IS NULL THEN
+      -- 24 PJ : personne n'est evince. Liste d'attente, le candidat reste civil.
+      UPDATE public.engagements_militaires SET statut = 'soldat_liste_attente' WHERE id = p_engagement_id;
+      RETURN jsonb_build_object('ok', true, 'resultat', 'liste_attente', 'nom', v_nom,
+                                'places', c_places);
+    END IF;
+    -- Remplacement ATOMIQUE : le PNJ COMPLET retourne en reserve, avec son matricule et son
+    -- entrainement. Aucune perte d'identite, aucun PNJ cree ni detruit.
+    SELECT coalesce(jsonb_agg(sol ORDER BY pos), '[]'::jsonb) INTO v_sols
+      FROM jsonb_array_elements(v_sols) WITH ORDINALITY AS t(sol, pos) WHERE pos <> v_pnj_pos;
+    v_sols := v_sols || jsonb_build_array(jsonb_build_object('pj', true, 'nom', v_nom));
+    v_reserve := (CASE WHEN jsonb_typeof(g.o_data->'reserve') = 'array' THEN g.o_data->'reserve' ELSE '[]'::jsonb END)
+                 || jsonb_build_array(v_pnj);
+  END IF;
+
+  UPDATE public.compagnies_militaires
+     SET data = public.militaire_sections_remplacer(g.o_data, v_e.data->>'sectionId',
+                  v_sec || jsonb_build_object('soldats', v_sols))
+                || jsonb_build_object('reserve', v_reserve)
+   WHERE id = v_e.data->>'compagnieId';
+
+  UPDATE public.engagements_militaires SET statut = 'soldat_accepte' WHERE id = p_engagement_id;
+  PERFORM public.militaire_service_ouvrir(v_nom, g.o_data->>'pays', 'soldat',
+            v_e.data->>'compagnieId', v_e.data->>'sectionId');
+
+  RETURN jsonb_build_object('ok', true, 'resultat', 'accepte', 'nom', v_nom,
+    'pnj_rendu_reserve', (v_pnj IS NOT NULL),
+    'matricule_rendu', v_pnj->>'matricule',
+    'effectif', jsonb_array_length(v_sols),
+    'reserve', jsonb_array_length(v_reserve));
+END; $function$;
+
 -- militaire_candidatures_a_traiter() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_candidatures_a_traiter()
  RETURNS jsonb
@@ -2759,324 +3071,4 @@ BEGIN
      SET data = public.militaire_sections_remplacer(v_data, p_section_id,
                   v_sec || jsonb_build_object('soldats', v_sols))
    WHERE id = p_compagnie_id;
-END; $function$;
-
--- militaire_solde_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_solde_percevoir()
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_moi text; v_pays text; v_grade text; v_du integer; v_jour date; v_id text;
-  v_mvt jsonb; v_verse integer; v_credit jsonb;
-BEGIN
-  PERFORM set_config('rp.caisse_interne', 'on', true);
-  v_moi := public.mon_personnage();
-  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
-
-  v_grade := public.militaire_grade_effectif(v_moi);
-  IF v_grade IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_militaire');
-  END IF;
-
-  -- Baremes GD. Les PNJ n'ont aucune solde : ils ne passent jamais par ici.
-  v_du := CASE v_grade WHEN 'soldat' THEN 50 WHEN 'lieutenant' THEN 150
-                       WHEN 'capitaine' THEN 250 WHEN 'commandant' THEN 400 END;
-  IF v_du IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'grade_sans_solde'); END IF;
-
-  SELECT coalesce(country, 'republic') INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
-  v_jour := (now() AT TIME ZONE 'Europe/Paris')::date;
-  v_id   := v_moi || ':' || v_jour::text;
-
-  -- ANTI-REJEU PAR LA CLE : deux clics simultanes ne peuvent pas creer deux lignes.
-  BEGIN
-    INSERT INTO public.soldes_militaires (id, personnage, pays, grade, jour, du, verse)
-    VALUES (v_id, v_moi, v_pays, v_grade, v_jour, v_du, 0);
-  EXCEPTION WHEN unique_violation THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'deja_percue_aujourdhui', 'jour', v_jour);
-  END;
-
-  -- Debit PLAFONNE : la caserne verse ce qu'elle peut, le reste devient une dette.
-  v_mvt := public.caisse_institution_mouvement_plafonne(v_pays || '_caserne-militaire', v_du);
-  v_verse := greatest(0, coalesce((v_mvt->>'verse')::integer, 0));
-
-  IF v_verse > 0 THEN
-    v_credit := public.assemblee_crediter_joueur(v_moi, v_verse);
-  END IF;
-  UPDATE public.soldes_militaires
-     SET verse = v_verse, regle_le = CASE WHEN v_verse >= v_du THEN now() END
-   WHERE id = v_id;
-
-  RETURN jsonb_build_object('ok', true, 'grade', v_grade, 'du', v_du, 'verse', v_verse,
-    'dette', v_du - v_verse, 'jour', v_jour,
-    'liquide', v_credit->'liquide', 'arg', v_credit->'arg');
-END; $function$;
-
--- militaire_subtiliser(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.militaire_subtiliser(p_pays text, p_joueur text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_pj public.personnages%ROWTYPE;
-BEGIN
-  PERFORM public.exiger_acteur(p_joueur);
-  SELECT * INTO v_pj FROM public.personnages WHERE name = p_joueur FOR UPDATE;
-  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_absent'); END IF;
-  IF COALESCE(v_pj.current_building, '') <> 'caserne-militaire' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
-  END IF;
-  RETURN public.caserne_stock_mouvement(p_pays, 'explosif_militaire', -1, NULL);
-END;
-$function$;
-
--- militaire_subtiliser_tenter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_subtiliser_tenter(p_pays text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  c_seuil_detection constant integer := 20;
-  c_seuil_reussite  constant integer := 66;
-  c_isn_defaut      constant integer := 30;
-  v_moi text; v_pj public.personnages_donnees%ROWTYPE;
-  v_dup numeric; v_isn integer; v_rep integer; v_bonus_rep integer;
-  v_bonus numeric; v_jet integer; v_score integer;
-  v_stock jsonb; v_objet jsonb;
-BEGIN
-  v_moi := public.mon_personnage();
-  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
-
-  SELECT * INTO v_pj FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
-  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_absent'); END IF;
-  IF coalesce(v_pj.current_building,'') <> 'caserne-militaire' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
-  END IF;
-
-  -- LE PA EST DEBITE AVANT LE JET, comme pour toute tentative : on paie l'essai, pas le resultat.
-  IF coalesce(v_pj.pa, 0) < 2 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'requis', 2);
-  END IF;
-
-  -- DUP effective : meme regle que getStatEffective -- une caracteristique affaiblie est
-  -- proportionnelle aux points de vie, jamais en dessous de 1.
-  v_dup := coalesce((v_pj.stats->>'DUP')::numeric, 8);
-  IF v_pj.stats_affaiblies ? 'DUP' THEN
-    v_dup := greatest(1, round(v_dup * greatest(0, least(1, coalesce(v_pj.hp,0)::numeric / 100))));
-  END IF;
-
-  -- ISN de la zone. La caserne n'a pas d'indices propres : repli sur le defaut, exactement comme
-  -- getIndiceVille cote client.
-  SELECT coalesce((data->>'isn')::integer, c_isn_defaut) INTO v_isn
-    FROM public.indices_villes WHERE id = p_pays || '_' || coalesce(v_pj.current_city,'');
-  v_isn := coalesce(v_isn, c_isn_defaut);
-
-  v_rep := greatest(0, least(100, coalesce(v_pj.reputation_criminelle, 0)));
-  v_bonus_rep := CASE WHEN v_rep >= 70 THEN 15 WHEN v_rep >= 40 THEN 10 WHEN v_rep >= 20 THEN 5 ELSE 0 END;
-
-  v_bonus := (v_dup - 10) * 2 - (v_isn - 45)::numeric / 3 + v_bonus_rep;
-  v_jet := floor(random() * 100)::integer + 1 - 50;
-  v_score := greatest(0, least(100, round(50 + v_bonus + v_jet)::integer));
-
-  UPDATE public.personnages_donnees SET pa = greatest(0, coalesce(pa,0) - 2) WHERE name = v_moi;
-
-  IF v_score < c_seuil_reussite THEN
-    RETURN jsonb_build_object('ok', true, 'reussite', false,
-      'detecte', v_score < c_seuil_detection, 'score', v_score);
-  END IF;
-
-  -- REUSSITE. Le stock est decremente AVANT que l'objet n'existe : jamais d'explosif cree de rien.
-  v_stock := public.caserne_stock_mouvement(p_pays, 'explosif_militaire', -1, NULL);
-  IF coalesce((v_stock->>'ok')::boolean, false) IS NOT TRUE THEN
-    RETURN jsonb_build_object('ok', true, 'reussite', false, 'detecte', false,
-      'score', v_score, 'raison', 'stock_insuffisant');
-  END IF;
-
-  -- ...et c'est le SERVEUR qui le pose dans l'inventaire, plus le navigateur.
-  v_objet := jsonb_build_object(
-    'id', 'mil-' || replace(gen_random_uuid()::text, '-', ''),
-    'type', 'arme', 'sousType', 'militaire', 'origineMilitaire', true,
-    'lot', coalesce(v_stock->'lots'->0->>'lot', 'legacy'),
-    'produitMilitaire', 'explosif_militaire', 'name', 'Explosif militaire',
-    'icon', 'ti-bomb', 'legal', true, 'imageUrl', NULL,
-    'desc', 'Explosif militaire. Lot ' || coalesce(v_stock->'lots'->0->>'lot', 'legacy') || '.');
-
-  UPDATE public.personnages_donnees
-     SET inventory = (CASE WHEN jsonb_typeof(inventory)='array' THEN inventory ELSE '[]'::jsonb END)
-                     || jsonb_build_array(v_objet)
-   WHERE name = v_moi;
-
-  RETURN jsonb_build_object('ok', true, 'reussite', true, 'detecte', false,
-    'score', v_score, 'objet', v_objet, 'lot', v_objet->>'lot');
-END;
-$function$;
-
--- militaire_taux_combat(numeric,numeric,numeric,integer) -> integer | sql | SECURITY INVOKER
-CREATE OR REPLACE FUNCTION public.militaire_taux_combat(p_comp_off numeric, p_comp_cible numeric, p_stat_cible numeric, p_bonus_arme integer DEFAULT 0)
- RETURNS integer
- LANGUAGE sql
- IMMUTABLE
-AS $function$
-  SELECT greatest(10, least(85, round(
-      50 + coalesce(p_comp_off, 0) / 3.0
-         - coalesce(p_comp_cible, 0) / 5.0
-         - (coalesce(p_stat_cible, 8) - 8)
-         + coalesce(p_bonus_arme, 0)
-    )::integer));
-$function$;
-
--- militaire_terminal_dormir(text,text[],text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.militaire_terminal_dormir(p_requete text, p_matricules text[], p_tentes text[])
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  c_pa_max constant integer := 12;
-  c_gain_terrain constant integer := 8;
-  c_bonus_tente constant integer := 2;
-  g record; v_deja record; v_jour text; r record; v_res jsonb; v_etat jsonb;
-  v_tentes text[] := coalesce(p_tentes, '{}'::text[]);
-  v_libres integer; v_caserne text[] := '{}'; v_sous_tente text[] := '{}';
-  v_terrain text[] := '{}'; v_mats text[] := '{}'; v_refus jsonb := '[]'::jsonb;
-  v_data jsonb; v_sec jsonb;
-BEGIN
-  IF p_requete IS NULL OR p_requete !~ '^mil-[A-Za-z0-9-]{6,80}$' THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
-  IF p_matricules IS NULL OR array_length(p_matricules, 1) IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'aucune_selection'); END IF;
-  IF EXISTS (SELECT 1 FROM unnest(v_tentes) t WHERE t <> ALL(p_matricules)) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'tente_hors_selection'); END IF;
-
-  SELECT * INTO v_deja FROM public.militaire_terminal_requetes WHERE requete = p_requete;
-  IF FOUND THEN RETURN v_deja.resultat || jsonb_build_object('rejeu', true); END IF;
-
-  SELECT * INTO g FROM public.militaire_ma_section();
-  IF g.o_raison IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', g.o_raison); END IF;
-
-  v_etat := public.militaire_terminal_section();
-  v_libres := coalesce((v_etat->>'places_tente_libres')::integer, 0);
-  IF coalesce(array_length(v_tentes,1), 0) > v_libres THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'capacite_tente_depassee',
-      'demande', coalesce(array_length(v_tentes,1),0), 'places_libres', v_libres,
-      'tentes', v_etat->'tentes', 'par_tente', v_etat->'par_tente',
-      'places_pj', v_etat->'places_pj'); END IF;
-
-  v_jour := (now() AT TIME ZONE 'Europe/Paris')::date::text;
-  SELECT s INTO v_sec FROM jsonb_array_elements(coalesce(g.o_data->'sections','[]'::jsonb)) s
-   WHERE s->>'id' = g.o_section;
-
-  FOR r IN
-    SELECT sm.pnj_id, sm.matricule, m.pa, coalesce(sm.dernier_sommeil,'') AS marqueur,
-           coalesce(pd.current_building, m.building_id) AS batiment
-      FROM public.pnj_soldats_metier sm
-      JOIN public.pnj_membres m ON m.id = sm.pnj_id
-      LEFT JOIN public.personnages_donnees pd ON pd.name = m.leader_pj
-     WHERE sm.compagnie_id = g.o_compagnie AND sm.section_id = g.o_section
-       AND m.statut = 'actif' AND coalesce(sm.en_reserve,false) = false
-       AND sm.matricule = ANY(p_matricules)
-     ORDER BY sm.matricule
-  LOOP
-    IF NOT public.militaire_terminal_liaison(g.o_moi, r.pnj_id) THEN
-      v_refus := v_refus || jsonb_build_object('matricule', r.matricule, 'raison', 'hors_liaison');
-      CONTINUE;
-    END IF;
-    IF r.pa <= 0 THEN
-      v_refus := v_refus || jsonb_build_object('matricule', r.matricule, 'raison', 'epuise');
-      CONTINUE;
-    END IF;
-    IF r.marqueur = v_jour THEN
-      v_refus := v_refus || jsonb_build_object('matricule', r.matricule, 'raison', 'deja_repose');
-      CONTINUE;
-    END IF;
-
-    v_mats := v_mats || r.matricule;
-    IF coalesce(r.batiment,'') = 'caserne-militaire' THEN v_caserne := v_caserne || r.pnj_id;
-    ELSIF r.matricule = ANY(v_tentes)                THEN v_sous_tente := v_sous_tente || r.pnj_id;
-    ELSE                                                  v_terrain := v_terrain || r.pnj_id;
-    END IF;
-  END LOOP;
-
-  IF array_length(v_caserne,1) IS NOT NULL THEN
-    PERFORM public.pnj_pa_fixer(v_caserne, c_pa_max); END IF;
-  IF array_length(v_sous_tente,1) IS NOT NULL THEN
-    PERFORM public.pnj_pa_crediter(v_sous_tente, c_gain_terrain + c_bonus_tente); END IF;
-  IF array_length(v_terrain,1) IS NOT NULL THEN
-    PERFORM public.pnj_pa_crediter(v_terrain, c_gain_terrain); END IF;
-
-  IF array_length(v_mats,1) IS NOT NULL THEN
-    SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = g.o_compagnie FOR UPDATE;
-    UPDATE public.compagnies_militaires
-       SET data = jsonb_set(v_data, '{sections}', (
-             SELECT coalesce(jsonb_agg(
-               CASE WHEN s->>'id' = g.o_section
-                    THEN jsonb_set(s, '{soldats}', (
-                           SELECT coalesce(jsonb_agg(
-                             CASE WHEN (so->>'matricule') = ANY(v_mats)
-                                  THEN so || jsonb_build_object('dernier_sommeil', v_jour)
-                                  ELSE so END ORDER BY o2), '[]'::jsonb)
-                             FROM jsonb_array_elements(coalesce(s->'soldats','[]'::jsonb))
-                                  WITH ORDINALITY AS t2(so, o2)))
-                    ELSE s END ORDER BY o1), '[]'::jsonb)
-               FROM jsonb_array_elements(coalesce(v_data->'sections','[]'::jsonb))
-                    WITH ORDINALITY AS t1(s, o1))),
-           updated_at = now()
-     WHERE id = g.o_compagnie;
-    PERFORM public.militaire_blob_projeter(g.o_compagnie);
-  END IF;
-
-  v_res := jsonb_build_object('ok', true, 'action', 'dormir',
-    'caserne', coalesce(array_length(v_caserne,1),0),
-    'tente', coalesce(array_length(v_sous_tente,1),0),
-    'terrain', coalesce(array_length(v_terrain,1),0),
-    'reposes', coalesce(array_length(v_mats,1),0),
-    'details', v_refus);
-  INSERT INTO public.militaire_terminal_requetes (requete, acteur, action, resultat)
-  VALUES (p_requete, g.o_moi, 'dormir', v_res);
-  RETURN v_res;
-END; $function$;
-
--- militaire_terminal_liaison(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.militaire_terminal_liaison(p_moi text, p_pnj_id text)
- RETURNS boolean
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_radio_moi boolean; v_leader text; pe record; v_radio_groupe boolean;
-BEGIN
-  IF public.pnj_co_present(p_moi, p_pnj_id) THEN RETURN true; END IF;
-
-  SELECT EXISTS (SELECT 1 FROM public.personnages_donnees pd,
-           jsonb_array_elements(CASE WHEN jsonb_typeof(pd.inventory)='array'
-                                     THEN pd.inventory ELSE '[]'::jsonb END) i
-           WHERE pd.name = p_moi AND i->>'produitMilitaire' = 'radio') INTO v_radio_moi;
-  IF NOT coalesce(v_radio_moi, false) THEN RETURN false; END IF;
-
-  SELECT leader_pj INTO v_leader FROM public.pnj_membres WHERE id = p_pnj_id;
-  IF v_leader IS NOT NULL THEN
-    SELECT EXISTS (SELECT 1 FROM public.personnages_donnees pd,
-             jsonb_array_elements(CASE WHEN jsonb_typeof(pd.inventory)='array'
-                                       THEN pd.inventory ELSE '[]'::jsonb END) i
-             WHERE pd.name = v_leader AND i->>'produitMilitaire' = 'radio') INTO v_radio_groupe;
-    RETURN coalesce(v_radio_groupe, false);
-  END IF;
-
-  SELECT * INTO pe FROM public.pnj_position_effective(p_pnj_id);
-  IF pe.ville IS NULL THEN RETURN false; END IF;
-  SELECT EXISTS (
-    SELECT 1 FROM public.pnj_membres m2
-      JOIN public.pnj_possessions p ON p.pnj_id = m2.id
-     WHERE m2.statut = 'actif' AND m2.pays = pe.pays
-       AND m2.ville = pe.ville
-       AND m2.building_id IS NOT DISTINCT FROM pe.building_id
-       AND m2.room_id IS NOT DISTINCT FROM pe.room_id
-       AND p.objet->>'produitMilitaire' = 'radio') INTO v_radio_groupe;
-  RETURN coalesce(v_radio_groupe, false);
 END; $function$;

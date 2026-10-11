@@ -2313,7 +2313,19 @@ const BUILDINGS = {
         imageUrl: "images/bureau-president.webp",
         locked: false,
         persons: [
-          {name:'Le Président (PNJ)', role:'PNJ - Président de la République', rel:'neutral', job:'president'},
+          // LE PRESIDENT PNJ NE DISPARAIT PAS QUAND UN JOUEUR EST ELU (11 octobre 2026). Existence
+          // et titularite sont deux choses : le Commissaire et le Grand Pretre l'etablissaient
+          // deja, la caserne l'a generalise avec le Commandant Tom Hawak. Elu, le joueur prend le
+          // POSTE ; le PNJ reste dans le bureau et devient l'adjoint du Secretariat general --
+          // c'est lui qui connait la maison. `resteApresPourvoi` sort AVANT le test de la liste
+          // des postes masques dans plateau-multijoueur.js : `president` peut donc y rester, et
+          // doit y rester, pour les presidents PNJ des autres empires qui ne portent pas ce
+          // drapeau. Les deux libelles sont declaratifs : ajusterTitrePnjDePoste les applique a
+          // l'entree dans la piece, sans une ligne de code propre au Palais.
+          {name:'Le Président (PNJ)', role:'PNJ - Président de la République', rel:'neutral', job:'president',
+           resteApresPourvoi: true,
+           roleSiPnjTitulaire: 'PNJ - Président de la République',
+           roleSiPjTitulaire:  'PNJ - Secrétaire général adjoint de la Présidence'},
           {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general', photoUrl:'images/huguette-papier.webp', photoPos:'50% 15%'}
         ],
         orders: [
@@ -2353,7 +2365,11 @@ const BUILDINGS = {
         desc: "La somptueuse salle de reception du Palais. Receptions d'Etat, banquets diplomatiques.",
         imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80",
         persons: [
-          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.webp', photoPos:'50% 15%'}
+          // UN SEUL TITRE POUR GERARD, PARTOUT (11 octobre 2026). Il portait « Chef du protocole
+          // presidentiel » au Hall d'honneur et « Organisation des evenements » ici : le meme
+          // PNJ se presentait sous deux fonctions dans le meme batiment, et sa fiche serveur ne
+          // connaissait que la premiere. C'est la premiere qui fait foi.
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole', photoUrl:'images/gerard-tamponneau.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
@@ -2551,6 +2567,13 @@ const BUILDINGS = {
           // payer_ordre refusait les trois en 'cout_non_declare' (corrige le 21 septembre 2026).
           {fn:'mobilisation_nationale', label:'Mobilisation nationale',   pa:0, cost:0, type:'legal', icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mobiliser l\'armee (4 PA), requisitionner des civils (3 PA), demobiliser (2 PA).'},
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
+          // LA GARDE REPUBLICAINE (11 octobre 2026). 0 PA et 0 FR ICI, et ce n'est pas une
+          // gratuite : `garde_renfort_national` preleve elle-meme 50 FR par garde supplementaire
+          // sur la caisse du Ministere, dans la meme transaction que l'arrivee des hommes. Le
+          // declarer payant au miroir ferait payer le ministre DEUX fois, une fois de sa poche a
+          // l'ouverture de la fenetre -- c'est exactement le double prelevement corrige sur
+          // `renseignement` le 22 septembre. La RPC reste seule payeuse.
+          {fn:'garde_republicaine', label:'Garde republicaine',           pa:0, cost:0,   type:'legal',   icon:'ti-shield-lock',    successRate:100, requiresPost:'min_def', desc:'Renforcer la Garde des trois palais nationaux pendant 24 h : x2 a x5, 50 FR par garde supplementaire sur la caisse du Ministere.'},
           // REGROUPEMENT (22 septembre 2026). Remplace le BOUTON `renseignement` : un seul
           // point d'entree, qui mene a « Lancer une operation » et « Suivre une operation ».
           // La route `renseignement` reste en place dans plateau-router.js.

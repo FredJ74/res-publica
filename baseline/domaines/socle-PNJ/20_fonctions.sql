@@ -618,6 +618,42 @@ BEGIN
     'observation_ni_leader_ni_position', v_ni_lun_ni_lautre);
 END; $function$;
 
+-- pnj_contexte_public() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pnj_contexte_public()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; f record; v_fonctions jsonb := '[]'::jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  -- LES POSTES SONT LUS SUR LA FICHE, et la fiche est ATTESTEE : le declencheur
+  -- personnages_attester_poste refuse tout poste qui ne vient pas du depouillement, du registre
+  -- des nominations ou de la compagnie. On ne peut donc pas se declarer ministre pour impressionner
+  -- un PNJ.
+  SELECT poste, poste_depute INTO f FROM public.personnages_donnees WHERE name = v_moi;
+
+  IF f.poste IS NOT NULL AND jsonb_typeof(f.poste) = 'object'
+     AND coalesce(f.poste->>'name', '') <> '' THEN
+    v_fonctions := v_fonctions || jsonb_build_array(f.poste->>'name');
+  END IF;
+  IF f.poste_depute IS NOT NULL AND jsonb_typeof(f.poste_depute) = 'object'
+     AND coalesce(f.poste_depute->>'name', '') <> '' THEN
+    v_fonctions := v_fonctions || jsonb_build_array(f.poste_depute->>'name');
+  END IF;
+
+  -- CE QUE CETTE FONCTION NE RENDRA JAMAIS SANS UN ARBITRAGE EXPLICITE : la ville ou l on habite,
+  -- la carriere, l influence, la popularite, les condamnations, l histoire personnelle, l argent
+  -- et les possessions. La liste est ecrite ici pour qu'un ajout se voie dans un diff.
+  RETURN jsonb_build_object('ok', true, 'nom', v_moi, 'fonctions', v_fonctions);
+END;
+$function$;
+
 -- pnj_copier_soldats(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_copier_soldats(p_compagnie text)
  RETURNS jsonb

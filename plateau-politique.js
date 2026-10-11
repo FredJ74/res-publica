@@ -11798,9 +11798,27 @@ async function estImmuniteMilitaire() {
 async function rafraichirCacheImmuniteMilitaire() {
   state.immuniteMilitaireActuelle = await estImmuniteMilitaire().catch(() => false);
   // Malus "securiser" applicable dans la piece courante (cache pour un usage synchrone dans doOrder)
+  //
+  // LA GARDE REPUBLICAINE ENTRE DANS CE MEME CALCUL (11 octobre 2026), et c'est deliberement le
+  // MEME : la regle de groupe du jeu est `min(40, 10 + nombre d'hommes armes en mission de
+  // securite dans la piece`, elle existe depuis le detachement militaire, et les gardes d'un hall
+  // sont exactement cela. On additionne donc les HOMMES et on applique la formule UNE FOIS --
+  // plutot que d'additionner deux malus, ce qui aurait invente un empilement que personne n'a
+  // arbitre, ou de prendre le plus grand des deux, ce qui aurait invente une regle de plus.
+  //
+  // `garde_republicaine_piece` rend aussi un champ `malus` : il sert a l'affichage d'une piece
+  // gardee prise seule. Ici c'est `gardes` qu'on consomme, parce que le point de decision du jet
+  // est cette ligne-ci et qu'il ne doit y avoir qu'une seule autorite sur le chiffre final.
   if (typeof getAffichageDetachementPiece === 'function') {
     const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentCity, state.currentBuilding, state.currentRoom).catch(() => null);
-    state.malusSecuriteMilitaire = (det?.mission === 'securiser') ? Math.min(40, 10 + det.nombre) : 0;
+    const soldats = (det?.mission === 'securiser') ? (Number(det.nombre) || 0) : 0;
+    let gardes = 0;
+    if (typeof sbGardePiece === 'function') {
+      const g = await sbGardePiece(state.currentBuilding, state.currentRoom).catch(() => null);
+      gardes = Number(g?.gardes) || 0;
+    }
+    const hommes = soldats + gardes;
+    state.malusSecuriteMilitaire = hommes > 0 ? Math.min(40, 10 + hommes) : 0;
   }
   const budgetNat = await chargerBudgetNational(state.country || 'republic').catch(() => null);
   state.mobilisationNationaleCache = !!budgetNat?.mobilisationNationaleActive;
@@ -13283,6 +13301,74 @@ async function confirmerReversementCaserne() {
   showToast('Reversé au Ministère', montant.toLocaleString('fr-FR') + ' FR transférés.', true, true);
   addJournalEntry('Reversement de ' + montant.toLocaleString('fr-FR')
     + ' FR de la caserne vers le Ministère de la Défense.', 'event-info');
+}
+
+// ------------------------------------------------------------------------------------------------
+// LA GARDE REPUBLICAINE -- LE PANNEAU DU MINISTRE (11 octobre 2026)
+// ------------------------------------------------------------------------------------------------
+// LE PANNEAU NE CALCULE RIEN QUI COMPTE. Il affiche un cout pour que le ministre sache ce qu'il
+// engage, mais c'est le serveur qui chiffre, verifie l'autorite, verrouille la caisse et refuse.
+// Si les deux chiffres divergeaient un jour, c'est celui du serveur qui serait vrai -- et c'est
+// pour cela que le refus affiche le montant que le serveur a renvoye, jamais celui d'ici.
+async function ouvrirGardeRepublicaine() {
+  if (state.poste?.id !== 'min_def') {
+    showToast('Réservé au Ministre de la Défense', '', false); return;
+  }
+  const etat = (typeof sbGardePiece === 'function')
+    ? await sbGardePiece('palais-presidentiel', 'accueil_elysee').catch(() => null) : null;
+
+  document.getElementById('postes-modal-title').textContent = 'Garde républicaine';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.7rem">La Garde tient trois postes '
+        + 'nationaux : le Palais présidentiel, le Palais du Gouvernement et l\'Assemblée. '
+        + 'Un garde permanent y est en faction gratuitement.</div>';
+  if (etat && etat.renfort_actif === true) {
+    html += '<div style="font-size:.8rem;color:#C9A84C;margin-bottom:.7rem">Un renfort est déjà en '
+          + 'vigueur. Une nouvelle décision le remplace et repart pour 24 h — et se paie en entier.</div>';
+  }
+  html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.4rem">Renforcer pendant 24 heures :</div>';
+  // LES PERTES NE SONT PAS REMPLACEES : c'est une regle de jeu, et le ministre doit la connaitre
+  // AVANT de payer, pas la decouvrir en comptant ses hommes le lendemain.
+  for (let f = 2; f <= 5; f++) {
+    const sup = (f - 1) * 3;
+    html += '<button onclick="confirmerGardeRenfort(' + f + ')" style="width:100%;font-family:Bebas Neue,sans-serif;'
+          + 'font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;'
+          + 'color:#C9A84C;cursor:pointer;margin-bottom:.35rem">×' + f + ' — ' + sup
+          + ' gardes de plus — ' + (sup * 50).toLocaleString('fr-FR') + ' FR</button>';
+  }
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.6rem;font-style:italic">Prélevé sur la '
+        + 'caisse du Ministère. Un garde mis hors de combat n\'est pas remplacé ; seul le garde '
+        + 'permanent reprend son poste, quatre heures plus tard.</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerGardeRenfort(facteur) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof sbGardeRenfortNational !== 'function') { showToast('Action impossible', '', false); return; }
+
+  // AUCUNE VERIFICATION DE CAISSE ICI, pour la meme raison qu'au reversement de la caserne : le
+  // serveur verrouille, compare et refuse sans rien ecrire. Deux sources de verite sur un meme
+  // solde finissent toujours par diverger.
+  const r = await sbGardeRenfortNational(facteur).catch(() => null);
+  if (!r || r.ok !== true) {
+    const raison = r && r.raison;
+    showToast('Renfort refusé',
+      raison === 'caisse_defense_insuffisante'
+        ? 'La caisse du Ministère ne couvre pas ' + Number(r.requis || 0).toLocaleString('fr-FR')
+          + ' FR (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' FR).'
+      : raison === 'facteur_hors_bornes' ? 'Le renfort va de ×2 à ×5.'
+      : raison === 'aucun_poste_de_garde' ? 'Aucun poste de garde dans ce pays.'
+      : 'Réservé au Ministre de la Défense en exercice.', false);
+    return;
+  }
+  showToast('Garde renforcée',
+    '×' + r.facteur + ' pendant 24 h — ' + r.gardes_supplementaires + ' gardes, '
+    + Number(r.cout).toLocaleString('fr-FR') + ' FR.', true, true);
+  addJournalEntry('Garde républicaine renforcée ×' + r.facteur + ' sur les ' + r.postes
+    + ' postes nationaux pour 24 heures — ' + Number(r.cout).toLocaleString('fr-FR')
+    + ' FR prélevés sur la caisse du Ministère de la Défense.', 'event-info');
 }
 
 // Retourne le coefficient de tir actuel d'une arme pour un pays (defaut + ameliorations acquises)

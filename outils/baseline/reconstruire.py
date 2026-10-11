@@ -501,7 +501,12 @@ def controles_du_monde(cat):
     # Les tables hors_baseline ne sont jamais creees. Elles etaient SIX ; la migration 20261010183124
     # (registre 633) a detruit zz_snap_cka_membres apres l'avoir archivee, il en reste CINQ :
     # 265 au catalogue, 260 ici. La ligne du CSV de classification reste a retirer.
-    att("tables creees", len(cat.tables), 260)
+    # 263 le 11 octobre 2026, a la cloture du Palais presidentiel : +3 pour la Garde
+    # republicaine -- garde_republicaine_postes (la DECLARATION des trois lieux de faction, qui
+    # rend la Garde generique au lieu de codee batiment par batiment), garde_republicaine_renfort
+    # (le facteur national et son UNIQUE echeance par pays) et garde_republicaine_effectifs
+    # (permanent ou renfort). Les trois sont sous RLS SANS POLICY : fermees a tout client.
+    att("tables creees", len(cat.tables), 263)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -567,8 +572,13 @@ def controles_du_monde(cat):
     # remplace le SELECT direct) et militaire_inspection_perimetre (le verdict serveur de
     # l'inspection des troupes, qui n'etait gardee qu'en JavaScript). Aucune surcharge ajoutee :
     # l'ecart de 4 reste celui des quatre surcharges historiques.
-    att("signatures de fonction creees", cat.n_fonctions, 725)
-    att("noms de fonction distincts", len(cat.fonctions), 721,
+    # 733 / 729 le 11 octobre 2026, a la cloture du Palais presidentiel : +8 fonctions, dont
+    # aucune surcharge -- pnj_contexte_public (le troisieme canal du dialogue),
+    # garde_republicaine_autorite_de_perimetre (le resolveur de l'institution, recopie de celui du
+    # renseignement) et les six portes de la Garde : creer, vacance (declencheur), synchroniser,
+    # renfort_national, piece et controle.
+    att("signatures de fonction creees", cat.n_fonctions, 733)
+    att("noms de fonction distincts", len(cat.fonctions), 729,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -591,7 +601,11 @@ def controles_du_monde(cat):
     # CHECK du montant, CHECK du statut, CHECK de coherence de cloture (une proposition close
     # porte sa date et son repondant, une proposition en attente n'en porte aucun) et CHECK du
     # delai de trois jours.
-    att("contraintes posees", len(cat.contraintes), 454)
+    # 459 le 11 octobre 2026 : +5 pour la Garde republicaine -- trois cles primaires, une cle
+    # etrangere de garde_republicaine_effectifs vers pnj_membres (ON DELETE CASCADE) et le CHECK
+    # garde_facteur_borne qui tient le facteur entre 2 et 5. Le CHECK pnj_famille_connue est
+    # REMPLACE et non ajoute : la liste des familles doit se lire d'un coup.
+    att("contraintes posees", len(cat.contraintes), 459)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -600,14 +614,19 @@ def controles_du_monde(cat):
     # subventions_enveloppe_en_attente et subventions_une_proposition_identique_en_attente. Ils
     # portent l'unicite de ce qui est ENCORE PROPOSE, et c'est la raison pour laquelle la reserve
     # n'est pas une colonne : elle se calcule, elle ne se duplique pas.
-    att("index autonomes crees", len(cat.index), 151)
+    # 152 le 11 octobre 2026 : +1, garde_effectifs_par_poste, qui porte la lecture par poste --
+    # celle que fait la synchronisation a chaque entree dans un hall garde.
+    att("index autonomes crees", len(cat.index), 152)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
     # 42 le 10 octobre 2026 au soir : +1, subventions_familles_verrou_resolveur. Il refuse de
     # declarer eligible une famille que subvention_familles_resolues() ne sait pas traiter : on ne
     # peut pas declarer sans implementer.
-    att("declencheurs crees", len(cat.triggers), 42)
+    # 43 le 11 octobre 2026 : +1, garde_republicaine_vacance_trg. Il horodate la chute du garde
+    # PERMANENT sans que pnj_mourir ait a connaitre la Garde -- le socle reste generique, et la
+    # vacance part toute seule quelle que soit la cause de la chute, y compris une cause future.
+    att("declencheurs crees", len(cat.triggers), 43)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
