@@ -1597,13 +1597,18 @@ async function doDefense(pa, cost) {
   // l'autorite judiciaire de la ville -- et l'accuse n'en est jamais une. La defense coutait donc
   // 2 PA et 300 FR pour rien, systematiquement, pour tout le monde.
   //
-  // LE JET, LUI, RESTE ICI, et il faut dire pourquoi. Son taux depend de `getStatEffective('CHA')`,
-  // qui additionne `state.char.bonusFormation` -- un bonus temporaire qui n'est PERSISTE DANS
-  // AUCUNE COLONNE : il vit dans la session du navigateur et disparait au sommeil. Le serveur ne
-  // peut pas le connaitre. Refaire le tirage cote serveur reviendrait soit a supprimer son effet
-  // sur la defense, soit a le rendre persistant : les deux changent la regle de jeu. L'issue est
-  // donc annoncee par le client, dans une LISTE CLOSE de quatre valeurs, sur une affaire dont le
-  // serveur verifie qu'elle est bien la sienne et qu'elle est encore jugeable.
+  // LA DEPENDANCE AU BONUS DE FORMATION EST SUPPRIMEE (12 octobre 2026), ET C'ETAIT LA RAISON
+  // INVOQUEE POUR LAISSER CE JET AU CLIENT. Le taux depend de `getStatEffective('CHA')`, qui
+  // additionnait `state.char.bonusFormation` -- un bonus sans colonne, que le serveur ne pouvait
+  // donc pas connaitre. L'ancien systeme `se_former` est supprime et la lecture a quitte
+  // `getStatEffective` : plus aucun terme de ce taux n'est hors de portee du serveur.
+  //
+  // LE JET RESTE ICI POUR CETTE PASSE, ET C'EST UN RESTE ASSUME, PAS UNE REGLE. La formule de
+  // defense sera reconstruite au serveur dans le chantier judiciaire (CHA de l'avocat au maximum
+  // autorise, bonus lie au CHA du prevenu), et l'inventer maintenant serait decider a la place du
+  // game design. L'issue est donc encore annoncee par le client, dans une LISTE CLOSE de quatre
+  // valeurs, sur une affaire dont le serveur verifie qu'elle est bien la sienne et qu'elle est
+  // encore jugeable.
   if (roll <= taux - 30) {
     issue = 'reussite_critique';
     titre = 'Affaire classée !';

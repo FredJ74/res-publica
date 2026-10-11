@@ -2253,3 +2253,305 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'servie', coalesce(p_servie,false),
     'credites', v_credites, 'invitations_supprimees', v_supprimees);
 END; $function$;
+
+-- universite_abandonner(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_abandonner(p_requete text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_id text; v_n integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  UPDATE public.universite_inscriptions
+     SET statut = 'abandonne', clos_le = now()
+   WHERE personnage = v_moi AND statut = 'en_cours'
+  RETURNING id INTO v_id;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucun_cursus_en_cours'); END IF;
+
+  -- RIEN N'EST ECRIT DANS personnages_qualifications : le slot a vie reste disponible, et c'est
+  -- la regle. Un abandon n'est pas un echec de qualification, c'est l'absence de qualification.
+  RETURN jsonb_build_object('ok', true, 'inscription', v_id, 'statut', 'abandonne',
+    'slot_consomme', public.universite_slot_consomme(v_moi));
+END;
+$function$;
+
+-- universite_diplomer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_diplomer(p_requete text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_ins record; v_cur record; v_total integer; v_faits integer; v_n integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT * INTO v_ins FROM public.universite_inscriptions
+   WHERE personnage = v_moi AND statut = 'en_cours' FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucun_cursus_en_cours'); END IF;
+
+  IF now() > v_ins.limite_le THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cursus_expire', 'limite_le', v_ins.limite_le);
+  END IF;
+  -- LA DUREE THEORIQUE EST UN MINIMUM, PAS UNE ESTIMATION. Meme tous les jalons accomplis ne
+  -- diplomsent pas avant son terme.
+  IF now() < v_ins.fin_theorique_le THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'duree_theorique_non_atteinte',
+      'fin_theorique_le', v_ins.fin_theorique_le);
+  END IF;
+
+  SELECT count(*), count(a.jalon) INTO v_total, v_faits
+    FROM public.universite_cursus_jalons j
+    LEFT JOIN public.universite_jalons_accomplis a
+           ON a.jalon = j.id AND a.inscription = v_ins.id
+   WHERE j.cursus = v_ins.cursus;
+  IF v_faits < v_total THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'jalons_incomplets',
+      'accomplis', v_faits, 'total', v_total);
+  END IF;
+
+  IF public.universite_slot_consomme(v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'slot_universitaire_deja_consomme');
+  END IF;
+
+  SELECT * INTO v_cur FROM public.universite_cursus WHERE id = v_ins.cursus;
+
+  -- LE SLOT SE CONSOMME EN ECRIVANT LA QUALIFICATION, jamais en posant un drapeau. L'index
+  -- unique partiel `personnages_une_seule_qualif_universitaire` est la seconde barriere : deux
+  -- appels simultanes ne peuvent pas ecrire deux qualifications universitaires.
+  INSERT INTO public.personnages_qualifications
+    (personnage, qualification, source, inscription_id)
+  VALUES (v_moi, v_cur.qualification, 'universite', v_ins.id)
+  ON CONFLICT (personnage, qualification) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'qualification_deja_detenue');
+  END IF;
+
+  UPDATE public.universite_inscriptions
+     SET statut = 'diplome', clos_le = now()
+   WHERE id = v_ins.id;
+
+  RETURN jsonb_build_object('ok', true, 'inscription', v_ins.id,
+    'qualification', v_cur.qualification, 'slot_consomme', true);
+END;
+$function$;
+
+-- universite_expirer_echues() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_expirer_echues()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_n integer;
+BEGIN
+  -- AU-DELA DE LA LIMITE, LE CURSUS EST ECHOUE ET LE SLOT RESTE DISPONIBLE. Rien n'est ecrit
+  -- dans personnages_qualifications : c'est toute la difference avec un diplome.
+  UPDATE public.universite_inscriptions
+     SET statut = 'expire', clos_le = now()
+   WHERE statut = 'en_cours' AND now() > limite_le;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  RETURN jsonb_build_object('ok', true, 'expires', v_n);
+END;
+$function$;
+
+-- universite_inscrire(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_inscrire(p_cursus text, p_requete text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_cur record; v_id text; v_debut timestamptz := now(); v_n integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NOT NULL AND p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide');
+  END IF;
+
+  -- REJEU : meme convention que partout dans le projet.
+  IF p_requete IS NOT NULL THEN
+    SELECT id INTO v_id FROM public.universite_inscriptions WHERE requete = p_requete;
+    IF v_id IS NOT NULL THEN
+      RETURN jsonb_build_object('ok', true, 'rejeu', true, 'inscription', v_id);
+    END IF;
+  END IF;
+
+  SELECT * INTO v_cur FROM public.universite_cursus WHERE id = p_cursus;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'cursus_inconnu'); END IF;
+
+  -- LE SLOT A VIE. Une qualification universitaire deja obtenue ferme definitivement la porte.
+  IF public.universite_slot_consomme(v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'slot_universitaire_deja_consomme');
+  END IF;
+
+  -- UN SEUL CURSUS ACTIF. L'index unique partiel garde aussi, mais un refus nomme vaut mieux
+  -- qu'une violation de contrainte remontee au joueur.
+  IF EXISTS (SELECT 1 FROM public.universite_inscriptions
+              WHERE personnage = v_moi AND statut = 'en_cours') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cursus_deja_en_cours');
+  END IF;
+
+  v_id := 'ins-' || left(md5(v_moi || '|' || p_cursus || '|' || coalesce(p_requete, v_debut::text)), 20);
+
+  INSERT INTO public.universite_inscriptions
+    (id, personnage, cursus, semaines_theoriques, debut_le, fin_theorique_le, limite_le, statut, requete)
+  VALUES (v_id, v_moi, p_cursus, v_cur.semaines_theoriques, v_debut,
+          public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques),
+          -- LA LIMITE EST EXACTEMENT LE DOUBLE DE LA DUREE THEORIQUE.
+          public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques * 2),
+          'en_cours', p_requete)
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'inscription_deja_posee'); END IF;
+
+  RETURN jsonb_build_object('ok', true, 'inscription', v_id,
+    'semaines_theoriques', v_cur.semaines_theoriques,
+    'fin_theorique_le', public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques),
+    'limite_le', public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques * 2));
+END;
+$function$;
+
+-- universite_jalon_accomplir(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_jalon_accomplir(p_jalon text, p_requete text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_ins record; v_jal record; v_ouvre timestamptz; v_n integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NOT NULL AND p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide');
+  END IF;
+
+  SELECT * INTO v_ins FROM public.universite_inscriptions
+   WHERE personnage = v_moi AND statut = 'en_cours' FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucun_cursus_en_cours'); END IF;
+
+  SELECT * INTO v_jal FROM public.universite_cursus_jalons WHERE id = p_jalon;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'jalon_inconnu'); END IF;
+  IF v_jal.cursus <> v_ins.cursus THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'jalon_hors_cursus');
+  END IF;
+
+  -- LE CURSUS EXPIRE N'ACCEPTE PLUS RIEN.
+  IF now() > v_ins.limite_le THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cursus_expire', 'limite_le', v_ins.limite_le);
+  END IF;
+
+  -- VOICI CE QUI REND LA DUREE INCOMPRESSIBLE, ET IL N'Y A RIEN D'AUTRE A AJOUTER. Un jalon de
+  -- rang N s'ouvre N-1 semaines apres le debut du cursus. Aucune quantite de PA, aucune somme
+  -- d'argent et aucune repetition ne peuvent avancer cette date : elle est derivee de
+  -- `debut_le`, que seule l'inscription ecrit.
+  v_ouvre := public.universite_plus_semaines(v_ins.debut_le, v_jal.rang - 1);
+  IF now() < v_ouvre THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'semaine_non_ouverte',
+      'rang', v_jal.rang, 'ouvre_le', v_ouvre);
+  END IF;
+
+  INSERT INTO public.universite_jalons_accomplis (inscription, jalon, requete)
+  VALUES (v_ins.id, p_jalon, p_requete)
+  ON CONFLICT (inscription, jalon) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'jalon_deja_accompli');
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'jalon', p_jalon, 'rang', v_jal.rang);
+END;
+$function$;
+
+-- universite_mon_etat() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_mon_etat()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_ins record; v_jalons jsonb; v_total integer; v_faits integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT * INTO v_ins FROM public.universite_inscriptions
+   WHERE personnage = v_moi AND statut = 'en_cours' LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'cursus_actif', NULL,
+      'slot_consomme', public.universite_slot_consomme(v_moi),
+      'qualifications', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+          'qualification', q.qualification, 'libelle', c.libelle,
+          'source', q.source, 'acquise_le', q.acquise_le) ORDER BY q.acquise_le), '[]'::jsonb)
+        FROM public.personnages_qualifications q
+        LEFT JOIN public.qualifications c ON c.id = q.qualification
+        WHERE q.personnage = v_moi),
+      'cursus_disponibles', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+          'id', u.id, 'libelle', u.libelle, 'qualification', u.qualification,
+          'semaines_theoriques', u.semaines_theoriques,
+          'cout_pa', u.cout_pa, 'cout_fr', u.cout_fr) ORDER BY u.id), '[]'::jsonb)
+        FROM public.universite_cursus u));
+  END IF;
+
+  -- LES JALONS, AVEC LA SEMAINE A LAQUELLE CHACUN S'OUVRE. Un jalon dont la semaine n'est pas
+  -- ouverte est rendu comme tel : le navigateur ne peut donc pas en proposer l'accomplissement,
+  -- et la porte le refuserait de toute facon.
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+      'id', j.id, 'rang', j.rang, 'libelle', j.libelle, 'genre', j.genre,
+      'batiment', j.batiment, 'ville', j.ville, 'piece', j.piece,
+      'ouvre_le', public.universite_plus_semaines(v_ins.debut_le, j.rang - 1),
+      'ouvert', now() >= public.universite_plus_semaines(v_ins.debut_le, j.rang - 1),
+      'accompli', (a.jalon IS NOT NULL),
+      'accompli_le', a.accompli_le) ORDER BY j.rang, j.id), '[]'::jsonb),
+    count(*), count(a.jalon)
+    INTO v_jalons, v_total, v_faits
+    FROM public.universite_cursus_jalons j
+    LEFT JOIN public.universite_jalons_accomplis a
+           ON a.jalon = j.id AND a.inscription = v_ins.id
+   WHERE j.cursus = v_ins.cursus;
+
+  RETURN jsonb_build_object('ok', true,
+    'slot_consomme', public.universite_slot_consomme(v_moi),
+    'cursus_actif', jsonb_build_object(
+      'inscription', v_ins.id, 'cursus', v_ins.cursus,
+      'semaines_theoriques', v_ins.semaines_theoriques,
+      'debut_le', v_ins.debut_le, 'fin_theorique_le', v_ins.fin_theorique_le,
+      'limite_le', v_ins.limite_le,
+      'duree_atteinte', now() >= v_ins.fin_theorique_le,
+      'expire', now() > v_ins.limite_le,
+      'jalons_total', v_total, 'jalons_accomplis', v_faits,
+      'diplomable', (v_faits = v_total AND now() >= v_ins.fin_theorique_le AND now() <= v_ins.limite_le),
+      'jalons', v_jalons));
+END;
+$function$;
+
+-- universite_plus_semaines(timestamp with time zone,integer) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_plus_semaines(p_ts timestamp with time zone, p_semaines integer)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT (((p_ts AT TIME ZONE 'Europe/Paris') + (p_semaines * interval '7 days')) AT TIME ZONE 'Europe/Paris');
+$function$;
+
+-- universite_slot_consomme(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.universite_slot_consomme(p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.personnages_qualifications q
+                  WHERE q.personnage = p_nom AND q.source = 'universite');
+$function$;

@@ -274,6 +274,14 @@ CREATE TABLE public.personnages_donnees (
   competences_militaires jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
+CREATE TABLE public.personnages_qualifications (
+  personnage text NOT NULL,
+  qualification text NOT NULL,
+  source text NOT NULL,
+  acquise_le timestamp with time zone DEFAULT now() NOT NULL,
+  inscription_id text
+);
+
 CREATE TABLE public.personnages_supprimes (
   archive_id bigserial NOT NULL,
   personnage_id uuid,
@@ -302,6 +310,12 @@ CREATE TABLE public.presences (
   room_id text,
   updated_at timestamp with time zone DEFAULT now(),
   groupe_pnj jsonb
+);
+
+CREATE TABLE public.qualifications (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  note text
 );
 
 CREATE TABLE public.quetes_actives (
@@ -387,6 +401,49 @@ CREATE TABLE public.tournees (
   resolution_started_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   expires_at timestamp with time zone NOT NULL
+);
+
+CREATE TABLE public.universite_cursus (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  qualification text NOT NULL,
+  semaines_theoriques integer NOT NULL,
+  cout_pa integer DEFAULT 0 NOT NULL,
+  cout_fr integer DEFAULT 0 NOT NULL,
+  prerequis jsonb,
+  note text
+);
+
+CREATE TABLE public.universite_cursus_jalons (
+  id text NOT NULL,
+  cursus text NOT NULL,
+  rang integer NOT NULL,
+  libelle text NOT NULL,
+  genre text NOT NULL,
+  batiment text,
+  ville text,
+  piece text,
+  note text
+);
+
+CREATE TABLE public.universite_inscriptions (
+  id text NOT NULL,
+  personnage text NOT NULL,
+  cursus text NOT NULL,
+  semaines_theoriques integer NOT NULL,
+  debut_le timestamp with time zone NOT NULL,
+  fin_theorique_le timestamp with time zone NOT NULL,
+  limite_le timestamp with time zone NOT NULL,
+  statut text NOT NULL,
+  clos_le timestamp with time zone,
+  requete text
+);
+
+CREATE TABLE public.universite_jalons_accomplis (
+  inscription text NOT NULL,
+  jalon text NOT NULL,
+  accompli_le timestamp with time zone DEFAULT now() NOT NULL,
+  requete text
 );
 
 

@@ -567,7 +567,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etouffer') { ouvrirModalLobbyingPresse('etouffer', pa, cost, successRate); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
-  if (fn === 'se_former') { doSeFormer(pa, cost); return; }
   // Route 'recruter_info' SUPPRIMEE le 8 septembre 2026, meme cas exactement : doRecruterInfo()
   // n'existe nulle part, aucun ordre ne declare ce fn. Le recrutement reel passe par
   // 'recruter_informateur_pnj' -> doRecruterInformateurPNJ (plateau-multijoueur.js).
@@ -833,7 +832,7 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   // du restaurant au meme lot (remplace par "Consulter la carte") -- mais le fn reste une
   // infrastructure partagee (ORDER_EFFECTS, applyEffects, doRepasGastronomiqueGenerique) : garde
   // deterministe si jamais rebranche ailleurs.
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','deliberer_loge','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former','repas_gastronomique'];
+  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','deliberer_loge','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','repas_gastronomique'];
   if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
 
   applyEffects(fn, resultType, cost);

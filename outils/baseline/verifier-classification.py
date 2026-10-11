@@ -78,9 +78,20 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # visite) et assemblee_presidence_dues (les elections exceptionnelles en attente, inscrites par
 # un deuxieme episode de boycott distinct). LES QUATRE SONT CLASSEES C, etat vivant pur : un
 # scrutin seme donnerait un President que personne n a elu.
-# LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 286    # 285 -> 286 le 11 octobre 2026 : assemblee_reports_suspension (§4)
-EMPREINTE_LISTE = "cab889864450debe0dca42dd52f8cf2e"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 286 -> 292 le 12 octobre 2026 : LES SIX TABLES DU SOCLE UNIVERSITAIRE. `qualifications` (le
+# catalogue des qualifications REELLES -- des entites qu un code peut exiger, distinctes des
+# chaines decoratives CAREERS[].comp), `personnages_qualifications` (celles d un personnage, avec
+# leur SOURCE : c est elle qui porte le slot a vie), `universite_cursus` et
+# `universite_cursus_jalons` (le catalogue et le modele des jalons), `universite_inscriptions` (un
+# seul cursus actif, dates figees a l inscription) et `universite_jalons_accomplis`. LES TROIS
+# CATALOGUES SONT CLASSES A, LES TROIS AUTRES C, et les six sont rendues en STRUCTURE SEULE : les
+# catalogues naissent VIDES parce que les cursus, leurs noms, leurs durees, leurs jalons et leurs
+# prerequis metier sont des arbitrages de game design qu une migration n a pas le droit de rendre
+# -- il n y a donc rien a semer aujourd hui. Et semer une inscription ou une qualification
+# consommerait le slot universitaire A VIE d un personnage qui n a jamais etudie.
+# LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 12 octobre 2026 par la requete citee.
+TABLES_ATTENDUES = 292    # 286 -> 292 le 12 octobre 2026 : les six tables du socle universitaire
+EMPREINTE_LISTE = "b6a231cb8e5ad003956af113b5d4f379"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

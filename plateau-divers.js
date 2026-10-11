@@ -758,7 +758,7 @@ async function doFaireDon(pa, cost) {
 // simple rechargement de page entre la benediction et son utilisation reinitialisait state a zero
 // et faisait disparaitre le bonus sans aucun signal -- symptome exact remonte sur negocier_squatteurs.
 // Deplace sous state.char.benediction, qui LUI est bien inclus dans le blob JSON persiste (meme
-// convention que stageCaserne/licenceSportive/bonusFormation).
+// convention que stageCaserne/licenceSportive -- bonusFormation a disparu le 12 octobre 2026).
 function consommerBonusBenediction(taux) {
   const b = state.char?.benediction;
   if (b?.actif && (b.expire === undefined || (state.day || 1) <= b.expire)) {

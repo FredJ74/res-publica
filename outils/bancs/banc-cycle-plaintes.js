@@ -138,12 +138,19 @@ att("l'affaire recopie l'etat arrete par le serveur",
 att('les quatre motifs de refus de la porte sont nommes au joueur',
     bDef.indexOf("'affaire_non_defendable'") >= 0 && bDef.indexOf("'pas_mon_affaire'") >= 0
     && bDef.indexOf("'affaire_absente'") >= 0 && bDef.indexOf('frais ont été prélevés') >= 0);
-// LE JET RESTE AU CLIENT, ET C'EST ASSUME : son taux depend de getStatEffective('CHA'), qui
-// additionne bonusFormation -- un bonus temporaire persiste dans AUCUNE colonne. Le serveur ne
-// peut pas le connaitre. Cette epreuve verifie que la raison est ECRITE a cote du jet, pour que
-// personne ne prenne cette frontiere pour un oubli.
-att('et la raison pour laquelle le jet reste ici est ECRITE a cote du jet',
-    bloc('plateau-justice-economie.js', 'doDefense').indexOf('bonusFormation') >= 0);
+// LE JET RESTE AU CLIENT, MAIS PLUS POUR LA MEME RAISON -- ET CETTE EPREUVE A DU CHANGER AVEC
+// ELLE (12 octobre 2026). Elle exigeait que le mot `bonusFormation` figure a cote du jet : le
+// taux dependait de getStatEffective('CHA'), qui additionnait ce bonus temporaire sans colonne,
+// donc hors de portee du serveur. CE TERME A DISPARU de la formule avec la suppression de
+// `se_former`, et l'epreuve telle quelle serait devenue vide : elle aurait continue a passer en
+// trouvant le mot dans le COMMENTAIRE qui raconte sa disparition.
+// Ce qu'elle verifie desormais : le jet est un RESTE ASSUME, nomme comme tel, et renvoye au
+// chantier judiciaire -- pas une frontiere qu'on aurait oublie de franchir.
+var corpsDef = bloc('plateau-justice-economie.js', 'doDefense');
+att('la dependance au bonus de formation a quitte le jet de defense',
+    sansCommentaires(corpsDef).indexOf('bonusFormation') < 0);
+att('et le jet restant est nomme comme un reste, renvoye au chantier judiciaire',
+    corpsDef.indexOf('RESTE ASSUME') >= 0 && corpsDef.indexOf('chantier judiciaire') >= 0);
 
 print('');
 print('4. CLASSEMENT MINISTERIEL : UNE PORTE, ET UN ECRAN QUI N EST PLUS VIDE');

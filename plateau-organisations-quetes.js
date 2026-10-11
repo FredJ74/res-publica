@@ -3330,7 +3330,7 @@ function getMembresGroupeAvecStat(stat) {
 // Renvoie la valeur EFFECTIVE d'une caracteristique, en tenant compte de la moyenne de
 // groupe (9 aout 2026 : remplace la simple valeur du joueur - un groupe bien compose peut
 // faire monter le taux de reussite d'un ordre, un groupe mal compose peut le faire baisser),
-// puis d'un eventuel bonus de formation temporaire (voir doSeFormer) et de l'affaiblissement
+// puis de l'affaiblissement
 // lie aux HP. A utiliser partout ou une stat compte (CHA pour se defendre, etc.) au lieu de
 // lire state.char.stats directement. Retrocompatible : joueur seul (aucun employe inGroupe)
 // -> moyenne d'un seul element = sa propre valeur, comportement strictement identique a avant.
@@ -3353,7 +3353,12 @@ function getStatEffective(stat) {
   const base = valeursGroupe.length > 0
     ? valeursGroupe.reduce((s, v) => s + v, 0) / valeursGroupe.length
     : (state.char?.stats?.[stat] ?? 8);
-  const bonus = (state.char?.bonusFormation?.stat === stat) ? (state.char.bonusFormation.valeur || 0) : 0;
+  // LE BONUS DE FORMATION A ETE RETIRE DE CETTE FORMULE (12 octobre 2026). Il ajoutait +2 a une
+  // caracteristique au choix depuis `state.char.bonusFormation`, un champ sans colonne, non
+  // persiste, et sans aucun ecretage -- il faisait donc passer une caracteristique au plafond de
+  // 16 a 18 effectifs. L'ancien systeme `se_former` qui le produisait est supprime ; plus aucun
+  // producteur n'existe, et la lecture part avec lui plutot que de rester comme une branche morte
+  // qu'un futur champ homonyme pourrait reveiller.
   // Bonus ENT local (Lot 2) : n'affecte QUE stat==='ENT', court-circuite avant tout appel a
   // bonusEntIntegrationLocale() pour les 5 autres caracteristiques -- comportement et cout
   // strictement inchanges pour tous les autres appelants de cette fonction.
@@ -3364,7 +3369,7 @@ function getStatEffective(stat) {
   // state.char.stats.CHA (la caracteristique de base), disparait des la levee (excommunie remis
   // a null) sans aucune trace residuelle.
   const malusExcommunication = (stat === 'CHA' && state.char?.excommunie) ? -2 : 0;
-  const valeurNormale = base + bonus + bonusLocal + malusExcommunication;
+  const valeurNormale = base + bonusLocal + malusExcommunication;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));
@@ -3372,38 +3377,29 @@ function getStatEffective(stat) {
   return Math.round(valeurNormale);
 }
 
-// SUIVRE UNE FORMATION (Universite, amphi) — bonus TEMPORAIRE (+2, jusqu'au prochain sommeil),
-// max 1 formation par jour, cout 100 FR.
-function doSeFormer(pa, cost) {
-  if (state.char?.dernierFormationJour === state.day) {
-    showToast('Déjà formé aujourd\'hui', 'Une seule formation par jour.', false);
-    return;
-  }
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
-  document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caractéristique à booster pour la journée (+2, effet jusqu\'à votre prochain sommeil) :</div>';
-  stats.forEach(s => {
-    html += '<button onclick="appliquerFormation(\'' + s + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + getStatEffective(s) + ')</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function appliquerFormation(stat, pa, cost) {
-  if (!state.char) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  document.getElementById('modal-postes').classList.remove('open');
-  state.char.dernierFormationJour = state.day;
-  state.char.bonusFormation = { stat, valeur: 2 };
-  sauvegarderPersonnageImmediat();
-  updateUI();
-  showToast('Formation terminée', '+2 ' + stat + ' jusqu\'à votre prochain sommeil.', true, true);
-  addJournalEntry('Formation suivie à l\'université : +2 ' + stat + ' (temporaire).', 'event-good');
-}
+// SUIVRE UNE FORMATION A ETE SUPPRIME (12 octobre 2026) -- ancien systeme universitaire.
+//
+// QUARANTE LIGNES RETIREES ICI : `doSeFormer` et `appliquerFormation`. L'ordre `se_former` coutait
+// 2 PA + 100 FR et posait `state.char.bonusFormation = { stat, valeur: 2 }` -- un +2 temporaire a
+// une caracteristique au choix, valable jusqu'au prochain sommeil, verrouille a une formation par
+// jour.
+//
+// POURQUOI IL DEVAIT DISPARAITRE, ET CE N'EST PAS UNE QUESTION DE GOUT. L'audit du 11 octobre
+// l'avait mesure : ni `bonusFormation` ni `dernierFormationJour` n'avaient de colonne. Ils
+// vivaient dans `state.char`, donc en memoire du navigateur et dans `localStorage`, et
+// `Object.assign(state, sbState)` les detruisait a chaque reconciliation serveur. Le joueur payait
+// 2 PA et 100 FR au SERVEUR pour un bonus que le serveur ne connaissait pas, qui n'etait affiche
+// nulle part, qui ne survivait pas a un rechargement de page -- et dont le verrou « une par jour »
+// tombait avec lui, rendant l'ordre repetable autant de fois qu'on rechargeait. Il n'avait par
+// ailleurs AUCUN ecretage : une caracteristique au plafond de 16 passait effectivement a 18.
+//
+// L'UNIVERSITE DEVIENT LE LIEU D'UNE VRAIE QUALIFICATION, et son socle est en base
+// (`universite_*`, migration du 12 octobre 2026) : cursus, jalons, slot a vie, autorite serveur.
+// Le catalogue des cursus n'est PAS invente ici -- il sera arbitre a partir de
+// `baseline/arbitrages/INVENTAIRE-CARRIERES-ET-QUALIFICATIONS.md`.
+//
+// CE QUI N'EST PAS TOUCHE : `donner_conf` (Donner une conference) et `recruter_etud` (Recruter des
+// militants) ne dependaient d'aucune partie de ce systeme et restent entiers.
 
 // STAGE A LA CASERNE (Corps de Garde) — regenere la Volonte, ouvert a tout PJ (pas reserve aux
 // militaires). +5 VOL, 1 fois par jour, max 3 jours CONSECUTIFS puis 7 jours de repos avant de

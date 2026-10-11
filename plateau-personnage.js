@@ -2125,11 +2125,10 @@ async function doDormir() {
   state.day = today + 1;
   state.dernierDormir = state.day; // Bloque le jour suivant
   state.douanePassee = false;
-  // Le bonus de formation temporaire (voir doSeFormer) expire au sommeil
-  if (state.char?.bonusFormation) {
-    state.char.bonusFormation = null;
-    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  }
+  // LA REMISE A ZERO DU BONUS DE FORMATION A ETE RETIREE (12 octobre 2026) : l'ancien systeme
+  // `se_former` qui posait `state.char.bonusFormation` est supprime, donc il n'y a plus rien a
+  // expirer au sommeil. Un champ residuel sur une fiche ancienne est inoffensif : plus aucune
+  // formule ne le lit.
   localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
   // SOLDE MILITAIRE D'ABORD (phase 2). Elle est versee par la caserne, pas creee par le client.
   // Son retour nous dit AUSSI quel grade militaire le serveur reconnait -- c'est lui qui fait foi,

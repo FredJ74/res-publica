@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 30 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 36 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   contacts_organisations_passeurs_pkey  (contrainte contacts_organisations_passeurs_pkey)
 --   contacts_organisations_pkey  (contrainte contacts_organisations_pkey)
 --   demandes_mariage_pkey  (contrainte demandes_mariage_pkey)
@@ -33,14 +33,20 @@
 --   organisations_pkey  (contrainte organisations_pkey)
 --   personnages_name_key  (contrainte personnages_name_key)
 --   personnages_pkey  (contrainte personnages_pkey)
+--   personnages_qualifications_pkey  (contrainte personnages_qualifications_pkey)
 --   personnages_supprimes_pkey  (contrainte personnages_supprimes_pkey)
 --   presences_pkey  (contrainte presences_pkey)
+--   qualifications_pkey  (contrainte qualifications_pkey)
 --   quetes_actives_pkey  (contrainte quetes_actives_pkey)
 --   reconciliation_fantomes_pkey  (contrainte reconciliation_fantomes_pkey)
 --   souvenirs_accueil_pkey  (contrainte souvenirs_accueil_pkey)
 --   successions_pkey  (contrainte successions_pkey)
 --   testaments_pkey  (contrainte testaments_pkey)
 --   tournees_pkey  (contrainte tournees_pkey)
+--   universite_cursus_jalons_pkey  (contrainte universite_cursus_jalons_pkey)
+--   universite_cursus_pkey  (contrainte universite_cursus_pkey)
+--   universite_inscriptions_pkey  (contrainte universite_inscriptions_pkey)
+--   universite_jalons_accomplis_pkey  (contrainte universite_jalons_accomplis_pkey)
 
 -- Index autonomes :
 CREATE INDEX escorts_catalogue_ecran ON public.escorts_catalogue USING btree (pays, genre, actif, rang);
@@ -58,4 +64,10 @@ CREATE INDEX idx_successions_defunt ON public.successions USING btree (defunt);
 CREATE UNIQUE INDEX idx_successions_defunt_en_attente ON public.successions USING btree (defunt) WHERE (statut = 'en_attente'::text);
 CREATE INDEX idx_testaments_testateur ON public.testaments USING btree (testateur);
 CREATE INDEX personnages_requisition_idx ON public.personnages_donnees USING btree (((requisition ->> 'statut'::text))) WHERE (requisition IS NOT NULL);
+CREATE UNIQUE INDEX personnages_une_seule_qualif_universitaire ON public.personnages_qualifications USING btree (personnage) WHERE (source = 'universite'::text);
 CREATE UNIQUE INDEX personnages_user_id_unique ON public.personnages_donnees USING btree (user_id) WHERE (user_id IS NOT NULL);
+CREATE UNIQUE INDEX universite_inscription_une_par_requete ON public.universite_inscriptions USING btree (requete) WHERE (requete IS NOT NULL);
+CREATE INDEX universite_inscriptions_par_personnage ON public.universite_inscriptions USING btree (personnage, statut);
+CREATE UNIQUE INDEX universite_jalon_une_par_requete ON public.universite_jalons_accomplis USING btree (requete) WHERE (requete IS NOT NULL);
+CREATE INDEX universite_jalons_par_cursus ON public.universite_cursus_jalons USING btree (cursus, rang);
+CREATE UNIQUE INDEX universite_un_seul_cursus_actif ON public.universite_inscriptions USING btree (personnage) WHERE (statut = 'en_cours'::text);

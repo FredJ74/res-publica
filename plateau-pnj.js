@@ -859,19 +859,31 @@ function openPnjModal(encodedPnj) {
     actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
-    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\',true)"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');composerMailPour(\'' + pnjSafeName + '\')"><i class="ti ti-mail" style="font-size:.85rem"></i> Envoyer un mail</button>';
   }
 
-  if (!isPJ) {
-    const dejaDansRep = (state.contacts || []).some(c => c.name === pnj.name);
-    if (!dejaDansRep) {
-      actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
-    }
+  // « AJOUTER AU REPERTOIRE » A ETE RETIRE DE L'INTERFACE GENERIQUE (12 octobre 2026), POUR LES
+  // JOUEURS COMME POUR LES PNJ. Le repertoire se remplit par le jeu, pas par un bouton pose sur
+  // chaque fiche.
+  //
+  // L'EXCEPTION EST PEDAGOGIQUE ET ELLE EST REELLE. `addContact` enchaine
+  // `queteAccueilProposerCarriere` quand on ajoute Jeremy a l'etape `attente_depart_jeremy` :
+  // retirer le bouton pour lui casserait l'avancement de la quete d'accueil. La liste est
+  // declaree dans data.js (PNJ_ONBOARDING_REPERTOIRE_NOMS) et le banc la verifie.
+  if (!isPJ && pnjOnboardingRepertoire(pnj)
+      && !(state.contacts || []).some(c => c.name === pnj.name)) {
+    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au répertoire</button>';
   }
 
-  actionBtns += '<button class="pnj-action-btn" onclick="doSaluerPersonne(\'' + pnjSafeName + '\')"><i class="ti ti-hand-stop" style="font-size:.85rem"></i> Saluer</button>';
-  actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjModal(\'' + enc + '\')"><i class="ti ti-coins" style="font-size:.85rem"></i> Donner</button>';
+  // « SALUER » A ETE SUPPRIME (12 octobre 2026). Il accordait +2 INF par personne et par jour,
+  // sans aucun cout en PA ni en argent, par une ecriture directe de `state.inf` dans le
+  // navigateur -- aucune porte serveur. Aucun remplacement n'est prevu.
+  //
+  // « DONNER » ET « DONNER UN OBJET » SONT FUSIONNES EN UN SEUL BOUTON. Le choix argent/objet se
+  // fait apres le clic (ouvrirDonPnjChoix), au lieu d'exposer deux entrees dont l'une
+  // n'apparaissait qu'avec un inventaire non vide -- ce qui revelait au passage l'etat de son
+  // propre inventaire dans la liste d'actions.
+  actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjChoix(\'' + enc + '\')"><i class="ti ti-gift" style="font-size:.85rem"></i> Donner</button>';
 
   // Services religieux en contact (lot "refonte religion Republia", 26 aout 2026 ; job 'pretre'
   // ajoute au lot "carriere religieuse Republia", 26 aout 2026 pour les titulaires locaux Pere
@@ -902,10 +914,9 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');openRulesView();renderRulesContent(\'sport\');" style="color:#8a9aca;border-color:#2a3a5a"><i class="ti ti-book" style="font-size:.85rem"></i> Consulter la règle</button>';
   }
 
-  const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
-  if (objetsDispos.length > 0) {
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';
-  }
+  // L'ancien second bouton « Donner un objet » a disparu : il est devenu la deuxieme branche du
+  // bouton « Donner » unique ci-dessus. `ouvrirDonObjetPnjModal` reste en place et inchangee --
+  // c'est elle que la branche appelle.
 
   // Tracts de la mission Jean-Lou Zeure (origineQuete:'jean_lou') separes des tracts
   // "generiques" : les boutons generiques (distribuerTractElectoralPNJ, remplace l'ancien
@@ -1067,11 +1078,37 @@ function openPnjModal(encodedPnj) {
   }
 
   const encCible = encodePnjSafe(pnj);
-  actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVoler(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
+  // VOLER PROPOSE DESORMAIS LE GENRE DE BUTIN (12 octobre 2026) : de l'argent, ou un objet. Le
+  // tirage 60/40 qui choisissait a la place du joueur disparait. L'inventaire de la cible n'est
+  // JAMAIS montre avant le vol, et la tentative reste possible meme si elle ne possede rien.
+  actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVolerChoix(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
   // §17 : libelle visible "Neutraliser". Le nom de la fonction (ouvrirModalAssassinat) et les
   // identifiants techniques sous-jacents restent inchanges -- ils sont couples a la detection et
   // aux barèmes persistes (voir plateau-actions-illegales-rumeurs.js).
-  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Neutraliser</button>';
+  // NEUTRALISER : L'ORDRE GENERIQUE EST RESERVE AUX PNJ ALPHA ET BETA (12 octobre 2026).
+  //
+  // Les deux familles GAMMA -- `depute` et `titulaire_poste` -- en sortent. Un depute PNJ reste
+  // neanmoins « endormable » par la MECANIQUE INSTITUTIONNELLE DE L'ASSEMBLEE
+  // (`assemblee_neutraliser_depute`), qui est une regle propre a l'hemicycle, deja validee et
+  // close : elle garde donc son entree, mais une entree DISTINCTE et nommee comme telle. Rien de
+  // cette mecanique n'est touche ici -- ni son bareme, ni sa porte, ni son effet.
+  //
+  // LA PORTE DU SECOND BOUTON EST `neutraliserCibleEstDepute`, ET PAS `assembleeSiegeParNomPnj`.
+  // Les deux ne disent pas la meme chose : la seconde repond oui des que le NOM figure sur un
+  // siege, meme si ce siege est aujourd'hui tenu par un assistant parlementaire JOUEUR. Or c'est
+  // exactement le predicat que `confirmerAssassinatArme` applique pour router vers la mecanique
+  // de l'Assemblee -- s'en ecarter ici ferait porter au bouton une promesse que le gestionnaire
+  // ne tient pas, et le coup repartirait dans l'ordre generique. Un PNJ depute dont le siege est
+  // pris par un joueur n'a donc AUCUN des deux boutons, et c'est le bon resultat : il reste gamma
+  // (sa famille ne depend pas de l'occupation), donc hors de l'ordre generique, et il n'est plus
+  // en fonction, donc hors de la mecanique de l'hemicycle.
+  const gammaCible = pnjEstGamma(pnj);
+  const siegeGamma = (typeof neutraliserCibleEstDepute === 'function') ? neutraliserCibleEstDepute(pnj) : null;
+  if (!gammaCible) {
+    actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Neutraliser</button>';
+  } else if (siegeGamma) {
+    actionBtns += '<button class="pnj-action-btn" style="color:#aa6a44;border-color:#3a2010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Endormir ce député (Assemblée)</button>';
+  }
 
   // §22 — REVEILLER : ordre de rencontre conditionnel, visible uniquement sur l'un des neuf
   // deputes PNJ, effectivement en fonction, actuellement endormi, et si le PJ porte des sels.
@@ -1107,8 +1144,12 @@ function openPnjModal(encodedPnj) {
     (isPJ
       ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez "Parler" (chat en temps réel) ou le mail (asynchrone). L\'IA ne répond jamais à sa place.</div>'
       : '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
-        '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
-        '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
+        // UN VRAI TEXTAREA (12 octobre 2026) : l'ancien <input type="text"> d'une seule ligne
+        // tronquait visuellement toute question un peu longue. Trois lignes visibles,
+        // redimensionnable verticalement, retour a la ligne automatique. `handlePnjKey` est
+        // conserve tel quel -- Entree envoie, Maj+Entree passe a la ligne (voir la fonction).
+        '<textarea id="pnj-question-libre" rows="3" style="flex:1;min-height:3.6rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;line-height:1.45;outline:none;resize:vertical;white-space:pre-wrap;overflow-wrap:break-word" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)"></textarea>' +
+        '<button onclick="envoyerQuestion()" style="align-self:stretch;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
         '</div>');
 
   // Stocker l'enc pour envoyerQuestion
@@ -1141,8 +1182,15 @@ function openPnjModal(encodedPnj) {
   }
 }
 
+// LE TEXTAREA A CHANGE CE HANDLER (12 octobre 2026). Avec un <input> d'une ligne, « Entree
+// envoie » suffisait. Avec un textarea, il faut distinguer : Entree seule ENVOIE -- et il faut
+// `preventDefault()`, sinon le retour a la ligne est insere avant l'envoi et la question part
+// avec un saut parasite -- tandis que Maj+Entree, Ctrl+Entree ou Alt+Entree passent a la ligne.
 function handlePnjKey(event) {
-  if (event.key === 'Enter') envoyerQuestion();
+  if (event.key !== 'Enter') return;
+  if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+  event.preventDefault();
+  envoyerQuestion();
 }
 
 function envoyerQuestion(enc) {
@@ -1921,6 +1969,61 @@ RÈGLES ABSOLUES :
 
 function closePnjModal() {
   document.getElementById('modal-pnj').classList.remove('open');
+}
+
+// UN PNJ EST-IL DE CLASSE GAMMA ? Les deux familles gamma de `pnj_familles_classes` sont
+// `depute` et `titulaire_poste`, et toutes deux se reconnaissent sans appel reseau :
+//   . `depute`         -> il occupe un des neuf sieges de l'hemicycle ;
+//   . `titulaire_poste`-> son nom figure au registre des titulaires PNJ (PNJ_TITULAIRES_DE_POSTE_NOMS,
+//                         data.js, copie surveillee de `titulaires_pnj.nom_pnj`).
+// Tout le reste -- familles alpha et beta, et les PNJ de decor qui n'appartiennent a aucune
+// famille -- n'est pas gamma, et reste donc visable par l'ordre generique.
+function pnjEstGamma(pnj) {
+  if (!pnj || pnj.isPJ) return false;
+  if (typeof assembleeSiegeParNomPnj === 'function' && assembleeSiegeParNomPnj(pnj.name)) return true;
+  const noms = (typeof PNJ_TITULAIRES_DE_POSTE_NOMS !== 'undefined') ? PNJ_TITULAIRES_DE_POSTE_NOMS : [];
+  return noms.indexOf(pnj.name) >= 0;
+}
+
+// Ce PNJ fait-il partie de l'exception pedagogique du repertoire ? Comparaison sur le nom NU,
+// suffixe « (PNJ) » retire : les fiches de la quete d'accueil le portent ou non selon le lieu.
+function pnjOnboardingRepertoire(pnj) {
+  if (!pnj) return false;
+  const nom = (pnj.name || '').replace(' (PNJ)', '').trim();
+  const liste = (typeof PNJ_ONBOARDING_REPERTOIRE_NOMS !== 'undefined') ? PNJ_ONBOARDING_REPERTOIRE_NOMS : [];
+  return liste.indexOf(nom) >= 0;
+}
+
+// LE BOUTON « DONNER » UNIQUE : argent ou objet, choisi apres le clic.
+//
+// AVERTISSEMENT AU JOUEUR, ET C'EST UNE REGLE DE JEU : ce qui est donne a un PNJ qui n'est pas
+// son employe ne se recupere par AUCUNE action normale. Le seul chemin de retour est Voler.
+// `estEmployeDuJoueur` lit state.employes, le meme etat que la paye des employes.
+function ouvrirDonPnjChoix(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch (e) { return; }
+  const estEmploye = (state.employes || []).some(e => e && e.nom === (pnj.name || '').replace(' (PNJ)', '').trim());
+  const objets = (state.inventory || []).filter(i => i && i.type !== 'acte_officiel');
+
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Donner — ' + (pnj.name || '').replace(' (PNJ)', '');
+  let html = '<div style="padding:1rem">';
+  if (!estEmploye) {
+    html += '<div style="font-size:.8rem;color:#aa7a30;font-style:italic;margin-bottom:.9rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">'
+         +  'Cette personne n\'est pas à votre service. Ce que vous lui donnez ne vous reviendra pas : aucune action ordinaire ne permet de le récupérer. Seul un vol le pourrait.</div>';
+  }
+  html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirDonPnjModal(\'' + encodedPnj + '\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
+       + '<i class="ti ti-coins"></i> De l\'argent</button>';
+  if (objets.length > 0) {
+    html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirDonObjetPnjModal(\'' + encodedPnj + '\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
+         + '<i class="ti ti-package"></i> Un objet</button>';
+  } else {
+    html += '<div style="padding:.6rem .8rem;border:1px solid #1a1810;color:#6a5a30;font-style:italic;font-size:.8rem">Un objet — votre inventaire est vide.</div>';
+  }
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function addContactByName(name, role, rel, isPJ) {
@@ -2730,22 +2833,20 @@ async function validerLobbyingPresse() {
 // plateau-communication.js ; RPC tracts_electoraux_distribuer). Un marche n'est pas un electeur :
 // l'ordre, sa route et ses fonctions sont supprimes.
 
-function doSaluerPersonne(nom) {
-  const jourActuel = state.day || 1;
-  if (!state.salutationsDuJour || state.salutationsDuJour.jour !== jourActuel) {
-    state.salutationsDuJour = { jour: jourActuel, noms: [] };
-  }
-  if (state.salutationsDuJour.noms.includes(nom)) {
-    showToast('Deja salue(e)', 'Vous avez deja salue ' + nom + ' aujourd\'hui.', false);
-    return;
-  }
-  state.salutationsDuJour.noms.push(nom);
-  state.inf = Math.min(100, (state.inf || 0) + 2);
-  updateUI();
-  document.getElementById('modal-pnj')?.classList.remove('open');
-  showToast('Salutation', 'Vous avez pris le temps d\'echanger quelques mots avec ' + nom + '. +2 INF.', true);
-  addJournalEntry('Salutation echangee avec ' + nom + '. +2 INF.', 'event-good');
-}
+// `doSaluerPersonne` A ETE SUPPRIMEE (12 octobre 2026) -- dix-huit lignes.
+//
+// Elle accordait +2 INF par personne et par jour, plafonnes a 100, par une ECRITURE DIRECTE de
+// `state.inf` dans le navigateur : aucune porte serveur, aucun cout en PA, aucun cout en argent.
+// Son garde-fou `state.salutationsDuJour` etait, lui, bien persiste (colonne
+// `personnages_donnees.salutations_du_jour`, jsonb) -- la premiere version de ce commentaire
+// affirmait le contraire, et c'etait faux.
+//
+// LA COLONNE ET SON TRANSPORT RESTENT EN PLACE (supabase.js, charge et sauve
+// `salutations_du_jour`). Ils n'ont plus de producteur, donc la valeur restera telle qu'elle est
+// sur les fiches existantes et nulle sur les fiches neuves. La retirer serait une migration
+// destructive sans benefice : elle ne porte plus aucune regle.
+//
+// Aucun remplacement n'est prevu : le bouton « Saluer » disparait avec elle.
 
 // Arbitrage final diner_affaires (lot plafonds/correctif final, 21 aout 2026) : paDiffere porte a
 // 3, moral:2 ajoute explicitement (champ absent jusqu'ici -- les 3 points d'application (hp/inf/

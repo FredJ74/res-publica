@@ -33,14 +33,20 @@ ALTER TABLE public.objets_abandonnes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objets_recus ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organisations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personnages_donnees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.personnages_qualifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personnages_supprimes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.qualifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quetes_actives ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reconciliation_fantomes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.souvenirs_accueil ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.successions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testaments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tournees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.universite_cursus ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.universite_cursus_jalons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.universite_inscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.universite_jalons_accomplis ENABLE ROW LEVEL SECURITY;
 
 -- demandes_mariage
 CREATE POLICY demandes_mariage_ecriture_acteur ON public.demandes_mariage FOR INSERT TO authenticated

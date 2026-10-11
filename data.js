@@ -3534,7 +3534,6 @@ const BUILDINGS = {
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
         orders: [
-          {fn:'se_former',      label:'Suivre une formation',   pa:2, cost:100, type:'legal', icon:'ti-book',        successRate:100, desc:'Choisir une caracteristique : +2 jusqu\'au prochain sommeil. 1 formation/jour.'},
           {fn:'donner_conf',    label:'Donner une conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',  successRate:100, desc:'Soutenir un candidat en campagne (3 electeurs convertis) OU sensibiliser sur un theme (+2 indice, utilisable hors campagne).'},
           {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:100, desc:'Reserve aux membres d\'un syndicat etudiant actif. 1/jour, plafond 2 militants par joueur. Prepare les manifestations.'}
         ]
@@ -7360,6 +7359,49 @@ const POSTES_ELECTIFS = {
 // Structure : CYCLES_ELECTORAUX[country][posteId] = { phase, dateDebut, dateFin, candidats, votes, tour }
 const CYCLES_ELECTORAUX = {};
 
+// =====================
+// LES DEUX FAMILLES GAMMA, EN TERMES OBSERVABLES PAR LE NAVIGATEUR (12 octobre 2026)
+// =====================
+// L'ORDRE GENERIQUE « NEUTRALISER » N'EST DISPONIBLE QUE CONTRE UN PNJ ALPHA OU BETA. Les deux
+// familles GAMMA de `pnj_familles_classes` sont `depute` et `titulaire_poste` -- un depute PNJ de
+// l'Assemblee, et un PNJ qui occupe un poste tant qu'aucun joueur ne le prend.
+//
+// POURQUOI CETTE LISTE EXISTE ICI. La classe d'une famille vit en base
+// (`pnj_familles_classes.classe`), et le navigateur n'a pas de resolveur job -> famille. La
+// famille `depute` se reconnait sans liste, par le siege (`assembleeSiegeParNomPnj`). La famille
+// `titulaire_poste` se reconnait par le NOM, et ces quinze noms sont la copie de
+// `titulaires_pnj.nom_pnj`. Le banc des interactions PNJ confronte cette copie au registre en
+// base : toute divergence rougit, dans un sens comme dans l'autre.
+const PNJ_TITULAIRES_DE_POSTE_NOMS = [
+  'Marcel Ancre (PNJ)',
+  'Pascal Paguevite (PNJ)',
+  'Commandant Tom Hawak',
+  'Bernard Piluler (PNJ)',
+  'Gustave Baril (PNJ)',
+  'Fernand Cendrier (PNJ)',
+  'Juge Fontaine',
+  'Mireille Sedlex (PNJ)',
+  'Gérard Bretellewood (PNJ)',
+  "Le Ministre des Affaires Étrangères (PNJ)",
+  'Le Ministre des Finances (PNJ)',
+  "Le Ministre de l'Information (PNJ)",
+  "Le Ministre de l'Intérieur (PNJ)",
+  'Le Ministre de la Justice (PNJ)',
+  'Le Premier Ministre (PNJ)'
+];
+
+// LES PNJ POUR LESQUELS « AJOUTER AU REPERTOIRE » SURVIT, ET EUX SEULS.
+// Le bouton est retire de toute l'interface generique (12 octobre 2026) : le repertoire se
+// remplit desormais par le jeu, pas par un bouton sur chaque fiche. L'EXCEPTION est
+// PEDAGOGIQUE et elle est REELLE, pas decorative : `addContact` (plateau-pnj.js) appelle
+// `queteAccueilProposerCarriere` quand on ajoute Jeremy a l'etape `attente_depart_jeremy` --
+// retirer le bouton pour lui CASSERAIT l'avancement de la quete d'accueil. Les trois referents
+// de carriere y sont joints parce que l'etape `carriere_repertoire` enseigne le mecanisme juste
+// avant d'envoyer le joueur vers l'un d'eux.
+const PNJ_ONBOARDING_REPERTOIRE_NOMS = [
+  'Jérémy', 'Pat Hounette', 'Jean-Lou Zeure', 'Laurent Barre'
+];
+
 // Phases du cycle
 const PHASES_ELECTORALES = {
   MANDAT:        'mandat',        // Poste occupé, mandat en cours. PLUS JAMAIS ECRIT DANS UN CYCLE depuis le 11 octobre 2026 : `phase` ne decrit plus que le SCRUTIN DE SUCCESSION, et le mandat en exercice s'atteste par `eluId`/`elus`, qui coexistent avec ce scrutin. Conserve pour les libelles et pour relire un blob anterieur
@@ -7885,7 +7927,6 @@ const ORDER_EFFECTS = {
   etouffer:           {dis:-5,           successRate:45},
   falsifier_docs:     {dis:-8,           successRate:40},
   introduction_loge:  {inf:2,            successRate:100},
-  se_former:          {},
   donner_conf:        {pop:5,  inf:3,    successRate:75},
   recruter_etud:      {inf:3,            successRate:70},
   acheter_arme:       {},

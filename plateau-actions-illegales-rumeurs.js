@@ -22,7 +22,33 @@ function tracerActionPourRumeur(typeAction, cibleNom) {
 }
 
 
-function ouvrirModalVoler(encodedCible) {
+// LE GENRE DE BUTIN EST CHOISI PAR LE JOUEUR (12 octobre 2026), PLUS TIRE AU SORT.
+//
+// Avant, `confirmerVol` tirait 60 % argent / 40 % objet et basculait d'un genre a l'autre quand
+// la cible n'avait rien du genre tire. Ce repli etait une FUITE D'INFORMATION : reussir un vol
+// « d'objet » sur une cible sans objet rapportait de l'argent, donc l'issue renseignait sur ce
+// que la cible possede. Le joueur annonce desormais ce qu'il cherche, et il n'y a plus de repli :
+// s'il n'y en a pas, le vol reussit et ne rapporte rien.
+//
+// L'INVENTAIRE DE LA CIBLE N'EST JAMAIS MONTRE, ni ici ni a l'etape suivante : on choisit un
+// GENRE, pas un objet. Et la tentative reste possible sur une cible qui ne possede rien -- elle
+// peut echouer en etant detectee, echouer sans l'etre, ou reussir sans butin.
+function ouvrirModalVolerChoix(encodedCible) {
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch (e) { return; }
+  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">'
+       +  'Que cherchez-vous ? Vous ne saurez ce qu\'elle porte qu\'en le prenant.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
+  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'argent\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-coins"></i> Voler de l\'argent</button>';
+  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'objet\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-package"></i> Voler un objet</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirModalVoler(encodedCible, genre) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
 
@@ -51,7 +77,10 @@ function ouvrirModalVoler(encodedCible) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent. Une part de hasard reste toujours decisive.</div>';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Estimation avant hasard : <strong style="color:#C9A84C">' + Math.round(jetBase) + ' / 100</strong> (echec &lt;25 · identifie 25-49 · detecte 50-74 · discret &ge;75)</div>';
-  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + jetBase + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
+  const genreButin = (genre === 'objet') ? 'objet' : 'argent';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Cible du vol : <strong style="color:#C9A84C">'
+       + (genreButin === 'objet' ? 'un objet' : 'de l\'argent') + '</strong></div>';
+  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + jetBase + ',\'' + genreButin + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
@@ -106,7 +135,7 @@ const CONSEQUENCES_VOL_ECHEC = {
   }
 };
 
-async function confirmerVol(encodedCible, jetBase) {
+async function confirmerVol(encodedCible, jetBase, genre) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
   document.getElementById('modal-postes').classList.remove('open');
@@ -156,13 +185,15 @@ async function confirmerVol(encodedCible, jetBase) {
     const inventaireVictime = victimeRows?.[0]?.inventory || [];
     const objetsEligibles = inventaireVictime.filter(estObjetVolableParVol);
 
-    // Tirage du butin (decision arretee, 22 aout 2026) : 60% argent, 40% objet. Deux replis
-    // (revue anti-fabrication, meme date) : objet->argent si aucun objet eligible ; argent->objet
-    // si la cible n'a reellement AUCUN argent volable (jamais d'argent fabrique de toutes
-    // pieces) ; si ni l'un ni l'autre n'est disponible, le vol ne produit aucun butin.
-    let butin = Math.random() < 0.6 ? 'argent' : 'objet';
-    if (butin === 'objet' && objetsEligibles.length === 0) butin = 'argent';
-    if (butin === 'argent' && argVictime <= 0) butin = objetsEligibles.length > 0 ? 'objet' : 'rien';
+    // LE GENRE EST CELUI QUE LE JOUEUR A ANNONCE (12 octobre 2026). Le tirage 60/40 et ses DEUX
+    // REPLIS croises sont retires : un repli renseignait sur ce que la cible possede, puisque
+    // demander un objet et recevoir de l'argent prouvait qu'elle n'avait aucun objet. Il n'y a
+    // plus de repli -- si le genre demande n'est pas disponible, le vol aboutit a RIEN, et c'est
+    // la meme issue que sur une cible entierement vide. Rien n'est fabrique, et rien n'est
+    // revele.
+    let butin = (genre === 'objet') ? 'objet' : 'argent';
+    if (butin === 'objet' && objetsEligibles.length === 0) butin = 'rien';
+    if (butin === 'argent' && argVictime <= 0) butin = 'rien';
 
     if (butin === 'rien') {
       // Rien a voler chez cette cible precise : le jet a reussi mais aucune ressource ne peut

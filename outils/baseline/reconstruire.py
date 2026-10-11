@@ -538,7 +538,19 @@ def controles_du_monde(cat):
     # droit de reporter un vote d'une semaine n'est ni consomme ni rendu par un renvoi. SOUS RLS
     # SANS AUCUNE POLICY, comme les dix autres tables de seance : le compte des tables sans policy
     # passe de 126 a 127.
-    att("tables creees", len(cat.tables), 281)
+    # 281 -> 287 le 12 octobre 2026, socle universitaire : LES SIX TABLES DES CURSUS ET DES
+    # QUALIFICATIONS. `qualifications` est le catalogue des qualifications REELLES -- des entites
+    # qu'un morceau de code peut EXIGER, a ne pas confondre avec les chaines decoratives
+    # CAREERS[].comp, que rien ne parse ; `personnages_qualifications` porte celles d'un
+    # personnage avec leur SOURCE, et c'est la source qui porte le slot a vie ;
+    # `universite_cursus` et `universite_cursus_jalons` sont le catalogue et le modele des jalons ;
+    # `universite_inscriptions` l'inscription elle-meme, et `universite_jalons_accomplis` ce qui a
+    # ete fait. LES TROIS CATALOGUES NAISSENT VIDES, et ce n'est pas un oubli : les cursus, leurs
+    # durees, leurs jalons et leurs prerequis metier sont des arbitrages de game design qu'une
+    # migration n'a pas le droit de rendre. LES SIX SONT SOUS RLS SANS AUCUNE POLICY ET SANS AUCUN
+    # GRANT CLIENT -- les deux absences comptent, puisqu'une policy sans GRANT est dormante et
+    # qu'un GRANT sans policy est ouvert : le compte des tables sans policy passe de 127 a 133.
+    att("tables creees", len(cat.tables), 287)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -646,8 +658,18 @@ def controles_du_monde(cat):
     # assemblee_presidence_fin_de_legislature, qui retire du registre des postes la presidence
     # d'un ancien depute. Les deux fonctions REMPLACEES -- assemblee_occupation_sieges et
     # assemblee_president -- l'ont ete a signature identique, donc elles ne changent aucun compte.
-    att("signatures de fonction creees", cat.n_fonctions, 781)
-    att("noms de fonction distincts", len(cat.fonctions), 777,
+    # 781 -> 789 / 777 -> 785 le 12 octobre 2026, socle universitaire : +8, sans surcharge. Deux
+    # fonctions de calcul internes au seul service_role -- universite_plus_semaines (N semaines
+    # CALENDAIRES de Paris, jamais +N x 24 h, meme doctrine que le calendrier electoral) et
+    # universite_slot_consomme (le slot a vie DERIVE, qui lit s'il existe une qualification de
+    # source universitaire plutot que de lire un drapeau). Cinq portes accordees a authenticated :
+    # mon_etat, inscrire, abandonner, jalon_accomplir, diplomer. Et une septieme reservee au
+    # serveur, universite_expirer_echues : l'expiration n'est pas a la main des joueurs.
+    # UNE SEULE DES HUIT ECRIT UNE QUALIFICATION, universite_diplomer, et la preuve P8 de la
+    # migration le verifie en comptant les INSERT dans pg_proc -- c'est ce qui garantit que ni
+    # l'abandon ni l'expiration ne consomment le slot a vie.
+    att("signatures de fonction creees", cat.n_fonctions, 789)
+    att("noms de fonction distincts", len(cat.fonctions), 785,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -703,7 +725,17 @@ def controles_du_monde(cat):
     # assemblee_reports_suspension. La cle etrangere pointe la suspension qui a cause le renvoi,
     # en ON DELETE CASCADE : une suspension effacee n'est pas censee laisser derriere elle des
     # renvois orphelins qui parleraient d'un episode introuvable.
-    att("contraintes posees", len(cat.contraintes), 507)
+    # 507 -> 530 le 12 octobre 2026, socle universitaire : +23 pour les six tables. Six cles
+    # primaires (celles de personnages_qualifications et de universite_jalons_accomplis en portent
+    # deux colonnes), cinq cles etrangeres, et DOUZE CHECK qui portent les regles elles-memes. Les
+    # deux qui comptent le plus sont sur les inscriptions : `universite_limite_apres_fin_theorique`
+    # interdit structurellement qu'une limite precede la fin theorique -- sans quoi un cursus
+    # pourrait expirer avant d'etre diplomable -- et `universite_clos_coherent` interdit l'etat
+    # intermediaire, un cursus en cours ne porte pas de date de cloture et un cursus clos en porte
+    # une. Le troisieme est sur les jalons : `universite_jalon_terrain_porte_un_lieu` refuse un
+    # jalon de terrain sans batiment, parce que c'est le batiment qui est le futur point de
+    # raccordement a une vraie activite.
+    att("contraintes posees", len(cat.contraintes), 530)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -743,7 +775,17 @@ def controles_du_monde(cat):
     # par poste, sinon les candidats et les bulletins d'un scrutin passe reviennent dans le
     # scrutin en cours. L'unicite, elle, reste portee par la cle primaire, qui inclut desormais le
     # tour pour un bulletin.
-    att("index autonomes crees", len(cat.index), 173)
+    # 173 -> 179 le 12 octobre 2026, socle universitaire : +6, dont QUATRE PORTENT DES REGLES et
+    # non des performances. `personnages_une_seule_qualif_universitaire`, index UNIQUE PARTIEL sur
+    # (personnage) WHERE source = 'universite', EST le slot a vie : il n'existe aucune colonne
+    # « slot consomme », et c'est la base qui interdit la seconde qualification universitaire.
+    # `universite_un_seul_cursus_actif`, partiel sur (personnage) WHERE statut = 'en_cours', porte
+    # la regle du cursus unique -- la porte d'inscription refuse aussi, mais nommement, pour que le
+    # joueur lise un refus et non une violation de contrainte. Les deux autres regles sont les deux
+    # index d'idempotence sur `requete`, un pour l'inscription et un pour le jalon accompli. Les
+    # deux derniers sont des index de LECTURE : les jalons par cursus et par rang, les inscriptions
+    # par personnage et par statut.
+    att("index autonomes crees", len(cat.index), 179)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.

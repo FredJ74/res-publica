@@ -97,6 +97,18 @@
    "sous": ""
   },
   {
+   "empreinte": "5ac39079e67fd6e4296a0f3d340def95",
+   "genre": "FUNCTION",
+   "objet": "universite_plus_semaines(timestamp with time zone,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b32ee0bedd7e1bd36f5d45d8f1987922",
+   "genre": "FUNCTION",
+   "objet": "universite_slot_consomme(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "ca031f2f47569d9b9a541243eed5de49",
    "genre": "TABLE",
    "objet": "contacts_organisations",
@@ -118,6 +130,36 @@
    "empreinte": "c30c06b5b73b8d564a34799eb95dcd7c",
    "genre": "TABLE",
    "objet": "escorts_catalogue",
+   "sous": ""
+  },
+  {
+   "empreinte": "b3b9fd488e593110e4e1c73083ca06ae",
+   "genre": "TABLE",
+   "objet": "qualifications",
+   "sous": ""
+  },
+  {
+   "empreinte": "368058e0ae8ed6cecb0d8ced0f11bac5",
+   "genre": "TABLE",
+   "objet": "universite_cursus",
+   "sous": ""
+  },
+  {
+   "empreinte": "e3fcd1b3868ceeadd81fd84a5e91da28",
+   "genre": "TABLE",
+   "objet": "universite_cursus_jalons",
+   "sous": ""
+  },
+  {
+   "empreinte": "44899ba78102699b30fbeb43bf93abed",
+   "genre": "TABLE",
+   "objet": "universite_inscriptions",
+   "sous": ""
+  },
+  {
+   "empreinte": "400b491b982ecba13efab622d53fbed8",
+   "genre": "TABLE",
+   "objet": "universite_jalons_accomplis",
    "sous": ""
   }
  ],
@@ -243,6 +285,12 @@
    "tbl": "personnages_donnees"
   },
   {
+   "empreinte": "aef8b4105fb084510954c93858d99872",
+   "genre": "p",
+   "nom": "personnages_qualifications_pkey",
+   "tbl": "personnages_qualifications"
+  },
+  {
    "empreinte": "95116a98aca5e46c7c015ee6387b7fad",
    "genre": "p",
    "nom": "personnages_supprimes_pkey",
@@ -253,6 +301,12 @@
    "genre": "p",
    "nom": "presences_pkey",
    "tbl": "presences"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "qualifications_pkey",
+   "tbl": "qualifications"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -291,6 +345,30 @@
    "tbl": "tournees"
   },
   {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "universite_cursus_pkey",
+   "tbl": "universite_cursus"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "universite_cursus_jalons_pkey",
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "universite_inscriptions_pkey",
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "empreinte": "f19fe05d115af343246c75c70f8b3bc5",
+   "genre": "p",
+   "nom": "universite_jalons_accomplis_pkey",
+   "tbl": "universite_jalons_accomplis"
+  },
+  {
    "empreinte": "662604a51ba575edb1883943db55e764",
    "genre": "u",
    "nom": "escorts_catalogue_pays_nom_key",
@@ -315,6 +393,12 @@
    "tbl": "escorts_catalogue"
   },
   {
+   "empreinte": "766bedc126b3efac039ea52274e18e88",
+   "genre": "c",
+   "nom": "personnages_qualifications_source_check",
+   "tbl": "personnages_qualifications"
+  },
+  {
    "empreinte": "3bcbb6b11b39f0cb188a95682fc2830d",
    "genre": "c",
    "nom": "successions_statut_check",
@@ -333,10 +417,106 @@
    "tbl": "tournees"
   },
   {
+   "empreinte": "96fdaa2a84322c6cd052c3734498430d",
+   "genre": "c",
+   "nom": "universite_cursus_cout_fr_check",
+   "tbl": "universite_cursus"
+  },
+  {
+   "empreinte": "7e085aefd695a68ad7d42b2ebc4d13a4",
+   "genre": "c",
+   "nom": "universite_cursus_cout_pa_check",
+   "tbl": "universite_cursus"
+  },
+  {
+   "empreinte": "3506c646af8fe814b415c66649bd02fa",
+   "genre": "c",
+   "nom": "universite_cursus_semaines_theoriques_check",
+   "tbl": "universite_cursus"
+  },
+  {
+   "empreinte": "371704a9171f2aadae6e1cb90d44e20d",
+   "genre": "c",
+   "nom": "universite_cursus_jalons_genre_check",
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "empreinte": "e13ef630426a76f2b31cb33682b537a3",
+   "genre": "c",
+   "nom": "universite_cursus_jalons_rang_check",
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "empreinte": "0974ced34de12d3376661155d2a8f24b",
+   "genre": "c",
+   "nom": "universite_jalon_terrain_porte_un_lieu",
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "empreinte": "e2f7ea53bda49c7f23c3c8c31f09c4f1",
+   "genre": "c",
+   "nom": "universite_clos_coherent",
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "empreinte": "3506c646af8fe814b415c66649bd02fa",
+   "genre": "c",
+   "nom": "universite_inscriptions_semaines_theoriques_check",
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "empreinte": "96ce4d2b3cd41b0c92fbd4213cb0ad78",
+   "genre": "c",
+   "nom": "universite_inscriptions_statut_check",
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "empreinte": "6191c11d1d2372750f4790e8cab127d6",
+   "genre": "c",
+   "nom": "universite_limite_apres_fin_theorique",
+   "tbl": "universite_inscriptions"
+  },
+  {
    "empreinte": "c3025b918f5d330db0d4b19482474b87",
    "genre": "f",
    "nom": "personnages_user_id_fkey",
    "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "3a1ce31b68b4f2a8a1f18bc2e9321eef",
+   "genre": "f",
+   "nom": "personnages_qualifications_qualification_fkey",
+   "tbl": "personnages_qualifications"
+  },
+  {
+   "empreinte": "3a1ce31b68b4f2a8a1f18bc2e9321eef",
+   "genre": "f",
+   "nom": "universite_cursus_qualification_fkey",
+   "tbl": "universite_cursus"
+  },
+  {
+   "empreinte": "95dfc4adf584fa6a451e05d3dff68513",
+   "genre": "f",
+   "nom": "universite_cursus_jalons_cursus_fkey",
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "empreinte": "925f315090f44903a84812572d13238f",
+   "genre": "f",
+   "nom": "universite_inscriptions_cursus_fkey",
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "empreinte": "b196d68481d112278643f32891f4427d",
+   "genre": "f",
+   "nom": "universite_jalons_accomplis_inscription_fkey",
+   "tbl": "universite_jalons_accomplis"
+  },
+  {
+   "empreinte": "28e9604709d3b8205ec72a1b8434cfe5",
+   "genre": "f",
+   "nom": "universite_jalons_accomplis_jalon_fkey",
+   "tbl": "universite_jalons_accomplis"
   }
  ],
  "domaine": "personnage et presence",
@@ -978,6 +1158,132 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_abandonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_abandonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_abandonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_diplomer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_diplomer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_diplomer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_expirer_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_expirer_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_inscrire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_inscrire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_inscrire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_jalon_accomplir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_jalon_accomplir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_jalon_accomplir(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_mon_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_mon_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_mon_etat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_plus_semaines(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_plus_semaines(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_slot_consomme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_slot_consomme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "dons_en_attente_id_seq",
@@ -1496,6 +1802,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "personnages_qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "personnages_qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "personnages_supprimes",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -1530,6 +1848,18 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "quetes_actives",
@@ -1641,21 +1971,69 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "tournees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "universite_cursus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "universite_cursus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "universite_cursus_jalons",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "universite_cursus_jalons",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "universite_inscriptions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "universite_inscriptions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "universite_jalons_accomplis",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "universite_jalons_accomplis",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "2a2446ba8931c5d9d6d22bd8fcce1f6e",
-  "20_fonctions.sql": "56078774c120bd78a50511be782f8214",
-  "30_contraintes.sql": "ffb82407241f2ab9009cb2ce2514c1e3",
-  "35_index.sql": "4634a1852b44770bf0d1a9fd7ffdf625",
+  "10_tables.sql": "9afb928c444960318cd62d756f62670a",
+  "20_fonctions.sql": "a13c6903a5811fab3ab13920570ca2b3",
+  "30_contraintes.sql": "f9816a31f2dcf10c9bbfb14c15364925",
+  "35_index.sql": "dbc7aa210ee7e532a795dc7c2ea196ea",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "5bf60588e847e0893b8fc78b79437ecc",
-  "60_rls-policies.sql": "fb39aea624fbe902a64a31b5f687886e",
-  "70_droits.sql": "fb35c2888e15d3b491abc5da94bc9be2",
-  "80_commentaires.sql": "67b193eb16d345ae97053cb4132f69c1"
+  "60_rls-policies.sql": "e3ea354131587a713876db85347fcfab",
+  "70_droits.sql": "643c9c9bc06ba755673163dcd9865c3b",
+  "80_commentaires.sql": "0497386836a0fda49fd2b24aa686c4b7"
  },
  "fonctions": [
   {
@@ -1867,6 +2245,46 @@
    "empreinte": "3ab55ed0fe18113871a9ac5d9d5b24cd",
    "security_definer": true,
    "signature": "tournee_cloturer(text,boolean)"
+  },
+  {
+   "empreinte": "d6e7e9bdeee7a35500731874bad06564",
+   "security_definer": true,
+   "signature": "universite_abandonner(text)"
+  },
+  {
+   "empreinte": "5c101fb04cbcd7599ebfcfb2fa884eac",
+   "security_definer": true,
+   "signature": "universite_diplomer(text)"
+  },
+  {
+   "empreinte": "ca184d869eeaecd12093cef5626397fd",
+   "security_definer": true,
+   "signature": "universite_expirer_echues()"
+  },
+  {
+   "empreinte": "1ed78be10a63f0a691aeef6abdc7da14",
+   "security_definer": true,
+   "signature": "universite_inscrire(text,text)"
+  },
+  {
+   "empreinte": "1b96969ebb59d55f451b9efc8bf2e36c",
+   "security_definer": true,
+   "signature": "universite_jalon_accomplir(text,text)"
+  },
+  {
+   "empreinte": "1ef4df16e05c053a963db648d9a7db92",
+   "security_definer": true,
+   "signature": "universite_mon_etat()"
+  },
+  {
+   "empreinte": "0ce64f7403cb5d310e29ea1c75263753",
+   "security_definer": false,
+   "signature": "universite_plus_semaines(timestamp with time zone,integer)"
+  },
+  {
+   "empreinte": "3b0c9e4a0a6de720002f480dee0e6b6b",
+   "security_definer": true,
+   "signature": "universite_slot_consomme(text)"
   }
  ],
  "index_autonomes": [
@@ -1931,8 +2349,32 @@
    "nom": "personnages_requisition_idx"
   },
   {
+   "empreinte": "b1f5ac438fa063250a059b3d6886af45",
+   "nom": "personnages_une_seule_qualif_universitaire"
+  },
+  {
    "empreinte": "dbed62cd9d03e5b04649fb2c8f735707",
    "nom": "personnages_user_id_unique"
+  },
+  {
+   "empreinte": "7d439bd89816d616df6eddbabebc0b6c",
+   "nom": "universite_inscription_une_par_requete"
+  },
+  {
+   "empreinte": "53563be17cfe68bdb5ef09f2ac7188c2",
+   "nom": "universite_inscriptions_par_personnage"
+  },
+  {
+   "empreinte": "61329ac3a47a1002b1b24f6a430fcd42",
+   "nom": "universite_jalon_une_par_requete"
+  },
+  {
+   "empreinte": "15453ef779d8d0baea2a1f0587f0ab55",
+   "nom": "universite_jalons_par_cursus"
+  },
+  {
+   "empreinte": "8ebb8deb2663f20dce9381791e92f001",
+   "nom": "universite_un_seul_cursus_actif"
   }
  ],
  "index_portes": [
@@ -1958,14 +2400,20 @@
   "organisations_pkey",
   "personnages_name_key",
   "personnages_pkey",
+  "personnages_qualifications_pkey",
   "personnages_supprimes_pkey",
   "presences_pkey",
+  "qualifications_pkey",
   "quetes_actives_pkey",
   "reconciliation_fantomes_pkey",
   "souvenirs_accueil_pkey",
   "successions_pkey",
   "testaments_pkey",
-  "tournees_pkey"
+  "tournees_pkey",
+  "universite_cursus_jalons_pkey",
+  "universite_cursus_pkey",
+  "universite_inscriptions_pkey",
+  "universite_jalons_accomplis_pkey"
  ],
  "ordre": [
   "10_tables.sql",
@@ -2396,12 +2844,22 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "personnages_qualifications"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "personnages_supprimes"
   },
   {
    "active": true,
    "forcee": false,
    "tbl": "presences"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "qualifications"
   },
   {
    "active": true,
@@ -2432,6 +2890,26 @@
    "active": true,
    "forcee": false,
    "tbl": "tournees"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "universite_cursus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "universite_cursus_jalons"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "universite_inscriptions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "universite_jalons_accomplis"
   }
  ],
  "sequences": [
@@ -2591,6 +3069,12 @@
    "nom": "personnages_donnees"
   },
   {
+   "colonnes": 5,
+   "empreinte_catalogue": "18d6c5a127b2d8074217b85b135176a9",
+   "empreinte_texte": "e332ddfede177a4d8eb060b38258af20",
+   "nom": "personnages_qualifications"
+  },
+  {
    "colonnes": 17,
    "empreinte_catalogue": "fc5847f7f5db93acf6f800edbe8d6990",
    "empreinte_texte": "31b39c6cdb2d1daecf1d4823a29cfd17",
@@ -2601,6 +3085,12 @@
    "empreinte_catalogue": "282660a7d1a9cd61b388f95321ee3016",
    "empreinte_texte": "b4af0d167784cde2480bdda17de60527",
    "nom": "presences"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cc39c2e930792cf1d73af41c2d1d16e3",
+   "empreinte_texte": "fdca24dfc971c425b1c427f8c6f8a5ef",
+   "nom": "qualifications"
   },
   {
    "colonnes": 16,
@@ -2637,6 +3127,30 @@
    "empreinte_catalogue": "415fe9762bf0c90693dbe03ddee7f851",
    "empreinte_texte": "fa4414ceec7066011a947821df1e7688",
    "nom": "tournees"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "c4c0341f3d350137244cd45d4a907f0a",
+   "empreinte_texte": "3bd8a4dce1a9a812848bafc7ab131418",
+   "nom": "universite_cursus"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "c4fe65fe36d2bb7f6813c39f45addc77",
+   "empreinte_texte": "6a975a35646179c752c21064d17852b0",
+   "nom": "universite_cursus_jalons"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "e1365200641ec2ad8e5a242b1016b29c",
+   "empreinte_texte": "11ac3602657425c884b670dfedeae73e",
+   "nom": "universite_inscriptions"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "9e15c29318fa2612fe77a3da146562e6",
+   "empreinte_texte": "dfceeb1fe0be22430b2e7b244487e945",
+   "nom": "universite_jalons_accomplis"
   }
  ],
  "triggers": [
