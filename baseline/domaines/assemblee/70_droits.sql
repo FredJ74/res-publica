@@ -71,6 +71,9 @@ GRANT EXECUTE ON FUNCTION public.assemblee_echeance_palier(timestamp with time z
 GRANT EXECUTE ON FUNCTION public.assemblee_est_depute(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_est_depute(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_est_depute(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.assemblee_est_des_neuf(text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assemblee_est_des_neuf(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_est_des_neuf(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_exige_application(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_exige_application(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_exige_application(text) TO service_role;
@@ -151,6 +154,8 @@ GRANT EXECUTE ON FUNCTION public.assemblee_presidence_etat() TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_fenetre_convocation(timestamp with time zone) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_fenetre_convocation(timestamp with time zone) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_fenetre_convocation(timestamp with time zone) TO service_role;
+GRANT EXECUTE ON FUNCTION public.assemblee_presidence_fin_de_legislature(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_presidence_fin_de_legislature(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_prochaine_cloture() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_prochaine_cloture() TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_presidence_prochaine_cloture() TO service_role;

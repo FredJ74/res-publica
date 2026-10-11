@@ -640,8 +640,14 @@ def controles_du_monde(cat):
     # (assemblee_suspension_appliquer_seuil, accorde au seul service_role). Les quatre portes
     # modifiees -- reprendre_seance, seance, presidence_voter, presidence_etat -- l'ont ete par
     # CREATE OR REPLACE a signature identique : elles ne changent donc aucun compte.
-    att("signatures de fonction creees", cat.n_fonctions, 779)
-    att("noms de fonction distincts", len(cat.fonctions), 775,
+    # 779 -> 781 / 775 -> 777 le 11 octobre 2026 au soir, correctif de la presidence : +2, sans
+    # surcharge. assemblee_est_des_neuf -- le point de verite UNIQUE de l'appartenance aux neuf,
+    # PJ comme PNJ, a ne pas confondre avec assemblee_est_depute qui ne voit que les joueurs -- et
+    # assemblee_presidence_fin_de_legislature, qui retire du registre des postes la presidence
+    # d'un ancien depute. Les deux fonctions REMPLACEES -- assemblee_occupation_sieges et
+    # assemblee_president -- l'ont ete a signature identique, donc elles ne changent aucun compte.
+    att("signatures de fonction creees", cat.n_fonctions, 781)
+    att("noms de fonction distincts", len(cat.fonctions), 777,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue

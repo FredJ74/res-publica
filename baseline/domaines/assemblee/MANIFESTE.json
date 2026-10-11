@@ -61,6 +61,12 @@
    "sous": ""
   },
   {
+   "empreinte": "dc86da7bcd5535a1bae1b338b4349ec6",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_des_neuf(text,text)",
+   "sous": ""
+  },
+  {
    "empreinte": "3d2e0cd8279b1594971b803245a5075d",
    "genre": "FUNCTION",
    "objet": "assemblee_exige_application(text)",
@@ -121,7 +127,7 @@
    "sous": ""
   },
   {
-   "empreinte": "2538f4ad47d3ff0c3309f78fc6ef2ef9",
+   "empreinte": "f7a2349976a7b52108089d01f37b9cdf",
    "genre": "FUNCTION",
    "objet": "assemblee_president(text)",
    "sous": ""
@@ -920,6 +926,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "assemblee_est_des_neuf(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_des_neuf(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_des_neuf(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "assemblee_exige_application(text)",
    "privileges": "EXECUTE"
   },
@@ -1395,6 +1419,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_presidence_fenetre_convocation(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fin_de_legislature(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_presidence_fin_de_legislature(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2488,14 +2524,14 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "210b098ed9c8eb086162776e72bd4b7f",
-  "20_fonctions-1.sql": "119537dc7ddbe0ada8125400f0830411",
-  "20_fonctions-2.sql": "26efc4e0419977599ea4750d08ceed56",
+  "20_fonctions-1.sql": "3c1277b9b22572594019e30d1d281e7a",
+  "20_fonctions-2.sql": "1cee53c5dd2007506e6e59a4336551cd",
   "30_contraintes.sql": "be556b5e9133d3e45cb4472c98189a67",
   "35_index.sql": "87cd93c64d8b58a384bdb826a85d5c93",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "bf2be17809004ec98efe6efc686501c9",
-  "70_droits.sql": "7ac010c2da2b9f912304ffb3ec707384",
-  "80_commentaires.sql": "eb1dd91c25df1c0e9d04cd75de2e095b"
+  "70_droits.sql": "7b38e30428a7ae824b2e1836765f701b",
+  "80_commentaires.sql": "adf3e715781480324e1b340231c459bb"
  },
  "fonctions": [
   {
@@ -2609,6 +2645,11 @@
    "signature": "assemblee_est_depute(text,text)"
   },
   {
+   "empreinte": "86b77bad58a38c6a9081ba3cb7656f2e",
+   "security_definer": true,
+   "signature": "assemblee_est_des_neuf(text,text)"
+  },
+  {
    "empreinte": "9be2eedb6fb860734b1ba4ffec3d0577",
    "security_definer": false,
    "signature": "assemblee_exige_application(text)"
@@ -2664,8 +2705,8 @@
    "signature": "assemblee_objet_vise(text,jsonb,jsonb)"
   },
   {
-   "empreinte": "bd6e9d7eba000c25a5c60cdb47ab0bac",
-   "security_definer": false,
+   "empreinte": "1ef01fb49c44eff7d2b4439e187d9290",
+   "security_definer": true,
    "signature": "assemblee_occupation_sieges(text)"
   },
   {
@@ -2744,6 +2785,11 @@
    "signature": "assemblee_presidence_fenetre_convocation(timestamp with time zone)"
   },
   {
+   "empreinte": "55b6f033bc561213b076196df729879e",
+   "security_definer": true,
+   "signature": "assemblee_presidence_fin_de_legislature(text)"
+  },
+  {
    "empreinte": "5b0c122ae7e4659a854392dcec913a17",
    "security_definer": true,
    "signature": "assemblee_presidence_prochaine_cloture()"
@@ -2759,7 +2805,7 @@
    "signature": "assemblee_presidence_voter(text,text)"
   },
   {
-   "empreinte": "fc24ef26ee31e82970d8b3c4c12e833b",
+   "empreinte": "1e7f0187be9c0caa23d72cc362fa35f9",
    "security_definer": true,
    "signature": "assemblee_president(text)"
   },

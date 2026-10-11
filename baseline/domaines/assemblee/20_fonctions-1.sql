@@ -918,6 +918,17 @@ AS $function$
                   WHERE o.pj_nom = p_nom);
 $function$;
 
+-- assemblee_est_des_neuf(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_est_des_neuf(p_pays text, p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.assemblee_occupation_sieges(p_pays) o
+                  WHERE coalesce(o.pj_nom, o.pnj_nom) = p_nom);
+$function$;
+
 -- assemblee_exige_application(text) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_exige_application(p_type text)
  RETURNS boolean
@@ -1407,11 +1418,12 @@ AS $function$
   );
 $function$;
 
--- assemblee_occupation_sieges(text) -> TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean) | sql | SECURITY INVOKER
+-- assemblee_occupation_sieges(text) -> TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean) | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_occupation_sieges(p_country text)
  RETURNS TABLE(siege_id text, city text, rang integer, pnj_id text, pnj_nom text, endormi boolean, pj_nom text, est_pnj boolean)
  LANGUAGE sql
- STABLE
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
   WITH deputes_pj AS (
     SELECT
@@ -1433,6 +1445,17 @@ AS $function$
       AND p.poste_depute IS NOT NULL
       AND p.poste_depute->>'id' = 'depute'
       AND p.poste_depute->>'city' IS NOT NULL
+      -- LE MANDAT EST ATTESTE, OU LE SIEGE N'EXISTE PAS (correctif du 11 octobre 2026).
+      -- `poste_depute` est une valeur POSEE sur la fiche : le declencheur d'attestation ne la
+      -- verifie qu'a l'ECRITURE, donc un mandat acheve y survit tant que la fiche n'est pas
+      -- reecrite -- indefiniment pour un joueur deconnecte. On relit donc la regle d'attestation
+      -- UNIQUE du projet, qui pour un depute lit `cycles_electoraux.data -> 'elus' ? nom`.
+      --
+      -- CONSEQUENCE VOULUE, ET C'EST TOUT L'ARBITRAGE : les neuf mandats commencent et finissent
+      -- A L'INSTANT ou le cycle de leur ville les liste ou cesse de les lister. Le cycle est
+      -- reecrit en UNE ecriture par ville, donc le renouvellement est SIMULTANE par construction
+      -- -- il n'y a aucun depute « en cours de sortie ».
+      AND public.poste_est_atteste(p.name, p.poste_depute, p.country)
   )
   SELECT
     s.id, s.city, s.rang, s.pnj_id, s.pnj_nom, s.endormi,
@@ -2019,6 +2042,35 @@ AS $function$
   SELECT extract(isodow FROM (p_instant AT TIME ZONE 'Europe/Paris')) = 1;
 $function$;
 
+-- assemblee_presidence_fin_de_legislature(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_presidence_fin_de_legislature(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE r record; v_sortis jsonb := '[]'::jsonb;
+BEGIN
+  IF p_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_absent');
+  END IF;
+
+  FOR r IN
+    SELECT a.id, a.titulaire, a.depuis FROM public.postes_attribues a
+     WHERE a.country = p_pays AND a.poste_id = 'president_assemblee' AND a.city IS NULL
+       AND NOT public.assemblee_est_des_neuf(p_pays, a.titulaire)
+     FOR UPDATE
+  LOOP
+    DELETE FROM public.postes_attribues WHERE id = r.id;
+    v_sortis := v_sortis || jsonb_build_object('ancien_president', r.titulaire, 'depuis', r.depuis);
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true,
+    'sortis', jsonb_array_length(v_sortis), 'detail', v_sortis,
+    'president', public.assemblee_president(p_pays));
+END;
+$function$;
+
 -- assemblee_presidence_prochaine_cloture() -> timestamp with time zone | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_presidence_prochaine_cloture()
  RETURNS timestamp with time zone
@@ -2127,8 +2179,13 @@ CREATE OR REPLACE FUNCTION public.assemblee_president(p_pays text)
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
+  -- L'INVARIANT, ECRIT LA OU TOUT LE MONDE LE LIT : un President de l'Assemblee est l'un des
+  -- neuf deputes de la legislature en cours. Le registre des postes nomme un titulaire ; cette
+  -- fonction ne le rend que s'il siege encore. Un ancien depute ne preside donc RIEN, et il n'y
+  -- a aucune periode a couvrir : la presidence tombe dans la meme lecture que le mandat.
   SELECT a.titulaire FROM public.postes_attribues a
    WHERE a.country = p_pays AND a.poste_id = 'president_assemblee' AND a.city IS NULL
+     AND public.assemblee_est_des_neuf(p_pays, a.titulaire)
    LIMIT 1;
 $function$;
 
@@ -3231,115 +3288,4 @@ CREATE OR REPLACE FUNCTION public.assemblee_suspendue_par_la_presidence(p_pays t
 AS $function$
   SELECT EXISTS (SELECT 1 FROM public.assemblee_suspensions
                   WHERE pays = p_pays AND cause = 'presidence' AND close_le IS NULL);
-$function$;
-
--- assemblee_suspension_appliquer_seuil(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.assemblee_suspension_appliquer_seuil(p_pays text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_seuil  interval := public.assemblee_suspension_seuil();
-  s        record;
-  p        record;
-  v_duree  interval;
-  v_bull   integer;
-  v_int    integer;
-  v_n      integer := 0;
-  v_tot_b  integer := 0;
-  v_props  jsonb := '[]'::jsonb;
-  v_sus    jsonb := '[]'::jsonb;
-  v_touche boolean;
-BEGIN
-  IF p_pays IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pays_absent');
-  END IF;
-
-  FOR s IN
-    SELECT * FROM public.assemblee_suspensions
-     WHERE pays = p_pays
-       AND cause = 'presidence'
-       -- LA DUREE REELLE, close ou non. Reprendre la seance n'efface pas le depassement.
-       AND (coalesce(close_le, now()) - ouverte_le) > v_seuil
-       -- Borne de balayage : une suspension close depuis longtemps n'a plus rien a renvoyer, et
-       -- la relire a chaque passage de cron ne servirait qu'a faire grossir la requete.
-       AND (close_le IS NULL OR close_le > now() - interval '30 days')
-     ORDER BY ouverte_le
-     FOR UPDATE
-  LOOP
-    v_duree  := coalesce(s.close_le, now()) - s.ouverte_le;
-    v_touche := false;
-
-    FOR p IN
-      SELECT * FROM public.assemblee_propositions
-       WHERE country = p_pays
-         AND statut = 'session'
-         AND session_ouverte_ts IS NOT NULL
-         -- Le scrutin etait ouvert PENDANT la suspension. Pour une suspension close, cela borne
-         -- l'effet a ce qu'elle a reellement gele ; pour une suspension encore ouverte, cela
-         -- couvre tout ce qui siege aujourd'hui.
-         AND session_ouverte_ts <= coalesce(s.close_le, now())
-       ORDER BY id
-       FOR UPDATE
-    LOOP
-      -- Deja renvoye par CETTE suspension depuis CETTE session : on ne recommence pas.
-      IF EXISTS (SELECT 1 FROM public.assemblee_reports_suspension r
-                  WHERE r.suspension_id = s.id
-                    AND r.proposition_id = p.id
-                    AND r.session_annulee = p.session_num) THEN
-        CONTINUE;
-      END IF;
-
-      SELECT count(*) INTO v_bull FROM public.assemblee_votes
-       WHERE proposition_id = p.id AND session_num = p.session_num;
-      SELECT count(*) INTO v_int FROM public.assemblee_intentions
-       WHERE proposition_id = p.id AND session_num = p.session_num;
-
-      -- LE RENVOI DU §27, MOT POUR MOT. C'est l'ecriture que fait assemblee_cloturer sur une
-      -- egalite ; la prochaine fenetre d'ouverture s'occupe du reste.
-      UPDATE public.assemblee_propositions
-         SET statut = 'renvoyee',
-             cloture_ts = NULL,
-             session_ouverte_ts = NULL,
-             updated_at = now()
-       WHERE id = p.id;
-
-      -- « LES SUFFRAGES DEJA EXPRIMES SONT ANNULES. » On ne se contente pas de les rendre inertes
-      -- par le numero de session : on les retire. Un depute qui revient sur l'ecran doit voir un
-      -- scrutin vide, pas sa propre voix dans un decompte qui ne compte plus.
-      DELETE FROM public.assemblee_votes
-       WHERE proposition_id = p.id AND session_num = p.session_num;
-      -- Les intentions PNJ de la session annulee tombent avec elle : l'ouverture suivante en
-      -- retirera de neuves au sort, comme pour n'importe quelle session.
-      DELETE FROM public.assemblee_intentions
-       WHERE proposition_id = p.id AND session_num = p.session_num;
-
-      INSERT INTO public.assemblee_reports_suspension
-        (id, pays, proposition_id, suspension_id, session_annulee, bulletins_annules,
-         intentions_annulees, cloture_initiale, suspension_ouverte_le, suspension_duree)
-      VALUES (s.id || ':' || p.id || ':' || p.session_num, p_pays, p.id, s.id, p.session_num,
-              v_bull, v_int, p.cloture_ts, s.ouverte_le, v_duree);
-
-      v_n      := v_n + 1;
-      v_tot_b  := v_tot_b + v_bull;
-      v_props  := v_props || to_jsonb(p.id);
-      v_touche := true;
-    END LOOP;
-
-    IF v_touche THEN
-      UPDATE public.assemblee_suspensions
-         SET seuil_applique_le = clock_timestamp() WHERE id = s.id;
-      v_sus := v_sus || to_jsonb(s.id);
-    END IF;
-  END LOOP;
-
-  RETURN jsonb_build_object('ok', true,
-    'seuil', v_seuil::text,
-    'suspensions', v_sus,
-    'reportes', v_n,
-    'propositions', v_props,
-    'bulletins_annules', v_tot_b);
-END;
 $function$;

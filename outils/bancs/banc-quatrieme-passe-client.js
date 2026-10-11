@@ -125,6 +125,59 @@ att('le President est lu au SERVEUR, jamais devine',
     dans(ASSEM_CODE, 'RP_PRESIDENCE_ETAT.president'));
 
 print('');
+print('CORRECTIF — LE RENOUVELLEMENT EST INTEGRAL, ET LE RANG NE PROTEGE PERSONNE');
+print('============================================================');
+
+// LA JUSTIFICATION FAUSSE NE DOIT PAS REVENIR. « Le President reste assis aussi longtemps qu il
+// reste un siege PNJ dans sa ville » etait une erreur de game design : le renouvellement de
+// l Assemblee est INTEGRAL, et la presidence ne survit pas au mandat qui la porte.
+att("le module ne pretend plus que le President reste assis le plus longtemps",
+    !/reste donc assis aussi\s*\n?\s*\/\/ longtemps|reste assis aussi longtemps/.test(ASSEM)
+    && !/dernier PNJ (de [A-Za-z]+ )?a ceder/i.test(ASSEM));
+
+att("il dit au contraire que le renouvellement est INTEGRAL",
+    /RENOUVELLEMENT DE\s*\n?\s*\/\/ L.ASSEMBLEE EST INTEGRAL|RENOUVELLEMENT DE L.ASSEMBLEE EST\s*\n?\s*\/\/ INTEGRAL/.test(ASSEM)
+    || /renouvellement de l.Assemblee est\s*\n?\s*\/\/\s*INTEGRAL/i.test(ASSEM)
+    || dans(ASSEM, 'EST INTEGRAL'));
+
+att("et que la presidence ne survit jamais au mandat",
+    /ne survit jamais au mandat/.test(ASSEM));
+
+att("le rang reste une donnee de la table, pas une regle de code",
+    ASSEMBLEE_SIEGES.every(function (s) { return typeof s.rang === 'number'; })
+    && !/rang\s*===?\s*3/.test(ASSEM_CODE));
+
+print('');
+print('CORRECTIF — LE CRON CONSIGNE LA SORTIE AVANT DE CONVOQUER');
+print('============================================================');
+
+att("cron-minuit consigne la fin de la presidence sortante",
+    dans(CRONM, 'assemblee_presidence_fin_de_legislature'));
+
+// L'ORDRE EST UNE INFORMATION : on constate la sortie de l'ancien President, PUIS on convoque les
+// neuf entrants. L'invariant tient sans cela -- la presidence est derivee -- mais la fiche de
+// l'ancien President doit cesser d'afficher son titre avant qu'un autre soit elu.
+att("et il le fait AVANT de convoquer l election du lundi",
+    CRONM.indexOf("sbRpc('assemblee_presidence_fin_de_legislature'")
+      < CRONM.indexOf("sbRpc('assemblee_presidence_convoquer'"));
+
+// LA PORTEE EST LE BLOC, PAS LE FICHIER. Scanner les 6 000 lignes de cron-minuit pour y
+// chercher « autoritaire » rendait cette epreuve rouge sur deux commentaires sans rapport, qui
+// parlent d'autorite SERVEUR -- un faux positif, et la lecon de l'epreuve « candidat » de la
+// troisieme passe. On n'examine donc que le texte de l'annonce ecrite par ce bloc.
+att("le cron n enregistre un fait, et ne le qualifie pas", (function () {
+  var i = CRONM.indexOf("sbRpc('assemblee_presidence_fin_de_legislature'");
+  if (i < 0) return false;
+  var bloc = CRONM.slice(i, CRONM.indexOf("sbRpc('assemblee_presidence_convoquer'"));
+  // ET LE CODE SEUL, DANS LE BLOC AUSSI. Le commentaire qui INTERDIT la qualification emploie le
+  // mot « regrettable » pour dire qu'il n'appartient pas au serveur : le garder dans la portee
+  // rendait l'epreuve rouge sur sa propre doctrine. Troisieme fois que ce piege se presente.
+  var blocCode = codeSeul(bloc);
+  return /fin de l[ée]gislature/.test(blocCode)
+      && !/abusi|scandaleu|ill[ée]gitim|autoritair|regrettab/i.test(blocCode);
+})());
+
+print('');
 print('§4 — LE SEUIL EST UN FAIT SERVEUR, PAS UN MINUTEUR');
 print('============================================================');
 

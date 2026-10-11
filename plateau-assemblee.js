@@ -36,9 +36,13 @@ const ASSEMBLEE_SIEGES = [
   { id: 'republic:capitale:2', city: 'capitale', rang: 2, pnjId: 'dep_marechal', nom: 'Sophie Maréchal' },
   // LE PRESIDENT DE L'ASSEMBLEE EST L'UN DES NEUF (arbitrage du 11 octobre 2026, §1). Laroche
   // n'est plus une dixieme carte posee dans l'hemicycle : il est depute de Luthecia, et c'est
-  // Benoit Delorme qui lui cede le siege de rang 3. Le RANG 3 compte : un depute PJ elu a
-  // Luthecia prend le rang 1, puis 2, puis 3 -- le President en exercice reste donc assis aussi
-  // longtemps qu'il reste un siege PNJ dans sa ville.
+  // Benoit Delorme qui lui cede le siege de rang 3.
+  // LE RANG N'EST AUCUNE PROTECTION, et le croire etait une erreur de game design -- corrigee le
+  // 11 octobre au soir. Le rang est l'ordre d'appariement des deputes joueurs elus, identique
+  // dans les trois villes ; il ne met personne a l'abri, parce que LE RENOUVELLEMENT DE
+  // L'ASSEMBLEE EST INTEGRAL : les neuf mandats finissent et commencent ensemble, et la
+  // presidence ne survit jamais au mandat qui la porte (assemblee_president ne rend le titulaire
+  // du registre que s'il est l'un des neuf de la legislature en cours).
   // Son nom reste « President Laroche » : c'est de ce nom que slugPnj() derive la cle de son
   // profil de dialogue serveur (`president_laroche`). Le renommer le rendrait muet.
   // Il est le SEUL des neuf a porter une photo : elle existait deja. On n'en invente aucune pour

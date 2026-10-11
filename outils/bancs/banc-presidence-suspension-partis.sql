@@ -76,6 +76,15 @@ BEGIN
    WHERE country = 'republic' AND poste_id = 'depute' AND city = 'capitale';
   UPDATE public.cycles_electoraux SET data = '{"elus":["Ben","May","Bartesto Chevara"]}'
    WHERE country = 'republic' AND poste_id = 'depute' AND city = 'ville_a';
+  -- LE PRESIDENT EST L'UN DES NEUF, ET LE DECOR DOIT LE RESPECTER (correctif du 11 octobre 2026).
+  -- Arnie recoit un siege a Montrouge : depuis que `assemblee_president` derive la presidence des
+  -- neuf, un President sans mandat ne preside RIEN -- et c'est exactement l'invariant voulu. Ce
+  -- banc forgeait auparavant un President hors de l'Assemblee, un etat que l'arbitrage interdit.
+  UPDATE public.cycles_electoraux SET data = '{"elus":["Arnie"]}'
+   WHERE country = 'republic' AND poste_id = 'depute' AND city = 'ville_b';
+  UPDATE public.personnages_donnees
+     SET poste_depute = jsonb_build_object('id', 'depute', 'city', 'ville_b')
+   WHERE name = ARNIE;
   UPDATE public.personnages_donnees SET poste_depute = jsonb_build_object('id','depute','city','capitale')
    WHERE name IN (LEE, MARS, PHIL);
   UPDATE public.personnages_donnees SET poste_depute = jsonb_build_object('id','depute','city','ville_a')

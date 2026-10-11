@@ -5944,6 +5944,38 @@ export default async function handler(req, res) {
     const votesConfianceResolus = await resoudreVotesConfianceEchusServeur(now.getTime());
     const consequencesCensure = await appliquerConsequencesCensureEchues(now.getTime());
 
+    // 1d bis. ASSEMBLEE NATIONALE — LA PRESIDENCE SORTANTE EST CONSIGNEE COMME TERMINEE
+    //
+    // L'INVARIANT EST DEJA TENU SANS CE PASSAGE, et c'est important de le dire : la presidence
+    // est DERIVEE des neuf (`assemblee_president` ne rend le titulaire du registre que s'il
+    // siege encore), donc un ancien depute ne preside plus a l'instant ou son mandat cesse --
+    // sans attendre aucun cron. Cet appel ne CREE pas la fin de la presidence : il l'ENREGISTRE,
+    // en retirant du registre des postes une ligne devenue fausse. Sans lui, la fiche de
+    // l'ancien President continuerait d'afficher son titre, attestee par cette ligne perimee,
+    // alors qu'il n'a plus aucun pouvoir.
+    //
+    // AVANT LA CONVOCATION DU LUNDI, ET APRES LE DEPOUILLEMENT LEGISLATIF : la nouvelle
+    // legislature vient d'etre proclamee, on constate la sortie de l'ancien President, puis on
+    // convoque les neuf entrants. Idempotent -- un second passage ne trouve rien a retirer.
+    try {
+      const finLegislature = await sbRpc('assemblee_presidence_fin_de_legislature', { p_pays: 'republic' });
+      const etatFin = Array.isArray(finLegislature) ? finLegislature[0] : finLegislature;
+      if (etatFin && etatFin.ok && (etatFin.sortis || 0) > 0) {
+        // UN FAIT, SANS QUALIFICATION. On dit que la presidence a pris fin avec la legislature ;
+        // dire si c'est regrettable appartient aux joueurs et a la presse.
+        const nom = (etatFin.detail && etatFin.detail[0] && etatFin.detail[0].ancien_president) || null;
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 ASSEMBLÉE NATIONALE — fin de législature : la présidence de '
+               + (nom || 'l\'Assemblée') + ' prend fin avec son mandat de député. '
+               + 'Les neuf députés entrants éliront leur Président.',
+          jour: null
+        }).catch(() => {});
+      } else if (!etatFin) {
+        signalerEchec('assemblee_presidence_fin_de_legislature', 'porte_injoignable');
+      }
+    } catch (e) { console.error('assemblee_presidence_fin_de_legislature', e); }
+
     // 1e. ASSEMBLEE NATIONALE — CONVOCATION DE L'ELECTION PRESIDENTIELLE (11 octobre 2026)
     //
     // APRES LE DEPOUILLEMENT LEGISLATIF, ET C'EST TOUT L'INTERET DE LA PLACE.

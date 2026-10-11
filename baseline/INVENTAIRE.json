@@ -1,11 +1,11 @@
 {
  "domaines": {
   "assemblee": {
-   "commentaires": 39,
+   "commentaires": 40,
    "contraintes": 53,
-   "droits": 321,
+   "droits": 326,
    "droits_par_defaut": 0,
-   "fonctions": 89,
+   "fonctions": 91,
    "index_autonomes": 27,
    "policies": 6,
    "tables": 21,
@@ -224,14 +224,14 @@
  },
  "fichiers": {
   "assemblee/10_tables.sql": "210b098ed9c8eb086162776e72bd4b7f",
-  "assemblee/20_fonctions-1.sql": "119537dc7ddbe0ada8125400f0830411",
-  "assemblee/20_fonctions-2.sql": "26efc4e0419977599ea4750d08ceed56",
+  "assemblee/20_fonctions-1.sql": "3c1277b9b22572594019e30d1d281e7a",
+  "assemblee/20_fonctions-2.sql": "1cee53c5dd2007506e6e59a4336551cd",
   "assemblee/30_contraintes.sql": "be556b5e9133d3e45cb4472c98189a67",
   "assemblee/35_index.sql": "87cd93c64d8b58a384bdb826a85d5c93",
   "assemblee/50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "assemblee/60_rls-policies.sql": "bf2be17809004ec98efe6efc686501c9",
-  "assemblee/70_droits.sql": "7ac010c2da2b9f912304ffb3ec707384",
-  "assemblee/80_commentaires.sql": "eb1dd91c25df1c0e9d04cd75de2e095b",
+  "assemblee/70_droits.sql": "7b38e30428a7ae824b2e1836765f701b",
+  "assemblee/80_commentaires.sql": "adf3e715781480324e1b340231c459bb",
   "banque/10_tables.sql": "e0be54159d7a10d40060f7bfb9423a5e",
   "banque/20_fonctions.sql": "457fc9818970c26eb5edf7d981170fd0",
   "banque/30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",

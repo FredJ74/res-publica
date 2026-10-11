@@ -35,10 +35,14 @@ loyauté. L'existant, lui, en avait une :
 Retirer Maréchal ou Vauclerc aurait obligé à réécrire des épreuves qui ne parlent pas d'eux.
 Delorme est le remplacement **le moins bruyant** — pas un jugement sur le personnage.
 
-**Le rang 3 est un choix, lui.** Un député PJ élu à Luthécia prend le rang 1, puis 2, puis 3
-(`assemblee_occupation_sieges` classe les PJ par nom et les apparie aux rangs). Placer Laroche au
-rang 3 fait de lui **le dernier PNJ de Luthécia à céder sa place** : le Président en exercice
-reste assis aussi longtemps qu'il reste un siège PNJ dans sa ville.
+> **Corrigé le 11 octobre au soir — cette passe avait tort sur ce point.** Elle justifiait le
+> rang 3 par « le dernier PNJ de Luthécia à céder sa place », donc par une protection du Président
+> en exercice. **C'est faux en game design, et l'arbitrage l'a tranché** : le renouvellement de
+> l'Assemblée est **intégral**, et la présidence ne survit jamais au mandat qui la porte. Le rang
+> n'est que l'ordre d'appariement des députés joueurs élus, identique dans les trois villes depuis
+> le 10 septembre ; il ne met personne à l'abri. **Aucune ligne de code n'avait implémenté cette
+> protection** — c'était une justification écrite dans un commentaire, et elle est retirée. Voir
+> `ASSEMBLEE-NATIONALE-CORRECTIF-LEGISLATURE.md`.
 
 ### Composition finale des neuf sièges
 
@@ -306,15 +310,17 @@ ne passait donc pas par ce chemin.
 > titre nommé, soit une liste, soit une règle de priorité d'affichage. Aucun des trois n'est
 > arbitré, et aucun n'a été inventé ici.
 
-### Un autre point, trouvé en §1 et qui appartient au game design
+### Un autre point, trouvé en §1 — **arbitré et fermé le même soir**
 
 Si **trois députés joueurs** sont élus à Luthécia, les trois sièges PNJ de la ville sont pris —
-celui de Laroche compris. Laroche n'est alors plus l'un des neuf, et l'invariant « le Président
-est obligatoirement l'un des neuf députés » tombe s'il présidait à ce moment-là. La **convocation
-du lundi** referme le cas dans la journée (les éligibles sont redérivés des neuf sièges réels,
-Laroche n'y est plus, un autre est élu), donc le trou dure au plus 24 heures. Mais ce qu'il faut
-faire **pendant** ces heures — laisser présider un non-député, ou déclarer la présidence vacante —
-n'est pas arbitré, et n'a pas été décidé ici.
+celui de Laroche compris — et l'invariant « le Président est obligatoirement l'un des neuf
+députés » tombait s'il présidait à ce moment-là. Cette passe laissait le point ouvert.
+
+**Il est arbitré** : la présidence ne survit pas au mandat. `assemblee_president` ne rend le
+titulaire du registre que s'il est l'un des neuf de la législature en cours — il n'existe donc
+aucune période, pas même une seconde. Et l'audit du correctif a trouvé **pire** que le cas
+signalé : le siège d'un député joueur était dérivé d'un champ de fiche que rien ne nettoyait côté
+serveur. Voir `ASSEMBLEE-NATIONALE-CORRECTIF-LEGISLATURE.md`.
 
 ---
 
@@ -366,7 +372,8 @@ est plus forte : persistance **et** non-comptage dans les épisodes de boycott.
 |---|---|
 | Le **nom** « President Laroche » affirme une fonction qu'il peut perdre | identité — appartient à la passe Laroche |
 | Le **cumul affiché** (présidence + autre poste nommé) | game design — `state.poste` est un emplacement unique |
-| Un **Président évincé de son siège** par trois députés PJ de sa ville | game design — refermé par la convocation du lundi en < 24 h |
+| ~~Un **Président évincé de son siège** par trois députés PJ de sa ville~~ | **arbitré et fermé le 11 octobre au soir** |
+| Le **calendrier du renouvellement** : hebdomadaire arbitré contre 5 semaines implémenté | game design — remonté, non implémenté |
 | Le vote **législatif** lit la présence sans passer par `acteur_present_sur_site` | dette technique, sans conséquence aujourd'hui |
 | Seb Lex, Lobbyiste Perrin, Journaliste Blanc, Archiviste parlementaire | **non traités**, réservés par l'arbitrage |
 

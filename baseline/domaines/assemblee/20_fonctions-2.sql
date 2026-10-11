@@ -10,6 +10,117 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- assemblee_suspension_appliquer_seuil(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_suspension_appliquer_seuil(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_seuil  interval := public.assemblee_suspension_seuil();
+  s        record;
+  p        record;
+  v_duree  interval;
+  v_bull   integer;
+  v_int    integer;
+  v_n      integer := 0;
+  v_tot_b  integer := 0;
+  v_props  jsonb := '[]'::jsonb;
+  v_sus    jsonb := '[]'::jsonb;
+  v_touche boolean;
+BEGIN
+  IF p_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_absent');
+  END IF;
+
+  FOR s IN
+    SELECT * FROM public.assemblee_suspensions
+     WHERE pays = p_pays
+       AND cause = 'presidence'
+       -- LA DUREE REELLE, close ou non. Reprendre la seance n'efface pas le depassement.
+       AND (coalesce(close_le, now()) - ouverte_le) > v_seuil
+       -- Borne de balayage : une suspension close depuis longtemps n'a plus rien a renvoyer, et
+       -- la relire a chaque passage de cron ne servirait qu'a faire grossir la requete.
+       AND (close_le IS NULL OR close_le > now() - interval '30 days')
+     ORDER BY ouverte_le
+     FOR UPDATE
+  LOOP
+    v_duree  := coalesce(s.close_le, now()) - s.ouverte_le;
+    v_touche := false;
+
+    FOR p IN
+      SELECT * FROM public.assemblee_propositions
+       WHERE country = p_pays
+         AND statut = 'session'
+         AND session_ouverte_ts IS NOT NULL
+         -- Le scrutin etait ouvert PENDANT la suspension. Pour une suspension close, cela borne
+         -- l'effet a ce qu'elle a reellement gele ; pour une suspension encore ouverte, cela
+         -- couvre tout ce qui siege aujourd'hui.
+         AND session_ouverte_ts <= coalesce(s.close_le, now())
+       ORDER BY id
+       FOR UPDATE
+    LOOP
+      -- Deja renvoye par CETTE suspension depuis CETTE session : on ne recommence pas.
+      IF EXISTS (SELECT 1 FROM public.assemblee_reports_suspension r
+                  WHERE r.suspension_id = s.id
+                    AND r.proposition_id = p.id
+                    AND r.session_annulee = p.session_num) THEN
+        CONTINUE;
+      END IF;
+
+      SELECT count(*) INTO v_bull FROM public.assemblee_votes
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+      SELECT count(*) INTO v_int FROM public.assemblee_intentions
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+
+      -- LE RENVOI DU §27, MOT POUR MOT. C'est l'ecriture que fait assemblee_cloturer sur une
+      -- egalite ; la prochaine fenetre d'ouverture s'occupe du reste.
+      UPDATE public.assemblee_propositions
+         SET statut = 'renvoyee',
+             cloture_ts = NULL,
+             session_ouverte_ts = NULL,
+             updated_at = now()
+       WHERE id = p.id;
+
+      -- « LES SUFFRAGES DEJA EXPRIMES SONT ANNULES. » On ne se contente pas de les rendre inertes
+      -- par le numero de session : on les retire. Un depute qui revient sur l'ecran doit voir un
+      -- scrutin vide, pas sa propre voix dans un decompte qui ne compte plus.
+      DELETE FROM public.assemblee_votes
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+      -- Les intentions PNJ de la session annulee tombent avec elle : l'ouverture suivante en
+      -- retirera de neuves au sort, comme pour n'importe quelle session.
+      DELETE FROM public.assemblee_intentions
+       WHERE proposition_id = p.id AND session_num = p.session_num;
+
+      INSERT INTO public.assemblee_reports_suspension
+        (id, pays, proposition_id, suspension_id, session_annulee, bulletins_annules,
+         intentions_annulees, cloture_initiale, suspension_ouverte_le, suspension_duree)
+      VALUES (s.id || ':' || p.id || ':' || p.session_num, p_pays, p.id, s.id, p.session_num,
+              v_bull, v_int, p.cloture_ts, s.ouverte_le, v_duree);
+
+      v_n      := v_n + 1;
+      v_tot_b  := v_tot_b + v_bull;
+      v_props  := v_props || to_jsonb(p.id);
+      v_touche := true;
+    END LOOP;
+
+    IF v_touche THEN
+      UPDATE public.assemblee_suspensions
+         SET seuil_applique_le = clock_timestamp() WHERE id = s.id;
+      v_sus := v_sus || to_jsonb(s.id);
+    END IF;
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true,
+    'seuil', v_seuil::text,
+    'suspensions', v_sus,
+    'reportes', v_n,
+    'propositions', v_props,
+    'bulletins_annules', v_tot_b);
+END;
+$function$;
+
 -- assemblee_suspension_depassee(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_suspension_depassee(p_pays text)
  RETURNS boolean

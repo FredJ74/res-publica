@@ -57,7 +57,7 @@ BEGIN
   PERFORM pg_temp.je_suis_le_serveur();
 
   -- ===========================================================================================
-  -- DECOR : UNE PRESIDENCE, QUATRE DEPUTES, UN FIGURANT
+  -- DECOR : UNE PRESIDENCE QUI SIEGE, QUATRE AUTRES DEPUTES, UN FIGURANT
   -- ===========================================================================================
   -- LA PRESIDENCE PASSE PAR LE REGISTRE DES POSTES NOMMES, parce que c'est la seule source de
   -- verite que `assemblee_president` connait. Rien d'autre ne la fabrique.
@@ -72,6 +72,16 @@ BEGIN
   UPDATE public.cycles_electoraux
      SET data = '{"elus":["Ben"]}'
    WHERE country = 'republic' AND poste_id = 'depute' AND city = 'ville_a';
+  -- LE PRESIDENT EST L'UN DES NEUF, ET LE DECOR DOIT LE RESPECTER (correctif du 11 octobre 2026).
+  -- Arnie recoit un siege a Montrouge : depuis que `assemblee_president` derive la presidence des
+  -- neuf, un President sans mandat ne preside RIEN -- et c'est exactement l'invariant voulu. Ce
+  -- banc forgeait auparavant un President hors de l'Assemblee, un etat que l'arbitrage interdit.
+  UPDATE public.cycles_electoraux
+     SET data = '{"elus":["Arnie"]}'
+   WHERE country = 'republic' AND poste_id = 'depute' AND city = 'ville_b';
+  UPDATE public.personnages_donnees
+     SET poste_depute = jsonb_build_object('id', 'depute', 'city', 'ville_b')
+   WHERE name = ARNIE;
 
   UPDATE public.personnages_donnees
      SET poste_depute = jsonb_build_object('id', 'depute', 'city', 'capitale')
