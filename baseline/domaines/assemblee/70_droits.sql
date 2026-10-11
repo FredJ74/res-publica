@@ -118,6 +118,9 @@ GRANT EXECUTE ON FUNCTION public.assemblee_prochaine_cloture(timestamp with time
 GRANT EXECUTE ON FUNCTION public.assemblee_prochaine_cloture(timestamp with time zone) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_proposition_immuable() TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_proposition_immuable() TO service_role;
+GRANT EXECUTE ON FUNCTION public.assemblee_regards(integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assemblee_regards(integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.assemblee_regards(integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.assemblee_registre_execution(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assemblee_registre_execution(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.assemblee_registre_execution(text) TO service_role;

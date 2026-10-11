@@ -78,7 +78,11 @@ const CORPS_RPC = {
   pnj_contexte_public:          () => ({}),
   // La memoire des mandats ne prend AUCUN pays : la porte le relit en base. Lui passer un pays
   // laisserait un joueur lire la memoire presidentielle d'un empire voisin.
-  presidence_memoire_mon_pays:  () => ({})
+  presidence_memoire_mon_pays:  () => ({}),
+  // Les regards de l'agente d'entretien ne prennent qu'une FENETRE en jours -- jamais un pays, ni
+  // un batiment, ni un nom : la porte relit le pays de l'acteur en base et ne regarde que
+  // l'Assemblee. Lui laisser choisir ferait de Renee une informatrice universelle.
+  assemblee_regards:            () => ({ p_jours: 7 })
 };
 
 async function lireMemoire(rpc, profilId, jeton) {
@@ -126,6 +130,29 @@ const memoireDesMandats = (profilId, jeton) =>
     ? lireMemoire('presidence_memoire_mon_pays', null, jeton)
     : Promise.resolve(null);
 
+// LE CINQUIEME CANAL — CE QUE L'AGENTE D'ENTRETIEN A VU (11 octobre 2026)
+// ---------------------------------------------------------------------------
+// UNE SEULE PNJ LE RECOIT, exactement comme la memoire des mandats n'en concerne qu'une : Renee
+// Toitout nettoie l'Assemblee nationale, elle y circule toute la journee, et personne ne fait
+// attention a elle. Pour les 212 autres profils, l'appel n'est pas emis.
+//
+// IL EST DE LA CINQUIEME NATURE, et c'est pour cela qu'il ne se melange a aucun des quatre autres :
+//   . contexte public      -> un fait du monde (qui est en face) ;
+//   . memoire sociale      -> une relation (vous vous connaissez) ;
+//   . memoire pedagogique  -> un historique d'explications ;
+//   . memoire des mandats  -> une histoire nationale ;
+//   . regards de l'Assemblee -> une OBSERVATION LOCALE, celle d'une employee qui a des yeux.
+//
+// LA PORTE NE CREE AUCUNE SURVEILLANCE : elle lit `historique_deplacements` -- deja ecrit par
+// `deplacement_enregistrer`, sous RLS sans policy et sans aucun droit client --, les neuf sieges et
+// les scrutins clos. Et elle dit AUSSI ce qu'elle ne sait pas : `rien_a_signaler` et
+// `aucun_scrutin` sont la pour que l'IA n'ait rien a remplir.
+const REGARDS_ASSEMBLEE = 'renee_toitout';
+const regardsAssemblee = (profilId, jeton) =>
+  profilId === REGARDS_ASSEMBLEE
+    ? lireMemoire('assemblee_regards', null, jeton)
+    : Promise.resolve(null);
+
 // QUI EST EN FACE : son nom et sa fonction officielle. C'est le seul des trois canaux qui ne
 // depend pas du PNJ : il est le meme pour tous, et presque tous le recoivent. Il echoue en
 // silence comme les deux autres -- sans lui, le prompt est rigoureusement celui d'avant.
@@ -149,19 +176,21 @@ export default async function handler(req, res) {
   const utilisateur = await joueurAuthentifie(req);
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  // LES QUATRE lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
-  // trois allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
+  // LES CINQ lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
+  // quatre allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
   // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
-  // tous, et la memoire des mandats n'en concerne qu'UN : pour les 210 autres profils, le
-  // quatrieme appel n'est pas emis du tout.
-  const [relation, pedagogie, contextePublic, mandats] = await Promise.all([
+  // tous, et les deux derniers n'en concernent QU'UN CHACUN : la memoire des mandats pour
+  // Huguette Papier, les regards de l'Assemblee pour Renee Toitout. Pour tous les autres profils,
+  // ces deux appels ne sont pas emis du tout.
+  const [relation, pedagogie, contextePublic, mandats, regards] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
     contextePublicJoueur(utilisateur.jeton),
-    memoireDesMandats(req.body.profil, utilisateur.jeton)
+    memoireDesMandats(req.body.profil, utilisateur.jeton),
+    regardsAssemblee(req.body.profil, utilisateur.jeton)
   ]);
   const systeme = construirePromptSysteme(
-    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats);
+    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

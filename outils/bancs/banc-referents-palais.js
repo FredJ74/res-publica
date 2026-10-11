@@ -1,5 +1,5 @@
 // BANC DES TROIS REFERENTS DU PALAIS PRESIDENTIEL (11 octobre 2026)
-// SOURCES: api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. Le Palais avait trois PNJ sans corpus : Huguette Papier, le Porte-parole et
 // Gerard Tamponneau parlaient depuis une fiche generee de data.js, donc sans connaitre un seul

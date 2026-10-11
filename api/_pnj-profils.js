@@ -49,6 +49,15 @@ import {
   BIBLE_ACCUEIL_GOUVERNEMENT, CE_QUI_N_EXISTE_PAS_GOUVERNEMENT
 } from './_bible-gouvernement.js';
 
+// LA BIBLE DE L'ASSEMBLEE NATIONALE (11 octobre 2026). Meme regle que les trois autres : une
+// procedure qui n'est pas dans le code n'existe pas. Le hall comptait trois PNJ muets, dont une
+// hotesse d'accueil -- dont le metier EST d'expliquer l'institution -- qui repondait avec le repli
+// des figurants.
+import {
+  SOCLE_ASSEMBLEE, BIBLE_PROCEDURE_ASSEMBLEE, BIBLE_REGARDS_ASSEMBLEE,
+  CE_QUI_N_EXISTE_PAS_ASSEMBLEE
+} from './_bible-assemblee.js';
+
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
   en: { nom: 'anglais',  consigne: 'Reply EXCLUSIVELY in English.' }
@@ -227,7 +236,18 @@ const SAVOIR_PROTOCOLE_PRESIDENTIEL = [
 const corpusGouvernement = (bloc) =>
   [SOCLE_GOUVERNEMENT, bloc, CE_QUI_N_EXISTE_PAS_GOUVERNEMENT].join('\n\n');
 
+// LES DEUX CORPUS DU HALL DE L'ASSEMBLEE. Meme decoupage qu'ailleurs : chacun recoit le socle de
+// la maison, SON seul domaine, et la frontiere.
+//
+// L'HOTESSE recoit la PROCEDURE et rien des regards de Renee : elle n'a pas a savoir qui est passe.
+// RENEE recoit les REGARDS et rien de la procedure : elle nettoie, elle n'explique pas le reglement
+// -- et elle y envoie. Les reunir ferait de l'une des deux une figurante.
+const corpusAssemblee = (bloc) =>
+  [SOCLE_ASSEMBLEE, bloc, CE_QUI_N_EXISTE_PAS_ASSEMBLEE].join('\n\n');
+
 const CORPUS_REFERENT = {
+  hotesse_accueil: corpusAssemblee(BIBLE_PROCEDURE_ASSEMBLEE),
+  renee_toitout:   corpusAssemblee(BIBLE_REGARDS_ASSEMBLEE),
   secretaire_dupuis:                    corpusGouvernement(BIBLE_ACCUEIL_GOUVERNEMENT),
   eric_stricted:                        corpusGouvernement(BIBLE_PREMIER_MINISTRE),
   corinne_tite_declaz:                  corpusGouvernement(BIBLE_COMMUNICATION_GOUVERNEMENTALE),
@@ -400,13 +420,93 @@ function blocMemoireDesMandats(memoire) {
 // NATIONALE, la quatrieme nature de memoire du jeu. Il vient APRES les trois autres dans le
 // prompt -- on sait a qui l'on parle, on se souvient de lui, on sait ce qu'on lui a explique,
 // et ensuite seulement on raconte le pays.
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats) {
+// LE CINQUIEME CANAL — CE QUE L'AGENTE D'ENTRETIEN A VU (11 octobre 2026)
+// ---------------------------------------------------------------------------
+// UNE SEULE PNJ LE RECOIT, et il n'est meme pas demande pour les autres. Il est de la cinquieme
+// nature : ni un fait du monde, ni une relation, ni un historique d'explications, ni une histoire
+// nationale -- une OBSERVATION LOCALE, celle d'une employee qui circule dans un batiment.
+//
+// LE BLOC NE DIT QUE DES FAITS, et il dit AUSSI CE QUI MANQUE. C'est son point le plus important :
+// quand la porte ne rend rien, le bloc l'ecrit noir sur blanc, pour que l'IA n'ait rien a remplir.
+// Un PNJ interessant par invention est un PNJ qui ment.
+function blocRegardsAssemblee(regards) {
+  if (!regards || typeof regards !== 'object') return null;
+  const l = ["CE QUE TU AS REELLEMENT VU DANS LE BATIMENT CES DERNIERS JOURS — ce sont les seuls faits"
+             + " que tu connaisses, et tu n'en inventes aucun autre :"];
+
+  if (regards.rien_a_signaler === true) {
+    l.push("RIEN. Aucun passage, aucune rencontre, aucun scrutin. Le batiment a ete calme : tu as"
+           + " surtout nettoye. DIS-LE SIMPLEMENT -- n'invente ni visite, ni nom, ni anecdote.");
+    return l.join('\n');
+  }
+
+  const passages = Array.isArray(regards.passages) ? regards.passages : [];
+  if (passages.length) {
+    l.push('LES PASSAGES :');
+    for (const p of passages) {
+      const pieces = Array.isArray(p.pieces) ? p.pieces.join(', ') : '';
+      l.push('- ' + p.qui + ' : ' + p.passages + ' passage(s), vu(e) dans ' + pieces
+             + '. Dernier passage au jour ' + p.dernier_jour
+             + (p.derniere_heure ? (' vers ' + p.derniere_heure) : '') + '.'
+             + (p.poste_actuel ? (' Poste occupe AUJOURD HUI : ' + p.poste_actuel + '.') : ' Aucun poste.')
+             + (p.raison_institutionnelle === true
+                 ? ' Il a une raison officielle de venir ici.'
+                 : " Il n'a aucune fonction qui l'appelle ici -- c'est un FAIT, pas un soupcon."));
+    }
+  } else {
+    l.push("AUCUN PASSAGE ENREGISTRE sur la periode. Tu n'as vu entrer personne.");
+  }
+
+  const ens = Array.isArray(regards.ensemble) ? regards.ensemble : [];
+  if (ens.length) {
+    l.push('CEUX QUE TU AS VUS LA EN MEME TEMPS :');
+    for (const e of ens) {
+      l.push('- ' + e.qui_a + ' et ' + e.qui_b + ', ' + e.fois + ' fois, la derniere au jour '
+             + e.dernier_jour + '. TU LES AS VUS LA, rien de plus : tu ne sais pas de quoi ils'
+             + " parlaient, et tu ne l'inventes pas.");
+    }
+  } else {
+    l.push("TU N'AS VU PERSONNE SE RETROUVER AVEC QUELQU'UN D'AUTRE ici sur la periode. Aucune"
+           + ' rencontre a raconter -- et donc aucune a inventer.');
+  }
+
+  const dep = Array.isArray(regards.deputes) ? regards.deputes : [];
+  if (dep.length) {
+    const dormeurs = dep.filter(d => d.endormi === true).map(d => d.nom);
+    l.push('LES NEUF SIEGES, tels que tu les vois : '
+           + dep.map(d => d.nom + ' (' + d.ville + ')').join(', ') + '.');
+    l.push(dormeurs.length
+      ? ('ET CEUX QUI DORMENT EN CE MOMENT : ' + dormeurs.join(', ') + '. Ca, ca se voit.')
+      : "AUCUN NE DORT en ce moment.");
+  }
+
+  if (regards.aucun_scrutin === true) {
+    l.push("AUCUN SCRUTIN N'A ENCORE ETE DEPOUILLE depuis que tu travailles ici. Tu n'as donc JAMAIS"
+           + " vu voter, et tu ne peux dire de PERSONNE qu'il est assidu ou absent : il n'y a rien a"
+           + ' comparer. Si on te pose la question, dis exactement cela.');
+  } else {
+    const sc = Array.isArray(regards.scrutins) ? regards.scrutins : [];
+    l.push('LES DERNIERS SCRUTINS DEPOUILLES :');
+    for (const s of sc) {
+      const liste = (x) => (Array.isArray(x) && x.length) ? x.join(', ') : 'personne';
+      l.push('- « ' + s.titre + ' » : ' + (s.resultat || 'resultat inconnu')
+             + '. Ont vote pour : ' + liste(s.pour) + '. Contre : ' + liste(s.contre)
+             + '. Abstention : ' + liste(s.abstention)
+             + '. N ONT PAS VOTE : ' + liste(s.non_votants)
+             + '. Dormaient : ' + liste(s.endormis) + '.');
+    }
+  }
+  return l.join('\n');
+}
+
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
   const ped = blocPedagogie(pedagogie);
   const pub = blocContextePublic(contextePublic);
   const mem = blocMemoireDesMandats(mandats);
+  const reg = blocRegardsAssemblee(regards);
   return [
     p.identite,
     '',
@@ -421,6 +521,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(rel ? [rel, ''] : []),
     ...(ped ? [ped, ''] : []),
     ...(mem ? [mem, ''] : []),
+    ...(reg ? [reg, ''] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique

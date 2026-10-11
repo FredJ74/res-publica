@@ -1,5 +1,5 @@
 // BANC DU REFERENT MILITAIRE DE LA CASERNE (10 octobre 2026)
-// SOURCES: api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. Le Commandant Tom Hawak etait le titulaire PNJ du poste `commandant` depuis
 // le 10 aout 2026 et n'existait que comme chaine de caracteres dans le cron : ni fiche, ni voix.

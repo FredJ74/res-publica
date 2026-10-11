@@ -597,8 +597,13 @@ def controles_du_monde(cat):
     # communication_officielle_publier a ete REMPLACEE par une signature a neuf parametres, et son
     # ancienne forme a huit a ete explicitement supprimee : deux chemins pour un meme acte, dont
     # l'un sans la regle de financement, auraient laisse le navigateur choisir le mauvais.
-    att("signatures de fonction creees", cat.n_fonctions, 745)
-    att("noms de fonction distincts", len(cat.fonctions), 741,
+    # 746 / 742 le 11 octobre 2026, a la premiere passe PNJ de l'Assemblee : +1, sans surcharge.
+    # `assemblee_regards` est la porte de LECTURE de l'agente d'entretien : elle ne cree aucune
+    # table et aucune journalisation, elle lit le journal des passages, les neuf sieges et les
+    # scrutins clos -- et elle rend deux drapeaux d'ABSENCE, pour que l'IA n'ait rien a inventer
+    # quand il ne s'est rien passe.
+    att("signatures de fonction creees", cat.n_fonctions, 746)
+    att("noms de fonction distincts", len(cat.fonctions), 742,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue

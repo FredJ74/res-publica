@@ -1,5 +1,5 @@
 // BANC DU PALAIS DU GOUVERNEMENT (11 octobre 2026)
-// SOURCES: data.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: data.js api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. Le Palais du Gouvernement comptait huit PNJ muets, un faux Premier ministre
 // assis dans la Salle du Conseil, et des ministres PNJ qui disparaissaient des qu'un joueur

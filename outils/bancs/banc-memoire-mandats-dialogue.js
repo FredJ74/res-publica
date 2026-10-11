@@ -1,5 +1,5 @@
 // BANC DU QUATRIEME CANAL : LA MEMOIRE DES MANDATS (11 octobre 2026)
-// SOURCES: api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. Le serveur garde une memoire des presidences ; ce banc verifie ce que le
 // DIALOGUE en fait, et surtout ce qu'il refuse d'en faire :

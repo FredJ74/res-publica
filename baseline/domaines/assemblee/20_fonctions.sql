@@ -1569,6 +1569,118 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_regards(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_regards(p_jours integer DEFAULT 7)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_jour integer;
+  v_fen integer := least(greatest(coalesce(p_jours, 7), 1), 30);
+  v_depuis integer; v_scrutins jsonb; v_passages jsonb; v_ensemble jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  -- LE PAYS N'EST PAS RECU DU NAVIGATEUR, il est relu en base : une Renee de Republia ne raconte
+  -- pas ce qui s'est passe dans l'Assemblee d'un autre empire. Meme regle que
+  -- `presidence_memoire_mon_pays`, posee le matin meme pour exactement ce motif.
+  SELECT coalesce(country, 'republic'), coalesce(day, 1) INTO v_pays, v_jour
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+  v_depuis := greatest(v_jour - v_fen, 0);
+
+  -- LES SCRUTINS CLOS. Nominatifs, tels que la cloture du mercredi les a archives.
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+           'titre', s.titre, 'resultat', s.resultat, 'session', s.session_num,
+           'pour', s.pour, 'contre', s.contre, 'abstention', s.abstention,
+           'non_votants', s.non_votants, 'endormis', s.endormis,
+           'clos_le', s.cloture_ts) ORDER BY s.cloture_ts DESC), '[]'::jsonb)
+    INTO v_scrutins
+    FROM (SELECT * FROM public.assemblee_scrutins WHERE country = v_pays
+           ORDER BY cloture_ts DESC LIMIT 5) s;
+
+  -- LES PASSAGES. Un joueur, le nombre de fois qu'il est entre, les pieces ou Renee l'a croise, et
+  -- la derniere fois. `poste_actuel` est son poste AUJOURD'HUI -- pas necessairement celui qu'il
+  -- avait ce jour-la : le journal des passages ne garde pas la fonction du moment.
+  --
+  -- `raison_institutionnelle` N'EST PAS UN JUGEMENT : c'est la reponse a une question factuelle --
+  -- cette personne a-t-elle une raison officielle de venir ici ? La liste est celle que
+  -- `assemblee_peut_deposer` applique reellement (depute, Premier ministre, ministres), plus
+  -- l'appartenance a un groupe de presse, qui est le titre du correspondant parlementaire. Le
+  -- President n'y figure pas, et ce n'est pas un oubli : il n'est pas eligible au depot.
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+           'qui', q.name, 'passages', q.n, 'pieces', q.pieces,
+           'dernier_jour', q.dernier_jour, 'derniere_heure', q.derniere_heure,
+           'poste_actuel', q.poste_actuel,
+           'raison_institutionnelle', q.raison) ORDER BY q.n DESC, q.name), '[]'::jsonb)
+    INTO v_passages
+    FROM (
+      SELECT h.name, count(*)::int AS n,
+             (SELECT jsonb_agg(DISTINCT h2.room_id) FROM public.historique_deplacements h2
+               WHERE h2.country = v_pays AND h2.building_id = 'assemblee'
+                 AND h2.jour >= v_depuis AND h2.name = h.name) AS pieces,
+             max(h.jour) AS dernier_jour,
+             (SELECT h3.heure FROM public.historique_deplacements h3
+               WHERE h3.country = v_pays AND h3.building_id = 'assemblee' AND h3.name = h.name
+               ORDER BY h3.created_at DESC LIMIT 1) AS derniere_heure,
+             (SELECT coalesce(pd.poste->>'id', pd.poste_depute->>'id')
+                FROM public.personnages_donnees pd WHERE pd.name = h.name) AS poste_actuel,
+             (SELECT coalesce((pd.poste_depute->>'id') = 'depute', false)
+                  OR coalesce((pd.poste->>'id') IN ('pm','min_int','min_fin','min_just',
+                                                    'min_def','min_info','min_ae'), false)
+                  OR EXISTS (SELECT 1 FROM public.presse_membres m
+                               JOIN public.groupes_presse g ON g.id = m.groupe_id
+                              WHERE m.personnage = h.name AND g.pays = v_pays)
+                FROM public.personnages_donnees pd WHERE pd.name = h.name) AS raison
+        FROM public.historique_deplacements h
+       WHERE h.country = v_pays AND h.building_id = 'assemblee' AND h.jour >= v_depuis
+       GROUP BY h.name) q;
+
+  -- CEUX QUI S'Y SONT TROUVES EN MEME TEMPS. Meme jour, meme heure, meme batiment : c'est tout ce
+  -- que le journal permet de dire, et c'est deja une observation. Le couple est ordonne pour qu'une
+  -- rencontre ne soit pas comptee deux fois.
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+           'qui_a', c.a, 'qui_b', c.b, 'fois', c.fois,
+           'dernier_jour', c.dernier_jour) ORDER BY c.fois DESC, c.a, c.b), '[]'::jsonb)
+    INTO v_ensemble
+    FROM (
+      SELECT x.name AS a, y.name AS b, count(DISTINCT (x.jour || ':' || x.heure))::int AS fois,
+             max(x.jour) AS dernier_jour
+        FROM public.historique_deplacements x
+        JOIN public.historique_deplacements y
+          ON y.country = x.country AND y.building_id = x.building_id
+         AND y.jour = x.jour AND y.heure = x.heure AND y.name > x.name
+       WHERE x.country = v_pays AND x.building_id = 'assemblee' AND x.jour >= v_depuis
+       GROUP BY x.name, y.name) c;
+
+  RETURN jsonb_build_object(
+    'ok', true, 'pays', v_pays, 'jour', v_jour, 'fenetre_jours', v_fen,
+    -- LES NEUF SIEGES, tels qu'ils sont occupes. Un depute endormi se voit : c'est une observation
+    -- legitime pour qui passe la serpilliere entre les rangees.
+    'deputes', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+          'ville', s.city, 'rang', s.rang, 'nom', s.pnj_nom, 'endormi', s.endormi)
+          ORDER BY s.city, s.rang), '[]'::jsonb)
+        FROM public.assemblee_sieges s WHERE s.country = v_pays),
+    'scrutins', v_scrutins,
+    -- AUCUN SCRUTIN CLOS : l'assiduite des deputes n'est donc PAS etablissable, et la porte le dit
+    -- au lieu de laisser deviner. C'est ce drapeau qui empeche d'inventer une habitude.
+    'aucun_scrutin', (jsonb_array_length(v_scrutins) = 0),
+    'passages', v_passages,
+    'ensemble', v_ensemble,
+    -- RIEN A SIGNALER EST UNE REPONSE VALIDE, et meme la plus frequente. Sans ce drapeau, un
+    -- silence se raconterait comme une anecdote inventee.
+    'rien_a_signaler', (jsonb_array_length(v_passages) = 0 AND jsonb_array_length(v_ensemble) = 0
+                        AND jsonb_array_length(v_scrutins) = 0));
+END;
+$function$;
+
 -- assemblee_registre_execution(text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_registre_execution(p_country text)
  RETURNS jsonb

@@ -2749,10 +2749,27 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181410,#1f1a14)",
         desc: "Le hall d'accueil de l'Assemblee Nationale. Fresque murale, marbre et personnel en faction.",
         imageUrl: "images/accueil-assemblee-republic.webp",
+        // LE HALL DE L'ASSEMBLEE, PREMIERE PASSE PNJ (11 octobre 2026).
+        //
+        // LE GARDE ne change pas ici : il est deja raccorde au socle GENERIQUE de la Garde
+        // republicaine -- `garde_republicaine_postes` declare ce hall comme l'un des trois postes
+        // nationaux, un garde reel y est en faction, et le controle d'entree comme le malus de
+        // groupe passent par les memes portes qu'ailleurs. Ce qui a ete corrige est son PROFIL DE
+        // DIALOGUE : il se presentait comme charge de la securite presidentielle, a l'Elysee.
+        //
+        // L'HOTESSE D'ACCUEIL devient la REFERENTE PEDAGOGIQUE de l'Assemblee. Son nom affiche ne
+        // change pas -- l'arbitrage ne lui en a donne aucun, et en inventer un serait une decision
+        // de game design --, donc son identifiant de profil non plus.
+        //
+        // L'AGENTE D'ENTRETIEN S'APPELLE DESORMAIS RENEE TOITOUT. Discrete, consciencieuse, tres
+        // observatrice et assez critique : elle circule dans tout le batiment pendant que les
+        // autres parlent, et personne ne fait attention a elle. Elle CONSTATE, elle n'enquete pas,
+        // et tout ce qu'elle sait vient d'une porte serveur en lecture seule sur des traces qui
+        // existaient deja. L'image est INCHANGEE : seul le personnage est nomme.
         persons: [
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde', photoUrl:'images/garde-republicain-assemblee.webp'},
           {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil', photoUrl:'images/hotesse-accueil-assemblee.webp'},
-          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'images/agent-entretien-assemblee.webp'}
+          {name:'Renée Toitout (PNJ)', role:'PNJ - Agente d\'entretien', rel:'neutral', job:'femme_menage', photoUrl:'images/agent-entretien-assemblee.webp'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'}

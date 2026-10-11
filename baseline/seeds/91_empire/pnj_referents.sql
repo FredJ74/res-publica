@@ -4,7 +4,7 @@
 -- Domaine    : socle PNJ
 -- Categorie  : B (contenu initial d'empire)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 27
+-- Lignes     : 28
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -30,6 +30,7 @@ INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gaspard_f
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gerard_tamponneau', 'protocole, receptions et diplomatie', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gretta_delieu', 'centre d''affaires — bureaux, location et equipements', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('huguette_papier', 'presidence — pouvoirs, limites et memoire des mandats', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('hotesse_accueil', 'Assemblee nationale — procedure parlementaire, calendrier, ce qu on peut y faire', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('jean_jacques_carlin', 'ministere des Affaires etrangeres — treves, relations bilaterales, ambassades', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('jean_lou_zeure', 'elections et campagnes', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('juge_fontaine', 'justice — proces et jugement', 'republic');
