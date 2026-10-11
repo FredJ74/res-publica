@@ -307,6 +307,90 @@ BEGIN
 END;
 $function$;
 
+-- communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.communication_officielle_publier(p_building_id text, p_room_id text, p_fn text, p_pa integer, p_cost integer, p_titre text, p_contenu text, p_blocs jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; a record; sa record; v_paiement jsonb;
+  v_topic text; v_post text; v_titre text; v_contenu text; v_temps text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  v_titre   := nullif(btrim(coalesce(p_titre, '')), '');
+  v_contenu := nullif(btrim(coalesce(p_contenu, '')), '');
+  IF v_titre IS NULL OR v_contenu IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'titre_ou_contenu_vide');
+  END IF;
+
+  SELECT * INTO sa FROM public.communications_salles
+   WHERE building_id = p_building_id AND room_id = p_room_id;
+  IF NOT FOUND THEN
+    -- AUCUNE SALLE DECLAREE : on ne publie pas « au nom de l'Etat » depuis un lieu quelconque.
+    RETURN jsonb_build_object('ok', false, 'raison', 'salle_sans_tribune');
+  END IF;
+
+  -- L'AUTORITE EST RELUE EN BASE, par la porte attestee, et jamais sur la fiche transmise.
+  SELECT * INTO a FROM public.acteur_poste_courant() LIMIT 1;
+  IF NOT FOUND OR a.poste_id IS NULL OR NOT (a.poste_id = ANY (sa.postes)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_admis_dans_cette_tribune',
+                              'tribune', sa.libelle, 'postes_admis', sa.postes);
+  END IF;
+
+  -- LE COUT, PAR LE CHEMIN ATTESTE. payer_ordre refuse un triplet que le miroir ne declare pas.
+  v_paiement := public.payer_ordre(v_moi, p_fn, coalesce(p_pa, 0), coalesce(p_cost, 0));
+  IF coalesce((v_paiement->>'ok')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paiement->>'raison', 'paiement_refuse'),
+                              'paiement', v_paiement);
+  END IF;
+
+  v_temps := to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI');
+  v_topic := 'topic-' || (extract(epoch from clock_timestamp()) * 1000)::bigint;
+  v_post  := 'post-'  || (extract(epoch from clock_timestamp()) * 1000)::bigint;
+
+  INSERT INTO public.forum_topics
+    (id, forum_id, title, author, country, time, views, replies,
+     last_post_author, last_post_time, author_is_org, author_secret)
+  VALUES (v_topic, sa.forum_id, v_titre, v_moi, a.pays, v_temps, 1, 0, v_moi, v_temps, false, false);
+
+  INSERT INTO public.forum_posts
+    (id, topic_id, author, content, time, author_is_org, author_secret, content_blocks, content_layout)
+  VALUES (v_post, v_topic, v_moi, v_contenu, v_temps, false, false,
+          CASE WHEN jsonb_typeof(p_blocs) = 'array' THEN p_blocs ELSE '[]'::jsonb END, NULL);
+
+  RETURN jsonb_build_object('ok', true, 'topic', v_topic, 'post', v_post,
+                            'auteur', v_moi, 'poste', a.poste_id, 'tribune', sa.libelle,
+                            'temps', v_temps, 'paiement', v_paiement);
+END;
+$function$;
+
+-- communication_tribune(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.communication_tribune(p_building_id text, p_room_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE sa record; a record;
+BEGIN
+  SELECT * INTO sa FROM public.communications_salles
+   WHERE building_id = p_building_id AND room_id = p_room_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'tribune', false);
+  END IF;
+  SELECT * INTO a FROM public.acteur_poste_courant() LIMIT 1;
+  RETURN jsonb_build_object('ok', true, 'tribune', true, 'libelle', sa.libelle,
+                            'postes_admis', sa.postes,
+                            'je_peux', coalesce(a.poste_id = ANY (sa.postes), false));
+END;
+$function$;
+
 -- cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cycle_electoral_aligne_dimanche(p_d jsonb, p_maintenant timestamp with time zone)
  RETURNS jsonb
@@ -1065,6 +1149,151 @@ AS $function$
                || '|' || coalesce(autorite_scope, scope, ''),
       E'\n' ORDER BY poste_id COLLATE "C")), 16)
   FROM public.postes_nommes_regles;
+$function$;
+
+-- presidence_mandat_courant(text) -> TABLE(president text, depuis timestamp with time zone) | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.presidence_mandat_courant(p_pays text)
+ RETURNS TABLE(president text, depuis timestamp with time zone)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT pa.titulaire, pa.depuis
+    FROM public.postes_attribues pa
+    JOIN public.personnages_donnees c ON c.name = pa.titulaire
+   WHERE pa.poste_id = 'president' AND pa.country = p_pays
+     AND pa.titulaire IS NOT NULL
+   LIMIT 1;
+$function$;
+
+-- presidence_memoire_chronique() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.presidence_memoire_chronique()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF coalesce(btrim(coalesce(NEW.country, '')), '') = ''
+     OR coalesce(btrim(coalesce(NEW.libelle, '')), '') = '' THEN
+    RETURN NEW;                       -- une chronique sans pays ni libelle n'apprend rien
+  END IF;
+
+  PERFORM public.presidence_memoire_noter(
+    NEW.country, 'contexte', 'chronique_nationale',
+    -- LE LIBELLE DE LA CHRONIQUE, TEL QUEL. Tronque a 300 caracteres pour qu'un libelle demesure
+    -- ne remplisse pas le prompt d'Huguette, jamais reecrit.
+    left(NEW.libelle, 300),
+    jsonb_build_object('chronique', NEW.id, 'type', NEW.type, 'ville', NEW.city),
+    NULL);
+  RETURN NEW;
+END;
+$function$;
+
+-- presidence_memoire_contexte(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.presidence_memoire_contexte(p_pays text, p_limite integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_lim integer := least(greatest(coalesce(p_limite, 12), 1), 40); v_mandats jsonb;
+BEGIN
+  SELECT coalesce(jsonb_agg(x ORDER BY (x->>'depuis') DESC), '[]'::jsonb) INTO v_mandats
+  FROM (
+    SELECT jsonb_build_object(
+             'president', q.president,
+             'depuis', q.mandat_depuis,
+             'en_cours', (q.president = c.president AND q.mandat_depuis = c.depuis),
+             'faits', q.faits) AS x
+      FROM (
+        SELECT m.president, m.mandat_depuis,
+               jsonb_agg(jsonb_build_object(
+                 'genre', m.genre, 'sujet', m.sujet, 'jour', m.jour, 'le', m.le,
+                 'detail', m.detail,
+                 -- La premiere reaction posterieure DANS LE MEME MANDAT. NULL est une observation.
+                 'suivi_de', CASE WHEN m.genre = 'contexte' THEN (
+                     SELECT r.sujet FROM public.presidence_memoire r
+                      WHERE r.pays = m.pays AND r.president = m.president
+                        AND r.mandat_depuis = m.mandat_depuis
+                        AND r.genre = 'reaction' AND r.le > m.le
+                      ORDER BY r.le LIMIT 1) ELSE NULL END
+               ) ORDER BY m.le) AS faits
+          FROM public.presidence_memoire m
+         WHERE m.pays = p_pays
+           AND m.id > (SELECT coalesce(max(id), 0) - v_lim * 8 FROM public.presidence_memoire WHERE pays = p_pays)
+         GROUP BY m.president, m.mandat_depuis, m.pays
+      ) q
+      LEFT JOIN public.presidence_mandat_courant(p_pays) c ON true
+  ) z;
+
+  RETURN jsonb_build_object('ok', true, 'mandats', v_mandats,
+                            'vide', v_mandats = '[]'::jsonb);
+END;
+$function$;
+
+-- presidence_memoire_mon_pays() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.presidence_memoire_mon_pays()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+  RETURN public.presidence_memoire_contexte(v_pays, 12);
+END;
+$function$;
+
+-- presidence_memoire_noter(text,text,text,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.presidence_memoire_noter(p_pays text, p_genre text, p_source text, p_sujet text, p_detail jsonb, p_acteur text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE m record; s record; v_id bigint;
+BEGIN
+  IF coalesce(btrim(coalesce(p_pays,'')), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'enregistre', false, 'raison', 'pays_absent');
+  END IF;
+
+  SELECT * INTO s FROM public.presidence_memoire_sources WHERE source = p_source;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'enregistre', false, 'raison', 'source_non_declaree');
+  END IF;
+  IF s.genre IS DISTINCT FROM p_genre THEN
+    RETURN jsonb_build_object('ok', false, 'enregistre', false, 'raison', 'genre_contredit_la_source',
+                              'genre_declare', s.genre);
+  END IF;
+
+  SELECT * INTO m FROM public.presidence_mandat_courant(p_pays);
+  IF NOT FOUND THEN
+    -- AUCUN PRESIDENT JOUEUR : on n'ecrit rien, et ce n'est pas un echec. C'est l'etat de la beta
+    -- au 11 octobre 2026, et c'est ce qui empeche de fabriquer un passe.
+    RETURN jsonb_build_object('ok', true, 'enregistre', false, 'raison', 'aucun_president_joueur');
+  END IF;
+
+  IF p_genre = 'reaction' AND coalesce(p_acteur, '') IS DISTINCT FROM m.president THEN
+    RETURN jsonb_build_object('ok', true, 'enregistre', false, 'raison', 'acteur_n_est_pas_le_president');
+  END IF;
+
+  INSERT INTO public.presidence_memoire (pays, president, mandat_depuis, genre, source, sujet, detail, jour)
+  VALUES (p_pays, m.president, m.depuis, p_genre, p_source, p_sujet,
+          coalesce(p_detail, '{}'::jsonb), public.jour_de_jeu_pays(p_pays))
+  RETURNING id INTO v_id;
+
+  RETURN jsonb_build_object('ok', true, 'enregistre', true, 'id', v_id,
+                            'president', m.president, 'mandat_depuis', m.depuis);
+END;
 $function$;
 
 -- vote_confiance_resoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp

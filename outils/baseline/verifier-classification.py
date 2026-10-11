@@ -51,8 +51,14 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # pnj_membres.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee, et
 # non recopiees du CSV.
-TABLES_ATTENDUES = 268
-EMPREINTE_LISTE = "cff06bf475d259ca640e020adf733a26"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 268 -> 273 le 11 octobre 2026, a la cloture du Palais presidentiel et a la visite du Palais du
+# Gouvernement : les quatre tables de la MEMOIRE DES MANDATS -- presidence_memoire (l etat vivant,
+# qui nait vide), et ses trois registres fermes : les sources admises, les sources pas encore
+# raccordables, et les actes presidentiels memorables -- plus communications_salles, le registre
+# qui dit quelle piece est une tribune et quels postes y sont admis.
+# LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
+TABLES_ATTENDUES = 273
+EMPREINTE_LISTE = "71899f62eb53971fe2fa2e87c07c2771"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

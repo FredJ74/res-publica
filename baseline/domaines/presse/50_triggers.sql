@@ -10,6 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TRIGGER presidence_memoire_chronique_trg AFTER INSERT ON chronique_nationale FOR EACH ROW EXECUTE FUNCTION presidence_memoire_chronique();
 CREATE TRIGGER trg_journal_edition_rattacher BEFORE INSERT ON journal_editions FOR EACH ROW EXECUTE FUNCTION journal_edition_rattacher_au_titre();
 CREATE TRIGGER trg_presse_delegations_purger_depart AFTER DELETE ON presse_membres FOR EACH ROW EXECUTE FUNCTION presse_delegations_purger();
 CREATE TRIGGER trg_presse_delegations_purger_grade AFTER UPDATE OF grade ON presse_membres FOR EACH ROW EXECUTE FUNCTION presse_delegations_purger();

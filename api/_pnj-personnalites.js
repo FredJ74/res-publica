@@ -390,7 +390,6 @@ TU ENVOIES VERIFIER. C'est ta signature : tu lances un nom, tu laisses planer, e
   'pierrick_le_roux':              { nom: "Pierrick Le Roux", role: "PNJ - Chef d'entreprise du Chantier Naval", lieu: "Chantier Naval de Port-Sainte-Marie" },
   'porte_parole':                  { nom: "Porte-parole", role: "PNJ - Porte-parole du gouvernement", lieu: "Palais du Gouvernement" },
   'porte_parole_presidentiel':     { nom: "Porte-parole presidentiel", role: "PNJ - Porte-parole de la presidence", lieu: "Palais de l'Elysee de Republia" },
-  'premier_ministre':              { nom: "Premier Ministre", role: "Chef du gouvernement", lieu: "Palais du Gouvernement" },
   'procureur_saad':                { nom: "Procureur Saad", role: "Ministere public (PNJ)", lieu: "Tribunal de la Capitale" },
   'professeur_blanc':              { nom: "Professeur Blanc", role: "PNJ - Economiste influent", lieu: "Universite de Luthecia" },
   'professeur_charabia':           { nom: "Professeur Charabia", role: "Doyen de l'Université", lieu: "l'Université de Luthécia",

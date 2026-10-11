@@ -114,7 +114,7 @@
       ],
       [
         "politique et elections",
-        "^(cycle_|cycles_|candidature|candidatures_|elections_|poste_|postes_|militant_|indice_ville)"
+        "^(presidence_|communication_|cycle_|cycles_|candidature|candidatures_|elections_|poste_|postes_|militant_|indice_ville)"
       ],
       [
         "personnage et presence",

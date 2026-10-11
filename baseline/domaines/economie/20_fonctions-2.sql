@@ -348,12 +348,12 @@ AS $function$
   FROM public.ordres_couts;
 $function$;
 
--- payer_ordre(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+-- payer_ordre(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
   v_fn text := coalesce(nullif(btrim(coalesce(p_fn,'')), ''), '(non transmis)');
@@ -361,6 +361,7 @@ DECLARE
   v_pa integer; v_liquide numeric; v_arg numeric;
   v_compte_id text; v_solde numeric := 0;
   v_pris_liquide numeric; v_pris_national numeric;
+  v_memorable record; v_pays text;
 BEGIN
   PERFORM public.exiger_acteur(p_acteur);
   IF coalesce(p_pa, 0) < 0 OR coalesce(p_cost, 0) < 0 THEN
@@ -420,13 +421,29 @@ BEGIN
            updated_at = now() WHERE id = v_compte_id;
   END IF;
 
+  -- LA MEMOIRE DES MANDATS (11 octobre 2026). Apres le prelevement, donc sur un fait accompli, et
+  -- seulement si le triplet figure au registre des actes memorables. `presidence_memoire_noter`
+  -- verifie elle-meme que l'acteur est bien le President en exercice : si c'est un ministre qui
+  -- tient la conference de presse, rien n'est ecrit. Le registre ne contient AUCUN panneau a
+  -- (0 PA, 0 FR) -- ouvrir une fenetre n'est pas un acte.
+  SELECT * INTO v_memorable FROM public.presidence_memoire_ordres
+   WHERE fn = v_fn AND pa = coalesce(p_pa,0) AND cost = coalesce(p_cost,0);
+  IF FOUND THEN
+    SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = p_acteur;
+    PERFORM public.presidence_memoire_noter(
+      v_pays, 'reaction', 'ordre_presidentiel', v_memorable.sujet,
+      jsonb_build_object('ordre', v_fn, 'pa', coalesce(p_pa,0), 'cout', coalesce(p_cost,0)),
+      p_acteur);
+  END IF;
+
   RETURN jsonb_build_object(
     'ok', true, 'pa', v_pa - coalesce(p_pa,0),
     'liquide', coalesce(v_liquide,0) - v_pris_liquide,
     'arg', coalesce(v_arg,0) - coalesce(p_cost,0),
     'solde_national', v_solde - v_pris_national,
     'pa_preleves', coalesce(p_pa,0), 'montant_preleve', coalesce(p_cost,0));
-END; $function$;
+END;
+$function$;
 
 -- prix_ressource_selon_stock(text,numeric) -> numeric | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.prix_ressource_selon_stock(p_cle text, p_en_stock numeric)

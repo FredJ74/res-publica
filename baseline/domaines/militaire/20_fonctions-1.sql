@@ -1482,7 +1482,7 @@ CREATE OR REPLACE FUNCTION public.guerre_declarer(p_pays_attaque text)
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_pays text; v_id text;
+DECLARE v_pays text; v_id text; v_moi text;
 BEGIN
   v_pays := public.guerre_acteur_poste('president');
   IF v_pays IS NULL THEN
@@ -1504,6 +1504,18 @@ BEGIN
   VALUES (v_id, 'active', jsonb_build_object(
     'attaquant', v_pays, 'attaque', p_pays_attaque,
     'jourDebut', public.jour_de_jeu_pays(v_pays), 'ceasefire', NULL));
+
+  -- LA MEMOIRE DES MANDATS (11 octobre 2026), dans la MEME transaction que la guerre : il est
+  -- impossible qu'une guerre existe sans que la memoire l'ait vue, ou l'inverse.
+  v_moi := public.mon_personnage();
+  PERFORM public.presidence_memoire_noter(
+    v_pays, 'reaction', 'guerre_declaree',
+    'la declaration de guerre a ' || p_pays_attaque,
+    jsonb_build_object('guerre', v_id, 'attaque', p_pays_attaque), v_moi);
+  PERFORM public.presidence_memoire_noter(
+    p_pays_attaque, 'contexte', 'guerre_subie',
+    'la guerre declaree par ' || v_pays,
+    jsonb_build_object('guerre', v_id, 'attaquant', v_pays), NULL);
 
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'attaquant', v_pays, 'attaque', p_pays_attaque);
 END;

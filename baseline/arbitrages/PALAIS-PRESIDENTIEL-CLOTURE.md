@@ -198,15 +198,61 @@ provenance narrative : la liste fermée n'admet que `socle` et
 
 ---
 
-## Ce qui reste
+## La mémoire des mandats — livrée le 11 octobre 2026
 
-**La mémoire narrative du mandat** (§3B de l'arbitrage) n'est pas livrée.
-Huguette porte la *mémoire des mandats* dans son domaine déclaré, et son corpus
-en parle au passé général, mais aucune matière historique n'est encore
-enregistrée. Rien ne la bloque techniquement : elle demande une table, une porte
-d'enregistrement, et un appel dans le chemin de résultat des six ordres
-présidentiels — c'est-à-dire un sous-système à part entière, à livrer branché et
-prouvé plutôt qu'ébauché.
+C'était le dernier reliquat, et il est fermé. Huguette Papier dispose d'une
+**mémoire narrative des présidences**, et une seule règle la gouverne : *elle ne
+contient que des faits attestés par le serveur.*
 
-Elle n'est **pas** un risque de bêta : aucune donnée n'est en jeu, aucun circuit
-économique, aucune triche possible. C'est une dette de contenu, consignée ici.
+### Ce qu'elle refuse d'enregistrer
+
+| Refus | Pourquoi il compte |
+|---|---|
+| aucun Président **joueur** | c'est ce qui garantit que la mémoire commence au premier mandat réellement exercé. Au 11 octobre 2026, la bêta n'en a jamais connu, et **toutes** les tables d'événements nationaux étaient vides (0 grève, 0 guerre, 0 manifestation, 0 scandale) : il n'y avait rien à reconstruire |
+| source non déclarée | liste fermée. On ne peut pas inventer un fait sans d'abord déclarer, **dans une migration**, d'où il vient |
+| genre contredisant sa source | une guerre subie ne peut pas être maquillée en réaction présidentielle |
+| réaction dont l'acteur n'est pas le Président | la conférence de presse d'un **ministre** n'entre pas dans la mémoire présidentielle — les deux salles de presse portent les mêmes noms d'ordre |
+
+### Les quatre panneaux du Bureau n'y sont pas, et c'est la décision centrale
+
+`pouvoirs_exceptionnels`, `adresse_a_la_nation`, `gestion_premier_ministre` et
+`postes_par_decret` sont déclarés au miroir des coûts à **(0 PA, 0 FR)** : ce qui
+franchit `payer_ordre`, c'est **l'ouverture du panneau**, pas l'acte. Les
+enregistrer aurait écrit « le Président a déclaré la guerre » quand il a ouvert
+une fenêtre.
+
+Les sources non raccordables vivent donc dans une **table** que le banc relit —
+`presidence_memoire_sources_absentes` — et non dans un commentaire que personne
+ne vérifie. Une source en sort le jour où elle obtient une porte serveur.
+
+### Ce qui l'alimente réellement
+
+| Source | Genre | Comment elle est attestée |
+|---|---|---|
+| `chronique_nationale` | contexte | **la source générale.** Écrite par exactement trois portes serveur — dépouillement, publication d'une fuite, publication d'un scandale — et par rien d'autre. Un fait n'y entre qu'une fois **publié** : la question « Huguette pourrait-elle être au courant ? » s'y répond toute seule. Un déclencheur la reprend, donc un quatrième producteur serait couvert sans qu'on y revienne |
+| `ordre_presidentiel` | réaction | les six actes réellement payés : grâce, conférence, propagande, démenti, réception, banquet. Le triplet (fn, pa, cost) est celui que `payer_ordre` valide contre le miroir |
+| `guerre_declaree` / `guerre_subie` | réaction / contexte | le même fait dans les deux sens, écrit dans la mémoire des **deux** pays |
+
+> **L'inaction n'est jamais écrite, elle est déduite à la lecture.** Écrire « il
+> n'a pas réagi » exigerait de décider au bout de combien de temps l'absence
+> devient notable — un seuil que personne n'a arbitré. La lecture rattache à
+> chaque contexte la **première réaction qui l'a suivi dans le même mandat**, ou
+> rien. « Rien » est une observation, et le corpus le dit à Huguette en ces
+> termes. **Il n'existe aucun score, aucun classement, aucun bilan.**
+
+**La séparation des mandats est structurelle, pas calculée.** La clef est le
+couple `(titulaire, depuis)` de `postes_attribues` : deux présidences du **même**
+joueur à deux époques ne se confondent pas, et les faits déjà écrits gardent leur
+échéance quand `depuis` change.
+
+### Ce qui reste à raccorder, nommé en base
+
+Dix sujets attendent une porte serveur, et la table dit pourquoi pour chacun. Les
+deux plus parlants : **grève** et **manifestation** sont écrites depuis le
+navigateur (y puiser ferait entrer un fait déclaré par un client) ; et
+l'**ouverture d'un mandat** par le dépouillement se rattacherait au mandat
+*sortant*, parce que `postes_attribues` n'est pas encore à jour quand
+`election_resultats_consigner` s'exécute.
+
+Aucun de ces dix points n'est bloquant : la mémoire fonctionne, et la séparation
+des mandats ne dépend pas d'eux.

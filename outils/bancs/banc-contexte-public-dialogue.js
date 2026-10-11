@@ -1,5 +1,5 @@
 // BANC DU CONTEXTE PUBLIC DE DIALOGUE (11 octobre 2026)
-// SOURCES: api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. L'audit du Palais presidentiel a etabli qu'AUCUN des PNJ ne recevait la
 // fonction officielle de son interlocuteur : le President PNJ ne pouvait pas savoir qu'il parlait

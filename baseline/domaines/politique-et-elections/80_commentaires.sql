@@ -11,6 +11,7 @@
 -- ============================================================================
 
 COMMENT ON COLUMN public.elections_tracts_pnj.canal IS 'tract | prospectus | conference | jean_lou -- origine de la voix, pour l''audit uniquement.';
+COMMENT ON COLUMN public.presidence_memoire.source IS 'Provenance attestee, en liste fermee. C est elle qui rend la fabrication d un fait impossible : une source non declaree ne s enregistre pas.';
 COMMENT ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) IS 'Nomme par tirage au sort le titulaire d''un poste nomme dont l''autorite n''a pas tranche dans les
 48h, et sanctionne cette autorite -- le tout en UNE transaction, revendiquee par
 acte_nocturne_revendiquer(''candidature_poste_tirage''). Le TIRAGE est ici, pas chez l''appelant :
@@ -37,3 +38,5 @@ cloture (statut = termine), l''evenement public et le courrier de censure. La tr
 EST le verrou -- un rejeu lit « termine » et rend deja_resolu sans atteindre le tirage. Verdicts :
 vote_introuvable, deja_resolu, pas_echu, puis ok avec resultat, pour, contre et sieges_tires.
 Non appelable depuis le reseau.';
+COMMENT ON TABLE public.communications_salles IS 'Qui peut prendre la parole officiellement, et depuis quelle piece. Registre d autorite du meme genre que caisses_autorites : c est lui qui distingue la tribune presidentielle de celle du Gouvernement, alors que les deux portent les memes noms d ordre (arbitrage du 11 octobre 2026).';
+COMMENT ON TABLE public.presidence_memoire IS 'Memoire narrative des mandats presidentiels, pour le referent Huguette Papier. N accepte que des faits PUBLICS attestes par le serveur, et uniquement pendant un mandat tenu par un joueur. Ne porte AUCUN jugement : il n existe ni score, ni colonne de reussite, ni fonction qui en deduise une (arbitrage du 11 octobre 2026).';

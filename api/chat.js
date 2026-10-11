@@ -75,7 +75,10 @@ function validerPayload(body) {
 const CORPS_RPC = {
   pnj_social_contexte:          (profilId) => ({ p_pnj_id: profilId }),
   referent_pedagogie_contexte:  (profilId) => ({ p_referent_id: profilId }),
-  pnj_contexte_public:          () => ({})
+  pnj_contexte_public:          () => ({}),
+  // La memoire des mandats ne prend AUCUN pays : la porte le relit en base. Lui passer un pays
+  // laisserait un joueur lire la memoire presidentielle d'un empire voisin.
+  presidence_memoire_mon_pays:  () => ({})
 };
 
 async function lireMemoire(rpc, profilId, jeton) {
@@ -105,6 +108,24 @@ const relationSociale = (profilId, jeton) => lireMemoire('pnj_social_contexte', 
 // joueur. Rien d'autre -- ni familiarite, ni confiance. Un referent n'est pas un ami.
 const memoirePedagogique = (profilId, jeton) => lireMemoire('referent_pedagogie_contexte', profilId, jeton);
 
+// LA MEMOIRE DES MANDATS -- LE QUATRIEME CANAL, ET LE PLUS ETROIT (11 octobre 2026)
+// ---------------------------------------------------------------------------
+// UN SEUL PNJ LA RECOIT. Huguette Papier est la Secretaire generale de la Presidence : c'est elle,
+// et personne d'autre, qui a vu passer les mandats. Le canal n'est donc pas demande pour les 210
+// autres profils -- ce n'est pas un filtrage d'affichage, c'est un appel qui n'a pas lieu.
+//
+// ELLE NE SE MELANGE A RIEN. Les quatre canaux sont de quatre natures :
+//   . contexte public      -> un fait du monde (qui est en face) ;
+//   . memoire sociale      -> une relation (vous vous connaissez) ;
+//   . memoire pedagogique  -> un historique d'explications (ce qu'on vous a deja dit) ;
+//   . memoire des mandats  -> une HISTOIRE NATIONALE (ce que la maison a vu).
+// Les confondre effacerait quatre distinctions de game design.
+const MEMOIRE_DES_MANDATS = 'huguette_papier';
+const memoireDesMandats = (profilId, jeton) =>
+  profilId === MEMOIRE_DES_MANDATS
+    ? lireMemoire('presidence_memoire_mon_pays', null, jeton)
+    : Promise.resolve(null);
+
 // QUI EST EN FACE : son nom et sa fonction officielle. C'est le seul des trois canaux qui ne
 // depend pas du PNJ : il est le meme pour tous, et presque tous le recoivent. Il echoue en
 // silence comme les deux autres -- sans lui, le prompt est rigoureusement celui d'avant.
@@ -128,17 +149,19 @@ export default async function handler(req, res) {
   const utilisateur = await joueurAuthentifie(req);
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  // LES TROIS lectures partent ENSEMBLE : elles sont independantes, et les enchainer
-  // ajouterait deux allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux
-  // memoires -- un social n'est pas referent, un referent ne se lie pas -- mais le contexte
-  // public, lui, les concerne tous.
-  const [relation, pedagogie, contextePublic] = await Promise.all([
+  // LES QUATRE lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
+  // trois allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
+  // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
+  // tous, et la memoire des mandats n'en concerne qu'UN : pour les 210 autres profils, le
+  // quatrieme appel n'est pas emis du tout.
+  const [relation, pedagogie, contextePublic, mandats] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
-    contextePublicJoueur(utilisateur.jeton)
+    contextePublicJoueur(utilisateur.jeton),
+    memoireDesMandats(req.body.profil, utilisateur.jeton)
   ]);
   const systeme = construirePromptSysteme(
-    req.body.profil, req.body.lang, relation, pedagogie, contextePublic);
+    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

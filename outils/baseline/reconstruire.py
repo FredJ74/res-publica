@@ -506,7 +506,10 @@ def controles_du_monde(cat):
     # rend la Garde generique au lieu de codee batiment par batiment), garde_republicaine_renfort
     # (le facteur national et son UNIQUE echeance par pays) et garde_republicaine_effectifs
     # (permanent ou renfort). Les trois sont sous RLS SANS POLICY : fermees a tout client.
-    att("tables creees", len(cat.tables), 263)
+    # 268 le 11 octobre 2026 : +5 pour la memoire des mandats et les tribunes -- les quatre tables
+    # de presidence_memoire* et communications_salles, le registre qui dit quelle piece est une
+    # tribune et quels postes y sont admis.
+    att("tables creees", len(cat.tables), 268)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -577,8 +580,11 @@ def controles_du_monde(cat):
     # garde_republicaine_autorite_de_perimetre (le resolveur de l'institution, recopie de celui du
     # renseignement) et les six portes de la Garde : creer, vacance (declencheur), synchroniser,
     # renfort_national, piece et controle.
-    att("signatures de fonction creees", cat.n_fonctions, 733)
-    att("noms de fonction distincts", len(cat.fonctions), 729,
+    # 740 / 736 le 11 octobre 2026 : +7, dont aucune surcharge -- les cinq portes de la memoire
+    # des mandats (dont un declencheur) et les deux portes des tribunes officielles. payer_ordre et
+    # guerre_declarer ont ete REMPLACEES et non ajoutees.
+    att("signatures de fonction creees", cat.n_fonctions, 740)
+    att("noms de fonction distincts", len(cat.fonctions), 736,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -605,7 +611,12 @@ def controles_du_monde(cat):
     # etrangere de garde_republicaine_effectifs vers pnj_membres (ON DELETE CASCADE) et le CHECK
     # garde_facteur_borne qui tient le facteur entre 2 et 5. Le CHECK pnj_famille_connue est
     # REMPLACE et non ajoute : la liste des familles doit se lire d'un coup.
-    att("contraintes posees", len(cat.contraintes), 459)
+    # 468 le 11 octobre 2026 : +9 -- cinq cles primaires, une cle etrangere de presidence_memoire
+    # vers ses sources, et les deux CHECK de genre. Ces deux-la ont du etre RENOMMES : la premiere
+    # version leur donnait le meme nom, ce que PostgreSQL accepte (un nom est unique par table) mais
+    # que la simulation de reconstruction a refuse -- a raison, deux regles differentes sous un seul
+    # nom sont illisibles dans un message d erreur.
+    att("contraintes posees", len(cat.contraintes), 468)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -616,7 +627,8 @@ def controles_du_monde(cat):
     # n'est pas une colonne : elle se calcule, elle ne se duplique pas.
     # 152 le 11 octobre 2026 : +1, garde_effectifs_par_poste, qui porte la lecture par poste --
     # celle que fait la synchronisation a chaque entree dans un hall garde.
-    att("index autonomes crees", len(cat.index), 152)
+    # 153 le 11 octobre 2026 : +1, presidence_memoire_par_mandat, qui porte la lecture par mandat.
+    att("index autonomes crees", len(cat.index), 153)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -626,7 +638,10 @@ def controles_du_monde(cat):
     # 43 le 11 octobre 2026 : +1, garde_republicaine_vacance_trg. Il horodate la chute du garde
     # PERMANENT sans que pnj_mourir ait a connaitre la Garde -- le socle reste generique, et la
     # vacance part toute seule quelle que soit la cause de la chute, y compris une cause future.
-    att("declencheurs crees", len(cat.triggers), 43)
+    # 44 le 11 octobre 2026 : +1, presidence_memoire_chronique_trg sur chronique_nationale. C est
+    # lui qui couvre les TROIS producteurs de faits nationaux publics -- election, fuite, scandale --
+    # sans qu aucun des trois soit modifie.
+    att("declencheurs crees", len(cat.triggers), 44)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -661,7 +676,7 @@ def controles_du_monde(cat):
     att("policies creees", len(cat.policies), 282)
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
-    att("sequences disponibles", len(cat.sequences), 32)
+    att("sequences disponibles", len(cat.sequences), 33)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

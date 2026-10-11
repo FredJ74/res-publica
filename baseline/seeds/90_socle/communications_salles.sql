@@ -1,0 +1,29 @@
+-- SEED -- communications_salles
+-- ============================================================================
+-- Table      : public.communications_salles
+-- Domaine    : politique et elections
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 2
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- REGISTRE D'AUTORITE DE LA PAROLE OFFICIELLE : quelle piece est une
+-- tribune, et quels postes y sont admis. C'est lui qui distingue la tribune
+-- presidentielle de celle du Gouvernement, alors que les deux portent les
+-- memes noms d'ordre (conference_presse, propagande_etat, dementi) -- la
+-- confusion avait pour effet qu'AUCUN ministre ne pouvait s'exprimer. Du
+-- meme genre que caisses_autorites : aucune fonction ne l'ecrit, chaque
+-- entree est une migration.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED INDISPENSABLE : sans ces deux lignes,
+-- communication_officielle_publier refuse toute prise de parole avec
+-- 'salle_sans_tribune'. Le contenu fait partie du socle d'un monde neuf.
+-- ============================================================================
+
+INSERT INTO public.communications_salles (building_id, room_id, postes, forum_id, libelle, note) VALUES ('palais-gouvernement', 'salle_presse', '{pm,min_int,min_fin,min_just,min_def,min_info,min_ae}', 'presidence', 'la tribune du Gouvernement', 'Le Premier ministre et les SEPT ministres du Gouvernement. Le President n y figure pas, et ce n est pas un oubli. ECART DE COUT CONSIGNE ET NON TRANCHE : l arbitrage veut que le budget du ministere de l Information finance ces prises de parole, alors que payer_ordre preleve aujourd hui sur la bourse personnelle du responsable. Aucun montant n a ete modifie ici.');
+INSERT INTO public.communications_salles (building_id, room_id, postes, forum_id, libelle, note) VALUES ('palais-presidentiel', 'salle_presse_elysee', '{president}', 'presidence', 'la tribune presidentielle', 'Le President, et lui seul. Il a sa propre maison et sa propre tribune : il n est PAS le titulaire privilegie de la salle du Gouvernement.');

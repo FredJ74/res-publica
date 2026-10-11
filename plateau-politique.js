@@ -4815,7 +4815,15 @@ function ouvrirForumNationalSousForumPresident(type, pa, cost) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE</div>';
     html += '<input id="pres-msg-titre" type="text" placeholder="Titre de votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem"/>';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MESSAGE</div>';
-    html += '<textarea id="pres-msg-contenu" rows="6" placeholder="Rédigez votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
+    // L'EDITEUR DU FORUM, TEL QUEL (11 octobre 2026). C'etait un `<textarea rows="6">` a
+    // `resize:none` : six lignes, aucune mise en forme, aucune image -- pour un texte qui part
+    // au forum national et que la presse reprend le lendemain. `renderRichEditor` est le MEME
+    // composant que celui des sujets du forum : gras, titres, alignements, listes, couleur,
+    // separateur, EMOJIS et surtout IMAGES. On ne cree pas un troisieme editeur quand celui du
+    // forum est une fonction qui rend du HTML.
+    html += (typeof renderRichEditor === 'function')
+      ? renderRichEditor('pres-msg-contenu')
+      : '<textarea id="pres-msg-contenu" rows="6" style="width:100%"></textarea>';
   }
 
   html += '<button onclick="publierMessagePresidentiel(\'' + type + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
@@ -4823,8 +4831,17 @@ function ouvrirForumNationalSousForumPresident(type, pa, cost) {
   body.innerHTML = html;
 }
 
+// LES TROIS TYPES QUI PARTENT D'UNE SALLE DE PRESSE, et qui passent donc par la porte des
+// tribunes. Les autres -- annonce, referendum, deuil -- viennent du Bureau du President, par
+// `adresse_a_la_nation`, et gardent leur chemin : ce ne sont pas des prises de parole de tribune.
+const TYPES_DE_TRIBUNE = { conference: 'conference_presse', propagande: 'propagande_etat', dementi: 'dementi' };
+
 async function publierMessagePresidentiel(type, pa, cost) {
-  if (!exigerPoste('president', 'Seul le Président peut publier depuis la tribune présidentielle.')) return;
+  // L'AUTORITE N'EST PLUS DECIDEE ICI POUR LES TYPES DE TRIBUNE. Elle etait
+  // `exigerPoste('president')` en dur -- faux pour la salle du Gouvernement, et cliente dans les
+  // deux cas. Le serveur relit le poste et la salle ; ce code ne fait plus que transmettre.
+  if (!TYPES_DE_TRIBUNE[type]
+      && !exigerPoste('president', 'Seul le Président peut publier depuis la tribune présidentielle.')) return;
   const effets = {
     conference: { pop:15, inf:10, is:5 },
     annonce:    { pop:5,  inf:5,  is:2 },
@@ -4838,7 +4855,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
   const auteur = state.char?.name || 'Le Président';
   const time = formatDateHeureJeu();
 
-  let titre, contenu;
+  let titre, contenu, blocs = [], topicServeur = null, tempsServeur = null;
   if (type === 'referendum') {
     titre = document.getElementById('pres-ref-question')?.value?.trim();
     const rep1 = document.getElementById('pres-ref-rep1')?.value?.trim();
@@ -4854,17 +4871,48 @@ async function publierMessagePresidentiel(type, pa, cost) {
     contenu = 'Le Président soumet ce référendum au vote populaire. Vote ouvert pendant ' + duree + ' jour(s).';
   } else {
     titre = document.getElementById('pres-msg-titre')?.value?.trim();
-    contenu = document.getElementById('pres-msg-contenu')?.value?.trim();
-    if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
-    const rMsg = await deduireCoutOrdre({ pa, cost });
-    if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
+    // L'EDITEUR RICHE REND DU HTML, pas une valeur de champ. Il est assaini par le MEME filtre
+    // que les posts du forum, puis converti en blocs -- c'est ce qui fait voyager les images.
+    const brut = document.getElementById('pres-msg-contenu')?.innerHTML || '';
+    contenu = (typeof sanitizeRichHtml === 'function') ? sanitizeRichHtml(brut.trim()) : brut.trim();
+    const texteSeul = contenu.replace(/<[^>]*>/g, '').trim();
+    if (!titre || !texteSeul) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
+    blocs = (typeof htmlToBlocks === 'function') ? htmlToBlocks(contenu) : [];
+
+    // LA TRIBUNE : UNE SEULE TRANSACTION AU SERVEUR. Autorite, prelevement, sujet et message
+    // partent ensemble -- il n'est plus possible de payer une conference et de n'avoir ni sujet
+    // ni message, ce que les deux appels REST separes permettaient.
+    if (TYPES_DE_TRIBUNE[type] && typeof sbCommunicationPublier === 'function') {
+      const r = await sbCommunicationPublier(
+        state.currentBuilding, state.currentRoom, TYPES_DE_TRIBUNE[type],
+        pa, cost, '[' + type.toUpperCase() + '] ' + titre, contenu, blocs).catch(() => null);
+      if (!r || r.ok !== true) {
+        const raison = r && r.raison;
+        showToast('Publication refusée',
+          raison === 'poste_non_admis_dans_cette_tribune'
+            ? 'Cette tribune est réservée à ' + (r.libelle || 'd\'autres titulaires') + '.'
+          : raison === 'salle_sans_tribune' ? 'On ne prend pas la parole officiellement depuis cette pièce.'
+          : raison === 'pa_insuffisants' ? 'Pas assez de PA.'
+          : raison === 'fonds_insuffisants' ? 'Fonds insuffisants.'
+          : raison === 'titre_ou_contenu_vide' ? 'Titre et contenu obligatoires.'
+          : 'Action impossible.', false);
+        return;
+      }
+      topicServeur = r.topic;
+      tempsServeur = r.temps;
+    } else {
+      const rMsg = await deduireCoutOrdre({ pa, cost });
+      if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
+    }
   }
 
   const titrePrefixe = '[' + (type === 'referendum' ? 'RÉFÉRENDUM' : type.toUpperCase()) + '] ' + titre;
 
-  // Persistance reelle sur Supabase — visible par tous, pas seulement localement
-  let topicId = null;
-  if (typeof sbCreateTopic === 'function') {
+  // Persistance reelle sur Supabase — visible par tous, pas seulement localement.
+  // POUR UNE TRIBUNE, LE SERVEUR A DEJA ECRIT : republier ici creerait un DOUBLON. On reprend
+  // simplement l'identifiant qu'il a rendu, pour que l'affichage local designe le vrai sujet.
+  let topicId = topicServeur;
+  if (!topicId && typeof sbCreateTopic === 'function') {
     topicId = await sbCreateTopic('presidence', titrePrefixe, auteur, pays, time);
     if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, auteur, contenu, time);
   }

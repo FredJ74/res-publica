@@ -14,6 +14,7 @@
 -- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.
 
 ALTER TABLE public.candidatures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.communications_salles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cycles_electoraux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_manifestation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.elections_tracts_pnj ENABLE ROW LEVEL SECURITY;
@@ -22,6 +23,10 @@ ALTER TABLE public.greves_generales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indices_villes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mandats_maires_archives ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.militants_recrutes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.presidence_memoire ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.presidence_memoire_ordres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.presidence_memoire_sources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.presidence_memoire_sources_absentes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rp_epoques ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rp_transitions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.votes_confiance ENABLE ROW LEVEL SECURITY;

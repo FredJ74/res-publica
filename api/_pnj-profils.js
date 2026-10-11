@@ -38,6 +38,14 @@ import {
   BIBLE_PROTOCOLE_PRESIDENTIEL, BIBLE_POSTERITE, POSTERITE_ANGLE_SECRETARIAT,
   POSTERITE_ANGLE_COMMUNICATION, POSTERITE_ANGLE_PROTOCOLE, CE_QUI_N_EXISTE_PAS_PRESIDENCE
 } from './_bible-presidence.js';
+// LA BIBLE DU GOUVERNEMENT (11 octobre 2026). Meme architecture encore : des blocs de
+// connaissance RELEVEE dans data.js -- ordres, couts en PA et en FR, taux de reussite, poste
+// exige -- et un bloc par domaine, pour que chaque secretaire ministeriel ne recoive que le sien.
+import {
+  SOCLE_GOUVERNEMENT, BIBLE_PREMIER_MINISTRE, BIBLE_COMMUNICATION_GOUVERNEMENTALE,
+  BIBLE_MIN_INT, BIBLE_MIN_FIN, BIBLE_MIN_JUST, BIBLE_MIN_INFO, BIBLE_MIN_AE,
+  BIBLE_ACCUEIL_GOUVERNEMENT, CE_QUI_N_EXISTE_PAS_GOUVERNEMENT
+} from './_bible-gouvernement.js';
 
 const LANGUES = {
   fr: { nom: 'francais', consigne: 'Reponds EXCLUSIVEMENT en francais.' },
@@ -211,7 +219,21 @@ const SAVOIR_PROTOCOLE_PRESIDENTIEL = [
   CE_QUI_N_EXISTE_PAS_PRESIDENCE
 ].join('\n\n');
 
+// LES HUIT CORPUS DU PALAIS DU GOUVERNEMENT. Chacun recoit le socle de la maison, SON seul
+// domaine, et la frontiere. Donner deux domaines a un referent rendrait l'autre decoratif : c'est
+// la regle de decoupage etablie au Palais presidentiel, appliquee telle quelle.
+const corpusGouvernement = (bloc) =>
+  [SOCLE_GOUVERNEMENT, bloc, CE_QUI_N_EXISTE_PAS_GOUVERNEMENT].join('\n\n');
+
 const CORPUS_REFERENT = {
+  secretaire_dupuis:                    corpusGouvernement(BIBLE_ACCUEIL_GOUVERNEMENT),
+  eric_stricted:                        corpusGouvernement(BIBLE_PREMIER_MINISTRE),
+  corinne_tite_declaz:                  corpusGouvernement(BIBLE_COMMUNICATION_GOUVERNEMENTALE),
+  le_ministre_de_l_interieur:           corpusGouvernement(BIBLE_MIN_INT),
+  le_ministre_des_finances:             corpusGouvernement(BIBLE_MIN_FIN),
+  le_ministre_de_la_justice:            corpusGouvernement(BIBLE_MIN_JUST),
+  le_ministre_de_l_information:         corpusGouvernement(BIBLE_MIN_INFO),
+  le_ministre_des_affaires_etrangeres:  corpusGouvernement(BIBLE_MIN_AE),
   huguette_papier:           SAVOIR_SECRETARIAT_GENERAL,
   porte_parole_presidentiel: SAVOIR_COMMUNICATION_PRESIDENTIELLE,
   gerard_tamponneau:         SAVOIR_PROTOCOLE_PRESIDENTIEL,
@@ -306,6 +328,57 @@ function blocContextePublic(contexte) {
   return parts.join(' ');
 }
 
+// LA MEMOIRE DES MANDATS -- CE QUE LA MAISON A VU PASSER (11 octobre 2026)
+// ---------------------------------------------------------------------------------------------
+// UN SEUL PNJ RECOIT CE BLOC : Huguette Papier. Le serveur ne rend que des faits ATTESTES -- un
+// fait national public recopie de la chronique, un acte reellement paye par le President, une
+// guerre declaree ou subie -- et la porte refuse d'enregistrer quoi que ce soit hors d'un mandat
+// tenu par un joueur. Il n'y a donc jamais de passe fabrique a raconter.
+//
+// TROIS REGLES SONT ECRITES ICI, ET AUCUNE N'EST COSMETIQUE :
+//   . ELLE RACONTE, ELLE NE NOTE PAS. Aucun score n'existe en base, et le bloc interdit
+//     explicitement d'en deduire un. « Bon President » et « mauvais President » ne sont pas des
+//     categories du jeu ;
+//   . UN CONTEXTE SANS SUITE EST UNE OBSERVATION, PAS UN REPROCHE. `suivi_de` nul signifie
+//     qu'Huguette n'a rien vu venir apres l'evenement -- pas que le President a failli. La
+//     nuance est l'arbitrage lui-meme : l'inaction est une information, jamais un verdict ;
+//   . ELLE NE DEBORDE PAS DE SA MEMOIRE. Ce qui n'est pas dans le bloc n'a pas ete vu : elle le
+//     dit, au lieu de combler. C'est ce qui empeche un modele de broder une presidence entiere a
+//     partir de deux lignes.
+function blocMemoireDesMandats(memoire) {
+  if (!memoire || typeof memoire !== 'object' || memoire.ok !== true) return null;
+  const mandats = Array.isArray(memoire.mandats) ? memoire.mandats : [];
+  if (mandats.length === 0) {
+    // LA BETA N'A JAMAIS EU DE PRESIDENT JOUEUR. On le dit a Huguette plutot que de la laisser
+    // sans consigne : sans cette phrase, un modele invente volontiers un predecesseur.
+    return "LA MEMOIRE DES MANDATS : tu n'as encore vu passer AUCUNE presidence tenue par une "
+         + "personne. Si on t'interroge sur les Presidents passes, dis simplement que la "
+         + "Presidence n'a pas encore ete exercee de ton temps. N'invente aucun predecesseur, "
+         + "aucune anecdote, aucun mandat.";
+  }
+  const parts = ['LA MEMOIRE DES MANDATS -- ce que tu as reellement vu, et rien de plus :'];
+  mandats.slice(0, 6).forEach((m) => {
+    const nom = String(m.president || '').slice(0, 60);
+    const faits = Array.isArray(m.faits) ? m.faits.slice(0, 10) : [];
+    parts.push((m.en_cours === true ? '- MANDAT EN COURS de ' : '- mandat de ') + nom + ' :');
+    faits.forEach((f) => {
+      const sujet = String(f.sujet || '').slice(0, 300);
+      if (f.genre === 'contexte') {
+        parts.push('  . il a fallu faire face a ' + sujet
+          + (f.suivi_de
+              ? ', et ce qui a suivi a ete ' + String(f.suivi_de).slice(0, 300) + '.'
+              : ", et tu n'as rien vu venir ensuite -- dis-le ainsi, sans en tirer de conclusion."));
+      } else {
+        parts.push('  . il a accompli ' + sujet + '.');
+      }
+    });
+  });
+  parts.push("TU NE NOTES PAS LES PRESIDENCES. Il n'existe aucun classement, aucun score, aucun "
+    + "bilan chiffre : tu racontes des faits et tu laisses ton interlocuteur juger. Et tu ne "
+    + "racontes QUE ce qui est ci-dessus -- le reste, tu ne l'as pas vu.");
+  return parts.join('\n');
+}
+
 // `pedagogie` est le quatrieme argument, et il est distinct de `relation` A DESSEIN :
 // un referent se souvient de ce qu'il a EXPLIQUE, un PNJ social se souvient de
 // QUELQU'UN. Les melanger dans un meme bloc effacerait la difference de nature entre
@@ -315,12 +388,18 @@ function blocContextePublic(contexte) {
 // une relation ni un historique. Il vient donc AVANT les deux autres dans le prompt -- on sait a
 // qui l'on parle avant de se souvenir de lui -- et il est le seul des trois que presque tous les
 // PNJ recoivent.
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic) {
+//
+// `mandats` est le sixieme, et il n'arrive que pour Huguette Papier : c'est une HISTOIRE
+// NATIONALE, la quatrieme nature de memoire du jeu. Il vient APRES les trois autres dans le
+// prompt -- on sait a qui l'on parle, on se souvient de lui, on sait ce qu'on lui a explique,
+// et ensuite seulement on raconte le pays.
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
   const ped = blocPedagogie(pedagogie);
   const pub = blocContextePublic(contextePublic);
+  const mem = blocMemoireDesMandats(mandats);
   return [
     p.identite,
     '',
@@ -334,6 +413,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(pub ? [pub, ''] : []),
     ...(rel ? [rel, ''] : []),
     ...(ped ? [ped, ''] : []),
+    ...(mem ? [mem, ''] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique

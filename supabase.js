@@ -3879,6 +3879,35 @@ async function sbCaserneReverserAuMinistere(montant) {
 }
 
 // ----------------------------------------------------------------------------------------------
+// LES TRIBUNES OFFICIELLES (11 octobre 2026)
+// ----------------------------------------------------------------------------------------------
+// UNE SEULE PORTE POUR PRENDRE LA PAROLE AU NOM DE L'ETAT. Avant elle, `publierMessagePresidentiel`
+// verifiait le poste DANS LE NAVIGATEUR -- et sur le mauvais poste : `exigerPoste('president')` en
+// dur, quelle que soit la salle, ce qui interdisait a tout ministre de s'exprimer depuis la tribune
+// du Gouvernement. La porte relit l'autorite en base, preleve le cout par le chemin atteste, et
+// ecrit le sujet ET le message dans la MEME transaction.
+async function sbCommunicationPublier(buildingId, roomId, fn, pa, cost, titre, contenu, blocs) {
+  const rows = await sbRpc('communication_officielle_publier', {
+    p_building_id: buildingId, p_room_id: roomId, p_fn: fn,
+    p_pa: Math.floor(Number(pa) || 0), p_cost: Math.floor(Number(cost) || 0),
+    p_titre: titre, p_contenu: contenu, p_blocs: blocs || []
+  });
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, raison: 'rpc_indisponible' };
+}
+
+// CE QUE L'INTERFACE A LE DROIT DE SAVOIR AVANT QU'ON REDIGE : le nom de la tribune et les postes
+// qui y sont admis. L'infobulle fausse -- « seul le President peut publier » -- faisait partie du
+// defaut constate : elle vient desormais du serveur, pas d'une chaine ecrite au hasard.
+async function sbCommunicationTribune(buildingId, roomId) {
+  const rows = await sbRpc('communication_tribune', {
+    p_building_id: buildingId, p_room_id: roomId
+  }).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  return r || { ok: false, tribune: false };
+}
+
+// ----------------------------------------------------------------------------------------------
 // LA GARDE REPUBLICAINE (11 octobre 2026)
 // ----------------------------------------------------------------------------------------------
 // QUATRE PORTES, ET AUCUN SELECT. Les trois tables de la Garde sont sous RLS sans policy : le

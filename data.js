@@ -2392,10 +2392,20 @@ const BUILDINGS = {
         name: "Hall d'entree",
         imageBg: "linear-gradient(135deg,#141c10,#1e2a18)",
         desc: "Le hall monumental du Palais. Rotonde a coupole, escalier d'honneur, gardes republicains en faction.",
-        imageUrl: "images/hall-palais-gouvernement-republic.webp",
+        imageUrl: "images/luthecia-palais-gouvernement-hall.webp",
+        // LE GARDE DU HALL EST CELUI DE LA COUCHE GENERIQUE (11 octobre 2026). Le decor l'appelait
+        // « Garde Martineau » alors que la Garde republicaine, posee la veille, tient REELLEMENT ce
+        // poste : `garde_republicaine_postes` declare (republic, palais-gouvernement, hall) et un
+        // garde permanent y est en faction, arme, avec ses caracteristiques d'elite. Deux noms pour
+        // un seul homme auraient laisse croire a un seul decor de plus -- alors que celui-ci se
+        // neutralise, laisse tomber son arme et intervient contre un recherche.
+        // AUCUNE REGLE DE GARDE N'EST REECRITE ICI : le socle est en base, et le renfort reste
+        // commande depuis le ministere de la Defense.
         persons: [
-          {name:'Garde Martineau',   role:'PNJ - Securite', rel:'neutral', job:'garde'},
-          {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite du Palais du Gouvernement', rel:'neutral', job:'garde',
+           photoUrl:'images/luthecia-palais-gouvernement-garde.webp', photoPos:'50% 15%'},
+          {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire',
+           photoUrl:'images/luthecia-palais-gouvernement-secretaire-dupuis.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'}
@@ -2407,7 +2417,12 @@ const BUILDINGS = {
         desc: "Le bureau du Premier Ministre. Acces PM uniquement.",
         imageUrl: "images/bureau-premier-ministre.webp",
         persons: [
-          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet', photoUrl:'images/chef-cabinet-pm.webp', photoPos:'50% 15%'}
+          // ERIC STRICTED EST LE REFERENT DU POSTE DE PREMIER MINISTRE (11 octobre 2026). Le PNJ
+          // « Premier Ministre » de la Salle du Conseil a ete retire : il n'est pas remplace par un
+          // autre faux chef de gouvernement, c'est son CHEF DE CABINET qui explique la fonction.
+          // Il n'a aucun pouvoir du Premier ministre -- il sait comment on l'exerce.
+          {name:'Éric Stricted (PNJ)', role:'PNJ - Chef de cabinet du Premier ministre', rel:'neutral', job:'chef_cabinet',
+           photoUrl:'images/luthecia-palais-gouvernement-chef-cabinet.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
@@ -2420,9 +2435,13 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
         imageUrl: "images/conseil-ministres-2.webp",
-        persons: [
-          {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
-        ],
+        // LE PNJ « PREMIER MINISTRE » EST RETIRE (11 octobre 2026), et il n'est pas remplace.
+        // Il n'etait ni un referent -- il n'expliquait rien -- ni un titulaire : le poste `pm` est
+        // pourvu par nomination presidentielle, et un PNJ assis dans la Salle du Conseil laissait
+        // croire que le gouvernement etait deja dirige. Le referent de la fonction est desormais
+        // son chef de cabinet, Eric Stricted, dans le bureau du Premier ministre.
+        // LA SALLE DU CONSEIL RESTE UNE SALLE : elle n'a pas besoin d'un occupant permanent.
+        persons: [],
         orders: []
       },
       salle_presse: {
@@ -2431,8 +2450,16 @@ const BUILDINGS = {
         desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
         imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
         persons: [
-          {name:'Porte-parole (PNJ)', role:'PNJ - Porte-parole du gouvernement', rel:'neutral', job:'porteparole'},
-          {name:'Journalistes accredites', role:'PNJ - Presse nationale', rel:'neutral', job:'journaliste'}
+          // CORINNE TITE-DECLAZ (11 octobre 2026) remplace le « Porte-parole (PNJ) » anonyme. Meme
+          // logique que le Porte-parole presidentiel livre la veille : referente de la COMMUNICATION
+          // gouvernementale, sans aucun pouvoir institutionnel propre.
+          {name:'Corinne Tite-Déclaz (PNJ)', role:'PNJ - Porte-parole du Gouvernement', rel:'neutral', job:'porteparole',
+           photoUrl:'images/luthecia-palais-gouvernement-corinne-tite-declaz.webp', photoPos:'50% 15%'},
+          // UN PNJ COLLECTIF, AU PLURIEL, ET C'EST VOULU. Les journalistes accredites ne sont ni un
+          // referent, ni une autorite, ni un journaliste autonome qui publierait de son propre chef :
+          // ils materialisent la PRESSION de la presse quand un responsable prend la parole.
+          {name:'Journalistes accrédités (PNJ)', role:'PNJ - Presse nationale accréditée', rel:'neutral', job:'journaliste',
+           photoUrl:'images/luthecia-palais-gouvernement-journalistes-accredites.webp', photoPos:'50% 20%'}
         ],
         orders: [
           {fn:'conference_presse', label:'Conférence de presse',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
@@ -2446,7 +2473,8 @@ const BUILDINGS = {
         desc: "Les archives secretes du gouvernement. Dossiers classifies, rapports confidentiels, secrets d'Etat.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
-          {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste'}
+          {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste',
+           photoUrl:'images/luthecia-palais-gouvernement-archiviste-legrand.webp', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'consulter_dossiers_gouv', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Rapports confidentiels et notes de synthese classifiees du gouvernement.'},
@@ -2469,7 +2497,17 @@ const BUILDINGS = {
         desc: "Le bureau du Ministre de l'Interieur. Securite nationale, ordre public, police.",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         requiresPostId: 'min_int',
-        persons: [{name:"Le Ministre de l'Intérieur (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int'}],
+        // LE PNJ MINISTRE NE DISPARAIT PLUS QUAND UN JOUEUR PREND LE POSTE (11 octobre 2026).
+        // Il reste dans son ministere et devient SECRETAIRE MINISTERIEL : referent du domaine,
+        // sans aucune autorite concurrente et sans aucun pouvoir reserve au ministre.
+        // C'est la MECANIQUE GENERIQUE deja posee pour Tom Hawak a la caserne et pour le President
+        // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
+        // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
+        // a ce ministere : trois champs de donnees.
+        persons: [{name:"Le Ministre de l'Intérieur (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int',
+                   resteApresPourvoi: true,
+                   roleSiPnjTitulaire: 'PNJ - Ministre de l\'Interieur',
+                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Intérieur"}],
         orders: [
           // REGROUPEMENT UX DU 8 SEPTEMBRE 2026. Traiter, interdire et reprimer une manifestation
           // sont trois etapes d'une meme famille : elles cessent d'etre trois entrees principales.
@@ -2506,7 +2544,17 @@ const BUILDINGS = {
         desc: "Le bureau du Ministre des Finances. Fiscalite, budget, politique economique.",
         imageUrl: "images/bureau-ministre-finances-luthecia.webp",
         requiresPostId: 'min_fin',
-        persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin'}],
+        // LE PNJ MINISTRE NE DISPARAIT PLUS QUAND UN JOUEUR PREND LE POSTE (11 octobre 2026).
+        // Il reste dans son ministere et devient SECRETAIRE MINISTERIEL : referent du domaine,
+        // sans aucune autorite concurrente et sans aucun pouvoir reserve au ministre.
+        // C'est la MECANIQUE GENERIQUE deja posee pour Tom Hawak a la caserne et pour le President
+        // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
+        // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
+        // a ce ministere : trois champs de donnees.
+        persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin',
+                   resteApresPourvoi: true,
+                   roleSiPnjTitulaire: 'PNJ - Ministre des Finances',
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Finances'}],
         orders: [
           {fn:'pilotage_fiscal_budgetaire', label:'Fiscalité et budget', pa:2, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Taux d\'imposition national, répartition budgétaire et redressement fiscal — une seule fonction de pilotage financier.'},
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
@@ -2520,7 +2568,17 @@ const BUILDINGS = {
         desc: "Le bureau du Ministre de la Justice. Magistrature, poursuites, grace presidentielle.",
         imageUrl: "images/bureau-ministre-justice-luthecia.webp",
         requiresPostId: 'min_just',
-        persons: [{name:'Le Ministre de la Justice (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just'}],
+        // LE PNJ MINISTRE NE DISPARAIT PLUS QUAND UN JOUEUR PREND LE POSTE (11 octobre 2026).
+        // Il reste dans son ministere et devient SECRETAIRE MINISTERIEL : referent du domaine,
+        // sans aucune autorite concurrente et sans aucun pouvoir reserve au ministre.
+        // C'est la MECANIQUE GENERIQUE deja posee pour Tom Hawak a la caserne et pour le President
+        // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
+        // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
+        // a ce ministere : trois champs de donnees.
+        persons: [{name:'Le Ministre de la Justice (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just',
+                   resteApresPourvoi: true,
+                   roleSiPnjTitulaire: 'PNJ - Ministre de la Justice',
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel de la Justice'}],
         orders: [
           {fn:'annuler_poursuites',   label:'Classer une plainte',          pa:2, cost:0,   type:'grey',    icon:'ti-file-x',         successRate:70,  requiresPost:'min_just', desc:'Classer une plainte en cours avant jugement. Cree une dette politique. Coute a la caisse du gouvernement.'},
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
@@ -2601,9 +2659,19 @@ const BUILDINGS = {
         name: "Bureau - Ministre de l'Information",
         imageBg: "linear-gradient(135deg,#0f0808,#180f08)",
         desc: "Le bureau du Ministre de l'Information. Medias, propagande, censure.",
-        imageUrl: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=80",
+        imageUrl: "images/luthecia-palais-gouvernement-ministere-information.webp",
         requiresPostId: 'min_info',
-        persons: [{name:"Le Ministre de l'Information (PNJ)", role:"PNJ - Ministre de l'Information", rel:'neutral', job:'min_info'}],
+        // LE PNJ MINISTRE NE DISPARAIT PLUS QUAND UN JOUEUR PREND LE POSTE (11 octobre 2026).
+        // Il reste dans son ministere et devient SECRETAIRE MINISTERIEL : referent du domaine,
+        // sans aucune autorite concurrente et sans aucun pouvoir reserve au ministre.
+        // C'est la MECANIQUE GENERIQUE deja posee pour Tom Hawak a la caserne et pour le President
+        // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
+        // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
+        // a ce ministere : trois champs de donnees.
+        persons: [{name:"Le Ministre de l'Information (PNJ)", role:"PNJ - Ministre de l'Information", rel:'neutral', job:'min_info',
+                   resteApresPourvoi: true,
+                   roleSiPnjTitulaire: "PNJ - Ministre de l'Information",
+                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Information"}],
         orders: [
           {fn:'propagande_etat',      label:'Campagne de propagande',       pa:3, cost:500, type:'grey',    icon:'ti-broadcast',      successRate:75,  requiresPost:'min_info', desc:'Influencer massivement l\'opinion publique. +POP.'},
           {fn:'censurer_media',       label:'Censurer un media',            pa:2, cost:0,   type:'grey',    icon:'ti-eye-off',        successRate:70,  requiresPost:'min_info', desc:'Interdire un organe de presse. -liberte +controle.'},
@@ -2617,7 +2685,17 @@ const BUILDINGS = {
         desc: "Le bureau du Ministre des AE. Diplomatie, traites, relations inter-empires.",
         imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
         requiresPostId: 'min_ae',
-        persons: [{name:'Le Ministre des Affaires Étrangères (PNJ)', role:'PNJ - Ministre des Affaires Etrangeres', rel:'neutral', job:'min_ae'}],
+        // LE PNJ MINISTRE NE DISPARAIT PLUS QUAND UN JOUEUR PREND LE POSTE (11 octobre 2026).
+        // Il reste dans son ministere et devient SECRETAIRE MINISTERIEL : referent du domaine,
+        // sans aucune autorite concurrente et sans aucun pouvoir reserve au ministre.
+        // C'est la MECANIQUE GENERIQUE deja posee pour Tom Hawak a la caserne et pour le President
+        // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
+        // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
+        // a ce ministere : trois champs de donnees.
+        persons: [{name:'Le Ministre des Affaires Étrangères (PNJ)', role:'PNJ - Ministre des Affaires Etrangeres', rel:'neutral', job:'min_ae',
+                   resteApresPourvoi: true,
+                   roleSiPnjTitulaire: 'PNJ - Ministre des Affaires Etrangeres',
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Affaires Étrangères'}],
         orders: [
           {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
           {fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},

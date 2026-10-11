@@ -10,8 +10,9 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 15 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 20 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   candidatures_pkey  (contrainte candidatures_pkey)
+--   communications_salles_pkey  (contrainte communications_salles_pkey)
 --   cycles_electoraux_pkey  (contrainte cycles_electoraux_pkey)
 --   demandes_manifestation_pkey  (contrainte demandes_manifestation_pkey)
 --   elections_tracts_pnj_cycle_id_tour_pnj_cle_key  (contrainte elections_tracts_pnj_cycle_id_tour_pnj_cle_key)
@@ -21,6 +22,10 @@
 --   indices_villes_pkey  (contrainte indices_villes_pkey)
 --   mandats_maires_archives_pkey  (contrainte mandats_maires_archives_pkey)
 --   militants_recrutes_pkey  (contrainte militants_recrutes_pkey)
+--   presidence_memoire_ordres_pkey  (contrainte presidence_memoire_ordres_pkey)
+--   presidence_memoire_pkey  (contrainte presidence_memoire_pkey)
+--   presidence_memoire_sources_absentes_pkey  (contrainte presidence_memoire_sources_absentes_pkey)
+--   presidence_memoire_sources_pkey  (contrainte presidence_memoire_sources_pkey)
 --   rp_epoques_pkey  (contrainte rp_epoques_pkey)
 --   rp_transitions_pkey  (contrainte rp_transitions_pkey)
 --   votes_confiance_bulletins_pkey  (contrainte votes_confiance_bulletins_pkey)
@@ -32,5 +37,6 @@ CREATE INDEX elections_tracts_pnj_cycle_tour ON public.elections_tracts_pnj USIN
 CREATE INDEX fraudes_electorales_scrutin_idx ON public.fraudes_electorales USING btree (country, poste_id, city, cycle_debut, type);
 CREATE INDEX idx_greves_generales_country_statut ON public.greves_generales USING btree (country, statut);
 CREATE INDEX mandats_maires_archives_ville_idx ON public.mandats_maires_archives USING btree (country, city, debut_ts DESC);
+CREATE INDEX presidence_memoire_par_mandat ON public.presidence_memoire USING btree (pays, president, mandat_depuis, le);
 CREATE INDEX votes_confiance_country_statut_idx ON public.votes_confiance USING btree (country, statut);
 CREATE INDEX votes_confiance_statut_idx ON public.votes_confiance USING btree (statut);

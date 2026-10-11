@@ -22,6 +22,15 @@ CREATE TABLE public.candidatures (
   topic_id text
 );
 
+CREATE TABLE public.communications_salles (
+  building_id text NOT NULL,
+  room_id text NOT NULL,
+  postes text[] NOT NULL,
+  forum_id text NOT NULL,
+  libelle text NOT NULL,
+  note text
+);
+
 CREATE TABLE public.cycles_electoraux (
   id text NOT NULL,
   country text,
@@ -111,6 +120,38 @@ CREATE TABLE public.militants_recrutes (
   recruteur text NOT NULL,
   data jsonb NOT NULL,
   created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.presidence_memoire (
+  id bigserial NOT NULL,
+  pays text NOT NULL,
+  president text NOT NULL,
+  mandat_depuis timestamp with time zone NOT NULL,
+  genre text NOT NULL,
+  source text NOT NULL,
+  sujet text NOT NULL,
+  detail jsonb DEFAULT '{}'::jsonb NOT NULL,
+  jour integer,
+  le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.presidence_memoire_ordres (
+  fn text NOT NULL,
+  pa integer NOT NULL,
+  cost integer NOT NULL,
+  sujet text NOT NULL
+);
+
+CREATE TABLE public.presidence_memoire_sources (
+  source text NOT NULL,
+  genre text NOT NULL,
+  note text NOT NULL
+);
+
+CREATE TABLE public.presidence_memoire_sources_absentes (
+  sujet text NOT NULL,
+  genre text NOT NULL,
+  obstacle text NOT NULL
 );
 
 CREATE TABLE public.rp_epoques (
