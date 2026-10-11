@@ -853,77 +853,32 @@ function deposerCandidatureBtn2(posteId, country, city) {
 
 
 // =====================
-// PNJ ADMINISTRATEUR (poste vacant)
+// LE PNJ ADMINISTRATEUR DE SECOURS A ETE SUPPRIME (11 octobre 2026)
 // =====================
-const PNJ_ADMINISTRATEURS = {
-  president: {
-    republic: { name: 'Gaston Intérim',     role: 'Président par intérim', trait: 'Nommé faute de candidat. Signe des décrets sans les lire. Facile à déloger.' },
-    narco:    { name: 'Don Provisional',    role: 'Président par intérim', trait: 'Personne ne sait comment il est arrivé là. Donne des ordres au hasard.' },
-    soviet:   { name: 'Camarade Provisoire',role: 'Administrateur du Parti',trait: 'Le Parti l\'a nommé. Le Parti peut l\'enlever. Très facile à déloger.' },
-    khalija:  { name: 'Wali Al-Niyaba',     role: 'Régent intérimaire',    trait: 'Nommé par le Palais en attendant mieux. N\'a aucune ambition personnelle.' },
-  },
-  maire: {
-    republic: { name: 'Hubert Gestionnaire', role: 'Maire administrateur', trait: 'Ancien chef de bureau. Gère les poubelles. Rien d\'autre.' },
-    narco:    { name: 'El Temporal',         role: 'Maire par défaut',     trait: 'Là par accident. Part dès qu\'on lui demande.' },
-    soviet:   { name: 'Camarade Local',      role: 'Administrateur local', trait: 'Nommé d\'office. Applique les directives. Toutes les directives.' },
-    khalija:  { name: 'Moudir Al-Waqt',      role: 'Administrateur royal', trait: 'Le Palais gère directement. Pour l\'instant.' },
-  },
-  depute: {
-    republic: { name: 'Suppléant Dubois',    role: 'Député suppléant',     trait: 'Remplace le siège vide. Vote blanc à chaque session.' },
-    narco:    { name: 'El Suplente',         role: 'Député intérimaire',   trait: 'Là pour les apparences.' },
-    soviet:   { name: 'Délégué du Peuple',   role: 'Représentant collectif',trait: 'Le Parti représente déjà le peuple. C\'est une formalité.' },
-    khalija:  { name: 'Wakil Al-Sha\'b',    role: 'Représentant intérimaire',trait: 'Nommé par le Cheikh en attendant.' },
-  }
-};
-
-function nommerAdministrateurSiVacant(country, posteId) {
-  if (!CYCLES_ELECTORAUX[country]?.[posteId]) return;
-  const cycle = CYCLES_ELECTORAUX[country][posteId];
-
-  // Ne nommer que si poste vraiment vacant (pas d'élu, phase VACANT)
-  if (cycle.eluId || cycle.administrateur) return;
-  if (getPhaseActuelle(country, posteId) !== PHASES_ELECTORALES.VACANT) return;
-
-  const adminDef = PNJ_ADMINISTRATEURS[posteId]?.[country];
-  if (!adminDef) return;
-
-  cycle.administrateur = {
-    ...adminDef,
-    nommeLeJour: state.day || 1,
-    facileADeloger: true
-  };
-  cycle.eluId = adminDef.name + ' (Admin)';
-
-  addJournalEntry('🏛 ' + adminDef.name + ' nommé ' + adminDef.role + ' — poste vacant.', 'event-info');
-  addExternalEvent('🏛 ' + adminDef.name + ' prend les rênes de ' + (POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).find(p=>p.id===posteId)?.name || posteId) + ' à ' + (COUNTRIES[country]?.n || country) + '.');
-
-  // Publier sur le forum
-  if (typeof sbCreateTopic === 'function') {
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
-    const titre = '🏛 Nomination : ' + adminDef.name;
-    const texte = 'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.';
-    // Le Local de la ville concernee par la nomination (16 septembre 2026).
-    const forumNomination = (typeof idForumLocal === 'function') ? idForumLocal(city) : 'local';
-    sbCreateTopic(forumNomination, titre, 'Système', country, time).then(topicId => {
-      if (topicId && typeof sbCreatePost === 'function') sbCreatePost(topicId, 'Système', texte, time);
-      if (!FORUM_TOPICS[forumNomination]) FORUM_TOPICS[forumNomination] = [];
-      FORUM_TOPICS[forumNomination].unshift({
-        id: topicId || 'topic-' + Date.now(), title: titre, author: 'Système',
-        time, views: 1, replies: 0, lastPostAuthor: 'Système', lastPostTime: time,
-        posts: [{ id: 'p-' + Date.now(), author: 'Système', time, content: texte }]
-      });
-    }).catch(() => {});
-  }
-}
-
-// Vérifier tous les postes vacants au chargement et au réveil
-function verifierPostesVacants() {
-  const country = state.country;
-  if (!CYCLES_ELECTORAUX[country]) return;
-  Object.keys(CYCLES_ELECTORAUX[country]).forEach(posteId => {
-    nommerAdministrateurSiVacant(country, posteId);
-  });
-}
+// SOIXANTE-TREIZE LIGNES RETIREES ICI : la table `PNJ_ADMINISTRATEURS` (4 empires x 3 postes),
+// `nommerAdministrateurSiVacant` et `verifierPostesVacants`, son unique appelant, lui-meme appele
+// depuis plateau-core.js au chargement.
+//
+// C'ETAIT LE DERNIER FABRICANT DE TITULAIRE HORS DU SOCLE ELECTORAL COMMUN, et c'est la seule
+// raison de sa suppression. Il posait `cycle.eluId = '<nom> (Admin)'` -- donc un titulaire, donc
+// un poste atteste a l'ecran -- SANS `dateDebutMandatTs`, SANS `dateFinMandat` et SANS scrutin de
+// succession. Un mandat sans fin et sans election suivante : exactement ce que l'arbitrage du
+// calendrier commun interdit.
+//
+// IL ETAIT EN OUTRE PUREMENT LOCAL ET A MOITIE CASSE :
+//   . aucune persistance -- pas un seul appel a sbSaveCycleElectoral, donc la nomination
+//     disparaissait a la synchronisation suivante, et n'etait vue que du navigateur qui l'avait
+//     executee ;
+//   . `city` n'etait ni parametre ni variable locale dans la branche forum : la fonction levait
+//     une ReferenceError des qu'elle allait jusque-la ;
+//   . les clefs du cache sont `maire_capitale` / `depute_capitale` (getCleCycle), jamais `maire`
+//     ni `depute` : la table n'etait donc jamais trouvee pour les postes locaux.
+//
+// CE QUI LE REMPLACE EXISTE DEJA, AU SERVEUR, ET IL EST COMPLET :
+// `verifierPostesVacantsEtAutoPourvoir` -> `pourvoirCycleElu` (api/cron-minuit.js) installe le PNJ
+// par defaut du poste, lui donne un mandat au lundi 00:00 de Paris et ouvre son scrutin de
+// succession par `ouvrirSuccessionSurCycle` -- le socle commun, le meme que pour un joueur. Zero
+// cycle de la base ne portait `administrateur` au moment du retrait.
 
 // =====================
 // PERSISTANCE ÉLECTORALE SUPABASE

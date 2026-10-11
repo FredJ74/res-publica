@@ -7371,7 +7371,7 @@ const PHASES_ELECTORALES = {
   CAMPAGNE_3E_SIEGE: 'campagne_3e_siege', // Legislatives uniquement : campagne du second tour partiel entre candidats ex aequo pour le 3e siege d'une ville (1 semaine -- correctif du 4 septembre 2026, la premiere version sautait directement au vote sans campagne)
   VOTE3E_SIEGE:  'vote_3e_siege', // Legislatives uniquement : vote du second tour partiel ci-dessus (24h)
   DEPOUILLEMENT: 'depouillement', // Vote clos, resultat pas encore proclame par le serveur. LE TITULAIRE SORTANT EST TOUJOURS EN FONCTION pendant cette phase : c'est elle qui remplace le « Vacant » que le navigateur affichait a tort entre la cloture du vote et la passe du cron (correctif du 11 octobre 2026)
-  VACANT:        'vacant',        // Poste SANS AUCUN TITULAIRE — jamais produit par une election en cours depuis le 11 octobre 2026 : une succession ne vacance plus le poste. Reste pour un poste jamais pourvu (monde neuf) et pour les PNJ administrateurs (jamais pour chef_syndicat, voir doctrine dediee)
+  VACANT:        'vacant',        // Poste SANS AUCUN TITULAIRE — jamais produit par une election en cours depuis le 11 octobre 2026 : une succession ne vacance plus le poste. Reste pour un poste jamais pourvu -- monde neuf, ou scrutin desert d'un poste qui n'a jamais eu de titulaire. Le PNJ administrateur CLIENT qui posait un titulaire sans date de mandat a ete supprime le 11 octobre 2026 ; le remplissage PNJ reel vit au serveur (pourvoirCycleElu) et donne un mandat complet -- jamais pour chef_syndicat, voir doctrine dediee
 };
 
 // Résultats électoraux archivés

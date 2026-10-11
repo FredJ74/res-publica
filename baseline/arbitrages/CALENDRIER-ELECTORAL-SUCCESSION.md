@@ -280,6 +280,44 @@ exercice sont toujours là** — une migration qui les perdrait trahirait l'arbi
 
 ---
 
+## 12 bis. Un seul fabricant de titulaire — vérification du 11 octobre au soir
+
+**Le ré-ancrage du maire de Montrouge est une opération de données, et rien d'autre.** Il vit
+exclusivement dans le bloc `DO $transition$` de la migration `20261011195123`, enregistrée au
+registre et jamais rejouée. Mesure en base : **zéro fonction vivante** ne porte cette logique ni
+`relancePossibleApres`. Il n'existe plus de notion d'« ancienne génération » : après la transition,
+les douze cycles sont sur le socle, et le mot n'existe que dans l'archive de la migration.
+
+**`dateFinMandat` n'a que DEUX écrivains dans tout le code exécuté** — `ouvrirSuccessionSurCycle`
+(le socle) et la branche du second tour (prolongation d'une semaine) — et **zéro** au navigateur.
+Une épreuve les compte.
+
+**Un survivant a été trouvé et supprimé : le PNJ administrateur client.**
+`PNJ_ADMINISTRATEURS` + `nommerAdministrateurSiVacant` + `verifierPostesVacants`, appelés depuis
+`plateau-core.js` au chargement — 73 lignes. Il posait `cycle.eluId = '<nom> (Admin)'`, donc un
+titulaire, **sans `dateDebutMandatTs`, sans `dateFinMandat` et sans scrutin de succession** : un
+mandat sans fin et sans élection suivante. Il était en outre purement local (aucune persistance,
+donc effacé à la synchronisation suivante) et à moitié cassé (`city` n'était ni paramètre ni
+variable locale ; les clés du cache sont `maire_capitale`, jamais `maire`).
+
+Ce qui le remplace existait déjà, au serveur, et il est complet :
+`verifierPostesVacantsEtAutoPourvoir` → `pourvoirCycleElu` installe le PNJ par défaut, l'ancre au
+**lundi 00:00 de Paris** et ouvre son scrutin de succession par `ouvrirSuccessionSurCycle` — le
+socle. Zéro cycle de la base ne portait `administrateur` au moment du retrait.
+
+**`construireNouveauCycleElectoral` subsiste, et il ne fabrique aucun mandat.** C'est le générateur
+de **genèse** d'un poste qui n'a jamais eu de titulaire (`initCycleElectoral`) et le relanceur de la
+**dissolution présidentielle** — règle distincte, qui coupe un mandat court volontairement. Son
+produit ne porte ni `eluId`, ni `elus`, ni `dateFinMandat` ; trois épreuves le vérifient. Et quand
+ce scrutin de genèse se résout, c'est `prendreFonctions()` qui agit : mandat de 5 semaines du socle.
+
+**Réponse aux trois questions** : (1) oui, ponctuel ; (2) un seul survivant, supprimé ; (3) oui —
+le prochain cycle du maire de Montrouge sera créé par `prendreFonctions()` si le scrutin désigne
+quelqu'un, par `prolonger()` sinon, tous deux appelant `ouvrirSuccessionSurCycle`, exactement comme
+les trois autres postes.
+
+---
+
 ## 13. Ce qui reste à arbitrer
 
 1. **La fenêtre de candidature d'un scrutin rejoué.** Un mandat prolongé de deux semaines offre
@@ -295,3 +333,9 @@ exercice sont toujours là** — une migration qui les perdrait trahirait l'arbi
    inexistant : le poste reste sans titulaire et le scrutin se rejoue toutes les deux semaines,
    indéfiniment. C'est l'arbitrage existant (« jamais de PNJ pour le syndicat »), mais il produit
    désormais une boucle visible.
+5. **L'ancre du mandat d'un PNJ de secours.** `pourvoirCycleElu` ancre au **lundi 00:00 de la
+   semaine en cours**, donc dans le passé si la cascade tourne un mercredi : la grille du socle est
+   respectée (gel en S5, vote le dernier dimanche, résultat le lundi), mais ce premier mandat dure
+   **moins** de 5 semaines réelles — jusqu'à 6 jours de moins. L'ancrer au lundi **suivant** le
+   rendrait plus long que 5 semaines. Aucun des deux n'est 5 semaines exactes : c'est un choix, et
+   il n'a pas été fait à votre place.

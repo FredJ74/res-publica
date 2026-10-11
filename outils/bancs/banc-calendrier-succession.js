@@ -243,6 +243,60 @@ att('la fenetre de contestation se lit sur dernierResultatTs',
     && pol.indexOf('Number(cycle.dernierResultatTs)') >= 0);
 
 print('');
+print('6 ter. IL N EXISTE QU UN SEUL FABRICANT DE TITULAIRE, ET C EST LE SOCLE');
+// LA QUESTION POSEE : une regle permanente peut-elle encore produire un mandat hors du socle
+// commun ? La reponse se mesure sur les ECRIVAINS, pas sur les intentions.
+//
+// `dateFinMandat` n'a que DEUX ecrivains dans tout le code execute : `ouvrirSuccessionSurCycle`
+// (le socle) et la branche du second tour (prolongation d'une semaine). S'il en apparait un
+// troisieme, un mandat peut naitre avec un calendrier a lui.
+var cron = src;          // api/cron-minuit.js, deja lu plus haut
+function lignesDeCode(texte) {
+  return texte.split('\n').filter(function (l) {
+    return !/^\s*\/\//.test(l) && !/^\s*--/.test(l);
+  });
+}
+function compteDansLeCode(texte, motif) {
+  return lignesDeCode(texte).filter(function (l) { return motif.test(l); }).length;
+}
+att('dateFinMandat n a que deux ecrivains au serveur',
+    compteDansLeCode(cron, /\bdateFinMandat\s*=/) === 2,
+    compteDansLeCode(cron, /\bdateFinMandat\s*=/) + ' ecrivain(s)');
+att('le navigateur n ecrit JAMAIS dateFinMandat',
+    compteDansLeCode(pol, /\bdateFinMandat\s*=/) === 0,
+    compteDansLeCode(pol, /\bdateFinMandat\s*=/) + ' ecrivain(s)');
+// ET LE DERNIER FABRICANT DE TITULAIRE HORS SOCLE A DISPARU : le PNJ administrateur client
+// posait `cycle.eluId` sans aucune date de mandat ni scrutin de succession.
+att('le PNJ administrateur client n existe plus',
+    pol.indexOf('const PNJ_ADMINISTRATEURS') < 0
+    && pol.indexOf('function nommerAdministrateurSiVacant') < 0
+    && pol.indexOf('function verifierPostesVacants()') < 0);
+// LE MEME PIEGE QUE PLUS HAUT : plateau-core.js EXPLIQUE pourquoi l'appel a disparu, donc le nom
+// est present dans son propre commentaire. La mesure porte sur les lignes de CODE.
+att('et son appel a quitte la chaine de chargement',
+    lignesDeCode(readFile('/Users/fredericjasseron/ResPublica/plateau-core.js'))
+      .filter(function (l) { return l.indexOf('verifierPostesVacants()') >= 0; }).length === 0);
+// LE REMPLISSAGE PNJ REEL VIT AU SERVEUR, ET IL PASSE PAR LE SOCLE.
+att('la cascade PNJ serveur donne un mandat du socle',
+    cron.indexOf('ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES)') >= 0
+    && cron.indexOf('const debutSecours = lundiMinuitParisApresSemaines(now, 0);') >= 0);
+att('et elle ancre ce mandat sur un LUNDI 00:00 de Paris',
+    jourSemaine(lundiMinuitParisApresSemaines(paris(2026, 10, 14, 1, 59), 0)) === 1
+    && libelle(lundiMinuitParisApresSemaines(paris(2026, 10, 14, 1, 59), 0)) === '2026-10-12 00:00',
+    libelle(lundiMinuitParisApresSemaines(paris(2026, 10, 14, 1, 59), 0)));
+// `construireNouveauCycleElectoral` SUBSISTE, et il ne fabrique AUCUN mandat : c'est le
+// generateur de GENESE d'un poste qui n'a jamais eu de titulaire (initCycleElectoral) et le
+// relanceur de la dissolution presidentielle -- une regle distincte, qui coupe un mandat court
+// volontairement. Son produit ne porte ni eluId, ni elus, ni dateFinMandat.
+var genese = construireNouveauCycleElectoral('president', null, paris(2026, 10, 14, 1, 59));
+att('le cycle de genese ne porte aucun titulaire',
+    genese.eluId === null && !('elus' in genese));
+att('et aucune date de fin de mandat',
+    !('dateFinMandat' in genese));
+att('mais il vote bien un dimanche et proclame un lundi',
+    jourSemaine(genese.dateVote) === 0 && jourSemaine(genese.dateResultats) === 1);
+
+print('');
 print('7. LA DUREE DU MANDAT NE DERIVE PAS DE data.js');
 // data.js declare `mandatSemaines: 5` sur les quatre postes electifs, et le serveur le ressaisit
 // en dur. Les deux doivent concorder : l'audit du calendrier avait trouve que ce champ n'etait LU

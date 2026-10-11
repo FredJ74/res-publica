@@ -5922,6 +5922,9 @@ export default async function handler(req, res) {
       const prendreFonctions = () => {
         cycle.dateDebutMandatTs = dateResultats;
         delete cycle.dissolutionUtilisee;   // une dissolution par mandat presidentiel, pas par cycle
+        // `administrateur` n'a plus aucun producteur depuis le retrait du PNJ administrateur
+        // client (11 octobre 2026), et zero cycle de la base n'en portait. La precaution reste
+        // pour un blob anterieur qui en aurait garde un : elle coute une ligne.
         delete cycle.administrateur;
         ouvrirSuccessionSurCycle(cycle, dateResultats, MANDAT_SEMAINES);
       };

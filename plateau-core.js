@@ -798,9 +798,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // Init Supabase
   if (typeof sbInit === 'function') sbInit();
 
-  // Synchroniser les cycles électoraux depuis Supabase
+  // Synchroniser les cycles électoraux depuis Supabase.
+  // `verifierPostesVacants()` A ETE RETIRE DE CETTE CHAINE le 11 octobre 2026 : il nommait un PNJ
+  // administrateur sur un poste vacant en posant un titulaire SANS date de mandat ni scrutin de
+  // succession -- le dernier fabricant de titulaire hors du socle electoral commun. Le remplissage
+  // PNJ reel vit au serveur (pourvoirCycleElu, api/cron-minuit.js) et donne un mandat complet.
   setTimeout(() => {
-    syncCyclesDepuisSupabase().then(() => verifierPostesVacants());
+    syncCyclesDepuisSupabase();
   }, 2000);
 
   // Vérification mails toutes les minutes (réduit de 2 min à 1 min, correctif latence des
