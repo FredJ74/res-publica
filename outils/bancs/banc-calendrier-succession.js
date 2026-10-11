@@ -297,6 +297,53 @@ att('mais il vote bien un dimanche et proclame un lundi',
     jourSemaine(genese.dateVote) === 0 && jourSemaine(genese.dateResultats) === 1);
 
 print('');
+print('6 quater. AUCUN MANDAT NE PREND FONCTION EN MILIEU DE SEMAINE');
+// L'INVARIANT ELECTORAL, ET IL N'ADMET AUCUNE EXCEPTION POUR UN PNJ : tout mandat commence un
+// LUNDI 00:00 de Paris et finit un DIMANCHE MINUIT -- le meme instant que le lundi 00:00 suivant.
+// Le dernier survivant etait la cascade de secours : elle ancrait au lundi de la semaine EN COURS,
+// donc un rescue du mercredi posait un mandat dont deux jours etaient deja ecoules.
+att('estLundiAParis reconnait un lundi',
+    estLundiAParis(paris(2026, 10, 12, 0, 59)) === true
+    && estLundiAParis(paris(2026, 10, 12, 23, 59)) === true);
+att('et refuse les six autres jours',
+    [13, 14, 15, 16, 17, 18].every(function (j) {
+      return estLundiAParis(paris(2026, 10, j, 1, 59)) === false;
+    }));
+att('il lit le jour de PARIS, pas celui d UTC',
+    // dimanche 11 octobre 23:00 UTC = lundi 12 octobre 01:00 a Paris : c'est un LUNDI.
+    estLundiAParis(Date.UTC(2026, 9, 11, 23, 0)) === true);
+// LA CASCADE EST BORNEE AU LUNDI, ET ELLE LE DIT.
+att('la cascade de secours sort si la passe n est pas un lundi',
+    cron.indexOf('if (!estLundiAParis(now)) {') >= 0
+    && cron.indexOf("raison: 'hors_lundi'") >= 0);
+att('et le report est un fait rendu dans le statut de la passe',
+    cron.indexOf('const resultats = { pourvus: [], differes: [] };') >= 0);
+att('le report precede la pose du titulaire : rien n est ecrit un mercredi',
+    cron.indexOf('if (!estLundiAParis(now)) {')
+      < cron.indexOf('cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];'));
+// ET QUAND ELLE INSTALLE, LE MANDAT EST PLEIN.
+['2026-10-12', '2026-11-02', '2026-12-21'].forEach(function (iso) {
+  var m = iso.split('-');
+  var lundi = paris(+m[0], +m[1], +m[2], 0, 0);
+  var passe = lundi + 59 * 60000;                 // la passe reelle : lundi 00:59
+  var ancre = lundiMinuitParisApresSemaines(passe, 0);
+  var cal = calendrierSuccession(ancre, MANDAT_SEMAINES);
+  att('rescue du lundi ' + iso + ' : ancre au lundi 00:00 et cinq semaines pleines',
+      ancre === lundi && jourSemaine(ancre) === 1
+      && cal.dateFinMandat === lundiMinuitParisApresSemaines(lundi, 5)
+      && jourSemaine(cal.dateFinMandat) === 1,
+      libelle(ancre) + ' -> ' + libelle(cal.dateFinMandat));
+});
+// LA CONTRE-EPREUVE : ce que l'ancien code faisait un mercredi.
+var passeMercredi = paris(2026, 10, 14, 1, 59);
+var ancreAncienne = lundiMinuitParisApresSemaines(passeMercredi, 0);
+att('CONTRE-EPREUVE : un rescue du mercredi aurait ancre deux jours dans le passe',
+    ancreAncienne === paris(2026, 10, 12, 0, 0) && ancreAncienne < passeMercredi,
+    libelle(ancreAncienne) + ' pour une passe du ' + libelle(passeMercredi));
+att('et la cascade refuse desormais cette passe',
+    estLundiAParis(passeMercredi) === false);
+
+print('');
 print('7. LA DUREE DU MANDAT NE DERIVE PAS DE data.js');
 // data.js declare `mandatSemaines: 5` sur les quatre postes electifs, et le serveur le ressaisit
 // en dur. Les deux doivent concorder : l'audit du calendrier avait trouve que ce champ n'etait LU

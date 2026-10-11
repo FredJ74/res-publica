@@ -422,6 +422,14 @@ function lundiSemaineParis(ts) {
   return dateCalendairePlusJours(p, -((jour + 6) % 7));
 }
 
+// UN MANDAT ELECTORAL NE PREND JAMAIS FONCTION EN MILIEU DE SEMAINE (12 octobre 2026).
+// Meme calcul de jour de semaine que `lundiSemaineParis` juste au-dessus -- une seule source pour
+// cette question, jamais deux. Rend vrai si l'instant tombe un lundi a Paris.
+function estLundiAParis(ts) {
+  const p = partiesHeureParis(ts);
+  return new Date(Date.UTC(p.a, p.m - 1, p.j)).getUTCDay() === 1;
+}
+
 function datesScrutinSemaine(lundi) {
   const dim = dateCalendairePlusJours(lundi, 6), suivant = dateCalendairePlusJours(lundi, 7);
   return {
@@ -5121,7 +5129,9 @@ async function traiterCandidaturesPostesExpirees() {
 // pourvoirPnj/verifierPostesVacantsEtAutoPourvoir ci-dessous est inchangee et reste inline.
 
 async function verifierPostesVacantsEtAutoPourvoir() {
-  const resultats = { pourvus: [] };
+  // `differes` est declare ICI, et non pose a la volee : un rescue reporte faute de lundi est un
+  // FAIT de la passe, il doit remonter dans le statut final meme quand il n'y en a aucun.
+  const resultats = { pourvus: [], differes: [] };
   try {
     const now = Date.now();
 
@@ -5194,12 +5204,30 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       // question qui compte est celle-ci : LE POSTE A-T-IL UN TITULAIRE ? Si oui, rien a faire --
       // et c'est aussi la transition d'etat qui rend cette ecriture directe idempotente.
       if (cycle.eluId) return;
+
+      // LE RESCUE N'INSTALLE QU'UN LUNDI, ET C'EST L'INVARIANT ELECTORAL (12 octobre 2026).
+      //
+      // CE QUI ETAIT FAUX. La cascade ancrait le mandat au lundi 00:00 de la semaine EN COURS.
+      // Un rescue qui tournait un mercredi posait donc un mandat dont deux jours etaient DEJA
+      // ecoules : cinq semaines annoncees, quatre semaines et cinq jours vecues. Et le titulaire
+      // prenait fonction un mercredi, ce que la regle interdit.
+      //
+      // CE QUI EST FAIT. La cascade ne pose un titulaire QUE si la passe tombe un lundi de Paris.
+      // L'ancre est alors le lundi 00:00 de cette meme semaine -- la passe tourne a 00:59 ou
+      // 01:59 selon la saison, donc quelques dizaines de minutes apres --, et le mandat court ses
+      // CINQ SEMAINES PLEINES jusqu'au dimanche minuit, comme n'importe quel mandat elu.
+      //
+      // CONSEQUENCE ASSUMEE, ET C'EST LA BONNE. Un poste devenu vacant un mardi reste vacant
+      // jusqu'au lundi suivant. Cette vacance n'est PAS creee par une election : elle PREEXISTE
+      // -- la cascade de secours n'existe que parce que le poste n'a deja aucun titulaire. La
+      // combler plus tot demanderait un mandat a cheval sur la semaine, c'est-a-dire exactement
+      // ce que l'invariant refuse. Un systeme de demission/election anticipee est un chantier
+      // futur, et il n'est pas invente ici.
+      if (!estLundiAParis(now)) {
+        resultats.differes.push({ poste: posteId, city: ville || null, raison: 'hors_lundi' });
+        return;
+      }
       cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];
-      // LE PNJ DE SECOURS PREND UN MANDAT COMPLET, AVEC SON SCRUTIN DE SUCCESSION. Il entre en
-      // fonction au lundi 00:00 de Paris de la semaine en cours (jamais a l'heure de la passe),
-      // et les candidatures a sa succession sont ouvertes des cet instant -- exactement comme
-      // pour un titulaire joueur. Sans ca un poste pourvu par secours n'aurait plus jamais de
-      // scrutin.
       const debutSecours = lundiMinuitParisApresSemaines(now, 0);
       cycle.dateDebutMandatTs = debutSecours;
       delete cycle.dissolutionUtilisee;
