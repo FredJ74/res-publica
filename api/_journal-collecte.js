@@ -696,7 +696,33 @@ const TYPES_CHRONIQUE = {
   // questions et les reponses attendent qu'une redaction vienne les chercher par
   // `conference_matiere`, puis decide seule d'en publier tout, partie ou rien. Le Journal annonce
   // qu'une conference a eu lieu ; il ne la resume pas et ne la juge pas.
-  conference_presse:           { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 }
+  conference_presse:           { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
+
+  // DISCIPLINE DE SEANCE A L'ASSEMBLEE (raccord du 11 octobre 2026). Les deux lignes sont ecrites
+  // par `assemblee_rappeler` et `assemblee_sanctionner`, DANS LA TRANSACTION de l'acte. Sans ce
+  // raccord elles seraient jetees ici comme « type non mappe » : un rappel au reglement public
+  // serait invisible au Journal, ce qui est precisement le defaut que les deux raccords
+  // precedents avaient corrige ailleurs.
+  //
+  // CE QUI ENTRE ICI EST UN FAIT NU, et c'est tout l'arbitrage. Le libelle dit QUI a rappele ou
+  // sanctionne QUI -- rien d'autre. Le MOTIF exact du President voyage dans `data`, verbatim, et
+  // n'est PAS resume : il est la pour etre CITE. Aucune qualification n'est produite, ni ici ni
+  // ailleurs : ni « abusif », ni « justifie », ni « autoritaire ». Si une redaction joueuse veut
+  // ecrire qu'un President abuse de son pouvoir, c'est a elle de l'ecrire, et le motif exact lui
+  // permet de le faire sans que personne l'ait reecrit pour elle.
+  //
+  // PAS DE `resume` ET PAS DE `nature`. Pas de resume, parce que le libelle serveur est deja la
+  // phrase minimale et qu'une reformulation serait une interpretation. Pas de
+  // `nature:'accusation'` non plus : contrairement a un scandale de presse, un rappel au
+  // reglement EST un fait etabli -- il a eu lieu, il a coute des points, il est trace. Ce qui
+  // reste discutable, c'est son motif ; et un motif discutable n'est pas une accusation du jeu,
+  // c'est une decision de joueur.
+  //
+  // LA SANCTION PESE PLUS LOURD QUE LE RAPPEL, parce qu'elle coute une amende en plus de la
+  // popularite et qu'elle consomme un rappel : c'est un acte de procedure plus grave, au sens
+  // procedural du terme, pas au sens moral.
+  assemblee_rappel:            { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
+  assemblee_sanction:          { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 }
 };
 
 // Phrase attribuee d'un scandale : ce qui est etabli est la PUBLICATION de la mise en cause, jamais

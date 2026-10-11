@@ -150,6 +150,43 @@ export default async function handler(req, res) {
   }
 
   try {
+    // ---- 0. L'ASSEMBLEE EST-ELLE ENCORE SUSPENDUE ? (arbitrage du 11 octobre 2026) ----
+    // AVANT LE DEPOUILLEMENT, ET C'EST TOUT L'INTERET. Si cinq deputes qualifies sont encore
+    // hors de l'hemicycle au moment ou un scrutin devrait etre conclu, ce scrutin ne peut pas
+    // l'etre : son echeance part d'une semaine calendaire, et la cloture ci-dessous ne le trouve
+    // donc plus echu. L'ordre des deux appels EST la regle -- intervertis, la suspension
+    // arriverait apres le depouillement qu'elle devait empecher.
+    //
+    // ELLE NE CONSOMME PAS LA PREROGATIVE DU PRESIDENT. Ces reports n'entrent pas dans
+    // assemblee_reports : ce ne sont pas des decisions, ce sont des consequences. Un texte
+    // repousse par un boycott reste reportable une fois par le President.
+    const suspension = await sbRpc('assemblee_reporter_si_suspendue',
+      { p_pays: EMPIRES_AVEC_ASSEMBLEE[0] });
+    const etatSuspension = Array.isArray(suspension) ? suspension[0] : suspension;
+    if (etatSuspension && etatSuspension.suspendue) {
+      resultats.suspension = {
+        suspendue: true,
+        reportes: etatSuspension.reportes || 0,
+        propositions: etatSuspension.propositions || []
+      };
+      // ON LE DIT PUBLIQUEMENT, EN FAITS. Un scrutin qui n'est pas depouille sans explication
+      // passerait pour une panne ; la raison est une regle de jeu, et elle appartient aux joueurs.
+      if ((etatSuspension.reportes || 0) > 0) {
+        await sbInsert('evenements_globaux', {
+          country: 'republic', city: null,
+          texte: '🏛 ASSEMBLÉE NATIONALE — séance suspendue : ' + etatSuspension.reportes
+               + ' scrutin(s) reporté(s) d\'une semaine.',
+          jour: null
+        }).catch(() => {});
+      }
+    } else if (etatSuspension) {
+      resultats.suspension = { suspendue: false, reportes: 0 };
+    } else {
+      // La porte est injoignable : on le DIT, au lieu de laisser croire qu'aucune suspension ne
+      // courait. Le depouillement continue -- c'est le comportement d'avant cet arbitrage.
+      resultats.erreurs.push({ etape: 'suspension', raison: 'porte_injoignable' });
+    }
+
     // ---- 1. CLOTURE DES SCRUTINS ECHUS (§26) ----
     // L'EMPIRE EST DECLARE, PAS SUPPOSE (chantier 4G). Republia est le seul a avoir une
     // Assemblee -- aucun siege n'est declare ailleurs -- et cette liste le DIT au lieu de

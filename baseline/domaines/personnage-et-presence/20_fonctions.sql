@@ -1005,17 +1005,19 @@ BEGIN
 END;
 $function$;
 
--- personnage_ajuster_pop_inf(text,text,integer,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
+-- personnage_ajuster_pop_inf(text,text,integer,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.personnage_ajuster_pop_inf(p_acteur text, p_cible text, p_pop integer, p_inf integer, p_cause text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
-  v_res jsonb; v_base jsonb;
+  v_res jsonb; v_ecrit jsonb;
   v_poste text; v_pays text;
   v_min integer; v_max integer;
+  v_pop_lue numeric; v_inf_lue numeric;
+  v_pop_attendue numeric; v_inf_attendue numeric;
   v_serveur boolean := public.est_appel_serveur();
 BEGIN
   IF NOT v_serveur THEN PERFORM public.exiger_acteur(p_acteur); END IF;
@@ -1075,6 +1077,24 @@ BEGIN
     END IF;
     v_min := -100; v_max := -100;
 
+  ELSIF p_cause IN ('assemblee_rappel', 'assemblee_sanction', 'assemblee_suspension_seance') THEN
+    -- LA DISCIPLINE DE SEANCE (arbitrage du 11 octobre 2026). L'autorite n'est PAS lue sur la
+    -- fiche : la presidence de l'Assemblee est un poste NOMME, et son seul point de verite est le
+    -- registre `postes_attribues`, lu par `assemblee_president`.
+    IF v_pays IS NULL OR public.assemblee_president(v_pays) IS DISTINCT FROM p_acteur THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante',
+                                'cause', p_cause, 'requis', 'president_assemblee');
+    END IF;
+    -- UNE SUSPENSION VOLONTAIRE SE PAIE SOI-MEME. Le President ne peut pas faire porter son cout
+    -- a un depute : la cause ne vise que lui.
+    IF p_cause = 'assemblee_suspension_seance' AND p_cible IS DISTINCT FROM p_acteur THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'cible_doit_etre_l_acteur', 'cause', p_cause);
+    END IF;
+    -- AMPLITUDE EXACTE, PAS UNE FOURCHETTE. 15 points pour un rappel, 20 pour une sanction, 20
+    -- pour une suspension volontaire. Le registre refusera tout autre montant.
+    IF p_cause = 'assemblee_rappel' THEN v_min := -15; v_max := -15;
+    ELSE                                 v_min := -20; v_max := -20; END IF;
+
   ELSIF p_cause = 'football_match' THEN
     -- Gain de popularite d'un titulaire apres un match : +20 (participation) ou +30 (victoire).
     -- RESIDU ASSUME : le championnat n'a pas de moteur serveur, il avance depuis les navigateurs
@@ -1096,27 +1116,52 @@ BEGIN
                               'cause', p_cause, 'pop', p_pop, 'min', v_min, 'max', v_max);
   END IF;
 
-  SELECT jsonb_set(
-           CASE WHEN jsonb_typeof(pp.resources) = 'object' THEN pp.resources ELSE '{}'::jsonb END,
-           '{pop}', to_jsonb(greatest(0, least(100,
-             coalesce(CASE WHEN jsonb_typeof(pp.resources -> 'pop') = 'number'
-                           THEN (pp.resources ->> 'pop')::numeric END, 50)
-             + coalesce(p_pop, 0)))))
-    INTO v_base
+  -- LA LECTURE SOUS VERROU. C'est la base qu'on va ANNONCER au trigger : 50 est la valeur par
+  -- defaut d'une popularite jamais ecrite, comme partout ailleurs dans le jeu.
+  SELECT coalesce(CASE WHEN jsonb_typeof(pp.resources -> 'pop') = 'number'
+                       THEN (pp.resources ->> 'pop')::numeric END, 50),
+         coalesce(CASE WHEN jsonb_typeof(pp.resources -> 'inf') = 'number'
+                       THEN (pp.resources ->> 'inf')::numeric END, 0),
+         CASE WHEN jsonb_typeof(pp.resources) = 'object' THEN pp.resources ELSE '{}'::jsonb END
+    INTO v_pop_lue, v_inf_lue, v_ecrit
     FROM public.personnages_donnees pp WHERE pp.name = p_cible FOR UPDATE;
 
-  IF v_base IS NULL THEN
+  IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cible_introuvable');
   END IF;
 
-  UPDATE public.personnages_donnees
-     SET resources = CASE WHEN p_inf IS NULL THEN v_base
-            ELSE jsonb_set(v_base, '{inf}', to_jsonb(greatest(0, least(100,
-                   coalesce(CASE WHEN jsonb_typeof(v_base -> 'inf') = 'number'
-                                 THEN (v_base ->> 'inf')::numeric END, 0) + p_inf))))
-          END
+  -- LE PROTOCOLE DU TRIGGER : on annonce la base lue, on ecrit la valeur voulue, et le trigger
+  -- applique la DIFFERENCE a la valeur reelle du moment. Sans `popBase`, il restaurait l'ancienne
+  -- valeur -- c'est le defaut que cette migration corrige. On n'ecrete pas ici : le trigger borne
+  -- lui-meme entre 0 et 100, et ecreter deux fois ferait perdre le sens de la difference.
+  v_ecrit := jsonb_set(v_ecrit, '{popBase}', to_jsonb(v_pop_lue));
+  v_ecrit := jsonb_set(v_ecrit, '{pop}', to_jsonb(v_pop_lue + coalesce(p_pop, 0)));
+  v_pop_attendue := greatest(0, least(100, v_pop_lue + coalesce(p_pop, 0)));
+
+  IF p_inf IS NOT NULL THEN
+    v_ecrit := jsonb_set(v_ecrit, '{infBase}', to_jsonb(v_inf_lue));
+    v_ecrit := jsonb_set(v_ecrit, '{inf}', to_jsonb(v_inf_lue + p_inf));
+    v_inf_attendue := greatest(0, least(100, v_inf_lue + p_inf));
+  END IF;
+
+  UPDATE public.personnages_donnees SET resources = v_ecrit
    WHERE name = p_cible
    RETURNING resources INTO v_res;
+
+  -- ET ELLE NE MENT PLUS. Si la valeur rendue n'est pas celle attendue, un garde-fou a annule
+  -- l'ecriture : on le DIT, au lieu de repondre « ok » comme avant. C'est exactement ce silence
+  -- qui a permis a ce defaut de survivre.
+  IF coalesce(CASE WHEN jsonb_typeof(v_res -> 'pop') = 'number'
+                   THEN (v_res ->> 'pop')::numeric END, 50) IS DISTINCT FROM v_pop_attendue THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ecriture_annulee', 'cause', p_cause,
+                              'attendue', v_pop_attendue, 'obtenue', v_res -> 'pop');
+  END IF;
+  IF p_inf IS NOT NULL
+     AND coalesce(CASE WHEN jsonb_typeof(v_res -> 'inf') = 'number'
+                       THEN (v_res ->> 'inf')::numeric END, 0) IS DISTINCT FROM v_inf_attendue THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ecriture_annulee', 'cause', p_cause,
+                              'attendue_inf', v_inf_attendue, 'obtenue_inf', v_res -> 'inf');
+  END IF;
 
   RETURN jsonb_build_object('ok', true, 'pop', v_res -> 'pop', 'inf', v_res -> 'inf',
                             'cause', p_cause);

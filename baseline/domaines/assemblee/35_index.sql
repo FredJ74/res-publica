@@ -10,22 +10,37 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 11 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 17 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   assemblee_catalogue_illegal_pkey  (contrainte assemblee_catalogue_illegal_pkey)
 --   assemblee_categories_interdiction_pkey  (contrainte assemblee_categories_interdiction_pkey)
+--   assemblee_debats_pkey  (contrainte assemblee_debats_pkey)
+--   assemblee_disciplines_pkey  (contrainte assemblee_disciplines_pkey)
 --   assemblee_indemnites_pkey  (contrainte assemblee_indemnites_pkey)
 --   assemblee_intentions_pkey  (contrainte assemblee_intentions_pkey)
+--   assemblee_paroles_pkey  (contrainte assemblee_paroles_pkey)
 --   assemblee_propositions_pkey  (contrainte assemblee_propositions_pkey)
+--   assemblee_protestations_pkey  (contrainte assemblee_protestations_pkey)
+--   assemblee_reports_pkey  (contrainte assemblee_reports_pkey)
 --   assemblee_requetes_pkey  (contrainte assemblee_requetes_pkey)
 --   assemblee_sanctions_paliers_pkey  (contrainte assemblee_sanctions_paliers_pkey)
 --   assemblee_scrutins_pkey  (contrainte assemblee_scrutins_pkey)
 --   assemblee_sieges_pkey  (contrainte assemblee_sieges_pkey)
 --   assemblee_sieges_pnj_id_key  (contrainte assemblee_sieges_pnj_id_key)
+--   assemblee_suspensions_pkey  (contrainte assemblee_suspensions_pkey)
 --   assemblee_votes_pkey  (contrainte assemblee_votes_pkey)
 
 -- Index autonomes :
+CREATE INDEX assemblee_debats_par_pays ON public.assemblee_debats USING btree (pays, dit_le DESC);
+CREATE UNIQUE INDEX assemblee_debats_une_requete ON public.assemblee_debats USING btree (requete) WHERE (requete IS NOT NULL);
+CREATE INDEX assemblee_disciplines_par_cible ON public.assemblee_disciplines USING btree (pays, cible, fait_le DESC);
+CREATE UNIQUE INDEX assemblee_disciplines_une_requete ON public.assemblee_disciplines USING btree (requete) WHERE (requete IS NOT NULL);
 CREATE INDEX assemblee_propositions_a_appliquer_idx ON public.assemblee_propositions USING btree (country, adoptee_ts) WHERE ((statut = 'adoptee'::text) AND (appliquee_ts IS NULL) AND (type = ANY (ARRAY['mecanique'::text, 'abrogation'::text])));
+CREATE UNIQUE INDEX assemblee_reports_une_requete ON public.assemblee_reports USING btree (requete) WHERE (requete IS NOT NULL);
 CREATE INDEX assemblee_sanctions_paliers_prop_idx ON public.assemblee_sanctions_paliers USING btree (proposition_id, palier);
+CREATE UNIQUE INDEX assemblee_suspensions_une_requete ON public.assemblee_suspensions USING btree (requete) WHERE (requete IS NOT NULL);
+CREATE UNIQUE INDEX assemblee_un_rappel_une_sanction ON public.assemblee_disciplines USING btree (rappel_id) WHERE (rappel_id IS NOT NULL);
+CREATE UNIQUE INDEX assemblee_un_seul_boycott_ouvert ON public.assemblee_suspensions USING btree (pays) WHERE ((cause = 'boycott'::text) AND (close_le IS NULL));
+CREATE UNIQUE INDEX assemblee_un_seul_orateur ON public.assemblee_paroles USING btree (pays) WHERE a_la_parole;
 CREATE INDEX idx_assemblee_indemnites_perso ON public.assemblee_indemnites USING btree (personnage, jour);
 CREATE INDEX idx_assemblee_intentions_prop ON public.assemblee_intentions USING btree (proposition_id, session_num);
 CREATE INDEX idx_assemblee_prop_cloture ON public.assemblee_propositions USING btree (statut, cloture_ts) WHERE (statut = 'session'::text);

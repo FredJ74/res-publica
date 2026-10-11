@@ -421,6 +421,66 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_dans_hemicycle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_dans_hemicycle(p_pays text, p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT public.acteur_present_sur_site(p_nom, p_pays, 'capitale', 'assemblee', 'hemicycle');
+$function$;
+
+-- assemblee_debat_dire(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_debat_dire(p_texte text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_t text; v_id text; v_autorise boolean; v_fonction text; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  -- LA GARDE, AVANT TOUTE ECRITURE.
+  SELECT * INTO d FROM public.assemblee_debats WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'id', d.id, 'autorise', d.autorise);
+  END IF;
+
+  v_t := nullif(btrim(coalesce(p_texte, '')), '');
+  IF v_t IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'texte_vide'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+
+  -- LE PRESIDENT PARLE TOUJOURS DE DROIT : il preside la seance. Un depute, lui, doit etre dans
+  -- l'hemicycle -- on ne parle pas en seance depuis le hall.
+  IF public.assemblee_president(v_pays) = v_moi THEN
+    v_autorise := true; v_fonction := 'president_assemblee';
+  ELSIF public.assemblee_est_depute(v_pays, v_moi) THEN
+    IF NOT public.assemblee_dans_hemicycle(v_pays, v_moi) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_dans_hemicycle'); END IF;
+    v_autorise := EXISTS (SELECT 1 FROM public.assemblee_paroles
+                           WHERE pays = v_pays AND depute = v_moi AND a_la_parole);
+    v_fonction := 'depute';
+  ELSE
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute');
+  END IF;
+
+  -- L'IDENTIFIANT EST DERIVE DE LA REQUETE : deuxieme garde, portee par la cle primaire.
+  v_id := 'debat-' || left(md5(p_requete), 20);
+  INSERT INTO public.assemblee_debats (id, pays, auteur, auteur_fonction, texte, autorise, requete)
+  VALUES (v_id, v_pays, v_moi, v_fonction, left(v_t, 4000), v_autorise, p_requete);
+  RETURN jsonb_build_object('ok', true, 'id', v_id, 'autorise', v_autorise);
+END;
+$function$;
+
 -- assemblee_debiter_caisse_plafonne(text,integer) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_debiter_caisse_plafonne(p_key text, p_montant integer)
  RETURNS integer
@@ -732,6 +792,38 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_discipline_matiere(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_discipline_matiere(p_limite integer DEFAULT 20)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_lim integer := least(greatest(coalesce(p_limite,20),1),50);
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT g.pays INTO v_pays FROM public.presse_membres m
+    JOIN public.groupes_presse g ON g.id = m.groupe_id
+   WHERE m.personnage = v_moi LIMIT 1;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_a_la_redaction'); END IF;
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays,
+    'actes', (SELECT coalesce(jsonb_agg(x ORDER BY (x->>'fait_le') DESC), '[]'::jsonb) FROM (
+      SELECT jsonb_build_object(
+               'id', d.id, 'type', d.genre,
+               'auteur', d.president, 'auteur_fonction', d.president_fonction,
+               'cible', d.cible, 'cible_fonction', d.cible_fonction,
+               'motif', d.motif,
+               'pop', d.pop_delta, 'amende', d.amende, 'caisse_creditee', d.caisse_creditee,
+               'rappel_consomme', d.rappel_id, 'fait_le', d.fait_le) AS x
+        FROM public.assemblee_disciplines d WHERE d.pays = v_pays
+        ORDER BY d.fait_le DESC LIMIT v_lim) z));
+END;
+$function$;
+
 -- assemblee_dissoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_dissoudre(p_pays text DEFAULT NULL::text)
  RETURNS jsonb
@@ -809,6 +901,17 @@ CREATE OR REPLACE FUNCTION public.assemblee_echeance_palier(p_adoptee_ts timesta
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT p_adoptee_ts + interval '36 hours' + ((p_palier - 1) * interval '24 hours');
+$function$;
+
+-- assemblee_est_depute(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_est_depute(p_pays text, p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.assemblee_occupation_sieges(p_pays) o
+                  WHERE o.pj_nom = p_nom);
 $function$;
 
 -- assemblee_exige_application(text) -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
@@ -1440,6 +1543,119 @@ AS $function$
   END;
 $function$;
 
+-- assemblee_parole_demander() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_parole_demander()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_rang integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF NOT public.assemblee_est_depute(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
+  IF NOT public.assemblee_dans_hemicycle(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_dans_hemicycle'); END IF;
+
+  -- IDEMPOTENT PAR CONSTRUCTION : un double clic ne cree pas deux demandes et ne repousse pas la
+  -- place deja acquise dans la file. On ne touche a rien si une demande existe.
+  IF EXISTS (SELECT 1 FROM public.assemblee_paroles WHERE pays = v_pays AND depute = v_moi) THEN
+    SELECT count(*) INTO v_rang FROM public.assemblee_paroles
+     WHERE pays = v_pays AND NOT a_la_parole
+       AND demande_le <= (SELECT demande_le FROM public.assemblee_paroles
+                           WHERE pays = v_pays AND depute = v_moi);
+    RETURN jsonb_build_object('ok', true, 'deja_demande', true, 'rang', v_rang);
+  END IF;
+
+  INSERT INTO public.assemblee_paroles (pays, depute) VALUES (v_pays, v_moi);
+  SELECT count(*) INTO v_rang FROM public.assemblee_paroles WHERE pays = v_pays AND NOT a_la_parole;
+  RETURN jsonb_build_object('ok', true, 'rang', v_rang);
+END;
+$function$;
+
+-- assemblee_parole_donner(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_parole_donner(p_depute text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_premier text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+
+  -- LE VERROU EST PRIS SUR LA FILE ENTIERE : deux « donner la parole » concurrents ne peuvent pas
+  -- lire le meme premier et produire deux orateurs.
+  PERFORM 1 FROM public.assemblee_paroles WHERE pays = v_pays FOR UPDATE;
+  SELECT depute INTO v_premier FROM public.assemblee_paroles
+   WHERE pays = v_pays AND NOT a_la_parole ORDER BY demande_le, depute LIMIT 1;
+  IF v_premier IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'file_vide'); END IF;
+  IF p_depute IS NOT NULL AND p_depute <> v_premier THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_premier_de_la_file',
+                              'premier', v_premier);
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.assemblee_paroles WHERE pays = v_pays AND a_la_parole) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'un_orateur_a_deja_la_parole'); END IF;
+
+  UPDATE public.assemblee_paroles SET a_la_parole = true, donnee_le = clock_timestamp()
+   WHERE pays = v_pays AND depute = v_premier;
+  RETURN jsonb_build_object('ok', true, 'orateur', v_premier);
+END;
+$function$;
+
+-- assemblee_parole_retirer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_parole_retirer()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_orateur text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+
+  SELECT depute INTO v_orateur FROM public.assemblee_paroles
+   WHERE pays = v_pays AND a_la_parole FOR UPDATE;
+  IF v_orateur IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_orateur'); END IF;
+
+  DELETE FROM public.assemblee_paroles WHERE pays = v_pays AND depute = v_orateur;
+  RETURN jsonb_build_object('ok', true, 'retire', v_orateur);
+END;
+$function$;
+
+-- assemblee_parti_de(text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_parti_de(p_pays text, p_nom text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT o.id FROM public.organisations o
+   CROSS JOIN LATERAL (SELECT CASE WHEN o.data IS JSON OBJECT
+                                   THEN o.data::jsonb ELSE '{}'::jsonb END AS d) j
+   WHERE j.d ->> 'type' = 'politique'
+     AND coalesce(j.d ->> 'country', o.country_origine) = p_pays
+     AND EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(j.d -> 'membres', '[]'::jsonb)) m
+                  WHERE m ->> 'nom' = p_nom)
+   LIMIT 1;
+$function$;
+
 -- assemblee_peut_deposer(text,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_peut_deposer(p_nom text, p_country text)
  RETURNS boolean
@@ -1526,6 +1742,18 @@ BEGIN
                            THEN NULL ELSE v_st END));
 END $function$;
 
+-- assemblee_president(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_president(p_pays text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT a.titulaire FROM public.postes_attribues a
+   WHERE a.country = p_pays AND a.poste_id = 'president_assemblee' AND a.city IS NULL
+   LIMIT 1;
+$function$;
+
 -- assemblee_prochaine_cloture(timestamp with time zone) -> timestamp with time zone | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_prochaine_cloture(p_depuis timestamp with time zone)
  RETURNS timestamp with time zone
@@ -1566,6 +1794,188 @@ BEGIN
   END IF;
   NEW.updated_at := now();
   RETURN NEW;
+END;
+$function$;
+
+-- assemblee_protester() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_protester()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_pres text; v_parti text;
+  v_disc text; v_motif text; v_etat jsonb; a record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_city, current_building, current_room INTO a
+    FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  v_pays := a.country;
+  IF NOT public.assemblee_est_depute(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
+  IF NOT (a.current_building = 'assemblee' AND a.current_room = 'hemicycle') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_dans_hemicycle'); END IF;
+
+  v_pres  := public.assemblee_president(v_pays);
+  v_parti := public.assemblee_parti_de(v_pays, v_moi);
+
+  -- A. UN ACTE SUBI PAR LUI-MEME, sous la presidence en cours.
+  SELECT d.id INTO v_disc FROM public.assemblee_disciplines d
+   WHERE d.pays = v_pays AND d.cible = v_moi
+     AND (v_pres IS NULL OR d.president = v_pres)
+   ORDER BY d.fait_le DESC LIMIT 1;
+  IF v_disc IS NOT NULL THEN v_motif := 'soi_meme'; END IF;
+
+  -- B. UN ACTE SUBI PAR UN DEPUTE DE SON PARTI. Le parti est relu en base pour les DEUX cotes --
+  -- celui du protestataire et celui de la victime -- et jamais recu du navigateur.
+  IF v_motif IS NULL AND v_parti IS NOT NULL THEN
+    SELECT d.id INTO v_disc FROM public.assemblee_disciplines d
+     WHERE d.pays = v_pays AND (v_pres IS NULL OR d.president = v_pres)
+       AND public.assemblee_parti_de(v_pays, d.cible) = v_parti
+     ORDER BY d.fait_le DESC LIMIT 1;
+    IF v_disc IS NOT NULL THEN v_motif := 'parti'; END IF;
+  END IF;
+
+  -- LE DEPLACEMENT REEL, et il est le meme pour tous : qualifie ou pas, on sort.
+  UPDATE public.personnages_donnees SET current_room = 'accueil_assemblee' WHERE name = v_moi;
+
+  INSERT INTO public.assemblee_protestations (pays, depute, qualifie, motif_qualifiant, discipline_id)
+  VALUES (v_pays, v_moi, v_motif IS NOT NULL, v_motif, v_disc)
+  ON CONFLICT (pays, depute) DO UPDATE
+    SET qualifie = EXCLUDED.qualifie, motif_qualifiant = EXCLUDED.motif_qualifiant,
+        discipline_id = EXCLUDED.discipline_id;
+
+  v_etat := public.assemblee_recalculer_suspension(v_pays);
+  RETURN jsonb_build_object('ok', true, 'qualifie', v_motif IS NOT NULL, 'motif', v_motif,
+                            'parti', v_parti, 'piece', 'accueil_assemblee', 'seance', v_etat);
+END;
+$function$;
+
+-- assemblee_rappeler(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_rappeler(p_depute text, p_motif text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  POP_RAPPEL constant integer := -15;
+  v_moi text; v_pays text; v_m text; v_id text; v_chron text; v_pop jsonb; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  -- LA GARDE, AVANT TOUTE ECRITURE. Un rappel rejoue rendait 30 points de popularite au lieu de 15.
+  SELECT * INTO d FROM public.assemblee_disciplines WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'rappel', d.id, 'cible', d.cible, 'pop', d.pop_delta);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  v_m := nullif(btrim(coalesce(p_motif, '')), '');
+  IF v_m IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'motif_obligatoire'); END IF;
+  IF p_depute IS NULL OR p_depute = v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cible_invalide'); END IF;
+  IF NOT public.assemblee_est_depute(v_pays, p_depute) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cible_pas_deputee'); END IF;
+  -- UNIQUEMENT CONTRE UN DEPUTE PHYSIQUEMENT PRESENT. On ne rappelle pas au reglement quelqu'un
+  -- qui a quitte l'hemicycle.
+  IF NOT public.assemblee_dans_hemicycle(v_pays, p_depute) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cible_absente_de_l_hemicycle'); END IF;
+
+  -- LA POPULARITE D'ABORD, PAR LE REGISTRE DES CAUSES. Tous les refus legitimes sont derriere
+  -- nous : si le registre refuse ici, c'est une incoherence, et on annule TOUT plutot que
+  -- d'inscrire un rappel que personne n'a paye.
+  v_pop := public.personnage_ajuster_pop_inf(v_moi, p_depute, POP_RAPPEL, NULL, 'assemblee_rappel');
+  IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'assemblee_rappel_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
+  END IF;
+
+  v_id    := 'rappel-' || left(md5(p_requete), 20);
+  v_chron := 'chronique-assemblee_rappel-' || left(md5(p_requete), 20);
+
+  INSERT INTO public.assemblee_disciplines
+    (id, pays, genre, president, president_fonction, cible, cible_fonction, motif, pop_delta,
+     chronique_id, requete)
+  VALUES (v_id, v_pays, 'rappel', v_moi, 'president_assemblee', p_depute, 'depute', v_m,
+          POP_RAPPEL, v_chron, p_requete);
+
+  -- LA TRACE PUBLIQUE EST FACTUELLE, ECRITE PAR LE SERVEUR, DANS LA MEME TRANSACTION. Elle dit QUI
+  -- a rappele QUI, et rien de plus : aucun adjectif, aucune appreciation. Le motif exact voyage
+  -- dans `data`, verbatim, pour que la presse puisse le CITER sans que personne l'ait reecrit.
+  INSERT INTO public.chronique_nationale
+    (id, country, type, city, personnages, libelle, data, source_ref)
+  VALUES (v_chron, v_pays, 'assemblee_rappel', 'capitale',
+          jsonb_build_array(v_moi, p_depute),
+          'Le President de l''Assemblee a rappele ' || p_depute || ' au reglement.',
+          jsonb_build_object('president', v_moi, 'cible', p_depute, 'motif', v_m,
+                             'pop', POP_RAPPEL, 'discipline', v_id),
+          v_id);
+
+  RETURN jsonb_build_object('ok', true, 'rappel', v_id, 'cible', p_depute,
+                            'pop', POP_RAPPEL, 'pop_cible', v_pop -> 'pop');
+END;
+$function$;
+
+-- assemblee_recalculer_suspension(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_recalculer_suspension(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  SEUIL constant integer := 5;
+  v_qualifies integer; v_dehors integer; v_ouvert text; v_id text; v_pres text;
+BEGIN
+  SELECT count(*) FILTER (WHERE qualifie), count(*)
+    INTO v_qualifies, v_dehors
+    FROM public.assemblee_protestations WHERE pays = p_pays;
+
+  SELECT id INTO v_ouvert FROM public.assemblee_suspensions
+   WHERE pays = p_pays AND cause = 'boycott' AND close_le IS NULL FOR UPDATE;
+
+  IF v_ouvert IS NOT NULL AND v_qualifies < SEUIL THEN
+    -- clock_timestamp() et non now() : la fermeture doit etre POSTERIEURE aux sorties inscrites
+    -- dans la meme transaction, sinon le test de dissolution complete ci-dessous ne tranche plus.
+    UPDATE public.assemblee_suspensions SET close_le = clock_timestamp() WHERE id = v_ouvert;
+    v_ouvert := NULL;
+  ELSIF v_ouvert IS NULL AND v_qualifies >= SEUIL THEN
+    -- DISSOLUTION COMPLETE EXIGEE : s'il reste un protestataire qualifie depuis l'episode
+    -- precedent, on est dans le MEME boycott et on ne l'ouvre pas une seconde fois. Sans cette
+    -- regle, un seul depute faisant hall -> hemicycle -> hall fabriquerait des episodes a volonte.
+    IF EXISTS (SELECT 1 FROM public.assemblee_suspensions s
+                WHERE s.pays = p_pays AND s.cause = 'boycott' AND s.close_le IS NOT NULL
+                  AND EXISTS (SELECT 1 FROM public.assemblee_protestations p
+                               WHERE p.pays = p_pays AND p.qualifie
+                                 AND p.sorti_le < s.close_le)) THEN
+      NULL;   -- meme boycott : aucun episode neuf
+    ELSE
+      v_pres := public.assemblee_president(p_pays);
+      v_id := 'suspension-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISSUS');
+      INSERT INTO public.assemblee_suspensions (id, pays, cause, president, protestataires)
+      VALUES (v_id, p_pays, 'boycott', v_pres,
+              (SELECT coalesce(jsonb_agg(depute ORDER BY depute), '[]'::jsonb)
+                 FROM public.assemblee_protestations
+                WHERE pays = p_pays AND qualifie));
+      v_ouvert := v_id;
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object('suspendue', v_ouvert IS NOT NULL, 'episode', v_ouvert,
+                            'qualifies', v_qualifies, 'dehors', v_dehors, 'seuil', SEUIL);
 END;
 $function$;
 
@@ -1719,6 +2129,95 @@ AS $function$
          AND p.statut = 'adoptee'
          AND public.assemblee_exige_application(p.type)
     ) s;
+$function$;
+
+-- assemblee_reporter_si_suspendue(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_reporter_si_suspendue(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_n integer := 0; v_ids jsonb := '[]'::jsonb; r record;
+BEGIN
+  IF NOT public.assemblee_suspendue(p_pays) THEN
+    RETURN jsonb_build_object('ok', true, 'suspendue', false, 'reportes', 0);
+  END IF;
+
+  FOR r IN SELECT id, cloture_ts FROM public.assemblee_propositions
+            WHERE country = p_pays AND statut = 'session'
+              AND cloture_ts IS NOT NULL AND cloture_ts <= now()
+            FOR UPDATE
+  LOOP
+    UPDATE public.assemblee_propositions
+       SET cloture_ts = ((r.cloture_ts AT TIME ZONE 'Europe/Paris') + interval '7 days')
+                          AT TIME ZONE 'Europe/Paris',
+           updated_at = now()
+     WHERE id = r.id;
+    v_n := v_n + 1;
+    v_ids := v_ids || to_jsonb(r.id);
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'suspendue', true, 'reportes', v_n, 'propositions', v_ids);
+END;
+$function$;
+
+-- assemblee_reporter_vote(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_reporter_vote(p_proposition_id text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; p record; v_neuve timestamptz; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  SELECT * INTO d FROM public.assemblee_reports WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'proposition', d.proposition_id,
+                              'ancienne_cloture', d.ancienne_cloture,
+                              'nouvelle_cloture', d.nouvelle_cloture);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+
+  SELECT * INTO p FROM public.assemblee_propositions
+   WHERE id = p_proposition_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'proposition_inconnue'); END IF;
+  IF p.country IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autre_empire'); END IF;
+  -- ON NE REPOUSSE QUE CE QUI A UNE ECHEANCE. Un texte encore en debat n'a pas de cloture : il n'y
+  -- a rien a repousser, et le dire est plus utile que de deviner une date.
+  IF p.statut <> 'session' OR p.cloture_ts IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_en_session', 'statut', p.statut); END IF;
+  IF p.cloture_ts <= now() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'echeance_deja_passee'); END IF;
+  IF EXISTS (SELECT 1 FROM public.assemblee_reports WHERE proposition_id = p_proposition_id) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_reporte_une_fois'); END IF;
+
+  -- UNE SEMAINE CALENDAIRE DE PARIS, jamais +7 x 24 h : une echeance du mercredi 22 heures reste
+  -- un mercredi 22 heures a travers un changement d'heure.
+  v_neuve := ((p.cloture_ts AT TIME ZONE 'Europe/Paris') + interval '7 days') AT TIME ZONE 'Europe/Paris';
+
+  INSERT INTO public.assemblee_reports
+    (proposition_id, pays, president, ancienne_cloture, nouvelle_cloture, requete)
+  VALUES (p_proposition_id, v_pays, v_moi, p.cloture_ts, v_neuve, p_requete);
+
+  UPDATE public.assemblee_propositions
+     SET cloture_ts = v_neuve, updated_at = now() WHERE id = p_proposition_id;
+
+  RETURN jsonb_build_object('ok', true, 'proposition', p_proposition_id,
+                            'ancienne_cloture', p.cloture_ts, 'nouvelle_cloture', v_neuve);
+END;
 $function$;
 
 -- assemblee_requete_clore(text,jsonb) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
@@ -1913,6 +2412,127 @@ BEGIN
 END;
 $function$;
 
+-- assemblee_revenir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_revenir()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_etat jsonb; a record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_building, current_room INTO a
+    FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  v_pays := a.country;
+  IF NOT public.assemblee_est_depute(v_pays, v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_depute'); END IF;
+  IF a.current_building IS DISTINCT FROM 'assemblee' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_a_l_assemblee'); END IF;
+
+  UPDATE public.personnages_donnees SET current_room = 'hemicycle' WHERE name = v_moi;
+  DELETE FROM public.assemblee_protestations WHERE pays = v_pays AND depute = v_moi;
+
+  v_etat := public.assemblee_recalculer_suspension(v_pays);
+  RETURN jsonb_build_object('ok', true, 'piece', 'hemicycle', 'seance', v_etat);
+END;
+$function$;
+
+-- assemblee_sanctionner(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_sanctionner(p_depute text, p_motif text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  POP_SANCTION constant integer := -20;
+  AMENDE       constant integer := 100;
+  v_moi text; v_pays text; v_m text; v_id text; v_chron text; v_rappel text;
+  v_caisse text; v_paye boolean; v_pop jsonb; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  -- LA GARDE, AVANT TOUT DEBIT. Une sanction rejouee prelevait 200 FR et 40 points.
+  SELECT * INTO d FROM public.assemblee_disciplines WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'sanction', d.id, 'cible', d.cible, 'pop', d.pop_delta,
+                              'amende', d.amende, 'caisse', d.caisse_creditee,
+                              'rappel_consomme', d.rappel_id);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+  v_m := nullif(btrim(coalesce(p_motif, '')), '');
+  IF v_m IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'motif_obligatoire'); END IF;
+  IF NOT public.assemblee_est_depute(v_pays, p_depute) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'cible_pas_deputee'); END IF;
+
+  -- LE RAPPEL PREALABLE, NON ENCORE CONSOMME, LE PLUS ANCIEN D'ABORD. Verrouille : deux sanctions
+  -- simultanees ne peuvent pas elire le meme rappel.
+  SELECT x.id INTO v_rappel FROM public.assemblee_disciplines x
+   WHERE x.pays = v_pays AND x.genre = 'rappel' AND x.cible = p_depute
+     AND x.president = v_moi
+     AND NOT EXISTS (SELECT 1 FROM public.assemblee_disciplines s WHERE s.rappel_id = x.id)
+   ORDER BY x.fait_le
+   FOR UPDATE
+   LIMIT 1;
+  IF v_rappel IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucun_rappel_a_consommer'); END IF;
+
+  -- L'ARGENT D'ABORD, SUR LA POCHE DU DEPUTE. Primitive generique du jeu : liquide puis Banque
+  -- nationale, ecriture directe, et `false` sans rien toucher si les fonds manquent.
+  v_paye := public.helvetia_debiter_fonds_ordinaires(p_depute, AMENDE);
+  IF v_paye IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants',
+                              'montant_requis', AMENDE, 'cible', p_depute);
+  END IF;
+  v_caisse := v_pays || '_assemblee';
+  PERFORM public.assemblee_crediter_caisse(v_caisse, AMENDE);
+
+  -- PUIS LA POPULARITE, par le registre des causes. Un refus ici est une incoherence, pas une
+  -- regle : on annule tout, donc l'amende repart dans la poche du depute et la caisse ne garde rien.
+  v_pop := public.personnage_ajuster_pop_inf(v_moi, p_depute, POP_SANCTION, NULL, 'assemblee_sanction');
+  IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'assemblee_sanction_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
+  END IF;
+
+  v_id    := 'sanction-' || left(md5(p_requete), 20);
+  v_chron := 'chronique-assemblee_sanction-' || left(md5(p_requete), 20);
+
+  INSERT INTO public.assemblee_disciplines
+    (id, pays, genre, president, president_fonction, cible, cible_fonction, motif, pop_delta,
+     amende, caisse_creditee, rappel_id, chronique_id, requete)
+  VALUES (v_id, v_pays, 'sanction', v_moi, 'president_assemblee', p_depute, 'depute', v_m,
+          POP_SANCTION, AMENDE, v_caisse, v_rappel, v_chron, p_requete);
+
+  INSERT INTO public.chronique_nationale
+    (id, country, type, city, personnages, libelle, data, source_ref)
+  VALUES (v_chron, v_pays, 'assemblee_sanction', 'capitale',
+          jsonb_build_array(v_moi, p_depute),
+          'Le President de l''Assemblee a sanctionne ' || p_depute || '.',
+          jsonb_build_object('president', v_moi, 'cible', p_depute, 'motif', v_m,
+                             'pop', POP_SANCTION, 'amende', AMENDE, 'caisse', v_caisse,
+                             'rappel', v_rappel, 'discipline', v_id),
+          v_id);
+
+  RETURN jsonb_build_object('ok', true, 'sanction', v_id, 'rappel_consomme', v_rappel,
+                            'cible', p_depute, 'pop', POP_SANCTION, 'amende', AMENDE,
+                            'caisse', v_caisse, 'pop_cible', v_pop -> 'pop');
+END;
+$function$;
+
 -- assemblee_sanctionner_lois_non_appliquees(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_sanctionner_lois_non_appliquees(p_country text)
  RETURNS jsonb
@@ -1991,6 +2611,72 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'paliers_appliques', v_faits, 'detail', v_res);
 END $function$;
 
+-- assemblee_seance(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_seance(p_limite integer DEFAULT 50)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_pres text; v_lim integer := least(greatest(coalesce(p_limite,50),1),200);
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  v_pres := public.assemblee_president(v_pays);
+
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays,
+    'president', v_pres,
+    'je_suis_le_president', (v_pres IS NOT NULL AND v_pres = v_moi),
+    'je_suis_depute', public.assemblee_est_depute(v_pays, v_moi),
+    'je_suis_dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, v_moi),
+    'mon_parti', public.assemblee_parti_de(v_pays, v_moi),
+    'suspendue', public.assemblee_suspendue(v_pays),
+    -- LES DEPUTES JOUEURS, AVEC LEUR PRESENCE RELUE EN BASE. Les neuf sieges peuvent etre tenus
+    -- par des PNJ, qui n'ont aucune fiche de personnage : eux n'apparaissent pas ici, et ne
+    -- peuvent par construction ni parler, ni etre rappeles, ni protester.
+    'deputes', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                   'depute', o.pj_nom, 'ville', o.city,
+                   'dans_hemicycle', public.assemblee_dans_hemicycle(v_pays, o.pj_nom),
+                   'parti', public.assemblee_parti_de(v_pays, o.pj_nom))
+                 ORDER BY o.city, o.rang), '[]'::jsonb)
+       FROM public.assemblee_occupation_sieges(v_pays) o WHERE o.pj_nom IS NOT NULL),
+    -- LA FILE, DANS SON ORDRE CHRONOLOGIQUE EXACT. C'est elle que le President doit respecter.
+    'file', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', q.depute, 'depuis', q.demande_le)
+              ORDER BY q.demande_le, q.depute), '[]'::jsonb)
+       FROM public.assemblee_paroles q WHERE q.pays = v_pays AND NOT q.a_la_parole),
+    'orateur', (SELECT q.depute FROM public.assemblee_paroles q
+                 WHERE q.pays = v_pays AND q.a_la_parole LIMIT 1),
+    'debat', (SELECT coalesce(jsonb_agg(x ORDER BY (x->>'dit_le')), '[]'::jsonb) FROM (
+        SELECT jsonb_build_object('id', d.id, 'auteur', d.auteur, 'fonction', d.auteur_fonction,
+                 'texte', d.texte, 'autorise', d.autorise, 'dit_le', d.dit_le) AS x
+          FROM public.assemblee_debats d WHERE d.pays = v_pays
+          ORDER BY d.dit_le DESC LIMIT v_lim) z),
+    'dehors', (SELECT coalesce(jsonb_agg(jsonb_build_object('depute', p.depute,
+                 'qualifie', p.qualifie, 'motif', p.motif_qualifiant, 'depuis', p.sorti_le)
+                 ORDER BY p.sorti_le), '[]'::jsonb)
+       FROM public.assemblee_protestations p WHERE p.pays = v_pays),
+    'protestataires_qualifies', (SELECT count(*) FROM public.assemblee_protestations p
+                                  WHERE p.pays = v_pays AND p.qualifie),
+    'seuil_suspension', 5,
+    -- CE QUE LE PRESIDENT PEUT SANCTIONNER : les rappels non encore consommes. C'est un fait de
+    -- procedure, pas un conseil.
+    'rappels_consommables', (SELECT coalesce(jsonb_agg(d.cible ORDER BY d.cible), '[]'::jsonb)
+       FROM public.assemblee_disciplines d
+      WHERE d.pays = v_pays AND d.genre = 'rappel' AND d.president IS NOT DISTINCT FROM v_pres
+        AND NOT EXISTS (SELECT 1 FROM public.assemblee_disciplines s WHERE s.rappel_id = d.id)),
+    -- LES TEXTES AYANT DEJA CONSOMME LA PREROGATIVE DE REPORT. La table est fermee au navigateur :
+    -- sans cette liste, l'ecran proposerait un report impossible.
+    'textes_reportes', (SELECT coalesce(jsonb_agg(r.proposition_id ORDER BY r.proposition_id), '[]'::jsonb)
+       FROM public.assemblee_reports r WHERE r.pays = v_pays),
+    'episodes_sous_cette_presidence', (SELECT count(*) FROM public.assemblee_suspensions s
+       WHERE s.pays = v_pays AND s.cause = 'boycott'
+         AND s.president IS NOT DISTINCT FROM v_pres));
+END;
+$function$;
+
 -- assemblee_sous_types_connus(text) -> text[] | sql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.assemblee_sous_types_connus(p_type text)
  RETURNS text[]
@@ -2018,6 +2704,65 @@ CREATE OR REPLACE FUNCTION public.assemblee_stat_base(p_stats jsonb, p_cle text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT CASE WHEN jsonb_typeof(p_stats -> p_cle) = 'number' THEN (p_stats ->> p_cle)::numeric ELSE 8 END;
+$function$;
+
+-- assemblee_suspendre_seance(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_suspendre_seance(p_motif text, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  POP_SUSPENSION constant integer := -20;
+  v_moi text; v_pays text; v_id text; v_m text; v_pop jsonb; d record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL OR p_requete !~ '^rq-[A-Za-z0-9-]{6,80}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide'); END IF;
+
+  SELECT * INTO d FROM public.assemblee_suspensions WHERE requete = p_requete;
+  IF FOUND THEN
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
+                              'suspension', d.id, 'pop', POP_SUSPENSION,
+                              'compte_pour_le_boycott', false);
+  END IF;
+
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  IF public.assemblee_president(v_pays) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_president'); END IF;
+
+  -- LE MOTIF EST CONSERVE S'IL EST DONNE, ET N'EST NI EXIGE NI JUGE : l'arbitrage ne le rend pas
+  -- obligatoire pour cette prerogative, contrairement au rappel et a la sanction.
+  v_m := nullif(btrim(coalesce(p_motif, '')), '');
+  v_id := 'suspension-pres-' || left(md5(p_requete), 20);
+
+  -- IL SE PAIE LUI-MEME, et le registre des causes le verifie : `assemblee_suspension_seance`
+  -- refuse toute cible autre que l'acteur. Un refus ici annule tout : pas de suspension gratuite.
+  v_pop := public.personnage_ajuster_pop_inf(v_moi, v_moi, POP_SUSPENSION, NULL, 'assemblee_suspension_seance');
+  IF coalesce((v_pop->>'ok')::boolean, false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'assemblee_suspension_popularite_refusee: %', coalesce(v_pop->>'raison', 'inconnue');
+  END IF;
+
+  INSERT INTO public.assemblee_suspensions (id, pays, cause, president, motif, close_le, requete)
+  VALUES (v_id, v_pays, 'presidence', v_moi, v_m, clock_timestamp(), p_requete);
+
+  RETURN jsonb_build_object('ok', true, 'suspension', v_id, 'pop', POP_SUSPENSION,
+                            'compte_pour_le_boycott', false, 'pop_president', v_pop -> 'pop');
+END;
+$function$;
+
+-- assemblee_suspendue(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.assemblee_suspendue(p_pays text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.assemblee_suspensions
+                  WHERE pays = p_pays AND cause = 'boycott' AND close_le IS NULL);
 $function$;
 
 -- assemblee_taux_marchandage(jsonb,boolean) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp

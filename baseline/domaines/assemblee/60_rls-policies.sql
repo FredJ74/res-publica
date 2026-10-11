@@ -15,13 +15,19 @@
 
 ALTER TABLE public.assemblee_catalogue_illegal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_categories_interdiction ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_debats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_disciplines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_indemnites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_intentions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_paroles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_propositions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_protestations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_requetes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_sanctions_paliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_scrutins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_sieges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assemblee_suspensions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assemblee_votes ENABLE ROW LEVEL SECURITY;
 
 -- assemblee_categories_interdiction

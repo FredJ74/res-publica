@@ -2772,7 +2772,12 @@ const BUILDINGS = {
           {name:'Renée Toitout (PNJ)', role:'PNJ - Agente d\'entretien', rel:'neutral', job:'femme_menage', photoUrl:'images/agent-entretien-assemblee.webp'}
         ],
         orders: [
-          {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'}
+          {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
+          // LE MEME ECRAN QUE DANS L'HEMICYCLE, et il est ici pour une raison precise : un depute
+          // qui a quitte la seance en signe de protestation se trouve dans ce hall, et c'est d'ici
+          // qu'il doit pouvoir y revenir. Un debat parlementaire etant public, les autres y
+          // suivent la seance sans pouvoir y prendre la parole -- le serveur le leur refuse.
+          {fn:'seance_parlementaire', label:'Séance parlementaire', pa:0, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Suivre la séance depuis le hall. Un député sorti en signe de protestation y revient par cet écran.'}
         ]
       },
       hemicycle: {
@@ -2791,6 +2796,11 @@ const BUILDINGS = {
           {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president_assemblee', photoUrl:'images/president-assemblee-laroche.webp'}
         ],
         orders: [
+          // L'ECRAN DE SEANCE (11 octobre 2026) : la parole, la discipline, la protestation. Un
+          // ecran, pas une action -- il ne coute ni PA ni argent, et n'ecrit rien par lui-meme.
+          // Chacun des actes qu'il propose a sa propre porte serveur, qui relit le role, le lieu
+          // et le parti en base.
+          {fn:'seance_parlementaire', label:'Séance parlementaire',  pa:0, cost:0,   type:'legal', icon:'ti-microphone',      successRate:100, desc:'Le débat en cours, la file des demandes de parole, et les prérogatives du Président. Les députés peuvent demander la parole, intervenir, ou quitter l\'hémicycle en signe de protestation.'},
           {fn:'observer_debats',     label:'Observer les débats',      pa:1, cost:0,   type:'legal', icon:'ti-eye',             successRate:100, desc:'Instantané de tous les projets en session : intentions des députés PNJ, votes des députés joueurs. +1 INF pour les journalistes.'},
           {fn:'voter_loi',           label:'Voter une loi',            pa:0, cost:0,   type:'legal', icon:'ti-check',           successRate:100, requiresPost:'depute', desc:'Gratuit. Modifiable autant de fois que voulu jusqu\'à la clôture du mercredi 22h.'},
           {fn:'projet_loi',          label:'Déposer un projet de loi', pa:1, cost:0,   type:'legal', icon:'ti-file-text',       successRate:100, desc:'Députés, Premier ministre et ministres. Une semaine de débat avant la session.'},

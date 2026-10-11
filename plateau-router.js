@@ -478,6 +478,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // ASSEMBLEE NATIONALE (chantier du 10 septembre 2026) — tout le cycle parlementaire est
   // desormais servi par plateau-assemblee.js, sur les tables assemblee_*. Les anciens handlers
   // (ouvrirVoteLoi/ouvrirDeposerProjet, bases sur state.loisEnCours en memoire) sont supprimes.
+  // L'ECRAN DE SEANCE (11 octobre 2026) : parole, discipline, protestation. Ses douze actes
+  // ont chacun leur porte serveur ; cet ordre n'ouvre qu'un ecran et ne coute rien.
+  if (fn === 'seance_parlementaire')   { ouvrirSeanceParlementaire(); return; }
   if (fn === 'voter_loi')              { ouvrirVoterLoi(pa, cost); return; }
   if (fn === 'projet_loi')             { ouvrirDeposerProposition(pa, cost); return; }
   if (fn === 'amender_projet')         { ouvrirAmenderProposition(); return; }

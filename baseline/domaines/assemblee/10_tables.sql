@@ -25,6 +25,35 @@ CREATE TABLE public.assemblee_categories_interdiction (
   sous_types text[] DEFAULT '{}'::text[] NOT NULL
 );
 
+CREATE TABLE public.assemblee_debats (
+  id text NOT NULL,
+  pays text NOT NULL,
+  auteur text NOT NULL,
+  auteur_fonction text,
+  texte text NOT NULL,
+  autorise boolean NOT NULL,
+  dit_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  requete text
+);
+
+CREATE TABLE public.assemblee_disciplines (
+  id text NOT NULL,
+  pays text NOT NULL,
+  genre text NOT NULL,
+  president text NOT NULL,
+  president_fonction text,
+  cible text NOT NULL,
+  cible_fonction text,
+  motif text NOT NULL,
+  pop_delta integer NOT NULL,
+  amende integer DEFAULT 0 NOT NULL,
+  caisse_creditee text,
+  rappel_id text,
+  chronique_id text,
+  fait_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  requete text
+);
+
 CREATE TABLE public.assemblee_indemnites (
   id text NOT NULL,
   personnage text NOT NULL,
@@ -40,6 +69,14 @@ CREATE TABLE public.assemblee_intentions (
   siege_id text NOT NULL,
   intention text NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.assemblee_paroles (
+  pays text NOT NULL,
+  depute text NOT NULL,
+  demande_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  a_la_parole boolean DEFAULT false NOT NULL,
+  donnee_le timestamp with time zone
 );
 
 CREATE TABLE public.assemblee_propositions (
@@ -65,6 +102,25 @@ CREATE TABLE public.assemblee_propositions (
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
   appliquee_ts timestamp with time zone,
   appliquee_par text
+);
+
+CREATE TABLE public.assemblee_protestations (
+  pays text NOT NULL,
+  depute text NOT NULL,
+  sorti_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  qualifie boolean NOT NULL,
+  motif_qualifiant text,
+  discipline_id text
+);
+
+CREATE TABLE public.assemblee_reports (
+  proposition_id text NOT NULL,
+  pays text NOT NULL,
+  president text NOT NULL,
+  ancienne_cloture timestamp with time zone NOT NULL,
+  nouvelle_cloture timestamp with time zone NOT NULL,
+  fait_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  requete text
 );
 
 CREATE TABLE public.assemblee_requetes (
@@ -114,6 +170,18 @@ CREATE TABLE public.assemblee_sieges (
   endormi_ts timestamp with time zone,
   endormi_par text,
   updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.assemblee_suspensions (
+  id text NOT NULL,
+  pays text NOT NULL,
+  cause text NOT NULL,
+  president text,
+  motif text,
+  protestataires jsonb DEFAULT '[]'::jsonb NOT NULL,
+  ouverte_le timestamp with time zone DEFAULT clock_timestamp() NOT NULL,
+  close_le timestamp with time zone,
+  requete text
 );
 
 CREATE TABLE public.assemblee_votes (

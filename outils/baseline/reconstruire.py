@@ -515,7 +515,14 @@ def controles_du_monde(cat):
     # conferences_presse_echanges porte la matiere brute : la question posee, la reponse EXACTE, ou
     # le refus. Les deux sont sous RLS SANS AUCUNE POLICY, et c'est ce qui rend la transcription
     # inforgeable : aucun joueur n'y ecrit, aucune porte ne reecrit une reponse deja donnee.
-    att("tables creees", len(cat.tables), 270)
+    # 270 -> 276 le 11 octobre 2026, deuxieme passe de l'Assemblee : les SIX TABLES DE LA SEANCE.
+    # assemblee_paroles porte la file des demandes de parole, assemblee_debats les interventions
+    # prononcees, assemblee_disciplines les rappels et les sanctions, assemblee_protestations les
+    # deputes sortis, assemblee_suspensions les episodes de boycott et les suspensions
+    # presidentielles, assemblee_reports les reports de vote. LES SIX SONT SOUS RLS SANS AUCUNE
+    # POLICY : le navigateur ne peut ni les lire ni les ecrire, et c'est l'etat VOULU -- le compte
+    # des tables sans policy passe de 116 a 122.
+    att("tables creees", len(cat.tables), 276)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -602,8 +609,13 @@ def controles_du_monde(cat):
     # table et aucune journalisation, elle lit le journal des passages, les neuf sieges et les
     # scrutins clos -- et elle rend deux drapeaux d'ABSENCE, pour que l'IA n'ait rien a inventer
     # quand il ne s'est rien passe.
-    att("signatures de fonction creees", cat.n_fonctions, 746)
-    att("noms de fonction distincts", len(cat.fonctions), 742,
+    # 746 -> 765 / 742 -> 761 le 11 octobre 2026, deuxieme passe de l'Assemblee : +19 portes de
+    # seance, sans aucune surcharge ajoutee. Les cinq portes a effet ont change de SIGNATURE en
+    # route -- elles ont recu un identifiant de requete -- mais leurs anciennes versions ont ete
+    # SUPPRIMEES et non laissees en surcharge : une porte sans clef d'idempotence a cote d'une
+    # porte avec clef aurait ete le defaut intact, appelable par son nom.
+    att("signatures de fonction creees", cat.n_fonctions, 765)
+    att("noms de fonction distincts", len(cat.fonctions), 761,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -644,7 +656,13 @@ def controles_du_monde(cat):
     # sur communications_salles : communications_ordres_non_vides, qui empeche une tribune de
     # n'admettre aucun ordre -- sans cette liste, la porte ne validait que le COUT, et le miroir en
     # declare 381.
-    att("contraintes posees", len(cat.contraintes), 477)
+    # 477 -> 493 le 11 octobre 2026, deuxieme passe de l'Assemblee : +16 pour les six tables de
+    # la seance. Six cles primaires, une cle etrangere vers les propositions, une cle etrangere
+    # REFLEXIVE sur les disciplines (une sanction designe le rappel qu'elle consomme), et huit
+    # CHECK qui portent les regles elles-memes : un motif ne peut pas etre vide, un rappel ne
+    # porte ni amende ni rappel consomme, une sanction porte les deux, un report repousse
+    # vraiment, et une cause de suspension est connue.
+    att("contraintes posees", len(cat.contraintes), 493)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -663,7 +681,12 @@ def controles_du_monde(cat):
     # sa transaction est annulee, donc ni PA, ni francs, ni communication en double. Aucun delai
     # d'expiration n'a ete invente pour cela : une conference abandonnee se referme en fermant la
     # pop-up, ce qui est exactement ce que l'arbitrage demande.
-    att("index autonomes crees", len(cat.index), 155)
+    # 155 -> 164 le 11 octobre 2026, deuxieme passe de l'Assemblee : +9. Quatre portent des
+    # REGLES et non des performances -- un seul orateur a la fois, un rappel ne se consomme
+    # qu'une fois, un seul episode de boycott ouvert, et une requete joueur n'est honoree qu'une
+    # fois (quatre index d'unicite partielle, un par table d'effet). Les autres sont des index de
+    # lecture : le debat par pays et par date, la discipline par cible.
+    att("index autonomes crees", len(cat.index), 164)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.

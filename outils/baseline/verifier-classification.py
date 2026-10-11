@@ -61,9 +61,18 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # la conference s est terminee) et conferences_presse_echanges (la matiere brute : question posee,
 # reponse EXACTE, ou refus). Les deux sont classees C, etat vivant pur : un monde neuf nait sans
 # aucune conference, et y semer une ligne serait fabriquer une prise de parole qui n a pas eu lieu.
+# 275 -> 281 le 11 octobre 2026, deuxieme passe de l Assemblee : les SIX TABLES DE LA SEANCE --
+# assemblee_paroles (la file chronologique des demandes de parole et l orateur en cours),
+# assemblee_debats (les interventions prononcees, autorisees ou non), assemblee_disciplines (les
+# rappels au reglement et les sanctions, avec leur motif verbatim), assemblee_protestations (les
+# deputes sortis, et si leur sortie est qualifiee), assemblee_suspensions (les episodes de boycott
+# et les suspensions presidentielles) et assemblee_reports (les reports de vote decides par le
+# President). LES SIX SONT CLASSEES C, etat vivant pur, et c est plus qu une convention ici : cinq
+# protestataires qualifies semes suspendraient la seance d un monde qui vient de naitre, et un
+# rappel seme rendrait une sanction immediatement possible sans que personne l ait prononcee.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 11 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 275
-EMPREINTE_LISTE = "e7d83e1f8af4aa585e4387c417f6f6ff"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 281
+EMPREINTE_LISTE = "7ee6bf838740e3c2793de8d13216de27"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

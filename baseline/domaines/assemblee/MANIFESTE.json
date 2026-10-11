@@ -1,6 +1,18 @@
 {
  "commentaires": [
   {
+   "empreinte": "6d0d65b5e5748af97f8f1e1aff1c4b7e",
+   "genre": "COLUMN",
+   "objet": "assemblee_disciplines",
+   "sous": "requete"
+  },
+  {
+   "empreinte": "aa287ab17556e950620a0becb7f8d381",
+   "genre": "COLUMN",
+   "objet": "assemblee_paroles",
+   "sous": "demande_le"
+  },
+  {
    "empreinte": "02b56fa331b9494f4a0de0c01c504602",
    "genre": "COLUMN",
    "objet": "assemblee_propositions",
@@ -85,6 +97,12 @@
    "sous": ""
   },
   {
+   "empreinte": "2538f4ad47d3ff0c3309f78fc6ef2ef9",
+   "genre": "FUNCTION",
+   "objet": "assemblee_president(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "07f7b588e49d5396b295be4371355bf9",
    "genre": "FUNCTION",
    "objet": "assemblee_regards(integer)",
@@ -115,6 +133,36 @@
    "sous": ""
   },
   {
+   "empreinte": "ace012b2541dc00f86ae7db2dd736eac",
+   "genre": "TABLE",
+   "objet": "assemblee_debats",
+   "sous": ""
+  },
+  {
+   "empreinte": "b8fa83ea35d9c9381e46d9fb030edf4c",
+   "genre": "TABLE",
+   "objet": "assemblee_disciplines",
+   "sous": ""
+  },
+  {
+   "empreinte": "c33aa21c3682f86064a8396dc134c715",
+   "genre": "TABLE",
+   "objet": "assemblee_paroles",
+   "sous": ""
+  },
+  {
+   "empreinte": "37d3a766ea4a864efd2d15636f2a32db",
+   "genre": "TABLE",
+   "objet": "assemblee_protestations",
+   "sous": ""
+  },
+  {
+   "empreinte": "4d833c153aa2756f38ae1cdecb61ff7d",
+   "genre": "TABLE",
+   "objet": "assemblee_reports",
+   "sous": ""
+  },
+  {
    "empreinte": "acf015259de55cc5aea6fa293fcfd382",
    "genre": "TABLE",
    "objet": "assemblee_sanctions_paliers",
@@ -124,6 +172,12 @@
    "empreinte": "d165075c2e4fad2e91c08259ac3f7f31",
    "genre": "TABLE",
    "objet": "assemblee_sieges",
+   "sous": ""
+  },
+  {
+   "empreinte": "d98e6de3ade819d2827312cb999af229",
+   "genre": "TABLE",
+   "objet": "assemblee_suspensions",
    "sous": ""
   }
  ],
@@ -143,6 +197,18 @@
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
+   "nom": "assemblee_debats_pkey",
+   "tbl": "assemblee_debats"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "assemblee_disciplines_pkey",
+   "tbl": "assemblee_disciplines"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
    "nom": "assemblee_indemnites_pkey",
    "tbl": "assemblee_indemnites"
   },
@@ -153,10 +219,28 @@
    "tbl": "assemblee_intentions"
   },
   {
+   "empreinte": "07adcbff8afecec64cbd25cdf14ae45e",
+   "genre": "p",
+   "nom": "assemblee_paroles_pkey",
+   "tbl": "assemblee_paroles"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "assemblee_propositions_pkey",
    "tbl": "assemblee_propositions"
+  },
+  {
+   "empreinte": "07adcbff8afecec64cbd25cdf14ae45e",
+   "genre": "p",
+   "nom": "assemblee_protestations_pkey",
+   "tbl": "assemblee_protestations"
+  },
+  {
+   "empreinte": "ece27ce72a5f54c7b2e827562bf2cf1a",
+   "genre": "p",
+   "nom": "assemblee_reports_pkey",
+   "tbl": "assemblee_reports"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -185,6 +269,12 @@
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
+   "nom": "assemblee_suspensions_pkey",
+   "tbl": "assemblee_suspensions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
    "nom": "assemblee_votes_pkey",
    "tbl": "assemblee_votes"
   },
@@ -195,10 +285,34 @@
    "tbl": "assemblee_sieges"
   },
   {
+   "empreinte": "74e49f27eae19794da4d6c9cdfff3d27",
+   "genre": "c",
+   "nom": "discipline_forme_coherente",
+   "tbl": "assemblee_disciplines"
+  },
+  {
+   "empreinte": "3565d45fe098156c1c1e04540aeeb1e8",
+   "genre": "c",
+   "nom": "discipline_genre_connu",
+   "tbl": "assemblee_disciplines"
+  },
+  {
+   "empreinte": "ef951a2e36e8f1b129709ec0a9bcbe9a",
+   "genre": "c",
+   "nom": "discipline_motif_non_vide",
+   "tbl": "assemblee_disciplines"
+  },
+  {
    "empreinte": "ad7f18eeb588996d048ba56ed884bd2c",
    "genre": "c",
    "nom": "assemblee_intention_valide",
    "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "1a07da8a5ed38b460c20545a81c4c293",
+   "genre": "c",
+   "nom": "parole_donnee_a_une_date",
+   "tbl": "assemblee_paroles"
   },
   {
    "empreinte": "b27805059e33c4e57c50a2d8f5a058c1",
@@ -225,6 +339,18 @@
    "tbl": "assemblee_propositions"
   },
   {
+   "empreinte": "419dd7457e073f5d846dd11d10241403",
+   "genre": "c",
+   "nom": "protestation_motif_si_qualifie",
+   "tbl": "assemblee_protestations"
+  },
+  {
+   "empreinte": "2a70d27df618541fd0bc0645dbe655f2",
+   "genre": "c",
+   "nom": "report_repousse_vraiment",
+   "tbl": "assemblee_reports"
+  },
+  {
    "empreinte": "664474993954da1da2ea9005df7530dd",
    "genre": "c",
    "nom": "assemblee_sanctions_paliers_palier_check",
@@ -237,10 +363,22 @@
    "tbl": "assemblee_scrutins"
   },
   {
+   "empreinte": "69f5134a7f1aec29d10d42c22990f200",
+   "genre": "c",
+   "nom": "suspension_cause_connue",
+   "tbl": "assemblee_suspensions"
+  },
+  {
    "empreinte": "5e936f37ec9ec8b05243675c610e4495",
    "genre": "c",
    "nom": "assemblee_vote_valide",
    "tbl": "assemblee_votes"
+  },
+  {
+   "empreinte": "3ddd8fb5d159f0e582b460dbae84559e",
+   "genre": "f",
+   "nom": "assemblee_disciplines_rappel_id_fkey",
+   "tbl": "assemblee_disciplines"
   },
   {
    "empreinte": "310d15e76ed89a4654e025c1abc977ea",
@@ -253,6 +391,18 @@
    "genre": "f",
    "nom": "assemblee_intentions_siege_id_fkey",
    "tbl": "assemblee_intentions"
+  },
+  {
+   "empreinte": "4e276f3d9faeb699742cf62210dc344b",
+   "genre": "f",
+   "nom": "assemblee_protestations_discipline_id_fkey",
+   "tbl": "assemblee_protestations"
+  },
+  {
+   "empreinte": "0c5783b3cf6842a9ed91d9429e08b11d",
+   "genre": "f",
+   "nom": "assemblee_reports_proposition_id_fkey",
+   "tbl": "assemblee_reports"
   },
   {
    "empreinte": "310d15e76ed89a4654e025c1abc977ea",
@@ -438,6 +588,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_dans_hemicycle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_dans_hemicycle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_dans_hemicycle(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debat_dire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debat_dire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_debat_dire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "assemblee_debiter_caisse_plafonne(text,integer)",
@@ -506,6 +692,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "assemblee_discipline_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_discipline_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_discipline_matiere(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "assemblee_dissoudre(text)",
    "privileges": "EXECUTE"
   },
@@ -555,6 +759,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_echeance_palier(timestamp with time zone,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_depute(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_depute(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_est_depute(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -822,6 +1044,78 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_demander()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_demander()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_demander()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_donner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_donner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_donner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parole_retirer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parti_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parti_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_parti_de(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "assemblee_peut_deposer(text,text)",
@@ -888,6 +1182,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_president(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_president(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_president(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "assemblee_prochaine_cloture(timestamp with time zone)",
@@ -909,6 +1221,54 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_proposition_immuable()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_protester()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_protester()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_protester()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_rappeler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_rappeler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_rappeler(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_recalculer_suspension(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_recalculer_suspension(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -945,6 +1305,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_registre_execution(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reporter_si_suspendue(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reporter_si_suspendue(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reporter_vote(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reporter_vote(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_reporter_vote(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1032,6 +1422,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_revenir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_revenir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_revenir()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_sanctionner(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
@@ -1041,6 +1467,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_sanctionner_lois_non_appliquees(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_seance(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_seance(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_seance(integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -1065,6 +1509,42 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "assemblee_stat_base(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendre_seance(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendre_seance(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendre_seance(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "assemblee_suspendue(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1220,6 +1700,54 @@
   {
    "beneficiaire": "anon",
    "genre": "TABLE",
+   "objet": "assemblee_debats",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_debats",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_debats",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_debats",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_disciplines",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_disciplines",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_disciplines",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_disciplines",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
    "objet": "assemblee_indemnites",
    "privileges": "SELECT"
   },
@@ -1268,6 +1796,30 @@
   {
    "beneficiaire": "anon",
    "genre": "TABLE",
+   "objet": "assemblee_paroles",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_paroles",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_paroles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_paroles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
    "objet": "assemblee_propositions",
    "privileges": "SELECT"
   },
@@ -1287,6 +1839,54 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "assemblee_propositions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_protestations",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_protestations",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_protestations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_protestations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_reports",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_reports",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_reports",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_reports",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1359,6 +1959,30 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "assemblee_sieges",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "assemblee_suspensions",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "assemblee_suspensions",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "assemblee_suspensions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "assemblee_suspensions",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1389,14 +2013,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "f3996e5ac4638da6860736c2793bb8d4",
-  "20_fonctions.sql": "b5c28678647f1f153880ed91775a8d74",
-  "30_contraintes.sql": "b49cc7bc52d48a7ca27edf3d0d7f9d0d",
-  "35_index.sql": "eded85c8985ad632d919feba5b4cbbf2",
+  "10_tables.sql": "5905d28669f18aba20130f3cd9af31c7",
+  "20_fonctions.sql": "327a327a68e2c11eb93a54c193d60a93",
+  "30_contraintes.sql": "9ae0dbbfa78872938c675ff172566d32",
+  "35_index.sql": "0d2aeff2d264071206454e7279cd9981",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
-  "60_rls-policies.sql": "edb778a99c287f8fbce95b1440ba1ba9",
-  "70_droits.sql": "339aac90436f253cc97947e059119421",
-  "80_commentaires.sql": "3ef6de82952a72a14738994bad426910"
+  "60_rls-policies.sql": "a175adf1164c75d58de364fdd8b1e981",
+  "70_droits.sql": "8c795787cfdc3c733bd29d690d6d11dd",
+  "80_commentaires.sql": "d52edd15f51ee970933330b1bab077d9"
  },
  "fonctions": [
   {
@@ -1450,6 +2074,16 @@
    "signature": "assemblee_crediter_joueur(text,integer)"
   },
   {
+   "empreinte": "c4977def8660616858e862a5d0cb240b",
+   "security_definer": true,
+   "signature": "assemblee_dans_hemicycle(text,text)"
+  },
+  {
+   "empreinte": "9c5964db2f3abb3b128042448734ee33",
+   "security_definer": true,
+   "signature": "assemblee_debat_dire(text,text)"
+  },
+  {
    "empreinte": "f54c3dd2e98f8db528b9658756afefb5",
    "security_definer": true,
    "signature": "assemblee_debiter_caisse_plafonne(text,integer)"
@@ -1475,6 +2109,11 @@
    "signature": "assemblee_detecter_partie(text,text,jsonb,text,integer,boolean)"
   },
   {
+   "empreinte": "aa2df47d738047ac6b0e6af8d7e210f2",
+   "security_definer": true,
+   "signature": "assemblee_discipline_matiere(integer)"
+  },
+  {
    "empreinte": "2d06f96c4a8dc28c81af917e05e0a10c",
    "security_definer": true,
    "signature": "assemblee_dissoudre(text)"
@@ -1488,6 +2127,11 @@
    "empreinte": "94746d193883887e097de3635a38007a",
    "security_definer": false,
    "signature": "assemblee_echeance_palier(timestamp with time zone,integer)"
+  },
+  {
+   "empreinte": "6a08ab4e357a64667796d8f922bd6c77",
+   "security_definer": true,
+   "signature": "assemblee_est_depute(text,text)"
   },
   {
    "empreinte": "9be2eedb6fb860734b1ba4ffec3d0577",
@@ -1565,6 +2209,26 @@
    "signature": "assemblee_palier_atteint(timestamp with time zone,timestamp with time zone)"
   },
   {
+   "empreinte": "a34c248fc4e00946567c36506fed78b2",
+   "security_definer": true,
+   "signature": "assemblee_parole_demander()"
+  },
+  {
+   "empreinte": "2f25ee23b58a4901cc47a3d42647cf94",
+   "security_definer": true,
+   "signature": "assemblee_parole_donner(text)"
+  },
+  {
+   "empreinte": "1b5770c18e75f3fdddf8a0a5a81e9c3c",
+   "security_definer": true,
+   "signature": "assemblee_parole_retirer()"
+  },
+  {
+   "empreinte": "7c68c7cb5ae6cbf5b652ba190513ca65",
+   "security_definer": true,
+   "signature": "assemblee_parti_de(text,text)"
+  },
+  {
    "empreinte": "c3d9f7f0a8cf119fc98857d123e683eb",
    "security_definer": true,
    "signature": "assemblee_peut_deposer(text,text)"
@@ -1580,6 +2244,11 @@
    "signature": "assemblee_portee_valider(jsonb)"
   },
   {
+   "empreinte": "fc24ef26ee31e82970d8b3c4c12e833b",
+   "security_definer": true,
+   "signature": "assemblee_president(text)"
+  },
+  {
    "empreinte": "22eba1875a5c8e851eeca0be4644f007",
    "security_definer": false,
    "signature": "assemblee_prochaine_cloture(timestamp with time zone)"
@@ -1590,6 +2259,21 @@
    "signature": "assemblee_proposition_immuable()"
   },
   {
+   "empreinte": "f32125e0c30843c2cb0c35ef30d5d7e8",
+   "security_definer": true,
+   "signature": "assemblee_protester()"
+  },
+  {
+   "empreinte": "3f3278f07d2a7d2a031f5953cbe05879",
+   "security_definer": true,
+   "signature": "assemblee_rappeler(text,text,text)"
+  },
+  {
+   "empreinte": "bc61e194323678ca3dc4dadd4ef53fbb",
+   "security_definer": true,
+   "signature": "assemblee_recalculer_suspension(text)"
+  },
+  {
    "empreinte": "50b9d6aac0c5d651fb8d3b821ce5e798",
    "security_definer": true,
    "signature": "assemblee_regards(integer)"
@@ -1598,6 +2282,16 @@
    "empreinte": "e2aaac2a9646f72c20f9f717afa5b7cb",
    "security_definer": true,
    "signature": "assemblee_registre_execution(text)"
+  },
+  {
+   "empreinte": "68b4fbb0c05e9d7d9926ddc093216fd4",
+   "security_definer": true,
+   "signature": "assemblee_reporter_si_suspendue(text)"
+  },
+  {
+   "empreinte": "ac0f434051db5c7bcd009b59e07a9639",
+   "security_definer": true,
+   "signature": "assemblee_reporter_vote(text,text)"
   },
   {
    "empreinte": "5f56f40af2601ecb9bc5911a7a745562",
@@ -1630,9 +2324,24 @@
    "signature": "assemblee_reveiller_depute(text,text,text)"
   },
   {
+   "empreinte": "39277b0b0cb026ebd745404c206df5bd",
+   "security_definer": true,
+   "signature": "assemblee_revenir()"
+  },
+  {
+   "empreinte": "8bcde69fcca9b068d9290a7af4527936",
+   "security_definer": true,
+   "signature": "assemblee_sanctionner(text,text,text)"
+  },
+  {
    "empreinte": "766a141d0a926dcea327b4347f26afac",
    "security_definer": true,
    "signature": "assemblee_sanctionner_lois_non_appliquees(text)"
+  },
+  {
+   "empreinte": "e83b1d7d21655601d3b2d7af3b08c7f3",
+   "security_definer": true,
+   "signature": "assemblee_seance(integer)"
   },
   {
    "empreinte": "6e6cc241e8aa7de1049ad0e3eb5a2865",
@@ -1643,6 +2352,16 @@
    "empreinte": "d0afd595c450b83bfd8c72812b20456d",
    "security_definer": false,
    "signature": "assemblee_stat_base(jsonb,text)"
+  },
+  {
+   "empreinte": "e175b04dd7a45ddfd5e960a4ac693c55",
+   "security_definer": true,
+   "signature": "assemblee_suspendre_seance(text,text)"
+  },
+  {
+   "empreinte": "a59768aba54359a93ac7b6bfe688944f",
+   "security_definer": true,
+   "signature": "assemblee_suspendue(text)"
   },
   {
    "empreinte": "c76680d943d53b61f24cfa01a72fbe09",
@@ -1687,12 +2406,48 @@
  ],
  "index_autonomes": [
   {
+   "empreinte": "435a29b453acad8135afb4c201c264ca",
+   "nom": "assemblee_debats_par_pays"
+  },
+  {
+   "empreinte": "d5f39979f2a711b86bc6db373ad92313",
+   "nom": "assemblee_debats_une_requete"
+  },
+  {
+   "empreinte": "a427cc07c63c21b9155b4ed67507b0a9",
+   "nom": "assemblee_disciplines_par_cible"
+  },
+  {
+   "empreinte": "84594a02c1d60d815c3b30c27355d1d4",
+   "nom": "assemblee_disciplines_une_requete"
+  },
+  {
    "empreinte": "030dcd9c85549b7b02f165bc8888e76e",
    "nom": "assemblee_propositions_a_appliquer_idx"
   },
   {
+   "empreinte": "29d27111f5b9e438cfea03d6a7626501",
+   "nom": "assemblee_reports_une_requete"
+  },
+  {
    "empreinte": "73c67fa1d0be902c1ce2b6b609e91f33",
    "nom": "assemblee_sanctions_paliers_prop_idx"
+  },
+  {
+   "empreinte": "5aae0c16ac5856f5f5b9f3ac27688ba9",
+   "nom": "assemblee_suspensions_une_requete"
+  },
+  {
+   "empreinte": "9799d6a77e219dbb87423ae7cf1c1486",
+   "nom": "assemblee_un_rappel_une_sanction"
+  },
+  {
+   "empreinte": "5520e8f4f662c827874a5a496d1f5f29",
+   "nom": "assemblee_un_seul_boycott_ouvert"
+  },
+  {
+   "empreinte": "7dbfa9218f2c8109e1991b054abfa027",
+   "nom": "assemblee_un_seul_orateur"
   },
   {
    "empreinte": "271269b5817ebae194e7b1e8aebcbe57",
@@ -1734,14 +2489,20 @@
  "index_portes": [
   "assemblee_catalogue_illegal_pkey",
   "assemblee_categories_interdiction_pkey",
+  "assemblee_debats_pkey",
+  "assemblee_disciplines_pkey",
   "assemblee_indemnites_pkey",
   "assemblee_intentions_pkey",
+  "assemblee_paroles_pkey",
   "assemblee_propositions_pkey",
+  "assemblee_protestations_pkey",
+  "assemblee_reports_pkey",
   "assemblee_requetes_pkey",
   "assemblee_sanctions_paliers_pkey",
   "assemblee_scrutins_pkey",
   "assemblee_sieges_pkey",
   "assemblee_sieges_pnj_id_key",
+  "assemblee_suspensions_pkey",
   "assemblee_votes_pkey"
  ],
  "ordre": [
@@ -1806,6 +2567,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "assemblee_debats"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_disciplines"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "assemblee_indemnites"
   },
   {
@@ -1816,7 +2587,22 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "assemblee_paroles"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "assemblee_propositions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_protestations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "assemblee_reports"
   },
   {
    "active": true,
@@ -1841,6 +2627,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "assemblee_suspensions"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "assemblee_votes"
   }
  ],
@@ -1860,6 +2651,18 @@
    "nom": "assemblee_categories_interdiction"
   },
   {
+   "colonnes": 8,
+   "empreinte_catalogue": "d6b4f0d96d2385720fd57564b6df2ecc",
+   "empreinte_texte": "1eb75bd7aba44734b3aa4fb9074d8240",
+   "nom": "assemblee_debats"
+  },
+  {
+   "colonnes": 15,
+   "empreinte_catalogue": "bfad687596a246cc01ef3656caf6e423",
+   "empreinte_texte": "ad2afab02964ecd180fecf5cd4ddee72",
+   "nom": "assemblee_disciplines"
+  },
+  {
    "colonnes": 5,
    "empreinte_catalogue": "b217c5f09e58ad2779ada285d3c209a8",
    "empreinte_texte": "4a6764c1830378d9af557b362d12a9dd",
@@ -1872,10 +2675,28 @@
    "nom": "assemblee_intentions"
   },
   {
+   "colonnes": 5,
+   "empreinte_catalogue": "fb6abe745f3fe2a8b0355a6e6bb9b15f",
+   "empreinte_texte": "705fc655fd85eb2e2de2632bb020bf7f",
+   "nom": "assemblee_paroles"
+  },
+  {
    "colonnes": 22,
    "empreinte_catalogue": "90e69d93d21ba0e56cfd720a97dc20f9",
    "empreinte_texte": "9891b5f6411b583e19d4ae2e51732a42",
    "nom": "assemblee_propositions"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "0d2195971970360d15b17eece6f2e283",
+   "empreinte_texte": "01d5a5591498c5af748d37ee5b1e0152",
+   "nom": "assemblee_protestations"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "f32f0619ca51b83bd00a52db106a89fc",
+   "empreinte_texte": "8ad49ab2d52d596dc62451d6d51211cf",
+   "nom": "assemblee_reports"
   },
   {
    "colonnes": 5,
@@ -1900,6 +2721,12 @@
    "empreinte_catalogue": "ea3fec270c35eeb31fcb00d6cd4e3c7c",
    "empreinte_texte": "2ff313aa32eb162d51aa3f557411184a",
    "nom": "assemblee_sieges"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "63a71bf3c3edfecf1894e41f25be494c",
+   "empreinte_texte": "cd735627e6f995582f6168f94acd70ee",
+   "nom": "assemblee_suspensions"
   },
   {
    "colonnes": 7,

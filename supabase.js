@@ -5896,6 +5896,121 @@ async function sbAssembleeAchatIllegal(nom, circuit, ref, requete) {
   }));
 }
 
+// =====================
+// LA SEANCE PARLEMENTAIRE (11 octobre 2026)
+// =====================
+// DOUZE PORTES, ET AUCUNE ECRITURE REST. Les six tables de la seance -- assemblee_paroles,
+// assemblee_debats, assemblee_disciplines, assemblee_protestations, assemblee_suspensions,
+// assemblee_reports -- sont sous RLS SANS AUCUNE POLICY : le navigateur ne peut pas les lire, et
+// encore moins les ecrire. Tout passe par les fonctions ci-dessous.
+//
+// MEME CONTRAT QUE LE RESTE DU CHANTIER PARLEMENTAIRE : chacune rend le resultat de la RPC, ou
+// `null` si elle est injoignable. Les appelants passent par assembleeActionServeur() /
+// assembleeIssueAction() (plateau-assemblee.js), qui serialisent les clics, rejouent une reponse
+// perdue et recopient l'etat renvoye. AUCUN repli local : un `null` est un refus d'agir.
+//
+// CE QUE LE NAVIGATEUR NE DECIDE JAMAIS : qui preside, qui est depute, qui est dans l'hemicycle,
+// a quel parti appartient un depute, si une protestation est qualifiee, si la seance est
+// suspendue, et combien coute un rappel. Tout cela est relu en base a chaque appel. Les fonctions
+// ci-dessous ne transportent que l'INTENTION du joueur.
+//
+// LES CINQ PORTES A EFFET EXIGENT UN IDENTIFIANT DE REQUETE, et le serveur le refuse s'il est
+// absent ou mal forme. C'est ce qui rend le rejeu de assembleeActionServeur() sans danger : une
+// requete deja honoree renvoie l'acte deja enregistre au lieu d'en creer un second. Sans cette
+// clef, un rappel rejoue couterait 30 points de popularite au lieu de 15.
+
+// ---- LA LECTURE UNIQUE ----
+// Tout l'etat de la seance en un appel : le President, mes roles, la file, l'orateur, le debat,
+// les sortis, le compteur d'episodes. Publique dans l'enceinte -- un debat parlementaire se tient
+// devant tous -- et sans AUCUNE donnee privee : ni argent, ni casier, ni messages.
+async function sbAssembleeSeance(limite) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_seance', { p_limite: limite || 50 }));
+}
+
+// ---- LA PAROLE ----
+// Demander la parole. IDEMPOTENTE PAR SA CLE PRIMAIRE : un double clic ne cree pas deux demandes
+// et ne fait pas perdre la place deja acquise dans la file. Pas de clef de requete, donc : elle
+// n'aurait rien a garantir ici.
+async function sbAssembleeParoleDemander() {
+  return _assembleeResultatRpc(await sbRpc('assemblee_parole_demander', {}));
+}
+
+// Donner la parole. Le President ne choisit PAS : le serveur refuse tout nom qui n'est pas le
+// premier de la file. Le nom transmis n'est donc qu'une confirmation de ce que l'ecran affiche --
+// et s'il ne correspond plus, le refus nomme le vrai premier.
+async function sbAssembleeParoleDonner(depute) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_parole_donner', { p_depute: depute || null }));
+}
+
+// Retirer la parole a l'orateur. Sa demande est EFFACEE : s'il redemande, il repart en fin de
+// file. Il n'est pas empeche de continuer a parler -- ses interventions seront simplement
+// enregistrees comme non autorisees.
+async function sbAssembleeParoleRetirer() {
+  return _assembleeResultatRpc(await sbRpc('assemblee_parole_retirer', {}));
+}
+
+// Parler. LE SERVEUR N'EMPECHE RIEN : si le depute n'a pas la parole, l'intervention est
+// enregistree quand meme, avec `autorise: false`. C'est un FAIT, pas une sanction -- et aucune
+// consequence automatique n'en decoule.
+async function sbAssembleeDire(texte, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_debat_dire',
+    { p_texte: texte, p_requete: requete }));
+}
+
+// ---- LA DISCIPLINE ----
+// Rappeler un depute au reglement. -15 POP. Le motif est OBLIGATOIRE et conserve VERBATIM : le
+// serveur ne juge ni sa pertinence, ni sa verite, ni sa legitimite, et n'en produit aucune
+// qualification. La cible doit etre PHYSIQUEMENT dans l'hemicycle, ce que le serveur verifie.
+async function sbAssembleeRappeler(depute, motif, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_rappeler',
+    { p_depute: depute, p_motif: motif, p_requete: requete }));
+}
+
+// Sanctionner. -20 POP et 100 FR verses a la caisse de l'Assemblee, dans la MEME transaction.
+// Impossible sans un rappel prealable non encore consomme : la sanction CONSOMME ce rappel, et un
+// seul rappel ne permettra jamais deux sanctions.
+async function sbAssembleeSanctionner(depute, motif, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_sanctionner',
+    { p_depute: depute, p_motif: motif, p_requete: requete }));
+}
+
+// ---- LA PROTESTATION ----
+// Quitter l'hemicycle en signe de protestation. AUCUN PARAMETRE : ni le parti, ni le motif
+// qualifiant ne viennent du navigateur -- le serveur les relit en base. Le deplacement est REEL,
+// le depute se retrouve au hall de l'Assemblee.
+async function sbAssembleeProtester() {
+  return _assembleeResultatRpc(await sbRpc('assemblee_protester', {}));
+}
+
+// Revenir dans l'hemicycle. Annule la protestation et recalcule le seuil de suspension : si le
+// compte des protestataires qualifies retombe a quatre, la suspension cesse.
+async function sbAssembleeRevenir() {
+  return _assembleeResultatRpc(await sbRpc('assemblee_revenir', {}));
+}
+
+// ---- LES PREROGATIVES DU PRESIDENT ----
+// Suspendre la seance. -20 POP, decide seul. Ne compte JAMAIS parmi les suspensions par boycott.
+async function sbAssembleeSuspendreSeance(motif, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_suspendre_seance',
+    { p_motif: motif || null, p_requete: requete }));
+}
+
+// Reporter un vote d'une semaine CALENDAIRE. Une seule fois par texte : la prerogative appartient
+// au TEXTE, pas a l'homme -- un successeur ne peut pas la rejouer.
+async function sbAssembleeReporterVote(propositionId, requete) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_reporter_vote',
+    { p_proposition_id: propositionId, p_requete: requete }));
+}
+
+// ---- LA MATIERE DE LA PRESSE ----
+// Les actes de discipline avec leur motif EXACT, reserves aux membres d'un groupe de presse par le
+// droit EXISTANT (presse_membres). Aucune qualification : ni « abusif », ni « justifie », ni
+// « autoritaire ». Des faits -- auteur, fonction, cible, type, motif verbatim, consequences
+// chiffrees, horodatage -- et c'est la redaction qui ecrit l'article.
+async function sbAssembleeDisciplineMatiere(limite) {
+  return _assembleeResultatRpc(await sbRpc('assemblee_discipline_matiere', { p_limite: limite || 20 }));
+}
+
 // ---- CHAINE MILITAIRE : NOMINATIONS ATTESTEES (17 septembre 2026, passe 3) ----
 // compagnies_militaires etait la derniere table de la chaine de commandement SANS RLS : la source
 // de verite que poste_est_atteste interroge pour valider capitaine/lieutenant etait en ecriture
