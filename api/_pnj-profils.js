@@ -44,6 +44,8 @@ import {
 import {
   SOCLE_GOUVERNEMENT, BIBLE_PREMIER_MINISTRE, BIBLE_COMMUNICATION_GOUVERNEMENTALE,
   BIBLE_MIN_INT, BIBLE_MIN_FIN, BIBLE_MIN_JUST, BIBLE_MIN_INFO, BIBLE_MIN_AE,
+  HORS_MIN_INT_PLAISANCE, HORS_MIN_FIN_LOCATIF, HORS_MIN_JUST_ALIMENTATION,
+  HORS_MIN_AE_FOOTBALL, HORS_MIN_INFO_GENERATIONS,
   BIBLE_ACCUEIL_GOUVERNEMENT, CE_QUI_N_EXISTE_PAS_GOUVERNEMENT
 } from './_bible-gouvernement.js';
 
@@ -229,11 +231,16 @@ const CORPUS_REFERENT = {
   secretaire_dupuis:                    corpusGouvernement(BIBLE_ACCUEIL_GOUVERNEMENT),
   eric_stricted:                        corpusGouvernement(BIBLE_PREMIER_MINISTRE),
   corinne_tite_declaz:                  corpusGouvernement(BIBLE_COMMUNICATION_GOUVERNEMENTALE),
-  le_ministre_de_l_interieur:           corpusGouvernement(BIBLE_MIN_INT),
-  le_ministre_des_finances:             corpusGouvernement(BIBLE_MIN_FIN),
-  le_ministre_de_la_justice:            corpusGouvernement(BIBLE_MIN_JUST),
-  le_ministre_de_l_information:         corpusGouvernement(BIBLE_MIN_INFO),
-  le_ministre_des_affaires_etrangeres:  corpusGouvernement(BIBLE_MIN_AE),
+  // LES CINQ MINISTRES RECOIVENT DEUX BLOCS : leur ministere, et leur dehors (11 octobre 2026).
+  // Le second est volontairement ETROIT -- un bateau, un placement, un marche, un club, un EHPAD --
+  // et il s'arrete net : chacun de ces blocs dit aussi ce que son porteur NE sait pas. Les reunir
+  // en un seul corpus partage rendrait les cinq interchangeables, ce qui est exactement ce que la
+  // regle de decoupage interdit.
+  yvan_danltat:         corpusGouvernement([BIBLE_MIN_INT,  HORS_MIN_INT_PLAISANCE].join('\n\n')),
+  alain_theret:         corpusGouvernement([BIBLE_MIN_FIN,  HORS_MIN_FIN_LOCATIF].join('\n\n')),
+  mathilde_garde:       corpusGouvernement([BIBLE_MIN_JUST, HORS_MIN_JUST_ALIMENTATION].join('\n\n')),
+  marie_eve_beaulieu:   corpusGouvernement([BIBLE_MIN_INFO, HORS_MIN_INFO_GENERATIONS].join('\n\n')),
+  jean_jacques_carlin:  corpusGouvernement([BIBLE_MIN_AE,   HORS_MIN_AE_FOOTBALL].join('\n\n')),
   huguette_papier:           SAVOIR_SECRETARIAT_GENERAL,
   porte_parole_presidentiel: SAVOIR_COMMUNICATION_PRESIDENTIELLE,
   gerard_tamponneau:         SAVOIR_PROTOCOLE_PRESIDENTIEL,

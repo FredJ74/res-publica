@@ -26,13 +26,25 @@ function qui(salle, job) {
 var RACINE = '/Users/fredericjasseron/ResPublica/';
 function existe(chemin) { try { return readFile(RACINE + chemin).length > 0; } catch (e) { return false; } }
 
+// LES CINQ SONT INCARNES DEPUIS LE 11 OCTOBRE 2026 AU SOIR. Chaque entree porte le poste, le
+// nouvel identifiant de profil, le titre de secretaire, le nom AFFICHE, le fichier d'image et
+// l'ANCIEN identifiant generique -- ce dernier pour la contre-epreuve : il ne doit plus repondre.
 var SECRETAIRES = [
-  ['min_int',  'le_ministre_de_l_interieur',           "PNJ - Secrétaire ministériel de l'Intérieur",        'BIBLE_MIN_INT'],
-  ['min_fin',  'le_ministre_des_finances',             'PNJ - Secrétaire ministériel des Finances',          'BIBLE_MIN_FIN'],
-  ['min_just', 'le_ministre_de_la_justice',            'PNJ - Secrétaire ministériel de la Justice',         'BIBLE_MIN_JUST'],
-  ['min_info', 'le_ministre_de_l_information',         "PNJ - Secrétaire ministériel de l'Information",      'BIBLE_MIN_INFO'],
-  ['min_ae',   'le_ministre_des_affaires_etrangeres',  'PNJ - Secrétaire ministériel des Affaires Étrangères','BIBLE_MIN_AE']
+  ['min_int',  'yvan_danltat',        "PNJ - Secrétaire ministériel de l'Intérieur",         'Yvan Danltat (PNJ)',        'yvan-danltat',        'le_ministre_de_l_interieur'],
+  ['min_fin',  'alain_theret',        'PNJ - Secrétaire ministériel des Finances',           'Alain Théret (PNJ)',        'alain-theret',        'le_ministre_des_finances'],
+  ['min_just', 'mathilde_garde',      'PNJ - Secrétaire ministériel de la Justice',          'Mathilde Garde (PNJ)',      'mathilde-garde',      'le_ministre_de_la_justice'],
+  ['min_info', 'marie_eve_beaulieu',  "PNJ - Secrétaire ministériel de l'Information",       'Marie-Eve Beaulieu (PNJ)',  'marie-eve-beaulieu',  'le_ministre_de_l_information'],
+  ['min_ae',   'jean_jacques_carlin', 'PNJ - Secrétaire ministériel des Affaires Étrangères','Jean-Jacques Carlin (PNJ)', 'jean-jacques-carlin', 'le_ministre_des_affaires_etrangeres']
 ];
+
+// LA MEME NORMALISATION QUE slugPnj (plateau-pnj.js), reproduite ici expres. C'est elle qui relie
+// le NOM AFFICHE dans data.js a l'IDENTIFIANT du profil serveur : si les deux divergent d'un
+// accent, le PNJ devient muet sans qu'aucune autre epreuve ne le voie.
+function slugDeNom(nom) {
+  return String(nom || '').replace(' (PNJ)', '').trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
 
 print('');
 print('LE FAUX PREMIER MINISTRE A DISPARU, DE LA PIECE ET DE LA TABLE');
@@ -67,7 +79,7 @@ print('');
 print('LES CINQ SECRETAIRES MINISTERIELS, PAR LA MECANIQUE GENERIQUE');
 print('============================================================');
 SECRETAIRES.forEach(function (s) {
-  var job = s[0], id = s[1], titre = s[2];
+  var job = s[0], id = s[1], titre = s[2], nom = s[3], img = s[4], ancien = s[5];
   var m = qui('bureau_' + job, job);
   att(job + ' : le PNJ est toujours dans son bureau', !!m);
   att(job + ' : il reste en place quand un joueur prend le poste', m && m.resteApresPourvoi === true);
@@ -76,6 +88,18 @@ SECRETAIRES.forEach(function (s) {
   att(job + ' : son titre de secretaire ne pretend PAS au ministere',
       m && m.roleSiPjTitulaire.indexOf('Ministre') < 0);
   att(job + ' : il a un profil serveur', profilExiste(id));
+  // INCARNATION (11 octobre 2026 au soir)
+  att(job + ' : il porte un NOM, plus un intitule de fonction', m && m.name === nom, m && m.name);
+  att(job + ' : le nom affiche se normalise EXACTEMENT en son identifiant de profil',
+      m && slugDeNom(m.name) === id, m && (slugDeNom(m.name) + ' vs ' + id));
+  att(job + ' : son portrait est reference',
+      m && m.photoUrl === 'images/luthecia-palais-gouvernement-' + img + '.webp', m && m.photoUrl);
+  att(job + ' : et le fichier existe reellement sur le disque',
+      existe('images/luthecia-palais-gouvernement-' + img + '.webp'));
+  // CONTRE-EPREUVE : L'ANCIEN IDENTIFIANT GENERIQUE NE REPOND PLUS. C'est la lecon du General
+  // Faure et du faux Premier ministre : un profil laisse derriere reste adressable, donc vivant --
+  // ici avec un nom generique et un savoir vide, c'est-a-dire pire que rien.
+  att(job + ' : son ancien identifiant generique n est plus adressable', !profilExiste(ancien), ancien);
 });
 // MARTIAL BOUTERIN N'EST PAS TOUCHE : son cas etait deja arbitre et livre.
 var mart = qui('bureau_min_def', 'min_def');
@@ -166,6 +190,136 @@ print('============================================================');
 ['hall', 'garde', 'chef-cabinet'].forEach(function (n) {
   att('le PNG de ' + n + ' a bien quitte le depot',
       !existe('images/luthecia-palais-gouvernement-' + n + '.png'));
+});
+
+print('');
+print('CHACUN A UN DEHORS, ET IL S ARRETE NET');
+print('============================================================');
+// LA CLEF DE CHAQUE DEHORS, et la phrase qui en marque la BORNE. Un domaine personnel sans borne
+// ferait de son porteur le referent d'un rayon qui appartient a quelqu'un d'autre.
+var DEHORS = {
+  yvan_danltat:        ['LE PORT DE PLAISANCE DE PORT-SAINTE-MARIE', "TU N'ES PAS POUR AUTANT LE REFERENT DE PORT-SAINTE-MARIE"],
+  alain_theret:        ["L'INVESTISSEMENT LOCATIF",                  "TU N'ANNONCES AUCUN RENDEMENT"],
+  mathilde_garde:      ['BIEN MANGER, ET OU TROUVER DE QUOI',        "TU N'ES NI MEDECIN NI NUTRITIONNISTE"],
+  jean_jacques_carlin: ["L'UNION CHEMINOTE DE MONTROUGE",            'TU NE CONNAIS PAS MONTROUGE POUR AUTANT'],
+  marie_eve_beaulieu:  ["CE QUI PASSE D'UNE GENERATION A L'AUTRE",   "TU N'ES REFERENTE NI DE L'"]
+};
+Object.keys(DEHORS).forEach(function (id) {
+  var p = construirePromptSysteme(id, 'fr', null, null);
+  att(id + ' : il a son dehors a lui', contient(p, DEHORS[id][0]));
+  att(id + ' : et ce dehors porte sa borne', contient(p, DEHORS[id][1]));
+  // CONTRE-EPREUVE DE NON-OMNISCIENCE : aucun des quatre autres dehors ne lui est donne. Sans
+  // elle, cinq corpus fusionnes rendraient les cinq personnages interchangeables.
+  var intrus = Object.keys(DEHORS).filter(function (autre) {
+    return autre !== id && contient(p, DEHORS[autre][0]); });
+  att(id + ' : il ignore les quatre autres dehors', intrus.length === 0, intrus.join(','));
+});
+
+print('');
+print('LES DEHORS DISENT CE QUI N EXISTE PAS, AU LIEU DE L INVENTER');
+print('============================================================');
+var pDan = construirePromptSysteme('yvan_danltat', 'fr', null, null);
+// LE PORT DE PLAISANCE N'A AUCUNE MECANIQUE : `orders: []` dans ses deux pieces, et data.js le dit
+// explicitement. Danltat doit donc refuser d'inventer un reglement et une sortie en mer.
+att('Danltat sait qu aucune sortie en mer n est possible',
+    contient(pDan, 'AUCUNE SORTIE EN MER POSSIBLE'));
+att('il sait qu il n y a ni anneau, ni taxe, ni formalite',
+    contient(pDan, 'aucun anneau a louer, aucune taxe de mouillage'));
+att('et il oriente le voyage par bateau vers le port INDUSTRIEL',
+    contient(pDan, 'port INDUSTRIEL') && contient(pDan, 'Alain Bordage'));
+att('il connait le chef de la capitainerie, qui existe vraiment',
+    contient(pDan, 'Patrice Lecap'));
+
+var pThe = construirePromptSysteme('alain_theret', 'fr', null, null);
+att('Theret connait la chaine locative reelle, etape par etape',
+    contient(pThe, 'ACHETER UN TERRAIN A BATIR -- 2 PA')
+    && contient(pThe, 'DEPOSER UNE DEMANDE DE PERMIS -- 2 PA')
+    && contient(pThe, 'DECOUPER EN LOTS'));
+att('il sait que le loyer est preleve chaque nuit par le serveur',
+    contient(pThe, 'preleve CHAQUE NUIT'));
+att('il sait que le loyer suit le titulaire ACTUEL des murs',
+    contient(pThe, 'titulaire ACTUEL DES MURS'));
+att('il sait qu un impaye ouvre une ardoise et n expulse PERSONNE',
+    contient(pThe, 'ARDOISE') && contient(pThe, "N'EST PAS EXPULSE"));
+att('il sait qu aucun lot sous bail ne peut etre redecoupe',
+    contient(pThe, 'AUCUN LOCAL SOUS BAIL NE PEUT ETRE TOUCHE'));
+att('et il n invente aucun rendement garanti',
+    contient(pThe, 'aucun taux de rentabilite, aucun rendement garanti'));
+
+var pGar = construirePromptSysteme('mathilde_garde', 'fr', null, null);
+att('Garde ne prete AUCUN effet de sante a l article du marche',
+    contient(pGar, "ne porte AUCUN effet declare sur la sante"));
+att('elle connait le seul bareme etabli, et son plafond non arbitre',
+    contient(pGar, 'de 5 a 10 FR') && contient(pGar, "rien n'a jamais ete arbitre"));
+att('elle nomme les deux seules stats reelles',
+    contient(pGar, 'la SANTE et le MORAL')
+    && contient(pGar, 'aucun indicateur de nutrition'));
+att('et elle nomme les vrais commercants du marche',
+    contient(pGar, 'Jean-Pierre Bidoche') && contient(pGar, 'Ginette Legume'));
+
+var pCar = construirePromptSysteme('jean_jacques_carlin', 'fr', null, null);
+att('Carlin nomme le vrai club et le vrai stade',
+    contient(pCar, 'UNION CHEMINOTE DE MONTROUGE') && contient(pCar, 'STADE MARCEL CAZENAVE'));
+att('il connait le cout reel pour rejoindre les supporters',
+    contient(pCar, 'REJOINDRE LE CLUB DE SUPPORTERS (1 PA et 50 FR'));
+// ECART CONSIGNE : il n'existe AUCUN PNJ « ancien joueur de football » a Montrouge. Le referent
+// social du club y est Lucas Tenaire, chef des supporters. Le banc verifie qu'on oriente vers
+// l'homme qui existe, sous son vrai titre.
+att('il oriente vers Lucas Tenaire, le referent social qui existe vraiment',
+    contient(pCar, 'LUCAS TENAIRE') && contient(pCar, 'chef des supporters'));
+
+var pBea = construirePromptSysteme('marie_eve_beaulieu', 'fr', null, null);
+att('Beaulieu nomme l EHPAD et ses trois pensionnaires reels',
+    contient(pBea, 'RESIDENCE LES TILLEULS') && contient(pBea, 'JEANINE DUBOIS')
+    && contient(pBea, 'LOUIS CHEVILLARD') && contient(pBea, 'NOEL CHAUCHAY'));
+att('elle sait qu il n y a RIEN a y faire, et que c est le point',
+    contient(pBea, "IL N'Y A RIEN A FAIRE LA-BAS"));
+att('elle connait les deux seules mecaniques reelles de l Universite',
+    contient(pBea, 'recruter des militants pour une organisation (2 PA') && contient(pBea, '180 FR par jour'));
+
+print('');
+print('LEURS PERSONNALITES SONT DANS LE PROMPT, PAS DANS UNE REPONSE TOUTE FAITE');
+print('============================================================');
+// CE QU'ON VERIFIE ICI : que le TRAIT est ecrit comme un caractere, et que la consigne de mesure
+// l'accompagne. Un trait sans garde-fou devient un gimmick repete a chaque phrase.
+att('Danltat : la contrainte est son premier reflexe',
+    contient(pDan, 'TA PREMIERE IDEE EST LA CONTRAINTE'));
+att('Danltat : et ce reflexe est borne, pour ne pas devenir une caricature',
+    contient(pDan, 'UNE FOIS DE TEMPS EN TEMPS') && contient(pDan, "Tu n'es pas une caricature"));
+att('Theret : il parle la langue des economistes sans chercher a impressionner',
+    contient(pThe, 'rouler la dette') && contient(pThe, "pas pour impressionner"));
+att('Theret : il rit d une plaisanterie et revient a son raisonnement',
+    contient(pThe, "TU AIMES BEAUCOUP L'HUMOUR") && contient(pThe, 'va-et-vient est ta signature'));
+att('Garde : son austerite est une inquietude, pas une froideur',
+    contient(pGar, "c'est une INQUIETUDE") && contient(pGar, 'grand-mere'));
+att('Garde : sa famille n est pas un refrain',
+    contient(pGar, "TA FAMILLE N'EST PAS UN REFRAIN"));
+att('Carlin : diplomate sans etre seducteur',
+    contient(pCar, "TU N'ES PAS SEDUCTEUR"));
+att('Carlin : il sait dire non a un ministre, sans manquer de respect',
+    contient(pCar, 'TU SAIS DIRE NON') && contient(pCar, 'sans manquer de respect'));
+att('Carlin : il n est pas pacifiste par principe',
+    contient(pCar, "TU N'ES PAS PACIFISTE PAR PRINCIPE"));
+att('Beaulieu : elle rejette la seduction et recadre sur la fonction',
+    contient(pBea, 'TU LA REJETTES') && contient(pBea, 'TU NE SEDUIS JAMAIS'));
+att('Beaulieu : ses enfants sont sa faiblesse, et ne sont pas un refrain',
+    contient(pBea, 'tes enfants') && contient(pBea, "CE N'EST PAS UN REFRAIN"));
+
+print('');
+print('UNE OPINION N EST JAMAIS UNE REGLE DU JEU');
+print('============================================================');
+att('Danltat : son opinion n est pas une recommandation du jeu',
+    contient(pDan, 'TES OPINIONS NE SONT PAS DES REGLES'));
+att('Theret : son gout pour le locatif est un AVIS, pas une recommandation',
+    contient(pThe, 'est un AVIS, pas une recommandation du jeu'));
+att('Carlin : son desaccord est un avis, pas un veto',
+    contient(pCar, 'TON DESACCORD EST UN AVIS, PAS UN VETO'));
+// CONTRE-EPREUVE : aucun des cinq ne porte de score, de note ni de jauge de sympathie. Le joueur
+// n'est pas evalue pour ce qu'il repond a un PNJ.
+['yvan_danltat','alain_theret','mathilde_garde','marie_eve_beaulieu','jean_jacques_carlin'].forEach(function (id) {
+  var p = construirePromptSysteme(id, 'fr', null, null);
+  att(id + ' : aucun score, aucune note, aucune jauge de sympathie',
+      !/score de sympathie|note de sympathie|jauge de sympathie|points de sympathie/i.test(p));
 });
 
 print('');

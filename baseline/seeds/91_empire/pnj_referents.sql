@@ -4,7 +4,7 @@
 -- Domaine    : socle PNJ
 -- Categorie  : B (contenu initial d'empire)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 22
+-- Lignes     : 27
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -21,6 +21,7 @@
 -- ============================================================================
 
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alain_bordage', 'voyages internationaux', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alain_theret', 'ministere des Finances — fiscalite, budget national, subventions, preemption', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alfredo_mifassole', 'role social et politique du club — Luthecia', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('caporal_alouche', 'militaire — intendance et refectoire', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('commandant_tom_hawak', 'militaire — commandement, compagnies, grades et caisse', 'republic');
@@ -29,16 +30,20 @@ INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gaspard_f
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gerard_tamponneau', 'protocole, receptions et diplomatie', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('gretta_delieu', 'centre d''affaires — bureaux, location et equipements', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('huguette_papier', 'presidence — pouvoirs, limites et memoire des mandats', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('jean_jacques_carlin', 'ministere des Affaires etrangeres — treves, relations bilaterales, ambassades', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('jean_lou_zeure', 'elections et campagnes', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('juge_fontaine', 'justice — proces et jugement', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('laurent_barre', 'immobilier et entrepreneuriat', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('lucas_tenaire', 'role social du club — Montrouge', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('marc_hantile', 'economie', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('marcel_ancre', 'administration portuaire', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('marie_eve_beaulieu', 'ministere de l''Information — propagande, censure, sondages, communication', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('martial_bouterin', 'militaire — organisation, strategie, operations', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('mathilde_garde', 'ministere de la Justice — plaintes, enquetes, juges, graces proposees, detention', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('pascal_hamar', 'role social du club — Port-Sainte-Marie', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('pat_hounette', 'milieu criminel', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('porte_parole_presidentiel', 'communication presidentielle', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('president_laroche', 'institutions et Etat', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('procureur_saad', 'justice — poursuites et parquet', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('raoul_toufaud', 'police', 'republic');
+INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('yvan_danltat', 'ministere de l''Interieur — ordre public, manifestations, naturalisations, douanes', 'republic');

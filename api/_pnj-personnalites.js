@@ -315,9 +315,16 @@ TU NE DONNES AUCUN PRIX CHIFFRÉ : tu dis « pas cher », « moins cher qu'en vi
   'justin_verre':                  { nom: "Justin Verre", role: "Tenancier de Buvette" },
   'le_maire':                      { nom: "Le Maire", role: "Maire de Luthecia", lieu: "Hotel de Ville de Luthecia" },
   'le_maire_de_luthecia':          { nom: "Le Maire de Luthecia", role: "Maire de la Capitale", lieu: "Hotel de Ville de Luthecia" },
-  'le_ministre_de_la_justice':     { nom: "Le Ministre de la Justice", role: "PNJ - Ministre de la Justice", lieu: "Palais du Gouvernement" },
-  'le_ministre_des_affaires_etrangeres': { nom: "Le Ministre des Affaires Étrangères", role: "PNJ - Ministre des Affaires Etrangeres", lieu: "Palais du Gouvernement" },
-  'le_ministre_des_finances':      { nom: "Le Ministre des Finances", role: "PNJ - Ministre des Finances", lieu: "Palais du Gouvernement" },
+  // LES TROIS FICHES MINCES DES MINISTRES ONT ETE RETIREES ICI (11 octobre 2026).
+  // `le_ministre_de_la_justice`, `le_ministre_des_affaires_etrangeres` et
+  // `le_ministre_des_finances` portaient un nom generique et aucun savoir. Les cinq ministres
+  // sont desormais INCARNES et vivent dans _pnj-referents.js, sous leur vrai identifiant :
+  // mathilde_garde, jean_jacques_carlin, alain_theret, yvan_danltat, marie_eve_beaulieu.
+  //
+  // LES LAISSER ICI LES AURAIT GARDES ADRESSABLES. C'est la lecon du General Faure a la caserne,
+  // et celle du faux Premier ministre de ce meme Palais : un PNJ retire de la piece mais laisse
+  // dans la table reste joignable par son ancien identifiant -- avec un nom generique et un
+  // savoir vide, c'est-a-dire pire que rien.
   'le_portier':                    { nom: "Le Portier", role: "PNJ - Gardien de la Loge" },
   'le_president':                  { nom: "Le Président", role: "PNJ - Président de la République", lieu: "Palais de l'Elysee de Republia" },
   'lobbyiste_perrin':              { nom: "Lobbyiste Perrin", role: "Lobbyiste (PNJ)", lieu: "Assemblee Nationale" },

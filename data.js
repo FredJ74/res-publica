@@ -2504,10 +2504,16 @@ const BUILDINGS = {
         // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
         // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
         // a ce ministere : trois champs de donnees.
-        persons: [{name:"Le Ministre de l'Intérieur (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int',
+        // INCARNE LE 11 OCTOBRE 2026. Le PNJ generique « Le Ministre de l'Intérieur » devient
+        // YVAN DANLTAT : homme d'autorite aigri, dont le premier reflexe devant un probleme est la
+        // contrainte -- et qui possede un bateau au port de plaisance de Port-Sainte-Marie, seul
+        // endroit ou on le voit calme. Son opinion n'est jamais une regle du jeu.
+        persons: [{name:"Yvan Danltat (PNJ)", role:'PNJ - Ministre de l\'Interieur', rel:'neutral', job:'min_int',
                    resteApresPourvoi: true,
                    roleSiPnjTitulaire: 'PNJ - Ministre de l\'Interieur',
-                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Intérieur"}],
+                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Intérieur",
+                   photoUrl:'images/luthecia-palais-gouvernement-yvan-danltat.webp',
+                   photoPos:'50% 20%'}],
         orders: [
           // REGROUPEMENT UX DU 8 SEPTEMBRE 2026. Traiter, interdire et reprimer une manifestation
           // sont trois etapes d'une meme famille : elles cessent d'etre trois entrees principales.
@@ -2551,10 +2557,16 @@ const BUILDINGS = {
         // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
         // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
         // a ce ministere : trois champs de donnees.
-        persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin',
+        // INCARNE LE 11 OCTOBRE 2026 : ALAIN THERET, technicien tres pointu qui parle la langue des
+        // economistes sans chercher a impressionner, rit volontiers d'une plaisanterie et revient
+        // ensuite a son raisonnement. Il apprecie l'investissement locatif -- c'est son avis, pas
+        // une recommandation du jeu, et il n'annonce aucun rendement.
+        persons: [{name:'Alain Théret (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin',
                    resteApresPourvoi: true,
                    roleSiPnjTitulaire: 'PNJ - Ministre des Finances',
-                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Finances'}],
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Finances',
+                   photoUrl:'images/luthecia-palais-gouvernement-alain-theret.webp',
+                   photoPos:'50% 20%'}],
         orders: [
           {fn:'pilotage_fiscal_budgetaire', label:'Fiscalité et budget', pa:2, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Taux d\'imposition national, répartition budgétaire et redressement fiscal — une seule fonction de pilotage financier.'},
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
@@ -2575,10 +2587,15 @@ const BUILDINGS = {
         // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
         // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
         // a ce ministere : trois champs de donnees.
-        persons: [{name:'Le Ministre de la Justice (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just',
+        // INCARNEE LE 11 OCTOBRE 2026 : MATHILDE GARDE, austere en apparence, et surtout inquiete
+        // pour l'avenir depuis qu'elle est grand-mere. Elle s'interdit souvent la legerete. Sa
+        // famille explique qui elle est ; elle n'en parle pas a chaque phrase.
+        persons: [{name:'Mathilde Garde (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just',
                    resteApresPourvoi: true,
                    roleSiPnjTitulaire: 'PNJ - Ministre de la Justice',
-                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel de la Justice'}],
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel de la Justice',
+                   photoUrl:'images/luthecia-palais-gouvernement-mathilde-garde.webp',
+                   photoPos:'50% 20%'}],
         orders: [
           {fn:'annuler_poursuites',   label:'Classer une plainte',          pa:2, cost:0,   type:'grey',    icon:'ti-file-x',         successRate:70,  requiresPost:'min_just', desc:'Classer une plainte en cours avant jugement. Cree une dette politique. Coute a la caisse du gouvernement.'},
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
@@ -2668,10 +2685,16 @@ const BUILDINGS = {
         // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
         // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
         // a ce ministere : trois champs de donnees.
-        persons: [{name:"Le Ministre de l'Information (PNJ)", role:"PNJ - Ministre de l'Information", rel:'neutral', job:'min_info',
+        // INCARNEE LE 11 OCTOBRE 2026 : MARIE-EVE BEAULIEU. Intelligente, serieuse, avenante et
+        // parfois rigide ; belle sans jamais s'en servir, et nettement plus seche des qu'on tente
+        // de la seduire -- elle veut etre consideree pour sa fonction. Sa seule faiblesse est ses
+        // enfants, qu'elle dissimule.
+        persons: [{name:"Marie-Eve Beaulieu (PNJ)", role:"PNJ - Ministre de l'Information", rel:'neutral', job:'min_info',
                    resteApresPourvoi: true,
                    roleSiPnjTitulaire: "PNJ - Ministre de l'Information",
-                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Information"}],
+                   roleSiPjTitulaire:  "PNJ - Secrétaire ministériel de l'Information",
+                   photoUrl:'images/luthecia-palais-gouvernement-marie-eve-beaulieu.webp',
+                   photoPos:'50% 20%'}],
         orders: [
           {fn:'propagande_etat',      label:'Campagne de propagande',       pa:3, cost:500, type:'grey',    icon:'ti-broadcast',      successRate:75,  requiresPost:'min_info', desc:'Influencer massivement l\'opinion publique. +POP.'},
           {fn:'censurer_media',       label:'Censurer un media',            pa:2, cost:0,   type:'grey',    icon:'ti-eye-off',        successRate:70,  requiresPost:'min_info', desc:'Interdire un organe de presse. -liberte +controle.'},
@@ -2692,10 +2715,16 @@ const BUILDINGS = {
         // PNJ a l'Elysee -- `resteApresPourvoi` sort avant le filtre des postes masques, et
         // `ajusterTitrePnjDePoste` recalcule le titre a l'entree dans la piece. Aucun code propre
         // a ce ministere : trois champs de donnees.
-        persons: [{name:'Le Ministre des Affaires Étrangères (PNJ)', role:'PNJ - Ministre des Affaires Etrangeres', rel:'neutral', job:'min_ae',
+        // INCARNE LE 11 OCTOBRE 2026 : JEAN-JACQUES CARLIN, avenant et profondement diplomate --
+        // sans etre seducteur. Il prend la politique etrangere tres au serieux, sait exprimer un
+        // desaccord franc a un ministre sans manquer de respect, et n'est pas pacifiste par
+        // principe : il raisonne en consequences. Il suit l'Union Cheminote de Montrouge.
+        persons: [{name:'Jean-Jacques Carlin (PNJ)', role:'PNJ - Ministre des Affaires Etrangeres', rel:'neutral', job:'min_ae',
                    resteApresPourvoi: true,
                    roleSiPnjTitulaire: 'PNJ - Ministre des Affaires Etrangeres',
-                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Affaires Étrangères'}],
+                   roleSiPjTitulaire:  'PNJ - Secrétaire ministériel des Affaires Étrangères',
+                   photoUrl:'images/luthecia-palais-gouvernement-jean-jacques-carlin.webp',
+                   photoPos:'50% 20%'}],
         orders: [
           {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
           {fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},

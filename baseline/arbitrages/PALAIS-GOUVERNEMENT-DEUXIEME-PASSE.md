@@ -1,11 +1,12 @@
-# Palais du Gouvernement — deuxième passe : qui paie, et qui répond
+# Palais du Gouvernement — deuxième passe : qui paie, qui répond, et qui sont les cinq
 
 *11 octobre 2026. **Ce bâtiment n'est PAS clos** : la visite fonctionnelle de Fred
 n'est pas terminée. Ce document enregistre deux arbitrages livrés ensemble, et
 nomme ce qui reste ouvert.*
 
-Migrations : registre **20261011111516** (`conference_de_presse_et_financement`) et
-**20261011115512** (`memoire_un_obstacle_qui_dit_encore_vrai`).
+Migrations : registre **20261011111516** (`conference_de_presse_et_financement`),
+**20261011115512** (`memoire_un_obstacle_qui_dit_encore_vrai`) et **20261011123403**
+(`cinq_secretaires_ministeriels_referents`).
 
 ---
 
@@ -195,6 +196,96 @@ ne porte pas encore le nouveau Président.
 
 ---
 
+## 5. Les cinq secrétaires ministériels sont incarnés
+
+Les cinq ministres PNJ ne s'appelaient plus « Le Ministre de l'Intérieur ». Ils ont un nom, un
+visage, un caractère, et **un dehors**.
+
+| | nom | caractère | son dehors, et sa borne |
+|---|---|---|---|
+| Intérieur | **Yvan Danltat** | aigri, sec, attaché à l'autorité ; son premier réflexe devant un problème est la contrainte | le port de plaisance de PSM, où son bateau est amarré — mais il n'est **pas** le référent de PSM |
+| Finances | **Alain Théret** | technicien très pointu, parle la langue des économistes sans chercher à impressionner, rit volontiers d'une plaisanterie et revient à son raisonnement | l'investissement locatif — mais il n'**annonce aucun rendement** |
+| Justice | **Mathilde Garde** | austère en apparence ; c'est en réalité une inquiétude pour l'avenir, depuis qu'elle est grand-mère | bien manger, et le marché — mais elle n'est **ni médecin ni nutritionniste** |
+| Information | **Marie-Eve Beaulieu** | intelligente, sérieuse, parfois rigide ; rejette la séduction et recadre sur la fonction ; sa faiblesse est ses enfants, qu'elle dissimule | la transmission entre générations, l'EHPAD et l'Université — mais elle n'est **référente ni de l'un ni de l'autre** |
+| Affaires étrangères | **Jean-Jacques Carlin** | avenant et profondément diplomate, sans être séducteur ; sait dire non à un ministre sans manquer de respect ; pas pacifiste par principe | le football et l'Union Cheminote de Montrouge — mais il ne **connaît pas Montrouge** pour autant |
+
+### Aucune omniscience, et chaque dehors s'arrête net
+
+Chacun reçoit **deux blocs** : son ministère, et son dehors. Le banc vérifie, pour les cinq, que
+le prompt contient son propre dehors, sa borne, **et aucun des quatre autres**. Réunir les cinq en
+un corpus partagé les aurait rendus interchangeables — exactement ce que la règle de découpage du
+Palais présidentiel interdit.
+
+### Trois dehors ont fait apparaître une mécanique absente, et c'est écrit comme telle
+
+C'est le point le plus important de cette passe. **Tout ce que les cinq savent a été relevé dans
+le code et les données**, jamais écrit d'après l'intention — et là où la mécanique n'existe pas,
+le PNJ le dit au lieu de l'inventer.
+
+- **Le port de plaisance n'a AUCUNE mécanique.** `orders: []` dans ses deux pièces, et data.js le
+  dit explicitement : « aucune mecanique portuaire (anneaux, bateaux, navigation, taxes...) :
+  volontairement reporte ». Il n'existe donc **ni réglementation du port, ni sortie en mer**.
+  Danltat connaît le lieu (le quai, la capitainerie, Patrice Lecap qui la dirige) et dit
+  franchement qu'on ne prend pas son bateau pour aller quelque part. Le seul voyage par bateau qui
+  existe est le passage **inter-empires depuis le port industriel** : il y envoie Alain Bordage.
+- **L'article alimentaire du marché n'a aucun effet de santé déclaré.** Le Croque-Monsieur du
+  Marché (céréales + viande + fruits et légumes) ne porte pas d'`effets`, contrairement aux
+  recettes PNJ historiques. Mathilde Garde ne promet donc aucun gain de santé au marché. Le seul
+  barème établi — prix → effet — ne vaut que pour une référence créée par un **joueur** dans son
+  fonds alimentaire, avec **deux paliers seulement** (5–10 FR, 10–15 FR), les tranches au-delà de
+  15 FR n'ayant jamais été arbitrées. Elle le dit, plafond compris.
+- **Il n'existe aucun PNJ « ancien joueur de football » à Montrouge.** Le référent **social** du
+  club y est **Lucas Ténaire**, chef des supporters et cheminot syndicaliste, au siège des
+  supporters du Stade Marcel Cazenave. Carlin oriente vers l'homme qui existe, sous son vrai titre.
+
+Les deux autres dehors, eux, portaient une mécanique **complète**, et elle est transmise exacte :
+la chaîne locative (terrain → permis → chantier → lots → bail), le **prélèvement nocturne** du
+loyer au titulaire **actuel des murs**, l'**ardoise** qui court sans expulser personne, et
+l'interdiction de redécouper un lot sous bail ; l'EHPAD Résidence Les Tilleuls avec ses trois
+pensionnaires nommés et son `orders: []` assumé — on y va pour écouter — et les deux seules
+mécaniques réelles de l'Université, le recrutement de militants (2 PA) et la location de la salle.
+
+### Une opinion n'est jamais une règle du jeu
+
+Danltat préfère la coercition, Théret aime l'investissement locatif, Carlin tient le football pour
+un bien commun. Les trois prompts portent la borne explicitement : **« tes opinions ne sont pas des
+règles »**, **« c'est un AVIS, pas une recommandation du jeu »**, **« ton désaccord est un avis,
+pas un véto »**. Rien n'est programmé derrière : aucun score de sympathie, aucune jauge, aucune
+conséquence parce qu'un PNJ exprime un avis — le banc le vérifie sur les cinq.
+
+### La transition PNJ → secrétaire, éprouvée sur les cinq et non lue
+
+La demande était explicite : la mécanique doit valoir **pour les cinq ministères, sans cinq
+implémentations ad hoc**. Il n'y en a aucune — `ajusterTitrePnjDePoste` boucle sur tout PNJ portant
+`job` + `roleSiPnjTitulaire` + `roleSiPjTitulaire`, et `resteApresPourvoi` court-circuite le filtre
+des postes masqués **avant** le test de la liste. Le banc ne le lit pas : il **fait tourner la vraie
+fonction** sur les cinq bureaux, dans les deux sens, et compare au titre déclaré dans data.js. Il
+vérifie aussi qu'après la prise du poste par un joueur le secrétaire **est toujours là, sous son
+nom**, et que son titre ne prétend plus au ministère.
+
+### Un oubli de la première passe, trouvé et corrigé
+
+**Les cinq n'étaient pas inscrits dans `pnj_referents`.** La première passe leur avait donné un
+corpus et un rôle de référent sans les déclarer dans la liste fermée qui autorise la mémoire
+pédagogique — et `referent_pedagogie_noter` rend `referent: false` **sans rien écrire** pour un
+identifiant absent. Les cinq recommençaient donc à zéro à chaque conversation, là où Martial
+Bouterin, Tom Hawak et Huguette Papier se souviennent de ce qu'ils ont déjà expliqué. Ce n'était pas
+un arbitrage, c'était un oubli. Le registre passe de **22 à 27** référents.
+
+**Le domaine déclaré est celui du ministère, jamais le dehors personnel.** Les inscrire sous « port
+de plaisance » ou « investissement locatif » aurait fait de ces cinq les référents officiels de
+rayons qui appartiennent à Alain Bordage, Laurent Barre, Marc Hantile et Lucas Ténaire. Une preuve
+structurelle de la migration **et** une épreuve du banc l'interdisent désormais.
+
+### Les trois fiches minces périmées ont été retirées
+
+`le_ministre_de_la_justice`, `le_ministre_des_affaires_etrangeres` et `le_ministre_des_finances`
+vivaient encore dans `_pnj-personnalites.js` avec un nom générique et aucun savoir. Les y laisser
+les aurait gardés **adressables** — c'est la leçon du Général Faure à la caserne et du faux Premier
+ministre de ce même Palais. Le banc le vérifie par contre-épreuve sur les cinq anciens identifiants.
+
+---
+
 ## Ce qui a été éprouvé
 
 - **`banc-conference-de-presse.sql` — 63 épreuves**, dont les contre-épreuves du
@@ -223,6 +314,17 @@ ne porte pas encore le nouveau Président.
   `presidence_memoire_contexte(text,int)`, révoquée la veille au profit de
   `presidence_memoire_mon_pays()`. Une contre-épreuve a été ajoutée : la porte avec
   pays explicite reste fermée au navigateur.
+- **`banc-palais-gouvernement.js` — 197 épreuves** (118 → 197). Les cinq portent un nom, leur nom
+  se normalise **exactement** en leur identifiant de profil (la même normalisation que `slugPnj`,
+  reproduite dans le banc : un accent de divergence rendrait le PNJ muet sans qu'aucune autre
+  épreuve ne le voie), leur portrait existe sur le disque, leur ancien identifiant générique **ne
+  répond plus**, chaque dehors est présent avec sa borne et **aucun des quatre autres**, les
+  mécaniques absentes sont dites absentes, et aucun des cinq ne porte de score de sympathie.
+- **`banc-titre-pnj-de-poste.js` — 93 épreuves** (43 → 93) : la vraie `ajusterTitrePnjDePoste`
+  tourne sur les **cinq** bureaux, dans les deux sens.
+- **`banc-secretaires-referents.sql` — 22 épreuves** : les cinq sont déclarés, la porte pédagogique
+  les reconnaît et **compte réellement** les consultations, une seconde visite s'ajoute, et un
+  identifiant inconnu — ancienne clé générique ou référent inventé — n'écrit **rien** et le dit.
 - **Les 11 contrôles du baseline sont verts**, et les **37 bancs JavaScript** aussi.
 
 ### Un défaut de fraîcheur du baseline, trouvé et corrigé

@@ -139,6 +139,42 @@ essai('poste tenu par le PNJ', 'caserne-militaire', 'salle_commandement',
        (p.persons || []).some(function (x) { return x.job === 'secretaire_general'; }));
  })
  .then(function () {
+   // LES CINQ MINISTERES, PAR LA MEME MECANIQUE ET SANS UNE LIGNE DE CODE PROPRE (11 octobre 2026).
+   // La demande de Fred etait explicite : la transition ministre PNJ -> secretaire doit fonctionner
+   // « de maniere coherente pour les cinq ministeres, sans cinq implementations ad hoc ». On ne le
+   // verifie donc pas en lisant le code : on fait TOURNER la vraie fonction sur les cinq bureaux,
+   // dans les deux sens, et on compare au titre declare dans data.js.
+   var CINQ = [
+     ['min_int',  'bureau_min_int',  'Yvan Danltat (PNJ)'],
+     ['min_fin',  'bureau_min_fin',  'Alain Théret (PNJ)'],
+     ['min_just', 'bureau_min_just', 'Mathilde Garde (PNJ)'],
+     ['min_info', 'bureau_min_info', 'Marie-Eve Beaulieu (PNJ)'],
+     ['min_ae',   'bureau_min_ae',   'Jean-Jacques Carlin (PNJ)']
+   ];
+   return CINQ.reduce(function (chaine, m) {
+     var job = m[0], salle = m[1], nom = m[2];
+     var decl = porteur(piece('palais-gouvernement', salle));
+     return chaine
+       .then(function () {
+         return essai(job + ' tenu par le PNJ', 'palais-gouvernement', salle,
+            { nom: nom, estPJ: false }, decl.roleSiPnjTitulaire, job);
+       })
+       .then(function () {
+         return essai(job + ' pris par un joueur', 'palais-gouvernement', salle,
+            { nom: 'Arnie', estPJ: true }, decl.roleSiPjTitulaire, job);
+       })
+       .then(function () {
+         // ET IL EST TOUJOURS LA, SOUS SON NOM. Un secretaire qui disparaitrait de la piece
+         // rendrait le renommage invisible -- c'est exactement le defaut de Martial Bouterin,
+         // corrige le 22 septembre et qu'on ne veut pas voir revenir par une autre porte.
+         var x = porteur(piece('palais-gouvernement', salle));
+         att(job + ' : le secretaire porte toujours son nom', x && x.name === nom, x && x.name);
+         att(job + ' : et son titre de secretaire ne pretend plus au ministere',
+             x && x.role.indexOf('Ministre') < 0, x && x.role);
+       });
+   }, Promise.resolve());
+ })
+ .then(function () {
    // UNE PIECE SANS PNJ DE POSTE NE DOIT RIEN DEMANDER AU SERVEUR : c'est le cas de presque
    // toutes les pieces du jeu, et la fonction est appelee a CHAQUE entree.
    demandes = []; rendus = 0;
