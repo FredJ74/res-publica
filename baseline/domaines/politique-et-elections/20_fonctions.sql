@@ -294,14 +294,25 @@ DECLARE
   v_d    jsonb;
   v_ms   numeric := floor(extract(epoch FROM now()) * 1000);
 BEGIN
+  -- L'ESTAMPILLE EST REMISE A ZERO D'ABORD, ET C'EST LE POINT : ce que l'appelant a annonce dans
+  -- cette colonne est jete AVANT toute lecture. Elle ne pourra valoir que ce que le cycle dit.
+  NEW.cle_scrutin := NULL;
+
   SELECT data INTO v_data FROM public.cycles_electoraux
    WHERE id = NEW.country || '_' || NEW.poste_id || CASE WHEN NEW.city IS NOT NULL THEN '_' || NEW.city ELSE '' END;
   IF NOT FOUND THEN RETURN NEW; END IF;          -- cycle cree par le client juste avant la candidature
   BEGIN v_d := v_data::jsonb; EXCEPTION WHEN OTHERS THEN RETURN NEW; END;
   IF COALESCE((v_d ->> 'resultatsTraites')::boolean, false)
-     OR COALESCE(v_d ->> 'phase', '') IN ('mandat', 'vacant')
      OR (jsonb_typeof(v_d -> 'dateDebutCampagne') = 'number' AND v_ms >= (v_d ->> 'dateDebutCampagne')::numeric) THEN
-    RAISE EXCEPTION 'candidatures_closes' USING HINT = 'Les candidatures a ce scrutin sont closes (cloture du lundi 00:01).';
+    RAISE EXCEPTION 'candidatures_closes' USING HINT = 'Les candidatures a ce scrutin sont closes (gel du lundi 00:01 de la derniere semaine du mandat).';
+  END IF;
+  -- ET LA CANDIDATURE EST ESTAMPILLEE DU SCRUTIN VISE, PAR LE SERVEUR (11 octobre 2026).
+  -- Un cycle n'etant plus detruit entre deux scrutins, la table `candidatures` n'est plus
+  -- distinguable par (pays, poste, ville) : sans cette colonne, les candidats d'un scrutin passe
+  -- seraient reinjectes dans le suivant par syncCyclesDepuisSupabase. La valeur n'est pas celle
+  -- que le client annonce : elle est RELUE sur le cycle, ici meme, dans la transaction.
+  IF jsonb_typeof(v_d -> 'dateDebutCandidatures') = 'number' THEN
+    NEW.cle_scrutin := (v_d ->> 'dateDebutCandidatures')::numeric::bigint;
   END IF;
   RETURN NEW;
 END;
@@ -764,9 +775,10 @@ DECLARE
   v_vote     numeric;
   v_res      numeric;
   v_cloture  numeric;
+  v_sortie   jsonb;
 BEGIN
   IF p_d IS NULL OR jsonb_typeof(p_d) <> 'object' OR jsonb_typeof(p_d -> 'dateVote') <> 'number' THEN RETURN p_d; END IF;
-  IF COALESCE((p_d ->> 'resultatsTraites')::boolean, false) OR COALESCE(p_d ->> 'phase', '') IN ('mandat', 'vacant') THEN RETURN p_d; END IF;
+  IF COALESCE((p_d ->> 'resultatsTraites')::boolean, false) OR COALESCE(p_d ->> 'phase', '') = 'vacant' THEN RETURN p_d; END IF;
   IF (p_d ->> 'dateVote')::numeric <= v_ms THEN RETURN p_d; END IF;
 
   v_loc := to_timestamp((p_d ->> 'dateVote')::numeric / 1000) AT TIME ZONE 'Europe/Paris';
@@ -784,8 +796,14 @@ BEGIN
      AND ((p_d ->> 'dateDebutCampagne')::numeric <= v_ms OR (p_d ->> 'dateDebutCampagne')::numeric > v_cloture) THEN
     v_cloture := (p_d ->> 'dateDebutCampagne')::numeric;
   END IF;
-  RETURN p_d || jsonb_build_object('dateDebutCampagne', v_cloture, 'dateVote', v_vote, 'dateResultats', v_res,
-                                   'realigneDimancheTs', v_ms);
+  v_sortie := p_d || jsonb_build_object('dateDebutCampagne', v_cloture, 'dateVote', v_vote, 'dateResultats', v_res,
+                                        'realigneDimancheTs', v_ms);
+  -- LA FIN DU MANDAT SUIT LA PROCLAMATION, TOUJOURS. Elle n'est posee que si le blob en portait
+  -- une : un cycle sans titulaire n'a pas de mandat a dater, et lui en inventer un serait faux.
+  IF jsonb_typeof(p_d -> 'dateFinMandat') = 'number' THEN
+    v_sortie := v_sortie || jsonb_build_object('dateFinMandat', v_res);
+  END IF;
+  RETURN v_sortie;
 END;
 $function$;
 
@@ -807,8 +825,8 @@ BEGIN
 END;
 $function$;
 
--- election_resultats_consigner(text,jsonb,jsonb,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.election_resultats_consigner(p_cycle_id text, p_data jsonb, p_evenement jsonb DEFAULT NULL::jsonb, p_chronique jsonb DEFAULT NULL::jsonb)
+-- election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.election_resultats_consigner(p_cycle_id text, p_data jsonb, p_evenement jsonb DEFAULT NULL::jsonb, p_chronique jsonb DEFAULT NULL::jsonb, p_si_date_resultats numeric DEFAULT NULL::numeric)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -819,13 +837,21 @@ BEGIN
   IF coalesce(btrim(p_cycle_id),'') = '' OR p_data IS NULL OR jsonb_typeof(p_data) <> 'object' THEN
     RAISE EXCEPTION 'election_resultats_consigner : cycle et blob sont obligatoires';
   END IF;
-  -- COMPARE-AND-SWAP SUR LE DRAPEAU DU CYCLE. La garde est dans le FILTRE, pas dans le corps :
-  -- deux passes simultanees ne peuvent pas proclamer le meme scrutin, et un rejeu lit zero ligne.
-  -- Un cycle inconnu donne aussi zero ligne : aucune annonce ne peut partir sans son cycle.
-  UPDATE public.cycles_electoraux
-     SET data = p_data::text, updated_at = now()
-   WHERE id = p_cycle_id
-     AND coalesce((data::jsonb ->> 'resultatsTraites')::boolean, false) = false;
+  -- COMPARE-AND-SWAP DANS LE FILTRE, PAS DANS LE CORPS : deux passes simultanees ne peuvent pas
+  -- proclamer le meme scrutin, et un rejeu lit zero ligne. Un cycle inconnu donne aussi zero
+  -- ligne : aucune annonce ne peut partir sans son cycle.
+  IF p_si_date_resultats IS NULL THEN
+    UPDATE public.cycles_electoraux
+       SET data = p_data::text, updated_at = now()
+     WHERE id = p_cycle_id
+       AND coalesce((data::jsonb ->> 'resultatsTraites')::boolean, false) = false;
+  ELSE
+    UPDATE public.cycles_electoraux
+       SET data = p_data::text, updated_at = now()
+     WHERE id = p_cycle_id
+       AND jsonb_typeof(data::jsonb -> 'dateResultats') = 'number'
+       AND (data::jsonb ->> 'dateResultats')::numeric = p_si_date_resultats;
+  END IF;
   GET DIAGNOSTICS v_n = ROW_COUNT;
   IF v_n <> 1 THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'deja_traite');
@@ -872,7 +898,6 @@ DECLARE
   v_cycle    jsonb;
   v_ms       numeric := floor(extract(epoch from now()) * 1000);
   v_domicile text;
-  v_titulaire boolean;
   v_n        integer;
 BEGIN
   -- L'IDENTITE N'EST PAS UN PARAMETRE. L'appelant ne dit pas qui vote : le serveur le lit.
@@ -917,26 +942,14 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'cycle_illisible');
   END IF;
 
-  -- FENETRE DE VOTE, transcrite de getPhaseActuelle() sans y rien ajouter. Le client n'accepte
-  -- que VOTE, VOTE2 et VOTE3E_SIEGE, et ces trois phases sont exactement l'intervalle
-  -- [dateVote, dateResultats) -- ce qui les distingue est le tour, jamais les bornes. La garde
-  -- serveur ne peut donc ni ouvrir ni fermer une fenetre que le client n'ouvrait ou ne fermait
-  -- pas. Les dates sont des millisecondes JavaScript.
-  --
-  -- Et le retour anticipe « mandat en cours » est repris tel quel, parce qu'il PRIME sur le
-  -- calcul par dates. Pour depute le signal est cycle.elus (au moins un siege pourvu), pour les
-  -- autres cycle.eluId.
-  v_titulaire := CASE
-    WHEN v_poste = 'depute' THEN EXISTS (
-      SELECT 1 FROM jsonb_array_elements(
-        CASE WHEN jsonb_typeof(v_cycle -> 'elus') = 'array' THEN v_cycle -> 'elus' ELSE '[]'::jsonb END
-      ) e WHERE e IS NOT NULL AND jsonb_typeof(e) <> 'null' AND e::text <> '""')
-    ELSE coalesce(nullif(v_cycle ->> 'eluId', ''), NULL) IS NOT NULL
-  END;
-  IF (v_cycle ->> 'phase') = 'mandat' AND v_titulaire
-     AND jsonb_typeof(v_cycle -> 'dateFinMandat') = 'number'
-     AND v_ms < (v_cycle ->> 'dateFinMandat')::numeric THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'vote_ferme', 'phase', 'mandat');
+  -- LA FENETRE DE VOTE, ET ELLE SEULE (11 octobre 2026). Le retour anticipe « un mandat est en
+  -- cours, donc le vote est ferme » est RETIRE : depuis l'arbitrage du calendrier commun, on vote
+  -- toujours pendant le mandat du sortant -- le dernier dimanche de ce mandat. Un titulaire en
+  -- fonction n'est plus un motif de refus, c'est l'etat normal d'un scrutin de succession.
+  -- Les bornes n'ont pas change : dimanche 00:01 -> lundi 00:00, heure de Paris, en millisecondes
+  -- JavaScript. `resultatsTraites` ferme un scrutin deja depouille.
+  IF COALESCE((v_cycle ->> 'resultatsTraites')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'vote_ferme', 'phase', 'depouille');
   END IF;
   IF jsonb_typeof(v_cycle -> 'dateVote') <> 'number'
      OR jsonb_typeof(v_cycle -> 'dateResultats') <> 'number' THEN
@@ -959,8 +972,17 @@ BEGIN
   -- LE BULLETIN EST LA REVENDICATION. Sa cle primaire porte (pays, cle du scrutin, votant) :
   -- un second bulletin du meme electeur pour le meme scrutin obtient un conflit et ne produit
   -- rien. Ce n'est pas un marqueur qu'une ecriture avalee peut perdre.
-  INSERT INTO public.votes_electoraux (id, country, poste_id, city, votant, candidat, created_at)
-  VALUES (v_pays || '_' || v_cle || '_' || v_moi, v_pays, v_poste, v_ville, v_moi, v_cand, now())
+  --
+  -- ET ELLE PORTE DESORMAIS LE TOUR, PAS SEULEMENT LE POSTE (11 octobre 2026). Un cycle n'etant
+  -- plus detruit entre deux scrutins, la cle `pays_cle_votant` aurait interdit a un electeur de
+  -- voter une seconde fois au scrutin SUIVANT du meme poste. Elle le lui interdisait deja au
+  -- SECOND TOUR du meme scrutin, ou le blob remet `votes` a zero mais ou cette ligne survivait :
+  -- personne n'a jamais pu voter a un second tour. `dateVote` identifie le tour en cours, et
+  -- c'est la meme cle que `elections_tracts_pnj.tour` emploie deja.
+  INSERT INTO public.votes_electoraux (id, country, poste_id, city, votant, candidat, tour, created_at)
+  VALUES (v_pays || '_' || v_cle || '_' || v_moi || '_' || trim(to_char((v_cycle ->> 'dateVote')::numeric, 'FM999999999999999')),
+          v_pays, v_poste, v_ville, v_moi, v_cand,
+          (v_cycle ->> 'dateVote')::numeric::bigint, now())
   ON CONFLICT (id) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
   IF v_n <> 1 THEN
@@ -995,6 +1017,7 @@ DECLARE
   v_tour bigint;
   v_nom  text;
   v_cle  text;
+  v_ms   numeric := floor(extract(epoch FROM now()) * 1000);
 BEGIN
   PERFORM public.exiger_acteur(p_joueur);
   IF p_canal NOT IN ('conference', 'jean_lou') THEN
@@ -1020,7 +1043,13 @@ BEGIN
   IF v_d IS NULL OR jsonb_typeof(v_d) <> 'object' THEN
     RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object('ok', false, 'raison', 'scrutin_illisible'));
   END IF;
-  IF COALESCE((v_d ->> 'resultatsTraites')::boolean, false) OR COALESCE(v_d ->> 'phase', '') IN ('mandat', 'vacant') THEN
+  -- UN SCRUTIN EST CLOS QUAND IL EST DEPOUILLE, PAS QUAND UN MANDAT EST EN COURS (11 octobre
+  -- 2026). La phase du mandat n'existe plus, et un titulaire en exercice est desormais l'etat
+  -- NORMAL d'un scrutin de succession : le refuser fermait toute la mecanique pendant les cinq
+  -- semaines du mandat.
+  IF COALESCE((v_d ->> 'resultatsTraites')::boolean, false)
+     OR jsonb_typeof(v_d -> 'dateResultats') <> 'number'
+     OR v_ms >= (v_d ->> 'dateResultats')::numeric THEN
     RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object('ok', false, 'raison', 'scrutin_clos'));
   END IF;
   v_tour := CASE WHEN jsonb_typeof(v_d -> 'dateVote') = 'number' THEN (v_d ->> 'dateVote')::numeric::bigint END;

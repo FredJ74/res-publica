@@ -735,7 +735,15 @@ def controles_du_monde(cat):
     # session d'un meme texte ne peut pas etre renvoyee deux fois par la meme suspension, sinon un
     # second passage de cron annulerait des bulletins deposes entre-temps. Le second est un index
     # de lecture, par pays et par texte.
-    att("index autonomes crees", len(cat.index), 171)
+    # 171 -> 173 le 11 octobre 2026 au soir, calendrier de succession : +2, et AUCUN des deux ne
+    # porte de regle -- ce sont deux index de LECTURE, et ils accompagnent les deux colonnes
+    # d'estampille du scrutin. `candidatures_par_scrutin` sur (pays, poste, ville, cle_scrutin) et
+    # `votes_electoraux_par_tour` sur (pays, poste, ville, tour) : depuis qu'un cycle electoral
+    # n'est plus detruit entre deux scrutins, ces deux tables doivent etre lues PAR SCRUTIN et non
+    # par poste, sinon les candidats et les bulletins d'un scrutin passe reviennent dans le
+    # scrutin en cours. L'unicite, elle, reste portee par la cle primaire, qui inclut desormais le
+    # tour pour un bulletin.
+    att("index autonomes crees", len(cat.index), 173)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.

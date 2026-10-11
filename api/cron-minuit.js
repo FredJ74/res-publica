@@ -343,22 +343,43 @@ async function sbSetBatimentEtat(country, city, buildingId, patch) {
 }
 
 // Noms des postes pour les annonces (synchronisé avec data.js POSTES_ELECTIFS)
+// Les QUATRE postes electifs, nommes. `chef_syndicat` manquait aux deux tables (constate par
+// l'audit du calendrier, 11 octobre 2026) : ses annonces publiques affichaient l'identifiant brut
+// « chef_syndicat », et son perimetre retombait sur le defaut. Il est national, comme la
+// presidence -- et il reste le seul poste electif que la cascade PNJ ne pourvoit jamais, par
+// arbitrage explicite (voir PNJ_PAR_DEFAUT_POSTE).
 const POSTE_NOMS = {
   president: 'Président de la République',
+  chef_syndicat: 'Chef Syndical',
   maire: 'Maire',
   depute: 'Député',
 };
 
 const POSTE_SCOPE = {
-  president: 'national', // visible empire entier
-  maire: 'local',         // visible ville uniquement
+  president: 'national',     // visible empire entier
+  chef_syndicat: 'national', // visible empire entier
+  maire: 'local',            // visible ville uniquement
   depute: 'local',
 };
 
 // Duree de mandat — commune aux 4 postes electifs aujourd'hui (voir POSTES_ELECTIFS,
 // data.js, mandatSemaines:5 partout). A dupliquer en table complete si jamais ca diverge
-// par poste un jour.
+// par poste un jour. Le banc du calendrier de succession confronte cette valeur aux quatre
+// `mandatSemaines` de data.js : une derive de l'un des deux cotes rougit.
 const MANDAT_SEMAINES = 5;
+
+// PROLONGATION D'UN MANDAT QUAND LE SCRUTIN DE SUCCESSION N'A RENDU AUCUN VERDICT (arbitrage du
+// 11 octobre 2026). Deux semaines : une de candidatures rouvertes, une de campagne puis de vote.
+// C'est la duree minimale qui permette de REJOUER un scrutin complet -- un seul dimanche de plus
+// ne laisserait aucune place a une candidature, et le scrutin suivant serait desert par
+// construction. Le titulaire sortant reste pleinement en fonction pendant ces deux semaines : une
+// election en cours ne cree jamais a elle seule une vacance.
+const PROLONGATION_SEMAINES = 2;
+
+// La prolongation d'un SECOND TOUR n'a pas de constante : elle est entierement portee par
+// `calendrierTourSuivant`, qui pose le dimanche suivant. Le mandat sortant dure donc une semaine
+// de plus -- six au total -- et `dateFinMandat` suit `dateResultats`, comme partout.
+
 const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Construit un cycle electoral frais (memes valeurs que initCycleElectoral cote client,
@@ -426,11 +447,73 @@ function lundiMinuitParisApresSemaines(t, n) {
   return instantHeureParis(l.a, l.m, l.j, 0, 0);
 }
 
+// =====================
+// LE CALENDRIER DE SUCCESSION (correctif du 11 octobre 2026) -- JAMAIS DE VACANCE ELECTORALE
+// =====================
+// LA REGLE ARBITREE. Un mandat ne s'arrete pas pour laisser la place a une election : il porte
+// l'election de son successeur DES SA PREMIERE MINUTE, et il ne se termine qu'a l'instant exact
+// ou cette election designe quelqu'un. Un mandat de cinq semaines qui commence un lundi 00:00 de
+// Paris :
+//
+//   semaines 1 a 4 : candidatures OUVERTES a la succession du titulaire en exercice ;
+//   semaine 5      : candidatures GELEES (celles deja deposees restent valides), campagne ;
+//   dernier dimanche : vote, de 00:01 a 23:59 ;
+//   lundi 00:00     : resultat. Le mandat finit et le suivant commence au MEME instant.
+//
+// POURQUOI `dateFinMandat` ET `dateResultats` SONT LE MEME NOMBRE. Parce que c'est la regle
+// elle-meme : il n'existe aucun instant entre la fin d'un mandat et le debut du suivant. Les
+// deux champs sont conserves separement pour que le navigateur puisse continuer a lire
+// « jusqu'au ... » sans connaitre le scrutin, mais ils ne divergent jamais.
+//
+// AUCUNE DATE N'EST CALCULEE EN +N x 24 h : tout passe par les dates calendaires de Paris, donc
+// le vote reste un dimanche et minuit reste minuit a travers les changements d'heure.
+function calendrierSuccession(debutMandat, semaines) {
+  const fin = lundiMinuitParisApresSemaines(debutMandat, semaines);
+  const lundiDerniere = dateCalendairePlusJours(lundiSemaineParis(fin), -7);
+  const dimancheVote = dateCalendairePlusJours(lundiDerniere, 6);
+  return {
+    dateDebutCandidatures: debutMandat,
+    dateDebutCampagne: instantHeureParis(lundiDerniere.a, lundiDerniere.m, lundiDerniere.j, 0, 1),
+    dateVote: instantHeureParis(dimancheVote.a, dimancheVote.m, dimancheVote.j, 0, 1),
+    dateResultats: fin,
+    dateFinMandat: fin
+  };
+}
+
+// Ouvre, SUR LE CYCLE EXISTANT, l'election qui designera le successeur du titulaire en exercice.
+// Ce qui atteste le mandat -- `eluId` / `elus` / `dateDebutMandatTs` -- n'est JAMAIS touche ici :
+// c'est tout l'objet du correctif. Ne sont remis a zero que les elements du SCRUTIN.
+function ouvrirSuccessionSurCycle(cycle, debutMandat, semaines) {
+  const cal = calendrierSuccession(debutMandat, semaines);
+  cycle.phase = 'candidatures';
+  cycle.tour = 1;
+  cycle.candidats = [];
+  cycle.votes = {};
+  cycle.votesPNJ = {};
+  cycle.dateDebutCandidatures = cal.dateDebutCandidatures;
+  cycle.dateDebutCampagne = cal.dateDebutCampagne;
+  cycle.dateVote = cal.dateVote;
+  cycle.dateResultats = cal.dateResultats;
+  cycle.dateFinMandat = cal.dateFinMandat;
+  cycle.resultatsTraites = false;
+  delete cycle.relancePossibleApres;   // la relance n'existe plus : le scrutin suivant est deja pose
+  delete cycle.egalite3eSiege;
+  delete cycle.realigneDimancheTs;
+  return cycle;
+}
+
 // Postes a scrutin local, miroir de POSTES_ELECTIFS/posteEstLocal cote client : un cycle NATIONAL
 // ne doit jamais porter de ville (divergence relevee le 12 septembre 2026 -- le cron estampillait
 // la ville du cycle precedent sur une presidentielle ou une election syndicale).
 const POSTES_ELECTIFS_LOCAUX = ['maire', 'depute'];
 
+// PLUS AUCUN APPELANT DANS CE FICHIER DEPUIS LE 11 OCTOBRE 2026, ET ELLE RESTE. Les deux blocs
+// qui l'appelaient -- renouvellement d'un mandat echu, relance d'un cycle vacant -- sont supprimes :
+// reconstruire un cycle, c'est effacer le titulaire. Elle demeure parce qu'elle est le MIROIR
+// EXACT du canon client (plateau-politique.js), que `initCycleElectoral` appelle encore pour
+// ENGENDRER le premier cycle d'un poste dans un monde neuf, et que `verifier-fonctions.py`
+// execute les deux cotes sur une grille de cas a chaque passage. La retirer d'un seul cote ferait
+// rougir le controle d'exhaustivite -- et c'est le comportement voulu.
 function construireNouveauCycleElectoral(posteId, city, now) {
   const cal = calendrierPremierTour(now);
   return {
@@ -4823,15 +4906,27 @@ const PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE = {
   ville_b:  'Norbert Charton (PNJ)'
 };
 
-// Deputes PNJ de secours (chantier "Hotel de Ville / elections", 4 septembre 2026) : 3 sieges
-// reels par ville (voir resoudreScrutinDepute) -- si moins de 3 PJ occupent les sieges a l'issue
-// du depouillement, les sieges manquants sont completes par ces PNJ (jamais pour chef_syndicat,
-// qui peut rester vacant par arbitrage explicite). Noms distincts des PNJ deja en poste ailleurs
-// (aucune collision avec PNJ_PAR_DEFAUT_POSTE), un pool de 3 par ville jamais epuisable.
+// LES NEUF DEPUTES PNJ DE REPUBLIA -- UN SEUL CASTING, CELUI DE L'HEMICYCLE (correctif du
+// 11 octobre 2026).
+//
+// CE QUE L'AUDIT DU CALENDRIER A TROUVE. Il existait DEUX castings de deputes PNJ entierement
+// disjoints, sans un seul nom commun : celui-ci, que le depouillement inscrivait dans
+// `cycle.elus` pour completer les sieges manquants, et `assemblee_sieges` (en base), qui est le
+// registre REELLEMENT affiche et reellement lu par l'hemicycle. Neuf PNJ etaient donc proclames
+// deputes sans jamais sieger, et neuf autres siegeaient sans avoir jamais ete proclames.
+//
+// LE CASTING OFFICIEL EST CELUI DE L'HEMICYCLE, et c'est lui qui est ecrit ici. L'ancien casting
+// fantome (Marchand / Fontaine / Rousseau / Lecoq / Girard / Ambroise / Ferraille / Charbonnier
+// / Houiller) est supprime : il ne represente plus aucun depute, nulle part.
+//
+// IL RESTE UNE RESSAISIE, ET ELLE EST SURVEILLEE. api/ ne peut pas lire une table au chargement
+// du module ; ces neuf noms sont donc une copie de `assemblee_sieges.pnj_nom`, ordonnee par
+// `rang`. Le banc du calendrier de succession confronte cette copie au registre : toute
+// divergence rougit. L'ordre compte -- c'est l'ordre d'appariement des deputes joueurs elus.
 const PNJ_DEPUTES_PAR_VILLE = {
-  capitale: ['Député Marchand (PNJ)', 'Députée Fontaine (PNJ)', 'Député Rousseau (PNJ)'],
-  ville_a:  ['Député Lecoq (PNJ)', 'Députée Girard (PNJ)', 'Député Ambroise (PNJ)'],
-  ville_b:  ['Député Ferraille (PNJ)', 'Députée Charbonnier (PNJ)', 'Député Houiller (PNJ)']
+  capitale: ['Étienne Vauclerc', 'Sophie Maréchal', 'President Laroche'],
+  ville_a:  ['Yann Legall', 'Maëlle Leroux', 'Loïc Kermeur'],
+  ville_b:  ['Nathalie Charron', 'Gérard Pichon', 'Élodie Vasseur']
 };
 
 // Cascade des postes nommes nationaux, dans l'ordre de dependance (chaque poste ne peut etre
@@ -5093,21 +5188,32 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       const row = (await sbGet('cycles_electoraux', filtre) || [])[0];
       if (!row) return;
       const cycle = JSON.parse(row.data);
-      if (!cycle.resultatsTraites || cycle.eluId) return; // pas encore echu, ou deja pourvu
+      // LA GARDE A PERDU `resultatsTraites` (11 octobre 2026). Ce drapeau signifiait « le scrutin
+      // en cours a ete depouille », et un mandat le remet a `false` en rouvrant immediatement la
+      // succession : la cascade de secours ne se serait donc plus jamais declenchee. La seule
+      // question qui compte est celle-ci : LE POSTE A-T-IL UN TITULAIRE ? Si oui, rien a faire --
+      // et c'est aussi la transition d'etat qui rend cette ecriture directe idempotente.
+      if (cycle.eluId) return;
       cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];
-      cycle.phase = 'mandat';
-      cycle.dateDebutMandatTs = now;
-      cycle.dateFinMandat = lundiMinuitParisApresSemaines(now, MANDAT_SEMAINES);   // passage au lundi
+      // LE PNJ DE SECOURS PREND UN MANDAT COMPLET, AVEC SON SCRUTIN DE SUCCESSION. Il entre en
+      // fonction au lundi 00:00 de Paris de la semaine en cours (jamais a l'heure de la passe),
+      // et les candidatures a sa succession sont ouvertes des cet instant -- exactement comme
+      // pour un titulaire joueur. Sans ca un poste pourvu par secours n'aurait plus jamais de
+      // scrutin.
+      const debutSecours = lundiMinuitParisApresSemaines(now, 0);
+      cycle.dateDebutMandatTs = debutSecours;
+      delete cycle.dissolutionUtilisee;
+      ouvrirSuccessionSurCycle(cycle, debutSecours, MANDAT_SEMAINES);
       // Archives des mandats (chantier "Hotel de Ville / elections", 4 septembre 2026) : un
       // mandat de maire PNJ de secours suit desormais la meme tracabilite dateDebutMandatTs/
-      // indicateursDebutMandat qu'un mandat PJ, pour que le renouvellement futur (boucle
+      // indicateursDebutMandat qu'un mandat PJ, pour que la proclamation future (boucle
       // principale) puisse l'archiver correctement lui aussi.
       if (posteId === 'maire') {
         cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(PAYS_CASCADE, ville).catch(() => null);
       }
-      // ECRITURE DIRECTE ASSUMEE : la garde `if (!cycle.resultatsTraites || cycle.eluId) return`
-      // ci-dessus est la transition d'etat elle-meme -- une fois `eluId` pose, un rejeu sort
-      // immediatement. Ce n'est pas une proclamation d'election mais une cascade de secours.
+      // ECRITURE DIRECTE ASSUMEE : la garde `if (cycle.eluId) return` ci-dessus est la transition
+      // d'etat elle-meme -- une fois `eluId` pose, un rejeu sort immediatement. Ce n'est pas une
+      // proclamation d'election mais une cascade de secours.
       await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(cycle), updated_at: new Date().toISOString() });
       occupePJ.add(cle(posteId, ville));
       resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: PNJ_PAR_DEFAUT_POSTE[posteId] });
@@ -5742,45 +5848,25 @@ export default async function handler(req, res) {
       const posteNom = POSTE_NOMS[posteId] || posteId;
       const scope = POSTE_SCOPE[posteId] || 'national';
 
-      // Renouvellement d'un mandat echu (titulaire PJ ou PNJ) — rouvre un cycle de
-      // candidatures frais. C'etait la piece manquante du systeme electoral : sans ca,
-      // un cycle resolu restait fige indefiniment (bug remonte le 8 aout 2026).
-      if (cycle.phase === 'mandat' && cycle.dateFinMandat && now.getTime() >= cycle.dateFinMandat) {
-        // Archive du mandat de maire (chantier "Hotel de Ville / elections", 4 septembre 2026) --
-        // seul le cas dominant (mandat arrive naturellement a echeance) est archive ici.
-        if (posteId === 'maire' && cycle.eluId) {
-          const estPJ = cycle.eluId !== PNJ_PAR_DEFAUT_POSTE.maire;
-          const debutTs = cycle.dateDebutMandatTs || (cycle.dateFinMandat - MANDAT_SEMAINES * SEMAINE_MS);
-          await archiverMandatMaireTermine(country, ville, cycle.eluId, estPJ, debutTs, cycle.dateFinMandat, cycle.indicateursDebutMandat);
-        }
-        // CETTE ECRITURE RESTE DIRECTE, ET C'EST LE BON CHOIX (10 octobre 2026). Elle n'est pas
-        // une proclamation : c'est un RENOUVELLEMENT, et la transition d'etat le garde deja --
-        // le nouveau cycle porte `phase: 'candidatures'`, donc un rejeu ne satisfait plus la
-        // condition `phase === 'mandat'` juste au-dessus. La passer par
-        // election_resultats_consigner serait meme FAUX : son compare-and-swap exige
-        // `resultatsTraites = false`, et un cycle en mandat l'a a vrai.
-        const nouveauCycle = construireNouveauCycleElectoral(posteId, ville, now.getTime());
-        await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycle), updated_at: now.toISOString() });
-        results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle' });
-        continue;
-      }
-
-      // Correctif P0 "cycle a 0 candidat bloque indefiniment" (audit du 4 septembre 2026) : un
-      // cycle 'vacant' (0 candidat OU 0 vote) ne restait auparavant jamais relance -- ni par ce
-      // bloc (qui ne verifiait que phase==='mandat'), ni par la cascade PNJ (qui exige
-      // resultatsTraites+pas d'eluId, mais ne couvre que president/maire). relancePossibleApres
-      // (pose plus bas au moment de la vacance, +24h) laisse une nuit complete a la cascade PNJ
-      // pour tenter de pourvoir le poste (president/maire) avant de relancer un cycle frais --
-      // jamais le meme soir que la vacance elle-meme, pour ne jamais court-circuiter cette cascade.
-      if (cycle.phase === 'vacant' && cycle.resultatsTraites && cycle.relancePossibleApres && now.getTime() >= cycle.relancePossibleApres) {
-        // MEME RAISON QUE LE RENOUVELLEMENT CI-DESSUS : relancer un cycle vacant n'est pas
-        // proclamer, la transition d'etat garde (`phase` repasse a 'candidatures'), et le
-        // compare-and-swap de la porte refuserait puisque `resultatsTraites` est a vrai ici.
-        const nouveauCycleVacant = construireNouveauCycleElectoral(posteId, ville, now.getTime());
-        await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleVacant), updated_at: now.toISOString() });
-        results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle_apres_vacance' });
-        continue;
-      }
+      // LES DEUX BLOCS QUI VIVAIENT ICI SONT SUPPRIMES (correctif du 11 octobre 2026), ET C'EST
+      // LE COEUR DU CORRECTIF.
+      //
+      // Le premier etait le RENOUVELLEMENT D'UN MANDAT ECHU : au passage de `dateFinMandat`, il
+      // remplacait le blob entier par un cycle de candidatures frais. Comme `poste_est_atteste`
+      // ne lit que `eluId` / `elus`, cette seule ecriture faisait disparaitre le titulaire --
+      // puis le nouveau n'etait proclame que DEUX SEMAINES plus tard, a la fin du scrutin que ce
+      // meme bloc venait d'ouvrir. L'audit du calendrier l'a mesure sur des donnees reelles :
+      // quatorze jours exacts sans aucun titulaire atteste, a chaque alternance, pour les quatre
+      // postes electifs.
+      //
+      // Le second RELANCAIT un cycle declare vacant, +24 h apres, et seulement s'il portait
+      // `relancePossibleApres`. Un cycle vacant sans ce champ ne repartait jamais : c'est
+      // exactement l'etat ou `republic_depute_ville_a` etait fige depuis le 30 aout 2026.
+      //
+      // IL N'Y A PLUS RIEN A RENOUVELER NI A RELANCER, parce qu'un mandat ne se termine plus
+      // seul : il porte son scrutin de succession des sa premiere minute (ouvrirSuccessionSurCycle)
+      // et il ne finit qu'a l'instant ou ce scrutin designe quelqu'un -- ou se prolonge quand ce
+      // scrutin ne designe personne. Un seul passage, en bas de cette boucle, decide des deux.
 
       const dateResultats = cycle.dateResultats;
       if (!dateResultats || now.getTime() < dateResultats) continue; // Pas encore échu
@@ -5793,13 +5879,55 @@ export default async function handler(req, res) {
       // ces trois variables. L'ecriture -- blob du cycle, evenement public et chronique -- est
       // faite une seule fois, en bas de la boucle, par election_resultats_consigner, qui garde
       // par compare-and-swap sur `resultatsTraites`.
-      let blobAEcrire = null, evenementAPoser = null, chroniqueAPoser = null;
+      // DEUX VARIABLES, PLUS TROIS (11 octobre 2026). `blobAEcrire` existait pour les deux branches
+      // qui RECONSTRUISAIENT un cycle -- vote blanc majoritaire, aux legislatives et au siege
+      // unique. Reconstruire un cycle, c'est effacer le titulaire : ces branches PROLONGENT
+      // desormais le mandat sur le blob existant, donc plus rien ne produit de blob de
+      // remplacement, et la variable n'avait plus d'affectation.
+      let evenementAPoser = null, chroniqueAPoser = null;
       const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
       const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
       await attacherEffetsTractsServer(row.id, cycle);
 
+      // LE TITULAIRE EN EXERCICE, AVANT TOUT DEPOUILLEMENT. C'est lui qui reste atteste tant
+      // qu'aucun successeur n'est designe -- et c'est la seule raison pour laquelle plus aucune
+      // branche ci-dessous n'a le droit d'effacer `eluId` / `elus`.
+      // L'INSTANT DU DERNIER RESULTAT PROCLAME, pose sur toutes les branches. Il servait a
+      // `resultatsTraites` : la fenetre de contestation de 24 h se lisait « drapeau pose et
+      // dateResultats recente ». Depuis que toute proclamation rouvre immediatement un scrutin,
+      // `dateResultats` est une date FUTURE et le drapeau est a `false` des la seconde suivante --
+      // la fenetre serait devenue inatteignable. Ce champ est l'instant reel, et il ne bouge plus
+      // apres.
+      cycle.dernierResultatTs = dateResultats;
+
+      const sortantSimple = cycle.eluId || null;
+      const sortantsDepute = Array.isArray(cycle.elus) ? cycle.elus.filter(Boolean) : [];
+      const yAvaitUnTitulaire = posteId === 'depute' ? sortantsDepute.length > 0 : !!sortantSimple;
+
+      // PROLONGER, C'EST LE CONTRAIRE DE VACANCER. Un scrutin qui ne designe personne ne touche
+      // pas au mandat : il repose simplement un scrutin neuf, et `dateFinMandat` suit. Le
+      // titulaire sortant reste atteste sans interruption, puisque rien de ce que lit
+      // `poste_est_atteste` n'est modifie.
+      const prolonger = (semaines, motif) => {
+        ouvrirSuccessionSurCycle(cycle, dateResultats, semaines);
+        results.push({ poste: posteId, country, city: ville,
+                       statut: yAvaitUnTitulaire ? 'mandat_prolonge' : 'scrutin_rejoue',
+                       motif, jusqu_au: cycle.dateFinMandat });
+      };
+
+      // PRENDRE SES FONCTIONS. L'instant institutionnel est `dateResultats` -- lundi 00:00 de
+      // Paris -- et JAMAIS `now` : la passe de cron peut tourner une heure plus tard sans que la
+      // date de debut du mandat en depende. C'est ce qui rend la duree des mandats exacte quelle
+      // que soit l'heure reelle de la passe, hiver comme ete.
+      const prendreFonctions = () => {
+        cycle.dateDebutMandatTs = dateResultats;
+        delete cycle.dissolutionUtilisee;   // une dissolution par mandat presidentiel, pas par cycle
+        delete cycle.administrateur;
+        ouvrirSuccessionSurCycle(cycle, dateResultats, MANDAT_SEMAINES);
+      };
+
       if (posteId === 'depute') {
-        // ================= LEGISLATIVES : 3 sieges reels par ville =================
+        // ================= LEGISLATIVES : 3 sieges reels par ville, UN SEUL TOUR =================
         // LA BRANCHE DU DEPARTAGE DU 3e SIEGE EST SUPPRIMEE (chantier 6, lot 1, 7 oct. 2026).
         //
         // Quarante lignes de depouillement d'un second tour PARTIEL, inatteignables. Trois
@@ -5815,34 +5943,33 @@ export default async function handler(req, res) {
         // VOTE3E_SIEGE, data.js) : c'est une regle de jeu documentee, et l'effacer serait une
         // decision de game design. Ce qui part ici, c'est le depouillement mort -- il ne
         // protegeait rien, et il devait etre relu a chaque passage sur ce fichier.
-        //
-        // Le bloc nu ci-dessous n'est pas un reste : il garde `resultatDepute` dans sa propre
-        // portee, comme le faisait la branche `else` qu'il remplace.
         {
           const resultatDepute = resoudreScrutinDepute(cycle, fraudesActives);
           if (!resultatDepute || resultatDepute.totalExprimes === 0) {
-            cycle.resultatsTraites = true;
-            cycle.phase = 'vacant';
-            cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
-            results.push({ poste: 'depute', country, city: ville, statut: 'vacant' });
+            // AUCUN BULLETIN. Les neuf sortants restent deputes, et le scrutin est rejoue.
+            prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
+            evenementAPoser = { country, city: ville,
+              texte: `🗳️ Aucun bulletin aux législatives de ${ville} : les député(e)s en fonction le restent, un nouveau scrutin est ouvert.` };
           } else if (resultatDepute.blancMajoritaire) {
-            blobAEcrire = construireNouveauCycleElectoral('depute', ville, now.getTime());
-            evenementAPoser = { country, city: ville, texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées, un nouveau cycle est lancé.` };
+            // VOTE BLANC MAJORITAIRE. Meme principe : le scrutin est invalide, pas le mandat.
+            prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
+            evenementAPoser = { country, city: ville,
+              texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées. Les député(e)s en fonction le restent jusqu'au nouveau scrutin.` };
             results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
           } else {
+            // LES NEUF CHANGENT EN UNE SEULE ECRITURE. `cycle.elus` est le tableau que
+            // `poste_est_atteste` interroge pour chaque depute de cette ville : le remplacer,
+            // c'est faire finir les mandats sortants et commencer les entrants au MEME instant.
             let elusFinaux2 = resultatDepute.elus.slice();
             if (elusFinaux2.length < 3) {
               const pool2 = (PNJ_DEPUTES_PAR_VILLE[ville] || []).filter(n => !elusFinaux2.includes(n));
               while (elusFinaux2.length < 3 && pool2.length) elusFinaux2.push(pool2.shift());
             }
             cycle.elus = elusFinaux2;
-            cycle.resultatsTraites = true;
-            cycle.phase = 'mandat';
-            cycle.dateDebutMandatTs = now.getTime();
-            cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
+            prendreFonctions();
             evenementAPoser = { country, city: ville, texte: `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).` };
             chroniqueAPoser = {
-              id: `election-${row.id}-${cycle.dateResultats}`,
+              id: `election-${row.id}-${dateResultats}`,
               country, city: ville, type: 'election_resultat',
               personnages: elusFinaux2,
               libelle: `Assemblée de ${ville} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
@@ -5855,20 +5982,25 @@ export default async function handler(req, res) {
         // ================= PRESIDENT / MAIRE / CHEF SYNDICAL : siege unique =================
         const resultatSimple = resoudreScrutinSimple(cycle, fraudesActives);
         if (!resultatSimple || resultatSimple.totalExprimes === 0) {
-          cycle.resultatsTraites = true;
-          cycle.phase = 'vacant';
-          cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
-          results.push({ poste: posteId, country, city: ville, statut: 'vacant' });
+          prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
+          evenementAPoser = { country, city: scope === 'local' ? ville : null,
+            texte: `🗳️ Aucun bulletin à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         } else if (resultatSimple.blancMajoritaire) {
-          blobAEcrire = construireNouveauCycleElectoral(posteId, ville, now.getTime());
-          evenementAPoser = { country, city: scope === 'local' ? ville : null, texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée, un nouveau cycle est lancé.` };
+          prolonger(PROLONGATION_SEMAINES, 'vote_blanc_majoritaire');
+          evenementAPoser = { country, city: scope === 'local' ? ville : null,
+            texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée. Le titulaire en fonction le reste jusqu'au nouveau scrutin.` };
           results.push({ poste: posteId, country, city: ville, statut: 'invalide_vote_blanc' });
         } else if (resultatSimple.elu) {
+          // ARCHIVE DU MANDAT DE MAIRE QUI S'ACHEVE. Elle etait posee par le bloc de
+          // renouvellement, supprime : elle appartient desormais a l'instant ou le successeur est
+          // proclame, qui est le seul instant ou un mandat se termine.
+          if (posteId === 'maire' && sortantSimple) {
+            const estPJ = sortantSimple !== PNJ_PAR_DEFAUT_POSTE.maire;
+            const debutTs = cycle.dateDebutMandatTs || (dateResultats - MANDAT_SEMAINES * SEMAINE_MS);
+            await archiverMandatMaireTermine(country, ville, sortantSimple, estPJ, debutTs, dateResultats, cycle.indicateursDebutMandat);
+          }
           cycle.eluId = resultatSimple.elu;
-          cycle.resultatsTraites = true;
-          cycle.phase = 'mandat';
-          cycle.dateDebutMandatTs = now.getTime();
-          cycle.dateFinMandat = lundiMinuitParisApresSemaines(now.getTime(), MANDAT_SEMAINES);   // passage au lundi
+          prendreFonctions();
           if (posteId === 'maire') {
             cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(country, ville).catch(() => null);
           }
@@ -5881,7 +6013,7 @@ export default async function handler(req, res) {
           // seule cette ligne d'historique survit pour le Journal (source cle stable
           // country+poste_id+city+row.id pour eviter tout doublon si ce passage de cron est rejoue).
           chroniqueAPoser = {
-            id: `election-${row.id}-${cycle.dateResultats}`,
+            id: `election-${row.id}-${dateResultats}`,
             country, city: scope === 'local' ? ville : null,
             type: 'election_resultat',
             personnages: [resultatSimple.elu],
@@ -5891,22 +6023,34 @@ export default async function handler(req, res) {
           };
           results.push({ poste: posteId, country, city: ville, statut: 'elu', gagnant: resultatSimple.elu });
         } else if (resultatSimple.secondTour.length >= 2) {
+          // SECOND TOUR : LE MANDAT SORTANT EST PROLONGE D'UNE SEMAINE, il ne s'interrompt pas.
+          // Le titulaire garde toutes ses prerogatives pendant cette semaine -- `eluId` et
+          // `dateDebutMandatTs` ne sont pas touches ici, et c'est deliberé.
           const candidatsExistantsSimple = cycle.candidats || [];
+          const calST = calendrierTourSuivant(cycle.dateVote);
           cycle.tour = 2;
           cycle.candidats = resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
           cycle.votes = {};
           cycle.votesPNJ = {};
-          // Second tour le dimanche suivant (calendrier du dimanche, 12 septembre 2026) : cloture
-          // deja passee (aucune candidature entre les tours), vote dimanche 00:01 -> 23:59.
-          const calST = calendrierTourSuivant(cycle.dateVote);
           cycle.dateDebutCampagne = calST.dateDebutCampagne;
           cycle.dateVote = calST.dateVote;
           cycle.dateResultats = calST.dateResultats;
+          cycle.dateFinMandat = calST.dateResultats;   // le mandat finit quand le second tour tranche
           cycle.phase = 'second_tour';
+          cycle.resultatsTraites = false;
           const villeLabel2 = ville ? ` (${ville})` : '';
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
-            texte: `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}.` };
-          results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour });
+            texte: `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}. Le titulaire en fonction le reste jusqu'au résultat.` };
+          results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour,
+                         mandat_prolonge_jusqu_au: cycle.dateFinMandat });
+        } else {
+          // AUCUNE DES BRANCHES CI-DESSUS : un scrutin exprime mais sans vainqueur ni second tour
+          // possible (un seul candidat sans majorite, par exemple). Le mandat est prolonge, comme
+          // partout ailleurs -- jamais interrompu faute de verdict. Et il est ANNONCE : une
+          // prolongation muette serait invisible pour les joueurs.
+          prolonger(PROLONGATION_SEMAINES, 'aucun_verdict');
+          evenementAPoser = { country, city: scope === 'local' ? ville : null,
+            texte: `🗳️ Aucun résultat définitif à l'élection de ${posteNom}${ville ? ` (${ville})` : ''} : le titulaire en fonction le reste, un nouveau scrutin est ouvert.` };
         }
       }
 
@@ -5914,11 +6058,19 @@ export default async function handler(req, res) {
       // pas du tout, sous compare-and-swap sur `resultatsTraites` : un rejeu lit zero ligne et
       // n'annonce donc PAS une seconde fois. C'etait le defaut reel de cette famille -- la
       // chronique etait deja protegee par sa cle, l'evenement public ne l'etait pas du tout.
+      // ET LA GARDE A CHANGE DE CHAMP (11 octobre 2026). Elle portait sur `resultatsTraites` ;
+      // or un mandat qui commence rouvre immediatement un scrutin, donc le blob ecrit repasse ce
+      // drapeau a `false` -- un rejeu de la passe l'aurait retrouve a `false` et aurait proclame
+      // une seconde fois. La garde porte desormais sur `dateResultats`, que CHAQUE branche fait
+      // avancer strictement : cinq semaines pour une prise de fonctions, une pour un second tour,
+      // deux pour une prolongation. Un rejeu ne retrouve donc jamais la valeur qu'il a lue, et
+      // n'ecrit rien.
       const vCons = await sbRpc('election_resultats_consigner', {
         p_cycle_id: row.id,
-        p_data: blobAEcrire || cycle,
+        p_data: cycle,
         p_evenement: evenementAPoser,
-        p_chronique: chroniqueAPoser
+        p_chronique: chroniqueAPoser,
+        p_si_date_resultats: dateResultats
       }, HEADERS_SERVICE).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
       if (!vCons || vCons.ok !== true) {
         // `deja_traite` n'est pas un echec : une autre passe a proclame ce scrutin, et c'est

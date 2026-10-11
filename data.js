@@ -7362,7 +7362,7 @@ const CYCLES_ELECTORAUX = {};
 
 // Phases du cycle
 const PHASES_ELECTORALES = {
-  MANDAT:        'mandat',        // Poste occupé, mandat en cours
+  MANDAT:        'mandat',        // Poste occupé, mandat en cours. PLUS JAMAIS ECRIT DANS UN CYCLE depuis le 11 octobre 2026 : `phase` ne decrit plus que le SCRUTIN DE SUCCESSION, et le mandat en exercice s'atteste par `eluId`/`elus`, qui coexistent avec ce scrutin. Conserve pour les libelles et pour relire un blob anterieur
   CANDIDATURES:  'candidatures',  // Ouverture des candidatures (J-7 avant campagne)
   CAMPAGNE:      'campagne',      // Campagne électorale (1 semaine)
   VOTE:          'vote',          // Fenetre de vote : 24h pleines a partir de dateVote (jamais un creneau "dimanche 20h-24h", corrige le 4 septembre 2026 -- le code n'a jamais applique cette contrainte, seul le commentaire etait trompeur)
@@ -7370,7 +7370,8 @@ const PHASES_ELECTORALES = {
   VOTE2:         'vote2',         // Second tour (24h)
   CAMPAGNE_3E_SIEGE: 'campagne_3e_siege', // Legislatives uniquement : campagne du second tour partiel entre candidats ex aequo pour le 3e siege d'une ville (1 semaine -- correctif du 4 septembre 2026, la premiere version sautait directement au vote sans campagne)
   VOTE3E_SIEGE:  'vote_3e_siege', // Legislatives uniquement : vote du second tour partiel ci-dessus (24h)
-  VACANT:        'vacant',        // Poste vacant — PNJ administrateur nomme (jamais pour chef_syndicat, voir doctrine dediee)
+  DEPOUILLEMENT: 'depouillement', // Vote clos, resultat pas encore proclame par le serveur. LE TITULAIRE SORTANT EST TOUJOURS EN FONCTION pendant cette phase : c'est elle qui remplace le « Vacant » que le navigateur affichait a tort entre la cloture du vote et la passe du cron (correctif du 11 octobre 2026)
+  VACANT:        'vacant',        // Poste SANS AUCUN TITULAIRE — jamais produit par une election en cours depuis le 11 octobre 2026 : une succession ne vacance plus le poste. Reste pour un poste jamais pourvu (monde neuf) et pour les PNJ administrateurs (jamais pour chef_syndicat, voir doctrine dediee)
 };
 
 // Résultats électoraux archivés

@@ -48,8 +48,8 @@ GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp
 GRANT EXECUTE ON FUNCTION public.cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) TO service_role;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO postgres;
 GRANT EXECUTE ON FUNCTION public.cycles_electoraux_dimanche() TO service_role;
-GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb) TO postgres;
-GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric) TO postgres;
+GRANT EXECUTE ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric) TO service_role;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.election_voter(text,text,text,text) TO service_role;

@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "b651bb8ecb5abd47aaa3076abbf5bf85",
+   "genre": "COLUMN",
+   "objet": "candidatures",
+   "sous": "cle_scrutin"
+  },
+  {
    "empreinte": "6e1385c4ab8cf38ba163702ab8df13c1",
    "genre": "COLUMN",
    "objet": "communications_salles",
@@ -25,15 +31,15 @@
    "sous": "source"
   },
   {
+   "empreinte": "103ee62d5084134bd8c1cebd46da623c",
+   "genre": "COLUMN",
+   "objet": "votes_electoraux",
+   "sous": "tour"
+  },
+  {
    "empreinte": "e40142c4db213d3fb0411f40f9ad8754",
    "genre": "FUNCTION",
    "objet": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)",
-   "sous": ""
-  },
-  {
-   "empreinte": "b681fd5cd3a7ea8db5f4bbf4f0668f20",
-   "genre": "FUNCTION",
-   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
    "sous": ""
   },
   {
@@ -530,13 +536,13 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
+   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb)",
+   "objet": "election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -1377,14 +1383,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "cfa0062461ae1b59bd1cf0acce6aeda3",
-  "20_fonctions.sql": "9db5f1f3aeb300037b8847f007ba22c9",
+  "10_tables.sql": "9e5586c55ff9850b2a012d474c2e3db7",
+  "20_fonctions.sql": "2724ebfeea4683cac8d92fb59fb7d1f9",
   "30_contraintes.sql": "f08030c1f90cdfee82e8afc0ebf5be37",
-  "35_index.sql": "9ad1626f42fbf2ba296839d854a1fdfe",
+  "35_index.sql": "0f1869e8333a025c32406fbe98d4db1b",
   "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
   "60_rls-policies.sql": "67200350cc8cb641dfe7b0f332761451",
-  "70_droits.sql": "d5b3846caae83a739f876117e1b2a2b4",
-  "80_commentaires.sql": "a0975ca4dedaa777c23a28daece983d2"
+  "70_droits.sql": "d80e4bd074ebf5db8750850370cb1299",
+  "80_commentaires.sql": "a3b1993fbdacedc039598f4c464c200a"
  },
  "fonctions": [
   {
@@ -1403,7 +1409,7 @@
    "signature": "candidature_publier(text,text,numeric,text,text)"
   },
   {
-   "empreinte": "64108c614819842a4443ed70e44358c8",
+   "empreinte": "d8188257385fcc3cc8b7b8694b49753c",
    "security_definer": true,
    "signature": "candidatures_cloture()"
   },
@@ -1448,7 +1454,7 @@
    "signature": "conference_repondre(text,integer,text,boolean)"
   },
   {
-   "empreinte": "ac07f64d79b3d43e6b4734e9c476f461",
+   "empreinte": "f0f2529b29d5de2f52c960d78141aa0c",
    "security_definer": false,
    "signature": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)"
   },
@@ -1458,17 +1464,17 @@
    "signature": "cycles_electoraux_dimanche()"
   },
   {
-   "empreinte": "4d80752d4eadbf66b58bf796203b8e61",
+   "empreinte": "adeb8346107f942fdfe5ac1668c01a3d",
    "security_definer": true,
-   "signature": "election_resultats_consigner(text,jsonb,jsonb,jsonb)"
+   "signature": "election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric)"
   },
   {
-   "empreinte": "bb76671c91a8c5e574818bdd8b12ddad",
+   "empreinte": "3228293b85ab933195973fb7e49b4993",
    "security_definer": true,
    "signature": "election_voter(text,text,text,text)"
   },
   {
-   "empreinte": "a40bbfdbe6eba0a47ca3364f92e32d2a",
+   "empreinte": "2f8c202825d834fd8e72fd7248c166e1",
    "security_definer": true,
    "signature": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)"
   },
@@ -1560,6 +1566,10 @@
  ],
  "index_autonomes": [
   {
+   "empreinte": "6f49c640053a680152a805f2931ced0f",
+   "nom": "candidatures_par_scrutin"
+  },
+  {
    "empreinte": "d3beb8b4c3835af8bb5c889fb96cf135",
    "nom": "conference_par_pays_et_date"
   },
@@ -1594,6 +1604,10 @@
   {
    "empreinte": "9d97139a72515411ee8dba4553dee6da",
    "nom": "votes_confiance_statut_idx"
+  },
+  {
+   "empreinte": "07efbc26a82809149deaee6593db7237",
+   "nom": "votes_electoraux_par_tour"
   }
  ],
  "index_portes": [
@@ -1928,9 +1942,9 @@
  "sequences_autonomes": [],
  "tables": [
   {
-   "colonnes": 9,
-   "empreinte_catalogue": "7d284e4dbce4d2726331ab6bf3180c34",
-   "empreinte_texte": "0a75f3667eb7ce85f41e688f538adce3",
+   "colonnes": 10,
+   "empreinte_catalogue": "341a9624b95faeb82ec9f455e83bdf0d",
+   "empreinte_texte": "6c128272724c36e2c118aaf3fb62dd63",
    "nom": "candidatures"
   },
   {
@@ -2048,9 +2062,9 @@
    "nom": "votes_confiance_bulletins"
   },
   {
-   "colonnes": 7,
-   "empreinte_catalogue": "16e9e892626557833d9f62d6e662b465",
-   "empreinte_texte": "b880b6aa081733b99e8889e3fe756bec",
+   "colonnes": 8,
+   "empreinte_catalogue": "ac1241a1dec82c660fd4378cdc4a7e18",
+   "empreinte_texte": "1cbac0a2de350e7f8c4ff3eff09abac6",
    "nom": "votes_electoraux"
   }
  ],

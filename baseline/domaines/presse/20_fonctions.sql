@@ -1373,7 +1373,6 @@ BEGIN
   v_tour := CASE WHEN jsonb_typeof(v_d -> 'dateVote') = 'number' THEN (v_d ->> 'dateVote')::numeric::bigint END;
   IF v_tour IS NULL OR jsonb_typeof(v_d -> 'dateResultats') <> 'number'
      OR COALESCE((v_d ->> 'resultatsTraites')::boolean, false)
-     OR COALESCE(v_d ->> 'phase', '') = 'mandat'
      OR v_ms < v_tour OR v_ms >= (v_d ->> 'dateResultats')::numeric::bigint THEN
     RETURN public.assemblee_requete_clore(p_requete, jsonb_build_object('ok', false, 'raison', 'hors_phase_vote'));
   END IF;

@@ -14,9 +14,11 @@
 //      -- c'etait la source du defaut : l'annonce publique partait avant le drapeau du cycle, et
 //      un rejeu la reproduisait ;
 //   2. il y a EXACTEMENT UNE consignation, par election_resultats_consigner ;
-//   3. les trois ecritures directes de `cycles_electoraux` qui subsistent dans le fichier sont
-//      les trois TRANSITIONS D'ETAT documentees -- renouvellement de mandat, relance apres
-//      vacance, cascade PNJ -- et chacune porte en commentaire la raison de rester directe.
+//   3. il ne subsiste qu'UNE SEULE ecriture directe de `cycles_electoraux` dans le fichier --
+//      la cascade PNJ -- et elle porte en commentaire la raison de rester directe. Les deux
+//      autres (renouvellement de mandat, relance apres vacance) ont disparu avec le correctif du
+//      calendrier de succession du 11 octobre 2026 : c'etaient les deux ecritures qui
+//      remplacaient le blob, donc les deux qui effacaient le titulaire.
 //
 // ET IL ETABLIT UN FAIT QUE L'AUDIT AVAIT FAUX : le depouillement est DETERMINISTE. Aucun
 // `random()` dans resoudreScrutinSimple ni dans resoudreScrutinDepute. Un rejeu recalcule le meme
@@ -31,6 +33,11 @@ function att(n, c, detail) {
   else { print('  *** ' + n); if (detail !== undefined) print('        ' + detail); ko++; }
 }
 function compte(texte, motif) { return (texte.match(motif) || []).length; }
+// Les lignes de commentaire retirees : un commentaire qui NOMME ce qu'il interdit ne doit pas
+// faire echouer l'epreuve qui verifie l'interdiction.
+function codeSeul(texte) {
+  return texte.split('\n').filter(function (l) { return !/^\s*\/\//.test(l); }).join('\n');
+}
 
 // La portee du bloc electoral : de la lecture des cycles a la cascade de nomination.
 var iDebut = src.indexOf("const dateResultats = cycle.dateResultats;");
@@ -61,10 +68,11 @@ att('exactement un appel a election_resultats_consigner',
     compte(bloc, /sbRpc\('election_resultats_consigner'/g) === 1,
     compte(bloc, /sbRpc\('election_resultats_consigner'/g) + ' appel(s)');
 att("il porte l'identite serveur", bloc.indexOf('HEADERS_SERVICE') >= 0);
-att('les quatre arguments sont transmis',
-    bloc.indexOf('p_cycle_id: row.id') >= 0 && bloc.indexOf('p_data: blobAEcrire || cycle') >= 0
+att('les cinq arguments sont transmis',
+    bloc.indexOf('p_cycle_id: row.id') >= 0 && bloc.indexOf('p_data: cycle') >= 0
     && bloc.indexOf('p_evenement: evenementAPoser') >= 0
-    && bloc.indexOf('p_chronique: chroniqueAPoser') >= 0);
+    && bloc.indexOf('p_chronique: chroniqueAPoser') >= 0
+    && bloc.indexOf('p_si_date_resultats: dateResultats') >= 0);
 att('le verdict est lu', bloc.indexOf("vCons.ok !== true") >= 0);
 att("« deja_traite » n'est pas compte comme un echec",
     bloc.indexOf("vCons.raison !== 'deja_traite'") >= 0);
@@ -72,16 +80,31 @@ att('tout autre refus est signale', bloc.indexOf("signalerEchec('election_result
 
 print('');
 print('3. CHAQUE BRANCHE DECIDE, AUCUNE N ECRIT');
-att('les trois variables de consignation sont declarees',
-    src.indexOf('let blobAEcrire = null, evenementAPoser = null, chroniqueAPoser = null;') >= 0);
-att('le vote blanc majoritaire depose son blob, il ne l ecrit pas',
-    compte(bloc, /blobAEcrire = construireNouveauCycleElectoral/g) === 2,
-    compte(bloc, /blobAEcrire = construireNouveauCycleElectoral/g) + ' branche(s)');
+// DEUX, PLUS TROIS (11 octobre 2026). `blobAEcrire` servait aux branches qui RECONSTRUISAIENT un
+// cycle, et reconstruire un cycle efface le titulaire : elles prolongent desormais le mandat sur
+// le blob existant. La variable n'avait plus d'affectation, et le blob consigne est donc toujours
+// `cycle` -- ce que l'epreuve suivante verifie aussi.
+att('les deux variables de consignation sont declarees',
+    src.indexOf('let evenementAPoser = null, chroniqueAPoser = null;') >= 0);
+// LE PIEGE DU COMMENTAIRE QUI NOMME CE QU'IL INTERDIT : le bloc EXPLIQUE pourquoi `blobAEcrire`
+// a disparu, donc chercher ce nom dans le texte brut le trouve dans sa propre explication.
+// `codeSeul` retire les lignes de commentaire avant de chercher -- la mesure porte sur le CODE.
+att('le blob consigne est le cycle lui-meme, sans alternative',
+    bloc.indexOf('p_data: cycle,') >= 0 && codeSeul(bloc).indexOf('blobAEcrire') < 0);
+// LE VOTE BLANC NE RECONSTRUIT PLUS DE CYCLE (11 octobre 2026). Il PROLONGE le mandat en cours
+// et repose un scrutin sur le meme blob : `construireNouveauCycleElectoral` n'a plus sa place
+// dans le depouillement, parce que reconstruire un cycle, c'est effacer le titulaire.
+att('aucune branche ne reconstruit un cycle -- cela effacerait le titulaire',
+    compte(bloc, /construireNouveauCycleElectoral/g) === 0,
+    compte(bloc, /construireNouveauCycleElectoral/g) + ' occurrence(s)');
 att('les deux proclamations deposent leur chronique',
     compte(bloc, /chroniqueAPoser = \{/g) === 2,
     compte(bloc, /chroniqueAPoser = \{/g) + ' chronique(s)');
-att('les cinq annonces publiques sont deposees',
-    compte(bloc, /evenementAPoser = \{/g) === 5,
+// HUIT, ET CHACUNE EST UN ETAT REEL : trois pour les legislatives (aucun bulletin, vote blanc,
+// resultat) et cinq pour un siege unique (aucun bulletin, vote blanc, resultat, second tour,
+// scrutin exprime sans verdict). AUCUNE PROLONGATION N'EST MUETTE.
+att('les huit annonces publiques sont deposees',
+    compte(bloc, /evenementAPoser = \{/g) === 8,
     compte(bloc, /evenementAPoser = \{/g) + ' annonce(s)');
 att("plus aucun `continue` ne saute la consignation",
     compte(bloc, /statut: 'invalide_vote_blanc' \}\);\s*\n\s*continue;/g) === 0);
@@ -99,15 +122,21 @@ att("l'egalite est departagee par l'anciennete, pas par le hasard",
     src.indexOf('departageCandidats(candidats, a[0], b[0])') >= 0);
 
 print('');
-print('5. LES TROIS ECRITURES DIRECTES QUI RESTENT SONT LES TRANSITIONS DOCUMENTEES');
-att('il en reste exactement trois dans le fichier',
-    compte(src, /sbUpdate\('cycles_electoraux'/g) === 3,
+print('5. IL NE RESTE QU UNE SEULE ECRITURE DIRECTE, ET C EST LA CASCADE PNJ');
+// DEUX DES TROIS ONT DISPARU AVEC LE CORRECTIF DU 11 OCTOBRE 2026. Le renouvellement d'un mandat
+// echu et la relance d'un cycle vacant etaient les deux ecritures qui remplacaient le blob -- et
+// donc les deux qui effacaient le titulaire. Un mandat ne se termine plus seul : il n'y a plus
+// rien a renouveler ni a relancer.
+att('il n en reste exactement une dans le fichier',
+    compte(src, /sbUpdate\('cycles_electoraux'/g) === 1,
     compte(src, /sbUpdate\('cycles_electoraux'/g) + ' occurrence(s)');
-att('le renouvellement de mandat dit pourquoi il reste direct',
-    src.indexOf("CETTE ECRITURE RESTE DIRECTE, ET C'EST LE BON CHOIX") >= 0);
-att('la relance apres vacance dit pourquoi',
-    src.indexOf('MEME RAISON QUE LE RENOUVELLEMENT CI-DESSUS') >= 0);
-att('la cascade PNJ dit pourquoi',
+att('le renouvellement de mandat a disparu',
+    src.indexOf("CETTE ECRITURE RESTE DIRECTE, ET C'EST LE BON CHOIX") < 0);
+att('la relance apres vacance a disparu',
+    src.indexOf('MEME RAISON QUE LE RENOUVELLEMENT CI-DESSUS') < 0);
+att('et leur suppression est expliquee dans le fichier',
+    src.indexOf('LES DEUX BLOCS QUI VIVAIENT ICI SONT SUPPRIMES') >= 0);
+att('la cascade PNJ dit pourquoi elle reste directe',
     src.indexOf('ECRITURE DIRECTE ASSUMEE') >= 0);
 
 print('');

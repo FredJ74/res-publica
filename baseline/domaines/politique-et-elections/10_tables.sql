@@ -19,7 +19,8 @@ CREATE TABLE public.candidatures (
   archetype text,
   created_at timestamp with time zone DEFAULT now(),
   city text,
-  topic_id text
+  topic_id text,
+  cle_scrutin bigint
 );
 
 CREATE TABLE public.communications_salles (
@@ -228,5 +229,6 @@ CREATE TABLE public.votes_electoraux (
   votant text,
   candidat text,
   created_at timestamp with time zone DEFAULT now(),
-  city text
+  city text,
+  tour bigint
 );

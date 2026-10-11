@@ -35,6 +35,7 @@
 --   votes_electoraux_pkey  (contrainte votes_electoraux_pkey)
 
 -- Index autonomes :
+CREATE INDEX candidatures_par_scrutin ON public.candidatures USING btree (country, poste_id, city, cle_scrutin);
 CREATE INDEX conference_par_pays_et_date ON public.conferences_presse USING btree (pays, ouverte_le DESC);
 CREATE UNIQUE INDEX conference_une_seule_ouverte_par_auteur ON public.conferences_presse USING btree (pays, auteur) WHERE (statut = 'ouverte'::text);
 CREATE INDEX elections_tracts_pnj_cycle_tour ON public.elections_tracts_pnj USING btree (cycle_id, tour);
@@ -44,3 +45,4 @@ CREATE INDEX mandats_maires_archives_ville_idx ON public.mandats_maires_archives
 CREATE INDEX presidence_memoire_par_mandat ON public.presidence_memoire USING btree (pays, president, mandat_depuis, le);
 CREATE INDEX votes_confiance_country_statut_idx ON public.votes_confiance USING btree (country, statut);
 CREATE INDEX votes_confiance_statut_idx ON public.votes_confiance USING btree (statut);
+CREATE INDEX votes_electoraux_par_tour ON public.votes_electoraux USING btree (country, poste_id, city, tour);

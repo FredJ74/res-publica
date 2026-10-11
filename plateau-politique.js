@@ -582,15 +582,23 @@ async function ouvrirCalendrierElectoral() {
     const dansTourSupplementaire = enSecondTour || enRunoffSiege;
     const lignes = [];
 
-    if (phase === PHASES_ELECTORALES.MANDAT) {
-      lignes.push({ label: 'Mandat en cours', texte: cycle.dateFinMandat ? ('jusqu\'au ' + formatDateHeure(cycle.dateFinMandat)) : 'durée en cours' });
-      const prochaine = (cycle.dateFinMandat && cycle.dateFinMandat > now) ? { label: 'Fin du mandat', date: cycle.dateFinMandat } : null;
-      return { lignes, prochaine };
+    // LE MANDAT EN EXERCICE EST UNE LIGNE, PLUS UNE PHASE (11 octobre 2026). Il coexiste avec le
+    // scrutin de sa succession, donc il s'affiche AVEC lui et non a sa place. « jusqu'au ... »
+    // est la date de proclamation du successeur : les deux sont le meme instant, par regle.
+    if (cycleAUnTitulaire(cycle, posteId)) {
+      lignes.push({ label: 'Mandat en cours', texte: cycle.dateFinMandat
+        ? ('jusqu\'au ' + formatDateHeure(cycle.dateFinMandat) + ' — le titulaire reste en fonction jusqu\'au résultat')
+        : 'durée en cours' });
     }
     if (phase === PHASES_ELECTORALES.VACANT) {
-      lignes.push({ label: 'Poste vacant', texte: cycle.relancePossibleApres ? ('nouvelle candidature possible à partir du ' + formatDateHeure(cycle.relancePossibleApres)) : 'en attente de relance' });
-      const prochaine = (cycle.relancePossibleApres && cycle.relancePossibleApres > now) ? { label: 'Réouverture des candidatures', date: cycle.relancePossibleApres } : null;
+      lignes.push({ label: 'Poste vacant', texte: 'aucun titulaire — candidatures ouvertes' });
+      if (cycle.dateVote && cycle.dateResultats) lignes.push({ label: 'Vote', debut: cycle.dateVote, fin: cycle.dateResultats });
+      const prochaine = (cycle.dateVote && cycle.dateVote > now) ? { label: 'Ouverture du vote', date: cycle.dateVote } : null;
       return { lignes, prochaine };
+    }
+    if (phase === PHASES_ELECTORALES.DEPOUILLEMENT) {
+      lignes.push({ label: 'Dépouillement', texte: 'vote clos — le résultat est arrêté à la prochaine passe du serveur' });
+      return { lignes, prochaine: null };
     }
 
     const libelleTour = enRunoffSiege ? 'Départage du 3e siège' : 'Second tour';
@@ -630,6 +638,7 @@ async function ouvrirCalendrierElectoral() {
     [PHASES_ELECTORALES.VOTE2]:             '🗳 Vote — second tour',
     [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: 'Campagne — départage 3e siège',
     [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '🗳 Vote — départage 3e siège',
+    [PHASES_ELECTORALES.DEPOUILLEMENT]:     'Dépouillement',
     [PHASES_ELECTORALES.VACANT]:            'Vacant',
   };
   const phaseCouleurCourt = {
@@ -641,6 +650,7 @@ async function ouvrirCalendrierElectoral() {
     [PHASES_ELECTORALES.VOTE2]:             '#4a8a4a',
     [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: '#8a6a4a',
     [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '#4a8a4a',
+    [PHASES_ELECTORALES.DEPOUILLEMENT]:     '#6a6a8a',
     [PHASES_ELECTORALES.VACANT]:            '#8a3a2a',
   };
 
@@ -972,10 +982,17 @@ async function sbLoadCyclesElectoraux(country) {
 // `votes_electoraux_vote_soi` (votant = mon_personnage()) reste, et doit rester : si ce droit
 // etait un jour re-accorde par accident, elle empeche encore de voter au nom d'un autre.
 
-async function sbGetVotes(country, posteId, city) {
+// LE TOUR EST OBLIGATOIRE DEPUIS LE 11 OCTOBRE 2026, et c'est la moitie cliente de l'estampille.
+// Un cycle electoral n'est plus detruit entre deux scrutins : (pays, poste, ville) identifie un
+// POSTE, jamais un SCRUTIN. Sans ce filtre, syncCyclesDepuisSupabase reinjecterait dans le scrutin
+// EN COURS les bulletins de tous les scrutins precedents -- et le depouillement les compterait.
+// `tour` est `cycle.dateVote` en millisecondes, pose par `election_voter` ; sans tour connu on ne
+// lit RIEN, parce que lire trop large est pire que ne rien lire.
+async function sbGetVotes(country, posteId, city, tour) {
   if (typeof sbGet !== 'function') return [];
+  if (!isFinite(Number(tour))) return [];
   try {
-    let filtre = 'country=eq.' + country + '&poste_id=eq.' + posteId;
+    let filtre = 'country=eq.' + country + '&poste_id=eq.' + posteId + '&tour=eq.' + Number(tour);
     if (posteEstLocal(posteId) && city) filtre += '&city=eq.' + city;
     return await sbGet('votes_electoraux', filtre) || [];
   } catch(e) { return []; }
@@ -1011,10 +1028,20 @@ async function sbGetVotes(country, posteId, city) {
 // sbGetCandidatures ci-dessous RESTE : lire les candidatures pour les afficher n'est pas une
 // autorite.
 
-async function sbGetCandidatures(country, posteId, city) {
+// LA CLEF DU SCRUTIN EST OBLIGATOIRE DEPUIS LE 11 OCTOBRE 2026, pour la meme raison que le tour
+// des bulletins ci-dessus : la table `candidatures` n'est purgee par rien, et un cycle qui
+// traverse les scrutins ferait revenir les candidats des scrutins passes dans celui en cours.
+// `cle_scrutin` est `cycle.dateDebutCandidatures` en millisecondes -- la meme clef que l'id de la
+// ligne porte depuis le 8 septembre 2026, et que `fraudes_electorales.cycle_debut` emploie deja.
+// Elle est posee par le DECLENCHEUR `candidatures_cloture`, qui la relit sur le cycle : jamais par
+// le client. Les lignes anterieures a cette date ont `cle_scrutin` NULL et ne remontent donc
+// plus -- c'est voulu, elles appartiennent a des scrutins clos depuis longtemps.
+async function sbGetCandidatures(country, posteId, city, cleScrutin) {
   if (typeof sbGet !== 'function') return [];
+  if (!isFinite(Number(cleScrutin))) return [];
   try {
-    let filtre = 'country=eq.' + country + '&poste_id=eq.' + posteId;
+    let filtre = 'country=eq.' + country + '&poste_id=eq.' + posteId
+               + '&cle_scrutin=eq.' + Number(cleScrutin);
     if (posteEstLocal(posteId) && city) filtre += '&city=eq.' + city;
     return await sbGet('candidatures', filtre) || [];
   } catch(e) { return []; }
@@ -1032,8 +1059,9 @@ async function syncCyclesDepuisSupabase() {
     const city = posteEstLocal(p.id) ? state.currentCity : null;
     const cle = getCleCycle(p.id, city);
     if (!CYCLES_ELECTORAUX[country]?.[cle]) continue;
-    const votes = await sbGetVotes(country, p.id, city);
-    const candidatures = await sbGetCandidatures(country, p.id, city);
+    const cycleSync = CYCLES_ELECTORAUX[country][cle];
+    const votes = await sbGetVotes(country, p.id, city, cycleSync.dateVote);
+    const candidatures = await sbGetCandidatures(country, p.id, city, cycleSync.dateDebutCandidatures);
     if (votes.length) {
       CYCLES_ELECTORAUX[country][cle].votes = {};
       votes.forEach(v => { CYCLES_ELECTORAUX[country][cle].votes[v.votant] = v.candidat; });
@@ -1337,7 +1365,12 @@ function decalerSemainesParis(ts, n) {
 function candidaturesOuvertes(cycle, maintenant) {
   const t = maintenant || Date.now();
   if (!cycle || cycle.resultatsTraites) return false;
-  if (cycle.phase === PHASES_ELECTORALES.MANDAT || cycle.phase === PHASES_ELECTORALES.VACANT) return false;
+  // LA PHASE « MANDAT » NE FERME PLUS LES CANDIDATURES (correctif du 11 octobre 2026). C'etait
+  // l'ancienne regle : candidatures interdites pendant tout le mandat, puis ouvertes une semaine
+  // APRES sa disparition. Desormais un mandat porte son scrutin de succession des sa premiere
+  // minute, et la seule borne est le GEL du lundi 00:01 de la derniere semaine
+  // (`dateDebutCampagne`). Meme regle, au nombre pres, que le declencheur serveur
+  // `candidatures_cloture` -- qui est la vraie porte.
   return isFinite(Number(cycle.dateDebutCampagne)) && t < Number(cycle.dateDebutCampagne);
 }
 
@@ -1384,16 +1417,15 @@ function getPhaseActuelle(country, posteId, city) {
   if (!cycle) return null;
   const now = Date.now();
 
-  // Mandat en cours (PJ ou PNJ) — prioritaire sur le calcul par dates, sinon un titulaire
-  // fraichement elu/pourvu s'affichait "Vacant" une fois ses dates de cycle depassees. Depute
-  // (chantier "Hotel de Ville / elections", 4 septembre 2026) : au moins un siege pourvu
-  // (cycle.elus, tableau) fait foi -- jamais cycle.eluId, toujours vide pour ce poste desormais.
-  const auMoinsUnTitulaire = posteId === 'depute'
-    ? Array.isArray(cycle.elus) && cycle.elus.some(Boolean)
-    : !!cycle.eluId;
-  if (cycle.phase === PHASES_ELECTORALES.MANDAT && auMoinsUnTitulaire && cycle.dateFinMandat && now < cycle.dateFinMandat) {
-    return PHASES_ELECTORALES.MANDAT;
-  }
+  // LE MANDAT N'EST PLUS UNE PHASE, ET C'EST TOUT LE CORRECTIF DU 11 OCTOBRE 2026. `phase` ne
+  // decrit plus que le SCRUTIN DE SUCCESSION ; le mandat en exercice coexiste avec lui et
+  // s'atteste par `eluId` / `elus` -- exactement ce que lit `poste_est_atteste` au serveur. Le
+  // court-circuit qui vivait ici rendait MANDAT tant que `dateFinMandat` n'etait pas passee, et
+  // basculait sur VACANT juste apres : c'est lui qui produisait le « Vacant » affiche pendant une
+  // heure alors que le serveur attestait encore le titulaire.
+  //
+  // `cycleAUnTitulaire` est conserve et exporte par detailCalendrierCycle : l'interface a besoin
+  // de savoir qu'un mandat est en cours, mais ce n'est plus une PHASE.
 
   // cycle.tour est le signal le plus fiable pour detecter un second tour (cycle.phase a
   // longtemps ete pose de façon incorrecte cote cron — corrige le 8 aout 2026, mais on
@@ -1408,7 +1440,24 @@ function getPhaseActuelle(country, posteId, city) {
   if (now < cycle.dateDebutCampagne) return PHASES_ELECTORALES.CANDIDATURES;
   if (now < cycle.dateVote) return enRunoffSiege ? PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE : (enSecondTour ? PHASES_ELECTORALES.SECOND_TOUR : PHASES_ELECTORALES.CAMPAGNE);
   if (now < cycle.dateResultats) return enRunoffSiege ? PHASES_ELECTORALES.VOTE3E_SIEGE : (enSecondTour ? PHASES_ELECTORALES.VOTE2 : PHASES_ELECTORALES.VOTE);
-  return PHASES_ELECTORALES.VACANT;
+  // VOTE CLOS, RESULTAT PAS ENCORE PROCLAME. Ce n'est pas une vacance : le titulaire sortant est
+  // toujours en fonction, et le serveur l'atteste toujours. La proclamation appartient a la passe
+  // de minuit ; jusque-la, le poste a un titulaire et l'interface doit le dire.
+  //
+  // Un poste REELLEMENT sans titulaire (monde neuf, scrutin jamais pourvu) est le seul cas qui
+  // rende VACANT -- et il se lit sur le titulaire, pas sur une date.
+  return cycleAUnTitulaire(cycle, posteId) ? PHASES_ELECTORALES.DEPOUILLEMENT : PHASES_ELECTORALES.VACANT;
+}
+
+// Un cycle porte-t-il un titulaire en exercice ? Depute (chantier "Hotel de Ville / elections",
+// 4 septembre 2026) : au moins un siege pourvu (cycle.elus, tableau) fait foi -- jamais
+// cycle.eluId, toujours vide pour ce poste. Meme lecture, au champ pres, que `poste_est_atteste`
+// au serveur : c'est elle qui fait autorite, jamais personnages.poste / poste_depute.
+function cycleAUnTitulaire(cycle, posteId) {
+  if (!cycle) return false;
+  return posteId === 'depute'
+    ? Array.isArray(cycle.elus) && cycle.elus.some(Boolean)
+    : !!cycle.eluId;
 }
 
 // ---- SONDAGE ELECTORAL (Marche, pouls_populaire, chantier 27 aout 2026) ----
@@ -2830,8 +2879,13 @@ async function ouvrirContesterResultatsElection(pa, cost) {
   const now = Date.now();
   const contestables = entrees.filter(e => {
     const c = e.cycle;
-    return c && c.resultatsTraites && c.dateResultats && (now - c.dateResultats) <= 24 * 60 * 60 * 1000
-      && (now - c.dateResultats) >= 0 && domicilePays === state.country;
+    // LA FENETRE SE LIT SUR `dernierResultatTs` (11 octobre 2026), plus sur
+    // `resultatsTraites` + `dateResultats` : depuis que toute proclamation rouvre immediatement le
+    // scrutin suivant, `dateResultats` designe un vote A VENIR et le drapeau est remis a `false`.
+    // `dernierResultatTs` est l'instant du dernier resultat reellement arrete, et il ne bouge plus.
+    const proclame = c && Number(c.dernierResultatTs);
+    return !!proclame && (now - proclame) <= 24 * 60 * 60 * 1000
+      && (now - proclame) >= 0 && domicilePays === state.country;
   });
 
   document.getElementById('postes-modal-title').textContent = '⚖️ Contester des résultats';
@@ -2866,8 +2920,9 @@ async function confirmerContesterResultats(posteId, city) {
   const cycle = JSON.parse(row.data);
   const cycleDebut = cycle.dateDebutCandidatures;
   const nowContestation = Date.now();
-  const dansLaFenetre24h = cycle.resultatsTraites && cycle.dateResultats
-    && (nowContestation - cycle.dateResultats) >= 0 && (nowContestation - cycle.dateResultats) <= 24 * 60 * 60 * 1000;
+  const proclameFrais = Number(cycle.dernierResultatTs);
+  const dansLaFenetre24h = !!proclameFrais
+    && (nowContestation - proclameFrais) >= 0 && (nowContestation - proclameFrais) <= 24 * 60 * 60 * 1000;
   if (!dansLaFenetre24h) {
     showToast('Hors délai', 'Ce scrutin n\'est plus contestable (au-delà des 24h suivant la proclamation, ou résultats pas encore proclamés).', false);
     return;
@@ -3048,6 +3103,7 @@ async function ouvrirTableauElectoral() {
       [PHASES_ELECTORALES.VOTE2]:        '#4a8a4a',
       [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: '#aa8a4a',
       [PHASES_ELECTORALES.VOTE3E_SIEGE]: '#8a6a4a',
+      [PHASES_ELECTORALES.DEPOUILLEMENT]: '#6a6a8a',
       [PHASES_ELECTORALES.VACANT]:       '#8a3a2a',
     }[phase] || '#a89870';
 

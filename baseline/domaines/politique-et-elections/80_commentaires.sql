@@ -10,22 +10,18 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+COMMENT ON COLUMN public.candidatures.cle_scrutin IS 'Scrutin vise : cycles_electoraux.data->>dateDebutCandidatures en ms. Pose par le declencheur candidatures_cloture, jamais par le client. NULL sur les lignes anterieures au 11 octobre 2026.';
 COMMENT ON COLUMN public.communications_salles.ordres IS 'Les ordres qu on peut prononcer depuis cette tribune. Sans cette liste, la porte n aurait valide que le COUT de l ordre -- et le miroir en declare 381 : n importe lequel aurait servi de conference de presse.';
 COMMENT ON COLUMN public.conferences_presse.poste_libelle IS 'La fonction publique telle qu elle etait AU MOMENT de la communication. Figee ici expres : un ministre revoque le lendemain a bien parle comme ministre, et la presse doit pouvoir le citer ainsi.';
 COMMENT ON COLUMN public.elections_tracts_pnj.canal IS 'tract | prospectus | conference | jean_lou -- origine de la voix, pour l''audit uniquement.';
 COMMENT ON COLUMN public.presidence_memoire.source IS 'Provenance attestee, en liste fermee. C est elle qui rend la fabrication d un fait impossible : une source non declaree ne s enregistre pas.';
+COMMENT ON COLUMN public.votes_electoraux.tour IS 'Tour vise : cycles_electoraux.data->>dateVote en ms, meme cle que elections_tracts_pnj.tour. Pose par election_voter. NULL sur les lignes anterieures au 11 octobre 2026.';
 COMMENT ON FUNCTION public.candidature_poste_tirage_appliquer(text,text,text,text,text[],text) IS 'Nomme par tirage au sort le titulaire d''un poste nomme dont l''autorite n''a pas tranche dans les
 48h, et sanctionne cette autorite -- le tout en UNE transaction, revendiquee par
 acte_nocturne_revendiquer(''candidature_poste_tirage''). Le TIRAGE est ici, pas chez l''appelant :
 un rejeu ne peut donc pas designer un autre gagnant. Verdicts : aucun_candidat,
 poste_deja_attribue (la journee reste ouverte), deja_traite_aujourdhui, aucun_candidat_eligible,
 puis ok avec gagnant, sanction, pop_avant et pop_apres. Non appelable depuis le reseau.';
-COMMENT ON FUNCTION public.election_resultats_consigner(text,jsonb,jsonb,jsonb) IS 'Consigne le resultat d''un scrutin en une transaction : le blob du cycle, l''evenement public et
-la ligne de chronique nationale. La garde est un COMPARE-AND-SWAP sur `resultatsTraites` dans le
-FILTRE de l''UPDATE -- zero ligne touchee signifie deja proclame, ou cycle inconnu, et dans les
-deux cas aucune annonce ne part. Elle ne DEPOUILLE pas : le calcul est deterministe et reste chez
-l''appelant, qui le partage a l''identique avec le client. Verdicts : deja_traite, puis ok avec
-evenement_pose et chronique_posee. Non appelable depuis le reseau.';
 COMMENT ON FUNCTION public.election_voter(text,text,text,text) IS 'Enregistre le bulletin d''un joueur : la ligne de votes_electoraux ET l''entree du blob que le
 depouillement compte, dans UNE transaction, sous verrou du cycle. L''electeur n''est pas un
 parametre -- il vient de mon_personnage().
