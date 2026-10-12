@@ -119,8 +119,15 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # repondre. CLASSEE C, et c'est le meme raisonnement que pour la chronologie : semer un PV
 # fabriquerait une declaration que personne n'a faite, et la table etant append-only elle serait
 # ineffacable.
-TABLES_ATTENDUES = 299    # 298 -> 299 le 12 octobre 2026, nuit : les proces-verbaux d'audition
-EMPREINTE_LISTE = "2981a23c55778667b01c04949a40aeee"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 299 -> 301 le 12 octobre 2026 : `justice_indemnites` et `signalements_police`.
+# La premiere porte les creances d'indemnisation pour detention executee a tort -- 1 000 FR par
+# jour REELLEMENT purge au-dela de la peine definitive -- et sa file est FIFO stricte. La seconde
+# porte les appels a la police : un citoyen de Republia signale un recherche present dans sa
+# piece, et le serveur revalide dix secondes plus tard que la cible y est ENCORE.
+# LES DEUX SONT CLASSEES C. Un monde neuf ne doit rien a personne, et aucune intervention de
+# police n'y est en cours.
+TABLES_ATTENDUES = 301    # 299 -> 301 le 12 octobre 2026 : indemnites et signalements
+EMPREINTE_LISTE = "7ba97401d7f039e94656ec8f45fcf7a8"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

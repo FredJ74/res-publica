@@ -577,7 +577,17 @@ def controles_du_monde(cat):
     # l'absence de GRANT client -- A DU ETRE ECRIT : une table neuve nait avec ALL accorde a anon
     # et authenticated par le defaut de la plateforme. Le compte des tables sans policy passe de
     # 139 a 140.
-    att("tables creees", len(cat.tables), 294)
+    # 296 l'apres-midi du 12 octobre 2026 : +2 pour le chemin critique du Tribunal.
+    # `justice_indemnites` porte les creances d'indemnisation pour detention executee a tort --
+    # 1 000 FR par jour REELLEMENT purge au-dela de la peine definitive -- avec leur du, leur paye
+    # et donc leur reste ; sa file est FIFO STRICTE et s'ordonne sur une SEQUENCE, parce que
+    # `cree_le` ne peut pas l'etablir (now() est constant dans une transaction).
+    # `signalements_police` porte les appels a la police : la PIECE EXACTE et l'echeance a dix
+    # secondes, parce que c'est cette piece que le serveur revalide -- si la cible est partie,
+    # l'intervention echoue. LES DEUX SONT FERMEES EN LECTURE AUX CLIENTS, et pour la seconde ce
+    # n'est pas une precaution : un navigateur qui lirait les signalements avertirait la CIBLE.
+    # Le compte des tables sans policy passe de 140 a 142.
+    att("tables creees", len(cat.tables), 296)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -726,8 +736,21 @@ def controles_du_monde(cat):
     # une fois), `affaire_delai_expire`, `justice_affaires_vivantes_avec_pv`,
     # `justice_statuts_publics` (sans aucun parametre, volontairement : un nom en entree en aurait
     # fait un scanner national) et `justice_delais_echus`.
-    att("signatures de fonction creees", cat.n_fonctions, 817)
-    att("noms de fonction distincts", len(cat.fonctions), 813,
+    # 830 l'apres-midi du 12 octobre 2026 : +13, et aucune surcharge de plus (+13 noms aussi).
+    # §A : `justice_seuil_procedure_simplifiee_jours` existait deja.
+    # §H : `police_signaler`, `police_signalement_resoudre`,
+    #      `police_delai_intervention_secondes`, `justice_est_recherche` (la definition UNIQUE de
+    #      « recherche », que deux portes lisent desormais).
+    # §E : `justice_fenetre_appel_jours`, `justice_jours_purges`, `justice_appel_ouvrir`,
+    #      `justice_appel_juger`.
+    # §F : `justice_indemnite_par_jour`, `justice_indemnite_naitre`,
+    #      `justice_indemnites_payer_depuis_finances`, `justice_indemnites_sur_alimentation`
+    #      (le declencheur), `justice_mes_indemnites`.
+    # NE COMPTE POUR RIEN : `justice_jours_purges` a ete DROPPEE puis recreee avec une signature
+    # plus courte -- un remplacement, pas un ajout. Un CREATE OR REPLACE a parametres differents
+    # aurait cree une surcharge, et la preuve P1 de sa migration le verifie.
+    att("signatures de fonction creees", cat.n_fonctions, 830)
+    att("noms de fonction distincts", len(cat.fonctions), 826,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -810,7 +833,13 @@ def controles_du_monde(cat):
     # `declaration_ou_refus` qui rend LE PV VIDE STRUCTURELLEMENT IMPOSSIBLE : une declaration ou
     # un refus, jamais les deux ni aucun des deux. Le silence n'est pas une reponse procedurale,
     # et ce n'est pas la politesse d'une porte qui doit le dire.
-    att("contraintes posees", len(cat.contraintes), 554)
+    # 565 l'apres-midi du 12 octobre 2026 : +11. Sept sur `justice_indemnites` -- sa cle primaire
+    # et SIX CHECK, dont trois interdisent qu'une creance mente : l'etat ne peut pas diverger du
+    # montant paye (une creance « reglee » a zero verse serait une dette effacee sans paiement),
+    # le paye est borne par le du, et le porteur est en liste fermee. Quatre sur
+    # `signalements_police` : cle primaire, l'interdiction de se signaler soi-meme, la liste
+    # fermee des issues, et la coherence entre resolution et issue.
+    att("contraintes posees", len(cat.contraintes), 565)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -866,7 +895,11 @@ def controles_du_monde(cat):
     # 181 l'apres-midi du 12 octobre 2026 : +1, dossiers_auditions_par_personne. Les deux seules
     # lectures de cette table sont « les PV de cette personne » et « le PV de ce dossier » : la
     # derivation du statut INCULPE passe par la premiere, a chaque composition de liste de piece.
-    att("index autonomes crees", len(cat.index), 181)
+    # 184 l'apres-midi du 12 octobre 2026 : +3. `justice_indemnites_file_fifo` (la file, ordonnee
+    # sur la sequence), `signalements_police_un_vivant_par_cible` -- un index UNIQUE PARTIEL, qui
+    # porte a lui seul l'anti-doublon et l'anti-spam la ou une relecture ne tiendrait pas contre
+    # la concurrence -- et `signalements_police_par_signaleur`.
+    att("index autonomes crees", len(cat.index), 184)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -899,7 +932,12 @@ def controles_du_monde(cat):
     # reecrire ne serait pas une chronologie.
     # 46 l'apres-midi du 12 octobre 2026 : +1, l'append-only de `dossiers_auditions`. Troisieme
     # verrou, et le seul opposable a service_role et aux fonctions SECURITY DEFINER.
-    att("declencheurs crees", len(cat.triggers), 46)
+    # 47 l'apres-midi du 12 octobre 2026 : +1, `trg_justice_indemnites_sur_alimentation` sur
+    # `caisses_batiments`. C'EST UN DECLENCHEUR ET NON UN APPEL POSE DANS QUELQUES PORTES :
+    # l'alimentation de la caisse des Finances vient de partout -- cascade budgetaire, impot,
+    # vente, virement -- et un etage de plus dans le circuit fiscal aurait suffi a faire oublier
+    # la dette. Une BAISSE ne declenche rien, ce qui coupe la recursion que le paiement provoque.
+    att("declencheurs crees", len(cat.triggers), 47)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -934,7 +972,11 @@ def controles_du_monde(cat):
     att("policies creees", len(cat.policies), 282)
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
-    att("sequences disponibles", len(cat.sequences), 33)
+    # 34 l'apres-midi du 12 octobre 2026 : +1, la sequence de `justice_indemnites.rang`. Elle
+    # existe parce que `cree_le` ne peut PAS ordonner la file FIFO : now() est constant dans une
+    # transaction, donc deux creances nees ensemble portent le meme horodatage et l'ordre devient
+    # indecidable -- le banc a vu le cadet paye avant l'aine.
+    att("sequences disponibles", len(cat.sequences), 34)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

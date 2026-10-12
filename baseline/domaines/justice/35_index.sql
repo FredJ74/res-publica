@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 20 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 22 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
 --   demandes_grace_pkey  (contrainte demandes_grace_pkey)
 --   detentions_pkey  (contrainte detentions_pkey)
@@ -26,10 +26,12 @@
 --   infractions_empreinte_pkey  (contrainte infractions_empreinte_pkey)
 --   infractions_pkey  (contrainte infractions_pkey)
 --   jugements_pkey  (contrainte jugements_pkey)
+--   justice_indemnites_pkey  (contrainte justice_indemnites_pkey)
 --   niveaux_prison_pkey  (contrainte niveaux_prison_pkey)
 --   plaintes_en_cours_pkey  (contrainte plaintes_en_cours_pkey)
 --   prisonniers_qhs_pkey  (contrainte prisonniers_qhs_pkey)
 --   rumeurs_actives_pkey  (contrainte rumeurs_actives_pkey)
+--   signalements_police_pkey  (contrainte signalements_police_pkey)
 --   vols_en_attente_pkey  (contrainte vols_en_attente_pkey)
 
 -- Index autonomes :
@@ -37,3 +39,6 @@ CREATE INDEX dossiers_actes_par_affaire ON public.dossiers_judiciaires_actes USI
 CREATE INDEX dossiers_auditions_par_personne ON public.dossiers_auditions USING btree (personne, affaire);
 CREATE INDEX idx_actions_tracables_pays ON public.actions_tracables USING btree (country, city);
 CREATE INDEX jugements_accuse_actifs ON public.jugements USING btree (accuse) WHERE (executee = false);
+CREATE INDEX justice_indemnites_file_fifo ON public.justice_indemnites USING btree (pays, etat, rang);
+CREATE INDEX signalements_police_par_signaleur ON public.signalements_police USING btree (signaleur, pose_le DESC);
+CREATE UNIQUE INDEX signalements_police_un_vivant_par_cible ON public.signalements_police USING btree (pays, cible) WHERE (resolu_le IS NULL);

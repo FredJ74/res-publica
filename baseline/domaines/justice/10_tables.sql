@@ -143,6 +143,22 @@ CREATE TABLE public.jugements (
   data jsonb
 );
 
+CREATE TABLE public.justice_indemnites (
+  id text NOT NULL,
+  pays text NOT NULL,
+  beneficiaire text NOT NULL,
+  affaire text,
+  jugement text,
+  jours_indus integer NOT NULL,
+  montant_du integer NOT NULL,
+  montant_paye integer DEFAULT 0 NOT NULL,
+  porteur text NOT NULL,
+  etat text DEFAULT 'due'::text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL,
+  regle_le timestamp with time zone,
+  rang bigserial NOT NULL
+);
+
 CREATE TABLE public.niveaux_prison (
   id text NOT NULL,
   data jsonb,
@@ -169,6 +185,20 @@ CREATE TABLE public.rumeurs_actives (
   resolu boolean DEFAULT false,
   data jsonb NOT NULL,
   created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.signalements_police (
+  id text NOT NULL,
+  pays text NOT NULL,
+  ville text NOT NULL,
+  building_id text NOT NULL,
+  room_id text NOT NULL,
+  signaleur text NOT NULL,
+  cible text NOT NULL,
+  pose_le timestamp with time zone DEFAULT now() NOT NULL,
+  echeance timestamp with time zone NOT NULL,
+  resolu_le timestamp with time zone,
+  issue text
 );
 
 CREATE TABLE public.vols_en_attente (

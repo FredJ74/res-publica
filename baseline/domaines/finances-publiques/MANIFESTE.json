@@ -2576,7 +2576,7 @@
   "20_fonctions-2.sql": "6ffd456c4d5a870bd29bd75a42d10f88",
   "30_contraintes.sql": "b5daf5cc5116df9311bd8f2bdce48602",
   "35_index.sql": "9920e25ca29d18a076739a73eaec212d",
-  "50_triggers.sql": "a5ec7f7b6666577671c37d3ed45c263a",
+  "50_triggers.sql": "dd3cb01a536c6e16185fe92596008219",
   "60_rls-policies.sql": "f7e1c4f40f9a46f18cb02b2cae03c160",
   "70_droits.sql": "f611bf0cb65c541af7c74cc347e91c16",
   "80_commentaires.sql": "40027cc68bacaa3769170558b5f69599"
@@ -3504,6 +3504,12 @@
    "fonction": "budget_national_epingler()",
    "nom": "trg_budget_national_epingler",
    "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "8a6b56bc6d5891abdb734f4e293ed896",
+   "fonction": "justice_indemnites_sur_alimentation()",
+   "nom": "trg_justice_indemnites_sur_alimentation",
+   "tbl": "caisses_batiments"
   },
   {
    "empreinte": "1ec8faf27a1c6e0090f6fbe28b40cd8b",

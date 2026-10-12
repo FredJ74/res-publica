@@ -25,10 +25,12 @@ ALTER TABLE public.infractions_alias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jugements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.justice_indemnites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.niveaux_prison ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plaintes_en_cours ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prisonniers_qhs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rumeurs_actives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.signalements_police ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vols_en_attente ENABLE ROW LEVEL SECURITY;
 
 -- actions_tracables

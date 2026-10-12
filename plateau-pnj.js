@@ -860,6 +860,20 @@ function openPnjModal(encodedPnj) {
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');composerMailPour(\'' + pnjSafeName + '\')"><i class="ti ti-mail" style="font-size:.85rem"></i> Envoyer un mail</button>';
+
+    // SIGNALER A LA POLICE (12 octobre 2026). EN REPUBLIA, UN CITOYEN N'ARRETE PERSONNE : il
+    // appelle. Le bouton n'apparait que sur un joueur que le serveur a dit RECHERCHE -- la table
+    // des statuts vient de `justice_statuts_publics`, bornee a la piece -- et il est reserve a
+    // Republia, ou l'arrestation citoyenne n'existe pas. Le signalement lui-meme est revalide au
+    // serveur dix secondes plus tard : ce bouton ne decide de rien.
+    if (state.country === 'republic'
+        && typeof RP_STATUTS_JUDICIAIRES !== 'undefined'
+        && RP_STATUTS_JUDICIAIRES[pnj.name]
+        && RP_STATUTS_JUDICIAIRES[pnj.name].recherche === true) {
+      actionBtns += '<button class="pnj-action-btn" onclick="signalerALaPolice(\'' + pnjSafeName
+        + '\')" style="color:#cc8a40;border-color:#5a3a10"><i class="ti ti-urgent" '
+        + 'style="font-size:.85rem"></i> Signaler à la police</button>';
+    }
   }
 
   // « AJOUTER AU REPERTOIRE » A ETE RETIRE DE L'INTERFACE GENERIQUE (12 octobre 2026), POUR LES

@@ -950,7 +950,11 @@ const WORLD = {
             salle_audience_locale: {
               imageUrl: "images/port-sainte-marie-tribunal-salle-audience.webp",
               persons: [
-                {name:'Mireille Sedlex (PNJ)', role:'Juge de Port-Sainte-Marie', rel:'neutral', job:'juge', photoUrl:'images/port-sainte-marie-tribunal-mireille-sedlex.webp', photoPos:'50% 15%'}
+                {name:'Mireille Sedlex (PNJ)', role:'Juge de Port-Sainte-Marie', rel:'neutral', job:'juge', photoUrl:'images/port-sainte-marie-tribunal-mireille-sedlex.webp', photoPos:'50% 15%'},
+                // L'AVOCAT COMMIS D'OFFICE DE PORT-SAINTE-MARIE -- meme role mecanique que
+                // Maitre Plaidoyer a Luthecia et Maitre Nossant a Montrouge. Voir le commentaire
+                // de Montrouge : aucune caracteristique, et pourquoi.
+                {name:'Maître Ali Bihanbéton (PNJ)', role:"Avocat commis d'office", rel:'neutral', job:'avocat'}
               ]
             }
           }
@@ -1301,7 +1305,16 @@ const WORLD = {
             salle_audience_locale: {
               imageUrl: "images/montrouge/montrouge-tribunal-salle-audience.webp",
               persons: [
-                {name:'Gérard Bretellewood (PNJ)', role:'Juge de Montrouge', rel:'neutral', job:'juge', photoUrl:'images/montrouge/montrouge-tribunal-gerard-bretellewood.webp', photoPos:'50% 15%'}
+                {name:'Gérard Bretellewood (PNJ)', role:'Juge de Montrouge', rel:'neutral', job:'juge', photoUrl:'images/montrouge/montrouge-tribunal-gerard-bretellewood.webp', photoPos:'50% 15%'},
+                // L'AVOCAT COMMIS D'OFFICE DE MONTROUGE (12 octobre 2026). Luthecia avait le sien
+                // -- Maitre Plaidoyer -- depuis l'origine ; les deux tribunaux de province n'en
+                // avaient aucun, alors que la defense en procedure simplifiee le suppose partout.
+                // MEME ROLE MECANIQUE QUE LES DEUX AUTRES, exactement : on ne fabrique pas un
+                // avocat « meilleur » selon la ville. Aucune caracteristique ne leur est posee
+                // ici, et c'est le point de blocage rapporte : il n'existe aucun metier `avocat`
+                // dans pnj_metiers_profils, donc aucun CHA d'avocat nulle part. Ce sont pour
+                // l'instant des PNJ de DECOR, comme Plaidoyer l'a toujours ete.
+                {name:'Maître Henri Nossant (PNJ)', role:"Avocat commis d'office", rel:'neutral', job:'avocat'}
               ]
             }
           }

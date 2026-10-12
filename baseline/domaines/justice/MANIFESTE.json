@@ -31,6 +31,30 @@
    "sous": "libelle"
   },
   {
+   "empreinte": "61ca4d123c1f5f1fbb3bc573c44e28a3",
+   "genre": "COLUMN",
+   "objet": "justice_indemnites",
+   "sous": "jours_indus"
+  },
+  {
+   "empreinte": "4a1f9a3866ab57ea7638f564e3d34582",
+   "genre": "COLUMN",
+   "objet": "justice_indemnites",
+   "sous": "porteur"
+  },
+  {
+   "empreinte": "7cbb865d16ee104620fd87ba71f735c2",
+   "genre": "COLUMN",
+   "objet": "justice_indemnites",
+   "sous": "rang"
+  },
+  {
+   "empreinte": "5f11199ad4b340299f1bec1edc4588bf",
+   "genre": "COLUMN",
+   "objet": "signalements_police",
+   "sous": "echeance"
+  },
+  {
    "empreinte": "69482d71708c1dfe4930b28bc6f21699",
    "genre": "FUNCTION",
    "objet": "affaire_delai_expire(jsonb,text)",
@@ -151,7 +175,7 @@
    "sous": ""
   },
   {
-   "empreinte": "6def1636ad7410e30fa53d6b55f75685",
+   "empreinte": "77ddcd416af5f0ff463d517a3b1ea914",
    "genre": "FUNCTION",
    "objet": "juge_dossiers()",
    "sous": ""
@@ -169,6 +193,18 @@
    "sous": ""
   },
   {
+   "empreinte": "97fd1b8561b660301cea16bf89ceeb54",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_juger(text,text,text,text,integer,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "85d8babd98de19dbf3dd82e69a94052b",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_ouvrir(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "1cef33549f4a873cf2cac2d50394f988",
    "genre": "FUNCTION",
    "objet": "justice_delai_jugement_jours()",
@@ -178,6 +214,54 @@
    "empreinte": "24469e1aaa75ac5e89076b081db04a22",
    "genre": "FUNCTION",
    "objet": "justice_delais_echus()",
+   "sous": ""
+  },
+  {
+   "empreinte": "279119098ee2eb6c4f19bcbdc7c9ac40",
+   "genre": "FUNCTION",
+   "objet": "justice_est_recherche(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "bce751f0a1370bf0aa6a4ef718d380ff",
+   "genre": "FUNCTION",
+   "objet": "justice_fenetre_appel_jours()",
+   "sous": ""
+  },
+  {
+   "empreinte": "fdf30b9e9c9b3a138547c6055aff3b75",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_naitre(text,text,text,text,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "9d4356a535540c33ad5b84338d15bd39",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_par_jour()",
+   "sous": ""
+  },
+  {
+   "empreinte": "521222a9fc0e736e2ca103558202fb4a",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_payer_depuis_finances(text,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3321d9772e7de726e23994a942a67c00",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_sur_alimentation()",
+   "sous": ""
+  },
+  {
+   "empreinte": "ba26045da16569f98efc29bd355f9937",
+   "genre": "FUNCTION",
+   "objet": "justice_jours_purges(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b4dbbae6161da768e4b1d86dc8b51584",
+   "genre": "FUNCTION",
+   "objet": "justice_mes_indemnites()",
    "sous": ""
   },
   {
@@ -199,7 +283,7 @@
    "sous": ""
   },
   {
-   "empreinte": "f35ab860f55d6c78cbe5b2d734e356b7",
+   "empreinte": "6faffeecd4d8f40bdc62e8a3435befa6",
    "genre": "FUNCTION",
    "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "sous": ""
@@ -259,7 +343,7 @@
    "sous": ""
   },
   {
-   "empreinte": "79634f44d088dfe02d476d7f8f1bba21",
+   "empreinte": "de07cdfa5da3f05995797abe1a48c162",
    "genre": "FUNCTION",
    "objet": "plainte_defendre(text,text)",
    "sous": ""
@@ -280,6 +364,24 @@
    "empreinte": "28a7a6cb2d6922f3e99226bec427b3cd",
    "genre": "FUNCTION",
    "objet": "plaintes_epingler_verdict()",
+   "sous": ""
+  },
+  {
+   "empreinte": "faa30569498a3a93dd1618d05ae638d5",
+   "genre": "FUNCTION",
+   "objet": "police_delai_intervention_secondes()",
+   "sous": ""
+  },
+  {
+   "empreinte": "3af38393cb73487eaf3020dc991ec6c3",
+   "genre": "FUNCTION",
+   "objet": "police_signalement_resoudre(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "d0fb4c23cbe886ee1cc7d6d200ed5f64",
+   "genre": "FUNCTION",
+   "objet": "police_signaler(text)",
    "sous": ""
   },
   {
@@ -328,6 +430,18 @@
    "empreinte": "2650b392f09f586b77cbd105756c97df",
    "genre": "TABLE",
    "objet": "infractions_empreinte",
+   "sous": ""
+  },
+  {
+   "empreinte": "709c3c501491bcf78122260d4aab24ac",
+   "genre": "TABLE",
+   "objet": "justice_indemnites",
+   "sous": ""
+  },
+  {
+   "empreinte": "097e8e1060bacae9a3f89fd2b4cbab4f",
+   "genre": "TABLE",
+   "objet": "signalements_police",
    "sous": ""
   }
  ],
@@ -407,6 +521,12 @@
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
+   "nom": "justice_indemnites_pkey",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
    "nom": "niveaux_prison_pkey",
    "tbl": "niveaux_prison"
   },
@@ -427,6 +547,12 @@
    "genre": "p",
    "nom": "rumeurs_actives_pkey",
    "tbl": "rumeurs_actives"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "signalements_police_pkey",
+   "tbl": "signalements_police"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -511,6 +637,60 @@
    "genre": "c",
    "nom": "infractions_empreinte_seul_check",
    "tbl": "infractions_empreinte"
+  },
+  {
+   "empreinte": "98dcfeb912383543ce1b6ca350bb8f08",
+   "genre": "c",
+   "nom": "justice_indemnites_etat_coherent",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "b67676d90250d0f5e6bef53fb6f55bb7",
+   "genre": "c",
+   "nom": "justice_indemnites_etat_connu",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "7b7d48a6836af16a23651c4b5fef6e11",
+   "genre": "c",
+   "nom": "justice_indemnites_jours_positifs",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "f3c2b676d30f37ebfcc0583463c7a6b7",
+   "genre": "c",
+   "nom": "justice_indemnites_montant_positif",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "21b89cee01e4ec81eb03ae1009e1f551",
+   "genre": "c",
+   "nom": "justice_indemnites_paye_borne",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "155ff22fbf57227230b67d33969fe036",
+   "genre": "c",
+   "nom": "justice_indemnites_porteur_connu",
+   "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "06e4e2ed105501e0fe32c13e34abc785",
+   "genre": "c",
+   "nom": "signalements_police_issue_connue",
+   "tbl": "signalements_police"
+  },
+  {
+   "empreinte": "ef23e84414428959244b9caffb5a7172",
+   "genre": "c",
+   "nom": "signalements_police_pas_soi",
+   "tbl": "signalements_police"
+  },
+  {
+   "empreinte": "febafaf3dd0ef0903bab2917de7a9a62",
+   "genre": "c",
+   "nom": "signalements_police_resolution_coherente",
+   "tbl": "signalements_police"
   },
   {
    "empreinte": "e5b95be9580926ede90eacadb36a7357",
@@ -1148,6 +1328,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "justice_appel_juger(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_juger(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_juger(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_appel_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "justice_condamner(text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -1185,6 +1401,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_delais_echus()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_est_recherche(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_est_recherche(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1203,6 +1431,96 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_executer_condamnation(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_fenetre_appel_jours()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_fenetre_appel_jours()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_naitre(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_naitre(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_par_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnite_par_jour()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_payer_depuis_finances(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_payer_depuis_finances(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_sur_alimentation()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_indemnites_sur_alimentation()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_jours_purges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_jours_purges(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_mes_indemnites()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_mes_indemnites()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_mes_indemnites()",
    "privileges": "EXECUTE"
   },
   {
@@ -1590,6 +1908,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_delai_intervention_secondes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_delai_intervention_secondes()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "police_payer_effectifs(text)",
@@ -1622,6 +1952,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "police_signalement_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_signalement_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_signalement_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_signaler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_signaler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_signaler(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "presidence_gracier(text,integer)",
    "privileges": "EXECUTE"
   },
@@ -1708,6 +2074,30 @@
    "genre": "FUNCTION",
    "objet": "recherche_retirer(text[],text,text)",
    "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "justice_indemnites_rang_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "justice_indemnites_rang_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "justice_indemnites_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "justice_indemnites_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
   },
   {
    "beneficiaire": "anon",
@@ -1890,6 +2280,18 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "justice_indemnites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "justice_indemnites",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "niveaux_prison",
@@ -1965,6 +2367,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "rumeurs_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "signalements_police",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "signalements_police",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2116,14 +2530,15 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "32625bcf16dca724f3619aa191acf534",
-  "20_fonctions.sql": "fd3ee470c47ba9c370fe61926aa22b70",
-  "30_contraintes.sql": "a4cb3229e3babfe22ca1036361d51605",
-  "35_index.sql": "1bf47e5114bdddb188f1c2839dbf9d9e",
+  "10_tables.sql": "cd887391de265502e256297e7911a838",
+  "20_fonctions-1.sql": "ac8a366e087bbc478c7c381430f5df56",
+  "20_fonctions-2.sql": "046625cf51b97c7f466b9ca4bb3d272a",
+  "30_contraintes.sql": "d5b371725d9864db496bf587edcda31e",
+  "35_index.sql": "d0e8ab2fab44e4096250610de385c745",
   "50_triggers.sql": "231f16723141904057fa211faa92ce32",
-  "60_rls-policies.sql": "96805a2d1f931c045ded9bba9ac26f31",
-  "70_droits.sql": "df7369aa2426d0fff280812b5426743f",
-  "80_commentaires.sql": "7a35841e62095704e9ee238b5d183791"
+  "60_rls-policies.sql": "fff6eea5015a7334763dd2bf9fde3860",
+  "70_droits.sql": "e531d4cdb0723a9381cefb5eb81a6c8e",
+  "80_commentaires.sql": "ea28f7d814189f8151850c3f4b11db5a"
  },
  "fonctions": [
   {
@@ -2297,7 +2712,7 @@
    "signature": "juge_de_la_ville(text)"
   },
   {
-   "empreinte": "8b776d98d02589e37d8838d967fe6521",
+   "empreinte": "34c0d353088d1fbc76831feedb938c79",
    "security_definer": true,
    "signature": "juge_dossiers()"
   },
@@ -2310,6 +2725,16 @@
    "empreinte": "cb1418234167b5b21c776cc6fc79646f",
    "security_definer": true,
    "signature": "justice_affaires_vivantes_avec_pv(text)"
+  },
+  {
+   "empreinte": "b9fcec3d5daa0e5a55d07292db1b823e",
+   "security_definer": true,
+   "signature": "justice_appel_juger(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "4b3f27aee3aca3ed3612c17ff6b8f91c",
+   "security_definer": true,
+   "signature": "justice_appel_ouvrir(text)"
   },
   {
    "empreinte": "f82a56326e4d5bc9810ddaa8eb143335",
@@ -2327,9 +2752,49 @@
    "signature": "justice_delais_echus()"
   },
   {
+   "empreinte": "cb5ce387c0aa8c1d148e7bf52bdf8fe4",
+   "security_definer": true,
+   "signature": "justice_est_recherche(text)"
+  },
+  {
    "empreinte": "9cee1dae5ff493ac1ec5c5004947f71b",
    "security_definer": true,
    "signature": "justice_executer_condamnation(text,text)"
+  },
+  {
+   "empreinte": "83433abd500de0c01d5bc7000e1b3d21",
+   "security_definer": false,
+   "signature": "justice_fenetre_appel_jours()"
+  },
+  {
+   "empreinte": "be93b1977fb2a6be2dbbe71457cd1d48",
+   "security_definer": true,
+   "signature": "justice_indemnite_naitre(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "aed01e289fd159f073ebd4184bc09a85",
+   "security_definer": false,
+   "signature": "justice_indemnite_par_jour()"
+  },
+  {
+   "empreinte": "721c59ae87eacfa5b49f350410a7ea60",
+   "security_definer": true,
+   "signature": "justice_indemnites_payer_depuis_finances(text,boolean)"
+  },
+  {
+   "empreinte": "0231e1d0b8f9432a93d09efc776429b5",
+   "security_definer": true,
+   "signature": "justice_indemnites_sur_alimentation()"
+  },
+  {
+   "empreinte": "638ffdf6861b33b5e2a628a6808c9e55",
+   "security_definer": true,
+   "signature": "justice_jours_purges(text)"
+  },
+  {
+   "empreinte": "89a807119cbf31ce4f37270b6a11b252",
+   "security_definer": true,
+   "signature": "justice_mes_indemnites()"
   },
   {
    "empreinte": "747de22eaabc3d8a55bf249c125b994c",
@@ -2357,7 +2822,7 @@
    "signature": "justice_relaxer(text,text)"
   },
   {
-   "empreinte": "d648d9983d7a90d11e6c3609eb403bb2",
+   "empreinte": "e34620a43739e9c2fb2abe70d07205e2",
    "security_definer": true,
    "signature": "justice_rendre_sentence(text,text,text,integer,integer)"
   },
@@ -2367,7 +2832,7 @@
    "signature": "justice_seuil_procedure_simplifiee_jours()"
   },
   {
-   "empreinte": "62066a155b6adb1f19be1b532e1c9b8a",
+   "empreinte": "741d3a7420b5a9c84fb46d50b3cba2ed",
    "security_definer": true,
    "signature": "justice_statuts_publics()"
   },
@@ -2417,7 +2882,7 @@
    "signature": "parquet_transmettre_juge(text)"
   },
   {
-   "empreinte": "b65e548b0a8c996219367ae9b636ba58",
+   "empreinte": "0ba2bfe5b675dbcc535248a877de0ac6",
    "security_definer": true,
    "signature": "plainte_defendre(text,text)"
   },
@@ -2452,6 +2917,11 @@
    "signature": "police_caracteristiques_metier()"
   },
   {
+   "empreinte": "a73be198ef0e99e860f6922269aa850c",
+   "security_definer": false,
+   "signature": "police_delai_intervention_secondes()"
+  },
+  {
    "empreinte": "f23ea592fbfbf2bc1a0d4b7cad5015c0",
    "security_definer": true,
    "signature": "police_payer_effectifs(text)"
@@ -2460,6 +2930,16 @@
    "empreinte": "1045e4d36763a9eea9030e321803f6fc",
    "security_definer": false,
    "signature": "police_pnj_id(text,text,text)"
+  },
+  {
+   "empreinte": "0821964cde4c9fc2b5d75d265211c5e9",
+   "security_definer": true,
+   "signature": "police_signalement_resoudre(text)"
+  },
+  {
+   "empreinte": "6dbb47061924dfa199bd4e3d1c0b8203",
+   "security_definer": true,
+   "signature": "police_signaler(text)"
   },
   {
    "empreinte": "ba26049d477dbad8d61e29c9d0ca1f92",
@@ -2503,6 +2983,18 @@
   {
    "empreinte": "76e729f35fe3e3178d13c4021ff454e6",
    "nom": "jugements_accuse_actifs"
+  },
+  {
+   "empreinte": "7d1a2c03328990c5b189a8380cf3d391",
+   "nom": "justice_indemnites_file_fifo"
+  },
+  {
+   "empreinte": "6357f506c970f5dd7fb8a9e0d5587142",
+   "nom": "signalements_police_par_signaleur"
+  },
+  {
+   "empreinte": "85007df8041ed345f77da71583e554a8",
+   "nom": "signalements_police_un_vivant_par_cible"
   }
  ],
  "index_portes": [
@@ -2521,15 +3013,18 @@
   "infractions_empreinte_pkey",
   "infractions_pkey",
   "jugements_pkey",
+  "justice_indemnites_pkey",
   "niveaux_prison_pkey",
   "plaintes_en_cours_pkey",
   "prisonniers_qhs_pkey",
   "rumeurs_actives_pkey",
+  "signalements_police_pkey",
   "vols_en_attente_pkey"
  ],
  "ordre": [
   "10_tables.sql",
-  "20_fonctions.sql",
+  "20_fonctions-1.sql",
+  "20_fonctions-2.sql",
   "30_contraintes.sql",
   "35_index.sql",
   "50_triggers.sql",
@@ -2753,6 +3248,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "justice_indemnites"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "niveaux_prison"
   },
   {
@@ -2773,10 +3273,21 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "signalements_police"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "vols_en_attente"
   }
  ],
- "sequences": [],
+ "sequences": [
+  {
+   "nom": "justice_indemnites_rang_seq",
+   "possedee": true,
+   "tbl": "justice_indemnites"
+  }
+ ],
  "sequences_autonomes": [],
  "tables": [
   {
@@ -2852,6 +3363,12 @@
    "nom": "jugements"
   },
   {
+   "colonnes": 13,
+   "empreinte_catalogue": "578c4bb2114383bb32f0366a26b6461f",
+   "empreinte_texte": "53b69f49987a74383aeb7ab618d8d428",
+   "nom": "justice_indemnites"
+  },
+  {
    "colonnes": 3,
    "empreinte_catalogue": "2a61ff837b5816762f64330b2f37409a",
    "empreinte_texte": "bbd66107d516ac98f021233fc647d672",
@@ -2874,6 +3391,12 @@
    "empreinte_catalogue": "60fbb5dbbc6e2b0435a9c73c95204de9",
    "empreinte_texte": "f861a290166e8f4f91cd78c2ded5419d",
    "nom": "rumeurs_actives"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "1f205e0003a30f8028c7223247dd120c",
+   "empreinte_texte": "4e5e14e612ce75542d25fb41ec738102",
+   "nom": "signalements_police"
   },
   {
    "colonnes": 8,

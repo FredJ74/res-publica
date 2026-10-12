@@ -23,10 +23,12 @@ ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pkey PRIMA
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_pkey PRIMARY KEY (id);
 ALTER TABLE public.infractions_empreinte ADD CONSTRAINT infractions_empreinte_pkey PRIMARY KEY (seul);
 ALTER TABLE public.jugements ADD CONSTRAINT jugements_pkey PRIMARY KEY (id);
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_pkey PRIMARY KEY (id);
 ALTER TABLE public.niveaux_prison ADD CONSTRAINT niveaux_prison_pkey PRIMARY KEY (id);
 ALTER TABLE public.plaintes_en_cours ADD CONSTRAINT plaintes_en_cours_pkey PRIMARY KEY (id);
 ALTER TABLE public.prisonniers_qhs ADD CONSTRAINT prisonniers_qhs_pkey PRIMARY KEY (id);
 ALTER TABLE public.rumeurs_actives ADD CONSTRAINT rumeurs_actives_pkey PRIMARY KEY (id);
+ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_pkey PRIMARY KEY (id);
 ALTER TABLE public.vols_en_attente ADD CONSTRAINT vols_en_attente_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES D'UNICITE
@@ -45,6 +47,15 @@ ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pas_sur_so
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_amende_reference_check CHECK ((amende_reference >= 0));
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_jours_reference_check CHECK ((jours_reference >= 1));
 ALTER TABLE public.infractions_empreinte ADD CONSTRAINT infractions_empreinte_seul_check CHECK (seul);
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_etat_coherent CHECK (((etat = 'reglee'::text) = (montant_paye = montant_du)));
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_etat_connu CHECK ((etat = ANY (ARRAY['due'::text, 'reglee'::text])));
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_jours_positifs CHECK ((jours_indus > 0));
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_montant_positif CHECK ((montant_du > 0));
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_paye_borne CHECK (((montant_paye >= 0) AND (montant_paye <= montant_du)));
+ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_porteur_connu CHECK ((porteur = ANY (ARRAY['min_just'::text, 'min_fin'::text])));
+ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_issue_connue CHECK (((issue IS NULL) OR (issue = ANY (ARRAY['arrestation'::text, 'cible_partie'::text, 'abandonne'::text]))));
+ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_pas_soi CHECK ((signaleur <> cible));
+ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_resolution_coherente CHECK (((resolu_le IS NULL) = (issue IS NULL)));
 
 -- CLES ETRANGERES
 ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaires_actes_qualif_apres_fkey FOREIGN KEY (qualif_apres) REFERENCES infractions(id);

@@ -393,6 +393,7 @@ function openSelfView(ongletInitial) {
 }
 
 function closeSelfView() {
+  window._indemnitesRelues = false;   // voir switchSelfTab : relire a chaque ouverture, pas plus
   if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
   document.getElementById('vue-self').classList.remove('active');
   if (state.currentBuilding) {
@@ -451,6 +452,20 @@ function switchSelfTab(tab, el) {
     // batiment. Elle vit sur sa propre fiche, qui reste atteignable en detention. Le bloc
     // n'apparait QUE s'il est mis en cause dans une affaire vivante -- sinon il n'existe pas.
     if (typeof justiceSituationHtml === 'function') html += justiceSituationHtml();
+    // LES INDEMNITES SONT RELUES A L'OUVERTURE DE L'ONGLET, puis le bloc est repeint. L'etat
+    // local ne les devine pas : c'est le serveur qui tient le du, le paye et le reste.
+    // LE REPEINT NE SE RAPPELLE PAS LUI-MEME. `switchSelfTab('actions')` repasse ici, donc sans
+    // ce drapeau la relecture et le repeint s'appelleraient a l'infini. Il est remis a zero a la
+    // fermeture de la fiche, pour que la prochaine ouverture relise bien.
+    if (typeof rafraichirMesIndemnites === 'function' && !window._indemnitesRelues) {
+      window._indemnitesRelues = true;
+      rafraichirMesIndemnites().then(() => {
+        if (document.getElementById('vue-self')?.classList.contains('active')) {
+          const tabs = document.querySelectorAll('#vue-self .piece-tab');
+          switchSelfTab('actions', tabs[SELF_ONGLETS.indexOf('actions')] || tabs[0] || null);
+        }
+      }).catch(() => {});
+    }
 
     // Ordre Dormir
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';

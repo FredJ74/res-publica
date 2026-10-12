@@ -1658,7 +1658,9 @@ function mesAffairesEnCause() {
 
 function justiceSituationHtml() {
   const affaires = mesAffairesEnCause();
-  if (affaires.length === 0) return '';
+  const appelables = mesAffairesAppelables();
+  const indemnites = justiceIndemnitesHtml();
+  if (affaires.length === 0 && appelables.length === 0 && indemnites === '') return '';
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
   let h = '<div style="border:1px solid #4a2a10;background:#120a05;padding:1rem;margin-bottom:.8rem">';
   h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#cc8a40;margin-bottom:.6rem">SITUATION JUDICIAIRE</div>';
@@ -1684,8 +1686,36 @@ function justiceSituationHtml() {
     }
     h += '</div>';
   });
+  // LA FENETRE D'APPEL. Elle dure DEUX JOURS, et la peine court pendant ce temps : l'appel n'est
+  // pas suspensif, et le dire est le seul comportement honnete.
+  appelables.forEach(a => {
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">';
+    h += '<div style="font-size:.82rem;color:#e0d5b8">' + ech(a.motif || 'Affaire') + '</div>';
+    h += '<div style="font-size:.72rem;color:#8a8060;margin:.15rem 0 .4rem">'
+       + (typeof justiceLibelleStatut === 'function' ? ech(justiceLibelleStatut(a.status)) : ech(a.status))
+       + (a.peine_libelle ? ' — ' + ech(a.peine_libelle) : '') + '</div>';
+    h += '<div style="font-size:.74rem;color:#9a7a40;margin-bottom:.4rem">Vous pouvez faire appel '
+       + 'jusqu\'au jour ' + ech(a.appel_jusqu_au_jour) + '. <strong>L\'appel n\'est pas '
+       + 'suspensif</strong> : la peine continue de courir, et le second jugement sera definitif.</div>';
+    h += '<button onclick="interjeterAppel(\'' + ech(a.id) + '\')" '
+       + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;padding:.35rem .9rem;'
+       + 'border:1px solid #6a4a20;background:transparent;color:#C9A84C;cursor:pointer">Interjeter appel</button>';
+    h += '</div>';
+  });
   h += '</div>';
-  return h;
+  return indemnites + h;
+}
+
+// LES AFFAIRES ENCORE APPELABLES : jugees en premiere instance, hors procedure simplifiee, dans
+// la fenetre de deux jours, et sans appel deja interjete. Le serveur refait toutes ces
+// verifications -- `justice_appel_ouvrir` -- ce filtre evite seulement d'offrir un bouton mort.
+function mesAffairesAppelables() {
+  const jour = state.day || 0;
+  return (state.plaintesEnCours || []).filter(p => p && p.cible === state.char?.name
+    && (p.status === 'jugee' || p.status === 'relaxe')
+    && p.procedure_simplifiee !== true
+    && !p.appel_ouvert_le
+    && p.appel_jusqu_au_jour != null && jour <= p.appel_jusqu_au_jour);
 }
 
 function ouvrirPvAudition(affaireId) {
@@ -1756,6 +1786,263 @@ async function soumettrePvAudition(affaireId, refus) {
   updateUI();
 }
 
+// ===========================================================================
+// SIGNALER UN RECHERCHE A LA POLICE — LES DIX SECONDES (12 octobre 2026)
+// ===========================================================================
+// EN REPUBLIA, UN CITOYEN N'ARRETE PERSONNE. Il appelle, et la police vient. Ce fichier ne fait
+// que COMPTER : l'autorite est entierement serveur, en deux temps -- `police_signaler` enregistre
+// la piece exacte et l'echeance, `police_signalement_resoudre` refuse avant l'echeance et relit
+// la presence de la cible pour la comparer aux quatre coordonnees enregistrees.
+//
+// UN COMPTE A REBOURS TRAFIQUE NE SERT A RIEN : il ne fait qu'arriver trop tot et se faire
+// refuser. Il ne peut ni avancer l'intervention, ni la faire reussir sur une piece vide.
+//
+// LA CIBLE NE VOIT RIEN. Aucun toast, aucun courrier, aucun evenement : ces dix secondes sont sa
+// fenetre de fuite, et elle ignore qu'elle est attendue. C'est pour cela que le compte a rebours
+// vit dans CE navigateur et nulle part ailleurs.
+let RP_SIGNALEMENT_EN_COURS = null;
+
+const SIGNALEMENT_REFUS = {
+  acteur_non_authentifie:        "Votre personnage n'a pas pu etre identifie.",
+  cible_absente:                 "Personne n'est designe.",
+  cible_est_l_acteur:            "Vous ne pouvez pas vous signaler vous-meme.",
+  signalement_reserve_a_republia:"En dehors de Republia, la police ne repond pas a ce genre d'appel.",
+  presence_inconnue:             "Le serveur ne sait pas ou vous etes.",
+  cible_absente_de_la_piece:     "Cette personne n'est plus dans cette piece.",
+  cible_non_recherchee:          "Cette personne n'est pas recherchee.",
+  intervention_deja_en_route:    "Une intervention est deja en route sur cette personne.",
+  pas_mon_signalement:           "Ce signalement n'est pas le votre.",
+  signalement_absent:            "Ce signalement n'existe plus.",
+  delai_non_ecoule:              "La police n'est pas encore arrivee."
+};
+
+async function signalerALaPolice(nom) {
+  if (RP_SIGNALEMENT_EN_COURS) {
+    showToast('Appel deja passe', 'Une intervention est deja en route.', false);
+    return;
+  }
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof sbRpc !== 'function') return;
+  // LE VERROU LOCAL EST POSE AVANT L'APPEL, pas apres : un double clic rapide passerait entre les
+  // deux sinon. Le serveur a son propre verrou -- un index unique partiel -- et c'est lui qui
+  // fait foi ; celui-ci n'evite qu'un aller-retour inutile.
+  RP_SIGNALEMENT_EN_COURS = nom;
+  const v = await sbRpc('police_signaler', { p_cible: nom })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) {
+    RP_SIGNALEMENT_EN_COURS = null;
+    showToast('Appel non passe', SIGNALEMENT_REFUS[v?.raison] || "La police n'a pas pris l'appel.", false);
+    return;
+  }
+  addJournalEntry('Vous avez alerte la police au sujet de ' + nom + '.', 'event-neutral');
+  compteARebonsSignalement(v.id, v.delai_secondes || 10);
+}
+
+// LE COMPTE A REBOURS, VISIBLE DU SEUL SIGNALEUR. Il n'est pas l'autorite : a zero, c'est le
+// serveur qui decide si la cible est encore la.
+function compteARebonsSignalement(id, secondes) {
+  let reste = Math.max(1, parseInt(secondes, 10) || 10);
+  const zone = document.createElement('div');
+  zone.id = 'signalement-compte';
+  zone.setAttribute('style',
+    'position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:9999;'
+    + 'background:#140a05;border:1px solid #5a3a10;color:#e8c97a;padding:.7rem 1.2rem;'
+    + 'font-family:Crimson Pro,serif;font-size:.86rem;text-align:center;max-width:92vw');
+  document.body.appendChild(zone);
+  const peindre = () => {
+    zone.innerHTML = 'Vous avez alerté la police. Elle arrive dans '
+      + '<strong style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#cc8a40">'
+      + reste + '</strong> s.';
+  };
+  peindre();
+  const tic = setInterval(async () => {
+    reste -= 1;
+    if (reste > 0) { peindre(); return; }
+    clearInterval(tic);
+    zone.innerHTML = 'La police intervient…';
+    const r = (typeof sbRpc === 'function')
+      ? await sbRpc('police_signalement_resoudre', { p_id: id })
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    RP_SIGNALEMENT_EN_COURS = null;
+    if (r && r.ok === true) {
+      addJournalEntry(r.issue === 'arrestation' && r.arrestation === true
+        ? 'La police est intervenue et a interpelle ' + (r.cible || '') + '.'
+        : 'La police est intervenue : la personne signalee n\'etait plus la.', 'event-neutral');
+    }
+    // A ZERO, LA PAGE SE RAFRAICHIT. C'est la consigne, et c'est aussi la seule facon honnete de
+    // montrer l'etat reel : la piece a peut-etre change de contenu, et rien dans ce navigateur ne
+    // sait ce que le serveur vient de decider.
+    setTimeout(() => { try { location.reload(); } catch (e) { zone.remove(); } }, 600);
+  }, 1000);
+}
+
+// ===========================================================================
+// L'APPEL — DEUX JOURS, UN SEUL, ET IL N'EST PAS SUSPENSIF (12 octobre 2026)
+// ===========================================================================
+// LE CONDAMNE OU LE PROCUREUR l'interjette, dans les deux jours du jugement de premiere
+// instance, et le PREMIER qui le declenche l'ouvre. La peine, elle, court deja : l'appel n'arrete
+// rien. Si le second jugement allege ou relaxe, le serveur compte les jours REELLEMENT PURGES en
+// excedent et fait naitre l'indemnite -- ce navigateur n'en calcule aucun.
+const APPEL_REFUS = {
+  acteur_non_authentifie:              "Votre personnage n'a pas pu etre identifie.",
+  affaire_absente:                     "Cette affaire n'existe plus au greffe.",
+  appel_exclu_procedure_simplifiee:    "Cette affaire a ete reglee en procedure simplifiee : elle est definitive.",
+  pas_de_jugement_de_premiere_instance:"Aucun jugement de premiere instance n'a ete rendu.",
+  appel_deja_interjete:                "Un appel a deja ete interjete dans cette affaire.",
+  autorite_refusee:                    "Seul le condamne ou le Procureur peut interjeter appel.",
+  fenetre_appel_fermee:                "La fenetre d'appel de deux jours est fermee.",
+  jugement_introuvable:                "Le jugement de premiere instance est introuvable."
+};
+
+async function interjeterAppel(affaireId) {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_appel_ouvrir', { p_affaire_id: affaireId })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!v || v.ok !== true) {
+    showToast('Appel non enregistre', APPEL_REFUS[v?.raison] || "Le greffe n'a pas enregistre l'appel.", false);
+    return;
+  }
+  showToast('Appel interjete',
+    "L'affaire sera reexaminee par le meme juge. Attention : l'appel n'est pas suspensif, "
+    + 'la peine continue de courir.', true);
+  addJournalEntry("Appel interjete (" + (v.qualite === 'parquet' ? 'parquet' : 'condamne') + ').',
+    'event-neutral');
+  updateUI();
+}
+
+// L'APPEL, COTE JUGE. Les bornes sont celles du serveur : cet ecran les DEMANDE
+// (`justice_peine_proposer`) et ne les recalcule jamais -- meme discipline que la premiere
+// instance, livree le 12 octobre au matin.
+async function ouvrirQualificationAppel(affaireId, genre) {
+  const infractions = (typeof infractionsCanoniques === 'function') ? infractionsCanoniques() : [];
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+  let h = '<div style="padding:1rem;max-width:560px">';
+  h += '<div style="font-size:.78rem;color:#cc8a40;margin-bottom:.6rem;line-height:1.5">'
+     + 'JUGEMENT D\'APPEL — votre decision sera <strong>definitive</strong>. Les bornes sont '
+     + 'celles du bareme, comme en premiere instance.</div>';
+  h += '<select id="appel-infraction" style="width:100%;background:#0a0805;border:1px solid #2a2010;color:#c0b090;padding:.4rem;font-size:.82rem">';
+  infractions.forEach(i => {
+    h += '<option value="' + ech(i.id) + '">' + ech(i.libelle || i.id) + '</option>';
+  });
+  h += '</select>';
+  h += '<div style="display:flex;gap:.5rem;margin-top:.8rem">'
+     + '<button onclick="ouvrirModulationAppel(\'' + ech(affaireId) + '\',\'' + ech(genre) + '\')" '
+     + 'style="font-family:Bebas Neue,sans-serif;font-size:.76rem;letter-spacing:.1em;padding:.45rem 1rem;'
+     + 'border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer">Continuer</button></div></div>';
+  document.getElementById('postes-modal-title').textContent = 'Appel — qualification';
+  document.getElementById('postes-body').innerHTML = h;
+}
+
+async function ouvrirModulationAppel(affaireId, genre) {
+  const inf = document.getElementById('appel-infraction')?.value;
+  if (!inf) return;
+  const v = (typeof sbRpc === 'function')
+    ? await sbRpc('justice_peine_proposer', { p_affaire_id: affaireId, p_infraction: inf, p_genre: genre })
+        .then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    showToast('Bornes indisponibles', "Le serveur n'a pas rendu la plage de peine.", false);
+    return;
+  }
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+  let h = '<div style="padding:1rem;max-width:560px">';
+  h += '<div style="font-size:.8rem;color:#e0d5b8;margin-bottom:.5rem">' + ech(v.libelle || inf) + '</div>';
+  h += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Prison : de ' + v.jours_min
+     + ' a ' + v.jours_max + ' jours. Amende : de ' + v.amende_min + ' a ' + v.amende_max + ' FR.</div>';
+  h += '<label style="font-size:.76rem;color:#9a8a60">Jours <input id="appel-jours" type="number" min="'
+     + v.jours_min + '" max="' + v.jours_max + '" value="' + (v.jours_defaut != null ? v.jours_defaut : v.jours_min)
+     + '" style="width:5rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;padding:.2rem"/></label>';
+  h += '<label style="font-size:.76rem;color:#9a8a60;margin-left:1rem">Amende <input id="appel-amende" type="number" min="'
+     + v.amende_min + '" max="' + v.amende_max + '" value="' + v.amende_min
+     + '" style="width:6rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;padding:.2rem"/></label>';
+  h += '<div style="margin-top:.9rem"><button onclick="prononcerJugementAppel(\'' + ech(affaireId)
+     + '\',\'' + ech(inf) + '\',\'' + ech(genre) + '\')" '
+     + 'style="font-family:Bebas Neue,sans-serif;font-size:.76rem;letter-spacing:.1em;padding:.45rem 1rem;'
+     + 'border:1px solid #6a3010;background:transparent;color:#cc8a40;cursor:pointer">Prononcer (definitif)</button></div></div>';
+  document.getElementById('postes-modal-title').textContent = 'Appel — peine';
+  document.getElementById('postes-body').innerHTML = h;
+}
+
+const APPEL_JUGE_REFUS = {
+  pas_juge_de_cette_ville: "Seul le juge de cette ville peut statuer.",
+  pas_en_appel:            "Cette affaire n'est pas en appel.",
+  appel_deja_juge:         "L'appel de cette affaire a deja ete juge.",
+  verdict_invalide:        "Verdict inconnu.",
+  genre_absent:            "Aucun genre de peine n'a ete choisi.",
+  infraction_inconnue:     "Cette infraction n'est pas au code penal.",
+  peine_hors_bornes:       "La peine demandee sort des bornes du bareme.",
+  amende_hors_bornes:      "L'amende demandee sort des bornes du bareme.",
+  statut_a_change:         "Le dossier a bouge pendant votre decision."
+};
+
+async function appliquerJugementAppel(affaireId, verdict, inf, genre, jours, amende) {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_appel_juger', {
+    p_affaire_id: affaireId, p_verdict: verdict, p_infraction: inf || null,
+    p_genre: genre || null, p_jours: jours || 0, p_amende: amende || 0
+  }).then(x => Array.isArray(x) ? x[0] : x).catch(() => null);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!v || v.ok !== true) {
+    showToast('Appel non juge', APPEL_JUGE_REFUS[v?.raison] || "Le greffe n'a pas enregistre le jugement.", false);
+    return;
+  }
+  // L'INDEMNITE EST ANNONCEE TELLE QUE LE SERVEUR L'A CALCULEE. Ce navigateur ne compte aucun
+  // jour purge : c'est `justice_jours_purges` qui le fait, sur la detention reelle.
+  let msg = verdict === 'relaxe' ? 'Relaxe prononcee en appel.' : 'Peine definitive : ' + (v.jours || 0) + ' jour(s).';
+  if (v.libere === true) msg += ' La personne est liberee.';
+  if ((v.jours_indus || 0) > 0) {
+    msg += ' ' + v.jours_indus + ' jour(s) purge(s) a tort : indemnite de '
+         + (v.jours_indus * 1000) + ' FR'
+         + (v.indemnite && v.indemnite.porteur === 'min_fin' ? ' (a la charge des Finances).' : '.');
+  }
+  showToast('Jugement d\'appel rendu', msg, true);
+  addJournalEntry('Jugement d\'appel rendu (definitif).', 'event-neutral');
+  updateUI();
+}
+
+function prononcerJugementAppel(affaireId, inf, genre) {
+  const j = parseInt(document.getElementById('appel-jours')?.value || '0', 10);
+  const a = parseInt(document.getElementById('appel-amende')?.value || '0', 10);
+  appliquerJugementAppel(affaireId, 'condamnation', inf, genre, j, a);
+}
+function jugeRelaxerEnAppel(affaireId) {
+  appliquerJugementAppel(affaireId, 'relaxe', null, null, 0, 0);
+}
+
+// ===========================================================================
+// LES INDEMNITES DU JOUEUR — DU, PAYE, RESTE (12 octobre 2026)
+// ===========================================================================
+// L'ETAT DOIT DE L'ARGENT, ET LE JOUEUR DOIT POUVOIR LE VOIR. Aucune decision n'est prise ici :
+// le prelevement est automatique a chaque alimentation de la caisse des Finances, en FIFO strict,
+// et aucun ministre n'y a la main.
+let RP_MES_INDEMNITES = [];
+
+async function rafraichirMesIndemnites() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_mes_indemnites', {})
+    .then(x => Array.isArray(x) ? x[0] : x).catch(() => null);
+  if (v && v.ok === true && Array.isArray(v.indemnites)) RP_MES_INDEMNITES = v.indemnites;
+}
+
+function justiceIndemnitesHtml() {
+  const dues = RP_MES_INDEMNITES.filter(i => i && i.etat === 'due');
+  if (dues.length === 0) return '';
+  let h = '<div style="border:1px solid #2a3a4a;background:#080c12;padding:1rem;margin-bottom:.8rem">';
+  h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a9ac0;margin-bottom:.6rem">INDEMNISATION DUE PAR L\'ETAT</div>';
+  dues.forEach(i => {
+    h += '<div style="font-size:.78rem;color:#c0b090">' + i.jours_indus
+       + ' jour(s) de detention executes a tort &mdash; <strong>' + i.reste
+       + ' FR</strong> restant sur ' + i.du + ' FR</div>';
+  });
+  h += '<div style="font-size:.72rem;color:#5a7a90;font-style:italic;margin-top:.3rem">'
+     + 'Le versement est automatique des que le Tresor peut payer. Aucune demarche n\'est possible, '
+     + 'et aucun ministre ne peut l\'accelerer ni le retarder.</div>';
+  h += '</div>';
+  return h;
+}
+
 // SE DEFENDRE — formule validée avec Fred :
 // Taux = 50 (base) + (CHA-8)*3 (bonus/malus charisme) - 35 si preuve reelle contre l'accuse.
 // 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
@@ -1787,12 +2074,22 @@ async function doDefense(pa, cost) {
     const inf = p.qualification_finale || p.qualification_parquet || p.infraction_constatee;
     if (!inf || typeof getPeineParActe !== 'function') return false;
     const ref = getPeineParActe(inf, false);
-    return !!ref && typeof ref.jours === 'number' && ref.jours <= 2;
+    if (!ref || typeof ref.jours !== 'number' || ref.jours > 2) return false;
+    // LE CRITERE EST DOUBLE DEPUIS LE 12 OCTOBRE 2026 : <= 2 jours de reference ET categorie
+    // canonique PRESENTE et differente de `crime`. Quatre infractions de categorie crime portent
+    // un bareme historique de 2 jours -- acheter_bombe_illegale, empoisonnement, incendier,
+    // utiliser_explosifs -- et avec le seul seuil de duree, un incendie volontaire se reglait par
+    // un jet. Une categorie ABSENTE ferme aussi la porte : on ne peut pas affirmer qu'une
+    // infraction sans categorie n'est pas un crime. Le serveur refuse
+    // `procedure_simplifiee_exclut_les_crimes` ; ce filtre evite de payer l'ordre pour rien.
+    const cat = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX[inf])
+      ? ACTES_ILLEGAUX[inf].type : null;
+    return !!cat && cat !== 'crime';
   });
   if (!affaire) {
     const motif = eligibles.length === 0
       ? "Vous n'avez aucune affaire ouverte dans laquelle vous pourriez encore plaider."
-      : "Les faits qui vous sont reproches sont trop graves pour la procedure simplifiee : "
+      : "Les faits qui vous sont reproches ne relevent pas de la procedure simplifiee : "
         + "cette affaire sera jugee par le tribunal.";
     showToast('Aucune affaire', motif, false);
     return;
@@ -1871,6 +2168,8 @@ async function doDefense(pa, cost) {
       : vDef?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
       : vDef?.raison === 'procedure_simplifiee_reservee_aux_peines_courtes'
         ? "Les faits reproches sont trop graves pour la procedure simplifiee : cette affaire sera jugee par le tribunal."
+      : vDef?.raison === 'procedure_simplifiee_exclut_les_crimes'
+        ? "Un crime ne se regle pas par une plaidoirie expeditive : cette affaire sera jugee par le tribunal."
       : vDef?.raison === 'infraction_non_determinee'
         ? "Aucune infraction precise n'est encore retenue contre vous : il n'y a rien a plaider en procedure simplifiee."
       : vDef?.raison === 'infraction_hors_catalogue'
@@ -13581,7 +13880,10 @@ const JUSTICE_STATUTS = {
   abandonnee:      'Poursuites abandonnees',
   arret:           'Procedure arretee par le juge',
   relaxe:          'Relaxe',
-  jugee:           'Jugee',
+  jugee:           'Jugee en premiere instance',
+  appel:           'En appel',
+  jugee_appel:     'Jugee en appel (definitif)',
+  delai_expire:    'Charges abandonnees — delai de jugement expire',
   // Statuts de l'ancienne chaine, conserves pour relire un dossier anterieur sans l'afficher
   // comme inconnu. Aucune porte ne les pose plus.
   deposee:         'Deposee (ancien circuit)',
@@ -13792,7 +14094,7 @@ function parquetPoursuivre(id, infraction) {
 // IL NE MONTRE QUE CE DONT LE JUGE EST SAISI. Un dossier encore au parquet n'y figure pas : le
 // serveur ne le rend meme pas.
 async function ouvrirDossiersJuge(pa, cost) {
-  document.getElementById('postes-modal-title').textContent = 'Affaires dont vous etes saisi';
+  document.getElementById('postes-modal-title').textContent = 'Affaires du tribunal';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem;color:#8a8060;font-style:italic">Lecture du role...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -13839,7 +14141,21 @@ async function ouvrirDossiersJuge(pa, cost) {
     html += justiceChronologieHtml(x.actes);
 
     html += '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">';
-    if (st === 'abandon_demande') {
+    if (st === 'appel') {
+      // L'APPEL : MEME JUGE, SECOND EXAMEN, DECISION DEFINITIVE. Les boutons sont les memes que
+      // ceux de la premiere instance -- memes bornes, meme ecran de qualification -- parce que le
+      // juge d'appel n'a pas plus de latitude que lui-meme la veille.
+      html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;width:100%;margin-bottom:.2rem">'
+           + 'Appel interjete par ' + (d.appel_par || '?')
+           + (d.appel_qualite === 'parquet' ? ' (parquet)' : ' (condamne)')
+           + '. Votre decision sera DEFINITIVE.'
+           + (d.peine_libelle ? ' Premiere instance : ' + d.peine_libelle + '.' : '')
+           + '</div>';
+      html += '<button onclick="jugeRelaxerEnAppel(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Relaxer en appel</button>';
+      ['prison','amende','amenagement','qhs'].forEach(g => {
+        html += '<button onclick="ouvrirQualificationAppel(' + a + ',\'' + g + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a4a;cursor:pointer">Juger en appel — ' + g + '</button>';
+      });
+    } else if (st === 'abandon_demande') {
       // LE PARQUET S'EST RETIRE : les deux decisions sont offertes, et elles sont DEUX FAITS
       // distincts dans la chronologie.
       html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;width:100%;margin-bottom:.2rem">'
