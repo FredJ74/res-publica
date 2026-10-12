@@ -393,6 +393,45 @@ BEGIN
     'lu_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
 END $function$;
 
+-- carriere_initiale(text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.carriere_initiale(p_nom text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE coalesce(d.career, '')
+           WHEN 'civil' THEN 'magistrat' WHEN 'local_civil' THEN 'magistrat'
+           WHEN 'lawyer' THEN 'magistrat' WHEN 'influencer' THEN 'press'
+           WHEN 'academic' THEN 'doctor'  WHEN 'lobbyist' THEN 'business'
+           WHEN 'union' THEN 'worker'     WHEN 'unemployed' THEN 'worker'
+           ELSE d.career END
+    FROM public.personnages_donnees d WHERE d.name = p_nom;
+$function$;
+
+-- carriere_possede(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.carriere_possede(p_nom text, p_carriere text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT p_carriere = ANY (public.carrieres_de(p_nom));
+$function$;
+
+-- carrieres_de(text) -> text[] | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.carrieres_de(p_nom text)
+ RETURNS text[]
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT ARRAY(SELECT DISTINCT x FROM unnest(ARRAY[
+           public.carriere_initiale(p_nom),
+           (SELECT a.carriere FROM public.carrieres_acquises a WHERE a.personnage = p_nom)
+         ]) AS x WHERE x IS NOT NULL);
+$function$;
+
 -- deplacement_enregistrer(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.deplacement_enregistrer(p_city text, p_building text, p_room text, p_heure text DEFAULT NULL::text)
  RETURNS jsonb
@@ -638,6 +677,19 @@ AS $function$
     from toutes t, arbitre a
    where NOT a.oui OR nullif(btrim(t.label_forme), '') is not null
    order by t.id;
+$function$;
+
+-- habilitation_ouverte(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.habilitation_ouverte(p_nom text, p_habilitation text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.habilitations_carrieres h
+     WHERE h.habilitation = p_habilitation
+       AND h.carriere = ANY (public.carrieres_de(p_nom)));
 $function$;
 
 -- incarnation_courante() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
@@ -1133,6 +1185,28 @@ EXCEPTION WHEN others THEN
 END;
 $function$;
 
+-- mes_carrieres() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.mes_carrieres()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  RETURN jsonb_build_object('ok', true,
+    'initiale', public.carriere_initiale(v_moi),
+    'seconde', (SELECT a.carriere FROM public.carrieres_acquises a WHERE a.personnage = v_moi),
+    'carrieres', to_jsonb(public.carrieres_de(v_moi)),
+    'seconde_carriere_disponible',
+      NOT EXISTS (SELECT 1 FROM public.carrieres_acquises a WHERE a.personnage = v_moi),
+    'habilitations', (SELECT coalesce(jsonb_agg(DISTINCT h.habilitation), '[]'::jsonb)
+                        FROM public.habilitations_carrieres h
+                       WHERE h.carriere = ANY (public.carrieres_de(v_moi))));
+END $function$;
+
 -- mon_personnage() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.mon_personnage()
  RETURNS text
@@ -1573,6 +1647,18 @@ CREATE OR REPLACE FUNCTION public.rp_transition_active(p_cle text)
  SET search_path TO 'public', 'pg_temp'
 AS $function$
   SELECT coalesce((SELECT t.actif FROM public.rp_transitions t WHERE t.cle = p_cle), false);
+$function$;
+
+-- sans_commentaires(text) -> text | sql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.sans_commentaires(p_src text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  -- Retire les commentaires de ligne SQL/plpgsql. Sert UNIQUEMENT aux preuves de migration et aux
+  -- controles : une mesure d'absence qui lirait la prose mesurerait le commentaire qui explique
+  -- l'interdiction, pas le code qui la respecte.
+  SELECT regexp_replace(coalesce(p_src, ''), '--[^\n]*', '', 'g');
 $function$;
 
 -- titulaire_est_moi(text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp

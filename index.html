@@ -166,6 +166,39 @@
   <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(0)">Retour</button><div class="dots" id="dots1"></div><button class="nbtn nnext" id="n1" disabled data-i18n="creation.nav.next" onclick="goTo(2)">Suivant</button></div>
 </div>
 
+<!-- LE CONSEILLER DE CREATION (12 octobre 2026) -- ETAPE FACULTATIVE, ENTRE L'EMPIRE ET L'ORIGINE.
+     IL EST POSE EN MODALE, ET C'EST UN CHOIX TECHNIQUE ASSUME. Les ecrans de creation sont indexes
+     par position dans `goTo` (intro, s1..s9) : inserer un dixieme ecran aurait decale les neuf
+     suivants, leurs points de progression et chacun de leurs boutons -- une renumerotation entiere
+     pour une etape qu'on peut sauter. La modale s'ouvre a la SORTIE de l'ecran de l'empire, qui
+     n'est pas touche, et avant tout choix d'origine. Elle ne s'ouvre qu'une fois.
+     ELLE NE SELECTIONNE RIEN : elle pose un conseil que les quatre ecrans suivants affichent
+     discretement, et que le joueur suit ou non. -->
+<div id="modal-conseiller" class="modal-overlay">
+  <div class="modal-box modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="creation.conseiller.title">Quel personnage aimeriez-vous incarner ?</div>
+    </div>
+    <div style="padding:1rem;display:flex;flex-direction:column;gap:.8rem">
+      <p style="margin:0;font-size:.85rem;line-height:1.55;color:#6a6250" data-i18n="creation.conseiller.intro">
+        Decrivez librement ce que vous aimeriez devenir, ce que vous aimeriez accomplir, ou le genre de
+        personnage que vous imaginez. Si vous ne savez pas encore, dites-le : c'est une reponse comme une autre.
+      </p>
+      <textarea id="conseiller-souhait" rows="4" maxlength="800"
+        data-i18n-placeholder="creation.conseiller.placeholder"
+        placeholder="Par exemple : « je voudrais defendre des gens au tribunal », « monter une affaire », « je ne sais pas encore, je decouvre »..."
+        style="width:100%;padding:.6rem;border:1px solid #d8cfb8;border-radius:6px;background:#fffdf7;font-family:inherit;font-size:.86rem;resize:vertical"></textarea>
+      <div id="conseiller-reponse" style="display:none"></div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end">
+        <button class="nbtn" id="conseiller-passer" onclick="conseillerPasser()"
+          data-i18n="creation.conseiller.skip">Je prefere choisir seul</button>
+        <button class="nbtn nnext" id="conseiller-demander" onclick="conseillerDemander()"
+          data-i18n="creation.conseiller.ask">Proposer mon parcours</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SCREEN 2: ORIGIN -->
 <div id="s2" class="screen">
   <div class="sh"><div class="sn" data-i18n="creation.steps.origin.step">Etape 2 / 7</div><div class="st playfair" data-i18n="creation.steps.origin.title">Origine sociale</div><div class="sd" data-i18n="creation.steps.origin.subtitle">Le milieu dans lequel vous etes ne determine votre capital de depart.</div></div>
@@ -266,13 +299,13 @@
      joueur anglophone). i18next core vendorise localement (i18n/i18next.min.js, voir
      i18n/i18next.LICENSE.txt), aucune dependance CDN. -->
 <script src="i18n/i18next.min.js"></script>
-<script src="i18n/resources.js"></script>
+<script src="i18n/resources.js?v=2"></script>
 <script src="i18n/i18n-init.js"></script>
-<script src="data.js"></script>
+<script src="data.js?v=330"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=7"></script>
 <script src="supabase.js?v=243"></script>
-<script src="creation.js?v=10"></script>
+<script src="creation.js?v=11"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

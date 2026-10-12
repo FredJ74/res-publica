@@ -251,6 +251,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "carriere_initiale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "carriere_initiale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "carriere_possede(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "carriere_possede(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "carrieres_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "carrieres_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "deplacement_enregistrer(text,text,text,text)",
@@ -524,6 +560,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "habilitation_ouverte(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "habilitation_ouverte(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -881,6 +929,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mes_carrieres()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mes_carrieres()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mes_carrieres()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "mon_personnage()",
@@ -1106,6 +1172,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "rp_transition_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "sans_commentaires(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "sans_commentaires(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1308,10 +1386,10 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "30ef281adcf38d7456009577a704c624",
+  "20_fonctions.sql": "b5bde8ce81e1a8b9d412a7cf8c0c292f",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "d9a19efd39b2493a7ddff2073f976e0d",
+  "70_droits.sql": "0e703ebe648f02451d7100244ea67b92",
   "80_commentaires.sql": "dfca656c92b7194fa01929c7547f4b71",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
@@ -1372,6 +1450,21 @@
    "signature": "admin_tribunal_dossiers()"
   },
   {
+   "empreinte": "5b91f4280c12d65c4e383bc3b8f8a996",
+   "security_definer": true,
+   "signature": "carriere_initiale(text)"
+  },
+  {
+   "empreinte": "a369d4891214481d5fbd73a128ea591d",
+   "security_definer": true,
+   "signature": "carriere_possede(text,text)"
+  },
+  {
+   "empreinte": "a64ea8e94fb2c0b05fe87751fcc140e7",
+   "security_definer": true,
+   "signature": "carrieres_de(text)"
+  },
+  {
    "empreinte": "fb8970ea456e901651db6d8bb6cc98eb",
    "security_definer": true,
    "signature": "deplacement_enregistrer(text,text,text,text)"
@@ -1425,6 +1518,11 @@
    "empreinte": "8f4667678b96d4faf48234e93e5f4c7d",
    "security_definer": false,
    "signature": "generique_recettes_systeme(text)"
+  },
+  {
+   "empreinte": "13032a992269a9554b1a58f5e99dfa32",
+   "security_definer": true,
+   "signature": "habilitation_ouverte(text,text)"
   },
   {
    "empreinte": "18ffc6d661128342d06ec43d8847fe9d",
@@ -1537,6 +1635,11 @@
    "signature": "jsonb_ou_null(text)"
   },
   {
+   "empreinte": "f81148a1dc7c5818b8f0280f33aa6413",
+   "security_definer": true,
+   "signature": "mes_carrieres()"
+  },
+  {
    "empreinte": "cc744c8aa93d6aab5edd1c0ba9d1efc1",
    "security_definer": true,
    "signature": "mon_personnage()"
@@ -1590,6 +1693,11 @@
    "empreinte": "9092282e55d36158a68382defe744a17",
    "security_definer": true,
    "signature": "rp_transition_active(text)"
+  },
+  {
+   "empreinte": "9b47ad812b9b43dab197cbb1f4dd743f",
+   "security_definer": false,
+   "signature": "sans_commentaires(text)"
   },
   {
    "empreinte": "3671dcff388f158a5f0196f143144771",

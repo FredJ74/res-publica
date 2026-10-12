@@ -2299,8 +2299,7 @@ BEGIN
   IF now() > v_ins.limite_le THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cursus_expire', 'limite_le', v_ins.limite_le);
   END IF;
-  -- LA DUREE THEORIQUE EST UN MINIMUM, PAS UNE ESTIMATION. Meme tous les jalons accomplis ne
-  -- diplomsent pas avant son terme.
+  -- LA DUREE THEORIQUE EST UN MINIMUM, PAS UNE ESTIMATION.
   IF now() < v_ins.fin_theorique_le THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'duree_theorique_non_atteinte',
       'fin_theorique_le', v_ins.fin_theorique_le);
@@ -2316,22 +2315,17 @@ BEGIN
       'accomplis', v_faits, 'total', v_total);
   END IF;
 
-  IF public.universite_slot_consomme(v_moi) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'slot_universitaire_deja_consomme');
-  END IF;
-
   SELECT * INTO v_cur FROM public.universite_cursus WHERE id = v_ins.cursus;
 
-  -- LE SLOT SE CONSOMME EN ECRIVANT LA QUALIFICATION, jamais en posant un drapeau. L'index
-  -- unique partiel `personnages_une_seule_qualif_universitaire` est la seconde barriere : deux
-  -- appels simultanes ne peuvent pas ecrire deux qualifications universitaires.
-  INSERT INTO public.personnages_qualifications
-    (personnage, qualification, source, inscription_id)
-  VALUES (v_moi, v_cur.qualification, 'universite', v_ins.id)
-  ON CONFLICT (personnage, qualification) DO NOTHING;
+  -- LE SLOT SE CONSOMME EN ECRIVANT LA CARRIERE, jamais en posant un drapeau. La CLE PRIMAIRE de
+  -- `carrieres_acquises` est le personnage : deux appels simultanes ne peuvent pas en ecrire deux,
+  -- et il n'existe aucune forme de la table ou une troisieme carriere tiendrait.
+  INSERT INTO public.carrieres_acquises (personnage, carriere, source, inscription_id)
+  VALUES (v_moi, v_cur.carriere, 'universite', v_ins.id)
+  ON CONFLICT (personnage) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
   IF v_n <> 1 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'qualification_deja_detenue');
+    RETURN jsonb_build_object('ok', false, 'raison', 'seconde_carriere_deja_acquise');
   END IF;
 
   UPDATE public.universite_inscriptions
@@ -2339,7 +2333,8 @@ BEGIN
    WHERE id = v_ins.id;
 
   RETURN jsonb_build_object('ok', true, 'inscription', v_ins.id,
-    'qualification', v_cur.qualification, 'slot_consomme', true);
+    'carriere', v_cur.carriere, 'slot_consomme', true,
+    'carrieres', to_jsonb(public.carrieres_de(v_moi)));
 END;
 $function$;
 
@@ -2377,7 +2372,6 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide');
   END IF;
 
-  -- REJEU : meme convention que partout dans le projet.
   IF p_requete IS NOT NULL THEN
     SELECT id INTO v_id FROM public.universite_inscriptions WHERE requete = p_requete;
     IF v_id IS NOT NULL THEN
@@ -2388,13 +2382,18 @@ BEGIN
   SELECT * INTO v_cur FROM public.universite_cursus WHERE id = p_cursus;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'cursus_inconnu'); END IF;
 
-  -- LE SLOT A VIE. Une qualification universitaire deja obtenue ferme definitivement la porte.
+  -- LE SLOT A VIE. Une seconde carriere deja acquise ferme definitivement la porte.
   IF public.universite_slot_consomme(v_moi) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'slot_universitaire_deja_consomme');
+    RETURN jsonb_build_object('ok', false, 'raison', 'seconde_carriere_deja_acquise');
   END IF;
 
-  -- UN SEUL CURSUS ACTIF. L'index unique partiel garde aussi, mais un refus nomme vaut mieux
-  -- qu'une violation de contrainte remontee au joueur.
+  -- ON NE DEPENSE PAS SON UNIQUE SLOT POUR CE QU'ON A DEJA. Ce n'est pas une punition : c'est le
+  -- refus d'un gachis irreversible.
+  IF public.carriere_possede(v_moi, v_cur.carriere) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'carriere_deja_detenue',
+                              'carriere', v_cur.carriere);
+  END IF;
+
   IF EXISTS (SELECT 1 FROM public.universite_inscriptions
               WHERE personnage = v_moi AND statut = 'en_cours') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cursus_deja_en_cours');
@@ -2406,14 +2405,13 @@ BEGIN
     (id, personnage, cursus, semaines_theoriques, debut_le, fin_theorique_le, limite_le, statut, requete)
   VALUES (v_id, v_moi, p_cursus, v_cur.semaines_theoriques, v_debut,
           public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques),
-          -- LA LIMITE EST EXACTEMENT LE DOUBLE DE LA DUREE THEORIQUE.
           public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques * 2),
           'en_cours', p_requete)
   ON CONFLICT (id) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
   IF v_n <> 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'inscription_deja_posee'); END IF;
 
-  RETURN jsonb_build_object('ok', true, 'inscription', v_id,
+  RETURN jsonb_build_object('ok', true, 'inscription', v_id, 'carriere', v_cur.carriere,
     'semaines_theoriques', v_cur.semaines_theoriques,
     'fin_theorique_le', public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques),
     'limite_le', public.universite_plus_semaines(v_debut, v_cur.semaines_theoriques * 2));
@@ -2490,22 +2488,25 @@ BEGIN
   IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', true, 'cursus_actif', NULL,
       'slot_consomme', public.universite_slot_consomme(v_moi),
-      'qualifications', (SELECT coalesce(jsonb_agg(jsonb_build_object(
-          'qualification', q.qualification, 'libelle', c.libelle,
-          'source', q.source, 'acquise_le', q.acquise_le) ORDER BY q.acquise_le), '[]'::jsonb)
-        FROM public.personnages_qualifications q
-        LEFT JOIN public.qualifications c ON c.id = q.qualification
-        WHERE q.personnage = v_moi),
+      'carriere_initiale', public.carriere_initiale(v_moi),
+      'carrieres', to_jsonb(public.carrieres_de(v_moi)),
+      'seconde_carriere', (SELECT jsonb_build_object('carriere', a.carriere,
+                                   'libelle', c.libelle, 'acquise_le', a.acquise_le)
+                             FROM public.carrieres_acquises a
+                             LEFT JOIN public.carrieres c ON c.id = a.carriere
+                            WHERE a.personnage = v_moi),
+      -- LES CURSUS QUI MENENT A UNE CARRIERE QU'ON A DEJA SONT ECARTES DE LA LISTE : l'ecran ne
+      -- propose donc pas de depenser l'unique slot pour rien.
       'cursus_disponibles', (SELECT coalesce(jsonb_agg(jsonb_build_object(
-          'id', u.id, 'libelle', u.libelle, 'qualification', u.qualification,
+          'id', u.id, 'libelle', u.libelle, 'carriere', u.carriere,
+          'carriere_libelle', c.libelle,
           'semaines_theoriques', u.semaines_theoriques,
           'cout_pa', u.cout_pa, 'cout_fr', u.cout_fr) ORDER BY u.id), '[]'::jsonb)
-        FROM public.universite_cursus u));
+        FROM public.universite_cursus u
+        LEFT JOIN public.carrieres c ON c.id = u.carriere
+        WHERE NOT public.carriere_possede(v_moi, u.carriere)));
   END IF;
 
-  -- LES JALONS, AVEC LA SEMAINE A LAQUELLE CHACUN S'OUVRE. Un jalon dont la semaine n'est pas
-  -- ouverte est rendu comme tel : le navigateur ne peut donc pas en proposer l'accomplissement,
-  -- et la porte le refuserait de toute facon.
   SELECT coalesce(jsonb_agg(jsonb_build_object(
       'id', j.id, 'rang', j.rang, 'libelle', j.libelle, 'genre', j.genre,
       'batiment', j.batiment, 'ville', j.ville, 'piece', j.piece,
@@ -2522,8 +2523,11 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true,
     'slot_consomme', public.universite_slot_consomme(v_moi),
+    'carriere_initiale', public.carriere_initiale(v_moi),
+    'carrieres', to_jsonb(public.carrieres_de(v_moi)),
     'cursus_actif', jsonb_build_object(
       'inscription', v_ins.id, 'cursus', v_ins.cursus,
+      'carriere', (SELECT u.carriere FROM public.universite_cursus u WHERE u.id = v_ins.cursus),
       'semaines_theoriques', v_ins.semaines_theoriques,
       'debut_le', v_ins.debut_le, 'fin_theorique_le', v_ins.fin_theorique_le,
       'limite_le', v_ins.limite_le,
@@ -2552,6 +2556,5 @@ CREATE OR REPLACE FUNCTION public.universite_slot_consomme(p_nom text)
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-  SELECT EXISTS (SELECT 1 FROM public.personnages_qualifications q
-                  WHERE q.personnage = p_nom AND q.source = 'universite');
+  SELECT EXISTS (SELECT 1 FROM public.carrieres_acquises a WHERE a.personnage = p_nom);
 $function$;

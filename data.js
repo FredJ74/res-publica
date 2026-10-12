@@ -194,20 +194,34 @@ const SCHOOLS = [
   {id:'elite',  icon:'ti-award',  name:'Hautes ecoles',      bonuses:{INT:2,ENT:1}, malus:{VOL:-1}, argBonus:400, blocks:[],                                 blockLabel:'Toutes carrieres accessibles + bonus de reseau'}
 ];
 
-// Seul le capital de depart est retouche (bêta) -- bonus/malus/desc inchanges, deja bien
-// concus (voir artefact). Casse la correlation actuelle entre "meilleures stats sous le
-// nouveau bareme" et "plus riche" (Capitaliste et Criminel, les deux natures DUP, etaient
-// aussi les deux plus riches).
+// LA NATURE PROFONDE REPOND A « QUI EST MON PERSONNAGE ? », ET A RIEN D'AUTRE (12 octobre 2026).
+// Origine sociale = d'ou vient-il. Etudes = quel parcours scolaire il a recu. Nature profonde =
+// qui il est. Carriere = ce qu'il sait faire professionnellement. Les quatre ne se recouvrent pas.
+//
+// LE CAPITAL EN FRANCS A ETE RETIRE DE LA NATURE, ET C'EST LE POINT DE CETTE REFONTE. Un trait de
+// caractere ne fait pas une fortune : `argBonus` vaut 0 pour les NEUF, et le capital initial reste
+// alimente par l'origine sociale et la carriere. La structure mecanique, elle, ne bouge pas :
+// +2 / +2 / -2, exactement les memes six caracteristiques qu'avant.
+//
+// LES NEUF NOMS DECRIVENT UNE INCLINATION, JAMAIS UN COMPORTEMENT OBLIGATOIRE NI UN METIER. Un
+// criminel peut etre legaliste, un avocat transgressif, un officier idealiste, un homme d'affaires
+// solidaire, un medecin manipulateur. AUCUNE combinaison nature/carriere n'est interdite, et la
+// nature ne donne aucun pouvoir professionnel : ses effets passent par les caracteristiques.
+//
+// LES IDENTIFIANTS TECHNIQUES SONT INCHANGES, et c'est volontaire : les neuf anciennes natures se
+// retrouvent une a une dans les neuf nouvelles, AVEC EXACTEMENT LES MEMES BONUS ET MALUS. Aucune
+// fiche existante n'a donc a etre migree, et aucun id mort ne traine. Seuls le nom, la description
+// et l'icone changent -- plus le capital, qui disparait.
 const ARCHETYPES = [
-  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',               bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:400,  infBonus:15, popBonus:20,  disBonus:-10, desc:"Seduction et persuasion. Le pouvoir est votre oxygene."},
-  {id:'authoritarian', icon:'ti-sword',          name:'Ordre et discipline',     bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, argBonus:600,  infBonus:20, popBonus:5,   disBonus:5,   desc:"La hierarchie et la force. L'ordre est la seule vraie valeur."},
-  {id:'oligarch',      icon:'ti-briefcase',      name:'Capitaliste',             bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, argBonus:900,  infBonus:10, popBonus:-5,  disBonus:5,   desc:"L'argent est la mesure de toutes choses."},
-  {id:'informer',      icon:'ti-news',           name:"Diffuseur d'informations",bonuses:{PER:2,INT:2}, malus:{VOL:-2}, argBonus:350,  infBonus:5,  popBonus:15,  disBonus:-5,  desc:"L'information est votre arme et votre raison d'etre."},
-  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',               bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, argBonus:700,  infBonus:15, popBonus:5,   disBonus:10,  desc:"Les regles, les textes, les procedures. Vous savez comment les plier."},
-  {id:'believer',      icon:'ti-building-church',name:'Homme de foi',            bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:300,  infBonus:10, popBonus:25,  disBonus:0,   desc:"Une conviction profonde vous anime. Elle mobilise les foules."},
-  {id:'shadow',        icon:'ti-user-question',  name:"Homme de l'ombre",        bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, argBonus:500,  infBonus:5,  popBonus:-10, disBonus:20,  desc:"Infiltration, manipulation, double jeu. Vous n'existez pas officiellement."},
-  {id:'anticapitalist',icon:'ti-users-group',    name:'Anti-capitaliste',        bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, argBonus:350,  infBonus:10, popBonus:20,  disBonus:-5,  desc:"Vous combattez le systeme. La justice sociale est votre etendard."},
-  {id:'criminal',      icon:'ti-eye-off',        name:'Criminel',                bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, argBonus:1200, infBonus:5,  popBonus:-15, disBonus:15,  desc:"En dehors des lois. Vos propres regles, bien plus efficaces."}
+  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:0, infBonus:15, popBonus:20,  disBonus:-10, desc:"Convaincre, entreprendre, conquerir des positions. Le pouvoir et la reussite l'attirent."},
+  {id:'authoritarian', icon:'ti-sword',          name:'Autoritaire',  bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, argBonus:0, infBonus:20, popBonus:5,   disBonus:5,   desc:"Discipline, resistance, rapport de force. Il croit volontiers a l'ordre et a l'autorite."},
+  {id:'oligarch',      icon:'ti-chess',          name:'Calculateur',  bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, argBonus:0, infBonus:10, popBonus:-5,  disBonus:5,   desc:"Raisonnement froid, interet, anticipation, manoeuvre."},
+  {id:'informer',      icon:'ti-eye-search',     name:'Curieux',      bonuses:{PER:2,INT:2}, malus:{VOL:-2}, argBonus:0, infBonus:5,  popBonus:15,  disBonus:-5,  desc:"Observer, comprendre, chercher l'information."},
+  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',    bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, argBonus:0, infBonus:15, popBonus:5,   disBonus:10,  desc:"Regles, textes, procedures, rigueur -- et connaissance de leurs limites."},
+  {id:'believer',      icon:'ti-flame',          name:'Idealiste',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:0, infBonus:10, popBonus:25,  disBonus:0,   desc:"Convictions, mobilisation, engagement."},
+  {id:'shadow',        icon:'ti-user-question',  name:'Manipulateur', bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, argBonus:0, infBonus:5,  popBonus:-10, disBonus:20,  desc:"Dissimulation, influence indirecte, infiltration, double jeu."},
+  {id:'anticapitalist',icon:'ti-users-group',    name:'Solidaire',    bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, argBonus:0, infBonus:10, popBonus:20,  disBonus:-5,  desc:"Loyaute collective, engagement, resistance, entraide."},
+  {id:'criminal',      icon:'ti-lock-open',      name:'Transgressif', bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, argBonus:0, infBonus:5,  popBonus:-15, disBonus:15,  desc:"Gout du risque, refus des regles, determination."}
 ];
 
 // Consolidation 18->10 (bêta, arbitrage joueur) : chaque carrière fusionnée garde l'id interne
@@ -3132,7 +3146,8 @@ const BUILDINGS = {
           // Ce qui RESTE ici : consulter les affaires -- tout le monde le peut -- et se defendre,
           // qui est l'acte du prevenu, pas celui d'un magistrat.
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:65, desc:'Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d\'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.'},
-          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'}
+          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'},
+          {fn:'audience_salle', label:'Assister a l\'audience', pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Entrer dans l\'audience qui se tient ici. Vous y lisez les debats ; vous n\'y parlez que si vous etes partie a l\'affaire, ou si le juge vous donne la parole.'}
         ]
       },
       // ---- BUREAU DES MAGISTRATS (12 octobre 2026) ----
@@ -3178,7 +3193,9 @@ const BUILDINGS = {
           // dossier complet de son client ne se lit QUE la : la porte serveur exige sa presence
           // physique dans ce greffe, celui du tribunal competent pour l'affaire.
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
-          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'}
+          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
+          {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
+          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'}
         ]
       }
     }
@@ -4707,7 +4724,8 @@ const BUILDINGS = {
           // 2026, soir), exactement comme dans le tribunal de la capitale. La presence qu'exige
           // le serveur porte sur le BATIMENT : rien ne change pour lui.
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:65, desc:'Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d\'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.'},
-          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'}
+          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'},
+          {fn:'audience_salle', label:'Assister a l\'audience', pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Entrer dans l\'audience qui se tient ici. Vous y lisez les debats ; vous n\'y parlez que si vous etes partie a l\'affaire, ou si le juge vous donne la parole.'}
         ]
       },
       // ---- BUREAU DES MAGISTRATS -- MEME PIECE, MEME IMAGE QU'A LA CAPITALE ----
@@ -4743,7 +4761,9 @@ const BUILDINGS = {
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
-          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'}
+          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
+          {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
+          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'}
         ]
       }
     }

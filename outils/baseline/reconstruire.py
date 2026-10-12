@@ -616,7 +616,14 @@ def controles_du_monde(cat):
     # LES SIX PORTENT LEUR REVOKE EXPLICITE, et les deux sequences neuves aussi : une table neuve
     # nait avec ALL accorde a anon et authenticated par le defaut de la plateforme. Le compte des
     # tables sans policy passe de 146 a 152.
-    att("tables creees", len(cat.tables), 306)
+    # 312 LA NUIT DU 12 OCTOBRE 2026 : +7 - 1. Les quatre registres de carriere (`carrieres`,
+    # `habilitations`, `habilitations_carrieres`, `habilitations_postes`) rendent la carriere
+    # OPPOSABLE au serveur ; `carrieres_acquises` porte la seconde carriere, et sa cle primaire
+    # sur le PERSONNAGE est ce qui rend une troisieme impossible ; `audience_messages` est le chat
+    # judiciaire, append-only ; `justice_faits_publics` dit quels actes sont publics et avec quelle
+    # phrase. ET `justice_barreau_qualifications` EST SUPPRIMEE : garder une table vide qui ne dit
+    # plus rien serait garder un mensonge en place parce qu'il existe.
+    att("tables creees", len(cat.tables), 312)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -803,8 +810,13 @@ def controles_du_monde(cat):
     # tarification, `avocat_dossier` qui exige la presence au greffe, et les quatre de l'audience
     # minimale -- et les temoins douze, dont `audition_consigner_interne`, LA RACINE COMMUNE au PV
     # du prevenu et a la deposition du temoin.
-    att("signatures de fonction creees", cat.n_fonctions, 874)
-    att("noms de fonction distincts", len(cat.fonctions), 870,
+    # 893 LA NUIT DU 12 OCTOBRE 2026 : +19. Six pour les carrieres et les habilitations, six pour
+    # l'audience (le jour, le consentement, la salle competente, le role, lire, ecrire), trois
+    # pour le greffe public et le Journal, une pour la citation interne partagee par les deux
+    # portes de citation, et `sans_commentaires` -- l'outil qui empeche une preuve negative de
+    # mesurer le commentaire qui explique l'interdiction.
+    att("signatures de fonction creees", cat.n_fonctions, 893)
+    att("noms de fonction distincts", len(cat.fonctions), 889,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -906,7 +918,11 @@ def controles_du_monde(cat):
     # interdit une invitation marquee consommee sans compte consommateur. S'y ajoutent la
     # contrainte `prevenu <> avocat` (on ne se defend pas soi-meme comme avocat), l'unicite
     # (affaire, temoin) d'une citation, et les listes fermees d'etats.
-    att("contraintes posees", len(cat.contraintes), 590)
+    # 605 la nuit du 12 octobre 2026 : +15. Les plus parlantes sont la CLE PRIMAIRE de
+    # `carrieres_acquises`, posee sur le PERSONNAGE SEUL -- c'est elle, et non une condition dans
+    # un corps de fonction, qui interdit une troisieme carriere -- et les deux CHECK du chat
+    # judiciaire : un message vide ne s'ecrit pas, et une qualite hors des cinq reconnues non plus.
+    att("contraintes posees", len(cat.contraintes), 605)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -1017,7 +1033,12 @@ def controles_du_monde(cat):
     # definitive eteint les citations de temoin de CETTE affaire et retire les recherches de
     # non-presentation qui en dependent. Une neuvieme porte de cloture en heritera sans qu'on y
     # pense -- c'est tout l'interet de surveiller l'etat plutot que les chemins.
-    att("declencheurs crees", len(cat.triggers), 49)
+    # 51 la nuit du 12 octobre 2026 : +2. `trg_audience_messages_append_only` est le troisieme
+    # verrou du chat -- celui qui bat service_role. `trg_dossiers_actes_chronique` publie les faits
+    # judiciaires au Journal : il surveille les ACTES, et non chacune des huit portes qui les
+    # posent, donc une neuvieme porte publiera sans qu'on y pense -- et un acte non declare au
+    # registre `justice_faits_publics` ne publiera rien, ce qui est le defaut sur.
+    att("declencheurs crees", len(cat.triggers), 51)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -1063,7 +1084,10 @@ def controles_du_monde(cat):
     # `temoins_citations_rang_seq`. Toutes deux revoquees aux roles clients comme leurs tables, et
     # toutes deux necessaires : `now()` est CONSTANT dans une transaction, donc l'ordre de deux
     # demandes nees ensemble serait indecidable sans un rang explicite.
-    att("sequences disponibles", len(cat.sequences), 37)
+    # 38 la nuit du 12 octobre 2026 : +1, `audience_messages_rang_seq`. Revoquee aux roles clients
+    # comme sa table : une sequence oubliee laisserait un client COMPTER les paroles d'une audience
+    # sans en lire une seule.
+    att("sequences disponibles", len(cat.sequences), 38)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

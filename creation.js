@@ -302,6 +302,7 @@ function t(key, opts) {
 
 let G = {
   country:null, origin:null, school:null, archetype:null, career:null,
+  conseil:null, conseillerVu:false,
   freeStats:{INT:0,CHA:0,VOL:0,PER:0,DUP:0,ENT:0}, freePts:30,
   photoUrl:null, name:'', bio:'', motto:'',
   // GENRE (2 octobre 2026). `genre` porte la cle choisie ; `genreLibre` le texte saisi quand
@@ -386,7 +387,7 @@ function goTo(n){
   document.getElementById(ids[n]).classList.add('active');
   window.scrollTo(0,0);
   if(n===1) renderCountry();
-  if(n===2) renderOrigin();
+  if(n===2){ renderOrigin(); conseillerOuvrirSiBesoin(); }
   if(n===3) renderSchool();
   if(n===4) renderArch();
   if(n===5) renderCareer();
@@ -493,6 +494,7 @@ function renderOrigin(){
   document.getElementById('origin-grid').innerHTML=ORIGINS.map(o=>`
     <div class="oc ${G.origin===o.id?'sel':''}" onclick="selOrigin('${o.id}')">
       <div class="checkmark"><i class="ti ti-check"></i></div>
+      ${marqueConseil('origin', o.id)}
       <div class="oname"><i class="ti ${o.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.origins.'+o.id+'.name')}</div>
       <div class="obonus">
         ${t('creation.common.capitalLabel')} : <strong>${o.arg.toLocaleString('fr-FR')} ${cur}</strong><br>
@@ -514,6 +516,7 @@ function renderSchool(){
   document.getElementById('school-grid').innerHTML=SCHOOLS.map(s=>`
     <div class="oc ${G.school===s.id?'sel':''}" onclick="selSchool('${s.id}')">
       <div class="checkmark"><i class="ti ti-check"></i></div>
+      ${marqueConseil('school', s.id)}
       <div class="oname"><i class="ti ${s.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.schools.'+s.id+'.name')}</div>
       <div class="obonus">
         ${s.argBonus?`<strong>+${s.argBonus.toLocaleString('fr-FR')} ${cur}</strong><br>`:''}
@@ -531,17 +534,25 @@ function selSchool(id){
 }
 
 /* ---- Archetype ---- */
+// LA NATURE PROFONDE N'APPORTE PLUS DE CAPITAL (12 octobre 2026). La ligne qui l'affichait a ete
+// retiree parce qu'il n'y a plus rien a afficher : argBonus vaut 0 pour les neuf natures, et
+// montrer « + 0 FR » serait pire que de ne rien montrer. Le capital vient de l'origine sociale et
+// de la carriere, qui l'affichent chacune.
+//
+// ET LE COMMENTAIRE EST ICI, PAS DANS LE GABARIT. Pose en commentaire HTML a l'interieur du
+// litteral, il portait un accent grave autour d'un nom de champ -- qui refermait la chaine. Une
+// explication ne doit jamais vivre dans la chaine qu'elle explique.
 function renderArch(){
   const cur=COUNTRIES[G.country]?.cur||'FR';
   document.getElementById('arch-grid').innerHTML=ARCHETYPES.map(a=>`
     <div class="oc ${G.archetype===a.id?'sel':''}" onclick="selArch('${a.id}')">
       <div class="checkmark"><i class="ti ti-check"></i></div>
+      ${marqueConseil('archetype', a.id)}
       <div class="oname"><i class="ti ${a.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.archetypes.'+a.id+'.name')}</div>
       <div class="odesc">${t('creation.archetypes.'+a.id+'.description')}</div>
       <div class="obonus">
         ${Object.entries(a.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(a.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}<br>
-        ${t('creation.common.capitalLabel')} : <strong>+${a.argBonus.toLocaleString('fr-FR')} ${cur}</strong>
+        ${Object.entries(a.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
       </div>
     </div>`).join('');
 }
@@ -549,6 +560,90 @@ function selArch(id){
   G.archetype=id;
   renderArch();
   document.getElementById('n4').disabled=false;
+}
+
+/* ---- Le conseiller de creation (12 octobre 2026) ---- */
+// IL CONSEILLE, IL NE CHOISIT PAS. Rien de ce qui suit n'ecrit dans G.origin, G.school,
+// G.archetype ni G.career : la proposition vit dans G.conseil, et les quatre ecrans suivants
+// l'affichent comme une SUGGESTION. Le joueur reste libre a chaque etape, et un conseil ignore
+// ne laisse aucune trace.
+//
+// LES REGLES NE VIENNENT PAS D'ICI. L'endpoint bati le prompt depuis `api/_referentiels-generes.js`,
+// l'artefact genere depuis data.js, et revalide la reponse contre ces memes catalogues. Ce fichier
+// ne fait que demander, afficher, et revalider UNE SECONDE FOIS contre les catalogues du
+// navigateur -- parce qu'une proposition incoherente ne doit jamais s'afficher comme un conseil.
+function conseillerOuvrirSiBesoin(){
+  if(G.conseillerVu) return;
+  G.conseillerVu=true;
+  const m=document.getElementById('modal-conseiller');
+  if(m) m.classList.add('open');
+}
+function conseillerPasser(){
+  const m=document.getElementById('modal-conseiller');
+  if(m) m.classList.remove('open');
+}
+// La revalidation cliente : memes catalogues, meme refus. Un identifiant inconnu ou une carriere
+// que l'ecole proposee ferme ne devient JAMAIS un conseil affiche.
+function conseilValide(p){
+  if(!p||typeof p!=='object') return null;
+  const o=ORIGINS.find(x=>x.id===p.origin), sc=SCHOOLS.find(x=>x.id===p.school);
+  const ar=ARCHETYPES.find(x=>x.id===p.archetype), ca=CAREERS.find(x=>x.id===p.career);
+  if(!o||!sc||!ar||!ca) return null;
+  if((ca.blocks||[]).includes(sc.id)) return null;
+  if((sc.blocks||[]).includes(ca.id)) return null;
+  return p;
+}
+async function conseillerDemander(){
+  const btn=document.getElementById('conseiller-demander');
+  const zone=document.getElementById('conseiller-reponse');
+  const souhait=(document.getElementById('conseiller-souhait')?.value||'').trim();
+  if(btn){ btn.disabled=true; btn.textContent=t('creation.conseiller.pending'); }
+  let r=null;
+  try{
+    const jeton=(typeof rpAuthJeton==='function')?rpAuthJeton():null;
+    const rep=await fetch('/api/conseiller-creation',{
+      method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'},
+        jeton?{'Authorization':'Bearer '+jeton}:{}),
+      body:JSON.stringify({empire:G.country,souhait:souhait,lang:(typeof LANG!=='undefined'?LANG:'fr')})
+    });
+    r=rep.ok?await rep.json():null;
+  }catch(e){ r=null; }
+  if(btn){ btn.disabled=false; btn.textContent=t('creation.conseiller.ask'); }
+
+  const prop=r&&r.ok?conseilValide(r.proposition):null;
+  if(!prop){
+    // INDISPONIBLE N'EST PAS BLOQUANT. La creation continue exactement comme avant.
+    if(zone){ zone.style.display='block';
+      zone.innerHTML='<p style="margin:0;font-size:.84rem;color:#8a4020">'
+        +t('creation.conseiller.unavailable')+'</p>'; }
+    return;
+  }
+  G.conseil=prop;
+  const nom=(liste,id,cle)=>t('creation.'+cle+'.'+id+'.name');
+  if(zone){
+    zone.style.display='block';
+    zone.innerHTML=
+      '<div style="border:1px solid #d8cfb8;border-radius:6px;background:#fffdf7;padding:.7rem;font-size:.84rem;line-height:1.55">'
+      +'<p style="margin:0 0 .5rem">'+echapperConseil(prop.message)+'</p>'
+      +'<ul style="margin:0;padding-left:1.1rem;color:#6a6250">'
+      +'<li><strong>'+echapperConseil(nom(ORIGINS,prop.origin,'origins'))+'</strong> — '+echapperConseil(prop.pourquoi.origin)+'</li>'
+      +'<li><strong>'+echapperConseil(nom(SCHOOLS,prop.school,'schools'))+'</strong> — '+echapperConseil(prop.pourquoi.school)+'</li>'
+      +'<li><strong>'+echapperConseil(nom(ARCHETYPES,prop.archetype,'archetypes'))+'</strong> — '+echapperConseil(prop.pourquoi.archetype)+'</li>'
+      +'<li><strong>'+echapperConseil(nom(CAREERS,prop.career,'careers'))+'</strong> — '+echapperConseil(prop.pourquoi.career)+'</li>'
+      +'</ul>'
+      +'<p style="margin:.6rem 0 0;font-size:.78rem;color:#8a8060">'+t('creation.conseiller.libre')+'</p>'
+      +'</div>';
+  }
+}
+function echapperConseil(x){
+  return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+// LE CONSEIL S'AFFICHE, IL NE SE SELECTIONNE PAS. Une pastille discrete sur la carte conseillee,
+// et rien d'autre : aucune carte n'est pre-cochee, aucune n'est verrouillee.
+function marqueConseil(champ,id){
+  return (G.conseil&&G.conseil[champ]===id)
+    ? '<div class="conseil-pastille" title="'+t('creation.conseiller.hint')+'"><i class="ti ti-bulb"></i></div>' : '';
 }
 
 /* ---- Career ---- */
@@ -564,14 +659,19 @@ function renderCareer(){
       onclick="${bl?'':` selCareer('${c.id}')`}"
       title="${bl?t('creation.career.locked'):''}">
       <div class="checkmark"><i class="ti ti-check"></i></div>
+      ${bl?'':marqueConseil('career', c.id)}
       <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.careers.'+c.id+'.name')}</div>
       <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur} &middot; <strong>+1 ${c.statKey}</strong></div>
       <div class="odesc" style="margin-top:.3rem">${t('creation.careers.'+c.id+'.comp')}</div>
     </div>`;
   }).join('');
   const sc=SCHOOLS.find(x=>x.id===G.school);
-  document.getElementById('career-info').textContent=
-    sc?t('creation.career.info',{school:t('creation.schools.'+sc.id+'.name')}):'';
+  // CE QUE LE JOUEUR DOIT COMPRENDRE AVANT DE VALIDER, ET IL EST DIT EN POSITIF : ce que la
+  // carriere PERMET, puis la seule contrainte reellement durable -- une seule autre carriere dans
+  // toute l'existence du personnage. Pas de liste anxiogene d'interdictions.
+  document.getElementById('career-info').innerHTML=
+    '<strong>'+t('creation.career.consequence')+'</strong>'
+    +(sc?'<br>'+t('creation.career.info',{school:t('creation.schools.'+sc.id+'.name')}):'');
 }
 // Revalidation cote logique (bêta, faille corrigee) : isBlocked() ne protegeait jusqu'ici que
 // l'affichage (onclick vide sur une carte bloquee) -- selCareer() elle-meme ne verifiait rien,

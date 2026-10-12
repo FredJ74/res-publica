@@ -18,9 +18,14 @@ ALTER TABLE public.admin_journal ADD CONSTRAINT admin_journal_pk PRIMARY KEY (ra
 ALTER TABLE public.administrateurs ADD CONSTRAINT administrateurs_pk PRIMARY KEY (user_id);
 ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_pk PRIMARY KEY (email);
 ALTER TABLE public.ambassades_ouvertes ADD CONSTRAINT ambassades_ouvertes_pkey PRIMARY KEY (id);
+ALTER TABLE public.carrieres ADD CONSTRAINT carrieres_pkey PRIMARY KEY (id);
+ALTER TABLE public.carrieres_acquises ADD CONSTRAINT carrieres_acquises_pkey PRIMARY KEY (personnage);
 ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_pkey PRIMARY KEY (id);
 ALTER TABLE public.etats_urgence ADD CONSTRAINT etats_urgence_pkey PRIMARY KEY (country);
 ALTER TABLE public.evenements_globaux ADD CONSTRAINT evenements_globaux_pkey PRIMARY KEY (id);
+ALTER TABLE public.habilitations ADD CONSTRAINT habilitations_pkey PRIMARY KEY (id);
+ALTER TABLE public.habilitations_carrieres ADD CONSTRAINT habilitations_carrieres_pkey PRIMARY KEY (habilitation, carriere);
+ALTER TABLE public.habilitations_postes ADD CONSTRAINT habilitations_postes_pkey PRIMARY KEY (poste_id);
 ALTER TABLE public.propositions_diplomatiques ADD CONSTRAINT propositions_diplomatiques_pkey PRIMARY KEY (id);
 ALTER TABLE public.purges_residus_bancs ADD CONSTRAINT purges_residus_bancs_pkey PRIMARY KEY (id);
 ALTER TABLE public.registre_ventes_armes ADD CONSTRAINT registre_ventes_armes_pkey PRIMARY KEY (id);
@@ -32,7 +37,12 @@ ALTER TABLE public.actes_nocturnes_mecanismes ADD CONSTRAINT actes_nocturnes_mec
 ALTER TABLE public.admin_actions_tribunal ADD CONSTRAINT admin_actions_tribunal_poste CHECK ((poste = ANY (ARRAY['procureur'::text, 'juge'::text])));
 ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_consommation CHECK ((((consommee_le IS NULL) AND (consommee_par IS NULL)) OR ((consommee_le IS NOT NULL) AND (consommee_par IS NOT NULL))));
 ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_minuscules CHECK ((email = lower(email)));
+ALTER TABLE public.carrieres_acquises ADD CONSTRAINT carrieres_acquises_source_check CHECK ((source = 'universite'::text));
 ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_statut_check CHECK ((statut = ANY (ARRAY['demarree'::text, 'ok'::text, 'echec'::text, 'ignoree'::text])));
 
 -- CLES ETRANGERES
 ALTER TABLE public.actes_nocturnes ADD CONSTRAINT actes_nocturnes_mecanisme_fkey FOREIGN KEY (mecanisme) REFERENCES actes_nocturnes_mecanismes(mecanisme);
+ALTER TABLE public.carrieres_acquises ADD CONSTRAINT carrieres_acquises_carriere_fkey FOREIGN KEY (carriere) REFERENCES carrieres(id);
+ALTER TABLE public.habilitations_carrieres ADD CONSTRAINT habilitations_carrieres_carriere_fkey FOREIGN KEY (carriere) REFERENCES carrieres(id);
+ALTER TABLE public.habilitations_carrieres ADD CONSTRAINT habilitations_carrieres_habilitation_fkey FOREIGN KEY (habilitation) REFERENCES habilitations(id);
+ALTER TABLE public.habilitations_postes ADD CONSTRAINT habilitations_postes_habilitation_fkey FOREIGN KEY (habilitation) REFERENCES habilitations(id);

@@ -1251,11 +1251,26 @@ CREATE OR REPLACE FUNCTION public.poste_attribuer_interne(p_pays text, p_poste t
 AS $function$
 DECLARE
   v_id text := p_pays || '_' || p_poste || '_' || coalesce(p_city, 'national');
-  v_label text; v_ancien text;
+  v_label text; v_ancien text; v_hab text;
 BEGIN
   SELECT r.label INTO v_label FROM public.postes_nommes_regles r WHERE r.poste_id = p_poste;
   IF v_label IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'poste_inconnu');
+  END IF;
+
+  -- LA CARRIERE OUVRE LA FONCTION, OU LA FERME. Verifie ICI parce que les trois chemins d'acces
+  -- a un poste nomme passent tous par cette porte : acceptation de nomination, candidature
+  -- spontanee, attribution directe par l'autorite. Un PNJ n'a pas de fiche : il n'a pas de
+  -- carriere non plus, et cette garde ne le concerne pas -- `poste_nommer` l'a deja oriente
+  -- vers `titulaires_pnj` avant d'arriver ici.
+  SELECT h.habilitation INTO v_hab FROM public.habilitations_postes h WHERE h.poste_id = p_poste;
+  IF v_hab IS NOT NULL
+     AND EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = p_titulaire)
+     AND NOT public.habilitation_ouverte(p_titulaire, v_hab) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'carriere_requise',
+      'poste', p_poste, 'habilitation', v_hab,
+      'carrieres_qui_ouvrent', (SELECT coalesce(jsonb_agg(c.carriere ORDER BY c.carriere), '[]'::jsonb)
+                                  FROM public.habilitations_carrieres c WHERE c.habilitation = v_hab));
   END IF;
 
   SELECT a.titulaire INTO v_ancien FROM public.postes_attribues a WHERE a.id = v_id;
@@ -1272,11 +1287,9 @@ BEGIN
     SET titulaire = EXCLUDED.titulaire, depuis = now(),
         source = EXCLUDED.source, updated_at = now();
 
-  -- Le PNJ qui tenait la fonction s'efface.
   DELETE FROM public.titulaires_pnj
    WHERE country = p_pays AND poste_id = p_poste AND city IS NOT DISTINCT FROM p_city;
 
-  -- Miroir d'affichage sur la fiche : atteste, donc accepte par le trigger.
   UPDATE public.personnages_donnees
      SET poste = jsonb_build_object('id', p_poste, 'name', v_label, 'city', p_city,
                                     'nommeLe', (extract(epoch from now())*1000)::bigint)

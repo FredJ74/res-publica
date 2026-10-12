@@ -53,7 +53,7 @@ ALTER TABLE public.personnages_donnees ADD CONSTRAINT personnages_name_key UNIQU
 -- CONTRAINTES DE VALIDATION
 ALTER TABLE public.escort_evenements_commerciaux ADD CONSTRAINT escort_evenements_commerciaux_type_evenement_check CHECK ((type_evenement = ANY (ARRAY['embauche'::text, 'prestation'::text])));
 ALTER TABLE public.escorts_catalogue ADD CONSTRAINT escorts_catalogue_genre_check CHECK ((genre = ANY (ARRAY['F'::text, 'H'::text])));
-ALTER TABLE public.personnages_qualifications ADD CONSTRAINT personnages_qualifications_source_check CHECK ((source = ANY (ARRAY['creation'::text, 'universite'::text, 'autre'::text])));
+ALTER TABLE public.personnages_qualifications ADD CONSTRAINT personnages_qualifications_source_check CHECK ((source = ANY (ARRAY['creation'::text, 'autre'::text])));
 ALTER TABLE public.successions ADD CONSTRAINT successions_statut_check CHECK ((statut = ANY (ARRAY['en_attente'::text, 'resolue'::text])));
 ALTER TABLE public.testaments ADD CONSTRAINT testaments_statut_check CHECK ((statut = ANY (ARRAY['actif'::text, 'remplace'::text, 'revoque'::text, 'execute'::text])));
 ALTER TABLE public.tournees ADD CONSTRAINT tournees_statut_check CHECK ((statut = ANY (ARRAY['en_attente'::text, 'en_resolution'::text, 'resolue'::text, 'expiree'::text, 'annulee'::text])));
@@ -71,7 +71,7 @@ ALTER TABLE public.universite_inscriptions ADD CONSTRAINT universite_limite_apre
 -- CLES ETRANGERES
 ALTER TABLE public.personnages_donnees ADD CONSTRAINT personnages_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 ALTER TABLE public.personnages_qualifications ADD CONSTRAINT personnages_qualifications_qualification_fkey FOREIGN KEY (qualification) REFERENCES qualifications(id);
-ALTER TABLE public.universite_cursus ADD CONSTRAINT universite_cursus_qualification_fkey FOREIGN KEY (qualification) REFERENCES qualifications(id);
+ALTER TABLE public.universite_cursus ADD CONSTRAINT universite_cursus_carriere_fkey FOREIGN KEY (carriere) REFERENCES carrieres(id);
 ALTER TABLE public.universite_cursus_jalons ADD CONSTRAINT universite_cursus_jalons_cursus_fkey FOREIGN KEY (cursus) REFERENCES universite_cursus(id) ON DELETE CASCADE;
 ALTER TABLE public.universite_inscriptions ADD CONSTRAINT universite_inscriptions_cursus_fkey FOREIGN KEY (cursus) REFERENCES universite_cursus(id);
 ALTER TABLE public.universite_jalons_accomplis ADD CONSTRAINT universite_jalons_accomplis_inscription_fkey FOREIGN KEY (inscription) REFERENCES universite_inscriptions(id) ON DELETE CASCADE;

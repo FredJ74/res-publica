@@ -10,8 +10,9 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 29 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 30 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
+--   audience_messages_pkey  (contrainte audience_messages_pkey)
 --   audience_paroles_pk  (contrainte audience_paroles_pk)
 --   avocats_barreau_pk  (contrainte avocats_barreau_pk)
 --   defenses_demandes_pk  (contrainte defenses_demandes_pk)
@@ -30,7 +31,7 @@
 --   infractions_pkey  (contrainte infractions_pkey)
 --   jugements_pkey  (contrainte jugements_pkey)
 --   justice_avocats_commis_pk  (contrainte justice_avocats_commis_pk)
---   justice_barreau_qualifications_pk  (contrainte justice_barreau_qualifications_pk)
+--   justice_faits_publics_pkey  (contrainte justice_faits_publics_pkey)
 --   justice_indemnites_pkey  (contrainte justice_indemnites_pkey)
 --   niveaux_prison_pkey  (contrainte niveaux_prison_pkey)
 --   plaintes_en_cours_pkey  (contrainte plaintes_en_cours_pkey)
@@ -42,6 +43,7 @@
 --   vols_en_attente_pkey  (contrainte vols_en_attente_pkey)
 
 -- Index autonomes :
+CREATE INDEX audience_messages_par_affaire ON public.audience_messages USING btree (affaire, rang);
 CREATE UNIQUE INDEX defenses_un_avocat_retenu_par_affaire ON public.defenses_demandes USING btree (affaire) WHERE (etat = 'acceptee'::text);
 CREATE UNIQUE INDEX defenses_une_demande_vivante_par_couple ON public.defenses_demandes USING btree (affaire, avocat) WHERE (etat = 'en_attente'::text);
 CREATE INDEX dossiers_actes_par_affaire ON public.dossiers_judiciaires_actes USING btree (affaire, rang);

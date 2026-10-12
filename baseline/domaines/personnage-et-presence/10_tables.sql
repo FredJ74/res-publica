@@ -406,7 +406,7 @@ CREATE TABLE public.tournees (
 CREATE TABLE public.universite_cursus (
   id text NOT NULL,
   libelle text NOT NULL,
-  qualification text NOT NULL,
+  carriere text NOT NULL,
   semaines_theoriques integer NOT NULL,
   cout_pa integer DEFAULT 0 NOT NULL,
   cout_fr integer DEFAULT 0 NOT NULL,

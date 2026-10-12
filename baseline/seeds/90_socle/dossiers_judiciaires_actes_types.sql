@@ -4,7 +4,7 @@
 -- Domaine    : justice
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 26
+-- Lignes     : 30
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -30,7 +30,11 @@
 -- a `avocat` et a `temoin`. Deux pour la defense -- constituee et rompue --
 -- et cinq pour les temoins : la citation, la seconde convocation, la
 -- deposition, la recherche pour non-presentation et l'extinction de la
--- citation a la cloture de l'affaire. Compte RELEVE EN BASE.
+-- citation a la cloture de l'affaire. TRENTE la nuit suivante : QUATRE
+-- types de plus pour l'audience -- le jour fixe, le consentement du
+-- prevenu a une date anticipee, son retrait, et l'ouverture du proces,
+-- qui CONSTATE qui etait present sans en tirer aucune consequence.
+-- Compte RELEVE EN BASE.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- SEED INDISPENSABLE, et pas par confort : sans ses lignes, chaque acte de
@@ -42,6 +46,10 @@
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('abandon_poursuites', 'Abandon des poursuites par le parquet', 'parquet', NULL);
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('affaire_transmise_police', 'Affaire transmise par la police', 'police', 'Un acte illegal decouvert et transmis au parquet par l''autorite judiciaire de la ville.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('appel_ouvert', 'Appel interjete', 'accuse', 'Le condamne ou le Procureur a interjete appel dans la fenetre de deux jours. Un seul appel par affaire : le premier qui le declenche l''ouvre. L''acte nomme QUI l''a declenche, et rien de plus -- ni motif, ni qualite de la demande.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('audience_consentement', 'Consentement du prevenu a une audience anticipee', 'accuse', 'Le prevenu accepte EXPLICITEMENT d''etre juge avant le delai de trois jours, sur un jour precis. Aucun consentement n''est jamais deduit d''un silence.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('audience_consentement_retire', 'Consentement a une audience anticipee retire', 'accuse', 'Le prevenu retire son consentement. Possible tant que l''audience n''est pas ouverte.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('audience_fixee', 'Jour d''audience fixe', 'juge', 'Le juge fixe le jour du proces. Au minimum trois jours apres, sauf consentement explicite du prevenu sur ce jour-la.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('audience_ouverte', 'Audience ouverte', 'juge', 'Le jour fixe est venu et le juge est dans sa salle d''audience. L''acte CONSTATE qui etait present -- le prevenu, le procureur -- et rien de plus : aucune absence n''emporte de consequence mecanique.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('charges_abandonnees_delai', 'Charges abandonnees -- delai de jugement expire', 'serveur', 'Le delai de jugement de premiere instance a expire sans jugement. Ce n''est ni une relaxe ni un non-lieu : c''est la cloture d''une procedure qui n''a pas abouti dans le temps imparti.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('condamnation', 'Condamnation prononcee', 'juge', 'Porte la qualification finale et la peine validee par le bareme serveur.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('defense_constituee', 'Defense constituee -- avocat retenu', 'avocat', 'Pose par l''avocat qui accepte la defense.');

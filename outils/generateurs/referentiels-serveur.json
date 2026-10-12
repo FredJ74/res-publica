@@ -198,6 +198,65 @@
       ],
       "_note": "autoriteScope EST dans la projection, et ce n'est pas un detail : le cron lit `regle.autoriteScope || regle.scope` pour savoir a quelle echelle chercher le nominateur. Sans ce champ, un juge de scope 'ville' ferait chercher un Ministre de la Justice MUNICIPAL, qui n'existe pas. Seul le juge le porte aujourd'hui.",
       "_pourquoi_generee": "La copie etait figee depuis le 13 septembre 2026 avec juge.scope='pays' contre 'ville' dans data.js, et sans autoriteScope. L'arbitrage du 7 octobre 2026 a tranche : le juge est un poste TERRITORIAL DE VILLE, dont l'autorite reste nationale (Ministre de la Justice) et le payeur reste le tribunal de sa ville. Generer la copie ferme la divergence et supprime la derniere ressaisie manuelle de ce referentiel."
+    },
+    {
+      "serveur": "CREATION_ORIGINES_SERVEUR",
+      "canon": "ORIGINS",
+      "fichier": "data.js",
+      "forme": "projection_liste",
+      "champs": [
+        "id",
+        "name",
+        "arg",
+        "bonuses",
+        "malus",
+        "trait"
+      ],
+      "_note": "Catalogue de creation, lu par api/conseiller-creation.js : le conseiller ne doit JAMAIS inventer une origine, il choisit dans cette liste."
+    },
+    {
+      "serveur": "CREATION_ECOLES_SERVEUR",
+      "canon": "SCHOOLS",
+      "fichier": "data.js",
+      "forme": "projection_liste",
+      "champs": [
+        "id",
+        "name",
+        "bonuses",
+        "malus",
+        "argBonus",
+        "blocks"
+      ],
+      "_note": "`blocks` porte le prerequis scolaire reel : une ecole bloque des carrieres. Le conseiller doit le respecter, et l'application le revalide."
+    },
+    {
+      "serveur": "CREATION_NATURES_SERVEUR",
+      "canon": "ARCHETYPES",
+      "fichier": "data.js",
+      "forme": "projection_liste",
+      "champs": [
+        "id",
+        "name",
+        "bonuses",
+        "malus",
+        "desc"
+      ],
+      "_note": "La nature profonde ne porte plus aucun capital depuis le 12 octobre 2026 : `argBonus` n'est donc pas projete."
+    },
+    {
+      "serveur": "CREATION_CARRIERES_SERVEUR",
+      "canon": "CAREERS",
+      "fichier": "data.js",
+      "forme": "projection_liste",
+      "champs": [
+        "id",
+        "name",
+        "argBonus",
+        "statKey",
+        "comp",
+        "blocks"
+      ],
+      "_note": "Les 10 familles professionnelles. `blocks` liste les ecoles qui FERMENT la carriere."
     }
   ],
   "_non_generees": "Ce qui suit n'est PAS genere, et chaque cas dit pourquoi. Aucune de ces copies n'est supprimee.",

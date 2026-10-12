@@ -511,6 +511,10 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
 .owarn{font-size:.82rem;color:#aa8040;border-top:1px solid #1a1508;padding-top:.3rem;margin-top:.3rem;font-style:italic}
 .checkmark{position:absolute;top:.5rem;right:.7rem;color:var(--gold);font-size:.9rem;display:none}
 .oc.sel .checkmark{display:block}
+/* LA PASTILLE DU CONSEILLER (12 octobre 2026). Elle marque la carte CONSEILLEE, et elle ne fait
+   que cela : la carte reste cliquable, non cliquable ou selectionnee exactement comme avant.
+   Posee a GAUCHE, pour ne jamais recouvrir la coche de selection qui vit a droite. */
+.conseil-pastille{position:absolute;top:.5rem;left:.7rem;color:#8a6a20;font-size:.8rem;opacity:.75}
 .pool{text-align:center;margin-bottom:1.5rem;padding:1rem 2rem;border:1px solid var(--gold-dim);background:var(--bg2);display:inline-block}
 .pnum{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--gold);line-height:1}
 .plbl{font-size:.84rem;color:#9a8a50;letter-spacing:.15em;text-transform:uppercase}

@@ -72,6 +72,20 @@ CREATE TABLE public.ambassades_ouvertes (
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.carrieres (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  ordre integer NOT NULL
+);
+
+CREATE TABLE public.carrieres_acquises (
+  personnage text NOT NULL,
+  carriere text NOT NULL,
+  source text DEFAULT 'universite'::text NOT NULL,
+  acquise_le timestamp with time zone DEFAULT now() NOT NULL,
+  inscription_id text
+);
+
 CREATE TABLE public.cron_journal (
   id text NOT NULL,
   tache text NOT NULL,
@@ -99,6 +113,22 @@ CREATE TABLE public.evenements_globaux (
   texte text NOT NULL,
   jour integer,
   created_at timestamp with time zone DEFAULT now()
+);
+
+CREATE TABLE public.habilitations (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  note text
+);
+
+CREATE TABLE public.habilitations_carrieres (
+  habilitation text NOT NULL,
+  carriere text NOT NULL
+);
+
+CREATE TABLE public.habilitations_postes (
+  poste_id text NOT NULL,
+  habilitation text NOT NULL
 );
 
 CREATE TABLE public.propositions_diplomatiques (

@@ -59,11 +59,19 @@ BEGIN
 
   -- DECOR : deux qualifications, deux cursus de durees differentes, trois jalons dont un de
   -- TERRAIN (le point de raccordement a une vraie activite de batiment, non branche).
-  INSERT INTO public.qualifications (id, libelle) VALUES
-    ('banc_q_a', 'Qualification du banc A'), ('banc_q_b', 'Qualification du banc B');
-  INSERT INTO public.universite_cursus (id, libelle, qualification, semaines_theoriques) VALUES
-    ('banc_c_a', 'Cursus du banc A', 'banc_q_a', 4),
-    ('banc_c_b', 'Cursus du banc B', 'banc_q_b', 3);
+  -- RECALIBRE LE 12 OCTOBRE 2026 AU SOIR (lot 3). L'Universite ne delivre plus une
+  -- « qualification » prise dans un catalogue libre : elle delivre UNE SECONDE CARRIERE, prise
+  -- dans le registre ferme des dix familles professionnelles. Le decor ne peut donc plus inventer
+  -- `banc_q_a` et `banc_q_b` : il prend deux carrieres REELLES, et le slot vit desormais dans
+  -- `carrieres_acquises`, dont la cle primaire est le personnage.
+  -- LES DEUX PERSONNAGES DU BANC PARTENT DE CARRIERES QUI NE SONT NI `magistrat` NI `doctor` :
+  -- sans cela, `carriere_deja_detenue` refuserait l'inscription a la carriere visee -- et ce banc
+  -- mesurerait ce refus-la plutot que les regles de cursus.
+  UPDATE public.personnages_donnees SET career = 'worker' WHERE name IN (LEE, MAY);
+  DELETE FROM public.carrieres_acquises WHERE personnage IN (LEE, MAY);
+  INSERT INTO public.universite_cursus (id, libelle, carriere, semaines_theoriques) VALUES
+    ('banc_c_a', 'Cursus du banc A', 'magistrat', 4),
+    ('banc_c_b', 'Cursus du banc B', 'doctor', 3);
   INSERT INTO public.universite_cursus_jalons (id, cursus, rang, libelle, genre, batiment) VALUES
     ('banc_j_a1', 'banc_c_a', 1, 'Semaine 1', 'universite', NULL),
     ('banc_j_a2', 'banc_c_a', 2, 'Semaine 2', 'terrain', 'banque-nationale'),
@@ -154,14 +162,14 @@ BEGIN
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.universite_diplomer('rq-banc-univ-dip3');
   PERFORM pg_temp.je_suis_le_serveur();
-  IF coalesce((v->>'ok')::boolean,false) IS NOT TRUE OR v->>'qualification' <> 'banc_q_a'
+  IF coalesce((v->>'ok')::boolean,false) IS NOT TRUE OR v->>'carriere' <> 'magistrat'
      OR v->>'slot_consomme' <> 'true' THEN
     ko:=ko+1; e:=e||E'\nE10 diplome refuse : '||v::text; END IF;
 
   n := n + 1;   -- E11 : la qualification est inscrite, de source universitaire.
-  IF NOT EXISTS (SELECT 1 FROM public.personnages_qualifications
-                  WHERE personnage=LEE AND qualification='banc_q_a' AND source='universite') THEN
-    ko:=ko+1; e:=e||E'\nE11 la qualification n est pas inscrite'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.carrieres_acquises
+                  WHERE personnage=LEE AND carriere='magistrat' AND source='universite') THEN
+    ko:=ko+1; e:=e||E'\nE11 la seconde carriere n est pas inscrite'; END IF;
 
   n := n + 1;   -- E12 : le cursus est clos en 'diplome'.
   IF (SELECT statut FROM public.universite_inscriptions WHERE id=v_ins) <> 'diplome' THEN
@@ -171,7 +179,7 @@ BEGIN
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.universite_inscrire('banc_c_b', 'rq-banc-univ-003');
   PERFORM pg_temp.je_suis_le_serveur();
-  IF coalesce(v->>'raison','') <> 'slot_universitaire_deja_consomme' THEN
+  IF coalesce(v->>'raison','') NOT IN ('seconde_carriere_deja_acquise', 'carriere_deja_detenue') THEN
     ko:=ko+1; e:=e||E'\nE13 seconde inscription acceptee : '||coalesce(v->>'raison','ACCEPTE'); END IF;
 
   n := n + 1;   -- E14 : L'ABANDON NE CONSOMME PAS LE SLOT.
@@ -231,9 +239,9 @@ BEGIN
   PERFORM pg_temp.je_suis_le_serveur();
 
   n := n + 1;   -- E20 : AUCUN personnage existant n'a recu de qualification.
-  SELECT count(*) INTO v_n FROM public.personnages_qualifications
-   WHERE qualification NOT LIKE 'banc\_%';
-  IF v_n <> 0 THEN ko:=ko+1; e:=e||E'\nE20 '||v_n||' qualification(s) non issue(s) du banc'; END IF;
+  SELECT count(*) INTO v_n FROM public.carrieres_acquises
+   WHERE personnage NOT IN (LEE, MAY);
+  IF v_n <> 0 THEN ko:=ko+1; e:=e||E'\nE20 '||v_n||' seconde(s) carriere(s) hors du banc'; END IF;
 
   n := n + 1;   -- E21 : apres expiration, la reinscription passe -- le slot etait bien libre.
   PERFORM pg_temp.je_suis(MAY_U);

@@ -95,6 +95,18 @@
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
+   "nom": "carrieres_pkey",
+   "tbl": "carrieres"
+  },
+  {
+   "empreinte": "ff28a17bca32e36ad68b6e792ceb96e2",
+   "genre": "p",
+   "nom": "carrieres_acquises_pkey",
+   "tbl": "carrieres_acquises"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
    "nom": "cron_journal_pkey",
    "tbl": "cron_journal"
   },
@@ -109,6 +121,24 @@
    "genre": "p",
    "nom": "evenements_globaux_pkey",
    "tbl": "evenements_globaux"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "habilitations_pkey",
+   "tbl": "habilitations"
+  },
+  {
+   "empreinte": "1e32d0054856ba605f1fb6d97548494d",
+   "genre": "p",
+   "nom": "habilitations_carrieres_pkey",
+   "tbl": "habilitations_carrieres"
+  },
+  {
+   "empreinte": "68d0ab1861d8845ed7bfe7baa1f4464d",
+   "genre": "p",
+   "nom": "habilitations_postes_pkey",
+   "tbl": "habilitations_postes"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -165,6 +195,12 @@
    "tbl": "administrateurs_invitations"
   },
   {
+   "empreinte": "f3578be1e20d9d59c9165739491ccd98",
+   "genre": "c",
+   "nom": "carrieres_acquises_source_check",
+   "tbl": "carrieres_acquises"
+  },
+  {
    "empreinte": "db5c575c6264ef9076bce4f38125d799",
    "genre": "c",
    "nom": "cron_journal_statut_check",
@@ -175,6 +211,30 @@
    "genre": "f",
    "nom": "actes_nocturnes_mecanisme_fkey",
    "tbl": "actes_nocturnes"
+  },
+  {
+   "empreinte": "90b53ef2c44d2a2a1061f21b45c23bb9",
+   "genre": "f",
+   "nom": "carrieres_acquises_carriere_fkey",
+   "tbl": "carrieres_acquises"
+  },
+  {
+   "empreinte": "90b53ef2c44d2a2a1061f21b45c23bb9",
+   "genre": "f",
+   "nom": "habilitations_carrieres_carriere_fkey",
+   "tbl": "habilitations_carrieres"
+  },
+  {
+   "empreinte": "f54dc623df3265a69ef1f95db4b5c454",
+   "genre": "f",
+   "nom": "habilitations_carrieres_habilitation_fkey",
+   "tbl": "habilitations_carrieres"
+  },
+  {
+   "empreinte": "f54dc623df3265a69ef1f95db4b5c454",
+   "genre": "f",
+   "nom": "habilitations_postes_habilitation_fkey",
+   "tbl": "habilitations_postes"
   }
  ],
  "domaine": "divers et technique",
@@ -356,6 +416,30 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "carrieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "carrieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "carrieres_acquises",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "carrieres_acquises",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "cron_journal",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -411,6 +495,42 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "evenements_globaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "habilitations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "habilitations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "habilitations_carrieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "habilitations_carrieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "habilitations_postes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "habilitations_postes",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -471,12 +591,12 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "a76aef348318e54583a1ac0938d76759",
-  "30_contraintes.sql": "2cfe772a5bd19b58fddfae5a8e995118",
-  "35_index.sql": "f5353cdc1ae617db358fd3f27df60ed8",
+  "10_tables.sql": "d08d1587128034fefd4c380ad3644b0e",
+  "30_contraintes.sql": "a1bcad5766881a04982790a547bba5a2",
+  "35_index.sql": "766c84c5e94f0283f7998dfdddb0c794",
   "50_triggers.sql": "f193002b8e488dd94777990af0582f7e",
-  "60_rls-policies.sql": "2e15cfd84fa88375e6f8b16f59e2b301",
-  "70_droits.sql": "080c1bb041faba82a5d6ef430034c6c6",
+  "60_rls-policies.sql": "65a3ef5526d9033752ae50c83dd44ebb",
+  "70_droits.sql": "d651b7360912e90bff80acc35c014820",
   "80_commentaires.sql": "959279d927075057f92d423016b18182"
  },
  "fonctions": [],
@@ -514,9 +634,14 @@
   "administrateurs_invitations_pk",
   "administrateurs_pk",
   "ambassades_ouvertes_pkey",
+  "carrieres_acquises_pkey",
+  "carrieres_pkey",
   "cron_journal_pkey",
   "etats_urgence_pkey",
   "evenements_globaux_pkey",
+  "habilitations_carrieres_pkey",
+  "habilitations_pkey",
+  "habilitations_postes_pkey",
   "propositions_diplomatiques_pkey",
   "purges_residus_bancs_pkey",
   "registre_ventes_armes_pkey"
@@ -649,6 +774,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "carrieres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "carrieres_acquises"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "cron_journal"
   },
   {
@@ -660,6 +795,21 @@
    "active": true,
    "forcee": false,
    "tbl": "evenements_globaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "habilitations"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "habilitations_carrieres"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "habilitations_postes"
   },
   {
    "active": true,
@@ -746,6 +896,18 @@
    "nom": "ambassades_ouvertes"
   },
   {
+   "colonnes": 3,
+   "empreinte_catalogue": "f46bffb87856a32e6ac161344e199de8",
+   "empreinte_texte": "ab2ce45e65cb5ce78930630800c860c8",
+   "nom": "carrieres"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "4ec11eb1b3c74c3b6330d43e558ccd12",
+   "empreinte_texte": "743add3d41340d0237b1b73aefcfd0d9",
+   "nom": "carrieres_acquises"
+  },
+  {
    "colonnes": 10,
    "empreinte_catalogue": "822422796100d41dcdbb0b388c60bdbf",
    "empreinte_texte": "75f8bd0cca8221fdabbf3f18fc434dfe",
@@ -762,6 +924,24 @@
    "empreinte_catalogue": "3d633b74ed458af8ff3f85cbd623ea00",
    "empreinte_texte": "bca8391fd4ccac7e185544f29b16ed9e",
    "nom": "evenements_globaux"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "cc39c2e930792cf1d73af41c2d1d16e3",
+   "empreinte_texte": "fdca24dfc971c425b1c427f8c6f8a5ef",
+   "nom": "habilitations"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "b98f414e0ac52aa742b39a400c1228e2",
+   "empreinte_texte": "a21108a92d8c2c38f1f4d27409a08227",
+   "nom": "habilitations_carrieres"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "430e89e70c9f05036d75d81c1835af1d",
+   "empreinte_texte": "1e3891823f106a60df58770964bee3b0",
+   "nom": "habilitations_postes"
   },
   {
    "colonnes": 4,

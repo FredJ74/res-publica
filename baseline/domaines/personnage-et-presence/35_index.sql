@@ -64,7 +64,6 @@ CREATE INDEX idx_successions_defunt ON public.successions USING btree (defunt);
 CREATE UNIQUE INDEX idx_successions_defunt_en_attente ON public.successions USING btree (defunt) WHERE (statut = 'en_attente'::text);
 CREATE INDEX idx_testaments_testateur ON public.testaments USING btree (testateur);
 CREATE INDEX personnages_requisition_idx ON public.personnages_donnees USING btree (((requisition ->> 'statut'::text))) WHERE (requisition IS NOT NULL);
-CREATE UNIQUE INDEX personnages_une_seule_qualif_universitaire ON public.personnages_qualifications USING btree (personnage) WHERE (source = 'universite'::text);
 CREATE UNIQUE INDEX personnages_user_id_unique ON public.personnages_donnees USING btree (user_id) WHERE (user_id IS NOT NULL);
 CREATE UNIQUE INDEX universite_inscription_une_par_requete ON public.universite_inscriptions USING btree (requete) WHERE (requete IS NOT NULL);
 CREATE INDEX universite_inscriptions_par_personnage ON public.universite_inscriptions USING btree (personnage, statut);

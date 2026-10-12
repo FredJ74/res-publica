@@ -722,7 +722,42 @@ const TYPES_CHRONIQUE = {
   // popularite et qu'elle consomme un rappel : c'est un acte de procedure plus grave, au sens
   // procedural du terme, pas au sens moral.
   assemblee_rappel:            { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
-  assemblee_sanction:          { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 }
+  assemblee_sanction:          { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 },
+
+  // LES FAITS JUDICIAIRES (raccord du 12 octobre 2026, nuit). Les douze lignes sont ecrites par UN
+  // DECLENCHEUR sur `dossiers_judiciaires_actes` -- `dossiers_actes_publier_au_journal` --, donc
+  // DANS LA TRANSACTION de l'acte judiciaire lui-meme. Sans ce raccord elles seraient jetees ici
+  // comme « type non mappe » : toute la chaine judiciaire resterait invisible au Journal, ce qui
+  // est exactement le defaut que les quatre raccords precedents ont corrige ailleurs.
+  //
+  // CE QUI ENTRE ICI EST UN FAIT NU, ET RIEN D'AUTRE. Le libelle serveur dit QUI est poursuivi,
+  // relaxe, condamne, requalifie -- jamais le motif de la plainte, jamais l'identite du plaignant,
+  // jamais une preuve, un proces-verbal ou le contenu d'un temoignage. Le registre
+  // `justice_faits_publics` fixe en base quels actes sont publics ET la phrase exacte : le
+  // declencheur n'improvise aucune formulation, et une IA n'en redige aucune.
+  //
+  // L'ABSENCE DU PROCUREUR EST UN CONSTAT, PAS UN REPROCHE, et c'est la seule information que le
+  // libelle d'une ouverture d'audience porte en plus. Le Journal peut ecrire « le proces s'est
+  // ouvert en l'absence du Procureur » ; il ne peut pas ecrire que le Procureur a failli. Cette
+  // interpretation appartient aux redactions joueuses, qui disposent du fait pour l'ecrire
+  // elles-memes -- exactement comme pour le motif d'un rappel au reglement a l'Assemblee.
+  //
+  // LES POIDS. Un jugement, une relaxe et un jugement d'appel sont les trois issues qui tranchent
+  // : `important`. Le non-lieu, l'abandon du parquet et la decision du juge de poursuivre malgre
+  // lui le sont aussi -- ce sont des faits politiques autant que judiciaires. Le reste est
+  // `secondaire` : une etape de procedure n'est pas une nouvelle en soi.
+  justice_non_lieu:            { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_poursuites:          { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+  justice_abandon_parquet:     { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_poursuite_maintenue: { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_arret:               { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+  justice_requalification:     { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+  justice_condamnation:        { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_relaxe:              { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_appel:               { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+  justice_jugement_appel:      { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
+  justice_audience_fixee:      { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+  justice_audience:            { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 }
 };
 
 // Phrase attribuee d'un scandale : ce qui est etabli est la PUBLICATION de la mise en cause, jamais

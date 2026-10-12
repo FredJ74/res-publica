@@ -435,6 +435,15 @@ function openPlainteModal(pa, cost) {
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
         <textarea id="plainte-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Decrivez les faits reproches..."></textarea>
       </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TEMOINS</div>
+        <textarea id="plainte-temoins" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:52px;outline:none;resize:none" placeholder="Un nom par ligne. Laissez vide si vous n'en citez aucun."></textarea>
+        <div style="font-size:.7rem;color:#5a4a20;font-style:italic;margin-top:.3rem">
+          C'est MAINTENANT, et seulement maintenant, que vous pouvez citer vos temoins : une fois la
+          plainte deposee, vous ne pourrez plus en ajouter. Le Procureur, le juge et l'avocat de la
+          defense pourront en citer d'autres. Chaque temoin cite sera convoque au commissariat.
+        </div>
+      </div>
       <button onclick="soumettrePlaynte()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
         <i class="ti ti-send" style="font-size:.8rem"></i> Deposer la plainte
       </button>
@@ -470,10 +479,17 @@ async function soumettrePlaynte() {
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
   const categorie = document.getElementById('plainte-categorie')?.value || null;
+  // LES TEMOINS DU PLAIGNANT PARTENT AVEC LA PLAINTE, DANS LE MEME APPEL. Ce n'est pas un confort
+  // d'interface : c'est la regle. Le plaignant cite ses temoins AU MOMENT DU DEPOT, et il n'existe
+  // aucune autre porte serveur par laquelle il puisse en ajouter ensuite -- la branche
+  // « plaignant » de `temoin_citer` a ete supprimee le 12 octobre 2026.
+  const temoins = (document.getElementById('plainte-temoins')?.value || '')
+    .split('\n').map(x => x.trim()).filter(x => x.length > 0).slice(0, 10);
 
   if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
   const rows = await sbRpc('plainte_deposer',
-    { p_cible: cible, p_motif: motif, p_categorie: categorie || null }).catch(() => null);
+    { p_cible: cible, p_motif: motif, p_categorie: categorie || null,
+      p_temoins: temoins.length ? temoins : null }).catch(() => null);
   const res = Array.isArray(rows) ? rows[0] : rows;
 
   if (!res || res.ok !== true) {
@@ -520,10 +536,27 @@ async function soumettrePlaynte() {
   //
   // IL N'Y A DONC RIEN A ANNONCER D'AUTRE QUE LE DEPOT. Promettre une suite serait mentir sur ce
   // que le jeu fait.
+  // LE SORT DES TEMOINS EST DIT, NOM PAR NOM. La porte a pu en ecarter -- un nom inconnu, le
+  // prevenu lui-meme, un doublon -- et le depot n'echoue pas pour autant : il est deja paye. Le
+  // plaignant doit donc savoir lesquels ont ete convoques, et lesquels ne l'ont pas ete.
+  const cites = Array.isArray(res.temoins_cites) ? res.temoins_cites : [];
+  const ecartes = Array.isArray(res.temoins_ecartes) ? res.temoins_ecartes : [];
+  const MOTIFS_TEMOIN = {
+    temoin_introuvable: 'ce nom ne correspond a personne',
+    temoin_deja_cite: 'deja cite',
+    pas_soi_meme: 'vous ne pouvez pas etre votre propre temoin',
+    le_prevenu_n_est_pas_temoin: 'la personne visee ne peut pas etre temoin'
+  };
+  let suite = '';
+  if (cites.length) suite += ' Temoin(s) convoque(s) : ' + cites.map(x => x.temoin).join(', ') + '.';
+  if (ecartes.length) suite += ' Non retenu(s) : '
+    + ecartes.map(x => x.temoin + ' (' + (MOTIFS_TEMOIN[x.raison] || x.raison) + ')').join(', ') + '.';
+
   addJournalEntry('Plainte deposee contre ' + cible + '. Motif : ' + motif
-    + '. Dossier transmis au parquet.', 'event-info');
+    + '. Dossier transmis au parquet.' + suite, 'event-info');
   showToast('Plainte enregistree',
-    'Le dossier est au parquet. Le Procureur de la Republique decidera s\'il y a lieu de poursuivre.',
+    'Le dossier est au parquet. Le Procureur de la Republique decidera s\'il y a lieu de poursuivre.'
+    + suite,
     true);
 }
 
@@ -1693,6 +1726,32 @@ function justiceSituationHtml() {
          + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;padding:.35rem .9rem;'
          + 'border:1px solid #4a3a20;background:transparent;color:#c0a060;cursor:pointer">'
          + (a.audience_ouverte_le ? 'Ma defense' : 'Constituer ma defense') + '</button></div>';
+    }
+    // LE JOUR DU PROCES, ET LE CONSENTEMENT A UNE DATE PLUS PROCHE (12 octobre 2026, nuit).
+    // LE CONSENTEMENT APPARTIENT AU PREVENU, ET A LUI SEUL : ni son avocat ni le juge ne peuvent
+    // le donner a sa place, et le serveur refuse `pas_mon_affaire` a tout autre. Il porte sur UN
+    // jour precis -- consentir au jour 12 ne consent pas au jour 11 -- et il se retire tant que
+    // l'audience n'est pas ouverte. Rien ici n'est deduit d'un silence.
+    if (a.status === 'saisie' && !a.audience_ouverte_le) {
+      h += '<div style="margin-top:.4rem;font-size:.74rem;color:#8a8060">'
+         + (a.audience_jour
+            ? 'Proces fixe au jour <strong style="color:#c0b090">' + ech(a.audience_jour) + '</strong>.'
+            : 'Le jour du proces n\'a pas encore ete fixe.')
+         + ' Le proces a lieu au minimum trois jours apres sa fixation, sauf si vous consentez '
+         + 'expressement a une date plus proche.</div>'
+         + '<div style="display:flex;gap:.4rem;margin-top:.3rem;flex-wrap:wrap;align-items:center">'
+         + '<input id="consent-jour-' + ech(a.id) + '" type="number" min="1" style="width:6.5rem;'
+         + 'background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-family:inherit;font-size:.78rem" placeholder="Jour">'
+         + '<button onclick="audienceConsentir(\'' + ech(a.id) + '\', parseInt(document.getElementById(\'consent-jour-' + ech(a.id) + '\').value,10))" '
+         + 'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.3rem .8rem;'
+         + 'border:1px solid #4a3a20;background:transparent;color:#c0a060;cursor:pointer">Je consens a ce jour</button>'
+         + (a.audience_consentie_jour
+            ? '<button onclick="audienceConsentir(\'' + ech(a.id) + '\', null)" '
+              + 'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.3rem .8rem;'
+              + 'border:1px solid #6a3a20;background:transparent;color:#cc8a40;cursor:pointer">Retirer mon consentement (jour '
+              + ech(a.audience_consentie_jour) + ')</button>'
+            : '')
+         + '</div>';
     }
     h += '</div>';
   });
@@ -14287,6 +14346,25 @@ const JUSTICE_REFUS = {
   temoin_manquant: "Indiquez le nom du temoin.",
   temoin_introuvable: "Aucun personnage de ce nom.",
   temoin_deja_cite: "Ce temoin est deja cite dans cette affaire.",
+  // LES REFUS DE L'AUDIENCE ET DE LA CARRIERE (12 octobre 2026, nuit).
+  jour_invalide: "Ce jour n'est pas valide.",
+  jour_d_audience_non_fixe: "Le jour du proces n'a pas encore ete fixe.",
+  jour_d_audience_non_venu: "Le jour du proces n'est pas encore arrive.",
+  consentement_du_prevenu_requis: "Une audience avant trois jours exige le consentement explicite du prevenu, sur ce jour-la.",
+  presence_du_juge_requise: "Le juge doit etre dans la salle d'audience de son tribunal pour ouvrir le proces.",
+  presence_en_salle_requise: "Il faut etre present dans la salle d'audience.",
+  salle_indeterminee: "Aucune salle d'audience competente pour cette ville.",
+  spectateur_sans_parole: "Vous assistez a l'audience : vous pouvez lire, pas parler.",
+  parole_non_accordee: "Le juge ne vous a pas donne la parole.",
+  message_vide: "Votre message est vide.",
+  message_trop_long: "Message trop long (4 000 caracteres au plus).",
+  statut_a_change: "Le dossier a change d'etat entre-temps.",
+  date_non_appliquee: "La date n'a pas pu etre enregistree. Reessayez.",
+  carriere_requise: "Cette fonction exige une carriere que votre personnage n'a pas.",
+  seconde_carriere_deja_acquise: "Votre personnage a deja acquis sa seconde carriere : il n'en aura pas d'autre.",
+  carriere_deja_detenue: "Votre personnage exerce deja cette carriere.",
+  cursus_deja_en_cours: "Vous suivez deja un cursus.",
+  cursus_inconnu: "Ce cursus n'existe pas.",
   le_prevenu_n_est_pas_temoin: "La personne mise en cause ne peut pas etre son propre temoin.",
   pas_soi_meme: "Vous ne pouvez pas vous citer vous-meme.",
   pas_juge_de_cette_ville: "Vous n'etes pas le juge de cette ville.",
@@ -14701,6 +14779,9 @@ async function ouvrirAudienceJuge() {
   const dossiers = Array.isArray(v.dossiers) ? v.dossiers : [];
   let h = '<div style="padding:1rem;max-width:680px">'
     + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+    + 'Fixez d\'abord le <strong style="color:#c0b090">jour du proces</strong> : au minimum trois jours apres '
+    + 'aujourd\'hui, sauf si le prevenu a <strong style="color:#c0b090">explicitement consenti</strong> a une date '
+    + 'plus proche. Le jour venu, vous devrez etre dans la salle d\'audience de votre tribunal pour l\'ouvrir.<br>'
     + 'Ouvrir l\'audience <strong style="color:#c0b090">verrouille la defense</strong> : le prevenu ne peut plus '
     + 'revoquer son avocat, l\'avocat ne peut plus abandonner, et il ne peut plus citer de temoin.</div>';
   if (dossiers.length === 0) {
@@ -14709,16 +14790,36 @@ async function ouvrirAudienceJuge() {
   dossiers.forEach(d => {
     const dos = d.dossier || {};
     const ouverte = !!dos.audience_ouverte_le;
+    const fixee = dos.audience_jour;
+    const consenti = dos.audience_consentie_jour;
     h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
        + '<div style="font-size:.82rem;color:#e0d5b8">' + justiceEch(dos.motif || d.id) + '</div>'
        + '<div style="font-size:.72rem;color:#8a8060">' + justiceEch(d.id)
-       + ' · ' + justiceEch(dos.status || '') + ' · mis en cause : ' + justiceEch(dos.cible || '?') + '</div>'
-       + '<div style="display:flex;gap:.5rem;margin-top:.35rem;flex-wrap:wrap">'
-       + (ouverte
-          ? '<span style="font-size:.74rem;color:#6a9a6a">Audience ouverte (jour ' + justiceEch(dos.audience_ouverte_jour) + ')</span>'
-          : '<button style="' + JUSTICE_BTN_OK + '" onclick="audienceOuvrir(\'' + justiceEch(d.id) + '\')">Ouvrir l\'audience</button>')
-       + '</div>'
-       + '<div style="margin-top:.4rem">'
+       + ' · ' + justiceEch(dos.status || '') + ' · mis en cause : ' + justiceEch(dos.cible || '?') + '</div>';
+    // LE JOUR, ET CE QUE LE PREVENU A CONSENTI. Les deux sont des FAITS lus au serveur : l'ecran
+    // n'en deduit rien et ne calcule aucun minimum lui-meme.
+    h += '<div style="font-size:.74rem;color:#8a8060;margin-top:.25rem">'
+       + (fixee ? 'Proces fixe au jour <strong style="color:#c0b090">' + justiceEch(fixee) + '</strong>'
+                : 'Jour du proces non fixe')
+       + (consenti ? ' · le prevenu a consenti au jour ' + justiceEch(consenti) : '')
+       + '</div>';
+    if (!ouverte) {
+      h += '<div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap;align-items:center">'
+         + '<input id="aud-jour-' + justiceEch(d.id) + '" type="number" min="1" style="'
+         + JUSTICE_CHAMP + ';width:7rem" placeholder="Jour">'
+         + '<button style="' + JUSTICE_BTN + '" onclick="audienceFixer(\'' + justiceEch(d.id) + '\')">Fixer le jour</button>'
+         + '<button style="' + JUSTICE_BTN_OK + '" onclick="audienceOuvrir(\'' + justiceEch(d.id) + '\')">Ouvrir l\'audience</button>'
+         + '</div>';
+    } else {
+      h += '<div style="font-size:.74rem;color:#6a9a6a;margin-top:.35rem">Audience ouverte (jour '
+         + justiceEch(dos.audience_ouverte_jour) + ')'
+         + (dos.audience_prevenu_present === false ? ' · le prevenu n\'etait pas present' : '')
+         + (dos.audience_procureur_present === false ? ' · le Procureur n\'etait pas present' : '')
+         + '</div>'
+         + '<div style="margin-top:.35rem"><button style="' + JUSTICE_BTN_OK
+         + '" onclick="ouvrirChatAudience(\'' + justiceEch(d.id) + '\')">Entrer dans l\'audience</button></div>';
+    }
+    h += '<div style="margin-top:.4rem">'
        + '<input id="aud-nom-' + justiceEch(d.id) + '" type="text" maxlength="80" style="' + JUSTICE_CHAMP + '" placeholder="Nom exact de la personne">'
        + '<div style="display:flex;gap:.5rem;margin-top:.35rem;flex-wrap:wrap">'
        + '<button style="' + JUSTICE_BTN + '" onclick="temoinCiterDepuisAudience(\'' + justiceEch(d.id) + '\')">Citer comme temoin</button>'
@@ -14730,6 +14831,117 @@ async function ouvrirAudienceJuge() {
   });
   h += '</div>';
   justiceOuvrirModale('Tenir l\'audience', h);
+}
+
+// LE JOUR DU PROCES. L'ecran envoie un nombre et affiche le verdict : il ne verifie NI le minimum
+// de trois jours, NI le consentement du prevenu -- les deux vivent au serveur, qui refuse en
+// nommant ce qui manque.
+async function audienceFixer(affaireId) {
+  const champ = document.getElementById('aud-jour-' + affaireId);
+  const jour = parseInt(champ ? champ.value : '', 10);
+  if (!Number.isFinite(jour)) { showToast('Audience', 'Indiquez le jour du proces.', false); return; }
+  const v = await sbRpc('justice_audience_fixer', { p_affaire_id: affaireId, p_jour: jour })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Jour non fixe', justiceRefus(v), false); return;
+  }
+  showToast('Jour fixe', 'Le proces est fixe au jour ' + v.jour + '.', true);
+  ouvrirAudienceJuge();
+}
+
+// LE CONSENTEMENT DU PREVENU A UNE AUDIENCE ANTICIPEE. Il appartient au prevenu, et a lui seul :
+// ni son avocat ni le juge ne peuvent le donner a sa place, et le serveur le refuse a tout autre.
+// Il porte sur UN jour precis, et il se retire.
+async function audienceConsentir(affaireId, jour) {
+  const v = await sbRpc('justice_audience_consentir',
+    { p_affaire_id: affaireId, p_jour: (jour === null || jour === undefined) ? null : jour })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Consentement', justiceRefus(v), false); return; }
+  showToast('Consentement',
+    v.retire ? 'Votre consentement est retire.'
+             : 'Vous consentez a etre juge le jour ' + v.consenti_jour + '.', true);
+  if (typeof updateUI === 'function') updateUI();
+}
+
+// -------------------------------------------------------------------------------------------
+// LE CHAT JUDICIAIRE
+// -------------------------------------------------------------------------------------------
+// L'ECRAN N'ACCORDE AUCUN DROIT. `justice_audience_lire` rend `mon_role` et `je_peux_ecrire`,
+// tous deux CALCULES AU SERVEUR a partir de la base -- presence physique dans la salle comprise.
+// Le champ de saisie n'est affiche que si le serveur dit oui, et `justice_audience_ecrire`
+// reverifie tout de toute facon : masquer le champ est une politesse, pas une securite.
+let _audienceAffaire = null, _audienceDernierRang = 0, _audienceMinuteur = null;
+
+async function ouvrirChatAudience(affaireId) {
+  _audienceAffaire = affaireId;
+  _audienceDernierRang = 0;
+  justiceOuvrirModale('Audience', '<div id="audience-corps" style="padding:1rem;max-width:720px">'
+    + '<div style="font-size:.8rem;color:#8a8060">Chargement...</div></div>');
+  await rafraichirChatAudience(true);
+  if (_audienceMinuteur) clearInterval(_audienceMinuteur);
+  _audienceMinuteur = setInterval(function () {
+    const ouvert = document.getElementById('audience-corps');
+    if (!ouvert) { clearInterval(_audienceMinuteur); _audienceMinuteur = null; return; }
+    if (!document.hidden) rafraichirChatAudience(false);
+  }, 8000);
+}
+
+async function rafraichirChatAudience(complet) {
+  if (!_audienceAffaire) return;
+  const v = await sbRpc('justice_audience_lire',
+    { p_affaire_id: _audienceAffaire, p_apres: complet ? 0 : _audienceDernierRang })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  const corps = document.getElementById('audience-corps');
+  if (!corps) return;
+  if (!v || v.ok !== true) {
+    corps.innerHTML = '<div style="font-size:.82rem;color:#9a7a40">' + justiceEch(justiceRefus(v)) + '</div>';
+    return;
+  }
+  const messages = Array.isArray(v.messages) ? v.messages : [];
+  if (complet) {
+    const QUALITES = { juge: 'Le juge', procureur: 'Le Procureur', prevenu: 'Le prevenu',
+                       avocat: 'La defense', temoin: 'Temoin' };
+    corps.innerHTML =
+      '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.5rem">'
+      + 'Votre role : <strong style="color:#c0b090">' + justiceEch(v.mon_role) + '</strong>'
+      + (v.je_peux_ecrire ? '' : ' · vous pouvez lire, pas ecrire')
+      + '</div>'
+      + '<div id="audience-fil" style="max-height:46vh;overflow-y:auto;border:1px solid #2a1a0a;background:#0c0a04;padding:.5rem"></div>'
+      + (v.je_peux_ecrire
+         ? '<div style="display:flex;gap:.4rem;margin-top:.5rem;align-items:flex-end">'
+           + '<textarea id="audience-saisie" rows="2" maxlength="4000" style="' + JUSTICE_CHAMP + ';resize:vertical" placeholder="Votre parole, consignee mot pour mot..."></textarea>'
+           + '<button style="' + JUSTICE_BTN_OK + '" onclick="audienceEcrire()">Dire</button></div>'
+         : '')
+      + '<div style="font-size:.7rem;color:#6a6250;margin-top:.4rem;font-style:italic">'
+      + 'Tout ce qui est dit ici est consigne mot pour mot et conserve. Personne ne le resume, ne le note '
+      + 'et n\'en juge la qualite.</div>';
+    corps._qualites = QUALITES;
+  }
+  const fil = document.getElementById('audience-fil');
+  if (!fil) return;
+  const QUALITES = corps._qualites || {};
+  messages.forEach(m => {
+    _audienceDernierRang = Math.max(_audienceDernierRang, m.rang);
+    const div = document.createElement('div');
+    div.style.cssText = 'margin-bottom:.4rem;font-size:.82rem;line-height:1.45;color:#d8cdb0';
+    div.innerHTML = '<span style="color:#8a6a20;font-size:.72rem">'
+      + justiceEch(QUALITES[m.qualite] || m.qualite) + ' · ' + justiceEch(m.auteur) + '</span><br>'
+      + justiceEch(m.texte).replace(/\n/g, '<br>');
+    fil.appendChild(div);
+  });
+  if (messages.length) fil.scrollTop = fil.scrollHeight;
+}
+
+async function audienceEcrire() {
+  const champ = document.getElementById('audience-saisie');
+  const texte = champ ? champ.value : '';
+  if (!texte.trim()) return;
+  const v = await sbRpc('justice_audience_ecrire',
+    { p_affaire_id: _audienceAffaire, p_texte: texte })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Audience', justiceRefus(v), false); return; }
+  if (champ) champ.value = '';
+  await rafraichirChatAudience(false);
 }
 
 async function audienceOuvrir(affaireId) {
@@ -14760,4 +14972,106 @@ async function audienceParole(affaireId, donner) {
   showToast(donner ? 'Parole donnee' : 'Parole retiree',
     justiceEch(v.personne) + (v.peut_ecrire === true ? ' peut desormais s\'exprimer a l\'audience.'
                                                      : ' ne peut plus s\'exprimer a l\'audience.'), true);
+}
+
+// -------------------------------------------------------------------------------------------
+// LE GREFFE PUBLIC, ET L'ENTREE DANS L'AUDIENCE (12 octobre 2026, nuit)
+// -------------------------------------------------------------------------------------------
+// DEUX PORTES, DEUX NIVEAUX D'INFORMATION, ET LA DIFFERENCE N'EST PAS UN FILTRE D'AFFICHAGE.
+// `justice_affaires_publiques` ne LIT PAS le dossier : elle rend le nom de la personne visee, la
+// categorie generale, l'etat de la procedure et les temoins cites. Le motif, l'identite du
+// plaignant, les preuves, les PV et les depositions vivent dans `avocat_dossier`, qui exige
+// d'etre l'avocat retenu. Un ecran ne peut donc pas se tromper : il n'a rien d'autre a montrer.
+async function ouvrirAffairesPubliques() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_affaires_publiques', {})
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Greffe', justiceRefus(v), false); return; }
+  const affaires = Array.isArray(v.affaires) ? v.affaires : [];
+  const CATEGORIES = { delit_mineur: 'Delit mineur', delit_grave: 'Delit grave',
+                       crime: 'Crime', crime_etat: "Crime d'Etat" };
+  const STATUTS = { au_parquet: 'Au parquet', enquete: 'Enquete en cours',
+                    poursuites: 'Poursuites engagees', saisie: 'Juge saisi',
+                    abandon_demande: 'Abandon demande par le parquet' };
+  let h = '<div style="padding:1rem;max-width:680px">'
+    + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+    + 'Les affaires en cours devant ce tribunal. Le registre public indique qui est poursuivi, pour '
+    + 'quelle categorie d\'infraction, ou en est la procedure, et qui a ete cite comme temoin. '
+    + 'Le contenu du dossier -- plainte, preuves, auditions -- n\'est pas public.</div>';
+  if (affaires.length === 0) {
+    h += '<div style="font-size:.8rem;color:#8a8060">Aucune affaire en cours devant ce tribunal.</div>';
+  }
+  affaires.forEach(a => {
+    const temoins = Array.isArray(a.temoins) ? a.temoins : [];
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+       + '<div style="font-size:.84rem;color:#e0d5b8">' + justiceEch(a.prevenu || '?') + '</div>'
+       + '<div style="font-size:.74rem;color:#8a8060">'
+       + justiceEch(CATEGORIES[a.categorie] || a.categorie || 'Categorie non precisee')
+       + ' · ' + justiceEch(STATUTS[a.statut] || a.statut || '')
+       + (a.audience_jour ? ' · proces le jour ' + justiceEch(a.audience_jour) : '')
+       + '</div>'
+       + (temoins.length
+          ? '<div style="font-size:.72rem;color:#6a6250;margin-top:.2rem">Temoins cites : '
+            + temoins.map(justiceEch).join(', ') + '</div>'
+          : '')
+       + '</div>';
+  });
+  h += '</div>';
+  justiceOuvrirModale('Affaires en cours', h);
+}
+
+// LES ARCHIVES : L'HISTOIRE PROCEDURALE DES AFFAIRES CLOSES. La SUITE des actes, jamais leur
+// contenu -- un acte dit qu'une requalification a eu lieu, pas ce qu'elle disait.
+async function ouvrirArchivesGreffe() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_archives_greffe', { p_affaire_id: null })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Archives', justiceRefus(v), false); return; }
+  const affaires = Array.isArray(v.affaires) ? v.affaires : [];
+  let h = '<div style="padding:1rem;max-width:680px">';
+  if (affaires.length === 0) {
+    h += '<div style="font-size:.8rem;color:#8a8060">Aucune affaire close archivee pour ce tribunal.</div>';
+  }
+  affaires.forEach(a => {
+    const chrono = Array.isArray(a.chronologie) ? a.chronologie : [];
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+       + '<div style="font-size:.84rem;color:#e0d5b8">' + justiceEch(a.prevenu || '?') + '</div>'
+       + '<div style="font-size:.74rem;color:#8a8060">' + justiceEch(a.statut || '')
+       + (a.peine ? ' · ' + justiceEch(a.peine) : '') + '</div>'
+       + '<ol style="margin:.3rem 0 0;padding-left:1.1rem;font-size:.74rem;color:#6a6250">'
+       + chrono.map(x => '<li>' + justiceEch(x.libelle || x.type) + '</li>').join('')
+       + '</ol></div>';
+  });
+  h += '</div>';
+  justiceOuvrirModale('Archives du greffe', h);
+}
+
+// ENTRER DANS L'AUDIENCE DEPUIS LA SALLE. Tout le monde peut l'ouvrir : c'est le SERVEUR qui dit
+// ensuite qui lit et qui ecrit. Une personne qui n'est partie a rien verra qu'elle est spectatrice.
+async function ouvrirAudienceDepuisLaSalle() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_affaires_publiques', {})
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  // LA LISTE PUBLIQUE SERT D'ANNUAIRE, et elle ne dit rien de plus qu'au greffe. Elle n'est pas
+  // lisible depuis la salle d'audience -- la porte exige le greffe -- donc on demande simplement
+  // l'identifiant de l'affaire quand elle n'est pas joignable.
+  const affaires = (v && v.ok === true && Array.isArray(v.affaires))
+    ? v.affaires.filter(a => a.statut === 'saisie') : [];
+  let h = '<div style="padding:1rem;max-width:620px">'
+    + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+    + 'Une audience se tient dans cette salle. Vous pouvez y assister ; vous n\'y prenez la parole '
+    + 'que si vous etes partie a l\'affaire, ou si le juge vous l\'a donnee.</div>';
+  if (affaires.length) {
+    affaires.forEach(a => {
+      h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0;display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
+         + '<div style="font-size:.82rem;color:#e0d5b8">' + justiceEch(a.prevenu || '?') + '</div>'
+         + '<button style="' + JUSTICE_BTN_OK + '" onclick="ouvrirChatAudience(\'' + justiceEch(a.affaire) + '\')">Assister</button>'
+         + '</div>';
+    });
+  }
+  h += '<div style="margin-top:.6rem">'
+     + '<input id="audience-id" type="text" maxlength="80" style="' + JUSTICE_CHAMP + '" placeholder="Identifiant de l\'affaire">'
+     + '<button style="' + JUSTICE_BTN + ';margin-top:.35rem" onclick="ouvrirChatAudience(document.getElementById(\'audience-id\').value.trim())">Assister a cette affaire</button>'
+     + '</div></div>';
+  justiceOuvrirModale('Salle d\'audience', h);
 }

@@ -658,3 +658,325 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
     ]
   }
 };
+
+// CREATION_ORIGINES_SERVEUR -- ORIGINS de data.js
+export const CREATION_ORIGINES_SERVEUR = [
+  {
+    "id": "poor",
+    "name": "Milieu defavorise",
+    "arg": 300,
+    "bonuses": {
+      "VOL": 2,
+      "DUP": 2
+    },
+    "malus": {
+      "CHA": -1
+    },
+    "trait": "Resilience brute, rien a perdre"
+  },
+  {
+    "id": "worker",
+    "name": "Classe ouvriere",
+    "arg": 600,
+    "bonuses": {
+      "VOL": 1,
+      "PER": 1
+    },
+    "malus": {
+      "DUP": -1
+    },
+    "trait": "Sens du collectif, mains calleuses, trop honnete pour bien mentir"
+  },
+  {
+    "id": "bourgeois",
+    "name": "Petite bourgeoisie",
+    "arg": 1000,
+    "bonuses": {
+      "INT": 1,
+      "CHA": 1
+    },
+    "malus": {
+      "ENT": -1
+    },
+    "trait": "Vernis social, ambitions mesurees, pas encore le bon carnet d'adresses"
+  },
+  {
+    "id": "elite",
+    "name": "Haute societe",
+    "arg": 2200,
+    "bonuses": {
+      "ENT": 2
+    },
+    "malus": {
+      "VOL": -2
+    },
+    "trait": "Carnet d'adresses ancestral, mais n'a jamais connu la difficulte reelle"
+  }
+];
+
+// CREATION_ECOLES_SERVEUR -- SCHOOLS de data.js
+export const CREATION_ECOLES_SERVEUR = [
+  {
+    "id": "none",
+    "name": "Pas d'ecole",
+    "bonuses": {
+      "DUP": 2,
+      "VOL": 1
+    },
+    "malus": {
+      "INT": -1
+    },
+    "argBonus": 0,
+    "blocks": [
+      "magistrat",
+      "business",
+      "doctor"
+    ]
+  },
+  {
+    "id": "basic",
+    "name": "Ecole basique",
+    "bonuses": {
+      "PER": 1,
+      "ENT": 1
+    },
+    "malus": {},
+    "argBonus": 0,
+    "blocks": [
+      "magistrat",
+      "business"
+    ]
+  },
+  {
+    "id": "higher",
+    "name": "Etudes superieures",
+    "bonuses": {
+      "INT": 1,
+      "CHA": 1
+    },
+    "malus": {},
+    "argBonus": 0,
+    "blocks": [
+      "doctor"
+    ]
+  },
+  {
+    "id": "elite",
+    "name": "Hautes ecoles",
+    "bonuses": {
+      "INT": 2,
+      "ENT": 1
+    },
+    "malus": {
+      "VOL": -1
+    },
+    "argBonus": 400,
+    "blocks": []
+  }
+];
+
+// CREATION_NATURES_SERVEUR -- ARCHETYPES de data.js
+export const CREATION_NATURES_SERVEUR = [
+  {
+    "id": "politician",
+    "name": "Ambitieux",
+    "bonuses": {
+      "CHA": 2,
+      "ENT": 2
+    },
+    "malus": {
+      "DUP": -2
+    },
+    "desc": "Convaincre, entreprendre, conquerir des positions. Le pouvoir et la reussite l'attirent."
+  },
+  {
+    "id": "authoritarian",
+    "name": "Autoritaire",
+    "bonuses": {
+      "VOL": 2,
+      "PER": 2
+    },
+    "malus": {
+      "ENT": -2
+    },
+    "desc": "Discipline, resistance, rapport de force. Il croit volontiers a l'ordre et a l'autorite."
+  },
+  {
+    "id": "oligarch",
+    "name": "Calculateur",
+    "bonuses": {
+      "INT": 2,
+      "DUP": 2
+    },
+    "malus": {
+      "CHA": -2
+    },
+    "desc": "Raisonnement froid, interet, anticipation, manoeuvre."
+  },
+  {
+    "id": "informer",
+    "name": "Curieux",
+    "bonuses": {
+      "PER": 2,
+      "INT": 2
+    },
+    "malus": {
+      "VOL": -2
+    },
+    "desc": "Observer, comprendre, chercher l'information."
+  },
+  {
+    "id": "legalist",
+    "name": "Legaliste",
+    "bonuses": {
+      "INT": 2,
+      "VOL": 2
+    },
+    "malus": {
+      "CHA": -2
+    },
+    "desc": "Regles, textes, procedures, rigueur -- et connaissance de leurs limites."
+  },
+  {
+    "id": "believer",
+    "name": "Idealiste",
+    "bonuses": {
+      "CHA": 2,
+      "ENT": 2
+    },
+    "malus": {
+      "DUP": -2
+    },
+    "desc": "Convictions, mobilisation, engagement."
+  },
+  {
+    "id": "shadow",
+    "name": "Manipulateur",
+    "bonuses": {
+      "DUP": 2,
+      "PER": 2
+    },
+    "malus": {
+      "CHA": -2
+    },
+    "desc": "Dissimulation, influence indirecte, infiltration, double jeu."
+  },
+  {
+    "id": "anticapitalist",
+    "name": "Solidaire",
+    "bonuses": {
+      "CHA": 2,
+      "VOL": 2
+    },
+    "malus": {
+      "INT": -2
+    },
+    "desc": "Loyaute collective, engagement, resistance, entraide."
+  },
+  {
+    "id": "criminal",
+    "name": "Transgressif",
+    "bonuses": {
+      "DUP": 2,
+      "VOL": 2
+    },
+    "malus": {
+      "ENT": -2
+    },
+    "desc": "Gout du risque, refus des regles, determination."
+  }
+];
+
+// CREATION_CARRIERES_SERVEUR -- CAREERS de data.js
+export const CREATION_CARRIERES_SERVEUR = [
+  {
+    "id": "officer",
+    "name": "Armée — Officier supérieur / Mercenaire",
+    "argBonus": 700,
+    "statKey": "VOL",
+    "comp": "Commandement, Intimidation",
+    "blocks": []
+  },
+  {
+    "id": "business",
+    "name": "Affaires — Homme d'affaires / Lobbyiste",
+    "argBonus": 1200,
+    "statKey": "INT",
+    "comp": "Lobbying, Blanchiment, Negociation",
+    "blocks": [
+      "none",
+      "basic"
+    ]
+  },
+  {
+    "id": "magistrat",
+    "name": "Justice — Magistrat / Avocat",
+    "argBonus": 800,
+    "statKey": "INT",
+    "comp": "Droit, Procedure judiciaire, Negociation",
+    "blocks": [
+      "none",
+      "basic"
+    ]
+  },
+  {
+    "id": "press",
+    "name": "Médias & Communication — Grand journaliste / Influenceur",
+    "argBonus": 450,
+    "statKey": "PER",
+    "comp": "Kompromat, Propagande, Reseaux sociaux",
+    "blocks": []
+  },
+  {
+    "id": "clergy",
+    "name": "Religion — Chef de culte",
+    "argBonus": 150,
+    "statKey": "CHA",
+    "comp": "Rhetorique, Mobilisation",
+    "blocks": []
+  },
+  {
+    "id": "doctor",
+    "name": "Professions intellectuelles — Médecin / Universitaire",
+    "argBonus": 550,
+    "statKey": "INT",
+    "comp": "Reseau civil, Discretion, Rhetorique",
+    "blocks": [
+      "none",
+      "basic",
+      "higher"
+    ]
+  },
+  {
+    "id": "worker",
+    "name": "Monde ouvrier — Ouvrier / Syndicaliste",
+    "argBonus": 300,
+    "statKey": "VOL",
+    "comp": "Force, Solidarite, Mobilisation",
+    "blocks": []
+  },
+  {
+    "id": "intel",
+    "name": "Renseignement — Agent des services",
+    "argBonus": 500,
+    "statKey": "PER",
+    "comp": "Surveillance, Infiltration",
+    "blocks": []
+  },
+  {
+    "id": "criminal_c",
+    "name": "Crime organisé — Criminel organisé",
+    "argBonus": 900,
+    "statKey": "DUP",
+    "comp": "Milices, Blanchiment",
+    "blocks": []
+  },
+  {
+    "id": "escort",
+    "name": "Prostitution — Prostitué(e)",
+    "argBonus": 450,
+    "statKey": "CHA",
+    "comp": "Seduction, Kompromat",
+    "blocks": []
+  }
+];

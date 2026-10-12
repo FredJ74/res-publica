@@ -150,8 +150,19 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # dont elle est la porte d'entree.
 # LES QUATRE AUTRES SONT C sans hesitation : un monde neuf nait sans affaire, donc sans barreau
 # publie, sans demande de defense, sans temoin cite et sans parole accordee.
-TABLES_ATTENDUES = 311
-EMPREINTE_LISTE = "60643af980cdb12cccdad0c81cf40f24"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 12 OCTOBRE 2026, LA NUIT -- SIX TABLES DE PLUS EN NET, 311 -> 317. SEPT NAISSENT et UNE MEURT.
+# LES QUATRE REGISTRES DE CARRIERE SONT CLASSES A ET SEEDES : `carrieres` (les dix familles,
+# miroir de CAREERS), `habilitations`, `habilitations_carrieres` et `habilitations_postes`. Sans
+# eux, `habilitation_ouverte` rend false partout -- fail closed -- et aucune fonction specialisee
+# n'est accessible dans un monde neuf. `justice_faits_publics` est A pour la meme raison : sans
+# ses douze lignes, aucun fait judiciaire n'atteint le Journal.
+# `carrieres_acquises` est C : la seconde carriere d'un personnage est un etat vivant, et sa cle
+# primaire -- le PERSONNAGE -- est ce qui borne les carrieres a deux pour toute une existence.
+# `audience_messages` est C : un monde neuf nait sans proces, donc sans debats.
+# ET `justice_barreau_qualifications` A DISPARU : l'abstraction d'attente du barreau, posee vide
+# le 12 octobre au soir faute d'arbitrage, est SUPPRIMEE -- la carriere JUSTICE qualifie desormais.
+TABLES_ATTENDUES = 317
+EMPREINTE_LISTE = "75f5f86ab69bb8ab641b2073cff28c3c"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

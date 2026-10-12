@@ -10,6 +10,526 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- justice_peine_proposer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_peine_proposer(p_affaire_id text, p_infraction text, p_genre text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_brut text; v_a jsonb; v_ville text; v_pays text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT p.data, p.city, p.country INTO v_brut, v_ville, v_pays
+    FROM public.plaintes_en_cours p WHERE p.id = p_affaire_id;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente'); END IF;
+  v_a := v_brut::jsonb;
+
+  -- MEME REGLE D'AUTORITE QUE LA PORTE D'ENREGISTREMENT, lue en base : juge ou commissaire DE LA
+  -- VILLE de l'affaire. Un ecran qui s'ouvrirait sans elle promettrait une competence absente.
+  IF NOT public.affaire_autorite_de(v_ville) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee', 'ville', v_ville); END IF;
+  IF coalesce(v_a ->> 'status', '') = 'jugee' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_deja_jugee'); END IF;
+
+  RETURN public.justice_peine_calcul(p_infraction, p_genre, v_a ->> 'cible', v_pays)
+         || jsonb_build_object('affaire', p_affaire_id,
+                               'accuse', v_a ->> 'cible',
+                               'motif_allegue', v_a ->> 'motif');
+END;
+$function$;
+
+-- justice_preuve_reelle(text,text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_preuve_reelle(p_pays text, p_accuse text, p_infraction text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  -- L'EXPIRATION SE LIT SUR L'HORLOGE QUI A ECRIT LA TRACE : `actions_tracables.jour` et
+  -- `jour_expiration` sont poses depuis le `day` de la fiche de l'auteur, jamais depuis
+  -- l'horloge partagee du pays. Les melanger donnerait des traces perimees ou eternelles.
+  SELECT EXISTS (
+    SELECT 1 FROM public.actions_tracables t
+     WHERE t.country IS NOT DISTINCT FROM p_pays
+       AND t.auteur = p_accuse
+       AND t.type_action = p_infraction
+       AND coalesce(t.jour_expiration, 0)
+           >= coalesce((SELECT d.day FROM public.personnages_donnees d WHERE d.name = p_accuse), 1));
+$function$;
+
+-- justice_prolonger_peine(text,jsonb,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_prolonger_peine(p_cible text, p_motifs jsonb, p_forcer_qhs boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_juge text; v_r jsonb;
+BEGIN
+  v_juge := public.exiger_poste('juge');
+  v_r := public.detention_prolonger_interne(p_cible, p_motifs, p_forcer_qhs);
+  IF coalesce((v_r ->> 'ok')::boolean, false) THEN
+    RETURN v_r || jsonb_build_object('juge', v_juge);
+  END IF;
+  RETURN v_r;
+END; $function$;
+
+-- justice_recherches(text) -> TABLE(id text, country text, ville_condamnation text, motif text, jours integer, data jsonb) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_recherches(p_nom text)
+ RETURNS TABLE(id text, country text, ville_condamnation text, motif text, jours integer, data jsonb)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_autorise boolean := false;
+BEGIN
+  IF public.est_appel_serveur() THEN
+    v_autorise := true;
+  ELSE
+    v_moi := public.mon_personnage();
+    IF v_moi IS NOT NULL THEN
+      -- Soi-meme : un joueur peut savoir qu'il est recherche.
+      IF v_moi = p_nom THEN
+        v_autorise := true;
+      ELSE
+        -- Autorite judiciaire, dans son propre pays.
+        SELECT true INTO v_autorise
+          FROM public.acteur_poste_courant() a
+          JOIN public.personnages_donnees c ON c.name = p_nom
+         WHERE a.poste_id IN ('commissaire','juge','min_just','min_int','president')
+           AND a.pays = c.country
+         LIMIT 1;
+      END IF;
+    END IF;
+  END IF;
+
+  IF NOT coalesce(v_autorise, false) THEN RETURN; END IF;
+
+  RETURN QUERY
+    SELECT j.id, j.country, j.city, j.motif,
+           coalesce((SELECT sum((m->>'jours')::int)
+                       FROM jsonb_array_elements(coalesce(j.data->'motifs', '[]'::jsonb)) m), 0)::int,
+           j.data
+      FROM public.jugements j
+     WHERE j.accuse = p_nom AND j.executee = false
+     ORDER BY j.created_at;
+END;
+$function$;
+
+-- justice_relaxer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_relaxer(p_affaire_id text, p_infraction text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_j record; v_brut text; v_a jsonb; v_ville text; v_pays text; v_jour integer;
+  v_inf text; v_lib text; v_parquet text; v_jug text; v_n integer;
+BEGIN
+  SELECT p.data, p.city, p.country INTO v_brut, v_ville, v_pays
+    FROM public.plaintes_en_cours p WHERE p.id = p_affaire_id FOR UPDATE;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente');
+  END IF;
+  v_a := v_brut::jsonb;
+
+  SELECT * INTO v_j FROM public.juge_de_la_ville(v_ville);
+  IF v_j.nom IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_juge_de_cette_ville', 'ville', v_ville);
+  END IF;
+  -- ON NE RELAXE QUE SUR UNE AFFAIRE REGULIEREMENT SAISIE. Sans saisine, il n'y a rien a juger.
+  IF coalesce(v_a ->> 'status', '') <> 'saisie' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_non_saisie',
+                              'statut', v_a ->> 'status');
+  END IF;
+  -- LE DELAI DE PREMIERE INSTANCE EST OPPOSABLE AU JUGE AUSSI (12 octobre 2026, nuit).
+  IF public.affaire_delai_expire(v_a, v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'delai_de_jugement_expire',
+                              'echeance', (v_a ->> 'delai_jugement_jour')::integer);
+  END IF;
+
+  -- LA RELAXE PORTE SUR UNE QUALIFICATION : on relaxe de QUELQUE CHOSE. Par defaut celle du
+  -- parquet ; le juge peut requalifier avant de relaxer, et les deux restent lisibles.
+  v_parquet := v_a ->> 'qualification_parquet';
+  v_inf := public.infraction_canonique(coalesce(p_infraction, v_parquet));
+  IF v_inf IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'infraction_inconnue',
+                              'demande', coalesce(p_infraction, v_parquet));
+  END IF;
+  SELECT libelle INTO v_lib FROM public.infractions WHERE id = v_inf;
+  SELECT coalesce(d.day, 1) INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_j.nom;
+
+  -- UNE RELAXE EST UN JUGEMENT, et elle a donc sa ligne au registre -- avec `peine` NULL, pas
+  -- une peine de zero. C'est la difference entre « relaxe » et « condamne a rien ».
+  v_jug := 'jug-' || p_affaire_id;
+  INSERT INTO public.jugements (id, country, city, accuse, motif, peine, juge, jour, executee, data)
+  VALUES (v_jug, v_pays, coalesce(v_ville, 'capitale'), v_a ->> 'cible', v_lib, NULL,
+          v_j.nom, coalesce(v_jour, 1), true,
+          jsonb_build_object('verdict', 'relaxe', 'infraction', v_inf,
+            'infraction_libelle', v_lib, 'qualification_parquet', v_parquet,
+            'motif_allegue', v_a ->> 'motif', 'motifs', '[]'::jsonb))
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'jugement_deja_rendu');
+  END IF;
+
+  -- REQUALIFICATION AVANT RELAXE : fait distinct, consigne avant le verdict.
+  IF v_parquet IS NOT NULL AND v_inf IS DISTINCT FROM v_parquet THEN
+    PERFORM public.dossier_acte_consigner(p_affaire_id, v_pays, v_ville,
+      'requalification', v_j.nom, 'juge', v_parquet, v_inf);
+  END IF;
+
+  UPDATE public.plaintes_en_cours
+     SET data = (v_a || jsonb_build_object(
+           'status', 'relaxe',
+           'verdict', 'relaxe',
+           'juge', v_j.nom,
+           'juge_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+           'qualification_finale', v_inf,
+           'qualification_libelle', v_lib))::text
+   WHERE id = p_affaire_id;
+
+  PERFORM public.dossier_acte_consigner(p_affaire_id, v_pays, v_ville, 'relaxe',
+    v_j.nom, 'juge', v_parquet, v_inf, jsonb_build_object('accuse', v_a ->> 'cible'));
+  RETURN jsonb_build_object('ok', true, 'affaire', p_affaire_id, 'verdict', 'relaxe',
+    'jugement_id', v_jug, 'juge', v_j.nom, 'infraction', v_inf, 'libelle', v_lib);
+END;
+$function$;
+
+-- justice_rendre_sentence(text,text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_rendre_sentence(p_affaire_id text, p_infraction text, p_genre text, p_jours integer DEFAULT 0, p_amende integer DEFAULT 0)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_j record; v_brut text; v_a jsonb; v_ville text; v_pays text; v_jour integer;
+  v_calc jsonb; v_jours integer; v_amende integer; v_libelle text; v_peine text;
+  v_jug text; v_n integer; v_motifs jsonb; v_parquet text;
+  v_det record; v_exec jsonb; v_executee boolean := false; v_jour_pays integer;
+BEGIN
+  IF coalesce(btrim(coalesce(p_affaire_id, '')), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_invalide'); END IF;
+
+  SELECT p.data, p.city, p.country INTO v_brut, v_ville, v_pays
+    FROM public.plaintes_en_cours p WHERE p.id = p_affaire_id FOR UPDATE;
+  IF NOT FOUND OR v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente'); END IF;
+  v_a := v_brut::jsonb;
+
+  SELECT * INTO v_j FROM public.juge_de_la_ville(v_ville);
+  IF v_j.nom IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_juge_de_cette_ville', 'ville', v_ville); END IF;
+
+  IF coalesce(v_a ->> 'status', '') <> 'saisie' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_non_saisie',
+                              'statut', v_a ->> 'status'); END IF;
+
+  IF public.affaire_delai_expire(v_a, v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'delai_de_jugement_expire',
+                              'echeance', (v_a ->> 'delai_jugement_jour')::integer); END IF;
+
+  v_calc := public.justice_peine_calcul(p_infraction, p_genre, v_a ->> 'cible', v_pays);
+  IF coalesce((v_calc ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_calc; END IF;
+
+  v_jours  := coalesce(p_jours, 0);
+  v_amende := coalesce(p_amende, 0);
+
+  IF v_jours < (v_calc ->> 'jours_min')::integer
+     OR v_jours > (v_calc ->> 'jours_max')::integer THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'peine_hors_bornes',
+      'demande_jours', v_jours,
+      'jours_min', (v_calc ->> 'jours_min')::integer,
+      'jours_max', (v_calc ->> 'jours_max')::integer,
+      'jours_reference', (v_calc ->> 'jours_reference')::integer);
+  END IF;
+  IF v_amende < (v_calc ->> 'amende_min')::integer
+     OR v_amende > (v_calc ->> 'amende_max')::integer THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'amende_hors_bornes',
+      'demande_amende', v_amende,
+      'amende_min', (v_calc ->> 'amende_min')::integer,
+      'amende_max', (v_calc ->> 'amende_max')::integer,
+      'amende_reference', (v_calc ->> 'amende_reference')::integer);
+  END IF;
+
+  -- DEUX HORLOGES, ET CHACUNE A SA PLACE. `v_jour` est le compteur personnel du juge : il datait
+  -- deja `jugements.jour` avant cette tranche, et le changer reecrirait l'histoire. `v_jour_pays`
+  -- est l'horloge PARTAGEE, et c'est la seule sur laquelle une echeance OPPOSABLE puisse vivre --
+  -- celui qui interjette appel n'est pas le juge.
+  SELECT coalesce(d.day, 1) INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_j.nom;
+  v_jour := coalesce(v_jour, 1);
+  v_jour_pays := coalesce(public.jour_de_jeu_pays(v_pays), 1);
+  v_libelle := v_calc ->> 'libelle';
+  v_parquet := v_a ->> 'qualification_parquet';
+
+  v_peine := CASE p_genre
+    WHEN 'prison'      THEN 'Prison ' || v_jours || ' jour' || CASE WHEN v_jours > 1 THEN 's' ELSE '' END
+    WHEN 'amende'      THEN 'Amende de ' || v_amende || ' FR'
+    WHEN 'amenagement' THEN 'Amenagement : pointage quotidien au commissariat'
+    WHEN 'qhs'         THEN 'Envoi au QHS (' || v_jours || ' jours)'
+    ELSE                    'Prison ' || v_jours || ' jours + popularite a zero'
+  END;
+
+  v_motifs := CASE WHEN v_jours > 0 THEN jsonb_build_array(jsonb_build_object(
+      'type', v_libelle, 'infraction', v_calc ->> 'infraction', 'jours', v_jours,
+      'city', v_ville, 'source', 'jugement',
+      'date_evenement', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+    ELSE '[]'::jsonb END;
+
+  v_jug := 'jug-' || p_affaire_id;
+  INSERT INTO public.jugements (id, country, city, accuse, motif, peine, juge, jour, executee, data)
+  VALUES (v_jug, v_pays, coalesce(v_ville, 'capitale'), v_a ->> 'cible',
+          v_libelle, v_peine, v_j.nom, v_jour, false,
+          jsonb_build_object(
+            'verdict', 'condamnation', 'instance', 'premiere',
+            'infraction', v_calc ->> 'infraction',
+            'infraction_libelle', v_libelle,
+            'genre', p_genre,
+            'jours', v_jours, 'amende', v_amende,
+            'jours_reference', (v_calc ->> 'jours_reference')::integer,
+            'jours_min', (v_calc ->> 'jours_min')::integer,
+            'jours_max', (v_calc ->> 'jours_max')::integer,
+            'amende_reference', (v_calc ->> 'amende_reference')::integer,
+            'jour_pays', v_jour_pays,
+            'appel_jusqu_au_jour_pays', v_jour_pays + public.justice_fenetre_appel_jours(),
+            'categorie_alleguee', v_a ->> 'categorie_alleguee',
+            'motif_allegue', v_a ->> 'motif',
+            'qualification_parquet', v_parquet,
+            'motifs', v_motifs,
+            'issue_judiciaire', v_peine))
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'jugement_deja_rendu');
+  END IF;
+
+  IF v_parquet IS NOT NULL AND (v_calc ->> 'infraction') IS DISTINCT FROM v_parquet THEN
+    PERFORM public.dossier_acte_consigner(p_affaire_id, v_pays, v_ville,
+      'requalification', v_j.nom, 'juge', v_parquet, v_calc ->> 'infraction');
+  END IF;
+
+  IF v_jours > 0 THEN
+    SELECT * INTO v_det FROM public.detention_active(v_a ->> 'cible');
+    IF v_det.id IS NULL THEN
+      v_exec := public.detention_ouvrir_interne(
+                  v_a ->> 'cible', v_libelle, v_jours, coalesce(v_ville, 'capitale'), v_pays,
+                  v_motifs, v_j.nom, coalesce(v_peine, 'condamnation_executee'));
+      IF coalesce((v_exec ->> 'ok')::boolean, false) THEN
+        UPDATE public.jugements SET executee = true WHERE id = v_jug;
+        v_executee := true;
+      END IF;
+    END IF;
+  END IF;
+
+  UPDATE public.plaintes_en_cours
+     SET data = (v_a || jsonb_build_object(
+           'status', 'jugee',
+           'verdict', 'condamnation',
+           'juge', v_j.nom,
+           'juge_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+           'jugement_jour', v_jour,
+           'jugement_jour_pays', v_jour_pays,
+           'appel_jusqu_au_jour', v_jour_pays + public.justice_fenetre_appel_jours(),
+           'qualification_finale', v_calc ->> 'infraction',
+           'qualification_libelle', v_libelle,
+           'peine_genre', p_genre,
+           'peine_jours', v_jours,
+           'peine_amende', v_amende,
+           'peine_libelle', v_peine,
+           'detention_id', v_exec ->> 'detention_id'))::text
+   WHERE id = p_affaire_id;
+
+  PERFORM public.dossier_acte_consigner(p_affaire_id, v_pays, v_ville, 'condamnation',
+    v_j.nom, 'juge', v_parquet, v_calc ->> 'infraction',
+    jsonb_build_object('accuse', v_a ->> 'cible', 'genre', p_genre,
+                       'jours', v_jours, 'amende', v_amende,
+                       'jours_reference', (v_calc ->> 'jours_reference')::integer,
+                       'executee', v_executee, 'instance', 'premiere'));
+
+  RETURN jsonb_build_object('ok', true, 'jugement_id', v_jug, 'affaire', p_affaire_id,
+    'juge', v_j.nom, 'jour', v_jour, 'jugement_cree', true,
+    'infraction', v_calc ->> 'infraction', 'infraction_libelle', v_libelle,
+    'qualification_parquet', v_parquet,
+    'requalifiee', (v_parquet IS NOT NULL AND (v_calc ->> 'infraction') IS DISTINCT FROM v_parquet),
+    'genre', p_genre, 'jours', v_jours, 'amende', v_amende, 'peine', v_peine,
+    'motifs', v_motifs, 'executee', v_executee,
+    'detention_id', v_exec ->> 'detention_id',
+    'appel_jusqu_au_jour', v_jour_pays + public.justice_fenetre_appel_jours());
+END;
+$function$;
+
+-- justice_salle_audience_competente(text,text) -> TABLE(batiment text, piece text) | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_salle_audience_competente(p_pays text, p_ville text)
+ RETURNS TABLE(batiment text, piece text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT s.b,
+         CASE WHEN s.b = 'tribunal' THEN 'salle_audience'
+              WHEN s.b = 'tribunal-local' THEN 'salle_audience_locale'
+              ELSE NULL END
+    FROM (SELECT public.parquet_site_competent(p_pays, p_ville) AS b) s
+   WHERE s.b IS NOT NULL;
+$function$;
+
+-- justice_seuil_procedure_simplifiee_jours() -> integer | sql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.justice_seuil_procedure_simplifiee_jours()
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$ SELECT 2 $function$;
+
+-- justice_statuts_publics() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_statuts_publics()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_p record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT pr.country, pr.city, pr.building_id, pr.room_id INTO v_p
+    FROM public.presences pr WHERE pr.name = v_moi;
+  IF v_p IS NULL THEN
+    RETURN jsonb_build_object('ok', true, 'statuts', '[]'::jsonb);
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'statuts', coalesce((
+    SELECT jsonb_agg(jsonb_build_object(
+             'nom', x.nom, 'recherche', x.recherche, 'inculpe', x.inculpe) ORDER BY x.nom)
+      FROM (
+        SELECT pr.name AS nom,
+               public.justice_est_recherche(pr.name) AS recherche,
+               EXISTS (SELECT 1 FROM public.justice_affaires_vivantes_avec_pv(pr.name)) AS inculpe
+          FROM public.presences pr
+         WHERE pr.country IS NOT DISTINCT FROM v_p.country
+           AND pr.city IS NOT DISTINCT FROM v_p.city
+           AND pr.building_id IS NOT DISTINCT FROM v_p.building_id
+           AND pr.room_id IS NOT DISTINCT FROM v_p.room_id
+      ) x
+      WHERE x.recherche OR x.inculpe), '[]'::jsonb));
+END;
+$function$;
+
+-- parquet_abandonner(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.parquet_abandonner(p_affaire_id text, p_motif text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_g jsonb; v_a jsonb; v_avant text; v_apres text; v_motif text; v_n integer;
+BEGIN
+  v_g := public.parquet_garde(p_affaire_id, ARRAY['poursuites', 'saisie']);
+  IF coalesce((v_g ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_g; END IF;
+  v_a := v_g -> 'affaire';
+  v_avant := v_a ->> 'status';
+  v_motif := nullif(btrim(coalesce(p_motif, '')), '');
+
+  -- Avant saisine : la procedure s'arrete. Apres saisine : le juge doit decider.
+  v_apres := CASE WHEN v_avant = 'saisie' THEN 'abandon_demande' ELSE 'abandonnee' END;
+
+  UPDATE public.plaintes_en_cours
+     SET data = (v_a || jsonb_build_object(
+           'status', v_apres,
+           'abandon_par', v_g ->> 'procureur',
+           'abandon_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+           'abandon_motif_declare', v_motif,
+           'abandon_apres_saisine', (v_avant = 'saisie')))::text
+   WHERE id = p_affaire_id AND (data::jsonb ->> 'status') = v_avant;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'statut_a_change'); END IF;
+
+  PERFORM public.dossier_acte_consigner(p_affaire_id, v_g ->> 'pays', v_g ->> 'ville',
+    'abandon_poursuites', v_g ->> 'procureur', 'procureur', NULL, NULL,
+    jsonb_build_object('apres_saisine', (v_avant = 'saisie'))
+      || CASE WHEN v_motif IS NULL THEN '{}'::jsonb
+              ELSE jsonb_build_object('motif_declare', v_motif) END);
+  RETURN jsonb_build_object('ok', true, 'affaire', p_affaire_id, 'statut', v_apres,
+                            'apres_saisine', (v_avant = 'saisie'));
+END;
+$function$;
+
+-- parquet_dossiers() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.parquet_dossiers()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_p record;
+BEGIN
+  SELECT * INTO v_p FROM public.parquet_moi();
+  IF v_p.nom IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_procureur');
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'procureur', v_p.nom,
+    'dossiers', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+        'id', p.id, 'ville', p.city,
+        'site', public.parquet_site_competent(p.country, p.city),
+        'present', public.acteur_present_sur_site(v_p.nom, p.country, p.city,
+                     public.parquet_site_competent(p.country, p.city), NULL),
+        'dossier', p.data::jsonb,
+        -- La chronologie accompagne le dossier : le parquet doit voir ce qui a deja ete fait.
+        'actes', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                     'rang', a.rang, 'type', a.type, 'libelle', t.libelle,
+                     'acteur', a.acteur, 'poste', a.acteur_poste,
+                     'qualif_avant', a.qualif_avant, 'qualif_apres', a.qualif_apres,
+                     'donnees', a.donnees, 'fait_le', a.fait_le) ORDER BY a.rang), '[]'::jsonb)
+                    FROM public.dossiers_judiciaires_actes a
+                    JOIN public.dossiers_judiciaires_actes_types t ON t.type = a.type
+                   WHERE a.affaire = p.id)
+      ) ORDER BY p.created_at), '[]'::jsonb)
+      FROM public.plaintes_en_cours p
+     WHERE p.country = v_p.pays
+       AND p.data IS NOT NULL AND left(btrim(p.data), 1) = '{'
+       AND (p.data::jsonb ->> 'status') IN
+           ('au_parquet', 'enquete', 'poursuites', 'saisie', 'abandon_demande')));
+END;
+$function$;
+
+-- parquet_enqueter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.parquet_enqueter(p_affaire_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_g jsonb; v_a jsonb; v_n integer;
+BEGIN
+  v_g := public.parquet_garde(p_affaire_id, ARRAY['au_parquet']);
+  IF coalesce((v_g ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_g; END IF;
+  v_a := v_g -> 'affaire';
+
+  UPDATE public.plaintes_en_cours
+     SET data = (v_a || jsonb_build_object(
+           'status', 'enquete',
+           'enquete_par', v_g ->> 'procureur',
+           'enquete_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')))::text
+   WHERE id = p_affaire_id AND (data::jsonb ->> 'status') = 'au_parquet';
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'statut_a_change'); END IF;
+
+  PERFORM public.dossier_acte_consigner(p_affaire_id, v_g ->> 'pays', v_g ->> 'ville',
+    'enquete_diligentee', v_g ->> 'procureur', 'procureur');
+  RETURN jsonb_build_object('ok', true, 'affaire', p_affaire_id, 'statut', 'enquete');
+END;
+$function$;
+
 -- parquet_garde(text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.parquet_garde(p_affaire_id text, p_statuts text[])
  RETURNS jsonb
@@ -441,8 +961,8 @@ BEGIN
     'appel_exclu', true);
 END $function$;
 
--- plainte_deposer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.plainte_deposer(p_cible text, p_motif text, p_categorie text DEFAULT NULL::text)
+-- plainte_deposer(text,text,text,text[]) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.plainte_deposer(p_cible text, p_motif text, p_categorie text DEFAULT NULL::text, p_temoins text[] DEFAULT NULL::text[])
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -452,6 +972,7 @@ DECLARE
   v_nom text; v_pays text; v_ville text; v_jour integer;
   v_id text; v_data jsonb; v_cible text; v_cat text;
   v_pa integer; v_cost integer; v_n integer; v_paye jsonb;
+  v_t text; v_r jsonb; v_cites jsonb := '[]'::jsonb; v_ecartes jsonb := '[]'::jsonb;
 BEGIN
   SELECT d.name, d.country, coalesce(d.current_city, 'capitale'), coalesce(d.day, 1)
     INTO v_nom, v_pays, v_ville, v_jour
@@ -464,19 +985,12 @@ BEGIN
   END IF;
   v_cible := coalesce(nullif(btrim(p_cible), ''), 'X');
 
-  -- LA CATEGORIE ALLEGUEE EST LE PREMIER DES TROIS NIVEAUX DE QUALIFICATION, et c'est une
-  -- DECLARATION du plaignant, pas une charge. Elle est validee contre les quatre categories
-  -- generiques du code penal -- pour qu'elle veuille dire quelque chose -- mais elle n'engage
-  -- rien : le parquet qualifiera ce qu'il veut, et le juge aussi.
   v_cat := nullif(btrim(coalesce(p_categorie, '')), '');
   IF v_cat IS NOT NULL
      AND NOT EXISTS (SELECT 1 FROM public.infractions_categories c WHERE c.id = v_cat) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'categorie_inconnue', 'demande', v_cat);
   END IF;
 
-  -- ANTI-SPAM : une seule plainte EN COURS DE TRAITEMENT par plaignant et par cible. Les statuts
-  -- vivants sont ceux du parquet et du juge ; un dossier clos (non-lieu, arret, relaxe, jugee,
-  -- abandonnee) n'empeche plus de deposer. VERIFIE AVANT LE PAIEMENT : un refus ne coute rien.
   IF EXISTS (SELECT 1 FROM public.plaintes_en_cours p
               WHERE p.country = v_pays
                 AND p.data IS NOT NULL AND left(btrim(p.data), 1) = '{'
@@ -488,7 +1002,6 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'plainte_deja_en_cours');
   END IF;
 
-  -- LE COUT EST LU AU MIROIR, jamais ecrit ici. Fail closed.
   SELECT count(*) INTO v_n FROM public.ordres_couts o WHERE o.fn = 'plainte_police';
   IF v_n <> 1 THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'cout_indetermine',
@@ -496,7 +1009,6 @@ BEGIN
   END IF;
   SELECT o.pa, o.cost INTO v_pa, v_cost FROM public.ordres_couts o WHERE o.fn = 'plainte_police';
 
-  -- LE PAIEMENT PRECEDE LA CREATION, DANS LA MEME TRANSACTION (12 octobre 2026, inchange).
   v_paye := public.payer_ordre(v_nom, 'plainte_police', v_pa, v_cost);
   IF coalesce((v_paye ->> 'ok')::boolean, false) IS NOT TRUE THEN
     RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paye ->> 'raison', 'paiement_refuse'),
@@ -506,9 +1018,6 @@ BEGIN
   v_id := 'plainte-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' ||
           substr(md5(random()::text), 1, 6);
 
-  -- LA PLAINTE EST UNE DECLARATION. Le serveur enregistre « v_nom affirme ceci contre v_cible »,
-  -- et jamais « ceci est vrai ». Aucune instruction, aucune enquete, aucune garde a vue : le
-  -- dossier arrive au parquet et attend.
   v_data := jsonb_build_object(
     'id', v_id, 'auteur', v_nom, 'cible', v_cible, 'motif', p_motif,
     'categorie_alleguee', v_cat,
@@ -523,10 +1032,33 @@ BEGIN
     v_nom, NULL, NULL, NULL,
     jsonb_build_object('cible', v_cible, 'categorie_alleguee', v_cat));
 
+  -- LES TEMOINS DU PLAIGNANT, ICI ET NULLE PART AILLEURS. Meme transaction, meme porte. Un nom
+  -- inconnu ou repete est ECARTE et nomme dans la reponse : il ne fait pas echouer le depot, qui
+  -- est deja paye. Le prevenu lui-meme ne peut pas etre cite comme temoin.
+  IF p_temoins IS NOT NULL THEN
+    FOREACH v_t IN ARRAY p_temoins LOOP
+      v_t := nullif(btrim(coalesce(v_t, '')), '');
+      CONTINUE WHEN v_t IS NULL;
+      IF v_t = v_nom OR v_t = v_cible THEN
+        v_ecartes := v_ecartes || jsonb_build_object('temoin', v_t,
+          'raison', CASE WHEN v_t = v_nom THEN 'pas_soi_meme'
+                         ELSE 'le_prevenu_n_est_pas_temoin' END);
+        CONTINUE;
+      END IF;
+      v_r := public.temoin_citer_interne(v_id, v_pays, v_ville, v_t, v_nom, 'plaignant', v_jour);
+      IF coalesce((v_r ->> 'ok')::boolean, false) THEN
+        v_cites := v_cites || jsonb_build_object('temoin', v_t,
+          'echeance_jour', v_r ->> 'echeance_jour', 'commissariat', v_r ->> 'commissariat');
+      ELSE
+        v_ecartes := v_ecartes || jsonb_build_object('temoin', v_t, 'raison', v_r ->> 'raison');
+      END IF;
+    END LOOP;
+  END IF;
+
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'ville', v_ville,
-                            'statut', 'au_parquet', 'paiement', v_paye);
-END;
-$function$;
+                            'statut', 'au_parquet', 'paiement', v_paye,
+                            'temoins_cites', v_cites, 'temoins_ecartes', v_ecartes);
+END $function$;
 
 -- plainte_instruire_interne(text,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.plainte_instruire_interne(p_pays text, p_ville text, p_cible text, p_motif text, p_instructeur text)
@@ -1381,7 +1913,7 @@ CREATE OR REPLACE FUNCTION public.temoin_citer(p_affaire_id text, p_temoin text)
 AS $function$
 DECLARE
   v_moi text; v_brut text; v_a jsonb; v_ville text; v_pays text; v_t text;
-  v_qualite text; v_p record; v_j record; v_jour integer; v_ech integer; v_rang bigint;
+  v_qualite text; v_p record; v_j record; v_jour integer;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
@@ -1400,11 +1932,11 @@ BEGIN
   IF v_t = coalesce(v_a ->> 'cible', '') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'le_prevenu_n_est_pas_temoin'); END IF;
 
-  -- LES QUATRE AUTORITES, DANS L'ORDRE OU ELLES SE RECONNAISSENT.
+  -- TROIS AUTORITES, ET TROIS SEULEMENT. Le plaignant n'en fait plus partie : il a cite ses
+  -- temoins au depot, dans la transaction de `plainte_deposer`, et il ne recupere jamais ce
+  -- droit -- ni au parquet, ni ailleurs, ni par cette porte.
   v_qualite := NULL;
   IF public.defense_avocat_de(p_affaire_id) = v_moi THEN
-    -- L'AVOCAT PERD CE POUVOIR A L'OUVERTURE DE L'AUDIENCE, et lui seul : le cahier des charges
-    -- ne retire rien au juge ni au parquet, et on ne leur retire donc rien.
     IF public.affaire_audience_ouverte(v_a) THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'audience_ouverte'); END IF;
     v_qualite := 'avocat';
@@ -1414,46 +1946,51 @@ BEGIN
       v_qualite := 'parquet';
     ELSE
       SELECT * INTO v_j FROM public.juge_de_la_ville(v_ville);
-      IF v_j.nom = v_moi THEN
-        v_qualite := 'juge';
-      ELSIF coalesce(v_a ->> 'plaignant', v_a ->> 'auteur') = v_moi
-            AND coalesce(v_a ->> 'status', '') = 'au_parquet' THEN
-        -- LE PLAIGNANT CITE SES TEMOINS AU MOMENT DU DEPOT, et c'est rendu par la fenetre ou son
-        -- dossier n'a encore ete touche par personne : `au_parquet`. Des que le parquet agit, ce
-        -- n'est plus le moment du depot.
-        v_qualite := 'plaignant';
-      END IF;
+      IF v_j.nom = v_moi THEN v_qualite := 'juge'; END IF;
     END IF;
   END IF;
   IF v_qualite IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee'); END IF;
 
-  -- AUCUN FILTRE SUR LE TEMOIN, ET C'EST LA REGLE. N'importe quel PJ, de n'importe quel empire :
-  -- le serveur ne sait pas ce qu'un humain a vu, et il ne doit pas en decider.
-  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = v_t) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'temoin_introuvable'); END IF;
-
   v_jour := coalesce(public.jour_de_jeu_pays(v_pays), 1);
-  v_ech := v_jour + public.justice_delai_convocation_temoin_jours();
+  RETURN public.temoin_citer_interne(p_affaire_id, v_pays, v_ville, v_t, v_moi, v_qualite, v_jour);
+END $function$;
+
+-- temoin_citer_interne(text,text,text,text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.temoin_citer_interne(p_affaire text, p_pays text, p_ville text, p_temoin text, p_par text, p_qualite text, p_jour integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_ech integer; v_rang bigint; v_c record;
+BEGIN
+  -- AUCUN FILTRE SUR LE TEMOIN AU-DELA DE SON EXISTENCE. N'importe quel PJ, de n'importe quel
+  -- empire : le serveur ne sait pas ce qu'un humain a vu, et il ne doit pas en decider.
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = p_temoin) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'temoin_introuvable', 'temoin', p_temoin);
+  END IF;
+
+  v_ech := p_jour + public.justice_delai_convocation_temoin_jours();
+  SELECT * INTO v_c FROM public.temoin_commissariat_competent(p_pays, p_ville);
   BEGIN
     INSERT INTO public.temoins_citations
       (affaire, pays, ville, temoin, cite_par, cite_par_qualite, echeance_jour)
-    VALUES (p_affaire_id, v_pays, v_ville, v_t, v_moi, v_qualite, v_ech)
+    VALUES (p_affaire, p_pays, p_ville, p_temoin, p_par, p_qualite, v_ech)
     RETURNING rang INTO v_rang;
   EXCEPTION WHEN unique_violation THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'temoin_deja_cite');
+    RETURN jsonb_build_object('ok', false, 'raison', 'temoin_deja_cite', 'temoin', p_temoin);
   END;
 
-  PERFORM public.dossier_acte_consigner(p_affaire_id, v_pays, v_ville, 'temoin_cite',
-    v_moi, v_qualite, NULL, NULL,
-    jsonb_build_object('temoin', v_t, 'convocation', 1, 'echeance_jour', v_ech,
-                       'commissariat', (SELECT c.batiment FROM public.temoin_commissariat_competent(v_pays, v_ville) c)));
+  PERFORM public.dossier_acte_consigner(p_affaire, p_pays, p_ville, 'temoin_cite',
+    p_par, p_qualite, NULL, NULL,
+    jsonb_build_object('temoin', p_temoin, 'convocation', 1, 'echeance_jour', v_ech,
+                       'commissariat', v_c.batiment));
 
-  RETURN jsonb_build_object('ok', true, 'citation', v_rang, 'affaire', p_affaire_id,
-    'temoin', v_t, 'par', v_moi, 'qualite', v_qualite,
+  RETURN jsonb_build_object('ok', true, 'citation', v_rang, 'affaire', p_affaire,
+    'temoin', p_temoin, 'par', p_par, 'qualite', p_qualite,
     'convocation', 1, 'echeance_jour', v_ech,
-    'commissariat', (SELECT c.batiment FROM public.temoin_commissariat_competent(v_pays, v_ville) c),
-    'piece', (SELECT c.piece FROM public.temoin_commissariat_competent(v_pays, v_ville) c));
+    'commissariat', v_c.batiment, 'piece', v_c.piece);
 END $function$;
 
 -- temoin_commissariat_competent(text,text) -> TABLE(batiment text, piece text) | sql | SECURITY DEFINER | search_path=public, pg_temp

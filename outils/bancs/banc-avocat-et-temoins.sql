@@ -55,12 +55,22 @@ BEGIN
   UPDATE public.personnages_donnees SET poste = NULL, est_emprisonne = NULL, recherche = '[]'::jsonb
    WHERE name IN (BEN, MARS, LEE, PHIL);
   DELETE FROM public.detentions WHERE nom IN (BEN, MARS, LEE, PHIL);
-  INSERT INTO public.qualifications (id, libelle) VALUES ('banc_droit', 'Banc -- droit')
-  ON CONFLICT (id) DO NOTHING;
-  INSERT INTO public.justice_barreau_qualifications (qualification, note)
-  VALUES ('banc_droit', 'ouverte par le banc uniquement');
-  INSERT INTO public.personnages_qualifications (personnage, qualification, source)
-  VALUES (MARS, 'banc_droit', 'autre'), (LEE, 'banc_droit', 'autre');
+  -- LE BARREAU EST UNE CARRIERE, PLUS UN REGISTRE D'ATTENTE (lot 2, 12 octobre 2026).
+  -- `justice_barreau_qualifications` a ete SUPPRIMEE : l'arbitrage est rendu, et c'est la carriere
+  -- JUSTICE qui qualifie. Le decor donne donc cette carriere aux deux avocats du banc -- l'une
+  -- comme carriere INITIALE, l'autre comme SECONDE carriere, pour que les deux voies soient
+  -- exercees ici aussi.
+  UPDATE public.personnages_donnees SET career = 'magistrat' WHERE name = LEE;
+  UPDATE public.personnages_donnees SET career = 'officer'   WHERE name = MARS;
+  -- PHILEAS DOIT ETRE HORS DU BARREAU, ET EN BASE IL NE L'EST PAS : sa carriere de bêta est
+  -- `magistrat`. Sans cette ligne, le temoin de ce banc etait avocat, s'inscrivait au barreau,
+  -- apparaissait dans la liste offerte au prevenu, et six epreuves tombaient -- pour une raison
+  -- qui n'avait rien a voir avec ce qu'elles mesurent. Le decor nomme ce qu'il exige.
+  UPDATE public.personnages_donnees SET career = 'doctor'    WHERE name = PHIL;
+  DELETE FROM public.carrieres_acquises WHERE personnage IN (LEE, PHIL, BEN);
+  DELETE FROM public.carrieres_acquises WHERE personnage = MARS;
+  INSERT INTO public.carrieres_acquises (personnage, carriere, source)
+  VALUES (MARS, 'magistrat', 'universite');
   v_jour := public.jour_de_jeu_pays('republic');
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     ('banc-av-1', 'republic', 'capitale', jsonb_build_object('id', 'banc-av-1',
@@ -76,9 +86,9 @@ BEGIN
   -- Le registre de production est VIDE : personne n'est avocat tant qu'il l'est.
   n := n + 1;
   IF public.avocat_est_qualifie(PHIL) THEN
-    ko := ko + 1; e := e || E'\nT1 : un joueur sans qualification est avocat'; END IF;
+    ko := ko + 1; e := e || E'\nT1 : un joueur sans la carriere JUSTICE est avocat'; END IF;
   IF NOT public.avocat_est_qualifie(MARS) THEN
-    ko := ko + 1; e := e || E'\nT1 : la qualification du banc n''ouvre pas le barreau'; END IF;
+    ko := ko + 1; e := e || E'\nT1 : la carriere JUSTICE n''ouvre pas le barreau'; END IF;
 
   -- ------------------------- T2 : LA TARIFICATION EXIGE LA QUALIFICATION
   n := n + 1;
@@ -427,6 +437,19 @@ BEGIN
          country = 'republic' WHERE name = LEE;
   UPDATE public.plaintes_en_cours
      SET data = (data::jsonb || '{"status":"saisie"}'::jsonb)::text WHERE id = 'banc-av-1';
+  -- L'AUDIENCE A DESORMAIS UN JOUR ET UN LIEU (lot 6, 12 octobre 2026). Le decor doit donc fixer
+  -- la date, laisser le temps l'atteindre, et POSER LE JUGE DANS SA SALLE -- sans quoi l'ouverture
+  -- est refusee pour `jour_d_audience_non_fixe`, `jour_d_audience_non_venu` ou
+  -- `presence_du_juge_requise`, et ce banc mesurerait l'audience d'avant.
+  UPDATE public.personnages_donnees SET country = 'republic', current_city = 'capitale',
+         current_building = 'tribunal', current_room = 'salle_audience' WHERE name = LEE;
+  v_jour := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.je_suis(LEE_U);
+  v := public.justice_audience_fixer('banc-av-1', v_jour + 3);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nT32 : le jour d''audience ne se fixe pas -- ' || v::text; END IF;
+  PERFORM pg_temp.je_suis_le_serveur();
+  UPDATE public.rp_epoques SET jour_un = jour_un - 3 WHERE pays = 'republic';
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.justice_audience_ouvrir('banc-av-1');
   IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
@@ -488,7 +511,7 @@ BEGIN
    WHERE d.name = PHIL AND (x ->> 'id') = 'banc-infraction';
   IF v_n <> 1 THEN
     ko := ko + 1; e := e || E'\nT34 : la cloture a efface une recherche d''une autre cause'; END IF;
-  UPDATE public.rp_epoques SET jour_un = jour_un + 6 WHERE pays = 'republic';
+  UPDATE public.rp_epoques SET jour_un = jour_un + 9 WHERE pays = 'republic';
 
   IF ko > 0 THEN RAISE EXCEPTION 'banc avocat/temoins : % EPREUVE(S) ROUGE(S) sur % --%', ko, n, e; END IF;
   RAISE EXCEPTION 'banc avocat/temoins : LES % EPREUVES SONT VERTES. -- rien ne doit rester', n;

@@ -393,7 +393,7 @@
    "tbl": "escorts_catalogue"
   },
   {
-   "empreinte": "766bedc126b3efac039ea52274e18e88",
+   "empreinte": "4bedc6c3eb779bd1854078dde840d693",
    "genre": "c",
    "nom": "personnages_qualifications_source_check",
    "tbl": "personnages_qualifications"
@@ -489,9 +489,9 @@
    "tbl": "personnages_qualifications"
   },
   {
-   "empreinte": "3a1ce31b68b4f2a8a1f18bc2e9321eef",
+   "empreinte": "90b53ef2c44d2a2a1061f21b45c23bb9",
    "genre": "f",
-   "nom": "universite_cursus_qualification_fkey",
+   "nom": "universite_cursus_carriere_fkey",
    "tbl": "universite_cursus"
   },
   {
@@ -2025,10 +2025,10 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "9afb928c444960318cd62d756f62670a",
-  "20_fonctions.sql": "a13c6903a5811fab3ab13920570ca2b3",
-  "30_contraintes.sql": "f9816a31f2dcf10c9bbfb14c15364925",
-  "35_index.sql": "dbc7aa210ee7e532a795dc7c2ea196ea",
+  "10_tables.sql": "d566e996751096dc8274fcad6de3ae59",
+  "20_fonctions.sql": "70ecf342abd9e01111a2710178ded840",
+  "30_contraintes.sql": "e44e4568f45b4d5f77867ad9e6e385db",
+  "35_index.sql": "c39f88873aa18751777e33552ec8830d",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "5bf60588e847e0893b8fc78b79437ecc",
   "60_rls-policies.sql": "e3ea354131587a713876db85347fcfab",
@@ -2252,7 +2252,7 @@
    "signature": "universite_abandonner(text)"
   },
   {
-   "empreinte": "5c101fb04cbcd7599ebfcfb2fa884eac",
+   "empreinte": "ca034bc7101d3a54dd0a46f8be105593",
    "security_definer": true,
    "signature": "universite_diplomer(text)"
   },
@@ -2262,7 +2262,7 @@
    "signature": "universite_expirer_echues()"
   },
   {
-   "empreinte": "1ed78be10a63f0a691aeef6abdc7da14",
+   "empreinte": "a638085c993e9bc46b9afff725438713",
    "security_definer": true,
    "signature": "universite_inscrire(text,text)"
   },
@@ -2272,7 +2272,7 @@
    "signature": "universite_jalon_accomplir(text,text)"
   },
   {
-   "empreinte": "1ef4df16e05c053a963db648d9a7db92",
+   "empreinte": "c870bf03851166c4dfe1736d5605f3fb",
    "security_definer": true,
    "signature": "universite_mon_etat()"
   },
@@ -2282,7 +2282,7 @@
    "signature": "universite_plus_semaines(timestamp with time zone,integer)"
   },
   {
-   "empreinte": "3b0c9e4a0a6de720002f480dee0e6b6b",
+   "empreinte": "5ba14d2d03bfb5c617dca03cc97e1ec1",
    "security_definer": true,
    "signature": "universite_slot_consomme(text)"
   }
@@ -2347,10 +2347,6 @@
   {
    "empreinte": "b620c46394a19613fe4d170e52b9700c",
    "nom": "personnages_requisition_idx"
-  },
-  {
-   "empreinte": "b1f5ac438fa063250a059b3d6886af45",
-   "nom": "personnages_une_seule_qualif_universitaire"
   },
   {
    "empreinte": "dbed62cd9d03e5b04649fb2c8f735707",
@@ -3130,8 +3126,8 @@
   },
   {
    "colonnes": 8,
-   "empreinte_catalogue": "c4c0341f3d350137244cd45d4a907f0a",
-   "empreinte_texte": "3bd8a4dce1a9a812848bafc7ab131418",
+   "empreinte_catalogue": "94f9931259dff122cf73f9eba0869fd8",
+   "empreinte_texte": "eebbd6af17dcb7519c66a42eb38590e7",
    "nom": "universite_cursus"
   },
   {

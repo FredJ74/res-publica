@@ -733,6 +733,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'temoins_mes_convocations') { ouvrirTemoinsConvocations(); return; }
   if (fn === 'temoin_deposition') { ouvrirTemoinDepositionDepuisCommissariat(); return; }
   if (fn === 'audience_juge') { ouvrirAudienceJuge(); return; }
+  if (fn === 'audience_salle') { ouvrirAudienceDepuisLaSalle(); return; }
+  if (fn === 'greffe_affaires') { ouvrirAffairesPubliques(); return; }
+  if (fn === 'greffe_archives') { ouvrirArchivesGreffe(); return; }
   // Doublon 'projet_loi' SUPPRIME (chantier Assemblee, 10 septembre 2026). Cette seconde route
   // etait inatteignable -- le test identique plus haut dans cette meme fonction fait return avant.
   // Elle pointait sur ouvrirDeposerProjet(), desormais retiree de plateau-politique.js. Meme

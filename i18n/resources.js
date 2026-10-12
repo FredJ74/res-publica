@@ -202,7 +202,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "Carrieres disponibles selon votre niveau d'etudes ({{school}}).",
-          locked: "Non disponible avec votre niveau d'etudes"
+          locked: "Non disponible avec votre niveau d'etudes",
+          consequence: "Votre carriere determine les professions specialisees auxquelles votre personnage pourra acceder. Vous pourrez acquerir une seule autre carriere au cours de son existence."
+        },
+        conseiller: {
+          title: "Quel personnage aimeriez-vous incarner ?",
+          intro: "Decrivez librement ce que vous aimeriez devenir, ce que vous aimeriez accomplir, ou le genre de personnage que vous imaginez. Si vous ne savez pas encore, dites-le : c'est une reponse comme une autre.",
+          placeholder: "Par exemple : « je voudrais defendre des gens au tribunal », « monter une affaire », « je ne sais pas encore, je decouvre »...",
+          ask: "Proposer mon parcours",
+          skip: "Je prefere choisir seul",
+          pending: "Un instant...",
+          unavailable: "Le conseiller n'est pas joignable pour le moment. Vous pouvez poursuivre la creation normalement.",
+          libre: "Ce n'est qu'une proposition : vous choisissez librement a chaque etape.",
+          hint: "Parcours conseille"
         },
         review: {
           lifePath: "Parcours de vie",
@@ -277,15 +289,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "Hautes ecoles", blockLabel: "Toutes carrieres accessibles + bonus de reseau" }
         },
         archetypes: {
-          politician: { name: "Ambitieux", description: "Seduction et persuasion. Le pouvoir est votre oxygene." },
-          authoritarian: { name: "Ordre et discipline", description: "La hierarchie et la force. L'ordre est la seule vraie valeur." },
-          oligarch: { name: "Capitaliste", description: "L'argent est la mesure de toutes choses." },
-          informer: { name: "Diffuseur d'informations", description: "L'information est votre arme et votre raison d'etre." },
-          legalist: { name: "Legaliste", description: "Les regles, les textes, les procedures. Vous savez comment les plier." },
-          believer: { name: "Homme de foi", description: "Une conviction profonde vous anime. Elle mobilise les foules." },
-          shadow: { name: "Homme de l'ombre", description: "Infiltration, manipulation, double jeu. Vous n'existez pas officiellement." },
-          anticapitalist: { name: "Anti-capitaliste", description: "Vous combattez le systeme. La justice sociale est votre etendard." },
-          criminal: { name: "Criminel", description: "En dehors des lois. Vos propres regles, bien plus efficaces." }
+          politician: { name: "Ambitieux", description: "Convaincre, entreprendre, conquerir des positions. Le pouvoir et la reussite l'attirent." },
+          authoritarian: { name: "Autoritaire", description: "Discipline, resistance, rapport de force. Il croit volontiers a l'ordre et a l'autorite." },
+          oligarch: { name: "Calculateur", description: "Raisonnement froid, interet, anticipation, manoeuvre." },
+          informer: { name: "Curieux", description: "Observer, comprendre, chercher l'information." },
+          legalist: { name: "Legaliste", description: "Regles, textes, procedures, rigueur -- et connaissance de leurs limites." },
+          believer: { name: "Idealiste", description: "Convictions, mobilisation, engagement." },
+          shadow: { name: "Manipulateur", description: "Dissimulation, influence indirecte, infiltration, double jeu." },
+          anticapitalist: { name: "Solidaire", description: "Loyaute collective, engagement, resistance, entraide." },
+          criminal: { name: "Transgressif", description: "Gout du risque, refus des regles, determination." }
         },
         careers: {
           officer: { name: "Armee — Officier superieur / Mercenaire", comp: "Commandement, Intimidation" },
@@ -439,7 +451,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "Careers available based on your education level ({{school}}).",
-          locked: "Not available with your education level"
+          locked: "Not available with your education level",
+          consequence: "Your career determines which specialised professions your character will be able to enter. You will be able to acquire one single other career over the course of their life."
+        },
+        conseiller: {
+          title: "Who would you like to play?",
+          intro: "Describe freely what you would like to become, what you would like to achieve, or the kind of character you have in mind. If you do not know yet, say so: that is an answer like any other.",
+          placeholder: "For example: « I would like to defend people in court », « build a business », « I do not know yet, I am just discovering »...",
+          ask: "Suggest a path",
+          skip: "I would rather choose myself",
+          pending: "One moment...",
+          unavailable: "The adviser cannot be reached right now. You can carry on with the creation as usual.",
+          libre: "This is only a suggestion: you choose freely at every step.",
+          hint: "Suggested path"
         },
         review: {
           lifePath: "Life Path",
@@ -511,15 +535,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "Elite Schools", blockLabel: "All careers accessible + networking bonus" }
         },
         archetypes: {
-          politician: { name: "Ambitious", description: "Charm and persuasion. Power is your oxygen." },
-          authoritarian: { name: "Law and Order", description: "Hierarchy and force. Order is the only real value." },
-          oligarch: { name: "Capitalist", description: "Money is the measure of all things." },
-          informer: { name: "Information Broker", description: "Information is your weapon and your reason for being." },
-          legalist: { name: "Legalist", description: "Rules, texts, procedures. You know exactly how to bend them." },
-          believer: { name: "Person of Faith", description: "A deep conviction drives you. It moves crowds." },
-          shadow: { name: "Shadow Operator", description: "Infiltration, manipulation, double-dealing. Officially, you don't exist." },
-          anticapitalist: { name: "Anti-Capitalist", description: "You fight the system. Social justice is your banner." },
-          criminal: { name: "Criminal", description: "Outside the law. Your own rules, far more effective." }
+          politician: { name: "Ambitious", description: "Persuading, building, winning positions. Power and success draw them in." },
+          authoritarian: { name: "Authoritarian", description: "Discipline, endurance, the balance of force. Order and authority come naturally." },
+          oligarch: { name: "Calculating", description: "Cold reasoning, self-interest, anticipation, manoeuvre." },
+          informer: { name: "Curious", description: "Observing, understanding, going after information." },
+          legalist: { name: "Legalist", description: "Rules, texts, procedures, rigour -- and knowing where they end." },
+          believer: { name: "Idealist", description: "Convictions, mobilisation, commitment." },
+          shadow: { name: "Manipulator", description: "Concealment, indirect influence, infiltration, double games." },
+          anticapitalist: { name: "Solidary", description: "Collective loyalty, commitment, resistance, mutual aid." },
+          criminal: { name: "Transgressive", description: "A taste for risk, a refusal of rules, determination." }
         },
         careers: {
           officer: { name: "Army — Senior Officer / Mercenary", comp: "Command, Intimidation" },
@@ -643,7 +667,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "Carreras disponibles según tu nivel de estudios ({{school}}).",
-          locked: "No disponible con tu nivel de estudios"
+          locked: "No disponible con tu nivel de estudios",
+          consequence: "Tu carrera determina las profesiones especializadas a las que tu personaje podra acceder. Podras adquirir una sola otra carrera a lo largo de su existencia."
+        },
+        conseiller: {
+          title: "¿Que personaje te gustaria encarnar?",
+          intro: "Describe libremente en que te gustaria convertirte, que te gustaria lograr, o el tipo de personaje que imaginas. Si aun no lo sabes, dilo: es una respuesta como cualquier otra.",
+          placeholder: "Por ejemplo: « querria defender a gente en los tribunales », « montar un negocio », « aun no lo se, estoy descubriendo »...",
+          ask: "Proponer mi recorrido",
+          skip: "Prefiero elegir yo",
+          pending: "Un momento...",
+          unavailable: "El consejero no esta disponible por ahora. Puedes continuar la creacion con normalidad.",
+          libre: "Es solo una propuesta: eliges libremente en cada etapa.",
+          hint: "Recorrido sugerido"
         },
         review: {
           lifePath: "Trayectoria vital",
@@ -709,15 +745,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "Grandes escuelas", blockLabel: "Todas las carreras accesibles + bonificación de contactos" }
         },
         archetypes: {
-          politician: { name: "Ambicioso", description: "Seducción y persuasión. El poder es tu oxígeno." },
-          authoritarian: { name: "Orden y disciplina", description: "La jerarquía y la fuerza. El orden es el único valor verdadero." },
-          oligarch: { name: "Capitalista", description: "El dinero es la medida de todas las cosas." },
-          informer: { name: "Difusor de información", description: "La información es tu arma y tu razón de ser." },
-          legalist: { name: "Legalista", description: "Las normas, los textos, los procedimientos. Sabes exactamente cómo doblegarlos." },
-          believer: { name: "Hombre de fe", description: "Una convicción profunda te anima. Moviliza a las masas." },
-          shadow: { name: "Hombre de las sombras", description: "Infiltración, manipulación, doble juego. Oficialmente, no existes." },
-          anticapitalist: { name: "Anticapitalista", description: "Combates el sistema. La justicia social es tu bandera." },
-          criminal: { name: "Criminal", description: "Al margen de la ley. Tus propias reglas, mucho más eficaces." }
+          politician: { name: "Ambicioso", description: "Convencer, emprender, conquistar posiciones. El poder y el exito le atraen." },
+          authoritarian: { name: "Autoritario", description: "Disciplina, resistencia, relacion de fuerzas. Cree de buen grado en el orden y la autoridad." },
+          oligarch: { name: "Calculador", description: "Razonamiento frio, interes, anticipacion, maniobra." },
+          informer: { name: "Curioso", description: "Observar, comprender, buscar la informacion." },
+          legalist: { name: "Legalista", description: "Normas, textos, procedimientos, rigor -- y conocimiento de sus limites." },
+          believer: { name: "Idealista", description: "Convicciones, movilizacion, compromiso." },
+          shadow: { name: "Manipulador", description: "Disimulo, influencia indirecta, infiltracion, doble juego." },
+          anticapitalist: { name: "Solidario", description: "Lealtad colectiva, compromiso, resistencia, ayuda mutua." },
+          criminal: { name: "Transgresor", description: "Gusto por el riesgo, rechazo de las normas, determinacion." }
         },
         careers: {
           officer: { name: "Ejército — Oficial superior / Mercenario", comp: "Mando, Intimidación" },
@@ -850,7 +886,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "可選職業取決於你的學歷（{{school}}）。",
-          locked: "以你目前的學歷無法選擇"
+          locked: "以你目前的學歷無法選擇",
+          consequence: "你的職業決定了角色日後能進入哪些專業領域。在他的一生中，你只能再取得一個職業。"
+        },
+        conseiller: {
+          title: "您想扮演什麼樣的角色？",
+          intro: "請自由描述您想成為什麼樣的人、想完成什麼事，或您心中設想的角色類型。若您還不確定，直說無妨：那也是一種回答。",
+          placeholder: "例如：「我想在法庭上為人辯護」、「我想創一番事業」、「我還不知道，先四處看看」……",
+          ask: "為我建議一條路",
+          skip: "我自己選就好",
+          pending: "請稍候……",
+          unavailable: "顧問目前無法連線。您可以照常繼續創建角色。",
+          libre: "這只是建議：每一步您都可以自由選擇。",
+          hint: "建議路線"
         },
         review: {
           lifePath: "人生歷程",
@@ -916,15 +964,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "頂尖名校", blockLabel: "所有職業皆可選擇，並附加人脈加成" }
         },
         archetypes: {
-          politician: { name: "野心家", description: "魅力與說服力兼具，權力就是你的氧氣。" },
-          authoritarian: { name: "秩序與紀律", description: "階級與武力至上，秩序是唯一真正的價值。" },
-          oligarch: { name: "資本家", description: "金錢是衡量一切的標準。" },
-          informer: { name: "情報散播者", description: "情報是你的武器，也是你存在的理由。" },
-          legalist: { name: "法制派", description: "規則、條文、程序——你最清楚該怎麼鑽漏洞。" },
-          believer: { name: "信仰之人", description: "堅定的信念驅動著你，也能號召群眾。" },
-          shadow: { name: "幕後黑手", description: "滲透、操控、腳踏兩條船——你在檯面上根本不存在。" },
-          anticapitalist: { name: "反資本主義者", description: "你與體制對抗，社會正義是你高舉的旗幟。" },
-          criminal: { name: "罪犯", description: "逍遙法外，你自訂的規則反而更有效率。" }
+          politician: { name: "野心家", description: "說服、開創、爭取位置。權力與成功吸引著他。" },
+          authoritarian: { name: "威權者", description: "紀律、堅忍、力量對比。他樂於相信秩序與權威。" },
+          oligarch: { name: "謀算者", description: "冷靜推理、利害計算、預判、布局。" },
+          informer: { name: "好奇者", description: "觀察、理解、追尋情報。" },
+          legalist: { name: "法條派", description: "規則、條文、程序、嚴謹——以及它們的界限。" },
+          believer: { name: "理想主義者", description: "信念、動員、投入。" },
+          shadow: { name: "操縱者", description: "隱匿、間接影響、滲透、兩面手法。" },
+          anticapitalist: { name: "互助者", description: "集體忠誠、投入、抵抗、互相扶持。" },
+          criminal: { name: "越界者", description: "好冒險、拒斥規則、意志堅定。" }
         },
         careers: {
           officer: { name: "軍旅 — 高階軍官／傭兵", comp: "統御、威嚇" },
@@ -1069,7 +1117,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "Доступные карьеры зависят от вашего уровня образования ({{school}}).",
-          locked: "Недоступно при вашем уровне образования"
+          locked: "Недоступно при вашем уровне образования",
+          consequence: "Ваша карьера определяет, к каким специализированным профессиям персонаж получит доступ. За всю его жизнь вы сможете приобрести лишь одну другую карьеру."
+        },
+        conseiller: {
+          title: "Каким персонажем вы хотели бы играть?",
+          intro: "Опишите свободно, кем вы хотели бы стать, чего хотели бы добиться, или какого персонажа вы себе представляете. Если вы ещё не знаете — так и скажите: это такой же ответ, как любой другой.",
+          placeholder: "Например: «я хотел бы защищать людей в суде», «создать своё дело», «я ещё не знаю, только осматриваюсь»...",
+          ask: "Предложить мне путь",
+          skip: "Я предпочитаю выбрать сам",
+          pending: "Одну минуту...",
+          unavailable: "Советник сейчас недоступен. Вы можете спокойно продолжить создание персонажа.",
+          libre: "Это лишь предложение: на каждом шаге вы выбираете свободно.",
+          hint: "Предлагаемый путь"
         },
         review: {
           lifePath: "Жизненный путь",
@@ -1135,15 +1195,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "Элитные вузы", blockLabel: "Все карьеры доступны + бонус к связям" }
         },
         archetypes: {
-          politician: { name: "Честолюбец", description: "Обаяние и убеждение. Власть — ваш кислород." },
-          authoritarian: { name: "Порядок и дисциплина", description: "Иерархия и сила. Порядок — единственная настоящая ценность." },
-          oligarch: { name: "Капиталист", description: "Деньги — мера всех вещей." },
-          informer: { name: "Распространитель информации", description: "Информация — ваше оружие и смысл существования." },
-          legalist: { name: "Законник", description: "Правила, тексты, процедуры. Вы точно знаете, как их обойти." },
-          believer: { name: "Человек веры", description: "Вами движет глубокая убеждённость. Она поднимает толпы." },
-          shadow: { name: "Человек тени", description: "Внедрение, манипуляции, двойная игра. Официально вас не существует." },
-          anticapitalist: { name: "Антикапиталист", description: "Вы боретесь с системой. Социальная справедливость — ваше знамя." },
-          criminal: { name: "Преступник", description: "Вне закона. Ваши собственные правила гораздо эффективнее." }
+          politician: { name: "Честолюбец", description: "Убеждать, предпринимать, завоёвывать позиции. Власть и успех его притягивают." },
+          authoritarian: { name: "Авторитарный", description: "Дисциплина, стойкость, соотношение сил. Он охотно верит в порядок и власть." },
+          oligarch: { name: "Расчётливый", description: "Холодный расчёт, интерес, предвидение, манёвр." },
+          informer: { name: "Любопытный", description: "Наблюдать, понимать, искать информацию." },
+          legalist: { name: "Законник", description: "Правила, тексты, процедуры, строгость — и знание их пределов." },
+          believer: { name: "Идеалист", description: "Убеждения, мобилизация, вовлечённость." },
+          shadow: { name: "Манипулятор", description: "Сокрытие, косвенное влияние, внедрение, двойная игра." },
+          anticapitalist: { name: "Солидарный", description: "Коллективная верность, вовлечённость, сопротивление, взаимопомощь." },
+          criminal: { name: "Нарушитель", description: "Вкус к риску, отказ от правил, решимость." }
         },
         careers: {
           officer: { name: "Армия — Старший офицер / Наёмник", comp: "Командование, Запугивание" },
@@ -1283,7 +1343,19 @@ window.RP_I18N_RESOURCES = {
         },
         career: {
           info: "학력 수준({{school}})에 따라 선택 가능한 직업이 달라집니다.",
-          locked: "현재 학력으로는 선택할 수 없음"
+          locked: "현재 학력으로는 선택할 수 없음",
+          consequence: "직업은 당신의 인물이 앞으로 진입할 수 있는 전문 직종을 결정합니다. 그의 일생 동안 단 하나의 다른 직업만 더 얻을 수 있습니다."
+        },
+        conseiller: {
+          title: "어떤 인물을 연기하고 싶으신가요?",
+          intro: "무엇이 되고 싶은지, 무엇을 이루고 싶은지, 또는 어떤 인물을 떠올리고 있는지 자유롭게 적어 주세요. 아직 모르겠다면 그렇게 말씀하셔도 됩니다. 그것도 하나의 답입니다.",
+          placeholder: "예: 「법정에서 사람들을 변호하고 싶다」, 「사업을 일으키고 싶다」, 「아직 모르겠고 둘러보는 중이다」…",
+          ask: "경로를 제안받기",
+          skip: "직접 고르겠습니다",
+          pending: "잠시만요…",
+          unavailable: "지금은 조언자에게 연결할 수 없습니다. 그대로 캐릭터 생성을 이어가셔도 됩니다.",
+          libre: "제안일 뿐입니다. 각 단계에서 자유롭게 선택하세요.",
+          hint: "추천 경로"
         },
         review: {
           lifePath: "인생 여정",
@@ -1349,15 +1421,15 @@ window.RP_I18N_RESOURCES = {
           elite: { name: "명문 학교", blockLabel: "모든 직업 선택 가능 + 인맥 보너스" }
         },
         archetypes: {
-          politician: { name: "야심가", description: "매력과 설득력. 권력은 당신의 산소입니다." },
-          authoritarian: { name: "질서와 규율", description: "위계와 힘. 질서만이 유일한 진짜 가치입니다." },
-          oligarch: { name: "자본가", description: "돈이 모든 것의 척도입니다." },
-          informer: { name: "정보 유포자", description: "정보는 당신의 무기이자 존재 이유입니다." },
-          legalist: { name: "법치주의자", description: "규칙, 조문, 절차. 그것들을 어떻게 구부릴지 정확히 알고 있습니다." },
-          believer: { name: "신념의 사람", description: "깊은 신념이 당신을 움직이며, 그것이 대중을 움직입니다." },
-          shadow: { name: "그림자의 사람", description: "잠입, 조종, 이중 플레이. 공식적으로 당신은 존재하지 않습니다." },
-          anticapitalist: { name: "반자본주의자", description: "당신은 체제에 맞서 싸웁니다. 사회 정의가 당신의 깃발입니다." },
-          criminal: { name: "범죄자", description: "법의 바깥에서, 훨씬 더 효율적인 당신만의 규칙을 따릅니다." }
+          politician: { name: "야심가", description: "설득하고, 일을 벌이고, 자리를 차지합니다. 권력과 성공이 그를 끌어당깁니다." },
+          authoritarian: { name: "권위주의자", description: "규율, 인내, 힘의 균형. 질서와 권위를 기꺼이 믿습니다." },
+          oligarch: { name: "계산적인 사람", description: "냉철한 추론, 이해관계, 예측, 책략." },
+          informer: { name: "호기심 많은 사람", description: "관찰하고, 이해하고, 정보를 찾습니다." },
+          legalist: { name: "법률가형", description: "규칙, 조문, 절차, 엄밀함 — 그리고 그 한계에 대한 이해." },
+          believer: { name: "이상주의자", description: "신념, 동원, 헌신." },
+          shadow: { name: "조종자", description: "은폐, 간접적 영향력, 잠입, 이중 플레이." },
+          anticapitalist: { name: "연대하는 사람", description: "집단에 대한 충실함, 헌신, 저항, 상호부조." },
+          criminal: { name: "일탈자", description: "위험을 즐기고, 규칙을 거부하며, 결의가 굳습니다." }
         },
         careers: {
           officer: { name: "군대 — 고위 장교 / 용병", comp: "지휘, 위협" },

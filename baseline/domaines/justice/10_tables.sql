@@ -23,6 +23,17 @@ CREATE TABLE public.actions_tracables (
   decouvert boolean DEFAULT false
 );
 
+CREATE TABLE public.audience_messages (
+  rang bigserial NOT NULL,
+  affaire text NOT NULL,
+  pays text NOT NULL,
+  ville text NOT NULL,
+  auteur text NOT NULL,
+  qualite text NOT NULL,
+  texte text NOT NULL,
+  dit_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.audience_paroles (
   affaire text NOT NULL,
   personne text NOT NULL,
@@ -177,8 +188,10 @@ CREATE TABLE public.justice_avocats_commis (
   cha integer NOT NULL
 );
 
-CREATE TABLE public.justice_barreau_qualifications (
-  qualification text NOT NULL,
+CREATE TABLE public.justice_faits_publics (
+  type_acte text NOT NULL,
+  chronique_type text NOT NULL,
+  phrase text NOT NULL,
   note text
 );
 

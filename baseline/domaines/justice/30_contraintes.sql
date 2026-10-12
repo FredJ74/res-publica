@@ -12,6 +12,7 @@
 
 -- CLES PRIMAIRES
 ALTER TABLE public.actions_tracables ADD CONSTRAINT actions_tracables_pkey PRIMARY KEY (id);
+ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_pkey PRIMARY KEY (rang);
 ALTER TABLE public.audience_paroles ADD CONSTRAINT audience_paroles_pk PRIMARY KEY (affaire, personne);
 ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_pk PRIMARY KEY (nom);
 ALTER TABLE public.defenses_demandes ADD CONSTRAINT defenses_demandes_pk PRIMARY KEY (rang);
@@ -27,7 +28,7 @@ ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_
 ALTER TABLE public.infractions_empreinte ADD CONSTRAINT infractions_empreinte_pkey PRIMARY KEY (seul);
 ALTER TABLE public.jugements ADD CONSTRAINT jugements_pkey PRIMARY KEY (id);
 ALTER TABLE public.justice_avocats_commis ADD CONSTRAINT justice_avocats_commis_pk PRIMARY KEY (pays, ville);
-ALTER TABLE public.justice_barreau_qualifications ADD CONSTRAINT justice_barreau_qualifications_pk PRIMARY KEY (qualification);
+ALTER TABLE public.justice_faits_publics ADD CONSTRAINT justice_faits_publics_pkey PRIMARY KEY (type_acte);
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_pkey PRIMARY KEY (id);
 ALTER TABLE public.niveaux_prison ADD CONSTRAINT niveaux_prison_pkey PRIMARY KEY (id);
 ALTER TABLE public.plaintes_en_cours ADD CONSTRAINT plaintes_en_cours_pkey PRIMARY KEY (id);
@@ -44,6 +45,9 @@ ALTER TABLE public.impacts_indices_attente ADD CONSTRAINT impacts_indices_attent
 ALTER TABLE public.temoins_citations ADD CONSTRAINT temoins_citations_une_par_affaire UNIQUE (affaire, temoin);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_qualite_check CHECK ((qualite = ANY (ARRAY['juge'::text, 'procureur'::text, 'prevenu'::text, 'avocat'::text, 'temoin'::text])));
+ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_texte_borne CHECK ((length(texte) <= 4000));
+ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_texte_non_vide CHECK ((btrim(texte) <> ''::text));
 ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_tarification_bornee CHECK ((length(tarification) <= 200));
 ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_tarification_non_vide CHECK ((btrim(tarification) <> ''::text));
 ALTER TABLE public.defenses_demandes ADD CONSTRAINT defenses_demandes_etat CHECK ((etat = ANY (ARRAY['en_attente'::text, 'acceptee'::text, 'refusee'::text, 'caduque'::text, 'revoquee'::text, 'abandonnee'::text])));
@@ -81,3 +85,4 @@ ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaire
 ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaires_actes_type_fkey FOREIGN KEY (type) REFERENCES dossiers_judiciaires_actes_types(type);
 ALTER TABLE public.infractions ADD CONSTRAINT infractions_categorie_fkey FOREIGN KEY (categorie) REFERENCES infractions_categories(id);
 ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_canonique_fkey FOREIGN KEY (canonique) REFERENCES infractions(id);
+ALTER TABLE public.justice_faits_publics ADD CONSTRAINT justice_faits_publics_type_acte_fkey FOREIGN KEY (type_acte) REFERENCES dossiers_judiciaires_actes_types(type);
