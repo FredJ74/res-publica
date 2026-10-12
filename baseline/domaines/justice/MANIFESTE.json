@@ -7,6 +7,12 @@
    "sous": "provenance"
   },
   {
+   "empreinte": "9ace2946d7434ea7e76dc8b8175060b0",
+   "genre": "COLUMN",
+   "objet": "infractions",
+   "sous": "libelle"
+  },
+  {
    "empreinte": "fa7609a076729e2e174a76b317e105b1",
    "genre": "FUNCTION",
    "objet": "detention_clore_evasion()",
@@ -73,9 +79,69 @@
    "sous": ""
   },
   {
-   "empreinte": "dd224bc610a059f032d18e4f7c8729ec",
+   "empreinte": "3423fcb4303d475323ea7644fa650645",
    "genre": "FUNCTION",
-   "objet": "justice_rendre_sentence(jsonb,text)",
+   "objet": "infraction_canonique(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c3f7d920f0f187dc8732065be508c31c",
+   "genre": "FUNCTION",
+   "objet": "infraction_peine_bornes(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1f9051de56bcb8abb2a3d9004a0d95dc",
+   "genre": "FUNCTION",
+   "objet": "infractions_empreinte_reelle()",
+   "sous": ""
+  },
+  {
+   "empreinte": "522899316d943d7fb3c97695ba87b765",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_calcul(text,text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ecf424f73eb60ae42f96837dd4e50d47",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_proposer(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "fc3096cbf3544cc143d6a712e3763908",
+   "genre": "FUNCTION",
+   "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
+   "sous": ""
+  },
+  {
+   "empreinte": "ef8e84c9d2a64260986568273a55dceb",
+   "genre": "FUNCTION",
+   "objet": "plainte_deposer(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1ade4bacdc1f66e1604bd6fd422a2d91",
+   "genre": "TABLE",
+   "objet": "infractions",
+   "sous": ""
+  },
+  {
+   "empreinte": "72530a64e14d4af18663fed82cc2b49c",
+   "genre": "TABLE",
+   "objet": "infractions_alias",
+   "sous": ""
+  },
+  {
+   "empreinte": "6a905b42def27a08de892f7db124e638",
+   "genre": "TABLE",
+   "objet": "infractions_categories",
+   "sous": ""
+  },
+  {
+   "empreinte": "2650b392f09f586b77cbd105756c97df",
+   "genre": "TABLE",
+   "objet": "infractions_empreinte",
    "sous": ""
   }
  ],
@@ -103,6 +169,30 @@
    "genre": "p",
    "nom": "impacts_indices_attente_pkey",
    "tbl": "impacts_indices_attente"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "infractions_pkey",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "276cb6eac4b1f6fcbf1243adb664b9ae",
+   "genre": "p",
+   "nom": "infractions_alias_pkey",
+   "tbl": "infractions_alias"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "infractions_categories_pkey",
+   "tbl": "infractions_categories"
+  },
+  {
+   "empreinte": "a3a391f03ff44069bb1af29828fff55a",
+   "genre": "p",
+   "nom": "infractions_empreinte_pkey",
+   "tbl": "infractions_empreinte"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -145,6 +235,60 @@
    "genre": "u",
    "nom": "impacts_indices_attente_id_unique",
    "tbl": "impacts_indices_attente"
+  },
+  {
+   "empreinte": "60724236afb6b1e508f06ca7c5851ead",
+   "genre": "c",
+   "nom": "infractions_amende_reference_check",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "901554a662ef26bd6df1d7b6704d580b",
+   "genre": "c",
+   "nom": "infractions_detect_rate_check",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "2358589d109ab43b02171fb383adbade",
+   "genre": "c",
+   "nom": "infractions_jours_reference_check",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "80a203deb928092fd4f7d62c0f1a50da",
+   "genre": "c",
+   "nom": "infractions_alias_pas_sur_soi",
+   "tbl": "infractions_alias"
+  },
+  {
+   "empreinte": "60724236afb6b1e508f06ca7c5851ead",
+   "genre": "c",
+   "nom": "infractions_categories_amende_reference_check",
+   "tbl": "infractions_categories"
+  },
+  {
+   "empreinte": "2358589d109ab43b02171fb383adbade",
+   "genre": "c",
+   "nom": "infractions_categories_jours_reference_check",
+   "tbl": "infractions_categories"
+  },
+  {
+   "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
+   "genre": "c",
+   "nom": "infractions_empreinte_seul_check",
+   "tbl": "infractions_empreinte"
+  },
+  {
+   "empreinte": "1bd20deacb6d439be92a843db7874b02",
+   "genre": "f",
+   "nom": "infractions_categorie_fkey",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "2ad5039d3d3381cb74ccfce2ccb7f8f1",
+   "genre": "f",
+   "nom": "infractions_alias_canonique_fkey",
+   "tbl": "infractions_alias"
   }
  ],
  "domaine": "justice",
@@ -578,6 +722,54 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "infraction_canonique(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "infraction_canonique(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "infraction_canonique(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "infraction_peine_bornes(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "infraction_peine_bornes(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "infraction_peine_bornes(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "infractions_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "infractions_empreinte_reelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "justice_condamner(text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -609,6 +801,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_executer_condamnation(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_calcul(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_calcul(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_proposer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_proposer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_peine_proposer(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -650,19 +872,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "justice_rendre_sentence(jsonb,text)",
+   "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "justice_rendre_sentence(jsonb,text)",
+   "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "justice_rendre_sentence(jsonb,text)",
+   "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -960,6 +1182,54 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "infractions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "infractions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "infractions_alias",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "infractions_alias",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "infractions_categories",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "infractions_categories",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "infractions_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "infractions_empreinte",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "jugements",
@@ -1210,14 +1480,14 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "9051d487b775850d7c41d22f73104ed9",
-  "20_fonctions.sql": "c0ab3d76d2733483c4fcddc34709fe5c",
-  "30_contraintes.sql": "cb6e150683c147be48f610d05aff7745",
-  "35_index.sql": "35101f33980b68952e56850552b2d06a",
+  "10_tables.sql": "3c8fbefddafa5669e77ba3db05a8d664",
+  "20_fonctions.sql": "061ec2e9f054a66b5b03d94a52b5a40e",
+  "30_contraintes.sql": "64bd14cfb7d1150cb709750e581bd4c4",
+  "35_index.sql": "0850c863067c951a3b0c01715f4cb4b0",
   "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
-  "60_rls-policies.sql": "fa6dc4a99251b76823e655ef97878425",
-  "70_droits.sql": "10bc50178c150f3015fdf74f53101f95",
-  "80_commentaires.sql": "b0ad951c175ff4bdced69d8ad6389629"
+  "60_rls-policies.sql": "21c40d6d97eef7be36c4d0a7eb4cc2c9",
+  "70_droits.sql": "49b1796c84153839811ced6981fdfa19",
+  "80_commentaires.sql": "de0441e8c9b7181ab16cc0bd9d8b474a"
  },
  "fonctions": [
   {
@@ -1346,6 +1616,21 @@
    "signature": "impact_marquer_traite(text)"
   },
   {
+   "empreinte": "66acac3ccdfaebf531da16f49ffb941d",
+   "security_definer": true,
+   "signature": "infraction_canonique(text)"
+  },
+  {
+   "empreinte": "ad884ec496b20c3a0c652d0623f4fe9e",
+   "security_definer": true,
+   "signature": "infraction_peine_bornes(text)"
+  },
+  {
+   "empreinte": "bdca543799c4134228b83a479569bbf8",
+   "security_definer": true,
+   "signature": "infractions_empreinte_reelle()"
+  },
+  {
    "empreinte": "f82a56326e4d5bc9810ddaa8eb143335",
    "security_definer": true,
    "signature": "justice_condamner(text,jsonb)"
@@ -1354,6 +1639,16 @@
    "empreinte": "9cee1dae5ff493ac1ec5c5004947f71b",
    "security_definer": true,
    "signature": "justice_executer_condamnation(text,text)"
+  },
+  {
+   "empreinte": "747de22eaabc3d8a55bf249c125b994c",
+   "security_definer": true,
+   "signature": "justice_peine_calcul(text,text,text,text)"
+  },
+  {
+   "empreinte": "9e9ff7baa1d88dc81905b6e252332cbc",
+   "security_definer": true,
+   "signature": "justice_peine_proposer(text,text,text)"
   },
   {
    "empreinte": "451cce8ee501292cd206b5e388684c19",
@@ -1366,9 +1661,9 @@
    "signature": "justice_recherches(text)"
   },
   {
-   "empreinte": "514f98d55a49da05ee666977764a456e",
+   "empreinte": "3fdd404f53b116e329fe4d57f082655f",
    "security_definer": true,
-   "signature": "justice_rendre_sentence(jsonb,text)"
+   "signature": "justice_rendre_sentence(text,text,text,integer,integer)"
   },
   {
    "empreinte": "5addae1f30aefe186e66c39164b8f299",
@@ -1381,7 +1676,7 @@
    "signature": "plainte_defendre(text,text)"
   },
   {
-   "empreinte": "c5e9a98d56562d91e9f0c25319d9cb5d",
+   "empreinte": "5766c472c1f6af5935a4733ce799d2cb",
    "security_definer": true,
    "signature": "plainte_deposer(text,text)"
   },
@@ -1457,6 +1752,10 @@
   "detentions_pkey",
   "impacts_indices_attente_id_unique",
   "impacts_indices_attente_pkey",
+  "infractions_alias_pkey",
+  "infractions_categories_pkey",
+  "infractions_empreinte_pkey",
+  "infractions_pkey",
   "jugements_pkey",
   "niveaux_prison_pkey",
   "plaintes_en_cours_pkey",
@@ -1650,6 +1949,26 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "infractions"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "infractions_alias"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "infractions_categories"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "infractions_empreinte"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "jugements"
   },
   {
@@ -1704,6 +2023,30 @@
    "empreinte_catalogue": "2dc8d53d5fa5425bfd33967073789fdf",
    "empreinte_texte": "e3c1fb371af0fd280ffba1ceea48b26d",
    "nom": "impacts_indices_attente"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "d912626b28206ca0343e079ddeff5215",
+   "empreinte_texte": "1b135214c90b43d75dae64c984b2f87b",
+   "nom": "infractions"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "04153fca6c8eb0629d35cb53ea9bb897",
+   "empreinte_texte": "e7eab9932857bb7b3bd3e6fc234ecbb3",
+   "nom": "infractions_alias"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "8bcb36cbfd37215fe96f8de606b4725d",
+   "empreinte_texte": "2e2dc03db28888fe0d22c25f2a505813",
+   "nom": "infractions_categories"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "02f024a350bc9c98160e03c2a30e115e",
+   "empreinte_texte": "641608a7aab64f177136d6fe7d290a88",
+   "nom": "infractions_empreinte"
   },
   {
    "colonnes": 11,

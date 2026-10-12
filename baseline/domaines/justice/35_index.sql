@@ -10,12 +10,16 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 11 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 15 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
 --   demandes_grace_pkey  (contrainte demandes_grace_pkey)
 --   detentions_pkey  (contrainte detentions_pkey)
 --   impacts_indices_attente_id_unique  (contrainte impacts_indices_attente_id_unique)
 --   impacts_indices_attente_pkey  (contrainte impacts_indices_attente_pkey)
+--   infractions_alias_pkey  (contrainte infractions_alias_pkey)
+--   infractions_categories_pkey  (contrainte infractions_categories_pkey)
+--   infractions_empreinte_pkey  (contrainte infractions_empreinte_pkey)
+--   infractions_pkey  (contrainte infractions_pkey)
 --   jugements_pkey  (contrainte jugements_pkey)
 --   niveaux_prison_pkey  (contrainte niveaux_prison_pkey)
 --   plaintes_en_cours_pkey  (contrainte plaintes_en_cours_pkey)

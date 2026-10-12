@@ -65,6 +65,36 @@ CREATE TABLE public.impacts_indices_attente (
   palier text
 );
 
+CREATE TABLE public.infractions (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  categorie text,
+  jours_reference integer NOT NULL,
+  amende_reference integer NOT NULL,
+  detect_rate integer,
+  bareme_propre boolean NOT NULL,
+  detectable boolean NOT NULL
+);
+
+CREATE TABLE public.infractions_alias (
+  alias text NOT NULL,
+  canonique text NOT NULL,
+  note text NOT NULL
+);
+
+CREATE TABLE public.infractions_categories (
+  id text NOT NULL,
+  libelle text NOT NULL,
+  jours_reference integer NOT NULL,
+  amende_reference integer NOT NULL
+);
+
+CREATE TABLE public.infractions_empreinte (
+  seul boolean DEFAULT true NOT NULL,
+  empreinte text NOT NULL,
+  pose_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.jugements (
   id text NOT NULL,
   country text,

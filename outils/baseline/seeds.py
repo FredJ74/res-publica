@@ -283,6 +283,39 @@ def filtres_dynamiques():
 # copie jamais depuis la base : il se regenere depuis la source. Copier la base
 # reviendrait a figer une derive de bêta et a perdre le lien avec la source.
 A_REGENERER = {
+    "infractions": {
+        "source": "plateau-core.js (PEINES, PEINES_ACTES, ACTES_ILLEGAUX)",
+        "generateur": "outils/generateurs/generer_infractions.py (EXISTE ET MARCHE)",
+        "quoi": "Le CODE PENAL du jeu : 39 infractions canoniques, chacune avec sa peine de "
+                "reference en jours et son amende. Aucune fonction ne l'ecrit. C'est elle que "
+                "`infraction_peine_bornes` lit pour borner la peine du juge a la reference "
+                "+/- 50 %, et c'est donc la table sans laquelle la porte du jugement refuse "
+                "tout.",
+        "pourquoi_pas_une_copie": "La source de verite est dans plateau-core.js, et le "
+            "generateur n'en REIMPLEMENTE pas la regle de resolution : il EXTRAIT la fonction "
+            "`getPeineParActe` du fichier de production et l'appelle. Une copie depuis la base "
+            "figerait toute derive entre les deux au lieu de la detecter -- c'est exactement ce "
+            "qui est arrive au miroir des couts d'ordre, qui porte 24 lignes mortes. Le "
+            "generateur REFUSE par ailleurs d'emettre si une infraction n'a pas de duree de "
+            "reference utilisable ou porte une categorie inconnue.",
+        "a_faire": "Le generateur existe, extrait la vraie fonction et rend les VALUES "
+            "(--sql) ainsi que l'empreinte (--empreinte). Reste a le faire ecrire directement "
+            "ici. ATTENTION : tant que ce fichier est vide, un monde reconstruit naitrait SANS "
+            "CODE PENAL, et la porte du jugement refuserait toute qualification -- fail closed, "
+            "donc sans danger, mais aucune condamnation ne serait possible.",
+    },
+    "infractions_categories": {
+        "source": "plateau-core.js (constante PEINES)",
+        "generateur": "outils/generateurs/generer_infractions.py --sql-categories (EXISTE)",
+        "quoi": "Les quatre categories generiques -- delit_mineur 2 j, delit_grave 4 j, crime "
+                "8 j, crime_etat 30 j. Elles portent la peine HERITEE par les 23 infractions "
+                "qui n'ont pas de bareme propre, et `infractions.categorie` les reference.",
+        "pourquoi_pas_une_copie": "Meme raison que `infractions`, dont elle est la table de "
+            "reference : la source vit dans le depot. A noter qu'une categorie n'est jamais une "
+            "charge -- infraction_canonique() refuse un nom de categorie comme qualification.",
+        "a_faire": "Meme generateur, option --sql-categories. Elle doit etre semee AVANT "
+            "`infractions`, qui la reference par cle etrangere.",
+    },
     "villes": {
         "source": "data.js (constante VILLES)",
         "generateur": "outils/generateurs/generer_villes.py (EXISTE)",

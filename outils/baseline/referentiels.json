@@ -207,6 +207,21 @@
         "verdict": "les trois concordent",
         "_pourquoi": "Le serveur n'avait AUCUNE source de verite sur les villes. caisse_ville_de() decoupait un identifiant et acceptait le morceau obtenu sans pouvoir le verifier : c'est ainsi que `republic_mairie_caserne` se resolvait en ville « caserne », alors que la caserne est une zone hors des villes qui ne releve d'aucune mairie. Le referentiel permet de poser la question « est-ce une vraie ville ? » au lieu de la deviner.",
         "_applique": "APPLIQUEE le 7 octobre 2026 (registre 20261007150217). Les trois valeurs ont ete mesurees le jour meme, par la requete de _requete_de_mesure : data.js, la sentinelle posee et la fonction villes_empreinte_reelle() rendent toutes d41051aa8bcafadd. Le miroir des villes est donc le seul des cinq a naitre deja concordant -- les autres portaient une derive au moment ou on a commence a les surveiller."
+      },
+      "infractions": {
+        "generateur": "outils/generateurs/generer_infractions.py",
+        "table_empreinte": "infractions_empreinte",
+        "fonction_reelle": "infractions_empreinte_reelle",
+        "fonction_reelle_en_base": true,
+        "data_js": "93293c6770c17332",
+        "lignes": 39,
+        "posee": "93293c6770c17332",
+        "reelle": "93293c6770c17332",
+        "verdict": "les trois concordent",
+        "_pourquoi": "LE SERVEUR N'AVAIT AUCUN CODE PENAL. `justice_rendre_sentence` recevait la peine du navigateur comme une CHAINE LIBRE (« Prison 3 jours ») et l'archivait sans la confronter a quoi que ce soit -- il n'avait rien a quoi la confronter. Le bareme existait pourtant deja, entier, mais uniquement dans plateau-core.js : PEINES (4 categories), PEINES_ACTES.republic (16 baremes propres) et ACTES_ILLEGAUX (28 actes), resolus par `getPeineParActe`. Ce miroir recopie ce bareme en base pour que la porte du juge puisse borner la peine a la reference +/- 50 %.",
+        "_source_du_miroir": "CE MIROIR N'EST PAS GENERE DEPUIS data.js MAIS DEPUIS plateau-core.js, et c'est le seul des six dans ce cas. Le champ s'appelle quand meme `data_js` parce que c'est la colonne que verifier-referentiels.py lit -- la renommer demanderait de toucher les cinq autres miroirs pour un gain nul. Le generateur n'en REIMPLEMENTE pas la regle de resolution : il EXTRAIT la fonction `getPeineParActe` du fichier de production et l'appelle. Une reimplementation en Python aurait pu diverger sans bruit.",
+        "_applique": "APPLIQUEE le 12 octobre 2026 (registre 670, migration 20261011234027_justice_bareme_canonique_et_bornes_de_peine). Les trois valeurs ont ete mesurees le jour meme : le generateur, la sentinelle posee et infractions_empreinte_reelle() rendent toutes 93293c6770c17332. C'est le deuxieme miroir a naitre deja concordant, apres celui des villes.",
+        "_ce_qu_il_ne_resout_pas": "AUCUN DOUBLON DE NOMENCLATURE N'EST FUSIONNE, et la table `infractions_alias` est donc VIDE. Les trois paires relevees par l'inventaire portent des durees de reference DIFFERENTES de part et d'autre -- assassinat 2 j contre assassiner_* 8 j, corruption_fonctionnaire 1 j contre corrompre_fonct 2 j, achat_arme_illegal 1 j contre acheter_arme_illegale 2 j. En resoudre une changerait une peine, ce que le cahier des charges interdit. Le bareme n'est pas non plus etendu aux trois autres empires : PEINES_ACTES ne declare que `republic`."
       }
     },
     "generes_sans_surveillance": {

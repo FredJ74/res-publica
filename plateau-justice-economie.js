@@ -414,7 +414,7 @@ function openPlainteModal(pa, cost) {
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
         <textarea id="plainte-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Decrivez les faits reproches..."></textarea>
       </div>
-      <button onclick="soumettrePlaynte(${pa},${cost})" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+      <button onclick="soumettrePlaynte()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
         <i class="ti ti-send" style="font-size:.8rem"></i> Deposer la plainte
       </button>
     </div>
@@ -433,11 +433,19 @@ function openPlainteModal(pa, cost) {
 // s'il est PNJ -- l'instruit immediatement sur un critere deterministe. Plus rien ne depend du
 // retour du plaignant.
 //
-// Le fn est passe EXPLICITEMENT a deduireCoutOrdre. C'est le correctif du defaut releve par
-// l'audit : renderRoomActions cable cet ordre en onclick direct, sans passer par doOrder, donc
-// state._ordreEnCours n'etait jamais pose et payer_ordre recevait un fn nul ou perime -- l'ordre
-// etait facture sous le nom d'un autre, ou refuse.
-async function soumettrePlaynte(pa, cost) {
+// LE PAIEMENT A QUITTE LE NAVIGATEUR (12 octobre 2026). Il etait fait ici, par un appel explicite
+// a `deduireCoutOrdre({ fn: 'plainte_police' })` -- le fn nomme en dur corrigeait un defaut
+// anterieur : renderRoomActions cable cet ordre en onclick direct, sans passer par doOrder, donc
+// `state._ordreEnCours` n'etait jamais pose et payer_ordre recevait un fn nul ou perime.
+// Ce correctif-la reste vrai, mais il est devenu sans objet : la porte lit elle-meme le cout de
+// `plainte_police` au miroir `ordres_couts` et le preleve AVANT d'ouvrir le dossier. Le fn ne
+// transite plus par le navigateur, donc il ne peut plus etre perdu.
+// LES DEUX PARAMETRES pa ET cost ONT DISPARU DE LA SIGNATURE (12 octobre 2026), et c'est le
+// point du correctif. Le navigateur recevait le cout depuis la declaration de l'ordre et le
+// repayait lui-meme APRES l'ouverture du dossier ; le cout est desormais lu au miroir
+// `ordres_couts` PAR LA PORTE, qui preleve avant d'inserer. Les transmettre encore laisserait
+// croire que le navigateur a son mot a dire sur le montant.
+async function soumettrePlaynte() {
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
 
@@ -449,15 +457,34 @@ async function soumettrePlaynte(pa, cost) {
     const messages = {
       plainte_deja_en_cours: 'Vous avez deja une plainte en cours contre cette personne.',
       motif_absent: 'Precisez le motif de votre plainte.',
-      acteur_non_authentifie: "Votre identite n'a pas pu etre etablie."
+      acteur_non_authentifie: "Votre identite n'a pas pu etre etablie.",
+      // LES REFUS DE PAIEMENT SONT DES REFUS DE PLAINTE, et ils sont nommes comme tels. Ils
+      // viennent desormais de la MEME porte : aucun dossier n'a ete ouvert.
+      pa_insuffisants: 'Vous n\'avez pas assez de PA pour deposer une plainte. Aucun dossier n\'a ete ouvert.',
+      fonds_insuffisants: 'Vous n\'avez pas les fonds pour deposer une plainte. Aucun dossier n\'a ete ouvert.',
+      cout_indetermine: 'Le cout du depot de plainte n\'est pas declare au serveur. Signalez-le.',
+      ordre_inconnu: 'Le cout du depot de plainte n\'est pas declare au serveur. Signalez-le.',
+      cout_non_declare: 'Le cout du depot de plainte ne correspond pas a ce que le serveur declare. Signalez-le.'
     };
     showToast('Plainte refusee', (res && messages[res.raison]) || "La plainte n'a pas pu etre enregistree.", false);
     return;
   }
 
-  // Le dossier existe : la plainte est facturee.
-  const rCout = await deduireCoutOrdre({ pa, cost, fn: 'plainte_police' });
-  if (!rCout.ok) signalerRefusCout(rCout);
+  // LE PAIEMENT A DEJA EU LIEU, DANS LA MEME TRANSACTION QUE L'OUVERTURE DU DOSSIER
+  // (12 octobre 2026). Le navigateur appelait `deduireCoutOrdre` ICI, APRES que `plainte_deposer`
+  // ait cree le dossier -- et en cas de refus il se contentait d'appeler `signalerRefusCout` sans
+  // `return` : le dossier restait ouvert, parfois deja instruit et suivi d'une garde a vue, sans
+  // qu'un seul PA ait ete preleve. Le paiement est descendu dans la porte, qui preleve AVANT
+  // d'inserer et ne laisse donc rien derriere un refus.
+  //
+  // Les soldes sont rafraichis depuis le verdict que la porte rend, pour que l'affichage suive
+  // sans un second aller-retour.
+  if (res.paiement && res.paiement.ok === true) {
+    if (typeof res.paiement.pa === 'number') state.pa = res.paiement.pa;
+    if (typeof res.paiement.liquide === 'number') state.liquide = res.paiement.liquide;
+    if (typeof res.paiement.arg === 'number') state.arg = res.paiement.arg;
+    if (typeof updateUI === 'function') updateUI();
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -2462,14 +2489,18 @@ async function ouvrirRendreSentence(pa, cost) {
       if (a.aggravation) {
         html += '<div style="font-size:.7rem;color:#cc4444;margin-bottom:.4rem;font-style:italic">⚠ Défense ratée de façon flagrante : aggravation (+2 jours si prison)</div>';
       }
+      // LE JUGE QUALIFIE AVANT DE PRONONCER (12 octobre 2026). Les cinq boutons ne declenchent
+      // plus la sanction : ils ouvrent l'ecran de QUALIFICATION, parce qu'une peine n'existe pas
+      // sans infraction. La duree ne vient plus d'ici -- « Prison (max 7 jours) » annoncait un
+      // plafond qui n'existait nulle part, et la peine valait 3 jours en dur.
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
       html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'amende\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende</button>';
+      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'prison\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison</button>';
+      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'amenagement\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
+      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'qhs\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
       if ((a.motif || '').toLowerCase().includes('tortur')) {
-        html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'torture\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
+        html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'torture\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
       }
       html += '</div></div>';
     });
@@ -2478,7 +2509,180 @@ async function ouvrirRendreSentence(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function appliquerSentence(affaireId, type, pa, cost) {
+// LA QUALIFICATION, PUIS LA MODULATION -- LES DEUX ECRANS QUI MANQUAIENT (12 octobre 2026)
+// =====================================================================================
+//
+// CE QUI SE PASSAIT AVANT. Le juge cliquait « Prison » et la peine valait 3 JOURS EN DUR,
+// modules par deux drapeaux portes par le blob de l'affaire (`circonstanceAttenuante` -1 j,
+// `aggravation` +2 j). Le libelle « Prison 3 jours » partait ensuite au serveur comme CHAINE
+// LIBRE, que `justice_rendre_sentence` archivait sans la confronter a quoi que ce soit. Le code
+// penal du jeu -- PEINES, PEINES_ACTES, ACTES_ILLEGAUX, 39 infractions avec chacune sa duree de
+// reference -- n'etait lu par AUCUNE de ces deux etapes.
+//
+// CE QUI SE PASSE MAINTENANT. Le juge QUALIFIE : il choisit une infraction du catalogue reel.
+// Puis il MODULE, dans la plage que le SERVEUR annonce -- la reference +/- 50 %. La porte
+// recalcule cette plage et refuse tout ce qui en sort.
+//
+// LA LISTE EST CONSTRUITE DEPUIS LE CANON DU NAVIGATEUR, ET CE N'EST PAS UN RELACHEMENT. La base
+// ne fait que MIROIR de ces trois tables -- `infractions_empreinte_reelle()` le prouve, et
+// verifier-referentiels.py rougit si les deux divergent. Le navigateur PROPOSE donc depuis le
+// canon qu'il detient deja, et le serveur VALIDE contre le miroir du meme canon : un identifiant
+// invente est refuse par `infraction_canonique`, qui est fail closed.
+function infractionsCanoniques() {
+  const pays = state.country || 'republic';
+  const ids = {};
+  Object.keys(typeof ACTES_ILLEGAUX !== 'undefined' ? ACTES_ILLEGAUX : {}).forEach(k => { ids[k] = true; });
+  const propres = (typeof PEINES_ACTES !== 'undefined' ? PEINES_ACTES[pays] : null) || {};
+  Object.keys(propres).forEach(k => { ids[k] = true; });
+  return Object.keys(ids).map(id => {
+    const p = getPeineParActe(id, false);
+    return { id: id, libelle: p.label, jours: p.jours, amende: p.amende, propre: !!propres[id] };
+  }).sort((a, b) => (a.jours - b.jours) || a.id.localeCompare(b.id));
+}
+
+// VINGT-TROIS DES TRENTE-NEUF INFRACTIONS N'ONT PAS DE NOM PROPRE : elles heritent celui de leur
+// categorie, donc « acheter_arme_illegale » s'affiche « Delit mineur ». L'identifiant est donc
+// montre A COTE du libelle, toujours : sans lui le juge choisirait entre douze lignes « Delit
+// mineur » indistinguables. Nommer ces 23 infractions est un arbitrage de game design, et ce
+// n'est pas au code de le rendre.
+function ouvrirQualificationSentence(affaireId, type, pa, cost) {
+  const affaire = (state.plaintesEnCours || []).find(p => p.id === affaireId);
+  if (!affaire) return;
+  const liste = infractionsCanoniques();
+  const titres = { amende: 'Amende', prison: 'Prison', amenagement: 'Amenagement de peine',
+                   qhs: 'Envoi au QHS', torture: 'Sanction torture' };
+
+  document.getElementById('postes-modal-title').textContent = 'Qualifier les faits';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.5rem">Accuse : <strong style="color:#E8C97A">'
+       + affaire.cible + '</strong> &middot; sanction envisagee : <strong style="color:#C9A84C">'
+       + (titres[type] || type) + '</strong></div>';
+  // LE MOTIF DE LA PLAINTE EST UNE ALLEGATION, PAS UNE QUALIFICATION, et l'ecran le dit. C'est le
+  // principe du projet : le serveur enregistre « X affirme Y », jamais « Y est vrai ».
+  html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.9rem;padding:.5rem;background:#0f0d05;border:1px solid #2a2010">'
+       + 'Ce dont l\'affaire l\'accuse, tel que ca a ete declare : &laquo;&nbsp;' + (affaire.motif || '(non precise)')
+       + '&nbsp;&raquo;<br>Ce n\'est pas une qualification juridique. Choisissez l\'infraction retenue — elle peut differer.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.25rem;max-height:46vh;overflow-y:auto">';
+  liste.forEach(i => {
+    html += '<button onclick="ouvrirModulationSentence(&quot;' + affaireId + '&quot;,\'' + type + '\',\'' + i.id + '\',' + pa + ',' + cost + ')"'
+         + ' style="text-align:left;padding:.45rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.8rem;display:flex;justify-content:space-between;gap:.6rem">'
+         + '<span><span style="color:#E8C97A">' + i.libelle + '</span>'
+         + ' <span style="color:#6a5a30;font-size:.72rem">' + i.id + '</span></span>'
+         + '<span style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:#8a6a20;white-space:nowrap">ref. ' + i.jours + ' j &middot; ' + i.amende + ' FR</span>'
+         + '</button>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// LA PLAGE EST CELLE DU SERVEUR, PAS CELLE DU NAVIGATEUR. On POURRAIT la recalculer ici -- le
+// canon est le meme -- et ce serait exactement l'erreur a ne pas refaire : un ecran qui calcule
+// sa propre plage finit par promettre une peine que la porte refuse. `justice_peine_proposer`
+// appelle la MEME fonction serveur que la porte d'enregistrement.
+async function ouvrirModulationSentence(affaireId, type, infraction, pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Prononcer la peine';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;color:#8a8060;font-style:italic">Lecture du bareme...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('justice_peine_proposer', { p_affaire_id: affaireId, p_infraction: infraction, p_genre: type })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    const messages = {
+      infraction_inconnue: "Cette infraction n'est pas au catalogue du serveur.",
+      genre_inconnu: "Cette sanction n'est pas reconnue.",
+      autorite_refusee: "Vous n'etes pas l'autorite judiciaire de cette ville.",
+      affaire_deja_jugee: 'Cette affaire a deja ete jugee.',
+      affaire_absente: "Cette affaire n'existe plus au greffe."
+    };
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;font-size:.82rem;color:#cc6a44">'
+      + ((r && messages[r.raison]) || "Le bareme n'a pas pu etre lu. Aucune peine n'a ete prononcee.")
+      + '</div>';
+    return;
+  }
+
+  const modulable = (r.impose !== true);
+  const surJours = (type === 'prison' || type === 'qhs' || type === 'torture');
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#E8C97A;margin-bottom:.2rem">' + r.libelle
+       + ' <span style="color:#6a5a30;font-size:.72rem">' + r.infraction + '</span></div>';
+  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.8rem">Accuse : ' + (r.accuse || '') + '</div>';
+
+  if (!modulable) {
+    // RIEN A MODULER, ET L'ECRAN LE DIT. QHS et torture ne sont pas des peines du code penal :
+    // leur duree est imposee par une regle a part (30 jours ; 3 jours par condamnation cumulee),
+    // que le serveur compte lui-meme.
+    html += '<div style="font-size:.8rem;color:#c0b090;padding:.6rem;background:#0f0d05;border:1px solid #3a2810;margin-bottom:.9rem">'
+         + 'Cette sanction n\'est pas modulable : le serveur impose <strong style="color:#C9A84C">'
+         + (surJours ? (r.jours_min + ' jour' + (r.jours_min > 1 ? 's' : '')) : 'aucune duree')
+         + '</strong>.</div>';
+    html += '<input type="hidden" id="sentence-valeur" value="' + (surJours ? r.jours_min : 0) + '">';
+  } else {
+    const mini = surJours ? r.jours_min : r.amende_min;
+    const maxi = surJours ? r.jours_max : r.amende_max;
+    const defaut = surJours ? r.jours_defaut : r.amende_defaut;
+    const unite = surJours ? 'jours' : 'FR';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.5rem">Peine de reference : <strong style="color:#C9A84C">'
+         + (surJours ? r.jours_reference + ' jours' : r.amende_reference + ' FR')
+         + '</strong> &middot; modulation autorisee &minus;50&nbsp;% / +50&nbsp;% : <strong style="color:#C9A84C">'
+         + mini + ' &ndash; ' + maxi + ' ' + unite + '</strong></div>';
+    // LE CAS DES PEINES DE 1 JOUR EST DIT AU JUGE, pas masque. La borne basse egale la reference :
+    // l'attenuation est inexprimable a la granularite du jour entier, donc il ne peut qu'aggraver.
+    if (surJours && r.plancher_technique === true) {
+      html += '<div style="font-size:.74rem;color:#aa7a30;font-style:italic;margin-bottom:.6rem">'
+           + 'La reference vaut un seul jour : la moitie n\'est pas representable en jours entiers, '
+           + 'donc l\'attenuation n\'est pas disponible sur cette infraction.</div>';
+    }
+    html += '<input id="sentence-valeur" type="number" min="' + mini + '" max="' + maxi + '" value="' + defaut + '"'
+         + ' style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.45rem .6rem;font-family:Crimson Pro,serif;font-size:.9rem;margin-bottom:.9rem">';
+  }
+
+  html += '<button onclick="prononcerSentence(&quot;' + affaireId + '&quot;,\'' + type + '\',\'' + r.infraction + '\',' + pa + ',' + cost + ')"'
+       + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">PRONONCER</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// LE PRONONCE RELIT LA PLAGE AU SERVEUR AVANT D'APPLIQUER QUOI QUE CE SOIT, et c'est ce qui
+// garantit que la peine APPLIQUEE est celle qui sera ARCHIVEE. Pour les sanctions imposees (QHS,
+// torture) la valeur du formulaire est IGNOREE : on prend celle du serveur.
+async function prononcerSentence(affaireId, type, infraction, pa, cost) {
+  const brut = parseInt(document.getElementById('sentence-valeur')?.value, 10);
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('justice_peine_proposer', { p_affaire_id: affaireId, p_infraction: infraction, p_genre: type })
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Peine non prononcee', "Le bareme n'a pas pu etre relu. Rien n'a ete applique.", false);
+    return;
+  }
+  const surJours = (type === 'prison' || type === 'qhs' || type === 'torture');
+  let jours = 0, amende = 0;
+  if (r.impose === true) {
+    jours = surJours ? r.jours_min : 0;
+  } else if (surJours) {
+    jours = Number.isFinite(brut) ? brut : r.jours_defaut;
+  } else {
+    amende = Number.isFinite(brut) ? brut : r.amende_defaut;
+  }
+  // LE REFUS EST DIT ICI AUSSI, en plus de la porte. Pas parce qu'on s'y fie -- la porte refuse
+  // de toute facon -- mais pour ne pas appliquer une sanction avant de l'apprendre.
+  if (surJours && (jours < r.jours_min || jours > r.jours_max)) {
+    showToast('Peine hors bareme', 'La plage autorisee est ' + r.jours_min + ' a ' + r.jours_max + ' jours.', false);
+    return;
+  }
+  if (!surJours && (amende < r.amende_min || amende > r.amende_max)) {
+    showToast('Amende hors bareme', 'La plage autorisee est ' + r.amende_min + ' a ' + r.amende_max + ' FR.', false);
+    return;
+  }
+  await appliquerSentence(affaireId, type, infraction, jours, amende, pa, cost);
+}
+
+async function appliquerSentence(affaireId, type, infraction, joursServeur, amendeServeur, pa, cost) {
   const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
 
@@ -2548,15 +2752,27 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   let peineAppliquee = true;
 
   if (type === 'amende') {
-    const montant = 500;
-    details = 'Amende de ' + montant + ' ' + cur;
+    // LE MONTANT VIENT DU BAREME, PLUS D'UN 500 EN DUR. Il est valide par le serveur contre
+    // l'amende de reference de l'infraction, +/- 50 %.
+    // DETTE NOMMEE, INCHANGEE PAR CE LOT : aucune amende n'est PRELEVEE. Il n'y a jamais eu de
+    // porte de debit sur ce chemin -- la peine est une mention au registre. Le montant est
+    // desormais au moins REEL ; le prelevement reste a construire.
+    details = 'Amende de ' + amendeServeur + ' ' + cur;
   } else if (type === 'prison') {
-    let duree = 3;
-    let note = '';
-    if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
-    if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
-    details = 'Prison ' + duree + ' jours' + note;
-    const motifsPrison = [Object.assign({ type: affaire.motif, jours: duree, detail: note || null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
+    // LA DUREE VIENT DU SERVEUR (12 octobre 2026). C'etait `let duree = 3` en dur, module par
+    // `affaire.circonstanceAttenuante` (-1 j) et `affaire.aggravation` (+2 j), deux drapeaux
+    // portes par le blob de l'affaire. Elle vaut desormais ce que le juge a prononce DANS LA
+    // PLAGE que le serveur impose, et le serveur la revalide a l'archivage.
+    //
+    // LES DEUX DRAPEAUX DE DEFENSE NE MODULENT PLUS AUTOMATIQUEMENT, et ce n'est pas un oubli :
+    // un -1 ou un +2 applique PAR-DESSUS la plage en sortirait aussitot (le vol vaut 1 jour de
+    // reference, donc la plage est [1, 2] : 3 - 1 = 2 passe, mais 3 + 2 = 5 non). Ils restent
+    // AFFICHES au juge sur la fiche de l'affaire, qui en tient compte comme il l'entend. La
+    // facon dont une defense reussie doit interagir avec la modulation judiciaire est un
+    // ARBITRAGE DE GAME DESIGN -- le code ne le rend pas a la place du designer.
+    const duree = joursServeur;
+    details = 'Prison ' + duree + ' jour' + (duree > 1 ? 's' : '');
+    const motifsPrison = [Object.assign({ type: affaire.motif, infraction: infraction, jours: duree, detail: null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
 
     if (await estActuellementDetenu(affaire.cible)) {
       peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsPrison);
@@ -2579,14 +2795,19 @@ async function appliquerSentence(affaireId, type, pa, cost) {
       peineAppliquee = (affaire.cible === state.char?.name) ? true : !!rRecherche;
     }
   } else if (type === 'amenagement') {
+    // Mention au registre, sans consequence mecanique -- c'etait deja le cas, et le serveur
+    // impose 0 jour et 0 FR pour ce genre.
     details = 'Amenagement : pointage quotidien au commissariat';
   } else if (type === 'qhs') {
     // QHS suppose une personne deja physiquement detenue / sous controle (regle de jeu validee,
     // 26 aout 2026) : jamais de statut "recherche pour QHS", jamais de creation artificielle de
     // detention -- verifie desormais en amont (voir garde en tete de fonction), donc a ce stade
     // la personne est necessairement deja detenue : on ne fait qu'etendre/escalader sa detention.
-    details = 'Envoi au QHS';
-    const motifsQhs = [Object.assign({ type: affaire.motif, jours: 30, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
+    // LES TRENTE JOURS VIENNENT DU SERVEUR, qui les IMPOSE : `justice_peine_calcul` rend une
+    // plage reduite a un point pour ce genre. La valeur est la meme qu'avant -- regle validee le
+    // 26 aout 2026, inchangee -- mais elle n'est plus ecrite dans le navigateur.
+    details = 'Envoi au QHS (' + joursServeur + ' jours)';
+    const motifsQhs = [Object.assign({ type: affaire.motif, infraction: infraction, jours: joursServeur, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     // Le registre du QHS, le drapeau de la fiche et la photo du detenu sont tenus par
     // justice_prolonger_peine -- plus exactement par detention_qhs_poser_interne, son unique
     // ecrivain -- dans la meme transaction que la peine (16 septembre 2026, photo ajoutee le
@@ -2600,14 +2821,15 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     // Cumul : compter les condamnations precedentes pour torture sur ce meme accuse
     // (enregistrees comme actions tracees "condamnation_torture", jour_expiration tres eloigne
     // pour qu'elles restent comptabilisables indefiniment).
-    let nbPrecedentes = 0;
-    if (typeof sbGetActionsTracablesParAuteur === 'function') {
-      const precedentes = await sbGetActionsTracablesParAuteur(state.country, affaire.cible, 'condamnation_torture', state.day || 1).catch(() => []);
-      nbPrecedentes = precedentes?.length || 0;
-    }
-    const duree = 3 * (nbPrecedentes + 1);
-    details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
-    const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
+    // LE CUMUL EST COMPTE PAR LE SERVEUR (12 octobre 2026). Il l'etait par le navigateur, qui
+    // lisait lui-meme les traces `condamnation_torture` et en deduisait 3 x (n+1) -- un compte
+    // qu'il pouvait rendre faux sans que rien ne s'en apercoive. `justice_peine_calcul` compte
+    // les memes traces, dans la meme table, et IMPOSE le resultat. La formule est identique ;
+    // c'est l'autorite qui change.
+    const duree = joursServeur;
+    details = 'Prison ' + duree + ' jours + popularité à zéro'
+            + (duree > 3 ? ' (peine cumulée)' : '');
+    const motifsTorture = [Object.assign({ type: affaire.motif, infraction: infraction, jours: duree, detail: duree > 3 ? 'peine cumulee' : null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsTorture);
     // Perte totale de popularite appliquee au personnage reel (peut ne pas etre le joueur
     // actuellement connecte).
@@ -2658,8 +2880,17 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   // une chaine librement composee par le navigateur. C'est le serveur qui nomme le magistrat,
   // apres avoir verifie sa competence avec affaire_autorite_de -- juge ou commissaire DE LA VILLE
   // de l'affaire, la regle qui existait deja.
+  // LA PORTE NE RECOIT PLUS L'AFFAIRE, SEULEMENT SON IDENTIFIANT (12 octobre 2026). Elle recevait
+  // `p_affaire: affaire` -- le blob complet, que le serveur fusionnait sur la ligne : l'accuse, le
+  // motif, la ville et le pays d'une affaire deja enregistree etaient donc reecrivables au moment
+  // du jugement. Et `p_peine: details` etait une CHAINE LIBRE, archivee sans aucun controle.
+  // Desormais le navigateur transmet des FAITS verifiables -- une infraction canonique, un genre,
+  // des nombres -- et le serveur recalcule la plage, refuse hors bornes, et COMPOSE lui-meme le
+  // libelle de la peine.
   const vSentence = (typeof sbRpc === 'function')
-    ? await sbRpc('justice_rendre_sentence', { p_affaire: affaire, p_peine: details })
+    ? await sbRpc('justice_rendre_sentence', {
+        p_affaire_id: affaire.id, p_infraction: infraction, p_genre: type,
+        p_jours: joursServeur || 0, p_amende: amendeServeur || 0 })
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
     : null;
   if (!vSentence || vSentence.ok !== true) {
@@ -2675,24 +2906,44 @@ async function appliquerSentence(affaireId, type, pa, cost) {
       : vSentence?.raison === 'autorite_refusee'
         ? "Votre compétence a été refusée par le greffe alors qu'elle venait d'être vérifiée : signalez-le."
       : vSentence?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
+      // LES DEUX REFUS NEUFS SONT NOMMES. Ils ne devraient pas survenir -- la plage vient d'etre
+      // relue au serveur et verifiee -- mais s'ils surviennent, la sanction EST tombee et le dire
+      // est le seul comportement honnete.
+      : vSentence?.raison === 'peine_hors_bornes'
+        ? 'Le greffe refuse cette durée : le barème autorise ' + vSentence.jours_min + ' à '
+          + vSentence.jours_max + ' jours. La sanction, elle, a été appliquée : signalez-le.'
+      : vSentence?.raison === 'amende_hors_bornes'
+        ? 'Le greffe refuse ce montant : le barème autorise ' + vSentence.amende_min + ' à '
+          + vSentence.amende_max + ' FR.'
+      : vSentence?.raison === 'infraction_inconnue'
+        ? "Cette infraction n'est pas au catalogue du serveur. Aucun jugement n'a été enregistré."
       : "Le greffe n'a pas enregistré la sentence, alors que la sanction a été appliquée. Signalez-le.";
     showToast('Sentence non enregistrée', motif, false);
     return;
   }
 
+  // LE LIBELLE AFFICHE EST CELUI DU SERVEUR, pas celui compose ici. Les deux disent la meme
+  // chose -- ils sont derives des memes nombres valides -- mais c'est le serveur qui fait foi, et
+  // un ecart entre les deux doit se voir a l'ecran plutot que de rester cache.
+  const peineOfficielle = vSentence.peine || details;
   if (!state.archivesJugements) state.archivesJugements = [];
   state.archivesJugements.push({
-    accuse: affaire.cible, motif: affaire.motif, peine: details,
+    accuse: affaire.cible, motif: vSentence.infraction_libelle || affaire.motif,
+    infraction: vSentence.infraction, peine: peineOfficielle,
     juge: vSentence.juge, jour: vSentence.jour, executee: false
   });
 
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
-  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + vSentence.juge + ')');
+  showToast('Sentence rendue', affaire.cible + ' : ' + peineOfficielle, true, true);
+  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + peineOfficielle
+    + ' (' + (vSentence.infraction_libelle || '') + ') (Juge : ' + vSentence.juge + ')');
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details, time).catch(() => {});
+    sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire',
+      'La sentence a ete rendue : ' + peineOfficielle
+      + ' (qualification retenue : ' + (vSentence.infraction_libelle || vSentence.infraction) + ')',
+      time).catch(() => {});
   }
 }
 

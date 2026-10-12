@@ -89,9 +89,21 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # prerequis metier sont des arbitrages de game design qu une migration n a pas le droit de rendre
 # -- il n y a donc rien a semer aujourd hui. Et semer une inscription ou une qualification
 # consommerait le slot universitaire A VIE d un personnage qui n a jamais etudie.
+# 292 -> 296 le 12 octobre 2026 au soir : LES QUATRE TABLES DU CODE PENAL. `infractions` est le
+# catalogue canonique des 39 infractions -- un MIROIR de PEINES / PEINES_ACTES / ACTES_ILLEGAUX de
+# plateau-core.js, ou chaque peine de reference est exactement ce que getPeineParActe rend cote
+# navigateur ; `infractions_categories` porte les quatre categories generiques, qui sont la peine
+# HERITEE des 23 actes sans bareme propre ; `infractions_alias` est le mecanisme de resolution des
+# nomenclatures historiques, VOLONTAIREMENT VIDE parce que les trois paires de doublons relevees
+# portent des durees differentes de part et d'autre et qu'en resoudre une changerait une peine ;
+# `infractions_empreinte` est la sentinelle du miroir, meme patron que villes_empreinte.
+# LES QUATRE SONT CLASSEES A : le code penal fait partie du socle d'un monde neuf, et sans lui la
+# porte du jugement refuse tout. Les deux catalogues sont en RECONSTRUCTION EXPLICITE -- leur seed
+# doit etre ecrit par generer_infractions.py depuis plateau-core.js, pas copie depuis la base, car
+# copier un miroir fige sa derive au lieu de la detecter.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 12 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 292    # 286 -> 292 le 12 octobre 2026 : les six tables du socle universitaire
-EMPREINTE_LISTE = "b6a231cb8e5ad003956af113b5d4f379"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 296    # 292 -> 296 le 12 octobre 2026 au soir : les quatre tables du code penal
+EMPREINTE_LISTE = "f7a1842925362acacd4b87317a653c82"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

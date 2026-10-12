@@ -1,0 +1,38 @@
+-- SEED A REGENERER -- infractions
+-- ============================================================================
+-- Table   : public.infractions
+-- Domaine : justice
+-- Source canonique : plateau-core.js (PEINES, PEINES_ACTES, ACTES_ILLEGAUX)
+-- Generateur       : outils/generateurs/generer_infractions.py (EXISTE ET MARCHE)
+--
+-- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
+-- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
+-- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
+--
+-- CE QUE LA TABLE PORTE
+-- Le CODE PENAL du jeu : 39 infractions canoniques, chacune avec sa peine de
+-- reference en jours et son amende. Aucune fonction ne l'ecrit. C'est elle
+-- que `infraction_peine_bornes` lit pour borner la peine du juge a la
+-- reference +/- 50 %, et c'est donc la table sans laquelle la porte du
+-- jugement refuse tout.
+--
+-- POURQUOI PAS UNE COPIE DE LA BASE
+-- La source de verite est dans plateau-core.js, et le generateur n'en
+-- REIMPLEMENTE pas la regle de resolution : il EXTRAIT la fonction
+-- `getPeineParActe` du fichier de production et l'appelle. Une copie depuis
+-- la base figerait toute derive entre les deux au lieu de la detecter --
+-- c'est exactement ce qui est arrive au miroir des couts d'ordre, qui porte
+-- 24 lignes mortes. Le generateur REFUSE par ailleurs d'emettre si une
+-- infraction n'a pas de duree de reference utilisable ou porte une categorie
+-- inconnue.
+--
+-- CE QU'IL RESTE A FAIRE
+-- Le generateur existe, extrait la vraie fonction et rend les VALUES (--sql)
+-- ainsi que l'empreinte (--empreinte). Reste a le faire ecrire directement
+-- ici. ATTENTION : tant que ce fichier est vide, un monde reconstruit
+-- naitrait SANS CODE PENAL, et la porte du jugement refuserait toute
+-- qualification -- fail closed, donc sans danger, mais aucune condamnation
+-- ne serait possible.
+-- ============================================================================
+
+-- Rien a appliquer tant que le generateur n'a pas ecrit ici.

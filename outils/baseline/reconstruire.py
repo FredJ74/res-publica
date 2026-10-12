@@ -550,7 +550,17 @@ def controles_du_monde(cat):
     # migration n'a pas le droit de rendre. LES SIX SONT SOUS RLS SANS AUCUNE POLICY ET SANS AUCUN
     # GRANT CLIENT -- les deux absences comptent, puisqu'une policy sans GRANT est dormante et
     # qu'un GRANT sans policy est ouvert : le compte des tables sans policy passe de 127 a 133.
-    att("tables creees", len(cat.tables), 287)
+    # 287 -> 291 le 12 octobre 2026 au soir, code penal : LES QUATRE TABLES DU BAREME.
+    # `infractions` porte les 39 infractions canoniques avec leur peine de reference -- un MIROIR
+    # de PEINES / PEINES_ACTES / ACTES_ILLEGAUX de plateau-core.js, ou aucune valeur n'est decidee
+    # en base ; `infractions_categories` les quatre categories generiques, qui sont la peine
+    # HERITEE des 23 actes sans bareme propre ; `infractions_alias` le mecanisme de resolution des
+    # nomenclatures historiques, VOLONTAIREMENT VIDE parce que les trois paires de doublons
+    # relevees portent des durees differentes de part et d'autre ; `infractions_empreinte` la
+    # sentinelle du miroir. LES QUATRE SONT SOUS RLS SANS AUCUNE POLICY ET SANS AUCUN GRANT
+    # CLIENT : le navigateur detient deja le canon et le propose a l'ecran, mais c'est le serveur
+    # qui VALIDE contre son miroir. Le compte des tables sans policy passe de 133 a 137.
+    att("tables creees", len(cat.tables), 291)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -668,8 +678,17 @@ def controles_du_monde(cat):
     # UNE SEULE DES HUIT ECRIT UNE QUALIFICATION, universite_diplomer, et la preuve P8 de la
     # migration le verifie en comptant les INSERT dans pg_proc -- c'est ce qui garantit que ni
     # l'abandon ni l'expiration ne consomment le slot a vie.
-    att("signatures de fonction creees", cat.n_fonctions, 789)
-    att("noms de fonction distincts", len(cat.fonctions), 785,
+    # 789 -> 794 / 785 -> 790 le 12 octobre 2026 au soir, code penal : +5, sans surcharge. Trois
+    # fonctions du catalogue -- `infractions_empreinte_reelle` (le pendant SQL du generateur),
+    # `infraction_canonique` (la resolution fail closed, qui refuse aussi un nom de CATEGORIE
+    # parce qu'une classe n'est pas une charge) et `infraction_peine_bornes` (la reference et sa
+    # plage de modulation +/- 50 %). Et deux portes du jugement : `justice_peine_calcul`, LA
+    # formule unique, et `justice_peine_proposer`, sa lecture pour l'ecran du juge.
+    # `justice_rendre_sentence` ne compte pour rien dans cet ecart : son ancienne surcharge
+    # (jsonb, text) a ete SUPPRIMEE et une nouvelle creee a sa place -- un remplacement, pas un
+    # ajout. La preuve P1 de la migration verifie qu'il n'en reste qu'une.
+    att("signatures de fonction creees", cat.n_fonctions, 794)
+    att("noms de fonction distincts", len(cat.fonctions), 790,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -735,7 +754,13 @@ def controles_du_monde(cat):
     # une. Le troisieme est sur les jalons : `universite_jalon_terrain_porte_un_lieu` refuse un
     # jalon de terrain sans batiment, parce que c'est le batiment qui est le futur point de
     # raccordement a une vraie activite.
-    att("contraintes posees", len(cat.contraintes), 530)
+    # 530 -> 543 le 12 octobre 2026 au soir, code penal : +13 pour les quatre tables. Quatre cles
+    # primaires, deux cles etrangeres (la categorie d'une infraction, et la cible canonique d'un
+    # alias) et SEPT CHECK. Deux portent des regles qui comptent : `infractions_alias_pas_sur_soi`
+    # interdit qu'un alias se resolve sur lui-meme -- une boucle de resolution -- et le CHECK
+    # `seul` de la sentinelle garantit qu'il n'y a jamais qu'UNE empreinte posee, sinon le
+    # controle du miroir comparerait a une ligne au hasard.
+    att("contraintes posees", len(cat.contraintes), 543)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de

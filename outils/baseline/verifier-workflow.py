@@ -62,7 +62,12 @@ BASELINE = os.path.join(RACINE, "baseline")
 MIGRATIONS_HISTORIQUES = 184
 NON_APPLIQUEES = 3
 PATCHS_PONCTUELS = 342       # 289 patch_*.py + 53 fix_*.py, archives au 2H
-GENERATEURS = 12             # 9 miroirs de data.js (sortis de .scratch/ au 2H),
+GENERATEURS = 13             # 12 -> 13 le 12 octobre 2026 : generer_infractions.py, le miroir
+                             # du CODE PENAL. C'est le seul generateur qui ne lit pas data.js
+                             # mais plateau-core.js, et le seul qui n'en reimplemente pas la
+                             # regle : il EXTRAIT la fonction getPeineParActe du fichier de
+                             # production et l'appelle.
+                             # 9 miroirs de data.js (sortis de .scratch/ au 2H),
                              # + generer_referentiels_serveur.py (api/_referentiels-generes.js,
                              # chantier 4B), + generer_recettes_militaires.py (miroir SQL des
                              # recettes, chantier 4D), + generer_villes.py (miroir des douze
