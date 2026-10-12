@@ -81,9 +81,27 @@ att('la remise a zero au sommeil a disparu, et le fichier dit pourquoi',
 // LA DEFENSE JUDICIAIRE : la dependance est coupee, et la nouvelle formule n est PAS inventee.
 att('la defense judiciaire ne depend plus du bonus de formation',
     codeSeul(justice).indexOf('bonusFormation') < 0);
-att('et le fichier dit que sa nouvelle formule reste a ecrire, sans l inventer',
-    justice.indexOf('LA DEPENDANCE AU BONUS DE FORMATION EST SUPPRIMEE') >= 0
-    && justice.indexOf('sera reconstruite au serveur dans le chantier judiciaire') >= 0);
+// LA FORMULE A ETE ECRITE, ET CETTE EPREUVE A CHANGE AVEC ELLE (12 octobre 2026, fin de §A).
+// Elle exigeait que le fichier ANNONCE la formule a venir, parce qu'inventer un coefficient a la
+// place du game design aurait ete pire que le dire. Les deux valeurs qui manquaient ont ete
+// arbitrees -- CHA 16 pour les trois avocats commis d'office, et l'operation qui le combine a
+// celui du prevenu -- et la formule vit desormais AU SERVEUR, dans `justice_defense_taux`. Ce
+// que l'epreuve mesure maintenant, c'est qu'il n'en reste RIEN dans ce navigateur : ni jet, ni
+// taux, ni lecture de caracteristique.
+// LA MESURE PORTE SUR doDefense, PAS SUR LE FICHIER. `getStatEffective('CHA')` sert encore a
+// trois autres mecaniques du meme fichier -- elles n'ont rien a voir avec la justice, et exiger
+// leur disparition serait une fausse accusation.
+var blocDefense = (function () {
+  var i = justice.indexOf('async function doDefense(');
+  var j = justice.indexOf('\nasync function doCorruption(', i);
+  return codeSeul(i < 0 ? '' : justice.slice(i, j < 0 ? justice.length : j));
+})();
+att('et la formule a quitte doDefense, elle n y est pas revenue autrement',
+    blocDefense.length > 0
+    && blocDefense.indexOf('getStatEffective') < 0
+    && blocDefense.indexOf('Math.random') < 0
+    && justice.indexOf('LA FORMULE VIT AU SERVEUR') >= 0
+    && justice.indexOf('justice_defense_taux') >= 0);
 
 print('');
 print('3. LES AUTRES FONCTIONS DE L UNIVERSITE SONT INTACTES');

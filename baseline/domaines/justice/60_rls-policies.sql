@@ -25,6 +25,7 @@ ALTER TABLE public.infractions_alias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jugements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.justice_avocats_commis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.justice_indemnites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.niveaux_prison ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plaintes_en_cours ENABLE ROW LEVEL SECURITY;

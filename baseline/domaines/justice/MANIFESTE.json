@@ -205,6 +205,30 @@
    "sous": ""
   },
   {
+   "empreinte": "7d5e715bc3860d59a9f9dba14c96008b",
+   "genre": "FUNCTION",
+   "objet": "justice_avocat_commis(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "1018c9a738651298bfab9260f12245dc",
+   "genre": "FUNCTION",
+   "objet": "justice_cha_personnel(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "6cbc2a99b9b1dd7cedbdf9913353c109",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_part_relaxe()",
+   "sous": ""
+  },
+  {
+   "empreinte": "9aa7160ad27231b85c8363cf0d3b0821",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_taux(integer,integer,boolean)",
+   "sous": ""
+  },
+  {
    "empreinte": "1cef33549f4a873cf2cac2d50394f988",
    "genre": "FUNCTION",
    "objet": "justice_delai_jugement_jours()",
@@ -259,6 +283,12 @@
    "sous": ""
   },
   {
+   "empreinte": "9099e178869dc522a8af76030af375e6",
+   "genre": "FUNCTION",
+   "objet": "justice_juge_titulaire(text,text)",
+   "sous": ""
+  },
+  {
    "empreinte": "b4dbbae6161da768e4b1d86dc8b51584",
    "genre": "FUNCTION",
    "objet": "justice_mes_indemnites()",
@@ -274,6 +304,12 @@
    "empreinte": "ecf424f73eb60ae42f96837dd4e50d47",
    "genre": "FUNCTION",
    "objet": "justice_peine_proposer(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "abf63b0db2c8acd98c0a1f9099f7904b",
+   "genre": "FUNCTION",
+   "objet": "justice_preuve_reelle(text,text,text)",
    "sous": ""
   },
   {
@@ -343,9 +379,9 @@
    "sous": ""
   },
   {
-   "empreinte": "de07cdfa5da3f05995797abe1a48c162",
+   "empreinte": "48b55f4a10e7cb7d65ec605803793d1e",
    "genre": "FUNCTION",
-   "objet": "plainte_defendre(text,text)",
+   "objet": "plainte_defendre(text)",
    "sous": ""
   },
   {
@@ -519,6 +555,12 @@
    "tbl": "jugements"
   },
   {
+   "empreinte": "ddffd24f170056733318cd26b5f045fd",
+   "genre": "p",
+   "nom": "justice_avocats_commis_pk",
+   "tbl": "justice_avocats_commis"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "justice_indemnites_pkey",
@@ -637,6 +679,12 @@
    "genre": "c",
    "nom": "infractions_empreinte_seul_check",
    "tbl": "infractions_empreinte"
+  },
+  {
+   "empreinte": "1692072653ec147e4e34dd7b63975d4d",
+   "genre": "c",
+   "nom": "justice_avocats_commis_cha_plage",
+   "tbl": "justice_avocats_commis"
   },
   {
    "empreinte": "98dcfeb912383543ce1b6ca350bb8f08",
@@ -1296,6 +1344,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "juge_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "juge_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "juge_suite_apres_abandon(text,text)",
@@ -1362,6 +1422,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_avocat_commis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_avocat_commis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_cha_personnel(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_cha_personnel(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "justice_condamner(text,jsonb)",
@@ -1377,6 +1461,30 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_condamner(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_part_relaxe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_part_relaxe()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_taux(integer,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_defense_taux(integer,integer,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -1506,6 +1614,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_juge_titulaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_juge_titulaire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "justice_mes_indemnites()",
@@ -1551,6 +1671,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_peine_proposer(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_preuve_reelle(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_preuve_reelle(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1808,19 +1940,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "plainte_defendre(text,text)",
+   "objet": "plainte_defendre(text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "plainte_defendre(text,text)",
+   "objet": "plainte_defendre(text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "plainte_defendre(text,text)",
+   "objet": "plainte_defendre(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2282,6 +2414,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "justice_avocats_commis",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "justice_avocats_commis",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "justice_indemnites",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -2530,19 +2674,19 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "cd887391de265502e256297e7911a838",
-  "20_fonctions-1.sql": "ac8a366e087bbc478c7c381430f5df56",
-  "20_fonctions-2.sql": "046625cf51b97c7f466b9ca4bb3d272a",
-  "30_contraintes.sql": "d5b371725d9864db496bf587edcda31e",
-  "35_index.sql": "d0e8ab2fab44e4096250610de385c745",
+  "10_tables.sql": "b0a547e4b80922ca88b1db3bfb48534e",
+  "20_fonctions-1.sql": "5e9f5c476630dc7f8e9c3e3721fcbf19",
+  "20_fonctions-2.sql": "2d7ae84330321b3f0042f930c4084e5c",
+  "30_contraintes.sql": "0917a3919478db4c7775333abef39c95",
+  "35_index.sql": "6ef1570f8f4edfe07ad23ba4a18d3fdd",
   "50_triggers.sql": "231f16723141904057fa211faa92ce32",
-  "60_rls-policies.sql": "fff6eea5015a7334763dd2bf9fde3860",
-  "70_droits.sql": "e531d4cdb0723a9381cefb5eb81a6c8e",
-  "80_commentaires.sql": "ea28f7d814189f8151850c3f4b11db5a"
+  "60_rls-policies.sql": "66e62bfb3aa806c20681f6d53cd6d157",
+  "70_droits.sql": "37ffb52705f50ad37e3771fd23f90477",
+  "80_commentaires.sql": "93c8e3f21a020268eead3b6870383bf5"
  },
  "fonctions": [
   {
-   "empreinte": "db798b7603de84132ab58d57f26280f1",
+   "empreinte": "e6c55e478efa75ced6726a8d11b4f567",
    "security_definer": true,
    "signature": "affaire_autorite_de(text)"
   },
@@ -2707,14 +2851,19 @@
    "signature": "infractions_empreinte_reelle()"
   },
   {
-   "empreinte": "0d90565e311d5722519f9ca0b8e186ad",
+   "empreinte": "058c621bfb2ebee7ecf9ed1c653c223f",
    "security_definer": true,
    "signature": "juge_de_la_ville(text)"
   },
   {
-   "empreinte": "34c0d353088d1fbc76831feedb938c79",
+   "empreinte": "5db5e10caef3df30851d466a838ce1a4",
    "security_definer": true,
    "signature": "juge_dossiers()"
+  },
+  {
+   "empreinte": "8af817c62d7a341e7daf5dd31747b786",
+   "security_definer": true,
+   "signature": "juge_moi()"
   },
   {
    "empreinte": "b068150bf41bd89f082fbf2f720af1e4",
@@ -2737,9 +2886,29 @@
    "signature": "justice_appel_ouvrir(text)"
   },
   {
+   "empreinte": "7232dd90ff54f6d5dd470d211fc3f195",
+   "security_definer": true,
+   "signature": "justice_avocat_commis(text,text)"
+  },
+  {
+   "empreinte": "d741bd29db7cad9d50a73461678cdca0",
+   "security_definer": true,
+   "signature": "justice_cha_personnel(text)"
+  },
+  {
    "empreinte": "f82a56326e4d5bc9810ddaa8eb143335",
    "security_definer": true,
    "signature": "justice_condamner(text,jsonb)"
+  },
+  {
+   "empreinte": "26c0e2cb20c51fa7d69b09c04d884604",
+   "security_definer": false,
+   "signature": "justice_defense_part_relaxe()"
+  },
+  {
+   "empreinte": "891a2f1dae30f023634677ee8f0a2e26",
+   "security_definer": false,
+   "signature": "justice_defense_taux(integer,integer,boolean)"
   },
   {
    "empreinte": "6bbdb64b3d7b4c46e50a6eb00a16f674",
@@ -2792,6 +2961,11 @@
    "signature": "justice_jours_purges(text)"
   },
   {
+   "empreinte": "9c23ec2ab6b6aba407212d94de8a6545",
+   "security_definer": true,
+   "signature": "justice_juge_titulaire(text,text)"
+  },
+  {
    "empreinte": "89a807119cbf31ce4f37270b6a11b252",
    "security_definer": true,
    "signature": "justice_mes_indemnites()"
@@ -2805,6 +2979,11 @@
    "empreinte": "9e9ff7baa1d88dc81905b6e252332cbc",
    "security_definer": true,
    "signature": "justice_peine_proposer(text,text,text)"
+  },
+  {
+   "empreinte": "a1e8f903029ef42a4e568d54941ef712",
+   "security_definer": true,
+   "signature": "justice_preuve_reelle(text,text,text)"
   },
   {
    "empreinte": "451cce8ee501292cd206b5e388684c19",
@@ -2852,12 +3031,12 @@
    "signature": "parquet_enqueter(text)"
   },
   {
-   "empreinte": "549cfe778aa0eed820fc8d570e7cdfee",
+   "empreinte": "e4b2ea593d73dfb2e71ebf52313b56d3",
    "security_definer": true,
    "signature": "parquet_garde(text,text[])"
   },
   {
-   "empreinte": "ffb06c0d13cd31df235ca38dadf83eef",
+   "empreinte": "e1a1d7550e1e298eabda74fdce2889d5",
    "security_definer": true,
    "signature": "parquet_moi()"
   },
@@ -2882,9 +3061,9 @@
    "signature": "parquet_transmettre_juge(text)"
   },
   {
-   "empreinte": "0ba2bfe5b675dbcc535248a877de0ac6",
+   "empreinte": "dd06725121968d4190d1217a655dc75b",
    "security_definer": true,
-   "signature": "plainte_defendre(text,text)"
+   "signature": "plainte_defendre(text)"
   },
   {
    "empreinte": "b48e2aabd181d967b6e83ec3cee7d57c",
@@ -3013,6 +3192,7 @@
   "infractions_empreinte_pkey",
   "infractions_pkey",
   "jugements_pkey",
+  "justice_avocats_commis_pk",
   "justice_indemnites_pkey",
   "niveaux_prison_pkey",
   "plaintes_en_cours_pkey",
@@ -3248,6 +3428,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "justice_avocats_commis"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "justice_indemnites"
   },
   {
@@ -3361,6 +3546,12 @@
    "empreinte_catalogue": "9949884d0fea0002ad02225c5be9844f",
    "empreinte_texte": "be23b2369ca8bd7439f4c2fbed593d98",
    "nom": "jugements"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "5114c10f63dcdb977674a210891e971a",
+   "empreinte_texte": "90b696ed25a8ea83a5979588d4c8c4ed",
+   "nom": "justice_avocats_commis"
   },
   {
    "colonnes": 13,

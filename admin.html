@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Human Gambit — Administration</title>
+<!--
+  PAGE SEPAREE DU PLATEAU, ET C'EST VOLONTAIRE.
+
+  Elle ne charge NI auth.js NI supabase.js : ces deux modules portent la session du JOUEUR
+  (`respublica_auth_session`) et `sbEnTetes()` y lit son jeton a chaque requete. Les melanger
+  ferait que l'une des deux sessions chasserait l'autre, alors que l'administration doit pouvoir
+  rester ouverte EN MEME TEMPS que le compte joueur, dans le meme navigateur.
+
+  L'administration a donc sa propre identite (admin-auth.js, cle `respublica_admin_session`), son
+  propre jeton, et appelle ses deux portes directement.
+
+  CONNAITRE CETTE ADRESSE NE DONNE AUCUN POUVOIR. Les deux portes qu'elle appelle --
+  `admin_tribunal_dossiers()` et `admin_incarner()` -- LEVENT en 42501 pour tout compte qui n'est
+  pas inscrit dans `administrateurs`. Il n'y a ici aucun secret, et rien a cacher : il n'y a qu'un
+  ecran qui serait vide pour quiconque d'autre.
+-->
+<style>
+  :root {
+    --fond: #14161a; --carte: #1c1f25; --bord: #2c313a;
+    --texte: #e6e8ec; --doux: #9aa1ad; --accent: #c9a227;
+    --bon: #4f9d69; --mauvais: #c0564b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline;
+           padding: 14px 20px; border-bottom: 1px solid var(--bord); background: var(--carte); }
+  header h1 { margin: 0; font-size: 17px; letter-spacing: .04em; text-transform: uppercase; }
+  header .espace { flex: 1 1 auto; }
+  #adm-identite { color: var(--doux); font-size: 13px; }
+  #adm-lu { color: var(--doux); font-size: 12px; }
+  .adm-compteur { font-size: 12px; padding: 3px 9px; border-radius: 10px;
+                  border: 1px solid var(--bord); color: var(--doux); }
+  .adm-compteur.actif { border-color: var(--accent); color: var(--accent); }
+  main { padding: 20px; max-width: 1000px; margin: 0 auto; }
+  .adm-message { margin: 0 0 16px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+  .adm-message.bon { background: #1d2a22; color: #b9dcc6; }
+  .adm-message.mauvais { background: #2c1d1b; color: #e8b3ad; }
+  .adm-message:empty { display: none; }
+  section.adm-bloc { margin-bottom: 28px; }
+  section.adm-bloc h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em;
+                        color: var(--accent); border-bottom: 1px solid var(--bord);
+                        padding-bottom: 6px; }
+  .adm-pnj { color: var(--doux); font-size: 13px; margin: 6px 0 14px; }
+  .adm-dossier { background: var(--carte); border: 1px solid var(--bord); border-radius: 8px;
+                 padding: 12px 14px; margin-bottom: 12px; }
+  .adm-ligne { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .adm-statut { font-size: 12px; padding: 2px 8px; border-radius: 10px;
+                background: #262b33; color: var(--doux); }
+  .adm-ville { font-size: 12px; color: var(--doux); }
+  .adm-attente { font-size: 12px; color: var(--accent); margin-left: auto; }
+  .adm-detail { margin-top: 8px; font-size: 13px; color: var(--doux); }
+  .adm-chrono { margin-top: 10px; font-size: 13px; color: var(--doux); }
+  .adm-chrono ol { margin: 8px 0 0 18px; padding: 0; }
+  .adm-refus { margin-top: 10px; font-size: 13px; color: #c99; }
+  .adm-vide { color: var(--doux); font-size: 13px; }
+  .adm-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  button { font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 6px;
+           border: 1px solid var(--bord); background: #242932; color: var(--texte);
+           cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  form label { display: block; margin-bottom: 12px; font-size: 13px; color: var(--doux); }
+  input, select { font: inherit; margin-top: 4px; padding: 7px 9px; width: 100%;
+                  background: #14171c; color: var(--texte);
+                  border: 1px solid var(--bord); border-radius: 6px; }
+  #adm-connexion { max-width: 380px; }
+  #adm-connexion p { color: var(--doux); font-size: 13px; }
+  .adm-boutons { display: flex; gap: 8px; margin-top: 4px; }
+  #adm-modale { position: fixed; inset: 0; background: rgba(0,0,0,.6);
+                display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #adm-modale[hidden] { display: none; }
+  #adm-modale-corps { background: var(--carte); border: 1px solid var(--bord);
+                      border-radius: 10px; padding: 20px; width: 100%; max-width: 420px; }
+  #adm-modale-corps h3 { margin: 0 0 16px; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Human Gambit — Administration</h1>
+  <span class="espace"></span>
+  <span id="adm-compteur" class="adm-compteur"></span>
+  <span id="adm-lu"></span>
+  <span id="adm-identite"></span>
+  <button type="button" onclick="admDeconnecter()">Fermer la session</button>
+</header>
+
+<main>
+  <div id="adm-message" class="adm-message"></div>
+
+  <!-- CONNEXION. Un compte Supabase Auth a part entiere : adresse et mot de passe. Aucun compte
+       n'est cree ici -- l'administration ne s'auto-inscrit pas. -->
+  <div id="adm-connexion">
+    <form id="adm-formulaire">
+      <label>Adresse<br><input id="adm-email" type="email" autocomplete="username"></label>
+      <label>Mot de passe<br><input id="adm-mdp" type="password" autocomplete="current-password"></label>
+      <div class="adm-boutons"><button type="submit">Ouvrir l'administration</button></div>
+    </form>
+    <!-- DECLARATION DU PREMIER COMPTE. N'apparait que si la base n'a AUCUN administrateur, et
+         la porte serveur refuse de toute facon des qu'il en existe un. -->
+    <div id="adm-bootstrap" hidden>
+      <p>Aucune administration n'est encore constituée. Ce compte peut se déclarer
+         administrateur — une seule fois.</p>
+      <div class="adm-boutons">
+        <button type="button" onclick="admSeDeclarer()">Déclarer ce compte administrateur</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="adm-panneau" hidden>
+    <div id="adm-contenu"></div>
+  </div>
+</main>
+
+<div id="adm-modale" hidden><div id="adm-modale-corps"></div></div>
+
+<script src="admin-auth.js?v=1"></script>
+<script src="admin-tribunal.js?v=1"></script>
+</body>
+</html>

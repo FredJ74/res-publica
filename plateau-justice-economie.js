@@ -2043,10 +2043,24 @@ function justiceIndemnitesHtml() {
   return h;
 }
 
-// SE DEFENDRE — formule validée avec Fred :
-// Taux = 50 (base) + (CHA-8)*3 (bonus/malus charisme) - 35 si preuve reelle contre l'accuse.
-// 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
-// (circonstance attenuante), echec simple (rien), echec critique >90 (aggravation).
+// SE DEFENDRE — LE JET, LA DECISION ET LA PEINE SONT AU SERVEUR (12 octobre 2026).
+//
+// CE QUE CE NAVIGATEUR NE FAIT PLUS. Il calculait le taux (`getStatEffective('CHA')`, qui agrege
+// la moyenne du groupe de compagnons et la fraction de PV sur les caracteristiques affaiblies),
+// tirait le jet, choisissait laquelle des QUATRE issues etait survenue, et l'annoncait au serveur.
+// Il decidait donc d'une peine. Tout cela a disparu : `plainte_defendre(p_affaire_id)` ne prend
+// plus qu'un identifiant d'affaire, et c'est elle qui tire, decide, prononce et execute.
+//
+// LA FORMULE VIT AU SERVEUR, dans `justice_defense_taux` :
+//   50 + (CHA_avocat - 13) * 5 + (CHA_prevenu - 13) * 3 - 35 si une preuve reelle existe,
+//   bornee a [5 %, 80 %]. Les trois avocats commis d'office ont CHA 16 (+15 points), le meme
+//   dans les trois villes. Le CHA du prevenu est celui de sa fiche, excommunication comprise --
+//   ni groupe, ni moyenne, ni affaiblissement par les PV.
+//
+// CE QUE CE NAVIGATEUR FAIT ENCORE, et seulement cela : il choisit sur QUELLE affaire plaider, et
+// il n'en propose pas une dont le serveur refusera a coup sur -- ce filtre ne fabrique aucune
+// regle, il evite de payer 2 PA et 300 FR pour un refus certain. Puis il AFFICHE le verdict que
+// le serveur a rendu, sans jamais le recomposer.
 async function doDefense(pa, cost) {
   // L'ACCUSE SE DEFEND TANT QU'AUCUNE AUTORITE N'A AGI, et c'est `au_parquet` (12 octobre 2026,
   // nuit). CE FILTRE A ETE ECRIT DEUX FOIS DANS LA MEME PASSE, et la premiere version etait
@@ -2098,68 +2112,14 @@ async function doDefense(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cost + ' ' + cur + '.', false); return; }
 
-  const cha = getStatEffective('CHA');
-  const bonusCha = (cha - 8) * 3;
-  const preuveReelle = typeof verifierPreuveReelle === 'function'
-    ? await verifierPreuveReelle(affaire.country || state.country, affaire.cible, affaire.motif).catch(() => false)
-    : false;
-  const malusPreuve = preuveReelle ? 35 : 0;
-  const taux = Math.max(5, Math.min(90, 50 + bonusCha - malusPreuve));
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  let titre, message, journal, bon, issue;
-
-  // LES QUATRE ISSUES SONT DESORMAIS NOMMEES, et c'est la porte qui les inscrit (10 octobre 2026).
-  // Ce bloc posait `affaire.status` / `circonstanceAttenuante` / `aggravation` sur l'objet local,
-  // puis laissait partir un `sbSavePlainte(...).catch(() => {})`. Mesure faite : cette ecriture
-  // n'a JAMAIS rien inscrit. `plaintes_en_cours` porte un trigger BEFORE UPDATE,
-  // `plaintes_epingler_verdict`, qui restaure ces trois champs des que l'auteur n'est pas
-  // l'autorite judiciaire de la ville -- et l'accuse n'en est jamais une. La defense coutait donc
-  // 2 PA et 300 FR pour rien, systematiquement, pour tout le monde.
-  //
-  // LA DEPENDANCE AU BONUS DE FORMATION EST SUPPRIMEE (12 octobre 2026), ET C'ETAIT LA RAISON
-  // INVOQUEE POUR LAISSER CE JET AU CLIENT. Le taux depend de `getStatEffective('CHA')`, qui
-  // additionnait `state.char.bonusFormation` -- un bonus sans colonne, que le serveur ne pouvait
-  // donc pas connaitre. L'ancien systeme `se_former` est supprime et la lecture a quitte
-  // `getStatEffective` : plus aucun terme de ce taux n'est hors de portee du serveur.
-  //
-  // LE JET RESTE ICI POUR CETTE PASSE, ET C'EST UN RESTE ASSUME, PAS UNE REGLE. La formule de
-  // defense sera reconstruite au serveur dans le chantier judiciaire (CHA de l'avocat au maximum
-  // autorise, bonus lie au CHA du prevenu), et l'inventer maintenant serait decider a la place du
-  // game design. L'issue est donc encore annoncee par le client, dans une LISTE CLOSE de quatre
-  // valeurs, sur une affaire dont le serveur verifie qu'elle est bien la sienne et qu'elle est
-  // encore jugeable.
-  if (roll <= taux - 30) {
-    issue = 'reussite_critique';
-    titre = 'Affaire classée !';
-    message = 'Votre défense est si convaincante que l\'affaire est classée sur le champ.';
-    journal = 'Défense réussie de façon éclatante — affaire classée (jet ' + roll + '/' + taux + '%).';
-    bon = true;
-  } else if (roll <= taux) {
-    issue = 'attenuante';
-    titre = 'Défense entendue';
-    message = 'Votre défense a porté. Le juge en tiendra compte (peine réduite si prison choisie).';
-    journal = 'Défense réussie — circonstance atténuante enregistrée (jet ' + roll + '/' + taux + '%).';
-    bon = true;
-  } else if (roll > 90) {
-    issue = 'aggravation';
-    titre = 'Aggravation';
-    message = 'Votre défense s\'est retournée contre vous. Le juge en sera informé.';
-    journal = 'Défense ratée de façon flagrante — aggravation enregistrée (jet ' + roll + '/' + taux + '%).';
-    bon = false;
-  } else {
-    issue = 'infructueuse';
-    titre = 'Défense infructueuse';
-    message = 'Votre défense n\'a pas convaincu. L\'affaire suit son cours normal.';
-    journal = 'Défense infructueuse — l\'affaire suit son cours (jet ' + roll + '/' + taux + '%).';
-    bon = false;
-  }
-
+  // UN SEUL ARGUMENT, ET AUCUNE ISSUE ANNONCEE. L'ancienne signature a ete SUPPRIMEE au serveur
+  // (pas remplacee : supprimee), pour qu'aucun navigateur ne puisse plus declarer le resultat.
   const vDef = (typeof sbRpc === 'function')
-    ? await sbRpc('plainte_defendre', { p_affaire_id: affaire.id, p_issue: issue })
+    ? await sbRpc('plainte_defendre', { p_affaire_id: affaire.id })
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
     : null;
   document.getElementById('modal-postes')?.classList.remove('open');
+
   if (!vDef || vDef.ok !== true) {
     // LA DEFENSE EST DEJA PAYEE A CE STADE, et le dire est le seul comportement honnete.
     const motifRefus = vDef?.raison === 'affaire_non_defendable'
@@ -2176,19 +2136,54 @@ async function doDefense(pa, cost) {
         ? "L'infraction retenue n'est pas au code penal. Signalez-le."
       : vDef?.raison === 'defense_deja_plaidee'
         ? "Vous avez deja plaide dans cette affaire. La procedure simplifiee est definitive."
+      : vDef?.raison === 'pas_d_avocat_commis_d_office'
+        ? "Aucun avocat commis d'office ne siege dans cette ville : la procedure simplifiee n'y existe pas."
+      : vDef?.raison === 'pas_de_tribunal'
+        ? "Aucun tribunal ne siege dans cette ville : il n'y a personne pour vous juger sur le champ."
       : "Le greffe n'a pas enregistré votre défense, alors que les frais ont été prélevés. Signalez-le.";
     showToast('Défense non enregistrée', motifRefus, false);
-    addJournalEntry('Défense plaidée (jet ' + roll + '/' + taux + '%) mais NON enregistrée par le greffe.', 'event-bad');
+    addJournalEntry('Défense plaidée mais NON enregistrée par le greffe.', 'event-bad');
     updateUI();
     return;
   }
+
   // L'affaire recopie l'etat ARRETE PAR LE SERVEUR, jamais celui que ce navigateur a compose.
   if (vDef.affaire && typeof vDef.affaire === 'object') {
-    const i = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaire.id);
-    if (i >= 0) state.plaintesEnCours[i] = vDef.affaire;
+    const pos = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaire.id);
+    if (pos >= 0) state.plaintesEnCours[pos] = vDef.affaire;
+  }
+
+  // LE RECIT SUIT LE VERDICT, IL NE LE CALCULE PAS. Les trois issues possibles sont celles que la
+  // porte a rendues ; aucune n'est deduite d'un jet local.
+  const avocat = vDef.avocat || "l'avocat commis d'office";
+  const detail = ' (jet ' + vDef.jet + '/' + vDef.taux + '%, ' + avocat + ')';
+  let titre, message, journal, bon;
+  if (vDef.verdict === 'relaxe') {
+    titre = 'Relaxe';
+    message = avocat + ' a emporté la conviction du tribunal : vous êtes relaxé. '
+            + 'Le jugement est définitif.';
+    journal = 'Procédure simplifiée : RELAXE' + detail + '.';
+    bon = true;
+  } else if (vDef.reussie === true) {
+    titre = 'Peine réduite';
+    message = 'Votre défense a porté. Le tribunal retient ' + (vDef.peine || 'une peine réduite')
+            + '. Le jugement est définitif et immédiatement exécutoire.';
+    journal = 'Procédure simplifiée : peine réduite — ' + (vDef.peine || '') + detail + '.';
+    bon = true;
+  } else {
+    titre = 'Condamnation';
+    message = 'Votre défense n\'a pas convaincu. Le tribunal prononce '
+            + (vDef.peine || 'la peine prévue') + ', immédiatement exécutoire. '
+            + 'La procédure simplifiée ne souffre aucun appel.';
+    journal = 'Procédure simplifiée : condamnation — ' + (vDef.peine || '') + detail + '.';
+    bon = false;
   }
   showToast(titre, message, bon);
   addJournalEntry(journal, bon ? 'event-good' : 'event-bad');
+  // LA PEINE EST DEJA OUVERTE AU SERVEUR : on relit la fiche plutot que de la recomposer ici.
+  if (vDef.detention_id && typeof chargerPersonnage === 'function') {
+    await chargerPersonnage().catch(() => {});
+  }
   updateUI();
 }
 

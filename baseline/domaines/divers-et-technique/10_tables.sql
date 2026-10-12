@@ -25,6 +25,37 @@ CREATE TABLE public.actes_nocturnes_mecanismes (
   note text NOT NULL
 );
 
+CREATE TABLE public.admin_actions_tribunal (
+  poste text NOT NULL,
+  action text NOT NULL,
+  fonction text NOT NULL,
+  statuts text[] NOT NULL,
+  garde_texte text NOT NULL,
+  libelle text NOT NULL,
+  ordre integer NOT NULL
+);
+
+CREATE TABLE public.admin_journal (
+  rang bigserial NOT NULL,
+  admin_user_id uuid NOT NULL,
+  admin_libelle text,
+  pnj text,
+  poste text,
+  affaire text,
+  action text NOT NULL,
+  parametres jsonb,
+  resultat jsonb,
+  ok boolean,
+  fait_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.administrateurs (
+  user_id uuid NOT NULL,
+  libelle text NOT NULL,
+  actif boolean DEFAULT true NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.ambassades_ouvertes (
   id text NOT NULL,
   pays_hote text NOT NULL,

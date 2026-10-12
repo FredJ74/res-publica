@@ -11,6 +11,8 @@
 -- ============================================================================
 
 -- DROITS SUR LES SEQUENCES
+GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.admin_journal_rang_seq TO postgres;
+GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.admin_journal_rang_seq TO service_role;
 GRANT SELECT, USAGE ON SEQUENCE public.evenements_globaux_id_seq TO anon;
 GRANT SELECT, USAGE ON SEQUENCE public.evenements_globaux_id_seq TO authenticated;
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.evenements_globaux_id_seq TO postgres;
@@ -29,6 +31,12 @@ GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.actes_nocturnes TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.actes_nocturnes_mecanismes TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.actes_nocturnes_mecanismes TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.admin_actions_tribunal TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.admin_actions_tribunal TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.admin_journal TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.admin_journal TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.administrateurs TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.administrateurs TO service_role;
 GRANT INSERT, SELECT, UPDATE ON TABLE public.ambassades_ouvertes TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.ambassades_ouvertes TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.ambassades_ouvertes TO service_role;

@@ -68,13 +68,22 @@ CREATE OR REPLACE FUNCTION public.acteur_present_sur_site(p_acteur text, p_pays 
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-DECLARE a record;
+DECLARE a record; v_siege text;
 BEGIN
   -- FERME PAR DEFAUT. Un site dont on ignore le pays, la ville ou le batiment ne
   -- permet pas d'etablir une presence : on refuse, on ne devine pas.
   IF p_acteur IS NULL OR coalesce(p_pays, '') = ''
      OR coalesce(p_ville, '') = '' OR coalesce(p_batiment, '') = '' THEN
     RETURN false;
+  END IF;
+
+  -- LE SIEGE D'UN PNJ TITULAIRE INCARNE.
+  IF p_acteur = public.incarnation_courante() THEN
+    v_siege := public.incarnation_siege();
+    IF v_siege IS NULL THEN RETURN false; END IF;
+    RETURN p_pays IS NOT DISTINCT FROM public.incarnation_pays()
+       AND p_ville IS NOT DISTINCT FROM v_siege
+       AND p_batiment IS NOT DISTINCT FROM public.parquet_site_competent(p_pays, v_siege);
   END IF;
 
   -- LA POSITION FAISANT AUTORITE, et elle seule. Le navigateur ne transmet ici
@@ -96,6 +105,268 @@ BEGIN
   END IF;
 
   RETURN true;
+END $function$;
+
+-- admin_exiger() -> uuid | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_exiger()
+ RETURNS uuid
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  -- ELLE LEVE, ELLE NE REFUSE PAS. Un refus propre serait jete par un appelant distrait ; une
+  -- exception annule la transaction entiere. C'est la meme doctrine que `exiger_poste`.
+  IF NOT public.est_administrateur() THEN
+    RAISE EXCEPTION 'autorite_administrateur_requise' USING ERRCODE = '42501';
+  END IF;
+  RETURN auth.uid();
+END $function$;
+
+-- admin_incarner(text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_incarner(p_poste text, p_action text, p_affaire_id text, p_params jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_uid uuid; v_lib text; v_pays text := 'republic'; v_ville_poste text;
+  v_a record; v_pnj text; v_p jsonb; v_r jsonb;
+BEGIN
+  v_uid := public.admin_exiger();
+  SELECT a.libelle INTO v_lib FROM public.administrateurs a WHERE a.user_id = v_uid;
+  v_p := CASE WHEN jsonb_typeof(p_params) = 'object' THEN p_params ELSE '{}'::jsonb END;
+
+  -- LE PERIMETRE EST FERME, ET IL TIENT EN DEUX POSTES.
+  IF p_poste = 'procureur' THEN v_ville_poste := NULL;
+  ELSIF p_poste = 'juge'   THEN v_ville_poste := 'capitale';
+  ELSE
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_hors_perimetre', 'poste', p_poste);
+  END IF;
+
+  SELECT * INTO v_a FROM public.admin_actions_tribunal a
+   WHERE a.poste = p_poste AND a.action = p_action;
+  IF v_a.action IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'action_hors_perimetre',
+                              'poste', p_poste, 'action', p_action);
+  END IF;
+
+  -- LA TITULARITE EST VERIFIEE MAINTENANT, pas a l'ouverture de l'ecran. Un PJ nomme entre les
+  -- deux ferme la porte, y compris si le client appelle directement.
+  v_pnj := public.admin_pnj_titulaire(v_pays, p_poste, v_ville_poste);
+  IF v_pnj IS NULL THEN
+    INSERT INTO public.admin_journal (admin_user_id, admin_libelle, pnj, poste, affaire,
+                                      action, parametres, resultat, ok)
+    VALUES (v_uid, v_lib, NULL, p_poste, p_affaire_id, p_action, v_p,
+            jsonb_build_object('raison', 'poste_tenu_par_un_pj'), false);
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_tenu_par_un_pj', 'poste', p_poste);
+  END IF;
+
+  PERFORM set_config('rp.incarnation_pnj', v_pnj, true);
+  PERFORM set_config('rp.incarnation_pays', v_pays, true);
+  PERFORM set_config('rp.incarnation_siege', coalesce(v_ville_poste, 'capitale'), true);
+
+  -- AUCUN SQL DYNAMIQUE : dix appels nommes, et pas un de plus. Ce sont EXACTEMENT les fonctions
+  -- que le titulaire appellerait, avec leurs gardes intactes.
+  v_r := CASE
+    WHEN p_poste = 'procureur' AND p_action = 'enqueter'
+      THEN public.parquet_enqueter(p_affaire_id)
+    WHEN p_poste = 'procureur' AND p_action = 'poursuivre'
+      THEN public.parquet_poursuivre(p_affaire_id, v_p ->> 'infraction')
+    WHEN p_poste = 'procureur' AND p_action = 'non_lieu'
+      THEN public.parquet_non_lieu(p_affaire_id, v_p ->> 'motif')
+    WHEN p_poste = 'procureur' AND p_action = 'transmettre_juge'
+      THEN public.parquet_transmettre_juge(p_affaire_id)
+    WHEN p_poste = 'procureur' AND p_action = 'abandonner'
+      THEN public.parquet_abandonner(p_affaire_id, v_p ->> 'motif')
+    WHEN p_poste = 'procureur' AND p_action = 'appel_ouvrir'
+      THEN public.justice_appel_ouvrir(p_affaire_id)
+    WHEN p_poste = 'juge' AND p_action = 'relaxer'
+      THEN public.justice_relaxer(p_affaire_id, v_p ->> 'infraction')
+    WHEN p_poste = 'juge' AND p_action = 'rendre_sentence'
+      THEN public.justice_rendre_sentence(p_affaire_id, v_p ->> 'infraction',
+             v_p ->> 'genre', (v_p ->> 'jours')::integer, (v_p ->> 'amende')::integer)
+    WHEN p_poste = 'juge' AND p_action = 'suite_apres_abandon'
+      THEN public.juge_suite_apres_abandon(p_affaire_id, v_p ->> 'decision')
+    WHEN p_poste = 'juge' AND p_action = 'juger_appel'
+      THEN public.justice_appel_juger(p_affaire_id, v_p ->> 'verdict', v_p ->> 'infraction',
+             v_p ->> 'genre', (v_p ->> 'jours')::integer, (v_p ->> 'amende')::integer)
+  END;
+
+  PERFORM set_config('rp.incarnation_pnj', '', true);
+  PERFORM set_config('rp.incarnation_pays', '', true);
+  PERFORM set_config('rp.incarnation_siege', '', true);
+
+  -- L'AUDIT EST PRIVE, ET IL NE CHANGE RIEN A LA REPRESENTATION PUBLIQUE DE L'ACTE.
+  INSERT INTO public.admin_journal (admin_user_id, admin_libelle, pnj, poste, affaire,
+                                    action, parametres, resultat, ok)
+  VALUES (v_uid, v_lib, v_pnj, p_poste, p_affaire_id, p_action, v_p, v_r,
+          coalesce((v_r ->> 'ok')::boolean, false));
+
+  RETURN coalesce(v_r, jsonb_build_object('ok', false, 'raison', 'action_sans_effet'));
+END $function$;
+
+-- admin_journal_append_only() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_journal_append_only()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  RAISE EXCEPTION 'admin_journal est en ajout seul : ni modification ni suppression (%)', TG_OP
+    USING ERRCODE = '42501';
+END $function$;
+
+-- admin_moi() -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_moi()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT jsonb_build_object(
+    'ok', true,
+    'administrateur', public.est_administrateur(),
+    'libelle', (SELECT a.libelle FROM public.administrateurs a
+                 WHERE a.user_id = auth.uid() AND a.actif),
+    'bootstrap_ouvert', NOT EXISTS (SELECT 1 FROM public.administrateurs));
+$function$;
+
+-- admin_pnj_titulaire(text,text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_pnj_titulaire(p_pays text, p_poste text, p_ville text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN EXISTS (
+      SELECT 1 FROM public.personnages_donnees d
+       WHERE d.country = p_pays AND (d.poste ->> 'id') = p_poste
+         AND (d.poste ->> 'city') IS NOT DISTINCT FROM p_ville)
+    THEN NULL
+    ELSE (SELECT t.nom_pnj FROM public.titulaires_pnj t
+           WHERE t.country = p_pays AND t.poste_id = p_poste
+             AND t.city IS NOT DISTINCT FROM p_ville LIMIT 1)
+  END;
+$function$;
+
+-- admin_se_declarer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_se_declarer(p_libelle text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_uid uuid; v_u record; v_n integer;
+BEGIN
+  v_uid := auth.uid();
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucune_session');
+  END IF;
+  -- LA PORTE EST FERMEE DES QU'UN ADMINISTRATEUR EXISTE. Definitivement : il n'y a pas de
+  -- deuxieme declaration, et donc pas de fenetre a guetter.
+  IF EXISTS (SELECT 1 FROM public.administrateurs) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'administration_deja_constituee');
+  END IF;
+  -- UNE IDENTITE REELLE, PAS UN ANONYME. Les comptes joueurs sont anonymes (chantier B) : aucun
+  -- d'eux ne peut franchir cette ligne.
+  SELECT u.email, u.is_anonymous INTO v_u FROM auth.users u WHERE u.id = v_uid;
+  IF NOT FOUND OR coalesce(v_u.is_anonymous, false) IS TRUE
+     OR coalesce(btrim(coalesce(v_u.email, '')), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'compte_sans_identite_reelle');
+  END IF;
+  -- « CE N'EST PAS LE COMPTE JOUEUR. » Un compte qui porte un personnage ne peut pas devenir
+  -- administrateur : c'est la separation demandee, et elle est verifiee, pas supposee.
+  IF EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.user_id = v_uid) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'compte_porte_un_personnage');
+  END IF;
+
+  INSERT INTO public.administrateurs (user_id, libelle)
+  VALUES (v_uid, coalesce(nullif(btrim(coalesce(p_libelle, '')), ''), 'Administration'))
+  ON CONFLICT (user_id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'administration_deja_constituee');
+  END IF;
+
+  INSERT INTO public.admin_journal (admin_user_id, admin_libelle, action, ok, resultat)
+  VALUES (v_uid, coalesce(nullif(btrim(coalesce(p_libelle, '')), ''), 'Administration'),
+          'declaration_premier_administrateur', true,
+          jsonb_build_object('email', v_u.email));
+  RETURN jsonb_build_object('ok', true, 'administrateur', true);
+END $function$;
+
+-- admin_tribunal_dossiers() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.admin_tribunal_dossiers()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_uid uuid; v_pays text := 'republic';
+  v_saad text; v_honore text; v_parquet jsonb; v_juge jsonb; v_attente integer;
+BEGIN
+  v_uid := public.admin_exiger();
+
+  -- LE PARQUET, PAR LES YEUX DE SAAD -- s'il est reellement titulaire.
+  v_saad := public.admin_pnj_titulaire(v_pays, 'procureur', NULL);
+  IF v_saad IS NOT NULL THEN
+    PERFORM set_config('rp.incarnation_pnj', v_saad, true);
+    PERFORM set_config('rp.incarnation_pays', v_pays, true);
+    PERFORM set_config('rp.incarnation_siege', 'capitale', true);
+    v_parquet := public.parquet_dossiers();
+    PERFORM set_config('rp.incarnation_pnj', '', true);
+    PERFORM set_config('rp.incarnation_pays', '', true);
+    PERFORM set_config('rp.incarnation_siege', '', true);
+  ELSE
+    v_parquet := jsonb_build_object('ok', false, 'raison', 'poste_tenu_par_un_pj');
+  END IF;
+
+  -- LE TRIBUNAL, PAR LES YEUX D'HONORE -- juge de la capitale, et de nulle part ailleurs.
+  v_honore := public.admin_pnj_titulaire(v_pays, 'juge', 'capitale');
+  IF v_honore IS NOT NULL THEN
+    PERFORM set_config('rp.incarnation_pnj', v_honore, true);
+    PERFORM set_config('rp.incarnation_pays', v_pays, true);
+    PERFORM set_config('rp.incarnation_siege', 'capitale', true);
+    v_juge := public.juge_dossiers();
+    PERFORM set_config('rp.incarnation_pnj', '', true);
+    PERFORM set_config('rp.incarnation_pays', '', true);
+    PERFORM set_config('rp.incarnation_siege', '', true);
+  ELSE
+    v_juge := jsonb_build_object('ok', false, 'raison', 'poste_tenu_par_un_pj');
+  END IF;
+
+  -- L'INDICATEUR DISCRET : combien de dossiers attendent une decision institutionnelle. Compte,
+  -- pas alerte -- et aucune notification nulle part.
+  SELECT count(*) INTO v_attente FROM (
+    SELECT (d -> 'dossier') ->> 'status' AS st, 'procureur' AS po
+      FROM jsonb_array_elements(CASE WHEN jsonb_typeof(v_parquet -> 'dossiers') = 'array'
+                                     THEN v_parquet -> 'dossiers' ELSE '[]'::jsonb END) d
+    UNION ALL
+    SELECT (d -> 'dossier') ->> 'status', 'juge'
+      FROM jsonb_array_elements(CASE WHEN jsonb_typeof(v_juge -> 'dossiers') = 'array'
+                                     THEN v_juge -> 'dossiers' ELSE '[]'::jsonb END) d
+  ) x
+  WHERE EXISTS (SELECT 1 FROM public.admin_actions_tribunal a
+                 WHERE a.poste = x.po AND x.st = ANY (a.statuts));
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'pays', v_pays,
+    'admin', (SELECT a.libelle FROM public.administrateurs a WHERE a.user_id = v_uid),
+    'parquet', jsonb_build_object('pnj', v_saad, 'incarnable', v_saad IS NOT NULL,
+                                  'vue', v_parquet),
+    'juge', jsonb_build_object('pnj', v_honore, 'incarnable', v_honore IS NOT NULL,
+                               'ville', 'capitale', 'vue', v_juge),
+    'actions', (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                  'poste', a.poste, 'action', a.action, 'libelle', a.libelle,
+                  'statuts', to_jsonb(a.statuts)) ORDER BY a.poste, a.ordre), '[]'::jsonb)
+                 FROM public.admin_actions_tribunal a),
+    'en_attente', v_attente,
+    'lu_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
 END $function$;
 
 -- deplacement_enregistrer(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -169,6 +440,18 @@ AS $function$
      WHERE id = p_pays_soi
        AND jsonb_typeof(data -> 'sanctions' -> p_pays_cible -> 'mesures') = 'array'
   ), false);
+$function$;
+
+-- est_administrateur() -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.est_administrateur()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT auth.uid() IS NOT NULL
+     AND EXISTS (SELECT 1 FROM public.administrateurs a
+                  WHERE a.user_id = auth.uid() AND a.actif);
 $function$;
 
 -- est_appel_serveur() -> boolean | sql | SECURITY INVOKER | search_path=public, pg_temp
@@ -331,6 +614,39 @@ AS $function$
     from toutes t, arbitre a
    where NOT a.oui OR nullif(btrim(t.label_forme), '') is not null
    order by t.id;
+$function$;
+
+-- incarnation_courante() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.incarnation_courante()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN public.est_administrateur()
+              THEN nullif(current_setting('rp.incarnation_pnj', true), '') END;
+$function$;
+
+-- incarnation_pays() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.incarnation_pays()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN public.est_administrateur()
+              THEN nullif(current_setting('rp.incarnation_pays', true), '') END;
+$function$;
+
+-- incarnation_siege() -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.incarnation_siege()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN public.est_administrateur()
+              THEN nullif(current_setting('rp.incarnation_siege', true), '') END;
 $function$;
 
 -- inventaire_abandonner(text,integer,jsonb,text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp

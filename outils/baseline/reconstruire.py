@@ -587,7 +587,24 @@ def controles_du_monde(cat):
     # l'intervention echoue. LES DEUX SONT FERMEES EN LECTURE AUX CLIENTS, et pour la seconde ce
     # n'est pas une precaution : un navigateur qui lirait les signalements avertirait la CIBLE.
     # Le compte des tables sans policy passe de 140 a 142.
-    att("tables creees", len(cat.tables), 296)
+    # 300 le SOIR du 12 octobre 2026 : +4, et c'est le socle d'administration plus le registre
+    # des avocats.
+    # `justice_avocats_commis` porte la SEULE caracteristique que les trois avocats commis
+    # d'office possedent -- CHA 16, le meme dans les trois villes. Un REGISTRE plutot qu'un CASE
+    # dans une fonction, pour que la quatrieme ville ou le deuxieme empire s'ajoutent par une
+    # ligne.
+    # `administrateurs` est la SEULE definition de l'autorite administrateur : une ligne par
+    # compte Supabase Auth autorise, indexee par auth.uid(). Un monde neuf nait avec cette table
+    # VIDE, donc avec une administration FERMEE.
+    # `admin_journal` est l'audit PRIVE, en ajout seul par trois verrous -- pas de droit client,
+    # pas de policy, et un declencheur qui LEVE, ce qui bat service_role et les fonctions
+    # SECURITY DEFINER.
+    # `admin_actions_tribunal` est le MENU des actions incarnables, et ses dix lignes SONT le
+    # perimetre arbitre : deux postes, le parquet national et le juge de la capitale.
+    # LES QUATRE PORTENT LEUR REVOKE EXPLICITE : une table neuve nait avec ALL accorde a anon et
+    # authenticated par le defaut de la plateforme. Le compte des tables sans policy passe de
+    # 142 a 146.
+    att("tables creees", len(cat.tables), 300)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -749,8 +766,27 @@ def controles_du_monde(cat):
     # NE COMPTE POUR RIEN : `justice_jours_purges` a ete DROPPEE puis recreee avec une signature
     # plus courte -- un remplacement, pas un ajout. Un CREATE OR REPLACE a parametres differents
     # aurait cree une surcharge, et la preuve P1 de sa migration le verifie.
-    att("signatures de fonction creees", cat.n_fonctions, 830)
-    att("noms de fonction distincts", len(cat.fonctions), 826,
+    # 848 le SOIR du 12 octobre 2026 : +18, et aucune surcharge de plus (+18 noms aussi).
+    # FIN DE §A, sept fonctions : `justice_avocat_commis` (l'avocat de la ville et son CHA),
+    #      `justice_cha_personnel` (le CHA de la fiche + l'excommunication, et RIEN du groupe),
+    #      `justice_preuve_reelle` (la trace objective, jamais un mot dans un texte),
+    #      `justice_defense_taux` (la formule, et elle n'existe qu'ici),
+    #      `justice_defense_part_relaxe` (la seule valeur a confirmer),
+    #      `justice_juge_titulaire` (qui signe un jugement expeditif),
+    #      `juge_moi` (le resolveur unique de l'identite du juge, que `juge_de_la_ville` et
+    #      `juge_dossiers` lisent desormais toutes les deux).
+    # SOCLE D'ADMINISTRATION, onze fonctions : `est_administrateur` (la seule definition de
+    #      l'autorite), `admin_exiger` (elle LEVE, elle ne refuse pas), `admin_moi`,
+    #      `admin_se_declarer`, `admin_pnj_titulaire` (la seule definition de la titularite PNJ),
+    #      `admin_tribunal_dossiers`, `admin_incarner` (la porte UNIQUE), `admin_journal_append_only`
+    #      (le declencheur de l'audit), et les trois lectures d'incarnation
+    #      `incarnation_courante`, `incarnation_pays`, `incarnation_siege`.
+    # NE COMPTE POUR RIEN : `plainte_defendre` a ete DROPPEE a deux parametres puis recreee a un
+    # seul -- un remplacement, pas un ajout, et la preuve P5 de sa migration verifie qu'il ne
+    # reste qu'UNE signature. Un CREATE OR REPLACE a parametres differents aurait laisse vivre
+    # l'ancienne porte, celle qui acceptait une issue annoncee par le navigateur.
+    att("signatures de fonction creees", cat.n_fonctions, 848)
+    att("noms de fonction distincts", len(cat.fonctions), 844,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -839,7 +875,13 @@ def controles_du_monde(cat):
     # le paye est borne par le du, et le porteur est en liste fermee. Quatre sur
     # `signalements_police` : cle primaire, l'interdiction de se signaler soi-meme, la liste
     # fermee des issues, et la coherence entre resolution et issue.
-    att("contraintes posees", len(cat.contraintes), 565)
+    # 571 le SOIR du 12 octobre 2026 : +6. Deux sur `justice_avocats_commis` -- sa cle primaire
+    # (pays, ville) et le CHECK qui borne le CHA a la plage du jeu. Une sur `administrateurs`, sa
+    # cle primaire sur user_id : un compte ne porte pas deux fois l'autorite. Une sur
+    # `admin_journal`, sa cle primaire sur le rang. Deux sur `admin_actions_tribunal` : sa cle
+    # primaire (poste, action) et le CHECK qui FERME le perimetre a deux postes -- c'est la
+    # contrainte qui empeche qu'une ligne de registre ouvre l'incarnation d'un maire.
+    att("contraintes posees", len(cat.contraintes), 571)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -937,7 +979,10 @@ def controles_du_monde(cat):
     # l'alimentation de la caisse des Finances vient de partout -- cascade budgetaire, impot,
     # vente, virement -- et un etage de plus dans le circuit fiscal aurait suffi a faire oublier
     # la dette. Une BAISSE ne declenche rien, ce qui coupe la recursion que le paiement provoque.
-    att("declencheurs crees", len(cat.triggers), 47)
+    # 48 le SOIR du 12 octobre 2026 : +1, `trg_admin_journal_append_only`. C'est le TROISIEME
+    # verrou de l'audit prive, et le seul qui batte `service_role` et les fonctions SECURITY
+    # DEFINER : une absence de droit ne les arrete pas, une exception si.
+    att("declencheurs crees", len(cat.triggers), 48)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -976,7 +1021,10 @@ def controles_du_monde(cat):
     # existe parce que `cree_le` ne peut PAS ordonner la file FIFO : now() est constant dans une
     # transaction, donc deux creances nees ensemble portent le meme horodatage et l'ordre devient
     # indecidable -- le banc a vu le cadet paye avant l'aine.
-    att("sequences disponibles", len(cat.sequences), 34)
+    # 35 le SOIR du 12 octobre 2026 : +1, `admin_journal_rang_seq`. Elle est revoquee aux roles
+    # clients comme sa table : une sequence oubliee laisserait un client COMPTER les interventions
+    # de l'administration sans lire une seule ligne du journal.
+    att("sequences disponibles", len(cat.sequences), 35)
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

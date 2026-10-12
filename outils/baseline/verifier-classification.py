@@ -126,8 +126,17 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # piece, et le serveur revalide dix secondes plus tard que la cible y est ENCORE.
 # LES DEUX SONT CLASSEES C. Un monde neuf ne doit rien a personne, et aucune intervention de
 # police n'y est en cours.
-TABLES_ATTENDUES = 301    # 299 -> 301 le 12 octobre 2026 : indemnites et signalements
-EMPREINTE_LISTE = "7ba97401d7f039e94656ec8f45fcf7a8"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 301 -> 305 le 12 octobre 2026 au soir : `justice_avocats_commis`, `administrateurs`,
+# `admin_journal` et `admin_actions_tribunal`.
+# LA PREMIERE EST CLASSEE A : elle porte le CHA 16 des trois avocats commis d'office, c'est-a-dire
+# une REGLE, pas un etat vivant -- sans ses lignes, la procedure simplifiee est inerte dans tout
+# le pays. `admin_actions_tribunal` est A pour la meme raison : ses dix lignes SONT le perimetre
+# arbitre de l'incarnation, et l'elargir est une decision de game design.
+# LES DEUX AUTRES SONT C, et il n'y a pas d'hesitation : un monde neuf doit naitre avec une
+# administration VIDE -- donc fermee -- et un audit VIDE. Semer un compte administrateur
+# reviendrait a publier un identifiant d'autorite dans le depot.
+TABLES_ATTENDUES = 305
+EMPREINTE_LISTE = "897787a075a4eff21a70faf86db8f702"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

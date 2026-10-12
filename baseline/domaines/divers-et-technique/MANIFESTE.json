@@ -63,6 +63,24 @@
    "tbl": "actes_nocturnes_mecanismes"
   },
   {
+   "empreinte": "eccb5b1434814a558656bede9b7bb153",
+   "genre": "p",
+   "nom": "admin_actions_tribunal_pk",
+   "tbl": "admin_actions_tribunal"
+  },
+  {
+   "empreinte": "12ceaed22c8d5b170ea81a1217c166da",
+   "genre": "p",
+   "nom": "admin_journal_pk",
+   "tbl": "admin_journal"
+  },
+  {
+   "empreinte": "0a0db78b5fb70bf8475b3bd434e6842b",
+   "genre": "p",
+   "nom": "administrateurs_pk",
+   "tbl": "administrateurs"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "ambassades_ouvertes_pkey",
@@ -123,6 +141,12 @@
    "tbl": "actes_nocturnes_mecanismes"
   },
   {
+   "empreinte": "e2a664de9c881331df2120f7eb4af2be",
+   "genre": "c",
+   "nom": "admin_actions_tribunal_poste",
+   "tbl": "admin_actions_tribunal"
+  },
+  {
    "empreinte": "db5c575c6264ef9076bce4f38125d799",
    "genre": "c",
    "nom": "cron_journal_statut_check",
@@ -138,6 +162,18 @@
  "domaine": "divers et technique",
  "droits": [
   {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "admin_journal_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "admin_journal_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
    "objet": "evenements_globaux_id_seq",
@@ -231,6 +267,42 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "actes_nocturnes_mecanismes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "admin_actions_tribunal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "admin_actions_tribunal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "admin_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "admin_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "administrateurs",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "administrateurs",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -369,11 +441,12 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "444e87808123b11e6187f4fca555e66f",
-  "30_contraintes.sql": "0ff3dfddc83ea6d8e02a57ac46528d03",
-  "35_index.sql": "8dafeb33b5adf06f644aa1f6e5496f51",
-  "60_rls-policies.sql": "39d9c75816727e7edc1c2bf51cecb0af",
-  "70_droits.sql": "1c970043038ad78ade0b406c27a3f7f8",
+  "10_tables.sql": "1aedc993b840c55901fddd190f4f413b",
+  "30_contraintes.sql": "e6c6a32fe4520d5bc1a3f1f16f44214c",
+  "35_index.sql": "4bf937bfe70466f9a18ee51b7454cfff",
+  "50_triggers.sql": "f193002b8e488dd94777990af0582f7e",
+  "60_rls-policies.sql": "127d896bc7a75206905f39b0aa9f90d6",
+  "70_droits.sql": "51f0bc4d9427a81faee941719cc18272",
   "80_commentaires.sql": "959279d927075057f92d423016b18182"
  },
  "fonctions": [],
@@ -406,6 +479,9 @@
  "index_portes": [
   "actes_nocturnes_mecanismes_pkey",
   "actes_nocturnes_pkey",
+  "admin_actions_tribunal_pk",
+  "admin_journal_pk",
+  "administrateurs_pk",
   "ambassades_ouvertes_pkey",
   "cron_journal_pkey",
   "etats_urgence_pkey",
@@ -418,6 +494,7 @@
   "10_tables.sql",
   "30_contraintes.sql",
   "35_index.sql",
+  "50_triggers.sql",
   "60_rls-policies.sql",
   "70_droits.sql",
   "80_commentaires.sql"
@@ -516,6 +593,21 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "admin_actions_tribunal"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "admin_journal"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "administrateurs"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "ambassades_ouvertes"
   },
   {
@@ -551,6 +643,11 @@
  ],
  "sequences": [
   {
+   "nom": "admin_journal_rang_seq",
+   "possedee": true,
+   "tbl": "admin_journal"
+  },
+  {
    "nom": "evenements_globaux_id_seq",
    "possedee": true,
    "tbl": "evenements_globaux"
@@ -581,6 +678,24 @@
    "empreinte_catalogue": "c9a23b4dd871344f764d0b9b07bbd513",
    "empreinte_texte": "91eb8cabfdc1894f82513a87ca3cd71f",
    "nom": "actes_nocturnes_mecanismes"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "1910a3ca621de1f04560786ee13ebbbc",
+   "empreinte_texte": "3d60e2c89388b3a5d173d8f39f3074b1",
+   "nom": "admin_actions_tribunal"
+  },
+  {
+   "colonnes": 11,
+   "empreinte_catalogue": "026d8d6ff38340411ded12872e64b565",
+   "empreinte_texte": "993b87e7205821e32d9a88dccaf25abf",
+   "nom": "admin_journal"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "52d141974289f7037918da1aa5f6fab5",
+   "empreinte_texte": "e8140fa5e65e307436b6061c53f04e6d",
+   "nom": "administrateurs"
   },
   {
    "colonnes": 5,
@@ -625,6 +740,13 @@
    "nom": "registre_ventes_armes"
   }
  ],
- "triggers": [],
+ "triggers": [
+  {
+   "empreinte": "c19c51b61e196f40d5173d48ca6dc12d",
+   "fonction": "admin_journal_append_only()",
+   "nom": "trg_admin_journal_append_only",
+   "tbl": "admin_journal"
+  }
+ ],
  "vues": []
 }

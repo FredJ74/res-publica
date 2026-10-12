@@ -143,6 +143,13 @@ CREATE TABLE public.jugements (
   data jsonb
 );
 
+CREATE TABLE public.justice_avocats_commis (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  nom text NOT NULL,
+  cha integer NOT NULL
+);
+
 CREATE TABLE public.justice_indemnites (
   id text NOT NULL,
   pays text NOT NULL,

@@ -101,23 +101,40 @@ BEGIN
   -- ------------------------------------------------- 2. DECOR DE LA DEFENSE
   DELETE FROM public.plaintes_en_cours;
   UPDATE public.personnages_donnees SET poste = NULL WHERE name = 'Ben';
+  -- L'AFFAIRE DE BEN PORTE DESORMAIS UNE INFRACTION CANONIQUE COURTE (12 octobre 2026, soir).
+  -- Sans elle, la porte refuserait `infraction_non_determinee` avant tout le reste : la procedure
+  -- simplifiee a un DOMAINE, et c'est `banc-defense-simplifiee.sql` qui l'eprouve en entier.
+  -- `aff-ben-2` sert la contre-epreuve finale : un jugement porte l'identifiant de son affaire,
+  -- donc une seconde defense reussie ne peut pas se jouer sur le meme dossier.
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     (AFF, 'republic', 'ville_a',
-     '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'),
+     '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet","infraction_constatee":"vol"}'),
+    ('aff-ben-2', 'republic', 'ville_a',
+     '{"id":"aff-ben-2","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet","infraction_constatee":"vol"}'),
     (AUTRE, 'republic', 'ville_a',
      '{"id":"aff-may","country":"republic","city":"ville_a","cible":"May","motif":"Vol","jour":1,"status":"au_parquet"}');
 
   -- ------------------------------------------------- 3. LES REFUS NOMMES
   PERFORM set_config('request.jwt.claims', BEN, true);
   PERFORM set_config('role', 'authenticated', true);
-  v := public.plainte_defendre(AFF, 'jackpot');
-  n := n + 1; IF v ->> 'raison' <> 'issue_inconnue'
-    THEN ko := ko || ('3 une issue hors liste close est acceptee : ' || v::text); END IF;
-  v := public.plainte_defendre('aff-inexistante', 'attenuante');
+  -- L'ISSUE ANNONCEE N'EXISTE PLUS, ET C'EST L'EPREUVE (12 octobre 2026, soir). Cette ligne
+  -- verifiait qu'une issue hors liste close etait refusee -- une bonne garde sur une mauvaise
+  -- architecture : c'etait le NAVIGATEUR qui disait laquelle des quatre etait survenue, donc qui
+  -- decidait d'une peine. La signature a deux parametres a ete SUPPRIMEE, pas elargie, et il n'en
+  -- reste qu'une. Mesure sur le catalogue, pas sur un appel.
+  PERFORM set_config('role', 'postgres', true);
+  SELECT count(*) INTO c FROM pg_proc p JOIN pg_namespace ns ON ns.oid = p.pronamespace
+   WHERE ns.nspname = 'public' AND p.proname = 'plainte_defendre';
+  n := n + 1; IF c <> 1 THEN ko := ko || ('3 ' || c || ' signature(s) de plainte_defendre'); END IF;
+  SELECT count(*) INTO c FROM pg_proc p JOIN pg_namespace ns ON ns.oid = p.pronamespace
+   WHERE ns.nspname = 'public' AND p.proname = 'plainte_defendre' AND p.pronargs = 1;
+  n := n + 1; IF c <> 1 THEN ko := ko || '3b la porte accepte encore une issue annoncee'; END IF;
+  PERFORM set_config('role', 'authenticated', true);
+  v := public.plainte_defendre('aff-inexistante');
   n := n + 1; IF v ->> 'raison' <> 'affaire_absente' THEN ko := ko || '4 affaire absente acceptee'; END IF;
   -- SE DEFENDRE EST LE FAIT DE L'ACCUSE. L'ancienne policy accordait l'ecriture a la cible ET au
   -- plaignant, sur le blob entier.
-  v := public.plainte_defendre(AUTRE, 'reussite_critique');
+  v := public.plainte_defendre(AUTRE);
   n := n + 1; IF v ->> 'raison' <> 'pas_mon_affaire'
     THEN ko := ko || ('5 on se defend sur l affaire d un autre : ' || v::text); END IF;
   PERFORM set_config('role', 'postgres', true);
@@ -125,52 +142,60 @@ BEGIN
   n := n + 1; IF d ->> 'status' <> 'au_parquet'
     THEN ko := ko || '6 l affaire d un autre a bouge malgre le refus'; END IF;
 
-  -- ------------------------------------------------- 4. LES QUATRE ISSUES, LUES EN BASE
+  -- --------------------------------------- 4. LE VERDICT EST CELUI DU SERVEUR, LU EN BASE
+  -- CETTE SECTION MESURAIT LES QUATRE ISSUES. Elles n'existent plus : le serveur tire, decide,
+  -- prononce et execute. Ce qu'elle mesure desormais, c'est que l'issue rendue est l'une des
+  -- DEUX possibles, qu'elle est accompagnee d'un VRAI jugement -- l'ancienne « reussite
+  -- critique » posait `status = 'jugee'` sans aucune ligne au registre -- et que le dossier
+  -- porte la marque de la procedure.
   PERFORM set_config('role', 'authenticated', true);
-  v := public.plainte_defendre(AFF, 'attenuante');
+  v := public.plainte_defendre(AFF);
   PERFORM set_config('role', 'postgres', true);
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
-  n := n + 1; IF NOT (v ->> 'ok' = 'true' AND (d -> 'circonstanceAttenuante') = 'true'::jsonb)
-    THEN ko := ko || ('7 la circonstance attenuante n est pas EN BASE : ' || d::text); END IF;
-  n := n + 1; IF d ->> 'status' <> 'au_parquet'
-    THEN ko := ko || '8 une reussite simple a clos l affaire'; END IF;
+  n := n + 1; IF v ->> 'ok' <> 'true'
+    THEN ko := ko || ('7 la defense a echoue : ' || v::text); END IF;
+  n := n + 1; IF (v ->> 'verdict') NOT IN ('condamnation', 'relaxe')
+    OR (d ->> 'status') NOT IN ('jugee', 'relaxe')
+    THEN ko := ko || ('8 le verdict n est pas EN BASE : ' || d::text); END IF;
   n := n + 1; IF d ->> 'defendue_par' <> 'Ben' THEN ko := ko || '9 le defenseur n est pas nomme'; END IF;
 
-  -- LE CUMUL RESTE POSSIBLE, et c'est la regle existante : les trois issues qui ne classent pas
-  -- laissent l'affaire au parquet, et l'ordre est payant a chaque tentative.
-  PERFORM set_config('role', 'authenticated', true);
-  PERFORM public.plainte_defendre(AFF, 'aggravation');
-  PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
-  n := n + 1; IF (d -> 'aggravation') <> 'true'::jsonb
-    THEN ko := ko || ('10 l aggravation n est pas EN BASE : ' || d::text); END IF;
+  -- LE JUGEMENT EXISTE, ET SA PEINE DIT LE VERDICT : NULL pour une relaxe, un libelle sinon.
+  SELECT count(*) INTO c FROM public.jugements WHERE id = 'jug-' || AFF;
+  n := n + 1; IF c <> 1 THEN ko := ko || ('10 aucune ligne de jugement (' || c || ')'); END IF;
+  n := n + 1; IF ((v ->> 'verdict') = 'relaxe')
+    <> ((SELECT peine FROM public.jugements WHERE id = 'jug-' || AFF) IS NULL)
+    THEN ko := ko || '10b la peine du jugement ne correspond pas au verdict'; END IF;
 
-  -- L'ECHEC SIMPLE N'AJOUTE AUCUN DRAPEAU.
-  UPDATE public.plaintes_en_cours SET data =
-    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'
-   WHERE id = AFF;
-  PERFORM set_config('role', 'authenticated', true);
-  PERFORM public.plainte_defendre(AFF, 'infructueuse');
-  PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
-  n := n + 1; IF (d ? 'circonstanceAttenuante') OR (d ? 'aggravation')
-    THEN ko := ko || ('11 un echec simple a pose un drapeau : ' || d::text); END IF;
-  n := n + 1; IF NOT (d ? 'defendue_le') THEN ko := ko || '12 la tentative n est pas horodatee'; END IF;
+  -- LE NAVIGATEUR N'A RIEN POSE : aucun des trois drapeaux de l'ancienne mecanique.
+  n := n + 1; IF (d ? 'circonstanceAttenuante') OR (d ? 'aggravation') OR (d ? 'resultatDefense')
+    THEN ko := ko || ('11 un drapeau de l ancienne mecanique survit : ' || d::text); END IF;
+  -- `defendue_le` A DISPARU AU PROFIT DE `defense_le`, ET C'ETAIT UN DOUBLON : les deux portaient
+  -- le MEME horodatage, et seul `defense_le` etait lu -- c'est lui que le filtre du navigateur
+  -- interroge pour savoir qu'une defense a deja ete plaidee. Garder deux cles pour un fait, c'est
+  -- preparer le jour ou elles divergent.
+  n := n + 1; IF NOT (d ? 'defense_le') OR NOT (d ? 'defense_avocat') OR NOT (d ? 'defense_taux')
+    THEN ko := ko || ('12 la defense n est pas horodatee ni attribuee : ' || d::text); END IF;
 
-  -- LA REUSSITE ECLATANTE CLASSE L'AFFAIRE -- la seule des trois portes du cycle qui pose
-  -- « jugee », parce que c'est la regle de jeu existante.
+  -- ET LA MARQUE DE LA PROCEDURE EST POSEE : c'est elle qui ferme l'appel.
+  n := n + 1; IF (d -> 'procedure_simplifiee') <> 'true'::jsonb
+    THEN ko := ko || ('13 le dossier ne porte pas la marque de la procedure simplifiee'); END IF;
   PERFORM set_config('role', 'authenticated', true);
-  PERFORM public.plainte_defendre(AFF, 'reussite_critique');
-  PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
-  n := n + 1; IF NOT (d ->> 'status' = 'jugee' AND d ->> 'resultatDefense' = 'reussite_critique')
-    THEN ko := ko || ('13 la reussite eclatante ne classe pas l affaire EN BASE : ' || d::text); END IF;
+  v := public.justice_appel_ouvrir(AFF);
+  n := n + 1; IF v ->> 'raison' <> 'appel_exclu_procedure_simplifiee'
+    THEN ko := ko || ('13b un appel est possible : ' || v::text); END IF;
 
   -- ------------------------------------------------- 5. ON NE REPUBLIE PAS UN ETAT ANCIEN
   PERFORM set_config('role', 'authenticated', true);
-  v := public.plainte_defendre(AFF, 'attenuante');
-  n := n + 1; IF NOT (v ->> 'raison' = 'affaire_non_defendable' AND v ->> 'statut' = 'jugee')
+  v := public.plainte_defendre(AFF);
+  n := n + 1; IF (v ->> 'raison') NOT IN ('affaire_non_defendable', 'defense_deja_plaidee')
     THEN ko := ko || ('14 une affaire jugee se laisse redefendre : ' || v::text); END IF;
+
+  -- LA PEINE EST IMMEDIATEMENT EXECUTOIRE : on rend sa liberte a Ben avant la suite, sinon la
+  -- defense de `aff-ben-2` buterait sur une peine en cours -- pour une raison qui n'a rien a voir
+  -- avec ce que la contre-epreuve mesure.
+  PERFORM set_config('role', 'postgres', true);
+  DELETE FROM public.detentions WHERE nom = 'Ben';
+  UPDATE public.personnages_donnees SET est_emprisonne = NULL WHERE name = 'Ben';
 
   -- ------------------------------------------------- 6. CONTRE-EPREUVE DE LA DEFENSE
   -- L'ANCIEN CHEMIN, REFAIT A L'IDENTIQUE : `sbSavePlainte` est un upsert du blob ENTIER. Sur une
@@ -179,20 +204,16 @@ BEGIN
   -- `authenticated` sur `plaintes_en_cours`, et l'upsert conserve mot pour mot LEVE `42501
   -- permission denied`. On attrape ce refus-la uniquement, et l'absence d'exception serait
   -- l'echec. La defense n'est donc plus seulement annulee apres coup, elle est refusee d'entree.
-  PERFORM set_config('role', 'postgres', true);
-  UPDATE public.plaintes_en_cours SET data =
-    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'
-   WHERE id = AFF;
   PERFORM set_config('role', 'authenticated', true);
   v_refuse := false;
   BEGIN
     UPDATE public.plaintes_en_cours
-       SET data = '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"deposee","circonstanceAttenuante":true}'
-     WHERE id = AFF;
+       SET data = '{"id":"aff-ben-2","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"deposee","circonstanceAttenuante":true}'
+     WHERE id = 'aff-ben-2';
   EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
   END;
   PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
+  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = 'aff-ben-2';
   n := n + 1; IF NOT v_refuse OR (d ? 'circonstanceAttenuante') THEN
     ko := ko || ('15 L ECRITURE CLIENTE DIRECTE EST ENCORE POSSIBLE : l ancien chemin a pu tenter '
       || 'la circonstance attenuante (refus de privilege ' || v_refuse::text || ') : ' || d::text);
@@ -200,7 +221,7 @@ BEGIN
 
   -- ET LA PORTE, SUR LA MEME AFFAIRE, L'INSCRIT.
   PERFORM set_config('role', 'authenticated', true);
-  PERFORM public.plainte_defendre(AFF, 'attenuante');
+  PERFORM public.plainte_defendre('aff-ben-2');
   -- PUIS L'ECRITURE CLIENTE EN BLOC, JUSTE APRES LA PORTE, NE DOIT RIEN POUVOIR POSER. Elle etait
   -- jusqu'ici arretee par le trigger du verdict -- le laissez-passer `rp.verdict_interne` etant
   -- bien REFERME par la porte, le defaut que le banc du lot precedent avait trouve sur
@@ -212,15 +233,17 @@ BEGIN
   v_refuse := false;
   BEGIN
     UPDATE public.plaintes_en_cours
-       SET data = (data::jsonb || '{"status":"jugee","aggravation":true}'::jsonb)::text
-     WHERE id = AFF;
+       SET data = (data::jsonb || '{"status":"au_parquet","aggravation":true}'::jsonb)::text
+     WHERE id = 'aff-ben-2';
   EXCEPTION WHEN insufficient_privilege THEN v_refuse := true;
   END;
   PERFORM set_config('role', 'postgres', true);
-  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
-  n := n + 1; IF (d -> 'circonstanceAttenuante') <> 'true'::jsonb
+  SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = 'aff-ben-2';
+  -- CE QUE LA PORTE INSCRIT N'EST PLUS UN DRAPEAU MAIS UN VERDICT : l'avocat qui a plaide, le
+  -- taux calcule au serveur, et le statut du jugement.
+  n := n + 1; IF NOT (d ? 'defense_avocat') OR NOT (d ? 'defense_taux')
     THEN ko := ko || ('16 la porte n inscrit pas ce que l ancien chemin perdait : ' || d::text); END IF;
-  n := n + 1; IF NOT v_refuse OR (d ->> 'status' <> 'au_parquet') OR (d ? 'aggravation') THEN
+  n := n + 1; IF NOT v_refuse OR (d ->> 'status') NOT IN ('jugee', 'relaxe') OR (d ? 'aggravation') THEN
     ko := ko || ('17 L ECRITURE CLIENTE EN BLOC APRES LA PORTE EST ENCORE POSSIBLE : refus de '
       || 'privilege ' || v_refuse::text || ', dossier ' || d::text);
   END IF;

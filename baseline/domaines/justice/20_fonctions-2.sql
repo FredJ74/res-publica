@@ -10,6 +10,299 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- plainte_traiter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.plainte_traiter(p_id text, p_decision text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_nom text; v_poste text; v_poste_city text; v_pays text;
+  v_brut text; v_data jsonb; v_ville text; v_pays_plainte text; v_res jsonb;
+BEGIN
+  SELECT a.nom, a.poste_id, a.poste_city, a.pays
+    INTO v_nom, v_poste, v_poste_city, v_pays
+    FROM public.acteur_poste_courant() a;
+  IF v_nom IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  IF v_poste IS DISTINCT FROM 'commissaire' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante');
+  END IF;
+  -- `classer` A DISPARU DE LA LISTE, et c'est le coeur du transfert d'autorite : l'opportunite
+  -- des poursuites appartient au parquet. Un appel avec l'ancienne decision est refuse
+  -- explicitement, pour que le defaut se voie au lieu d'etre avale.
+  IF p_decision = 'classer' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'classement_reserve_au_parquet');
+  END IF;
+  IF p_decision <> 'enqueter' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'decision_invalide');
+  END IF;
+
+  SELECT p.data, p.city, p.country INTO v_brut, v_ville, v_pays_plainte
+    FROM public.plaintes_en_cours p WHERE p.id = p_id FOR UPDATE;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'dossier_introuvable');
+  END IF;
+  v_data := v_brut::jsonb;
+
+  IF v_pays_plainte IS DISTINCT FROM v_pays OR v_ville IS DISTINCT FROM v_poste_city THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_juridiction');
+  END IF;
+  -- L'ENQUETE N'EST POSSIBLE QUE SI LE PARQUET L'A ORDONNEE. C'est la regle : le Procureur
+  -- dirige l'enquete, la police l'accomplit.
+  IF coalesce(v_data ->> 'status', '') <> 'enquete' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'enquete_non_diligentee',
+                              'statut', v_data ->> 'status');
+  END IF;
+  IF coalesce((v_data ->> 'enquete_accomplie')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'enquete_deja_accomplie');
+  END IF;
+
+  -- L'ACTE LUI-MEME EST INCHANGE : il cherche une trace non decouverte de la personne visee,
+  -- la marque decouverte, traite la branche contre-espionnage, et ouvre une garde a vue.
+  v_res := public.plainte_instruire_interne(v_pays, v_ville, v_data ->> 'cible',
+                                            v_data ->> 'motif', v_nom);
+
+  -- LE STATUT NE BOUGE PAS : le dossier reste `enquete`, donc au parquet. L'acte de police ne
+  -- decide de rien -- il rapporte. C'est le Procureur qui en tirera un non-lieu ou des
+  -- poursuites.
+  UPDATE public.plaintes_en_cours
+     SET data = (v_data || jsonb_build_object(
+           'enquete_accomplie', true,
+           'enquete_par_police', v_nom,
+           'enquete_resultat', v_res ->> 'decision',
+           'enquete_acte_le', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')))::text
+   WHERE id = p_id;
+
+  PERFORM public.dossier_acte_consigner(p_id, v_pays, v_ville, 'enquete_acte_police',
+    v_nom, 'commissaire', NULL, NULL,
+    jsonb_build_object('resultat', v_res ->> 'decision', 'acte', v_res ->> 'acte'));
+
+  RETURN v_res || jsonb_build_object('id', p_id, 'statut', 'enquete');
+END;
+$function$;
+
+-- plaintes_epingler_verdict() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.plaintes_epingler_verdict()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_old jsonb; v_new jsonb; v_cle text; v_proc record;
+  -- Champs qui disent l'issue judiciaire. Tout le reste (defense, pieces, circonstances) reste
+  -- librement modifiable par les parties.
+  v_verdict constant text[] := ARRAY['status','sentence','peine','jugement','juge',
+                                     'circonstanceAttenuante','aggravation'];
+BEGIN
+  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
+  -- LAISSEZ-PASSER DES PORTES DU CYCLE (10 octobre 2026). Il reste utilise par la defense de
+  -- l'accuse, qui ecrit un champ de verdict pour le compte de quelqu'un qui n'est PAS une
+  -- autorite. Le classement ministeriel, qui l'employait aussi, a disparu avec la porte.
+  IF coalesce(current_setting('rp.verdict_interne', true), '') = 'on' THEN RETURN NEW; END IF;
+  -- L'AUTORITE JUDICIAIRE DE LA VILLE : le juge, et le commissaire.
+  IF public.affaire_autorite_de(NEW.city) THEN RETURN NEW; END IF;
+
+  -- ET LE PARQUET (12 octobre 2026). Le Procureur est NATIONAL : son poste n'a pas de ville,
+  -- donc `affaire_autorite_de` le refusait, et ce declencheur restaurait le `status` qu'il venait
+  -- d'ecrire -- ses poursuites etaient engagees et sans effet. Il n'est pas une PARTIE a
+  -- l'affaire, il est l'autorite qui conduit la procedure : la protection ne le vise pas. Le pays
+  -- est verifie, parce qu'un procureur n'a d'autorite que sur les affaires du sien.
+  SELECT * INTO v_proc FROM public.parquet_moi();
+  IF v_proc.nom IS NOT NULL AND v_proc.pays IS NOT DISTINCT FROM NEW.country THEN
+    RETURN NEW;
+  END IF;
+
+  -- L'auteur n'est ni l'autorite judiciaire, ni le parquet : on restaure les champs de verdict
+  -- tels qu'ils etaient. Si l'un d'eux est illisible, on ne prend aucun risque.
+  IF OLD.data IS NULL OR left(btrim(OLD.data), 1) <> '{'
+     OR NEW.data IS NULL OR left(btrim(NEW.data), 1) <> '{' THEN
+    RETURN NEW;
+  END IF;
+
+  BEGIN
+    v_old := OLD.data::jsonb;
+    v_new := NEW.data::jsonb;
+  EXCEPTION WHEN OTHERS THEN
+    RETURN NEW;
+  END;
+
+  FOREACH v_cle IN ARRAY v_verdict LOOP
+    IF (v_new -> v_cle) IS DISTINCT FROM (v_old -> v_cle) THEN
+      IF (v_old ? v_cle) THEN
+        v_new := jsonb_set(v_new, ARRAY[v_cle], v_old -> v_cle);
+      ELSE
+        v_new := v_new - v_cle;   -- le champ n'existait pas : il n'apparait pas
+      END IF;
+    END IF;
+  END LOOP;
+
+  NEW.data := v_new::text;
+  RETURN NEW;
+END;
+$function$;
+
+-- police_autorite_de_perimetre(text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.police_autorite_de_perimetre(p_pays text, p_perimetre text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_ville text; v_bat text; v_nom text;
+BEGIN
+  IF p_perimetre IS NULL OR position(':' in p_perimetre) = 0 THEN RETURN NULL; END IF;
+  v_ville := split_part(p_perimetre, ':', 1);
+  v_bat   := split_part(p_perimetre, ':', 2);
+  IF v_bat NOT IN ('commissariat','commissariat-local') THEN RETURN NULL; END IF;
+  SELECT pd.name INTO v_nom
+    FROM public.personnages_donnees pd
+   WHERE COALESCE(pd.country, 'republic') = p_pays
+     AND pd.poste->>'id' = 'commissaire'
+     AND pd.poste->>'city' = v_ville
+   ORDER BY pd.name
+   LIMIT 1;
+  RETURN v_nom;
+END; $function$;
+
+-- police_caracteristiques_metier() -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.police_caracteristiques_metier()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT public.pnj_metier_profil('policier');
+$function$;
+
+-- police_delai_intervention_secondes() -> integer | sql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.police_delai_intervention_secondes()
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$ SELECT 10 $function$;
+
+-- police_payer_effectifs(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.police_payer_effectifs(p_pays text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  c_standard  constant integer := 50;
+  c_cynophile constant integer := 100;
+  v_serveur boolean; v_moi text; v_poste text;
+  v_jour date; r record; v_etat jsonb; v_eff jsonb; v_liste jsonb;
+  v_du numeric; v_verse numeric; v_rep jsonb; v_n integer; v_gardes integer;
+  v_cumul numeric; v_el jsonb; v_caisse text;
+  v_villes jsonb := '[]'::jsonb; v_total_verse numeric := 0; v_total_partis integer := 0;
+BEGIN
+  IF COALESCE(btrim(p_pays), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  v_serveur := public.est_appel_serveur();
+  IF NOT v_serveur THEN
+    v_moi := public.mon_personnage();
+    IF v_moi IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+    SELECT (poste->>'id') INTO v_poste FROM public.personnages_donnees WHERE name = v_moi;
+    IF v_poste IS DISTINCT FROM 'min_int' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante'); END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees
+                    WHERE name = v_moi AND COALESCE(country,'republic') = p_pays) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pays_hors_autorite'); END IF;
+  END IF;
+
+  v_jour := ((now() AT TIME ZONE 'Europe/Paris')::date - 1);
+
+  FOR r IN SELECT b.id, b.city, b.building_id, b.data
+             FROM public.batiments_etat b
+            WHERE b.country = p_pays
+              AND b.building_id IN ('commissariat','commissariat-local')
+            ORDER BY b.city
+            FOR UPDATE
+  LOOP
+    v_etat := COALESCE(public.batiment_etat_lire(r.data), '{}'::jsonb);
+    v_eff  := v_etat -> 'effectifsPolice';
+    CONTINUE WHEN v_eff IS NULL OR jsonb_typeof(v_eff) <> 'object';
+    CONTINUE WHEN COALESCE(v_eff ->> 'dernierPaiementJour', '') = v_jour::text;
+
+    v_liste := COALESCE(v_eff -> 'policiers', '[]'::jsonb);
+    IF jsonb_typeof(v_liste) <> 'array' THEN v_liste := '[]'::jsonb; END IF;
+    v_n := jsonb_array_length(v_liste);
+
+    IF v_n = 0 THEN
+      v_etat := jsonb_set(v_etat, ARRAY['effectifsPolice','dernierPaiementJour'],
+                          to_jsonb(v_jour::text), true);
+      UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now()
+       WHERE id = r.id;
+      v_villes := v_villes || jsonb_build_array(jsonb_build_object(
+        'ville', r.city, 'effectif_avant', 0, 'verse', 0, 'partis', 0));
+      CONTINUE;
+    END IF;
+
+    v_du := 0;
+    FOR v_el IN SELECT value FROM jsonb_array_elements(v_liste) LOOP
+      v_du := v_du + CASE WHEN COALESCE(v_el->>'type','standard') = 'cynophile'
+                          THEN c_cynophile ELSE c_standard END;
+    END LOOP;
+
+    -- La caisse est celle du commissariat DE CETTE VILLE. L'autorite propre a l'operation vient
+    -- d'etre verifiee : on ouvre la porte interne pour cette transaction seulement.
+    v_caisse := p_pays || '_commissariat_' || r.city;
+    PERFORM set_config('rp.caisse_interne', 'on', true);
+    v_rep := public.caisse_institution_mouvement_plafonne(v_caisse, v_du);
+    PERFORM set_config('rp.caisse_interne', '', true);
+    IF NOT COALESCE((v_rep->>'ok')::boolean, false) THEN
+      v_villes := v_villes || jsonb_build_array(jsonb_build_object(
+        'ville', r.city, 'refus', COALESCE(v_rep->>'raison','debit_refuse')));
+      CONTINUE;
+    END IF;
+    v_verse := COALESCE((v_rep->>'verse')::numeric, 0);
+
+    v_cumul := 0; v_gardes := 0;
+    FOR v_el IN SELECT value FROM jsonb_array_elements(v_liste) LOOP
+      v_cumul := v_cumul + CASE WHEN COALESCE(v_el->>'type','standard') = 'cynophile'
+                                THEN c_cynophile ELSE c_standard END;
+      EXIT WHEN v_cumul > v_verse;
+      v_gardes := v_gardes + 1;
+    END LOOP;
+
+    IF v_gardes < v_n THEN
+      SELECT COALESCE(jsonb_agg(e ORDER BY o), '[]'::jsonb) INTO v_liste
+        FROM jsonb_array_elements(v_liste) WITH ORDINALITY AS t(e, o)
+       WHERE o <= v_gardes;
+      v_etat := jsonb_set(v_etat, ARRAY['effectifsPolice','policiers'], v_liste, true);
+    END IF;
+    v_etat := jsonb_set(v_etat, ARRAY['effectifsPolice','dernierPaiementJour'],
+                        to_jsonb(v_jour::text), true);
+    UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now()
+     WHERE id = r.id;
+
+    v_total_verse  := v_total_verse + v_verse;
+    v_total_partis := v_total_partis + (v_n - v_gardes);
+    v_villes := v_villes || jsonb_build_array(jsonb_build_object(
+      'ville', r.city, 'caisse', v_caisse, 'du', v_du, 'verse', v_verse,
+      'effectif_avant', v_n, 'effectif_apres', v_gardes, 'partis', v_n - v_gardes));
+  END LOOP;
+
+  RETURN jsonb_build_object('ok', true, 'jour', v_jour, 'pays', p_pays,
+    'verse_total', v_total_verse, 'partis_total', v_total_partis, 'villes', v_villes);
+END; $function$;
+
+-- police_pnj_id(text,text,text) -> text | sql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.police_pnj_id(p_pays text, p_ville text, p_matricule text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT 'police-' || p_pays || '-' || p_ville || '-' || p_matricule;
+$function$;
+
 -- police_signalement_resoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.police_signalement_resoudre(p_id text)
  RETURNS jsonb

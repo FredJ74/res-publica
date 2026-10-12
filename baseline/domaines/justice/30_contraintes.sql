@@ -23,6 +23,7 @@ ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pkey PRIMA
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_pkey PRIMARY KEY (id);
 ALTER TABLE public.infractions_empreinte ADD CONSTRAINT infractions_empreinte_pkey PRIMARY KEY (seul);
 ALTER TABLE public.jugements ADD CONSTRAINT jugements_pkey PRIMARY KEY (id);
+ALTER TABLE public.justice_avocats_commis ADD CONSTRAINT justice_avocats_commis_pk PRIMARY KEY (pays, ville);
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_pkey PRIMARY KEY (id);
 ALTER TABLE public.niveaux_prison ADD CONSTRAINT niveaux_prison_pkey PRIMARY KEY (id);
 ALTER TABLE public.plaintes_en_cours ADD CONSTRAINT plaintes_en_cours_pkey PRIMARY KEY (id);
@@ -47,6 +48,7 @@ ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pas_sur_so
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_amende_reference_check CHECK ((amende_reference >= 0));
 ALTER TABLE public.infractions_categories ADD CONSTRAINT infractions_categories_jours_reference_check CHECK ((jours_reference >= 1));
 ALTER TABLE public.infractions_empreinte ADD CONSTRAINT infractions_empreinte_seul_check CHECK (seul);
+ALTER TABLE public.justice_avocats_commis ADD CONSTRAINT justice_avocats_commis_cha_plage CHECK (((cha >= 1) AND (cha <= 20)));
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_etat_coherent CHECK (((etat = 'reglee'::text) = (montant_paye = montant_du)));
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_etat_connu CHECK ((etat = ANY (ARRAY['due'::text, 'reglee'::text])));
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_jours_positifs CHECK ((jours_indus > 0));

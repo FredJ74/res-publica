@@ -117,14 +117,22 @@ att('et son journal dit la verite',
     bDem.indexOf('transmiseDemasquage ?') >= 0);
 
 print('');
-print('3. DEFENSE DE L ACCUSE : QUATRE ISSUES NOMMEES, AUCUNE POSE LOCALE');
+print('3. DEFENSE DE L ACCUSE : LE JET ET L ISSUE ONT QUITTE LE NAVIGATEUR');
 var bDef = sansCommentaires(bloc('plateau-justice-economie.js', 'doDefense'));
 att('la porte est appelee une fois',
     compte(bDef, /sbRpc\('plainte_defendre'/g) === 1,
     compte(bDef, /sbRpc\('plainte_defendre'/g) + ' appel(s)');
-att('les quatre issues de la liste close sont nommees',
-    bDef.indexOf("issue = 'reussite_critique'") >= 0 && bDef.indexOf("issue = 'attenuante'") >= 0
-    && bDef.indexOf("issue = 'aggravation'") >= 0 && bDef.indexOf("issue = 'infructueuse'") >= 0);
+// LES QUATRE ISSUES ONT DISPARU, ET C'EST L'INVERSE DE CE QUE CETTE EPREUVE EXIGEAIT
+// (12 octobre 2026, fin de §A). Elles n'etaient pas une « liste close » rassurante : elles etaient
+// la preuve que le NAVIGATEUR decidait laquelle etait survenue. La porte serveur ne prend plus
+// qu'un identifiant d'affaire -- l'ancienne signature a ete SUPPRIMEE, pas remplacee -- et c'est
+// elle qui tire, decide, prononce et execute. L'epreuve mesure donc leur absence.
+att('plus aucune issue annoncee par le navigateur',
+    bDef.indexOf("issue = 'reussite_critique'") < 0 && bDef.indexOf("issue = 'attenuante'") < 0
+    && bDef.indexOf("issue = 'aggravation'") < 0 && bDef.indexOf("issue = 'infructueuse'") < 0
+    && bDef.indexOf('p_issue') < 0);
+att('la porte n est appelee qu avec l identifiant de l affaire',
+    bDef.indexOf("{ p_affaire_id: affaire.id }") >= 0);
 att("plus aucune pose locale du statut de l'affaire",
     bDef.indexOf("affaire.status =") < 0);
 att('plus aucune pose locale de la circonstance attenuante ni de l aggravation',
@@ -134,23 +142,28 @@ att('le verdict est lu AVANT toute annonce',
     bDef.indexOf('vDef.ok !== true') >= 0
     && bDef.indexOf('vDef.ok !== true') < bDef.lastIndexOf('showToast(titre'));
 att("l'affaire recopie l'etat arrete par le serveur",
-    bDef.indexOf('state.plaintesEnCours[i] = vDef.affaire') >= 0);
+    bDef.indexOf('state.plaintesEnCours[pos] = vDef.affaire') >= 0);
 att('les quatre motifs de refus de la porte sont nommes au joueur',
     bDef.indexOf("'affaire_non_defendable'") >= 0 && bDef.indexOf("'pas_mon_affaire'") >= 0
     && bDef.indexOf("'affaire_absente'") >= 0 && bDef.indexOf('frais ont été prélevés') >= 0);
-// LE JET RESTE AU CLIENT, MAIS PLUS POUR LA MEME RAISON -- ET CETTE EPREUVE A DU CHANGER AVEC
-// ELLE (12 octobre 2026). Elle exigeait que le mot `bonusFormation` figure a cote du jet : le
-// taux dependait de getStatEffective('CHA'), qui additionnait ce bonus temporaire sans colonne,
-// donc hors de portee du serveur. CE TERME A DISPARU de la formule avec la suppression de
-// `se_former`, et l'epreuve telle quelle serait devenue vide : elle aurait continue a passer en
-// trouvant le mot dans le COMMENTAIRE qui raconte sa disparition.
-// Ce qu'elle verifie desormais : le jet est un RESTE ASSUME, nomme comme tel, et renvoye au
-// chantier judiciaire -- pas une frontiere qu'on aurait oublie de franchir.
-var corpsDef = bloc('plateau-justice-economie.js', 'doDefense');
-att('la dependance au bonus de formation a quitte le jet de defense',
-    sansCommentaires(corpsDef).indexOf('bonusFormation') < 0);
-att('et le jet restant est nomme comme un reste, renvoye au chantier judiciaire',
-    corpsDef.indexOf('RESTE ASSUME') >= 0 && corpsDef.indexOf('chantier judiciaire') >= 0);
+// LE JET A QUITTE LE NAVIGATEUR, ET CETTE EPREUVE A CHANGE DEUX FOIS (12 octobre 2026).
+// Version 1 : elle exigeait que le mot `bonusFormation` figure a cote du jet -- le taux dependait
+// de getStatEffective('CHA'), qui additionnait un bonus sans colonne, donc hors de portee du
+// serveur. Version 2 : le terme ayant disparu avec `se_former`, elle verifiait que le jet etait
+// nomme comme un RESTE ASSUME, renvoye au chantier judiciaire.
+// Version 3, celle-ci : LE RESTE N'EXISTE PLUS. Ni jet, ni taux, ni CHA dans ce navigateur. La
+// formule vit au serveur dans `justice_defense_taux`, et l'ecran ne fait plus qu'AFFICHER le
+// taux et le jet que la porte lui rend.
+var corpsDef = sansCommentaires(bloc('plateau-justice-economie.js', 'doDefense'));
+att('plus aucun tirage dans le navigateur',
+    corpsDef.indexOf('Math.random') < 0);
+att('plus aucun calcul de taux, ni aucune lecture de caracteristique',
+    corpsDef.indexOf('getStatEffective') < 0 && corpsDef.indexOf('bonusFormation') < 0
+    && corpsDef.indexOf('verifierPreuveReelle') < 0 && corpsDef.indexOf('Math.min(90') < 0);
+att('le taux et le jet affiches sont ceux que le serveur a rendus',
+    corpsDef.indexOf('vDef.jet') >= 0 && corpsDef.indexOf('vDef.taux') >= 0);
+att('et le recit suit le verdict du serveur, il ne le recompose pas',
+    corpsDef.indexOf("vDef.verdict === 'relaxe'") >= 0 && corpsDef.indexOf('vDef.reussie === true') >= 0);
 
 print('');
 print('4. LE CLASSEMENT MINISTERIEL A DISPARU, ET AVEC LUI SES TROIS MOITIES');

@@ -79,17 +79,25 @@ BEGIN
        'infraction_constatee', 'imprimer_tracts_calomnieux')::text);
 
   -- =========================================================== LA PROCEDURE SIMPLIFIEE
+  -- LES CINQ PREMIERES EPREUVES ONT ETE RECALIBREES LE 12 OCTOBRE 2026 AU SOIR, et il fallait
+  -- bien les toucher : elles appelaient `plainte_defendre(affaire, issue)`, une signature qui
+  -- N'EXISTE PLUS. L'issue n'est plus annoncee par l'appelant -- c'etait le navigateur qui
+  -- decidait d'une peine -- et la porte ne prend plus qu'un identifiant d'affaire. Le DOMAINE
+  -- qu'elles mesuraient, lui, est inchange, et c'est ce qu'elles mesurent encore.
+  -- La resolution elle-meme (formule, jet, jugement, execution, absence d'appel) est eprouvee
+  -- par outils/bancs/banc-defense-simplifiee.sql -- 22 epreuves.
+
   n := n + 1;   -- T1 : SANS INFRACTION CANONIQUE, RIEN A PLAIDER. Le seuil n'est pas calculable.
   PERFORM pg_temp.je_suis(LEE_U);
-  v := public.plainte_defendre(A_FLOU, 'reussite_critique');
+  v := public.plainte_defendre(A_FLOU);
   PERFORM pg_temp.je_suis_le_serveur();
   IF coalesce(v->>'raison','') <> 'infraction_non_determinee' THEN
     ko:=ko+1; e:=e||E'\nT1 dossier sans infraction : '||v::text; END IF;
 
-  n := n + 1;   -- T2 : UN CRIME A 8 JOURS N'EST PAS CLOS PAR UNE REUSSITE CRITIQUE. C'est LE
-                --      defaut que le §A demandait de fermer.
+  n := n + 1;   -- T2 : UN CRIME A 8 JOURS NE SE PLAIDE PAS EN DIX SECONDES. C'est LE defaut que
+                --      le §A demandait de fermer, et le refus doit laisser le dossier INTACT.
   PERFORM pg_temp.je_suis(LEE_U);
-  v := public.plainte_defendre(A_GRAVE, 'reussite_critique');
+  v := public.plainte_defendre(A_GRAVE);
   PERFORM pg_temp.je_suis_le_serveur();
   SELECT data::jsonb INTO v_d FROM public.plaintes_en_cours WHERE id = A_GRAVE;
   IF coalesce(v->>'raison','') <> 'procedure_simplifiee_reservee_aux_peines_courtes'
@@ -97,32 +105,49 @@ BEGIN
      OR coalesce(v_d->>'status','') <> 'au_parquet' OR (v_d ? 'defense_le') THEN
     ko:=ko+1; e:=e||E'\nT2 crime clos par la defense : '||v::text||' / '||v_d::text; END IF;
 
-  n := n + 1;   -- T3 : UNE PEINE DE REFERENCE A 1 JOUR PASSE, et le dossier porte la marque.
+  n := n + 1;   -- T3 : UNE PEINE DE REFERENCE A 1 JOUR PASSE, et le SERVEUR rend le verdict.
+                --      L'issue n'est plus un parametre : elle est dans la reponse.
   PERFORM pg_temp.je_suis(LEE_U);
-  v := public.plainte_defendre(A_LEGER, 'attenuante');
+  v := public.plainte_defendre(A_LEGER);
   PERFORM pg_temp.je_suis_le_serveur();
   SELECT data::jsonb INTO v_d FROM public.plaintes_en_cours WHERE id = A_LEGER;
   IF coalesce((v->>'ok')::boolean,false) IS NOT TRUE
      OR (v_d->>'procedure_simplifiee') <> 'true'
-     OR (v_d->>'defense_issue') <> 'attenuante'
-     OR (v_d->'circonstanceAttenuante') <> 'true'::jsonb THEN
+     OR (v_d->>'status') NOT IN ('jugee','relaxe')
+     OR (v->>'verdict') NOT IN ('condamnation','relaxe')
+     OR (v->>'taux')::int NOT BETWEEN 5 AND 80
+     OR (v->>'avocat') IS NULL THEN
     ko:=ko+1; e:=e||E'\nT3 defense sur peine courte : '||v::text||' / '||v_d::text; END IF;
 
-  n := n + 1;   -- T4 : LA PROCEDURE EST DEFINITIVE. On ne relance pas le jet jusqu'a gagner.
+  n := n + 1;   -- T4 : LA PROCEDURE EST DEFINITIVE. On ne relance pas le jet jusqu'a gagner --
+                --      et desormais c'est le STATUT qui ferme la porte, le dossier etant juge.
   PERFORM pg_temp.je_suis(LEE_U);
-  v := public.plainte_defendre(A_LEGER, 'reussite_critique');
+  v := public.plainte_defendre(A_LEGER);
   PERFORM pg_temp.je_suis_le_serveur();
   SELECT data::jsonb INTO v_d FROM public.plaintes_en_cours WHERE id = A_LEGER;
-  IF coalesce(v->>'raison','') <> 'defense_deja_plaidee'
-     OR coalesce(v_d->>'status','') <> 'au_parquet' THEN
+  IF coalesce(v->>'raison','') NOT IN ('defense_deja_plaidee','affaire_non_defendable')
+     OR (v_d->>'status') NOT IN ('jugee','relaxe') THEN
     ko:=ko+1; e:=e||E'\nT4 seconde defense : '||v::text||' / '||v_d::text; END IF;
 
-  n := n + 1;   -- T5 : LA DEFENSE EST CONSIGNEE. Elle ne l'etait nulle part avant.
+  n := n + 1;   -- T5 : LA DEFENSE EST CONSIGNEE, ET LE VERDICT AVEC ELLE. Deux actes, pas un.
   SELECT count(*) INTO v_n FROM public.dossiers_judiciaires_actes
    WHERE affaire = A_LEGER AND type = 'defense_simplifiee' AND acteur = LEE
-     AND qualif_apres = 'vol' AND (donnees->>'issue') = 'attenuante';
+     AND qualif_apres = 'vol' AND (donnees->>'avocat') IS NOT NULL;
   IF v_n <> 1 THEN
     ko:=ko+1; e:=e||E'\nT5 defense non consignee : '||v_n||' acte(s)'; END IF;
+  SELECT count(*) INTO v_n FROM public.dossiers_judiciaires_actes
+   WHERE affaire = A_LEGER AND type IN ('condamnation','relaxe')
+     AND (donnees->>'procedure') = 'simplifiee';
+  IF v_n <> 1 THEN
+    ko:=ko+1; e:=e||E'\nT5b verdict non consigne : '||v_n||' acte(s)'; END IF;
+
+  -- ON REND SA LIBERTE AU PREVENU AVANT LA SUITE DU BANC. La procedure simplifiee est desormais
+  -- IMMEDIATEMENT EXECUTOIRE : si le jet est perdant, elle ouvre une detention -- et une peine en
+  -- cours empecherait les epreuves suivantes d'en ouvrir une, pour une raison qui n'aurait rien a
+  -- voir avec ce qu'elles mesurent. Ce n'est pas un contournement : c'est du decor qu'on remet en
+  -- place entre deux mesures.
+  DELETE FROM public.detentions WHERE nom = LEE;
+  UPDATE public.personnages_donnees SET est_emprisonne = NULL WHERE name = LEE;
 
   -- =========================================================== LE PV D'AUDITION
   n := n + 1;   -- T6 : LE PV EST CELUI DE L'ACCUSE, ET DE LUI SEUL.

@@ -19,6 +19,30 @@
    "sous": ""
   },
   {
+   "empreinte": "5dc9bcb5e0d97c41ec6d904c17b4b235",
+   "genre": "FUNCTION",
+   "objet": "admin_incarner(text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "cfab7efc61bdca666603d336f7f3240d",
+   "genre": "FUNCTION",
+   "objet": "admin_moi()",
+   "sous": ""
+  },
+  {
+   "empreinte": "39e027f2a19e99fb11fa95d5cdf16bcf",
+   "genre": "FUNCTION",
+   "objet": "admin_pnj_titulaire(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "eb872c331cec7af832f1bd1c2e781e5d",
+   "genre": "FUNCTION",
+   "objet": "est_administrateur()",
+   "sous": ""
+  },
+  {
    "empreinte": "13cdf5ea74d3d84ccf90e156d4364712",
    "genre": "FUNCTION",
    "objet": "generique_de_objet(jsonb)",
@@ -119,6 +143,114 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_exiger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_exiger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "admin_incarner(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_incarner(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_incarner(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_journal_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_journal_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "admin_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_pnj_titulaire(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_pnj_titulaire(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "admin_se_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_se_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_se_declarer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "admin_tribunal_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "admin_tribunal_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "admin_tribunal_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "deplacement_enregistrer(text,text,text,text)",
@@ -218,6 +350,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "est_administrateur()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "est_administrateur()",
    "privileges": "EXECUTE"
   },
   {
@@ -380,6 +524,42 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "generique_recettes_systeme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "incarnation_courante()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "incarnation_courante()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "incarnation_pays()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "incarnation_pays()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "incarnation_siege()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "incarnation_siege()",
    "privileges": "EXECUTE"
   },
   {
@@ -1128,11 +1308,11 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "3adfe15227fd377701196eeea8eb8c05",
+  "20_fonctions.sql": "dcca0fc610c6f060f5df4f97330ec995",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "ea5eb16a6b57f97cb5c5fb42c4b3f1bf",
-  "80_commentaires.sql": "fe2bbfafcfebed690a8b5367759ca335",
+  "70_droits.sql": "d9a19efd39b2493a7ddff2073f976e0d",
+  "80_commentaires.sql": "b77097a8d19897beddd94e3d2b17f19e",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
  "fonctions": [
@@ -1152,9 +1332,44 @@
    "signature": "acteur_poste_courant()"
   },
   {
-   "empreinte": "3845125abe2d370a629a5d7e0716979d",
+   "empreinte": "fb4809f77973607d3c61b1510ea89ffd",
    "security_definer": true,
    "signature": "acteur_present_sur_site(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "04ac662113ce9e8156f899d909ffe1f8",
+   "security_definer": true,
+   "signature": "admin_exiger()"
+  },
+  {
+   "empreinte": "e5266c477ba70a967e3ca80c8d3d374e",
+   "security_definer": true,
+   "signature": "admin_incarner(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "f58dfd73b2579c7a466de3b874de2660",
+   "security_definer": true,
+   "signature": "admin_journal_append_only()"
+  },
+  {
+   "empreinte": "25be003834610005374856d9bda5a27f",
+   "security_definer": true,
+   "signature": "admin_moi()"
+  },
+  {
+   "empreinte": "baca91b7ba849b466dae7844a4c1c4ef",
+   "security_definer": true,
+   "signature": "admin_pnj_titulaire(text,text,text)"
+  },
+  {
+   "empreinte": "7a2a376c50867deacff17c9d384394cd",
+   "security_definer": true,
+   "signature": "admin_se_declarer(text)"
+  },
+  {
+   "empreinte": "df1fbc8e75894a11bf90e812a891c995",
+   "security_definer": true,
+   "signature": "admin_tribunal_dossiers()"
   },
   {
    "empreinte": "fb8970ea456e901651db6d8bb6cc98eb",
@@ -1175,6 +1390,11 @@
    "empreinte": "f386e93c0d1b759c24ec687bb07d6eaf",
    "security_definer": false,
    "signature": "embargo_actif(text,text)"
+  },
+  {
+   "empreinte": "67b67f984fd3c8fe066d9682f5269b81",
+   "security_definer": true,
+   "signature": "est_administrateur()"
   },
   {
    "empreinte": "a1e1365c90c6f57b90a655a31da452d0",
@@ -1205,6 +1425,21 @@
    "empreinte": "8f4667678b96d4faf48234e93e5f4c7d",
    "security_definer": false,
    "signature": "generique_recettes_systeme(text)"
+  },
+  {
+   "empreinte": "18ffc6d661128342d06ec43d8847fe9d",
+   "security_definer": true,
+   "signature": "incarnation_courante()"
+  },
+  {
+   "empreinte": "df2fb538d61fe57532d215e9dbb72ad1",
+   "security_definer": true,
+   "signature": "incarnation_pays()"
+  },
+  {
+   "empreinte": "a60d64ef43c4ff0f9d3fca985304c6d8",
+   "security_definer": true,
+   "signature": "incarnation_siege()"
   },
   {
    "empreinte": "7403d083d82f901cc3e9d61463ab183d",

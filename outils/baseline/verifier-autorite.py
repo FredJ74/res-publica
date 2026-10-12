@@ -92,9 +92,23 @@ CODE = {"INSERT": "I", "UPDATE": "U", "DELETE": "D"}
 # Les briques qui disent QUI PARLE. Une fonction qui en cite une derive son
 # acteur du serveur ; une fonction qui n'en cite aucune fait confiance a ses
 # parametres. C'est toute la difference que ce chantier traque.
+#
+# `parquet_moi` ET `juge_moi` SONT AJOUTES LE 12 OCTOBRE 2026, ET CE N'EST PAS UN
+# RELACHEMENT. Ce sont les deux RESOLVEURS D'IDENTITE de la chaine judiciaire, au
+# meme titre que `acteur_poste_courant` : chacun lit `auth.uid()`, et chacun
+# reverifie en plus la titularite du PNJ quand l'administration l'incarne.
+# L'invariant 10 ne tolere qu'UN saut, a raison -- et le socle d'administration a
+# porte `juge_de_la_ville` a DEUX sauts de `auth.uid()` :
+#     justice_relaxer -> juge_de_la_ville -> juge_moi -> auth.uid()
+# Les trois portes du juge -- justice_relaxer, justice_rendre_sentence et
+# juge_suite_apres_abandon -- sont apparues « sans garde » alors que leur garde
+# avait simplement gagne un maillon. Declarer le resolveur plutot qu'allonger la
+# cloture garde l'invariant tranchant : au-dela d'un saut, il ne voudrait plus
+# rien dire.
 GARDES = re.compile(
     r"(exiger_acteur|est_mon_personnage|mon_personnage|mon_poste_est|mon_poste_est_dans"
     r"|acteur_poste_courant|poste_est_atteste|acteur_present_sur_site|acteur_identifie"
+    r"|parquet_moi|juge_moi"
     r"|est_appel_serveur|auth\.uid)\s*\(")
 
 # « cette fonction ecrit-elle ? » -- lu dans sa definition.

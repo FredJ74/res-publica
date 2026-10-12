@@ -22,6 +22,7 @@
  },
  "fichiers": {
   "90_socle/actes_nocturnes_mecanismes.sql": "6beede9c08087c806114322b3195e10d",
+  "90_socle/admin_actions_tribunal.sql": "d49e2c2ac656d4a332086198fa42a588",
   "90_socle/assemblee_catalogue_illegal.sql": "309ec5b5afbdb010a51455c5705fa396",
   "90_socle/assemblee_categories_interdiction.sql": "6b83c9717a7bfb0f923808ed384b6241",
   "90_socle/budget_national_champs_regles.sql": "5a0748599821164e7e867573b5c4f28f",
@@ -38,6 +39,7 @@
   "90_socle/entreprises_prix_rachat.sql": "6e6f7e60179e1e75c84afa75b719ba07",
   "90_socle/fonds_credits_sources.sql": "5ed486fae903b6bf7e14a2fd0357e86c",
   "90_socle/garde_republicaine_postes.sql": "bcb373b1f1845cd58b4ba1f6ea7c73ab",
+  "90_socle/justice_avocats_commis.sql": "c7aab297fe191e5693dfeb82ebfa01fe",
   "90_socle/mails_expediteurs_systeme.sql": "6d651858586454ac8f0c8e7775e4491f",
   "90_socle/offres_emploi_bne.sql": "4feedbdac3029d8c55a87b8b5693117e",
   "90_socle/pa_bonus_hotel.sql": "bc4ecf2cfd751674e610ddc714f659f3",
@@ -115,6 +117,7 @@
  },
  "lignes_par_table": {
   "actes_nocturnes_mecanismes": 3,
+  "admin_actions_tribunal": 10,
   "armureries_dotations": 3,
   "assemblee_catalogue_illegal": 7,
   "assemblee_categories_interdiction": 22,
@@ -154,6 +157,7 @@
   "imprimeries_declarees": 3,
   "indices_villes": 3,
   "journaux": 4,
+  "justice_avocats_commis": 3,
   "mails_expediteurs_systeme": 28,
   "militaire_armes_bonus": 16,
   "niveaux_prison": 4,

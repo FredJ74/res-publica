@@ -10,9 +10,12 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 9 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 12 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actes_nocturnes_mecanismes_pkey  (contrainte actes_nocturnes_mecanismes_pkey)
 --   actes_nocturnes_pkey  (contrainte actes_nocturnes_pkey)
+--   admin_actions_tribunal_pk  (contrainte admin_actions_tribunal_pk)
+--   admin_journal_pk  (contrainte admin_journal_pk)
+--   administrateurs_pk  (contrainte administrateurs_pk)
 --   ambassades_ouvertes_pkey  (contrainte ambassades_ouvertes_pkey)
 --   cron_journal_pkey  (contrainte cron_journal_pkey)
 --   etats_urgence_pkey  (contrainte etats_urgence_pkey)
